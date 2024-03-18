@@ -46,3 +46,21 @@
 	/* border: 1px solid var(--color-overlay); */
 	box-shadow: var(--shadow-2);
 }
+.PdfEditor .ExportPdfButton {
+	font: inherit;
+	background: var(--color-primary);
+	border: none;
+	color: var(--color-selected-contrast);
+	font-size: 1rem;
+	padding: 0.5rem 1rem;
+	border-radius: 6px;
+	margin: 6px;
+	margin-bottom: 0;
+	pointer-events: all;
+	z-index: var(--layer-panels);
+	border: 2px solid var(--color-background);
+	cursor: pointer;
+}
+.PdfEditor .ExportPdfButton:hover {
+	filter: brightness(1.1);
+}

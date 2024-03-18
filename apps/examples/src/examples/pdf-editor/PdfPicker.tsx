@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { Box, assertExists } from 'tldraw'
+import { AssetRecordType, Box, TLAssetId, TLShapeId, assertExists, createShapeId } from 'tldraw'
 import tldrawPdf from './assets/tldraw.pdf'
 
 export type PdfPage = {
 	src: string
 	bounds: Box
+	assetId: TLAssetId
+	shapeId: TLShapeId
 }
 
 export type Pdf = {
+	name: string
 	pages: PdfPage[]
 	source: string | ArrayBuffer
 }
@@ -17,13 +20,13 @@ const pageSpacing = 32
 export function PdfPicker({ onOpenPdf }: { onOpenPdf: (pdf: Pdf) => void }) {
 	const [isLoading, setIsLoading] = useState(false)
 
-	async function loadPdf(source: string | ArrayBuffer): Promise<Pdf> {
+	async function loadPdf(name: string, source: ArrayBuffer): Promise<Pdf> {
 		const PdfJS = await import('pdfjs-dist')
 		PdfJS.GlobalWorkerOptions.workerSrc = new URL(
 			'pdfjs-dist/build/pdf.worker.min.mjs',
 			import.meta.url
 		).toString()
-		const pdf = await PdfJS.getDocument(source).promise
+		const pdf = await PdfJS.getDocument(source.slice(0)).promise
 		const pages: PdfPage[] = []
 
 		const canvas = window.document.createElement('canvas')
@@ -50,6 +53,8 @@ export function PdfPicker({ onOpenPdf }: { onOpenPdf: (pdf: Pdf) => void }) {
 			pages.push({
 				src: canvas.toDataURL(),
 				bounds: new Box(0, top, width, height),
+				assetId: AssetRecordType.createId(),
+				shapeId: createShapeId(),
 			})
 			top += height + pageSpacing
 			widest = Math.max(widest, width)
@@ -62,6 +67,7 @@ export function PdfPicker({ onOpenPdf }: { onOpenPdf: (pdf: Pdf) => void }) {
 		}
 
 		return {
+			name,
 			pages,
 			source,
 		}
@@ -78,7 +84,7 @@ export function PdfPicker({ onOpenPdf }: { onOpenPdf: (pdf: Pdf) => void }) {
 
 			setIsLoading(true)
 			try {
-				const pdf = await loadPdf(await file.arrayBuffer())
+				const pdf = await loadPdf(file.name, await file.arrayBuffer())
 				onOpenPdf(pdf)
 			} finally {
 				setIsLoading(false)
@@ -90,7 +96,8 @@ export function PdfPicker({ onOpenPdf }: { onOpenPdf: (pdf: Pdf) => void }) {
 	async function onClickUseExample() {
 		setIsLoading(true)
 		try {
-			const pdf = await loadPdf(tldrawPdf)
+			const result = await fetch(tldrawPdf)
+			const pdf = await loadPdf('tldraw.pdf', await result.arrayBuffer())
 			onOpenPdf(pdf)
 		} finally {
 			setIsLoading(false)

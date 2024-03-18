@@ -1,52 +1,79 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import {
 	Box,
 	SVGContainer,
+	TLImageShape,
+	TLShapeId,
+	TLShapePartial,
 	Tldraw,
 	clamp,
 	compact,
+	getIndicesBetween,
 	react,
+	sortByIndex,
 	track,
 	useBreakpoint,
 	useEditor,
 } from 'tldraw'
 import { PORTRAIT_BREAKPOINT } from 'tldraw/src/lib/ui/constants'
+import { ExportPdfButton } from './ExportPdfButton'
 import { Pdf } from './PdfPicker'
 
 export function PdfEditor({ pdf }: { pdf: Pdf }) {
+	const pdfShapeIds = useMemo(() => pdf.pages.map((page) => page.shapeId), [pdf.pages])
 	return (
 		<Tldraw
 			onMount={(editor) => {
 				editor.updateInstanceState({ isDebugMode: false })
 				editor.setCamera({ x: 1000, y: 1000, z: 1 })
+
+				editor.createAssets(
+					pdf.pages.map((page) => ({
+						id: page.assetId,
+						typeName: 'asset',
+						type: 'image',
+						meta: {},
+						props: {
+							w: page.bounds.w,
+							h: page.bounds.h,
+							mimeType: 'image/png',
+							src: page.src,
+							name: 'page',
+							isAnimated: false,
+						},
+					}))
+				)
+
+				editor.createShapes(
+					pdf.pages.map(
+						(page): TLShapePartial<TLImageShape> => ({
+							id: page.shapeId,
+							type: 'image',
+							x: page.bounds.x,
+							y: page.bounds.y,
+							props: {
+								assetId: page.assetId,
+								w: page.bounds.w,
+								h: page.bounds.h,
+							},
+						})
+					)
+				)
 			}}
 			components={{
-				OnTheCanvas: useCallback(() => {
-					return <PdfBgRenderer pdf={pdf} />
-				}, [pdf]),
+				PageMenu: null,
 				InFrontOfTheCanvas: useCallback(() => {
 					return <PageOverlayScreen pdf={pdf} />
+				}, [pdf]),
+				SharePanel: useCallback(() => {
+					return <ExportPdfButton pdf={pdf} />
 				}, [pdf]),
 			}}
 		>
 			<ConstrainCamera pdf={pdf} />
+			<KeepShapesLocked shapeIds={pdfShapeIds} />
+			<KeepShapesAtBottomOfCurrentPage shapeIds={pdfShapeIds} />
 		</Tldraw>
-	)
-}
-
-function PdfBgRenderer({ pdf }: { pdf: Pdf }) {
-	return (
-		<div className="PdfBgRenderer">
-			{pdf.pages.map((page, i) => (
-				<img
-					key={i}
-					src={page.src}
-					width={page.bounds.w}
-					height={page.bounds.h}
-					style={{ top: page.bounds.y, left: page.bounds.x }}
-				/>
-			))}
-		</div>
 	)
 }
 
@@ -173,6 +200,85 @@ function ConstrainCamera({ pdf }: { pdf: Pdf }) {
 			removeReaction()
 		}
 	}, [editor, isMobile, pdf.pages])
+
+	return null
+}
+
+function KeepShapesLocked({ shapeIds }: { shapeIds: TLShapeId[] }) {
+	const editor = useEditor()
+
+	useEffect(() => {
+		const shapeIdSet = new Set(shapeIds)
+
+		for (const shapeId of shapeIdSet) {
+			const shape = editor.getShape(shapeId)!
+			editor.updateShape({
+				id: shape.id,
+				type: shape.type,
+				isLocked: true,
+			})
+		}
+
+		const removeOnChange = editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {
+			if (!shapeIdSet.has(next.id)) return next
+			if (next.isLocked) return next
+			return { ...prev, isLocked: true }
+		})
+
+		return () => {
+			removeOnChange()
+		}
+	}, [editor, shapeIds])
+
+	return null
+}
+
+function KeepShapesAtBottomOfCurrentPage({ shapeIds }: { shapeIds: TLShapeId[] }) {
+	const editor = useEditor()
+
+	useEffect(() => {
+		const shapeIdSet = new Set(shapeIds)
+
+		function makeSureShapesAreAtBottom() {
+			const shapes = shapeIds.map((id) => editor.getShape(id)!).sort(sortByIndex)
+			const pageId = editor.getCurrentPageId()
+
+			const siblings = editor.getSortedChildIdsForParent(pageId)
+			const currentBottomShapes = siblings.slice(0, shapes.length).map((id) => editor.getShape(id)!)
+
+			if (currentBottomShapes.every((shape, i) => shape.id === shapes[i].id)) return
+
+			const otherSiblings = siblings.filter((id) => !shapeIdSet.has(id))
+			const bottomSibling = otherSiblings[0]
+			const lowestIndex = editor.getShape(bottomSibling)!.index
+
+			const indexes = getIndicesBetween(undefined, lowestIndex, shapes.length)
+			editor.updateShapes(
+				shapes.map((shape, i) => ({
+					id: shape.id,
+					type: shape.type,
+					isLocked: shape.isLocked,
+					index: indexes[i],
+				}))
+			)
+		}
+
+		makeSureShapesAreAtBottom()
+
+		const removeOnCreate = editor.sideEffects.registerAfterCreateHandler(
+			'shape',
+			makeSureShapesAreAtBottom
+		)
+		const removeOnChange = editor.sideEffects.registerAfterChangeHandler(
+			'shape',
+			makeSureShapesAreAtBottom
+		)
+
+		return () => {
+			removeOnCreate()
+			removeOnChange()
+		}
+	}, [editor, shapeIds])
 
 	return null
 }
