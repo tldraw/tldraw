@@ -3,17 +3,20 @@ import { objectMapEntries, objectMapValues } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 
 /** @public */
-export enum RecordOpType {
-	Put = 'put',
-	Patch = 'patch',
-	Remove = 'remove',
-}
+export const RecordOpType = {
+	Put: 'put',
+	Patch: 'patch',
+	Remove: 'remove',
+} as const
+
+/** @public */
+export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType]
 
 /** @public */
 export type RecordOp<R extends UnknownRecord> =
-	| [RecordOpType.Put, R]
-	| [RecordOpType.Patch, ObjectDiff]
-	| [RecordOpType.Remove]
+	| [typeof RecordOpType.Put, R]
+	| [typeof RecordOpType.Patch, ObjectDiff]
+	| [typeof RecordOpType.Remove]
 
 /**
  * A one-way (non-reversible) diff designed for small json footprint. These are mainly intended to

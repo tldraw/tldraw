@@ -7351,7 +7351,8 @@ __metadata:
     "@types/is-ci": "npm:^3.0.0"
     "@types/minimist": "npm:^1.2.5"
     "@types/node": "npm:~20.11"
-    "@types/tar": "npm:^6.1.7"
+    "@types/tar": "npm:^6.1.11"
+    "@types/tmp": "npm:^0.2.6"
     "@typescript-eslint/utils": "npm:^5.59.0"
     ast-types: "npm:^0.14.2"
     cross-fetch: "npm:^3.1.5"
@@ -7370,6 +7371,7 @@ __metadata:
     semver: "npm:^7.3.8"
     svgo: "npm:^3.0.2"
     tar: "npm:^6.2.0"
+    tmp: "npm:^0.2.3"
     typescript: "npm:^5.3.3"
   languageName: unknown
   linkType: soft
@@ -7378,6 +7380,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/state@workspace:packages/state"
   dependencies:
+    "@tldraw/utils": "workspace:*"
     "@types/lodash": "npm:^4.14.188"
     "@types/react": "npm:^18.2.47"
     "@types/react-test-renderer": "npm:^18.0.0"
@@ -8213,13 +8216,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/tar@npm:^6.1.7":
-  version: 6.1.10
-  resolution: "@types/tar@npm:6.1.10"
+"@types/tar@npm:^6.1.11":
+  version: 6.1.11
+  resolution: "@types/tar@npm:6.1.11"
   dependencies:
     "@types/node": "npm:*"
     minipass: "npm:^4.0.0"
-  checksum: da525415a9bac9e81a1498d0b684dd7fa34f69a8568b54ab19660e99d5e7dcdeb2527a40059e1cfc697fe4bbcc18cd03a50c96356d84ab865345c2c48a9d88f6
+  checksum: 0d54b8acbd7d2fc43bd1097eef5058604a6b0e3a394cf485038303ca3ef39ecb42451c7dc5a2b9b18420e137ef5b2c76ec504e94c2f45010b2c8e8c3a49d9de7
   languageName: node
   linkType: hard
 
@@ -8229,6 +8232,13 @@ __metadata:
   dependencies:
     "@types/jest": "npm:*"
   checksum: e257de95a4a9385cc09ae4ca3396d23ad4b5cfb8e021a1ca3454c424c34636075f6fe151b2f881f79bf9d497aa04fbfae62449b135f293e8d2d614fa899898a8
+  languageName: node
+  linkType: hard
+
+"@types/tmp@npm:^0.2.6":
+  version: 0.2.6
+  resolution: "@types/tmp@npm:0.2.6"
+  checksum: e14a094c10569d3b56805552b21417860ef21060d969000d5d5b53604a78c2bdac216f064b03797d4b07a081e0141dd3ab22bc36923e75300eb1c023f7252cc7
   languageName: node
   linkType: hard
 
@@ -13721,12 +13731,12 @@ __metadata:
   linkType: hard
 
 "follow-redirects@npm:^1.14.8, follow-redirects@npm:^1.15.4":
-  version: 1.15.5
-  resolution: "follow-redirects@npm:1.15.5"
+  version: 1.15.6
+  resolution: "follow-redirects@npm:1.15.6"
   peerDependenciesMeta:
     debug:
       optional: true
-  checksum: d467f13c1c6aa734599b8b369cd7a625b20081af358f6204ff515f6f4116eb440de9c4e0c49f10798eeb0df26c95dd05d5e0d9ddc5786ab1a8a8abefe92929b4
+  checksum: 70c7612c4cab18e546e36b991bbf8009a1a41cf85354afe04b113d1117569abf760269409cb3eb842d9f7b03d62826687086b081c566ea7b1e6613cf29030bf7
   languageName: node
   linkType: hard
 
@@ -21523,7 +21533,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rimraf@npm:^3.0.0, rimraf@npm:^3.0.2":
+"rimraf@npm:^3.0.2":
   version: 3.0.2
   resolution: "rimraf@npm:3.0.2"
   dependencies:
@@ -23025,12 +23035,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tmp@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "tmp@npm:0.2.1"
-  dependencies:
-    rimraf: "npm:^3.0.0"
-  checksum: 445148d72df3ce99356bc89a7857a0c5c3b32958697a14e50952c6f7cf0a8016e746ababe9a74c1aa52f04c526661992f14659eba34d3c6701d49ba2f3cf781b
+"tmp@npm:^0.2.1, tmp@npm:^0.2.3":
+  version: 0.2.3
+  resolution: "tmp@npm:0.2.3"
+  checksum: 7b13696787f159c9754793a83aa79a24f1522d47b87462ddb57c18ee93ff26c74cbb2b8d9138f571d2e0e765c728fb2739863a672b280528512c6d83d511c6fa
   languageName: node
   linkType: hard
 
@@ -24410,8 +24418,8 @@ __metadata:
   linkType: hard
 
 "vite@npm:^5.0.0":
-  version: 5.1.5
-  resolution: "vite@npm:5.1.5"
+  version: 5.1.6
+  resolution: "vite@npm:5.1.6"
   dependencies:
     esbuild: "npm:^0.19.3"
     fsevents: "npm:~2.3.3"
@@ -24445,7 +24453,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: ada0a9138ca541723008ee261d80a97f6b70173508ded0f87834e2142660f45dff9801d143551aa3a8979ed446f0aec71ae114ab3ae978b3fbd5cf1f8c4bc331
+  checksum: f48073e93ead62fa58034398442de4517c824b3e50184f8b4059fb24077a26f2c04e910e29d7fb7ec51ea53eb61b9c7d94d56b14a38851de80c67480094cc79d
   languageName: node
   linkType: hard
 

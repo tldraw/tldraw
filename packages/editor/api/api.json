@@ -35941,7 +35941,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    type: 'command';\n    id: string;\n    data: Data;\n    name: Name;\n    preservesRedoStack?: boolean;\n}"
+              "text": "{\n    type: 'command';\n    data: Data;\n    name: Name;\n    preservesRedoStack?: boolean;\n}"
             },
             {
               "kind": "Content",
