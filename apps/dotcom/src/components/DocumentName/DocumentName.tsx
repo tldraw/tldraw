@@ -230,11 +230,6 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 				if (!state.isEditing) setState((prev) => ({ ...prev, name: null }))
 				return
 			}
-			if (trimmed.length) {
-				document.title = `tldraw - ${trimmed}`
-			} else {
-				document.title = `tldraw`
-			}
 
 			editor.updateDocumentSettings({ name: trimmed })
 		}
@@ -243,6 +238,14 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 			save()
 		}
 	}, [documentSettings.name, editor, state.isEditing, state.name, setState])
+
+	useEffect(() => {
+		if (documentSettings.name) {
+			document.title = `tldraw - ${documentSettings.name}`
+		} else {
+			document.title = 'tldraw'
+		}
+	}, [documentSettings.name])
 
 	const handleChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
