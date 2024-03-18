@@ -367,6 +367,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				console.error('Restarting socket')
 				this.socket.restart()
 				break
+			// legacy v4 events
+			case 'patch':
+			case 'push_result':
+				if (!this.isConnectedToRoom) break
+				this.incomingDiffBuffer.push(event)
+				this.scheduleRebase()
+				break
 			case 'data':
 				// wait for a connect to succeed before processing more events
 				if (!this.isConnectedToRoom) break
