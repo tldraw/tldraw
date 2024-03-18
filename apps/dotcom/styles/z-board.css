@@ -12,6 +12,8 @@
 	justify-content: flex-end;
 	z-index: var(--layer-panels);
 	align-items: center;
+	padding-top: 2px;
+	padding-right: 4px;
 }
 
 .tlui-share-zone__connection-status {
@@ -327,7 +329,8 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	height: 40px;
+	height: 36px;
+	margin-top: 4px;
 	max-width: 100%;
 	color: var(--color-text);
 	text-shadow: 1px 1px 0px var(--color-background);
