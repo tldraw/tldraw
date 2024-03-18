@@ -241,7 +241,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 
 	useEffect(() => {
 		if (documentSettings.name) {
-			document.title = `tldraw - ${documentSettings.name}`
+			document.title = `${documentSettings.name} · tldraw`
 		} else {
 			document.title = 'tldraw'
 		}
