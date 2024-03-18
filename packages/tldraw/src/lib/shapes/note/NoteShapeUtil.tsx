@@ -9,6 +9,7 @@ import {
 	TLNoteShape,
 	TLOnEditEndHandler,
 	TLShapeId,
+	VecLike,
 	ZERO_INDEX_KEY,
 	createShapeId,
 	getDefaultColorTheme,
@@ -206,7 +207,84 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		}
 	}
 	onHandlePointerUp(info: { shape: TLNoteShape; handleId: 'up' | 'down' | 'left' | 'right' }) {
-		duplicateShape(info.shape.id, info.handleId, this.editor)
+		this.duplicateShape(info.shape.id, info.handleId)
+	}
+	duplicateShape(shapeId: TLShapeId, direction: 'up' | 'down' | 'left' | 'right') {
+		const shape = this.editor.getShape(shapeId) as TLNoteShape
+
+		const rotationRadians = this.editor.getShapePageTransform(shape).rotation()
+		const distance = NOTE_SIZE + 100
+
+		// Calculate offsetX and offsetY based on the direction and rotation
+		let offsetX = 0
+		let offsetY = 0
+
+		switch (direction) {
+			case 'up':
+				offsetX = distance * Math.sin(rotationRadians)
+				offsetY = distance * -Math.cos(rotationRadians)
+				break
+			case 'down':
+				offsetX = distance * -Math.sin(rotationRadians)
+				offsetY = distance * Math.cos(rotationRadians)
+				break
+			case 'left':
+				offsetX = distance * -Math.cos(rotationRadians)
+				offsetY = distance * -Math.sin(rotationRadians)
+				break
+			case 'right':
+				offsetX = distance * Math.cos(rotationRadians)
+				offsetY = distance * Math.sin(rotationRadians)
+				break
+		}
+
+		const newShapeId = createShapeId()
+		const newShapeX = shape.x + offsetX
+		const newShapeY = shape.y + offsetY
+		const emptySpot = this.findPlaceForNewNoteShape({
+			x: newShapeX + NOTE_SIZE / 2,
+			y: newShapeY + NOTE_SIZE / 2,
+		})
+		this.editor.createShape({ type: 'note', id: newShapeId, x: emptySpot.x, y: emptySpot.y })
+		this.editor.createShape({
+			type: 'arrow',
+			props: {
+				start: {
+					type: 'binding',
+					boundShapeId: shapeId,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: true,
+				},
+				end: {
+					type: 'binding',
+					boundShapeId: newShapeId,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: true,
+				},
+			},
+		})
+		this.editor.setEditingShape(newShapeId)
+		// copied from editor.duplicateShapes
+		const selectionPageBounds = this.editor.getSelectionPageBounds()
+		const viewportPageBounds = this.editor.getViewportPageBounds()
+		if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+			this.editor.centerOnPoint(selectionPageBounds.center, {
+				duration: ANIMATION_MEDIUM_MS,
+			})
+		}
+	}
+
+	findPlaceForNewNoteShape(pos: VecLike): VecLike {
+		console.log(this.editor.getShapeAtPoint(pos))
+		if (!this.editor.getShapeAtPoint(pos)) {
+			console.log('no shape at point')
+			return { x: pos.x - NOTE_SIZE / 2, y: pos.y - NOTE_SIZE / 2 }
+		} else {
+			console.log('shape at point')
+			return this.findPlaceForNewNoteShape({ x: pos.x + 50, y: pos.y + 50 })
+		}
 	}
 }
 
@@ -240,72 +318,5 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 				growY,
 			},
 		}
-	}
-}
-
-function duplicateShape(
-	shapeId: TLShapeId,
-	direction: 'up' | 'down' | 'left' | 'right',
-	editor: Editor
-) {
-	const shape = editor.getShape(shapeId) as TLNoteShape
-
-	const rotationRadians = editor.getShapePageTransform(shape).rotation()
-	const distance = NOTE_SIZE + 100
-
-	// Calculate offsetX and offsetY based on the direction and rotation
-	let offsetX = 0
-	let offsetY = 0
-
-	switch (direction) {
-		case 'up':
-			offsetX = distance * Math.sin(rotationRadians)
-			offsetY = distance * -Math.cos(rotationRadians)
-			break
-		case 'down':
-			offsetX = distance * -Math.sin(rotationRadians)
-			offsetY = distance * Math.cos(rotationRadians)
-			break
-		case 'left':
-			offsetX = distance * -Math.cos(rotationRadians)
-			offsetY = distance * -Math.sin(rotationRadians)
-			break
-		case 'right':
-			offsetX = distance * Math.cos(rotationRadians)
-			offsetY = distance * Math.sin(rotationRadians)
-			break
-	}
-
-	const newShapeId = createShapeId()
-	const newShapeX = shape.x + offsetX
-	const newShapeY = shape.y + offsetY
-	editor.createShape({ type: 'note', id: newShapeId, x: newShapeX, y: newShapeY })
-	editor.createShape({
-		type: 'arrow',
-		props: {
-			start: {
-				type: 'binding',
-				boundShapeId: shapeId,
-				normalizedAnchor: { x: 0.5, y: 0.5 },
-				isExact: false,
-				isPrecise: true,
-			},
-			end: {
-				type: 'binding',
-				boundShapeId: newShapeId,
-				normalizedAnchor: { x: 0.5, y: 0.5 },
-				isExact: false,
-				isPrecise: true,
-			},
-		},
-	})
-	editor.setEditingShape(newShapeId)
-	// copied from editor.duplicateShapes
-	const selectionPageBounds = editor.getSelectionPageBounds()
-	const viewportPageBounds = editor.getViewportPageBounds()
-	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		editor.centerOnPoint(selectionPageBounds.center, {
-			duration: ANIMATION_MEDIUM_MS,
-		})
 	}
 }

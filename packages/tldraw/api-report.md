@@ -1087,6 +1087,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
+    duplicateShape(shapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): void;
+    // (undocumented)
+    findPlaceForNewNoteShape(pos: VecLike): VecLike;
+    // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
     getGeometry(shape: TLNoteShape): Rectangle2d;
