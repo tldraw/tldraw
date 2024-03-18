@@ -11,11 +11,14 @@ import {
 	noteShapeProps,
 	toDomPrecision,
 } from '@tldraw/editor'
+import { useEffect, useRef, useState } from 'react'
+import { Root, createRoot } from 'react-dom/client'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import EmojiDialog from '../shared/emojis'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 
 const NOTE_SIZE = 200
@@ -40,6 +43,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
+			reacji: {},
 		}
 	}
 
@@ -56,7 +60,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { color, font, size, align, text, verticalAlign },
+			props: { color, font, size, align, text, verticalAlign, reacji },
 		} = shape
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -92,12 +96,32 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							wrap
 						/>
 					</div>
+					<Reacji
+						editor={this.editor}
+						reacji={reacji}
+						onSelect={(reacji, step) => this.onReacjiSelect(shape, reacji, step)}
+					/>
 				</div>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 				)}
 			</>
 		)
+	}
+
+	onReacjiSelect = (shape: TLNoteShape, reacji: string, step: number) => {
+		const newReacji = Object.assign({}, shape.props.reacji)
+		newReacji[reacji] = (newReacji[reacji] || 0) + step
+
+		this.editor.updateShapes([
+			{
+				...shape,
+				props: {
+					...shape.props,
+					reacji: Object.fromEntries(Object.entries(newReacji).filter(([_, count]) => count > 0)),
+				},
+			},
+		])
 	}
 
 	indicator(shape: TLNoteShape) {
@@ -185,6 +209,75 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			])
 		}
 	}
+}
+
+type ReacjiBagType = { [key: string]: number }
+
+function Reacji({
+	editor,
+	reacji,
+	onSelect,
+}: {
+	editor: Editor
+	reacji: ReacjiBagType | undefined
+	onSelect: (reacji: string, step: number) => void
+}) {
+	const [renderRoot, setRenderRoot] = useState<Root>()
+	const addButtonRef = useRef<HTMLButtonElement>(null)
+
+	useEffect(() => {
+		const div = document.createElement('div')
+		div.id = 'tl-emoji-menu-root'
+		document.body.appendChild(div)
+		const root = createRoot(div)
+		setRenderRoot(root)
+
+		return () => {
+			root.unmount()
+			document.body.removeChild(div)
+		}
+	}, [])
+
+	const onEmojiSelect = async (emoji: any) => {
+		onSelect(emoji.native, 1)
+		closeMenu()
+	}
+
+	const onEmojiRetract = (reacji: string) => {
+		onSelect(reacji, -1)
+	}
+
+	const closeMenu = () => {
+		renderRoot?.render(null)
+	}
+
+	const handleOpen = () => {
+		const coords = addButtonRef.current?.getBoundingClientRect()
+
+		renderRoot?.render(
+			<EmojiDialog
+				editor={editor}
+				onEmojiSelect={onEmojiSelect}
+				onClickOutside={closeMenu}
+				top={coords?.top}
+				left={coords?.left}
+			/>
+		)
+	}
+
+	return (
+		<div className="tl-note__reacji">
+			{reacji &&
+				Object.entries(reacji).map(([reacji, count]) => (
+					<button key={reacji} onMouseDown={() => onEmojiRetract(reacji)}>
+						{reacji} <span className="tl-note__reacji-count">{count}</span>
+					</button>
+				))}
+			<button className="tl-note__reacji-add" ref={addButtonRef} onMouseDown={handleOpen}>
+				+
+			</button>
+		</div>
+	)
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {

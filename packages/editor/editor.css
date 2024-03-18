@@ -1217,6 +1217,49 @@ input,
 	opacity: 0.28;
 }
 
+.tl-note__reacji {
+	position: absolute;
+	bottom: 4px;
+	margin-left: 4px;
+	margin-right: 4px;
+	min-height: 21px;
+	z-index: 10;
+	pointer-events: all;
+}
+
+.tl-note__reacji-add {
+	opacity: 0;
+}
+
+.tl-note__reacji:hover .tl-note__reacji-add {
+	opacity: 1;
+}
+
+.tl-note__reacji button {
+	margin-right: 4px;
+	background: transparent;
+	border: 1px solid transparent;
+	transition: all 100ms ease-in;
+	font-size: 20px;
+	line-height: 22px;
+	width: 36px;
+	justify-content: center;
+	display: inline-flex;
+	border-radius: var(--radius-1);
+}
+
+.tl-note__reacji button:hover {
+	margin-right: 4px;
+	background-color: var(--color-background);
+	border: 1px solid var(--color-selected);
+}
+
+.tl-note__reacji-count {
+	color: var(--color-text-1);
+	font-size: 10px;
+	margin-left: 4px;
+}
+
 .tl-loading {
 	background-color: var(--color-background);
 	color: var(--color-text-1);

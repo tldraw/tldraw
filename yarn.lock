@@ -2555,6 +2555,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@emoji-mart/data@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@emoji-mart/data@npm:1.1.2"
+  checksum: c285aa159b00b728d37bc2c6a30ad007fd0d468982c80b16bc8ef6a982c615e9811d297a11ff485ee981bd9a41a63988ad34e8d4a65fb807c4a1bf74f3e92443
+  languageName: node
+  linkType: hard
+
 "@emotion/hash@npm:^0.9.0":
   version: 0.9.1
   resolution: "@emotion/hash@npm:0.9.1"
@@ -11779,6 +11786,13 @@ __metadata:
   version: 0.13.1
   resolution: "emittery@npm:0.13.1"
   checksum: fbe214171d878b924eedf1757badf58a5dce071cd1fa7f620fa841a0901a80d6da47ff05929d53163105e621ce11a71b9d8acb1148ffe1745e045145f6e69521
+  languageName: node
+  linkType: hard
+
+"emoji-mart@npm:^5.5.2":
+  version: 5.5.2
+  resolution: "emoji-mart@npm:5.5.2"
+  checksum: 3b891f7940b25fbe83eb784b655bca9fa1b552ddf1c76bf631d51c4b2adef7072834f58b08ed63dc3fccd635d63de7a38f40cd0320fa7c24d97b9ced60dec957
   languageName: node
   linkType: hard
 
@@ -22986,6 +23000,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw@workspace:packages/tldraw"
   dependencies:
+    "@emoji-mart/data": "npm:^1.1.2"
     "@peculiar/webcrypto": "npm:^1.4.0"
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@radix-ui/react-context-menu": "npm:^2.1.5"
@@ -23004,6 +23019,7 @@ __metadata:
     canvas-size: "npm:^1.2.6"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.3.2"
+    emoji-mart: "npm:^5.5.2"
     hotkeys-js: "npm:^3.11.2"
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
