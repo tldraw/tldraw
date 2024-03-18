@@ -112,12 +112,7 @@ export class Translating extends StateNode {
 	}
 
 	override onKeyDown = () => {
-		if (this.editor.inputs.altKey && !this.isCloning) {
-			this.startCloning()
-			return
-		}
-
-		// need to update in case user pressed a different modifier key
+		// need to update in case user pressed a modifier key
 		this.updateShapes()
 	}
 
