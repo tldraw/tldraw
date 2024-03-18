@@ -50,7 +50,7 @@
 		}
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.27",
-		"jest-environment-jsdom": "^29.4.3"
+		"jest-environment-jsdom": "^29.4.3",
+		"lazyrepo": "0.0.0-alpha.27"
 	}
 }
