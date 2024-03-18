@@ -544,3 +544,24 @@ test('fast-checking squish', () => {
 		}
 	)
 })
+
+test('problem: applying a patch to an array', () => {
+	fc.assert(
+		fc.property(
+			initialStoreContentArb,
+			fc.commands(allCommands, {
+				replayPath: 'CDJ:F',
+			}),
+			(initialStoreContent, cmds) => {
+				fc.modelRun(
+					() => ({
+						model: new Model(initialStoreContent),
+						real: 'whatever',
+					}),
+					cmds
+				)
+			}
+		),
+		{ seed: -1883357795, path: '7653:1:2:2:4:3:3:3:3', endOnFailure: true }
+	)
+})

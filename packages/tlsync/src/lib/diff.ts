@@ -236,7 +236,11 @@ export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectD
 				break
 			}
 			case ValueOpType.Patch: {
-				if (object[key as keyof T] && typeof object[key as keyof T] === 'object') {
+				if (
+					object[key as keyof T] &&
+					typeof object[key as keyof T] === 'object' &&
+					!Array.isArray(object[key as keyof T])
+				) {
 					const diff = op[1]
 					const patched = applyObjectDiff(object[key as keyof T] as object, diff)
 					if (patched !== object[key as keyof T]) {
