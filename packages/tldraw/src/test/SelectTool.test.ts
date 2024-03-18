@@ -433,7 +433,7 @@ describe('When editing shapes', () => {
 		expect(editor.getShape(shapeId)).toBe(undefined)
 	})
 
-	it('It deletes an empty text shape when your click another text shape', () => {
+	it('It deletes an empty text shape when you click another text shape', () => {
 		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 		expect(editor.getCurrentPageShapes().length).toBe(5)
