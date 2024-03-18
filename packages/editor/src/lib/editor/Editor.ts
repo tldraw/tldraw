@@ -8728,7 +8728,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// Update the camera here, which will dispatch a pointer move...
 					// this will also update the pointer position, etc
-					if (!this.getInstanceState().canMoveCamera) return this
 					const { x: cx, y: cy, z: cz } = this.getCamera()
 					this._setCamera({ x: cx + info.delta.x / cz, y: cy + info.delta.y / cz, z: cz }, true)
 
