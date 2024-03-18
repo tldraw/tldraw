@@ -30,23 +30,35 @@ export function isNonNullish<T>(
 	return value !== null && value !== undefined
 }
 
+function getStructuredClone(): [<T>(i: T) => T, boolean] {
+	if (typeof globalThis !== 'undefined' && (globalThis as any).structuredClone) {
+		return [globalThis.structuredClone as <T>(i: T) => T, true]
+	}
+
+	if (typeof global !== 'undefined' && (global as any).structuredClone) {
+		return [global.structuredClone as <T>(i: T) => T, true]
+	}
+
+	if (typeof window !== 'undefined' && (window as any).structuredClone) {
+		return [window.structuredClone as <T>(i: T) => T, true]
+	}
+
+	return [<T>(i: T): T => (i ? JSON.parse(JSON.stringify(i)) : i), false]
+}
+
+const _structuredClone = getStructuredClone()
+
 /**
  * Create a deep copy of a value. Uses the structuredClone API if available, otherwise uses JSON.parse(JSON.stringify()).
  *
  * @param i - The value to clone.
  * @public */
-export const structuredClone =
-	// cloudflare workers
-	typeof globalThis !== 'undefined' && (globalThis as any).structuredClone
-		? (globalThis.structuredClone as <T>(i: T) => T)
-		: // node
-			(global as any).structuredClone
-			? (global.structuredClone as <T>(i: T) => T)
-			: // browser
-				typeof window !== 'undefined' && (window as any).structuredClone
-				? (window.structuredClone as <T>(i: T) => T)
-				: // fallback
-					<T>(i: T): T => (i ? JSON.parse(JSON.stringify(i)) : i)
+export const structuredClone = _structuredClone[0]
+
+/**
+ * @internal
+ */
+export const isNativeStructuredClone = _structuredClone[1]
 
 /**
  * When we patch structuredClone in jsdom for testing (see https://github.com/jsdom/jsdom/issues/3363),

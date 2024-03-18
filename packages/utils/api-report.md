@@ -140,6 +140,9 @@ export function invLerp(a: number, b: number, t: number): number;
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
 
+// @internal (undocumented)
+export const isNativeStructuredClone: boolean;
+
 // @public
 export function isNonNull<T>(value: T): value is typeof value extends null ? never : T;
 

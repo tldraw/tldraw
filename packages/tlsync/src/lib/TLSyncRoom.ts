@@ -13,10 +13,12 @@ import { DocumentRecordType, PageRecordType, TLDOCUMENT_ID } from '@tldraw/tlsch
 import {
 	IndexKey,
 	Result,
+	assert,
 	assertExists,
 	exhaustiveSwitchError,
 	getOwnProperty,
 	hasOwnProperty,
+	isNativeStructuredClone,
 	objectMapEntries,
 	objectMapKeys,
 } from '@tldraw/utils'
@@ -208,6 +210,12 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		public readonly schema: StoreSchema<R, any>,
 		snapshot?: RoomSnapshot
 	) {
+		assert(
+			isNativeStructuredClone,
+			'TLSyncRoom is supposed to run either on Cloudflare Workers' +
+				'or on a 18+ version of Node.js, which both support the native structuredClone API'
+		)
+
 		// do a json serialization cycle to make sure the schema has no 'undefined' values
 		this.serializedSchema = JSON.parse(JSON.stringify(schema.serialize()))
 

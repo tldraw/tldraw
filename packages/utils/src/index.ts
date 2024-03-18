@@ -67,6 +67,7 @@ export type { Expand, RecursivePartial, Required } from './lib/types'
 export {
 	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
 	isDefined,
+	isNativeStructuredClone,
 	isNonNull,
 	isNonNullish,
 	structuredClone,
