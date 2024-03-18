@@ -1,3 +1,15 @@
+# v2.0.2 (Mon Mar 18 2024)
+
+#### 🐛 Bug Fix
+
+- Fix jpg export and tests (#3198) [#3199](https://github.com/tldraw/tldraw/pull/3199) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v2.0.0 (Thu Feb 29 2024)
 
 #### ⚠️ Pushed to `main`

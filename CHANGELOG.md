@@ -1,3 +1,23 @@
+# v2.0.2 (Mon Mar 18 2024)
+
+#### 🐛 Bug Fix
+
+- [docs] Sync docs deploy with npm deploy [#3153](https://github.com/tldraw/tldraw/pull/3153) ([@ds300](https://github.com/ds300))
+- `tldraw`
+  - Fix jpg export and tests (#3198) [#3199](https://github.com/tldraw/tldraw/pull/3199) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `v2.0.x`
+
+- empty commit ([@SomeHats](https://github.com/SomeHats))
+- fix release eliding ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.0.1 (Mon Mar 11 2024)
 
 #### 🐛 Bug Fix
