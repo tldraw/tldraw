@@ -12895,14 +12895,6 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", direction: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "'down' | 'left' | 'right' | 'up'"
-                },
-                {
-                  "kind": "Content",
                   "text": "): "
                 },
                 {
@@ -12916,8 +12908,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 3,
+                "endIndex": 4
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -12928,14 +12920,6 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "direction",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
                   },
                   "isOptional": false
                 }
@@ -13567,7 +13551,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        handleId: 'down' | 'left' | 'right' | 'up';\n    }"
+                  "text": ";\n        handleId: 'create';\n    }"
                 },
                 {
                   "kind": "Content",

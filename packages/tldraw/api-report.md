@@ -1087,7 +1087,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
-    duplicateShape(shape: TLNoteShape, direction: 'down' | 'left' | 'right' | 'up'): void;
+    duplicateShape(shape: TLNoteShape): void;
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
@@ -1161,7 +1161,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onHandlePointerUp(info: {
         shape: TLNoteShape;
-        handleId: 'down' | 'left' | 'right' | 'up';
+        handleId: 'create';
     }): void;
     // (undocumented)
     static props: {

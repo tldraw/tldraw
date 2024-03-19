@@ -44,12 +44,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
-			buttons: [
-				{ x: 0.5, y: -0.1 },
-				{ x: 1.1, y: 0.5 },
-				{ x: 0.5, y: 1.1 },
-				{ x: -0.1, y: 0.5 },
-			],
+			buttons: [{ x: 0.5, y: 0.5 }],
 		}
 	}
 
@@ -63,9 +58,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 	override getHandles(shape: TLNoteShape): TLHandle[] {
 		const { buttons } = shape.props
-		const directionArr = ['up', 'right', 'down', 'left']
-		return buttons.map((button, i) => ({
-			id: directionArr[i],
+		// const directionArr = ['up', 'right', 'down', 'left']
+		return buttons.map((button) => ({
+			id: 'create',
 			type: 'vertex',
 			index: ZERO_INDEX_KEY,
 			x: button.x * NOTE_SIZE,
@@ -204,20 +199,20 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			])
 		}
 	}
-	onHandlePointerUp(info: { shape: TLNoteShape; handleId: 'up' | 'down' | 'left' | 'right' }) {
-		this.duplicateShape(info.shape, info.handleId)
+	onHandlePointerUp(info: { shape: TLNoteShape; handleId: 'create' }) {
+		this.duplicateShape(info.shape)
 	}
-	duplicateShape(shape: TLNoteShape, direction: 'up' | 'down' | 'left' | 'right') {
+	duplicateShape(shape: TLNoteShape) {
 		// give the shape a bit of padding to make the arrows look better
 		const distance = NOTE_SIZE + 100
 		const centerOffset = NOTE_SIZE / 2
 		let count = 0
 		let emptySpot = {} as VecLike
 		const positions = {
-			up: [] as VecLike[],
+			right: [] as VecLike[],
 			down: [] as VecLike[],
 			left: [] as VecLike[],
-			right: [] as VecLike[],
+			up: [] as VecLike[],
 		}
 		const LAYERS = 7
 		const rotationRadians = this.editor.getShapePageTransform(shape).rotation()
@@ -281,14 +276,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const manhattanDistance = (a: VecLike, b: VecLike) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
 
 		// Sort the positions in each direction based on their Manhattan distance to the shape's origin
+		let allPositions: VecLike[] = []
 		Object.keys(positions).forEach((direction) => {
-			positions[direction as 'up' | 'down' | 'left' | 'right'].sort(
-				(a: VecLike, b: VecLike) => manhattanDistance(a, shape) - manhattanDistance(b, shape)
-			)
+			allPositions = allPositions.concat(positions[direction as 'up' | 'down' | 'left' | 'right'])
 		})
 
-		while (count < positions[direction].length) {
-			const position = positions[direction][count]
+		allPositions = allPositions.sort(
+			(a: VecLike, b: VecLike) => manhattanDistance(a, shape) - manhattanDistance(b, shape)
+		)
+
+		while (count < allPositions.length) {
+			const position = allPositions[count]
 			/* A better version of this is to draw a box where you want the shape to go 
 			and hit test for any shapes that may be inside the box, similar to the logic 
 			in the select tool. For now, we're just checking a single point */
