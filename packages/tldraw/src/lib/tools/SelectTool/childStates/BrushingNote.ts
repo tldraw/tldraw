@@ -92,7 +92,7 @@ export class BrushingNote extends StateNode {
 		}
 		// test how many notes fit in the brush horizontally and vertically
 
-		const noteSize = 215
+		const noteSize = 200 + 30
 		const brushWidth = this.brush.width
 		const offsetOriginPoint = {
 			x: this.originPoint.x - noteSize / 2 + 15,
@@ -110,6 +110,7 @@ export class BrushingNote extends StateNode {
 		for (let i = 0; i < notesPerColumn; i++) {
 			for (let j = 0; j < notesPerRow; j++) {
 				if (i === 0 && j === 0) continue
+				const padding = 30
 				let x = offsetOriginPoint.x + j * noteSize
 				let y = offsetOriginPoint.y + i * noteSize
 				if (direction.isLeft) x = offsetOriginPoint.x - j * noteSize
