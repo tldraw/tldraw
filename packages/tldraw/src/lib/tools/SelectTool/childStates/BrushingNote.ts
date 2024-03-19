@@ -75,6 +75,7 @@ export class BrushingNote extends StateNode {
 	private complete() {
 		this.createNoteGrid()
 		this.isDirty = false
+		this.gridShapes = []
 		this.parent.transition('idle')
 	}
 
@@ -110,7 +111,6 @@ export class BrushingNote extends StateNode {
 		for (let i = 0; i < notesPerColumn; i++) {
 			for (let j = 0; j < notesPerRow; j++) {
 				if (i === 0 && j === 0) continue
-				const padding = 30
 				let x = offsetOriginPoint.x + j * noteSize
 				let y = offsetOriginPoint.y + i * noteSize
 				if (direction.isLeft) x = offsetOriginPoint.x - j * noteSize
