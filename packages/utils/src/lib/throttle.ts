@@ -74,31 +74,23 @@ export function fpsThrottle(fn: () => void) {
  * Calls the function on the next frame. The target frame rate is 60fps.
  * If the same fn is passed again before the next frame, it will still be called only once.
  * @param fn - the fun to call on the next frame
- * @returns a function that will cancel the call if called before the next frame
+ * @returns
  * @internal
  */
-export function throttleToNextFrame(fn: () => void): () => void {
+export function throttleToNextFrame(fn: () => void) {
 	if (isTest()) {
-		fn()
-		return () => {
-			// noop
-		}
+		return fn()
 	}
 
-	if (!fpsQueue.includes(fn)) {
-		fpsQueue.push(fn)
-		if (!started) {
-			started = true
-			// We set last to Date.now() - targetTimePerFrame - 1 so that the first run will happen immediately
-			last = Date.now() - targetTimePerFrame - 1
-		}
-		tick()
+	if (fpsQueue.includes(fn)) {
+		return
 	}
 
-	return () => {
-		const index = fpsQueue.indexOf(fn)
-		if (index > -1) {
-			fpsQueue.splice(index, 1)
-		}
+	fpsQueue.push(fn)
+	if (!started) {
+		started = true
+		// We set last to Date.now() - targetTimePerFrame - 1 so that the first run will happen immediately
+		last = Date.now() - targetTimePerFrame - 1
 	}
+	tick()
 }
