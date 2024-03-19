@@ -36,7 +36,6 @@ export class Brushing extends StateNode {
 
 	override onEnter = (info: TLPointerEventInfo & { target: 'canvas' }) => {
 		const { altKey, currentPagePoint } = this.editor.inputs
-
 		this.isWrapMode = this.editor.user.getIsWrapMode()
 
 		if (altKey) {

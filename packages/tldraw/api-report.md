@@ -1247,7 +1247,7 @@ export function SelectAllMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class SelectTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Brushing | typeof Crop | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_11 | typeof PointingArrowLabel | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof ScribbleBrushing | typeof Translating)[];
+    static children: () => (typeof Brushing | typeof BrushingNote | typeof Crop | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_11 | typeof PointingArrowLabel | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof ScribbleBrushing | typeof Translating)[];
     // (undocumented)
     static id: string;
     // (undocumented)

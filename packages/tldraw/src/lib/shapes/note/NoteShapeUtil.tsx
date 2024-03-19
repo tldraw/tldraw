@@ -44,12 +44,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
-			buttons: [
-				{ x: 0.5, y: -0.1 },
-				{ x: 1.1, y: 0.5 },
-				{ x: 0.5, y: 1.1 },
-				{ x: -0.1, y: 0.5 },
-			],
+			buttons: [{ x: 0.5, y: 0.5 }],
 		}
 	}
 

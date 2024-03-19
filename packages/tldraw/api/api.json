@@ -14567,6 +14567,15 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "BrushingNote",
+                  "canonicalReference": "tldraw!~BrushingNote:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
                   "text": "Crop",
                   "canonicalReference": "tldraw!~Crop:class"
                 },
@@ -14729,7 +14738,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 38
+                "endIndex": 40
               },
               "isStatic": true,
               "isProtected": false,

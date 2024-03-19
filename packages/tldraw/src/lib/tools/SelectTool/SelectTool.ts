@@ -1,5 +1,6 @@
 import { StateNode, react } from '@tldraw/editor'
 import { Brushing } from './childStates/Brushing'
+import { BrushingNote } from './childStates/BrushingNote'
 import { Crop } from './childStates/Crop/Crop'
 import { Cropping } from './childStates/Cropping'
 import { DraggingHandle } from './childStates/DraggingHandle'
@@ -32,6 +33,7 @@ export class SelectTool extends StateNode {
 		PointingShape,
 		Translating,
 		Brushing,
+		BrushingNote,
 		ScribbleBrushing,
 		PointingCropHandle,
 		PointingSelection,

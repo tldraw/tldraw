@@ -13,7 +13,6 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Vec,
-	createShapeId,
 	snapAngle,
 	sortByIndex,
 	structuredClone,
@@ -62,16 +61,7 @@ export class DraggingHandle extends StateNode {
 		this.initialHandle = structuredClone(handle)
 
 		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
-			const shapeId = createShapeId()
-			const pagePoint = this.editor.inputs.originPagePoint
-			this.editor.createShape({
-				type: 'note',
-				id: shapeId,
-				x: pagePoint.x - 100,
-				y: pagePoint.y - 50,
-			})
-			this.editor.select(shapeId)
-			this.parent.transition('translating', { shapeId })
+			this.parent.transition('brushing_note', this.info)
 		}
 
 		if (this.editor.isShapeOfType<TLLineShape>(shape, 'line')) {
