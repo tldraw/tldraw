@@ -19,6 +19,11 @@ import { PORTRAIT_BREAKPOINT } from 'tldraw/src/lib/ui/constants'
 import { ExportPdfButton } from './ExportPdfButton'
 import { Pdf } from './PdfPicker'
 
+// TODO:
+// - prevent changing pages (create page, change page, move shapes to new page)
+// - prevent locked shape context menu
+// - inertial scrolling for constrained camera
+// - render pages on-demand instead of all at once.
 export function PdfEditor({ pdf }: { pdf: Pdf }) {
 	const pdfShapeIds = useMemo(() => pdf.pages.map((page) => page.shapeId), [pdf.pages])
 	return (
