@@ -35,7 +35,6 @@ export class Translating extends StateNode {
 
 	isCloning = false
 	isCreating = false
-	isDirty = false
 	onCreate: (shape: TLShape | null) => void = () => void null
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
@@ -51,7 +50,6 @@ export class Translating extends StateNode {
 		const { isCreating = false, onCreate = () => void null } = info
 
 		this.info = info
-		this.isDirty = false
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
 		this.onCreate = onCreate
@@ -100,14 +98,10 @@ export class Translating extends StateNode {
 			this.updateParentTransforms
 		)
 		moveCameraWhenCloseToEdge(this.editor)
-		if (this.isDirty) {
-			this.isDirty = false
-			this.updateShapes()
-		}
 	}
 
 	override onPointerMove = () => {
-		this.isDirty = true
+		this.updateShapes()
 	}
 
 	override onKeyDown = () => {
@@ -172,7 +166,6 @@ export class Translating extends StateNode {
 
 	protected complete() {
 		this.updateShapes()
-		this.isDirty = false
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
 		this.handleEnd()
 

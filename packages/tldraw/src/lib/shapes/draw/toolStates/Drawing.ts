@@ -51,18 +51,11 @@ export class Drawing extends StateNode {
 
 	markId = null as null | string
 
-	// Used to track whether we have changes that have not yet been pushed to the Editor.
-	isDirty = false
-	// The changes that have not yet been pushed to the Editor.
-	shapePartial: TLShapePartial<DrawableShape> | null = null
-
 	override onEnter = (info: TLPointerEventInfo) => {
 		this.markId = null
 		this.info = info
 		this.canDraw = !this.editor.getIsMenuOpen()
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
-		this.shapePartial = null
-		this.isDirty = false
 		if (this.canDraw) {
 			this.startShape()
 		}
@@ -106,16 +99,8 @@ export class Drawing extends StateNode {
 				this.mergeNextPoint = false
 			}
 
-			this.processUpdates()
+			this.updateShapes()
 		}
-	}
-
-	override onTick = () => {
-		if (!this.isDirty) return
-		this.isDirty = false
-		if (!this.shapePartial) return
-
-		this.editor.updateShapes([this.shapePartial], { squashing: true })
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
@@ -132,7 +117,7 @@ export class Drawing extends StateNode {
 				}
 			}
 		}
-		this.processUpdates()
+		this.updateShapes()
 	}
 
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
@@ -154,7 +139,7 @@ export class Drawing extends StateNode {
 			}
 		}
 
-		this.processUpdates()
+		this.updateShapes()
 	}
 
 	override onExit? = () => {
@@ -296,12 +281,7 @@ export class Drawing extends StateNode {
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
-	/**
-	 * This function is called to process user actions like moving the mouse or pressing a key.
-	 * The updates are not directly propagated to the Editor. Instead they are stored in the `shapePartial`
-	 * and only sent to the Editor on the next tick.
-	 */
-	private processUpdates() {
+	private updateShapes() {
 		const { inputs } = this.editor
 		const { initialShape } = this
 
@@ -316,15 +296,11 @@ export class Drawing extends StateNode {
 
 		if (!shape) return
 
-		// We default to the partial, as it might have some segments / points that the editor
-		// does not know about yet.
-		const segments = this.shapePartial?.props?.segments || shape.props.segments
+		const { segments } = shape.props
 
 		const { x, y, z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
 
 		const newPoint = { x, y, z: this.isPen ? +(z! * 1.25).toFixed(2) : 0.5 }
-
-		this.isDirty = true
 
 		switch (this.segmentMode) {
 			case 'starting_straight': {
@@ -394,7 +370,9 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.shapePartial = shapePartial
+					this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial], {
+						squashing: true,
+					})
 				}
 				break
 			}
@@ -452,7 +430,7 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.shapePartial = shapePartial
+					this.editor.updateShapes([shapePartial], { squashing: true })
 				}
 
 				break
@@ -594,7 +572,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.shapePartial = shapePartial
+				this.editor.updateShapes([shapePartial], { squashing: true })
 
 				break
 			}
@@ -639,19 +617,13 @@ export class Drawing extends StateNode {
 					)
 				}
 
+				this.editor.updateShapes([shapePartial], { squashing: true })
+
+				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (newPoints.length > 500) {
-					// It's easier to just apply this change directly, so we will mark that the shape is no longer dirty.
-					this.isDirty = false
-					// Also clear the changes as they were flushed.
-					// The next pointerMove will establish a new partial from the new shape created below.
-					this.shapePartial = null
+					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
-					if (shapePartial?.props) {
-						shapePartial.props.isComplete = true
-						this.editor.updateShapes([shapePartial])
-					}
-
-					const { currentPagePoint } = inputs
+					const { currentPagePoint } = this.editor.inputs
 
 					const newShapeId = createShapeId()
 
@@ -675,10 +647,8 @@ export class Drawing extends StateNode {
 
 					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
 					this.mergeNextPoint = false
-					this.lastRecordedPoint = inputs.currentPagePoint.clone()
+					this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 					this.currentLineLength = 0
-				} else {
-					this.shapePartial = shapePartial
 				}
 
 				break
