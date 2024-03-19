@@ -1195,27 +1195,37 @@ input,
 	position: relative;
 	width: 100%;
 	height: 100%;
-	box-shadow: var(--shadow-1);
+	/* box-shadow: var(--shadow-1); */
 }
 
 .tl-note__container:before,
 .tl-note__container:after {
-  z-index: -1;
-  position: absolute;
-  content: '';
-  bottom: 15px;
-  left: 10px;
-  width: calc(50% - 10px);
-  top: 80%;
-  background: #777;
-  box-shadow: 0 15px 10px #777;
-  transform: rotate(-3deg);
+	z-index: -1;
+	position: absolute;
+	content: '';
+	bottom: 15px;
+	left: 10px;
+	width: calc(50% - 10px);
+	top: 80%;
+	/* background: #777; */
+	/* box-shadow: 0 15px 10px #777; */
+	transform: rotate(-3deg);
 }
 
 .tl-note__container:after {
-  transform: rotate(3deg);
-  right: 10px;
-  left: auto;
+	transform: rotate(3deg);
+	right: 10px;
+	left: auto;
+}
+
+.tl-note__scrim {
+	position: absolute;
+	z-index: 1;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	background-color: var(--color-background);
+	opacity: 0.28;
 }
 
 .tl-note__container .tl-text-label {
