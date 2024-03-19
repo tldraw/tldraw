@@ -211,7 +211,6 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
-			editor.forceTick()
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
 			const point2 = last(segment2.points)!
@@ -237,7 +236,6 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
-			editor.forceTick()
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
 			const point2 = last(segment2.points)!
