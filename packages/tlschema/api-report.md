@@ -47,9 +47,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
@@ -61,9 +61,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     bend: T.Validator<number>;
@@ -684,9 +684,9 @@ export const lineShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
     points: T.DictValidator<string, {
-        id: string;
         x: number;
         y: number;
+        id: string;
         index: IndexKey;
     } & {}>;
 };
@@ -707,7 +707,7 @@ export const noteShapeProps: {
     growY: T.Validator<number>;
     url: T.Validator<string>;
     text: T.Validator<string>;
-    reacji: T.Validator<Record<string, number> | undefined>;
+    reacji: T.Validator<Record<string, string[]> | undefined>;
 };
 
 // @internal (undocumented)

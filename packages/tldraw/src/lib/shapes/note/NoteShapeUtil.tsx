@@ -1,3 +1,4 @@
+import * as Tooltip from '@radix-ui/react-tooltip'
 import {
 	DefaultFontFamilies,
 	Editor,
@@ -10,8 +11,9 @@ import {
 	noteShapeMigrations,
 	noteShapeProps,
 	toDomPrecision,
+	uniq,
 } from '@tldraw/editor'
-import { useEffect, useRef, useState } from 'react'
+import { FC, PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react'
 import { Root, createRoot } from 'react-dom/client'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
@@ -99,7 +101,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					<Reacji
 						editor={this.editor}
 						reacji={reacji}
-						onSelect={(reacji, step) => this.onReacjiSelect(shape, reacji, step)}
+						onSelect={(emoji, name) => this.onReacjiSelect(shape, emoji, name)}
 					/>
 				</div>
 				{'url' in shape.props && shape.props.url && (
@@ -109,16 +111,22 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	onReacjiSelect = (shape: TLNoteShape, reacji: string, step: number) => {
-		const newReacji = Object.assign({}, shape.props.reacji)
-		newReacji[reacji] = (newReacji[reacji] || 0) + step
+	onReacjiSelect = (shape: TLNoteShape, emoji: string, name: string) => {
+		const reacji = Object.assign({}, shape.props.reacji)
+		const includesPersonAlready = reacji[emoji]?.includes(name)
+		reacji[emoji] = includesPersonAlready
+			? reacji[emoji].filter((n) => n !== name)
+			: uniq([...(reacji[emoji] || []), name])
+		if (!reacji[emoji].length) {
+			delete reacji[emoji]
+		}
 
 		this.editor.updateShapes([
 			{
 				...shape,
 				props: {
 					...shape.props,
-					reacji: Object.fromEntries(Object.entries(newReacji).filter(([_, count]) => count > 0)),
+					reacji,
 				},
 			},
 		])
@@ -211,7 +219,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 }
 
-type ReacjiBagType = { [key: string]: number }
+type ReacjiBagType = { [key: string]: string[] }
 
 function Reacji({
 	editor,
@@ -220,10 +228,11 @@ function Reacji({
 }: {
 	editor: Editor
 	reacji: ReacjiBagType | undefined
-	onSelect: (reacji: string, step: number) => void
+	onSelect: (emoji: string, name: string) => void
 }) {
 	const [renderRoot, setRenderRoot] = useState<Root>()
 	const addButtonRef = useRef<HTMLButtonElement>(null)
+	const name = editor.user?.getName() || 'Me'
 
 	useEffect(() => {
 		const div = document.createElement('div')
@@ -239,12 +248,12 @@ function Reacji({
 	}, [])
 
 	const onEmojiSelect = async (emoji: any) => {
-		onSelect(emoji.native, 1)
+		onSelect(emoji.native, name)
 		closeMenu()
 	}
 
-	const onEmojiRetract = (reacji: string) => {
-		onSelect(reacji, -1)
+	const onEmojiRetract = (emoji: string) => {
+		onSelect(emoji, name)
 	}
 
 	const closeMenu = () => {
@@ -268,15 +277,38 @@ function Reacji({
 	return (
 		<div className="tl-note__reacji">
 			{reacji &&
-				Object.entries(reacji).map(([reacji, count]) => (
-					<button key={reacji} onMouseDown={() => onEmojiRetract(reacji)}>
-						{reacji} <span className="tl-note__reacji-count">{count}</span>
-					</button>
+				Object.entries(reacji).map(([reacji, people]) => (
+					<TooltipWrapper tooltip={people.join(', ')}>
+						<button key={reacji} onMouseDown={() => onEmojiRetract(reacji)}>
+							{reacji} <span className="tl-note__reacji-count">{people.length}</span>
+						</button>
+					</TooltipWrapper>
 				))}
-			<button className="tl-note__reacji-add" ref={addButtonRef} onMouseDown={handleOpen}>
-				+
-			</button>
+			<TooltipWrapper tooltip="Add emoji">
+				<button className="tl-note__reacji-add" ref={addButtonRef} onMouseDown={handleOpen}>
+					+
+				</button>
+			</TooltipWrapper>
 		</div>
+	)
+}
+
+const TooltipWrapper: FC<PropsWithChildren<{ tooltip: string | ReactNode }>> = ({
+	children,
+	tooltip,
+}) => {
+	return (
+		<Tooltip.Provider delayDuration={200}>
+			<Tooltip.Root>
+				<Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
+				<Tooltip.Portal>
+					<Tooltip.Content className="TooltipContent" sideOffset={5}>
+						{tooltip}
+						<Tooltip.Arrow className="TooltipArrow" />
+					</Tooltip.Content>
+				</Tooltip.Portal>
+			</Tooltip.Root>
+		</Tooltip.Provider>
 	)
 }
 

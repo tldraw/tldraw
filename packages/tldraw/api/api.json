@@ -1619,7 +1619,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1664,7 +1664,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12361,7 +12361,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, {\n            id: string;\n            x: number;\n            y: number;\n            index: import(\"@tldraw/editor\")."
+                  "text": "<string, {\n            x: number;\n            y: number;\n            id: string;\n            index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13201,7 +13201,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, number> | undefined;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": "<string, string[]> | undefined;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13294,7 +13294,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, number> | undefined;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": "<string, string[]> | undefined;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13413,7 +13413,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", reacji: string, step: number) => void"
+                  "text": ", emoji: string, name: string) => void"
                 },
                 {
                   "kind": "Content",
@@ -13533,7 +13533,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, number> | undefined>;\n    }"
+                  "text": "<string, string[]> | undefined>;\n    }"
                 },
                 {
                   "kind": "Content",

@@ -10,6 +10,7 @@ export type EmojiDialogProps = {
 	left: number
 	onEmojiSelect: (emoji: any) => void
 	onClickOutside: () => void
+	disableFrequentRows?: boolean
 }
 
 export default track(function EmojiDialog({
@@ -18,6 +19,7 @@ export default track(function EmojiDialog({
 	left,
 	onEmojiSelect,
 	onClickOutside,
+	disableFrequentRows,
 }: EmojiDialogProps) {
 	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
 	const ref = useRef(null)
@@ -33,7 +35,7 @@ export default track(function EmojiDialog({
 		editor.on('event', eventListener)
 
 		instance.current = new Picker({
-			maxFrequentRows: 0,
+			maxFrequentRows: disableFrequentRows ? 0 : undefined,
 			onEmojiSelect,
 			onClickOutside,
 			theme,
@@ -48,7 +50,7 @@ export default track(function EmojiDialog({
 			EmojiDialogSingleton = null
 			editor.off('event', eventListener)
 		}
-	}, [editor, theme, onEmojiSelect, onClickOutside])
+	}, [editor, theme, onEmojiSelect, onClickOutside, disableFrequentRows])
 
 	return (
 		<div

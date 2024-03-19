@@ -216,9 +216,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         end: UnionValidator<"type", {
@@ -230,9 +230,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         bend: Validator<number>;
@@ -1048,9 +1048,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
         points: DictValidator<string, {
-        id: string;
         x: number;
         y: number;
+        id: string;
         index: IndexKey;
         }>;
     };
@@ -1112,7 +1112,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
-            reacji: Record<string, number> | undefined;
+            reacji: Record<string, string[]> | undefined;
         };
         type: "note";
         x: number;
@@ -1137,7 +1137,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
-            reacji: Record<string, number> | undefined;
+            reacji: Record<string, string[]> | undefined;
         };
         type: "note";
         x: number;
@@ -1154,7 +1154,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
-    onReacjiSelect: (shape: TLNoteShape, reacji: string, step: number) => void;
+    onReacjiSelect: (shape: TLNoteShape, emoji: string, name: string) => void;
     // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
@@ -1165,7 +1165,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         growY: Validator<number>;
         url: Validator<string>;
         text: Validator<string>;
-        reacji: Validator<Record<string, number> | undefined>;
+        reacji: Validator<Record<string, string[]> | undefined>;
     };
     // (undocumented)
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;

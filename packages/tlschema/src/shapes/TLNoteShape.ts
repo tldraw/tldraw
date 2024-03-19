@@ -20,7 +20,7 @@ export const noteShapeProps = {
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	text: T.string,
-	reacji: T.dict(T.string, T.positiveInteger).optional(),
+	reacji: T.dict(T.string, T.arrayOf(T.string)).optional(),
 }
 
 /** @public */
