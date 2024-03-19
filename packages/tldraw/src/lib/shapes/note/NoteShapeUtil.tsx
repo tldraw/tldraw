@@ -44,12 +44,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
-			buttons: [
-				{ x: 0.5, y: -0.1 },
-				{ x: 1.1, y: 0.5 },
-				{ x: 0.5, y: 1.1 },
-				{ x: -0.1, y: 0.5 },
-			],
+			buttons: [{ x: 0.5, y: 0.5 }],
 		}
 	}
 
@@ -63,9 +58,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 	override getHandles(shape: TLNoteShape): TLHandle[] {
 		const { buttons } = shape.props
-		const directionArr = ['up', 'right', 'down', 'left']
+		// const directionArr = ['up', 'right', 'down', 'left']
 		return buttons.map((button, i) => ({
-			id: directionArr[i],
+			id: 'create',
 			type: 'vertex',
 			index: ZERO_INDEX_KEY,
 			x: button.x * NOTE_SIZE,
