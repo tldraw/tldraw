@@ -1,12 +1,12 @@
 import { Migrations, StoreSchema } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
-import { AssetRecordType } from './records/TLAsset'
-import { CameraRecordType } from './records/TLCamera'
-import { DocumentRecordType } from './records/TLDocument'
-import { createInstanceRecordType } from './records/TLInstance'
-import { PageRecordType } from './records/TLPage'
-import { InstancePageStateRecordType } from './records/TLPageState'
+import { AssetRecordType, assetMigrations } from './records/TLAsset'
+import { CameraRecordType, cameraMigrations } from './records/TLCamera'
+import { DocumentRecordType, documentMigrations } from './records/TLDocument'
+import { createInstanceRecordType, instanceMigrations } from './records/TLInstance'
+import { PageRecordType, pageMigrations } from './records/TLPage'
+import { InstancePageStateRecordType, instancePageStateMigrations } from './records/TLPageState'
 import { PointerRecordType } from './records/TLPointer'
 import { InstancePresenceRecordType } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
@@ -95,7 +95,18 @@ export function createTLSchema({
 			pointer: PointerRecordType,
 		},
 		{
-			snapshotMigrations: storeMigrations,
+			migrations: {
+				[storeMigrations.id]: storeMigrations,
+				[assetMigrations.id]: assetMigrations,
+				[cameraMigrations.id]: cameraMigrations,
+				[documentMigrations.id]: documentMigrations,
+				[instanceMigrations.id]: instanceMigrations,
+				[instancePageStateMigrations.id]: instancePageStateMigrations,
+				[pageMigrations.id]: pageMigrations,
+				[shapeMi]
+
+
+			},
 			onValidationFailure,
 			createIntegrityChecker: createIntegrityChecker,
 		}

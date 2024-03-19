@@ -1,5 +1,6 @@
-import { defineMigrations, SerializedStore } from '@tldraw/store'
-import { TLRecord } from './records/TLRecord'
+import { createMigrations } from '@tldraw/store'
+import { objectMapEntries } from '@tldraw/utils'
+import { TLShape } from './records/TLShape'
 
 const Versions = {
 	RemoveCodeAndIconShapeTypes: 1,
@@ -11,53 +12,55 @@ const Versions = {
 export { Versions as storeVersions }
 
 /** @public */
-export const storeMigrations = defineMigrations({
-	currentVersion: Versions.RemoveUserDocument,
-	migrators: {
-		[Versions.RemoveCodeAndIconShapeTypes]: {
-			up: (store: SerializedStore<TLRecord>) => {
-				return Object.fromEntries(
-					Object.entries(store).filter(
-						([_, v]) => v.typeName !== 'shape' || (v.type !== 'icon' && v.type !== 'code')
-					)
-				)
+export const storeMigrations = createMigrations({
+	id: 'com.tldraw.store',
+	sequence: [
+		{
+			id: `com.tldraw.store/${Versions.RemoveCodeAndIconShapeTypes}`,
+			scope: 'store',
+			up: (store) => {
+				for (const [id, record] of objectMapEntries(store)) {
+					if (
+						record.typeName === 'shape' &&
+						((record as TLShape).type === 'icon' || (record as TLShape).type === 'code')
+					) {
+						delete store[id]
+					}
+				}
 			},
-			down: (store: SerializedStore<TLRecord>) => {
+		},
+		{
+			id: `com.tldraw.store/${Versions.AddInstancePresenceType}`,
+			scope: 'store',
+			up(_store) {
 				// noop
-				return store
+			},
+			// there used to be a down migration for this but we made down migrations optional
+			// and we don't use them on store-level migrations so we can just remove it
+		},
+		{
+			// remove user and presence records and add pointer records
+			id: `com.tldraw.store/${Versions.RemoveTLUserAndPresenceAndAddPointer}`,
+			scope: 'store',
+			up: (store) => {
+				for (const [id, record] of objectMapEntries(store)) {
+					if (record.typeName.match(/^(user|user_presence)$/)) {
+						delete store[id]
+					}
+				}
 			},
 		},
-		[Versions.AddInstancePresenceType]: {
-			up: (store: SerializedStore<TLRecord>) => {
-				return store
-			},
-			down: (store: SerializedStore<TLRecord>) => {
-				return Object.fromEntries(
-					Object.entries(store).filter(([_, v]) => v.typeName !== 'instance_presence')
-				)
-			},
-		},
-		[Versions.RemoveTLUserAndPresenceAndAddPointer]: {
-			up: (store: SerializedStore<TLRecord>) => {
-				return Object.fromEntries(
-					Object.entries(store).filter(([_, v]) => !v.typeName.match(/^(user|user_presence)$/))
-				)
-			},
-			down: (store: SerializedStore<TLRecord>) => {
-				return Object.fromEntries(
-					Object.entries(store).filter(([_, v]) => v.typeName !== 'pointer')
-				)
+		{
+			// remove user document records
+			id: `com.tldraw.store/${Versions.RemoveUserDocument}`,
+			scope: 'store',
+			up: (store) => {
+				for (const [id, record] of objectMapEntries(store)) {
+					if (record.typeName.match('user_document')) {
+						delete store[id]
+					}
+				}
 			},
 		},
-		[Versions.RemoveUserDocument]: {
-			up: (store: SerializedStore<TLRecord>) => {
-				return Object.fromEntries(
-					Object.entries(store).filter(([_, v]) => !v.typeName.match('user_document'))
-				)
-			},
-			down: (store: SerializedStore<TLRecord>) => {
-				return store
-			},
-		},
-	},
+	],
 })
