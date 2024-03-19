@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Migrations } from '@tldraw/store'
+import { LegacyMigration } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import { ReactElement } from 'react'
 import { Box } from '../../primitives/Box'
@@ -19,7 +19,7 @@ export interface TLShapeUtilConstructor<
 	new (editor: Editor): U
 	type: T['type']
 	props?: ShapeProps<T>
-	migrations?: Migrations
+	migrations?: LegacyMigration
 }
 
 /** @public */
@@ -35,7 +35,8 @@ export interface TLShapeUtilCanvasSvgDef {
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
 	static props?: ShapeProps<TLUnknownShape>
-	static migrations?: Migrations
+	// TODO: allow this to be new migrations too
+	static migrations?: LegacyMigration
 
 	/**
 	 * The type of the shape util, which should match the shape's type.
