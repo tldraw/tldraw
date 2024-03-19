@@ -59,7 +59,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override getHandles(shape: TLNoteShape): TLHandle[] {
 		const { buttons } = shape.props
 		// const directionArr = ['up', 'right', 'down', 'left']
-		return buttons.map((button, i) => ({
+		return buttons.map((button) => ({
 			id: 'create',
 			type: 'vertex',
 			index: ZERO_INDEX_KEY,
