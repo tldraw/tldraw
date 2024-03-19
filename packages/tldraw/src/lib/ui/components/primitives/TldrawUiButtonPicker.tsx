@@ -3,9 +3,8 @@ import {
 	SharedStyle,
 	StyleProp,
 	TLDefaultColorStyle,
-	getDefaultColorTheme,
+	TLDefaultColorTheme,
 	useEditor,
-	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useMemo, useRef } from 'react'
@@ -22,6 +21,7 @@ export interface TLUiButtonPickerProps<T extends string> {
 	style: StyleProp<T>
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
+	theme: TLDefaultColorTheme
 	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
@@ -34,6 +34,7 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 		value,
 		// columns = clamp(items.length, 2, 4),
 		onValueChange,
+		theme,
 	} = props
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -90,12 +91,6 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 			handleButtonPointerUp,
 		}
 	}, [value, editor, onValueChange, style])
-
-	const theme = useValue(
-		'theme',
-		() => getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() }),
-		[editor]
-	)
 
 	return (
 		<div data-testid={`style.${uiType}`} className={classNames('tlui-buttons__grid')}>

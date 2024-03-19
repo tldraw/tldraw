@@ -1787,7 +1787,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onRightClick?: TLEventHandlers['onRightClick'];
     // (undocumented)
-    onTick?: TLTickEventHandler;
+    onTick?: TLEventHandlers['onTick'];
     // (undocumented)
     onTripleClick?: TLEventHandlers['onTripleClick'];
     // (undocumented)
@@ -1969,7 +1969,6 @@ export type TLCollaboratorHintProps = {
 // @public (undocumented)
 export type TLCommand<Name extends string = any, Data = any> = {
     type: 'command';
-    id: string;
     data: Data;
     name: Name;
     preservesRedoStack?: boolean;
@@ -2108,13 +2107,15 @@ export interface TLEventHandlers {
     // (undocumented)
     onRightClick: TLPointerEvent;
     // (undocumented)
+    onTick: TLTickEvent;
+    // (undocumented)
     onTripleClick: TLClickEvent;
     // (undocumented)
     onWheel: TLWheelEvent;
 }
 
 // @public (undocumented)
-export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEventInfo | TLInterruptEventInfo | TLKeyboardEventInfo | TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo;
+export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEventInfo | TLInterruptEventInfo | TLKeyboardEventInfo | TLPinchEventInfo | TLPointerEventInfo | TLTickEventInfo | TLWheelEventInfo;
 
 // @public (undocumented)
 export interface TLEventMap {
@@ -2161,7 +2162,7 @@ export interface TLEventMap {
 export type TLEventMapHandler<T extends keyof TLEventMap> = (...args: TLEventMap[T]) => void;
 
 // @public (undocumented)
-export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
+export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'tick' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
 
 // @public (undocumented)
 export type TLExitEventHandler = (info: any, to: string) => void;
@@ -2577,10 +2578,7 @@ export type TLSvgOptions = {
 };
 
 // @public (undocumented)
-export type TLTickEvent = (elapsed: number) => void;
-
-// @public (undocumented)
-export type TLTickEventHandler = () => void;
+export type TLTickEvent = (info: TLTickEventInfo) => void;
 
 // @public
 export interface TLUserPreferences {
