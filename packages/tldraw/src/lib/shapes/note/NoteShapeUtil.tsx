@@ -268,8 +268,8 @@ function Reacji({
 				editor={editor}
 				onEmojiSelect={onEmojiSelect}
 				onClickOutside={closeMenu}
-				top={coords?.top}
-				left={coords?.left}
+				top={(coords?.top || 0) + 24}
+				left={(coords?.left || 0) + 24}
 			/>
 		)
 	}
