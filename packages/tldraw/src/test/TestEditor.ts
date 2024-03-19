@@ -3,6 +3,7 @@ import {
 	BoxModel,
 	Editor,
 	HALF_PI,
+	IdOf,
 	Mat,
 	PageRecordType,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
@@ -205,6 +206,8 @@ export class TestEditor extends Editor {
 			y: +camera.y.toFixed(2),
 			z: +camera.z.toFixed(2),
 		}).toCloselyMatchObject({ x, y, z })
+
+		return this
 	}
 
 	expectShapeToMatch = <T extends TLShape = TLShape>(
@@ -215,6 +218,25 @@ export class TestEditor extends Editor {
 			const next = { ...shape, ...model }
 			expect(shape).toCloselyMatchObject(next)
 		})
+		return this
+	}
+
+	expectPageBoundsToBe = <T extends TLShape = TLShape>(id: IdOf<T>, bounds: Partial<BoxModel>) => {
+		const observedBounds = this.getShapePageBounds(id)!
+		expect(observedBounds).toCloselyMatchObject(bounds)
+		return this
+	}
+
+	expectScreenBoundsToBe = <T extends TLShape = TLShape>(
+		id: IdOf<T>,
+		bounds: Partial<BoxModel>
+	) => {
+		const pageBounds = this.getShapePageBounds(id)!
+		const screenPoint = this.pageToScreen(pageBounds.point)
+		const observedBounds = pageBounds.clone()
+		observedBounds.x = screenPoint.x
+		observedBounds.y = screenPoint.y
+		expect(observedBounds).toCloselyMatchObject(bounds)
 		return this
 	}
 
