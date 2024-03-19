@@ -8,7 +8,6 @@
 - Minor version bumps are released on a regular cadence. At the time of writing that cadence is monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible by providing warnings several releases in advance, and by providing tooling to help you migrate your code. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
 - Patch version bumps are for bugfixes and hotfixes that can't wait for the next cadence release.
 
-
 ## How to publish a new major or minor release
 
 New cadence releases are published from `main`. You trigger a release manually by running the workflow defined in `publish-new.yml`.
