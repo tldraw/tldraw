@@ -80,10 +80,13 @@ export function IFrameProtector({
 	const url = useUrl()
 
 	useEffect(() => {
-		console.log({ embeddedState, isInIframe: isInIframe(), parentOrigin: getParentOrigin() })
 		switch (embeddedState) {
 			case 'iframe-not-allowed':
-				trackAnalyticsEvent('iframe_not_allowed', { slug, context })
+				trackAnalyticsEvent('iframe_not_allowed', {
+					slug,
+					context,
+					parentOrigin: getParentOrigin(),
+				})
 				break
 			case 'iframe-ok':
 				trackAnalyticsEvent('connect_to_room_in_iframe', {
