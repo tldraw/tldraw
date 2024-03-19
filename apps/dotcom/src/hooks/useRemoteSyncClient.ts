@@ -30,7 +30,7 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
 	} | null>(null)
-	const { uri, roomId = 'default', userPreferences: prefs, getAccessToken } = opts
+	const { uri, roomId = 'default', userPreferences: prefs } = opts
 
 	const store = useTLStore({ schema })
 
@@ -52,10 +52,6 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 			const withParams = new URL(uri)
 			withParams.searchParams.set('sessionKey', TAB_ID)
 			withParams.searchParams.set('storeId', store.id)
-			const accessToken = await getAccessToken?.()
-			if (accessToken) {
-				withParams.searchParams.set('accessToken', accessToken)
-			}
 			return withParams.toString()
 		})
 
@@ -95,7 +91,7 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 			client.close()
 			socket.close()
 		}
-	}, [getAccessToken, prefs, roomId, store, uri])
+	}, [prefs, roomId, store, uri])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',

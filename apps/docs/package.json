@@ -49,6 +49,7 @@
 		"@microsoft/tsdoc": "^0.14.2",
 		"@radix-ui/react-accordion": "^1.1.2",
 		"@radix-ui/react-navigation-menu": "^1.1.4",
+		"@tldraw/utils": "workspace:*",
 		"@types/broken-link-checker": "^0.7.1",
 		"@types/node": "~20.11",
 		"@types/sqlite3": "^3.1.9",

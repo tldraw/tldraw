@@ -128,6 +128,9 @@ export function useComputed<Value>(name: string, compute: () => Value, deps: any
 // @public (undocumented)
 export function useComputed<Value, Diff = unknown>(name: string, compute: () => Value, opts: ComputedOptions<Value, Diff>, deps: any[]): Computed<Value>;
 
+// @internal (undocumented)
+export function useLayoutReaction(name: string, effect: () => void): void;
+
 // @public (undocumented)
 export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;
 
