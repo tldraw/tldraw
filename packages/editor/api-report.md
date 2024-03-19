@@ -819,6 +819,11 @@ export class Editor extends EventEmitter<TLEventMap> {
         y: number;
         z: number;
     };
+    pageToViewport(point: VecLike): {
+        x: number;
+        y: number;
+        z: number;
+    };
     pan(offset: VecLike, animation?: TLAnimationOptions): this;
     panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
     popFocusedGroupId(): this;

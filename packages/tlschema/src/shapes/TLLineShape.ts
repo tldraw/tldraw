@@ -1,5 +1,11 @@
 import { defineMigrations } from '@tldraw/store'
-import { IndexKey, deepCopy, getIndices, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
+import {
+	IndexKey,
+	getIndices,
+	objectMapFromEntries,
+	sortByIndex,
+	structuredClone,
+} from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
@@ -52,14 +58,14 @@ export const lineShapeMigrations = defineMigrations({
 	migrators: {
 		[lineShapeVersions.AddSnapHandles]: {
 			up: (record: any) => {
-				const handles = deepCopy(record.props.handles as Record<string, any>)
+				const handles = structuredClone(record.props.handles as Record<string, any>)
 				for (const id in handles) {
 					handles[id].canSnap = true
 				}
 				return { ...record, props: { ...record.props, handles } }
 			},
 			down: (record: any) => {
-				const handles = deepCopy(record.props.handles as Record<string, any>)
+				const handles = structuredClone(record.props.handles as Record<string, any>)
 				for (const id in handles) {
 					delete handles[id].canSnap
 				}

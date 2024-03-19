@@ -47,7 +47,6 @@ import {
 	assert,
 	compact,
 	dedupe,
-	deepCopy,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -2866,7 +2865,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.pageToScreen({ x: 100, y: 100 })
 	 * ```
 	 *
-	 * @param point - The point in screen space.
+	 * @param point - The point in page space.
 	 *
 	 * @public
 	 */
@@ -2877,6 +2876,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return {
 			x: (point.x + cx) * cz + screenBounds.x,
 			y: (point.y + cy) * cz + screenBounds.y,
+			z: point.z ?? 0.5,
+		}
+	}
+
+	/**
+	 * Convert a point in the current page space to a point in current viewport space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.pageToViewport({ x: 100, y: 100 })
+	 * ```
+	 *
+	 * @param point - The point in page space.
+	 *
+	 * @public
+	 */
+	pageToViewport(point: VecLike) {
+		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
+
+		return {
+			x: (point.x + cx) * cz,
+			y: (point.y + cy) * cz,
 			z: point.z ?? 0.5,
 		}
 	}
@@ -5224,7 +5245,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					? getIndexBetween(shape.index, siblingAbove.index)
 					: getIndexAbove(shape.index)
 
-				let newShape: TLShape = deepCopy(shape)
+				let newShape: TLShape = structuredClone(shape)
 
 				if (
 					this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
@@ -7867,13 +7888,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			let newShape: TLShape
 
 			if (preserveIds) {
-				newShape = deepCopy(shape)
+				newShape = structuredClone(shape)
 				idMap.set(shape.id, shape.id)
 			} else {
 				const id = idMap.get(shape.id)!
 
 				// Create the new shape (new except for the id)
-				newShape = deepCopy({ ...shape, id })
+				newShape = structuredClone({ ...shape, id })
 			}
 
 			if (rootShapeIds.includes(shape.id)) {

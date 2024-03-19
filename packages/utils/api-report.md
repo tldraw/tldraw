@@ -37,9 +37,6 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 // @public
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
-// @public
-export function deepCopy<T = unknown>(obj: T): T;
-
 // @internal
 export function deleteFromLocalStorage(key: string): void;
 
@@ -139,6 +136,9 @@ export function invLerp(a: number, b: number, t: number): number;
 
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
+
+// @internal (undocumented)
+export const isNativeStructuredClone: boolean;
 
 // @public
 export function isNonNull<T>(value: T): value is typeof value extends null ? never : T;
@@ -306,6 +306,9 @@ export function sortById<T extends {
 export function sortByIndex<T extends {
     index: IndexKey;
 }>(a: T, b: T): -1 | 0 | 1;
+
+// @internal
+export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
 
 // @public
 const structuredClone_2: <T>(i: T) => T;

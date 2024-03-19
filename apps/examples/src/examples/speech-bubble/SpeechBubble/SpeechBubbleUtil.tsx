@@ -15,7 +15,6 @@ import {
 	Vec,
 	VecModel,
 	ZERO_INDEX_KEY,
-	deepCopy,
 	getDefaultColorTheme,
 	resizeBox,
 	structuredClone,
@@ -143,7 +142,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			}
 		}
 
-		const next = deepCopy(shape)
+		const next = structuredClone(shape)
 		next.props.tail.x = newPoint.x / w
 		next.props.tail.y = newPoint.y / h
 

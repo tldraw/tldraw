@@ -11,13 +11,13 @@ import {
 	TLStoreWithStatus,
 	TldrawEditor,
 	TldrawEditorBaseProps,
-	assert,
 	useEditor,
 	useEditorComponents,
+	useEvent,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
-import { useCallback, useDebugValue, useLayoutEffect, useMemo, useRef } from 'react'
+import { useLayoutEffect, useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawHoveredShapeIndicator } from './canvas/TldrawHoveredShapeIndicator'
 import { TldrawScribble } from './canvas/TldrawScribble'
@@ -208,23 +208,4 @@ function InsideOfEditorAndUiContext({
 	}
 
 	return null
-}
-
-// duped from tldraw editor
-function useEvent<Args extends Array<unknown>, Result>(
-	handler: (...args: Args) => Result
-): (...args: Args) => Result {
-	const handlerRef = useRef<(...args: Args) => Result>()
-
-	useLayoutEffect(() => {
-		handlerRef.current = handler
-	})
-
-	useDebugValue(handler)
-
-	return useCallback((...args: Args) => {
-		const fn = handlerRef.current
-		assert(fn, 'fn does not exist')
-		return fn(...args)
-	}, [])
 }
