@@ -1,4 +1,4 @@
-import { react, useLayoutReaction, useValue } from '@tldraw/state'
+import { react, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
@@ -43,21 +43,25 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	useGestureEvents(rCanvas)
 	useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 
-	useLayoutReaction('position layers', () => {
-		const { x, y, z } = editor.getCamera()
+	useQuickReactor(
+		'position layers',
+		() => {
+			const { x, y, z } = editor.getCamera()
 
-		// Because the html container has a width/height of 1px, we
-		// need to create a small offset when zoomed to ensure that
-		// the html container and svg container are lined up exactly.
-		const offset =
-			z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
+			// Because the html container has a width/height of 1px, we
+			// need to create a small offset when zoomed to ensure that
+			// the html container and svg container are lined up exactly.
+			const offset =
+				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
-		const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-			x + offset
-		)}px,${toDomPrecision(y + offset)}px)`
-		setStyleProperty(rHtmlLayer.current, 'transform', transform)
-		setStyleProperty(rHtmlLayer2.current, 'transform', transform)
-	})
+			const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
+				x + offset
+			)}px,${toDomPrecision(y + offset)}px)`
+			setStyleProperty(rHtmlLayer.current, 'transform', transform)
+			setStyleProperty(rHtmlLayer2.current, 'transform', transform)
+		},
+		[editor]
+	)
 
 	const events = useCanvasEvents()
 
