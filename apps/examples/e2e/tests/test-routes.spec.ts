@@ -11,6 +11,8 @@ const examplesWithoutCanvas = [
 	'yjs',
 	// starts by asking the user to select an image
 	'image-annotator',
+	// starts by asking the user to open a pdf
+	'pdf-editor',
 ]
 const exampelsToTest = examplesFolderList.filter((route) => !examplesWithoutCanvas.includes(route))
 

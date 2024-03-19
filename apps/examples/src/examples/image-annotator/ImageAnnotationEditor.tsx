@@ -22,6 +22,7 @@ import { AnnotatorImage } from './types'
 // TODO:
 // - prevent changing pages (create page, change page, move shapes to new page)
 // - prevent locked shape context menu
+// - inertial scrolling for constrained camera
 export function ImageAnnotationEditor({
 	image,
 	onDone,
