@@ -7399,7 +7399,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/state@workspace:packages/state"
   dependencies:
-    "@tldraw/utils": "workspace:*"
     "@types/lodash": "npm:^4.14.188"
     "@types/react": "npm:^18.2.47"
     "@types/react-test-renderer": "npm:^18.0.0"
