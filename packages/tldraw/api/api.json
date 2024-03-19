@@ -13055,6 +13055,36 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#hideRotateHandle:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "hideRotateHandle: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "hideRotateHandle",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "tldraw!NoteShapeUtil#hideSelectionBoundsFg:member",
               "docComment": "",
               "excerptTokens": [
@@ -13112,13 +13142,17 @@
                 },
                 {
                   "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
                   "text": ";"
                 }
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 5
+                "endIndex": 6
               },
               "releaseTag": "Public",
               "isProtected": false,

@@ -1096,9 +1096,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
+    hideRotateHandle: () => boolean;
+    // (undocumented)
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
-    indicator(shape: TLNoteShape): JSX_2.Element;
+    indicator(shape: TLNoteShape): JSX_2.Element | null;
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)

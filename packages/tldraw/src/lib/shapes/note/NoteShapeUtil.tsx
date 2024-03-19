@@ -17,6 +17,7 @@ import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
+import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const NOTE_SIZE = 200
 
@@ -29,6 +30,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override canEdit = () => true
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => true
+	override hideRotateHandle = () => true
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -63,6 +65,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
 
+		const isDragging =
+			this.editor.isInAny('select.translating', 'select.pointing_shape') &&
+			this.editor.getSelectedShapeIds().includes(shape.id)
+
+		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
+
+		const handlePointerDown = () => {
+			this.editor.bringToFront([shape.id])
+		}
+
 		return (
 			<>
 				<div
@@ -70,13 +82,22 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						position: 'absolute',
 						width: NOTE_SIZE,
 						height: this.getHeight(shape),
+						transform: `scale(${isDragging ? 1 : 1}) translateY(${isDragging ? -5 : 0}px)`,
+						pointerEvents: 'all',
 					}}
+					onPointerDown={handlePointerDown}
 				>
 					<div
 						className="tl-note__container"
 						style={{
 							color: theme[adjustedColor].solid,
 							backgroundColor: theme[adjustedColor].solid,
+							boxShadow: getRotatedBoxShadow(pageRotation, {
+								offsetModifier: isDragging ? 3 : 1,
+								// spreadModifier: isDragging ? 3 : 1,
+								blurModifier: isDragging ? 2 : 1,
+								// spreadModifier: 1.5,
+							}),
 						}}
 					>
 						<div className="tl-note__scrim" />
@@ -101,6 +122,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	indicator(shape: TLNoteShape) {
+		return null
+
 		return (
 			<rect
 				rx="6"

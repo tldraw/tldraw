@@ -18,12 +18,15 @@ const ROTATING_BOX_SHADOWS = [
 ]
 
 /** @public */
-export function getRotatedBoxShadow(rotation: number) {
+export function getRotatedBoxShadow(
+	rotation: number,
+	{ offsetModifier = 1, blurModifier = 1, spreadModifier = 1 } = {}
+) {
 	const cssStrings = ROTATING_BOX_SHADOWS.map((shadow) => {
 		const { offsetX, offsetY, blur, spread, color } = shadow
-		const vec = new Vec(offsetX, offsetY)
+		const vec = new Vec(offsetX * offsetModifier, offsetY * offsetModifier)
 		const { x, y } = vec.rot(-rotation)
-		return `${x}px ${y}px ${blur}px ${spread}px ${color}`
+		return `${x}px ${y}px ${blur * blurModifier}px ${spread * spreadModifier}px ${color}`
 	})
 	return cssStrings.join(', ')
 }
