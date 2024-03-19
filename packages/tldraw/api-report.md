@@ -1164,6 +1164,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         handleId: 'down' | 'left' | 'right' | 'up';
     }): void;
     // (undocumented)
+    onTranslateEnd: (initial: TLNoteShape, current: TLNoteShape) => void;
+    // (undocumented)
+    positions: {
+        up: VecLike[];
+        down: VecLike[];
+        left: VecLike[];
+        right: VecLike[];
+    };
+    // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;

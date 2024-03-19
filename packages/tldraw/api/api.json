@@ -13606,6 +13606,120 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#onTranslateEnd:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onTranslateEnd: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(initial: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", current: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onTranslateEnd",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#positions:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "positions: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        up: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n        down: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n        left: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n        right: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "positions",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 10
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "tldraw!NoteShapeUtil.props:member",
               "docComment": "",
               "excerptTokens": [

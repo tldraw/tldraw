@@ -34,6 +34,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => true
 
+	positions = {
+		up: [] as VecLike[],
+		down: [] as VecLike[],
+		left: [] as VecLike[],
+		right: [] as VecLike[],
+	}
+
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
 			color: 'black',
@@ -174,6 +181,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override onBeforeUpdate = (prev: TLNoteShape, next: TLNoteShape) => {
+		if (this.positions.up.length === 0) {
+			this.positions = generatePositionsForShape(next, this.editor)
+		}
 		if (
 			prev.props.text === next.props.text &&
 			prev.props.font === next.props.font &&
@@ -208,87 +218,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		this.duplicateShape(info.shape, info.handleId)
 	}
 	duplicateShape(shape: TLNoteShape, direction: 'up' | 'down' | 'left' | 'right') {
-		// give the shape a bit of padding to make the arrows look better
-		const distance = NOTE_SIZE + 100
 		const centerOffset = NOTE_SIZE / 2
 		let count = 0
 		let emptySpot = {} as VecLike
-		const positions = {
-			up: [] as VecLike[],
-			down: [] as VecLike[],
-			left: [] as VecLike[],
-			right: [] as VecLike[],
-		}
-		const LAYERS = 7
-		const rotationRadians = this.editor.getShapePageTransform(shape).rotation()
-		for (let layer = 1; layer <= LAYERS; layer++) {
-			// Generate positions for up and down
-			for (let dx = -layer; dx <= layer; dx++) {
-				addPositionWithRotation(
-					positions.up,
-					shape,
-					dx * distance,
-					-layer * distance,
-					rotationRadians
-				)
-				addPositionWithRotation(
-					positions.down,
-					shape,
-					dx * distance,
-					layer * distance,
-					rotationRadians
-				)
-			}
 
-			// Generate positions for left and right
-			for (let dy = -layer; dy <= layer; dy++) {
-				addPositionWithRotation(
-					positions.left,
-					shape,
-					-layer * distance,
-					dy * distance,
-					rotationRadians
-				)
-				addPositionWithRotation(
-					positions.right,
-					shape,
-					layer * distance,
-					dy * distance,
-					rotationRadians
-				)
-			}
-		}
-
-		function addPositionWithRotation(
-			positionArray: VecLike[],
-			shape: TLNoteShape,
-			offsetX: number,
-			offsetY: number,
-			rotationRadians: number
-		) {
-			const cosR = Math.cos(rotationRadians)
-			const sinR = Math.sin(rotationRadians)
-
-			// Rotate offsetX and offsetY around (0, 0)
-			const rotatedX = offsetX * cosR - offsetY * sinR
-			const rotatedY = offsetX * sinR + offsetY * cosR
-
-			// Translate the position back to the shape's location
-			positionArray.push({ x: shape.x + rotatedX, y: shape.y + rotatedY })
-		}
-
-		// Function to calculate the Manhattan distance between two points
-		const manhattanDistance = (a: VecLike, b: VecLike) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
-
-		// Sort the positions in each direction based on their Manhattan distance to the shape's origin
-		Object.keys(positions).forEach((direction) => {
-			positions[direction as 'up' | 'down' | 'left' | 'right'].sort(
-				(a: VecLike, b: VecLike) => manhattanDistance(a, shape) - manhattanDistance(b, shape)
-			)
-		})
-
-		while (count < positions[direction].length) {
-			const position = positions[direction][count]
+		while (count < this.positions[direction].length) {
+			const position = this.positions[direction][count]
 			/* A better version of this is to draw a box where you want the shape to go 
 			and hit test for any shapes that may be inside the box, similar to the logic 
 			in the select tool. For now, we're just checking a single point */
@@ -336,6 +271,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		this.editor.sendToBack([arrowId])
 		this.editor.setEditingShape(shape.id)
 	}
+
+	override onTranslateEnd = (initial: TLNoteShape, current: TLNoteShape) => {
+		this.positions = generatePositionsForShape(current, this.editor)
+	}
 	override onDoubleClickHandle = (shape: TLNoteShape) => shape
 }
 
@@ -370,4 +309,84 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 			},
 		}
 	}
+}
+
+function generatePositionsForShape(shape: TLNoteShape, editor: Editor) {
+	// give the shape a bit of padding to make the arrows look better
+	const distance = NOTE_SIZE + 100
+	const positions = {
+		up: [] as VecLike[],
+		down: [] as VecLike[],
+		left: [] as VecLike[],
+		right: [] as VecLike[],
+	}
+	const LAYERS = 7
+
+	const rotationRadians = editor.getShapePageTransform(shape).rotation()
+	for (let layer = 1; layer <= LAYERS; layer++) {
+		// Generate positions for up and down
+		for (let dx = -layer; dx <= layer; dx++) {
+			addPositionWithRotation(
+				positions.up,
+				shape,
+				dx * distance,
+				-layer * distance,
+				rotationRadians
+			)
+			addPositionWithRotation(
+				positions.down,
+				shape,
+				dx * distance,
+				layer * distance,
+				rotationRadians
+			)
+		}
+
+		// Generate positions for left and right
+		for (let dy = -layer; dy <= layer; dy++) {
+			addPositionWithRotation(
+				positions.left,
+				shape,
+				-layer * distance,
+				dy * distance,
+				rotationRadians
+			)
+			addPositionWithRotation(
+				positions.right,
+				shape,
+				layer * distance,
+				dy * distance,
+				rotationRadians
+			)
+		}
+	}
+
+	function addPositionWithRotation(
+		positionArray: VecLike[],
+		shape: TLNoteShape,
+		offsetX: number,
+		offsetY: number,
+		rotationRadians: number
+	) {
+		const cosR = Math.cos(rotationRadians)
+		const sinR = Math.sin(rotationRadians)
+
+		// Rotate offsetX and offsetY around (0, 0)
+		const rotatedX = offsetX * cosR - offsetY * sinR
+		const rotatedY = offsetX * sinR + offsetY * cosR
+
+		// Translate the position back to the shape's location
+		positionArray.push({ x: shape.x + rotatedX, y: shape.y + rotatedY })
+	}
+
+	// Function to calculate the Manhattan distance between two points
+	const manhattanDistance = (a: VecLike, b: VecLike) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+
+	// Sort the positions in each direction based on their Manhattan distance to the shape's origin
+	Object.keys(positions).forEach((direction) => {
+		positions[direction as 'up' | 'down' | 'left' | 'right'].sort(
+			(a: VecLike, b: VecLike) => manhattanDistance(a, shape) - manhattanDistance(b, shape)
+		)
+	})
+	return positions
 }
