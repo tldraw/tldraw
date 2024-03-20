@@ -175,13 +175,6 @@ export class MarkdownWriter {
 				const linkedItem = refResult.resolvedApiItem!
 				const path = getPath(linkedItem)
 
-				if (path.includes('panZoom')) {
-					console.log({
-						linkedItem,
-						path,
-					})
-				}
-
 				this.write(
 					'[',
 					docNode.linkText ?? getDefaultReferenceText(linkedItem),
