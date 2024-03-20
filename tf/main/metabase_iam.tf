@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "allow_ecs_to_assume_role" {
 resource "aws_iam_role" "metabase_task" {
   name               = "metabase_task"
   assume_role_policy = data.aws_iam_policy_document.allow_ecs_to_assume_role.json
-  tags               = merge({ Name = "metabase-task" }, local.default_tags)
+  tags               = local.default_tags
 }
 
 # allow the task to do standard AWS calls, see

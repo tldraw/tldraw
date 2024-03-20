@@ -11,6 +11,7 @@ resource "aws_db_instance" "metabase" {
   # - there is no good way to either handle autoration or disable it
   # - the API doesn't seem to accept AWSCURRENT as a version
   # with this approach, the password is stored in the state file, but it's OK
+  # as the state is in our private bucket
   password = var.metabase_db_password
 
   parameter_group_name = aws_db_parameter_group.force_ssl.name
