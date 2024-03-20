@@ -671,7 +671,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     // (undocumented)
-    getCoalescedEvents: () => TLEventInfo[];
+    getCoalescedEvents: () => TLPointerEventInfo[];
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     // @internal
@@ -2150,7 +2150,7 @@ export interface TLEventHandlers {
     // (undocumented)
     onPointerDown: TLPointerEvent;
     // (undocumented)
-    onPointerMove: TLPointerEvent;
+    onPointerMove: TLPointerMoveEvent;
     // (undocumented)
     onPointerUp: TLPointerEvent;
     // (undocumented)
@@ -2417,6 +2417,7 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
     pointerId: number;
     button: number;
     isPen: boolean;
+    pagePoint: Vec;
 } & TLPointerEventTarget;
 
 // @public (undocumented)

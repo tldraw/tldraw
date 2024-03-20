@@ -2107,6 +2107,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				name: 'pointer_move',
 				// weird but true: we need to put the screen point back into client space
 				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
+				pagePoint: this.inputs.currentPagePoint,
 				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
 				ctrlKey: this.inputs.ctrlKey,
 				altKey: this.inputs.altKey,
@@ -8374,22 +8375,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispatch = (info: TLEventInfo): this => {
-		// console.log('adding to pending events', info.name)
-		if (this._isCoalesableEvent(info)) {
-			this._updateInputsFromEvent(info as TLPointerEventInfo)
-			;(info as any).inputs = structuredClone(this.inputs)
-		}
 		if (this._pendingEventsForNextTick.length === 0) {
-			// console.log('adding the first event')
 			this._pendingEventsForNextTick.push(info)
-			this._allEventsSinceLastTick.push(info)
+			if (info.name === 'pointer_move') {
+				this._allEventsSinceLastTick.push(info)
+			}
 		} else {
 			if (this._shouldCoallesce(info)) {
-				// console.log('coalescing')
 				this._pendingEventsForNextTick[0] = info
-				this._allEventsSinceLastTick.push(info)
+				if (info.name === 'pointer_move') {
+					this._allEventsSinceLastTick.push(info)
+				}
 			} else {
-				// console.log('different event type')
 				// Event has changed. We flush the currently pending events
 				this._flushEventsForTick(0)
 				// Then we add the new event to the queue (flushing clears the queue)
@@ -8400,17 +8397,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _pendingEventsForNextTick: TLEventInfo[] = []
-	private _allEventsSinceLastTick: TLEventInfo[] = []
+	private _allEventsSinceLastTick: TLPointerEventInfo[] = []
 
 	getCoalescedEvents = () => {
 		return this._allEventsSinceLastTick
 	}
 
 	private _flushEventsForTick = (elapsed: number) => {
-		const now = Date.now()
 		this.batch(() => {
 			if (this._pendingEventsForNextTick.length > 0) {
-				// console.log('flushing', this._pendingEventsForNextTick.length, this._allEventsSinceLastTick)
 				const events = [...this._pendingEventsForNextTick]
 				this._pendingEventsForNextTick.length = 0
 				for (const info of events) {
@@ -8421,7 +8416,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.scribbles.tick(elapsed)
 		})
 		this._allEventsSinceLastTick.length = 0
-		console.log('flusing took', Date.now() - now)
 	}
 
 	private _flushEventForTick = (info: TLEventInfo) => {
@@ -8521,11 +8515,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
 
-						this.setCamera({
-							x: cx + dx / cz - x / cz + x / zoom,
-							y: cy + dy / cz - y / cz + y / zoom,
-							z: zoom,
-						})
+						this._setCamera(
+							{
+								x: cx + dx / cz - x / cz + x / zoom,
+								y: cy + dy / cz - y / cz + y / zoom,
+								z: zoom,
+							},
+							true
+						)
 
 						return // Stop here!
 					}
@@ -8572,11 +8569,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
 
-						this.setCamera({
-							x: cx + (x / zoom - x) - (x / cz - x),
-							y: cy + (y / zoom - y) - (y / cz - y),
-							z: zoom,
-						})
+						this._setCamera(
+							{
+								x: cx + (x / zoom - x) - (x / cz - x),
+								y: cy + (y / zoom - y) - (y / cz - y),
+								z: zoom,
+							},
+							true
+						)
 
 						// We want to return here because none of the states in our
 						// statechart should respond to this event (a camera zoom)
