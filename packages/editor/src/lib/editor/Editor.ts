@@ -8347,6 +8347,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	capturedPointerId: number | null = null
 
+	private _eventsToCoalesce = ['pointer_move']
+
+	private _shouldCoallesce = (info: TLEventInfo) => {
+		if (!this._isCoalesableEvent(info)) return false
+		return (
+			this._isCoalesableEvent(this._pendingEventsForNextTick[0]) &&
+			this._pendingEventsForNextTick[0].name === info.name
+		)
+	}
+
+	private _isCoalesableEvent = (info: TLEventInfo) => {
+		return this._eventsToCoalesce.includes(info.name)
+	}
+
 	/**
 	 * Dispatch an event to the editor.
 	 *
@@ -8361,8 +8375,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	dispatch = (info: TLEventInfo): this => {
 		// console.log('adding to pending events', info.name)
-		if (info.name === 'pointer_move') {
-			this._updateInputsFromEvent(info)
+		if (this._isCoalesableEvent(info)) {
+			this._updateInputsFromEvent(info as TLPointerEventInfo)
 			;(info as any).inputs = structuredClone(this.inputs)
 		}
 		if (this._pendingEventsForNextTick.length === 0) {
@@ -8370,8 +8384,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._pendingEventsForNextTick.push(info)
 			this._allEventsSinceLastTick.push(info)
 		} else {
-			const eventInQueue = this._pendingEventsForNextTick[0]
-			if (eventInQueue.name === info.name) {
+			if (this._shouldCoallesce(info)) {
 				// console.log('coalescing')
 				this._pendingEventsForNextTick[0] = info
 				this._allEventsSinceLastTick.push(info)
@@ -8394,7 +8407,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _flushEventsForTick = (elapsed: number) => {
-		// const now = Date.now()
+		const now = Date.now()
 		this.batch(() => {
 			if (this._pendingEventsForNextTick.length > 0) {
 				// console.log('flushing', this._pendingEventsForNextTick.length, this._allEventsSinceLastTick)
@@ -8408,7 +8421,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.scribbles.tick(elapsed)
 		})
 		this._allEventsSinceLastTick.length = 0
-		// console.log('flushed', Date.now() - now)
+		console.log('flusing took', Date.now() - now)
 	}
 
 	private _flushEventForTick = (info: TLEventInfo) => {
