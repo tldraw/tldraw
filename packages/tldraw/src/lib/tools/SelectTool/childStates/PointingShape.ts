@@ -5,6 +5,7 @@ import {
 	TLArrowShape,
 	TLEventHandlers,
 	TLGeoShape,
+	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
 } from '@tldraw/editor'
@@ -27,6 +28,13 @@ export class PointingShape extends StateNode {
 
 		this.hitShape = info.shape
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
+
+		// Bring sticky notes to front on pointer down;
+		// consider changing the logic to "move to front of any overlapping shapes"
+		// rather than move to front of all shapes in the page / parent
+		if (this.editor.isShapeOfType<TLNoteShape>(info.shape, 'note')) {
+			this.editor.bringToFront([info.shape.id])
+		}
 
 		if (
 			// If the shape has an onClick handler
