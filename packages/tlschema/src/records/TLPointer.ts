@@ -1,4 +1,10 @@
-import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import {
+	BaseRecord,
+	createMigrationIds,
+	createRecordMigrations,
+	createRecordType,
+	RecordId,
+} from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
@@ -32,34 +38,29 @@ export const pointerValidator: T.Validator<TLPointer> = T.model(
 )
 
 /** @internal */
-export const pointerVersions = {
+export const pointerVersions = createMigrationIds('com.tldraw.pointer', {
 	AddMeta: 1,
-}
+})
 
 /** @internal */
-export const pointerMigrations = defineMigrations({
-	currentVersion: pointerVersions.AddMeta,
-	migrators: {
-		[pointerVersions.AddMeta]: {
-			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
+export const pointerMigrations = createRecordMigrations({
+	recordType: 'pointer',
+	sequence: [
+		{
+			id: pointerVersions.AddMeta,
+			up: (record: any) => {
+				record.meta = {}
 			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
+			down: (record: any) => {
+				delete record.meta
 			},
 		},
-	},
+	],
 })
 
 /** @public */
 export const PointerRecordType = createRecordType<TLPointer>('pointer', {
 	validator: pointerValidator,
-	migrations: pointerMigrations,
 	scope: 'session',
 }).withDefaultProperties(
 	(): Omit<TLPointer, 'id' | 'typeName'> => ({

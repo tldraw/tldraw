@@ -1,10 +1,19 @@
-import { createRecordType, defineMigrations, RecordId, UnknownRecord } from '@tldraw/store'
+import {
+	Migration,
+	MigrationId,
+	Migrations,
+	RecordId,
+	UnknownRecord,
+	createMigrations,
+	createRecordType,
+	defineMigrations,
+} from '@tldraw/store'
 import { mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { nanoid } from 'nanoid'
 import { SchemaShapeInfo } from '../createTLSchema'
 import { TLArrowShape } from '../shapes/TLArrowShape'
-import { createShapeValidator, TLBaseShape } from '../shapes/TLBaseShape'
+import { TLBaseShape, createShapeValidator } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
@@ -200,16 +209,66 @@ export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>
 	return propKeysByStyle
 }
 
+export type ShapePropsMigrations = {
+	sequence: Array<{
+		version: number
+		dependsOn?: MigrationId[]
+		up: (props: any) => any
+		down: (props: any) => any
+	}>
+}
+
+export function createShapePropMigrations(migrations: ShapePropsMigrations): ShapePropsMigrations {
+	return migrations
+}
+
+export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) {
+	const result: Record<string, Migrations> = {}
+
+	for (const [shapeType, { migrations }] of Object.entries(shapes)) {
+		if (!migrations) {
+			// provide empty migrations sequence to allow for future migrations
+			result[shapeType] = createMigrations({
+				sequenceId: `com.tldraw.shape.${shapeType}`,
+				sequence: [],
+			})
+		} else if ('sequence' in migrations) {
+			const sequenceId = `com.tldraw.shape.${shapeType}`
+			result[shapeType] = createMigrations({
+				sequenceId,
+				sequence: migrations.sequence.map(
+					({ version, up, down }): Migration => ({
+						id: `${sequenceId}/${version}`,
+						scope: 'record',
+						filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
+						up: (record: any) => {
+							const result = up(record.props)
+							if (result) {
+								record.props = result
+							}
+						},
+						down: down
+							? (record: any) => {
+									const result = down(record.props)
+									if (result) {
+										record.props = result
+									}
+								}
+							: undefined,
+					})
+				),
+			})
+		} else {
+			// legacy migrations, will be removed in the future
+		}
+	}
+
+	return result
+}
+
 /** @internal */
 export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 	return createRecordType<TLShape>('shape', {
-		migrations: defineMigrations({
-			currentVersion: rootShapeMigrations.currentVersion,
-			firstVersion: rootShapeMigrations.firstVersion,
-			migrators: rootShapeMigrations.migrators,
-			subTypeKey: 'type',
-			subTypeMigrations: mapObjectMapValues(shapes, (_, v) => v.migrations ?? defineMigrations({})),
-		}),
 		scope: 'document',
 		validator: T.model(
 			'shape',

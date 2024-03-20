@@ -13,7 +13,7 @@ export { Versions as storeVersions }
 
 /** @public */
 export const storeMigrations = createMigrations({
-	id: 'com.tldraw.store',
+	sequenceId: 'com.tldraw.store',
 	sequence: [
 		{
 			id: `com.tldraw.store/${Versions.RemoveCodeAndIconShapeTypes}`,
