@@ -10,6 +10,15 @@ import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } 
 /** @internal */
 export const featureFlags: Record<string, DebugFlag<boolean>> = {
 	// canMoveArrowLabel: createFeatureFlag('canMoveArrowLabel'),
+	hideStickyIndicator: createDebugValue('hideStickyIndicator', {
+		defaults: { staging: true, development: true, all: false },
+	}),
+	bringStickiesToFront: createDebugValue('bringStickiesToFront', {
+		defaults: { staging: true, development: true, all: false },
+	}),
+	floatingStickies: createDebugValue('floatingStickies', {
+		defaults: { staging: true, development: true, all: false },
+	}),
 }
 
 /** @internal */

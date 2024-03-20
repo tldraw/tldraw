@@ -6,6 +6,7 @@ import {
 	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	featureFlags,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -72,7 +73,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		const handlePointerDown = () => {
-			this.editor.bringToFront([shape.id])
+			if (featureFlags.bringStickiesToFront.get()) {
+				this.editor.bringToFront([shape.id])
+			}
 		}
 
 		return (
@@ -82,7 +85,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						position: 'absolute',
 						width: NOTE_SIZE,
 						height: this.getHeight(shape),
-						transform: `scale(${isDragging ? 1 : 1}) translateY(${isDragging ? -5 : 0}px)`,
+						transform: featureFlags.floatingStickies.get()
+							? `scale(${isDragging ? 1 : 1}) translateY(${isDragging ? -5 : 0}px)`
+							: '',
 						pointerEvents: 'all',
 					}}
 					onPointerDown={handlePointerDown}
@@ -95,14 +100,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							// boxShadow: isDragging
 							// 	? '0px 6px 6px hsl(0, 0%, 0%, 10%), 0px 6px 9px hsl(0, 0%, 0%, 3%)'
 							// 	: '0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%)',
-							boxShadow: getRotatedBoxShadow(pageRotation, {
-								offsetModifier: isDragging ? 3 : 1,
-								// spreadModifier: isDragging ? 3 : 1,
-								blurModifier: isDragging ? 2 : 1,
-								// spreadModifier: 1.5,
-								// spreadModifier: isDragging ? 0.5 : 0.5,
-								// blurModifier: isDragging ? 1.5 : 1,
-							}),
+							boxShadow: featureFlags.floatingStickies.get()
+								? getRotatedBoxShadow(pageRotation, {
+										offsetModifier: isDragging ? 3 : 1,
+										// spreadModifier: isDragging ? 3 : 1,
+										blurModifier: isDragging ? 2 : 1,
+										// spreadModifier: 1.5,
+										// spreadModifier: isDragging ? 0.5 : 0.5,
+										// blurModifier: isDragging ? 1.5 : 1,
+									})
+								: 'var(--shadow-1)',
 						}}
 					>
 						<div className="tl-note__scrim" />
@@ -127,13 +134,20 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	indicator(shape: TLNoteShape) {
-		return null
+		if (featureFlags.hideStickyIndicator.get()) {
+			return null
+		}
+
+		const isDragging =
+			this.editor.isInAny('select.translating', 'select.pointing_shape') &&
+			this.editor.getSelectedShapeIds().includes(shape.id)
 
 		return (
 			<rect
 				rx="6"
 				width={toDomPrecision(NOTE_SIZE)}
 				height={toDomPrecision(this.getHeight(shape))}
+				transform={isDragging && featureFlags.floatingStickies.get() ? 'translate(0, -5)' : ''}
 			/>
 		)
 	}
