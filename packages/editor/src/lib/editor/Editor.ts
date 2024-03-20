@@ -8360,25 +8360,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispatch = (info: TLEventInfo): this => {
-		console.log('adding to pending events', info.name)
-		// We already have an event in the queue. If the current event is the same as the last one
-		// we will coalesce them. If it's different, we will flush the queue and start a new one.
-		this._allEventsSinceLastTick.push(info)
-		if (this._pendingEventsForNextTick.length === 1) {
+		// console.log('adding to pending events', info.name)
+		if (info.name === 'pointer_move') {
+			this._updateInputsFromEvent(info)
+			;(info as any).inputs = structuredClone(this.inputs)
+		}
+		if (this._pendingEventsForNextTick.length === 0) {
+			// console.log('adding the first event')
+			this._pendingEventsForNextTick.push(info)
+			this._allEventsSinceLastTick.push(info)
+		} else {
 			const eventInQueue = this._pendingEventsForNextTick[0]
 			if (eventInQueue.name === info.name) {
-				console.log('coalescing')
+				// console.log('coalescing')
 				this._pendingEventsForNextTick[0] = info
+				this._allEventsSinceLastTick.push(info)
 			} else {
-				console.log('different event type')
+				// console.log('different event type')
 				// Event has changed. We flush the currently pending events
 				this._flushEventsForTick(0)
-				// Then we add the new event to the queue
-				this._pendingEventsForNextTick.push(info)
+				// Then we add the new event to the queue (flushing clears the queue)
+				this._pendingEventsForNextTick = [info]
 			}
-		} else {
-			console.log('adding the first event')
-			this._pendingEventsForNextTick.push(info)
 		}
 		return this
 	}
@@ -8391,9 +8394,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _flushEventsForTick = (elapsed: number) => {
+		// const now = Date.now()
 		this.batch(() => {
 			if (this._pendingEventsForNextTick.length > 0) {
-				console.log('flushing', this._pendingEventsForNextTick.length, this._allEventsSinceLastTick)
+				// console.log('flushing', this._pendingEventsForNextTick.length, this._allEventsSinceLastTick)
 				const events = [...this._pendingEventsForNextTick]
 				this._pendingEventsForNextTick.length = 0
 				for (const info of events) {
@@ -8404,6 +8408,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.scribbles.tick(elapsed)
 		})
 		this._allEventsSinceLastTick.length = 0
+		// console.log('flushed', Date.now() - now)
 	}
 
 	private _flushEventForTick = (info: TLEventInfo) => {

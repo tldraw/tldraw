@@ -6,6 +6,7 @@ import {
 	TLDrawShape,
 	TLDrawShapeSegment,
 	TLEventHandlers,
+	TLEventInfo,
 	TLHighlightShape,
 	TLPointerEventInfo,
 	TLShapePartial,
@@ -62,9 +63,18 @@ export class Drawing extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		const {
-			editor: { inputs },
-		} = this
+		// console.log('drawing: pointer move')
+		const coallesced = this.editor.getCoalescedEvents()
+		// console.log({ coallesced })
+		console.log('number of events', coallesced.length)
+		coallesced.forEach((info, i) => {
+			// console.log(i, (info as any).inputs)
+			this.processEvents(info)
+		})
+	}
+
+	processEvents(info: TLEventInfo) {
+		const inputs = (info as any).inputs
 
 		if (this.isPen !== inputs.isPen) {
 			// The user made a palm gesture before starting a pen gesture;
@@ -99,7 +109,7 @@ export class Drawing extends StateNode {
 				this.mergeNextPoint = false
 			}
 
-			this.updateShapes()
+			this.updateShapes(inputs)
 		}
 	}
 
@@ -117,7 +127,7 @@ export class Drawing extends StateNode {
 				}
 			}
 		}
-		this.updateShapes()
+		this.updateShapes(this.editor.inputs)
 	}
 
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
@@ -139,7 +149,7 @@ export class Drawing extends StateNode {
 			}
 		}
 
-		this.updateShapes()
+		this.updateShapes(this.editor.inputs)
 	}
 
 	override onExit? = () => {
@@ -281,8 +291,8 @@ export class Drawing extends StateNode {
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
-	private updateShapes() {
-		const { inputs } = this.editor
+	private updateShapes(inputs: any) {
+		// console.log('update shapes', inputs)
 		const { initialShape } = this
 
 		if (!initialShape) return
