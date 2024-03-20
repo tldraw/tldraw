@@ -3120,6 +3120,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let nextIndex = MAX_SHAPES_PER_PAGE * 2
 		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE
+		const TOP_LEVEL_SHAPES_BASELINE = MAX_SHAPES_PER_PAGE * 2 * 10
 
 		// We only really need these if we're using editor state, but that's ok
 		const editingShapeId = this.getEditingShapeId()
@@ -3164,8 +3165,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				id,
 				shape,
 				util,
-				index: nextIndex,
-				backgroundIndex: nextBackgroundIndex,
+				index: util.isAlwaysOnTop(shape) ? TOP_LEVEL_SHAPES_BASELINE + nextIndex : nextIndex,
+				backgroundIndex: util.isAlwaysOnTop(shape)
+					? TOP_LEVEL_SHAPES_BASELINE + nextBackgroundIndex
+					: nextBackgroundIndex,
 				opacity,
 				isCulled,
 				maskedPageBounds,
@@ -8284,11 +8287,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 
 					const elements = []
+					const TOP_LEVEL_SHAPES_BASELINE = MAX_SHAPES_PER_PAGE * 2 * 10
 					if (shapeSvgElement) {
-						elements.push({ zIndex: index, element: shapeSvgElement })
+						elements.push({
+							zIndex: util.isAlwaysOnTop(shape) ? TOP_LEVEL_SHAPES_BASELINE + index : index,
+							element: shapeSvgElement,
+						})
 					}
 					if (backgroundSvgElement) {
-						elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
+						elements.push({
+							zIndex: util.isAlwaysOnTop(shape)
+								? TOP_LEVEL_SHAPES_BASELINE + backgroundIndex
+								: backgroundIndex,
+							element: backgroundSvgElement,
+						})
 					}
 
 					return elements

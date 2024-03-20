@@ -3255,6 +3255,74 @@
           }
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/tlschema!stickerShapeProps:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "stickerShapeProps: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    w: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n    h: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n    kind: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"canonical\" | \"custom\">;\n    sticker: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"blue-circle\" | \"heart\" | \"question-mark\" | \"star\" | \"thumbs-down\" | \"thumbs-up\" | undefined>;\n    url: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<string | undefined>;\n}"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/shapes/TLStickerShape.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "stickerShapeProps",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 12
+          }
+        },
+        {
           "kind": "Class",
           "canonicalReference": "@tldraw/tlschema!StyleProp:class",
           "docComment": "/**\n * A `StyleProp` is a property of a shape that follows some special rules.\n *\n * 1. The same value can be set on lots of shapes at the same time.\n *\n * 2. The last used value is automatically saved and applied to new shapes.\n *\n * For example, {@link DefaultColorStyle} is a style prop used by tldraw's default shapes to set their color. If you try selecting several shapes on tldraw.com and changing their color, you'll see that the color is applied to all of them. Then, if you draw a new shape, it'll have the same color as the one you just set.\n *\n * You can use styles in your own shapes by either defining your own (see {@link StyleProp.define} and {@link StyleProp.defineEnum}) or using tldraw's default ones, like {@link DefaultColorStyle}. When you define a shape, pass a `props` object describing all of your shape's properties, using `StyleProp`s for the ones you want to be styles. See the {@link https://github.com/tldraw/tldraw/tree/main/apps/examples | custom styles example} for more.\n *\n * @remarks\n *\n * The constructor for this class is marked as internal. Third-party code should not call the constructor directly or create subclasses that extend the `StyleProp` class.\n *\n * @public\n */\n",
@@ -5110,6 +5178,87 @@
           "name": "TLCursor",
           "preserveMemberOrder": false,
           "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLCursor#customCanonicalSticker:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "customCanonicalSticker?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "customCanonicalSticker",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLCursor#customSize:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "customSize?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "customSize",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLCursor#customUrl:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "customUrl?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "customUrl",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tlschema!TLCursor#rotation:member",
@@ -9184,6 +9333,46 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 7
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLStickerShape:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLStickerShape = "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLBaseShape",
+              "canonicalReference": "@tldraw/tlschema!TLBaseShape:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<'sticker', "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLStickerShapeProps",
+              "canonicalReference": "@tldraw/tlschema!~TLStickerShapeProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/shapes/TLStickerShape.ts",
+          "releaseTag": "Public",
+          "name": "TLStickerShape",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
           }
         },
         {

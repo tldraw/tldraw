@@ -132,6 +132,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canCrop: TLShapeUtilFlag<Shape> = () => false
 
 	/**
+	 * Whether the shape is always on top of other shape types.
+	 *
+	 * @public
+	 */
+	isAlwaysOnTop: TLShapeUtilFlag<Shape> = () => false
+
+	/**
 	 * Does this shape provide a background for its children? If this is true,
 	 * then any children with a `renderBackground` method will have their
 	 * backgrounds rendered _above_ this shape. Otherwise, the children's
@@ -208,7 +215,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']) {
-		return false
+		return true
 	}
 
 	/**
@@ -219,7 +226,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	canDropShapes(shape: Shape, shapes: TLShape[]) {
-		return false
+		return true
 	}
 
 	/**
@@ -332,7 +339,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An object specifying whether the shape should hint that it can receive the dragged shapes.
 	 * @public
 	 */
-	onDragShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
+	onDragShapesOver(shape: TLShape, shapes: TLShape[]) {
+		this.editor.reparentShapes(shapes, shape.id)
+		return { shouldHint: true }
+	}
 
 	/**
 	 * A callback called when some other shapes are dragged out of this one.
@@ -341,7 +351,9 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dragged out.
 	 * @public
 	 */
-	onDragShapesOut?: TLOnDragHandler<Shape>
+	onDragShapesOut(shape: TLShape, shapes: TLShape[]) {
+		this.editor.reparentShapes(shapes, this.editor.getCurrentPage().id)
+	}
 
 	/**
 	 * A callback called when some other shapes are dropped over this one.

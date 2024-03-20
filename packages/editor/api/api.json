@@ -31216,6 +31216,41 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#isAlwaysOnTop:member",
+              "docComment": "/**\n * Whether the shape is always on top of other shape types.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isAlwaysOnTop: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeUtilFlag",
+                  "canonicalReference": "@tldraw/editor!TLShapeUtilFlag:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isAlwaysOnTop",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#isAspectRatioLocked:member",
               "docComment": "/**\n * Whether the shape's aspect ratio is locked.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -31526,74 +31561,144 @@
               "isAbstract": false
             },
             {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#onDragShapesOut:member",
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onDragShapesOut:member(1)",
               "docComment": "/**\n * A callback called when some other shapes are dragged out of this one.\n *\n * @param shape - The shape.\n *\n * @param shapes - The shapes that are being dragged out.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onDragShapesOut?: "
+                  "text": "onDragShapesOut(shape: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLOnDragHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnDragHandler:type"
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
                 },
                 {
                   "kind": "Content",
-                  "text": "<Shape>"
+                  "text": ", shapes: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
                 },
                 {
                   "kind": "Content",
                   "text": ";"
                 }
               ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onDragShapesOut",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
               "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
               "isProtected": false,
-              "isAbstract": false
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "shapes",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "onDragShapesOut"
             },
             {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#onDragShapesOver:member",
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onDragShapesOver:member(1)",
               "docComment": "/**\n * A callback called when some other shapes are dragged over this one.\n *\n * @param shape - The shape.\n *\n * @param shapes - The shapes that are being dragged over this one.\n *\n * @returns An object specifying whether the shape should hint that it can receive the dragged shapes.\n *\n * @example\n * ```ts\n * onDragShapesOver = (shape, shapes) => {\n * \treturn { shouldHint: true }\n * }\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onDragShapesOver?: "
+                  "text": "onDragShapesOver(shape: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLOnDragHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnDragHandler:type"
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
                 },
                 {
                   "kind": "Content",
-                  "text": "<Shape, {\n        shouldHint: boolean;\n    }>"
+                  "text": ", shapes: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        shouldHint: boolean;\n    }"
                 },
                 {
                   "kind": "Content",
                   "text": ";"
                 }
               ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "onDragShapesOver",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
               "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
               "isProtected": false,
-              "isAbstract": false
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "shapes",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "onDragShapesOver"
             },
             {
               "kind": "Property",

@@ -159,6 +159,7 @@ export type AssetUrls = {
 		'tool-note': string
 		'tool-pencil': string
 		'tool-pointer': string
+		'tool-sticker': string
 		'tool-text': string
 		trash: string
 		'triangle-down': string
@@ -175,6 +176,14 @@ export type AssetUrls = {
 		'warning-triangle': string
 		'zoom-in': string
 		'zoom-out': string
+	}
+	stickers: {
+		'blue-circle': string
+		heart: string
+		'question-mark': string
+		star: string
+		'thumbs-down': string
+		'thumbs-up': string
 	}
 	translations: {
 		ar: string

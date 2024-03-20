@@ -1622,6 +1622,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsFg: TLShapeUtilFlag<Shape>;
     abstract indicator(shape: Shape): any;
+    isAlwaysOnTop: TLShapeUtilFlag<Shape>;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
     // (undocumented)
     static migrations?: Migrations;
@@ -1634,10 +1635,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDoubleClick?: TLOnDoubleClickHandler<Shape>;
     onDoubleClickEdge?: TLOnDoubleClickHandler<Shape>;
     onDoubleClickHandle?: TLOnDoubleClickHandleHandler<Shape>;
-    onDragShapesOut?: TLOnDragHandler<Shape>;
-    onDragShapesOver?: TLOnDragHandler<Shape, {
+    onDragShapesOut(shape: TLShape, shapes: TLShape[]): void;
+    onDragShapesOver(shape: TLShape, shapes: TLShape[]): {
         shouldHint: boolean;
-    }>;
+    };
     onDropShapesOver?: TLOnDragHandler<Shape>;
     onEditEnd?: TLOnEditEndHandler<Shape>;
     onHandleDrag?: TLOnHandleDragHandler<Shape>;

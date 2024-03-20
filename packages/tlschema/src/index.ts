@@ -130,6 +130,11 @@ export {
 } from './shapes/TLLineShape'
 export { noteShapeMigrations, noteShapeProps, type TLNoteShape } from './shapes/TLNoteShape'
 export {
+	stickerShapeMigrations,
+	stickerShapeProps,
+	type TLStickerShape,
+} from './shapes/TLStickerShape'
+export {
 	textShapeMigrations,
 	textShapeProps,
 	type TLTextShape,

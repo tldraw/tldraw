@@ -5,6 +5,7 @@ import { GeoShapeTool } from './shapes/geo/GeoShapeTool'
 import { HighlightShapeTool } from './shapes/highlight/HighlightShapeTool'
 import { LineShapeTool } from './shapes/line/LineShapeTool'
 import { NoteShapeTool } from './shapes/note/NoteShapeTool'
+import { StickerShapeTool } from './shapes/sticker/StickerShapeTool'
 import { TextShapeTool } from './shapes/text/TextShapeTool'
 
 /** @public */
@@ -13,6 +14,7 @@ export const defaultShapeTools = [
 	DrawShapeTool,
 	GeoShapeTool,
 	NoteShapeTool,
+	StickerShapeTool,
 	LineShapeTool,
 	FrameShapeTool,
 	ArrowShapeTool,

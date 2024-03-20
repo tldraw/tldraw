@@ -2,9 +2,11 @@ import { EMBED_DEFINITIONS, LANGUAGES, RecursivePartial } from '@tldraw/editor'
 import { version } from '../ui/version'
 import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/static-assets/assetUrls'
 import { TLUiIconType, iconTypes } from './icon-types'
+import { TLCanonicalStickerType, stickerTypes } from './sticker-types'
 
 export type TLUiAssetUrls = TLEditorAssetUrls & {
 	icons: Record<TLUiIconType | Exclude<string, TLUiIconType>, string>
+	stickers: Record<TLUiIconType | Exclude<string, TLCanonicalStickerType>, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>
 	embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>
 }
@@ -18,6 +20,12 @@ export let defaultUiAssetUrls: TLUiAssetUrls = {
 		iconTypes.map((name) => [
 			name,
 			`https://unpkg.com/@tldraw/assets@${version}/icons/icon/${name}.svg`,
+		])
+	) as Record<TLUiIconType, string>,
+	stickers: Object.fromEntries(
+		stickerTypes.map((name) => [
+			name,
+			`https://unpkg.com/@tldraw/assets@${version}/stickers/${name}.svg`,
 		])
 	) as Record<TLUiIconType, string>,
 	translations: Object.fromEntries(
@@ -48,6 +56,7 @@ export function useDefaultUiAssetUrlsWithOverrides(
 	return {
 		fonts: Object.assign({ ...defaultUiAssetUrls.fonts }, { ...overrides?.fonts }),
 		icons: Object.assign({ ...defaultUiAssetUrls.icons }, { ...overrides?.icons }),
+		stickers: Object.assign({ ...defaultUiAssetUrls.stickers }, { ...overrides?.stickers }),
 		embedIcons: Object.assign({ ...defaultUiAssetUrls.embedIcons }, { ...overrides?.embedIcons }),
 		translations: Object.assign(
 			{ ...defaultUiAssetUrls.translations },

@@ -1549,3 +1549,61 @@ it from receiving any pointer events or affecting the cursor. */
 	font-size: 12px;
 	font-family: monospace;
 }
+
+/* --------------------- Sticker Wheel --------------------- */
+
+.tl-sticker-wheel {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 400;
+	width: 200px;
+	height: 200px;
+	border-radius: 50%;
+	background-color: hsl(214, 84%, 70%); /* var(--color-primary) */
+	outline: 2px solid hsl(214, 84%, 70%); /* var(--color-primary) */
+	pointer-events: all;
+	overflow: hidden;
+	box-shadow: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
+		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px hsl(0, 0%, 100%);
+	transition: all 200ms ease-out 100ms;
+}
+
+.tl-sticker-wheel:before {
+	content: '';
+	position: absolute;
+	top: calc(50% - 4px);
+	left: calc(50% - 4px);
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background-color: hsl(214, 84%, 70%);
+	z-index: 1;
+	pointer-events: none;
+}
+
+.tl-sticker-wheel-sticker {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 50%;
+	height: 50%;
+	border: 0;
+	background-color: #fff;
+	transition: all 100ms ease-in;
+	transform: rotate(var(--rotation));
+	transform-origin: 0% 100%;
+	clip-path: polygon(0 0, 0 99%, 170% 0);
+	cursor: pointer;
+}
+
+.tl-sticker-wheel-sticker img {
+	position: absolute;
+	top: 20%;
+	left: 10%;
+	transform: rotate(calc(var(--rotation)* -1));
+}
+
+.tl-sticker-wheel-sticker:hover {
+	background-color: hsl(214, 84%, 95%);
+}

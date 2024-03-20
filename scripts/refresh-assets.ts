@@ -26,11 +26,13 @@ const ASSETS_FOLDER_PATH = join(REPO_ROOT, 'assets')
 const collectedAssetUrls: {
 	fonts: Record<string, string>
 	icons: Record<string, string>
+	stickers: Record<string, string>
 	translations: Record<string, string>
 	embedIcons: Record<string, string>
 } = {
 	fonts: {},
 	icons: {},
+	stickers: {},
 	translations: {},
 	embedIcons: {},
 }
@@ -100,6 +102,70 @@ async function copyIcons() {
 	for (const icon of icons) {
 		const name = icon.replace('.svg', '')
 		collectedAssetUrls.icons[name] = `icons/icon/${icon}`
+	}
+}
+
+// 1.5 STICKERS
+
+async function copyStickers() {
+	// Get a list of all stickers
+	const stickers = readdirSync(join(ASSETS_FOLDER_PATH, 'stickers')).filter((sticker) =>
+		sticker.endsWith('.svg')
+	)
+
+	// Write list of names into sticker-names.json (just the name, not extension)
+	const stickerNames = stickers.map((name) => name.replace('.svg', ''))
+
+	const sourceFolderPath = join(ASSETS_FOLDER_PATH, 'stickers')
+
+	const stickerData = stickers.map((sticker) => {
+		const stickerPath = join(sourceFolderPath, sticker)
+		const content = readFileSync(stickerPath)
+		return { fileName: sticker, data: content }
+	})
+
+	// Optimize all of the stickers and write them into the new folders
+	for (const folderPath of PUBLIC_FOLDER_PATHS) {
+		const publicStickersRootFolderPath = join(folderPath, 'stickers')
+
+		if (existsSync(publicStickersRootFolderPath)) {
+			rmSync(publicStickersRootFolderPath, { recursive: true })
+		}
+
+		// Create the folders
+		mkdirSync(publicStickersRootFolderPath, { recursive: true })
+
+		// Copy each sticker into the new folder
+		for (const { fileName, data } of stickerData) {
+			await writeFile(join(publicStickersRootFolderPath, fileName), data)
+		}
+
+		// Write the JSON file containing all of the names of the stickers
+		await writeJsonFile(join(publicStickersRootFolderPath, 'sticker-names.json'), stickerNames)
+	}
+
+	// Get the names of all of the stickers and create a TypeScript file of valid sticker names
+	const stickerTypeFile = `
+		/** @public */
+		export type TLCanonicalStickerType = 
+			${stickers.map((sticker) => JSON.stringify(sticker.replace('.svg', ''))).join(' | ')}
+
+		/** @public */
+		export const stickerTypes = [
+			${stickers.map((sticker) => JSON.stringify(sticker.replace('.svg', ''))).join(', ')}
+		] as const`
+
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		join(REPO_ROOT, 'packages', 'tldraw', 'src', 'lib', 'ui', 'sticker-types.ts'),
+		stickerTypeFile
+	)
+
+	// add to the asset declaration file
+	for (const sticker of stickers) {
+		const name = sticker.replace('.svg', '')
+		collectedAssetUrls.stickers[name] = `stickers/${sticker}`
 	}
 }
 
@@ -430,6 +496,8 @@ async function copyVersionToDotCom() {
 async function main() {
 	nicelog('Copying icons...')
 	await copyIcons()
+	nicelog('Copying stickers...')
+	await copyStickers()
 	nicelog('Copying embed icons...')
 	await copyEmbedIcons()
 	nicelog('Copying fonts...')

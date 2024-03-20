@@ -44,11 +44,18 @@ export const cursorTypeValidator = T.setEnum(TL_CURSOR_TYPES)
  *  @public */
 export interface TLCursor {
 	type: TLCursorType
+	customUrl?: string
+	customSize?: number
+	// shh, cheating here for now ;-/
+	customCanonicalSticker?: string
 	rotation: number
 }
 
 /** @internal */
 export const cursorValidator: T.Validator<TLCursor> = T.object<TLCursor>({
 	type: cursorTypeValidator,
+	customUrl: T.optional(T.string),
+	customSize: T.optional(T.number),
+	customCanonicalSticker: T.optional(T.string),
 	rotation: T.number,
 })

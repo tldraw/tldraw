@@ -13,6 +13,7 @@ export function DefaultToolbarContent() {
 			<ArrowToolbarItem />
 			<TextToolbarItem />
 			<NoteToolbarItem />
+			<StickerToolbarItem />
 			<AssetToolbarItem />
 			<RectangleToolbarItem />
 			<EllipseToolbarItem />
@@ -100,6 +101,13 @@ export function NoteToolbarItem() {
 	const tools = useTools()
 	const isSelected = useIsToolSelected(tools['note'])
 	return <TldrawUiMenuItem {...tools['note']} isSelected={isSelected} />
+}
+
+/** @public */
+export function StickerToolbarItem() {
+	const tools = useTools()
+	const isSelected = useIsToolSelected(tools['sticker'])
+	return <TldrawUiMenuItem {...tools['sticker']} isSelected={isSelected} />
 }
 
 /** @public */

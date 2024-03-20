@@ -745,6 +745,18 @@ export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
     [K in keyof Shape['props']]: T.Validatable<Shape['props'][K]>;
 };
 
+// @internal (undocumented)
+export const stickerShapeMigrations: Migrations;
+
+// @public (undocumented)
+export const stickerShapeProps: {
+    w: T.Validator<number>;
+    h: T.Validator<number>;
+    kind: T.Validator<"canonical" | "custom">;
+    sticker: T.Validator<"blue-circle" | "heart" | "question-mark" | "star" | "thumbs-down" | "thumbs-up" | undefined>;
+    url: T.Validator<string | undefined>;
+};
+
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal
@@ -888,6 +900,12 @@ export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 
 // @public
 export interface TLCursor {
+    // (undocumented)
+    customCanonicalSticker?: string;
+    // (undocumented)
+    customSize?: number;
+    // (undocumented)
+    customUrl?: string;
     // (undocumented)
     rotation: number;
     // (undocumented)
@@ -1225,6 +1243,9 @@ export type TLShapeProp = keyof TLShapeProps;
 
 // @public (undocumented)
 export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
+
+// @public (undocumented)
+export type TLStickerShape = TLBaseShape<'sticker', TLStickerShapeProps>;
 
 // @public (undocumented)
 export type TLStore = Store<TLRecord, TLStoreProps>;
