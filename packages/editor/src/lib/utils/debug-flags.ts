@@ -19,6 +19,9 @@ export const featureFlags: Record<string, DebugFlag<boolean>> = {
 	floatingStickies: createDebugValue('floatingStickies', {
 		defaults: { staging: true, development: true, all: false },
 	}),
+	delayedFloatingStickies: createDebugValue('delayedFloatingStickies', {
+		defaults: { staging: true, development: true, all: false },
+	}),
 }
 
 /** @internal */

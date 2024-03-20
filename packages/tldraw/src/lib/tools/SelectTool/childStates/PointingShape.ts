@@ -30,7 +30,7 @@ export class PointingShape extends StateNode {
 
 		if (
 			// If the shape has an onClick handler
-			this.editor.getShapeUtil(info.shape).onClick ||
+			// this.editor.getShapeUtil(info.shape).onClick ||
 			// ...or if the shape is the focused layer (e.g. group)
 			outermostSelectingShape.id === focusedGroupId ||
 			// ...or if the shape is within the selection

@@ -1152,7 +1152,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         typeName: "shape";
     } | undefined;
     // (undocumented)
+    onClick: (shape: TLNoteShape) => void;
+    // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
+    // (undocumented)
+    onTranslateEnd: (shape: TLNoteShape) => void;
+    // (undocumented)
+    onTranslateStart: (shape: TLNoteShape) => void;
     // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;

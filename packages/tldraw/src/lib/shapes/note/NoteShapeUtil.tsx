@@ -68,19 +68,48 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const adjustedColor = color === 'black' ? 'yellow' : color
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const [timeOfLastPointerDown, setTimeOfLastPointerDown] = useState(0)
+		const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
+
+		// held together with sticky tape for prototype
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const [isDraggingForRealThough, setIsDraggingForRealThough] = useState(false)
 
 		const isDragging =
-			this.editor.isInAny('select.translating', 'select.pointing_shape') &&
-			this.editor.getSelectedShapeIds().includes(shape.id) &&
-			performance.now() - timeOfLastPointerDown > 100
+			(this.editor.isIn('select.translating') ||
+				(this.editor.isInAny('select.pointing_shape') && isDraggingForRealThough)) &&
+			this.editor.getSelectedShapeIds().includes(shape.id)
 
 		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		const handlePointerDown = () => {
-			setTimeOfLastPointerDown(performance.now())
-			if (featureFlags.bringStickiesToFront.get()) {
-				this.editor.bringToFront([shape.id])
+			if (timeoutId) {
+				clearTimeout(timeoutId)
+			}
+			setIsDraggingForRealThough(false)
+
+			if (featureFlags.delayedFloatingStickies.get()) {
+				setTimeoutId(
+					setTimeout(() => {
+						setIsDraggingForRealThough(true)
+						if (this.editor.isInAny('select.translating', 'select.pointing_shape')) {
+							if (featureFlags.bringStickiesToFront.get()) {
+								this.editor.bringToFront([shape.id])
+							}
+							this.editor.updateShape({
+								id: shape.id,
+								type: shape.type,
+								meta: {
+									isDragging: true,
+								},
+							})
+						}
+					}, 200)
+				)
+			} else {
+				setIsDraggingForRealThough(true)
+				if (featureFlags.bringStickiesToFront.get()) {
+					this.editor.bringToFront([shape.id])
+				}
 			}
 		}
 
@@ -139,14 +168,48 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
+	override onClick = (shape: TLNoteShape) => {
+		this.editor.updateShape({
+			id: shape.id,
+			type: shape.type,
+			meta: {
+				isDragging: false,
+			},
+		})
+	}
+
+	override onTranslateStart = (shape: TLNoteShape) => {
+		this.editor.bringToFront([shape.id])
+		this.editor.updateShape({
+			id: shape.id,
+			type: shape.type,
+			meta: {
+				isDragging: true,
+			},
+		})
+	}
+
+	override onTranslateEnd = (shape: TLNoteShape) => {
+		this.editor.updateShape({
+			id: shape.id,
+			type: shape.type,
+			meta: {
+				isDragging: false,
+			},
+		})
+	}
+
 	indicator(shape: TLNoteShape) {
 		if (featureFlags.hideStickyIndicator.get()) {
 			return null
 		}
 
+		const isDraggingForRealThough = shape.meta?.isDragging
+
 		const isDragging =
 			this.editor.isInAny('select.translating', 'select.pointing_shape') &&
-			this.editor.getSelectedShapeIds().includes(shape.id)
+			this.editor.getSelectedShapeIds().includes(shape.id) &&
+			(featureFlags.delayedFloatingStickies.get() ? isDraggingForRealThough : true)
 
 		return (
 			<rect
