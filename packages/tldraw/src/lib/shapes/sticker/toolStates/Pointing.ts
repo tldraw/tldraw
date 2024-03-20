@@ -26,7 +26,9 @@ export class Pointing extends StateNode {
 	cursorSize = INITIAL_STICKER_SIZE
 	cursorSticker = 'heart'
 	cursorRandomRotation = 0
-	updateCursorThrottled: () => void = () => {/* noop */}
+	updateCursorThrottled: () => void = () => {
+		/* noop */
+	}
 
 	override onEnter = () => {
 		this.cursorTimer = new Date()
