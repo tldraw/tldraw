@@ -12,11 +12,11 @@ resource "aws_security_group" "cf_worker_analytics_db" {
 # allow incoming connections from everywhere
 # todo: tighten this up
 resource "aws_vpc_security_group_ingress_rule" "cf_worker_analytics_db" {
-  security_group_id            = aws_security_group.cf_worker_analytics_db.id
-  cidr_ipv4                    = "0.0.0.0/0"
-  from_port                    = 5432
-  to_port                      = 5432
-  ip_protocol                  = "tcp"
+  security_group_id = aws_security_group.cf_worker_analytics_db.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 5432
+  to_port           = 5432
+  ip_protocol       = "tcp"
 }
 
 

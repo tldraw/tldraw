@@ -57,7 +57,7 @@ locals {
       value = local.metabase_db_user
     },
     {
-      name      = "MB_DB_PASS"
+      name  = "MB_DB_PASS"
       value = var.metabase_db_password
     },
   ]

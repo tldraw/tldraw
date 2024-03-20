@@ -9,5 +9,5 @@ variable "cf_worker_analytics_db_password" {
 }
 
 variable "cf_worker_analytics_domain" {
-  type      = string
+  type = string
 }
