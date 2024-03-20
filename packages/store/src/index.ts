@@ -20,9 +20,14 @@ export { compareSchemas } from './lib/compareSchemas'
 export { devFreeze } from './lib/devFreeze'
 export {
 	MigrationFailureReason,
+	createMigrationIds,
 	createMigrations,
+	createRecordMigrations,
 	// eslint-disable-next-line deprecation/deprecation
 	defineMigrations,
+	type Migration,
+	type Migrations,
+	type MigrationId,
 	type LegacyMigration,
 	type LegacyMigrations,
 	type MigrationResult,

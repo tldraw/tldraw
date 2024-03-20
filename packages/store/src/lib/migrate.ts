@@ -1,10 +1,11 @@
-import { assert } from '@tldraw/utils'
+import { assert, objectMapEntries } from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
 import { SerializedStore } from './Store'
 
+// TODO: add link to docs that explain to use
 /**
  * @public
- * @deprecated use `createMigrations` instead
+ * @deprecated use `createShapeMigrations` instead
  */
 export function defineMigrations(opts: {
 	firstVersion?: number
@@ -34,9 +35,44 @@ export function defineMigrations(opts: {
 	}
 }
 
-export function createMigrations<T extends Migrations>(opts: T): T {
-	validateMigrations(opts)
-	return opts
+export function createMigrations(opts: Partial<Migrations>): Migrations {
+	assert(opts.sequence || opts.sequenceId, 'Must provide either a sequence or an id for migrations')
+	assert(
+		opts.sequenceId || opts.sequence?.length,
+		'Must provide either a sequence or an id for an empty sequence'
+	)
+	const result: Migrations = {
+		sequenceId: opts.sequenceId ?? parseMigrationId(opts.sequence![0].id).sequenceId,
+		sequence: opts.sequence ?? [],
+	}
+	validateMigrations(result)
+	return result
+}
+
+export function createMigrationIds<ID extends string, Versions extends Record<string, number>>(
+	sequenceId: ID,
+	versions: Versions
+): { [K in keyof Versions]: `${ID}/${Versions[K]}` } {
+	return Object.fromEntries(
+		objectMapEntries(versions).map(([key, version]) => [key, `${sequenceId}/${version}`] as const)
+	) as any
+}
+
+export function createRecordMigrations(opts: {
+	sequenceId?: string
+	recordType: string
+	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]
+}): Migrations {
+	const compiledSequence: Migration[] = opts.sequence.map(
+		(m): Migration => ({
+			...m,
+			scope: 'record',
+			filter: m.filter
+				? (r: UnknownRecord) => r.typeName === opts.recordType && m.filter!(r)
+				: (r: UnknownRecord) => r.typeName === opts.recordType,
+		})
+	)
+	return createMigrations({ sequenceId: opts.sequenceId, sequence: compiledSequence })
 }
 
 /** @public */
@@ -53,6 +89,7 @@ export type Migration = {
 } & (
 	| {
 			scope: 'record'
+			filter?: (record: UnknownRecord) => boolean
 			up: (oldState: UnknownRecord) => void | UnknownRecord
 			down?: (newState: UnknownRecord) => void | UnknownRecord
 	  }
@@ -76,7 +113,8 @@ export interface LegacyMigrations extends LegacyBaseMigrationsInfo {
 }
 
 export interface Migrations {
-	id: string
+	sequenceId: string
+	postHoc?: boolean
 	sequence: Migration[]
 }
 
@@ -126,7 +164,7 @@ function validateMigrationId(id: string, expectedSequenceId?: string) {
 	if (expectedSequenceId) {
 		assert(
 			id.startsWith(expectedSequenceId + '/'),
-			`Migration id must match the expected sequence id: ${expectedSequenceId}`
+			`Every migration in a sequence must have the same sequence id expected something like "${expectedSequenceId}/<number>" but got "${id}"`
 		)
 	}
 
@@ -134,18 +172,18 @@ function validateMigrationId(id: string, expectedSequenceId?: string) {
 }
 
 export function validateMigrations(migrations: Migrations) {
-	assert(!migrations.id.includes('/'), 'Migration id cannot contain a "/"')
-	assert(migrations.id.length, 'Migration id must be a non-empty string')
+	assert(!migrations.sequenceId.includes('/'), 'Migration id cannot contain a "/"')
+	assert(migrations.sequenceId.length, 'Migration id must be a non-empty string')
 
 	if (migrations.sequence.length === 0) {
 		return
 	}
 
-	validateMigrationId(migrations.sequence[0].id, migrations.id)
+	validateMigrationId(migrations.sequence[0].id, migrations.sequenceId)
 	let n = parseMigrationId(migrations.sequence[0].id).version
 	for (let i = 1; i < migrations.sequence.length; i++) {
 		const id = migrations.sequence[i].id
-		validateMigrationId(id, migrations.id)
+		validateMigrationId(id, migrations.sequenceId)
 		const m = parseMigrationId(id).version
 		assert(
 			m === n + 1,

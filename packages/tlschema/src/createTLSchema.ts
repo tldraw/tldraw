@@ -1,4 +1,4 @@
-import { Migrations, StoreSchema } from '@tldraw/store'
+import { LegacyMigrations, StoreSchema } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { AssetRecordType, assetMigrations } from './records/TLAsset'
@@ -7,10 +7,16 @@ import { DocumentRecordType, documentMigrations } from './records/TLDocument'
 import { createInstanceRecordType, instanceMigrations } from './records/TLInstance'
 import { PageRecordType, pageMigrations } from './records/TLPage'
 import { InstancePageStateRecordType, instancePageStateMigrations } from './records/TLPageState'
-import { PointerRecordType } from './records/TLPointer'
-import { InstancePresenceRecordType } from './records/TLPresence'
+import { PointerRecordType, pointerMigrations } from './records/TLPointer'
+import { InstancePresenceRecordType, instancePresenceMigrations } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
-import { TLDefaultShape, createShapeRecordType, getShapePropKeysByStyle } from './records/TLShape'
+import {
+	ShapePropsMigrations,
+	TLDefaultShape,
+	createShapeRecordType,
+	getShapePropKeysByStyle,
+	processShapeMigrations,
+} from './records/TLShape'
 import { arrowShapeMigrations, arrowShapeProps } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations, bookmarkShapeProps } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations, drawShapeProps } from './shapes/TLDrawShape'
@@ -34,7 +40,7 @@ type AnyValidator = {
 
 /** @public */
 export type SchemaShapeInfo = {
-	migrations?: Migrations
+	migrations?: LegacyMigrations | ShapePropsMigrations
 	props?: Record<string, AnyValidator>
 	meta?: Record<string, AnyValidator>
 }
@@ -66,6 +72,7 @@ const defaultShapes: { [T in TLDefaultShape['type']]: SchemaShapeInfo } = {
  * @public */
 export function createTLSchema({
 	shapes = defaultShapes,
+	// TODO: allow passing in custom migration sequences
 }: {
 	shapes?: Record<string, SchemaShapeInfo>
 } = {}): TLSchema {
@@ -90,22 +97,22 @@ export function createTLSchema({
 			instance: InstanceRecordType,
 			instance_page_state: InstancePageStateRecordType,
 			page: PageRecordType,
-			shape: ShapeRecordType,
 			instance_presence: InstancePresenceRecordType,
 			pointer: PointerRecordType,
+			shape: ShapeRecordType,
 		},
 		{
 			migrations: {
-				[storeMigrations.id]: storeMigrations,
-				[assetMigrations.id]: assetMigrations,
-				[cameraMigrations.id]: cameraMigrations,
-				[documentMigrations.id]: documentMigrations,
-				[instanceMigrations.id]: instanceMigrations,
-				[instancePageStateMigrations.id]: instancePageStateMigrations,
-				[pageMigrations.id]: pageMigrations,
-				[shapeMi]
-
-
+				[storeMigrations.sequenceId]: storeMigrations,
+				[assetMigrations.sequenceId]: assetMigrations,
+				[cameraMigrations.sequenceId]: cameraMigrations,
+				[documentMigrations.sequenceId]: documentMigrations,
+				[instanceMigrations.sequenceId]: instanceMigrations,
+				[instancePageStateMigrations.sequenceId]: instancePageStateMigrations,
+				[pageMigrations.sequenceId]: pageMigrations,
+				[instancePresenceMigrations.sequenceId]: instancePresenceMigrations,
+				[pointerMigrations.sequenceId]: pointerMigrations,
+				...processShapeMigrations(shapes),
 			},
 			onValidationFailure,
 			createIntegrityChecker: createIntegrityChecker,

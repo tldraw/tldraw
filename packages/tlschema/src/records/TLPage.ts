@@ -1,4 +1,10 @@
-import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import {
+	BaseRecord,
+	createMigrationIds,
+	createRecordMigrations,
+	createRecordType,
+	RecordId,
+} from '@tldraw/store'
 import { IndexKey, JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
@@ -33,34 +39,29 @@ export const pageValidator: T.Validator<TLPage> = T.model(
 )
 
 /** @internal */
-export const pageVersions = {
+export const pageVersions = createMigrationIds('com.tldraw.page', {
 	AddMeta: 1,
-}
+})
 
 /** @internal */
-export const pageMigrations = defineMigrations({
-	currentVersion: pageVersions.AddMeta,
-	migrators: {
-		[pageVersions.AddMeta]: {
-			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
+export const pageMigrations = createRecordMigrations({
+	recordType: 'page',
+	sequence: [
+		{
+			id: pageVersions.AddMeta,
+			up: (record: any) => {
+				record.meta = {}
 			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
+			down: (record: any) => {
+				delete record.meta
 			},
 		},
-	},
+	],
 })
 
 /** @public */
 export const PageRecordType = createRecordType<TLPage>('page', {
 	validator: pageValidator,
-	migrations: pageMigrations,
 	scope: 'document',
 }).withDefaultProperties(() => ({
 	meta: {},

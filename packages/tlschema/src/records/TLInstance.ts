@@ -1,4 +1,10 @@
-import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import {
+	BaseRecord,
+	createMigrationIds,
+	createRecordMigrations,
+	createRecordType,
+	RecordId,
+} from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { BoxModel, boxModelValidator } from '../misc/geometry-types'
@@ -121,7 +127,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 	)
 
 	return createRecordType<TLInstance>('instance', {
-		migrations: instanceMigrations,
 		validator: instanceTypeValidator,
 		scope: 'session',
 	}).withDefaultProperties(
@@ -162,7 +167,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 }
 
 /** @internal */
-export const instanceVersions = {
+export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 	AddTransparentExportBgs: 1,
 	RemoveDialog: 2,
 	AddToolLockMode: 3,
@@ -187,37 +192,44 @@ export const instanceVersions = {
 	AddScribbles: 22,
 	AddInset: 23,
 	AddDuplicateProps: 24,
-} as const
+} as const)
+
+// TODO: rewrite these to use mutation
 
 /** @public */
-export const instanceMigrations = defineMigrations({
-	currentVersion: instanceVersions.AddDuplicateProps,
-	migrators: {
-		[instanceVersions.AddTransparentExportBgs]: {
-			up: (instance: TLInstance) => {
+export const instanceMigrations = createRecordMigrations({
+	recordType: 'instance',
+	sequence: [
+		{
+			id: instanceVersions.AddTransparentExportBgs,
+			up: (instance) => {
 				return { ...instance, exportBackground: true }
 			},
-			down: ({ exportBackground: _, ...instance }: TLInstance) => {
+			down: ({ exportBackground: _, ...instance }: any) => {
 				return instance
 			},
 		},
-		[instanceVersions.RemoveDialog]: {
+		{
+			id: instanceVersions.RemoveDialog,
 			up: ({ dialog: _, ...instance }: any) => {
 				return instance
 			},
-			down: (instance: TLInstance) => {
+			down: (instance) => {
 				return { ...instance, dialog: null }
 			},
 		},
-		[instanceVersions.AddToolLockMode]: {
-			up: (instance: TLInstance) => {
+
+		{
+			id: instanceVersions.AddToolLockMode,
+			up: (instance) => {
 				return { ...instance, isToolLocked: false }
 			},
-			down: ({ isToolLocked: _, ...instance }: TLInstance) => {
+			down: ({ isToolLocked: _, ...instance }: any) => {
 				return instance
 			},
 		},
-		[instanceVersions.RemoveExtraPropsForNextShape]: {
+		{
+			id: instanceVersions.RemoveExtraPropsForNextShape,
 			up: ({ propsForNextShape, ...instance }: any) => {
 				return {
 					...instance,
@@ -242,12 +254,9 @@ export const instanceMigrations = defineMigrations({
 					),
 				}
 			},
-			down: (instance: TLInstance) => {
-				// we can't restore these, so do nothing :/
-				return instance
-			},
 		},
-		[instanceVersions.AddLabelColor]: {
+		{
+			id: instanceVersions.AddLabelColor,
 			up: ({ propsForNextShape, ...instance }: any) => {
 				return {
 					...instance,
@@ -257,7 +266,7 @@ export const instanceMigrations = defineMigrations({
 					},
 				}
 			},
-			down: (instance) => {
+			down: (instance: any) => {
 				const { labelColor: _, ...rest } = instance.propsForNextShape
 				return {
 					...instance,
@@ -267,15 +276,17 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 		},
-		[instanceVersions.AddFollowingUserId]: {
-			up: (instance: TLInstance) => {
+		{
+			id: instanceVersions.AddFollowingUserId,
+			up: (instance) => {
 				return { ...instance, followingUserId: null }
 			},
-			down: ({ followingUserId: _, ...instance }: TLInstance) => {
+			down: ({ followingUserId: _, ...instance }: any) => {
 				return instance
 			},
 		},
-		[instanceVersions.RemoveAlignJustify]: {
+		{
+			id: instanceVersions.RemoveAlignJustify,
 			up: (instance: any) => {
 				let newAlign = instance.propsForNextShape.align
 				if (newAlign === 'justify') {
@@ -290,20 +301,19 @@ export const instanceMigrations = defineMigrations({
 					},
 				}
 			},
-			down: (instance: TLInstance) => {
-				return { ...instance }
-			},
 		},
-		[instanceVersions.AddZoom]: {
-			up: (instance: TLInstance) => {
+		{
+			id: instanceVersions.AddZoom,
+			up: (instance) => {
 				return { ...instance, zoomBrush: null }
 			},
-			down: ({ zoomBrush: _, ...instance }: TLInstance) => {
+			down: ({ zoomBrush: _, ...instance }: any) => {
 				return instance
 			},
 		},
-		[instanceVersions.AddVerticalAlign]: {
-			up: (instance) => {
+		{
+			id: instanceVersions.AddVerticalAlign,
+			up: (instance: any) => {
 				return {
 					...instance,
 					propsForNextShape: {
@@ -312,7 +322,7 @@ export const instanceMigrations = defineMigrations({
 					},
 				}
 			},
-			down: (instance) => {
+			down: (instance: any) => {
 				const { verticalAlign: _, ...propsForNextShape } = instance.propsForNextShape
 				return {
 					...instance,
@@ -320,14 +330,15 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 		},
-		[instanceVersions.AddScribbleDelay]: {
-			up: (instance) => {
+		{
+			id: instanceVersions.AddScribbleDelay,
+			up: (instance: any) => {
 				if (instance.scribble !== null) {
 					return { ...instance, scribble: { ...instance.scribble, delay: 0 } }
 				}
 				return { ...instance }
 			},
-			down: (instance) => {
+			down: (instance: any) => {
 				if (instance.scribble !== null) {
 					const { delay: _delay, ...rest } = instance.scribble
 					return { ...instance, scribble: rest }
@@ -335,23 +346,26 @@ export const instanceMigrations = defineMigrations({
 				return { ...instance }
 			},
 		},
-		[instanceVersions.RemoveUserId]: {
+		{
+			id: instanceVersions.RemoveUserId,
 			up: ({ userId: _, ...instance }: any) => {
 				return instance
 			},
-			down: (instance: TLInstance) => {
+			down: (instance: any) => {
 				return { ...instance, userId: 'user:none' }
 			},
 		},
-		[instanceVersions.AddIsPenModeAndIsGridMode]: {
-			up: (instance: TLInstance) => {
+		{
+			id: instanceVersions.AddIsPenModeAndIsGridMode,
+			up: (instance) => {
 				return { ...instance, isPenMode: false, isGridMode: false }
 			},
-			down: ({ isPenMode: _, isGridMode: __, ...instance }: TLInstance) => {
+			down: ({ isPenMode: _, isGridMode: __, ...instance }: any) => {
 				return instance
 			},
 		},
-		[instanceVersions.HoistOpacity]: {
+		{
+			id: instanceVersions.HoistOpacity,
 			up: ({ propsForNextShape: { opacity, ...propsForNextShape }, ...instance }: any) => {
 				return { ...instance, opacityForNextShape: Number(opacity ?? '1'), propsForNextShape }
 			},
@@ -374,27 +388,30 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 		},
-		[instanceVersions.AddChat]: {
-			up: (instance: TLInstance) => {
+		{
+			id: instanceVersions.AddChat,
+			up: (instance) => {
 				return { ...instance, chatMessage: '', isChatting: false }
 			},
-			down: ({ chatMessage: _, isChatting: __, ...instance }: TLInstance) => {
+			down: ({ chatMessage: _, isChatting: __, ...instance }: any) => {
 				return instance
 			},
 		},
-		[instanceVersions.AddHighlightedUserIds]: {
-			up: (instance: TLInstance) => {
+		{
+			id: instanceVersions.AddHighlightedUserIds,
+			up: (instance) => {
 				return { ...instance, highlightedUserIds: [] }
 			},
-			down: ({ highlightedUserIds: _, ...instance }: TLInstance) => {
+			down: ({ highlightedUserIds: _, ...instance }: any) => {
 				return instance
 			},
 		},
-		[instanceVersions.ReplacePropsForNextShapeWithStylesForNextShape]: {
-			up: ({ propsForNextShape: _, ...instance }) => {
+		{
+			id: instanceVersions.ReplacePropsForNextShapeWithStylesForNextShape,
+			up: ({ propsForNextShape: _, ...instance }: any) => {
 				return { ...instance, stylesForNextShape: {} }
 			},
-			down: ({ stylesForNextShape: _, ...instance }: TLInstance) => {
+			down: ({ stylesForNextShape: _, ...instance }: any) => {
 				return {
 					...instance,
 					propsForNextShape: {
@@ -415,28 +432,28 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 		},
-		[instanceVersions.AddMeta]: {
+		{
+			id: instanceVersions.AddMeta,
 			up: (record) => {
 				return {
 					...record,
 					meta: {},
 				}
 			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
+			down: ({ meta: _, ...record }: any) => {
+				return record
 			},
 		},
-		[instanceVersions.RemoveCursorColor]: {
-			up: (record) => {
+		{
+			id: instanceVersions.RemoveCursorColor,
+			up: (record: any) => {
 				const { color: _, ...cursor } = record.cursor
 				return {
 					...record,
 					cursor,
 				}
 			},
-			down: (record) => {
+			down: (record: any) => {
 				return {
 					...record,
 					cursor: {
@@ -446,7 +463,8 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 		},
-		[instanceVersions.AddLonelyProperties]: {
+		{
+			id: instanceVersions.AddLonelyProperties,
 			up: (record) => {
 				return {
 					...record,
@@ -468,77 +486,82 @@ export const instanceMigrations = defineMigrations({
 				isChangingStyle: _isChangingStyle,
 				isReadOnly: _isReadOnly,
 				...record
-			}) => {
+			}: any) => {
 				return {
 					...record,
 				}
 			},
 		},
-		[instanceVersions.ReadOnlyReadonly]: {
-			up: ({ isReadOnly: _isReadOnly, ...record }) => {
+		{
+			id: instanceVersions.ReadOnlyReadonly,
+			up: ({ isReadOnly: _isReadOnly, ...record }: any) => {
 				return {
 					...record,
 					isReadonly: _isReadOnly,
 				}
 			},
-			down: ({ isReadonly: _isReadonly, ...record }) => {
+			down: ({ isReadonly: _isReadonly, ...record }: any) => {
 				return {
 					...record,
 					isReadOnly: _isReadonly,
 				}
 			},
 		},
-		[instanceVersions.AddHoveringCanvas]: {
+		{
+			id: instanceVersions.AddHoveringCanvas,
 			up: (record) => {
 				return {
 					...record,
 					isHoveringCanvas: null,
 				}
 			},
-			down: ({ isHoveringCanvas: _, ...record }) => {
+			down: ({ isHoveringCanvas: _, ...record }: any) => {
 				return {
 					...record,
 				}
 			},
 		},
-		[instanceVersions.AddScribbles]: {
-			up: ({ scribble: _, ...record }) => {
+		{
+			id: instanceVersions.AddScribbles,
+			up: ({ scribble: _, ...record }: any) => {
 				return {
 					...record,
 					scribbles: [],
 				}
 			},
-			down: ({ scribbles: _, ...record }) => {
+			down: ({ scribbles: _, ...record }: any) => {
 				return { ...record, scribble: null }
 			},
 		},
-		[instanceVersions.AddInset]: {
+		{
+			id: instanceVersions.AddInset,
 			up: (record) => {
 				return {
 					...record,
 					insets: [false, false, false, false],
 				}
 			},
-			down: ({ insets: _, ...record }) => {
+			down: ({ insets: _, ...record }: any) => {
 				return {
 					...record,
 				}
 			},
 		},
-		[instanceVersions.AddDuplicateProps]: {
+		{
+			id: instanceVersions.AddDuplicateProps,
 			up: (record) => {
 				return {
 					...record,
 					duplicateProps: null,
 				}
 			},
-			down: ({ duplicateProps: _, ...record }) => {
+			down: ({ duplicateProps: _, ...record }: any) => {
 				return {
 					...record,
 				}
 			},
 		},
-	},
+	],
 })
 
 /** @public */
