@@ -9,6 +9,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { structuredClone } from '@tldraw/utils'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
@@ -185,6 +186,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',
+				pagePoint: structuredClone(editor.inputs.currentPagePoint),
 				shape: editor.getShape(id)!,
 			})
 

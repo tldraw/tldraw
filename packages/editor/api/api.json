@@ -10161,8 +10161,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLEventInfo",
-                  "canonicalReference": "@tldraw/editor!TLEventInfo:type"
+                  "text": "TLPointerEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLPointerEventInfo:type"
                 },
                 {
                   "kind": "Content",
@@ -37525,8 +37525,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLPointerEvent",
-                  "canonicalReference": "@tldraw/editor!TLPointerEvent:type"
+                  "text": "TLPointerMoveEvent",
+                  "canonicalReference": "@tldraw/editor!~TLPointerMoveEvent:type"
                 },
                 {
                   "kind": "Content",
@@ -40076,7 +40076,16 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    pointerId: number;\n    button: number;\n    isPen: boolean;\n} & "
+              "text": ";\n    pointerId: number;\n    button: number;\n    isPen: boolean;\n    pagePoint: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Vec",
+              "canonicalReference": "@tldraw/editor!Vec:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n} & "
             },
             {
               "kind": "Reference",
@@ -40093,7 +40102,7 @@
           "name": "TLPointerEventInfo",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 8
+            "endIndex": 10
           }
         },
         {
