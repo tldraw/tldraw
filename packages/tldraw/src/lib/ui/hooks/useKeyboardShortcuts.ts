@@ -1,5 +1,4 @@
 import { Editor, TLPointerEventInfo, preventDefault, useEditor, useValue } from '@tldraw/editor'
-import { structuredClone } from '@tldraw/utils'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from '../context/actions'
@@ -95,7 +94,7 @@ export function useKeyboardShortcuts() {
 				button: 0,
 				isPen: editor.getInstanceState().isPenMode,
 				target: 'canvas',
-				pagePoint: structuredClone(editor.inputs.currentPagePoint),
+				pagePoint: editor.inputs.currentPagePoint.clone(),
 			}
 
 			editor.dispatch(info)
@@ -119,7 +118,7 @@ export function useKeyboardShortcuts() {
 				button: 0,
 				isPen: editor.getInstanceState().isPenMode,
 				target: 'canvas',
-				pagePoint: structuredClone(editor.inputs.currentPagePoint),
+				pagePoint: editor.inputs.currentPagePoint.clone(),
 			}
 
 			editor.dispatch(info)

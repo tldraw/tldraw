@@ -1,4 +1,3 @@
-import { structuredClone } from '@tldraw/utils'
 import { useMemo } from 'react'
 import { TLSelectionHandle } from '../editor/types/selection-types'
 import {
@@ -25,7 +24,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 						target: 'selection',
 						handle,
 						name: 'right_click',
-						pagePoint: structuredClone(editor.inputs.currentPagePoint),
+						pagePoint: editor.inputs.currentPagePoint.clone(),
 						...getPointerInfo(e),
 					})
 					return
@@ -53,7 +52,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					pagePoint: structuredClone(editor.inputs.currentPagePoint),
+					pagePoint: editor.inputs.currentPagePoint.clone(),
 					...getPointerInfo(e),
 				})
 				stopEventPropagation(e)
@@ -74,7 +73,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					pagePoint: structuredClone(editor.inputs.currentPagePoint),
+					pagePoint: editor.inputs.currentPagePoint.clone(),
 					...getPointerInfo(e),
 				})
 			}
@@ -88,7 +87,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					pagePoint: structuredClone(editor.inputs.currentPagePoint),
+					pagePoint: editor.inputs.currentPagePoint.clone(),
 					...getPointerInfo(e),
 				})
 			}

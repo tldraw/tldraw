@@ -1,5 +1,4 @@
 import { TLArrowShape, TLLineShape, TLShapeId } from '@tldraw/tlschema'
-import { structuredClone } from '@tldraw/utils'
 import * as React from 'react'
 import { Editor } from '../editor/Editor'
 import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
@@ -32,7 +31,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				target: 'handle',
 				handle,
 				shape,
-				pagePoint: structuredClone(editor.inputs.currentPagePoint),
+				pagePoint: editor.inputs.currentPagePoint,
 				name: 'pointer_down',
 				...getPointerInfo(e),
 			})
@@ -56,7 +55,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				target: 'handle',
 				handle,
 				shape,
-				pagePoint: structuredClone(editor.inputs.currentPagePoint),
+				pagePoint: editor.inputs.currentPagePoint.clone(),
 				name: 'pointer_move',
 				...getPointerInfo(e),
 			})
@@ -77,7 +76,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				target: 'handle',
 				handle,
 				shape,
-				pagePoint: structuredClone(editor.inputs.currentPagePoint),
+				pagePoint: editor.inputs.currentPagePoint.clone(),
 				name: 'pointer_up',
 				...getPointerInfo(e),
 			})
