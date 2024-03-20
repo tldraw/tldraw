@@ -9,6 +9,7 @@ import {
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
+	rng,
 	toDomPrecision,
 } from '@tldraw/editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -63,18 +64,39 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
 
+		const noteHeight = this.getHeight(shape)
+		const shadowHeight = Math.max(this.getHeight(shape) * 0.618, 200)
+		const ratio = noteHeight / shadowHeight
+		const random = rng(shape.id)
+		const noteRotation = random() * 5
+
 		return (
 			<>
 				<div
 					style={{
 						position: 'absolute',
 						width: NOTE_SIZE,
-						height: this.getHeight(shape),
+						height: noteHeight,
 					}}
 				>
 					<div
+						style={{
+							backgroundColor: 'none',
+							height: shadowHeight,
+							width: '100%',
+							position: 'absolute',
+							bottom: 4,
+							left: 0,
+							transformOrigin: 'bottom center',
+							transform: `perspective(400px) rotateZ(${noteRotation}deg) rotateX(30deg) translateY(${-Math.abs(noteRotation)}px) scaleX(${0.85}) scaleY(${ratio})`,
+							boxShadow: `0 0 40px 0px rgba(0,0,0,.6)`,
+						}}
+					/>
+
+					<div
 						className="tl-note__container"
 						style={{
+							opacity: 1,
 							color: theme[adjustedColor].solid,
 							backgroundColor: theme[adjustedColor].solid,
 						}}

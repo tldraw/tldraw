@@ -1196,7 +1196,6 @@ input,
 	width: 100%;
 	height: 100%;
 	border-radius: var(--radius-2);
-	box-shadow: var(--shadow-1);
 	overflow: hidden;
 	border-color: currentColor;
 	border-style: solid;
