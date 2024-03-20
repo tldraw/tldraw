@@ -6,6 +6,7 @@ import {
 	MatModel,
 	PageRecordType,
 	StateNode,
+	TLArrowShape,
 	TLEventHandlers,
 	TLPointerEventInfo,
 	TLShape,
@@ -59,7 +60,6 @@ export class Translating extends StateNode {
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
 		this.onCreate = onCreate
-		// ts-expect-error
 		if (info.target === 'preview') {
 			this.previewIds = info.ids || []
 		}
@@ -114,7 +114,43 @@ export class Translating extends StateNode {
 	}
 
 	override onPointerMove = () => {
+		if (this.previewIds.length > 0) {
+			const noteShapeId = this.noteShapeToCreateArrowTo()
+			const arrow = this.editor.getShape(this.previewIds[1]) as TLArrowShape
+
+			if (noteShapeId) {
+				const hasArrowFromOriginalToHoveredNote = this.arrowFromOriginalNoteToNewNote(noteShapeId)
+				if (!hasArrowFromOriginalToHoveredNote) {
+					this.editor.updateShape({ type: 'note', id: this.previewIds[0], opacity: 0 })
+					this.editor.updateShape({
+						type: 'arrow',
+						id: this.previewIds[1],
+						props: { end: { ...arrow.props.end, boundShapeId: noteShapeId } },
+					})
+				}
+			}
+		}
 		this.isDirty = true
+	}
+
+	arrowFromOriginalNoteToNewNote = (noteId: TLShapeId) => {
+		return (
+			this.editor
+				.getCurrentPageShapes()
+				.filter((s) => s.type === 'arrow')
+				.filter((a) => {
+					const arrow = a as TLArrowShape
+					// need to sort this out
+					// @ts-ignore
+					return arrow.props.end.boundShapeId === noteId
+				}).length > 0
+		)
+	}
+	noteShapeToCreateArrowTo = () => {
+		return this.editor
+			.getShapesAtPoint(this.editor.inputs.currentPagePoint)
+			.filter((s) => s.type === 'note' && s.id !== this.previewIds[0])
+			.map((s) => s.id)[0]
 	}
 
 	override onKeyDown = () => {
