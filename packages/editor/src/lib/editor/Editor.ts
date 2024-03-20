@@ -8548,7 +8548,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _shouldCoallesce = (info: TLEventInfo) => {
 		if (!this._isCoalesableEvent(info)) return false
 		return (
-			this._isCoalesableEvent(this._pendingEventsForNextTick[0]) &&
+			this._pendingEventsForNextTick.length === 1 &&
 			this._pendingEventsForNextTick[0].name === info.name
 		)
 	}
