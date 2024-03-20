@@ -8,13 +8,13 @@ beforeEach(() => {
 })
 
 it('converts correctly', () => {
-	editor.zoomToFit()
-	expect({ ...editor.getCamera(), id: 'static' }).toMatchSnapshot('Zoom to Fit Camera')
+	editor.camera.zoomToFit()
+	expect({ ...editor.camera.get(), id: 'static' }).toMatchSnapshot('Zoom to Fit Camera')
 })
 
 it('does not zoom to bounds when camera is frozen', () => {
-	const cameraBefore = { ...editor.getCamera() }
+	const cameraBefore = { ...editor.camera.get() }
 	editor.updateInstanceState({ canMoveCamera: false })
-	editor.zoomToFit()
-	expect(editor.getCamera()).toMatchObject(cameraBefore)
+	editor.camera.zoomToFit()
+	expect(editor.camera.get()).toMatchObject(cameraBefore)
 })

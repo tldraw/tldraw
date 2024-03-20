@@ -560,7 +560,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
 					/>
 					{shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.camera.getZoom()} />
 					)}
 				</HTMLContainer>
 			</>

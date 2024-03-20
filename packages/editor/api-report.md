@@ -307,6 +307,44 @@ export type BoxLike = Box | BoxModel;
 export const CAMERA_SLIDE_FRICTION = 0.09;
 
 // @public (undocumented)
+export class CameraManager {
+    constructor(editor: Editor);
+    animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
+    animateToUser(userId: string): this;
+    // (undocumented)
+    canMove(): boolean;
+    centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this;
+    get(): TLCamera;
+    getState(): "idle" | "moving";
+    // (undocumented)
+    getZoom(): number;
+    pan(offset: VecLike, animation?: TLAnimationOptions): this;
+    panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
+    resetZoom(point?: Vec, animation?: TLAnimationOptions): this;
+    set(point: VecLike, animation?: TLAnimationOptions): this;
+    slide(opts: {
+        speed: number;
+        direction: VecLike;
+        friction: number;
+        speedThreshold?: number;
+    }): this;
+    startFollowingUser(userId: string): this;
+    stopAnimation(): this;
+    stopFollowingUser(): this;
+    // @internal (undocumented)
+    _tickCameraState: () => void;
+    zoomIn(point?: Vec, animation?: TLAnimationOptions): this;
+    zoomOut(point?: Vec, animation?: TLAnimationOptions): this;
+    zoomToBounds(bounds: Box, opts?: {
+        targetZoom?: number;
+        inset?: number;
+    } & TLAnimationOptions): this;
+    zoomToContent(): this;
+    zoomToFit(animation?: TLAnimationOptions): this;
+    zoomToSelection(animation?: TLAnimationOptions): this;
+}
+
+// @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
 // @public (undocumented)
@@ -578,7 +616,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         duration: number;
         easing: (t: number) => number;
     }>): this;
+    // @deprecated (undocumented)
     animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
+    // @deprecated (undocumented)
     animateToUser(userId: string): this;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
@@ -592,10 +632,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    // (undocumented)
+    readonly camera: CameraManager;
     cancel(): this;
     cancelDoubleClick(): void;
     // @internal (undocumented)
     capturedPointerId: null | number;
+    // @deprecated (undocumented)
     centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this;
     clearOpenMenus(): this;
     // @internal
@@ -665,7 +708,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
+    // @deprecated (undocumented)
     getCamera(): TLCamera;
+    // @deprecated (undocumented)
     getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
     getCanUndo(): boolean;
@@ -771,6 +816,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getViewportPageCenter(): Vec;
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
+    // @deprecated (undocumented)
     getZoomLevel(): number;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
@@ -824,7 +870,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         y: number;
         z: number;
     };
+    // @deprecated (undocumented)
     pan(offset: VecLike, animation?: TLAnimationOptions): this;
+    // @deprecated (undocumented)
     panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, options?: {
@@ -844,6 +892,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
     renderingBoundsMargin: number;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
+    // @deprecated (undocumented)
     resetZoom(point?: Vec, animation?: TLAnimationOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     readonly root: RootState;
@@ -859,6 +908,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     selectNone(): this;
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
+    // @deprecated (undocumented)
     setCamera(point: VecLike, animation?: TLAnimationOptions): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     setCurrentPage(page: TLPage | TLPageId, historyOptions?: TLCommandHistoryOptions): this;
@@ -878,16 +928,20 @@ export class Editor extends EventEmitter<TLEventMap> {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
     readonly sideEffects: SideEffectManager<this>;
-    slideCamera(opts?: {
+    // @deprecated (undocumented)
+    slideCamera(opts: {
         speed: number;
         direction: VecLike;
         friction: number;
-        speedThreshold?: number | undefined;
+        speedThreshold?: number;
     }): this;
     readonly snaps: SnapManager;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;
+    // @deprecated (undocumented)
     startFollowingUser(userId: string): this;
+    // @deprecated (undocumented)
     stopCameraAnimation(): this;
+    // @deprecated (undocumented)
     stopFollowingUser(): this;
     readonly store: TLStore;
     stretchShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
@@ -913,14 +967,20 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
+    // @deprecated (undocumented)
     zoomIn(point?: Vec, animation?: TLAnimationOptions): this;
+    // @deprecated (undocumented)
     zoomOut(point?: Vec, animation?: TLAnimationOptions): this;
+    // @deprecated (undocumented)
     zoomToBounds(bounds: Box, opts?: {
         targetZoom?: number;
         inset?: number;
     } & TLAnimationOptions): this;
+    // @deprecated (undocumented)
     zoomToContent(): this;
+    // @deprecated (undocumented)
     zoomToFit(animation?: TLAnimationOptions): this;
+    // @deprecated (undocumented)
     zoomToSelection(animation?: TLAnimationOptions): this;
 }
 

@@ -71,7 +71,7 @@ export function ImageAnnotationEditor({
 
 		// zoom aaaaallll the way out. our camera constraints will make sure we end up nicely
 		// centered on the image
-		editor.setCamera({ x: 0, y: 0, z: 0.0001 })
+		editor.camera.set({ x: 0, y: 0, z: 0.0001 })
 	}
 
 	return (
@@ -312,7 +312,7 @@ function ConstrainCamera({ shapeId }: { shapeId: TLShapeId }) {
 		)
 
 		const removeReaction = react('update camera when viewport/shape changes', () => {
-			const original = editor.getCamera()
+			const original = editor.camera.get()
 			const constrained = constrainCamera(original)
 			if (
 				original.x === constrained.x &&
@@ -323,7 +323,7 @@ function ConstrainCamera({ shapeId }: { shapeId: TLShapeId }) {
 			}
 
 			// this needs to be in a microtask for some reason, but idk why
-			queueMicrotask(() => editor.setCamera(constrained))
+			queueMicrotask(() => editor.camera.set(constrained))
 		})
 
 		return () => {

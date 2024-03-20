@@ -35,7 +35,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 	component(shape: TLVideoShape) {
 		const { editor } = this
-		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
+		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.camera.getZoom() >= 110
 		const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
 		const { time, playing } = shape.props
 		const isEditing = useIsEditing(shape.id)
@@ -187,7 +187,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 					</div>
 				</HTMLContainer>
 				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
+					<HyperlinkButton url={shape.props.url} zoomLevel={editor.camera.getZoom()} />
 				)}
 			</>
 		)

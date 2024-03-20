@@ -95,7 +95,7 @@ export class Drawing extends StateNode {
 				// Don't update the shape if we haven't moved far enough from the last time we recorded a point
 				if (
 					Vec.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
-					1 / this.editor.getZoomLevel()
+					1 / this.editor.camera.getZoom()
 				) {
 					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.mergeNextPoint = false
@@ -492,7 +492,7 @@ export class Drawing extends StateNode {
 				if (shouldSnap) {
 					if (newSegments.length > 2) {
 						let nearestPoint: VecModel | undefined = undefined
-						let minDistance = 8 / this.editor.getZoomLevel()
+						let minDistance = 8 / this.editor.camera.getZoom()
 
 						// Don't try to snap to the last two segments
 						for (let i = 0, n = segments.length - 2; i < n; i++) {

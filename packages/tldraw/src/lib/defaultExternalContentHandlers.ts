@@ -498,7 +498,7 @@ function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 	// Zoom out to fit the shapes, if necessary
 	selectionPageBounds = editor.getSelectionPageBounds()
 	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		editor.zoomToSelection()
+		editor.camera.zoomToSelection()
 	}
 }
 

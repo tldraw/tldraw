@@ -67,7 +67,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 						) : (
 							<div className="tl-bookmark__placeholder" />
 						)}
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.camera.getZoom()} />
 					</div>
 					<div className="tl-bookmark__copy_container">
 						{asset?.props.title && (

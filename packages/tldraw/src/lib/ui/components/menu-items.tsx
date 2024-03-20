@@ -140,7 +140,7 @@ export function UnlockAllMenuItem() {
 /** @public */
 export function ZoomTo100MenuItem() {
 	const editor = useEditor()
-	const isZoomedTo100 = useValue('zoomed to 100', () => editor.getZoomLevel() === 1, [editor])
+	const isZoomedTo100 = useValue('zoomed to 100', () => editor.camera.getZoom() === 1, [editor])
 	const actions = useActions()
 
 	return <TldrawUiMenuItem {...actions['zoom-to-100']} noClose disabled={isZoomedTo100} />

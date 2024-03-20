@@ -98,7 +98,7 @@ export function ZoomOrRotateMenuItem() {
 export function ZoomTo100MenuItem() {
 	const actions = useActions()
 	const editor = useEditor()
-	const isZoomedTo100 = useValue('zoom is 1', () => editor.getZoomLevel() === 1, [editor])
+	const isZoomedTo100 = useValue('zoom is 1', () => editor.camera.getZoom() === 1, [editor])
 
 	return <TldrawUiMenuItem {...actions['zoom-to-100']} disabled={isZoomedTo100} />
 }

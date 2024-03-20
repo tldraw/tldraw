@@ -503,8 +503,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 									y: 0,
 								}
 							: {
-									x: 16 / editor.getZoomLevel(),
-									y: 16 / editor.getZoomLevel(),
+									x: 16 / editor.camera.getZoom(),
+									y: 16 / editor.camera.getZoom(),
 								}
 					}
 
@@ -1001,7 +1001,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
-					editor.zoomIn(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
+					editor.camera.zoomIn(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -1011,7 +1011,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source })
-					editor.zoomOut(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
+					editor.camera.zoomOut(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -1022,7 +1022,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
-					editor.resetZoom(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
+					editor.camera.resetZoom(editor.getViewportScreenCenter(), {
+						duration: ANIMATION_MEDIUM_MS,
+					})
 				},
 			},
 			{
@@ -1032,7 +1034,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-fit', { source })
-					editor.zoomToFit({ duration: ANIMATION_MEDIUM_MS })
+					editor.camera.zoomToFit({ duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -1045,7 +1047,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('zoom-to-selection', { source })
-					editor.zoomToSelection({ duration: ANIMATION_MEDIUM_MS })
+					editor.camera.zoomToSelection({ duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -1245,7 +1247,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('stop-following', { source })
-					editor.stopFollowingUser()
+					editor.camera.stopFollowingUser()
 				},
 			},
 			{
@@ -1255,7 +1257,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-content', { source })
-					editor.zoomToContent()
+					editor.camera.zoomToContent()
 				},
 			},
 			{

@@ -28,7 +28,7 @@ export function CustomRenderer() {
 			ctx.resetTransform()
 			ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-			const camera = editor.getCamera()
+			const camera = editor.camera.get()
 			ctx.scale(camera.z, camera.z)
 			ctx.translate(camera.x, camera.y)
 

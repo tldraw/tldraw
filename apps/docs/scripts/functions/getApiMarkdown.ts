@@ -206,6 +206,18 @@ async function addDocComment(result: Result, member: ApiItem) {
 	}
 
 	if (member.tsdocComment) {
+		if (member.tsdocComment.deprecatedBlock) {
+			result.markdown += (
+				await MarkdownWriter.docNodeToMarkdown(member, member.tsdocComment.deprecatedBlock.content)
+			)
+				.split('\n')
+				.map((line, i) => {
+					if (i === 0) return `> **Deprecated:** ${line}`
+					return `> ${line}`
+				})
+				.join('\n')
+		}
+
 		result.markdown += await MarkdownWriter.docNodeToMarkdown(
 			member,
 			member.tsdocComment.summarySection

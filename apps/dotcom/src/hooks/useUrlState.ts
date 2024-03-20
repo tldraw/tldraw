@@ -71,7 +71,7 @@ export function useUrlState(onChangeUrl: (params: UrlStateParams) => void) {
 
 					const zoom = Math.min(Math.max(Math.min(sw / w, sh / h), MIN_ZOOM), MAX_ZOOM)
 
-					editor.setCamera({
+					editor.camera.set({
 						x: -x + (sw - w * zoom) / 2 / zoom,
 						y: -y + (sh - h * zoom) / 2 / zoom,
 						z: zoom,

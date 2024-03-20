@@ -10,7 +10,7 @@ beforeEach(() => {
 
 describe('When panning', () => {
 	it('Updates the camera', () => {
-		editor.pan({ x: 200, y: 200 })
+		editor.camera.pan({ x: 200, y: 200 })
 		editor.expectCameraToBe(200, 200, 1)
 	})
 
@@ -23,7 +23,7 @@ describe('When panning', () => {
 			screenBounds.h
 		)
 		const beforePageBounds = editor.getViewportPageBounds().clone()
-		editor.pan({ x: 200, y: 200 })
+		editor.camera.pan({ x: 200, y: 200 })
 		expect(editor.getViewportScreenBounds()).toMatchObject(beforeScreenBounds.toJson())
 		expect(editor.getViewportPageBounds().toJson()).toMatchObject(
 			beforePageBounds.translate(new Vec(-200, -200)).toJson()

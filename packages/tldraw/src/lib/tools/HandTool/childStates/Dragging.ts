@@ -29,12 +29,12 @@ export class Dragging extends StateNode {
 		const delta = Vec.Sub(currentScreenPoint, previousScreenPoint)
 
 		if (Math.abs(delta.x) > 0 || Math.abs(delta.y) > 0) {
-			this.editor.pan(delta)
+			this.editor.camera.pan(delta)
 		}
 	}
 
 	private complete() {
-		this.editor.slideCamera({
+		this.editor.camera.slide({
 			speed: Math.min(2, this.editor.inputs.pointerVelocity.len()),
 			direction: this.editor.inputs.pointerVelocity,
 			friction: CAMERA_SLIDE_FRICTION,

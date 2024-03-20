@@ -1784,26 +1784,26 @@ describe('right clicking', () => {
 describe('When brushing close to the edges of the screen', () => {
 	it('moves the camera', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
-		const camera1 = editor.getCamera()
+		const camera1 = editor.camera.get()
 		editor.pointerMove(300, 300)
 		editor.pointerDown()
 		editor.pointerMove(0, 0)
 		jest.advanceTimersByTime(100)
 		editor.pointerUp()
-		const camera2 = editor.getCamera()
+		const camera2 = editor.camera.get()
 		expect(camera2.x).toBeGreaterThan(camera1.x) // for some reason > is left
 		expect(camera2.y).toBeGreaterThan(camera1.y) // for some reason > is up
 	})
 
 	it('moves the camera correctly when the viewport is nonzero', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
-		const camera1 = editor.getCamera()
+		const camera1 = editor.camera.get()
 		editor.pointerMove(300, 300)
 		editor.pointerDown()
 		editor.pointerMove(100, 100)
 		jest.advanceTimersByTime(100)
 		editor.pointerUp()
-		const camera2 = editor.getCamera()
+		const camera2 = editor.camera.get()
 		// should NOT have moved the camera by edge scrolling
 		expect(camera2.x).toEqual(camera1.x)
 		expect(camera2.y).toEqual(camera1.y)
@@ -1811,13 +1811,13 @@ describe('When brushing close to the edges of the screen', () => {
 		// Now change the bounds so that the corner is at 100,100 on the screen
 		editor.setScreenBounds({ ...editor.getViewportScreenBounds(), x: 100, y: 100 })
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
-		const camera3 = editor.getCamera()
+		const camera3 = editor.camera.get()
 		editor.pointerMove(300, 300)
 		editor.pointerDown()
 		editor.pointerMove(100, 100)
 		jest.advanceTimersByTime(100)
 		editor.pointerUp()
-		const camera4 = editor.getCamera()
+		const camera4 = editor.camera.get()
 		// should NOT have moved the camera by edge scrolling because the edge is now "inset"
 		expect(camera4.x).toEqual(camera3.x)
 		expect(camera4.y).toEqual(camera3.y)
@@ -1825,7 +1825,7 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerDown()
 		editor.pointerMove(90, 90) // off the edge of the component
 		jest.advanceTimersByTime(100)
-		const camera5 = editor.getCamera()
+		const camera5 = editor.camera.get()
 		// should have moved the camera by edge scrolling off the component edge
 		expect(camera5.x).toBeGreaterThan(camera4.x)
 		expect(camera5.y).toBeGreaterThan(camera4.y)

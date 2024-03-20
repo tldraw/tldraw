@@ -66,7 +66,7 @@ export default function TldrawImageExample() {
 								editor.setCurrentPage(currentPageId)
 							}
 							if (viewportPageBounds) {
-								editor.zoomToBounds(viewportPageBounds, { inset: 0 })
+								editor.camera.zoomToBounds(viewportPageBounds, { inset: 0 })
 							}
 						}}
 					/>

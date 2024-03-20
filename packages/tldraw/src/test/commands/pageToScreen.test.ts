@@ -4,7 +4,7 @@ let editor: TestEditor
 
 beforeEach(() => {
 	editor = new TestEditor()
-	editor.setCamera({ x: 0, y: 0, z: 1 })
+	editor.camera.set({ x: 0, y: 0, z: 1 })
 })
 
 describe('viewport.pageToScreen', () => {
@@ -14,7 +14,7 @@ describe('viewport.pageToScreen', () => {
 			x: 200,
 			y: 200,
 		})
-		editor.setCamera({ x: 100, y: 100 })
+		editor.camera.set({ x: 100, y: 100 })
 		expect(editor.pageToScreen({ x: 200, y: 200 })).toMatchObject({
 			x: 300,
 			y: 300,

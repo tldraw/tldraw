@@ -30,7 +30,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 		<Tldraw
 			onMount={(editor) => {
 				editor.updateInstanceState({ isDebugMode: false })
-				editor.setCamera({ x: 1000, y: 1000, z: 1 })
+				editor.camera.set({ x: 1000, y: 1000, z: 1 })
 
 				editor.createAssets(
 					pdf.pages.map((page) => ({
@@ -186,7 +186,7 @@ function ConstrainCamera({ pdf }: { pdf: Pdf }) {
 		)
 
 		const removeReaction = react('update camera when viewport/shape changes', () => {
-			const original = editor.getCamera()
+			const original = editor.camera.get()
 			const constrained = constrainCamera(original)
 			if (
 				original.x === constrained.x &&
@@ -197,7 +197,7 @@ function ConstrainCamera({ pdf }: { pdf: Pdf }) {
 			}
 
 			// this needs to be in a microtask for some reason, but idk why
-			queueMicrotask(() => editor.setCamera(constrained))
+			queueMicrotask(() => editor.camera.set(constrained))
 		})
 
 		return () => {

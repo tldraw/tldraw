@@ -279,7 +279,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			if (
 				Vec.Dist(pointInTargetSpace, targetBounds.center) <
 				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-					this.editor.getZoomLevel()
+					this.editor.camera.getZoom()
 			) {
 				normalizedAnchor.x = 0.5
 				normalizedAnchor.y = 0.5

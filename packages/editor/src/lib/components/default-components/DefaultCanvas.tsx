@@ -44,7 +44,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 
 	useLayoutReaction('position layers', () => {
-		const { x, y, z } = editor.getCamera()
+		const { x, y, z } = editor.camera.get()
 
 		// Because the html container has a width/height of 1px, we
 		// need to create a small offset when zoomed to ensure that
@@ -131,7 +131,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 function GridWrapper() {
 	const editor = useEditor()
 	const gridSize = useValue('gridSize', () => editor.getDocumentSettings().gridSize, [editor])
-	const { x, y, z } = useValue('camera', () => editor.getCamera(), [editor])
+	const { x, y, z } = useValue('camera', () => editor.camera.get(), [editor])
 	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	const { Grid } = useEditorComponents()
 
@@ -143,7 +143,7 @@ function GridWrapper() {
 function ScribbleWrapper() {
 	const editor = useEditor()
 	const scribbles = useValue('scribbles', () => editor.getInstanceState().scribbles, [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.camera.getZoom(), [editor])
 	const { Scribble } = useEditorComponents()
 
 	if (!(Scribble && scribbles.length)) return null
@@ -185,7 +185,7 @@ function ZoomBrushWrapper() {
 function SnapIndicatorWrapper() {
 	const editor = useEditor()
 	const lines = useValue('snapLines', () => editor.snaps.getIndicators(), [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.camera.getZoom(), [editor])
 	const { SnapIndicator } = useEditorComponents()
 
 	if (!(SnapIndicator && lines.length > 0)) return null
@@ -230,7 +230,7 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 	const editor = useEditor()
 	const { Handles } = useEditorComponents()
 
-	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.camera.getZoom(), [editor])
 
 	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
 		editor,

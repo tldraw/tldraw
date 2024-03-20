@@ -24,6 +24,7 @@ export {
 	boxModelValidator,
 	vecModelValidator,
 	type BoxModel,
+	type Vec3Model,
 	type VecModel,
 } from './misc/geometry-types'
 export { idValidator } from './misc/id-validator'
