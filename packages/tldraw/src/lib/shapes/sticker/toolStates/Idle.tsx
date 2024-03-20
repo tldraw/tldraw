@@ -49,13 +49,6 @@ export class Idle extends StateNode {
 		const shouldMoveWheel =
 			Vec.Dist(this.lastWheelPoint, currentScreenPoint) >
 			Vec.Dist(this.lastWheelPoint, this.lastScreenPoint) + 4
-		console.log(
-			shouldMoveWheel,
-			currentScreenPoint,
-			this.lastScreenPoint,
-			Vec.Dist(this.lastWheelPoint, currentScreenPoint),
-			Vec.Dist(this.lastWheelPoint, this.lastScreenPoint)
-		)
 		let newWheelPoint = this.lastWheelPoint
 		if (shouldMoveWheel) {
 			newWheelPoint = Vec.Add(currentScreenPoint, new Vec(150, -150))
