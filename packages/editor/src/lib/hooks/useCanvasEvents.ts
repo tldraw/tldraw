@@ -1,4 +1,3 @@
-import { structuredClone } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { Vec } from '../primitives/Vec'
 import {
@@ -25,7 +24,7 @@ export function useCanvasEvents() {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',
-						pagePoint: structuredClone(editor.inputs.currentPagePoint),
+						pagePoint: editor.inputs.currentPagePoint.clone(),
 						name: 'right_click',
 						...getPointerInfo(e),
 					})
@@ -39,7 +38,7 @@ export function useCanvasEvents() {
 				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
-					pagePoint: structuredClone(editor.inputs.currentPagePoint),
+					pagePoint: editor.inputs.currentPagePoint.clone(),
 					name: 'pointer_down',
 					...getPointerInfo(e),
 				})
@@ -87,7 +86,7 @@ export function useCanvasEvents() {
 				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
-					pagePoint: structuredClone(editor.inputs.currentPagePoint),
+					pagePoint: editor.inputs.currentPagePoint.clone(),
 					name: 'pointer_up',
 					...getPointerInfo(e),
 				})

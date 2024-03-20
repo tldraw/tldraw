@@ -8,7 +8,6 @@ import {
 	useIsEditing,
 	useValue,
 } from '@tldraw/editor'
-import { structuredClone } from '@tldraw/utils'
 import { useCallback, useEffect, useRef } from 'react'
 import { FrameLabelInput } from './FrameLabelInput'
 
@@ -46,7 +45,7 @@ export const FrameHeading = function FrameHeading({
 				name: 'pointer_down',
 				target: 'shape',
 				shape: editor.getShape(id)!,
-				pagePoint: structuredClone(editor.inputs.currentPagePoint),
+				pagePoint: editor.inputs.currentPagePoint.clone(),
 
 				...event,
 			})
