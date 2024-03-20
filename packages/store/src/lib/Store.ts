@@ -936,9 +936,9 @@ function squashHistoryEntries<T extends UnknownRecord>(
 	chunked.push(chunk)
 
 	return devFreeze(
-		chunked.map((entries) => ({
-			source: entries[0].source,
-			changes: squashRecordDiffs(entries.map((e) => e.changes)),
+		chunked.map((chunk) => ({
+			source: chunk[0].source,
+			changes: squashRecordDiffs(chunk.map((e) => e.changes)),
 		}))
 	)
 }
