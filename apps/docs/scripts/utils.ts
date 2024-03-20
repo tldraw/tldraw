@@ -11,9 +11,7 @@ import {
 	DocSoftBreak,
 } from '@microsoft/tsdoc'
 import assert from 'assert'
-import GithubSlugger from 'github-slugger'
-
-const slugs = new GithubSlugger()
+import { slug as githubSlug } from 'github-slugger'
 
 import path from 'path'
 import prettier from 'prettier'
@@ -50,7 +48,7 @@ function isOnParentPage(itemKind: ApiItemKind) {
 }
 
 export function getSlug(item: ApiItem): string {
-	return slugs.slug(item.displayName, true)
+	return githubSlug(item.displayName, true)
 }
 
 export function getPath(item: ApiItem): string {
