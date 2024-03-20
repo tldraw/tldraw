@@ -1,8 +1,8 @@
 import {
 	BaseBoxShapeUtil,
 	Geometry2d,
+	HTMLContainer,
 	Rectangle2d,
-	SVGContainer,
 	SelectionEdge,
 	SvgExportContext,
 	TLFrameShape,
@@ -20,10 +20,9 @@ import {
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
-import classNames from 'classnames'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
-import { FrameHeading } from './components/FrameHeading'
+import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 export function defaultEmptyAs(str: string, dflt: string) {
 	if (str.match(/^\s*$/)) {
@@ -37,6 +36,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	static override type = 'frame' as const
 	static override props = frameShapeProps
 	static override migrations = frameShapeMigrations
+
+	// override canResize = () => false
+	override hideSelectionBoundsFg = () => true
+	override hideResizeHandles = () => true
 
 	override canBind = () => true
 
@@ -73,26 +76,36 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			},
 			[shape.id]
 		)
+		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		return (
 			<>
-				<SVGContainer>
-					<rect
-						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						width={bounds.width}
-						height={bounds.height}
-						fill={theme.solid}
-						stroke={theme.text}
+				<HTMLContainer>
+					<div
+						// className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
+						// width={bounds.width}
+						// height={bounds.height}
+						// fill={theme.solid}
+						// stroke={theme.text}
+						// rx="15"
+						style={{
+							position: 'absolute',
+							width: '100%',
+							height: '100%',
+							backgroundColor: isCreating ? 'transparent' : 'var(--color-background)',
+							boxShadow: getRotatedBoxShadow(pageRotation),
+							borderRadius: 'var(--radius-2)',
+						}}
 					/>
-				</SVGContainer>
-				{isCreating ? null : (
+				</HTMLContainer>
+				{/* {isCreating ? null : (
 					<FrameHeading
 						id={shape.id}
 						name={shape.props.name}
 						width={bounds.width}
 						height={bounds.height}
 					/>
-				)}
+				)} */}
 			</>
 		)
 	}
@@ -188,9 +201,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	indicator(shape: TLFrameShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-
+		return null
 		return (
 			<rect
+				rx="6"
 				width={toDomPrecision(bounds.width)}
 				height={toDomPrecision(bounds.height)}
 				className={`tl-frame-indicator`}

@@ -239,7 +239,7 @@ export function HighlightToolbarItem() {
 export function FrameToolbarItem() {
 	const tools = useTools()
 	const isSelected = useIsToolSelected(tools['frame'])
-	return <TldrawUiMenuItem {...tools['frame']} isSelected={isSelected} />
+	return <TldrawUiMenuItem {...tools['frame']} isSelected={isSelected} icon="group" />
 }
 
 /** @public */

@@ -642,7 +642,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
-    indicator(shape: TLFrameShape): JSX_2.Element;
+    hideResizeHandles: () => boolean;
+    // (undocumented)
+    hideSelectionBoundsFg: () => boolean;
+    // (undocumented)
+    indicator(shape: TLFrameShape): JSX_2.Element | null;
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)

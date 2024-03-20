@@ -559,7 +559,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'remove-frame',
 				label: 'action.remove-frame',
-				kbd: '$!f',
+				kbd: '\\',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -574,6 +574,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							editor,
 							selectedShapes.map((shape) => shape.id)
 						)
+						editor.selectNone()
 					}
 				},
 			},

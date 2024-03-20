@@ -4,7 +4,6 @@ import {
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultToolbar,
 	DefaultToolbarContent,
-	HTMLContainer,
 	Rectangle2d,
 	ShapeUtil,
 	T,
@@ -18,6 +17,7 @@ import {
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
+import { getRotatedBoxShadow } from 'tldraw/src/lib/shapes/shared/rotated-box-shadow'
 import 'tldraw/tldraw.css'
 
 export type SurfaceShape = TLBaseShape<
@@ -51,19 +51,21 @@ export class SurfaceShapeUtil extends ShapeUtil<SurfaceShape> {
 	}
 
 	component(shape: SurfaceShape) {
+		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
+
 		return (
-			<HTMLContainer
-				id={shape.id}
-				style={{
-					border: '1px solid black',
-					display: 'flex',
-					flexDirection: 'column',
-					alignItems: 'center',
-					justifyContent: 'center',
-					pointerEvents: 'all',
-					backgroundColor: 'blue',
-				}}
-			></HTMLContainer>
+			<>
+				<div
+					style={{
+						position: 'absolute',
+						width: '100%',
+						height: '100%',
+						backgroundColor: 'var(--color-background)',
+						boxShadow: getRotatedBoxShadow(pageRotation),
+						borderRadius: 'var(--radius-2)',
+					}}
+				></div>
+			</>
 		)
 	}
 

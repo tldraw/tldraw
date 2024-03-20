@@ -7375,6 +7375,66 @@
               "name": "getGeometry"
             },
             {
+              "kind": "Property",
+              "canonicalReference": "tldraw!FrameShapeUtil#hideResizeHandles:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "hideResizeHandles: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "hideResizeHandles",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "tldraw!FrameShapeUtil#hideSelectionBoundsFg:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "hideSelectionBoundsFg: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "hideSelectionBoundsFg",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "tldraw!FrameShapeUtil#indicator:member(1)",
               "docComment": "",
@@ -7403,13 +7463,17 @@
                 },
                 {
                   "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
                   "text": ";"
                 }
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 5
+                "endIndex": 6
               },
               "releaseTag": "Public",
               "isProtected": false,
