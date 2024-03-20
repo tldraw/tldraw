@@ -1098,7 +1098,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
-    indicator(shape: TLNoteShape): JSX_2.Element;
+    indicator(): null;
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)

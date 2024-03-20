@@ -13090,25 +13090,11 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "indicator(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLNoteShape",
-                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                  "text": "indicator(): "
                 },
                 {
                   "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"react/jsx-runtime\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JSX.Element",
-                  "canonicalReference": "@types/react!JSX.Element:interface"
+                  "text": "null"
                 },
                 {
                   "kind": "Content",
@@ -13117,22 +13103,13 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 5
+                "startIndex": 1,
+                "endIndex": 2
               },
               "releaseTag": "Public",
               "isProtected": false,
               "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                }
-              ],
+              "parameters": [],
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"

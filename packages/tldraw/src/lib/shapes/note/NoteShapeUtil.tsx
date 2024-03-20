@@ -9,7 +9,6 @@ import {
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
-	toDomPrecision,
 } from '@tldraw/editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
@@ -100,14 +99,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	indicator(shape: TLNoteShape) {
-		return (
-			<rect
-				rx="6"
-				width={toDomPrecision(NOTE_SIZE)}
-				height={toDomPrecision(this.getHeight(shape))}
-			/>
-		)
+	indicator() {
+		return null
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
