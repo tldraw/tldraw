@@ -7,6 +7,7 @@ import {
 	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	TLShapeId,
 	VecLike,
 	ZERO_INDEX_KEY,
 	createShapeId,
@@ -211,10 +212,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			])
 		}
 	}
-	onHandlePointerUp(info: { shape: TLNoteShape; handleId: 'up' | 'down' | 'left' | 'right' }) {
-		this.duplicateShape(info.shape, info.handleId)
+	onHandlePointerUp() {
+		this.cementShape()
 	}
-	duplicateShape(shape: TLNoteShape, direction: 'up' | 'down' | 'left' | 'right') {
+	cementShape() {
+		if (this.hintedShape) {
+			this.editor.updateShapes([{ type: 'note', id: this.hintedShape, opacity: 1 }])
+			this.hintedShape = null
+		}
+	}
+	hintedShape: TLShapeId | null = null
+	onHandlePointerDown(info: { shape: TLNoteShape; handleId: 'up' | 'down' | 'left' | 'right' }) {
+		const previewId = this.previewShape(info.shape, info.handleId)
+		return previewId
+	}
+	previewShape(shape: TLNoteShape, direction: 'up' | 'down' | 'left' | 'right') {
 		const centerOffset = NOTE_SIZE / 2
 		let count = 0
 		let emptySpot = {} as VecLike
@@ -235,38 +247,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			count++
 		}
 		const newShapeId = createShapeId()
-		const arrowId = createShapeId()
 		this.editor.createShape({
 			type: 'note',
 			id: newShapeId,
 			x: emptySpot.x,
 			y: emptySpot.y,
+			opacity: 0.25,
 			props: { color: shape.props.color, size: shape.props.size },
 		})
-		this.editor.createShape({
-			type: 'arrow',
-			id: arrowId,
-			props: {
-				color: shape.props.color,
-				size: shape.props.size,
-				start: {
-					type: 'binding',
-					boundShapeId: shape.id,
-					normalizedAnchor: { x: 0.5, y: 0.5 },
-					isExact: false,
-					isPrecise: true,
-				},
-				end: {
-					type: 'binding',
-					boundShapeId: newShapeId,
-					normalizedAnchor: { x: 0.5, y: 0.5 },
-					isExact: false,
-					isPrecise: true,
-				},
-			},
-		})
-		this.editor.sendToBack([arrowId])
-		this.editor.setEditingShape(shape.id)
+		this.hintedShape = newShapeId
+		return newShapeId
 	}
 
 	override onDoubleClickHandle = (shape: TLNoteShape) => shape

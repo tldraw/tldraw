@@ -40022,7 +40022,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n} | {\n    target: 'selection';\n    handle?: "
+              "text": ";\n} | {\n    target: 'preview';\n} | {\n    target: 'selection';\n    handle?: "
             },
             {
               "kind": "Reference",

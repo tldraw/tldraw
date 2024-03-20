@@ -12827,6 +12827,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#cementShape:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "cementShape(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "cementShape"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "tldraw!NoteShapeUtil#component:member(1)",
               "docComment": "",
               "excerptTokens": [
@@ -12878,71 +12909,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "component"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "tldraw!NoteShapeUtil#duplicateShape:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "duplicateShape(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLNoteShape",
-                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", direction: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "'down' | 'left' | 'right' | 'up'"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "direction",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "duplicateShape"
             },
             {
               "kind": "Method",
@@ -13194,6 +13160,41 @@
               "isAbstract": false
             },
             {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#hintedShape:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "hintedShape: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "hintedShape",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "tldraw!NoteShapeUtil#indicator:member(1)",
               "docComment": "",
@@ -13338,7 +13339,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -13431,7 +13432,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -13549,12 +13550,12 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "tldraw!NoteShapeUtil#onHandlePointerUp:member(1)",
+              "canonicalReference": "tldraw!NoteShapeUtil#onHandlePointerDown:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onHandlePointerUp(info: "
+                  "text": "onHandlePointerDown(info: "
                 },
                 {
                   "kind": "Content",
@@ -13574,8 +13575,9 @@
                   "text": "): "
                 },
                 {
-                  "kind": "Content",
-                  "text": "void"
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
                 },
                 {
                   "kind": "Content",
@@ -13600,6 +13602,37 @@
                   "isOptional": false
                 }
               ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "onHandlePointerDown"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#onHandlePointerUp:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onHandlePointerUp(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
               "isOptional": false,
               "isAbstract": false,
               "name": "onHandlePointerUp"
@@ -13660,6 +13693,72 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#previewShape:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "previewShape(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", direction: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "'down' | 'left' | 'right' | 'up'"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "direction",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "previewShape"
             },
             {
               "kind": "Property",

@@ -5,6 +5,7 @@ import {
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
+	TLShapeId,
 } from '@tldraw/editor'
 
 export class PointingHandle extends StateNode {
@@ -12,6 +13,8 @@ export class PointingHandle extends StateNode {
 	shape = {} as TLShape
 
 	info = {} as TLPointerEventInfo & { target: 'handle' }
+
+	previewNote: TLShapeId | null = null
 
 	override onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
 		this.info = info
@@ -22,6 +25,14 @@ export class PointingHandle extends StateNode {
 			if (initialTerminal?.type === 'binding') {
 				this.editor.setHintingShapes([initialTerminal.boundShapeId])
 			}
+		}
+
+		if (this.editor.isShapeOfType<TLNoteShape>(this.shape, 'note')) {
+			this.previewNote = this.editor
+				.getShapeUtil<TLNoteShape>(this.shape)
+				// todo: fix this
+				// @ts-expect-error
+				.onHandlePointerDown({ shape: this.shape, handleId: this.info.handle.id })
 		}
 
 		this.editor.updateInstanceState(
@@ -51,11 +62,13 @@ export class PointingHandle extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
+			this.cleanupPreviewNote()
 			this.parent.transition('dragging_handle', this.info)
 		}
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
+		this.cleanupPreviewNote()
 		this.cancel()
 	}
 
@@ -69,5 +82,11 @@ export class PointingHandle extends StateNode {
 
 	private cancel() {
 		this.parent.transition('idle')
+	}
+	private cleanupPreviewNote() {
+		if (this.previewNote) {
+			this.editor.deleteShape(this.previewNote!)
+			this.previewNote = null
+		}
 	}
 }

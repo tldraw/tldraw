@@ -1086,9 +1086,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    component(shape: TLNoteShape): JSX_2.Element;
+    cementShape(): void;
     // (undocumented)
-    duplicateShape(shape: TLNoteShape, direction: 'down' | 'left' | 'right' | 'up'): void;
+    component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
@@ -1101,6 +1101,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     hideResizeHandles: () => boolean;
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
+    // (undocumented)
+    hintedShape: null | TLShapeId;
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
@@ -1160,12 +1162,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
-    onHandlePointerUp(info: {
+    onHandlePointerDown(info: {
         shape: TLNoteShape;
         handleId: 'down' | 'left' | 'right' | 'up';
-    }): void;
+    }): TLShapeId;
+    // (undocumented)
+    onHandlePointerUp(): void;
     // (undocumented)
     positionsCached: ComputedCache<NoteGridPositions, TLNoteShape>;
+    // (undocumented)
+    previewShape(shape: TLNoteShape, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
     // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;

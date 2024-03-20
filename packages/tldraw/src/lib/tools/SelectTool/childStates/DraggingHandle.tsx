@@ -62,35 +62,44 @@ export class DraggingHandle extends StateNode {
 		this.initialHandle = structuredClone(handle)
 
 		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
-			const newShapeId = createShapeId()
+			const newNoteShapeId = createShapeId()
+			const newArrowShapeId = createShapeId()
+			const originalNoteShapeId = this.shapeId
 			const pagePoint = this.editor.inputs.originPagePoint
+
 			this.editor.createShape({
 				type: 'note',
-				id: newShapeId,
+				id: newNoteShapeId,
 				x: pagePoint.x - 100,
 				y: pagePoint.y - 50,
+				opacity: 0.25,
 			})
 			this.editor.createShape({
+				id: newArrowShapeId,
 				type: 'arrow',
+				opacity: 0.25,
 				props: {
 					start: {
 						type: 'binding',
-						boundShapeId: this.shapeId,
+						boundShapeId: originalNoteShapeId,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
 						isExact: false,
 						isPrecise: true,
 					},
 					end: {
 						type: 'binding',
-						boundShapeId: newShapeId,
+						boundShapeId: newNoteShapeId,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
 						isExact: false,
 						isPrecise: true,
 					},
 				},
 			})
-			this.editor.select(newShapeId)
-			this.parent.transition('translating', { id: newShapeId })
+			this.editor.select(newNoteShapeId)
+			this.parent.transition('translating', {
+				target: 'preview',
+				ids: [newNoteShapeId, newArrowShapeId],
+			})
 		}
 
 		if (this.editor.isShapeOfType<TLLineShape>(shape, 'line')) {

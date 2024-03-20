@@ -9,6 +9,7 @@ import {
 	TLEventHandlers,
 	TLPointerEventInfo,
 	TLShape,
+	TLShapeId,
 	TLShapePartial,
 	TLTickEventHandler,
 	Vec,
@@ -22,7 +23,7 @@ export class Translating extends StateNode {
 	static override id = 'translating'
 
 	info = {} as TLPointerEventInfo & {
-		target: 'shape'
+		target: 'shape' | 'preview'
 		isCreating?: boolean
 		onCreate?: () => void
 		onInteractionEnd?: string
@@ -38,12 +39,14 @@ export class Translating extends StateNode {
 	isCreating = false
 	isDirty = false
 	onCreate: (shape: TLShape | null) => void = () => void null
+	previewIds: TLShapeId[] = []
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
 	override onEnter = (
 		info: TLPointerEventInfo & {
-			target: 'shape'
+			ids?: TLShapeId[]
+			target: 'shape' | 'preview'
 			isCreating?: boolean
 			onCreate?: () => void
 			onInteractionEnd?: string
@@ -56,7 +59,10 @@ export class Translating extends StateNode {
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
 		this.onCreate = onCreate
-
+		// ts-expect-error
+		if (info.target === 'preview') {
+			this.previewIds = info.ids || []
+		}
 		if (isCreating) {
 			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
 		} else {
@@ -132,6 +138,9 @@ export class Translating extends StateNode {
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+		this.editor.updateShapes(
+			this.previewIds.map((shape) => ({ type: 'note', id: shape, opacity: 1 }))
+		)
 		this.complete()
 	}
 
@@ -190,6 +199,7 @@ export class Translating extends StateNode {
 
 	private cancel() {
 		this.reset()
+		this.cleanupPreviewIds()
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
@@ -303,6 +313,12 @@ export class Translating extends StateNode {
 
 			shapeSnapshot.parentTransform = parentTransform
 		})
+	}
+	private cleanupPreviewIds = () => {
+		this.previewIds.forEach((id) => {
+			this.editor.deleteShape(id)
+		})
+		this.previewIds = []
 	}
 }
 

@@ -2374,6 +2374,8 @@ export type TLPointerEventTarget = {
     shape: TLShape;
     handle: TLHandle;
 } | {
+    target: 'preview';
+} | {
     target: 'selection';
     handle?: TLSelectionHandle;
     shape?: undefined;
