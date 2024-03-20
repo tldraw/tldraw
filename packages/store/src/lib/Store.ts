@@ -907,7 +907,9 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 }
 
 /**
- * Collect all history entries by their sources.
+ * Collect all history entries by their adjacent sources.
+ * For example, [user, user, remote, remote, user] would result in [user, remote, user],
+ * with adjacent entries of the same source squashed into a single entry.
  *
  * @param entries - The array of history entries.
  * @returns A map of history entries by their sources.
@@ -916,28 +918,25 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 function squashHistoryEntries<T extends UnknownRecord>(
 	entries: HistoryEntry<T>[]
 ): HistoryEntry<T>[] {
-	let current = entries[0]
-	let currentChunk: HistoryEntry<T>[] = [current]
-	const toProcess: HistoryEntry<T>[][] = []
+	if (entries.length === 0) return []
 
+	const chunked: HistoryEntry<T>[][] = []
+	let chunk: HistoryEntry<T>[] = [entries[0]]
 	let entry: HistoryEntry<T>
+
 	for (let i = 1, n = entries.length; i < n; i++) {
 		entry = entries[i]
-
-		if (current.source !== entry.source) {
-			// result.push(current)
-			toProcess.push(currentChunk)
-			current = entry
-			currentChunk = [entry]
-		} else {
-			currentChunk.push(entry)
+		if (chunk[0].source !== entry.source) {
+			chunked.push(chunk)
+			chunk = []
 		}
+		chunk.push(entry)
 	}
-
-	toProcess.push(currentChunk)
+	// Push the last chunk
+	chunked.push(chunk)
 
 	return devFreeze(
-		toProcess.map((entries) => ({
+		chunked.map((entries) => ({
 			source: entries[0].source,
 			changes: squashRecordDiffs(entries.map((e) => e.changes)),
 		}))
