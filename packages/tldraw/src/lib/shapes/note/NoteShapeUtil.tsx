@@ -12,6 +12,7 @@ import {
 	noteShapeProps,
 	toDomPrecision,
 } from '@tldraw/editor'
+import { useState } from 'react'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { TextLabel } from '../shared/TextLabel'
@@ -66,13 +67,18 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
 
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const [timeOfLastPointerDown, setTimeOfLastPointerDown] = useState(0)
+
 		const isDragging =
 			this.editor.isInAny('select.translating', 'select.pointing_shape') &&
-			this.editor.getSelectedShapeIds().includes(shape.id)
+			this.editor.getSelectedShapeIds().includes(shape.id) &&
+			performance.now() - timeOfLastPointerDown > 100
 
 		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		const handlePointerDown = () => {
+			setTimeOfLastPointerDown(performance.now())
 			if (featureFlags.bringStickiesToFront.get()) {
 				this.editor.bringToFront([shape.id])
 			}
