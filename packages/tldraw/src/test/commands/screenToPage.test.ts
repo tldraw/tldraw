@@ -22,7 +22,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when zoomed', () => {
-		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		editor.camera.set({ x: 0, y: 0, z: 0.5 })
 
 		checkScreenPage({ x: 0, y: 0 }, { x: 0, y: 0 })
 		checkScreenPage({ x: 100, y: 100 }, { x: 200, y: 200 })
@@ -30,7 +30,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when panned', () => {
-		editor.setCamera({ x: 100, y: 100 })
+		editor.camera.set({ x: 100, y: 100 })
 
 		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
 		checkScreenPage({ x: 100, y: 100 }, { x: 0, y: 0 })
@@ -38,7 +38,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when panned and zoomed', () => {
-		editor.setCamera({ x: 100, y: 100, z: 0.5 })
+		editor.camera.set({ x: 100, y: 100, z: 0.5 })
 
 		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
 		checkScreenPage({ x: 100, y: 100 }, { x: 100, y: 100 })
@@ -58,7 +58,7 @@ describe('viewport.screenToPage', () => {
 
 	it('converts correctly when zoomed out', () => {
 		// camera at zero, screenbounds at zero, but zoom at .5
-		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		editor.camera.set({ x: 0, y: 0, z: 0.5 })
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
@@ -69,7 +69,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when zoomed in', () => {
-		editor.setCamera({ x: 0, y: 0, z: 2 })
+		editor.camera.set({ x: 0, y: 0, z: 2 })
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
@@ -84,7 +84,7 @@ describe('viewport.screenToPage', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
-		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		editor.camera.set({ x: 0, y: 0, z: 0.5 })
 
 		checkScreenPage({ x: 0, y: 0 }, { x: 0, y: 0 })
 		checkScreenPage({ x: -100, y: -100 }, { x: -200, y: -200 })
@@ -92,7 +92,7 @@ describe('viewport.screenToPage', () => {
 	})
 
 	it('converts correctly when offset and zoomed', () => {
-		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		editor.camera.set({ x: 0, y: 0, z: 0.5 })
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 100, y: 100 },
 		})
@@ -106,7 +106,7 @@ describe('viewport.screenToPage', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
-		editor.setCamera({ x: 100, y: 100, z: 0.5 })
+		editor.camera.set({ x: 100, y: 100, z: 0.5 })
 
 		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
 		checkScreenPage({ x: -100, y: -100 }, { x: -300, y: -300 })
@@ -117,7 +117,7 @@ describe('viewport.screenToPage', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 100, y: 100 },
 		})
-		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		editor.camera.set({ x: 0, y: 0, z: 0.5 })
 
 		checkScreenPage({ x: 0, y: 0 }, { x: -200, y: -200 })
 		checkScreenPage({ x: 100, y: 100 }, { x: 0, y: 0 })
@@ -128,7 +128,7 @@ describe('viewport.screenToPage', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
-		editor.setCamera({ x: 100, y: 100, z: 1 })
+		editor.camera.set({ x: 100, y: 100, z: 1 })
 
 		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
 		checkScreenPage({ x: 100, y: 100 }, { x: 0, y: 0 })
@@ -139,7 +139,7 @@ describe('viewport.screenToPage', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0 },
 		})
-		editor.setCamera({ x: 100, y: 100, z: 0.5 })
+		editor.camera.set({ x: 100, y: 100, z: 0.5 })
 
 		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
 		checkScreenPage({ x: 100, y: 100 }, { x: 100, y: 100 })
@@ -150,7 +150,7 @@ describe('viewport.screenToPage', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 100, y: 100 },
 		})
-		editor.setCamera({ x: 100, y: 100, z: 0.5 })
+		editor.camera.set({ x: 100, y: 100, z: 0.5 })
 
 		checkScreenPage({ x: 0, y: 0 }, { x: -300, y: -300 })
 		checkScreenPage({ x: 100, y: 100 }, { x: -100, y: -100 })
@@ -163,7 +163,7 @@ describe('viewportPageBounds', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0, w: 1000, h: 1000 },
 		})
-		editor.setCamera({ x: 0, y: 0, z: 1 })
+		editor.camera.set({ x: 0, y: 0, z: 1 })
 
 		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -0,
@@ -177,7 +177,7 @@ describe('viewportPageBounds', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0, w: 1000, h: 1000 },
 		})
-		editor.setCamera({ x: 0, y: 0, z: 2 })
+		editor.camera.set({ x: 0, y: 0, z: 2 })
 
 		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -0,
@@ -185,7 +185,7 @@ describe('viewportPageBounds', () => {
 			w: 500,
 			h: 500,
 		})
-		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		editor.camera.set({ x: 0, y: 0, z: 0.5 })
 
 		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -0,
@@ -199,7 +199,7 @@ describe('viewportPageBounds', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0, w: 1000, h: 1000 },
 		})
-		editor.setCamera({ x: 100, y: 100, z: 1 })
+		editor.camera.set({ x: 100, y: 100, z: 1 })
 
 		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -100,
@@ -215,7 +215,7 @@ describe('viewportPageBounds', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 0, y: 0, w: 1000, h: 1000 },
 		})
-		editor.setCamera({ x: 100, y: 100, z: 2 })
+		editor.camera.set({ x: 100, y: 100, z: 2 })
 
 		expect(editor.getViewportPageBounds()).toMatchObject({
 			x: -100,
@@ -231,7 +231,7 @@ describe('viewportPageBounds', () => {
 		editor.updateInstanceState({
 			screenBounds: { ...editor.getViewportScreenBounds(), x: 100, y: 100, w: 1000, h: 1000 },
 		})
-		editor.setCamera({ x: 0, y: 0, z: 2 })
+		editor.camera.set({ x: 0, y: 0, z: 2 })
 
 		// changing the screen bounds should not affect the page bounds
 		expect(editor.getViewportPageBounds()).toMatchObject({

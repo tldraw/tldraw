@@ -130,7 +130,6 @@ describe('When brushing arrows', () => {
 		const ids = editor
 			.selectAll()
 			.deleteShapes(editor.getSelectedShapeIds())
-			.setCamera({ x: 0, y: 0, z: 1 })
 			.createShapesFromJsx([
 				<TL.arrow
 					ref="arrow1"
@@ -141,6 +140,7 @@ describe('When brushing arrows', () => {
 					bend={0}
 				/>,
 			])
+		editor.camera.set({ x: 0, y: 0, z: 1 })
 		editor.setCurrentTool('select')
 		editor.pointerDown(0, 45)
 		editor.pointerMove(100, 55)
@@ -152,7 +152,6 @@ describe('When brushing arrows', () => {
 		editor
 			.selectAll()
 			.deleteShapes(editor.getSelectedShapeIds())
-			.setCamera({ x: 0, y: 0, z: 1 })
 			.createShapesFromJsx([
 				<TL.arrow
 					ref="arrow1"
@@ -163,6 +162,7 @@ describe('When brushing arrows', () => {
 					bend={40}
 				/>,
 			])
+		editor.camera.set({ x: 0, y: 0, z: 1 })
 		editor.setCurrentTool('select')
 		editor.pointerDown(55, 45)
 		editor.pointerMove(45, 55)

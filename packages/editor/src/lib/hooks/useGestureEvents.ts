@@ -151,12 +151,12 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			initPointBetweenFingers.x = origin[0]
 			initPointBetweenFingers.y = origin[1]
 			initDistanceBetweenFingers = da[0]
-			initZoom = editor.getZoomLevel()
+			initZoom = editor.camera.getZoom()
 
 			editor.dispatch({
 				type: 'pinch',
 				name: 'pinch_start',
-				point: { x: origin[0], y: origin[1], z: editor.getZoomLevel() },
+				point: { x: origin[0], y: origin[1], z: editor.camera.getZoom() },
 				delta: { x: 0, y: 0 },
 				shiftKey: event.shiftKey,
 				altKey: event.altKey,
@@ -298,9 +298,9 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 		target: ref,
 		eventOptions: { passive: false },
 		pinch: {
-			from: () => [editor.getZoomLevel(), 0], // Return the camera z to use when pinch starts
+			from: () => [editor.camera.getZoom(), 0], // Return the camera z to use when pinch starts
 			scaleBounds: () => {
-				return { from: editor.getZoomLevel(), max: 8, min: 0.05 }
+				return { from: editor.camera.getZoom(), max: 8, min: 0.05 }
 			},
 		},
 	})

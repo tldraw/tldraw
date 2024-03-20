@@ -31,7 +31,7 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 
 	useTick(showClosestPointOnOutline)
 
-	const zoomLevel = editor.getZoomLevel()
+	const zoomLevel = editor.camera.getZoom()
 	const renderingShapes = editor.getRenderingShapes()
 	const {
 		inputs: { currentPagePoint },

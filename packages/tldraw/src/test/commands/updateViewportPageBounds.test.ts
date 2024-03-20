@@ -65,7 +65,7 @@ describe('When center is false', () => {
 	})
 
 	it('keeps the same top left when resized while panned', () => {
-		editor.setCamera({ x: -100, y: -100, z: 1 })
+		editor.camera.set({ x: -100, y: -100, z: 1 })
 		const a = editor.screenToPage({ x: 0, y: 0 })
 		expect(a).toMatchObject({ x: 100, y: 100 })
 
@@ -81,9 +81,9 @@ describe('When center is false', () => {
 	})
 
 	it('keeps the same top left when resized while panned / zoomed', () => {
-		editor.setCamera({ x: -100, y: -100, z: 1 })
+		editor.camera.set({ x: -100, y: -100, z: 1 })
 		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: 100, y: 100 })
-		editor.setCamera({ x: -100, y: -100, z: 2 })
+		editor.camera.set({ x: -100, y: -100, z: 2 })
 		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: 100, y: 100 })
 
 		editor.setScreenBounds({ x: 100, y: 100, w: 500, h: 600 }, false)
@@ -106,7 +106,7 @@ describe('When center is true', () => {
 	})
 
 	it('keep the same page center when resized while panned / zoomed', () => {
-		editor.setCamera({ x: -100, y: -100, z: 1.2 })
+		editor.camera.set({ x: -100, y: -100, z: 1.2 })
 		const a = editor.getViewportPageCenter().toJson()
 		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, true)
 		const b = editor.getViewportPageCenter().toJson()

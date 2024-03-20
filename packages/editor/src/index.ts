@@ -134,6 +134,7 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export { CameraManager } from './lib/editor/managers/CameraManager'
 export type {
 	TLAfterChangeHandler,
 	TLAfterCreateHandler,

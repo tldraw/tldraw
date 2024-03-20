@@ -54,7 +54,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	if (!bounds) return null
 	bounds = bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
-	const zoom = editor.getZoomLevel()
+	const zoom = editor.camera.getZoom()
 	const isChangingStyle = editor.getInstanceState().isChangingStyle
 
 	const width = bounds.width
@@ -492,7 +492,7 @@ export const MobileRotateHandle = function RotateHandle({
 	const events = useSelectionEvents('mobile_rotate')
 
 	const editor = useEditor()
-	const zoom = useValue('zoom level', () => editor.getZoomLevel(), [editor])
+	const zoom = useValue('zoom level', () => editor.camera.getZoom(), [editor])
 	const bgRadius = Math.max(14 * (1 / zoom), 20 / Math.max(1, zoom))
 
 	return (

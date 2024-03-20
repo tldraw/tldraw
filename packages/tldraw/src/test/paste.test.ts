@@ -418,7 +418,7 @@ describe('When pasting into frames...', () => {
 			.select(ids.frame1)
 			.bringToFront(editor.getSelectedShapeIds())
 
-		editor.setCamera({ x: -2000, y: -2000, z: 1 })
+		editor.camera.set({ x: -2000, y: -2000, z: 1 })
 		editor.updateRenderingBounds()
 
 		// Copy box 1 (should be out of viewport)
@@ -472,7 +472,7 @@ describe('When pasting into frames...', () => {
 		// rotate the frame for hard mode
 		editor.rotateSelection(45)
 		// center on the center of the frame
-		editor.setCamera({
+		editor.camera.set({
 			x: -editor.getViewportScreenBounds().w,
 			y: -editor.getViewportScreenBounds().h,
 			z: 1,

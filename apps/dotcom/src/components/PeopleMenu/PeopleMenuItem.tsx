@@ -20,10 +20,10 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 
 	const handleFollowClick = useCallback(() => {
 		if (editor.getInstanceState().followingUserId === userId) {
-			editor.stopFollowingUser()
+			editor.camera.stopFollowingUser()
 			trackEvent('stop-following', { source: 'people-menu' })
 		} else {
-			editor.startFollowingUser(userId)
+			editor.camera.startFollowingUser(userId)
 			trackEvent('start-following' as UI_OVERRIDE_TODO_EVENT, { source: 'people-menu' })
 		}
 	}, [editor, userId, trackEvent])
@@ -38,7 +38,7 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 			<TldrawUiButton
 				type="menu"
 				className="tlui-people-menu__item__button"
-				onClick={() => editor.animateToUser(userId)}
+				onClick={() => editor.camera.animateToUser(userId)}
 				onDoubleClick={handleFollowClick}
 			>
 				<TldrawUiIcon icon="color" color={presence.color} />

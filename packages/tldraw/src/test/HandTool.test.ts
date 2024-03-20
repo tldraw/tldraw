@@ -19,55 +19,55 @@ jest.useFakeTimers()
 describe(HandTool, () => {
 	it('Double taps to zoom in', () => {
 		editor.setCurrentTool('hand')
-		expect(editor.getZoomLevel()).toBe(1)
+		expect(editor.camera.getZoom()).toBe(1)
 		editor.click()
 		editor.click() // double click!
 		jest.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).not.toBe(1) // animating
+		expect(editor.camera.getZoom()).not.toBe(1) // animating
 		jest.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).toBe(2) // all done
+		expect(editor.camera.getZoom()).toBe(2) // all done
 	})
 
 	it('Triple taps to zoom out', () => {
 		editor.setCurrentTool('hand')
-		expect(editor.getZoomLevel()).toBe(1)
+		expect(editor.camera.getZoom()).toBe(1)
 		editor.click()
 		editor.click()
 		editor.click() // triple click!
 		jest.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).not.toBe(1) // animating
+		expect(editor.camera.getZoom()).not.toBe(1) // animating
 		jest.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).toBe(0.5) // all done
+		expect(editor.camera.getZoom()).toBe(0.5) // all done
 	})
 
 	it('Quadruple taps to reset zoom', () => {
 		editor.setCurrentTool('hand')
-		editor.zoomIn() // zoom to 2
-		expect(editor.getZoomLevel()).toBe(2)
+		editor.camera.zoomIn() // zoom to 2
+		expect(editor.camera.getZoom()).toBe(2)
 		editor.click()
 		editor.click()
 		editor.click()
 		editor.click() // quad click!
 		jest.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).not.toBe(2) // animating
+		expect(editor.camera.getZoom()).not.toBe(2) // animating
 		jest.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).toBe(1) // all done
+		expect(editor.camera.getZoom()).toBe(1) // all done
 	})
 
 	it('Quadruple taps from zoom=1 to zoom to fit', () => {
 		editor.setCurrentTool('hand')
-		expect(editor.getZoomLevel()).toBe(1)
+		expect(editor.camera.getZoom()).toBe(1)
 		editor.createShapes(createDefaultShapes()) // makes some shapes
 		editor.click()
 		editor.click()
 		editor.click()
 		editor.click() // quad click!
 		jest.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).not.toBe(1) // animating
+		expect(editor.camera.getZoom()).not.toBe(1) // animating
 		jest.advanceTimersByTime(300)
-		const z = editor.getZoomLevel()
-		editor.zoomToFit() // call zoom to fit manually to compare
-		expect(editor.getZoomLevel()).toBe(z) // zoom should not have changed
+		const z = editor.camera.getZoom()
+		editor.camera.zoomToFit() // call zoom to fit manually to compare
+		expect(editor.camera.getZoom()).toBe(z) // zoom should not have changed
 	})
 })
 
@@ -143,17 +143,17 @@ describe('When in the pointing state', () => {
 describe('When in the dragging state', () => {
 	it('Moves the camera', () => {
 		editor.setCurrentTool('hand')
-		expect(editor.getCamera().x).toBe(0)
-		expect(editor.getCamera().y).toBe(0)
+		expect(editor.camera.get().x).toBe(0)
+		expect(editor.camera.get().y).toBe(0)
 		editor.pointerDown(50, 50)
 		editor.expectToBeIn('hand.pointing')
 		editor.pointerMove(75, 75)
-		expect(editor.getCamera().x).toBe(25)
-		expect(editor.getCamera().y).toBe(25)
+		expect(editor.camera.get().x).toBe(25)
+		expect(editor.camera.get().y).toBe(25)
 		editor.expectToBeIn('hand.dragging')
 		editor.pointerMove(100, 100)
-		expect(editor.getCamera().x).toBe(50)
-		expect(editor.getCamera().y).toBe(50)
+		expect(editor.camera.get().x).toBe(50)
+		expect(editor.camera.get().y).toBe(50)
 		editor.pointerUp()
 	})
 

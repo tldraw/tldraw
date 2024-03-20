@@ -33,19 +33,14 @@ function getEdgeProximityFactor(
  * @public
  */
 export function moveCameraWhenCloseToEdge(editor: Editor) {
-	if (
-		!editor.inputs.isDragging ||
-		editor.inputs.isPanning ||
-		!editor.getInstanceState().canMoveCamera
-	)
-		return
+	if (!editor.inputs.isDragging || editor.inputs.isPanning || !editor.camera.canMove()) return
 
 	const {
 		inputs: {
 			currentScreenPoint: { x, y },
 		},
 	} = editor
-	const zoomLevel = editor.getZoomLevel()
+	const zoomLevel = editor.camera.getZoom()
 	const screenBounds = editor.getViewportScreenBounds()
 
 	// Determines how much the speed is affected by the screen size
@@ -66,9 +61,9 @@ export function moveCameraWhenCloseToEdge(editor: Editor) {
 	const scrollDeltaX = (pxSpeed * proximityFactorX * screenSizeFactorX) / zoomLevel
 	const scrollDeltaY = (pxSpeed * proximityFactorY * screenSizeFactorY) / zoomLevel
 
-	const camera = editor.getCamera()
+	const camera = editor.camera.get()
 
-	editor.setCamera({
+	editor.camera.set({
 		x: camera.x + scrollDeltaX,
 		y: camera.y + scrollDeltaY,
 	})

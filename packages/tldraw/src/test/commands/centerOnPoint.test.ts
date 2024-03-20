@@ -7,12 +7,12 @@ beforeEach(() => {
 })
 
 it('centers on the point', () => {
-	editor.centerOnPoint({ x: 400, y: 400 })
+	editor.camera.centerOnPoint({ x: 400, y: 400 })
 	expect(editor.getViewportPageCenter()).toMatchObject({ x: 400, y: 400 })
 })
 
 it('centers on the point with animation', () => {
-	editor.centerOnPoint({ x: 400, y: 400 }, { duration: 200 })
+	editor.camera.centerOnPoint({ x: 400, y: 400 }, { duration: 200 })
 	expect(editor.getViewportPageCenter()).not.toMatchObject({ x: 400, y: 400 })
 	jest.advanceTimersByTime(100)
 	expect(editor.getViewportPageCenter()).not.toMatchObject({ x: 400, y: 400 })

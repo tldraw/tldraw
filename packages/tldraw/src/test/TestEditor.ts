@@ -199,7 +199,7 @@ export class TestEditor extends Editor {
 	}
 
 	expectCameraToBe(x: number, y: number, z: number) {
-		const camera = this.getCamera()
+		const camera = this.camera.get()
 
 		expect({
 			x: +camera.x.toFixed(2),

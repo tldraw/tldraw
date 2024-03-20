@@ -4155,6 +4155,1133 @@
           }
         },
         {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/editor!CameraManager:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class CameraManager "
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/managers/CameraManager.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "CameraManager",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@tldraw/editor!CameraManager:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `CameraManager` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(editor: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Editor",
+                  "canonicalReference": "@tldraw/editor!Editor:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "editor",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#animateToShape:member(1)",
+              "docComment": "/**\n * Animate the camera to a shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "animateToShape(shapeId: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", opts?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shapeId",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "opts",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "animateToShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#animateToUser:member(1)",
+              "docComment": "/**\n * Animate the camera to a user's cursor position. This also briefly show the user's cursor if it's not currently visible.\n *\n * @param userId - The id of the user to aniamte to.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "animateToUser(userId: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "userId",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "animateToUser"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#canMove:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "canMove(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "canMove"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#centerOnPoint:member(1)",
+              "docComment": "/**\n * Center the camera on a point (in the current page space).\n *\n * @param point - The point in the current page space to center on.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.camera.centerOnPoint({ x: 100, y: 100 })\n * editor.camera.centerOnPoint({ x: 100, y: 100 }, { duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "centerOnPoint(point: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", animation?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "point",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "animation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "centerOnPoint"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#get:member(1)",
+              "docComment": "/**\n * The current camera record.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCamera",
+                  "canonicalReference": "@tldraw/tlschema!TLCamera:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "get"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#getState:member(1)",
+              "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getState(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"idle\" | \"moving\""
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getState"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#getZoom:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getZoom(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getZoom"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#pan:member(1)",
+              "docComment": "/**\n * Pan the camera.\n *\n * @param offset - The offset in the current page space.\n *\n * @param animation - The animation options.\n *\n * @example\n * ```ts\n * editor.camera.pan({ x: 100, y: 100 })\n * editor.camera.pan({ x: 100, y: 100 }, { duration: 1000 })\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "pan(offset: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", animation?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "offset",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "animation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "pan"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#panZoomIntoView:member(1)",
+              "docComment": "/**\n * Pan or pan/zoom the selected ids into view. This method tries to not change the zoom if possible.\n *\n * @param ids - The ids of the shapes to pan and zoom into view.\n *\n * @param animation - The options for an animation.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "panZoomIntoView(ids: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", animation?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "ids",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "animation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 4,
+                    "endIndex": 5
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "panZoomIntoView"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#resetZoom:member(1)",
+              "docComment": "/**\n * Set the zoom back to 100%.\n *\n * @param point - The screen point to zoom out on. Defaults to the viewport screen center.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.camera.resetZoom()\n * editor.camera.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })\n * editor.camera.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "resetZoom(point?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Vec",
+                  "canonicalReference": "@tldraw/editor!Vec:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", animation?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "point",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": true
+                },
+                {
+                  "parameterName": "animation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "resetZoom"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#set:member(1)",
+              "docComment": "/**\n * Set the current camera.\n *\n * @param point - The new camera position.\n *\n * @param animation - Options for an animation.\n *\n * @example\n * ```ts\n * editor.camera.set({ x: 0, y: 0})\n * editor.camera.set({ x: 0, y: 0, z: 1.5})\n * editor.camera.set({ x: 0, y: 0, z: 1.5}, { duration: 1000, easing: (t) => t * t })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "set(point: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", animation?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "point",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "animation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "set"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#slide:member(1)",
+              "docComment": "/**\n * Slide the camera in a certain direction.\n *\n * @param opts - Options for the slide\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "slide(opts: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        speed: number;\n        direction: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        friction: number;\n        speedThreshold?: number;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "opts",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "slide"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#startFollowingUser:member(1)",
+              "docComment": "/**\n * Start viewport-following a user.\n *\n * @param userId - The id of the user to follow.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "startFollowingUser(userId: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "userId",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "startFollowingUser"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#stopAnimation:member(1)",
+              "docComment": "/**\n * Stop the current camera animation, if any.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "stopAnimation(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "stopAnimation"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#stopFollowingUser:member(1)",
+              "docComment": "/**\n * Stop viewport-following a user.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "stopFollowingUser(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "stopFollowingUser"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#zoomIn:member(1)",
+              "docComment": "/**\n * Zoom the camera in.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.camera.zoomIn()\n * editor.camera.zoomIn(editor.getViewportScreenCenter(), { duration: 120 })\n * editor.camera.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "zoomIn(point?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Vec",
+                  "canonicalReference": "@tldraw/editor!Vec:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", animation?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "point",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": true
+                },
+                {
+                  "parameterName": "animation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "zoomIn"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#zoomOut:member(1)",
+              "docComment": "/**\n * Zoom the camera out.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.camera.zoomOut()\n * editor.camera.zoomOut(editor.getViewportScreenCenter(), { duration: 120 })\n * editor.camera.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "zoomOut(point?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Vec",
+                  "canonicalReference": "@tldraw/editor!Vec:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", animation?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "point",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": true
+                },
+                {
+                  "parameterName": "animation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "zoomOut"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#zoomToBounds:member(1)",
+              "docComment": "/**\n * Zoom the camera to fit a bounding box (in the current page space).\n *\n * @param bounds - The bounding box.\n *\n * @param options - The options for an animation, target zoom, or custom inset amount.\n *\n * @example\n * ```ts\n * editor.camera.zoomToBounds(myBounds)\n * editor.camera.zoomToBounds(myBounds)\n * editor.camera.zoomToBounds(myBounds, { duration: 100 })\n * editor.camera.zoomToBounds(myBounds, { inset: 0, targetZoom: 1 })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "zoomToBounds(bounds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", opts?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        targetZoom?: number;\n        inset?: number;\n    } & "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "bounds",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "opts",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "zoomToBounds"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#zoomToContent:member(1)",
+              "docComment": "/**\n * Move the camera to the nearest content.\n *\n * @param opts - The options for an animation.\n *\n * @example\n * ```ts\n * editor.camera.zoomToContent()\n * editor.camera.zoomToContent({ duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "zoomToContent(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "zoomToContent"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#zoomToFit:member(1)",
+              "docComment": "/**\n * Zoom the camera to fit the current page's content in the viewport.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.camera.zoomToFit()\n * editor.camera.zoomToFit({ duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "zoomToFit(animation?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "animation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "zoomToFit"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!CameraManager#zoomToSelection:member(1)",
+              "docComment": "/**\n * Zoom the camera to fit the current selection in the viewport.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToSelection()\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "zoomToSelection(animation?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLAnimationOptions",
+                  "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "animation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "zoomToSelection"
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
           "kind": "Function",
           "canonicalReference": "@tldraw/editor!canonicalizeRotation:function(1)",
           "docComment": "/**\n * @param a - Any angle in radians\n *\n * @returns A number between 0 and 2 * PI\n *\n * @public\n */\n",
@@ -7754,7 +8881,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#animateToShape:member(1)",
-              "docComment": "/**\n * Animate the camera to a shape.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.animateToShape | `editor.camera.animateToShape`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -7820,7 +8947,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#animateToUser:member(1)",
-              "docComment": "/**\n * Animate the camera to a user's cursor position. This also briefly show the user's cursor if it's not currently visible.\n *\n * @param userId - The id of the user to aniamte to.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.animateToUser | `editor.camera.animateToUser`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8117,6 +9244,37 @@
               "name": "bringToFront"
             },
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#camera:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly camera: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "CameraManager",
+                  "canonicalReference": "@tldraw/editor!CameraManager:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "camera",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#cancel:member(1)",
               "docComment": "/**\n * Dispatch a cancel event.\n *\n * @example\n * ```ts\n * editor.cancel()\n * ```\n *\n * @public\n */\n",
@@ -8181,7 +9339,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#centerOnPoint:member(1)",
-              "docComment": "/**\n * Center the camera on a point (in the current page space).\n *\n * @param point - The point in the current page space to center on.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.centerOnPoint({ x: 100, y: 100 })\n * editor.centerOnPoint({ x: 100, y: 100 }, { duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.centerOnPoint | `editor.camera.centerOnPoint`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10020,7 +11178,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCamera:member(1)",
-              "docComment": "/**\n * The current camera.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.get | `editor.camera.get`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10056,7 +11214,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCameraState:member(1)",
-              "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.getState | `editor.camera.getState`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -14118,7 +15276,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getZoomLevel:member(1)",
-              "docComment": "/**\n * The current camera zoom level.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.getZoom | `editor.camera.getZoom`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15521,7 +16679,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#pan:member(1)",
-              "docComment": "/**\n * Pan the camera.\n *\n * @param offset - The offset in the current page space.\n *\n * @param animation - The animation options.\n *\n * @example\n * ```ts\n * editor.pan({ x: 100, y: 100 })\n * editor.pan({ x: 100, y: 100 }, { duration: 1000 })\n * ```\n *\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.pan | `editor.camera.pan`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15587,7 +16745,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#panZoomIntoView:member(1)",
-              "docComment": "/**\n * Pan or pan/zoom the selected ids into view. This method tries to not change the zoom if possible.\n *\n * @param ids - The ids of the shapes to pan and zoom into view.\n *\n * @param animation - The options for an animation.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.panZoomIntoView | `editor.camera.panZoomIntoView`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -16298,7 +17456,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#resetZoom:member(1)",
-              "docComment": "/**\n * Set the zoom back to 100%.\n *\n * @param point - The screen point to zoom out on. Defaults to the viewport screen center.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.resetZoom()\n * editor.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })\n * editor.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.resetZoom | `editor.camera.resetZoom`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -16893,7 +18051,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#setCamera:member(1)",
-              "docComment": "/**\n * Set the current camera.\n *\n * @param point - The new camera position.\n *\n * @param animation - Options for an animation.\n *\n * @example\n * ```ts\n * editor.setCamera({ x: 0, y: 0})\n * editor.setCamera({ x: 0, y: 0, z: 1.5})\n * editor.setCamera({ x: 0, y: 0, z: 1.5}, { duration: 1000, easing: (t) => t * t })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.set | `editor.camera.set`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18021,11 +19179,11 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#slideCamera:member(1)",
-              "docComment": "/**\n * Slide the camera in a certain direction.\n *\n * @param opts - Options for the slide\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.slide | `editor.camera.slide`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "slideCamera(opts?: "
+                  "text": "slideCamera(opts: "
                 },
                 {
                   "kind": "Content",
@@ -18038,7 +19196,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        friction: number;\n        speedThreshold?: number | undefined;\n    }"
+                  "text": ";\n        friction: number;\n        speedThreshold?: number;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -18068,7 +19226,7 @@
                     "startIndex": 1,
                     "endIndex": 4
                   },
-                  "isOptional": true
+                  "isOptional": false
                 }
               ],
               "isOptional": false,
@@ -18203,7 +19361,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#startFollowingUser:member(1)",
-              "docComment": "/**\n * Start viewport-following a user.\n *\n * @param userId - The id of the user to follow.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.startFollowingUser | `editor.camera.startFollowingUser`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18251,7 +19409,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#stopCameraAnimation:member(1)",
-              "docComment": "/**\n * Stop the current camera animation, if any.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.stopAnimation | `editor.camera.stopAnimation`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18282,7 +19440,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#stopFollowingUser:member(1)",
-              "docComment": "/**\n * Stop viewport-following a user.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.stopFollowingUser | `editor.camera.stopFollowingUser`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19450,7 +20608,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomIn:member(1)",
-              "docComment": "/**\n * Zoom the camera in.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomIn()\n * editor.zoomIn(editor.getViewportScreenCenter(), { duration: 120 })\n * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.zoomIn | `editor.camera.zoomIn`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19516,7 +20674,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomOut:member(1)",
-              "docComment": "/**\n * Zoom the camera out.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomOut()\n * editor.zoomOut(editor.getViewportScreenCenter(), { duration: 120 })\n * editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.zoomOut | `editor.camera.zoomOut`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19582,7 +20740,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToBounds:member(1)",
-              "docComment": "/**\n * Zoom the camera to fit a bounding box (in the current page space).\n *\n * @param bounds - The bounding box.\n *\n * @param options - The options for an animation, target zoom, or custom inset amount.\n *\n * @example\n * ```ts\n * editor.zoomToBounds(myBounds)\n * editor.zoomToBounds(myBounds)\n * editor.zoomToBounds(myBounds, { duration: 100 })\n * editor.zoomToBounds(myBounds, { inset: 0, targetZoom: 1 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.zoomToBounds | `editor.camera.zoomToBounds`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19652,7 +20810,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToContent:member(1)",
-              "docComment": "/**\n * Move the camera to the nearest content.\n *\n * @param opts - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToContent()\n * editor.zoomToContent({ duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.zoomToContent | `editor.camera.zoomToContent`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19683,7 +20841,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToFit:member(1)",
-              "docComment": "/**\n * Zoom the camera to fit the current page's content in the viewport.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToFit()\n * editor.zoomToFit({ duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.zoomToFit | `editor.camera.zoomToFit`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19732,7 +20890,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToSelection:member(1)",
-              "docComment": "/**\n * Zoom the camera to fit the current selection in the viewport.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToSelection()\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link CameraManager.zoomToSelection | `editor.camera.zoomToSelection`} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

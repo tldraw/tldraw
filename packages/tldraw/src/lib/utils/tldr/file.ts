@@ -296,7 +296,7 @@ export async function parseAndLoadDocument(
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {
-			editor.zoomToBounds(bounds, { targetZoom: 1 })
+			editor.camera.zoomToBounds(bounds, { targetZoom: 1 })
 		}
 		editor.updateInstanceState({ isFocused })
 	})

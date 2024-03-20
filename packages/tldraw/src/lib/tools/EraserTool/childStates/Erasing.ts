@@ -80,7 +80,7 @@ export class Erasing extends StateNode {
 
 	update() {
 		const erasingShapeIds = this.editor.getErasingShapeIds()
-		const zoomLevel = this.editor.getZoomLevel()
+		const zoomLevel = this.editor.camera.getZoom()
 		const currentPageShapes = this.editor.getCurrentPageShapes()
 		const {
 			inputs: { currentPagePoint, previousPagePoint },

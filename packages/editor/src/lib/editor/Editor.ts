@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
 import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -64,18 +64,10 @@ import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	ANIMATION_MEDIUM_MS,
-	CAMERA_MAX_RENDERING_INTERVAL,
-	CAMERA_MOVING_TIMEOUT,
 	CAMERA_SLIDE_FRICTION,
 	COARSE_DRAG_DISTANCE,
-	COLLABORATOR_IDLE_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
 	DRAG_DISTANCE,
-	FOLLOW_CHASE_PAN_SNAP,
-	FOLLOW_CHASE_PAN_UNSNAP,
-	FOLLOW_CHASE_PROPORTION,
-	FOLLOW_CHASE_ZOOM_SNAP,
-	FOLLOW_CHASE_ZOOM_UNSNAP,
 	HIT_TEST_MARGIN,
 	INTERNAL_POINTER_IDS,
 	MAX_PAGES,
@@ -83,7 +75,6 @@ import {
 	MAX_ZOOM,
 	MIN_ZOOM,
 	SVG_PADDING,
-	ZOOMS,
 } from '../constants'
 import { Box } from '../primitives/Box'
 import { Mat, MatLike, MatModel } from '../primitives/Mat'
@@ -92,7 +83,7 @@ import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
-import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
+import { PI2, approximately, areAnglesCompatible, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
@@ -103,6 +94,7 @@ import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
+import { CameraManager } from './managers/CameraManager'
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
@@ -632,7 +624,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.root.enter(undefined, 'initial')
 
 		if (this.getInstanceState().followingUserId) {
-			this.stopFollowingUser()
+			this.camera.stopFollowingUser()
 		}
 
 		this.updateRenderingBounds()
@@ -1719,7 +1711,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const bounds = this.getSelectionRotatedPageBounds()
 		if (!bounds) return undefined
 		const { x, y } = this.pageToScreen(bounds.point)
-		const zoom = this.getZoomLevel()
+		const zoom = this.camera.getZoom()
 		return new Box(x, y, bounds.width * zoom, bounds.height * zoom)
 	}
 
@@ -2059,664 +2051,148 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/* --------------------- Camera --------------------- */
-
-	/** @internal */
-	@computed
-	private getCameraId() {
-		return CameraRecordType.createId(this.getCurrentPageId())
-	}
+	readonly camera = new CameraManager(this)
 
 	/**
-	 * The current camera.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.get | `editor.camera.get`} instead.
 	 */
-	@computed getCamera() {
-		return this.store.get(this.getCameraId())!
+	getCamera() {
+		return this.camera.get()
 	}
 
 	/**
-	 * The current camera zoom level.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.getZoom | `editor.camera.getZoom`} instead.
 	 */
 	@computed getZoomLevel() {
-		return this.getCamera().z
-	}
-
-	/** @internal */
-	private _setCamera(point: VecLike): this {
-		const currentCamera = this.getCamera()
-
-		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z) {
-			return this
-		}
-
-		this.batch(() => {
-			this.store.put([{ ...currentCamera, ...point }]) // include id and meta here
-
-			// Dispatch a new pointer move because the pointer's page will have changed
-			// (its screen position will compute to a new page position given the new camera position)
-			const { currentScreenPoint } = this.inputs
-			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-
-			this.dispatch({
-				type: 'pointer',
-				target: 'canvas',
-				name: 'pointer_move',
-				// weird but true: we need to put the screen point back into client space
-				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
-				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
-				ctrlKey: this.inputs.ctrlKey,
-				altKey: this.inputs.altKey,
-				shiftKey: this.inputs.shiftKey,
-				button: 0,
-				isPen: this.getInstanceState().isPenMode ?? false,
-			})
-
-			this._tickCameraState()
-		})
-
-		return this
+		return this.camera.getZoom()
 	}
 
 	/**
-	 * Set the current camera.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setCamera({ x: 0, y: 0})
-	 * editor.setCamera({ x: 0, y: 0, z: 1.5})
-	 * editor.setCamera({ x: 0, y: 0, z: 1.5}, { duration: 1000, easing: (t) => t * t })
-	 * ```
-	 *
-	 * @param point - The new camera position.
-	 * @param animation - Options for an animation.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.set | `editor.camera.set`} instead.
 	 */
 	setCamera(point: VecLike, animation?: TLAnimationOptions): this {
-		const x = Number.isFinite(point.x) ? point.x : 0
-		const y = Number.isFinite(point.y) ? point.y : 0
-		const z = Number.isFinite(point.z) ? point.z! : this.getZoomLevel()
-
-		// Stop any camera animations
-		this.stopCameraAnimation()
-
-		// Stop following any user
-		if (this.getInstanceState().followingUserId) {
-			this.stopFollowingUser()
-		}
-
-		if (animation) {
-			const { width, height } = this.getViewportScreenBounds()
-			return this._animateToViewport(new Box(-x, -y, width / z, height / z), animation)
-		} else {
-			this._setCamera({ x, y, z })
-		}
-
+		this.camera.set(point, animation)
 		return this
 	}
 
 	/**
-	 * Center the camera on a point (in the current page space).
-	 *
-	 * @example
-	 * ```ts
-	 * editor.centerOnPoint({ x: 100, y: 100 })
-	 * editor.centerOnPoint({ x: 100, y: 100 }, { duration: 200 })
-	 * ```
-	 *
-	 * @param point - The point in the current page space to center on.
-	 * @param animation - The options for an animation.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.centerOnPoint | `editor.camera.centerOnPoint`} instead.
 	 */
 	centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-
-		const { width: pw, height: ph } = this.getViewportPageBounds()
-
-		this.setCamera(
-			{ x: -(point.x - pw / 2), y: -(point.y - ph / 2), z: this.getCamera().z },
-			animation
-		)
+		this.camera.centerOnPoint(point, animation)
 		return this
 	}
 
 	/**
-	 * Move the camera to the nearest content.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.zoomToContent()
-	 * editor.zoomToContent({ duration: 200 })
-	 * ```
-	 *
-	 * @param opts - The options for an animation.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.zoomToContent | `editor.camera.zoomToContent`} instead.
 	 */
 	zoomToContent(): this {
-		const bounds = this.getSelectionPageBounds() ?? this.getCurrentPageBounds()
-
-		if (bounds) {
-			this.zoomToBounds(bounds, { targetZoom: Math.min(1, this.getZoomLevel()), duration: 220 })
-		}
-
+		this.camera.zoomToContent()
 		return this
 	}
 
 	/**
-	 * Zoom the camera to fit the current page's content in the viewport.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.zoomToFit()
-	 * editor.zoomToFit({ duration: 200 })
-	 * ```
-	 *
-	 * @param animation - The options for an animation.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.zoomToFit | `editor.camera.zoomToFit`} instead.
 	 */
 	zoomToFit(animation?: TLAnimationOptions): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-
-		const ids = [...this.getCurrentPageShapeIds()]
-		if (ids.length <= 0) return this
-
-		const pageBounds = Box.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
-		this.zoomToBounds(pageBounds, animation)
+		this.camera.zoomToFit(animation)
 		return this
 	}
 
 	/**
-	 * Set the zoom back to 100%.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.resetZoom()
-	 * editor.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })
-	 * editor.resetZoom(editor.getViewportScreenCenter(), { duration: 200 })
-	 * ```
-	 *
-	 * @param point - The screen point to zoom out on. Defaults to the viewport screen center.
-	 * @param animation - The options for an animation.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.resetZoom | `editor.camera.resetZoom`} instead.
 	 */
 	resetZoom(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-
-		const { x: cx, y: cy, z: cz } = this.getCamera()
-		const { x, y } = point
-		this.setCamera(
-			{ x: cx + (x / 1 - x) - (x / cz - x), y: cy + (y / 1 - y) - (y / cz - y), z: 1 },
-			animation
-		)
-
+		this.camera.resetZoom(point, animation)
 		return this
 	}
 
 	/**
-	 * Zoom the camera in.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.zoomIn()
-	 * editor.zoomIn(editor.getViewportScreenCenter(), { duration: 120 })
-	 * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })
-	 * ```
-	 *
-	 * @param animation - The options for an animation.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.zoomIn | `editor.camera.zoomIn`} instead.
 	 */
 	zoomIn(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-
-		const { x: cx, y: cy, z: cz } = this.getCamera()
-
-		let zoom = MAX_ZOOM
-
-		for (let i = 1; i < ZOOMS.length; i++) {
-			const z1 = ZOOMS[i - 1]
-			const z2 = ZOOMS[i]
-			if (z2 - cz <= (z2 - z1) / 2) continue
-			zoom = z2
-			break
-		}
-
-		const { x, y } = point
-		this.setCamera(
-			{ x: cx + (x / zoom - x) - (x / cz - x), y: cy + (y / zoom - y) - (y / cz - y), z: zoom },
-			animation
-		)
-
+		this.camera.zoomIn(point, animation)
 		return this
 	}
 
 	/**
-	 * Zoom the camera out.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.zoomOut()
-	 * editor.zoomOut(editor.getViewportScreenCenter(), { duration: 120 })
-	 * editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })
-	 * ```
-	 *
-	 * @param animation - The options for an animation.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.zoomOut | `editor.camera.zoomOut`} instead.
 	 */
 	zoomOut(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-
-		const { x: cx, y: cy, z: cz } = this.getCamera()
-
-		let zoom = MIN_ZOOM
-
-		for (let i = ZOOMS.length - 1; i > 0; i--) {
-			const z1 = ZOOMS[i - 1]
-			const z2 = ZOOMS[i]
-			if (z2 - cz >= (z2 - z1) / 2) continue
-			zoom = z1
-			break
-		}
-
-		const { x, y } = point
-
-		this.setCamera(
-			{
-				x: cx + (x / zoom - x) - (x / cz - x),
-				y: cy + (y / zoom - y) - (y / cz - y),
-				z: zoom,
-			},
-			animation
-		)
-
+		this.camera.zoomOut(point, animation)
 		return this
 	}
 
 	/**
-	 * Zoom the camera to fit the current selection in the viewport.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.zoomToSelection()
-	 * ```
-	 *
-	 * @param animation - The options for an animation.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.zoomToSelection | `editor.camera.zoomToSelection`} instead.
 	 */
 	zoomToSelection(animation?: TLAnimationOptions): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-
-		const selectionPageBounds = this.getSelectionPageBounds()
-		if (!selectionPageBounds) return this
-
-		this.zoomToBounds(selectionPageBounds, {
-			targetZoom: Math.max(1, this.getZoomLevel()),
-			...animation,
-		})
-
+		this.camera.zoomToSelection(animation)
 		return this
 	}
 
 	/**
-	 * Pan or pan/zoom the selected ids into view. This method tries to not change the zoom if possible.
-	 *
-	 * @param ids - The ids of the shapes to pan and zoom into view.
-	 * @param animation - The options for an animation.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.panZoomIntoView | `editor.camera.panZoomIntoView`} instead.
 	 */
 	panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-
-		if (ids.length <= 0) return this
-		const selectionBounds = Box.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
-
-		const viewportPageBounds = this.getViewportPageBounds()
-
-		if (viewportPageBounds.h < selectionBounds.h || viewportPageBounds.w < selectionBounds.w) {
-			this.zoomToBounds(selectionBounds, { targetZoom: this.getCamera().z, ...animation })
-
-			return this
-		} else {
-			const insetViewport = this.getViewportPageBounds()
-				.clone()
-				.expandBy(-32 / this.getZoomLevel())
-
-			let offsetX = 0
-			let offsetY = 0
-			if (insetViewport.maxY < selectionBounds.maxY) {
-				// off bottom
-				offsetY = insetViewport.maxY - selectionBounds.maxY
-			} else if (insetViewport.minY > selectionBounds.minY) {
-				// off top
-				offsetY = insetViewport.minY - selectionBounds.minY
-			} else {
-				// inside y-bounds
-			}
-
-			if (insetViewport.maxX < selectionBounds.maxX) {
-				// off right
-				offsetX = insetViewport.maxX - selectionBounds.maxX
-			} else if (insetViewport.minX > selectionBounds.minX) {
-				// off left
-				offsetX = insetViewport.minX - selectionBounds.minX
-			} else {
-				// inside x-bounds
-			}
-
-			const camera = this.getCamera()
-			this.setCamera({ x: camera.x + offsetX, y: camera.y + offsetY, z: camera.z }, animation)
-		}
-
+		this.camera.panZoomIntoView(ids, animation)
 		return this
 	}
 
 	/**
-	 * Zoom the camera to fit a bounding box (in the current page space).
-	 *
-	 * @example
-	 * ```ts
-	 * editor.zoomToBounds(myBounds)
-	 * editor.zoomToBounds(myBounds)
-	 * editor.zoomToBounds(myBounds, { duration: 100 })
-	 * editor.zoomToBounds(myBounds, { inset: 0, targetZoom: 1 })
-	 * ```
-	 *
-	 * @param bounds - The bounding box.
-	 * @param options - The options for an animation, target zoom, or custom inset amount.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.zoomToBounds | `editor.camera.zoomToBounds`} instead.
 	 */
 	zoomToBounds(
 		bounds: Box,
 		opts?: { targetZoom?: number; inset?: number } & TLAnimationOptions
 	): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-
-		const viewportScreenBounds = this.getViewportScreenBounds()
-
-		const inset = opts?.inset ?? Math.min(256, viewportScreenBounds.width * 0.28)
-
-		let zoom = clamp(
-			Math.min(
-				(viewportScreenBounds.width - inset) / bounds.width,
-				(viewportScreenBounds.height - inset) / bounds.height
-			),
-			MIN_ZOOM,
-			MAX_ZOOM
-		)
-
-		if (opts?.targetZoom !== undefined) {
-			zoom = Math.min(opts.targetZoom, zoom)
-		}
-
-		this.setCamera(
-			{
-				x: -bounds.minX + (viewportScreenBounds.width - bounds.width * zoom) / 2 / zoom,
-				y: -bounds.minY + (viewportScreenBounds.height - bounds.height * zoom) / 2 / zoom,
-				z: zoom,
-			},
-			opts
-		)
-
+		this.camera.zoomToBounds(bounds, opts)
 		return this
 	}
 
 	/**
-	 * Pan the camera.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.pan({ x: 100, y: 100 })
-	 * editor.pan({ x: 100, y: 100 }, { duration: 1000 })
-	 * ```
-	 *
-	 * @param offset - The offset in the current page space.
-	 * @param animation - The animation options.
+	 * @deprecated Use {@link CameraManager.pan | `editor.camera.pan`} instead.
 	 */
 	pan(offset: VecLike, animation?: TLAnimationOptions): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-		const { x: cx, y: cy, z: cz } = this.getCamera()
-		this.setCamera({ x: cx + offset.x / cz, y: cy + offset.y / cz, z: cz }, animation)
+		this.camera.pan(offset, animation)
 		return this
 	}
 
 	/**
-	 * Stop the current camera animation, if any.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.stopAnimation | `editor.camera.stopAnimation`} instead.
 	 */
 	stopCameraAnimation(): this {
-		this.emit('stop-camera-animation')
-		return this
-	}
-
-	/** @internal */
-	private _viewportAnimation = null as null | {
-		elapsed: number
-		duration: number
-		easing: (t: number) => number
-		start: Box
-		end: Box
-	}
-
-	/** @internal */
-	private _animateViewport(ms: number) {
-		if (!this._viewportAnimation) return
-
-		const cancel = () => {
-			this.removeListener('tick', this._animateViewport)
-			this.removeListener('stop-camera-animation', cancel)
-			this._viewportAnimation = null
-		}
-
-		this.once('stop-camera-animation', cancel)
-
-		this._viewportAnimation.elapsed += ms
-
-		const { elapsed, easing, duration, start, end } = this._viewportAnimation
-
-		if (elapsed > duration) {
-			this._setCamera({ x: -end.x, y: -end.y, z: this.getViewportScreenBounds().width / end.width })
-			cancel()
-			return
-		}
-
-		const remaining = duration - elapsed
-		const t = easing(1 - remaining / duration)
-
-		const left = start.minX + (end.minX - start.minX) * t
-		const top = start.minY + (end.minY - start.minY) * t
-		const right = start.maxX + (end.maxX - start.maxX) * t
-
-		this._setCamera({ x: -left, y: -top, z: this.getViewportScreenBounds().width / (right - left) })
-	}
-
-	/** @internal */
-	private _animateToViewport(targetViewportPage: Box, opts = {} as TLAnimationOptions) {
-		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts
-		const animationSpeed = this.user.getAnimationSpeed()
-		const viewportPageBounds = this.getViewportPageBounds()
-
-		// If we have an existing animation, then stop it
-		this.stopCameraAnimation()
-
-		// also stop following any user
-		if (this.getInstanceState().followingUserId) {
-			this.stopFollowingUser()
-		}
-
-		if (duration === 0 || animationSpeed === 0) {
-			// If we have no animation, then skip the animation and just set the camera
-			return this._setCamera({
-				x: -targetViewportPage.x,
-				y: -targetViewportPage.y,
-				z: this.getViewportScreenBounds().width / targetViewportPage.width,
-			})
-		}
-
-		// Set our viewport animation
-		this._viewportAnimation = {
-			elapsed: 0,
-			duration: duration / animationSpeed,
-			easing,
-			start: viewportPageBounds.clone(),
-			end: targetViewportPage.clone(),
-		}
-
-		// On each tick, animate the viewport
-		this.addListener('tick', this._animateViewport)
-
+		this.camera.stopAnimation()
 		return this
 	}
 
 	/**
-	 * Slide the camera in a certain direction.
-	 *
-	 * @param opts - Options for the slide
-	 * @public
+	 * @deprecated Use {@link CameraManager.slide | `editor.camera.slide`} instead.
 	 */
-	slideCamera(
-		opts = {} as {
-			speed: number
-			direction: VecLike
-			friction: number
-			speedThreshold?: number
-		}
-	): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-
-		this.stopCameraAnimation()
-
-		const animationSpeed = this.user.getAnimationSpeed()
-
-		if (animationSpeed === 0) return this
-
-		const { speed, friction, direction, speedThreshold = 0.01 } = opts
-		let currentSpeed = Math.min(speed, 1)
-
-		const cancel = () => {
-			this.removeListener('tick', moveCamera)
-			this.removeListener('stop-camera-animation', cancel)
-		}
-
-		this.once('stop-camera-animation', cancel)
-
-		const moveCamera = (elapsed: number) => {
-			const { x: cx, y: cy, z: cz } = this.getCamera()
-			const movementVec = Vec.Mul(direction, (currentSpeed * elapsed) / cz)
-
-			// Apply friction
-			currentSpeed *= 1 - friction
-			if (currentSpeed < speedThreshold) {
-				cancel()
-			} else {
-				this._setCamera({ x: cx + movementVec.x, y: cy + movementVec.y, z: cz })
-			}
-		}
-
-		this.addListener('tick', moveCamera)
-
+	slideCamera(opts: {
+		speed: number
+		direction: VecLike
+		friction: number
+		speedThreshold?: number
+	}): this {
+		this.camera.slide(opts)
 		return this
 	}
 
 	/**
-	 * Animate the camera to a user's cursor position.
-	 * This also briefly show the user's cursor if it's not currently visible.
-	 *
-	 * @param userId - The id of the user to aniamte to.
-	 * @public
+	 * @deprecated Use {@link CameraManager.animateToUser | `editor.camera.animateToUser`} instead.
 	 */
 	animateToUser(userId: string): this {
-		const presences = this.store.query.records('instance_presence', () => ({
-			userId: { eq: userId },
-		}))
-
-		const presence = [...presences.get()]
-			.sort((a, b) => {
-				return a.lastActivityTimestamp - b.lastActivityTimestamp
-			})
-			.pop()
-
-		if (!presence) return this
-
-		this.batch(() => {
-			// If we're following someone, stop following them
-			if (this.getInstanceState().followingUserId !== null) {
-				this.stopFollowingUser()
-			}
-
-			// If we're not on the same page, move to the page they're on
-			const isOnSamePage = presence.currentPageId === this.getCurrentPageId()
-			if (!isOnSamePage) {
-				this.setCurrentPage(presence.currentPageId)
-			}
-
-			// Only animate the camera if the user is on the same page as us
-			const options = isOnSamePage ? { duration: 500 } : undefined
-
-			this.centerOnPoint(presence.cursor, options)
-
-			// Highlight the user's cursor
-			const { highlightedUserIds } = this.getInstanceState()
-			this.updateInstanceState({ highlightedUserIds: [...highlightedUserIds, userId] })
-
-			// Unhighlight the user's cursor after a few seconds
-			setTimeout(() => {
-				const highlightedUserIds = [...this.getInstanceState().highlightedUserIds]
-				const index = highlightedUserIds.indexOf(userId)
-				if (index < 0) return
-				highlightedUserIds.splice(index, 1)
-				this.updateInstanceState({ highlightedUserIds })
-			}, COLLABORATOR_IDLE_TIMEOUT)
-		})
-
+		this.camera.animateToUser(userId)
 		return this
 	}
 
 	/**
-	 * Animate the camera to a shape.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.animateToShape | `editor.camera.animateToShape`} instead.
 	 */
 	animateToShape(shapeId: TLShapeId, opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS): this {
-		if (!this.getInstanceState().canMoveCamera) return this
-
-		const activeArea = this.getViewportScreenBounds().clone().expandBy(-32)
-		const viewportAspectRatio = activeArea.width / activeArea.height
-
-		const shapePageBounds = this.getShapePageBounds(shapeId)
-
-		if (!shapePageBounds) return this
-
-		const shapeAspectRatio = shapePageBounds.width / shapePageBounds.height
-
-		const targetViewportPage = shapePageBounds.clone()
-
-		const z = shapePageBounds.width / activeArea.width
-		targetViewportPage.width += (activeArea.minX + activeArea.maxX) * z
-		targetViewportPage.height += (activeArea.minY + activeArea.maxY) * z
-		targetViewportPage.x -= activeArea.minX * z
-		targetViewportPage.y -= activeArea.minY * z
-
-		if (shapeAspectRatio > viewportAspectRatio) {
-			targetViewportPage.height = shapePageBounds.width / viewportAspectRatio
-			targetViewportPage.y -= (targetViewportPage.height - shapePageBounds.height) / 2
-		} else {
-			targetViewportPage.width = shapePageBounds.height * viewportAspectRatio
-			targetViewportPage.x -= (targetViewportPage.width - shapePageBounds.width) / 2
-		}
-
-		return this._animateToViewport(targetViewportPage, opts)
+		this.camera.animateToShape(shapeId, opts)
+		return this
 	}
 
 	// Viewport
@@ -2776,7 +2252,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						{ screenBounds: screenBounds.toJson(), insets },
 						{ squashing: true, ephemeral: true }
 					)
-					this.centerOnPoint(before)
+					this.camera.centerOnPoint(before)
 				} else {
 					// Otherwise,
 					this.updateInstanceState(
@@ -2787,7 +2263,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this._tickCameraState()
+		this.camera._tickCameraState()
 		this.updateRenderingBounds()
 
 		return this
@@ -2823,7 +2299,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getViewportPageBounds() {
 		const { w, h } = this.getViewportScreenBounds()
-		const { x: cx, y: cy, z: cz } = this.getCamera()
+		const { x: cx, y: cy, z: cz } = this.camera.get()
 		return new Box(-cx, -cy, w / cz, h / cz)
 	}
 
@@ -2849,7 +2325,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	screenToPage(point: VecLike) {
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
+		const { x: cx, y: cy, z: cz = 1 } = this.camera.get()
 		return {
 			x: (point.x - screenBounds.x) / cz - cx,
 			y: (point.y - screenBounds.y) / cz - cy,
@@ -2871,7 +2347,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	pageToScreen(point: VecLike) {
 		const screenBounds = this.getViewportScreenBounds()
-		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
+		const { x: cx, y: cy, z: cz = 1 } = this.camera.get()
 
 		return {
 			x: (point.x + cx) * cz + screenBounds.x,
@@ -2893,7 +2369,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	pageToViewport(point: VecLike) {
-		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
+		const { x: cx, y: cy, z: cz = 1 } = this.camera.get()
 
 		return {
 			x: (point.x + cx) * cz,
@@ -2905,190 +2381,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// Following
 
 	/**
-	 * Start viewport-following a user.
-	 *
-	 * @param userId - The id of the user to follow.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.startFollowingUser | `editor.camera.startFollowingUser`} instead.
 	 */
 	startFollowingUser(userId: string): this {
-		const leaderPresences = this.store.query.records('instance_presence', () => ({
-			userId: { eq: userId },
-		}))
-
-		const thisUserId = this.user.getId()
-
-		if (!thisUserId) {
-			console.warn('You should set the userId for the current instance before following a user')
-		}
-
-		// If the leader is following us, then we can't follow them
-		if (leaderPresences.get().some((p) => p.followingUserId === thisUserId)) {
-			return this
-		}
-
-		transact(() => {
-			this.stopFollowingUser()
-
-			this.updateInstanceState({ followingUserId: userId }, { ephemeral: true })
-		})
-
-		const cancel = () => {
-			this.removeListener('frame', moveTowardsUser)
-			this.removeListener('stop-following', cancel)
-		}
-
-		let isCaughtUp = false
-
-		const moveTowardsUser = () => {
-			// Stop following if we can't find the user
-			const leaderPresence = [...leaderPresences.get()]
-				.sort((a, b) => {
-					return a.lastActivityTimestamp - b.lastActivityTimestamp
-				})
-				.pop()
-			if (!leaderPresence) {
-				this.stopFollowingUser()
-				return
-			}
-
-			// Change page if leader is on a different page
-			const isOnSamePage = leaderPresence.currentPageId === this.getCurrentPageId()
-			const chaseProportion = isOnSamePage ? FOLLOW_CHASE_PROPORTION : 1
-			if (!isOnSamePage) {
-				this.stopFollowingUser()
-				this.setCurrentPage(leaderPresence.currentPageId)
-				this.startFollowingUser(userId)
-				return
-			}
-
-			// Get the bounds of the follower (me) and the leader (them)
-			const { center, width, height } = this.getViewportPageBounds()
-			const leaderScreen = Box.From(leaderPresence.screenBounds)
-			const leaderWidth = leaderScreen.width / leaderPresence.camera.z
-			const leaderHeight = leaderScreen.height / leaderPresence.camera.z
-			const leaderCenter = new Vec(
-				leaderWidth / 2 - leaderPresence.camera.x,
-				leaderHeight / 2 - leaderPresence.camera.y
-			)
-
-			// At this point, let's check if we're following someone who's following us.
-			// If so, we can't try to contain their entire viewport
-			// because that would become a feedback loop where we zoom, they zoom, etc.
-			const isFollowingFollower = leaderPresence.followingUserId === thisUserId
-
-			// Figure out how much to zoom
-			const desiredWidth = width + (leaderWidth - width) * chaseProportion
-			const desiredHeight = height + (leaderHeight - height) * chaseProportion
-			const ratio = !isFollowingFollower
-				? Math.min(width / desiredWidth, height / desiredHeight)
-				: height / desiredHeight
-
-			const targetZoom = clamp(this.getCamera().z * ratio, MIN_ZOOM, MAX_ZOOM)
-			const targetWidth = this.getViewportScreenBounds().w / targetZoom
-			const targetHeight = this.getViewportScreenBounds().h / targetZoom
-
-			// Figure out where to move the camera
-			const displacement = leaderCenter.sub(center)
-			const targetCenter = Vec.Add(center, Vec.Mul(displacement, chaseProportion))
-
-			// Now let's assess whether we've caught up to the leader or not
-			const distance = Vec.Sub(targetCenter, center).len()
-			const zoomChange = Math.abs(targetZoom - this.getCamera().z)
-
-			// If we're chasing the leader...
-			// Stop chasing if we're close enough
-			if (distance < FOLLOW_CHASE_PAN_SNAP && zoomChange < FOLLOW_CHASE_ZOOM_SNAP) {
-				isCaughtUp = true
-				return
-			}
-
-			// If we're already caught up with the leader...
-			// Only start moving again if we're far enough away
-			if (
-				isCaughtUp &&
-				distance < FOLLOW_CHASE_PAN_UNSNAP &&
-				zoomChange < FOLLOW_CHASE_ZOOM_UNSNAP
-			) {
-				return
-			}
-
-			// Update the camera!
-			isCaughtUp = false
-			this.stopCameraAnimation()
-			this._setCamera({
-				x: -(targetCenter.x - targetWidth / 2),
-				y: -(targetCenter.y - targetHeight / 2),
-				z: targetZoom,
-			})
-		}
-
-		this.once('stop-following', cancel)
-		this.addListener('frame', moveTowardsUser)
-
+		this.camera.startFollowingUser(userId)
 		return this
 	}
 
 	/**
-	 * Stop viewport-following a user.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.stopFollowingUser | `editor.camera.stopFollowingUser`} instead.
 	 */
 	stopFollowingUser(): this {
-		this.updateInstanceState({ followingUserId: null }, { ephemeral: true })
-		this.emit('stop-following')
+		this.camera.stopFollowingUser()
 		return this
 	}
 
-	// Camera state
-
-	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
-
 	/**
-	 * Whether the camera is moving or idle.
-	 *
-	 * @public
+	 * @deprecated Use {@link CameraManager.getState | `editor.camera.getState`} instead.
 	 */
 	getCameraState() {
-		return this._cameraState.get()
-	}
-
-	// Camera state does two things: first, it allows us to subscribe to whether
-	// the camera is moving or not; and second, it allows us to update the rendering
-	// shapes on the canvas. Changing the rendering shapes may cause shapes to
-	// unmount / remount in the DOM, which is expensive; and computing visibility is
-	// also expensive in large projects. For this reason, we use a second bounding
-	// box just for rendering, and we only update after the camera stops moving.
-
-	private _cameraStateTimeoutRemaining = 0
-	private _lastUpdateRenderingBoundsTimestamp = Date.now()
-
-	private _decayCameraStateTimeout = (elapsed: number) => {
-		this._cameraStateTimeoutRemaining -= elapsed
-
-		if (this._cameraStateTimeoutRemaining <= 0) {
-			this.off('tick', this._decayCameraStateTimeout)
-			this._cameraState.set('idle')
-			this.updateRenderingBounds()
-		}
-	}
-
-	private _tickCameraState = () => {
-		// always reset the timeout
-		this._cameraStateTimeoutRemaining = CAMERA_MOVING_TIMEOUT
-
-		const now = Date.now()
-
-		// If the state is idle, then start the tick
-		if (this._cameraState.__unsafe__getWithoutCapture() === 'idle') {
-			this._lastUpdateRenderingBoundsTimestamp = now // don't render right away
-			this._cameraState.set('moving')
-			this.on('tick', this._decayCameraStateTimeout)
-		} else {
-			if (now - this._lastUpdateRenderingBoundsTimestamp > CAMERA_MAX_RENDERING_INTERVAL) {
-				this.updateRenderingBounds()
-			}
-		}
+		return this.camera.getState()
 	}
 
 	private getUnorderedRenderingShapes(
@@ -3270,7 +2582,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (Number.isFinite(this.renderingBoundsMargin)) {
 			this._renderingBoundsExpanded.set(
-				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.getZoomLevel())
+				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.camera.getZoom())
 			)
 		} else {
 			this._renderingBoundsExpanded.set(viewportPageBounds)
@@ -3395,7 +2707,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return
 			}
 
-			this.stopFollowingUser()
+			this.camera.stopFollowingUser()
 
 			return {
 				data: { toId: pageId, fromId: this.getCurrentPageId() },
@@ -3634,7 +2946,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const freshPage = this.getPage(id) // get the most recent version of the page anyway
 		if (!freshPage) return this
 
-		const prevCamera = { ...this.getCamera() }
+		const prevCamera = { ...this.camera.get() }
 		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(freshPage.id))
 
 		this.batch(() => {
@@ -3646,7 +2958,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// set the new page as the current page
 			this.setCurrentPage(createId)
 			// update the new page's camera to the previous page's camera
-			this.setCamera(prevCamera)
+			this.camera.set(prevCamera)
 
 			if (content) {
 				// If we had content on the previous page, put it on the new page
@@ -4311,7 +3623,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			filter?: (shape: TLShape) => boolean
 		}
 	): TLShape | undefined {
-		const zoomLevel = this.getZoomLevel()
+		const zoomLevel = this.camera.getZoom()
 		const viewportPageBounds = this.getViewportPageBounds()
 		const {
 			filter,
@@ -5360,7 +4672,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const selectionPageBounds = this.getSelectionPageBounds()
 				const viewportPageBounds = this.getViewportPageBounds()
 				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-					this.centerOnPoint(selectionPageBounds.center, {
+					this.camera.centerOnPoint(selectionPageBounds.center, {
 						duration: ANIMATION_MEDIUM_MS,
 					})
 				}
@@ -5410,7 +4722,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
-		const fromPageZ = this.getCamera().z
+		const fromPageZ = this.camera.getZoom()
 
 		this.history.batch(() => {
 			// Delete the shapes on the current page
@@ -5433,8 +4745,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Force the new page's camera to be at the same zoom level as the
 			// "from" page's camera, then center the "to" page's camera on the
 			// pasted shapes
-			this.setCamera({ ...this.getCamera(), z: fromPageZ })
-			this.centerOnPoint(this.getSelectionRotatedPageBounds()!.center)
+			this.camera.set({ ...this.camera.get(), z: fromPageZ })
+			this.camera.centerOnPoint(this.getSelectionRotatedPageBounds()!.center)
 		})
 
 		return this
@@ -8363,7 +7675,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.inputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz } = this.getCamera()
+		const { x: cx, y: cy, z: cz } = this.camera.get()
 
 		const sx = info.point.x - screenBounds.x
 		const sy = info.point.y - screenBounds.y
@@ -8617,7 +7929,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			switch (type) {
 				case 'pinch': {
-					if (!this.getInstanceState().canMoveCamera) return
+					if (!this.camera.canMove()) return
 					this._updateInputsFromEvent(info)
 
 					switch (info.name) {
@@ -8625,7 +7937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (inputs.isPinching) return
 
 							if (!inputs.isEditing) {
-								this._pinchStart = this.getCamera().z
+								this._pinchStart = this.camera.getZoom()
 								if (!this._selectedShapeIdsAtPointerDown.length) {
 									this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
 								}
@@ -8650,11 +7962,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 							const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 							const { x, y } = Vec.SubXY(info.point, screenBounds.x, screenBounds.y)
 
-							const { x: cx, y: cy, z: cz } = this.getCamera()
+							const { x: cx, y: cy, z: cz } = this.camera.get()
 
 							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
 
-							this.setCamera({
+							this.camera.set({
 								x: cx + dx / cz - x / cz + x / zoom,
 								y: cy + dy / cz - y / cz + y / zoom,
 								z: zoom,
@@ -8684,7 +7996,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 				case 'wheel': {
-					if (!this.getInstanceState().canMoveCamera) return
+					if (!this.camera.canMove()) return
 
 					this._updateInputsFromEvent(info)
 
@@ -8701,11 +8013,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 							const { x, y } = this.inputs.currentScreenPoint
 
-							const { x: cx, y: cy, z: cz } = this.getCamera()
+							const { x: cx, y: cy, z: cz } = this.camera.get()
 
 							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
 
-							this.setCamera({
+							this.camera.set({
 								x: cx + (x / zoom - x) - (x / cz - x),
 								y: cy + (y / zoom - y) - (y / cz - y),
 								z: zoom,
@@ -8718,14 +8030,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						// Update the camera here, which will dispatch a pointer move...
 						// this will also update the pointer position, etc
-						this.pan(info.delta)
+						this.camera.pan(info.delta)
 
 						if (
 							!inputs.isDragging &&
 							inputs.isPointing &&
 							originPagePoint.dist(currentPagePoint) >
 								(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-									this.getZoomLevel()
+									this.camera.getZoom()
 						) {
 							inputs.isDragging = true
 						}
@@ -8783,7 +8095,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 
 							if (this.inputs.isPanning) {
-								this.stopCameraAnimation()
+								this.camera.stopAnimation()
 								this.updateInstanceState({
 									cursor: {
 										type: 'grabbing',
@@ -8806,7 +8118,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (this.inputs.isPanning && this.inputs.isPointing) {
 								// Handle panning
 								const { currentScreenPoint, previousScreenPoint } = this.inputs
-								this.pan(Vec.Sub(currentScreenPoint, previousScreenPoint))
+								this.camera.pan(Vec.Sub(currentScreenPoint, previousScreenPoint))
 								return
 							}
 
@@ -8815,7 +8127,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								inputs.isPointing &&
 								originPagePoint.dist(currentPagePoint) >
 									(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-										this.getZoomLevel()
+										this.camera.getZoom()
 							) {
 								inputs.isDragging = true
 							}
@@ -8850,7 +8162,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 									if (!this.inputs.keys.has(' ')) {
 										inputs.isPanning = false
 
-										this.slideCamera({
+										this.camera.slide({
 											speed: Math.min(2, this.inputs.pointerVelocity.len()),
 											direction: this.inputs.pointerVelocity,
 											friction: CAMERA_SLIDE_FRICTION,
@@ -8859,7 +8171,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 											cursor: { type: this._prevCursor, rotation: 0 },
 										})
 									} else {
-										this.slideCamera({
+										this.camera.slide({
 											speed: Math.min(2, this.inputs.pointerVelocity.len()),
 											direction: this.inputs.pointerVelocity,
 											friction: CAMERA_SLIDE_FRICTION,
@@ -8872,7 +8184,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 										})
 									}
 								} else if (info.button === 0) {
-									this.slideCamera({
+									this.camera.slide({
 										speed: Math.min(2, this.inputs.pointerVelocity.len()),
 										direction: this.inputs.pointerVelocity,
 										friction: CAMERA_SLIDE_FRICTION,

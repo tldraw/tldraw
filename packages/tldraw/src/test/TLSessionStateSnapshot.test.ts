@@ -71,8 +71,8 @@ describe(loadSessionStateSnapshotIntoStore, () => {
 		if (!snapshot) throw new Error('snapshot is null')
 
 		expect(editor.getInstanceState().isGridMode).toBe(false)
-		expect(editor.getCamera().x).toBe(0)
-		expect(editor.getCamera().y).toBe(0)
+		expect(editor.camera.get().x).toBe(0)
+		expect(editor.camera.get().y).toBe(0)
 
 		snapshot = JSON.parse(JSON.stringify(snapshot)) as TLSessionStateSnapshot
 
@@ -83,8 +83,8 @@ describe(loadSessionStateSnapshotIntoStore, () => {
 		loadSessionStateSnapshotIntoStore(editor.store, snapshot)
 
 		expect(editor.getInstanceState().isGridMode).toBe(true)
-		expect(editor.getCamera().x).toBe(1)
-		expect(editor.getCamera().y).toBe(2)
+		expect(editor.camera.get().x).toBe(1)
+		expect(editor.camera.get().y).toBe(2)
 	})
 })
 

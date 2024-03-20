@@ -29,8 +29,8 @@ export default function ErrorBoundaryExample() {
 					editor.createShapes<ErrorShape>([errorShapePartial])
 
 					// Center the camera on the error shape
-					editor.zoomToFit()
-					editor.resetZoom()
+					editor.camera.zoomToFit()
+					editor.camera.resetZoom()
 				}}
 			/>
 		</div>

@@ -189,7 +189,7 @@ export class Idle extends StateNode {
 						? hoveredShape
 						: this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
 							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
+								margin: HIT_TEST_MARGIN / this.editor.camera.getZoom(),
 								hitInside: false,
 							})
 
@@ -342,7 +342,7 @@ export class Idle extends StateNode {
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
 						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
+								margin: HIT_TEST_MARGIN / this.editor.camera.getZoom(),
 								hitInside: false,
 								hitLabels: true,
 								hitFrameInside: false,

@@ -32,7 +32,7 @@ function SneakyFloatyHook() {
 			if (sx !== x || sy !== y) {
 				x = sx
 				y = sy
-				editor.setCamera(new Vec(-x, -y))
+				editor.camera.set(new Vec(-x, -y))
 			}
 		}
 

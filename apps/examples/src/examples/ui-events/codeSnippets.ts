@@ -128,7 +128,7 @@ if (updates.length > 0) {
 	} else if (name === 'paste') {
 		codeSnippet = `\n  const { paste } = useMenuClipboardEvents();\n  navigator.clipboard?.read().then((clipboardItems) => {\n    paste(clipboardItems)\n  })`
 	} else if (name === 'stop-following') {
-		codeSnippet = `editor.stopFollowingUser()`
+		codeSnippet = `editor.camera.stopFollowingUser()`
 	} else if (name === 'exit-pen-mode') {
 		codeSnippet = `editor.updateInstanceState({ isPenMode: false })`
 	} else if (name === 'remove-frame') {
