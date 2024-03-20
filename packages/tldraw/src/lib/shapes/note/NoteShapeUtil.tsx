@@ -92,11 +92,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						style={{
 							color: theme[adjustedColor].solid,
 							backgroundColor: theme[adjustedColor].solid,
+							// boxShadow: isDragging
+							// 	? '0px 6px 6px hsl(0, 0%, 0%, 10%), 0px 6px 9px hsl(0, 0%, 0%, 3%)'
+							// 	: '0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%)',
 							boxShadow: getRotatedBoxShadow(pageRotation, {
 								offsetModifier: isDragging ? 3 : 1,
 								// spreadModifier: isDragging ? 3 : 1,
 								blurModifier: isDragging ? 2 : 1,
 								// spreadModifier: 1.5,
+								// spreadModifier: isDragging ? 0.5 : 0.5,
+								// blurModifier: isDragging ? 1.5 : 1,
 							}),
 						}}
 					>
