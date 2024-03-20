@@ -13,6 +13,7 @@ import { BoundsSnapPoint } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
+import { ComputedCache } from '@tldraw/editor';
 import { CubicSpline2d } from '@tldraw/editor';
 import { DictValidator } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
@@ -1164,14 +1165,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         handleId: 'down' | 'left' | 'right' | 'up';
     }): void;
     // (undocumented)
-    onTranslateEnd: (initial: TLNoteShape, current: TLNoteShape) => void;
-    // (undocumented)
-    positions: {
-        up: VecLike[];
-        down: VecLike[];
-        left: VecLike[];
-        right: VecLike[];
-    };
+    positionsCached: ComputedCache<NoteGridPositions, TLNoteShape>;
     // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;

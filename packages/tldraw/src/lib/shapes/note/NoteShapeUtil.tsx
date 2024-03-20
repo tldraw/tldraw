@@ -24,6 +24,13 @@ import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 
 const NOTE_SIZE = 200
 
+type NoteGridPositions = {
+	up: VecLike[]
+	down: VecLike[]
+	left: VecLike[]
+	right: VecLike[]
+}
+
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override type = 'note' as const
@@ -33,13 +40,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override canEdit = () => true
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => true
-
-	positions = {
-		up: [] as VecLike[],
-		down: [] as VecLike[],
-		left: [] as VecLike[],
-		right: [] as VecLike[],
-	}
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -181,9 +181,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override onBeforeUpdate = (prev: TLNoteShape, next: TLNoteShape) => {
-		if (this.positions.up.length === 0) {
-			this.positions = generatePositionsForShape(next, this.editor)
-		}
 		if (
 			prev.props.text === next.props.text &&
 			prev.props.font === next.props.font &&
@@ -221,9 +218,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const centerOffset = NOTE_SIZE / 2
 		let count = 0
 		let emptySpot = {} as VecLike
-
-		while (count < this.positions[direction].length) {
-			const position = this.positions[direction][count]
+		const positions = this.positionsCached.get(shape.id)!
+		while (count < positions[direction].length) {
+			const position = positions[direction][count]
 			/* A better version of this is to draw a box where you want the shape to go 
 			and hit test for any shapes that may be inside the box, similar to the logic 
 			in the select tool. For now, we're just checking a single point */
@@ -272,10 +269,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		this.editor.setEditingShape(shape.id)
 	}
 
-	override onTranslateEnd = (initial: TLNoteShape, current: TLNoteShape) => {
-		this.positions = generatePositionsForShape(current, this.editor)
-	}
 	override onDoubleClickHandle = (shape: TLNoteShape) => shape
+
+	positionsCached = this.editor.store.createComputedCache<NoteGridPositions, TLNoteShape>(
+		'note grid position infoCache',
+		(shape) => generatePositionsForShape(shape, this.editor)
+	)
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
