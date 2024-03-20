@@ -9026,7 +9026,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#dispatch:member",
-              "docComment": "/**\n * Dispatch an event to the editor.\n *\n * @param info - The event info.\n *\n * @example\n * ```ts\n * editor.dispatch(myPointerEvent)\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Dispatch an event to the editor.\n *\n * @param info - The event info. h*\n *\n * @example\n * ```ts\n * editor.dispatch(myPointerEvent)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10145,6 +10145,45 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getCanUndo"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#getCoalescedEvents:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCoalescedEvents: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLEventInfo",
+                  "canonicalReference": "@tldraw/editor!TLEventInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "getCoalescedEvents",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Property",
