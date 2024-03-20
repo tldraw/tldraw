@@ -127,7 +127,7 @@ body {
 	grid-template-rows: 1fr;
 	column-gap: 48px;
 	row-gap: 0px;
-	padding: var(--header-height) 0 0 0 ;
+	padding: var(--header-height) 0 0 0;
 	margin: 0px auto;
 }
 
