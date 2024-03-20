@@ -21,4 +21,10 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 
 		socketPair.callbacks.onStatusChange?.('online')
 	}
+
+	flushDebouncingMessages() {
+		for (const sessionKey of this.room.sessions.keys()) {
+			this.room._flushDataMessages(sessionKey)
+		}
+	}
 }

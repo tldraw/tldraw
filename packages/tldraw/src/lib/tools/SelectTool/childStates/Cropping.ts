@@ -9,7 +9,7 @@ import {
 	TLPointerEventInfo,
 	TLShapePartial,
 	Vec,
-	deepCopy,
+	structuredClone,
 } from '@tldraw/editor'
 import { MIN_CROP_SIZE } from './Crop/crop-constants'
 import { CursorTypeMap } from './PointingResizeHandle'
@@ -26,6 +26,7 @@ export class Cropping extends StateNode {
 	}
 
 	markId = ''
+	isDirty = false
 
 	private snapshot = {} as any as Snapshot
 
@@ -40,11 +41,19 @@ export class Cropping extends StateNode {
 		this.markId = 'cropping'
 		this.editor.mark(this.markId)
 		this.snapshot = this.createSnapshot()
+		this.isDirty = false
 		this.updateShapes()
 	}
 
+	override onTick = () => {
+		if (this.isDirty) {
+			this.isDirty = false
+			this.updateShapes()
+		}
+	}
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.updateShapes()
+		this.isDirty = true
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
@@ -92,7 +101,7 @@ export class Cropping extends StateNode {
 		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
 		const crop = props.crop ?? this.getDefaultCrop()
-		const newCrop = deepCopy(crop)
+		const newCrop = structuredClone(crop)
 
 		const newPoint = new Vec(shape.x, shape.y)
 		const pointDelta = new Vec(0, 0)
@@ -205,6 +214,8 @@ export class Cropping extends StateNode {
 	}
 
 	private complete() {
+		this.updateShapes()
+		this.isDirty = false
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {

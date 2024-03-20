@@ -13,7 +13,6 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
-	TLTickEventHandler,
 	Vec,
 	moveCameraWhenCloseToEdge,
 	pointInPolygon,
@@ -28,6 +27,7 @@ export class Brushing extends StateNode {
 	brush = new Box()
 	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
+	isDirty = false
 	isWrapMode = false
 
 	// The shape that the brush started on
@@ -55,9 +55,10 @@ export class Brushing extends StateNode {
 		)
 
 		this.info = info
+		this.isDirty = false
 		this.initialSelectedShapeIds = this.editor.getSelectedShapeIds().slice()
 		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
-		this.onPointerMove()
+		this.hitTestShapes()
 	}
 
 	override onExit = () => {
@@ -65,12 +66,16 @@ export class Brushing extends StateNode {
 		this.editor.updateInstanceState({ brush: null })
 	}
 
-	override onTick: TLTickEventHandler = () => {
+	override onTick = () => {
 		moveCameraWhenCloseToEdge(this.editor)
+		if (this.isDirty) {
+			this.isDirty = false
+			this.hitTestShapes()
+		}
 	}
 
 	override onPointerMove = () => {
-		this.hitTestShapes()
+		this.isDirty = true
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
@@ -99,6 +104,8 @@ export class Brushing extends StateNode {
 	}
 
 	private complete() {
+		this.hitTestShapes()
+		this.isDirty = false
 		this.parent.transition('idle')
 	}
 

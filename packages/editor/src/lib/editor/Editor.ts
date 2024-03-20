@@ -47,7 +47,6 @@ import {
 	assert,
 	compact,
 	dedupe,
-	deepCopy,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -207,6 +206,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.getContainer = getContainer ?? (() => document.body)
 
 		this.textMeasure = new TextManager(this)
+		this._tickManager = new TickManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -637,6 +637,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.updateRenderingBounds()
 
+		this.on('tick', this.tick)
+
 		requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
@@ -664,7 +666,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly disposables = new Set<() => void>()
 
 	/** @internal */
-	private _tickManager = new TickManager(this)
+	private readonly _tickManager
 
 	/**
 	 * A manager for the app's snapping feature.
@@ -1647,19 +1649,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getSelectionRotation(): number {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		if (selectedShapeIds.length === 0) {
-			return 0
-		}
-		if (selectedShapeIds.length === 1) {
-			return this.getShapePageTransform(this.getSelectedShapeIds()[0])!.rotation()
+		let foundFirst = false // annoying but we can't use an i===0 check because we need to skip over undefineds
+		let rotation = 0
+		for (let i = 0, n = selectedShapeIds.length; i < n; i++) {
+			const pageTransform = this.getShapePageTransform(selectedShapeIds[i])
+			if (!pageTransform) continue
+			if (foundFirst) {
+				if (pageTransform.rotation() !== rotation) {
+					// There are at least 2 different rotations, so the common rotation is zero
+					return 0
+				}
+			} else {
+				// First rotation found
+				foundFirst = true
+				rotation = pageTransform.rotation()
+			}
 		}
 
-		const allRotations = selectedShapeIds.map((id) => this.getShapePageTransform(id)!.rotation())
-		// if the rotations are all compatible with each other, return the rotation of any one of them
-		if (allRotations.every((rotation) => Math.abs(rotation - allRotations[0]) < Math.PI / 180)) {
-			return this.getShapePageTransform(selectedShapeIds[0])!.rotation()
-		}
-		return 0
+		return rotation
 	}
 
 	/**
@@ -1693,9 +1700,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				.flatMap((id) => {
 					const pageTransform = this.getShapePageTransform(id)
 					if (!pageTransform) return []
-					return pageTransform.applyToPoints(this.getShapeGeometry(id).vertices)
+					return pageTransform.applyToPoints(this.getShapeGeometry(id).bounds.corners)
 				})
-				.map((p) => Vec.Rot(p, -selectionRotation))
+				.map((p) => p.rot(-selectionRotation))
 		)
 		// now position box so that it's top-left corner is in the right place
 		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
@@ -2858,7 +2865,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.pageToScreen({ x: 100, y: 100 })
 	 * ```
 	 *
-	 * @param point - The point in screen space.
+	 * @param point - The point in page space.
 	 *
 	 * @public
 	 */
@@ -2869,6 +2876,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return {
 			x: (point.x + cx) * cz + screenBounds.x,
 			y: (point.y + cy) * cz + screenBounds.y,
+			z: point.z ?? 0.5,
+		}
+	}
+
+	/**
+	 * Convert a point in the current page space to a point in current viewport space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.pageToViewport({ x: 100, y: 100 })
+	 * ```
+	 *
+	 * @param point - The point in page space.
+	 *
+	 * @public
+	 */
+	pageToViewport(point: VecLike) {
+		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
+
+		return {
+			x: (point.x + cx) * cz,
+			y: (point.y + cy) * cz,
 			z: point.z ?? 0.5,
 		}
 	}
@@ -5216,7 +5245,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					? getIndexBetween(shape.index, siblingAbove.index)
 					: getIndexAbove(shape.index)
 
-				let newShape: TLShape = deepCopy(shape)
+				let newShape: TLShape = structuredClone(shape)
 
 				if (
 					this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
@@ -7859,13 +7888,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			let newShape: TLShape
 
 			if (preserveIds) {
-				newShape = deepCopy(shape)
+				newShape = structuredClone(shape)
 				idMap.set(shape.id, shape.id)
 			} else {
 				const id = idMap.get(shape.id)!
 
 				// Create the new shape (new except for the id)
-				newShape = deepCopy({ ...shape, id })
+				newShape = structuredClone({ ...shape, id })
 			}
 
 			if (rootShapeIds.includes(shape.id)) {
@@ -8373,6 +8402,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				meta: {},
 			},
 		])
+	}
+
+	/** @internal */
+	private tick = (elapsed = 0) => {
+		this.dispatch({ type: 'misc', name: 'tick', elapsed })
+		this.scribbles.tick(elapsed)
 	}
 
 	/**

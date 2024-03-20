@@ -27,11 +27,11 @@ import {
 	Vec,
 	arrowShapeMigrations,
 	arrowShapeProps,
-	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
 	mapObjectMapValues,
 	objectMapEntries,
+	structuredClone,
 	toDomPrecision,
 	useIsEditing,
 } from '@tldraw/editor'
@@ -194,7 +194,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// Start or end, pointing the arrow...
 
-		const next = deepCopy(shape) as TLArrowShape
+		const next = structuredClone(shape) as TLArrowShape
 
 		if (this.editor.inputs.ctrlKey) {
 			// todo: maybe double check that this isn't equal to the other handle too?
@@ -420,7 +420,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape)
 
-		const { start, end } = deepCopy<TLArrowShape['props']>(shape.props)
+		const { start, end } = structuredClone<TLArrowShape['props']>(shape.props)
 		let { bend } = shape.props
 
 		// Rescale start handle if it's not bound to a shape
@@ -1014,7 +1014,17 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
-		return [getFillDefForCanvas()]
+		return [
+			getFillDefForCanvas(),
+			{
+				key: `arrow:dot`,
+				component: ArrowheadDotDef,
+			},
+			{
+				key: `arrow:cross`,
+				component: ArrowheadCrossDef,
+			},
+		]
 	}
 }
 
@@ -1082,3 +1092,20 @@ const shapeAtTranslationStart = new WeakMap<
 		>
 	}
 >()
+
+function ArrowheadDotDef() {
+	return (
+		<marker id="arrowhead-dot" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
+			<circle cx="3" cy="3" r="2" strokeDasharray="100%" />
+		</marker>
+	)
+}
+
+function ArrowheadCrossDef() {
+	return (
+		<marker id="arrowhead-cross" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
+			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
+			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
+		</marker>
+	)
+}

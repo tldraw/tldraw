@@ -1,6 +1,5 @@
 import {
 	chunk,
-	serializeMessage,
 	TLPersistentClientSocket,
 	TLPersistentClientSocketStatus,
 	TLSocketClientSentEvent,
@@ -176,7 +175,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 
 		if (!this._ws) return
 		if (this.connectionStatus === 'online') {
-			const chunks = chunk(serializeMessage(msg))
+			const chunks = chunk(JSON.stringify(msg))
 			for (const part of chunks) {
 				this._ws.send(part)
 			}

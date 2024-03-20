@@ -3,8 +3,8 @@ import {
 	TLGeoShape,
 	TLLineShape,
 	createShapeId,
-	deepCopy,
 	sortByIndex,
+	structuredClone,
 } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { TL } from '../../../test/test-jsx'
@@ -278,7 +278,7 @@ describe('Misc', () => {
 	it('preserves handle positions on spline type change', () => {
 		editor.select(id)
 		const shape = getShape()
-		const prevPoints = deepCopy(shape.props.points)
+		const prevPoints = structuredClone(shape.props.points)
 
 		editor.updateShapes([
 			{
