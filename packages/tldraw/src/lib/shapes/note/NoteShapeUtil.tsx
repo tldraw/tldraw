@@ -88,8 +88,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							bottom: 4,
 							left: 0,
 							transformOrigin: 'bottom center',
-							transform: `perspective(400px) rotateZ(${noteRotation}deg) rotateX(30deg) translateY(${-Math.abs(noteRotation)}px) scaleX(${0.85}) scaleY(${ratio})`,
-							boxShadow: `0 0 40px 0px rgba(0,0,0,.6)`,
+							transform: `perspective(400px) rotateZ(${noteRotation}deg) rotateX(30deg) translateY(${-Math.abs(noteRotation)}px) scaleX(${0.82}) scaleY(${ratio})`,
+							boxShadow: `0 0 40px 0px rgba(0,0,0,.8)`,
 						}}
 					/>
 
