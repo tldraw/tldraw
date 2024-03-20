@@ -39,15 +39,3 @@ resource "aws_route53_record" "aws_tldraw_xyz_a_to_lb" {
     zone_id                = aws_lb.main.zone_id
   }
 }
-
-resource "aws_route53_record" "metabase_aws_tldraw_xyz_a" {
-  name    = var.cf_worker_analytics_domain
-  type    = "A"
-  zone_id = aws_route53_zone.aws_tldraw_xyz.id
-
-  alias {
-    evaluate_target_health = false
-    name                   = aws_db_instance.cf_worker_analytics.address
-    zone_id                = aws_db_instance.cf_worker_analytics.hosted_zone_id
-  }
-}

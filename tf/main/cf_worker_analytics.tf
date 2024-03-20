@@ -49,3 +49,8 @@ resource "aws_db_instance" "cf_worker_analytics" {
 
   tags = local.default_tags
 }
+
+# it can't really be aliased *and* TLS checked, RDS doesn't allow custom domain names
+output "cf_worker_analytics_address" {
+  value = aws_db_instance.cf_worker_analytics.address
+}
