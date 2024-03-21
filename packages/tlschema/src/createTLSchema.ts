@@ -1,6 +1,9 @@
 import { LegacyMigrations, StoreSchema } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
+import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
+import { imageAssetMigrations } from './assets/TLImageAsset'
+import { videoAssetMigrations } from './assets/TLVideoAsset'
 import { AssetRecordType, assetMigrations } from './records/TLAsset'
 import { CameraRecordType, cameraMigrations } from './records/TLCamera'
 import { DocumentRecordType, documentMigrations } from './records/TLDocument'
@@ -114,6 +117,11 @@ export function createTLSchema({
 				[instancePresenceMigrations.sequenceId]: instancePresenceMigrations,
 				[pointerMigrations.sequenceId]: pointerMigrations,
 				[rootShapeMigrations.sequenceId]: rootShapeMigrations,
+
+				[bookmarkAssetMigrations.sequenceId]: bookmarkAssetMigrations,
+				[imageAssetMigrations.sequenceId]: imageAssetMigrations,
+				[videoAssetMigrations.sequenceId]: videoAssetMigrations,
+
 				...processShapeMigrations(shapes),
 			},
 			onValidationFailure,

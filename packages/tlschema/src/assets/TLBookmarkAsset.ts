@@ -1,6 +1,7 @@
-import { defineMigrations } from '@tldraw/store'
+import { createMigrationIds, createRecordMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
+import { TLAsset } from '../records/TLAsset'
+import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
 
 /**
  * An asset used for URL bookmarks, used by the TLBookmarkShape.
@@ -27,23 +28,25 @@ export const bookmarkAssetValidator: T.Validator<TLBookmarkAsset> = createAssetV
 	})
 )
 
-const Versions = {
+const Versions = createMigrationIds('com.tldraw.asset.bookmark', {
 	MakeUrlsValid: 1,
-} as const
+} as const)
 
 /** @internal */
-export const bookmarkAssetMigrations = defineMigrations({
-	currentVersion: Versions.MakeUrlsValid,
-	migrators: {
-		[Versions.MakeUrlsValid]: {
-			up: (asset) => {
-				const src = asset.props.src
-				if (src && !T.srcUrl.isValid(src)) {
-					return { ...asset, props: { ...asset.props, src: '' } }
+export const bookmarkAssetMigrations = createRecordMigrations({
+	recordType: 'asset',
+	filter: (asset) => (asset as TLAsset).type === 'bookmark',
+	sequence: [
+		{
+			id: Versions.MakeUrlsValid,
+			up: (asset: any) => {
+				if (!T.srcUrl.isValid(asset.props.src)) {
+					asset.props.src = ''
 				}
-				return asset
 			},
-			down: (asset) => asset,
+			down: (_asset) => {
+				// noop
+			},
 		},
-	},
+	],
 })
