@@ -70,8 +70,9 @@ export function SvgTextLabel({
 
 	let outlineSpans = null
 	if (stroke) {
+		opts.fill = theme.background
 		opts.stroke = theme.background
-		opts.strokeWidth = 3
+		opts.strokeWidth = 2
 		outlineSpans = createTextJsxFromSpans(editor, spans, opts)
 	}
 
