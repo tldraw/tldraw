@@ -123,3 +123,6 @@ bucket_name = "rooms-history-ephemeral"
 binding = "ANALYTICS_DB_HYPERDRIVE"
 id = "7b28f9a6f3604fb6a1448a16b8f8ae00"
 
+[[env.preview.hyperdrive]]
+binding = "ANALYTICS_DB_HYPERDRIVE"
+id = "7b28f9a6f3604fb6a1448a16b8f8ae00"
