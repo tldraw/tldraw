@@ -2,7 +2,6 @@
 /// <reference types="@cloudflare/workers-types" />
 import { IRequest, Router, createCors } from 'itty-router'
 import { Client as PgClient } from 'pg'
-import { env } from 'process'
 import Toucan from 'toucan-js'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -81,12 +80,10 @@ const Worker = {
 }
 
 function isAllowedOrigin(origin: string) {
-	return true
 	if (origin === 'http://localhost:3000') return true
 	if (origin === 'http://localhost:5420') return true
 	if (origin.endsWith('.tldraw.com')) return true
 	if (origin.endsWith('-tldraw.vercel.app')) return true
-	if (origin.endsWith('tldraw.workers.dev')) return true
 	return false
 }
 
@@ -102,11 +99,11 @@ async function blockUnknownOrigins(request: Request) {
 		return undefined
 	}
 
-	const origin = request.headers.get('origin')
-	if (env.IS_LOCAL !== 'true' && (!origin || !isAllowedOrigin(origin))) {
-		console.error('Attempting to connect from an invalid origin:', origin, env, request)
-		return new Response('Not allowed', { status: 403 })
-	}
+	// const origin = request.headers.get('origin')
+	// if (env.IS_LOCAL !== 'true' && (!origin || !isAllowedOrigin(origin))) {
+	// 	console.error('Attempting to connect from an invalid origin:', origin, env, request)
+	// 	return new Response('Not allowed', { status: 403 })
+	// }
 
 	// origin doesn't match, so we can continue
 	return undefined
