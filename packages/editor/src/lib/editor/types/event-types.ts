@@ -50,7 +50,7 @@ export interface TLBaseEventInfo {
 }
 
 /** @public */
-export type TLPointerEventInfo = TLBaseEventInfo & {
+export type TLBasePointerEventInfo = TLBaseEventInfo & {
 	type: 'pointer'
 	name: TLPointerEventName
 	// The pointer position in client space, i.e. clientX / clientY
@@ -58,8 +58,16 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 	pointerId: number
 	button: number
 	isPen: boolean
-	pagePoint: Vec
 } & TLPointerEventTarget
+
+/** @public */
+export type TLPointerMoveEventInfo = TLBasePointerEventInfo & {
+	coalescedInfo: TLPointerMoveEventInfo[]
+	pagePoint: Vec
+}
+
+/** @public */
+export type TLPointerEventInfo = TLBasePointerEventInfo | TLPointerMoveEventInfo
 
 /** @public */
 export type TLClickEventInfo = TLBaseEventInfo & {
@@ -119,10 +127,7 @@ export type TLEventInfo =
 /** @public */
 export type TLPointerEvent = (info: TLPointerEventInfo) => void
 /** @public */
-export type TLPointerMoveEvent = (
-	info: TLPointerEventInfo,
-	coalescedInfo: TLPointerEventInfo[]
-) => void
+export type TLPointerMoveEvent = (info: TLPointerMoveEventInfo) => void
 /** @public */
 export type TLClickEvent = (info: TLClickEventInfo) => void
 /** @public */

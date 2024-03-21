@@ -185,7 +185,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',
-				pagePoint: editor.inputs.currentPagePoint.clone(),
 				shape: editor.getShape(id)!,
 			})
 

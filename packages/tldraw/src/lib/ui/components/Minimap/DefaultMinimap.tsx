@@ -124,6 +124,7 @@ export function DefaultMinimap() {
 				target: 'canvas',
 				name: 'pointer_move',
 				pagePoint: editor.inputs.currentPagePoint.clone(),
+				coalescedInfo: [],
 				...getPointerInfo(e),
 				point: screenPoint,
 				isPen: editor.getInstanceState().isPenMode,

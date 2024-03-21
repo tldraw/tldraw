@@ -24,7 +24,6 @@ export function useCanvasEvents() {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',
-						pagePoint: editor.inputs.currentPagePoint.clone(),
 						name: 'right_click',
 						...getPointerInfo(e),
 					})
@@ -38,7 +37,6 @@ export function useCanvasEvents() {
 				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
-					pagePoint: editor.inputs.currentPagePoint.clone(),
 					name: 'pointer_down',
 					...getPointerInfo(e),
 				})
@@ -86,7 +84,6 @@ export function useCanvasEvents() {
 				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
-					pagePoint: editor.inputs.currentPagePoint.clone(),
 					name: 'pointer_up',
 					...getPointerInfo(e),
 				})

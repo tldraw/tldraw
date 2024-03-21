@@ -45,8 +45,6 @@ export const FrameHeading = function FrameHeading({
 				name: 'pointer_down',
 				target: 'shape',
 				shape: editor.getShape(id)!,
-				pagePoint: editor.inputs.currentPagePoint.clone(),
-
 				...event,
 			})
 			e.preventDefault()
