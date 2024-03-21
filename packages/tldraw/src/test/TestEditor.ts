@@ -311,18 +311,6 @@ export class TestEditor extends Editor {
 
 	/* ------------------ Input Events ------------------ */
 
-	/**
-	Some of our updates are not synchronous any longer. For example, drawing happens on tick instead of on pointer move.
-	You can use this helper to force the tick, which will then process all the updates.
-	*/
-	forceTick = (count = 1) => {
-		const tick = (this as any)._tickManager as { tick(): void }
-		for (let i = 0; i < count; i++) {
-			tick.tick()
-		}
-		return this
-	}
-
 	pointerMove = (
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
@@ -332,7 +320,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_move',
-		}).forceTick()
+		})
 		return this
 	}
 
