@@ -8573,6 +8573,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispatch = (info: TLEventInfo): this => {
+		// Adding the first event to the queue
 		if (this._pendingEventsForNextTick.length === 0) {
 			this._pendingEventsForNextTick.push(info)
 			if (this._isCoalesableEvent(info)) {
@@ -8580,7 +8581,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		} else {
 			if (this._shouldCoalesce(info)) {
-				this._pendingEventsForNextTick[0] = info
+				// We only care for the last event
+				this._pendingEventsForNextTick = [info]
+				// But we also store all the other events if we have an coalesable event
 				if (this._isCoalesableEvent(info)) {
 					this._allEventsSinceLastTick.push(info)
 				}
