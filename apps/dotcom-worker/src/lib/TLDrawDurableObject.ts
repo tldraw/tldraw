@@ -81,11 +81,10 @@ export class TLDrawDurableObject extends TLServer {
 		this.analyticsPgClient = new PgClient({
 			connectionString: env.ANALYTICS_DB_HYPERDRIVE.connectionString,
 		})
-		controller.blockConcurrencyWhile(async () => {
-			await this.analyticsPgClient.connect()
-		})
 
 		controller.blockConcurrencyWhile(async () => {
+			await this.analyticsPgClient.connect()
+
 			const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
 			if (existingDocumentInfo?.version !== CURRENT_DOCUMENT_INFO_VERSION) {
 				this._documentInfo = null
@@ -197,6 +196,7 @@ export class TLDrawDurableObject extends TLServer {
 
 		const newRoom = new TLSyncRoom(
 			roomState.room.schema,
+			(point) => report(this.analyticsPgClient, this.env.TLDRAW_ENV ?? 'undefined', point),
 			{
 				clock: oldRoom.clock + 1,
 				documents: snapshot.documents.map((d) => ({
@@ -205,8 +205,7 @@ export class TLDrawDurableObject extends TLServer {
 				})),
 				schema: snapshot.schema,
 				tombstones,
-			},
-			(point) => report(this.analyticsPgClient, this.env.TLDRAW_ENV ?? 'undefined', point)
+			}
 		)
 
 		// replace room with new one and kick out all the clients
@@ -248,6 +247,8 @@ export class TLDrawDurableObject extends TLServer {
 					persistenceKey: this.documentInfo.slug!,
 					sessionKey,
 					storeId,
+					reportTLAnalytics: (point) =>
+						report(this.analyticsPgClient, this.env.TLDRAW_ENV ?? 'undefined', point),
 				})
 			)
 		} catch (e: any) {

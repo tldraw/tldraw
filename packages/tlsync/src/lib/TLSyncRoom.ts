@@ -209,8 +209,8 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 	constructor(
 		public readonly schema: StoreSchema<R, any>,
-		snapshot?: RoomSnapshot,
-		readonly reportTLAnalytics?: (point: TLAnalyticsPoint) => void
+		readonly reportTLAnalytics: (point: TLAnalyticsPoint) => void,
+		snapshot?: RoomSnapshot
 	) {
 		assert(
 			isNativeStructuredClone,
@@ -451,7 +451,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 		session.debounceTimer = null
 
-		this.reportTLAnalytics?.({
+		this.reportTLAnalytics({
 			type: 'outstanding_data_messages',
 			length: session.outstandingDataMessages.length,
 			num_clients: this.sessions.size,

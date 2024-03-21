@@ -1,11 +1,12 @@
 import { StoreSchema, UnknownRecord } from '@tldraw/store'
+import { NO_TL_ANALYTICS } from '../lib/TLAnalytics'
 import { RoomSnapshot, TLSyncRoom } from '../lib/TLSyncRoom'
 import { TestSocketPair } from './TestSocketPair'
 
 export class TestServer<R extends UnknownRecord, P = unknown> {
 	room: TLSyncRoom<R>
 	constructor(schema: StoreSchema<R, P>, snapshot?: RoomSnapshot) {
-		this.room = new TLSyncRoom<R>(schema, snapshot)
+		this.room = new TLSyncRoom<R>(schema, NO_TL_ANALYTICS, snapshot)
 	}
 
 	connect(socketPair: TestSocketPair<R>): void {

@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid'
 import * as WebSocket from 'ws'
 import { ServerSocketAdapter } from './ServerSocketAdapter'
+import { TLAnalyticsPoint } from './TLAnalytics'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
 import { schema } from './schema'
@@ -28,7 +29,10 @@ export type DBLoadResult =
 export abstract class TLServer {
 	schema = schema
 
-	async getInitialRoomState(persistenceKey: string): Promise<[RoomState, LoadKind]> {
+	async getInitialRoomState(
+		persistenceKey: string,
+		reportTLAnaytics: (point: TLAnalyticsPoint) => void
+	): Promise<[RoomState, LoadKind]> {
 		let roomState = this.getRoomForPersistenceKey(persistenceKey)
 
 		let roomOpenKind = 'open' as 'open' | 'reopen' | 'new'
@@ -47,7 +51,7 @@ export abstract class TLServer {
 
 					roomState = {
 						persistenceKey,
-						room: new TLSyncRoom(this.schema, data.snapshot),
+						room: new TLSyncRoom(this.schema, reportTLAnaytics, data.snapshot),
 					}
 				}
 			}
@@ -58,7 +62,7 @@ export abstract class TLServer {
 
 				roomState = {
 					persistenceKey,
-					room: new TLSyncRoom(this.schema),
+					room: new TLSyncRoom(this.schema, reportTLAnaytics),
 				}
 			}
 
@@ -107,14 +111,19 @@ export abstract class TLServer {
 		persistenceKey,
 		sessionKey,
 		storeId,
+		reportTLAnalytics,
 	}: {
 		socket: WebSocket.WebSocket
 		persistenceKey: string
 		sessionKey: string
 		storeId: string
+		reportTLAnalytics: (point: TLAnalyticsPoint) => void
 	}) => {
 		const clientId = nanoid()
-		const [roomState, roomOpenKind] = await this.getInitialRoomState(persistenceKey)
+		const [roomState, roomOpenKind] = await this.getInitialRoomState(
+			persistenceKey,
+			reportTLAnalytics
+		)
 
 		roomState.room.handleNewSession(sessionKey, new ServerSocketAdapter(socket))
 
