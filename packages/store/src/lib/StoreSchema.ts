@@ -164,9 +164,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			const theirVersion = schema.sequences[sequenceId]
 			if (
 				(!theirVersion && this.migrations[sequenceId].retroactive) ||
-				// Special case for legacy situations where there was no schema.
-				// This also happens when an empty sequence is passed in.
-				theirVersion?.version === -1
+				theirVersion?.version === 0
 			) {
 				for (const migration of this.migrations[sequenceId].sequence) {
 					allMigrationsToInclude.add(migration.id)
@@ -298,7 +296,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				Object.values(this.migrations).map(({ sequenceId, sequence, retroactive }) => [
 					sequenceId,
 					{
-						version: sequence.length ? parseMigrationId(sequence.at(-1)!.id).version : -1,
+						version: sequence.length ? parseMigrationId(sequence.at(-1)!.id).version : 0,
 						retroactive,
 					},
 				])
@@ -315,7 +313,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			sequences: Object.fromEntries(
 				Object.values(this.migrations).map(({ sequenceId, retroactive }) => [
 					sequenceId,
-					{ version: -1, retroactive },
+					{ version: 0, retroactive },
 				])
 			),
 		}
