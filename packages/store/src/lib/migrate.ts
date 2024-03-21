@@ -84,19 +84,23 @@ export type LegacyMigration<Before = any, After = any> = {
 export type MigrationId = `${string}/${number}`
 
 export type Migration = {
-	id: MigrationId
-	dependsOn?: MigrationId[]
+	readonly id: MigrationId
+	readonly dependsOn?: MigrationId[]
 } & (
 	| {
-			scope: 'record'
-			filter?: (record: UnknownRecord) => boolean
-			up: (oldState: UnknownRecord) => void | UnknownRecord
-			down?: (newState: UnknownRecord) => void | UnknownRecord
+			readonly scope: 'record'
+			readonly filter?: (record: UnknownRecord) => boolean
+			readonly up: (oldState: UnknownRecord) => void | UnknownRecord
+			readonly down?: (newState: UnknownRecord) => void | UnknownRecord
 	  }
 	| {
-			scope: 'store'
-			up: (oldState: SerializedStore<UnknownRecord>) => void | SerializedStore<UnknownRecord>
-			down?: (newState: SerializedStore<UnknownRecord>) => void | SerializedStore<UnknownRecord>
+			readonly scope: 'store'
+			readonly up: (
+				oldState: SerializedStore<UnknownRecord>
+			) => void | SerializedStore<UnknownRecord>
+			readonly down?: (
+				newState: SerializedStore<UnknownRecord>
+			) => void | SerializedStore<UnknownRecord>
 	  }
 )
 
@@ -114,6 +118,15 @@ export interface LegacyMigrations extends LegacyBaseMigrationsInfo {
 
 export interface Migrations {
 	sequenceId: string
+	/**
+	 * postHoc should be true if the migrations should be applied to snapshots that were created before
+	 * this migration sequence was added.
+	 *
+	 * In general:
+	 *
+	 * - postHoc should be true when app developers create their own new migration sequences.
+	 * - postHoc should be false when library developers ship a migration sequence. When you install a library for the first time, any migrations that were added in the library before that point should generally _not_ be applied to your existing data.
+	 */
 	postHoc?: boolean
 	sequence: Migration[]
 }
