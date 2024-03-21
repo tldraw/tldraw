@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { LegacyMigration } from '@tldraw/store'
+import { LegacyMigration, LegacyMigrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import { ReactElement } from 'react'
 import { Box } from '../../primitives/Box'
@@ -19,7 +19,7 @@ export interface TLShapeUtilConstructor<
 	new (editor: Editor): U
 	type: T['type']
 	props?: ShapeProps<T>
-	migrations?: LegacyMigration
+	migrations?: LegacyMigrations
 }
 
 /** @public */
