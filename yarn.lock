@@ -7264,6 +7264,7 @@ __metadata:
     itty-router: "npm:^4.0.13"
     lazyrepo: "npm:0.0.0-alpha.27"
     nanoid: "npm:4.0.2"
+    node-pg-migrate: "npm:^6.2.2"
     pg: "npm:^8.11.3"
     picocolors: "npm:^1.0.0"
     react: "npm:^18.2.0"
@@ -8111,7 +8112,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pg@npm:^8.11.4":
+"@types/pg@npm:^8.0.0, @types/pg@npm:^8.11.4":
   version: 8.11.4
   resolution: "@types/pg@npm:8.11.4"
   dependencies:
@@ -11276,6 +11277,13 @@ __metadata:
   version: 4.0.0
   resolution: "decamelize@npm:4.0.0"
   checksum: b7d09b82652c39eead4d6678bb578e3bebd848add894b76d0f6b395bc45b2d692fb88d977e7cfb93c4ed6c119b05a1347cef261174916c2e75c0a8ca57da1809
+  languageName: node
+  linkType: hard
+
+"decamelize@npm:^5.0.0":
+  version: 5.0.1
+  resolution: "decamelize@npm:5.0.1"
+  checksum: 643e88804c538a334fae303ae1da8b30193b81dad8689643b35e6ab8ab60a3b03492cab6096d8163bd41fd384d969485f0634c000f80af502aa7f4047258d5b4
   languageName: node
   linkType: hard
 
@@ -18766,7 +18774,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mkdirp@npm:^1.0.3, mkdirp@npm:^1.0.4":
+"mkdirp@npm:^1.0.3, mkdirp@npm:^1.0.4, mkdirp@npm:~1.0.0":
   version: 1.0.4
   resolution: "mkdirp@npm:1.0.4"
   bin:
@@ -19193,6 +19201,22 @@ __metadata:
   version: 0.4.0
   resolution: "node-int64@npm:0.4.0"
   checksum: b7afc2b65e56f7035b1a2eec57ae0fbdee7d742b1cdcd0f4387562b6527a011ab1cbe9f64cc8b3cca61e3297c9637c8bf61cec2e6b8d3a711d4b5267dfafbe02
+  languageName: node
+  linkType: hard
+
+"node-pg-migrate@npm:^6.2.2":
+  version: 6.2.2
+  resolution: "node-pg-migrate@npm:6.2.2"
+  dependencies:
+    "@types/pg": "npm:^8.0.0"
+    decamelize: "npm:^5.0.0"
+    mkdirp: "npm:~1.0.0"
+    yargs: "npm:~17.3.0"
+  peerDependencies:
+    pg: ">=4.3.0 <9.0.0"
+  bin:
+    node-pg-migrate: bin/node-pg-migrate
+  checksum: 5afd5ee8d9097916f294904a166930e5ba96b6d24fc8ecba9b7533e37c508b030b698f1e1c3659e91a717f22fc8177213e0d674e22983bfec83eeb043c30b330
   languageName: node
   linkType: hard
 
@@ -25441,7 +25465,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs-parser@npm:^21.1.1":
+"yargs-parser@npm:^21.0.0, yargs-parser@npm:^21.1.1":
   version: 21.1.1
   resolution: "yargs-parser@npm:21.1.1"
   checksum: 9dc2c217ea3bf8d858041252d43e074f7166b53f3d010a8c711275e09cd3d62a002969a39858b92bbda2a6a63a585c7127014534a560b9c69ed2d923d113406e
@@ -25524,6 +25548,21 @@ __metadata:
     y18n: "npm:^5.0.5"
     yargs-parser: "npm:^21.1.1"
   checksum: abb3e37678d6e38ea85485ed86ebe0d1e3464c640d7d9069805ea0da12f69d5a32df8e5625e370f9c96dd1c2dc088ab2d0a4dd32af18222ef3c4224a19471576
+  languageName: node
+  linkType: hard
+
+"yargs@npm:~17.3.0":
+  version: 17.3.1
+  resolution: "yargs@npm:17.3.1"
+  dependencies:
+    cliui: "npm:^7.0.2"
+    escalade: "npm:^3.1.1"
+    get-caller-file: "npm:^2.0.5"
+    require-directory: "npm:^2.1.1"
+    string-width: "npm:^4.2.3"
+    y18n: "npm:^5.0.5"
+    yargs-parser: "npm:^21.0.0"
+  checksum: 7bb96c62cd56f1290d8a411ddb848f3af147773199c8653be5ee940ddd042391d7e61b0911a98ab6b3d74a92fff52694f4ed246333accf0523c201a2a6649e2f
   languageName: node
   linkType: hard
 

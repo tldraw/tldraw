@@ -1,3 +1,4 @@
+export { type TLAnalyticsPoint } from './lib/TLAnalytics'
 export { TLServer, type DBLoadResult } from './lib/TLServer'
 export {
 	TLSyncClient,

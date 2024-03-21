@@ -2,6 +2,7 @@
 /// <reference types="@cloudflare/workers-types" />
 import { IRequest, Router, createCors } from 'itty-router'
 import { Client as PgClient } from 'pg'
+import { env } from 'process'
 import Toucan from 'toucan-js'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -35,7 +36,6 @@ const router = Router()
 	.get('/r/:roomId', joinExistingRoom)
 	.get('/r/:roomId/history', getRoomHistory)
 	.get('/r/:roomId/history/:timestamp', getRoomHistorySnapshot)
-	.get('/pgtest', pgTest)
 	.post('/r/:roomId/restore', forwardRoomRequest)
 	.all('*', fourOhFour)
 
@@ -99,11 +99,11 @@ async function blockUnknownOrigins(request: Request) {
 		return undefined
 	}
 
-	// const origin = request.headers.get('origin')
-	// if (env.IS_LOCAL !== 'true' && (!origin || !isAllowedOrigin(origin))) {
-	// 	console.error('Attempting to connect from an invalid origin:', origin, env, request)
-	// 	return new Response('Not allowed', { status: 403 })
-	// }
+	const origin = request.headers.get('origin')
+	if (env.IS_LOCAL !== 'true' && (!origin || !isAllowedOrigin(origin))) {
+		console.error('Attempting to connect from an invalid origin:', origin, env, request)
+		return new Response('Not allowed', { status: 403 })
+	}
 
 	// origin doesn't match, so we can continue
 	return undefined
