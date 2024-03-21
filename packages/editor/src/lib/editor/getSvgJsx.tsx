@@ -191,9 +191,13 @@ export async function getSvgJsx(
 				viewBox={`${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`}
 				strokeLinecap="round"
 				strokeLinejoin="round"
-				enableBackground={
-					background ? (singleFrameShapeId ? theme.solid : theme.background) : 'transparent'
-				}
+				style={{
+					backgroundColor: background
+						? singleFrameShapeId
+							? theme.solid
+							: theme.background
+						: 'transparent',
+				}}
 			>
 				<defs>{defChildren}</defs>
 				{unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex).map(({ element }) => element)}
