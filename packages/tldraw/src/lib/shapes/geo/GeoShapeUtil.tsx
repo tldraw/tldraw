@@ -19,7 +19,6 @@ import {
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
-	VecLike,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -767,20 +766,4 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		w: size.w + LABEL_PADDING * 2,
 		h: size.h + LABEL_PADDING * 2,
 	}
-}
-
-/**
- * Get the centroid of a regular polygon.
- * @param points - The points that make up the polygon.
- * @internal
- */
-export function getCentroidOfRegularPolygon(points: VecLike[]) {
-	const len = points.length
-	let x = 0
-	let y = 0
-	for (let i = 0; i < len; i++) {
-		x += points[i].x
-		y += points[i].y
-	}
-	return new Vec(x / len, y / len)
 }

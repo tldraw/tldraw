@@ -8,7 +8,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import { useDefaultColorTheme } from './ShapeFill'
-import { createTextJsxFromSpans } from './createTextSvgElementFromSpans'
+import { createTextJsxFromSpans } from './createTextJsxFromSpans'
 import { TEXT_PROPS } from './default-shape-constants'
 import { getLegacyOffsetX } from './legacyProps'
 

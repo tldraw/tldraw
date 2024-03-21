@@ -1,45 +1,8 @@
-import {
-	EASINGS,
-	HALF_PI,
-	PI2,
-	TLGeoShape,
-	TLShapeId,
-	Vec,
-	getSvgPathFromPoints,
-	perimeterOfEllipse,
-	rng,
-} from '@tldraw/editor'
-import * as React from 'react'
-import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
-import { getStrokeOutlinePoints } from '../../shared/freehand/getStrokeOutlinePoints'
+import { EASINGS, HALF_PI, PI2, Vec, perimeterOfEllipse, rng } from '@tldraw/editor'
 import { getStrokePoints } from '../../shared/freehand/getStrokePoints'
-import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../../shared/freehand/svg'
 
-export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
-	id,
-	w,
-	h,
-	strokeWidth: sw,
-	fill,
-	color,
-}: Pick<TLGeoShape['props'], 'w' | 'h' | 'fill' | 'color'> & {
-	strokeWidth: number
-	id: TLShapeId
-}) {
-	const theme = useDefaultColorTheme()
-	const innerPath = getEllipseIndicatorPath(id, w, h, sw)
-	const outerPath = getEllipsePath(id, w, h, sw)
-
-	return (
-		<>
-			<ShapeFill theme={theme} d={innerPath} color={color} fill={fill} />
-			<path d={outerPath} fill={theme[color].solid} strokeWidth={0} pointerEvents="all" />
-		</>
-	)
-})
-
-export function getEllipseStrokeOptions(strokeWidth: number) {
+function getEllipseStrokeOptions(strokeWidth: number) {
 	return {
 		size: 1 + strokeWidth,
 		thinning: 0.25,
@@ -51,12 +14,7 @@ export function getEllipseStrokeOptions(strokeWidth: number) {
 	}
 }
 
-export function getEllipseStrokePoints(
-	id: string,
-	width: number,
-	height: number,
-	strokeWidth: number
-) {
+function getEllipseStrokePoints(id: string, width: number, height: number, strokeWidth: number) {
 	const getRandom = rng(id)
 
 	const rx = width / 2
@@ -88,16 +46,6 @@ export function getEllipseStrokePoints(
 	}
 
 	return getStrokePoints(points, getEllipseStrokeOptions(strokeWidth))
-}
-
-export function getEllipsePath(id: string, width: number, height: number, strokeWidth: number) {
-	const options = getEllipseStrokeOptions(strokeWidth)
-	return getSvgPathFromPoints(
-		getStrokeOutlinePoints(
-			setStrokePointRadii(getEllipseStrokePoints(id, width, height, strokeWidth), options),
-			options
-		)
-	)
 }
 
 export function getEllipseIndicatorPath(
