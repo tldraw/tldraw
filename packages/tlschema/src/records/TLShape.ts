@@ -254,15 +254,15 @@ export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) 
 							scope: 'record',
 							filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
 							up: (record: any) => {
-								const result = migrations.migrators[version].up(record.props)
+								const result = migrations.migrators[version].up(record)
 								if (result) {
-									record.props = result
+									return result
 								}
 							},
 							down: (record: any) => {
-								const result = migrations.migrators[version].down(record.props)
+								const result = migrations.migrators[version].down(record)
 								if (result) {
-									record.props = result
+									return result
 								}
 							},
 						})
