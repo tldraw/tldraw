@@ -5,6 +5,7 @@ import { SerializedStore, Store, StoreSnapshot } from './Store'
 import {
 	Migration,
 	MigrationFailureReason,
+	MigrationId,
 	MigrationResult,
 	Migrations,
 	parseMigrationId,
@@ -50,7 +51,6 @@ export function upgradeSchema(schema: SerializedSchema): SerializedSchemaV2 {
 		schemaVersion: 2,
 		sequences: {},
 	}
-	debugger
 
 	for (const [typeName, recordVersion] of Object.entries(schema.recordVersions)) {
 		result.sequences[`com.tldraw.${typeName}`] = recordVersion.version
@@ -90,7 +90,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return new StoreSchema<R, P>(types as any, options ?? {})
 	}
 
-	readonly migrations: Record<string, Migrations> = {}
+	readonly migrations: Record<string, Migrations>
+	readonly sortedMigrations: readonly Migration[]
 
 	private constructor(
 		public readonly types: {
@@ -99,6 +100,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		private readonly options: StoreSchemaOptions<R, P>
 	) {
 		this.migrations = options.migrations ?? {}
+		const allMigrations = Object.values(this.migrations).flatMap((m) => m.sequence)
+		this.sortedMigrations = sortMigrations(allMigrations)
 	}
 
 	validateRecord(
@@ -136,31 +139,43 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			Object.keys(schema.sequences).filter((sequenceId) => this.migrations[sequenceId])
 		)
 
+		// also include any sequences that are not in the persisted schema but are marked as postHoc
+		for (const sequenceId in this.migrations) {
+			if (schema.sequences[sequenceId] === undefined && this.migrations[sequenceId].postHoc) {
+				sequenceIdsToInclude.add(sequenceId)
+			}
+		}
+
 		if (sequenceIdsToInclude.size === 0) {
 			return Result.ok([])
 		}
 
-		const result: Migration[] = []
+		const allMigrationsToInclude = new Set<MigrationId>()
 		for (const sequenceId of sequenceIdsToInclude) {
 			const theirVersionNumber = schema.sequences[sequenceId]
 			if (
 				// Special case for legacy situations where there was no schema.
 				// This also happens when an empty schema is passed in.
 				theirVersionNumber === -1 ||
+				// also if the sequence is marked as postHoc
 				(typeof theirVersionNumber === 'undefined' && this.migrations[sequenceId].postHoc)
 			) {
-				result.push(...this.migrations[sequenceId].sequence)
+				for (const migration of this.migrations[sequenceId].sequence) {
+					allMigrationsToInclude.add(migration.id)
+				}
 				continue
 			}
 			const theirVersionId = `${sequenceId}/${schema.sequences[sequenceId]}`
 			const idx = this.migrations[sequenceId].sequence.findIndex((m) => m.id === theirVersionId)
 			// todo: better error handling
 			if (idx === -1) return Result.err('Incompatible schema?')
-			result.push(...this.migrations[sequenceId].sequence.slice(idx + 1))
+			for (const migration of this.migrations[sequenceId].sequence.slice(idx + 1)) {
+				allMigrationsToInclude.add(migration.id)
+			}
 		}
 
 		// collect any migrations
-		return Result.ok(sortMigrations(result))
+		return Result.ok(this.sortedMigrations.filter(({ id }) => allMigrationsToInclude.has(id)))
 	}
 
 	migratePersistedRecord(
@@ -202,6 +217,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		try {
 			for (const migration of migrationsToApply) {
 				if (migration.scope === 'store') throw new Error(/* won't happen, just for TS */)
+				const shouldApply = migration.filter ? migration.filter(record) : true
+				if (!shouldApply) continue
 				const result = migration[direction]!(record)
 				if (result) {
 					record = structuredClone(result) as any
@@ -232,12 +249,13 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			for (const migration of migrationsToApply) {
 				if (migration.scope === 'record') {
 					for (const [id, record] of Object.entries(store)) {
+						const shouldApply = migration.filter ? migration.filter(record as UnknownRecord) : true
+						if (!shouldApply) continue
 						const result = migration.up!(record as any)
 						if (result) {
 							store[id as keyof typeof store] = structuredClone(result) as any
 						}
 					}
-					Object.values(store).forEach((r) => migration.up!(r as any))
 				} else if (migration.scope === 'store') {
 					const result = migration.up!(store)
 					if (result) {
