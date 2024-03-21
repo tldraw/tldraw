@@ -1,14 +1,15 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	FileHelpers,
 	HTMLContainer,
 	TLImageShape,
 	TLOnDoubleClickHandler,
 	TLShapePartial,
 	Vec,
-	deepCopy,
 	imageShapeMigrations,
 	imageShapeProps,
+	structuredClone,
 	toDomPrecision,
 } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
@@ -19,12 +20,7 @@ import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 async function getDataURIFromURL(url: string): Promise<string> {
 	const response = await fetch(url)
 	const blob = await response.blob()
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onloadend = () => resolve(reader.result as string)
-		reader.onerror = reject
-		reader.readAsDataURL(blob)
-	})
+	return FileHelpers.blobToDataUrl(blob)
 }
 
 /** @public */
@@ -246,7 +242,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			return
 		}
 
-		const crop = deepCopy(props.crop) || {
+		const crop = structuredClone(props.crop) || {
 			topLeft: { x: 0, y: 0 },
 			bottomRight: { x: 1, y: 1 },
 		}

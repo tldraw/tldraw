@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { stopEventPropagation, Tldraw, TLEditorComponents, track, useEditor, Vec } from 'tldraw'
+import { stopEventPropagation, Tldraw, TLEditorComponents, track, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -60,10 +60,7 @@ const MyComponentInFront = track(() => {
 	const selectionRotatedPageBounds = editor.getSelectionRotatedPageBounds()
 	if (!selectionRotatedPageBounds) return null
 
-	const pageCoordinates = Vec.Sub(
-		editor.pageToScreen(selectionRotatedPageBounds.point),
-		editor.getViewportScreenBounds()
-	)
+	const pageCoordinates = editor.pageToViewport(selectionRotatedPageBounds.point)
 
 	return (
 		<div

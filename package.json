@@ -50,10 +50,11 @@
 		"build-package": "lazy build-package",
 		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
 		"lint": "lazy lint",
-		"format": "prettier --write --cache \"**/*.{ts,tsx,js,jsx,json}\"",
+		"format": "prettier --write --cache '**/*.{yml,yaml,json,md,mdx,html,css,js,jsx,ts,tsx,cjs,mjs}'",
 		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"check-tsconfigs": "tsx scripts/check-tsconfigs.ts",
+		"update-pr-template": "tsx scripts/update-pr-template.ts",
 		"api-check": "lazy api-check",
 		"test-ci": "lazy test-ci",
 		"test": "lazy test",
@@ -103,10 +104,15 @@
 		"typescript": "^5.3.3",
 		"vercel": "^28.16.15"
 	},
+	"// resolutions.canvas": [
+		"our examples app depenends on pdf.js which pulls in canvas as an optional dependency.",
+		"it slows down installs quite a bit though, so we replace it with an empty package."
+	],
 	"resolutions": {
 		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch",
 		"vectra@^0.4.4": "patch:vectra@npm%3A0.4.4#./.yarn/patches/vectra-npm-0.4.4-6aac3f6c29.patch",
-		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch"
+		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
+		"canvas": "npm:empty-npm-package@1.0.0"
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.25.0",

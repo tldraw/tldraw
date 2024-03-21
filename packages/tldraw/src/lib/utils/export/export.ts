@@ -84,10 +84,14 @@ export async function getSvgAsImage(
 
 	if (!blob) return null
 
-	const view = new DataView(await blob.arrayBuffer())
-	return PngHelpers.setPhysChunk(view, effectiveScale, {
-		type: 'image/' + type,
-	})
+	if (type === 'png') {
+		const view = new DataView(await blob.arrayBuffer())
+		return PngHelpers.setPhysChunk(view, effectiveScale, {
+			type: 'image/' + type,
+		})
+	} else {
+		return blob
+	}
 }
 
 async function getSvgString(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {

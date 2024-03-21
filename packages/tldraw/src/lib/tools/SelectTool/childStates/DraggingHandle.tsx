@@ -182,6 +182,7 @@ export class DraggingHandle extends StateNode {
 	}
 
 	override onComplete: TLEventHandlers['onComplete'] = () => {
+		this.update()
 		this.complete()
 	}
 

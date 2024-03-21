@@ -837,6 +837,11 @@ export class Editor extends EventEmitter<TLEventMap> {
         y: number;
         z: number;
     };
+    pageToViewport(point: VecLike): {
+        x: number;
+        y: number;
+        z: number;
+    };
     pan(offset: VecLike, animation?: TLAnimationOptions): this;
     panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
     popFocusedGroupId(): this;
@@ -1800,7 +1805,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onRightClick?: TLEventHandlers['onRightClick'];
     // (undocumented)
-    onTick?: TLTickEventHandler;
+    onTick?: TLEventHandlers['onTick'];
     // (undocumented)
     onTripleClick?: TLEventHandlers['onTripleClick'];
     // (undocumented)
@@ -1982,7 +1987,6 @@ export type TLCollaboratorHintProps = {
 // @public (undocumented)
 export type TLCommand<Name extends string = any, Data = any> = {
     type: 'command';
-    id: string;
     data: Data;
     name: Name;
     preservesRedoStack?: boolean;
@@ -2121,13 +2125,15 @@ export interface TLEventHandlers {
     // (undocumented)
     onRightClick: TLPointerEvent;
     // (undocumented)
+    onTick: TLTickEvent;
+    // (undocumented)
     onTripleClick: TLClickEvent;
     // (undocumented)
     onWheel: TLWheelEvent;
 }
 
 // @public (undocumented)
-export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEventInfo | TLInterruptEventInfo | TLKeyboardEventInfo | TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo;
+export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEventInfo | TLInterruptEventInfo | TLKeyboardEventInfo | TLPinchEventInfo | TLPointerEventInfo | TLTickEventInfo | TLWheelEventInfo;
 
 // @public (undocumented)
 export interface TLEventMap {
@@ -2174,7 +2180,7 @@ export interface TLEventMap {
 export type TLEventMapHandler<T extends keyof TLEventMap> = (...args: TLEventMap[T]) => void;
 
 // @public (undocumented)
-export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
+export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'tick' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
 
 // @public (undocumented)
 export type TLExitEventHandler = (info: any, to: string) => void;
@@ -2590,10 +2596,7 @@ export type TLSvgOptions = {
 };
 
 // @public (undocumented)
-export type TLTickEvent = (elapsed: number) => void;
-
-// @public (undocumented)
-export type TLTickEventHandler = () => void;
+export type TLTickEvent = (info: TLTickEventInfo) => void;
 
 // @public
 export interface TLUserPreferences {
@@ -2694,6 +2697,9 @@ export function useEditorComponents(): Partial<{
     LoadingScreen: ComponentType | null;
 } & ErrorComponents> & ErrorComponents;
 
+// @internal
+export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
+
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
 
@@ -2722,6 +2728,9 @@ export { useQuickReactor }
 export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
 
 export { useReactor }
+
+// @internal
+export function useSafeId(): string;
 
 // @public (undocumented)
 export function useSelectionEvents(handle: TLSelectionHandle): {

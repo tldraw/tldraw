@@ -3,7 +3,7 @@ import { createUseGesture, pinchAction, wheelAction } from '@use-gesture/react'
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
 import { Vec } from '../primitives/Vec'
-import { preventDefault } from '../utils/dom'
+import { preventDefault, stopEventPropagation } from '../utils/dom'
 import { normalizeWheel } from '../utils/normalizeWheel'
 import { useEditor } from './useEditor'
 
@@ -112,6 +112,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			}
 
 			preventDefault(event)
+			stopEventPropagation(event)
 			const delta = normalizeWheel(event)
 
 			if (delta.x === 0 && delta.y === 0) return

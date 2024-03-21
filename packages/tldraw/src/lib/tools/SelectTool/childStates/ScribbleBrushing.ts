@@ -157,6 +157,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private complete() {
+		this.updateScribbleSelection(true)
 		this.parent.transition('idle')
 	}
 
