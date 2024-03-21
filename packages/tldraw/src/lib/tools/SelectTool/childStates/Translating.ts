@@ -8,6 +8,7 @@ import {
 	StateNode,
 	TLArrowShape,
 	TLEventHandlers,
+	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
@@ -39,8 +40,11 @@ export class Translating extends StateNode {
 	isCloning = false
 	isCreating = false
 	isDirty = false
+	previewNote = null as TLNoteShape | null
+	previewArrow = null as TLArrowShape | null
+	originalNote = null as TLNoteShape | null
+	previewBound = null as TLShapeId | null
 	onCreate: (shape: TLShape | null) => void = () => void null
-	previewIds: TLShapeId[] = []
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
@@ -61,7 +65,19 @@ export class Translating extends StateNode {
 		this.isCreating = isCreating
 		this.onCreate = onCreate
 		if (info.target === 'preview') {
-			this.previewIds = info.ids || []
+			if (info.ids) {
+				const [note, arrow] = info.ids
+				const previewNote = this.editor.getShape(note) as TLNoteShape
+				const previewArrow = this.editor.getShape(arrow) as TLArrowShape
+				const originalNote = this.editor.getShape(
+					// @ts-ignore
+					previewArrow.props.start.boundShapeId
+				) as TLNoteShape
+
+				this.previewNote = previewNote
+				this.previewArrow = previewArrow
+				this.originalNote = originalNote
+			}
 		}
 		if (isCreating) {
 			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
@@ -114,45 +130,81 @@ export class Translating extends StateNode {
 	}
 
 	override onPointerMove = () => {
-		if (this.previewIds.length > 0) {
-			const noteShapeId = this.noteShapeToCreateArrowTo()
-			const arrow = this.editor.getShape(this.previewIds[1]) as TLArrowShape
+		const hoveringNoteShape = this.overNoteShape() as TLNoteShape | undefined
 
-			if (noteShapeId) {
-				const hasArrowFromOriginalToHoveredNote = this.arrowFromOriginalNoteToNewNote(noteShapeId)
-				if (!hasArrowFromOriginalToHoveredNote) {
-					this.editor.updateShape({ type: 'note', id: this.previewIds[0], opacity: 0 })
-					this.editor.updateShape({
-						type: 'arrow',
-						id: this.previewIds[1],
-						props: { end: { ...arrow.props.end, boundShapeId: noteShapeId } },
-					})
-				}
+		if (
+			hoveringNoteShape &&
+			this.previewArrow &&
+			this.previewNote &&
+			hoveringNoteShape.id !== this.previewBound
+		) {
+			const hasArrowBoundFromOriginalNote = this.arrowFromOriginalNoteToNewNote(
+				hoveringNoteShape.id
+			)
+
+			if (!hasArrowBoundFromOriginalNote) {
+				this.editor.updateShape({
+					type: 'arrow',
+					id: this.previewArrow.id,
+					props: {
+						end: {
+							...this.previewArrow.props.end,
+							boundShapeId: hoveringNoteShape.id,
+						},
+					},
+				})
+				this.editor.updateShape({
+					type: 'note',
+					id: this.previewNote.id,
+					opacity: 0,
+				})
+				this.previewBound = hoveringNoteShape.id
+			}
+		} else {
+			if (!hoveringNoteShape && this.previewBound && this.previewArrow && this.previewNote) {
+				this.editor.updateShape({
+					type: 'arrow',
+					id: this.previewArrow.id,
+					props: {
+						end: {
+							...this.previewArrow.props.end,
+							boundShapeId: this.previewNote.id,
+						},
+					},
+				})
+				this.editor.updateShape({
+					type: 'note',
+					id: this.previewNote.id,
+					opacity: 0.25,
+				})
+				this.previewBound = null
 			}
 		}
+
 		this.isDirty = true
 	}
 
-	arrowFromOriginalNoteToNewNote = (noteId: TLShapeId) => {
+	arrowFromOriginalNoteToNewNote = (hoveringNoteId: TLShapeId): boolean => {
 		return (
 			this.editor
 				.getCurrentPageShapes()
 				.filter((s) => s.type === 'arrow')
-				.filter((a) => {
-					const arrow = a as TLArrowShape
-					// need to sort this out
-					// @ts-ignore
-					return arrow.props.end.boundShapeId === noteId
-				}).length > 0
+				.filter(
+					(s): s is TLArrowShape =>
+						// @ts-ignore
+						s.props.start.boundShapeId === this.originalNote?.id &&
+						// @ts-ignore
+						s.props.end.boundShapeId === hoveringNoteId
+				).length > 0
 		)
 	}
-	noteShapeToCreateArrowTo = () => {
+	overNoteShape = () => {
 		return this.editor
 			.getShapesAtPoint(this.editor.inputs.currentPagePoint)
-			.filter((s) => s.type === 'note' && s.id !== this.previewIds[0])
-			.map((s) => s.id)[0]
+			.filter(
+				(s) => s.type === 'note' && s.id !== this.originalNote?.id && s.id !== this.previewNote?.id
+			)[0]
 	}
-
 	override onKeyDown = () => {
 		if (this.editor.inputs.altKey && !this.isCloning) {
 			this.startCloning()
@@ -174,9 +226,17 @@ export class Translating extends StateNode {
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
-		this.editor.updateShapes(
-			this.previewIds.map((shape) => ({ type: 'note', id: shape, opacity: 1 }))
-		)
+		if (this.previewNote && this.previewArrow) {
+			if (this.previewBound) {
+				this.editor.deleteShapes([this.previewNote.id])
+			}
+			if (this.previewNote) {
+				this.editor.updateShape({ type: 'note', id: this.previewNote!.id, opacity: 1 })
+			}
+
+			this.editor.updateShape({ type: 'arrow', id: this.previewArrow!.id, opacity: 1 })
+		}
+		this.cleanupPreviewIds()
 		this.complete()
 	}
 
@@ -235,6 +295,9 @@ export class Translating extends StateNode {
 
 	private cancel() {
 		this.reset()
+		if (this.previewNote && this.previewArrow) {
+			this.editor.deleteShapes([this.previewNote.id, this.previewArrow.id])
+		}
 		this.cleanupPreviewIds()
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
@@ -351,10 +414,9 @@ export class Translating extends StateNode {
 		})
 	}
 	private cleanupPreviewIds = () => {
-		this.previewIds.forEach((id) => {
-			this.editor.deleteShape(id)
-		})
-		this.previewIds = []
+		this.previewArrow = null
+		this.previewNote = null
+		this.originalNote = null
 	}
 }
 
