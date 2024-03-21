@@ -116,6 +116,7 @@
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.25.0",
+		"@types/pg": "^8.11.4",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
 		"purgecss": "^5.0.0",

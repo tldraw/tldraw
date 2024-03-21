@@ -26,4 +26,6 @@ export interface Environment {
 	TLDRAW_ENV: string | undefined
 	SENTRY_DSN: string | undefined
 	IS_LOCAL: string | undefined
+
+	ANALYTICS_DB_HYPERDRIVE: Hyperdrive
 }

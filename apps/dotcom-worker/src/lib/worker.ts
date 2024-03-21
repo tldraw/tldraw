@@ -1,6 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
-import { Router, createCors } from 'itty-router'
+import { IRequest, Router, createCors } from 'itty-router'
+import { Client as PgClient } from 'pg'
 import { env } from 'process'
 import Toucan from 'toucan-js'
 import { createRoom } from './routes/createRoom'
@@ -13,6 +14,14 @@ import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
 import { fourOhFour } from './utils/fourOhFour'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
+
+export async function pgTest(_request: IRequest, env: Environment): Promise<Response> {
+	const client = new PgClient({ connectionString: env.ANALYTICS_DB_HYPERDRIVE.connectionString })
+
+	await client.connect()
+	const result = await client.query('SELECT NOW()')
+	return Response.json({ result })
+}
 
 const { preflight, corsify } = createCors({
 	origins: Object.assign([], { includes: (origin: string) => isAllowedOrigin(origin) }),
@@ -27,6 +36,7 @@ const router = Router()
 	.get('/r/:roomId', joinExistingRoom)
 	.get('/r/:roomId/history', getRoomHistory)
 	.get('/r/:roomId/history/:timestamp', getRoomHistorySnapshot)
+	.get('/pgtest', pgTest)
 	.post('/r/:roomId/restore', forwardRoomRequest)
 	.all('*', fourOhFour)
 

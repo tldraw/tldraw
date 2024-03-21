@@ -1,6 +1,8 @@
 main = "src/lib/worker.ts"
 compatibility_date = "2023-10-16"
 
+node_compat = true # required for pg drivers to function
+
 [dev]
 port = 8787
 
@@ -114,3 +116,10 @@ bucket_name = "rooms-history-ephemeral-preview"
 [[env.production.r2_buckets]]
 binding = "ROOMS_HISTORY_EPHEMERAL"
 bucket_name = "rooms-history-ephemeral"
+
+############ Postgres accessed through Hyperdrive ############
+
+[[hyperdrive]]
+binding = "ANALYTICS_DB_HYPERDRIVE"
+id = "7b28f9a6f3604fb6a1448a16b8f8ae00"
+

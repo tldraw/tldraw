@@ -30,6 +30,7 @@
 		"esbuild": "^0.18.4",
 		"itty-router": "^4.0.13",
 		"nanoid": "4.0.2",
+		"pg": "^8.11.3",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"strip-ansi": "^7.1.0",
