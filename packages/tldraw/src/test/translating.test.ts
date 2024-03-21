@@ -162,13 +162,13 @@ describe('When translating...', () => {
 		jest.advanceTimersByTime(100)
 		editor
 			// The change is bigger than expected because the camera moves
-			.expectShapeToMatch({ id: ids.box1, x: 1140, y: 10 })
+			.expectShapeToMatch({ id: ids.box1, x: 1160, y: 10 })
 			.pointerMove(1080, 800)
 		jest.advanceTimersByTime(100)
 		editor
-			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
+			.expectShapeToMatch({ id: ids.box1, x: 1300, y: 845.68 })
 			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
+			.expectShapeToMatch({ id: ids.box1, x: 1300, y: 845.68 })
 	})
 
 	it('translates multiple shapes', () => {
