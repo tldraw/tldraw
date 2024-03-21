@@ -54,15 +54,15 @@ export function createMigrationIds<ID extends string, Versions extends Record<st
 /** @internal */
 export function createRecordMigrations(opts: {
 	recordType: string
+	filter?: (record: UnknownRecord) => boolean
 	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]
 }): Migrations {
 	const compiledSequence: Migration[] = opts.sequence.map(
 		(m): Migration => ({
 			...m,
 			scope: 'record',
-			filter: m.filter
-				? (r: UnknownRecord) => r.typeName === opts.recordType && m.filter!(r)
-				: (r: UnknownRecord) => r.typeName === opts.recordType,
+			filter: (r: UnknownRecord) =>
+				r.typeName === opts.recordType && (m.filter?.(r) ?? true) && (opts.filter?.(r) ?? true),
 		})
 	)
 	return createMigrations({
