@@ -69,6 +69,7 @@ export function useCanvasEvents() {
 					target: 'canvas',
 					name: 'pointer_move',
 					pagePoint: new Vec(sx / cz - cx, sy / cz - cy, sz ?? 0.5),
+					coalescedInfo: [],
 					...getPointerInfo(e),
 				})
 			}
