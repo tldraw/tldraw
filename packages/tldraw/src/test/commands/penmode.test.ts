@@ -21,7 +21,6 @@ it('ignores touch events while in pen mode', async () => {
 		ctrlKey: false,
 		button: 1,
 		target: 'canvas',
-		pagePoint: new Vec(0, 0),
 	})
 
 	expect(editor.getCurrentPageShapes().length).toBe(0)
