@@ -56,6 +56,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				handle,
 				shape,
 				pagePoint: editor.inputs.currentPagePoint.clone(),
+				coalescedInfo: [],
 				name: 'pointer_move',
 				...getPointerInfo(e),
 			})
@@ -76,7 +77,6 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				target: 'handle',
 				handle,
 				shape,
-				pagePoint: editor.inputs.currentPagePoint.clone(),
 				name: 'pointer_up',
 				...getPointerInfo(e),
 			})

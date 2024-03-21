@@ -183,7 +183,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',
-				pagePoint: editor.inputs.currentPagePoint.clone(),
 				shape: editor.getShape(id)!,
 			})
 

@@ -24,7 +24,6 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 						target: 'selection',
 						handle,
 						name: 'right_click',
-						pagePoint: editor.inputs.currentPagePoint.clone(),
 						...getPointerInfo(e),
 					})
 					return
@@ -52,7 +51,6 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					pagePoint: editor.inputs.currentPagePoint.clone(),
 					...getPointerInfo(e),
 				})
 				stopEventPropagation(e)
@@ -74,6 +72,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					target: 'selection',
 					handle,
 					pagePoint: editor.inputs.currentPagePoint.clone(),
+					coalescedInfo: [],
 					...getPointerInfo(e),
 				})
 			}

@@ -127,6 +127,7 @@ import {
 	TLEventInfo,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
+	TLPointerMoveEventInfo,
 	TLWheelEventInfo,
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
@@ -8348,8 +8349,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	capturedPointerId: number | null = null
 
-	private _eventsToCoalesce = ['pointer_move']
-
 	private _shouldCoallesce = (info: TLEventInfo) => {
 		if (!this._isCoalesableEvent(info)) return false
 		return (
@@ -8358,8 +8357,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 	}
 
-	private _isCoalesableEvent = (info: TLEventInfo) => {
-		return this._eventsToCoalesce.includes(info.name)
+	private _isCoalesableEvent = (info: TLEventInfo): info is TLPointerMoveEventInfo => {
+		if ((info as any).coalescedInfo) {
+			return true
+		}
+		return false
 	}
 
 	/**
@@ -8377,13 +8379,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	dispatch = (info: TLEventInfo): this => {
 		if (this._pendingEventsForNextTick.length === 0) {
 			this._pendingEventsForNextTick.push(info)
-			if (info.name === 'pointer_move') {
+			if (this._isCoalesableEvent(info)) {
 				this._allEventsSinceLastTick.push(info)
 			}
 		} else {
 			if (this._shouldCoallesce(info)) {
 				this._pendingEventsForNextTick[0] = info
-				if (info.name === 'pointer_move') {
+				if (this._isCoalesableEvent(info)) {
 					this._allEventsSinceLastTick.push(info)
 				}
 			} else {
@@ -8397,7 +8399,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _pendingEventsForNextTick: TLEventInfo[] = []
-	private _allEventsSinceLastTick: TLPointerEventInfo[] = []
+	private _allEventsSinceLastTick: TLPointerMoveEventInfo[] = []
 
 	getCoalescedEvents = () => {
 		return this._allEventsSinceLastTick
@@ -8857,7 +8859,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Send the event to the statechart. It will be handled by all
 		// active states, starting at the root.
-		this.root.handleEvent(info)
+		if (this._isCoalesableEvent(info)) {
+			info.coalescedInfo = this._allEventsSinceLastTick
+		} else {
+			this.root.handleEvent(info)
+		}
 		this.emit('event', info)
 
 		return this

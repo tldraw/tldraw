@@ -7,7 +7,7 @@ import {
 	TLDrawShapeSegment,
 	TLEventHandlers,
 	TLHighlightShape,
-	TLPointerEventInfo,
+	TLPointerMoveEventInfo,
 	TLShapePartial,
 	Vec,
 	VecModel,
@@ -25,7 +25,7 @@ type DrawableShape = TLDrawShape | TLHighlightShape
 export class Drawing extends StateNode {
 	static override id = 'drawing'
 
-	info = {} as TLPointerEventInfo
+	info = {} as TLPointerMoveEventInfo
 
 	initialShape?: DrawableShape
 
@@ -51,7 +51,7 @@ export class Drawing extends StateNode {
 
 	markId = null as null | string
 
-	override onEnter = (info: TLPointerEventInfo) => {
+	override onEnter = (info: TLPointerMoveEventInfo) => {
 		this.markId = null
 		this.info = info
 		this.canDraw = !this.editor.getIsMenuOpen()
@@ -61,13 +61,14 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (_info, coallescedInfo) => {
-		coallescedInfo.forEach((info) => {
-			this.processEvents(info)
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info: TLPointerMoveEventInfo) => {
+		const coallescedInfo = info.coalescedInfo
+		coallescedInfo.forEach((ci: TLPointerMoveEventInfo) => {
+			this.processEvents(ci)
 		})
 	}
 
-	processEvents(info: TLPointerEventInfo) {
+	processEvents(info: TLPointerMoveEventInfo) {
 		const { inputs } = this.editor
 
 		if (this.isPen !== inputs.isPen) {

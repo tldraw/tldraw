@@ -147,11 +147,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
 		const x = this.getCurrent()
-		if (cbName === 'onPointerMove') {
-			this[cbName]?.(info as any, this.editor.getCoalescedEvents())
-		} else {
-			this[cbName]?.(info as any)
-		}
+		this[cbName]?.(info as any)
 		if (this.getCurrent() === x && this.getIsActive()) {
 			x?.handleEvent(info)
 		}
