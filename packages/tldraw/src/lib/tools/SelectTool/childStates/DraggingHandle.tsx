@@ -8,10 +8,12 @@ import {
 	TLHandle,
 	TLKeyboardEvent,
 	TLLineShape,
+	TLNoteShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	TLShapePartial,
 	Vec,
+	createShapeId,
 	snapAngle,
 	sortByIndex,
 	structuredClone,
@@ -30,7 +32,7 @@ export class DraggingHandle extends StateNode {
 	initialPageRotation: any
 
 	info = {} as TLPointerEventInfo & {
-		shape: TLArrowShape | TLLineShape
+		shape: TLArrowShape | TLLineShape | TLNoteShape
 		target: 'handle'
 		onInteractionEnd?: string
 		isCreating: boolean
@@ -58,6 +60,47 @@ export class DraggingHandle extends StateNode {
 		if (!isCreating) this.editor.mark(this.markId)
 
 		this.initialHandle = structuredClone(handle)
+
+		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
+			const newNoteShapeId = createShapeId()
+			const newArrowShapeId = createShapeId()
+			const originalNoteShapeId = this.shapeId
+			const pagePoint = this.editor.inputs.originPagePoint
+
+			this.editor.createShape({
+				type: 'note',
+				id: newNoteShapeId,
+				x: pagePoint.x - 100,
+				y: pagePoint.y - 50,
+				opacity: 0.25,
+			})
+			this.editor.createShape({
+				id: newArrowShapeId,
+				type: 'arrow',
+				opacity: 0.25,
+				props: {
+					start: {
+						type: 'binding',
+						boundShapeId: originalNoteShapeId,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: true,
+					},
+					end: {
+						type: 'binding',
+						boundShapeId: newNoteShapeId,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: true,
+					},
+				},
+			})
+			this.editor.select(newNoteShapeId)
+			this.parent.transition('translating', {
+				target: 'preview',
+				ids: [newNoteShapeId, newArrowShapeId],
+			})
+		}
 
 		if (this.editor.isShapeOfType<TLLineShape>(shape, 'line')) {
 			// For line shapes, if we're dragging a "create" handle, then

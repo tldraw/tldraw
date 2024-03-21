@@ -13,6 +13,7 @@ import { BoundsSnapPoint } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
+import { ComputedCache } from '@tldraw/editor';
 import { CubicSpline2d } from '@tldraw/editor';
 import { DictValidator } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
@@ -1086,17 +1087,23 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
+    cementShape(): void;
+    // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
     getGeometry(shape: TLNoteShape): Rectangle2d;
     // (undocumented)
+    getHandles(shape: TLNoteShape): TLHandle[];
+    // (undocumented)
     getHeight(shape: TLNoteShape): number;
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
+    // (undocumented)
+    hintedShape: null | TLShapeId;
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
@@ -1112,6 +1119,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
+            buttons: VecModel[];
         };
         type: "note";
         x: number;
@@ -1136,6 +1144,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
+            buttons: VecModel[];
         };
         type: "note";
         x: number;
@@ -1150,7 +1159,20 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         typeName: "shape";
     } | undefined;
     // (undocumented)
+    onDoubleClickHandle: (shape: TLNoteShape) => TLNoteShape;
+    // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
+    // (undocumented)
+    onHandlePointerDown(info: {
+        shape: TLNoteShape;
+        handleId: 'down' | 'left' | 'right' | 'up';
+    }): TLShapeId;
+    // (undocumented)
+    onHandlePointerUp(): void;
+    // (undocumented)
+    positionsCached: ComputedCache<NoteGridPositions, TLNoteShape>;
+    // (undocumented)
+    previewShape(shape: TLNoteShape, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
     // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
@@ -1161,6 +1183,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         growY: Validator<number>;
         url: Validator<string>;
         text: Validator<string>;
+        buttons: ArrayOfValidator<VecModel>;
     };
     // (undocumented)
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;

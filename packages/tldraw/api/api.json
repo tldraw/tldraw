@@ -12836,6 +12836,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#cementShape:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "cementShape(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "cementShape"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "tldraw!NoteShapeUtil#component:member(1)",
               "docComment": "",
               "excerptTokens": [
@@ -12976,6 +13007,60 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#getHandles:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHandles(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLHandle",
+                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHandles"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "tldraw!NoteShapeUtil#getHeight:member(1)",
               "docComment": "",
               "excerptTokens": [
@@ -13078,6 +13163,41 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#hintedShape:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "hintedShape: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "hintedShape",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
               },
               "isStatic": false,
               "isProtected": false,
@@ -13192,7 +13312,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n            buttons: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13219,7 +13348,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -13241,7 +13370,7 @@
               "name": "onBeforeCreate",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 12
+                "endIndex": 14
               },
               "isStatic": false,
               "isProtected": false,
@@ -13276,7 +13405,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n            buttons: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13303,7 +13441,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -13325,7 +13463,51 @@
               "name": "onBeforeUpdate",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 14
+                "endIndex": 16
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#onDoubleClickHandle:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onDoubleClickHandle: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onDoubleClickHandle",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
               },
               "isStatic": false,
               "isProtected": false,
@@ -13374,6 +13556,218 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#onHandlePointerDown:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onHandlePointerDown(info: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        handleId: 'down' | 'left' | 'right' | 'up';\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "info",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "onHandlePointerDown"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#onHandlePointerUp:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onHandlePointerUp(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "onHandlePointerUp"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#positionsCached:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "positionsCached: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ComputedCache",
+                  "canonicalReference": "@tldraw/store!ComputedCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "NoteGridPositions",
+                  "canonicalReference": "tldraw!~NoteGridPositions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "positionsCached",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 8
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#previewShape:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "previewShape(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", direction: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "'down' | 'left' | 'right' | 'up'"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "direction",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "previewShape"
             },
             {
               "kind": "Property",
@@ -13458,7 +13852,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string>;\n    }"
+                  "text": "<string>;\n        buttons: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ArrayOfValidator",
+                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -13471,7 +13883,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 18
+                "endIndex": 22
               },
               "isStatic": true,
               "isProtected": false,

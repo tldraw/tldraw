@@ -4,8 +4,13 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	TLShapeId,
+	VecLike,
+	ZERO_INDEX_KEY,
+	createShapeId,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -19,6 +24,13 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 
 const NOTE_SIZE = 200
+
+type NoteGridPositions = {
+	up: VecLike[]
+	down: VecLike[]
+	left: VecLike[]
+	right: VecLike[]
+}
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -40,6 +52,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
+			buttons: [
+				{ x: 0.5, y: -0.1 },
+				{ x: 1.1, y: 0.5 },
+				{ x: 0.5, y: 1.1 },
+				{ x: -0.1, y: 0.5 },
+			],
 		}
 	}
 
@@ -51,7 +69,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const height = this.getHeight(shape)
 		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
 	}
-
+	override getHandles(shape: TLNoteShape): TLHandle[] {
+		const { buttons } = shape.props
+		const directionArr = ['up', 'right', 'down', 'left']
+		return buttons.map((button, i) => ({
+			id: directionArr[i],
+			type: 'vertex',
+			index: ZERO_INDEX_KEY,
+			x: button.x * NOTE_SIZE,
+			y: button.y * this.getHeight(shape),
+		}))
+	}
 	component(shape: TLNoteShape) {
 		const {
 			id,
@@ -62,7 +90,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
-
 		return (
 			<>
 				<div
@@ -185,6 +212,59 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			])
 		}
 	}
+	onHandlePointerUp() {
+		this.cementShape()
+	}
+	cementShape() {
+		if (this.hintedShape) {
+			this.editor.updateShapes([{ type: 'note', id: this.hintedShape, opacity: 1 }])
+			this.hintedShape = null
+		}
+	}
+	hintedShape: TLShapeId | null = null
+	onHandlePointerDown(info: { shape: TLNoteShape; handleId: 'up' | 'down' | 'left' | 'right' }) {
+		const previewId = this.previewShape(info.shape, info.handleId)
+		return previewId
+	}
+	previewShape(shape: TLNoteShape, direction: 'up' | 'down' | 'left' | 'right') {
+		const centerOffset = NOTE_SIZE / 2
+		let count = 0
+		let emptySpot = {} as VecLike
+		const positions = this.positionsCached.get(shape.id)!
+		while (count < positions[direction].length) {
+			const position = positions[direction][count]
+			/* A better version of this is to draw a box where you want the shape to go 
+			and hit test for any shapes that may be inside the box, similar to the logic 
+			in the select tool. For now, we're just checking a single point */
+			const shapes = this.editor.getShapesAtPoint({
+				x: position.x + centerOffset,
+				y: position.y + centerOffset,
+			})
+			if (!shapes.length) {
+				emptySpot = position
+				break
+			}
+			count++
+		}
+		const newShapeId = createShapeId()
+		this.editor.createShape({
+			type: 'note',
+			id: newShapeId,
+			x: emptySpot.x,
+			y: emptySpot.y,
+			opacity: 0.25,
+			props: { color: shape.props.color, size: shape.props.size },
+		})
+		this.hintedShape = newShapeId
+		return newShapeId
+	}
+
+	override onDoubleClickHandle = (shape: TLNoteShape) => shape
+
+	positionsCached = this.editor.store.createComputedCache<NoteGridPositions, TLNoteShape>(
+		'note grid position infoCache',
+		(shape) => generatePositionsForShape(shape, this.editor)
+	)
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
@@ -218,4 +298,84 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 			},
 		}
 	}
+}
+
+function generatePositionsForShape(shape: TLNoteShape, editor: Editor) {
+	// give the shape a bit of padding to make the arrows look better
+	const distance = NOTE_SIZE + 100
+	const positions = {
+		up: [] as VecLike[],
+		down: [] as VecLike[],
+		left: [] as VecLike[],
+		right: [] as VecLike[],
+	}
+	const LAYERS = 7
+
+	const rotationRadians = editor.getShapePageTransform(shape).rotation()
+	for (let layer = 1; layer <= LAYERS; layer++) {
+		// Generate positions for up and down
+		for (let dx = -layer; dx <= layer; dx++) {
+			addPositionWithRotation(
+				positions.up,
+				shape,
+				dx * distance,
+				-layer * distance,
+				rotationRadians
+			)
+			addPositionWithRotation(
+				positions.down,
+				shape,
+				dx * distance,
+				layer * distance,
+				rotationRadians
+			)
+		}
+
+		// Generate positions for left and right
+		for (let dy = -layer; dy <= layer; dy++) {
+			addPositionWithRotation(
+				positions.left,
+				shape,
+				-layer * distance,
+				dy * distance,
+				rotationRadians
+			)
+			addPositionWithRotation(
+				positions.right,
+				shape,
+				layer * distance,
+				dy * distance,
+				rotationRadians
+			)
+		}
+	}
+
+	function addPositionWithRotation(
+		positionArray: VecLike[],
+		shape: TLNoteShape,
+		offsetX: number,
+		offsetY: number,
+		rotationRadians: number
+	) {
+		const cosR = Math.cos(rotationRadians)
+		const sinR = Math.sin(rotationRadians)
+
+		// Rotate offsetX and offsetY around (0, 0)
+		const rotatedX = offsetX * cosR - offsetY * sinR
+		const rotatedY = offsetX * sinR + offsetY * cosR
+
+		// Translate the position back to the shape's location
+		positionArray.push({ x: shape.x + rotatedX, y: shape.y + rotatedY })
+	}
+
+	// Function to calculate the Manhattan distance between two points
+	const manhattanDistance = (a: VecLike, b: VecLike) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+
+	// Sort the positions in each direction based on their Manhattan distance to the shape's origin
+	Object.keys(positions).forEach((direction) => {
+		positions[direction as 'up' | 'down' | 'left' | 'right'].sort(
+			(a: VecLike, b: VecLike) => manhattanDistance(a, shape) - manhattanDistance(b, shape)
+		)
+	})
+	return positions
 }
