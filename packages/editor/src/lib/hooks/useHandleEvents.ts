@@ -31,7 +31,6 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				target: 'handle',
 				handle,
 				shape,
-				pagePoint: editor.inputs.currentPagePoint,
 				name: 'pointer_down',
 				...getPointerInfo(e),
 			})
