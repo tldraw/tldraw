@@ -62,8 +62,8 @@ export class Drawing extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info: TLPointerMoveEventInfo) => {
-		const coallescedInfo = info.coalescedInfo
-		coallescedInfo.forEach((ci: TLPointerMoveEventInfo) => {
+		const coalescedInfo = info.coalescedInfo
+		coalescedInfo.forEach((ci: TLPointerMoveEventInfo) => {
 			this.processEvents(ci)
 		})
 	}
