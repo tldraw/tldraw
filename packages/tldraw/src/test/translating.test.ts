@@ -166,9 +166,9 @@ describe('When translating...', () => {
 			.pointerMove(1080, 800)
 		jest.advanceTimersByTime(100)
 		editor
-			.expectShapeToMatch({ id: ids.box1, x: 1300, y: 845.68 })
+			.expectShapeToMatch({ id: ids.box1, x: 1320, y: 845.68 })
 			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: 1300, y: 845.68 })
+			.expectShapeToMatch({ id: ids.box1, x: 1360, y: 870.16 })
 	})
 
 	it('translates multiple shapes', () => {
