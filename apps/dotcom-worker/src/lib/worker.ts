@@ -85,6 +85,7 @@ function isAllowedOrigin(origin: string) {
 	if (origin === 'http://localhost:5420') return true
 	if (origin.endsWith('.tldraw.com')) return true
 	if (origin.endsWith('-tldraw.vercel.app')) return true
+	if (origin.endsWith('tldraw.workers.dev')) return true
 	return false
 }
 
