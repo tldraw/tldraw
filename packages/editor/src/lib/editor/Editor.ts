@@ -2108,6 +2108,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// weird but true: we need to put the screen point back into client space
 				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
 				pagePoint: this.inputs.currentPagePoint,
+				coalescedInfo: [],
 				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
 				ctrlKey: this.inputs.ctrlKey,
 				altKey: this.inputs.altKey,
