@@ -81,7 +81,9 @@ export class TLDrawDurableObject extends TLServer {
 		this.analyticsPgClient = new PgClient({
 			connectionString: env.ANALYTICS_DB_HYPERDRIVE.connectionString,
 		})
-		controller.blockConcurrencyWhile(this.analyticsPgClient.connect)
+		controller.blockConcurrencyWhile(async () => {
+			await this.analyticsPgClient.connect()
+		})
 
 		controller.blockConcurrencyWhile(async () => {
 			const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
