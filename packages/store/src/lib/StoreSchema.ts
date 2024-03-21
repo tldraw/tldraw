@@ -50,12 +50,14 @@ export function upgradeSchema(schema: SerializedSchema): SerializedSchemaV2 {
 		schemaVersion: 2,
 		sequences: {},
 	}
+	debugger
 
 	for (const [typeName, recordVersion] of Object.entries(schema.recordVersions)) {
+		result.sequences[`com.tldraw.${typeName}`] = recordVersion.version
 		if ('subTypeKey' in recordVersion) {
-			result.sequences[`com.tldraw/${typeName}.${recordVersion.subTypeKey}`] = 0
-		} else {
-			result.sequences[`com.tldraw/${typeName}`] = 0
+			for (const [subType, version] of Object.entries(recordVersion.subTypeVersions)) {
+				result.sequences[`com.tldraw.${typeName}.${subType}`] = version
+			}
 		}
 	}
 	return result

@@ -16,6 +16,7 @@ import {
 	createShapeRecordType,
 	getShapePropKeysByStyle,
 	processShapeMigrations,
+	rootShapeMigrations,
 } from './records/TLShape'
 import { arrowShapeMigrations, arrowShapeProps } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations, bookmarkShapeProps } from './shapes/TLBookmarkShape'
@@ -112,6 +113,7 @@ export function createTLSchema({
 				[pageMigrations.sequenceId]: pageMigrations,
 				[instancePresenceMigrations.sequenceId]: instancePresenceMigrations,
 				[pointerMigrations.sequenceId]: pointerMigrations,
+				[rootShapeMigrations.sequenceId]: rootShapeMigrations,
 				...processShapeMigrations(shapes),
 			},
 			onValidationFailure,
