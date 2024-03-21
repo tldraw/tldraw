@@ -76,13 +76,13 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       <text
         alignment-baseline="mathematical"
         dominant-baseline="mathematical"
-        fill="#1d1d1d"
+        fill="rgb(249, 250, 251)"
         font-family="'tldraw_draw', sans-serif"
         font-size="22"
         font-style="'tldraw_draw', sans-serif"
         font-weight="normal"
         stroke="rgb(249, 250, 251)"
-        stroke-width="3"
+        stroke-width="2"
       >
         <tspan
           alignment-baseline="mathematical"
