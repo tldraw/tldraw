@@ -8350,7 +8350,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	capturedPointerId: number | null = null
 
-	private _shouldCoallesce = (info: TLEventInfo) => {
+	private _shouldCoalesce = (info: TLEventInfo) => {
 		if (!this._isCoalesableEvent(info)) return false
 		return (
 			this._pendingEventsForNextTick.length === 1 &&
@@ -8383,7 +8383,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this._allEventsSinceLastTick.push(info)
 			}
 		} else {
-			if (this._shouldCoallesce(info)) {
+			if (this._shouldCoalesce(info)) {
 				this._pendingEventsForNextTick[0] = info
 				if (this._isCoalesableEvent(info)) {
 					this._allEventsSinceLastTick.push(info)
