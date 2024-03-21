@@ -191,6 +191,7 @@ export function validateMigrations(migrations: Migrations) {
 
 	validateMigrationId(migrations.sequence[0].id, migrations.sequenceId)
 	let n = parseMigrationId(migrations.sequence[0].id).version
+	assert(n === 1, 'Migration numbers must start at 1')
 	for (let i = 1; i < migrations.sequence.length; i++) {
 		const id = migrations.sequence[i].id
 		validateMigrationId(id, migrations.sequenceId)
