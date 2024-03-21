@@ -5,8 +5,10 @@ import { Client as PgClient } from 'pg'
 const SAMPLE_RATE = 0.05
 
 export function report(client: PgClient, tldraw_env: string, point: TLAnalyticsPoint) {
+	console.log('reporting')
 	try {
 		if (shouldSample()) {
+			console.log('shouldSample')
 			let promise = null
 
 			switch (point.type) {
