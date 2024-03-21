@@ -9050,13 +9050,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		// Send the event to the statechart. It will be handled by all
-		// active states, starting at the root.
 		if (this._isCoalesableEvent(info)) {
 			info.coalescedInfo = this._allEventsSinceLastTick
-		} else {
-			this.root.handleEvent(info)
 		}
+		// Send the event to the statechart. It will be handled by all
+		// active states, starting at the root.
+		this.root.handleEvent(info)
 		this.emit('event', info)
 
 		return this
