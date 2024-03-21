@@ -35,20 +35,13 @@ export function defineMigrations(opts: {
 	}
 }
 
-export function createMigrations(opts: Partial<Migrations>): Migrations {
-	assert(opts.sequence || opts.sequenceId, 'Must provide either a sequence or an id for migrations')
-	assert(
-		opts.sequenceId || opts.sequence?.length,
-		'Must provide either a sequence or an id for an empty sequence'
-	)
-	const result: Migrations = {
-		sequenceId: opts.sequenceId ?? parseMigrationId(opts.sequence![0].id).sequenceId,
-		sequence: opts.sequence ?? [],
-	}
-	validateMigrations(result)
-	return result
+/** @public */
+export function createMigrations(migrations: Migrations): Migrations {
+	validateMigrations(migrations)
+	return migrations
 }
 
+/** @public */
 export function createMigrationIds<ID extends string, Versions extends Record<string, number>>(
 	sequenceId: ID,
 	versions: Versions
@@ -58,8 +51,8 @@ export function createMigrationIds<ID extends string, Versions extends Record<st
 	) as any
 }
 
+/** @internal */
 export function createRecordMigrations(opts: {
-	sequenceId?: string
 	recordType: string
 	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]
 }): Migrations {
@@ -72,7 +65,11 @@ export function createRecordMigrations(opts: {
 				: (r: UnknownRecord) => r.typeName === opts.recordType,
 		})
 	)
-	return createMigrations({ sequenceId: opts.sequenceId, sequence: compiledSequence })
+	return createMigrations({
+		sequenceId: `com.tldraw.${opts.recordType}`,
+		retroactive: false,
+		sequence: compiledSequence,
+	})
 }
 
 /** @public */
@@ -119,15 +116,15 @@ export interface LegacyMigrations extends LegacyBaseMigrationsInfo {
 export interface Migrations {
 	sequenceId: string
 	/**
-	 * postHoc should be true if the migrations should be applied to snapshots that were created before
-	 * this migration sequence was added.
+	 * retroactive should be true if the migrations should be applied to snapshots that were created before
+	 * this migration sequence was added to the schema.
 	 *
 	 * In general:
 	 *
-	 * - postHoc should be true when app developers create their own new migration sequences.
-	 * - postHoc should be false when library developers ship a migration sequence. When you install a library for the first time, any migrations that were added in the library before that point should generally _not_ be applied to your existing data.
+	 * - retroactive should be true when app developers create their own new migration sequences.
+	 * - retroactive should be false when library developers ship a migration sequence. When you install a library for the first time, any migrations that were added in the library before that point should generally _not_ be applied to your existing data.
 	 */
-	postHoc?: boolean
+	retroactive: boolean
 	sequence: Migration[]
 }
 

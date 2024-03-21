@@ -211,11 +211,13 @@ export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) 
 			// provide empty migrations sequence to allow for future migrations
 			result[sequenceId] = createMigrations({
 				sequenceId,
+				retroactive: false,
 				sequence: [],
 			})
 		} else if ('sequence' in migrations) {
 			result[sequenceId] = createMigrations({
 				sequenceId,
+				retroactive: false,
 				sequence: migrations.sequence.map(
 					({ version, up, down }): Migration => ({
 						id: `${sequenceId}/${version}`,
@@ -242,6 +244,7 @@ export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) 
 			// legacy migrations, will be removed in the future
 			result[sequenceId] = createMigrations({
 				sequenceId,
+				retroactive: false,
 				sequence: Object.keys(migrations.migrators)
 					.map((k) => Number(k))
 					.sort((a: number, b: number) => a - b)

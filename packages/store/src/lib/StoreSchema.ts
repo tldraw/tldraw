@@ -39,7 +39,10 @@ export interface SerializedSchemaV1 {
 export interface SerializedSchemaV2 {
 	schemaVersion: 2
 	sequences: {
-		[sequenceId: string]: number
+		[sequenceId: string]: {
+			version: number
+			retroactive: boolean
+		}
 	}
 }
 
@@ -53,10 +56,16 @@ export function upgradeSchema(schema: SerializedSchema): SerializedSchemaV2 {
 	}
 
 	for (const [typeName, recordVersion] of Object.entries(schema.recordVersions)) {
-		result.sequences[`com.tldraw.${typeName}`] = recordVersion.version
+		result.sequences[`com.tldraw.${typeName}`] = {
+			version: recordVersion.version,
+			retroactive: false,
+		}
 		if ('subTypeKey' in recordVersion) {
 			for (const [subType, version] of Object.entries(recordVersion.subTypeVersions)) {
-				result.sequences[`com.tldraw.${typeName}.${subType}`] = version
+				result.sequences[`com.tldraw.${typeName}.${subType}`] = {
+					version,
+					retroactive: false,
+				}
 			}
 		}
 	}
@@ -141,7 +150,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 		// also include any sequences that are not in the persisted schema but are marked as postHoc
 		for (const sequenceId in this.migrations) {
-			if (schema.sequences[sequenceId] === undefined && this.migrations[sequenceId].postHoc) {
+			if (schema.sequences[sequenceId] === undefined && this.migrations[sequenceId].retroactive) {
 				sequenceIdsToInclude.add(sequenceId)
 			}
 		}
@@ -152,23 +161,24 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 		const allMigrationsToInclude = new Set<MigrationId>()
 		for (const sequenceId of sequenceIdsToInclude) {
-			const theirVersionNumber = schema.sequences[sequenceId]
+			const theirVersion = schema.sequences[sequenceId]
 			if (
+				(!theirVersion && this.migrations[sequenceId].retroactive) ||
 				// Special case for legacy situations where there was no schema.
-				// This also happens when an empty schema is passed in.
-				theirVersionNumber === -1 ||
-				// also if the sequence is marked as postHoc
-				(typeof theirVersionNumber === 'undefined' && this.migrations[sequenceId].postHoc)
+				// This also happens when an empty sequence is passed in.
+				theirVersion?.version === -1
 			) {
 				for (const migration of this.migrations[sequenceId].sequence) {
 					allMigrationsToInclude.add(migration.id)
 				}
 				continue
 			}
-			const theirVersionId = `${sequenceId}/${schema.sequences[sequenceId]}`
+			const theirVersionId = `${sequenceId}/${schema.sequences[sequenceId].version}`
 			const idx = this.migrations[sequenceId].sequence.findIndex((m) => m.id === theirVersionId)
 			// todo: better error handling
-			if (idx === -1) return Result.err('Incompatible schema?')
+			if (idx === -1) {
+				return Result.err('Incompatible schema?')
+			}
 			for (const migration of this.migrations[sequenceId].sequence.slice(idx + 1)) {
 				allMigrationsToInclude.add(migration.id)
 			}
@@ -186,6 +196,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		const migrations = this.getMigrationsSince(persistedSchema)
 		if (!migrations.ok) {
 			// TODO: better error
+			console.error('Error migrating record', migrations.error)
 			return { type: 'error', reason: MigrationFailureReason.MigrationError }
 		}
 		let migrationsToApply = migrations.value
@@ -225,6 +236,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				}
 			}
 		} catch (e) {
+			console.error('Error migrating record', e)
 			return { type: 'error', reason: MigrationFailureReason.MigrationError }
 		}
 
@@ -236,6 +248,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		const migrations = this.getMigrationsSince(snapshot.schema)
 		if (!migrations.ok) {
 			// TODO: better error
+			console.error('Error migrating store', migrations.error)
 			return { type: 'error', reason: MigrationFailureReason.MigrationError }
 		}
 		const migrationsToApply = migrations.value
@@ -266,6 +279,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				}
 			}
 		} catch (e) {
+			console.error('Error migrating store', e)
 			return { type: 'error', reason: MigrationFailureReason.MigrationError }
 		}
 
@@ -281,9 +295,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return {
 			schemaVersion: 2,
 			sequences: Object.fromEntries(
-				Object.entries(this.migrations).map(([sequenceId, { sequence }]) => [
+				Object.values(this.migrations).map(({ sequenceId, sequence, retroactive }) => [
 					sequenceId,
-					sequence.length ? parseMigrationId(sequence.at(-1)!.id).version : -1,
+					{
+						version: sequence.length ? parseMigrationId(sequence.at(-1)!.id).version : -1,
+						retroactive,
+					},
 				])
 			),
 		}
@@ -296,7 +313,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return {
 			schemaVersion: 2,
 			sequences: Object.fromEntries(
-				Object.keys(this.migrations).map((sequenceId) => [sequenceId, -1])
+				Object.values(this.migrations).map(({ sequenceId, retroactive }) => [
+					sequenceId,
+					{ version: -1, retroactive },
+				])
 			),
 		}
 	}
