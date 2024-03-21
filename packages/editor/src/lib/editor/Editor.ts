@@ -8401,10 +8401,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _pendingEventsForNextTick: TLEventInfo[] = []
 	private _allEventsSinceLastTick: TLPointerMoveEventInfo[] = []
 
-	getCoalescedEvents = () => {
-		return this._allEventsSinceLastTick
-	}
-
 	private _flushEventsForTick = (elapsed: number) => {
 		this.batch(() => {
 			if (this._pendingEventsForNextTick.length > 0) {

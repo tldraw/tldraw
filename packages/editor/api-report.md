@@ -670,8 +670,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
     getCanUndo(): boolean;
-    // (undocumented)
-    getCoalescedEvents: () => TLPointerMoveEventInfo[];
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     // @internal

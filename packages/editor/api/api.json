@@ -10148,45 +10148,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#getCoalescedEvents:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getCoalescedEvents: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "() => "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLPointerMoveEventInfo",
-                  "canonicalReference": "@tldraw/editor!TLPointerMoveEventInfo:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "getCoalescedEvents",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 4
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#getContainer:member",
               "docComment": "/**\n * The current HTML element containing the editor.\n *\n * @example\n * ```ts\n * const container = editor.getContainer()\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
