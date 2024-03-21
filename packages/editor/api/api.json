@@ -13884,7 +13884,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getSvg:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link Editor.getSvgString} instead\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

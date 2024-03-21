@@ -8097,6 +8097,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return { svg: renderToStaticMarkup(svg.jsx), width: svg.width, height: svg.height }
 	}
 
+	/** @deprecated Use {@link Editor.getSvgString} instead */
 	async getSvg(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
 		const svg = await getSvgJsx(this, shapes, opts)
 		if (!svg) return undefined
