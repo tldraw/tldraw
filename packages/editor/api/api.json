@@ -9026,7 +9026,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#dispatch:member",
-              "docComment": "/**\n * Dispatch an event to the editor.\n *\n * @param info - The event info. h*\n *\n * @example\n * ```ts\n * editor.dispatch(myPointerEvent)\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Dispatch an event to the editor.\n *\n * @param info - The event info.\n *\n * @example\n * ```ts\n * editor.dispatch(myPointerEvent)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

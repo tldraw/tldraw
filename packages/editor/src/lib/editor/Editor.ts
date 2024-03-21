@@ -8374,7 +8374,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param info - The event info.
-	 h*
 	 * @public
 	 */
 	dispatch = (info: TLEventInfo): this => {
