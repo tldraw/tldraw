@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY, atom, computed, react, transact } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -60,7 +60,6 @@ import {
 	structuredClone,
 } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
-import { version } from '../../version'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -107,6 +106,7 @@ import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
+import { LicenseManager } from './managers/LicenseManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SideEffectManager } from './managers/SideEffectManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
@@ -206,67 +206,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.getContainer = getContainer ?? (() => document.body)
 
-		{
-			// LEGAL NOTICE:
-			// This code in this block is required to be present in the editor.
-			// Removing or modififying the code in this block is a violation of
-			// the tldraw license. The watermark must be visible at all times when
-			// the editor is in use. Obscuring the watermark (e.g. by placing it
-			// behind other elements) is a violation of the tldraw license.
-			// To remove the watermark, provide a valid license key to the editor.
-			// See tldraw.dev/license for more information.
-			const link = document.createElement('a')
-			link.setAttribute('id', `tldraw_${version}`)
-			link.setAttribute('href', 'https://tldraw.dev')
-			link.setAttribute('target', 'blank')
-			link.setAttribute('data-version', version)
-			link.setAttribute('user-select', 'none')
-			link.style.setProperty('position', 'absolute')
-			link.style.setProperty('right', '0px')
-			link.style.setProperty('bottom', 'var(--sab)')
-			link.style.setProperty('padding', '8px')
-			link.style.setProperty('z-index', '999999999')
-			const div = document.createElement('div')
-			div.style.setProperty('background-color', 'var(--color-text)')
-			link.appendChild(div)
-			this.getContainer().appendChild(link)
-			let breakpoint = 'none' as 'none' | 'mobile' | 'desktop'
-			const debugMode = computed('debug mode', () => this.getInstanceState().isDebugMode)
-			this.disposables.add(
-				react('update watermark bottom position', () => {
-					if (debugMode.get()) {
-						link.style.setProperty('bottom', 'calc(var(--sab) + 41px)')
-					} else {
-						link.style.setProperty('bottom', 'var(--sab)')
-					}
-				})
-			)
-			this.disposables.add(
-				react('update watermark', () => {
-					const bounds = this.getViewportScreenBounds()
-					const bp = bounds.width < 760 ? 'mobile' : 'desktop'
-					if (bp === breakpoint) return
-					breakpoint = bp
-					let width: number, height: number, imageSrc: string
-					if (breakpoint === 'mobile') {
-						imageSrc = 'watermark-mobile'
-						height = 18
-						width = 18
-					} else {
-						breakpoint = 'desktop'
-						imageSrc = 'watermark'
-						height = 28
-						width = 98
-					}
-					const mask = `url(/${imageSrc}.svg) center 100% / 100% no-repeat`
-					div.style.setProperty('height', height + 'px')
-					div.style.setProperty('width', width + 'px')
-					div.style.setProperty('mask', mask)
-					div.style.setProperty('--webkit-mask', mask)
-				})
-			)
-		}
-
+		this.licenseManager = new LicenseManager(this)
 		this.textMeasure = new TextManager(this)
 		this._tickManager = new TickManager(this)
 
@@ -750,6 +690,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly textMeasure: TextManager
+
+	/**
+	 * A manager for the editor's license.
+	 *
+	 * @public
+	 */
+	readonly licenseManager: LicenseManager
 
 	/**
 	 * A manager for the editor's environment.

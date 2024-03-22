@@ -810,6 +810,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
+    readonly licenseManager: LicenseManager;
     mark(markId?: string, onUndo?: boolean, onRedo?: boolean): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
