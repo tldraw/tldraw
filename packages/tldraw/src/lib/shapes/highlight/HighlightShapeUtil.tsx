@@ -38,6 +38,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	override hideResizeHandles = (shape: TLHighlightShape) => getIsDot(shape)
 	override hideRotateHandle = (shape: TLHighlightShape) => getIsDot(shape)
 	override hideSelectionBoundsFg = (shape: TLHighlightShape) => getIsDot(shape)
+	override isSticky = () => true
 
 	override getDefaultProps(): TLHighlightShape['props'] {
 		return {

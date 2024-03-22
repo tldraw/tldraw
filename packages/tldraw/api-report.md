@@ -632,6 +632,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
     // (undocumented)
+    canDropShapesOnlyWithinMaskedBounds: () => boolean;
+    // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
     canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
@@ -900,6 +902,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     indicator(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
+    isSticky: () => boolean;
+    // (undocumented)
     static migrations: Migrations;
     // (undocumented)
     onResize: TLOnResizeHandler<TLHighlightShape>;
@@ -1099,6 +1103,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
+    // (undocumented)
+    isSticky: () => boolean;
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)

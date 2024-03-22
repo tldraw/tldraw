@@ -35,7 +35,6 @@ export class PointingShape extends StateNode {
 			outermostSelectingShape.id === focusedGroupId ||
 			// ...or if the shape is within the selection
 			selectedShapeIds.includes(outermostSelectingShape.id) ||
-			this.editor.isAncestorSelected(outermostSelectingShape.id) ||
 			// ...or if the current point is NOT within the selection bounds
 			(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
 		) {

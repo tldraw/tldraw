@@ -5023,13 +5023,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// Only allow dropping into the masked page bounds of the shape, e.g. when a frame is
-			// partially clipped by its own parent frame
+			// partially clipped by its own parent frame.
 			const maskedPageBounds = this.getShapeMaskedPageBounds(shape.id)
-
 			if (
+				this.getShapeUtil(shape).canDropShapesOnlyWithinMaskedBounds(shape) &&
 				maskedPageBounds &&
 				maskedPageBounds.containsPoint(point) &&
 				this.getShapeGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), 0, true)
+			) {
+				return shape
+			}
+
+			// Non-frames have different logic when dropping. They look at collisions between the bounding boxes.
+			const shapeBounds = this.getShapePageBounds(shape)
+			if (
+				shapeBounds &&
+				droppingShapes.some((droppingShape) =>
+					this.getShapePageBounds(droppingShape)?.collides(shapeBounds)
+				)
 			) {
 				return shape
 			}
