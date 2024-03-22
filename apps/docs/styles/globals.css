@@ -139,6 +139,7 @@ body {
 	grid-row: 1;
 	grid-column: 1 / span 3;
 	width: 100%;
+	height: var(--header-height);
 	max-width: var(--layout-max-width);
 	position: fixed;
 	background-color: var(--color-background);
@@ -1171,9 +1172,14 @@ body {
 		background-color: var(--color-background);
 	}
 
+	body.sidebar-open {
+		overflow-y: hidden;
+	}
+
 	body.sidebar-open .sidebar {
 		display: initial;
 		position: fixed;
+		height: 100%;
 		inset: 0px;
 		z-index: 10000;
 	}
@@ -1294,6 +1300,10 @@ body {
 
 	.article__image > img {
 		border-radius: 0px;
+	}
+
+	.layout {
+		padding: 0;
 	}
 
 	.layout__header {
