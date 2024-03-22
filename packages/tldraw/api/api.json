@@ -19531,7 +19531,7 @@
             },
             {
               "kind": "Content",
-              "text": ">({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, title, isSelected, }: "
+              "text": ">({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, isSelected, }: "
             },
             {
               "kind": "Reference",
@@ -19573,7 +19573,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, title, isSelected, }",
+              "parameterName": "{ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, isSelected, }",
               "parameterTypeTokenRange": {
                 "startIndex": 9,
                 "endIndex": 11
@@ -24972,7 +24972,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    icon?: IconType;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk?: boolean;\n    onSelect: (source: "
+              "text": "{\n    id: string;\n    icon?: IconType;\n    kbd?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk?: boolean;\n    onSelect: (source: "
             },
             {
               "kind": "Reference",
