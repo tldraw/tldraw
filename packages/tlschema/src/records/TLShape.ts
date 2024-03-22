@@ -213,72 +213,78 @@ export function createShapePropsMigrations(
 }
 
 export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) {
-	const result: Record<string, Migrations> = {}
+	const result: Migrations[] = []
 
 	for (const [shapeType, { migrations }] of Object.entries(shapes)) {
 		const sequenceId = `com.tldraw.shape.${shapeType}`
 		if (!migrations) {
 			// provide empty migrations sequence to allow for future migrations
-			result[sequenceId] = createMigrations({
-				sequenceId,
-				retroactive: false,
-				sequence: [],
-			})
+			result.push(
+				createMigrations({
+					sequenceId,
+					retroactive: false,
+					sequence: [],
+				})
+			)
 		} else if ('sequence' in migrations) {
-			result[sequenceId] = createMigrations({
-				sequenceId,
-				retroactive: false,
-				sequence: migrations.sequence.map(
-					({ version, up, down }): Migration => ({
-						id: `${sequenceId}/${version}`,
-						scope: 'record',
-						filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
-						up: (record: any) => {
-							const result = up(record.props)
-							if (result) {
-								record.props = result
-							}
-						},
-						down:
-							typeof down === 'function'
-								? (record: any) => {
-										const result = down(record.props)
-										if (result) {
-											record.props = result
-										}
-									}
-								: undefined,
-					})
-				),
-			})
-		} else {
-			// legacy migrations, will be removed in the future
-			result[sequenceId] = createMigrations({
-				sequenceId,
-				retroactive: false,
-				sequence: Object.keys(migrations.migrators)
-					.map((k) => Number(k))
-					.sort((a: number, b: number) => a - b)
-					.map(
-						(version): Migration => ({
+			result.push(
+				createMigrations({
+					sequenceId,
+					retroactive: false,
+					sequence: migrations.sequence.map(
+						({ version, up, down }): Migration => ({
 							id: `${sequenceId}/${version}`,
 							scope: 'record',
 							filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
 							up: (record: any) => {
-								const result = migrations.migrators[version].up(record)
+								const result = up(record.props)
 								if (result) {
-									return result
+									record.props = result
 								}
 							},
-							down: (record: any) => {
-								const result = migrations.migrators[version].down(record)
-								if (result) {
-									return result
-								}
-							},
+							down:
+								typeof down === 'function'
+									? (record: any) => {
+											const result = down(record.props)
+											if (result) {
+												record.props = result
+											}
+										}
+									: undefined,
 						})
 					),
-			})
+				})
+			)
+		} else {
+			// legacy migrations, will be removed in the future
+			result.push(
+				createMigrations({
+					sequenceId,
+					retroactive: false,
+					sequence: Object.keys(migrations.migrators)
+						.map((k) => Number(k))
+						.sort((a: number, b: number) => a - b)
+						.map(
+							(version): Migration => ({
+								id: `${sequenceId}/${version}`,
+								scope: 'record',
+								filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
+								up: (record: any) => {
+									const result = migrations.migrators[version].up(record)
+									if (result) {
+										return result
+									}
+								},
+								down: (record: any) => {
+									const result = migrations.migrators[version].down(record)
+									if (result) {
+										return result
+									}
+								},
+							})
+						),
+				})
+			)
 		}
 	}
 

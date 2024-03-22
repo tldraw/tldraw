@@ -1,4 +1,10 @@
-import { Result, exhaustiveSwitchError, getOwnProperty, structuredClone } from '@tldraw/utils'
+import {
+	Result,
+	assert,
+	exhaustiveSwitchError,
+	getOwnProperty,
+	structuredClone,
+} from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
@@ -10,6 +16,7 @@ import {
 	Migrations,
 	parseMigrationId,
 	sortMigrations,
+	validateMigrations,
 } from './migrate'
 
 /** @public */
@@ -74,7 +81,7 @@ export function upgradeSchema(schema: SerializedSchema): SerializedSchemaV2 {
 
 /** @public */
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
-	migrations?: Record<string, Migrations>
+	migrations?: Migrations[]
 	/** @public */
 	onValidationFailure?: (data: {
 		error: unknown
@@ -99,7 +106,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return new StoreSchema<R, P>(types as any, options ?? {})
 	}
 
-	readonly migrations: Record<string, Migrations>
+	readonly migrations: Record<string, Migrations> = {}
 	readonly sortedMigrations: readonly Migration[]
 
 	private constructor(
@@ -108,7 +115,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		},
 		private readonly options: StoreSchemaOptions<R, P>
 	) {
-		this.migrations = options.migrations ?? {}
+		for (const m of options.migrations ?? []) {
+			assert(!this.migrations[m.sequenceId], `Duplicate migration sequenceId ${m.sequenceId}`)
+			validateMigrations(m)
+			this.migrations[m.sequenceId] = m
+		}
 		const allMigrations = Object.values(this.migrations).flatMap((m) => m.sequence)
 		this.sortedMigrations = sortMigrations(allMigrations)
 	}

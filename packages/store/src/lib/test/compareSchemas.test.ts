@@ -48,31 +48,4 @@ describe('compareSchemas', () => {
 			)
 		).toBe(-1)
 	})
-
-	it('works when a record version was updated', () => {
-		const schema = testSchemaV0.serialize()
-		schema.recordVersions.shape.version++
-		expect(compareSchemas(schema, testSchemaV0.serialize())).toBe(1)
-		expect(compareSchemas(testSchemaV0.serialize(), schema)).toBe(-1)
-	})
-	it('works when a record subtype was updated', () => {
-		const schema = testSchemaV0.serialize()
-		if ('subTypeVersions' in schema.recordVersions.shape) {
-			schema.recordVersions.shape.subTypeVersions.rectangle++
-		}
-		expect(compareSchemas(schema, testSchemaV0.serialize())).toBe(1)
-		expect(compareSchemas(testSchemaV0.serialize(), schema)).toBe(-1)
-	})
-	it('works when the schema format version is updated', () => {
-		const schema = testSchemaV0.serialize()
-		schema.schemaVersion++
-		expect(compareSchemas(schema, testSchemaV0.serialize())).toBe(1)
-		expect(compareSchemas(testSchemaV0.serialize(), schema)).toBe(-1)
-	})
-	it('works when the store version is updated', () => {
-		const schema = testSchemaV0.serialize()
-		schema.storeVersion++
-		expect(compareSchemas(schema, testSchemaV0.serialize())).toBe(1)
-		expect(compareSchemas(testSchemaV0.serialize(), schema)).toBe(-1)
-	})
 })

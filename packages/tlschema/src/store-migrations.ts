@@ -1,22 +1,23 @@
-import { createMigrations } from '@tldraw/store'
+import { createMigrationIds, createMigrations } from '@tldraw/store'
 import { objectMapEntries } from '@tldraw/utils'
 import { TLShape } from './records/TLShape'
 
-const Versions = {
+const Versions = createMigrationIds('com.tldraw.store', {
 	RemoveCodeAndIconShapeTypes: 1,
 	AddInstancePresenceType: 2,
 	RemoveTLUserAndPresenceAndAddPointer: 3,
 	RemoveUserDocument: 4,
-} as const
+} as const)
 
 export { Versions as storeVersions }
 
 /** @public */
 export const storeMigrations = createMigrations({
 	sequenceId: 'com.tldraw.store',
+	retroactive: false,
 	sequence: [
 		{
-			id: `com.tldraw.store/${Versions.RemoveCodeAndIconShapeTypes}`,
+			id: Versions.RemoveCodeAndIconShapeTypes,
 			scope: 'store',
 			up: (store) => {
 				for (const [id, record] of objectMapEntries(store)) {
@@ -30,7 +31,7 @@ export const storeMigrations = createMigrations({
 			},
 		},
 		{
-			id: `com.tldraw.store/${Versions.AddInstancePresenceType}`,
+			id: Versions.AddInstancePresenceType,
 			scope: 'store',
 			up(_store) {
 				// noop
@@ -40,7 +41,7 @@ export const storeMigrations = createMigrations({
 		},
 		{
 			// remove user and presence records and add pointer records
-			id: `com.tldraw.store/${Versions.RemoveTLUserAndPresenceAndAddPointer}`,
+			id: Versions.RemoveTLUserAndPresenceAndAddPointer,
 			scope: 'store',
 			up: (store) => {
 				for (const [id, record] of objectMapEntries(store)) {
@@ -52,7 +53,7 @@ export const storeMigrations = createMigrations({
 		},
 		{
 			// remove user document records
-			id: `com.tldraw.store/${Versions.RemoveUserDocument}`,
+			id: Versions.RemoveUserDocument,
 			scope: 'store',
 			up: (store) => {
 				for (const [id, record] of objectMapEntries(store)) {
