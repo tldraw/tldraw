@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { vecModelValidator } from '../misc/geometry-types'
-import { createShapePropMigrations } from '../records/TLShape'
+import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultFillStyle } from '../styles/TLFillStyle'
@@ -38,7 +38,7 @@ const Versions = {
 } as const
 
 /** @internal */
-export const drawShapeMigrations = createShapePropMigrations({
+export const drawShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
 			version: Versions.AddInPen,
@@ -63,9 +63,7 @@ export const drawShapeMigrations = createShapePropMigrations({
 				}
 				props.isPen = isPen
 			},
-			down: (props) => {
-				delete props.isPen
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
 	],
 })
