@@ -24,7 +24,7 @@ export function OverflowingToolbar({ children }: { children: React.ReactNode }) 
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
 
-	const overflowIndex = Math.min(8, 5 + breakpoint)
+	const overflowIndex = Math.min(8, 3 + Math.max(1, breakpoint))
 
 	const [totalItems, setTotalItems] = useState(0)
 	const mainToolsRef = useRef<HTMLDivElement>(null)

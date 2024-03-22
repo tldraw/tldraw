@@ -30,6 +30,7 @@
 	--layer-following-indicator: 1000;
 	/* Misc */
 	--tl-zoom: 1;
+	--sab: env(safe-area-inset-bottom);
 
 	/* Cursor SVGs */
 	--tl-cursor-none: none;

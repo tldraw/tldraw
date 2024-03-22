@@ -30,7 +30,11 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: { child
 	const { ActionsMenu, QuickActions } = useTldrawUiComponents()
 
 	return (
-		<div className="tlui-toolbar">
+		<div
+			className="tlui-toolbar"
+			data-left={breakpoint === PORTRAIT_BREAKPOINT.ZERO}
+			data-mobile={breakpoint < PORTRAIT_BREAKPOINT.MOBILE}
+		>
 			<div className="tlui-toolbar__inner">
 				<div className="tlui-toolbar__left">
 					{!isReadonlyMode && (

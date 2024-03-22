@@ -9,7 +9,7 @@ import {
 	TLUiContextMenuProps,
 } from '../components/ContextMenu/DefaultContextMenu'
 import { DefaultDebugMenu } from '../components/DebugMenu/DefaultDebugMenu'
-import { DefaultHelpMenu, TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
+import { TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
 import {
 	DefaultHelperButtons,
 	TLUiHelperButtonsProps,
@@ -77,7 +77,7 @@ export function TldrawUiComponentsProvider({
 				() => ({
 					ContextMenu: DefaultContextMenu,
 					ActionsMenu: DefaultActionsMenu,
-					HelpMenu: DefaultHelpMenu,
+					HelpMenu: null, //DefaultHelpMenu,
 					ZoomMenu: DefaultZoomMenu,
 					MainMenu: DefaultMainMenu,
 					Minimap: DefaultMinimap,

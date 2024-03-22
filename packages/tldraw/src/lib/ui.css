@@ -336,7 +336,6 @@
 	contain: strict;
 	z-index: var(--layer-panels);
 	-webkit-transform: translate3d(0, 0, 0);
-	--sab: env(safe-area-inset-bottom);
 }
 
 .tlui-layout__top {
@@ -811,6 +810,11 @@
 	justify-content: center;
 	flex-grow: 2;
 	padding-bottom: calc(var(--space-3) + var(--sab));
+}
+
+.tlui-toolbar[data-left='true'] {
+	justify-content: flex-start;
+	padding-left: var(--space-3);
 }
 
 /* Centered Content */
