@@ -76,6 +76,35 @@ const CustomUi = track(() => {
 				>
 					Eraser
 				</button>
+				<button
+					className="custom-button"
+					data-isactive={editor.getCurrentToolId() === 'line'}
+					onClick={() => editor.setCurrentTool('line')}
+				>
+					Line
+				</button>
+
+				<button className="custom-button" data-isactive={editor.getCurrentToolId()==='text' } onClick={()=>
+					editor.setCurrentTool('text')}
+					>
+					Text
+				</button>
+
+				<button
+					className="custom-button"
+					data-isactive={editor.getCurrentToolId() === 'arrow'}
+					onClick={() => editor.setCurrentTool('arrow')}
+				>
+					Arrow
+				</button>
+
+				<button
+					className="custom-button"
+					data-isactive={editor.getCurrentToolId() === 'highlight'}
+					onClick={() => editor.setCurrentTool('highlight')}
+				>
+					Highlight
+				</button>
 			</div>
 		</div>
 	)
