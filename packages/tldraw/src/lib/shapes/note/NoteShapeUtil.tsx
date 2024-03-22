@@ -9,6 +9,7 @@ import {
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
+	rng,
 	toDomPrecision,
 } from '@tldraw/editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -19,6 +20,7 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 
 const NOTE_SIZE = 200
+const PADDING = 16
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -43,12 +45,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		}
 	}
 
-	getHeight(shape: TLNoteShape) {
-		return NOTE_SIZE + shape.props.growY
-	}
-
 	getGeometry(shape: TLNoteShape) {
-		const height = this.getHeight(shape)
+		const height = getNoteHeight(shape)
 		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
 	}
 
@@ -62,36 +60,47 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
+		const notesCount = getExtraNoteCount(shape)
+		const random = rng(shape.id)
 
 		return (
 			<>
 				<div
+					className="tl-note"
 					style={{
-						position: 'absolute',
-						width: NOTE_SIZE,
-						height: this.getHeight(shape),
+						position: 'relative',
+						color: theme[adjustedColor].solid,
 					}}
 				>
-					<div
-						className="tl-note__container"
-						style={{
-							color: theme[adjustedColor].solid,
-							backgroundColor: theme[adjustedColor].solid,
-						}}
-					>
-						<div className="tl-note__scrim" />
-						<TextLabel
-							id={id}
-							type={type}
-							font={font}
-							size={size}
-							align={align}
-							verticalAlign={verticalAlign}
-							text={text}
-							labelColor="black"
-							wrap
-						/>
-					</div>
+					{Array.from(Array(1 + notesCount)).map((_, i) => {
+						return (
+							<div
+								className="tl-note__container"
+								key={`${shape.id}-note-${i}`}
+								style={{
+									top: i * NOTE_SIZE,
+									left: i > 0 ? random() * 5 : 0,
+									width: NOTE_SIZE,
+									height: NOTE_SIZE + (notesCount > 1 ? (i < notesCount - 1 ? 12 : 0) : 0),
+									transform: i > 0 ? `rotate(${random() * 2}deg)` : 'none',
+									backgroundColor: theme[adjustedColor].solid,
+								}}
+							>
+								<div className="tl-note__scrim" />
+							</div>
+						)
+					})}
+					<TextLabel
+						id={id}
+						type={type}
+						font={font}
+						size={size}
+						align={align}
+						verticalAlign={shape.props.growY > 0 ? 'start' : verticalAlign}
+						text={text}
+						labelColor="black"
+						wrap
+					/>
 				</div>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
@@ -105,7 +114,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			<rect
 				rx="6"
 				width={toDomPrecision(NOTE_SIZE)}
-				height={toDomPrecision(this.getHeight(shape))}
+				height={toDomPrecision(getNoteHeight(shape))}
 			/>
 		)
 	}
@@ -188,8 +197,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
-	const PADDING = 17
-
 	const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
@@ -218,4 +225,14 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 			},
 		}
 	}
+}
+
+function getExtraNoteCount(shape: TLNoteShape) {
+	return shape.props.growY > PADDING ? Math.ceil(shape.props.growY / NOTE_SIZE) : 0
+}
+
+function getNoteHeight(shape: TLNoteShape) {
+	return shape.props.growY > PADDING
+		? NOTE_SIZE + Math.ceil(shape.props.growY / NOTE_SIZE) * NOTE_SIZE
+		: NOTE_SIZE
 }
