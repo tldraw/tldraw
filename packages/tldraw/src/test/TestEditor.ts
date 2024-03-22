@@ -337,7 +337,6 @@ export class TestEditor extends Editor {
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_move',
 			pagePoint: new Vec(sx / cz - cx, sy / cz - cy),
-
 			coalescedInfo: [],
 		}).forceTick()
 		return this
