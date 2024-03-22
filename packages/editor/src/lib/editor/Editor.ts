@@ -2495,6 +2495,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!this.getInstanceState().canMoveCamera) return this
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 		this.setCamera({ x: cx + offset.x / cz, y: cy + offset.y / cz, z: cz }, animation)
+		this._flushEventsForTick(0)
 		return this
 	}
 
