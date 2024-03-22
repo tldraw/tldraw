@@ -11,7 +11,6 @@ import {
 	rng,
 	toDomPrecision,
 } from '@tldraw/editor'
-import { getVisualTextLength } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
@@ -216,15 +215,7 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 
 	// We slightly make the font smaller if the text is too big for the note, width-wise.
 	do {
-		const textLen = getVisualTextLength(shape.props.text)
-		// The formula is a power law of the text as it grows longer.
-		// It then goes backwards a bit to make sure we don't get too big.
-		const closeEnoughSizeBasedOnTextLength =
-			unadjustedFontSize - Math.pow(Math.max(textLen - 90, 0), 0.3)
-		fontSizeAdjustment = Math.min(
-			unadjustedFontSize,
-			Math.floor(closeEnoughSizeBasedOnTextLength - iterations)
-		)
+		fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
 		const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
