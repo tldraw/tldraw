@@ -20,13 +20,44 @@ export class LicenseManager {
 	) {
 		const key = licenseKey ?? process?.env?.TLDRAW_LICENSE_KEY
 		if (key) {
-			const isValid = this.validateLicenseKey(key)
-			if (!isValid) throw Error('Invalid license key')
-			const dataFromKey = this.getDataFromKey(key)
-			const now = Date.now()
-			if (now > dataFromKey.expiration) throw Error('License key expired')
-			return
+			try {
+				// Get the license data from the license key
+				// todo: replace with actual get data from key
+				const dataFromKey = {
+					customer: 'Example',
+					sku: 'commercial',
+					origins: ['http://localhost:3000'],
+					expiration: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).getTime(),
+				}
+
+				// Check that the license is valid
+				// todo: replace with actual validation
+				const isValid = true
+				if (!isValid) throw Error('Invalid license key')
+
+				// Check expiration
+				const now = Date.now()
+				if (now > dataFromKey.expiration) throw Error('License key expired')
+
+				if (dataFromKey.sku === 'grandfathered') {
+					// We don't check origins for grandfathered licenses
+				} else {
+					// Check that the current origin is allowed by the license
+					if (typeof window !== 'undefined' && window.location.origin) {
+						const allowedOrigins = dataFromKey.origins
+						const origin = window.location.origin
+						if (!allowedOrigins.includes(origin)) {
+							throw Error('License key is not valid for this origin')
+						}
+					}
+				}
+			} catch (e: any) {
+				console.error(
+					`Could not validate the license key. Reason: ${e.message}. See more at tldraw.dev/license`
+				)
+			}
 		}
+
 		// No license key provided, time to show the watermark
 		const link = document.createElement('a')
 		const id = this.getLinkId()
@@ -94,19 +125,6 @@ export class LicenseManager {
 	private disposables = new Set<() => void>()
 
 	isDisposed = false
-
-	validateLicenseKey(key: string) {
-		return key === 'valid'
-	}
-
-	getDataFromKey(key: string) {
-		return {
-			customer: 'Example',
-			sku: 'commercial',
-			origins: ['http://localhost:3000'],
-			expiration: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).getTime(),
-		}
-	}
 
 	getLinkId() {
 		return `removing-invalidates-license-${getHashForObject({ version })}`

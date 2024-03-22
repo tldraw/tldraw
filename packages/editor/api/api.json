@@ -7447,7 +7447,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: "
+                  "text": "constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, licenseKey, }: "
                 },
                 {
                   "kind": "Reference",
@@ -7464,7 +7464,7 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "{ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }",
+                  "parameterName": "{ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, licenseKey, }",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
@@ -36583,6 +36583,33 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "initialState",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps#licenseKey:member",
+              "docComment": "/**\n * License key for the editor.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "licenseKey?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "licenseKey",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

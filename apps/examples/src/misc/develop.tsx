@@ -6,6 +6,7 @@ export default function Develop() {
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="tldraw_example"
+				licenseKey="as"
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor

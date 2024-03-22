@@ -113,6 +113,11 @@ export interface TldrawEditorBaseProps {
 	 * Whether to infer dark mode from the user's OS. Defaults to false.
 	 */
 	inferDarkMode?: boolean
+
+	/**
+	 * License key for the editor.
+	 */
+	licenseKey?: string
 }
 
 /**
@@ -263,6 +268,7 @@ function TldrawEditorWithReadyStore({
 	shapeUtils,
 	user,
 	initialState,
+	licenseKey,
 	autoFocus = true,
 	inferDarkMode,
 }: Required<
@@ -285,6 +291,7 @@ function TldrawEditorWithReadyStore({
 			user,
 			initialState,
 			inferDarkMode,
+			licenseKey,
 		})
 		setEditor(editor)
 

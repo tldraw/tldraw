@@ -200,6 +200,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		getContainer,
 		initialState,
 		inferDarkMode,
+		licenseKey,
 	}: TLEditorOptions) {
 		super()
 
@@ -211,7 +212,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.getContainer = getContainer ?? (() => document.body)
 
-		this.licenseManager = new LicenseManager(this)
+		this.licenseManager = new LicenseManager(this, licenseKey)
 		this.textMeasure = new TextManager(this)
 		this._tickManager = new TickManager(this)
 
