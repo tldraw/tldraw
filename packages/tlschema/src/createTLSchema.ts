@@ -14,8 +14,8 @@ import { PointerRecordType, pointerMigrations } from './records/TLPointer'
 import { InstancePresenceRecordType, instancePresenceMigrations } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
 import {
-	ShapePropsMigrations,
 	TLDefaultShape,
+	TLShapePropsMigrations,
 	createShapeRecordType,
 	getShapePropKeysByStyle,
 	processShapeMigrations,
@@ -44,7 +44,7 @@ type AnyValidator = {
 
 /** @public */
 export type SchemaShapeInfo = {
-	migrations?: LegacyMigrations | ShapePropsMigrations
+	migrations?: LegacyMigrations | TLShapePropsMigrations
 	props?: Record<string, AnyValidator>
 	meta?: Record<string, AnyValidator>
 }

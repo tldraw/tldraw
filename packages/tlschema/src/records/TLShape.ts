@@ -197,7 +197,7 @@ export const NO_DOWN_MIGRATION = 'none' as const
 // than just suspending them, so if other browsers follow suit maybe it's less of a concern.
 export const RETIRED_DOWN_MIGRATION = 'retired' as const
 
-export type ShapePropsMigrations = {
+export type TLShapePropsMigrations = {
 	sequence: Array<{
 		version: number
 		dependsOn?: MigrationId[]
@@ -206,7 +206,9 @@ export type ShapePropsMigrations = {
 	}>
 }
 
-export function createShapePropsMigrations(migrations: ShapePropsMigrations): ShapePropsMigrations {
+export function createShapePropsMigrations(
+	migrations: TLShapePropsMigrations
+): TLShapePropsMigrations {
 	return migrations
 }
 
