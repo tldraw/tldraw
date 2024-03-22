@@ -7158,36 +7158,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "tldraw!FrameShapeUtil#canDropShapesOnlyWithinMaskedBounds:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "canDropShapesOnlyWithinMaskedBounds: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "() => boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "canDropShapesOnlyWithinMaskedBounds",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "tldraw!FrameShapeUtil#canEdit:member",
               "docComment": "",
               "excerptTokens": [
@@ -7457,6 +7427,36 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "tldraw!FrameShapeUtil#isFrame:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isFrame: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isFrame",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Property",

@@ -632,8 +632,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
     // (undocumented)
-    canDropShapesOnlyWithinMaskedBounds: () => boolean;
-    // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
     canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
@@ -645,6 +643,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
+    // (undocumented)
+    isFrame: () => boolean;
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)

@@ -30403,41 +30403,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#canDropShapesOnlyWithinMaskedBounds:member",
-              "docComment": "/**\n * Whether the dropping a shape onto another behaves like a frame (true) where one has to drop the shape within the bounds of the frame, or like a stickies (false) where the shape is considered dropped when the bounding boxes collide.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "canDropShapesOnlyWithinMaskedBounds: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeUtilFlag",
-                  "canonicalReference": "@tldraw/editor!TLShapeUtilFlag:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<Shape>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "canDropShapesOnlyWithinMaskedBounds",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#canEdit:member",
               "docComment": "/**\n * Whether the shape can be double clicked to edit.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -31276,6 +31241,41 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "isAspectRatioLocked",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#isFrame:member",
+              "docComment": "/**\n * Whether the shape is a frame and carries the behaviors that go along with frames. Frames are shapes that can contain other shapes, in a portal-like fashion.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isFrame: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeUtilFlag",
+                  "canonicalReference": "@tldraw/editor!TLShapeUtilFlag:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isFrame",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3

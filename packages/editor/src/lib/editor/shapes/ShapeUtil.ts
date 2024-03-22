@@ -225,13 +225,12 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Whether the dropping a shape onto another behaves like a frame (true) where one
-	 * has to drop the shape within the bounds of the frame, or like a stickies (false) where
-	 * the shape is considered dropped when the bounding boxes collide.
+	 * Whether the shape is a frame and carries the behaviors that go along with frames.
+	 * Frames are shapes that can contain other shapes, in a portal-like fashion.
 	 *
 	 * @public
 	 */
-	canDropShapesOnlyWithinMaskedBounds: TLShapeUtilFlag<Shape> = () => true
+	isFrame: TLShapeUtilFlag<Shape> = () => true
 
 	/**
 	 * Whether the shape should adhere to other shapes:

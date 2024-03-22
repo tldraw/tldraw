@@ -5026,7 +5026,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// partially clipped by its own parent frame.
 			const maskedPageBounds = this.getShapeMaskedPageBounds(shape.id)
 			if (
-				this.getShapeUtil(shape).canDropShapesOnlyWithinMaskedBounds(shape) &&
+				this.getShapeUtil(shape).isFrame(shape) &&
 				maskedPageBounds &&
 				maskedPageBounds.containsPoint(point) &&
 				this.getShapeGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), 0, true)

@@ -42,7 +42,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override canEdit = () => true
 
-	override canDropShapesOnlyWithinMaskedBounds = () => true
+	override isFrame = () => true
 
 	override getDefaultProps(): TLFrameShape['props'] {
 		return { w: 160 * 2, h: 90 * 2, name: '' }

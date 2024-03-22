@@ -1599,7 +1599,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canBind: <K>(_shape: Shape, _otherShape?: K | undefined) => boolean;
     canCrop: TLShapeUtilFlag<Shape>;
     canDropShapes(shape: Shape, shapes: TLShape[]): boolean;
-    canDropShapesOnlyWithinMaskedBounds: TLShapeUtilFlag<Shape>;
     canEdit: TLShapeUtilFlag<Shape>;
     canEditInReadOnly: TLShapeUtilFlag<Shape>;
     canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
@@ -1624,6 +1623,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     hideSelectionBoundsFg: TLShapeUtilFlag<Shape>;
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
+    isFrame: TLShapeUtilFlag<Shape>;
     isSticky: TLShapeUtilFlag<Shape>;
     // (undocumented)
     static migrations?: Migrations;
