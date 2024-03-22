@@ -20192,33 +20192,6 @@
                 "startIndex": 1,
                 "endIndex": 2
               }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "tldraw!TLUiActionItem#title:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "title?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "title",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
             }
           ],
           "extendsTokenRanges": []

@@ -1713,8 +1713,6 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     // (undocumented)
     readonlyOk?: boolean;
-    // (undocumented)
-    title?: string;
 }
 
 // @public (undocumented)
