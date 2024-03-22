@@ -286,7 +286,7 @@ test('subtype versions in the future fail', () => {
 				type: 'rectangle',
 			} as any,
 			{
-				schemaVersion: 0,
+				schemaVersion: 1,
 				storeVersion: 0,
 				recordVersions: {
 					shape: {
