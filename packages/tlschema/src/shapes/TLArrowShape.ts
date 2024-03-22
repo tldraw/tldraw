@@ -1,6 +1,6 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { vecModelValidator } from '../misc/geometry-types'
+import { createShapePropsMigrations } from '../records/TLShape'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -85,98 +85,52 @@ export const ArrowMigrationVersions = {
 } as const
 
 /** @internal */
-export const arrowShapeMigrations = defineMigrations({
-	currentVersion: ArrowMigrationVersions.AddLabelPosition,
-	migrators: {
-		[ArrowMigrationVersions.AddLabelColor]: {
-			up: (record) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						labelColor: 'black',
-					},
+export const arrowShapeMigrations = createShapePropsMigrations({
+	sequence: [
+		{
+			version: ArrowMigrationVersions.AddLabelColor,
+			up: (props) => {
+				props.labelColor = 'black'
+			},
+			down: (props) => {
+				delete props.labelColor
+			},
+		},
+
+		{
+			version: ArrowMigrationVersions.AddIsPrecise,
+			up: ({ start, end }) => {
+				if (start.type === 'binding') {
+					start.isPrecise = !(start.normalizedAnchor.x === 0.5 && start.normalizedAnchor.y === 0.5)
+				}
+				if (end.type === 'binding') {
+					end.isPrecise = !(end.normalizedAnchor.x === 0.5 && end.normalizedAnchor.y === 0.5)
 				}
 			},
-			down: (record) => {
-				const { labelColor: _, ...props } = record.props
-				return {
-					...record,
-					props,
+			down: ({ start, end }) => {
+				if (start.type === 'binding') {
+					if (!start.isPrecise) {
+						start.normalizedAnchor = { x: 0.5, y: 0.5 }
+					}
+					delete start.isPrecise
+				}
+				if (end.type === 'binding') {
+					if (!end.isPrecise) {
+						end.normalizedAnchor = { x: 0.5, y: 0.5 }
+					}
+					delete end.isPrecise
 				}
 			},
 		},
 
-		[ArrowMigrationVersions.AddIsPrecise]: {
-			up: (record) => {
-				const { start, end } = record.props
-				return {
-					...record,
-					props: {
-						...record.props,
-						start:
-							(start as TLArrowShapeTerminal).type === 'binding'
-								? {
-										...start,
-										isPrecise: !(
-											start.normalizedAnchor.x === 0.5 && start.normalizedAnchor.y === 0.5
-										),
-									}
-								: start,
-						end:
-							(end as TLArrowShapeTerminal).type === 'binding'
-								? {
-										...end,
-										isPrecise: !(end.normalizedAnchor.x === 0.5 && end.normalizedAnchor.y === 0.5),
-									}
-								: end,
-					},
-				}
+		{
+			version: ArrowMigrationVersions.AddLabelPosition,
+			up: (props) => {
+				props.labelPosition = 0.5
 			},
-			down: (record: any) => {
-				const { start, end } = record.props
-				const nStart = { ...start }
-				const nEnd = { ...end }
-				if (nStart.type === 'binding') {
-					if (!nStart.isPrecise) {
-						nStart.normalizedAnchor = { x: 0.5, y: 0.5 }
-					}
-					delete nStart.isPrecise
-				}
-				if (nEnd.type === 'binding') {
-					if (!nEnd.isPrecise) {
-						nEnd.normalizedAnchor = { x: 0.5, y: 0.5 }
-					}
-					delete nEnd.isPrecise
-				}
-				return {
-					...record,
-					props: {
-						...record.props,
-						start: nStart,
-						end: nEnd,
-					},
-				}
+			down: (props) => {
+				delete props.labelPosition
 			},
 		},
-
-		[ArrowMigrationVersions.AddLabelPosition]: {
-			up: (record) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						labelPosition: 0.5,
-					},
-				}
-			},
-			down: (record) => {
-				const { labelPosition: _, ...props } = record.props
-				return {
-					...record,
-					props,
-				}
-			},
-		},
-	},
+	],
 })

@@ -189,16 +189,24 @@ export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>
 	return propKeysByStyle
 }
 
+export const NO_DOWN_MIGRATION = 'none' as const
+// If a down migration was deployed more than a couple of months ago it should be safe to retire it.
+// We only really need them to smooth over the transition between versions, and some folks do keep
+// browser tabs open for months without refreshing, but at a certain point that kind of behavior is
+// on them. Plus anyway recently chrome has started to actually kill tabs that are open for too long rather
+// than just suspending them, so if other browsers follow suit maybe it's less of a concern.
+export const RETIRED_DOWN_MIGRATION = 'retired' as const
+
 export type ShapePropsMigrations = {
 	sequence: Array<{
 		version: number
 		dependsOn?: MigrationId[]
 		up: (props: any) => any
-		down: (props: any) => any
+		down: typeof NO_DOWN_MIGRATION | typeof RETIRED_DOWN_MIGRATION | ((props: any) => any)
 	}>
 }
 
-export function createShapePropMigrations(migrations: ShapePropsMigrations): ShapePropsMigrations {
+export function createShapePropsMigrations(migrations: ShapePropsMigrations): ShapePropsMigrations {
 	return migrations
 }
 
@@ -229,14 +237,15 @@ export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) 
 								record.props = result
 							}
 						},
-						down: down
-							? (record: any) => {
-									const result = down(record.props)
-									if (result) {
-										record.props = result
+						down:
+							typeof down === 'function'
+								? (record: any) => {
+										const result = down(record.props)
+										if (result) {
+											record.props = result
+										}
 									}
-								}
-							: undefined,
+								: undefined,
 					})
 				),
 			})

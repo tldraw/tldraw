@@ -1,12 +1,6 @@
-import { defineMigrations } from '@tldraw/store'
-import {
-	IndexKey,
-	getIndices,
-	objectMapFromEntries,
-	sortByIndex,
-	structuredClone,
-} from '@tldraw/utils'
+import { IndexKey, getIndices, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
+import { createShapePropsMigrations } from '../records/TLShape'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -53,153 +47,116 @@ export const lineShapeVersions = {
 } as const
 
 /** @internal */
-export const lineShapeMigrations = defineMigrations({
-	currentVersion: lineShapeVersions.PointIndexIds,
-	migrators: {
-		[lineShapeVersions.AddSnapHandles]: {
-			up: (record: any) => {
-				const handles = structuredClone(record.props.handles as Record<string, any>)
-				for (const id in handles) {
-					handles[id].canSnap = true
+export const lineShapeMigrations = createShapePropsMigrations({
+	sequence: [
+		{
+			version: lineShapeVersions.AddSnapHandles,
+			up: (props) => {
+				for (const handle of Object.values(props.handles)) {
+					;(handle as any).canSnap = true
 				}
-				return { ...record, props: { ...record.props, handles } }
 			},
-			down: (record: any) => {
-				const handles = structuredClone(record.props.handles as Record<string, any>)
-				for (const id in handles) {
-					delete handles[id].canSnap
+			down: (props) => {
+				for (const handle of Object.values(props.handles)) {
+					delete (handle as any).canSnap
 				}
-				return { ...record, props: { ...record.props, handles } }
 			},
 		},
-		[lineShapeVersions.RemoveExtraHandleProps]: {
-			up: (record: any) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						handles: objectMapFromEntries(
-							Object.values(record.props.handles).map((handle: any) => [
-								handle.index,
-								{
-									x: handle.x,
-									y: handle.y,
-								},
-							])
-						),
-					},
-				}
+		{
+			version: lineShapeVersions.RemoveExtraHandleProps,
+			up: (props) => {
+				props.handles = objectMapFromEntries(
+					Object.values(props.handles).map((handle: any) => [
+						handle.index,
+						{
+							x: handle.x,
+							y: handle.y,
+						},
+					])
+				)
 			},
-			down: (record: any) => {
-				const handles = Object.entries(record.props.handles)
+			down: (props) => {
+				const handles = Object.entries(props.handles)
 					.map(([index, handle]: any) => ({ index, ...handle }))
 					.sort(sortByIndex)
-
-				return {
-					...record,
-					props: {
-						...record.props,
-						handles: Object.fromEntries(
-							handles.map((handle, i) => {
-								const id =
-									i === 0 ? 'start' : i === handles.length - 1 ? 'end' : `handle:${handle.index}`
-								return [
-									id,
-									{
-										id,
-										type: 'vertex',
-										canBind: false,
-										canSnap: true,
-										index: handle.index,
-										x: handle.x,
-										y: handle.y,
-									},
-								]
-							})
-						),
-					},
-				}
+				props.handles = Object.fromEntries(
+					handles.map((handle, i) => {
+						const id =
+							i === 0 ? 'start' : i === handles.length - 1 ? 'end' : `handle:${handle.index}`
+						return [
+							id,
+							{
+								id,
+								type: 'vertex',
+								canBind: false,
+								canSnap: true,
+								index: handle.index,
+								x: handle.x,
+								y: handle.y,
+							},
+						]
+					})
+				)
 			},
 		},
-		[lineShapeVersions.HandlesToPoints]: {
-			up: (record: any) => {
-				const { handles, ...props } = record.props
-
-				const sortedHandles = (Object.entries(handles) as [IndexKey, { x: number; y: number }][])
+		{
+			version: lineShapeVersions.HandlesToPoints,
+			up: (props) => {
+				const sortedHandles = (
+					Object.entries(props.handles) as [IndexKey, { x: number; y: number }][]
+				)
 					.map(([index, { x, y }]) => ({ x, y, index }))
 					.sort(sortByIndex)
 
-				return {
-					...record,
-					props: {
-						...props,
-						points: sortedHandles.map(({ x, y }) => ({ x, y })),
-					},
-				}
+				props.points = sortedHandles.map(({ x, y }) => ({ x, y }))
+				delete props.handles
 			},
-			down: (record: any) => {
-				const { points, ...props } = record.props
-				const indices = getIndices(points.length)
+			down: (props) => {
+				const indices = getIndices(props.points.length)
 
-				return {
-					...record,
-					props: {
-						...props,
-						handles: Object.fromEntries(
-							points.map((handle: { x: number; y: number }, i: number) => {
-								const index = indices[i]
-								return [
-									index,
-									{
-										x: handle.x,
-										y: handle.y,
-									},
-								]
-							})
-						),
-					},
-				}
+				props.handles = Object.fromEntries(
+					props.points.map((handle: { x: number; y: number }, i: number) => {
+						const index = indices[i]
+						return [
+							index,
+							{
+								x: handle.x,
+								y: handle.y,
+							},
+						]
+					})
+				)
+
+				delete props.points
 			},
 		},
-		[lineShapeVersions.PointIndexIds]: {
-			up: (record: any) => {
-				const { points, ...props } = record.props
-				const indices = getIndices(points.length)
+		{
+			version: lineShapeVersions.PointIndexIds,
+			up: (props) => {
+				const indices = getIndices(props.points.length)
 
-				return {
-					...record,
-					props: {
-						...props,
-						points: Object.fromEntries(
-							points.map((point: { x: number; y: number }, i: number) => {
-								const id = indices[i]
-								return [
-									id,
-									{
-										id: id,
-										index: id,
-										x: point.x,
-										y: point.y,
-									},
-								]
-							})
-						),
-					},
-				}
+				props.points = Object.fromEntries(
+					props.points.map((point: { x: number; y: number }, i: number) => {
+						const id = indices[i]
+						return [
+							id,
+							{
+								id: id,
+								index: id,
+								x: point.x,
+								y: point.y,
+							},
+						]
+					})
+				)
 			},
-			down: (record: any) => {
+			down: (props) => {
 				const sortedHandles = (
-					Object.values(record.props.points) as { x: number; y: number; index: IndexKey }[]
+					Object.values(props.points) as { x: number; y: number; index: IndexKey }[]
 				).sort(sortByIndex)
 
-				return {
-					...record,
-					props: {
-						...record.props,
-						points: sortedHandles.map(({ x, y }) => ({ x, y })),
-					},
-				}
+				props.points = sortedHandles.map(({ x, y }) => ({ x, y }))
 			},
 		},
-	},
+	],
 })
