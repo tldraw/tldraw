@@ -183,6 +183,11 @@ export interface TLEditorOptions {
 	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
 	 */
 	inferDarkMode?: boolean
+
+	/**
+	 * A license key. If provided and valid, the watermark will be removed from the editor.
+	 */
+	licenseKey?: string
 }
 
 /** @public */

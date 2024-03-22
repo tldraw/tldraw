@@ -14,7 +14,20 @@ import { Editor } from '../Editor'
 // See tldraw.dev/license for more information.
 
 export class LicenseManager {
-	constructor(public editor: Editor) {
+	constructor(
+		public editor: Editor,
+		licenseKey?: string
+	) {
+		const key = licenseKey ?? process?.env?.TLDRAW_LICENSE_KEY
+		if (key) {
+			const isValid = this.validateLicenseKey(key)
+			if (!isValid) throw Error('Invalid license key')
+			const dataFromKey = this.getDataFromKey(key)
+			const now = Date.now()
+			if (now > dataFromKey.expiration) throw Error('License key expired')
+			return
+		}
+		// No license key provided, time to show the watermark
 		const link = document.createElement('a')
 		const id = this.getLinkId()
 		link.setAttribute('id', id)
@@ -82,11 +95,24 @@ export class LicenseManager {
 
 	isDisposed = false
 
-	getLinkId = () => {
+	validateLicenseKey(key: string) {
+		return key === 'valid'
+	}
+
+	getDataFromKey(key: string) {
+		return {
+			customer: 'Example',
+			sku: 'commercial',
+			origins: ['http://localhost:3000'],
+			expiration: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).getTime(),
+		}
+	}
+
+	getLinkId() {
 		return `removing-invalidates-license-${getHashForObject({ version })}`
 	}
 
-	dispose = () => {
+	dispose() {
 		this.disposables.forEach((d) => d())
 		this.disposables.clear()
 		this.isDisposed = true

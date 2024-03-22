@@ -2060,6 +2060,7 @@ export interface TLEditorOptions {
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
+    licenseKey?: string;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];

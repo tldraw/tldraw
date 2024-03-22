@@ -36974,6 +36974,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLEditorOptions#licenseKey:member",
+              "docComment": "/**\n * A license key. If provided and valid, the watermark will be removed from the editor.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "licenseKey?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "licenseKey",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEditorOptions#shapeUtils:member",
               "docComment": "/**\n * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.\n */\n",
               "excerptTokens": [
