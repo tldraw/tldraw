@@ -1,3 +1,4 @@
+import toArray from 'lodash.toarray'
 import { INDENT } from '../../shapes/shared/TextHelpers'
 
 const rtlRegex = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/
@@ -56,4 +57,18 @@ export function cleanupText(text: string) {
 /** @public */
 export const truncateStringWithEllipsis = (str: string, maxLength: number) => {
 	return str.length <= maxLength ? str : str.substring(0, maxLength - 3) + '...'
+}
+
+/**
+ * Get the visual length of text (especially with emojis).
+ * As a concrete example, '👍🏽' should be of length 1, not 4, visually speaking.
+ * @public
+ */
+export function getVisualTextLength(str: string) {
+	// N.B. Eventually we can use this code snippet but it's not quite supported yet:
+	//   [...new Intl.Segmenter().segment(str)].length
+	// And then we can get rid of the lodash dependency.
+	// Lodash has unicode support built in, so we can use it for now.
+
+	return toArray(str).length
 }

@@ -7981,6 +7981,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash.toarray@npm:^4.4.9":
+  version: 4.4.9
+  resolution: "@types/lodash.toarray@npm:4.4.9"
+  dependencies:
+    "@types/lodash": "npm:*"
+  checksum: 7a7bbbc142806c7f0053d214c2ef86570e34369c2255a09e33b013186fe222168496d350299fe8e8a344713c6f5973493cd15ff131607762298bb92c0f8218c2
+  languageName: node
+  linkType: hard
+
 "@types/lodash.uniq@npm:^4.5.7":
   version: 4.5.9
   resolution: "@types/lodash.uniq@npm:4.5.9"
@@ -17254,6 +17263,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash.toarray@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "lodash.toarray@npm:4.4.0"
+  checksum: ac4be1b64cdd61356e199e525f340db6603d1eca2bd1e3eafe9049989a715af1f9e5824d43723c9ba20c04bc6d99249d7c5ade46176fadd6afc0700e0526d647
+  languageName: node
+  linkType: hard
+
 "lodash.uniq@npm:^4.5.0":
   version: 4.5.0
   resolution: "lodash.uniq@npm:4.5.0"
@@ -23069,6 +23085,7 @@ __metadata:
     "@tldraw/editor": "workspace:*"
     "@types/canvas-size": "npm:^1.2.0"
     "@types/classnames": "npm:^2.3.1"
+    "@types/lodash.toarray": "npm:^4.4.9"
     "@types/lz-string": "npm:^1.3.34"
     canvas-size: "npm:^1.2.6"
     chokidar-cli: "npm:^3.0.0"
@@ -23077,6 +23094,7 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash.toarray: "npm:^4.4.0"
     lz-string: "npm:^1.4.4"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:

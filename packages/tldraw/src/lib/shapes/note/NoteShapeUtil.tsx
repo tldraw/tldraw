@@ -11,6 +11,7 @@ import {
 	rng,
 	toDomPrecision,
 } from '@tldraw/editor'
+import { getVisualTextLength } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
@@ -39,6 +40,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			align: 'middle',
 			verticalAlign: 'middle',
 			growY: 0,
+			fontSizeAdjustment: 0,
 			url: '',
 		}
 	}
@@ -56,7 +58,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { color, font, size, align, text, verticalAlign },
+			props: { color, font, size, align, text, verticalAlign, fontSizeAdjustment },
 		} = shape
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -99,7 +101,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							id={id}
 							type={type}
 							font={font}
-							fontSize={LABEL_FONT_SIZES[size]}
+							fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
 							lineHeight={TEXT_PROPS.lineHeight}
 							align={align}
 							verticalAlign={verticalAlign}
@@ -196,16 +198,51 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
-	const PADDING = 17
+	// So, we have to adjust for extra padding because of some fuzziness in how
+	// we size our text boxes.
+	// Currently the note size 200px all around, with a 1px border.
+	// Then tl-text-label__inner actually is a width `fit-content` which _almost_
+	// equates to the full width but actually ends up being a bit smaller at times.
+	// This fuzziness here helps with making the text not 'jump' as you're typing
+	// as tl-text-label__inner will have fractional width sizes.
+	const FUZZ = 1
+	const BORDER = 1
+	const PADDING = 16 + BORDER + FUZZ
+	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
 
-	const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[shape.props.font],
-		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		maxWidth: NOTE_SIZE - PADDING * 2,
-	})
+	let fontSizeAdjustment = 0
+	let iterations = 0
+	let nextHeight = NOTE_SIZE
 
-	const nextHeight = nextTextSize.h + PADDING * 2
+	// We slightly make the font smaller if the text is too big for the note, width-wise.
+	do {
+		const textLen = getVisualTextLength(shape.props.text)
+		// The formula is a power law of the text as it grows longer.
+		// It then goes backwards a bit to make sure we don't get too big.
+		const closeEnoughSizeBasedOnTextLength =
+			unadjustedFontSize - Math.pow(Math.max(textLen - 90, 0), 0.3)
+		fontSizeAdjustment = Math.min(
+			unadjustedFontSize,
+			Math.floor(closeEnoughSizeBasedOnTextLength - iterations)
+		)
+		const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontSize: fontSizeAdjustment,
+			maxWidth: NOTE_SIZE - PADDING * 2,
+			disableOverflowWrapBreaking: true,
+		})
+
+		nextHeight = nextTextSize.h + PADDING * 2
+
+		if (fontSizeAdjustment <= 12) {
+			// Too small, just rely now on CSS `overflow-wrap: break-word`
+			break
+		}
+		if (nextTextSize.scrollWidth.toFixed(0) === nextTextSize.w.toFixed(0)) {
+			break
+		}
+	} while (iterations++ < 50)
 
 	let growY: number | null = null
 
@@ -217,12 +254,18 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 		}
 	}
 
-	if (growY !== null) {
+	if (
+		growY !== null ||
+		(shape.props.fontSizeAdjustment === 0
+			? fontSizeAdjustment !== unadjustedFontSize
+			: fontSizeAdjustment !== shape.props.fontSizeAdjustment)
+	) {
 		return {
 			...shape,
 			props: {
 				...shape.props,
-				growY,
+				growY: growY ?? 0,
+				fontSizeAdjustment,
 			},
 		}
 	}
