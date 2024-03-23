@@ -7447,7 +7447,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: "
+                  "text": "constructor({ store, user, shapeUtils, tools, getContainer, cameraOptions, initialState, inferDarkMode, }: "
                 },
                 {
                   "kind": "Reference",
@@ -7464,7 +7464,7 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "{ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }",
+                  "parameterName": "{ store, user, shapeUtils, tools, getContainer, cameraOptions, initialState, inferDarkMode, }",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
@@ -10052,6 +10052,38 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getCamera"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCameraOptions:member(1)",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCameraOptions(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCameraOptions",
+                  "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCameraOptions"
             },
             {
               "kind": "Method",
@@ -16958,6 +16990,55 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#setCameraOptions:member(1)",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setCameraOptions(options: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCameraOptions",
+                  "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "options",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "setCameraOptions"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#setCroppingShape:member(1)",
               "docComment": "/**\n * Set the current cropping shape.\n *\n * @param shape - The shape (or shape id) to set as cropping.\n *\n * @example\n * ```ts\n * editor.setCroppingShape(myShape)\n * editor.setCroppingShape(myShape.id)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -18749,6 +18830,37 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "updateAssets"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#updateCameraOnMount:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "updateCameraOnMount(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "updateCameraOnMount"
             },
             {
               "kind": "Method",
@@ -36422,6 +36534,47 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps#cameraOptions:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "cameraOptions?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCameraOptions",
+                  "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "cameraOptions",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps#children:member",
               "docComment": "/**\n * The component's children.\n */\n",
               "excerptTokens": [
@@ -36855,6 +37008,47 @@
           "name": "TLEditorOptions",
           "preserveMemberOrder": false,
           "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLEditorOptions#cameraOptions:member",
+              "docComment": "/**\n * Options for the editor's camera.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "cameraOptions?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCameraOptions",
+                  "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "cameraOptions",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              }
+            },
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEditorOptions#getContainer:member",
