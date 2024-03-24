@@ -68,7 +68,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const shadowHeight = Math.max(this.getHeight(shape) * 0.618, 200)
 		const ratio = noteHeight / shadowHeight
 		const random = rng(shape.id)
-		const noteRotation = random() * 5
+		const noteRotation = random() * 4
 
 		return (
 			<>
@@ -80,16 +80,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					}}
 				>
 					<div
+						className="tl-note__shadow"
 						style={{
-							backgroundColor: 'none',
 							height: shadowHeight,
-							width: '100%',
-							position: 'absolute',
-							bottom: 4,
-							left: 0,
-							transformOrigin: 'bottom center',
-							transform: `perspective(400px) rotateZ(${noteRotation}deg) rotateX(30deg) translateY(${-Math.abs(noteRotation)}px) scaleX(${0.82}) scaleY(${ratio})`,
-							boxShadow: `0 0 40px 0px rgba(0,0,0,.8)`,
+							transform: `perspective(300px) rotateZ(${noteRotation}deg) rotateX(30deg) translateY(${-Math.abs(noteRotation)}px) scaleX(${0.85}) scaleY(${ratio})`,
 						}}
 					/>
 
@@ -125,7 +119,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	indicator(shape: TLNoteShape) {
 		return (
 			<rect
-				rx="6"
+				rx="1"
 				width={toDomPrecision(NOTE_SIZE)}
 				height={toDomPrecision(this.getHeight(shape))}
 			/>
