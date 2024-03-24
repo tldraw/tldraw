@@ -126,6 +126,8 @@ export function DefaultMinimap() {
 				...getPointerInfo(e),
 				point: screenPoint,
 				isPen: editor.getInstanceState().isPenMode,
+				pagePoint: editor.inputs.currentPagePoint.clone(),
+				coalescedInfo: [],
 			}
 
 			editor.dispatch(info)
