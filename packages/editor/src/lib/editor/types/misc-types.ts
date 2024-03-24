@@ -22,6 +22,8 @@ export type TLCameraOptions = {
 	bounds: BoxModel | null
 	/** The padding around the bounds */
 	padding: number | number[]
+	/** The degree of elasticity */
+	elastic: number
 	/** The speed of a scroll wheel / trackpad pan */
 	panSpeed: number
 	/** The speed of a scroll wheel / trackpad zoom */
