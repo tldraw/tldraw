@@ -2123,77 +2123,85 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCamera().z
 	}
 
-	private fixCamera(point: VecLike) {
+	/** @internal */
+	private _setCamera(point: VecLike, opts?: { force: boolean }): this {
 		const currentCamera = this.getCamera()
-		if (!Number.isFinite(point.x)) point.x = 0
-		if (!Number.isFinite(point.y)) point.y = 0
-		if (point.z === undefined || !Number.isFinite(point.z)) point.z = currentCamera.z
 
-		const cameraOptions = this.getCameraOptions()
+		// If force is true, then we'll set the camera to the point regardless of
+		// the camera options, so that we can handle gestures that permit elasticity
+		// or decay.
+		if (!opts?.force) {
+			// Apply any adjustments based on the camera options
+			const currentCamera = this.getCamera()
+			if (!Number.isFinite(point.x)) point.x = 0
+			if (!Number.isFinite(point.y)) point.y = 0
+			if (point.z === undefined || !Number.isFinite(point.z)) point.z = currentCamera.z
 
-		// If bounds are provided, then we'll keep those bounds on screen
-		if (cameraOptions.bounds) {
-			const { zoomMax, zoomMin, padding } = cameraOptions
+			const cameraOptions = this.getCameraOptions()
 
-			const vsb = this.getViewportScreenBounds()
-			const vpb = this.getViewportPageBounds()
+			// If bounds are provided, then we'll keep those bounds on screen
+			if (cameraOptions.bounds) {
+				const { zoomMax, zoomMin, padding } = cameraOptions
 
-			// Get padding (it's either a number or an array of 2 numbers for t/b, l/r)
-			let [py, px] = Array.isArray(padding) ? padding : [padding, padding]
-			// Clamp padding to half the viewport size on either dimension
-			py = Math.min(py, vsb.w / 2)
-			px = Math.min(px, vsb.h / 2)
+				const vsb = this.getViewportScreenBounds()
+				const vpb = this.getViewportPageBounds()
 
-			// Expand the bounds by the padding
-			const bounds = Box.From(cameraOptions.bounds)
-			bounds.x -= px
-			bounds.y -= py
-			bounds.w += px * 2
-			bounds.h += py * 2
+				// Get padding (it's either a number or an array of 2 numbers for t/b, l/r)
+				let [py, px] = Array.isArray(padding) ? padding : [padding, padding]
+				// Clamp padding to half the viewport size on either dimension
+				py = Math.min(py, vsb.w / 2)
+				px = Math.min(px, vsb.h / 2)
 
-			// The natural zoom is the zoom at which the expanded bounds (with padding) would fit the viewport
-			const zx = vsb.w / bounds.width
-			const zy = vsb.h / bounds.height
-			const naturalZoom = Math.min(zx, zy)
-			const maxZ = naturalZoom * zoomMax
-			const minZ = naturalZoom * zoomMin
+				// Expand the bounds by the padding
+				const bounds = Box.From(cameraOptions.bounds)
+				bounds.x -= px
+				bounds.y -= py
+				bounds.w += px * 2
+				bounds.h += py * 2
 
-			if (point.z < minZ || point.z > maxZ) {
-				// We're trying to zoom out past the minimum zoom level,
-				// or in past the maximum zoom level, so stop the camera
-				point.x = currentCamera.x
-				point.y = currentCamera.y
-				point.z = point.z < minZ ? minZ : maxZ
-			}
+				// For each axis, the "natural zoom" is the zoom at
+				// which the expanded bounds (with padding) would fit
+				// the current viewport screen bounds.
+				const zx = vsb.w / bounds.width
+				const zy = vsb.h / bounds.height
 
-			if (point.z > zx) {
-				const l = Math.max(0, bounds.minX - vpb.minX)
-				const r = Math.max(0, vpb.maxX - bounds.maxX)
-				if (l > 0) point.x -= l
-				if (r > 0) point.x += r
-			} else {
-				point.x -= bounds.midX - vpb.midX
-			}
+				// The min and max zooms are factors of the smaller natural zoom axis
+				const minNaturalZoom = Math.min(zx, zy)
+				const maxZ = zoomMax * minNaturalZoom
+				const minZ = zoomMin * minNaturalZoom
 
-			if (point.z > zy) {
-				const t = Math.max(0, bounds.minY - vpb.minY)
-				const b = Math.max(0, vpb.maxY - bounds.maxY)
-				if (t > 0) point.y -= t
-				if (b > 0) point.y += b
-			} else {
-				point.y -= bounds.midY - vpb.midY
+				if (point.z < minZ || point.z > maxZ) {
+					// We're trying to zoom out past the minimum zoom level,
+					// or in past the maximum zoom level, so stop the camera
+					// but keep the current center
+
+					const cxA = -currentCamera.x + vsb.w / currentCamera.z / 2
+					const cyA = -currentCamera.y + vsb.h / currentCamera.z / 2
+
+					point.z = point.z < minZ ? minZ : maxZ
+
+					const cxB = -currentCamera.x + vsb.w / point.z / 2
+					const cyB = -currentCamera.y + vsb.h / point.z / 2
+
+					point.x = currentCamera.x + cxB - cxA
+					point.y = currentCamera.y + cyB - cyA
+				}
+
+				point.x +=
+					point.z > zx
+						? // We're past the natural zoom for the x axis, so cancel any overlaps
+							Math.max(0, vpb.maxX - bounds.maxX) - Math.max(0, bounds.minX - vpb.minX)
+						: // We're below the natural zoom for the x axis, so center it
+							vpb.midX - bounds.midX
+
+				point.y +=
+					point.z > zy
+						? // We're past the natural zoom for the y axis, so cancel any overlaps
+							Math.max(0, vpb.maxY - bounds.maxY) - Math.max(0, bounds.minY - vpb.minY)
+						: // We're below the natural zoom for the y axis, so center it
+							vpb.midY - bounds.midY
 			}
 		}
-
-		return point
-	}
-
-	/** @internal */
-	private _setCamera(point: VecLike): this {
-		const currentCamera = this.getCamera()
-
-		// Apply any adjustments based on the camera options
-		point = this.fixCamera(point)
 
 		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z) {
 			return this

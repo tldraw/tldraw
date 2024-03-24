@@ -28,7 +28,6 @@ export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions = {
 	zoomSpeed: 1,
 	panSpeed: 1,
 	isLocked: false,
-	elastic: 0,
 }
 
 /** @internal */
