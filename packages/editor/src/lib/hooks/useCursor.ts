@@ -72,7 +72,15 @@ export function useCursor() {
 	useQuickReactor(
 		'useCursor',
 		() => {
-			const { type, rotation } = editor.getInstanceState().cursor
+			const { type, customUrl, customSize, rotation } = editor.getInstanceState().cursor
+
+			if (customUrl) {
+				container.style.setProperty(
+					'--tl-cursor',
+					`url(${customUrl}) ${(customSize || 48) / 2} ${(customSize || 48) / 2}, pointer`
+				)
+				return
+			}
 
 			if (STATIC_CURSORS.includes(type)) {
 				container.style.setProperty('--tl-cursor', `var(--tl-cursor-${type})`)

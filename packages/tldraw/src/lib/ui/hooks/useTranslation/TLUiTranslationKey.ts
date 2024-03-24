@@ -223,6 +223,7 @@ export type TLUiTranslationKey =
 	| 'tool.asset'
 	| 'tool.frame'
 	| 'tool.note'
+	| 'tool.sticker'
 	| 'tool.laser'
 	| 'tool.embed'
 	| 'tool.text'

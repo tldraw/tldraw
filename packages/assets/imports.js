@@ -174,6 +174,7 @@ import iconsToolMedia from './icons/icon/tool-media.svg'
 import iconsToolNote from './icons/icon/tool-note.svg'
 import iconsToolPencil from './icons/icon/tool-pencil.svg'
 import iconsToolPointer from './icons/icon/tool-pointer.svg'
+import iconsToolSticker from './icons/icon/tool-sticker.svg'
 import iconsToolText from './icons/icon/tool-text.svg'
 import iconsTrash from './icons/icon/trash.svg'
 import iconsTriangleDown from './icons/icon/triangle-down.svg'
@@ -190,6 +191,12 @@ import iconsVisible from './icons/icon/visible.svg'
 import iconsWarningTriangle from './icons/icon/warning-triangle.svg'
 import iconsZoomIn from './icons/icon/zoom-in.svg'
 import iconsZoomOut from './icons/icon/zoom-out.svg'
+import stickersBlueCircle from './stickers/blue-circle.svg'
+import stickersHeart from './stickers/heart.svg'
+import stickersQuestionMark from './stickers/question-mark.svg'
+import stickersStar from './stickers/star.svg'
+import stickersThumbsDown from './stickers/thumbs-down.svg'
+import stickersThumbsUp from './stickers/thumbs-up.svg'
 import translationsAr from './translations/ar.json'
 import translationsCa from './translations/ca.json'
 import translationsCs from './translations/cs.json'
@@ -390,6 +397,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-note': formatAssetUrl(iconsToolNote, opts),
 			'tool-pencil': formatAssetUrl(iconsToolPencil, opts),
 			'tool-pointer': formatAssetUrl(iconsToolPointer, opts),
+			'tool-sticker': formatAssetUrl(iconsToolSticker, opts),
 			'tool-text': formatAssetUrl(iconsToolText, opts),
 			trash: formatAssetUrl(iconsTrash, opts),
 			'triangle-down': formatAssetUrl(iconsTriangleDown, opts),
@@ -406,6 +414,14 @@ export function getAssetUrlsByImport(opts) {
 			'warning-triangle': formatAssetUrl(iconsWarningTriangle, opts),
 			'zoom-in': formatAssetUrl(iconsZoomIn, opts),
 			'zoom-out': formatAssetUrl(iconsZoomOut, opts),
+		},
+		stickers: {
+			'blue-circle': formatAssetUrl(stickersBlueCircle, opts),
+			heart: formatAssetUrl(stickersHeart, opts),
+			'question-mark': formatAssetUrl(stickersQuestionMark, opts),
+			star: formatAssetUrl(stickersStar, opts),
+			'thumbs-down': formatAssetUrl(stickersThumbsDown, opts),
+			'thumbs-up': formatAssetUrl(stickersThumbsUp, opts),
 		},
 		translations: {
 			ar: formatAssetUrl(translationsAr, opts),

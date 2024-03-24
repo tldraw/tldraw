@@ -514,6 +514,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/tool-pointer.svg', import.meta.url).href,
 				opts
 			),
+			'tool-sticker': formatAssetUrl(
+				new URL('./icons/icon/tool-sticker.svg', import.meta.url).href,
+				opts
+			),
 			'tool-text': formatAssetUrl(
 				new URL('./icons/icon/tool-text.svg', import.meta.url).href,
 				opts
@@ -554,6 +558,23 @@ export function getAssetUrlsByMetaUrl(opts) {
 			),
 			'zoom-in': formatAssetUrl(new URL('./icons/icon/zoom-in.svg', import.meta.url).href, opts),
 			'zoom-out': formatAssetUrl(new URL('./icons/icon/zoom-out.svg', import.meta.url).href, opts),
+		},
+		stickers: {
+			'blue-circle': formatAssetUrl(
+				new URL('./stickers/blue-circle.svg', import.meta.url).href,
+				opts
+			),
+			heart: formatAssetUrl(new URL('./stickers/heart.svg', import.meta.url).href, opts),
+			'question-mark': formatAssetUrl(
+				new URL('./stickers/question-mark.svg', import.meta.url).href,
+				opts
+			),
+			star: formatAssetUrl(new URL('./stickers/star.svg', import.meta.url).href, opts),
+			'thumbs-down': formatAssetUrl(
+				new URL('./stickers/thumbs-down.svg', import.meta.url).href,
+				opts
+			),
+			'thumbs-up': formatAssetUrl(new URL('./stickers/thumbs-up.svg', import.meta.url).href, opts),
 		},
 		translations: {
 			ar: formatAssetUrl(new URL('./translations/ar.json', import.meta.url).href, opts),

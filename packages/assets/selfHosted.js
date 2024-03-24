@@ -169,6 +169,7 @@ export function getAssetUrls(opts) {
 			'tool-note': formatAssetUrl('./icons/icon/tool-note.svg', opts),
 			'tool-pencil': formatAssetUrl('./icons/icon/tool-pencil.svg', opts),
 			'tool-pointer': formatAssetUrl('./icons/icon/tool-pointer.svg', opts),
+			'tool-sticker': formatAssetUrl('./icons/icon/tool-sticker.svg', opts),
 			'tool-text': formatAssetUrl('./icons/icon/tool-text.svg', opts),
 			trash: formatAssetUrl('./icons/icon/trash.svg', opts),
 			'triangle-down': formatAssetUrl('./icons/icon/triangle-down.svg', opts),
@@ -185,6 +186,14 @@ export function getAssetUrls(opts) {
 			'warning-triangle': formatAssetUrl('./icons/icon/warning-triangle.svg', opts),
 			'zoom-in': formatAssetUrl('./icons/icon/zoom-in.svg', opts),
 			'zoom-out': formatAssetUrl('./icons/icon/zoom-out.svg', opts),
+		},
+		stickers: {
+			'blue-circle': formatAssetUrl('./stickers/blue-circle.svg', opts),
+			heart: formatAssetUrl('./stickers/heart.svg', opts),
+			'question-mark': formatAssetUrl('./stickers/question-mark.svg', opts),
+			star: formatAssetUrl('./stickers/star.svg', opts),
+			'thumbs-down': formatAssetUrl('./stickers/thumbs-down.svg', opts),
+			'thumbs-up': formatAssetUrl('./stickers/thumbs-up.svg', opts),
 		},
 		translations: {
 			ar: formatAssetUrl('./translations/ar.json', opts),
