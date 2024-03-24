@@ -1223,7 +1223,7 @@ input,
 	height: 100%;
 	width: 100%;
 	background-color: var(--color-background);
-	opacity: 0.18;
+	opacity: 0.2;
 }
 
 .tl-loading {
