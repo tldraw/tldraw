@@ -8552,8 +8552,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _shouldCoalesce = (info: TLEventInfo) => {
 		if (!this._isCoalesableEvent(info)) return false
 		return (
-			this._pendingEventsForNextTick.length === 1 &&
-			this._pendingEventsForNextTick[0].name === info.name
+			this._pendingEventsForNextTick[this._pendingEventsForNextTick.length - 1]?.[0]?.name ===
+			info.name
 		)
 	}
 
@@ -8579,29 +8579,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	dispatch = (info: TLEventInfo): this => {
 		// Adding the first event to the queue
 		if (this._pendingEventsForNextTick.length === 0) {
-			this._pendingEventsForNextTick.push(info)
+			// todo: could we flush this immediately if we haven't updated since the last tick?
+			this._pendingEventsForNextTick.push([info])
 			if (this._isCoalesableEvent(info)) {
 				this._allEventsSinceLastTick.push(info)
 			}
 		} else {
 			if (this._shouldCoalesce(info)) {
 				// We only care for the last event
-				this._pendingEventsForNextTick = [info]
+				this._pendingEventsForNextTick[this._pendingEventsForNextTick.length - 1] = [info]
 				// But we also store all the other events if we have an coalesable event
 				if (this._isCoalesableEvent(info)) {
 					this._allEventsSinceLastTick.push(info)
 				}
 			} else {
 				// Event has changed. We flush the currently pending events
-				this._flushEventsForTick(0)
 				// Then we add the new event to the queue (flushing clears the queue)
-				this._pendingEventsForNextTick = [info]
+				this._pendingEventsForNextTick.push([info])
 			}
 		}
 		return this
 	}
 
-	private _pendingEventsForNextTick: TLEventInfo[] = []
+	private _pendingEventsForNextTick: TLEventInfo[][] = []
 	private _allEventsSinceLastTick: TLPointerMoveEventInfo[] = []
 
 	private _flushEventsForTick = (elapsed: number) => {
@@ -8609,8 +8609,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (this._pendingEventsForNextTick.length > 0) {
 				const events = [...this._pendingEventsForNextTick]
 				this._pendingEventsForNextTick.length = 0
-				for (const info of events) {
-					this._flushEventForTick(info)
+				for (const coalesced of events) {
+					for (const info of coalesced) {
+						this._flushEventForTick(info)
+					}
 				}
 			}
 			this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
