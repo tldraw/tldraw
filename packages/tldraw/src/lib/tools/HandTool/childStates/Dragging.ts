@@ -60,12 +60,12 @@ export class Dragging extends StateNode {
 				const maxX = bounds.x + px / point.z
 				point.x = clamp(
 					point.x,
-					elastic ? minX - (minX - point.x) / 10 : minX,
-					elastic ? maxX + (point.x - maxX) / 10 : maxX
+					elastic ? minX - (minX - point.x) * elastic : minX,
+					elastic ? maxX + (point.x - maxX) * elastic : maxX
 				)
 			} else {
 				const cx = vsb.midX / point.z - bounds.midX
-				point.x = elastic ? cx - (cx - point.x) / 10 : cx
+				point.x = elastic ? cx - (cx - point.x) * elastic : cx
 			}
 
 			if (point.z > zy) {
@@ -73,12 +73,12 @@ export class Dragging extends StateNode {
 				const maxY = bounds.y + py / point.z
 				point.y = clamp(
 					point.y,
-					elastic ? minY - (minY - point.y) / 10 : minY,
-					elastic ? maxY + (point.y - maxY) / 10 : maxY
+					elastic ? minY - (minY - point.y) * elastic : minY,
+					elastic ? maxY + (point.y - maxY) * elastic : maxY
 				)
 			} else {
 				const cy = vsb.midY / point.z - bounds.midY
-				point.y = elastic ? cy - (cy - point.y) / 10 : cy
+				point.y = elastic ? cy - (cy - point.y) * elastic : cy
 			}
 
 			this.editor.setCamera(point, { force: true })
