@@ -51,6 +51,8 @@
 	/* Sizes */
 	--header-height: 80px;
 	--header-padding: 24px;
+	--headings-width: 278px;
+	--layout-max-width: 1440px;
 }
 
 [data-theme='dark'] {
@@ -98,12 +100,7 @@
 html {
 	background-color: #000;
 	border-bottom: none;
-	/*
-	 * XXX: this was hitting a browser bug on Blink: https://issues.chromium.org/issues/40749247
-	 * Typing into the search bar was causing the page to scroll as you typed.
-	 * We don't need this for now anyway since we don't have subheader navigation anymore.
-	 */
-	/* scroll-padding-top: calc(var(--header-height) + var(--header-padding)); */
+	scroll-padding-top: calc(var(--header-height) + var(--header-padding));
 }
 
 body {
@@ -125,12 +122,12 @@ body {
 .layout {
 	display: grid;
 	width: 100%;
-	max-width: 1440px;
-	grid-template-columns: 250px 1fr;
-	grid-template-rows: var(--header-height) 1fr;
+	max-width: var(--layout-max-width);
+	grid-template-columns: 250px 1fr var(--headings-width);
+	grid-template-rows: 1fr;
 	column-gap: 48px;
 	row-gap: 0px;
-	padding: 0px;
+	padding: var(--header-height) 0 0 0;
 	margin: 0px auto;
 }
 
@@ -142,12 +139,15 @@ body {
 	grid-row: 1;
 	grid-column: 1 / span 3;
 	width: 100%;
-	position: sticky;
+	height: var(--header-height);
+	max-width: var(--layout-max-width);
+	position: fixed;
 	background-color: var(--color-background);
 	z-index: 900;
 	top: 0px;
 	display: grid;
-	padding: 0px 16px;
+	padding: 13px 16px;
+	margin: 0 auto;
 	grid-template-columns: 250px 1fr auto;
 	gap: 16px;
 	justify-content: center;
@@ -800,7 +800,7 @@ body {
 	margin-left: -12px;
 	padding: var(--header-padding) 28px 120px 12px;
 	max-height: calc(100vh);
-	width: 290px;
+	width: var(--headings-width);
 	z-index: 800;
 	overflow-y: auto;
 	overflow-x: hidden;
@@ -1172,9 +1172,14 @@ body {
 		background-color: var(--color-background);
 	}
 
+	body.sidebar-open {
+		overflow-y: hidden;
+	}
+
 	body.sidebar-open .sidebar {
 		display: initial;
 		position: fixed;
+		height: 100%;
 		inset: 0px;
 		z-index: 10000;
 	}
@@ -1295,6 +1300,10 @@ body {
 
 	.article__image > img {
 		border-radius: 0px;
+	}
+
+	.layout {
+		padding: 0;
 	}
 
 	.layout__header {

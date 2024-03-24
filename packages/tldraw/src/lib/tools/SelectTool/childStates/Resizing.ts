@@ -75,15 +75,10 @@ export class Resizing extends StateNode {
 
 	override onTick = () => {
 		moveCameraWhenCloseToEdge(this.editor)
-		if (!this.isDirty) return
-		this.isDirty = false
-		this.updateShapes()
 	}
 
-	isDirty = false
-
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.isDirty = true
+		this.updateShapes()
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {

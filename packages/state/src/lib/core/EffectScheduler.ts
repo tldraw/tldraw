@@ -51,7 +51,6 @@ class __EffectScheduler__<Result> {
 	lastTraversedEpoch = GLOBAL_START_EPOCH
 
 	private lastReactedEpoch = GLOBAL_START_EPOCH
-	private hasPendingEffect = true
 	private _scheduleCount = 0
 
 	/**
@@ -95,7 +94,6 @@ class __EffectScheduler__<Result> {
 	/** @internal */
 	scheduleEffect() {
 		this._scheduleCount++
-		this.hasPendingEffect = true
 		if (this._scheduleEffect) {
 			// if the effect should be deferred (e.g. until a react render), do so
 			this._scheduleEffect(this.maybeExecute)
@@ -108,7 +106,7 @@ class __EffectScheduler__<Result> {
 	/** @internal */
 	readonly maybeExecute = () => {
 		// bail out if we have been detached before this runs
-		if (!this._isActivelyListening || !this.hasPendingEffect) return
+		if (!this._isActivelyListening) return
 		this.execute()
 	}
 
@@ -144,7 +142,6 @@ class __EffectScheduler__<Result> {
 		try {
 			startCapturingParents(this)
 			const result = this.runEffect(this.lastReactedEpoch)
-			this.hasPendingEffect = false
 			this.lastReactedEpoch = getGlobalEpoch()
 			return result
 		} finally {

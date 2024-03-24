@@ -1,7 +1,7 @@
-import { useLayoutReaction, useStateTracking } from '@tldraw/state'
+import { useQuickReactor, useStateTracking } from '@tldraw/state'
 import { IdOf } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { memo, useCallback, useLayoutEffect, useRef } from 'react'
+import { memo, useCallback, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -54,60 +54,68 @@ export const Shape = memo(function Shape({
 		height: 0,
 	})
 
-	useLayoutReaction('set shape stuff', () => {
-		const shape = editor.getShape(id)
-		if (!shape) return // probably the shape was just deleted
+	useQuickReactor(
+		'set shape stuff',
+		() => {
+			const shape = editor.getShape(id)
+			if (!shape) return // probably the shape was just deleted
 
-		const prev = memoizedStuffRef.current
+			const prev = memoizedStuffRef.current
 
-		// Clip path
-		const clipPath = editor.getShapeClipPath(id) ?? 'none'
-		if (clipPath !== prev.clipPath) {
-			setStyleProperty(containerRef.current, 'clip-path', clipPath)
-			setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
-			prev.clipPath = clipPath
-		}
+			// Clip path
+			const clipPath = editor.getShapeClipPath(id) ?? 'none'
+			if (clipPath !== prev.clipPath) {
+				setStyleProperty(containerRef.current, 'clip-path', clipPath)
+				setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
+				prev.clipPath = clipPath
+			}
 
-		// Page transform
-		const transform = Mat.toCssString(editor.getShapePageTransform(id))
-		if (transform !== prev.transform) {
-			setStyleProperty(containerRef.current, 'transform', transform)
-			setStyleProperty(bgContainerRef.current, 'transform', transform)
-			prev.transform = transform
-		}
+			// Page transform
+			const transform = Mat.toCssString(editor.getShapePageTransform(id))
+			if (transform !== prev.transform) {
+				setStyleProperty(containerRef.current, 'transform', transform)
+				setStyleProperty(bgContainerRef.current, 'transform', transform)
+				prev.transform = transform
+			}
 
-		// Width / Height
-		// We round the shape width and height up to the nearest multiple of dprMultiple
-		// to avoid the browser making miscalculations when applying the transform.
-		const bounds = editor.getShapeGeometry(shape).bounds
-		const widthRemainder = bounds.w % dprMultiple
-		const heightRemainder = bounds.h % dprMultiple
-		const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
-		const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
+			// Width / Height
+			// We round the shape width and height up to the nearest multiple of dprMultiple
+			// to avoid the browser making miscalculations when applying the transform.
+			const bounds = editor.getShapeGeometry(shape).bounds
+			const widthRemainder = bounds.w % dprMultiple
+			const heightRemainder = bounds.h % dprMultiple
+			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
+			const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
 
-		if (width !== prev.width || height !== prev.height) {
-			setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-			setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
-			setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-			setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
-			prev.width = width
-			prev.height = height
-		}
-	})
+			if (width !== prev.width || height !== prev.height) {
+				setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
+				setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
+				setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
+				setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
+				prev.width = width
+				prev.height = height
+			}
+		},
+		[editor]
+	)
 
 	// This stuff changes pretty infrequently, so we can change them together
-	useLayoutEffect(() => {
-		const container = containerRef.current
-		const bgContainer = bgContainerRef.current
+	useQuickReactor(
+		'set opacity and z-index',
+		() => {
+			const container = containerRef.current
+			const bgContainer = bgContainerRef.current
 
-		// Opacity
-		setStyleProperty(container, 'opacity', opacity)
-		setStyleProperty(bgContainer, 'opacity', opacity)
+			// Opacity
+			setStyleProperty(container, 'opacity', opacity)
+			setStyleProperty(bgContainer, 'opacity', opacity)
 
-		// Z-Index
-		setStyleProperty(container, 'z-index', index)
-		setStyleProperty(bgContainer, 'z-index', backgroundIndex)
-	}, [opacity, index, backgroundIndex])
+			// Z-Index
+			setStyleProperty(container, 'z-index', index)
+			setStyleProperty(bgContainer, 'z-index', backgroundIndex)
+		},
+		[opacity, index, backgroundIndex]
+	)
 
 	const annotateError = useCallback(
 		(error: any) => editor.annotateError(error, { origin: 'shape', willCrashApp: false }),
@@ -169,14 +177,18 @@ const CulledShape = function CulledShape<T extends TLShape>({ shapeId }: { shape
 	const editor = useEditor()
 	const culledRef = useRef<HTMLDivElement>(null)
 
-	useLayoutReaction('set shape stuff', () => {
-		const bounds = editor.getShapeGeometry(shapeId).bounds
-		setStyleProperty(
-			culledRef.current,
-			'transform',
-			`translate(${toDomPrecision(bounds.minX)}px, ${toDomPrecision(bounds.minY)}px)`
-		)
-	})
+	useQuickReactor(
+		'set shape stuff',
+		() => {
+			const bounds = editor.getShapeGeometry(shapeId).bounds
+			setStyleProperty(
+				culledRef.current,
+				'transform',
+				`translate(${toDomPrecision(bounds.minX)}px, ${toDomPrecision(bounds.minY)}px)`
+			)
+		},
+		[editor]
+	)
 
 	return <div ref={culledRef} className="tl-shape__culled" />
 }
