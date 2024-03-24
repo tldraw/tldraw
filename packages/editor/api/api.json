@@ -16938,12 +16938,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", animation?: "
+                  "text": ", opts?: "
                 },
                 {
                   "kind": "Reference",
                   "text": "TLAnimationOptions",
                   "canonicalReference": "@tldraw/editor!TLAnimationOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " & {\n        immediate?: boolean;\n        force?: boolean;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -16960,8 +16964,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 6,
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -16976,10 +16980,10 @@
                   "isOptional": false
                 },
                 {
-                  "parameterName": "animation",
+                  "parameterName": "opts",
                   "parameterTypeTokenRange": {
                     "startIndex": 3,
-                    "endIndex": 4
+                    "endIndex": 5
                   },
                   "isOptional": true
                 }

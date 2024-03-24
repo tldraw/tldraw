@@ -18,10 +18,12 @@ export type TLSvgOptions = {
 
 /** @public */
 export type TLCameraOptions = {
-	/** The bounds of the content */
+	/** The bounds of the content (in page space) */
 	bounds: BoxModel | null
-	/** The padding around the bounds */
+	/** The padding around the bounds (in screen space) */
 	padding: number | number[]
+	/** The maximum elastic distance around the bounds */
+	elastic: number
 	/** The speed of a scroll wheel / trackpad pan */
 	panSpeed: number
 	/** The speed of a scroll wheel / trackpad zoom */

@@ -60,7 +60,6 @@ import {
 	structuredClone,
 } from '@tldraw/utils'
 import { Number } from 'core-js'
-import immediate from 'core-js/web/immediate'
 import { EventEmitter } from 'eventemitter3'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
@@ -2126,8 +2125,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _setCamera(point: VecLike, opts?: { immediate?: boolean; force?: boolean }): this {
+	private _setCamera(_point: VecLike, opts?: { immediate?: boolean; force?: boolean }): this {
 		const currentCamera = this.getCamera()
+		const point = Vec.From(_point)
 
 		// If force is true, then we'll set the camera to the point regardless of
 		// the camera options, so that we can handle gestures that permit elasticity
@@ -2146,7 +2146,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const { zoomMax, zoomMin, padding } = cameraOptions
 
 				const vsb = this.getViewportScreenBounds()
-				const vpb = this.getViewportPageBounds()
 
 				// Get padding (it's either a number or an array of 2 numbers for t/b, l/r)
 				let [py, px] = Array.isArray(padding) ? padding : [padding, padding]
@@ -2156,16 +2155,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// Expand the bounds by the padding
 				const bounds = Box.From(cameraOptions.bounds)
-				bounds.x -= px
-				bounds.y -= py
-				bounds.w += px * 2
-				bounds.h += py * 2
 
 				// For each axis, the "natural zoom" is the zoom at
 				// which the expanded bounds (with padding) would fit
-				// the current viewport screen bounds.
-				const zx = vsb.w / bounds.width
-				const zy = vsb.h / bounds.height
+				// the current viewport screen bounds. Paddings are
+				// equal to screen pixels at 100%
+				const zx = (vsb.w - px * 2) / bounds.width
+				const zy = (vsb.h - py * 2) / bounds.height
 
 				// The min and max zooms are factors of the smaller natural zoom axis
 				const minNaturalZoom = Math.min(zx, zy)
@@ -2189,19 +2185,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 					point.y = currentCamera.y + cyB - cyA
 				}
 
-				point.x +=
-					point.z > zx
-						? // We're past the natural zoom for the x axis, so cancel any overlaps
-							Math.max(0, vpb.maxX - bounds.maxX) - Math.max(0, bounds.minX - vpb.minX)
-						: // We're below the natural zoom for the x axis, so center it
-							vpb.midX - bounds.midX
+				// We're past the natural zoom for the x axis, so clamp it with bounds + padding
+				// We're below the natural zoom for the x axis, so center it
+				if (point.z > zx) {
+					point.x = clamp(point.x, -bounds.maxX + (vsb.w - px) / point.z, bounds.x + px / point.z)
+				} else {
+					point.x = vsb.midX / point.z - bounds.midX
+				}
 
-				point.y +=
-					point.z > zy
-						? // We're past the natural zoom for the y axis, so cancel any overlaps
-							Math.max(0, vpb.maxY - bounds.maxY) - Math.max(0, bounds.minY - vpb.minY)
-						: // We're below the natural zoom for the y axis, so center it
-							vpb.midY - bounds.midY
+				if (point.z > zy) {
+					point.y = clamp(point.y, -bounds.maxY + (vsb.h - py) / point.z, bounds.y + py / point.z)
+				} else {
+					point.y = vsb.midY / point.z - bounds.midY
+				}
 			}
 		}
 
@@ -2232,7 +2228,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				button: 0,
 				isPen: this.getInstanceState().isPenMode ?? false,
 			}
-			if (immediate) {
+
+			if (opts?.immediate) {
 				this._flushEventForTick(event)
 			} else {
 				this.dispatch(event)
@@ -2259,7 +2256,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setCamera(point: VecLike, animation?: TLAnimationOptions): this {
+	setCamera(
+		point: VecLike,
+		opts?: TLAnimationOptions & { immediate?: boolean; force?: boolean }
+	): this {
 		// Stop any camera animations
 		this.stopCameraAnimation()
 
@@ -2268,14 +2268,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
-		if (animation) {
+		if (opts && (opts.duration || opts.easing)) {
 			const { width, height } = this.getViewportScreenBounds()
+			// todo: animate this
 			return this._animateToViewport(
 				new Box(-point.x, -point.y, width / point.z!, height / point.z!),
-				animation
+				opts
 			)
 		} else {
-			this._setCamera(point)
+			this._setCamera(point, opts)
 		}
 
 		return this
