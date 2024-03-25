@@ -50,12 +50,6 @@ export const FONT_FAMILIES: Record<TLDefaultFontStyle, string> = {
 }
 
 /** @internal */
-export const MIN_ARROW_LENGTH = 48
-/** @internal */
-export const BOUND_ARROW_OFFSET = 10
-/** @internal */
 export const LABEL_TO_ARROW_PADDING = 20
 /** @internal */
 export const ARROW_LABEL_PADDING = 4.25
-/** @internal */
-export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10

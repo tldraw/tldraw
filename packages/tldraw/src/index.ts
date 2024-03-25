@@ -109,7 +109,7 @@ export {
 } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
-export { exportToBlob, getSvgAsImage, getSvgAsString } from './lib/utils/export/export'
+export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'
 export { exportAs } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'

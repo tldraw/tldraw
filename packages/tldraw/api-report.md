@@ -240,7 +240,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         labelPosition: Validator<number>;
     };
     // (undocumented)
-    toSvg(shape: TLArrowShape, ctx: SvgExportContext): SVGGElement;
+    toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
     static type: "arrow";
 }
@@ -499,7 +499,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         isPen: Validator<boolean>;
     };
     // (undocumented)
-    toSvg(shape: TLDrawShape, ctx: SvgExportContext): SVGGElement;
+    toSvg(shape: TLDrawShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
     static type: "draw";
 }
@@ -664,7 +664,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     providesBackgroundForChildren(): boolean;
     // (undocumented)
-    toSvg(shape: TLFrameShape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
+    toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
     static type: "frame";
 }
@@ -816,7 +816,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         text: Validator<string>;
     };
     // (undocumented)
-    toSvg(shape: TLGeoShape, ctx: SvgExportContext): SVGElement;
+    toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
     static type: "geo";
 }
@@ -830,14 +830,13 @@ export function GeoStylePickerSet({ styles }: {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
-export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
+export function getSvgAsImage(svgString: string, isSafari: boolean, options: {
     type: 'jpeg' | 'png' | 'webp';
     quality: number;
     scale: number;
+    width: number;
+    height: number;
 }): Promise<Blob | null>;
-
-// @public (undocumented)
-export function getSvgAsString(svg: SVGElement): Promise<string>;
 
 // @public (undocumented)
 export function GroupMenuItem(): JSX_2.Element | null;
@@ -915,9 +914,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         isPen: Validator<boolean>;
     };
     // (undocumented)
-    toBackgroundSvg(shape: TLHighlightShape): SVGPathElement;
+    toBackgroundSvg(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
-    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): SVGPathElement;
+    toSvg(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
     static type: "highlight";
 }
@@ -956,7 +955,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
         } | null>;
     };
     // (undocumented)
-    toSvg(shape: TLImageShape): Promise<SVGGElement>;
+    toSvg(shape: TLImageShape): Promise<JSX_2.Element | null>;
     // (undocumented)
     static type: "image";
 }
@@ -1016,7 +1015,7 @@ export class LineShapeTool extends StateNode {
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
-    component(shape: TLLineShape): JSX_2.Element | undefined;
+    component(shape: TLLineShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLLineShape['props'];
     // (undocumented)
@@ -1055,7 +1054,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         }>;
     };
     // (undocumented)
-    toSvg(shape: TLLineShape, ctx: SvgExportContext): SVGGElement;
+    toSvg(shape: TLLineShape): JSX_2.Element;
     // (undocumented)
     static type: "line";
 }
@@ -1163,7 +1162,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         text: Validator<string>;
     };
     // (undocumented)
-    toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;
+    toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
     static type: "note";
 }
@@ -1393,7 +1392,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         autoSize: Validator<boolean>;
     };
     // (undocumented)
-    toSvg(shape: TLTextShape, ctx: SvgExportContext): SVGGElement;
+    toSvg(shape: TLTextShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
     static type: "text";
 }
@@ -2563,7 +2562,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
         assetId: Validator<TLAssetId | null>;
     };
     // (undocumented)
-    toSvg(shape: TLVideoShape): SVGGElement;
+    toSvg(shape: TLVideoShape): JSX_2.Element;
     // (undocumented)
     static type: "video";
 }

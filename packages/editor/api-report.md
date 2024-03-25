@@ -26,6 +26,7 @@ import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
@@ -766,7 +767,24 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
+    // @deprecated (undocumented)
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<{
+        svg: string;
+        width: number;
+        height: number;
+    } | undefined>;
+    // @internal (undocumented)
+    getUnorderedRenderingShapes(useEditorState: boolean): {
+        id: TLShapeId;
+        shape: TLShape;
+        util: ShapeUtil;
+        index: number;
+        backgroundIndex: number;
+        opacity: number;
+        isCulled: boolean;
+        maskedPageBounds: Box | undefined;
+    }[];
     getViewportPageBounds(): Box;
     getViewportPageCenter(): Vec;
     getViewportScreenBounds(): Box;
@@ -1654,8 +1672,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     static props?: ShapeProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
-    toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<SVGElement> | SVGElement;
-    toSvg?(shape: Shape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
+    toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
+    toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
 }
 
@@ -1826,7 +1844,7 @@ export interface SvgExportContext {
 // @public (undocumented)
 export interface SvgExportDef {
     // (undocumented)
-    getElement: () => null | Promise<null | SVGElement | SVGElement[]> | SVGElement | SVGElement[];
+    getElement: () => null | Promise<null | ReactElement> | ReactElement;
     // (undocumented)
     key: string;
 }
@@ -2726,6 +2744,11 @@ export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends Record<string, unknown>>(arr: T): T;
+
+// @public
+export function useSvgExportContext(): {
+    isDarkMode: boolean;
+} | null;
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions & {
