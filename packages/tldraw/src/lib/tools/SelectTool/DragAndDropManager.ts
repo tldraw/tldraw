@@ -16,9 +16,11 @@ export class DragAndDropManager {
 
 	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
 		if (this.first) {
-			this.prevDroppingShapeId =
-				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint, movingShapes)?.id ??
-				null
+			// Find out where the shapes are being dragged from, even if that's not where the pointer starts
+			const commonAncestor = this.editor.findCommonAncestor(movingShapes, (ancestor) =>
+				this.editor.getShapeUtil(ancestor).canDropShapes(ancestor, movingShapes)
+			)
+			this.prevDroppingShapeId = commonAncestor ?? null
 			this.first = false
 		}
 
