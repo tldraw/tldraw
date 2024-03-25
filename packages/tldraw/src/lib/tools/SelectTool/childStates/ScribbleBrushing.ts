@@ -24,8 +24,6 @@ export class ScribbleBrushing extends StateNode {
 	initialSelectedShapeIds = new Set<TLShapeId>()
 	newlySelectedShapeIds = new Set<TLShapeId>()
 
-	isDirty = false
-
 	override onEnter = () => {
 		this.initialSelectedShapeIds = new Set<TLShapeId>(
 			this.editor.inputs.shiftKey ? this.editor.getSelectedShapeIds() : []
@@ -33,7 +31,6 @@ export class ScribbleBrushing extends StateNode {
 		this.newlySelectedShapeIds = new Set<TLShapeId>()
 		this.size = 0
 		this.hits.clear()
-		this.isDirty = false
 
 		const scribbleItem = this.editor.scribbles.addScribble({
 			color: 'selection-stroke',
@@ -54,15 +51,8 @@ export class ScribbleBrushing extends StateNode {
 		this.editor.scribbles.stop(this.scribbleId)
 	}
 
-	override onTick = () => {
-		if (this.isDirty) {
-			this.isDirty = false
-			this.updateScribbleSelection(true)
-		}
-	}
-
 	override onPointerMove = () => {
-		this.isDirty = true
+		this.updateScribbleSelection(true)
 	}
 
 	override onPointerUp = () => {
@@ -168,7 +158,6 @@ export class ScribbleBrushing extends StateNode {
 
 	private complete() {
 		this.updateScribbleSelection(true)
-		this.isDirty = false
 		this.parent.transition('idle')
 	}
 

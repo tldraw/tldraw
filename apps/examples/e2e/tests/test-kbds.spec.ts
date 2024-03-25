@@ -89,7 +89,7 @@ test.describe('Keyboard Shortcuts', () => {
 			await page.keyboard.press(key)
 			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'select-tool',
-				data: { id: tool, source: 'kbd' },
+				data: { id: tool, source: 'toolbar' },
 			})
 		}
 	})

@@ -86,10 +86,14 @@ export async function getSvgAsImage(
 
 	if (!blob) return null
 
-	const view = new DataView(await blob.arrayBuffer())
-	return PngHelpers.setPhysChunk(view, effectiveScale, {
-		type: 'image/' + type,
-	})
+	if (type === 'png') {
+		const view = new DataView(await blob.arrayBuffer())
+		return PngHelpers.setPhysChunk(view, effectiveScale, {
+			type: 'image/' + type,
+		})
+	} else {
+		return blob
+	}
 }
 
 /** @public */
@@ -106,7 +110,7 @@ export async function getSvgAsString(svg: SVGElement) {
 		if (src) {
 			if (!src.startsWith('data:')) {
 				const blob = await (await fetch(src)).blob()
-				const base64 = await FileHelpers.fileToBase64(blob)
+				const base64 = await FileHelpers.blobToDataUrl(blob)
 				img.setAttribute('xlink:href', base64)
 			}
 		}

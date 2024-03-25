@@ -7,11 +7,12 @@
 .tlui-share-zone {
 	padding: 0px 0px 0px 0px;
 	display: flex;
-	height: 40px;
 	flex-direction: row;
 	justify-content: flex-end;
 	z-index: var(--layer-panels);
 	align-items: center;
+	padding-top: 2px;
+	padding-right: 4px;
 }
 
 .tlui-share-zone__connection-status {
@@ -327,7 +328,9 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	height: 40px;
+	height: 36px;
+	margin-top: 4px;
+	padding-left: 2px;
 	max-width: 100%;
 	color: var(--color-text);
 	text-shadow: 1px 1px 0px var(--color-background);
@@ -351,6 +354,8 @@
 
 .tlui-document-name__input {
 	position: absolute;
+	padding: var(--space-1) var(--space-3);
+	margin-top: 2px;
 	width: 100%;
 	border-radius: var(--radius-2);
 	color: var(--color-text);
@@ -375,13 +380,8 @@
 }
 
 .tlui-document-name__menu {
-	width: 40px;
-	height: 40px;
-}
-
-.tlui-document-name__input__wrapper:focus-within + .tlui-document-name__menu::after {
-	/* when the input is focused, its outline is flush against the menu button which doesn't look
-	good. This shifts the left-hand edge of the menu button over by 2px to give it a little
-	breathing room when the input is focused. */
-	width: calc(100% - 10px);
+	width: 36px;
+	min-width: 36px;
+	height: 36px;
+	transform: translateX(2px);
 }

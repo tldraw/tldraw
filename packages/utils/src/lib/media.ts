@@ -1,4 +1,3 @@
-import { FileHelpers } from './file'
 import { PngHelpers } from './png'
 
 /**
@@ -39,14 +38,6 @@ export class MediaHelpers {
 			img.crossOrigin = 'anonymous'
 			img.src = src
 		})
-	}
-
-	/**
-	 * Read a blob into a data url
-	 * @public
-	 */
-	static blobToDataUrl(blob: Blob) {
-		return FileHelpers.fileToBase64(blob)
 	}
 
 	/**
