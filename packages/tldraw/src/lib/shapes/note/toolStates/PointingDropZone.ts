@@ -27,18 +27,7 @@ export class PointingDropZone extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			this.shape = this.createShape()
-			this.editor.setCurrentTool('select.translating', {
-				...info,
-				target: 'shape',
-				shape: this.shape,
-				onInteractionEnd: 'note',
-				isCreating: true,
-				onCreate: () => {
-					this.editor.setEditingShape(this.shape.id)
-					this.editor.setCurrentTool('select.editing_shape')
-				},
-			})
+			this.parent.transition('brushing_drop_zone', this.dropZoneShape)
 		}
 	}
 

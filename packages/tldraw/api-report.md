@@ -1072,7 +1072,7 @@ export function MoveToPageMenu(): JSX_2.Element | null;
 // @public (undocumented)
 export class NoteShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_5 | typeof Pointing_4 | typeof PointingDropZone)[];
+    static children: () => (typeof BrushingDropZone | typeof Idle_5 | typeof Pointing_4 | typeof PointingDropZone)[];
     // (undocumented)
     static id: string;
     // (undocumented)

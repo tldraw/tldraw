@@ -12636,6 +12636,15 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "BrushingDropZone",
+                  "canonicalReference": "tldraw!~BrushingDropZone:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
                   "text": "Idle",
                   "canonicalReference": "tldraw!~Idle_5:class"
                 },
@@ -12672,7 +12681,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 8
+                "endIndex": 10
               },
               "isStatic": true,
               "isProtected": false,

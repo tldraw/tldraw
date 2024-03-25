@@ -81,8 +81,6 @@ export class Idle extends StateNode {
 			}
 			if (!direction) return undefined
 
-			// check if there's another shape in the way
-
 			return { direction, note: notes[0] }
 		}
 		const source = getSourceNote()
@@ -95,13 +93,13 @@ export class Idle extends StateNode {
 		function getPosition(note: TLNoteShape, direction: 'above' | 'below' | 'left' | 'right') {
 			switch (direction) {
 				case 'above':
-					return { x: note.x, y: note.y - 250 }
+					return { x: note.x, y: note.y - 230 }
 				case 'below':
-					return { x: note.x, y: note.y + 250 }
+					return { x: note.x, y: note.y + 230 }
 				case 'left':
-					return { x: note.x - 250, y: note.y }
+					return { x: note.x - 230, y: note.y }
 				case 'right':
-					return { x: note.x + 250, y: note.y }
+					return { x: note.x + 230, y: note.y }
 			}
 		}
 
