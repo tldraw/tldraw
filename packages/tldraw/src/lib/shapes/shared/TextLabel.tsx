@@ -54,8 +54,16 @@ export const TextLabel = React.memo(function TextLabel<
 		handleDoubleClick,
 	} = useEditableText(id, type, text)
 
-	const finalText = TextHelpers.normalizeTextForDom(text)
-	const hasText = finalText.length > 0
+	const finalTextArray = TextHelpers.normalizeTextForDom(text).split('\n')
+	const hasText = finalTextArray.length > 0
+
+	// create final text by putting each line into separate tags with dir="auto" to fix bidi-text direction
+	const finalText = finalTextArray.map((lineOfText, index) => (
+		<span dir="auto" key={index}>
+			{lineOfText}
+			<br />
+		</span>
+	))
 
 	const legacyAlign = isLegacyAlign(align)
 	const theme = useDefaultColorTheme()
@@ -96,7 +104,7 @@ export const TextLabel = React.memo(function TextLabel<
 					color: theme[labelColor].solid,
 				}}
 			>
-				<div className="tl-text tl-text-content" dir="ltr">
+				<div className="tl-text tl-text-content" dir="auto">
 					{finalText}
 				</div>
 				{isEditing && (
