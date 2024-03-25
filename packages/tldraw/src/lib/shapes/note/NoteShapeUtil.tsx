@@ -185,7 +185,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			])
 		}
 	}
-	showDropZone() {}
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {

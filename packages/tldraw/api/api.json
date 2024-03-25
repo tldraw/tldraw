@@ -9415,7 +9415,7 @@
                 {
                   "kind": "Reference",
                   "text": "Dragging",
-                  "canonicalReference": "tldraw!~Dragging:class"
+                  "canonicalReference": "tldraw!~Dragging_2:class"
                 },
                 {
                   "kind": "Content",
@@ -12636,8 +12636,17 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "BrushingDropZone",
-                  "canonicalReference": "tldraw!~BrushingDropZone:class"
+                  "text": "Brushing",
+                  "canonicalReference": "tldraw!~Brushing:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Dragging",
+                  "canonicalReference": "tldraw!~Dragging:class"
                 },
                 {
                   "kind": "Content",
@@ -12681,7 +12690,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 10
+                "endIndex": 12
               },
               "isStatic": true,
               "isProtected": false,
@@ -13494,37 +13503,6 @@
               "isStatic": true,
               "isProtected": false,
               "isAbstract": false
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "tldraw!NoteShapeUtil#showDropZone:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "showDropZone(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "showDropZone"
             },
             {
               "kind": "Method",
@@ -14470,7 +14448,7 @@
                 {
                   "kind": "Reference",
                   "text": "Brushing",
-                  "canonicalReference": "tldraw!~Brushing:class"
+                  "canonicalReference": "tldraw!~Brushing_2:class"
                 },
                 {
                   "kind": "Content",

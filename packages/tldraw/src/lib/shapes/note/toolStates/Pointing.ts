@@ -27,23 +27,12 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
 			if (!this.wasFocusedOnEnter) {
 				this.shape = this.createShape()
 			}
-
-			this.editor.setCurrentTool('select.translating', {
-				...info,
-				target: 'shape',
-				shape: this.shape,
-				onInteractionEnd: 'note',
-				isCreating: true,
-				onCreate: () => {
-					this.editor.setEditingShape(this.shape.id)
-					this.editor.setCurrentTool('select.editing_shape')
-				},
-			})
+			this.parent.transition('dragging', this.shape)
 		}
 	}
 

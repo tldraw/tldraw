@@ -11,8 +11,8 @@ import {
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 
-export class BrushingDropZone extends StateNode {
-	static override id = 'brushing_drop_zone'
+export class Brushing extends StateNode {
+	static override id = 'brushing'
 
 	info = {} as TLPointerEventInfo & { target: 'canvas' }
 
@@ -25,8 +25,6 @@ export class BrushingDropZone extends StateNode {
 	override onEnter = (info: TLGeoShape) => {
 		this.initialStartShape = info
 	}
-
-	override onExit = () => {}
 
 	override onTick = () => {
 		moveCameraWhenCloseToEdge(this.editor)
@@ -53,7 +51,6 @@ export class BrushingDropZone extends StateNode {
 	private complete() {
 		this.editor.updateInstanceState({ brush: null })
 		this.gridShapes.shift()
-		console.log(this.initialStartShape)
 		this.gridShapes.unshift(this.initialStartShape!.id)
 		const gridShapes = this.gridShapes.map((id) => {
 			if (!id) return null
@@ -135,7 +132,7 @@ export class BrushingDropZone extends StateNode {
 			}
 		}
 		this.gridShapes = geoIds
-		this.editor.updateInstanceState({ brush: { ...this.brush.toJson() } })
+		// n
 	}
 
 	private cleanupGridShapes() {

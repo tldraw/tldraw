@@ -1,32 +1,52 @@
-import {
-	StateNode,
-	TLEventHandlers,
-	TLGeoShape,
-	TLNoteShape,
-	Vec,
-	createShapeId,
-} from '@tldraw/editor'
+import { StateNode, TLNoteShape, Vec, createShapeId } from '@tldraw/editor'
 
-export class Idle extends StateNode {
-	static override id = 'idle'
-	dropZoneShape = undefined as TLGeoShape | undefined
+export class Dragging extends StateNode {
+	static override id = 'dragging'
+	shape = {} as TLNoteShape
+	dropZoneShape = undefined as TLNoteShape | undefined
 
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		if (this.dropZoneShape) {
-			this.parent.transition('pointing_drop_zone', this.dropZoneShape)
-		} else {
-			this.parent.transition('pointing', info)
-		}
-	}
-
-	override onEnter = () => {
-		this.editor.setCursor({ type: 'cross', rotation: 0 })
+	override onEnter = (shape: TLNoteShape) => {
+		this.shape = shape
+		console.log('Dragging.onEnter', shape)
 	}
 	override onExit = () => {
 		this.cleanupDropZone()
 	}
 
 	override onPointerMove = () => {
+		this.editor.updateShape({
+			...this.shape,
+			x: this.editor.inputs.currentPagePoint.x - 100,
+			y: this.editor.inputs.currentPagePoint.y - 100,
+		})
+		this.showDropZone()
+	}
+
+	override onPointerUp = () => {
+		if (this.dropZoneShape) {
+			this.editor.updateShape({
+				...this.shape,
+				x: this.dropZoneShape.x,
+				y: this.dropZoneShape.y,
+			})
+		}
+		this.cleanupDropZone()
+		this.editor.setCurrentTool('select')
+	}
+
+	cleanupDropZone() {
+		if (this.dropZoneShape) {
+			this.editor.deleteShape(this.dropZoneShape.id)
+			this.dropZoneShape = undefined
+		}
+	}
+
+	override onCancel = () => {
+		this.cleanupDropZone()
+		this.editor.setCurrentTool('select')
+	}
+
+	private showDropZone() {
 		const getSourceNote = ():
 			| {
 					note: TLNoteShape
@@ -36,6 +56,7 @@ export class Idle extends StateNode {
 			const notes = this.editor
 				.getCurrentPageShapes()
 				.filter((s) => s.type === 'note')
+				.filter((s) => s.id !== this.shape.id)
 				.filter((s) => {
 					const distance = Vec.Dist(
 						{ x: s.x + 100, y: s.y + 100 },
@@ -55,6 +76,7 @@ export class Idle extends StateNode {
 					)
 					return distanceA - distanceB
 				}) as TLNoteShape[]
+			console.log('notes', notes)
 			if (notes.length === 0) return undefined
 			let direction: 'above' | 'below' | 'left' | 'right' | null = null
 			if (
@@ -127,17 +149,5 @@ export class Idle extends StateNode {
 			})
 			this.dropZoneShape = this.editor.getShape(id)
 		}
-	}
-
-	cleanupDropZone() {
-		if (this.dropZoneShape) {
-			this.editor.deleteShape(this.dropZoneShape.id)
-			this.dropZoneShape = undefined
-		}
-	}
-
-	override onCancel = () => {
-		this.cleanupDropZone()
-		this.editor.setCurrentTool('select')
 	}
 }
