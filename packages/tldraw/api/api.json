@@ -13479,6 +13479,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#showDropZone:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "showDropZone(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "showDropZone"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "tldraw!NoteShapeUtil#toSvg:member(1)",
               "docComment": "",
               "excerptTokens": [

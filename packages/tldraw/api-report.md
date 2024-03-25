@@ -1163,6 +1163,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         text: Validator<string>;
     };
     // (undocumented)
+    showDropZone(): void;
+    // (undocumented)
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "note";
