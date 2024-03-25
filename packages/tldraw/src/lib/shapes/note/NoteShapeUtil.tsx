@@ -1,4 +1,5 @@
 import {
+	BoundsSnapGeometry,
 	DefaultFontFamilies,
 	Editor,
 	Rectangle2d,
@@ -6,6 +7,7 @@ import {
 	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	Vec,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -19,6 +21,7 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 
 const NOTE_SIZE = 200
+const NOTE_MARGIN = 10
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -50,6 +53,23 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	getGeometry(shape: TLNoteShape) {
 		const height = this.getHeight(shape)
 		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
+	}
+
+	override getBoundsSnapGeometry(shape: TLNoteShape): BoundsSnapGeometry {
+		const height = this.getHeight(shape)
+		return {
+			points: [
+				// new Vec(0, 0),
+				// new Vec(NOTE_SIZE, 0),
+				// new Vec(NOTE_SIZE, height),
+				// new Vec(0, height),
+				new Vec(-NOTE_MARGIN, -NOTE_MARGIN),
+				new Vec(NOTE_SIZE + NOTE_MARGIN, -NOTE_MARGIN),
+				new Vec(NOTE_SIZE + NOTE_MARGIN, height + NOTE_MARGIN),
+				new Vec(-NOTE_MARGIN, height + NOTE_MARGIN),
+				new Vec(NOTE_SIZE / 2, height / 2),
+			],
+		}
 	}
 
 	component(shape: TLNoteShape) {

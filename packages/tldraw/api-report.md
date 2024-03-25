@@ -9,6 +9,7 @@
 import { ArrayOfValidator } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
+import { BoundsSnapGeometry } from '@tldraw/editor';
 import { BoundsSnapPoint } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
@@ -1087,6 +1088,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     canEdit: () => boolean;
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
+    // (undocumented)
+    getBoundsSnapGeometry(shape: TLNoteShape): BoundsSnapGeometry;
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
