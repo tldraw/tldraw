@@ -12650,6 +12650,15 @@
                 },
                 {
                   "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PointingDropZone",
+                  "canonicalReference": "tldraw!~PointingDropZone:class"
+                },
+                {
+                  "kind": "Content",
                   "text": ")[]"
                 },
                 {
@@ -12663,7 +12672,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 6
+                "endIndex": 8
               },
               "isStatic": true,
               "isProtected": false,

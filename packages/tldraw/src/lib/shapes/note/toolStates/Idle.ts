@@ -9,16 +9,19 @@ import {
 
 export class Idle extends StateNode {
 	static override id = 'idle'
+	dropZoneShape = undefined as TLGeoShape | undefined
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		this.parent.transition('pointing', info)
+		if (this.dropZoneShape) {
+			this.parent.transition('pointing_drop_zone', this.dropZoneShape)
+		} else {
+			this.parent.transition('pointing', info)
+		}
 	}
 
 	override onEnter = () => {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
-
-	dropZoneShape = undefined as TLGeoShape | undefined
 
 	override onPointerMove = () => {
 		const getSourceNote = ():
@@ -78,6 +81,8 @@ export class Idle extends StateNode {
 			}
 			if (!direction) return undefined
 
+			// check if there's another shape in the way
+
 			return { direction, note: notes[0] }
 		}
 		const source = getSourceNote()
@@ -102,6 +107,14 @@ export class Idle extends StateNode {
 
 		if (!this.dropZoneShape) {
 			const position = getPosition(source.note, source.direction)
+
+			// todo: this should check the square around the note, not just the point
+			const shapesAtPoint = this.editor.getShapesAtPoint(position)
+			if (shapesAtPoint.length > 0) {
+				this.cleanupDropZone()
+				return
+			}
+
 			const id = createShapeId()
 			this.editor.createShape({
 				type: 'geo',
