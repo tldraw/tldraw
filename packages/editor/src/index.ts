@@ -135,6 +135,7 @@ export {
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
 export type {
+	SideEffectManager,
 	TLAfterChangeHandler,
 	TLAfterCreateHandler,
 	TLAfterDeleteHandler,
