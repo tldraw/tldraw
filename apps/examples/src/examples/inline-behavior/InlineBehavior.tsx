@@ -199,7 +199,7 @@ full effect of the stripped down UI.
 
 [8]
 For our custom context menu, we've copied the default context menu contents, and
-we've commented out the 'Move to page' action. This is because the we've removed
+we've commented out the 'Move to page' action. This is because we've removed
 the Pages menu, so we don't want any drawings getting lost on a different page!
 
 */
