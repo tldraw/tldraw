@@ -43,8 +43,7 @@ export interface TLShapeUtilCanvasSvgDef {
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
 	static props?: ShapeProps<TLUnknownShape>
-	// TODO: allow this to be new migrations too
-	static migrations?: LegacyMigration
+	static migrations?: LegacyMigration | TLShapePropsMigrations
 
 	/**
 	 * The type of the shape util, which should match the shape's type.
