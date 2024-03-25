@@ -24726,7 +24726,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/editor!isSafeFloat:function(1)",
-          "docComment": "/**\n * ] Check if a float is safe to use. ie: Not too big or small.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Check if a float is safe to use. ie: Not too big or small.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

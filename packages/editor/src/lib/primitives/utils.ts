@@ -349,7 +349,7 @@ export function toFixed(v: number) {
 	return Math.round(v * 1e2) / 1e2
 }
 
-/**]
+/**
  * Check if a float is safe to use. ie: Not too big or small.
  * @public
  */
