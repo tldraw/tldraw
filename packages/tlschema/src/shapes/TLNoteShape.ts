@@ -1,11 +1,8 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
+import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
-import {
-	DefaultHorizontalAlignStyle,
-	TLDefaultHorizontalAlignStyle,
-} from '../styles/TLHorizontalAlignStyle'
+import { DefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { DefaultVerticalAlignStyle } from '../styles/TLVerticalAlignStyle'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
@@ -37,112 +34,58 @@ const Versions = {
 } as const
 
 /** @internal */
-export const noteShapeMigrations = defineMigrations({
-	currentVersion: Versions.MakeUrlsValid,
-	migrators: {
-		[Versions.AddUrlProp]: {
-			up: (shape) => {
-				return { ...shape, props: { ...shape.props, url: '' } }
+export const noteShapeMigrations = createShapePropsMigrations({
+	sequence: [
+		{
+			version: Versions.AddUrlProp,
+			up: (props) => {
+				props.url = ''
 			},
-			down: (shape) => {
-				const { url: _, ...props } = shape.props
-				return { ...shape, props }
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.RemoveJustify]: {
-			up: (shape) => {
-				let newAlign = shape.props.align
-				if (newAlign === 'justify') {
-					newAlign = 'start'
-				}
-
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						align: newAlign,
-					},
+		{
+			version: Versions.RemoveJustify,
+			up: (props) => {
+				if (props.align === 'justify') {
+					props.align = 'start'
 				}
 			},
-			down: (shape) => {
-				return { ...shape }
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-
-		[Versions.MigrateLegacyAlign]: {
-			up: (shape) => {
-				let newAlign: TLDefaultHorizontalAlignStyle
-				switch (shape.props.align) {
+		{
+			version: Versions.MigrateLegacyAlign,
+			up: (props) => {
+				switch (props.align) {
 					case 'start':
-						newAlign = 'start-legacy'
-						break
+						props.align = 'start-legacy'
+						return
 					case 'end':
-						newAlign = 'end-legacy'
-						break
+						props.align = 'end-legacy'
+						return
 					default:
-						newAlign = 'middle-legacy'
-						break
-				}
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						align: newAlign,
-					},
+						props.align = 'middle-legacy'
+						return
 				}
 			},
-			down: (shape) => {
-				let oldAlign: TLDefaultHorizontalAlignStyle
-				switch (shape.props.align) {
-					case 'start-legacy':
-						oldAlign = 'start'
-						break
-					case 'end-legacy':
-						oldAlign = 'end'
-						break
-					case 'middle-legacy':
-						oldAlign = 'middle'
-						break
-					default:
-						oldAlign = shape.props.align
+			down: RETIRED_DOWN_MIGRATION,
+		},
+		{
+			version: Versions.AddVerticalAlign,
+			up: (props) => {
+				props.verticalAlign = 'middle'
+			},
+			down: RETIRED_DOWN_MIGRATION,
+		},
+		{
+			version: Versions.MakeUrlsValid,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
 				}
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						align: oldAlign,
-					},
-				}
+			},
+			down: (_props) => {
+				// noop
 			},
 		},
-		[Versions.AddVerticalAlign]: {
-			up: (shape) => {
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						verticalAlign: 'middle',
-					},
-				}
-			},
-			down: (shape) => {
-				const { verticalAlign: _, ...props } = shape.props
-
-				return {
-					...shape,
-					props,
-				}
-			},
-		},
-		[Versions.MakeUrlsValid]: {
-			up: (shape) => {
-				const url = shape.props.url
-				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
-					return { ...shape, props: { ...shape.props, url: '' } }
-				}
-				return shape
-			},
-			down: (shape) => shape,
-		},
-	},
+	],
 })

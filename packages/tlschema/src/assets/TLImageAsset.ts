@@ -1,6 +1,7 @@
-import { defineMigrations } from '@tldraw/store'
+import { createMigrationIds, createRecordMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
+import { TLAsset } from '../records/TLAsset'
+import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
 
 /**
  * An asset for images such as PNGs and JPEGs, used by the TLImageShape.
@@ -31,54 +32,51 @@ export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidat
 	})
 )
 
-const Versions = {
+const Versions = createMigrationIds('com.tldraw.asset.image', {
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
 	MakeUrlsValid: 3,
-} as const
+} as const)
 
 /** @internal */
-export const imageAssetMigrations = defineMigrations({
-	currentVersion: Versions.MakeUrlsValid,
-	migrators: {
-		[Versions.AddIsAnimated]: {
-			up: (asset) => {
-				return {
-					...asset,
-					props: {
-						...asset.props,
-						isAnimated: false,
-					},
-				}
+export const imageAssetMigrations = createRecordMigrations({
+	recordType: 'asset',
+	filter: (asset) => (asset as TLAsset).type === 'image',
+	sequence: [
+		{
+			id: Versions.AddIsAnimated,
+			up: (asset: any) => {
+				asset.props.isAnimated = false
 			},
-			down: (asset) => {
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { isAnimated, ...rest } = asset.props
-				return {
-					...asset,
-					props: rest,
-				}
+			down: (asset: any) => {
+				delete asset.props.isAnimated
 			},
 		},
-		[Versions.RenameWidthHeight]: {
-			up: (asset) => {
-				const { width, height, ...others } = asset.props
-				return { ...asset, props: { w: width, h: height, ...others } }
+		{
+			id: Versions.RenameWidthHeight,
+			up: (asset: any) => {
+				asset.props.w = asset.props.width
+				asset.props.h = asset.props.height
+				delete asset.props.width
+				delete asset.props.height
 			},
-			down: (asset) => {
-				const { w, h, ...others } = asset.props
-				return { ...asset, props: { width: w, height: h, ...others } }
+			down: (asset: any) => {
+				asset.props.width = asset.props.w
+				asset.props.height = asset.props.h
+				delete asset.props.w
+				delete asset.props.h
 			},
 		},
-		[Versions.MakeUrlsValid]: {
-			up: (asset: TLImageAsset) => {
-				const src = asset.props.src
-				if (src && !T.srcUrl.isValid(src)) {
-					return { ...asset, props: { ...asset.props, src: '' } }
+		{
+			id: Versions.MakeUrlsValid,
+			up: (asset: any) => {
+				if (!T.srcUrl.isValid(asset.props.src)) {
+					asset.props.src = ''
 				}
-				return asset
 			},
-			down: (asset) => asset,
+			down: (_asset) => {
+				// noop
+			},
 		},
-	},
+	],
 })

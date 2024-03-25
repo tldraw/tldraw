@@ -1,4 +1,10 @@
-import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import {
+	BaseRecord,
+	createMigrationIds,
+	createRecordMigrations,
+	createRecordType,
+	RecordId,
+} from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { BoxModel, boxModelValidator } from '../misc/geometry-types'
@@ -68,85 +74,73 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 )
 
 /** @internal */
-export const instancePresenceVersions = {
+export const instancePresenceVersions = createMigrationIds('com.tldraw.instance_presence', {
 	AddScribbleDelay: 1,
 	RemoveInstanceId: 2,
 	AddChatMessage: 3,
 	AddMeta: 4,
 	RenameSelectedShapeIds: 5,
-} as const
+} as const)
 
-export const instancePresenceMigrations = defineMigrations({
-	currentVersion: instancePresenceVersions.RenameSelectedShapeIds,
-	migrators: {
-		[instancePresenceVersions.AddScribbleDelay]: {
-			up: (instance) => {
+export const instancePresenceMigrations = createRecordMigrations({
+	recordType: 'instance_presence',
+	sequence: [
+		{
+			id: instancePresenceVersions.AddScribbleDelay,
+			up: (instance: any) => {
 				if (instance.scribble !== null) {
-					return { ...instance, scribble: { ...instance.scribble, delay: 0 } }
+					instance.scribble.delay = 0
 				}
-				return { ...instance }
 			},
-			down: (instance) => {
+			down: (instance: any) => {
 				if (instance.scribble !== null) {
-					const { delay: _delay, ...rest } = instance.scribble
-					return { ...instance, scribble: rest }
-				}
-				return { ...instance }
-			},
-		},
-		[instancePresenceVersions.RemoveInstanceId]: {
-			up: ({ instanceId: _, ...instance }) => {
-				return instance
-			},
-			down: (instance) => {
-				return { ...instance, instanceId: TLINSTANCE_ID }
-			},
-		},
-		[instancePresenceVersions.AddChatMessage]: {
-			up: (instance) => {
-				return { ...instance, chatMessage: '' }
-			},
-			down: ({ chatMessage: _, ...instance }) => {
-				return instance
-			},
-		},
-		[instancePresenceVersions.AddMeta]: {
-			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
-			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
+					delete instance.scribble.delay
 				}
 			},
 		},
-		[instancePresenceVersions.RenameSelectedShapeIds]: {
-			up: (record) => {
-				const { selectedShapeIds, ...rest } = record
-				return {
-					selectedShapeIds: selectedShapeIds,
-					...rest,
-				}
+		{
+			id: instancePresenceVersions.RemoveInstanceId,
+			up: (instance: any) => {
+				delete instance.instanceId
 			},
-			down: (record) => {
-				const { selectedShapeIds, ...rest } = record
-				return {
-					selectedShapeIds: selectedShapeIds,
-					...rest,
-				}
+			down: (instance: any) => {
+				instance.instanceId = TLINSTANCE_ID
 			},
 		},
-	},
+		{
+			id: instancePresenceVersions.AddChatMessage,
+			up: (instance: any) => {
+				instance.chatMessage = ''
+			},
+			down: (instance: any) => {
+				delete instance.chatMessage
+			},
+		},
+		{
+			id: instancePresenceVersions.AddMeta,
+			up: (record: any) => {
+				record.meta = {}
+			},
+			down: (record: any) => {
+				delete record.meta
+			},
+		},
+		{
+			id: instancePresenceVersions.RenameSelectedShapeIds,
+			up: (_record) => {
+				// noop, whoopsie
+			},
+			down: (_record) => {
+				// noop, whoopsie
+			},
+		},
+	],
 })
 
 /** @public */
 export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	'instance_presence',
 	{
-		migrations: instancePresenceMigrations,
 		validator: instancePresenceValidator,
 		scope: 'presence',
 	}

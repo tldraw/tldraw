@@ -1,7 +1,7 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { vecModelValidator } from '../misc/geometry-types'
+import { createShapePropsMigrations } from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
@@ -35,36 +35,36 @@ const Versions = {
 } as const
 
 /** @internal */
-export const imageShapeMigrations = defineMigrations({
-	currentVersion: Versions.MakeUrlsValid,
-	migrators: {
-		[Versions.AddUrlProp]: {
-			up: (shape) => {
-				return { ...shape, props: { ...shape.props, url: '' } }
+export const imageShapeMigrations = createShapePropsMigrations({
+	sequence: [
+		{
+			version: Versions.AddUrlProp,
+			up: (props) => {
+				props.url = ''
 			},
-			down: (shape) => {
-				const { url: _, ...props } = shape.props
-				return { ...shape, props }
-			},
-		},
-		[Versions.AddCropProp]: {
-			up: (shape) => {
-				return { ...shape, props: { ...shape.props, crop: null } }
-			},
-			down: (shape) => {
-				const { crop: _, ...props } = shape.props
-				return { ...shape, props }
+			down: (props) => {
+				delete props.url
 			},
 		},
-		[Versions.MakeUrlsValid]: {
-			up: (shape) => {
-				const url = shape.props.url
-				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
-					return { ...shape, props: { ...shape.props, url: '' } }
+		{
+			version: Versions.AddCropProp,
+			up: (props) => {
+				props.crop = null
+			},
+			down: (props) => {
+				delete props.crop
+			},
+		},
+		{
+			version: Versions.MakeUrlsValid,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
 				}
-				return shape
 			},
-			down: (shape) => shape,
+			down: (_props) => {
+				// noop
+			},
 		},
-	},
+	],
 })

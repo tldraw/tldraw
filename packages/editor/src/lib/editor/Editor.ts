@@ -217,24 +217,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
 
-		const shapeTypesInSchema = new Set(
-			Object.keys(store.schema.types.shape.migrations.subTypeMigrations!)
-		)
-		for (const shapeUtil of allShapeUtils) {
-			if (!shapeTypesInSchema.has(shapeUtil.type)) {
-				throw Error(
-					`Editor and store have different shapes: "${shapeUtil.type}" was passed into the editor but not the schema`
-				)
-			}
-			shapeTypesInSchema.delete(shapeUtil.type)
-		}
-		if (shapeTypesInSchema.size > 0) {
-			throw Error(
-				`Editor and store have different shapes: "${
-					[...shapeTypesInSchema][0]
-				}" is present in the store schema but not provided to the editor`
-			)
-		}
 		const _shapeUtils = {} as Record<string, ShapeUtil<any>>
 		const _styleProps = {} as Record<string, Map<StyleProp<unknown>, string>>
 		const allStylesById = new Map<string, StyleProp<unknown>>()

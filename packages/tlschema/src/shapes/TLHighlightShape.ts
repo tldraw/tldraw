@@ -1,5 +1,5 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
+import { createShapePropsMigrations } from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
@@ -21,4 +21,4 @@ export type TLHighlightShapeProps = ShapePropsType<typeof highlightShapeProps>
 export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
 
 /** @internal */
-export const highlightShapeMigrations = defineMigrations({})
+export const highlightShapeMigrations = createShapePropsMigrations({ sequence: [] })

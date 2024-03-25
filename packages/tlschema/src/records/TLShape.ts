@@ -1,10 +1,20 @@
-import { createRecordType, defineMigrations, RecordId, UnknownRecord } from '@tldraw/store'
+import {
+	Migration,
+	MigrationId,
+	Migrations,
+	RecordId,
+	UnknownRecord,
+	createMigrationIds,
+	createMigrations,
+	createRecordMigrations,
+	createRecordType,
+} from '@tldraw/store'
 import { mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { nanoid } from 'nanoid'
 import { SchemaShapeInfo } from '../createTLSchema'
 import { TLArrowShape } from '../shapes/TLArrowShape'
-import { createShapeValidator, TLBaseShape } from '../shapes/TLBaseShape'
+import { TLBaseShape, createShapeValidator } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
@@ -83,71 +93,55 @@ export type TLShapeProp = keyof TLShapeProps
 export type TLParentId = TLPageId | TLShapeId
 
 /** @internal */
-export const rootShapeVersions = {
+export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	AddIsLocked: 1,
 	HoistOpacity: 2,
 	AddMeta: 3,
-} as const
+} as const)
 
 /** @internal */
-export const rootShapeMigrations = defineMigrations({
-	currentVersion: rootShapeVersions.AddMeta,
-	migrators: {
-		[rootShapeVersions.AddIsLocked]: {
-			up: (record) => {
-				return {
-					...record,
-					isLocked: false,
-				}
+export const rootShapeMigrations = createRecordMigrations({
+	recordType: 'shape',
+	sequence: [
+		{
+			id: rootShapeVersions.AddIsLocked,
+			up: (record: any) => {
+				record.isLocked = false
 			},
-			down: (record) => {
-				const { isLocked: _, ...rest } = record
-				return {
-					...rest,
-				}
+			down: (record: any) => {
+				delete record.isLocked
 			},
 		},
-		[rootShapeVersions.HoistOpacity]: {
-			up: ({ props: { opacity, ...props }, ...record }) => {
-				return {
-					...record,
-					opacity: Number(opacity ?? '1'),
-					props,
-				}
+		{
+			id: rootShapeVersions.HoistOpacity,
+			up: (record: any) => {
+				record.opacity = Number(record.props.opacity ?? '1')
 			},
-			down: ({ opacity, ...record }) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						opacity:
-							opacity < 0.175
-								? '0.1'
-								: opacity < 0.375
-									? '0.25'
-									: opacity < 0.625
-										? '0.5'
-										: opacity < 0.875
-											? '0.75'
-											: '1',
-					},
-				}
+			down: (record: any) => {
+				const opacity = record.opacity
+				delete record.opacity
+				record.props.opacity =
+					opacity < 0.175
+						? '0.1'
+						: opacity < 0.375
+							? '0.25'
+							: opacity < 0.625
+								? '0.5'
+								: opacity < 0.875
+									? '0.75'
+									: '1'
 			},
 		},
-		[rootShapeVersions.AddMeta]: {
-			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
+		{
+			id: rootShapeVersions.AddMeta,
+			up: (record: any) => {
+				record.meta = {}
 			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
+			down: (record: any) => {
+				delete record.meta
 			},
 		},
-	},
+	],
 })
 
 /** @public */
@@ -183,16 +177,111 @@ export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>
 	return propKeysByStyle
 }
 
+export const NO_DOWN_MIGRATION = 'none' as const
+// If a down migration was deployed more than a couple of months ago it should be safe to retire it.
+// We only really need them to smooth over the transition between versions, and some folks do keep
+// browser tabs open for months without refreshing, but at a certain point that kind of behavior is
+// on them. Plus anyway recently chrome has started to actually kill tabs that are open for too long rather
+// than just suspending them, so if other browsers follow suit maybe it's less of a concern.
+export const RETIRED_DOWN_MIGRATION = 'retired' as const
+
+export type TLShapePropsMigrations = {
+	sequence: Array<{
+		version: number
+		dependsOn?: MigrationId[]
+		up: (props: any) => any
+		down: typeof NO_DOWN_MIGRATION | typeof RETIRED_DOWN_MIGRATION | ((props: any) => any)
+	}>
+}
+
+export function createShapePropsMigrations(
+	migrations: TLShapePropsMigrations
+): TLShapePropsMigrations {
+	return migrations
+}
+
+export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) {
+	const result: Migrations[] = []
+
+	for (const [shapeType, { migrations }] of Object.entries(shapes)) {
+		const sequenceId = `com.tldraw.shape.${shapeType}`
+		if (!migrations) {
+			// provide empty migrations sequence to allow for future migrations
+			result.push(
+				createMigrations({
+					sequenceId,
+					retroactive: false,
+					sequence: [],
+				})
+			)
+		} else if ('sequence' in migrations) {
+			result.push(
+				createMigrations({
+					sequenceId,
+					retroactive: false,
+					sequence: migrations.sequence.map(
+						({ version, up, down }): Migration => ({
+							id: `${sequenceId}/${version}`,
+							scope: 'record',
+							filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
+							up: (record: any) => {
+								const result = up(record.props)
+								if (result) {
+									record.props = result
+								}
+							},
+							down:
+								typeof down === 'function'
+									? (record: any) => {
+											const result = down(record.props)
+											if (result) {
+												record.props = result
+											}
+										}
+									: undefined,
+						})
+					),
+				})
+			)
+		} else {
+			// legacy migrations, will be removed in the future
+			result.push(
+				createMigrations({
+					sequenceId,
+					retroactive: false,
+					sequence: Object.keys(migrations.migrators)
+						.map((k) => Number(k))
+						.sort((a: number, b: number) => a - b)
+						.map(
+							(version): Migration => ({
+								id: `${sequenceId}/${version}`,
+								scope: 'record',
+								filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
+								up: (record: any) => {
+									const result = migrations.migrators[version].up(record)
+									if (result) {
+										return result
+									}
+								},
+								down: (record: any) => {
+									const result = migrations.migrators[version].down(record)
+									if (result) {
+										return result
+									}
+								},
+							})
+						),
+				})
+			)
+		}
+	}
+
+	return result
+}
+
 /** @internal */
 export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 	return createRecordType<TLShape>('shape', {
-		migrations: defineMigrations({
-			currentVersion: rootShapeMigrations.currentVersion,
-			firstVersion: rootShapeMigrations.firstVersion,
-			migrators: rootShapeMigrations.migrators,
-			subTypeKey: 'type',
-			subTypeMigrations: mapObjectMapValues(shapes, (_, v) => v.migrations ?? defineMigrations({})),
-		}),
 		scope: 'document',
 		validator: T.model(
 			'shape',

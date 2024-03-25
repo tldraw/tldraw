@@ -1,5 +1,5 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
+import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -80,91 +80,50 @@ const Versions = {
 export { Versions as GeoShapeVersions }
 
 /** @internal */
-export const geoShapeMigrations = defineMigrations({
-	currentVersion: Versions.MakeUrlsValid,
-	migrators: {
-		[Versions.AddUrlProp]: {
-			up: (shape) => {
-				return { ...shape, props: { ...shape.props, url: '' } }
+export const geoShapeMigrations = createShapePropsMigrations({
+	sequence: [
+		{
+			version: Versions.AddUrlProp,
+			up: (props) => {
+				props.url = ''
 			},
-			down: (shape) => {
-				const { url: _, ...props } = shape.props
-				return { ...shape, props }
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.AddLabelColor]: {
-			up: (record) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						labelColor: 'black',
-					},
-				}
+		{
+			version: Versions.AddLabelColor,
+			up: (props) => {
+				props.labelColor = 'black'
 			},
-			down: (record) => {
-				const { labelColor: _, ...props } = record.props
-				return {
-					...record,
-					props,
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.RemoveJustify]: {
-			up: (shape) => {
-				let newAlign = shape.props.align
-				if (newAlign === 'justify') {
-					newAlign = 'start'
-				}
-
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						align: newAlign,
-					},
+		{
+			version: Versions.RemoveJustify,
+			up: (props) => {
+				if (props.align === 'justify') {
+					props.align = 'start'
 				}
 			},
-			down: (shape) => {
-				return { ...shape }
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.AddCheckBox]: {
-			up: (shape) => {
-				return { ...shape }
+		{
+			version: Versions.AddCheckBox,
+			up: (_props) => {
+				// noop
 			},
-			down: (shape) => {
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						geo: shape.props.geo === 'check-box' ? 'rectangle' : shape.props.geo,
-					},
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.AddVerticalAlign]: {
-			up: (shape) => {
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						verticalAlign: 'middle',
-					},
-				}
+		{
+			version: Versions.AddVerticalAlign,
+			up: (props) => {
+				props.verticalAlign = 'middle'
 			},
-			down: (shape) => {
-				const { verticalAlign: _, ...props } = shape.props
-				return {
-					...shape,
-					props,
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.MigrateLegacyAlign]: {
-			up: (shape) => {
+		{
+			version: Versions.MigrateLegacyAlign,
+			up: (props) => {
 				let newAlign: TLDefaultHorizontalAlignStyle
-				switch (shape.props.align) {
+				switch (props.align) {
 					case 'start':
 						newAlign = 'start-legacy'
 						break
@@ -175,63 +134,27 @@ export const geoShapeMigrations = defineMigrations({
 						newAlign = 'middle-legacy'
 						break
 				}
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						align: newAlign,
-					},
+				props.align = newAlign
+			},
+			down: RETIRED_DOWN_MIGRATION,
+		},
+		{
+			version: Versions.AddCloud,
+			up: (_props) => {
+				// noop
+			},
+			down: RETIRED_DOWN_MIGRATION,
+		},
+		{
+			version: Versions.MakeUrlsValid,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
 				}
 			},
-			down: (shape) => {
-				let oldAlign: TLDefaultHorizontalAlignStyle
-				switch (shape.props.align) {
-					case 'start-legacy':
-						oldAlign = 'start'
-						break
-					case 'end-legacy':
-						oldAlign = 'end'
-						break
-					case 'middle-legacy':
-						oldAlign = 'middle'
-						break
-					default:
-						oldAlign = shape.props.align
-				}
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						align: oldAlign,
-					},
-				}
+			down: (_props) => {
+				// noop
 			},
 		},
-		[Versions.AddCloud]: {
-			up: (shape) => {
-				return shape
-			},
-			down: (shape) => {
-				if (shape.props.geo === 'cloud') {
-					return {
-						...shape,
-						props: {
-							...shape.props,
-							geo: 'rectangle',
-						},
-					}
-				}
-			},
-		},
-		[Versions.MakeUrlsValid]: {
-			up: (shape) => {
-				const url = shape.props.url
-				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
-					return { ...shape, props: { ...shape.props, url: '' } }
-				}
-				return shape
-			},
-			down: (shape) => shape,
-		},
-	},
+	],
 })

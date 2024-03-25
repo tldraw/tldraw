@@ -1,10 +1,14 @@
-import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import {
+	BaseRecord,
+	createMigrationIds,
+	createRecordMigrations,
+	createRecordType,
+	RecordId,
+} from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { shapeIdValidator } from '../shapes/TLBaseShape'
-import { CameraRecordType } from './TLCamera'
-import { TLINSTANCE_ID } from './TLInstance'
 import { pageIdValidator, TLPage } from './TLPage'
 import { TLShapeId } from './TLShape'
 
@@ -47,155 +51,91 @@ export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.mo
 )
 
 /** @internal */
-export const instancePageStateVersions = {
+export const instancePageStateVersions = createMigrationIds('com.tldraw.instance_page_state', {
 	AddCroppingId: 1,
 	RemoveInstanceIdAndCameraId: 2,
 	AddMeta: 3,
 	RenameProperties: 4,
 	RenamePropertiesAgain: 5,
-} as const
+} as const)
 
 /** @public */
-export const instancePageStateMigrations = defineMigrations({
-	currentVersion: instancePageStateVersions.RenamePropertiesAgain,
-	migrators: {
-		[instancePageStateVersions.AddCroppingId]: {
-			up(instance) {
-				return { ...instance, croppingShapeId: null }
-			},
-			down({ croppingShapeId: _croppingShapeId, ...instance }) {
-				return instance
+export const instancePageStateMigrations = createRecordMigrations({
+	recordType: 'instance_page_state',
+	sequence: [
+		{
+			id: instancePageStateVersions.AddCroppingId,
+			up(instance: any) {
+				instance.croppingShapeId = null
 			},
 		},
-		[instancePageStateVersions.RemoveInstanceIdAndCameraId]: {
-			up({ instanceId: _, cameraId: __, ...instance }) {
-				return instance
-			},
-			down(instance) {
-				// this should never be called since we bump the schema version
-				return {
-					...instance,
-					instanceId: TLINSTANCE_ID,
-					cameraId: CameraRecordType.createId('void'),
-				}
+		{
+			id: instancePageStateVersions.RemoveInstanceIdAndCameraId,
+			up(instance: any) {
+				delete instance.instanceId
+				delete instance.cameraId
 			},
 		},
-		[instancePageStateVersions.AddMeta]: {
-			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
+		{
+			id: instancePageStateVersions.AddMeta,
+			up: (record: any) => {
+				record.meta = {}
 			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
+			down: (record: any) => {
+				delete record.meta
 			},
 		},
-		[instancePageStateVersions.RenameProperties]: {
+		{
+			id: instancePageStateVersions.RenameProperties,
 			// this migration is cursed: it was written wrong and doesn't do anything.
 			// rather than replace it, I've added another migration below that fixes it.
-			up: (record) => {
-				const {
-					selectedShapeIds,
-					hintingShapeIds,
-					erasingShapeIds,
-					hoveredShapeId,
-					editingShapeId,
-					croppingShapeId,
-					focusedGroupId,
-					...rest
-				} = record
-				return {
-					selectedShapeIds: selectedShapeIds,
-					hintingShapeIds: hintingShapeIds,
-					erasingShapeIds: erasingShapeIds,
-					hoveredShapeId: hoveredShapeId,
-					editingShapeId: editingShapeId,
-					croppingShapeId: croppingShapeId,
-					focusedGroupId: focusedGroupId,
-					...rest,
-				}
+			up: (_record) => {
+				// noop
 			},
-			down: (record) => {
-				const {
-					selectedShapeIds,
-					hintingShapeIds,
-					erasingShapeIds,
-					hoveredShapeId,
-					editingShapeId,
-					croppingShapeId,
-					focusedGroupId,
-					...rest
-				} = record
-				return {
-					selectedShapeIds: selectedShapeIds,
-					hintingShapeIds: hintingShapeIds,
-					erasingShapeIds: erasingShapeIds,
-					hoveredShapeId: hoveredShapeId,
-					editingShapeId: editingShapeId,
-					croppingShapeId: croppingShapeId,
-					focusedGroupId: focusedGroupId,
-					...rest,
-				}
+			down: (_record) => {
+				// noop
 			},
 		},
-		[instancePageStateVersions.RenamePropertiesAgain]: {
-			up: (record) => {
-				const {
-					selectedIds,
-					hintingIds,
-					erasingIds,
-					hoveredId,
-					editingId,
-					croppingShapeId,
-					croppingId,
-					focusLayerId,
-					...rest
-				} = record
-				return {
-					...rest,
-					selectedShapeIds: selectedIds,
-					hintingShapeIds: hintingIds,
-					erasingShapeIds: erasingIds,
-					hoveredShapeId: hoveredId,
-					editingShapeId: editingId,
-					croppingShapeId: croppingShapeId ?? croppingId ?? null,
-					focusedGroupId: focusLayerId,
-				}
+		{
+			id: instancePageStateVersions.RenamePropertiesAgain,
+			up: (record: any) => {
+				record.selectedShapeIds = record.selectedIds
+				delete record.selectedIds
+				record.hintingShapeIds = record.hintingIds
+				delete record.hintingIds
+				record.erasingShapeIds = record.erasingIds
+				delete record.erasingIds
+				record.hoveredShapeId = record.hoveredId
+				delete record.hoveredId
+				record.editingShapeId = record.editingId
+				delete record.editingId
+				record.croppingShapeId = record.croppingShapeId ?? record.croppingId ?? null
+				delete record.croppingId
+				record.focusedGroupId = record.focusLayerId
 			},
-			down: (record) => {
-				const {
-					selectedShapeIds,
-					hintingShapeIds,
-					erasingShapeIds,
-					hoveredShapeId,
-					editingShapeId,
-					croppingShapeId,
-					focusedGroupId,
-					...rest
-				} = record
-				return {
-					...rest,
-					selectedIds: selectedShapeIds,
-					hintingIds: hintingShapeIds,
-					erasingIds: erasingShapeIds,
-					hoveredId: hoveredShapeId,
-					editingId: editingShapeId,
-					croppingId: croppingShapeId,
-					focusLayerId: focusedGroupId,
-				}
+			down: (record: any) => {
+				record.selectedIds = record.selectedShapeIds
+				delete record.selectedShapeIds
+				record.hintingIds = record.hintingShapeIds
+				delete record.hintingShapeIds
+				record.erasingIds = record.erasingShapeIds
+				delete record.erasingShapeIds
+				record.hoveredId = record.hoveredShapeId
+				delete record.hoveredShapeId
+				record.editingId = record.editingShapeId
+				delete record.editingShapeId
+				record.croppingId = record.croppingShapeId
+				delete record.croppingShapeId
+				record.focusLayerId = record.focusedGroupId
 			},
 		},
-	},
+	],
 })
 
 /** @public */
 export const InstancePageStateRecordType = createRecordType<TLInstancePageState>(
 	'instance_page_state',
 	{
-		migrations: instancePageStateMigrations,
 		validator: instancePageStateValidator,
 		scope: 'session',
 	}

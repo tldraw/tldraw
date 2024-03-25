@@ -1,4 +1,10 @@
-import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import {
+	BaseRecord,
+	createMigrationIds,
+	createRecordMigrations,
+	createRecordType,
+	RecordId,
+} from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
@@ -35,34 +41,29 @@ export const cameraValidator: T.Validator<TLCamera> = T.model(
 )
 
 /** @internal */
-export const cameraVersions = {
+export const cameraVersions = createMigrationIds('com.tldraw.camera', {
 	AddMeta: 1,
-}
+})
 
 /** @internal */
-export const cameraMigrations = defineMigrations({
-	currentVersion: cameraVersions.AddMeta,
-	migrators: {
-		[cameraVersions.AddMeta]: {
+export const cameraMigrations = createRecordMigrations({
+	recordType: 'camera',
+	sequence: [
+		{
+			id: cameraVersions.AddMeta,
 			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
+				;(record as any).meta = {}
 			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
+			down: (record) => {
+				delete (record as any).meta
 			},
 		},
-	},
+	],
 })
 
 /** @public */
 export const CameraRecordType = createRecordType<TLCamera>('camera', {
 	validator: cameraValidator,
-	migrations: cameraMigrations,
 	scope: 'session',
 }).withDefaultProperties(
 	(): Omit<TLCamera, 'id' | 'typeName'> => ({

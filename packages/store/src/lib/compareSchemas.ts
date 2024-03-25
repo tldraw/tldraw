@@ -1,55 +1,29 @@
-import { SerializedSchema } from './StoreSchema'
+import { SerializedSchema, upgradeSchema } from './StoreSchema'
 
 /** @public */
-export const compareSchemas = (a: SerializedSchema, b: SerializedSchema): 0 | 1 | -1 => {
-	if (a.schemaVersion > b.schemaVersion) {
-		return 1
-	}
-	if (a.schemaVersion < b.schemaVersion) {
-		return -1
-	}
-	if (a.storeVersion > b.storeVersion) {
-		return 1
-	}
-	if (a.storeVersion < b.storeVersion) {
-		return -1
-	}
-	for (const key of Object.keys(a.recordVersions)) {
-		const aRecordVersion = a.recordVersions[key]
-		const bRecordVersion = b.recordVersions[key]
-		if (aRecordVersion.version > bRecordVersion.version) {
+export const compareSchemas = (_a: SerializedSchema, _b: SerializedSchema): 0 | 1 | -1 => {
+	const a = upgradeSchema(_a)
+	const b = upgradeSchema(_b)
+	for (const [sequenceId, bVersion] of Object.entries(b.sequences)) {
+		const aVersion = a.sequences[sequenceId]
+		if (!aVersion && bVersion.retroactive) {
+			// a is less than b
+			return -1
+		} else if (aVersion && aVersion.version < bVersion.version) {
+			// a is less than b
+			return -1
+		} else if (aVersion && aVersion.version > bVersion.version) {
+			// a is greater than b
 			return 1
 		}
-		if (aRecordVersion.version < bRecordVersion.version) {
-			return -1
-		}
-		if ('subTypeVersions' in aRecordVersion && !('subTypeVersions' in bRecordVersion)) {
-			// todo: this assumes that subtypes were added in an up migration rather than removed. We should probably
-			// make sure that in either case the parent version is bumped
+	}
+
+	for (const [sequenceId, aVersion] of Object.entries(a.sequences)) {
+		if (!b.sequences[sequenceId] && aVersion.retroactive) {
+			// a is greater than b
 			return 1
 		}
-
-		if (!('subTypeVersions' in aRecordVersion) && 'subTypeVersions' in bRecordVersion) {
-			// todo: this assumes that subtypes were added in an up migration rather than removed. We should probably
-			// make sure that in either case the parent version is bumped
-			return -1
-		}
-
-		if (!('subTypeVersions' in aRecordVersion) || !('subTypeVersions' in bRecordVersion)) {
-			// this will never happen
-			continue
-		}
-
-		for (const subType of Object.keys(aRecordVersion.subTypeVersions)) {
-			const aSubTypeVersion = aRecordVersion.subTypeVersions[subType]
-			const bSubTypeVersion = bRecordVersion.subTypeVersions[subType]
-			if (aSubTypeVersion > bSubTypeVersion) {
-				return 1
-			}
-			if (aSubTypeVersion < bSubTypeVersion) {
-				return -1
-			}
-		}
 	}
+
 	return 0
 }

@@ -1,11 +1,5 @@
 import { Signal, computed, transact } from '@tldraw/state'
-import {
-	RecordsDiff,
-	UnknownRecord,
-	defineMigrations,
-	migrate,
-	squashRecordDiffs,
-} from '@tldraw/store'
+import { RecordsDiff, UnknownRecord, squashRecordDiffs } from '@tldraw/store'
 import {
 	CameraRecordType,
 	InstancePageStateRecordType,
@@ -22,6 +16,7 @@ import {
 	getFromSessionStorage,
 	objectMapFromEntries,
 	setInSessionStorage,
+	structuredClone,
 } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { uniqueId } from '../utils/uniqueId'
@@ -79,7 +74,18 @@ const Versions = {
 	Initial: 0,
 } as const
 
-const CURRENT_SESSION_STATE_SNAPSHOT_VERSION = Versions.Initial
+const CURRENT_SESSION_STATE_SNAPSHOT_VERSION = Math.max(...Object.values(Versions))
+
+function migrate(snapshot: any) {
+	if (snapshot.version < Versions.Initial) {
+		// initial version
+		// noop
+	}
+	// add further migrations down here. see TLUserPreferences.ts for an example.
+
+	// finally
+	snapshot.version = CURRENT_SESSION_STATE_SNAPSHOT_VERSION
+}
 
 /**
  * The state of the editor instance, not including any document state.
@@ -124,10 +130,6 @@ const sessionStateSnapshotValidator: T.Validator<TLSessionStateSnapshot> = T.obj
 	),
 })
 
-const sessionStateSnapshotMigrations = defineMigrations({
-	currentVersion: CURRENT_SESSION_STATE_SNAPSHOT_VERSION,
-})
-
 function migrateAndValidateSessionStateSnapshot(state: unknown): TLSessionStateSnapshot | null {
 	if (!state || typeof state !== 'object') {
 		console.warn('Invalid instance state')
@@ -137,27 +139,17 @@ function migrateAndValidateSessionStateSnapshot(state: unknown): TLSessionStateS
 		console.warn('No version in instance state')
 		return null
 	}
-	const result = migrate<TLSessionStateSnapshot>({
-		value: state,
-		fromVersion: state.version,
-		toVersion: CURRENT_SESSION_STATE_SNAPSHOT_VERSION,
-		migrations: sessionStateSnapshotMigrations,
-	})
-	if (result.type === 'error') {
-		console.warn(result.reason)
-		return null
+	if (state.version !== CURRENT_SESSION_STATE_SNAPSHOT_VERSION) {
+		state = structuredClone(state)
+		migrate(state)
 	}
 
-	const value = { ...result.value, version: CURRENT_SESSION_STATE_SNAPSHOT_VERSION }
-
 	try {
-		sessionStateSnapshotValidator.validate(value)
+		return sessionStateSnapshotValidator.validate(state)
 	} catch (e) {
 		console.warn(e)
 		return null
 	}
-
-	return value
 }
 
 /**

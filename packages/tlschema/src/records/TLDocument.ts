@@ -1,4 +1,10 @@
-import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import {
+	BaseRecord,
+	createMigrationIds,
+	createRecordMigrations,
+	createRecordType,
+	RecordId,
+} from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 
@@ -26,42 +32,38 @@ export const documentValidator: T.Validator<TLDocument> = T.model(
 )
 
 /** @internal */
-export const documentVersions = {
+export const documentVersions = createMigrationIds('com.tldraw.document', {
 	AddName: 1,
 	AddMeta: 2,
-} as const
+} as const)
 
 /** @internal */
-export const documentMigrations = defineMigrations({
-	currentVersion: documentVersions.AddMeta,
-	migrators: {
-		[documentVersions.AddName]: {
-			up: (document: TLDocument) => {
-				return { ...document, name: '' }
+export const documentMigrations = createRecordMigrations({
+	recordType: 'document',
+	sequence: [
+		{
+			id: documentVersions.AddName,
+			up: (document) => {
+				;(document as any).name = ''
 			},
-			down: ({ name: _, ...document }: TLDocument) => {
-				return document
+			down: (document) => {
+				delete (document as any).name
 			},
 		},
-		[documentVersions.AddMeta]: {
+		{
+			id: documentVersions.AddMeta,
 			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
+				;(record as any).meta = {}
 			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
+			down: (record) => {
+				delete (record as any).meta
 			},
 		},
-	},
+	],
 })
 
 /** @public */
 export const DocumentRecordType = createRecordType<TLDocument>('document', {
-	migrations: documentMigrations,
 	validator: documentValidator,
 	scope: 'document',
 }).withDefaultProperties(

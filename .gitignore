@@ -7,6 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.rooms
+
 node_modules
 dist
 dist-cjs

@@ -328,19 +328,10 @@ const NUM_OPS = 200
 function runTest(seed: number) {
 	const store = new Store({
 		props: {},
-		schema: StoreSchema.create<Book | Author>(
-			{
-				book: Book,
-				author: Author,
-			},
-			{
-				snapshotMigrations: {
-					currentVersion: 0,
-					firstVersion: 0,
-					migrators: {},
-				},
-			}
-		),
+		schema: StoreSchema.create<Book | Author>({
+			book: Book,
+			author: Author,
+		}),
 	})
 	store.onBeforeDelete = (record) => {
 		if (record.typeName === 'author') {

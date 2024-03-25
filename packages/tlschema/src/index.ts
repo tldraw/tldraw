@@ -63,6 +63,7 @@ export {
 	type TLShapePartial,
 	type TLShapeProp,
 	type TLShapeProps,
+	type TLShapePropsMigrations,
 	type TLUnknownShape,
 } from './records/TLShape'
 export {

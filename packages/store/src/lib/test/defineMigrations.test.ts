@@ -11,32 +11,32 @@ describe('define migrations tests', () => {
 	it('defines migrations', () => {
 		expect(() => {
 			// no versions
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
-				// @ts-expect-error first version without current version
 				firstVersion: Versions.Initial,
 			})
 		}).not.toThrow()
 
 		expect(() => {
 			// no versions
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
-				// @ts-expect-error first version without current version
 				firstVersion: Versions.February,
 			})
 		}).not.toThrow()
 
 		expect(() => {
 			// empty migrators
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
-				// @ts-expect-error
 				migrators: {},
 			})
 		}).not.toThrow()
 
 		expect(() => {
 			// no versions!
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
-				// @ts-expect-error
 				migrators: {
 					[Versions.February]: {
 						up: (rec: any) => rec,
@@ -48,10 +48,10 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// wrong current version!
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				currentVersion: Versions.January,
 				migrators: {
-					// @ts-expect-error
 					[Versions.February]: {
 						up: (rec: any) => rec,
 						down: (rec: any) => rec,
@@ -61,6 +61,7 @@ describe('define migrations tests', () => {
 		}).not.toThrow()
 
 		expect(() => {
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				currentVersion: Versions.February,
 				migrators: {
@@ -80,16 +81,16 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// can't provide only first version
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
-				// @ts-expect-error first version without current version
 				firstVersion: Versions.January,
-				// @ts-expect-error migrators without current version
 				migrators: {},
 			})
 		}).not.toThrow()
 
 		expect(() => {
 			// same version
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				firstVersion: Versions.Initial,
 				currentVersion: Versions.Initial,
@@ -99,26 +100,26 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// only first version
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
-				// @ts-expect-error
 				firstVersion: Versions.January,
-				// @ts-expect-error
 				migrators: {},
 			})
 		}).not.toThrow()
 
 		expect(() => {
 			// missing only version
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				firstVersion: Versions.January,
 				currentVersion: Versions.January,
-				// @ts-expect-error
 				migrators: {},
 			})
 		}).toThrow()
 
 		expect(() => {
 			// only version, explicit start and current
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				firstVersion: Versions.January,
 				currentVersion: Versions.January,
@@ -133,20 +134,20 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// missing later versions
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				firstVersion: Versions.January,
 				currentVersion: Versions.February,
-				// @ts-expect-error
 				migrators: {},
 			})
 		}).not.toThrow()
 
 		expect(() => {
 			// missing later versions
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				firstVersion: Versions.Initial,
 				currentVersion: Versions.February,
-				// @ts-expect-error
 				migrators: {
 					[Versions.January]: {
 						up: (rec: any) => rec,
@@ -158,10 +159,10 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// missing earlier versions
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				firstVersion: Versions.Initial,
 				currentVersion: Versions.February,
-				// @ts-expect-error
 				migrators: {
 					[Versions.February]: {
 						up: (rec: any) => rec,
@@ -173,6 +174,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// got em all
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				firstVersion: Versions.Initial,
 				currentVersion: Versions.February,
@@ -191,6 +193,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// got em all starting later
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				firstVersion: Versions.January,
 				currentVersion: Versions.March,
@@ -209,11 +212,11 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// first migration should be first version + 1
+			// eslint-disable-next-line deprecation/deprecation
 			defineMigrations({
 				firstVersion: Versions.February,
 				currentVersion: Versions.March,
 				migrators: {
-					// @ts-expect-error
 					[Versions.February]: {
 						up: (rec: any) => rec,
 						down: (rec: any) => rec,
