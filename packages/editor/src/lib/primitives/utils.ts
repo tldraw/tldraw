@@ -339,7 +339,7 @@ export function pointInPolygon(A: VecLike, points: VecLike[]): boolean {
  * @public
  */
 export function toDomPrecision(v: number) {
-	return Math.round(v * 1e3) / 1e3
+	return Math.round(v * 1e4) / 1e4
 }
 
 /**

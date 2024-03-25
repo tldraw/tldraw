@@ -530,6 +530,7 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 				left: 0,
 				transform: `translate(${bb.x}px, ${bb.y + bb.h + 12}px)`,
 				border: '1px solid black',
+				maxWidth: 'none',
 			}}
 		/>
 	)

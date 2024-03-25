@@ -3,6 +3,7 @@ import {
 	Geometry2d,
 	Rectangle2d,
 	SVGContainer,
+	SelectionEdge,
 	SvgExportContext,
 	TLFrameShape,
 	TLGroupShape,
@@ -10,15 +11,19 @@ import {
 	TLOnResizeHandler,
 	TLShape,
 	TLShapeId,
+	canonicalizeRotation,
+	exhaustiveSwitchError,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
+	last,
 	resizeBox,
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
+import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
 import { FrameHeading } from './components/FrameHeading'
 
 export function defaultEmptyAs(str: string, dflt: string) {
@@ -95,6 +100,66 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
+
+		// Text label
+		const pageRotation = canonicalizeRotation(
+			this.editor.getShapePageTransform(shape.id)!.rotation()
+		)
+		// rotate right 45 deg
+		const offsetRotation = pageRotation + Math.PI / 4
+		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
+		const labelSide: SelectionEdge = (['top', 'left', 'bottom', 'right'] as const)[
+			Math.floor(scaledRotation)
+		]
+
+		let labelTranslate: string
+		switch (labelSide) {
+			case 'top':
+				labelTranslate = ``
+				break
+			case 'right':
+				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, 0) rotate(90)`
+				break
+			case 'bottom':
+				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, ${toDomPrecision(
+					shape.props.h
+				)}) rotate(180)`
+				break
+			case 'left':
+				labelTranslate = `translate(0, ${toDomPrecision(shape.props.h)}) rotate(270)`
+				break
+			default:
+				exhaustiveSwitchError(labelSide)
+		}
+
+		// Truncate with ellipsis
+		const opts = {
+			fontSize: 12,
+			fontFamily: 'Inter, sans-serif',
+			textAlign: 'start' as const,
+			width: shape.props.w,
+			height: 32,
+			padding: 0,
+			lineHeight: 1,
+			fontStyle: 'normal',
+			fontWeight: 'normal',
+			overflow: 'truncate-ellipsis' as const,
+			verticalTextAlign: 'middle' as const,
+		}
+
+		const spans = this.editor.textMeasure.measureTextSpans(
+			defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
+			opts
+		)
+
+		const firstSpan = spans[0]
+		const lastSpan = last(spans)!
+		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
+		const text = createTextJsxFromSpans(this.editor, spans, {
+			offsetY: -opts.height - 2,
+			...opts,
+		})
+
 		return (
 			<>
 				<rect
@@ -106,84 +171,20 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					rx={1}
 					ry={1}
 				/>
+				<g transform={labelTranslate}>
+					<rect
+						x={-8}
+						y={-opts.height - 4}
+						width={labelTextWidth + 16}
+						height={opts.height}
+						fill={theme.background}
+						rx={4}
+						ry={4}
+					/>
+					{text}
+				</g>
 			</>
 		)
-
-		// TODO: text label
-
-		// // Text label
-		// const pageRotation = canonicalizeRotation(
-		// 	this.editor.getShapePageTransform(shape.id)!.rotation()
-		// )
-		// // rotate right 45 deg
-		// const offsetRotation = pageRotation + Math.PI / 4
-		// const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
-		// const labelSide: SelectionEdge = (['top', 'left', 'bottom', 'right'] as const)[
-		// 	Math.floor(scaledRotation)
-		// ]
-
-		// let labelTranslate: string
-		// switch (labelSide) {
-		// 	case 'top':
-		// 		labelTranslate = ``
-		// 		break
-		// 	case 'right':
-		// 		labelTranslate = `translate(${toDomPrecision(shape.props.w)}px, 0px) rotate(90deg)`
-		// 		break
-		// 	case 'bottom':
-		// 		labelTranslate = `translate(${toDomPrecision(shape.props.w)}px, ${toDomPrecision(
-		// 			shape.props.h
-		// 		)}px) rotate(180deg)`
-		// 		break
-		// 	case 'left':
-		// 		labelTranslate = `translate(0px, ${toDomPrecision(shape.props.h)}px) rotate(270deg)`
-		// 		break
-		// 	default:
-		// 		labelTranslate = ``
-		// }
-
-		// // Truncate with ellipsis
-		// const opts = {
-		// 	fontSize: 12,
-		// 	fontFamily: 'Inter, sans-serif',
-		// 	textAlign: 'start' as const,
-		// 	width: shape.props.w,
-		// 	height: 32,
-		// 	padding: 0,
-		// 	lineHeight: 1,
-		// 	fontStyle: 'normal',
-		// 	fontWeight: 'normal',
-		// 	overflow: 'truncate-ellipsis' as const,
-		// 	verticalTextAlign: 'middle' as const,
-		// }
-
-		// const spans = this.editor.textMeasure.measureTextSpans(
-		// 	defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
-		// 	opts
-		// )
-
-		// const firstSpan = spans[0]
-		// const lastSpan = last(spans)!
-		// const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-		// const text = createTextSvgElementFromSpans(this.editor, spans, {
-		// 	offsetY: -opts.height - 2,
-		// 	...opts,
-		// })
-		// text.style.setProperty('transform', labelTranslate)
-
-		// const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		// textBg.setAttribute('x', '-8px')
-		// textBg.setAttribute('y', -opts.height - 4 + 'px')
-		// textBg.setAttribute('width', labelTextWidth + 16 + 'px')
-		// textBg.setAttribute('height', `${opts.height}px`)
-		// textBg.setAttribute('rx', 4 + 'px')
-		// textBg.setAttribute('ry', 4 + 'px')
-		// textBg.setAttribute('fill', theme.background)
-
-		// g.appendChild(textBg)
-		// g.appendChild(text)
-
-		// return g
 	}
 
 	indicator(shape: TLFrameShape) {
