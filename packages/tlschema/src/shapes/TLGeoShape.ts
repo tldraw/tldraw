@@ -66,7 +66,7 @@ export type TLGeoShapeProps = ShapePropsType<typeof geoShapeProps>
 /** @public */
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
-const Versions = {
+const geoShapeVersions = {
 	AddUrlProp: 1,
 	AddLabelColor: 2,
 	RemoveJustify: 3,
@@ -77,27 +77,27 @@ const Versions = {
 	MakeUrlsValid: 8,
 } as const
 
-export { Versions as GeoShapeVersions }
+export { geoShapeVersions as geoShapeVersions }
 
 /** @internal */
 export const geoShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
-			version: Versions.AddUrlProp,
+			version: geoShapeVersions.AddUrlProp,
 			up: (props) => {
 				props.url = ''
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.AddLabelColor,
+			version: geoShapeVersions.AddLabelColor,
 			up: (props) => {
 				props.labelColor = 'black'
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.RemoveJustify,
+			version: geoShapeVersions.RemoveJustify,
 			up: (props) => {
 				if (props.align === 'justify') {
 					props.align = 'start'
@@ -106,21 +106,21 @@ export const geoShapeMigrations = createShapePropsMigrations({
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.AddCheckBox,
+			version: geoShapeVersions.AddCheckBox,
 			up: (_props) => {
 				// noop
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.AddVerticalAlign,
+			version: geoShapeVersions.AddVerticalAlign,
 			up: (props) => {
 				props.verticalAlign = 'middle'
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.MigrateLegacyAlign,
+			version: geoShapeVersions.MigrateLegacyAlign,
 			up: (props) => {
 				let newAlign: TLDefaultHorizontalAlignStyle
 				switch (props.align) {
@@ -139,14 +139,14 @@ export const geoShapeMigrations = createShapePropsMigrations({
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.AddCloud,
+			version: geoShapeVersions.AddCloud,
 			up: (_props) => {
 				// noop
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.MakeUrlsValid,
+			version: geoShapeVersions.MakeUrlsValid,
 			up: (props) => {
 				if (!T.linkUrl.isValid(props.url)) {
 					props.url = ''

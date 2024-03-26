@@ -28,6 +28,8 @@ const Versions = {
 	RemoveJustify: 1,
 } as const
 
+export { Versions as textShapeVersions }
+
 /** @internal */
 export const textShapeMigrations = createShapePropsMigrations({
 	sequence: [

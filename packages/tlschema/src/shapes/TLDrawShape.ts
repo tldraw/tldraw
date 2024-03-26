@@ -37,6 +37,8 @@ const Versions = {
 	AddInPen: 1,
 } as const
 
+export { Versions as drawShapeVersions }
+
 /** @internal */
 export const drawShapeMigrations = createShapePropsMigrations({
 	sequence: [

@@ -11,7 +11,6 @@ import { BoxModel, boxModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
-import { TLINSTANCE_ID } from './TLInstance'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 
@@ -92,19 +91,11 @@ export const instancePresenceMigrations = createRecordMigrations({
 					instance.scribble.delay = 0
 				}
 			},
-			down: (instance: any) => {
-				if (instance.scribble !== null) {
-					delete instance.scribble.delay
-				}
-			},
 		},
 		{
 			id: instancePresenceVersions.RemoveInstanceId,
 			up: (instance: any) => {
 				delete instance.instanceId
-			},
-			down: (instance: any) => {
-				instance.instanceId = TLINSTANCE_ID
 			},
 		},
 		{
@@ -112,25 +103,16 @@ export const instancePresenceMigrations = createRecordMigrations({
 			up: (instance: any) => {
 				instance.chatMessage = ''
 			},
-			down: (instance: any) => {
-				delete instance.chatMessage
-			},
 		},
 		{
 			id: instancePresenceVersions.AddMeta,
 			up: (record: any) => {
 				record.meta = {}
 			},
-			down: (record: any) => {
-				delete record.meta
-			},
 		},
 		{
 			id: instancePresenceVersions.RenameSelectedShapeIds,
 			up: (_record) => {
-				// noop, whoopsie
-			},
-			down: (_record) => {
 				// noop, whoopsie
 			},
 		},

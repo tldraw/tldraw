@@ -38,6 +38,8 @@ const Versions = createMigrationIds('com.tldraw.asset.video', {
 	MakeUrlsValid: 3,
 } as const)
 
+export { Versions as videoAssetVersions }
+
 /** @internal */
 export const videoAssetMigrations = createRecordMigrations({
 	recordType: 'asset',

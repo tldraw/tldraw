@@ -24,6 +24,8 @@ const Versions = {
 	MakeUrlsValid: 2,
 } as const
 
+export { Versions as videoShapeVersions }
+
 /** @internal */
 export const videoShapeMigrations = createShapePropsMigrations({
 	sequence: [

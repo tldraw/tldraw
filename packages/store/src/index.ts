@@ -25,11 +25,12 @@ export {
 	createRecordMigrations,
 	// eslint-disable-next-line deprecation/deprecation
 	defineMigrations,
-	type Migration,
-	type Migrations,
-	type MigrationId,
+	parseMigrationId,
 	type LegacyMigration,
 	type LegacyMigrations,
+	type Migration,
+	type MigrationId,
 	type MigrationResult,
+	type Migrations,
 } from './lib/migrate'
 export type { AllRecords } from './lib/type-utils'
