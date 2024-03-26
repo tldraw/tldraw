@@ -5,7 +5,7 @@ resource "aws_lb" "main" {
   security_groups = [aws_security_group.lb.id]
   subnets         = module.vpc.public_subnets
 
-  enable_deletion_protection = true
+  enable_deletion_protection = false
 
   tags = local.default_tags
 }

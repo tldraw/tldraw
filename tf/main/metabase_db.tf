@@ -16,13 +16,13 @@ resource "aws_db_instance" "metabase" {
 
   parameter_group_name = aws_db_parameter_group.force_ssl.name
 
-  skip_final_snapshot = false
+  skip_final_snapshot = true
 
   backup_retention_period = 7
   ca_cert_identifier      = data.aws_rds_certificate.default.id
 
   db_subnet_group_name = module.vpc.database_subnet_group_name
-  deletion_protection  = true
+  deletion_protection  = false
 
   multi_az = false
 
