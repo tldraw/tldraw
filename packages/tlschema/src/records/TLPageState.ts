@@ -81,9 +81,6 @@ export const instancePageStateMigrations = createRecordMigrations({
 			up: (record: any) => {
 				record.meta = {}
 			},
-			down: (record: any) => {
-				delete record.meta
-			},
 		},
 		{
 			id: instancePageStateVersions.RenameProperties,
@@ -112,6 +109,7 @@ export const instancePageStateMigrations = createRecordMigrations({
 				record.croppingShapeId = record.croppingShapeId ?? record.croppingId ?? null
 				delete record.croppingId
 				record.focusedGroupId = record.focusLayerId
+				delete record.focusLayerId
 			},
 			down: (record: any) => {
 				record.selectedIds = record.selectedShapeIds
@@ -127,6 +125,7 @@ export const instancePageStateMigrations = createRecordMigrations({
 				record.croppingId = record.croppingShapeId
 				delete record.croppingShapeId
 				record.focusLayerId = record.focusedGroupId
+				delete record.focusedGroupId
 			},
 		},
 	],

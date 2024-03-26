@@ -38,6 +38,8 @@ const Versions = createMigrationIds('com.tldraw.asset.image', {
 	MakeUrlsValid: 3,
 } as const)
 
+export { Versions as imageAssetVersions }
+
 /** @internal */
 export const imageAssetMigrations = createRecordMigrations({
 	recordType: 'asset',

@@ -1,6 +1,6 @@
 import { IndexKey, getIndices, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { createShapePropsMigrations } from '../records/TLShape'
+import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -56,11 +56,7 @@ export const lineShapeMigrations = createShapePropsMigrations({
 					;(handle as any).canSnap = true
 				}
 			},
-			down: (props) => {
-				for (const handle of Object.values(props.handles)) {
-					delete (handle as any).canSnap
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
 			version: lineShapeVersions.RemoveExtraHandleProps,

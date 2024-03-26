@@ -22,6 +22,8 @@ const Versions = {
 	MakeUrlsValid: 2,
 } as const
 
+export { Versions as bookmarkShapeVersions }
+
 /** @internal */
 export const bookmarkShapeMigrations = createShapePropsMigrations({
 	sequence: [

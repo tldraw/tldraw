@@ -1,7 +1,7 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { vecModelValidator } from '../misc/geometry-types'
-import { createShapePropsMigrations } from '../records/TLShape'
+import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
@@ -34,6 +34,8 @@ const Versions = {
 	MakeUrlsValid: 3,
 } as const
 
+export { Versions as imageShapeVersions }
+
 /** @internal */
 export const imageShapeMigrations = createShapePropsMigrations({
 	sequence: [
@@ -42,9 +44,7 @@ export const imageShapeMigrations = createShapePropsMigrations({
 			up: (props) => {
 				props.url = ''
 			},
-			down: (props) => {
-				delete props.url
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
 			version: Versions.AddCropProp,

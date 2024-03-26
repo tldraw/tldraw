@@ -35,9 +35,9 @@ export const storeMigrations = createMigrations({
 			scope: 'store',
 			up(_store) {
 				// noop
+				// there used to be a down migration for this but we made down migrations optional
+				// and we don't use them on store-level migrations so we can just remove it
 			},
-			// there used to be a down migration for this but we made down migrations optional
-			// and we don't use them on store-level migrations so we can just remove it
 		},
 		{
 			// remove user and presence records and add pointer records

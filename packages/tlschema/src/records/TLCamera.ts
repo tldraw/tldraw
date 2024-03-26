@@ -54,9 +54,6 @@ export const cameraMigrations = createRecordMigrations({
 			up: (record) => {
 				;(record as any).meta = {}
 			},
-			down: (record) => {
-				delete (record as any).meta
-			},
 		},
 	],
 })

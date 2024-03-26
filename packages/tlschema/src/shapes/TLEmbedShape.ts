@@ -619,6 +619,8 @@ const Versions = {
 	RemovePermissionOverrides: 4,
 } as const
 
+export { Versions as embedShapeVersions }
+
 /** @internal */
 export const embedShapeMigrations = createShapePropsMigrations({
 	sequence: [
@@ -626,21 +628,26 @@ export const embedShapeMigrations = createShapePropsMigrations({
 			version: Versions.GenOriginalUrlInEmbed,
 			// add tmpOldUrl property
 			up: (props) => {
-				const url = props.url
-				const host = new URL(url).host.replace('www.', '')
-				let originalUrl
-				for (const localEmbedDef of EMBED_DEFINITIONS) {
-					if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
-						try {
-							originalUrl = localEmbedDef.fromEmbedUrl(url)
-						} catch (err) {
-							console.warn(err)
+				try {
+					const url = props.url
+					const host = new URL(url).host.replace('www.', '')
+					let originalUrl
+					for (const localEmbedDef of EMBED_DEFINITIONS) {
+						if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
+							try {
+								originalUrl = localEmbedDef.fromEmbedUrl(url)
+							} catch (err) {
+								console.warn(err)
+							}
 						}
 					}
-				}
 
-				props.tmpOldUrl = props.url
-				props.url = originalUrl ?? ''
+					props.tmpOldUrl = props.url
+					props.url = originalUrl ?? ''
+				} catch (e) {
+					props.url = ''
+					props.tmpOldUrl = props.url
+				}
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},

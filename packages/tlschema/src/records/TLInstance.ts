@@ -205,17 +205,11 @@ export const instanceMigrations = createRecordMigrations({
 			up: (instance) => {
 				return { ...instance, exportBackground: true }
 			},
-			down: ({ exportBackground: _, ...instance }: any) => {
-				return instance
-			},
 		},
 		{
 			id: instanceVersions.RemoveDialog,
 			up: ({ dialog: _, ...instance }: any) => {
 				return instance
-			},
-			down: (instance) => {
-				return { ...instance, dialog: null }
 			},
 		},
 
@@ -223,9 +217,6 @@ export const instanceMigrations = createRecordMigrations({
 			id: instanceVersions.AddToolLockMode,
 			up: (instance) => {
 				return { ...instance, isToolLocked: false }
-			},
-			down: ({ isToolLocked: _, ...instance }: any) => {
-				return instance
 			},
 		},
 		{
@@ -266,23 +257,11 @@ export const instanceMigrations = createRecordMigrations({
 					},
 				}
 			},
-			down: (instance: any) => {
-				const { labelColor: _, ...rest } = instance.propsForNextShape
-				return {
-					...instance,
-					propsForNextShape: {
-						...rest,
-					},
-				}
-			},
 		},
 		{
 			id: instanceVersions.AddFollowingUserId,
 			up: (instance) => {
 				return { ...instance, followingUserId: null }
-			},
-			down: ({ followingUserId: _, ...instance }: any) => {
-				return instance
 			},
 		},
 		{
@@ -307,9 +286,6 @@ export const instanceMigrations = createRecordMigrations({
 			up: (instance) => {
 				return { ...instance, zoomBrush: null }
 			},
-			down: ({ zoomBrush: _, ...instance }: any) => {
-				return instance
-			},
 		},
 		{
 			id: instanceVersions.AddVerticalAlign,
@@ -322,13 +298,6 @@ export const instanceMigrations = createRecordMigrations({
 					},
 				}
 			},
-			down: (instance: any) => {
-				const { verticalAlign: _, ...propsForNextShape } = instance.propsForNextShape
-				return {
-					...instance,
-					propsForNextShape,
-				}
-			},
 		},
 		{
 			id: instanceVersions.AddScribbleDelay,
@@ -338,21 +307,11 @@ export const instanceMigrations = createRecordMigrations({
 				}
 				return { ...instance }
 			},
-			down: (instance: any) => {
-				if (instance.scribble !== null) {
-					const { delay: _delay, ...rest } = instance.scribble
-					return { ...instance, scribble: rest }
-				}
-				return { ...instance }
-			},
 		},
 		{
 			id: instanceVersions.RemoveUserId,
 			up: ({ userId: _, ...instance }: any) => {
 				return instance
-			},
-			down: (instance: any) => {
-				return { ...instance, userId: 'user:none' }
 			},
 		},
 		{
@@ -360,32 +319,11 @@ export const instanceMigrations = createRecordMigrations({
 			up: (instance) => {
 				return { ...instance, isPenMode: false, isGridMode: false }
 			},
-			down: ({ isPenMode: _, isGridMode: __, ...instance }: any) => {
-				return instance
-			},
 		},
 		{
 			id: instanceVersions.HoistOpacity,
 			up: ({ propsForNextShape: { opacity, ...propsForNextShape }, ...instance }: any) => {
 				return { ...instance, opacityForNextShape: Number(opacity ?? '1'), propsForNextShape }
-			},
-			down: ({ opacityForNextShape: opacity, ...instance }: any) => {
-				return {
-					...instance,
-					propsForNextShape: {
-						...instance.propsForNextShape,
-						opacity:
-							opacity < 0.175
-								? '0.1'
-								: opacity < 0.375
-									? '0.25'
-									: opacity < 0.625
-										? '0.5'
-										: opacity < 0.875
-											? '0.75'
-											: '1',
-					},
-				}
 			},
 		},
 		{
@@ -393,43 +331,17 @@ export const instanceMigrations = createRecordMigrations({
 			up: (instance) => {
 				return { ...instance, chatMessage: '', isChatting: false }
 			},
-			down: ({ chatMessage: _, isChatting: __, ...instance }: any) => {
-				return instance
-			},
 		},
 		{
 			id: instanceVersions.AddHighlightedUserIds,
 			up: (instance) => {
 				return { ...instance, highlightedUserIds: [] }
 			},
-			down: ({ highlightedUserIds: _, ...instance }: any) => {
-				return instance
-			},
 		},
 		{
 			id: instanceVersions.ReplacePropsForNextShapeWithStylesForNextShape,
 			up: ({ propsForNextShape: _, ...instance }: any) => {
 				return { ...instance, stylesForNextShape: {} }
-			},
-			down: ({ stylesForNextShape: _, ...instance }: any) => {
-				return {
-					...instance,
-					propsForNextShape: {
-						color: 'black',
-						labelColor: 'black',
-						dash: 'draw',
-						fill: 'none',
-						size: 'm',
-						icon: 'file',
-						font: 'draw',
-						align: 'middle',
-						verticalAlign: 'middle',
-						geo: 'rectangle',
-						arrowheadStart: 'none',
-						arrowheadEnd: 'arrow',
-						spline: 'line',
-					},
-				}
 			},
 		},
 		{
@@ -440,9 +352,6 @@ export const instanceMigrations = createRecordMigrations({
 					meta: {},
 				}
 			},
-			down: ({ meta: _, ...record }: any) => {
-				return record
-			},
 		},
 		{
 			id: instanceVersions.RemoveCursorColor,
@@ -451,15 +360,6 @@ export const instanceMigrations = createRecordMigrations({
 				return {
 					...record,
 					cursor,
-				}
-			},
-			down: (record: any) => {
-				return {
-					...record,
-					cursor: {
-						...record.cursor,
-						color: 'black',
-					},
 				}
 			},
 		},
@@ -477,20 +377,6 @@ export const instanceMigrations = createRecordMigrations({
 					isReadOnly: false,
 				}
 			},
-			down: ({
-				canMoveCamera: _canMoveCamera,
-				isFocused: _isFocused,
-				devicePixelRatio: _devicePixelRatio,
-				isCoarsePointer: _isCoarsePointer,
-				openMenus: _openMenus,
-				isChangingStyle: _isChangingStyle,
-				isReadOnly: _isReadOnly,
-				...record
-			}: any) => {
-				return {
-					...record,
-				}
-			},
 		},
 		{
 			id: instanceVersions.ReadOnlyReadonly,
@@ -498,12 +384,6 @@ export const instanceMigrations = createRecordMigrations({
 				return {
 					...record,
 					isReadonly: _isReadOnly,
-				}
-			},
-			down: ({ isReadonly: _isReadonly, ...record }: any) => {
-				return {
-					...record,
-					isReadOnly: _isReadonly,
 				}
 			},
 		},
@@ -515,11 +395,6 @@ export const instanceMigrations = createRecordMigrations({
 					isHoveringCanvas: null,
 				}
 			},
-			down: ({ isHoveringCanvas: _, ...record }: any) => {
-				return {
-					...record,
-				}
-			},
 		},
 		{
 			id: instanceVersions.AddScribbles,
@@ -528,9 +403,6 @@ export const instanceMigrations = createRecordMigrations({
 					...record,
 					scribbles: [],
 				}
-			},
-			down: ({ scribbles: _, ...record }: any) => {
-				return { ...record, scribble: null }
 			},
 		},
 		{

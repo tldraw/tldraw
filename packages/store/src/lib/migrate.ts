@@ -57,6 +57,9 @@ export function createRecordMigrations(opts: {
 	filter?: (record: UnknownRecord) => boolean
 	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]
 }): Migrations {
+	const sequenceId = opts.sequence[0]
+		? parseMigrationId(opts.sequence[0].id).sequenceId
+		: `com.tldraw.${opts.recordType}`
 	const compiledSequence: Migration[] = opts.sequence.map(
 		(m): Migration => ({
 			...m,
@@ -66,7 +69,7 @@ export function createRecordMigrations(opts: {
 		})
 	)
 	return createMigrations({
-		sequenceId: `com.tldraw.${opts.recordType}`,
+		sequenceId,
 		retroactive: false,
 		sequence: compiledSequence,
 	})
@@ -165,6 +168,7 @@ export function sortMigrations(migrations: Migration[]): Migration[] {
 	return result
 }
 
+/** @internal */
 export function parseMigrationId(id: MigrationId): { sequenceId: string; version: number } {
 	const [sequenceId, version] = id.split('/')
 	return { sequenceId, version: parseInt(version) }

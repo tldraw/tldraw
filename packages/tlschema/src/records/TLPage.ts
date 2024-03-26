@@ -52,9 +52,6 @@ export const pageMigrations = createRecordMigrations({
 			up: (record: any) => {
 				record.meta = {}
 			},
-			down: (record: any) => {
-				delete record.meta
-			},
 		},
 	],
 })

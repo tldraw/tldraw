@@ -32,6 +32,8 @@ const Versions = createMigrationIds('com.tldraw.asset.bookmark', {
 	MakeUrlsValid: 1,
 } as const)
 
+export { Versions as bookmarkAssetVersions }
+
 /** @internal */
 export const bookmarkAssetMigrations = createRecordMigrations({
 	recordType: 'asset',

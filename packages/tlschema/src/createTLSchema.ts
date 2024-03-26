@@ -125,7 +125,7 @@ export function createTLSchema({
 				...processShapeMigrations(shapes),
 			],
 			onValidationFailure,
-			createIntegrityChecker: createIntegrityChecker,
+			createIntegrityChecker,
 		}
 	)
 }

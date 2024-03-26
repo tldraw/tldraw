@@ -55,9 +55,6 @@ export const documentMigrations = createRecordMigrations({
 			up: (record) => {
 				;(record as any).meta = {}
 			},
-			down: (record) => {
-				delete (record as any).meta
-			},
 		},
 	],
 })

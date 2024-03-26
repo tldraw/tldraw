@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { vecModelValidator } from '../misc/geometry-types'
-import { createShapePropsMigrations } from '../records/TLShape'
+import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -78,7 +78,7 @@ export type TLArrowShapeProps = ShapePropsType<typeof arrowShapeProps>
 /** @public */
 export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 
-export const ArrowMigrationVersions = {
+export const arrowShapeVersions = {
 	AddLabelColor: 1,
 	AddIsPrecise: 2,
 	AddLabelPosition: 3,
@@ -88,17 +88,15 @@ export const ArrowMigrationVersions = {
 export const arrowShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
-			version: ArrowMigrationVersions.AddLabelColor,
+			version: arrowShapeVersions.AddLabelColor,
 			up: (props) => {
 				props.labelColor = 'black'
 			},
-			down: (props) => {
-				delete props.labelColor
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
 
 		{
-			version: ArrowMigrationVersions.AddIsPrecise,
+			version: arrowShapeVersions.AddIsPrecise,
 			up: ({ start, end }) => {
 				if (start.type === 'binding') {
 					start.isPrecise = !(start.normalizedAnchor.x === 0.5 && start.normalizedAnchor.y === 0.5)
@@ -124,7 +122,7 @@ export const arrowShapeMigrations = createShapePropsMigrations({
 		},
 
 		{
-			version: ArrowMigrationVersions.AddLabelPosition,
+			version: arrowShapeVersions.AddLabelPosition,
 			up: (props) => {
 				props.labelPosition = 0.5
 			},

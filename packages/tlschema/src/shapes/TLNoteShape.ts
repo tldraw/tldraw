@@ -33,6 +33,8 @@ const Versions = {
 	MakeUrlsValid: 5,
 } as const
 
+export { Versions as noteShapeVersions }
+
 /** @internal */
 export const noteShapeMigrations = createShapePropsMigrations({
 	sequence: [
