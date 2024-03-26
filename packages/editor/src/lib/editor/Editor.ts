@@ -8554,9 +8554,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						case 'pointer_down': {
 							this.clearOpenMenus()
 
-							this._longPressTimeout = setTimeout(() => {
-								this.dispatch({ ...info, name: 'long_press' })
-							}, LONG_PRESS_DURATION)
+							if (!this.getInstanceState().isCoarsePointer) {
+								this._longPressTimeout = setTimeout(() => {
+									this.dispatch({ ...info, name: 'long_press' })
+								}, LONG_PRESS_DURATION)
+							}
 
 							this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
 
