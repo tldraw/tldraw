@@ -717,7 +717,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getContainer: () => HTMLElement
 
 	/**
-	 * A manager for side effects and correct state enforcement.
+	 * A manager for side effects and correct state enforcement. See {@link SideEffectManager} for details.
 	 *
 	 * @public
 	 */
@@ -2198,11 +2198,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomToContent(): this {
+	zoomToContent(opts: TLAnimationOptions = { duration: 220 }): this {
 		const bounds = this.getSelectionPageBounds() ?? this.getCurrentPageBounds()
 
 		if (bounds) {
-			this.zoomToBounds(bounds, { targetZoom: Math.min(1, this.getZoomLevel()), duration: 220 })
+			this.zoomToBounds(bounds, { targetZoom: Math.min(1, this.getZoomLevel()), ...opts })
 		}
 
 		return this

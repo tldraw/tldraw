@@ -937,7 +937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         targetZoom?: number;
         inset?: number;
     } & TLAnimationOptions): this;
-    zoomToContent(): this;
+    zoomToContent(opts?: TLAnimationOptions): this;
     zoomToFit(animation?: TLAnimationOptions): this;
     zoomToSelection(animation?: TLAnimationOptions): this;
 }
@@ -1695,6 +1695,37 @@ export class SharedStyleMap extends ReadonlySharedStyleMap {
 
 // @public
 export function shortAngleDist(a0: number, a1: number): number;
+
+// @public
+export class SideEffectManager<CTX extends {
+    store: TLStore;
+    history: {
+        onBatchComplete: () => void;
+    };
+}> {
+    constructor(editor: CTX);
+    // (undocumented)
+    editor: CTX;
+    registerAfterChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterChangeHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerAfterCreateHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterCreateHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerAfterDeleteHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterDeleteHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerBatchCompleteHandler(handler: TLBatchCompleteHandler): () => void;
+    registerBeforeChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeChangeHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerBeforeCreateHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeCreateHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerBeforeDeleteHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeDeleteHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+}
 
 export { Signal }
 
