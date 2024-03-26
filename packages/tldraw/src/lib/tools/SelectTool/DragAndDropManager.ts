@@ -62,14 +62,6 @@ export class DragAndDropManager {
 			}
 
 			// If all shapes are outside their parents, we'll reparent them to the next dropping shape
-			const { prevDroppingShapeId } = this
-			const prevDroppingShape = prevDroppingShapeId && this.editor.getShape(prevDroppingShapeId)
-			if (prevDroppingShape) {
-				this.editor
-					.getShapeUtil(prevDroppingShape)
-					.onDragShapesOut?.(prevDroppingShape, movingShapes)
-			}
-
 			for (const shape of movingShapes) {
 				const parent = this.editor.getShape(shape.parentId)
 				if (!parent) continue
