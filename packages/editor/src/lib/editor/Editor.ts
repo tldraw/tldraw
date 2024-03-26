@@ -8716,6 +8716,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
 
+						this.stopCameraAnimation()
+						if (this.getInstanceState().followingUserId) {
+							this.stopFollowingUser()
+						}
 						this._setCamera(
 							{
 								x: cx + dx / cz - x / cz + x / zoom,
@@ -8737,7 +8741,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (this._didPinch) {
 							this._didPinch = false
-							requestAnimationFrame(() => {
+							this.once('tick', () => {
 								if (!this._didPinch) {
 									this.setSelectedShapes(_selectedShapeIdsAtPointerDown, { squashing: true })
 								}
@@ -8756,6 +8760,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (this.getIsMenuOpen()) {
 					// noop
 				} else {
+					this.stopCameraAnimation()
+					if (this.getInstanceState().followingUserId) {
+						this.stopFollowingUser()
+					}
 					if (inputs.ctrlKey) {
 						// todo: Start or update the zoom end interval
 
@@ -8786,7 +8794,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// Update the camera here, which will dispatch a pointer move...
 					// this will also update the pointer position, etc
-					this.pan(info.delta)
+					const { x: cx, y: cy, z: cz } = this.getCamera()
+					this._setCamera({ x: cx + info.delta.x / cz, y: cy + info.delta.y / cz, z: cz }, true)
 
 					if (
 						!inputs.isDragging &&
@@ -8852,12 +8861,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (this.inputs.isPanning) {
 							this.stopCameraAnimation()
-							this.updateInstanceState({
-								cursor: {
-									type: 'grabbing',
-									rotation: 0,
-								},
-							})
+							this.setCursor({ type: 'grabbing', rotation: 0 })
 							return this
 						}
 
@@ -8923,20 +8927,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 										direction: this.inputs.pointerVelocity,
 										friction: CAMERA_SLIDE_FRICTION,
 									})
-									this.updateInstanceState({
-										cursor: { type: this._prevCursor, rotation: 0 },
-									})
+									this.setCursor({ type: this._prevCursor, rotation: 0 })
 								} else {
 									this.slideCamera({
 										speed: Math.min(2, this.inputs.pointerVelocity.len()),
 										direction: this.inputs.pointerVelocity,
 										friction: CAMERA_SLIDE_FRICTION,
 									})
-									this.updateInstanceState({
-										cursor: {
-											type: 'grab',
-											rotation: 0,
-										},
+									this.setCursor({
+										type: 'grab',
+										rotation: 0,
 									})
 								}
 							} else if (info.button === 0) {
@@ -8945,11 +8945,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 									direction: this.inputs.pointerVelocity,
 									friction: CAMERA_SLIDE_FRICTION,
 								})
-								this.updateInstanceState({
-									cursor: {
-										type: 'grab',
-										rotation: 0,
-									},
+								this.setCursor({
+									type: 'grab',
+									rotation: 0,
 								})
 							}
 						} else {
@@ -8984,9 +8982,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 
 							this.inputs.isPanning = true
-							this.updateInstanceState({
-								cursor: { type: this.inputs.isPointing ? 'grabbing' : 'grab', rotation: 0 },
-							})
+							this.setCursor({ type: this.inputs.isPointing ? 'grabbing' : 'grab', rotation: 0 })
 						}
 
 						break
@@ -8997,9 +8993,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (info.code === 'Space' && !this.inputs.buttons.has(1)) {
 							this.inputs.isPanning = false
-							this.updateInstanceState({
-								cursor: { type: this._prevCursor, rotation: 0 },
-							})
+							this.setCursor({ type: this._prevCursor, rotation: 0 })
 						}
 
 						break
