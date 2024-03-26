@@ -64,6 +64,7 @@ import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLDefaultColorStyle } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
+import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
@@ -1299,19 +1300,7 @@ export const TEXT_PROPS: {
 };
 
 // @public (undocumented)
-export const TextLabel: React_2.NamedExoticComponent<{
-    id: TLShapeId;
-    type: string;
-    size: TLDefaultSizeStyle;
-    font: TLDefaultFontStyle;
-    fill?: "none" | "pattern" | "semi" | "solid" | undefined;
-    align: TLDefaultHorizontalAlignStyle;
-    verticalAlign: TLDefaultVerticalAlignStyle;
-    wrap?: boolean | undefined;
-    text: string;
-    labelColor: TLDefaultColorStyle;
-    bounds?: Box | undefined;
-}>;
+export const TextLabel: React_2.NamedExoticComponent<TextLabelProps>;
 
 // @public (undocumented)
 export class TextShapeTool extends StateNode {

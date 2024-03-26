@@ -31,6 +31,7 @@ import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
+	LABEL_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
@@ -46,7 +47,6 @@ import { GeoShapeBody } from './components/GeoShapeBody'
 import { getOvalIndicatorPath } from './components/SolidStyleOval'
 import { getLines } from './getLines'
 
-const LABEL_PADDING = 16
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
@@ -396,8 +396,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						id={id}
 						type={type}
 						font={font}
+						fontSize={LABEL_FONT_SIZES[size]}
+						lineHeight={TEXT_PROPS.lineHeight}
 						fill={fill}
-						size={size}
 						align={align}
 						verticalAlign={verticalAlign}
 						text={text}

@@ -4,35 +4,23 @@ import {
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
-	TLDefaultSizeStyle,
 	TLDefaultVerticalAlignStyle,
 	TLShapeId,
+	getDefaultColorTheme,
+	useIsDarkMode,
 } from '@tldraw/editor'
 import React from 'react'
 import { TextArea } from '../text/TextArea'
-import { useDefaultColorTheme } from './ShapeFill'
 import { TextHelpers } from './TextHelpers'
-import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableText } from './useEditableText'
 
-/** @public */
-export const TextLabel = React.memo(function TextLabel({
-	id,
-	type,
-	text,
-	size,
-	labelColor,
-	font,
-	align,
-	verticalAlign,
-	wrap,
-	bounds,
-}: {
+type TextLabelProps = {
 	id: TLShapeId
 	type: string
-	size: TLDefaultSizeStyle
 	font: TLDefaultFontStyle
+	fontSize: number
+	lineHeight: number
 	fill?: TLDefaultFillStyle
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
@@ -40,22 +28,47 @@ export const TextLabel = React.memo(function TextLabel({
 	text: string
 	labelColor: TLDefaultColorStyle
 	bounds?: Box
-}) {
+	classNamePrefix?: string
+	style?: React.CSSProperties
+	textWidth?: number
+	textHeight?: number
+}
+
+/** @public */
+export const TextLabel = React.memo(function TextLabel({
+	id,
+	type,
+	text,
+	labelColor,
+	font,
+	fontSize,
+	lineHeight,
+	align,
+	verticalAlign,
+	wrap,
+	bounds,
+	classNamePrefix,
+	style,
+	textWidth,
+	textHeight,
+}: TextLabelProps) {
 	const { rInput, isEmpty, isEditing, ...editableTextRest } = useEditableText(id, type, text)
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.length > 0
 
 	const legacyAlign = isLegacyAlign(align)
-	const theme = useDefaultColorTheme()
+	const theme = getDefaultColorTheme({ isDarkMode: useIsDarkMode() })
 
 	if (!isEditing && !hasText) {
 		return null
 	}
 
+	// TODO: probably combine tl-text and tl-arrow eventually
+	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
-			className="tl-text-label"
+			className={`${cssPrefix}-label tl-text-wrapper`}
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
@@ -73,19 +86,22 @@ export const TextLabel = React.memo(function TextLabel({
 							position: 'absolute',
 						}
 					: {}),
+				...style,
 			}}
 		>
 			<div
-				className="tl-text-label__inner"
+				className={`${cssPrefix}-label__inner`}
 				style={{
-					fontSize: LABEL_FONT_SIZES[size],
-					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
-					minHeight: TEXT_PROPS.lineHeight + 32,
-					minWidth: 0,
+					fontSize,
+					lineHeight: fontSize * lineHeight + 'px',
+					minHeight: lineHeight + 32,
+					minWidth: textWidth || 0,
 					color: theme[labelColor].solid,
+					width: textWidth,
+					height: textHeight,
 				}}
 			>
-				<div className="tl-text tl-text-content" dir="ltr">
+				<div className={`${cssPrefix} tl-text tl-text-content`} dir="ltr">
 					{finalText}
 				</div>
 				{isEditing && <TextArea ref={rInput} text={text} {...editableTextRest} />}

@@ -197,11 +197,12 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					id={id}
 					type={type}
 					font={font}
-					size={size}
+					fontSize={LABEL_FONT_SIZES[size]}
+					lineHeight={TEXT_PROPS.lineHeight}
 					align={align}
 					verticalAlign="start"
 					text={text}
-					labelColor="black"
+					labelColor={color}
 					wrap
 				/>
 			</>

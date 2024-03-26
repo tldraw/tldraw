@@ -15110,70 +15110,16 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    id: "
+              "text": "<"
             },
             {
               "kind": "Reference",
-              "text": "TLShapeId",
-              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+              "text": "TextLabelProps",
+              "canonicalReference": "tldraw!~TextLabelProps:type"
             },
             {
               "kind": "Content",
-              "text": ";\n    type: string;\n    size: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLDefaultSizeStyle",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultSizeStyle:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    font: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLDefaultFontStyle",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultFontStyle:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    fill?: \"none\" | \"pattern\" | \"semi\" | \"solid\" | undefined;\n    align: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLDefaultHorizontalAlignStyle",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultHorizontalAlignStyle:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    verticalAlign: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLDefaultVerticalAlignStyle",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultVerticalAlignStyle:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    wrap?: boolean | undefined;\n    text: string;\n    labelColor: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLDefaultColorStyle",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultColorStyle:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    bounds?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Box",
-              "canonicalReference": "@tldraw/editor!Box:class"
-            },
-            {
-              "kind": "Content",
-              "text": " | undefined;\n}>"
+              "text": ">"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/TextLabel.tsx",
@@ -15182,7 +15128,7 @@
           "name": "TextLabel",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 17
+            "endIndex": 5
           }
         },
         {
