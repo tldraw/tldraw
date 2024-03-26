@@ -56,29 +56,27 @@ export class DragAndDropManager {
 				return !parentBounds.includes(shapeBounds)
 			})
 
-			// If all shapes are outside their parents, reparent them to the next dropping shape
-			if (areAllShapesOutsideTheirParents) {
-				const { prevDroppingShapeId } = this
-				const prevDroppingShape = prevDroppingShapeId && this.editor.getShape(prevDroppingShapeId)
-				if (prevDroppingShape) {
-					this.editor
-						.getShapeUtil(prevDroppingShape)
-						.onDragShapesOut?.(prevDroppingShape, movingShapes)
-				}
-
-				for (const shape of movingShapes) {
-					this.editor.reparentShapes(
-						[shape.id],
-						nextDroppingShapeId ?? this.editor.getCurrentPageId()
-					)
-				}
-				this.editor.setHintingShapes([])
-				cb?.()
-				this.prevDroppingShapeId = null
+			// If some shapes are within their parents still, don't do anything
+			if (!areAllShapesOutsideTheirParents) {
 				return
 			}
 
-			return
+			// If all shapes are outside their parents, we'll reparent them to the next dropping shape
+			const { prevDroppingShapeId } = this
+			const prevDroppingShape = prevDroppingShapeId && this.editor.getShape(prevDroppingShapeId)
+			if (prevDroppingShape) {
+				this.editor
+					.getShapeUtil(prevDroppingShape)
+					.onDragShapesOut?.(prevDroppingShape, movingShapes)
+			}
+
+			for (const shape of movingShapes) {
+				const parent = this.editor.getShape(shape.parentId)
+				if (!parent) continue
+				this.editor.getShapeUtil(parent).onDragShapesOut?.(parent, [shape])
+			}
+
+			this.prevDroppingShapeId = null
 		}
 
 		// the old previous one
