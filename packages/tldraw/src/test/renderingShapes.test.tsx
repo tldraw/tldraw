@@ -48,18 +48,6 @@ function createShapes() {
 	])
 }
 
-it('updates the rendering viewport when the camera stops moving', () => {
-	const ids = createShapes()
-
-	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
-	editor.pan({ x: -201, y: -201 })
-	jest.advanceTimersByTime(500)
-
-	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
-	expect(editor.getRenderingBounds()).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
-	expect(editor.getShapePageBounds(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
-})
-
 it('lists shapes in viewport', () => {
 	const ids = createShapes()
 	editor.selectNone()

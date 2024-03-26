@@ -66,7 +66,6 @@ import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	ANIMATION_MEDIUM_MS,
-	CAMERA_MAX_RENDERING_INTERVAL,
 	CAMERA_MOVING_TIMEOUT,
 	CAMERA_SLIDE_FRICTION,
 	COARSE_DRAG_DISTANCE,
@@ -635,8 +634,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
-
-		this.updateRenderingBounds()
 
 		this.on('tick', this.tick)
 
@@ -2790,7 +2787,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this._tickCameraState()
-		this.updateRenderingBounds()
 
 		return this
 	}
@@ -3063,7 +3059,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// box just for rendering, and we only update after the camera stops moving.
 
 	private _cameraStateTimeoutRemaining = 0
-	private _lastUpdateRenderingBoundsTimestamp = Date.now()
 
 	private _decayCameraStateTimeout = (elapsed: number) => {
 		this._cameraStateTimeoutRemaining -= elapsed
@@ -3072,7 +3067,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this._cameraStateTimeoutRemaining <= 0) {
 			this.off('tick', this._decayCameraStateTimeout)
 			this._cameraState.set('idle')
-			this.updateRenderingBounds()
 		}
 	}
 
@@ -3081,18 +3075,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// always reset the timeout
 		this._cameraStateTimeoutRemaining = CAMERA_MOVING_TIMEOUT
 
-		const now = Date.now()
-
 		// If the state is idle, then start the tick
 		if (this._cameraState.__unsafe__getWithoutCapture() === 'idle') {
-			this._lastUpdateRenderingBoundsTimestamp = now // don't render right away
 			this._cameraState.set('moving')
 			this.off('tick', this._decayCameraStateTimeout)
 			this.on('tick', this._decayCameraStateTimeout)
-		} else {
-			if (now - this._lastUpdateRenderingBoundsTimestamp > CAMERA_MAX_RENDERING_INTERVAL) {
-				this.updateRenderingBounds()
-			}
 		}
 	}
 
@@ -3121,7 +3108,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			index: number
 			backgroundIndex: number
 			opacity: number
-			isCulled: boolean
 			maskedPageBounds: Box | undefined
 		}[] = []
 
@@ -3129,21 +3115,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE
 
 		// We only really need these if we're using editor state, but that's ok
-		const editingShapeId = this.getEditingShapeId()
-		const selectedShapeIds = this.getSelectedShapeIds()
 		const erasingShapeIds = this.getErasingShapeIds()
-		const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
-
-		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
-		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
-		let culled = 0
 
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			const shape = this.getShape(id)
 			if (!shape) return
 
 			opacity *= shape.opacity
-			const isCulled = false
 			let isShapeErasing = false
 			const util = this.getShapeUtil(shape)
 			const maskedPageBounds = this.getShapeMaskedPageBounds(id)
@@ -3153,22 +3131,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (isShapeErasing) {
 					opacity *= 0.32
 				}
-
-				// isCulled =
-				// 	isCullingOffScreenShapes &&
-				// 	// only cull shapes that allow unmounting, i.e. not stateful components
-				// 	util.canUnmount(shape) &&
-				// 	// never cull editingg shapes
-				// 	editingShapeId !== id &&
-				// 	// if the shape is fully outside of its parent's clipping bounds...
-				// 	(maskedPageBounds === undefined ||
-				// 		// ...or if the shape is outside of the expanded viewport bounds...
-				// 		(!renderingBoundsExpanded.includes(maskedPageBounds) &&
-				// 			// ...and if it's not selected... then cull it
-				// 			!selectedShapeIds.includes(id)))
 			}
-
-			if (isCulled) culled++
 
 			renderingShapes.push({
 				id,
@@ -3177,7 +3140,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				index: nextIndex,
 				backgroundIndex: nextBackgroundIndex,
 				opacity,
-				isCulled,
 				maskedPageBounds,
 			})
 
@@ -3211,7 +3173,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				addShapeById(childId, 1, false)
 			}
 		}
-		console.log('culled', culled)
 
 		return renderingShapes
 	}
@@ -3248,59 +3209,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private readonly _renderingBounds = atom('rendering viewport', new Box())
-
-	/**
-	 * The current rendering bounds in the current page space, expanded slightly. Used for determining which shapes
-	 * to render and which to "cull".
-	 *
-	 * @public
-	 */
-	getRenderingBoundsExpanded() {
-		return this._renderingBoundsExpanded.get()
-	}
-
-	/** @internal */
-	private readonly _renderingBoundsExpanded = atom('rendering viewport expanded', new Box())
-
-	last = Date.now()
-
-	/**
-	 * Update the rendering bounds. This should be called when the viewport has stopped changing, such
-	 * as at the end of a pan, zoom, or animation.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.updateRenderingBounds()
-	 * ```
-	 *
-	 *
-	 * @internal
-	 */
-	updateRenderingBounds(): this {
-		const viewportPageBounds = this.getViewportPageBounds()
-		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
-		const now = Date.now()
-		console.log('update rendering bounds', now - this.last)
-		this.last = now
-		this._renderingBounds.set(viewportPageBounds.clone())
-
-		if (Number.isFinite(this.renderingBoundsMargin)) {
-			this._renderingBoundsExpanded.set(
-				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.getZoomLevel())
-			)
-		} else {
-			this._renderingBoundsExpanded.set(viewportPageBounds)
-		}
-		return this
-	}
-
-	/**
-	 * The distance to expand the viewport when measuring culling. A larger distance will
-	 * mean that shapes near to the viewport (but still outside of it) will not be culled.
-	 *
-	 * @public
-	 */
-	renderingBoundsMargin = 100
 
 	/* --------------------- Pages ---------------------- */
 
@@ -3440,8 +3348,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 
 				this.store.put([{ ...this.getInstanceState(), currentPageId: toId }])
-
-				this.updateRenderingBounds()
 			},
 			undo: ({ fromId }) => {
 				if (!this.store.has(fromId)) {
@@ -3449,8 +3355,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return
 				}
 				this.store.put([{ ...this.getInstanceState(), currentPageId: fromId }])
-
-				this.updateRenderingBounds()
 			},
 			squash: ({ fromId }, { toId }) => {
 				return { toId, fromId }
@@ -3626,12 +3530,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
 				this.store.remove([deletedPage.id]) // remove the page
-				this.updateRenderingBounds()
 			},
 			undo: ({ deletedPage, deletedPageStates }) => {
 				this.store.put([deletedPage])
 				this.store.put(deletedPageStates)
-				this.updateRenderingBounds()
 			},
 		}
 	)
@@ -4644,7 +4546,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
 		return this.getRenderingShapes()
-			.filter(({ isCulled }) => !isCulled)
 			.sort((a, b) => a.index - b.index)
 			.map(({ shape }) => shape)
 	}

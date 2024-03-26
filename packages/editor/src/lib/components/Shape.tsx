@@ -28,7 +28,6 @@ export const Shape = memo(function Shape({
 	index,
 	backgroundIndex,
 	opacity,
-	isCulled,
 	dprMultiple,
 }: {
 	id: TLShapeId
@@ -37,7 +36,6 @@ export const Shape = memo(function Shape({
 	index: number
 	backgroundIndex: number
 	opacity: number
-	isCulled: boolean
 	dprMultiple: number
 }) {
 	const editor = useEditor()
@@ -133,21 +131,15 @@ export const Shape = memo(function Shape({
 					data-shape-type={shape.type}
 					draggable={false}
 				>
-					{isCulled ? null : (
-						<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
-							<InnerShapeBackground shape={shape} util={util} />
-						</OptionalErrorBoundary>
-					)}
+					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
+						<InnerShapeBackground shape={shape} util={util} />
+					</OptionalErrorBoundary>
 				</div>
 			)}
 			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
-				{isCulled ? (
-					<CulledShape shapeId={shape.id} />
-				) : (
-					<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
-						<InnerShape shape={shape} util={util} />
-					</OptionalErrorBoundary>
-				)}
+				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
+					<InnerShape shape={shape} util={util} />
+				</OptionalErrorBoundary>
 			</div>
 		</>
 	)

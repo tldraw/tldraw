@@ -130,7 +130,6 @@ export class TestEditor extends Editor {
 		this.bounds.bottom = bounds.y + bounds.h
 
 		this.updateViewportScreenBounds(Box.From(bounds), center)
-		this.updateRenderingBounds()
 		return this
 	}
 
