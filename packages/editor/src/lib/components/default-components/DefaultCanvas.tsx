@@ -13,6 +13,7 @@ import { useFixSafariDoubleTapZoomPencilEvents } from '../../hooks/useFixSafariD
 import { useGestureEvents } from '../../hooks/useGestureEvents'
 import { useHandleEvents } from '../../hooks/useHandleEvents'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
+import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
@@ -481,7 +482,7 @@ function CollaboratorHintDef() {
 function DebugSvgCopy({ id }: { id: TLShapeId }) {
 	const editor = useEditor()
 
-	const [src, setSrc] = useState<string | null>(null)
+	const [image, setImage] = useState<{ src: string; bounds: Box } | null>(null)
 
 	const isInRoot = useValue(
 		'is in root',
@@ -499,15 +500,19 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
+
+			const isSingleFrame = editor.isShapeOfType(id, 'frame')
+			const padding = isSingleFrame ? 0 : 10
+			const bounds = editor.getShapePageBounds(id)!.clone().expandBy(padding)
 			const result = await editor.getSvgString([id], {
-				padding: 0,
+				padding,
 				background: editor.getInstanceState().exportBackground,
 			})
 
 			if (latest !== renderId || !result) return
 
 			const svgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(result.svg)}`
-			setSrc(svgDataUrl)
+			setImage({ src: svgDataUrl, bounds })
 		})
 
 		return () => {
@@ -515,21 +520,20 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 			unsubscribe()
 		}
 	}, [editor, id, isInRoot])
-	const bb = editor.getShapePageBounds(id)
 
-	if (!isInRoot || !src || !bb) return null
+	if (!isInRoot || !image) return null
 
 	return (
 		<img
-			src={src}
-			width={bb.width}
-			height={bb.height}
+			src={image.src}
+			width={image.bounds.width}
+			height={image.bounds.height}
 			style={{
 				position: 'absolute',
 				top: 0,
 				left: 0,
-				transform: `translate(${bb.x}px, ${bb.y + bb.h + 12}px)`,
-				border: '1px solid black',
+				transform: `translate(${image.bounds.x}px, ${image.bounds.maxY + 12}px)`,
+				outline: '1px solid black',
 				maxWidth: 'none',
 			}}
 		/>
