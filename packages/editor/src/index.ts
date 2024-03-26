@@ -118,15 +118,11 @@ export {
 	DOUBLE_CLICK_DURATION,
 	DRAG_DISTANCE,
 	GRID_STEPS,
-	HASH_PATTERN_ZOOM_NAMES,
 	HIT_TEST_MARGIN,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
-	MAX_ZOOM,
-	MIN_ZOOM,
 	MULTI_CLICK_DURATION,
 	SVG_PADDING,
-	ZOOMS,
 } from './lib/constants'
 export {
 	Editor,
@@ -134,6 +130,7 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export { CameraManager, type CameraOptions } from './lib/editor/managers/CameraManager'
 export type {
 	TLAfterChangeHandler,
 	TLAfterCreateHandler,

@@ -1,5 +1,5 @@
 import { default as React, useEffect } from 'react'
-import { Editor, MAX_ZOOM, MIN_ZOOM, TLPageId, debounce, react, useEditor } from 'tldraw'
+import { Editor, TLPageId, debounce, react, useEditor } from 'tldraw'
 
 const PARAMS = {
 	// deprecated
@@ -69,7 +69,10 @@ export function useUrlState(onChangeUrl: (params: UrlStateParams) => void) {
 					const { x, y, w, h } = viewport
 					const { w: sw, h: sh } = editor.getViewportScreenBounds()
 
-					const zoom = Math.min(Math.max(Math.min(sw / w, sh / h), MIN_ZOOM), MAX_ZOOM)
+					const zoom = Math.min(
+						Math.max(Math.min(sw / w, sh / h), editor.camera.getZoomMin()),
+						editor.camera.getZoomMax()
+					)
 
 					editor.setCamera({
 						x: -x + (sw - w * zoom) / 2 / zoom,

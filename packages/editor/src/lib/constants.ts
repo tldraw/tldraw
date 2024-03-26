@@ -11,13 +11,6 @@ export const ANIMATION_SHORT_MS = 80
 export const ANIMATION_MEDIUM_MS = 320
 
 /** @internal */
-export const ZOOMS = [0.1, 0.25, 0.5, 1, 2, 4, 8]
-/** @internal */
-export const MIN_ZOOM = 0.1
-/** @internal */
-export const MAX_ZOOM = 8
-
-/** @internal */
 export const FOLLOW_CHASE_PROPORTION = 0.5
 /** @internal */
 export const FOLLOW_CHASE_PAN_SNAP = 0.1
@@ -41,14 +34,6 @@ export const DRAG_DISTANCE = 4
 
 /** @internal */
 export const SVG_PADDING = 32
-
-/** @internal */
-export const HASH_PATTERN_ZOOM_NAMES: Record<string, string> = {}
-
-for (let zoom = 1; zoom <= Math.ceil(MAX_ZOOM); zoom++) {
-	HASH_PATTERN_ZOOM_NAMES[zoom + '_dark'] = `hash_pattern_zoom_${zoom}_dark`
-	HASH_PATTERN_ZOOM_NAMES[zoom + '_light'] = `hash_pattern_zoom_${zoom}_light`
-}
 
 /** @internal */
 export const DEFAULT_ANIMATION_OPTIONS = {

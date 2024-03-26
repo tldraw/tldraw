@@ -7,7 +7,10 @@ const IS_DARWIN = /Mac|iPod|iPhone|iPad/.test(
 
 // Adapted from https://stackoverflow.com/a/13650579
 /** @internal */
-export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>) {
+export function normalizeWheel(
+	event: WheelEvent | React.WheelEvent<HTMLElement>,
+	opts: { zoomSensitivity: number }
+) {
 	let { deltaY, deltaX } = event
 	let deltaZ = 0
 
@@ -21,7 +24,7 @@ export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>
 			dy = MAX_ZOOM_STEP * signY
 		}
 
-		deltaZ = dy / 100
+		deltaZ = dy * opts.zoomSensitivity
 	} else {
 		if (event.shiftKey && !IS_DARWIN) {
 			deltaX = deltaY

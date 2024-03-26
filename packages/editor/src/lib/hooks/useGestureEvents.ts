@@ -113,7 +113,9 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 			preventDefault(event)
 			stopEventPropagation(event)
-			const delta = normalizeWheel(event)
+			const delta = normalizeWheel(event, {
+				zoomSensitivity: editor.camera.getWheelZoomSensitivity(),
+			})
 
 			if (delta.x === 0 && delta.y === 0) return
 
@@ -300,7 +302,11 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 		pinch: {
 			from: () => [editor.getZoomLevel(), 0], // Return the camera z to use when pinch starts
 			scaleBounds: () => {
-				return { from: editor.getZoomLevel(), max: 8, min: 0.05 }
+				return {
+					from: editor.getZoomLevel(),
+					max: editor.camera.getZoomMax(),
+					min: editor.camera.getZoomMin(),
+				}
 			},
 		},
 	})

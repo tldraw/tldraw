@@ -415,3 +415,48 @@ a.example__sidebar__header-link {
 .example__dialog__close {
 	all: unset;
 }
+
+/* --------------------- Select buttons --------------------- */
+.SelectButtons {
+	display: flex;
+	flex-direction: row;
+	background: var(--color-background);
+	border-radius: calc(var(--radius-2) + var(--space-1));
+	align-items: center;
+	justify-content: center;
+	pointer-events: all;
+}
+.SelectButtons + .SelectButtons {
+	margin-top: calc(-1 * var(--space-2));
+}
+.SelectButtons div {
+	padding: var(--space-3);
+}
+.SelectButtons button {
+	background: transparent;
+	border: none;
+	font: inherit;
+	padding: var(--space-3);
+	position: relative;
+	cursor: pointer;
+}
+.SelectButtons button::after {
+	content: ' ';
+	position: absolute;
+	background: transparent;
+	top: var(--space-1);
+	bottom: var(--space-1);
+	left: calc(-1 * var(--space-1));
+	right: calc(-1 * var(--space-1));
+	border-radius: var(--radius-2);
+}
+.SelectButtons button:hover::after {
+	background: var(--color-hint);
+}
+.SelectButtons button[aria-checked='true'] {
+	color: var(--color-primary);
+}
+.SelectButtons button span {
+	position: relative;
+	z-index: 1;
+}

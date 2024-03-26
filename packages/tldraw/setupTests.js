@@ -33,6 +33,10 @@ Object.defineProperty(global.URL, 'createObjectURL', {
 	writable: true,
 	value: jest.fn(),
 })
+Object.defineProperty(global.URL, 'revokeObjectURL', {
+	writable: true,
+	value: jest.fn(),
+})
 
 // Extract verson from package.json
 const { version } = require('./package.json')

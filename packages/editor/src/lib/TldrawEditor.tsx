@@ -17,6 +17,7 @@ import { DefaultErrorFallback } from './components/default-components/DefaultErr
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
+import { CameraOptions } from './editor/managers/CameraManager'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
@@ -113,6 +114,12 @@ export interface TldrawEditorBaseProps {
 	 * Whether to infer dark mode from the user's OS. Defaults to false.
 	 */
 	inferDarkMode?: boolean
+
+	/**
+	 * Control and constrain the camera. See {@link CameraOptions} for details.
+	 * @internal
+	 */
+	camera?: CameraOptions
 }
 
 /**
@@ -265,6 +272,7 @@ function TldrawEditorWithReadyStore({
 	initialState,
 	autoFocus = true,
 	inferDarkMode,
+	camera,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -292,6 +300,12 @@ function TldrawEditorWithReadyStore({
 			editor.dispose()
 		}
 	}, [container, shapeUtils, tools, store, user, initialState, inferDarkMode])
+
+	useLayoutEffect(() => {
+		if (editor && camera) {
+			editor.camera.setOptions(camera)
+		}
+	}, [camera, editor])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

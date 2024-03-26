@@ -66,8 +66,6 @@ import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	ANIMATION_MEDIUM_MS,
-	CAMERA_MAX_RENDERING_INTERVAL,
-	CAMERA_MOVING_TIMEOUT,
 	CAMERA_SLIDE_FRICTION,
 	COARSE_DRAG_DISTANCE,
 	COLLABORATOR_IDLE_TIMEOUT,
@@ -82,9 +80,6 @@ import {
 	INTERNAL_POINTER_IDS,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
-	MAX_ZOOM,
-	MIN_ZOOM,
-	ZOOMS,
 } from '../constants'
 import { Box } from '../primitives/Box'
 import { Mat, MatLike, MatModel } from '../primitives/Mat'
@@ -105,6 +100,7 @@ import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { getSvgJsx } from './getSvgJsx'
+import { CameraManager } from './managers/CameraManager'
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
@@ -2062,10 +2058,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Camera --------------------- */
 
 	/** @internal */
-	@computed
-	private getCameraId() {
-		return CameraRecordType.createId(this.getCurrentPageId())
-	}
+	camera = new CameraManager(this)
 
 	/**
 	 * The current camera.
@@ -2073,7 +2066,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCamera() {
-		return this.store.get(this.getCameraId())!
+		return this.camera.get()
 	}
 
 	/**
@@ -2083,42 +2076,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getZoomLevel() {
 		return this.getCamera().z
-	}
-
-	/** @internal */
-	private _setCamera(point: VecLike): this {
-		const currentCamera = this.getCamera()
-
-		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z) {
-			return this
-		}
-
-		this.batch(() => {
-			this.store.put([{ ...currentCamera, ...point }]) // include id and meta here
-
-			// Dispatch a new pointer move because the pointer's page will have changed
-			// (its screen position will compute to a new page position given the new camera position)
-			const { currentScreenPoint } = this.inputs
-			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-
-			this.dispatch({
-				type: 'pointer',
-				target: 'canvas',
-				name: 'pointer_move',
-				// weird but true: we need to put the screen point back into client space
-				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
-				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
-				ctrlKey: this.inputs.ctrlKey,
-				altKey: this.inputs.altKey,
-				shiftKey: this.inputs.shiftKey,
-				button: 0,
-				isPen: this.getInstanceState().isPenMode ?? false,
-			})
-
-			this._tickCameraState()
-		})
-
-		return this
 	}
 
 	/**
@@ -2153,7 +2110,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const { width, height } = this.getViewportScreenBounds()
 			return this._animateToViewport(new Box(-x, -y, width / z, height / z), animation)
 		} else {
-			this._setCamera({ x, y, z })
+			this.camera.set({ x, y, z })
 		}
 
 		return this
@@ -2279,11 +2236,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 
-		let zoom = MAX_ZOOM
+		let zoom = this.camera.getZoomMax()
+		const stops = this.camera.getZoomStops()
 
-		for (let i = 1; i < ZOOMS.length; i++) {
-			const z1 = ZOOMS[i - 1]
-			const z2 = ZOOMS[i]
+		for (let i = 1; i < stops.length; i++) {
+			const z1 = stops[i - 1]
+			const z2 = stops[i]
 			if (z2 - cz <= (z2 - z1) / 2) continue
 			zoom = z2
 			break
@@ -2317,11 +2275,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 
-		let zoom = MIN_ZOOM
+		let zoom = this.camera.getZoomMin()
+		const stops = this.camera.getZoomStops()
 
-		for (let i = ZOOMS.length - 1; i > 0; i--) {
-			const z1 = ZOOMS[i - 1]
-			const z2 = ZOOMS[i]
+		for (let i = stops.length - 1; i > 0; i--) {
+			const z1 = stops[i - 1]
+			const z2 = stops[i]
 			if (z2 - cz >= (z2 - z1) / 2) continue
 			zoom = z1
 			break
@@ -2452,8 +2411,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				(viewportScreenBounds.width - inset) / bounds.width,
 				(viewportScreenBounds.height - inset) / bounds.height
 			),
-			MIN_ZOOM,
-			MAX_ZOOM
+			this.camera.getZoomMin(),
+			this.camera.getZoomMax()
 		)
 
 		if (opts?.targetZoom !== undefined) {
@@ -2527,7 +2486,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { elapsed, easing, duration, start, end } = this._viewportAnimation
 
 		if (elapsed > duration) {
-			this._setCamera({ x: -end.x, y: -end.y, z: this.getViewportScreenBounds().width / end.width })
+			this.camera.set({ x: -end.x, y: -end.y, z: this.getViewportScreenBounds().width / end.width })
 			cancel()
 			return
 		}
@@ -2539,11 +2498,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const top = start.minY + (end.minY - start.minY) * t
 		const right = start.maxX + (end.maxX - start.maxX) * t
 
-		this._setCamera({ x: -left, y: -top, z: this.getViewportScreenBounds().width / (right - left) })
+		this.camera.set({ x: -left, y: -top, z: this.getViewportScreenBounds().width / (right - left) })
 	}
 
 	/** @internal */
-	private _animateToViewport(targetViewportPage: Box, opts = {} as TLAnimationOptions) {
+	private _animateToViewport(targetViewportPage: Box, opts = {} as TLAnimationOptions): this {
 		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts
 		const animationSpeed = this.user.getAnimationSpeed()
 		const viewportPageBounds = this.getViewportPageBounds()
@@ -2558,11 +2517,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (duration === 0 || animationSpeed === 0) {
 			// If we have no animation, then skip the animation and just set the camera
-			return this._setCamera({
+			this.camera.set({
 				x: -targetViewportPage.x,
 				y: -targetViewportPage.y,
 				z: this.getViewportScreenBounds().width / targetViewportPage.width,
 			})
+			return this
 		}
 
 		// Set our viewport animation
@@ -2621,7 +2581,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (currentSpeed < speedThreshold) {
 				cancel()
 			} else {
-				this._setCamera({ x: cx + movementVec.x, y: cy + movementVec.y, z: cz })
+				this.camera.set({ x: cx + movementVec.x, y: cy + movementVec.y, z: cz })
 			}
 		}
 
@@ -2788,7 +2748,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this._tickCameraState()
+		this.camera.tickState()
 		this.updateRenderingBounds()
 
 		return this
@@ -2985,7 +2945,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? Math.min(width / desiredWidth, height / desiredHeight)
 				: height / desiredHeight
 
-			const targetZoom = clamp(this.getCamera().z * ratio, MIN_ZOOM, MAX_ZOOM)
+			const targetZoom = clamp(
+				this.getCamera().z * ratio,
+				this.camera.getZoomMin(),
+				this.camera.getZoomMax()
+			)
 			const targetWidth = this.getViewportScreenBounds().w / targetZoom
 			const targetHeight = this.getViewportScreenBounds().h / targetZoom
 
@@ -3017,7 +2981,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Update the camera!
 			isCaughtUp = false
 			this.stopCameraAnimation()
-			this._setCamera({
+			this.camera.set({
 				x: -(targetCenter.x - targetWidth / 2),
 				y: -(targetCenter.y - targetHeight / 2),
 				z: targetZoom,
@@ -3042,54 +3006,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	// Camera state
-
-	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
-
 	/**
 	 * Whether the camera is moving or idle.
 	 *
 	 * @public
 	 */
 	getCameraState() {
-		return this._cameraState.get()
-	}
-
-	// Camera state does two things: first, it allows us to subscribe to whether
-	// the camera is moving or not; and second, it allows us to update the rendering
-	// shapes on the canvas. Changing the rendering shapes may cause shapes to
-	// unmount / remount in the DOM, which is expensive; and computing visibility is
-	// also expensive in large projects. For this reason, we use a second bounding
-	// box just for rendering, and we only update after the camera stops moving.
-
-	private _cameraStateTimeoutRemaining = 0
-	private _lastUpdateRenderingBoundsTimestamp = Date.now()
-
-	private _decayCameraStateTimeout = (elapsed: number) => {
-		this._cameraStateTimeoutRemaining -= elapsed
-
-		if (this._cameraStateTimeoutRemaining <= 0) {
-			this.off('tick', this._decayCameraStateTimeout)
-			this._cameraState.set('idle')
-			this.updateRenderingBounds()
-		}
-	}
-
-	private _tickCameraState = () => {
-		// always reset the timeout
-		this._cameraStateTimeoutRemaining = CAMERA_MOVING_TIMEOUT
-
-		const now = Date.now()
-
-		// If the state is idle, then start the tick
-		if (this._cameraState.__unsafe__getWithoutCapture() === 'idle') {
-			this._lastUpdateRenderingBoundsTimestamp = now // don't render right away
-			this._cameraState.set('moving')
-			this.on('tick', this._decayCameraStateTimeout)
-		} else {
-			if (now - this._lastUpdateRenderingBoundsTimestamp > CAMERA_MAX_RENDERING_INTERVAL) {
-				this.updateRenderingBounds()
-			}
-		}
+		return this.camera.getState()
 	}
 
 	/** @internal */
@@ -8456,7 +8379,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 							const { x: cx, y: cy, z: cz } = this.getCamera()
 
-							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
+							const zoom = clamp(z, this.camera.getZoomMin(), this.camera.getZoomMax())
 
 							this.setCamera({
 								x: cx + dx / cz - x / cz + x / zoom,
@@ -8507,7 +8430,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 							const { x: cx, y: cy, z: cz } = this.getCamera()
 
-							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
+							const zoom = clamp(
+								cz + (info.delta.z ?? 0) * cz,
+								this.camera.getZoomMin(),
+								this.camera.getZoomMax()
+							)
 
 							this.setCamera({
 								x: cx + (x / zoom - x) - (x / cz - x),

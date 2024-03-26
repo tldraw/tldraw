@@ -74,6 +74,7 @@ import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
+import { Vec3Model } from '@tldraw/tlschema';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
@@ -306,6 +307,35 @@ export type BoxLike = Box | BoxModel;
 
 // @internal (undocumented)
 export const CAMERA_SLIDE_FRICTION = 0.09;
+
+// @internal (undocumented)
+export class CameraManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    get(): TLCamera;
+    // (undocumented)
+    getState(): "idle" | "moving";
+    getWheelZoomSensitivity(): number;
+    getZoomMax(): number;
+    getZoomMin(): number;
+    getZoomStops(): readonly number[];
+    // (undocumented)
+    set(point: Vec3Model): this | undefined;
+    // (undocumented)
+    setOptions(options: CameraOptions): void;
+    // (undocumented)
+    tickState: () => void;
+}
+
+// @internal
+export interface CameraOptions {
+    zoom?: {
+        min?: number;
+        max?: number;
+        stops?: number[];
+        wheelSensitivity?: number;
+    };
+}
 
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
@@ -593,6 +623,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    // @internal (undocumented)
+    camera: CameraManager;
     cancel(): this;
     cancelDoubleClick(): void;
     // @internal (undocumented)
@@ -1188,9 +1220,6 @@ export function hardReset({ shouldReload }?: {
 // @public (undocumented)
 export function hardResetEditor(): void;
 
-// @internal (undocumented)
-export const HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
-
 // @public (undocumented)
 export const HIT_TEST_MARGIN = 8;
 
@@ -1377,12 +1406,6 @@ export const MAX_PAGES = 40;
 // @internal (undocumented)
 export const MAX_SHAPES_PER_PAGE = 2000;
 
-// @internal (undocumented)
-export const MAX_ZOOM = 8;
-
-// @internal (undocumented)
-export const MIN_ZOOM = 0.1;
-
 // @public
 export function moveCameraWhenCloseToEdge(editor: Editor): void;
 
@@ -1390,7 +1413,9 @@ export function moveCameraWhenCloseToEdge(editor: Editor): void;
 export const MULTI_CLICK_DURATION = 200;
 
 // @internal (undocumented)
-export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
+export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent, opts: {
+    zoomSensitivity: number;
+}): {
     x: number;
     y: number;
     z: number;
@@ -2044,6 +2069,8 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public
 export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
+    // @internal
+    camera?: CameraOptions;
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
@@ -2987,9 +3014,6 @@ export class WeakMapCache<T extends object, K> {
 }
 
 export { whyAmIRunning }
-
-// @internal (undocumented)
-export const ZOOMS: number[];
 
 
 export * from "@tldraw/store";
