@@ -5,12 +5,14 @@ import {
 	LoadingScreen,
 	StoreSnapshot,
 	TLEditorComponents,
+	TLNoteShape,
 	TLOnMountHandler,
 	TLRecord,
 	TLStore,
 	TLStoreWithStatus,
 	TldrawEditor,
 	TldrawEditorBaseProps,
+	createShapeId,
 	stopEventPropagation,
 	track,
 	useEditor,
@@ -242,6 +244,7 @@ const NoteDuplicationHandles = track(() => {
 	if (shapes.length === 0) return null
 	if (shapes.length > 1) return null
 	if (shapes[0].type !== 'note') return null
+	if (editor.isIn('note.dragging')) return null
 	return (
 		<div
 			style={{
@@ -254,14 +257,34 @@ const NoteDuplicationHandles = track(() => {
 			}}
 			onPointerDown={stopEventPropagation}
 		>
-			<DuplicateInDirectionButton y={-40} x={info.width / 2 - 16} rotation={-(Math.PI / 2)} />
-			<DuplicateInDirectionButton y={info.height / 2 - 16} x={info.width + 8} rotation={0} />
 			<DuplicateInDirectionButton
+				shape={shapes[0] as TLNoteShape}
+				y={-40}
+				x={info.width / 2 - 16}
+				direction={'above'}
+				rotation={-(Math.PI / 2)}
+			/>
+			<DuplicateInDirectionButton
+				shape={shapes[0] as TLNoteShape}
+				y={info.height / 2 - 16}
+				x={info.width + 8}
+				direction={'right'}
+				rotation={0}
+			/>
+			<DuplicateInDirectionButton
+				shape={shapes[0] as TLNoteShape}
 				y={info.height + 8}
 				x={info.width / 2 - 16}
+				direction={'below'}
 				rotation={Math.PI / 2}
 			/>
-			<DuplicateInDirectionButton y={info.height / 2 - 16} x={-40} rotation={Math.PI} />
+			<DuplicateInDirectionButton
+				shape={shapes[0] as TLNoteShape}
+				y={info.height / 2 - 16}
+				x={-40}
+				direction={'left'}
+				rotation={Math.PI}
+			/>
 		</div>
 	)
 })
@@ -270,11 +293,20 @@ function DuplicateInDirectionButton({
 	x,
 	y,
 	rotation,
+	shape,
+	direction,
 }: {
 	x: number
 	y: number
 	rotation: number
+	shape: TLNoteShape
+	direction: 'above' | 'below' | 'left' | 'right'
 }) {
+	const editor = useEditor()
+
+	const offsetX = direction === 'left' ? -230 : direction === 'right' ? 230 : 0
+	const offsetY = direction === 'above' ? -230 : direction === 'below' ? 230 : 0
+
 	return (
 		<button
 			style={{
@@ -287,9 +319,34 @@ function DuplicateInDirectionButton({
 				textAlign: 'center',
 				transform: `translate(${x}px, ${y}px) rotate(${rotation}rad)`,
 			}}
-			onPointerDown={stopEventPropagation}
-			onClick={() => {
-				console.log('click')
+			onPointerDown={(e) => {
+				stopEventPropagation(e)
+				const noteId = createShapeId()
+				editor.createShapes([
+					{ type: 'note', id: noteId, x: shape.x + offsetX, y: shape.y + offsetY },
+					{
+						type: 'arrow',
+						id: createShapeId(),
+						props: {
+							start: {
+								type: 'binding',
+								boundShapeId: shape.id,
+								normalizedAnchor: { x: 0.5, y: 0.5 },
+								isExact: false,
+								isPrecise: true,
+							},
+							end: {
+								type: 'binding',
+								boundShapeId: noteId,
+								normalizedAnchor: { x: 0.5, y: 0.5 },
+								isExact: false,
+								isPrecise: true,
+							},
+						},
+					},
+				])
+				const newNote = editor.getShape(noteId)
+				editor.setCurrentTool('note.dragging', newNote)
 			}}
 		>
 			→
