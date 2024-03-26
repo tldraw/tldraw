@@ -1013,7 +1013,7 @@
 }
 
 .tlui-toast__icon {
-	padding-top: var(--space-4);
+	padding-top: 11px;
 	padding-left: var(--space-4);
 	color: var(--color-text-1);
 }
