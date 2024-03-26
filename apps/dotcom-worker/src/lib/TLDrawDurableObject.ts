@@ -5,12 +5,13 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import {
 	RoomSnapshot,
 	TLServer,
+	TLServerEvent,
 	TLSyncRoom,
 	type DBLoadResult,
 	type PersistedRoomSnapshotForSupabase,
 	type RoomState,
 } from '@tldraw/tlsync'
-import { assert, assertExists } from '@tldraw/utils'
+import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest, Router } from 'itty-router'
 import Toucan from 'toucan-js'
 import { AlarmScheduler } from './AlarmScheduler'
@@ -255,37 +256,38 @@ export class TLDrawDurableObject extends TLServer {
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
-	logEvent(
-		event:
-			| {
-					type: 'client'
-					roomId: string
-					name: string
-					clientId: string
-					instanceId: string
-					localClientId: string
-			  }
-			| {
-					type: 'room'
-					roomId: string
-					name: string
-			  }
+	private writeEvent(
+		name: string,
+		{ blobs, indexes, doubles }: { blobs?: string[]; indexes?: [string]; doubles?: number[] }
 	) {
+		this.measure?.writeDataPoint({
+			blobs: [this.env.WORKER_NAME ?? 'development-tldraw-multiplayer', name, ...(blobs ?? [])],
+			doubles,
+			indexes,
+		})
+	}
+
+	logEvent(event: TLServerEvent) {
 		switch (event.type) {
 			case 'room': {
-				this.measure?.writeDataPoint({
-					blobs: [event.name, event.roomId], // we would add user/connection ids here if we could
-				})
-
+				// we would add user/connection ids here if we could
+				this.writeEvent(event.name, { blobs: [event.roomId] })
 				break
 			}
 			case 'client': {
-				this.measure?.writeDataPoint({
-					blobs: [event.name, event.roomId, event.clientId, event.instanceId], // we would add user/connection ids here if we could
+				// we would add user/connection ids here if we could
+				this.writeEvent(event.name, {
+					blobs: [event.roomId, event.clientId, event.instanceId],
 					indexes: [event.localClientId],
 				})
-
 				break
+			}
+			case 'send_message': {
+				this.writeEvent(event.type, { blobs: [event.roomId], doubles: [event.messageLength] })
+				break
+			}
+			default: {
+				exhaustiveSwitchError(event)
 			}
 		}
 	}
