@@ -17198,7 +17198,16 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n        DebugMenu: null | "
+              "text": ">;\n        DebugPanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        DebugMenu: null | "
             },
             {
               "kind": "Reference",
@@ -17639,7 +17648,7 @@
           "name": "TldrawUi",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 147
+            "endIndex": 149
           }
         },
         {
@@ -27963,7 +27972,16 @@
             },
             {
               "kind": "Content",
-              "text": "> | null;\n    DebugMenu: "
+              "text": "> | null;\n    DebugPanel: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    DebugMenu: "
             },
             {
               "kind": "Reference",
@@ -28009,7 +28027,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/context/components.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 55
+            "endIndex": 57
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

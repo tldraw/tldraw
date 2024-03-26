@@ -1493,6 +1493,7 @@ export const TldrawUi: React_2.NamedExoticComponent<{
         KeyboardShortcutsDialog: null | React_2.ComponentType<TLUiKeyboardShortcutsDialogProps>;
         QuickActions: null | React_2.ComponentType<TLUiQuickActionsProps>;
         HelperButtons: null | React_2.ComponentType<TLUiHelperButtonsProps>;
+        DebugPanel: null | React_2.ComponentType;
         DebugMenu: null | React_2.ComponentType;
         MenuPanel: null | React_2.ComponentType;
         TopPanel: null | React_2.ComponentType;
@@ -2520,6 +2521,7 @@ export function useTldrawUiComponents(): Partial<{
     KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps> | null;
     QuickActions: ComponentType<TLUiQuickActionsProps> | null;
     HelperButtons: ComponentType<TLUiHelperButtonsProps> | null;
+    DebugPanel: ComponentType | null;
     DebugMenu: ComponentType | null;
     MenuPanel: ComponentType | null;
     TopPanel: ComponentType | null;
