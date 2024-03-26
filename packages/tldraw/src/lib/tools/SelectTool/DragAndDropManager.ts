@@ -61,10 +61,22 @@ export class DragAndDropManager {
 			}
 
 			// if all shapes are outside their parents, reparent each one
+
+			// group shapes by their parent
+			const parentChildGroups = new Map<TLShape, TLShape[]>()
 			for (const shape of movingShapes) {
 				const parent = this.editor.getShape(shape.parentId)
 				if (!parent) continue
-				this.editor.getShapeUtil(parent).onDragShapesOut?.(parent, [shape])
+				const group = parentChildGroups.get(parent) ?? []
+				if (!parentChildGroups.has(parent)) {
+					parentChildGroups.set(parent, group)
+				}
+				group.push(shape)
+			}
+
+			// call onDragShapesOut for each parent
+			for (const [parent, children] of parentChildGroups) {
+				this.editor.getShapeUtil(parent).onDragShapesOut?.(parent, children)
 			}
 
 			this.prevDroppingShapeId = null
