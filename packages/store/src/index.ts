@@ -15,7 +15,12 @@ export type {
 	StoreValidators,
 } from './lib/Store'
 export { StoreSchema } from './lib/StoreSchema'
-export type { SerializedSchema, StoreSchemaOptions } from './lib/StoreSchema'
+export type {
+	SerializedSchema,
+	SerializedSchemaV1,
+	SerializedSchemaV2,
+	StoreSchemaOptions,
+} from './lib/StoreSchema'
 export { compareSchemas } from './lib/compareSchemas'
 export { devFreeze } from './lib/devFreeze'
 export {

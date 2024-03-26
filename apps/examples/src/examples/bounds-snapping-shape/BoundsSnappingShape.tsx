@@ -1,4 +1,4 @@
-import { Editor, Tldraw } from 'tldraw'
+import { Editor, TLStoreSnapshot, Tldraw } from 'tldraw'
 import { PlayingCardTool } from './PlayingCardShape/playing-card-tool'
 import { PlayingCardUtil } from './PlayingCardShape/playing-card-util'
 import snapshot from './snapshot.json'
@@ -27,7 +27,7 @@ export default function BoundsSnappingShapeExample() {
 				// [c]
 				onMount={handleMount}
 				// [d]
-				snapshot={snapshot}
+				snapshot={snapshot as TLStoreSnapshot}
 			/>
 		</div>
 	)

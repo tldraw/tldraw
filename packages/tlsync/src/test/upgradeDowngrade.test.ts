@@ -2,12 +2,13 @@ import { computed } from '@tldraw/state'
 import {
 	BaseRecord,
 	RecordId,
-	SerializedStore,
 	Store,
 	StoreSchema,
 	UnknownRecord,
+	createMigrationIds,
+	createMigrations,
+	createRecordMigrations,
 	createRecordType,
-	defineMigrations,
 } from '@tldraw/store'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
@@ -44,9 +45,9 @@ afterEach(() => {
 	disposables.length = 0
 })
 
-const UserVersions = {
+const UserVersions = createMigrationIds('com.tldraw.user', {
 	ReplaceAgeWithBirthdate: 1,
-} as const
+} as const)
 
 interface UserV1 extends BaseRecord<'user', RecordId<UserV1>> {
 	name: string
@@ -64,7 +65,6 @@ const PresenceV1 = createRecordType<PresenceV1>('presence', {
 
 const UserV1 = createRecordType<UserV1>('user', {
 	scope: 'document',
-	migrations: defineMigrations({}),
 	validator: { validate: (value) => value as UserV1 },
 })
 
@@ -73,74 +73,75 @@ interface UserV2 extends BaseRecord<'user', RecordId<UserV2>> {
 	birthdate: string | null
 }
 
-const UserV2 = createRecordType<UserV2>('user', {
-	scope: 'document',
-	migrations: defineMigrations({
-		currentVersion: UserVersions.ReplaceAgeWithBirthdate,
-		migrators: {
-			[UserVersions.ReplaceAgeWithBirthdate]: {
-				up({ age: _age, ...user }) {
-					return {
-						...user,
-						birthdate: null,
-					}
-				},
-				down({ birthdate: _birthdate, ...user }) {
-					return {
-						...user,
-						age: 0,
-					}
-				},
+const userV2Migrations = createRecordMigrations({
+	recordType: 'user',
+	sequence: [
+		{
+			id: UserVersions.ReplaceAgeWithBirthdate,
+			up({ age: _age, ...user }: any) {
+				return {
+					...user,
+					birthdate: null,
+				}
+			},
+			down({ birthdate: _birthdate, ...user }: any) {
+				return {
+					...user,
+					age: 0,
+				}
 			},
 		},
-	}),
+	],
+})
+const UserV2 = createRecordType<UserV2>('user', {
+	scope: 'document',
 	validator: { validate: (value) => value as UserV2 },
 })
 
 type RV1 = UserV1 | PresenceV1
 type RV2 = UserV2 | PresenceV1
 
-const schemaV1 = StoreSchema.create<RV1>(
-	{ user: UserV1, presence: PresenceV1 },
-	{
-		snapshotMigrations: defineMigrations({}),
-	}
-)
+const schemaV1 = StoreSchema.create<RV1>({ user: UserV1, presence: PresenceV1 })
 
 const schemaV2 = StoreSchema.create<RV2>(
 	{ user: UserV2, presence: PresenceV1 },
 	{
-		snapshotMigrations: defineMigrations({}),
+		migrations: [userV2Migrations],
 	}
 )
 
 const schemaV3 = StoreSchema.create<RV2>(
 	{ user: UserV2, presence: PresenceV1 },
 	{
-		snapshotMigrations: defineMigrations({
-			currentVersion: 1,
-			migrators: {
-				1: {
-					up(store: SerializedStore<UserV2>) {
-						// remove any users called joe
-						const result = Object.fromEntries(
-							Object.entries(store).filter(([_, r]) => r.typeName !== 'user' || r.name !== 'joe')
-						)
-						// add a user called steve
-						const id = UserV2.createId('steve')
-						result[id] = UserV2.create({
-							id,
-							name: 'steve',
-							birthdate: '2022-02-02',
-						})
-						return result
+		migrations: [
+			userV2Migrations,
+			createMigrations({
+				sequenceId: 'com.tldraw.store',
+				retroactive: true,
+				sequence: [
+					{
+						id: 'com.tldraw.store/1',
+						scope: 'store',
+						up(store: any) {
+							// remove any users called joe
+							const result = Object.fromEntries(
+								Object.entries(store).filter(
+									([_, r]) => (r as any).typeName !== 'user' || (r as any).name !== 'joe'
+								)
+							)
+							// add a user called steve
+							const id = UserV2.createId('steve')
+							result[id] = UserV2.create({
+								id,
+								name: 'steve',
+								birthdate: '2022-02-02',
+							})
+							return result as any
+						},
 					},
-					down(store: SerializedStore<UserV2>) {
-						return store
-					},
-				},
-			},
-		}),
+				],
+			}),
+		],
 	}
 )
 

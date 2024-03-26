@@ -19,6 +19,7 @@ import {
 	partition,
 	transact,
 } from '@tldraw/editor'
+import { SerializedSchemaV1, SerializedSchemaV2 } from '@tldraw/store'
 import { TLUiToastsContextType } from '../../ui/context/toasts'
 import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
 import { buildFromV1Document } from '../tldr/buildFromV1Document'
@@ -40,19 +41,35 @@ export interface TldrawFile {
 	records: UnknownRecord[]
 }
 
+const schemaV1 = T.object<SerializedSchemaV1>({
+	schemaVersion: T.literal(1),
+	storeVersion: T.positiveInteger,
+	recordVersions: T.dict(
+		T.string,
+		T.object({
+			version: T.positiveInteger,
+			subTypeVersions: T.dict(T.string, T.positiveInteger).optional(),
+			subTypeKey: T.string.optional(),
+		})
+	),
+})
+
+const schemaV2 = T.object<SerializedSchemaV2>({
+	schemaVersion: T.literal(2),
+	sequences: T.dict(
+		T.string,
+		T.object({
+			version: T.positiveInteger,
+			retroactive: T.boolean,
+		})
+	),
+})
+
 const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 	tldrawFileFormatVersion: T.nonZeroInteger,
-	schema: T.object({
-		schemaVersion: T.positiveInteger,
-		storeVersion: T.positiveInteger,
-		recordVersions: T.dict(
-			T.string,
-			T.object({
-				version: T.positiveInteger,
-				subTypeVersions: T.dict(T.string, T.positiveInteger).optional(),
-				subTypeKey: T.string.optional(),
-			})
-		),
+	schema: T.union('schemaVersion', {
+		1: schemaV1,
+		2: schemaV2,
 	}),
 	records: T.arrayOf(
 		T.object({
