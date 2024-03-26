@@ -46,22 +46,21 @@ export class DragAndDropManager {
 
 		// is the next dropping shape id same as the last one?
 		if (nextDroppingShapeId === this.prevDroppingShapeId) {
-			// Check if all shapes are outside their parents
-			const areAllShapesOutsideTheirParents = movingShapes.every((shape) => {
-				const parent = this.editor.getShape(shape.parentId)
-				if (!parent) return false
-				const parentBounds = this.editor.getShapePageBounds(parent)
-				const shapeBounds = this.editor.getShapePageBounds(shape)
-				if (!parentBounds || !shapeBounds) return false
-				return !parentBounds.includes(shapeBounds)
-			})
-
-			// If some shapes are within their parents still, don't do anything
-			if (!areAllShapesOutsideTheirParents) {
+			// if some shapes are still within their parent, do nothing
+			if (
+				movingShapes.some((shape) => {
+					const parent = this.editor.getShape(shape.parentId)
+					if (!parent) return true
+					const parentBounds = this.editor.getShapePageBounds(parent)
+					const shapeBounds = this.editor.getShapePageBounds(shape)
+					if (!parentBounds || !shapeBounds) return true
+					return parentBounds.includes(shapeBounds)
+				})
+			) {
 				return
 			}
 
-			// If all shapes are outside their parents, we'll reparent them to the next dropping shape
+			// if all shapes are outside their parents, reparent each one
 			for (const shape of movingShapes) {
 				const parent = this.editor.getShape(shape.parentId)
 				if (!parent) continue
