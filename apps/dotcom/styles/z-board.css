@@ -339,7 +339,7 @@
 
 .tlui-document-name__input__wrapper {
 	position: relative;
-	max-width: calc(100% - 40px);
+	max-width: calc(100% - 36px);
 	display: flex;
 	flex: auto;
 }
