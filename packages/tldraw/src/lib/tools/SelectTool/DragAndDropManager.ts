@@ -15,12 +15,19 @@ export class DragAndDropManager {
 	first = true
 
 	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
+		// if (this.first) {
+		// 	// Find out where the shapes are being dragged from, even if that's not where the pointer starts
+		// 	const commonAncestor = this.editor.findCommonAncestor(movingShapes, (ancestor) =>
+		// 		this.editor.getShapeUtil(ancestor).canDropShapes(ancestor, movingShapes)
+		// 	)
+		// 	this.prevDroppingShapeId = commonAncestor ?? null
+		// 	this.first = false
+		// }
+
 		if (this.first) {
-			// Find out where the shapes are being dragged from, even if that's not where the pointer starts
-			const commonAncestor = this.editor.findCommonAncestor(movingShapes, (ancestor) =>
-				this.editor.getShapeUtil(ancestor).canDropShapes(ancestor, movingShapes)
-			)
-			this.prevDroppingShapeId = commonAncestor ?? null
+			this.prevDroppingShapeId =
+				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint, movingShapes)?.id ??
+				null
 			this.first = false
 		}
 
@@ -46,8 +53,40 @@ export class DragAndDropManager {
 
 		const nextDroppingShapeId = this.editor.getDroppingOverShape(point, movingShapes)?.id ?? null
 
-		// is the next dropping shape id different than the last one?
+		// is the next dropping shape id same as the last one?
 		if (nextDroppingShapeId === this.prevDroppingShapeId) {
+			// Check if all shapes are outside their parents
+			const areAllShapesOutsideTheirParents = movingShapes.every((shape) => {
+				const parent = this.editor.getShape(shape.parentId)
+				if (!parent) return false
+				const parentBounds = this.editor.getShapePageBounds(parent)
+				const shapeBounds = this.editor.getShapePageBounds(shape)
+				if (!parentBounds || !shapeBounds) return false
+				return !parentBounds.includes(shapeBounds)
+			})
+
+			// If all shapes are outside their parents, reparent them to the next dropping shape
+			if (areAllShapesOutsideTheirParents) {
+				const { prevDroppingShapeId } = this
+				const prevDroppingShape = prevDroppingShapeId && this.editor.getShape(prevDroppingShapeId)
+				if (prevDroppingShape) {
+					this.editor
+						.getShapeUtil(prevDroppingShape)
+						.onDragShapesOut?.(prevDroppingShape, movingShapes)
+				}
+
+				for (const shape of movingShapes) {
+					this.editor.reparentShapes(
+						[shape.id],
+						nextDroppingShapeId ?? this.editor.getCurrentPageId()
+					)
+				}
+				this.editor.setHintingShapes([])
+				cb?.()
+				this.prevDroppingShapeId = null
+				return
+			}
+
 			return
 		}
 
