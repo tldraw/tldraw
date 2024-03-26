@@ -66,6 +66,10 @@ module.exports = {
 				message: 'Use the getFromSessionStorage/setInSessionStorage helpers instead',
 			},
 		],
+		'no-restricted-globals': [
+			'error',
+			{ name: 'structuredClone', message: 'Use structuredClone from @tldraw/util instead' },
+		],
 	},
 	parser: '@typescript-eslint/parser',
 	parserOptions: {

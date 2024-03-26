@@ -8,8 +8,7 @@ export function DebugMenuItems() {
 		<TldrawUiMenuGroup id="release">
 			<TldrawUiMenuItem
 				id="release-info"
-				title={`${RELEASE_INFO}`}
-				label="Version"
+				label={`Version ${RELEASE_INFO}`}
 				onSelect={() => {
 					window.alert(`${RELEASE_INFO}`)
 				}}

@@ -7,10 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { Autocomplete, DropdownOption } from './Autocomplete'
 
-const HOST_URL =
-	process.env.NODE_ENV === 'development'
-		? 'http://localhost:3001'
-		: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://tldraw.dev'
+const HOST_URL = typeof location !== 'undefined' ? location.origin : 'https://tldraw.dev'
 
 export function Search() {
 	const [searchType, setSearchType] = useState<SEARCH_TYPE>(SEARCH_TYPE.NORMAL)

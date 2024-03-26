@@ -65,6 +65,9 @@ describe(ClientWebSocketAdapter, () => {
 		const prevServerSocket = connectedServerSocket
 		prevServerSocket.terminate()
 		await waitFor(() => connectedServerSocket !== prevServerSocket)
+		// there is a race here, the server could've opened a new socket already, but it hasn't
+		// transitioned to OPEN yet, thus the second waitFor
+		await waitFor(() => connectedServerSocket.readyState === WebSocket.OPEN)
 		expect(adapter._ws).not.toBe(prevClientSocket)
 		expect(adapter._ws?.readyState).toBe(WebSocket.OPEN)
 	})

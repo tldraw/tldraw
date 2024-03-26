@@ -1,0 +1,61 @@
+name: Publish patch release
+# This bumps the patch version, updates the changelogs in the release branch only, publishes a GitHub release, and publishes the packages to npm.
+
+# Prevent more than one non-canary npm publishing job from running at the same time
+concurrency:
+  group: npm-publish
+
+# Package publishing is manually triggered on github actions dashboard
+on:
+  push:
+    branches:
+      - 'v*.*.x'
+
+jobs:
+  deploy:
+    name: Publish patch release
+    environment: npm deploy
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+    outputs:
+      is_latest_version: ${{ steps.publish_step.outputs.is_latest_version }}
+
+    steps:
+      - name: Generate GH token
+        id: generate_token
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
+        with:
+          app_id: ${{ secrets.HUPPY_APP_ID }}
+          private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Prepare repository
+        # Fetch full git history and tags for auto
+        run: git fetch --unshallow --tags
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Publish
+        id: publish_step
+        run: |
+          git config --global user.name 'huppy-bot[bot]'
+          git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+          yarn tsx ./scripts/publish-patch.ts
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          HUPPY_TOKEN: ${{ secrets.HUPPY_TOKEN }}
+
+  publish_templates:
+    name: Publishes code templates to separate repositories
+    uses: tldraw/tldraw/.github/workflows/publish-templates.yml@main
+    if: ${{ needs.deploy.outputs.is_latest_version == 'true' }}
+    secrets:
+      VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+      NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+    needs: deploy

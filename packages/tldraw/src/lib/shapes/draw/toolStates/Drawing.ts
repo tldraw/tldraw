@@ -84,8 +84,8 @@ export class Drawing extends StateNode {
 		}
 
 		if (this.canDraw) {
-			// Don't update the shape if we haven't moved far enough from the last time we recorded a point
 			if (inputs.isPen) {
+				// Don't update the shape if we haven't moved far enough from the last time we recorded a point
 				if (
 					Vec.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
 					1 / this.editor.getZoomLevel()

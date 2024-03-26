@@ -1,8 +1,8 @@
-import { react, track, useQuickReactor, useValue } from '@tldraw/state'
+import { react, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
-import React from 'react'
+import { Fragment, JSX, useEffect, useRef, useState } from 'react'
 import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
@@ -17,6 +17,8 @@ import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
+import { setStyleProperty } from '../../utils/dom'
+import { nearestMultiple } from '../../utils/nearestMultiple'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
@@ -30,9 +32,9 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 
 	const { Background, SvgDefs } = useEditorComponents()
 
-	const rCanvas = React.useRef<HTMLDivElement>(null)
-	const rHtmlLayer = React.useRef<HTMLDivElement>(null)
-	const rHtmlLayer2 = React.useRef<HTMLDivElement>(null)
+	const rCanvas = useRef<HTMLDivElement>(null)
+	const rHtmlLayer = useRef<HTMLDivElement>(null)
+	const rHtmlLayer2 = useRef<HTMLDivElement>(null)
 
 	useScreenBounds(rCanvas)
 	useDocumentEvents()
@@ -44,11 +46,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	useQuickReactor(
 		'position layers',
 		() => {
-			const htmlElm = rHtmlLayer.current
-			if (!htmlElm) return
-			const htmlElm2 = rHtmlLayer2.current
-			if (!htmlElm2) return
-
 			const { x, y, z } = editor.getCamera()
 
 			// Because the html container has a width/height of 1px, we
@@ -60,8 +57,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
 				x + offset
 			)}px,${toDomPrecision(y + offset)}px)`
-			htmlElm.style.setProperty('transform', transform)
-			htmlElm2.style.setProperty('transform', transform)
+			setStyleProperty(rHtmlLayer.current, 'transform', transform)
+			setStyleProperty(rHtmlLayer2.current, 'transform', transform)
 		},
 		[editor]
 	)
@@ -71,7 +68,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const shapeSvgDefs = useValue(
 		'shapeSvgDefs',
 		() => {
-			const shapeSvgDefsByKey = new Map<string, React.JSX.Element>()
+			const shapeSvgDefsByKey = new Map<string, JSX.Element>()
 			for (const util of objectMapValues(editor.shapeUtils)) {
 				if (!util) return
 				const defs = util.getCanvasSvgDefs()
@@ -102,10 +99,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			<svg className="tl-svg-context">
 				<defs>
 					{shapeSvgDefs}
-					{Cursor && <Cursor />}
-					<CollaboratorHint />
-					<ArrowheadDot />
-					<ArrowheadCross />
+					<CursorDef />
+					<CollaboratorHintDef />
 					{SvgDefs && <SvgDefs />}
 				</defs>
 			</svg>
@@ -210,6 +205,33 @@ function SnapIndicatorWrapper() {
 
 function HandlesWrapper() {
 	const editor = useEditor()
+
+	// We don't want this to update every time the shape changes
+	const shapeIdWithHandles = useValue(
+		'handles shapeIdWithHandles',
+		() => {
+			const { isReadonly, isChangingStyle } = editor.getInstanceState()
+			if (isReadonly || isChangingStyle) return false
+
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (!onlySelectedShape) return false
+
+			// slightly redundant but saves us from updating the handles every time the shape changes
+			const handles = editor.getShapeHandles(onlySelectedShape)
+			if (!handles) return false
+
+			return onlySelectedShape.id
+		},
+		[editor]
+	)
+
+	if (!shapeIdWithHandles) return null
+
+	return <HandlesWrapperInner shapeId={shapeIdWithHandles} />
+}
+
+function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
+	const editor = useEditor()
 	const { Handles } = useEditorComponents()
 
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
@@ -218,36 +240,15 @@ function HandlesWrapper() {
 		editor,
 	])
 
-	const isReadonly = useValue('isChangingStyle', () => editor.getInstanceState().isReadonly, [
+	const transform = useValue('handles transform', () => editor.getShapePageTransform(shapeId), [
 		editor,
+		shapeId,
 	])
-
-	const isChangingStyle = useValue(
-		'isChangingStyle',
-		() => editor.getInstanceState().isChangingStyle,
-		[editor]
-	)
-
-	const onlySelectedShape = useValue('onlySelectedShape', () => editor.getOnlySelectedShape(), [
-		editor,
-	])
-
-	const transform = useValue(
-		'transform',
-		() => {
-			if (!onlySelectedShape) return null
-
-			return editor.getShapePageTransform(onlySelectedShape)
-		},
-		[editor, onlySelectedShape]
-	)
 
 	const handles = useValue(
 		'handles',
 		() => {
-			if (!onlySelectedShape) return null
-
-			const handles = editor.getShapeHandles(onlySelectedShape)
+			const handles = editor.getShapeHandles(shapeId)
 			if (!handles) return null
 
 			const minDistBetweenVirtualHandlesAndRegularHandles =
@@ -274,10 +275,10 @@ function HandlesWrapper() {
 					.sort((a) => (a.type === 'vertex' ? 1 : -1))
 			)
 		},
-		[editor, onlySelectedShape, zoomLevel, isCoarse]
+		[editor, zoomLevel, isCoarse, shapeId]
 	)
 
-	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly || !handles || !transform) {
+	if (!Handles || !handles || !transform) {
 		return null
 	}
 
@@ -288,7 +289,7 @@ function HandlesWrapper() {
 					return (
 						<HandleWrapper
 							key={handle.id}
-							shapeId={onlySelectedShape.id}
+							shapeId={shapeId}
 							handle={handle}
 							zoom={zoomLevel}
 							isCoarse={isCoarse}
@@ -328,13 +329,22 @@ function ShapesWithSVGs() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
+	const dprMultiple = useValue(
+		'dpr multiple',
+		() =>
+			// dprMultiple is the smallest number we can multiply dpr by to get an integer
+			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
+			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
+		[editor]
+	)
+
 	return (
 		<>
 			{renderingShapes.map((result) => (
-				<React.Fragment key={result.id + '_fragment'}>
-					<Shape {...result} />
+				<Fragment key={result.id + '_fragment'}>
+					<Shape {...result} dprMultiple={dprMultiple} />
 					<DebugSvgCopy id={result.id} />
-				</React.Fragment>
+				</Fragment>
 			))}
 		</>
 	)
@@ -345,10 +355,19 @@ function ShapesToDisplay() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
+	const dprMultiple = useValue(
+		'dpr multiple',
+		() =>
+			// dprMultiple is the smallest number we can multiply dpr by to get an integer
+			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
+			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
+		[editor]
+	)
+
 	return (
 		<>
 			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} />
+				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
 			))}
 		</>
 	)
@@ -418,11 +437,11 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	return <HoveredShapeIndicator shapeId={hoveredShapeId} />
 }
 
-const HintedShapeIndicator = track(function HintedShapeIndicator() {
+function HintedShapeIndicator() {
 	const editor = useEditor()
 	const { ShapeIndicator } = useEditorComponents()
 
-	const ids = dedupe(editor.getHintingShapeIds())
+	const ids = useValue('hinting shape ids', () => dedupe(editor.getHintingShapeIds()), [editor])
 
 	if (!ids.length) return null
 	if (!ShapeIndicator) return null
@@ -434,9 +453,9 @@ const HintedShapeIndicator = track(function HintedShapeIndicator() {
 			))}
 		</>
 	)
-})
+}
 
-function Cursor() {
+function CursorDef() {
 	return (
 		<g id="cursor">
 			<g fill="rgba(0,0,0,.2)" transform="translate(-11,-11)">
@@ -455,54 +474,40 @@ function Cursor() {
 	)
 }
 
-function CollaboratorHint() {
+function CollaboratorHintDef() {
 	return <path id="cursor_hint" fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
 }
 
-function ArrowheadDot() {
-	return (
-		<marker id="arrowhead-dot" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
-			<circle cx="3" cy="3" r="2" strokeDasharray="100%" />
-		</marker>
-	)
-}
-
-function ArrowheadCross() {
-	return (
-		<marker id="arrowhead-cross" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
-			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
-			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
-		</marker>
-	)
-}
-
-const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
+function DebugSvgCopy({ id }: { id: TLShapeId }) {
 	const editor = useEditor()
-	const shape = editor.getShape(id)
 
-	const [html, setHtml] = React.useState('')
+	const [src, setSrc] = useState<string | null>(null)
 
-	const isInRoot = shape?.parentId === editor.getCurrentPageId()
+	const isInRoot = useValue(
+		'is in root',
+		() => {
+			const shape = editor.getShape(id)
+			return shape?.parentId === editor.getCurrentPageId()
+		},
+		[editor, id]
+	)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!isInRoot) return
 
 		let latest = null
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			const bb = editor.getShapePageBounds(id)
-			const el = await editor.getSvg([id], {
+			const result = await editor.getSvgString([id], {
 				padding: 0,
 				background: editor.getInstanceState().exportBackground,
 			})
-			if (el && bb && latest === renderId) {
-				el.style.setProperty('overflow', 'visible')
-				el.setAttribute('preserveAspectRatio', 'xMidYMin slice')
-				el.style.setProperty('transform', `translate(${bb.x}px, ${bb.y + bb.h + 12}px)`)
-				el.style.setProperty('border', '1px solid black')
-				setHtml(el?.outerHTML)
-			}
+
+			if (latest !== renderId || !result) return
+
+			const svgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(result.svg)}`
+			setSrc(svgDataUrl)
 		})
 
 		return () => {
@@ -510,15 +515,26 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 			unsubscribe()
 		}
 	}, [editor, id, isInRoot])
+	const bb = editor.getShapePageBounds(id)
 
-	if (!isInRoot) return null
+	if (!isInRoot || !src || !bb) return null
 
 	return (
-		<div style={{ paddingTop: 12, position: 'absolute' }}>
-			<div style={{ display: 'flex' }} dangerouslySetInnerHTML={{ __html: html }} />
-		</div>
+		<img
+			src={src}
+			width={bb.width}
+			height={bb.height}
+			style={{
+				position: 'absolute',
+				top: 0,
+				left: 0,
+				transform: `translate(${bb.x}px, ${bb.y + bb.h + 12}px)`,
+				border: '1px solid black',
+				maxWidth: 'none',
+			}}
+		/>
 	)
-})
+}
 
 function SelectionForegroundWrapper() {
 	const editor = useEditor()

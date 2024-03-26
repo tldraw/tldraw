@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-	DefaultFontFamilies,
+	Box,
 	Editor,
 	HTMLContainer,
 	Rectangle2d,
@@ -18,7 +18,7 @@ import {
 	toDomPrecision,
 	useEditor,
 } from '@tldraw/editor'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
@@ -113,51 +113,24 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
+		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const text = shape.props.text
-
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
-		const opts = {
-			fontSize: FONT_SIZES[shape.props.size],
-			fontFamily: DefaultFontFamilies[shape.props.font],
-			textAlign: shape.props.align,
-			verticalTextAlign: 'middle' as const,
-			width,
-			height,
-			padding: 0, // no padding?
-			lineHeight: TEXT_PROPS.lineHeight,
-			fontStyle: 'normal',
-			fontWeight: 'normal',
-			overflow: 'wrap' as const,
-		}
-
-		const color = theme[shape.props.color].solid
-		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
-		const textBgEl = createTextSvgElementFromSpans(
-			this.editor,
-			this.editor.textMeasure.measureTextSpans(text, opts),
-			{
-				...opts,
-				stroke: theme.background,
-				strokeWidth: 2,
-				fill: theme.background,
-				padding: 0,
-			}
+		return (
+			<SvgTextLabel
+				fontSize={FONT_SIZES[shape.props.size]}
+				font={shape.props.font}
+				align={shape.props.align}
+				verticalAlign="middle"
+				text={shape.props.text}
+				labelColor={shape.props.color}
+				bounds={new Box(0, 0, width, height)}
+				padding={0}
+			/>
 		)
-
-		const textElm = textBgEl.cloneNode(true) as SVGTextElement
-		textElm.setAttribute('fill', color)
-		textElm.setAttribute('stroke', 'none')
-
-		groupEl.append(textBgEl)
-		groupEl.append(textElm)
-
-		return groupEl
 	}
 
 	override onResize: TLOnResizeHandler<TLTextShape> = (shape, info) => {
