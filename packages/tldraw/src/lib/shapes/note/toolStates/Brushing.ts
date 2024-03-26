@@ -7,6 +7,7 @@ import {
 	TLInterruptEvent,
 	TLPointerEventInfo,
 	TLShapeId,
+	Vec,
 	createShapeId,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
@@ -23,7 +24,7 @@ export class Brushing extends StateNode {
 	initialStartShape: TLGeoShape | null = null
 
 	override onEnter = (info: TLGeoShape) => {
-		this.initialStartShape = info
+		this.initialStartShape = { ...info }
 	}
 
 	override onTick = () => {
@@ -51,13 +52,12 @@ export class Brushing extends StateNode {
 	private complete() {
 		this.editor.updateInstanceState({ brush: null })
 		this.gridShapes.shift()
-		this.gridShapes.unshift(this.initialStartShape!.id)
+
 		const gridShapes = this.gridShapes.map((id) => {
-			if (!id) return null
 			const shape = this.editor.getShape(id)
 			return shape
 		})
-
+		gridShapes.unshift(this.initialStartShape!)
 		this.editor.createShapes(
 			gridShapes.map((shape) => {
 				return {
@@ -68,7 +68,8 @@ export class Brushing extends StateNode {
 				}
 			})
 		)
-		this.editor.deleteShapes(this.gridShapes)
+		this.editor.deleteShapes([...this.gridShapes, this.initialStartShape!.id])
+
 		this.parent.transition('idle')
 	}
 
@@ -78,12 +79,16 @@ export class Brushing extends StateNode {
 	}
 
 	private createNoteGrid() {
+		const noteSize = 200 + 30
 		const {
 			inputs: { currentPagePoint },
 		} = this.editor
 		// Set the brush to contain the current and origin points
 		const originPoint = { x: this.initialStartShape!.x + 115, y: this.initialStartShape!.y + 115 }
-		this.brush.setTo(Box.FromPoints([originPoint, currentPagePoint]))
+		const angle = Vec.Sub(currentPagePoint, originPoint).uni()
+		const newPoint = Vec.Add(currentPagePoint, angle.mul(noteSize + 100))
+		this.brush.setTo(Box.FromPoints([originPoint, newPoint]))
+		console.log({ angle })
 		const isLeft = originPoint.x - currentPagePoint.x > 0
 		const isUp = originPoint.y - currentPagePoint.y > 0
 		const direction = {
@@ -92,7 +97,6 @@ export class Brushing extends StateNode {
 		}
 		// test how many notes fit in the brush horizontally and vertically
 
-		const noteSize = 200 + 30
 		const brushWidth = this.brush.width
 		const offsetOriginPoint = {
 			x: originPoint.x - noteSize / 2,
@@ -120,7 +124,7 @@ export class Brushing extends StateNode {
 					x,
 					y,
 					id: geoId,
-					opacity: 0.25,
+					opacity: 0.5,
 					props: {
 						h: 200,
 						w: 200,
@@ -132,7 +136,6 @@ export class Brushing extends StateNode {
 			}
 		}
 		this.gridShapes = geoIds
-		// n
 	}
 
 	private cleanupGridShapes() {

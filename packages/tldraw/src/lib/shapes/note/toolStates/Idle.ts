@@ -23,7 +23,7 @@ export class Idle extends StateNode {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 	override onExit = () => {
-		this.cleanupDropZone()
+		// this.cleanupDropZone()
 	}
 
 	override onPointerMove = () => {

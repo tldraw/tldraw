@@ -7,7 +7,6 @@ export class Dragging extends StateNode {
 
 	override onEnter = (shape: TLNoteShape) => {
 		this.shape = shape
-		console.log('Dragging.onEnter', shape)
 	}
 	override onExit = () => {
 		this.cleanupDropZone()
@@ -76,7 +75,7 @@ export class Dragging extends StateNode {
 					)
 					return distanceA - distanceB
 				}) as TLNoteShape[]
-			console.log('notes', notes)
+
 			if (notes.length === 0) return undefined
 			let direction: 'above' | 'below' | 'left' | 'right' | null = null
 			if (

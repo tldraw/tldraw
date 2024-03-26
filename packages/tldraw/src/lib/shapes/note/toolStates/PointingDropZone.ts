@@ -33,7 +33,6 @@ export class PointingDropZone extends StateNode {
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.shape = this.createShape()
-
 		this.complete()
 	}
 
