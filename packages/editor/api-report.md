@@ -937,7 +937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         targetZoom?: number;
         inset?: number;
     } & TLAnimationOptions): this;
-    zoomToContent(): this;
+    zoomToContent(opts?: TLAnimationOptions): this;
     zoomToFit(animation?: TLAnimationOptions): this;
     zoomToSelection(animation?: TLAnimationOptions): this;
 }

@@ -1,11 +1,11 @@
 ---
-title: On before create shape
-component: ./BeforeCreateShapeExample.tsx
+title: Before delete shape
+component: ./BeforeDeleteShapeExample.tsx
 category: editor-api
 priority: 4
 ---
 
-Register a handler to run before shapes are created.
+Register a handler to run before shapes are deleted.
 
 ---
 
