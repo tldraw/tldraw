@@ -11,11 +11,14 @@ import {
 	TLStoreWithStatus,
 	TldrawEditor,
 	TldrawEditorBaseProps,
+	stopEventPropagation,
+	track,
 	useEditor,
 	useEditorComponents,
 	useEvent,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
+	useValue,
 } from '@tldraw/editor'
 import { useLayoutEffect, useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
@@ -91,6 +94,7 @@ export function Tldraw(props: TldrawProps) {
 			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
 			HoveredShapeIndicator: TldrawHoveredShapeIndicator,
+			InFrontOfTheCanvas: NoteDuplicationHandles,
 			..._components,
 		}),
 		[_components]
@@ -208,4 +212,87 @@ function InsideOfEditorAndUiContext({
 	}
 
 	return null
+}
+
+const NoteDuplicationHandles = track(() => {
+	const editor = useEditor()
+
+	const info = useValue(
+		'selection bounds',
+		() => {
+			const screenBounds = editor.getViewportScreenBounds()
+			const rotation = editor.getSelectionRotation()
+			const rotatedScreenBounds = editor.getSelectionRotatedScreenBounds()
+			if (!rotatedScreenBounds) return
+			return {
+				// we really want the position within the
+				// tldraw component's bounds, not the screen itself
+				x: rotatedScreenBounds.x - screenBounds.x,
+				y: rotatedScreenBounds.y - screenBounds.y,
+				width: rotatedScreenBounds.width,
+				height: rotatedScreenBounds.height,
+				rotation: rotation,
+			}
+		},
+		[editor]
+	)
+
+	if (!info) return
+	const shapes = editor.getSelectedShapes()
+	if (shapes.length === 0) return null
+	if (shapes.length > 1) return null
+	if (shapes[0].type !== 'note') return null
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				top: 0,
+				left: 0,
+				transformOrigin: 'top left',
+				transform: `translate(${info.x}px, ${info.y}px) rotate(${info.rotation}rad)`,
+				pointerEvents: 'all',
+			}}
+			onPointerDown={stopEventPropagation}
+		>
+			<DuplicateInDirectionButton y={-40} x={info.width / 2 - 16} rotation={-(Math.PI / 2)} />
+			<DuplicateInDirectionButton y={info.height / 2 - 16} x={info.width + 8} rotation={0} />
+			<DuplicateInDirectionButton
+				y={info.height + 8}
+				x={info.width / 2 - 16}
+				rotation={Math.PI / 2}
+			/>
+			<DuplicateInDirectionButton y={info.height / 2 - 16} x={-40} rotation={Math.PI} />
+		</div>
+	)
+})
+
+function DuplicateInDirectionButton({
+	x,
+	y,
+	rotation,
+}: {
+	x: number
+	y: number
+	rotation: number
+}) {
+	return (
+		<button
+			style={{
+				position: 'absolute',
+				width: 24,
+				height: 24,
+				pointerEvents: 'all',
+				borderRadius: '10px',
+				border: 'none',
+				textAlign: 'center',
+				transform: `translate(${x}px, ${y}px) rotate(${rotation}rad)`,
+			}}
+			onPointerDown={stopEventPropagation}
+			onClick={() => {
+				console.log('click')
+			}}
+		>
+			→
+		</button>
+	)
 }
