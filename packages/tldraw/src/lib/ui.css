@@ -6,6 +6,12 @@
 	--layer-overlays: 500;
 	--layer-toasts: 650;
 	--layer-cursor: 700;
+	font-weight: 500;
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-smooth: antialiased;
+	text-rendering: optimizeLegibility;
 }
 
 /* -------------------------------------------------- */
@@ -29,6 +35,7 @@
 	pointer-events: all;
 	font-weight: inherit;
 	font-family: inherit;
+	line-height: inherit;
 	text-rendering: optimizeLegibility;
 	font-size: 12px;
 	gap: 0px;
