@@ -1,5 +1,4 @@
 import { equals, getObjectSubset, iterableEquality, subsetEquality } from '@jest/expect-utils'
-
 import {
 	matcherHint,
 	printDiffOrStringify,
@@ -7,6 +6,10 @@ import {
 	printReceived,
 	stringify,
 } from 'jest-matcher-utils'
+import { TextDecoder, TextEncoder } from 'util'
+
+global.TextEncoder = TextEncoder
+global.TextDecoder = TextDecoder
 
 function convertNumbersInObject(obj: any, roundToNearest: number) {
 	if (!obj) return obj

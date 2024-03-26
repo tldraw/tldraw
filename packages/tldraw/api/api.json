@@ -1764,9 +1764,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -1776,7 +1780,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -2581,7 +2585,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function CommonStylePickerSet({ styles }: "
+              "text": "export declare function CommonStylePickerSet({ styles, theme, }: "
             },
             {
               "kind": "Content",
@@ -2591,6 +2595,15 @@
               "kind": "Reference",
               "text": "ReadonlySharedStyleMap",
               "canonicalReference": "@tldraw/editor!ReadonlySharedStyleMap:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    theme: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorTheme",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorTheme:type"
             },
             {
               "kind": "Content",
@@ -2616,17 +2629,17 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanelContent.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 5,
-            "endIndex": 7
+            "startIndex": 7,
+            "endIndex": 9
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ styles }",
+              "parameterName": "{ styles, theme, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 4
+                "endIndex": 6
               },
               "isOptional": false
             }
@@ -5288,9 +5301,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -5300,7 +5317,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -7771,27 +7788,13 @@
                   "text": "): "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "Promise",
-                  "canonicalReference": "!Promise:interface"
-                },
-                {
                   "kind": "Content",
-                  "text": "<"
+                  "text": "import(\"react/jsx-runtime\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "> | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -7801,7 +7804,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 10
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -8993,9 +8996,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -9005,7 +9012,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -9185,12 +9192,11 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function getSvgAsImage(svg: "
+              "text": "export declare function getSvgAsImage(svgString: "
             },
             {
-              "kind": "Reference",
-              "text": "SVGElement",
-              "canonicalReference": "!SVGElement:interface"
+              "kind": "Content",
+              "text": "string"
             },
             {
               "kind": "Content",
@@ -9206,7 +9212,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    type: 'jpeg' | 'png' | 'webp';\n    quality: number;\n    scale: number;\n}"
+              "text": "{\n    type: 'jpeg' | 'png' | 'webp';\n    quality: number;\n    scale: number;\n    width: number;\n    height: number;\n}"
             },
             {
               "kind": "Content",
@@ -9244,7 +9250,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "svg",
+              "parameterName": "svgString",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -9269,57 +9275,6 @@
             }
           ],
           "name": "getSvgAsImage"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "tldraw!getSvgAsString:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getSvgAsString(svg: "
-            },
-            {
-              "kind": "Reference",
-              "text": "SVGElement",
-              "canonicalReference": "!SVGElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Reference",
-              "text": "Promise",
-              "canonicalReference": "!Promise:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<string>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/export/export.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "svg",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getSvgAsString"
         },
         {
           "kind": "Function",
@@ -10493,9 +10448,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGPathElement",
-                  "canonicalReference": "!SVGPathElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -10505,7 +10464,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -10540,21 +10499,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", ctx: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SvgExportContext",
-                  "canonicalReference": "@tldraw/editor!SvgExportContext:interface"
-                },
-                {
-                  "kind": "Content",
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGPathElement",
-                  "canonicalReference": "!SVGPathElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -10563,8 +10517,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 3,
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -10575,14 +10529,6 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "ctx",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
                   },
                   "isOptional": false
                 }
@@ -11161,16 +11107,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<"
+                  "text": "<import(\"react/jsx-runtime\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": ">"
+                  "text": " | null>"
                 },
                 {
                   "kind": "Content",
@@ -11797,17 +11743,13 @@
                 },
                 {
                   "kind": "Content",
-                  "text": " | undefined"
-                },
-                {
-                  "kind": "Content",
                   "text": ";"
                 }
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 6
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -12422,21 +12364,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", ctx: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SvgExportContext",
-                  "canonicalReference": "@tldraw/editor!SvgExportContext:interface"
-                },
-                {
-                  "kind": "Content",
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -12445,8 +12382,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 3,
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -12457,14 +12394,6 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "ctx",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
                   },
                   "isOptional": false
                 }
@@ -13522,9 +13451,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -13534,7 +13467,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -16088,9 +16021,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -16100,7 +16037,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -16171,11 +16108,20 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TextStylePickerSet({ styles }: "
+              "text": "export declare function TextStylePickerSet({ theme, styles, }: "
             },
             {
               "kind": "Content",
-              "text": "{\n    styles: "
+              "text": "{\n    theme: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorTheme",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorTheme:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    styles: "
             },
             {
               "kind": "Reference",
@@ -16210,17 +16156,17 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanelContent.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 5,
-            "endIndex": 8
+            "startIndex": 7,
+            "endIndex": 10
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ styles }",
+              "parameterName": "{ theme, styles, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 4
+                "endIndex": 6
               },
               "isOptional": false
             }
@@ -17278,7 +17224,16 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n        DebugMenu: null | "
+              "text": ">;\n        DebugPanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        DebugMenu: null | "
             },
             {
               "kind": "Reference",
@@ -17719,7 +17674,7 @@
           "name": "TldrawUi",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 147
+            "endIndex": 149
           }
         },
         {
@@ -19539,7 +19494,7 @@
             },
             {
               "kind": "Content",
-              "text": ">({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, title, isSelected, }: "
+              "text": ">({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, isSelected, }: "
             },
             {
               "kind": "Reference",
@@ -19581,7 +19536,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, title, isSelected, }",
+              "parameterName": "{ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, isSelected, }",
               "parameterTypeTokenRange": {
                 "startIndex": 9,
                 "endIndex": 11
@@ -20200,33 +20155,6 @@
                 "startIndex": 1,
                 "endIndex": 2
               }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "tldraw!TLUiActionItem#title:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "title?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "title",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
             }
           ],
           "extendsTokenRanges": []
@@ -20567,6 +20495,34 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tldraw!TLUiButtonPickerProps#theme:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "theme: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLDefaultColorTheme",
+                  "canonicalReference": "@tldraw/tlschema!TLDefaultColorTheme:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "theme",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
               }
             },
             {
@@ -24952,7 +24908,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    icon?: IconType;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk?: boolean;\n    onSelect: (source: "
+              "text": "{\n    id: string;\n    icon?: IconType;\n    kbd?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk?: boolean;\n    onSelect: (source: "
             },
             {
               "kind": "Reference",
@@ -28070,7 +28026,16 @@
             },
             {
               "kind": "Content",
-              "text": "> | null;\n    DebugMenu: "
+              "text": "> | null;\n    DebugPanel: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    DebugMenu: "
             },
             {
               "kind": "Reference",
@@ -28116,7 +28081,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/context/components.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 55
+            "endIndex": 57
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -28645,9 +28610,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -28657,7 +28626,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,

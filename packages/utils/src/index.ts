@@ -27,7 +27,6 @@ export { MediaHelpers } from './lib/media'
 export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
 	areObjectsShallowEqual,
-	deepCopy,
 	filterEntries,
 	getOwnProperty,
 	hasOwnProperty,
@@ -64,5 +63,12 @@ export {
 } from './lib/storage'
 export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export type { Expand, RecursivePartial, Required } from './lib/types'
-export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'
+export {
+	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
+	isDefined,
+	isNativeStructuredClone,
+	isNonNull,
+	isNonNullish,
+	structuredClone,
+} from './lib/value'
 export { warnDeprecatedGetter } from './lib/warnDeprecatedGetter'
