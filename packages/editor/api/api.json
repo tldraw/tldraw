@@ -15185,6 +15185,36 @@
               "name": "isShapeOrAncestorLocked"
             },
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#last:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "last: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "last",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#mark:member(1)",
               "docComment": "/**\n * Create a new \"mark\", or stopping point, in the undo redo history. Creating a mark will clear any redos.\n *\n * @param markId - The mark's id, usually the reason for adding the mark.\n *\n * @param onUndo - Whether to stop at the mark when undoing.\n *\n * @param onRedo - Whether to stop at the mark when redoing.\n *\n * @example\n * ```ts\n * editor.mark()\n * editor.mark('flip shapes')\n * ```\n *\n * @public\n */\n",

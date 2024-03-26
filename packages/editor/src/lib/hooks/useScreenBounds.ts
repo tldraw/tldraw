@@ -11,6 +11,7 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 			const container = ref.current
 			if (!container) return null
 
+			console.log('????? update screen bounds in hook')
 			const rect = container.getBoundingClientRect()
 
 			editor.updateViewportScreenBounds(
@@ -33,7 +34,7 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 
 		// Rather than running getClientRects on every frame, we'll
 		// run it once a second or when the window resizes.
-		const interval = setInterval(updateBounds, 1000)
+		// const interval = setInterval(updateBounds, 1000)
 		window.addEventListener('resize', updateBounds)
 
 		const resizeObserver = new ResizeObserver((entries) => {
@@ -54,7 +55,7 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 		}
 
 		return () => {
-			clearInterval(interval)
+			// clearInterval(interval)
 			window.removeEventListener('resize', updateBounds)
 			resizeObserver.disconnect()
 			scrollingParent?.removeEventListener('scroll', updateBounds)

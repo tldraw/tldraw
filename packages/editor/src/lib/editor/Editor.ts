@@ -2087,6 +2087,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _setCamera(point: VecLike): this {
+		console.log('_setCamera')
 		const currentCamera = this.getCamera()
 
 		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z) {
@@ -3066,6 +3067,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private _decayCameraStateTimeout = (elapsed: number) => {
 		this._cameraStateTimeoutRemaining -= elapsed
+		console.log('decay', this._cameraStateTimeoutRemaining)
 
 		if (this._cameraStateTimeoutRemaining <= 0) {
 			this.off('tick', this._decayCameraStateTimeout)
@@ -3075,6 +3077,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _tickCameraState = () => {
+		console.log('tick')
 		// always reset the timeout
 		this._cameraStateTimeoutRemaining = CAMERA_MOVING_TIMEOUT
 
@@ -3084,6 +3087,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this._cameraState.__unsafe__getWithoutCapture() === 'idle') {
 			this._lastUpdateRenderingBoundsTimestamp = now // don't render right away
 			this._cameraState.set('moving')
+			this.off('tick', this._decayCameraStateTimeout)
 			this.on('tick', this._decayCameraStateTimeout)
 		} else {
 			if (now - this._lastUpdateRenderingBoundsTimestamp > CAMERA_MAX_RENDERING_INTERVAL) {
@@ -3109,6 +3113,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// allows the DOM nodes to be reused even when they become children
 		// of other nodes.
 
+		console.log('get getUnorderedRenderingShapes')
 		const renderingShapes: {
 			id: TLShapeId
 			shape: TLShape
@@ -3131,13 +3136,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
 		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
+		let culled = 0
 
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			const shape = this.getShape(id)
 			if (!shape) return
 
 			opacity *= shape.opacity
-			let isCulled = false
+			const isCulled = false
 			let isShapeErasing = false
 			const util = this.getShapeUtil(shape)
 			const maskedPageBounds = this.getShapeMaskedPageBounds(id)
@@ -3148,19 +3154,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 					opacity *= 0.32
 				}
 
-				isCulled =
-					isCullingOffScreenShapes &&
-					// only cull shapes that allow unmounting, i.e. not stateful components
-					util.canUnmount(shape) &&
-					// never cull editingg shapes
-					editingShapeId !== id &&
-					// if the shape is fully outside of its parent's clipping bounds...
-					(maskedPageBounds === undefined ||
-						// ...or if the shape is outside of the expanded viewport bounds...
-						(!renderingBoundsExpanded.includes(maskedPageBounds) &&
-							// ...and if it's not selected... then cull it
-							!selectedShapeIds.includes(id)))
+				// isCulled =
+				// 	isCullingOffScreenShapes &&
+				// 	// only cull shapes that allow unmounting, i.e. not stateful components
+				// 	util.canUnmount(shape) &&
+				// 	// never cull editingg shapes
+				// 	editingShapeId !== id &&
+				// 	// if the shape is fully outside of its parent's clipping bounds...
+				// 	(maskedPageBounds === undefined ||
+				// 		// ...or if the shape is outside of the expanded viewport bounds...
+				// 		(!renderingBoundsExpanded.includes(maskedPageBounds) &&
+				// 			// ...and if it's not selected... then cull it
+				// 			!selectedShapeIds.includes(id)))
 			}
+
+			if (isCulled) culled++
 
 			renderingShapes.push({
 				id,
@@ -3203,6 +3211,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				addShapeById(childId, 1, false)
 			}
 		}
+		console.log('culled', culled)
 
 		return renderingShapes
 	}
@@ -3253,6 +3262,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private readonly _renderingBoundsExpanded = atom('rendering viewport expanded', new Box())
 
+	last = Date.now()
+
 	/**
 	 * Update the rendering bounds. This should be called when the viewport has stopped changing, such
 	 * as at the end of a pan, zoom, or animation.
@@ -3268,6 +3279,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	updateRenderingBounds(): this {
 		const viewportPageBounds = this.getViewportPageBounds()
 		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
+		const now = Date.now()
+		console.log('update rendering bounds', now - this.last)
+		this.last = now
 		this._renderingBounds.set(viewportPageBounds.clone())
 
 		if (Number.isFinite(this.renderingBoundsMargin)) {
@@ -8520,6 +8534,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							return
 						}
 
+						console.log('pan')
 						// Update the camera here, which will dispatch a pointer move...
 						// this will also update the pointer position, etc
 						this.pan(info.delta)
