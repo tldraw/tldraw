@@ -717,7 +717,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getContainer: () => HTMLElement
 
 	/**
-	 * A manager for side effects and correct state enforcement.
+	 * A manager for side effects and correct state enforcement. See {@link SideEffectManager} for details.
 	 *
 	 * @public
 	 */

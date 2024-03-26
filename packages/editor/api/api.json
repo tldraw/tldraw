@@ -18083,7 +18083,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#sideEffects:member",
-              "docComment": "/**\n * A manager for side effects and correct state enforcement.\n *\n * @public\n */\n",
+              "docComment": "/**\n * A manager for side effects and correct state enforcement. See {@link SideEffectManager} for details.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
