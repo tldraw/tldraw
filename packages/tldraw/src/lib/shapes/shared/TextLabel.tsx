@@ -29,6 +29,7 @@ export const TextLabel = React.memo(function TextLabel<
 	verticalAlign,
 	wrap,
 	bounds,
+	padding,
 }: {
 	id: T['id']
 	type: T['type']
@@ -41,6 +42,7 @@ export const TextLabel = React.memo(function TextLabel<
 	text: string
 	labelColor: TLDefaultColorStyle
 	bounds?: Box
+	padding?: number
 }) {
 	const {
 		rInput,
@@ -96,7 +98,7 @@ export const TextLabel = React.memo(function TextLabel<
 					color: theme[labelColor].solid,
 				}}
 			>
-				<div className="tl-text tl-text-content" dir="ltr">
+				<div className="tl-text tl-text-content" dir="ltr" style={{ padding }}>
 					{finalText}
 				</div>
 				{isEditing && (
@@ -124,6 +126,7 @@ export const TextLabel = React.memo(function TextLabel<
 						onContextMenu={stopEventPropagation}
 						onPointerDown={handleInputPointerDown}
 						onDoubleClick={handleDoubleClick}
+						style={{ padding }}
 					/>
 				)}
 			</div>

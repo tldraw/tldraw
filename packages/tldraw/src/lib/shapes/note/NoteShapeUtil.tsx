@@ -20,7 +20,6 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 
 const NOTE_SIZE = 200
-const PADDING = 16
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -78,11 +77,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 								className="tl-note__container"
 								key={`${shape.id}-note-${i}`}
 								style={{
-									top: i * NOTE_SIZE,
 									left: i > 0 ? random() * 5 : 0,
 									width: NOTE_SIZE,
-									height: NOTE_SIZE + (notesCount > 1 ? (i < notesCount - 1 ? 12 : 0) : 0),
-									transform: i > 0 ? `rotate(${random() * 2}deg)` : 'none',
+									height: NOTE_SIZE,
+									// transform: i > 0 ? `rotate(${random() * 2}deg)` : 'none',
+									marginTop: getOffsetForPosition(shape, i),
 									backgroundColor: theme[adjustedColor].solid,
 								}}
 							>
@@ -100,6 +99,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						text={text}
 						labelColor="black"
 						wrap
+						padding={getPadding(shape)}
 					/>
 				</div>
 				{'url' in shape.props && shape.props.url && (
@@ -196,15 +196,23 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 }
 
+function getPadding(shape: TLNoteShape) {
+	return (TEXT_PROPS.lineHeight * LABEL_FONT_SIZES[shape.props.size]) / 2 / 1.5
+}
+
+function getOffsetForPosition(shape: TLNoteShape, i: number) {
+	return i === 0 ? 0 : i === 1 ? getPadding(shape) * -1 : getPadding(shape) * -2 + 2
+}
+
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 	const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		maxWidth: NOTE_SIZE - PADDING * 2,
+		maxWidth: NOTE_SIZE - getPadding(shape) * 2,
 	})
 
-	const nextHeight = nextTextSize.h + PADDING * 2
+	const nextHeight = nextTextSize.h + getPadding(shape) * 2
 
 	let growY: number | null = null
 
@@ -228,11 +236,29 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 }
 
 function getExtraNoteCount(shape: TLNoteShape) {
-	return shape.props.growY > PADDING ? Math.ceil(shape.props.growY / NOTE_SIZE) : 0
+	if (shape.props.growY > getPadding(shape)) {
+		const noteCountIfUnstacked = Math.ceil(shape.props.growY / NOTE_SIZE)
+		const totalOffsets = [...Array(noteCountIfUnstacked).keys()].reduce(
+			(accumulator, currentValue) => accumulator + getOffsetForPosition(shape, currentValue),
+			0
+		)
+		return Math.ceil((shape.props.growY - NOTE_SIZE - totalOffsets) / NOTE_SIZE) + 1
+	}
+
+	return 0
 }
 
 function getNoteHeight(shape: TLNoteShape) {
-	return shape.props.growY > PADDING
-		? NOTE_SIZE + Math.ceil(shape.props.growY / NOTE_SIZE) * NOTE_SIZE
-		: NOTE_SIZE
+	if (shape.props.growY > getPadding(shape)) {
+		const noteCount = getExtraNoteCount(shape) + 1
+		return (
+			noteCount * NOTE_SIZE -
+			noteCount * getPadding(shape) * 2 +
+			3 * getPadding(shape) +
+			noteCount * 2 -
+			4
+		)
+	} else {
+		return NOTE_SIZE
+	}
 }

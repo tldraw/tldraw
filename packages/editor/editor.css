@@ -1202,7 +1202,7 @@ input,
 }
 
 .tl-note__container {
-	position: absolute;
+	position: relative;
 	border-radius: var(--radius-2);
 	box-shadow: var(--shadow-1);
 	overflow: hidden;
