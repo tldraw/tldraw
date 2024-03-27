@@ -261,7 +261,7 @@ export class TLDrawDurableObject extends TLServer {
 		{ blobs, indexes, doubles }: { blobs?: string[]; indexes?: [string]; doubles?: number[] }
 	) {
 		this.measure?.writeDataPoint({
-			blobs: [this.env.WORKER_NAME ?? 'development-tldraw-multiplayer', name, ...(blobs ?? [])],
+			blobs: [name, this.env.WORKER_NAME ?? 'development-tldraw-multiplayer', ...(blobs ?? [])],
 			doubles,
 			indexes,
 		})
