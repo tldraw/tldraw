@@ -22,7 +22,6 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
-	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
 	TLParentId,
@@ -150,6 +149,46 @@ export type TLResizeShapeOptions = Partial<{
 	dragHandle: TLResizeHandle
 	mode: TLResizeMode
 }>
+
+/** @public */
+export type TLEditorInputs = {
+	/** The most recent pointer down's position in the current page space. */
+	originPagePoint: Vec
+	/** The most recent pointer down's position in screen space. */
+	originScreenPoint: Vec
+	/** The previous pointer position in the current page space. */
+	previousPagePoint: Vec
+	/** The previous pointer position in screen space. */
+	previousScreenPoint: Vec
+	/** The most recent pointer position in the current page space. */
+	currentPagePoint: Vec
+	/** The most recent pointer position in screen space. */
+	currentScreenPoint: Vec
+	/** A set containing the currently pressed keys. */
+	keys: Set<string>
+	/** A set containing the currently pressed buttons. */
+	buttons: Set<number>
+	/** Whether the input is from a pe. */
+	isPen: boolean
+	/** Whether the shift key is currently pressed. */
+	shiftKey: boolean
+	/** Whether the control or command key is currently pressed. */
+	ctrlKey: boolean
+	/** Whether the alt or option key is currently pressed. */
+	altKey: boolean
+	/** Whether the user is dragging. */
+	isDragging: boolean
+	/** Whether the user is pointing. */
+	isPointing: boolean
+	/** Whether the user is pinching. */
+	isPinching: boolean
+	/** Whether the user is editing. */
+	isEditing: boolean
+	/** Whether the user is panning. */
+	isPanning: boolean
+	/** Velocity of mouse pointer, in pixels per millisecond */
+	pointerVelocity: Vec
+}
 
 /** @public */
 export interface TLEditorOptions {
@@ -2107,15 +2146,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 				name: 'pointer_move',
 				// weird but true: we need to put the screen point back into client space
 				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
-				pagePoint: this.inputs.currentPagePoint,
 				coalescedInfo: [],
 				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
+				inputs: null,
 				ctrlKey: this.inputs.ctrlKey,
 				altKey: this.inputs.altKey,
 				shiftKey: this.inputs.shiftKey,
 				button: 0,
 				isPen: this.getInstanceState().isPenMode ?? false,
 			}
+			event.inputs = this._getNewInputsFromEvent(event)
 			if (immediate) {
 				this._flushEventForTick(event)
 			} else {
@@ -8321,55 +8361,68 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	inputs = {
-		/** The most recent pointer down's position in the current page space. */
+	inputs: TLEditorInputs = {
 		originPagePoint: new Vec(),
-		/** The most recent pointer down's position in screen space. */
 		originScreenPoint: new Vec(),
-		/** The previous pointer position in the current page space. */
 		previousPagePoint: new Vec(),
-		/** The previous pointer position in screen space. */
 		previousScreenPoint: new Vec(),
-		/** The most recent pointer position in the current page space. */
 		currentPagePoint: new Vec(),
-		/** The most recent pointer position in screen space. */
 		currentScreenPoint: new Vec(),
-		/** A set containing the currently pressed keys. */
 		keys: new Set<string>(),
-		/** A set containing the currently pressed buttons. */
 		buttons: new Set<number>(),
-		/** Whether the input is from a pe. */
 		isPen: false,
-		/** Whether the shift key is currently pressed. */
 		shiftKey: false,
-		/** Whether the control or command key is currently pressed. */
 		ctrlKey: false,
-		/** Whether the alt or option key is currently pressed. */
 		altKey: false,
-		/** Whether the user is dragging. */
 		isDragging: false,
-		/** Whether the user is pointing. */
 		isPointing: false,
-		/** Whether the user is pinching. */
 		isPinching: false,
-		/** Whether the user is editing. */
 		isEditing: false,
-		/** Whether the user is panning. */
 		isPanning: false,
-		/** Velocity of mouse pointer, in pixels per millisecond */
 		pointerVelocity: new Vec(),
 	}
 
-	/**
-	 * Update the input points from a pointer, pinch, or wheel event.
-	 *
-	 * @param info - The event info.
-	 */
-	private _updateInputsFromEvent(
+	private _cloneInputs(inputs: TLEditorInputs): TLEditorInputs {
+		const {
+			isPen,
+			shiftKey,
+			ctrlKey,
+			altKey,
+			isDragging,
+			isPointing,
+			isPinching,
+			isEditing,
+			isPanning,
+		} = inputs
+		const clonedInputs: TLEditorInputs = {
+			originPagePoint: inputs.originPagePoint.clone(),
+			originScreenPoint: inputs.originScreenPoint.clone(),
+			previousPagePoint: inputs.previousPagePoint.clone(),
+			previousScreenPoint: inputs.previousScreenPoint.clone(),
+			currentPagePoint: inputs.previousScreenPoint.clone(),
+			currentScreenPoint: inputs.currentScreenPoint.clone(),
+			pointerVelocity: inputs.pointerVelocity.clone(),
+			keys: new Set(inputs.keys),
+			buttons: new Set(inputs.buttons),
+			isPen,
+			shiftKey,
+			ctrlKey,
+			altKey,
+			isDragging,
+			isPointing,
+			isPinching,
+			isEditing,
+			isPanning,
+		}
+		return clonedInputs
+	}
+
+	private _getNewInputsFromEvent(
 		info: TLPointerEventInfo | TLPinchEventInfo | TLWheelEventInfo
-	): void {
+	): TLEditorInputs {
+		const newInputs = this._cloneInputs(this.inputs)
 		const { previousScreenPoint, previousPagePoint, currentScreenPoint, currentPagePoint } =
-			this.inputs
+			newInputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz } = this.getCamera()
@@ -8388,29 +8441,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		currentScreenPoint.set(sx, sy)
 		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz ?? 0.5)
 
-		this.inputs.isPen = info.type === 'pointer' && info.isPen
+		newInputs.isPen = info.type === 'pointer' && info.isPen
 
 		// Reset velocity on pointer down
 		if (info.name === 'pointer_down') {
-			this.inputs.pointerVelocity.set(0, 0)
+			newInputs.pointerVelocity.set(0, 0)
 		}
-
-		// todo: We only have to do this if there are multiple users in the document
-		this.store.put([
-			{
-				id: TLPOINTER_ID,
-				typeName: 'pointer',
-				x: currentPagePoint.x,
-				y: currentPagePoint.y,
-				lastActivityTimestamp:
-					// If our pointer moved only because we're following some other user, then don't
-					// update our last activity timestamp; otherwise, update it to the current timestamp.
-					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
-						? this.store.get(TLPOINTER_ID)?.lastActivityTimestamp ?? Date.now()
-						: Date.now(),
-				meta: {},
-			},
-		])
+		return newInputs
 	}
 
 	/**
@@ -8424,7 +8461,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	cancel(): this {
-		this.dispatch({ type: 'misc', name: 'cancel' })
+		this.dispatch({ type: 'misc', name: 'cancel', inputs: null })
 		this._tickManager.tick()
 		return this
 	}
@@ -8440,7 +8477,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	interrupt(): this {
-		this.dispatch({ type: 'misc', name: 'interrupt' })
+		this.dispatch({ type: 'misc', name: 'interrupt', inputs: null })
 		this._tickManager.tick()
 		return this
 	}
@@ -8456,7 +8493,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	complete(): this {
-		this.dispatch({ type: 'misc', name: 'complete' })
+		this.dispatch({ type: 'misc', name: 'complete', inputs: null })
 		return this
 	}
 
@@ -8497,6 +8534,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			code: 'ShiftLeft',
+			inputs: null,
 		})
 	}
 
@@ -8514,6 +8552,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			code: 'AltLeft',
+			inputs: null,
 		})
 	}
 
@@ -8531,6 +8570,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			code: 'ControlLeft',
+			inputs: null,
 		})
 	}
 
@@ -8564,6 +8604,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return false
 	}
 
+	private _addInputsToEventInfo(info: TLEventInfo) {
+		if (info.type === 'pointer' || info.type === 'wheel' || info.type === 'pinch') {
+			info.inputs = this._getNewInputsFromEvent(info)
+		} else {
+			info.inputs = this._cloneInputs(this.inputs)
+		}
+	}
+
 	/**
 	 * Dispatch an event to the editor.
 	 *
@@ -8577,6 +8625,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispatch = (info: TLEventInfo): this => {
+		this._addInputsToEventInfo(info)
 		// Adding the first event to the queue
 		if (this._pendingEventsForNextTick.length === 0) {
 			this._pendingEventsForNextTick.push(info)
@@ -8613,7 +8662,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this._flushEventForTick(info)
 				}
 			}
-			this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
+			this.root.handleEvent({
+				type: 'misc',
+				name: 'tick',
+				elapsed,
+				inputs: this._cloneInputs(this.inputs),
+			})
 			this.scribbles.tick(elapsed)
 		})
 		this._allEventsSinceLastTick.length = 0
@@ -8680,7 +8734,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		switch (type) {
 			case 'pinch': {
 				if (!this.getInstanceState().canMoveCamera) return
-				this._updateInputsFromEvent(info)
+				if (info.inputs) {
+					this.inputs = this._cloneInputs(info.inputs)
+				}
 
 				switch (info.name) {
 					case 'pinch_start': {
@@ -8716,6 +8772,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
 
+						this.stopCameraAnimation()
+						if (this.getInstanceState().followingUserId) {
+							this.stopFollowingUser()
+						}
 						this._setCamera(
 							{
 								x: cx + dx / cz - x / cz + x / zoom,
@@ -8737,7 +8797,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (this._didPinch) {
 							this._didPinch = false
-							requestAnimationFrame(() => {
+							this.once('tick', () => {
 								if (!this._didPinch) {
 									this.setSelectedShapes(_selectedShapeIdsAtPointerDown, { squashing: true })
 								}
@@ -8751,11 +8811,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 			case 'wheel': {
 				if (!this.getInstanceState().canMoveCamera) return
 
-				this._updateInputsFromEvent(info)
-
+				if (info.inputs) {
+					this.inputs = this._cloneInputs(info.inputs)
+				}
 				if (this.getIsMenuOpen()) {
 					// noop
 				} else {
+					this.stopCameraAnimation()
+					if (this.getInstanceState().followingUserId) {
+						this.stopFollowingUser()
+					}
 					if (inputs.ctrlKey) {
 						// todo: Start or update the zoom end interval
 
@@ -8786,7 +8851,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// Update the camera here, which will dispatch a pointer move...
 					// this will also update the pointer position, etc
-					this.pan(info.delta)
+					const { x: cx, y: cy, z: cz } = this.getCamera()
+					this._setCamera({ x: cx + info.delta.x / cz, y: cy + info.delta.y / cz, z: cz }, true)
 
 					if (
 						!inputs.isDragging &&
@@ -8804,7 +8870,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If we're pinching, return
 				if (inputs.isPinching) return
 
-				this._updateInputsFromEvent(info)
+				if (info.inputs) {
+					this.inputs = this._cloneInputs(info.inputs)
+				}
 
 				const { isPen } = info
 
@@ -8852,12 +8920,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (this.inputs.isPanning) {
 							this.stopCameraAnimation()
-							this.updateInstanceState({
-								cursor: {
-									type: 'grabbing',
-									rotation: 0,
-								},
-							})
+							this.setCursor({ type: 'grabbing', rotation: 0 })
 							return this
 						}
 
@@ -8923,20 +8986,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 										direction: this.inputs.pointerVelocity,
 										friction: CAMERA_SLIDE_FRICTION,
 									})
-									this.updateInstanceState({
-										cursor: { type: this._prevCursor, rotation: 0 },
-									})
+									this.setCursor({ type: this._prevCursor, rotation: 0 })
 								} else {
 									this.slideCamera({
 										speed: Math.min(2, this.inputs.pointerVelocity.len()),
 										direction: this.inputs.pointerVelocity,
 										friction: CAMERA_SLIDE_FRICTION,
 									})
-									this.updateInstanceState({
-										cursor: {
-											type: 'grab',
-											rotation: 0,
-										},
+									this.setCursor({
+										type: 'grab',
+										rotation: 0,
 									})
 								}
 							} else if (info.button === 0) {
@@ -8945,11 +9004,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 									direction: this.inputs.pointerVelocity,
 									friction: CAMERA_SLIDE_FRICTION,
 								})
-								this.updateInstanceState({
-									cursor: {
-										type: 'grab',
-										rotation: 0,
-									},
+								this.setCursor({
+									type: 'grab',
+									rotation: 0,
 								})
 							}
 						} else {
@@ -8984,9 +9041,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 
 							this.inputs.isPanning = true
-							this.updateInstanceState({
-								cursor: { type: this.inputs.isPointing ? 'grabbing' : 'grab', rotation: 0 },
-							})
+							this.setCursor({ type: this.inputs.isPointing ? 'grabbing' : 'grab', rotation: 0 })
 						}
 
 						break
@@ -8997,9 +9052,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (info.code === 'Space' && !this.inputs.buttons.has(1)) {
 							this.inputs.isPanning = false
-							this.updateInstanceState({
-								cursor: { type: this._prevCursor, rotation: 0 },
-							})
+							this.setCursor({ type: this._prevCursor, rotation: 0 })
 						}
 
 						break

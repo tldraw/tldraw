@@ -1,5 +1,6 @@
 import { TLHandle, TLShape, VecModel } from '@tldraw/tlschema'
-import { Vec, VecLike } from '../../primitives/Vec'
+import { VecLike } from '../../primitives/Vec'
+import { TLEditorInputs } from '../Editor'
 import { TLSelectionHandle } from './selection-types'
 
 /** @public */
@@ -47,6 +48,7 @@ export interface TLBaseEventInfo {
 	shiftKey: boolean
 	altKey: boolean
 	ctrlKey: boolean
+	inputs: TLEditorInputs | null
 }
 
 /** @public */
@@ -63,7 +65,6 @@ export type TLBasePointerEventInfo = TLBaseEventInfo & {
 /** @public */
 export type TLPointerMoveEventInfo = TLBasePointerEventInfo & {
 	coalescedInfo: TLPointerMoveEventInfo[]
-	pagePoint: Vec
 }
 
 /** @public */
@@ -104,13 +105,22 @@ export type TLWheelEventInfo = TLBaseEventInfo & {
 }
 
 /** @public */
-export type TLCancelEventInfo = { type: 'misc'; name: 'cancel' }
+export type TLCancelEventInfo = { type: 'misc'; name: 'cancel'; inputs: TLEditorInputs | null }
 /** @public */
-export type TLCompleteEventInfo = { type: 'misc'; name: 'complete' }
+export type TLCompleteEventInfo = { type: 'misc'; name: 'complete'; inputs: TLEditorInputs | null }
 /** @public */
-export type TLInterruptEventInfo = { type: 'misc'; name: 'interrupt' }
+export type TLInterruptEventInfo = {
+	type: 'misc'
+	name: 'interrupt'
+	inputs: TLEditorInputs | null
+}
 /** @public */
-export type TLTickEventInfo = { type: 'misc'; name: 'tick'; elapsed: number }
+export type TLTickEventInfo = {
+	type: 'misc'
+	name: 'tick'
+	elapsed: number
+	inputs: TLEditorInputs
+}
 
 /** @public */
 export type TLEventInfo =
