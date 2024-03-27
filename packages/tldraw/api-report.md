@@ -1089,6 +1089,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canReceiveNewChildrenOfType: () => boolean;
     // (undocumented)
+    canSelectChildOnPointerDownWhileSelected: () => boolean;
+    // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];

@@ -1524,11 +1524,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isAncestorSelected(shape: TLShape | TLShapeId): boolean {
+		return this.getSelectedAncestor(shape) !== null
+	}
+
+	getSelectedAncestor(shape: TLShape | TLShapeId): TLShape | null {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
 		const _shape = this.getShape(id)
-		if (!_shape) return false
+		if (!_shape) return null
 		const selectedShapeIds = this.getSelectedShapeIds()
-		return !!this.findShapeAncestor(_shape, (parent) => selectedShapeIds.includes(parent.id))
+		return this.findShapeAncestor(_shape, (parent) => selectedShapeIds.includes(parent.id)) ?? null
 	}
 
 	/**

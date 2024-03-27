@@ -33,6 +33,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override canReceiveNewChildrenOfType = () => true
 	override canDropShapes = () => true
+	override canSelectChildOnPointerDownWhileSelected = () => true
+
 	override onDragShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
 		if (!shapes.every((child) => child.parentId === note.id)) {
 			this.editor.reparentShapes(
