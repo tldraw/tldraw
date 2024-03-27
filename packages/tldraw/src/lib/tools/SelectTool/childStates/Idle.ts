@@ -418,7 +418,31 @@ export class Idle extends StateNode {
 			case 'ArrowUp':
 			case 'ArrowDown': {
 				this.nudgeSelectedShapes(false)
-				break
+				return
+			}
+		}
+
+		// For shapes that specify `doesAutoEditOnKeyStroke`, we start editing when a key is pressed.
+		// We exclude Delete/Backspace obviously, [ and ] are keyboard shortcuts we want to keep,
+		// and space is used for panning.
+		if (
+			!['Delete', 'Backspace', '[', ']', 'Enter', ' '].includes(info.key) &&
+			!info.altKey &&
+			!info.ctrlKey
+		) {
+			// If the only selected shape is editable, then begin editing it
+			const onlySelectedShape = this.editor.getOnlySelectedShape()
+			if (
+				onlySelectedShape &&
+				this.shouldStartEditingShape(onlySelectedShape) &&
+				this.editor.getShapeUtil(onlySelectedShape).doesAutoEditOnKeyStroke(onlySelectedShape)
+			) {
+				this.startEditingShape(onlySelectedShape, {
+					...info,
+					target: 'shape',
+					shape: onlySelectedShape,
+				})
+				return
 			}
 		}
 	}
