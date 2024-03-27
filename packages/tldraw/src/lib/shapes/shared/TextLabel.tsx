@@ -9,7 +9,7 @@ import {
 	getDefaultColorTheme,
 	useIsDarkMode,
 } from '@tldraw/editor'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { TextArea } from '../text/TextArea'
 import { TextHelpers } from './TextHelpers'
 import { isLegacyAlign } from './legacyProps'
@@ -28,6 +28,7 @@ type TextLabelProps = {
 	text: string
 	labelColor: TLDefaultColorStyle
 	bounds?: Box
+	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 	classNamePrefix?: string
 	style?: React.CSSProperties
 	textWidth?: number
@@ -47,12 +48,20 @@ export const TextLabel = React.memo(function TextLabel({
 	verticalAlign,
 	wrap,
 	bounds,
+	onKeyDown: handleKeyDownCustom,
 	classNamePrefix,
 	style,
 	textWidth,
 	textHeight,
 }: TextLabelProps) {
 	const { rInput, isEmpty, isEditing, ...editableTextRest } = useEditableText(id, type, text)
+
+	const [initialText, setInitialText] = useState(text)
+	useEffect(() => {
+		if (!isEditing) {
+			setInitialText(text)
+		}
+	}, [isEditing, text])
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.length > 0
@@ -104,7 +113,17 @@ export const TextLabel = React.memo(function TextLabel({
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="ltr">
 					{finalText}
 				</div>
-				{isEditing && <TextArea ref={rInput} text={text} {...editableTextRest} />}
+				<TextArea
+					id={`text-input-${id}`}
+					ref={rInput}
+					// We need to add the initial value as the key here because we need this component to
+					// 'reset' when this state changes and grab the latest defaultValue.
+					key={initialText}
+					text={text}
+					isEditing={isEditing}
+					{...editableTextRest}
+					handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
+				/>
 			</div>
 		</div>
 	)

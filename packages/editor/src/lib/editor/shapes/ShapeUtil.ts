@@ -112,6 +112,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canEdit: TLShapeUtilFlag<Shape> = () => false
 
 	/**
+	 * Whether the shape goes into edit mode when non-control keystrokes are pressed.
+	 *
+	 * @internal
+	 */
+	doesAutoEditOnKeyStroke: TLShapeUtilFlag<Shape> = () => false
+
+	/**
 	 * Whether the shape can be resized.
 	 *
 	 * @public

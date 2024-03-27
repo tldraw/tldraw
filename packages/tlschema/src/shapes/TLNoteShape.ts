@@ -14,6 +14,7 @@ import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 export const noteShapeProps = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
+	fontSizeAdjustment: T.optional(T.positiveNumber),
 	font: DefaultFontStyle,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,

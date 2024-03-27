@@ -1,11 +1,5 @@
-import {
-	Group2d,
-	StateNode,
-	TLArrowShape,
-	TLEventHandlers,
-	TLFrameShape,
-	TLGeoShape,
-} from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLFrameShape, TLTextShape } from '@tldraw/editor'
+import { getTextLabels } from '../../../utils/shapes/shapes'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
@@ -57,54 +51,67 @@ export class EditingShape extends StateNode {
 				break
 			}
 			case 'shape': {
-				const { shape } = info
+				const { shape: selectingShape } = info
 				const editingShape = this.editor.getEditingShape()
 
 				if (!editingShape) {
 					throw Error('Expected an editing shape!')
 				}
 
-				if (shape.type === editingShape.type) {
-					// clicked a shape of the same type as the editing shape
+				// for shapes with labels, check to see if the click was inside of the shape's label
+				const geometry = this.editor.getShapeUtil(selectingShape).getGeometry(selectingShape)
+				const textLabels = getTextLabels(geometry)
+				const textLabel = textLabels.length === 1 ? textLabels[0] : undefined
+				// N.B. One nuance here is that we want empty text fields to be removed from the canvas when the user clicks away from them.
+				const isEmptyTextShape =
+					this.editor.isShapeOfType<TLTextShape>(editingShape, 'text') &&
+					editingShape.props.text.trim() === ''
+				if (textLabel && !isEmptyTextShape) {
+					const pointInShapeSpace = this.editor.getPointInShapeSpace(
+						selectingShape,
+						this.editor.inputs.currentPagePoint
+					)
 					if (
-						this.editor.isShapeOfType<TLGeoShape>(shape, 'geo') ||
-						this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+						textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
+						textLabel.hitTestPoint(pointInShapeSpace)
 					) {
-						// for shapes with labels, check to see if the click was inside of the shape's label
-						const geometry = this.editor.getShapeUtil(shape).getGeometry(shape) as Group2d
-						const labelGeometry = geometry.children[1]
-						if (labelGeometry) {
-							const pointInShapeSpace = this.editor.getPointInShapeSpace(
-								shape,
-								this.editor.inputs.currentPagePoint
-							)
-							if (labelGeometry.bounds.containsPoint(pointInShapeSpace)) {
-								// it's a hit to the label!
-								if (shape.id === editingShape.id) {
-									// If we clicked on the editing geo / arrow shape's label, do nothing
-									return
-								} else {
-									this.parent.transition('pointing_shape', info)
-									return
-								}
-							}
-						}
-					} else {
-						if (shape.id === editingShape.id) {
-							// If we clicked on a frame, while editing its heading, cancel editing
-							if (this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
-								this.editor.setEditingShape(null)
-							}
-							// If we clicked on the editing shape (which isn't a shape with a label), do nothing
+						// it's a hit to the label!
+						if (selectingShape.id === editingShape.id) {
+							// If we clicked on the editing geo / arrow shape's label, do nothing
+							return
 						} else {
-							// But if we clicked on a different shape of the same type, transition to pointing_shape instead
-							this.parent.transition('pointing_shape', info)
+							// Stay in edit mode to maintain flow of editing.
+							this.editor.batch(() => {
+								this.editor.mark('editing on pointer up')
+								this.editor.select(selectingShape.id)
+
+								const util = this.editor.getShapeUtil(selectingShape)
+								if (this.editor.getInstanceState().isReadonly) {
+									if (!util.canEditInReadOnly(selectingShape)) {
+										this.parent.transition('pointing_shape', info)
+										return
+									}
+								}
+
+								this.editor.setEditingShape(selectingShape.id)
+								this.editor.setCurrentTool('select.editing_shape')
+							})
 							return
 						}
-						return
 					}
 				} else {
-					// clicked a different kind of shape
+					if (selectingShape.id === editingShape.id) {
+						// If we clicked on a frame, while editing its heading, cancel editing
+						if (this.editor.isShapeOfType<TLFrameShape>(selectingShape, 'frame')) {
+							this.editor.setEditingShape(null)
+						}
+						// If we clicked on the editing shape (which isn't a shape with a label), do nothing
+					} else {
+						// But if we clicked on a different shape of the same type, transition to pointing_shape instead
+						this.parent.transition('pointing_shape', info)
+						return
+					}
+					return
 				}
 				break
 			}

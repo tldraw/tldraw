@@ -89,7 +89,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	component(shape: TLDrawShape) {
 		return (
 			<SVGContainer id={shape.id}>
-				<DrawShapSvg shape={shape} forceSolid={useForceSolid()} />
+				<DrawShapeSvg shape={shape} forceSolid={useForceSolid()} />
 			</SVGContainer>
 		)
 	}
@@ -122,7 +122,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		return <DrawShapSvg shape={shape} forceSolid={false} />
+		return <DrawShapeSvg shape={shape} forceSolid={false} />
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
@@ -171,7 +171,7 @@ function getIsDot(shape: TLDrawShape) {
 	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
 }
 
-function DrawShapSvg({ shape, forceSolid }: { shape: TLDrawShape; forceSolid: boolean }) {
+function DrawShapeSvg({ shape, forceSolid }: { shape: TLDrawShape; forceSolid: boolean }) {
 	const theme = useDefaultColorTheme()
 	const strokeWidth = STROKE_SIZES[shape.props.size]
 	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)

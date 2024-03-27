@@ -14,6 +14,7 @@ import { DEFAULT_TRANSLATION } from './defaultTranslation'
 export type TLUiTranslation = {
 	readonly locale: string
 	readonly label: string
+	readonly isRTL?: boolean
 	readonly messages: Record<TLUiTranslationKey, string>
 }
 
@@ -69,6 +70,7 @@ export async function fetchTranslation(
 	return {
 		locale,
 		label: language.label,
+		isRTL: 'isRTL' in language ? language.isRTL : false,
 		messages: { ...EN_TRANSLATION.messages, ...messages },
 	}
 }

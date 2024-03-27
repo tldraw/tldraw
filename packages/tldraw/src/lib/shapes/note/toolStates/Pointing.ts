@@ -1,9 +1,12 @@
 import {
+	Editor,
 	StateNode,
 	TLEventHandlers,
 	TLInterruptEvent,
 	TLNoteShape,
 	TLPointerEventInfo,
+	TLShapeId,
+	Vec,
 	createShapeId,
 } from '@tldraw/editor'
 
@@ -22,15 +25,19 @@ export class Pointing extends StateNode {
 
 	override onEnter = () => {
 		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
+
 		if (this.wasFocusedOnEnter) {
-			this.shape = this.createShape()
+			const id = createShapeId()
+			this.markId = `creating:${id}`
+			this.editor.mark(this.markId)
+			this.shape = createSticky(this.editor, id)
 		}
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			if (!this.wasFocusedOnEnter) {
-				this.shape = this.createShape()
+				this.shape = createSticky(this.editor, createShapeId())
 			}
 
 			this.editor.setCurrentTool('select.translating', {
@@ -82,40 +89,39 @@ export class Pointing extends StateNode {
 		this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', this.info)
 	}
+}
 
-	private createShape() {
-		const {
-			inputs: { originPagePoint },
-		} = this.editor
+export function createSticky(editor: Editor, id?: TLShapeId, creationPoint?: Vec) {
+	const {
+		inputs: { originPagePoint },
+	} = editor
 
-		const id = createShapeId()
-		this.markId = `creating:${id}`
-		this.editor.mark(this.markId)
+	creationPoint = creationPoint || originPagePoint
+	id = id || createShapeId()
 
-		this.editor
-			.createShapes([
-				{
-					id,
-					type: 'note',
-					x: originPagePoint.x,
-					y: originPagePoint.y,
-				},
-			])
-			.select(id)
-
-		const shape = this.editor.getShape<TLNoteShape>(id)!
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-
-		// Center the text around the created point
-		this.editor.updateShapes([
+	editor
+		.createShapes([
 			{
 				id,
 				type: 'note',
-				x: shape.x - bounds.width / 2,
-				y: shape.y - bounds.height / 2,
+				x: creationPoint.x,
+				y: creationPoint.y,
 			},
 		])
+		.select(id)
 
-		return this.editor.getShape<TLNoteShape>(id)!
-	}
+	const shape = editor.getShape<TLNoteShape>(id)!
+	const bounds = editor.getShapeGeometry(shape).bounds
+
+	// Center the text around the created point
+	editor.updateShapes([
+		{
+			id,
+			type: 'note',
+			x: shape.x - bounds.width / 2,
+			y: shape.y - bounds.height / 2,
+		},
+	])
+
+	return editor.getShape<TLNoteShape>(id)!
 }
