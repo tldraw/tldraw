@@ -17,7 +17,7 @@ import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
-const NOTE_SIZE = 200
+export const NOTE_SIZE = 200
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
