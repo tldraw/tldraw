@@ -40,6 +40,8 @@ export class Translating extends StateNode {
 	isCloning = false
 	isCreating = false
 	oneNoteShapeSelected = false
+	firstCheck = true
+	checkForStickyPit = true
 	onCreate: (shape: TLShape | null) => void = () => void null
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
@@ -102,6 +104,7 @@ export class Translating extends StateNode {
 		)
 		this.dragAndDropManager.clear()
 		this.oneNoteShapeSelected = false
+		this.firstCheck = true
 	}
 
 	override onTick = () => {
@@ -119,6 +122,7 @@ export class Translating extends StateNode {
 		}
 
 		this.updateShapes(stickyPit)
+		this.firstCheck = false
 	}
 
 	override onKeyDown = () => {
@@ -182,7 +186,10 @@ export class Translating extends StateNode {
 	}
 
 	protected complete() {
-		this.updateShapes()
+		if (!this.oneNoteShapeSelected) {
+			// We don't want the shape to jump out of the pit when the user releases the mouse
+			this.updateShapes()
+		}
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
 		this.handleEnd()
 
@@ -279,18 +286,23 @@ export class Translating extends StateNode {
 		}
 	}
 
-	protected updateShapes(stickyPit?: VecLike) {
+	protected updateShapes(stickyPit?: VecLike | undefined) {
 		const { snapshot } = this
 		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
-
-		moveShapesToPoint({
+		const info = moveShapesToPoint({
 			editor: this.editor,
 			shapeSnapshots: snapshot.shapeSnapshots,
 			averagePagePoint: snapshot.averagePagePoint,
 			initialSelectionPageBounds: snapshot.initialPageBounds,
 			initialSelectionSnapPoints: snapshot.initialSnapPoints,
 			stickyPit,
+			firstCheck: this.firstCheck,
+			checkForStickyPit: this.checkForStickyPit,
 		})
+		if (info) {
+			console.log(info)
+			this.checkForStickyPit = info.checkForStickyPit
+		}
 
 		this.handleChange()
 	}
@@ -370,7 +382,7 @@ export class Translating extends StateNode {
 		) {
 			direction = 'right'
 		}
-		const getStickyPit = (noteShape: TLShape | undefined) => {
+		const getStickyPit = (noteShape: TLShape | undefined): VecLike | undefined => {
 			if (!noteShape) return undefined
 			const GRID_OFFSET = 230
 			const noteShapeCenter = { x: noteShape.x + NOTE_SIZE / 2, y: noteShape.y + NOTE_SIZE / 2 }
@@ -457,6 +469,8 @@ export function moveShapesToPoint({
 	initialSelectionPageBounds,
 	initialSelectionSnapPoints,
 	stickyPit,
+	firstCheck,
+	checkForStickyPit,
 }: {
 	editor: Editor
 	shapeSnapshots: MovingShapeSnapshot[]
@@ -464,21 +478,10 @@ export function moveShapesToPoint({
 	initialSelectionPageBounds: Box
 	initialSelectionSnapPoints: BoundsSnapPoint[]
 	stickyPit?: VecLike
+	firstCheck: boolean
+	checkForStickyPit: boolean
 }) {
 	const { inputs } = editor
-
-	if (stickyPit) {
-		const noteShape = editor.getShape(snapshots[0].shape.id)
-		const distance = Vec.Dist({ x: noteShape!.x + 100, y: noteShape!.y + 100 }, stickyPit)
-		console.log(distance)
-		if (distance < 20) {
-			return editor.updateShape({
-				...snapshots[0].shape,
-				x: stickyPit.x - 100,
-				y: stickyPit.y - 100,
-			})
-		}
-	}
 
 	const isGridMode = editor.getInstanceState().isGridMode
 
@@ -542,4 +545,23 @@ export function moveShapesToPoint({
 		),
 		{ squashing: true }
 	)
+	if (stickyPit) {
+		const noteShape = editor.getShape(snapshots[0].shape.id)
+		const distance = Vec.Dist({ x: noteShape!.x + 100, y: noteShape!.y + 100 }, stickyPit)
+		console.log({ distance, firstCheck, checkForStickyPit })
+		if (!checkForStickyPit && distance > 20) {
+			return { checkForStickyPit: true }
+		}
+		if (distance < 20 && firstCheck) {
+			// here
+			return { checkForStickyPit: false }
+		} else if (distance < 20) {
+			editor.updateShape({
+				...snapshots[0].shape,
+				x: stickyPit.x - 100,
+				y: stickyPit.y - 100,
+			})
+			return { checkForStickyPit: false }
+		}
+	}
 }
