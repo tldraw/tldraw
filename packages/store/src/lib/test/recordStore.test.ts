@@ -857,7 +857,7 @@ describe('snapshots', () => {
 		expect(() => {
 			// @ts-expect-error
 			store2.loadSnapshot(snapshot1)
-		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: unknown-type"`)
+		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
 	})
 
 	it('throws errors when loading a snapshot with a different schema', () => {

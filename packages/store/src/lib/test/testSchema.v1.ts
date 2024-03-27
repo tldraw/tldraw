@@ -5,6 +5,36 @@ import { SerializedStore } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 import { defineMigrations } from '../migrate'
 
+const StoreVersions = {
+	RemoveOrg: 1,
+	AddCount: 2,
+}
+
+const snapshotMigrations = defineMigrations({
+	currentVersion: StoreVersions.AddCount,
+	migrators: {
+		[StoreVersions.RemoveOrg]: {
+			up: (store: SerializedStore<any>) => {
+				return Object.fromEntries(Object.entries(store).filter(([_, r]) => r.typeName !== 'org'))
+			},
+			down: (store: SerializedStore<any>) => {
+				// noop
+				return store
+			},
+		},
+		[StoreVersions.AddCount]: {
+			up: (store: SerializedStore<any>) => {
+				return Object.fromEntries(Object.entries(store).map(([id, r]) => [id, { ...r, count: 0 }]))
+			},
+			down: (store: SerializedStore<any>) => {
+				return Object.fromEntries(
+					Object.entries(store).map(([id, { count: _, ...r }]) => [id, { ...r }])
+				)
+			},
+		},
+	},
+})
+
 const UserVersion = {
 	AddLocale: 1,
 	AddPhoneNumber: 2,
@@ -69,6 +99,8 @@ const User = createRecordType<User>('user', {
 const ShapeVersion = {
 	AddRotation: 1,
 	AddParent: 2,
+	CountDependency: 3,
+	IncrementCount: 4,
 } as const
 
 const RectangleVersion = {
@@ -77,6 +109,8 @@ const RectangleVersion = {
 
 const OvalVersion = {
 	AddBorderStyle: 1,
+	CountDependency: 2,
+	DecrementCount: 3,
 } as const
 
 type ShapeId = RecordId<Shape<object>>
@@ -102,7 +136,7 @@ interface OvalProps {
 }
 
 const shapeTypeMigrations = defineMigrations({
-	currentVersion: ShapeVersion.AddParent,
+	currentVersion: ShapeVersion.IncrementCount,
 	migrators: {
 		[ShapeVersion.AddRotation]: {
 			up: (record) => ({
@@ -125,6 +159,19 @@ const shapeTypeMigrations = defineMigrations({
 				const { parentId, ...rest } = record
 				return rest
 			},
+		},
+		[ShapeVersion.CountDependency]: StoreVersions.AddCount,
+		[ShapeVersion.IncrementCount]: {
+			up: (record) => {
+				return {
+					...record,
+					count: record.count + 1,
+				}
+			},
+			down: (record) => ({
+				...record,
+				count: record.count - 1,
+			}),
 		},
 	},
 	subTypeKey: 'type',
@@ -151,7 +198,7 @@ const shapeTypeMigrations = defineMigrations({
 			},
 		}),
 		oval: defineMigrations({
-			currentVersion: OvalVersion.AddBorderStyle,
+			currentVersion: OvalVersion.DecrementCount,
 			migrators: {
 				[OvalVersion.AddBorderStyle]: {
 					up: (record) => ({
@@ -167,6 +214,17 @@ const shapeTypeMigrations = defineMigrations({
 						props: {
 							...others,
 						},
+					}),
+				},
+				[OvalVersion.CountDependency]: StoreVersions.AddCount,
+				[OvalVersion.DecrementCount]: {
+					up: (record) => ({
+						...record,
+						count: record.count - 1,
+					}),
+					down: (record) => ({
+						...record,
+						count: record.count + 1,
 					}),
 				},
 			},
@@ -194,25 +252,6 @@ const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 	rotation: 0,
 	parentId: null,
 }))
-
-const StoreVersions = {
-	RemoveOrg: 1,
-}
-
-const snapshotMigrations = defineMigrations({
-	currentVersion: StoreVersions.RemoveOrg,
-	migrators: {
-		[StoreVersions.RemoveOrg]: {
-			up: (store: SerializedStore<any>) => {
-				return Object.fromEntries(Object.entries(store).filter(([_, r]) => r.typeName !== 'org'))
-			},
-			down: (store: SerializedStore<any>) => {
-				// noop
-				return store
-			},
-		},
-	},
-})
 
 export const testSchemaV1 = StoreSchema.create<User | Shape<any>>(
 	{

@@ -37,17 +37,17 @@ test('serializedV1Schenma', () => {
 		    "shape": {
 		      "subTypeKey": "type",
 		      "subTypeVersions": {
-		        "oval": 1,
+		        "oval": 3,
 		        "rectangle": 1,
 		      },
-		      "version": 2,
+		      "version": 4,
 		    },
 		    "user": {
 		      "version": 2,
 		    },
 		  },
 		  "schemaVersion": 1,
-		  "storeVersion": 1,
+		  "storeVersion": 2,
 		}
 	`)
 })
@@ -59,7 +59,7 @@ describe('migrating from v0 to v1', () => {
 			typeName: 'user',
 			name: 'name',
 		}
-		const userResult = testSchemaV1.migratePersistedRecord(user as any, serializedV0Schenma)
+		const userResult = testSchemaV1.migratePersistedRecord(user as any, serializedV0Schenma, 'up')
 
 		if (userResult.type !== 'success') {
 			throw new Error('Migration failed')
@@ -87,11 +87,20 @@ describe('migrating from v0 to v1', () => {
 			},
 		}
 
-		const shapeResult = testSchemaV1.migratePersistedRecord(rectangle as any, serializedV0Schenma)
+		const shapeResult = testSchemaV1.migratePersistedRecord(
+			rectangle as any,
+			serializedV0Schenma,
+			'up'
+		)
 
 		if (shapeResult.type !== 'success') {
 			throw new Error('Migration failed')
 		}
+
+		// todo: Normally the store migration would add the count field before the record tries to increment it
+		// but this test is only testing the shape migrations. In practice, we need to do ALL migrations in the
+		// context of a store—we can't migrate records in isolation.
+		expect((shapeResult.value as any).count).not.toBeNaN()
 
 		expect(shapeResult.value).toEqual({
 			id: 'shape-1',
@@ -101,6 +110,7 @@ describe('migrating from v0 to v1', () => {
 			rotation: 0,
 			parentId: null,
 			type: 'rectangle',
+			count: 1,
 			props: {
 				width: 100,
 				height: 100,
@@ -121,7 +131,7 @@ describe('migrating from v0 to v1', () => {
 			},
 		}
 
-		const ovalResult = testSchemaV1.migratePersistedRecord(oval as any, serializedV0Schenma)
+		const ovalResult = testSchemaV1.migratePersistedRecord(oval as any, serializedV0Schenma, 'up')
 
 		expect(ovalResult).toEqual({
 			type: 'error',
@@ -163,6 +173,7 @@ describe('migrating from v1 to v0', () => {
 			rotation: 0,
 			parentId: null,
 			type: 'rectangle',
+			count: 1,
 			props: {
 				width: 100,
 				height: 100,
@@ -180,6 +191,11 @@ describe('migrating from v1 to v0', () => {
 			console.error(shapeResult)
 			throw new Error('Migration failed')
 		}
+
+		// todo: incorporate the store migration into the test
+		// The count field was added in v1, so it should be removed when migrating down;
+		// but this test is only testing the shape migrations, which will leave it at zero
+		expect((shapeResult.value as any).count).toBeUndefined()
 
 		expect(shapeResult.value).toEqual({
 			id: 'shape-1',
@@ -253,7 +269,8 @@ test('versions in the future fail', () => {
 				typeName: 'user',
 				name: 'steve',
 			} as any,
-			serializedV1Schenma
+			serializedV1Schenma,
+			'up'
 		)
 	).toEqual({
 		type: 'error',
@@ -269,7 +286,8 @@ test('unrecogized subtypes fail', () => {
 				typeName: 'shape',
 				type: 'whatever',
 			} as any,
-			serializedV0Schenma
+			serializedV0Schenma,
+			'up'
 		)
 	).toEqual({
 		type: 'error',
@@ -296,7 +314,8 @@ test('subtype versions in the future fail', () => {
 						},
 					},
 				},
-			}
+			},
+			'up'
 		)
 	).toEqual({
 		type: 'error',
@@ -348,6 +367,7 @@ test('migrating a whole store snapshot works', () => {
 			type: 'rectangle',
 			parentId: null,
 			rotation: 0,
+			count: 1,
 			props: {
 				width: 100,
 				height: 100,
@@ -360,6 +380,7 @@ test('migrating a whole store snapshot works', () => {
 			name: 'name',
 			locale: 'en',
 			phoneNumber: null,
+			count: 0,
 		},
 	})
 })

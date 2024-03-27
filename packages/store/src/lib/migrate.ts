@@ -13,9 +13,19 @@ export function defineMigrations<
 	migrators?: CurrentVersion extends number
 		? FirstVersion extends number
 			? CurrentVersion extends FirstVersion
-				? { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
-				: { [version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: Migration }
-			: { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
+				? {
+						[version in Exclude<Range<1, CurrentVersion>, 0>]:
+							| Migration
+							| SnapshotMigrationDependency
+					}
+				: {
+						[version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]:
+							| Migration
+							| SnapshotMigrationDependency
+					}
+			: {
+					[version in Exclude<Range<1, CurrentVersion>, 0>]: Migration | SnapshotMigrationDependency
+				}
 		: never
 	subTypeKey?: string
 	subTypeMigrations?: Record<string, BaseMigrationsInfo>
@@ -46,10 +56,13 @@ export type Migration<Before = any, After = any> = {
 	down: (newState: After) => Before
 }
 
+/** @public */
+export type SnapshotMigrationDependency = number
+
 interface BaseMigrationsInfo {
 	firstVersion: number
 	currentVersion: number
-	migrators: { [version: number]: Migration }
+	migrators: { [version: number]: Migration | SnapshotMigrationDependency }
 }
 
 /** @public */
@@ -111,16 +124,31 @@ export function compareRecordVersions(a: RecordVersion, b: RecordVersion) {
 	return 0
 }
 
-/** @public */
+/**
+ * Migrate a record from one version to another.
+ *
+ * @public */
 export function migrateRecord<R extends UnknownRecord>({
 	record,
 	migrations,
 	fromVersion,
 	toVersion,
 }: {
+	/**
+	 * The record to update.
+	 */
 	record: unknown
+	/**
+	 * The stack of migrations for this record.
+	 */
 	migrations: Migrations
+	/**
+	 * The record version to migrate from.
+	 */
 	fromVersion: number
+	/**
+	 * The record version to migrate to.
+	 */
 	toVersion: number
 }): MigrationResult<R> {
 	let currentVersion = fromVersion
@@ -137,7 +165,11 @@ export function migrateRecord<R extends UnknownRecord>({
 				reason: MigrationFailureReason.TargetVersionTooNew,
 			}
 		}
-		recordWithoutMeta = migrator.up(recordWithoutMeta) as any
+		if (typeof migrator === 'number') {
+			// dependency marker, we shouldn't really be here
+		} else {
+			recordWithoutMeta = migrator.up(recordWithoutMeta) as any
+		}
 		currentVersion = nextVersion
 	}
 
@@ -150,7 +182,12 @@ export function migrateRecord<R extends UnknownRecord>({
 				reason: MigrationFailureReason.TargetVersionTooOld,
 			}
 		}
-		recordWithoutMeta = migrator.down(recordWithoutMeta) as any
+
+		if (typeof migrator === 'number') {
+			// dependency marker, we shouldn't really be here
+		} else {
+			recordWithoutMeta = migrator.down(recordWithoutMeta) as any
+		}
 		currentVersion = nextVersion
 	}
 
@@ -160,16 +197,31 @@ export function migrateRecord<R extends UnknownRecord>({
 	}
 }
 
-/** @public */
+/**
+ * Used for TLSessionStateSnapshot and TLUserPreferences.
+ *
+ * @public */
 export function migrate<T>({
 	value,
 	migrations,
 	fromVersion,
 	toVersion,
 }: {
+	/**
+	 * The value to update.
+	 */
 	value: unknown
+	/**
+	 * The stack of migrations for this value.
+	 */
 	migrations: Migrations
+	/**
+	 * The value version to migrate from.
+	 */
 	fromVersion: number
+	/**
+	 * The value version to migrate to.
+	 */
 	toVersion: number
 }): MigrationResult<T> {
 	let currentVersion = fromVersion
@@ -183,7 +235,11 @@ export function migrate<T>({
 				reason: MigrationFailureReason.TargetVersionTooNew,
 			}
 		}
-		value = migrator.up(value)
+		if (typeof migrator === 'number') {
+			// dependency marker, we shouldn't really be here
+		} else {
+			value = migrator.up(value)
+		}
 		currentVersion = nextVersion
 	}
 
@@ -196,7 +252,11 @@ export function migrate<T>({
 				reason: MigrationFailureReason.TargetVersionTooOld,
 			}
 		}
-		value = migrator.down(value)
+		if (typeof migrator === 'number') {
+			// dependency marker, we shouldn't really be here
+		} else {
+			value = migrator.down(value)
+		}
 		currentVersion = nextVersion
 	}
 
@@ -205,6 +265,58 @@ export function migrate<T>({
 		value: value as T,
 	}
 }
+
+/* ---------------- Store migrations ---------------- */
+
+/** @public */
+export type StoreMigration<Before = any, After = any> = {
+	up: (oldState: Before) => After
+	down: (newState: After) => Before
+}
+
+/** @public */
+export interface StoreMigrations {
+	firstVersion: number
+	currentVersion: number
+	migrators: { [version: number]: StoreMigration }
+}
+
+/** @public */
+export function defineStoreMigrations<
+	FirstVersion extends number | EMPTY_SYMBOL = EMPTY_SYMBOL,
+	CurrentVersion extends Exclude<number, 0> | EMPTY_SYMBOL = EMPTY_SYMBOL,
+>(opts: {
+	firstVersion?: CurrentVersion extends number ? FirstVersion : never
+	currentVersion?: CurrentVersion
+	migrators?: CurrentVersion extends number
+		? FirstVersion extends number
+			? CurrentVersion extends FirstVersion
+				? { [version in Exclude<Range<1, CurrentVersion>, 0>]: StoreMigration }
+				: {
+						[version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: StoreMigration
+					}
+			: { [version in Exclude<Range<1, CurrentVersion>, 0>]: StoreMigration }
+		: never
+}): StoreMigrations {
+	const { currentVersion, firstVersion, migrators = {} } = opts
+
+	// Some basic guards against impossible version combinations, some of which will be caught by TypeScript
+	if (typeof currentVersion === 'number' && typeof firstVersion === 'number') {
+		if ((currentVersion as number) === (firstVersion as number)) {
+			throw Error(`Current version is equal to initial version.`)
+		} else if (currentVersion < firstVersion) {
+			throw Error(`Current version is lower than initial version.`)
+		}
+	}
+
+	return {
+		firstVersion: (firstVersion as number) ?? 0, // defaults
+		currentVersion: (currentVersion as number) ?? 0, // defaults
+		migrators,
+	}
+}
+
+/* ------------------- Misc types ------------------- */
 
 type Range<From extends number, To extends number> = To extends From
 	? From
