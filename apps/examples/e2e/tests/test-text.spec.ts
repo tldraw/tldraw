@@ -1,5 +1,5 @@
 import test, { Page, expect } from '@playwright/test'
-import { BoxModel, Editor } from 'tldraw'
+import { BoxModel, Editor, TLNoteShape, TLShapeId } from 'tldraw'
 import { setupPage } from '../shared-e2e'
 
 export function sleep(ms: number) {
@@ -105,6 +105,94 @@ test.describe('text measurement', () => {
 		)
 
 		expect(formatLines(spans)).toEqual([['tes'], ['ting']])
+	})
+
+	test('for auto-font-sizing shapes, should do normal font size for text that does not have long words', async () => {
+		const shape = await page.evaluate(() => {
+			const id = 'shape:testShape' as TLShapeId
+			editor.createShapes([
+				{
+					id,
+					type: 'note',
+					x: 0,
+					y: 0,
+					props: {
+						text: 'this is just some regular text',
+						size: 'xl',
+					},
+				},
+			])
+
+			return editor.getShape(id) as TLNoteShape
+		})
+
+		expect(shape.props.fontSizeAdjustment).toEqual(32)
+	})
+
+	test('for auto-font-sizing shapes, should auto-size text that have slightly long words', async () => {
+		const shape = await page.evaluate(() => {
+			const id = 'shape:testShape' as TLShapeId
+			editor.createShapes([
+				{
+					id,
+					type: 'note',
+					x: 0,
+					y: 0,
+					props: {
+						text: 'Amsterdam',
+						size: 'xl',
+					},
+				},
+			])
+
+			return editor.getShape(id) as TLNoteShape
+		})
+
+		expect(shape.props.fontSizeAdjustment).toEqual(27)
+	})
+
+	test('for auto-font-sizing shapes, should auto-size text that have long words', async () => {
+		const shape = await page.evaluate(() => {
+			const id = 'shape:testShape' as TLShapeId
+			editor.createShapes([
+				{
+					id,
+					type: 'note',
+					x: 0,
+					y: 0,
+					props: {
+						text: 'this is a tentoonstelling',
+						size: 'xl',
+					},
+				},
+			])
+
+			return editor.getShape(id) as TLNoteShape
+		})
+
+		expect(shape.props.fontSizeAdjustment).toEqual(20)
+	})
+
+	test('for auto-font-sizing shapes, should wrap text that has words that are way too long', async () => {
+		const shape = await page.evaluate(() => {
+			const id = 'shape:testShape' as TLShapeId
+			editor.createShapes([
+				{
+					id,
+					type: 'note',
+					x: 0,
+					y: 0,
+					props: {
+						text: 'a very long dutch word like ziekenhuisinrichtingsmaatschappij',
+						size: 'xl',
+					},
+				},
+			])
+
+			return editor.getShape(id) as TLNoteShape
+		})
+
+		expect(shape.props.fontSizeAdjustment).toEqual(12)
 	})
 
 	test('should preserve whitespace at line breaks', async () => {
