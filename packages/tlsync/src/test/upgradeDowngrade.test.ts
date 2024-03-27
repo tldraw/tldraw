@@ -101,7 +101,16 @@ const UserV2 = createRecordType<UserV2>('user', {
 type RV1 = UserV1 | PresenceV1
 type RV2 = UserV2 | PresenceV1
 
-const schemaV1 = StoreSchema.create<RV1>({ user: UserV1, presence: PresenceV1 })
+const userV1Migrations = createMigrations({
+	sequenceId: 'com.tldraw.user',
+	sequence: [],
+	retroactive: true,
+})
+
+const schemaV1 = StoreSchema.create<RV1>(
+	{ user: UserV1, presence: PresenceV1 },
+	{ migrations: [userV1Migrations] }
+)
 
 const schemaV2 = StoreSchema.create<RV2>(
 	{ user: UserV2, presence: PresenceV1 },
@@ -394,198 +403,47 @@ test('clients using a too-new protocol will receive compatibility errors', () =>
 	})
 })
 
-describe('when the client is too new', () => {
-	function setup() {
-		const steve = UserV1.create({ id: UserV1.createId('steve'), name: 'steve', age: 23 })
-		const jeff = UserV1.create({ id: UserV1.createId('jeff'), name: 'jeff', age: 23 })
-		const annie = UserV1.create({ id: UserV1.createId('annie'), name: 'annie', age: 23 })
-		const v1Server = new TestServer(schemaV1, {
-			clock: 10,
-			documents: [
-				{
-					state: steve,
-					lastChangedClock: 10,
-				},
-				{
-					state: jeff,
-					lastChangedClock: 10,
-				},
-				{
-					state: annie,
-					lastChangedClock: 10,
-				},
-			],
-			schema: schemaV1.serialize(),
-			tombstones: {},
-		})
-
-		const v2_id = 'test_upgrade_v2'
-		const v2_socket = mockSocket<RV2>()
-
-		const v1_id = 'test_upgrade_v1'
-		const v1_socket = mockSocket<RV1>()
-
-		v1Server.room.handleNewSession(v1_id, v1_socket)
-		v1Server.room.handleMessage(v1_id, {
-			type: 'connect',
-			connectRequestId: 'test',
-			lastServerClock: 10,
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
-			schema: schemaV1.serialize(),
-		})
-
-		v1Server.room.handleNewSession(v2_id, v2_socket as any)
-		v1Server.room.handleMessage(v2_id as any, {
-			type: 'connect',
-			connectRequestId: 'test',
-			lastServerClock: 10,
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
-			schema: schemaV2.serialize(),
-		})
-
-		expect(v2_socket.sendMessage).toHaveBeenCalledWith({
-			type: 'connect',
-			connectRequestId: 'test',
-			hydrationType: 'wipe_presence',
-			diff: {},
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
-			schema: schemaV1.serialize(),
-			serverClock: 10,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(v1_socket.sendMessage).toHaveBeenCalledWith({
-			type: 'connect',
-			connectRequestId: 'test',
-			hydrationType: 'wipe_presence',
-			diff: {},
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
-			schema: schemaV1.serialize(),
-			serverClock: 10,
-		} satisfies TLSocketServerSentEvent<RV1>)
-		;(v2_socket.sendMessage as jest.Mock).mockClear()
-		;(v1_socket.sendMessage as jest.Mock).mockClear()
-
-		return {
-			v1Server,
-			v1_id,
-			v2_id,
-			v2SendMessage: v2_socket.sendMessage as jest.Mock,
-			v1SendMessage: v1_socket.sendMessage as jest.Mock,
-			steve,
-			jeff,
-			annie,
-		}
-	}
-
-	let data: ReturnType<typeof setup>
-
-	beforeEach(() => {
-		data = setup()
+test('when the client is too new it cannot connect', () => {
+	const steve = UserV1.create({ id: UserV1.createId('steve'), name: 'steve', age: 23 })
+	const jeff = UserV1.create({ id: UserV1.createId('jeff'), name: 'jeff', age: 23 })
+	const annie = UserV1.create({ id: UserV1.createId('annie'), name: 'annie', age: 23 })
+	const v1Server = new TestServer(schemaV1, {
+		clock: 10,
+		documents: [
+			{
+				state: steve,
+				lastChangedClock: 10,
+			},
+			{
+				state: jeff,
+				lastChangedClock: 10,
+			},
+			{
+				state: annie,
+				lastChangedClock: 10,
+			},
+		],
+		schema: schemaV1.serialize(),
+		tombstones: {},
 	})
 
-	it('allows deletions from v2 client', () => {
-		const { v1Server, v2_id, v2SendMessage, steve } = data
-		v1Server.room.handleMessage(v2_id as any, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[steve.id]: [RecordOpType.Remove],
-			},
-		})
+	const v2_id = 'test_upgrade_v2'
+	const v2_socket = mockSocket<RV2>()
 
-		expect(v2SendMessage).toHaveBeenCalledWith({
-			type: 'data',
-			data: [
-				{
-					type: 'push_result',
-					action: 'commit',
-					clientClock: 1,
-					serverClock: 11,
-				},
-			],
-		} satisfies TLSocketServerSentEvent<RV2>)
+	v1Server.room.handleNewSession(v2_id, v2_socket as any)
+	v1Server.room.handleMessage(v2_id as any, {
+		type: 'connect',
+		connectRequestId: 'test',
+		lastServerClock: 10,
+		protocolVersion: TLSYNC_PROTOCOL_VERSION,
+		schema: schemaV2.serialize(),
 	})
 
-	it('applies changes atomically', () => {
-		data.v1Server.room.handleMessage(data.v2_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.jeff.id]: [RecordOpType.Remove],
-				[data.steve.id]: [RecordOpType.Remove],
-				[data.annie.id]: [RecordOpType.Put, { ...data.annie, birthdate: '1999-02-21' } as any],
-			},
-		})
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v1SendMessage).not.toHaveBeenCalled()
-		expect(data.v1Server.room.state.get().documents[data.jeff.id]).toBeDefined()
-		expect(data.v1Server.room.state.get().documents[data.steve.id]).toBeDefined()
-	})
-
-	it('cannot send patches to v2 clients', () => {
-		data.v1Server.room.handleMessage(data.v1_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.steve.id]: [RecordOpType.Patch, { age: [ValueOpType.Put, 24] }],
-			},
-		})
-
-		expect(data.v1SendMessage).toHaveBeenCalledWith({
-			type: 'data',
-			data: [
-				{
-					type: 'push_result',
-					action: 'commit',
-					clientClock: 1,
-					serverClock: 11,
-				},
-			],
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-	})
-
-	it('cannot apply patches from v2 clients', () => {
-		data.v1Server.room.handleMessage(data.v2_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.steve.id]: [RecordOpType.Patch, { birthdate: [ValueOpType.Put, 'tomorrow'] }],
-			},
-		})
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v1SendMessage).not.toHaveBeenCalled()
-	})
-
-	it('cannot apply puts from v2 clients', () => {
-		data.v1Server.room.handleMessage(data.v2_id, {
-			type: 'push',
-			clientClock: 1,
-			diff: {
-				[data.steve.id]: [RecordOpType.Put, { ...data.steve, birthdate: 'today' } as any],
-			},
-		})
-
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ServerTooOld,
-		} satisfies TLSocketServerSentEvent<RV2>)
-
-		expect(data.v1SendMessage).not.toHaveBeenCalled()
+	expect(v2_socket.sendMessage).toHaveBeenCalledWith({
+		type: 'incompatibility_error',
+		// this should really be 'serverTooOld' but our schema format is a bit too loose to
+		// accurately determine that now.
+		reason: 'clientTooOld',
 	})
 })
 
