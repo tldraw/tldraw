@@ -5,7 +5,7 @@ import { TLSocketServerSentEvent } from './protocol'
 
 type ServerSocketAdapterOptions = {
 	readonly ws: WebSocket | ws.WebSocket
-	readonly logSendMessage: (size: number) => void
+	readonly logSendMessage: (type: string, size: number) => void
 }
 
 /** @public */
@@ -18,7 +18,7 @@ export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocke
 	// see TLRoomSocket for details on why this accepts a union and not just arrays
 	sendMessage(msg: TLSocketServerSentEvent<R>) {
 		const message = JSON.stringify(msg)
-		this.opts.logSendMessage(message.length)
+		this.opts.logSendMessage(msg.type, message.length)
 		this.opts.ws.send(message)
 	}
 	close() {

@@ -283,7 +283,10 @@ export class TLDrawDurableObject extends TLServer {
 				break
 			}
 			case 'send_message': {
-				this.writeEvent(event.type, { blobs: [event.roomId], doubles: [event.messageLength] })
+				this.writeEvent(event.type, {
+					blobs: [event.roomId, event.messageType],
+					doubles: [event.messageLength],
+				})
 				break
 			}
 			default: {

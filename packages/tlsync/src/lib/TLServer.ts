@@ -42,6 +42,7 @@ export type TLServerEvent =
 	| {
 			type: 'send_message'
 			roomId: string
+			messageType: string
 			messageLength: number
 	  }
 
@@ -145,8 +146,13 @@ export abstract class TLServer {
 			sessionKey,
 			new ServerSocketAdapter({
 				ws: socket,
-				logSendMessage: (size) =>
-					this.logEvent({ type: 'send_message', roomId: persistenceKey, messageLength: size }),
+				logSendMessage: (messageType, messageLength) =>
+					this.logEvent({
+						type: 'send_message',
+						roomId: persistenceKey,
+						messageType,
+						messageLength,
+					}),
 			})
 		)
 
