@@ -87,10 +87,10 @@ export class TextManager {
 		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
 		elm.style.setProperty('min-width', opts.minWidth ?? null)
 		elm.style.setProperty('padding', opts.padding)
+		elm.style.setProperty('outline', '1px solid red')
 
 		elm.textContent = normalizeTextForDom(textToMeasure)
 		const rect = elm.getBoundingClientRect()
-		elm.remove()
 
 		return {
 			x: 0,
