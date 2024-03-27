@@ -82,8 +82,10 @@ export type LegacyMigration<Before = any, After = any> = {
 	down: (newState: After) => Before
 }
 
+/** @public */
 export type MigrationId = `${string}/${number}`
 
+/** @public */
 export type Migration = {
 	readonly id: MigrationId
 	readonly dependsOn?: MigrationId[]
@@ -117,6 +119,7 @@ export interface LegacyMigrations extends LegacyBaseMigrationsInfo {
 	subTypeMigrations?: Record<string, LegacyBaseMigrationsInfo>
 }
 
+/** @public */
 export interface Migrations {
 	sequenceId: string
 	/**
