@@ -94,6 +94,7 @@ export function useKeyboardShortcuts() {
 				button: 0,
 				isPen: editor.getInstanceState().isPenMode,
 				target: 'canvas',
+				inputs: null,
 			}
 
 			editor.dispatch(info)

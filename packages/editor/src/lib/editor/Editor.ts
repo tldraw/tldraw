@@ -22,7 +22,6 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
-	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
 	TLParentId,
@@ -8452,59 +8451,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Update the input points from a pointer, pinch, or wheel event.
-	 *
-	 * @param info - The event info.
-	 */
-	private _updateInputsFromEvent(
-		info: TLPointerEventInfo | TLPinchEventInfo | TLWheelEventInfo
-	): void {
-		const { previousScreenPoint, previousPagePoint, currentScreenPoint, currentPagePoint } =
-			this.inputs
-
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz } = this.getCamera()
-
-		const sx = info.point.x - screenBounds.x
-		const sy = info.point.y - screenBounds.y
-		const sz = info.point.z
-
-		previousScreenPoint.setTo(currentScreenPoint)
-		previousPagePoint.setTo(currentPagePoint)
-
-		// The "screen bounds" is relative to the user's actual screen.
-		// The "screen point" is relative to the "screen bounds";
-		// it will be 0,0 when its actual screen position is equal
-		// to screenBounds.point. This is confusing!
-		currentScreenPoint.set(sx, sy)
-		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz ?? 0.5)
-
-		this.inputs.isPen = info.type === 'pointer' && info.isPen
-
-		// Reset velocity on pointer down
-		if (info.name === 'pointer_down') {
-			this.inputs.pointerVelocity.set(0, 0)
-		}
-
-		// todo: We only have to do this if there are multiple users in the document
-		this.store.put([
-			{
-				id: TLPOINTER_ID,
-				typeName: 'pointer',
-				x: currentPagePoint.x,
-				y: currentPagePoint.y,
-				lastActivityTimestamp:
-					// If our pointer moved only because we're following some other user, then don't
-					// update our last activity timestamp; otherwise, update it to the current timestamp.
-					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
-						? this.store.get(TLPOINTER_ID)?.lastActivityTimestamp ?? Date.now()
-						: Date.now(),
-				meta: {},
-			},
-		])
-	}
-
-	/**
 	 * Dispatch a cancel event.
 	 *
 	 * @example
@@ -8662,7 +8608,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (info.type === 'pointer' || info.type === 'wheel' || info.type === 'pinch') {
 			info.inputs = this._getNewInputsFromEvent(info)
 		} else {
-			info.inputs = { ...this.inputs }
+			info.inputs = this._cloneInputs(this.inputs)
 		}
 	}
 
@@ -8788,7 +8734,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		switch (type) {
 			case 'pinch': {
 				if (!this.getInstanceState().canMoveCamera) return
-				this._updateInputsFromEvent(info)
+				if (info.inputs) {
+					this.inputs = this._cloneInputs(info.inputs)
+				}
 
 				switch (info.name) {
 					case 'pinch_start': {
@@ -8863,8 +8811,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			case 'wheel': {
 				if (!this.getInstanceState().canMoveCamera) return
 
-				this._updateInputsFromEvent(info)
-
+				if (info.inputs) {
+					this.inputs = this._cloneInputs(info.inputs)
+				}
 				if (this.getIsMenuOpen()) {
 					// noop
 				} else {
@@ -8921,7 +8870,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If we're pinching, return
 				if (inputs.isPinching) return
 
-				this._updateInputsFromEvent(info)
+				if (info.inputs) {
+					this.inputs = this._cloneInputs(info.inputs)
+				}
 
 				const { isPen } = info
 
