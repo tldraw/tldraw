@@ -39,6 +39,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			align: 'middle',
 			verticalAlign: 'middle',
 			growY: 0,
+			fontSizeAdjustment: 0,
 			url: '',
 		}
 	}
@@ -56,7 +57,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { color, font, size, align, text, verticalAlign },
+			props: { color, font, size, align, text, verticalAlign, fontSizeAdjustment },
 		} = shape
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -99,7 +100,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							id={id}
 							type={type}
 							font={font}
-							fontSize={LABEL_FONT_SIZES[size]}
+							fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
 							lineHeight={TEXT_PROPS.lineHeight}
 							align={align}
 							verticalAlign={verticalAlign}
@@ -145,7 +146,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				/>
 				<rect rx={10} width={NOTE_SIZE} height={bounds.h} fill={theme.background} opacity={0.28} />
 				<SvgTextLabel
-					fontSize={LABEL_FONT_SIZES[shape.props.size]}
+					fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}
 					font={shape.props.font}
 					align={shape.props.align}
 					verticalAlign={shape.props.verticalAlign}
@@ -196,16 +197,35 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
-	const PADDING = 17
+	const BORDER = 1
+	const PADDING = 16 + BORDER
+	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
 
-	const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[shape.props.font],
-		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		maxWidth: NOTE_SIZE - PADDING * 2,
-	})
+	let fontSizeAdjustment = 0
+	let iterations = 0
+	let nextHeight = NOTE_SIZE
 
-	const nextHeight = nextTextSize.h + PADDING * 2
+	// We slightly make the font smaller if the text is too big for the note, width-wise.
+	do {
+		fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
+		const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontSize: fontSizeAdjustment,
+			maxWidth: NOTE_SIZE - PADDING * 2,
+			disableOverflowWrapBreaking: true,
+		})
+
+		nextHeight = nextTextSize.h + PADDING * 2
+
+		if (fontSizeAdjustment <= 14) {
+			// Too small, just rely now on CSS `overflow-wrap: break-word`
+			break
+		}
+		if (nextTextSize.scrollWidth.toFixed(0) === nextTextSize.w.toFixed(0)) {
+			break
+		}
+	} while (iterations++ < 50)
 
 	let growY: number | null = null
 
@@ -217,12 +237,18 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 		}
 	}
 
-	if (growY !== null) {
+	if (
+		growY !== null ||
+		(shape.props.fontSizeAdjustment === 0
+			? fontSizeAdjustment !== unadjustedFontSize
+			: fontSizeAdjustment !== shape.props.fontSizeAdjustment)
+	) {
 		return {
 			...shape,
 			props: {
 				...shape.props,
-				growY,
+				growY: growY ?? 0,
+				fontSizeAdjustment,
 			},
 		}
 	}
