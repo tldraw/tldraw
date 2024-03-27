@@ -2170,10 +2170,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// which the expanded bounds (with padding) would fit
 				// the current viewport screen bounds. Paddings are
 				// equal to screen pixels at 100%
-				const zx = (vsb.w - px * 2) / bounds.width
-				const zy = (vsb.h - py * 2) / bounds.height
-
 				// The min and max zooms are factors of the smaller natural zoom axis
+
+				const zx = (vsb.w - px * 2) / bounds.w
+				const zy = (vsb.h - py * 2) / bounds.h
 				const fitZoom = cameraOptions.fit === 'contain' ? Math.min(zx, zy) : Math.max(zx, zy)
 				const maxZ = zoomMax * fitZoom
 				const minZ = zoomMin * fitZoom
@@ -2186,34 +2186,35 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// We're trying to zoom out past the minimum zoom level,
 					// or in past the maximum zoom level, so stop the camera
 					// but keep the current center
-
 					const cxA = -currentCamera.x + vsb.w / currentCamera.z / 2
 					const cyA = -currentCamera.y + vsb.h / currentCamera.z / 2
-
 					point.z = point.z < minZ ? minZ : maxZ
-
 					const cxB = -currentCamera.x + vsb.w / point.z / 2
 					const cyB = -currentCamera.y + vsb.h / point.z / 2
-
 					point.x = currentCamera.x + cxB - cxA
 					point.y = currentCamera.y + cyB - cyA
 				}
 
-				const [oy, ox] = origin
-
-				// We're past the natural zoom for the x axis, so clamp it with bounds + padding
-				if (point.z > zx) {
-					point.x = clamp(point.x, -bounds.maxX + (vsb.w - px) / point.z, bounds.x + px / point.z)
-				} else {
-					// We're below the natural zoom for the x axis, so apply the origin
-					point.x = (vsb.x + px) / point.z + ((vsb.w - px * 2) / point.z - bounds.width) * ox
-				}
-
-				if (point.z > zy) {
-					point.y = clamp(point.y, -bounds.maxY + (vsb.h - py) / point.z, bounds.y + py / point.z)
-				} else {
-					point.y = (vsb.y + py) / point.z + ((vsb.h - py * 2) / point.z - bounds.height) * oy
-				}
+				// For each axis...
+				// If we're doing the initial camera position, or if we're below the
+				// natural zoom for the axis, clamp it with bounds + padding; or else
+				// use the origin for that axis to decide where to put the content.
+				// min = padding in page space
+				// max = padding in page space + (free space in page space * (zoomed out ? origin : 1))
+				point.x = clamp(
+					point.x,
+					px / point.z +
+						((vsb.w - px * 2) / point.z - bounds.w) *
+							(point.z < zx || opts?.initial ? origin[1] : 1),
+					px / point.z
+				)
+				point.y = clamp(
+					point.y,
+					py / point.z +
+						((vsb.h - py * 2) / point.z - bounds.h) *
+							(point.z < zy || opts?.initial ? origin[0] : 1),
+					py / point.z
+				)
 			}
 		}
 

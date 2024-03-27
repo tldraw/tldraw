@@ -10065,7 +10065,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCameraOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCameraOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -17004,7 +17004,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCameraOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCameraOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -35857,6 +35857,41 @@
         },
         {
           "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLCameraOptions:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLCameraOptions = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    zoomMin: number;\n    zoomMax: number;\n    isLocked: boolean;\n} & ({\n    fit: 'contain' | 'cover';\n    bounds: "
+            },
+            {
+              "kind": "Reference",
+              "text": "BoxModel",
+              "canonicalReference": "@tldraw/tlschema!BoxModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    padding: number[];\n    origin: number[];\n    elastic: number;\n} | {\n    fit: 'infinite';\n})"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/editor/types/misc-types.ts",
+          "releaseTag": "Public",
+          "name": "TLCameraOptions",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TLCancelEvent:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -36557,7 +36592,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCameraOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCameraOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -37042,7 +37077,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCameraOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCameraOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -37051,7 +37086,7 @@
                 {
                   "kind": "Reference",
                   "text": "TLCameraOptions",
-                  "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
+                  "canonicalReference": "@tldraw/editor!TLCameraOptions:type"
                 },
                 {
                   "kind": "Content",

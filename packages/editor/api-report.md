@@ -1942,6 +1942,24 @@ export type TLBrushProps = {
 };
 
 // @public (undocumented)
+export type TLCameraOptions = {
+    panSpeed: number;
+    zoomSpeed: number;
+    zoomSteps: number[];
+    zoomMin: number;
+    zoomMax: number;
+    isLocked: boolean;
+} & ({
+    fit: 'contain' | 'cover';
+    bounds: BoxModel;
+    padding: number[];
+    origin: number[];
+    elastic: number;
+} | {
+    fit: 'infinite';
+});
+
+// @public (undocumented)
 export type TLCancelEvent = (info: TLCancelEventInfo) => void;
 
 // @public (undocumented)
