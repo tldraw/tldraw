@@ -35,9 +35,6 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 			trailing: true,
 		})
 
-		// Rather than running getClientRects on every frame, we'll
-		// run it once a second or when the window resizes.
-		const interval = setInterval(updateBounds, 1000)
 		window.addEventListener('resize', updateBounds)
 
 		const resizeObserver = new ResizeObserver((entries) => {
@@ -58,7 +55,6 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 		}
 
 		return () => {
-			clearInterval(interval)
 			window.removeEventListener('resize', updateBounds)
 			resizeObserver.disconnect()
 			scrollingParent?.removeEventListener('scroll', updateBounds)
