@@ -135,7 +135,7 @@ export function DefaultMinimap() {
 
 	const onWheel = React.useCallback(
 		(e: React.WheelEvent<HTMLCanvasElement>) => {
-			const offset = normalizeWheel(e)
+			const offset = normalizeWheel(e, { zoomSensitivity: editor.camera.getWheelZoomSensitivity() })
 
 			editor.dispatch({
 				type: 'wheel',

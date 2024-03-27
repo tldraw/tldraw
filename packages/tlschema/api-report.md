@@ -1263,6 +1263,16 @@ export type TLVideoAsset = TLBaseAsset<'video', {
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 
 // @public
+export interface Vec3Model {
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+    // (undocumented)
+    z: number;
+}
+
+// @public
 export interface VecModel {
     // (undocumented)
     x: number;

@@ -21,6 +21,16 @@ export interface VecModel {
 	z?: number
 }
 
+/**
+ * A serializable model for 3D vectors.
+ *
+ * @public */
+export interface Vec3Model {
+	x: number
+	y: number
+	z: number
+}
+
 /** @public */
 export const vecModelValidator: T.Validator<VecModel> = T.object({
 	x: T.number,

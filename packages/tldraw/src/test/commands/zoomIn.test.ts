@@ -1,4 +1,3 @@
-import { ZOOMS } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -8,21 +7,35 @@ beforeEach(() => {
 })
 
 it('zooms by increments', () => {
+	const zoomStops = editor.camera.getZoomStops()
 	// Starts at 1
 	expect(editor.getZoomLevel()).toBe(1)
-	expect(editor.getZoomLevel()).toBe(ZOOMS[3])
+	expect(editor.getZoomLevel()).toBe(zoomStops[3])
 	// zooms in
-	expect(editor.getZoomLevel()).toBe(ZOOMS[3])
+	expect(editor.getZoomLevel()).toBe(zoomStops[3])
 	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[4])
+	expect(editor.getZoomLevel()).toBe(zoomStops[4])
 	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[5])
+	expect(editor.getZoomLevel()).toBe(zoomStops[5])
 	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[6])
+	expect(editor.getZoomLevel()).toBe(zoomStops[6])
 
 	// does not zoom in past max
 	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[6])
+	expect(editor.getZoomLevel()).toBe(zoomStops[6])
+})
+
+it('allows customizing the zoom stops', () => {
+	const stops = []
+	for (let stop = 1; stop <= 8; stop += Math.random()) {
+		stops.push(stop)
+	}
+
+	editor.camera.setOptions({ zoom: { stops } })
+	for (let i = 1; i < stops.length; i++) {
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(stops[i])
+	}
 })
 
 it('preserves the screen center', () => {
@@ -48,12 +61,13 @@ it('preserves the screen center when offset', () => {
 })
 
 it('zooms to from B to D when B >= (C - A)/2, else zooms from B to C', () => {
-	editor.setCamera({ x: 0, y: 0, z: (ZOOMS[2] + ZOOMS[3]) / 2 })
+	const zoomStops = editor.camera.getZoomStops()
+	editor.setCamera({ x: 0, y: 0, z: (zoomStops[2] + zoomStops[3]) / 2 })
 	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[4])
-	editor.setCamera({ x: 0, y: 0, z: (ZOOMS[2] + ZOOMS[3]) / 2 - 0.1 })
+	expect(editor.getZoomLevel()).toBe(zoomStops[4])
+	editor.setCamera({ x: 0, y: 0, z: (zoomStops[2] + zoomStops[3]) / 2 - 0.1 })
 	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[3])
+	expect(editor.getZoomLevel()).toBe(zoomStops[3])
 })
 
 it('does not zoom when camera is frozen', () => {

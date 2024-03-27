@@ -1,5 +1,4 @@
 import {
-	HASH_PATTERN_ZOOM_NAMES,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
@@ -10,6 +9,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
+import { getHashPatternZoomName } from './defaultStyleDefs'
 
 export interface ShapeFillProps {
 	d: string
@@ -53,10 +53,10 @@ const PatternFill = function PatternFill({ d, color, theme }: ShapeFillProps) {
 			<path
 				fill={
 					svgExport
-						? `url(#${HASH_PATTERN_ZOOM_NAMES[`1_${theme.id}`]})`
+						? `url(#${getHashPatternZoomName(1, theme.id)})`
 						: teenyTiny
 							? theme[color].semi
-							: `url(#${HASH_PATTERN_ZOOM_NAMES[`${intZoom}_${theme.id}`]})`
+							: `url(#${getHashPatternZoomName(intZoom, theme.id)})`
 				}
 				d={d}
 			/>
