@@ -197,16 +197,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
-	// So, we have to adjust for extra padding because of some fuzziness in how
-	// we size our text boxes.
-	// Currently the note size 200px all around, with a 1px border.
-	// Then tl-text-label__inner actually is a width `fit-content` which _almost_
-	// equates to the full width but actually ends up being a bit smaller at times.
-	// This fuzziness here helps with making the text not 'jump' as you're typing
-	// as tl-text-label__inner will have fractional width sizes.
-	const FUZZ = 1
 	const BORDER = 1
-	const PADDING = 16 + BORDER + FUZZ
+	const PADDING = 16 + BORDER
 	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
 
 	let fontSizeAdjustment = 0
@@ -226,7 +218,7 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 
 		nextHeight = nextTextSize.h + PADDING * 2
 
-		if (fontSizeAdjustment <= 12) {
+		if (fontSizeAdjustment <= 14) {
 			// Too small, just rely now on CSS `overflow-wrap: break-word`
 			break
 		}

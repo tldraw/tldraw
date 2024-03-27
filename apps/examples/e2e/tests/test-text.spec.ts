@@ -192,7 +192,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(12)
+		expect(shape.props.fontSizeAdjustment).toEqual(14)
 	})
 
 	test('should preserve whitespace at line breaks', async () => {
