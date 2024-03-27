@@ -4,7 +4,6 @@ import {
 	DefaultFontStyle,
 	FileHelpers,
 	HASH_PATTERN_ZOOM_NAMES,
-	MAX_ZOOM,
 	SvgExportDef,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
@@ -13,6 +12,7 @@ import {
 	debugFlags,
 	useEditor,
 } from '@tldraw/editor'
+import { HASH_PATTERN_COUNT } from '@tldraw/editor/src/lib/constants'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 /** @public */
@@ -155,7 +155,7 @@ type PatternDef = { zoom: number; url: string; darkMode: boolean }
 
 const getDefaultPatterns = () => {
 	const defaultPatterns: PatternDef[] = []
-	for (let i = 1; i <= Math.ceil(MAX_ZOOM); i++) {
+	for (let i = 1; i <= HASH_PATTERN_COUNT; i++) {
 		const whitePixelBlob = canvasBlob([1, 1], (ctx) => {
 			ctx.fillStyle = DefaultColorThemePalette.lightMode.black.semi
 			ctx.fillRect(0, 0, 1, 1)
@@ -188,7 +188,7 @@ function usePattern() {
 	useEffect(() => {
 		const promises: Promise<{ zoom: number; url: string; darkMode: boolean }>[] = []
 
-		for (let i = 1; i <= Math.ceil(MAX_ZOOM); i++) {
+		for (let i = 1; i <= HASH_PATTERN_COUNT; i++) {
 			promises.push(
 				generateImage(dpr, i, false).then((blob) => ({
 					zoom: i,

@@ -122,11 +122,9 @@ export {
 	HIT_TEST_MARGIN,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
-	MAX_ZOOM,
-	MIN_ZOOM,
 	MULTI_CLICK_DURATION,
 	SVG_PADDING,
-	ZOOMS,
+	getDefaultCameraOptions,
 } from './lib/constants'
 export {
 	Editor,

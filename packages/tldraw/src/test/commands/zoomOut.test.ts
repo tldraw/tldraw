@@ -1,4 +1,4 @@
-import { ZOOMS } from '@tldraw/editor'
+import { getDefaultCameraOptions } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -7,19 +7,20 @@ beforeEach(() => {
 	editor = new TestEditor()
 })
 
-it('zooms by increments', () => {
+it('zooms out and in by increments', () => {
+	const cameraOptions = getDefaultCameraOptions({ type: 'infinite' })
+
 	// Starts at 1
-	expect(editor.getZoomLevel()).toBe(1)
-	expect(editor.getZoomLevel()).toBe(ZOOMS[3])
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
 	editor.zoomOut()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[2])
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[2])
 	editor.zoomOut()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[1])
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[1])
 	editor.zoomOut()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[0])
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[0])
 	// does not zoom out past min
 	editor.zoomOut()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[0])
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[0])
 })
 
 it('does not zoom out when camera is frozen', () => {

@@ -702,6 +702,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInstanceState(): TLInstance;
     getIsMenuOpen(): boolean;
+    // (undocumented)
+    getNaturalZoom(): number;
     getOnlySelectedShape(): null | TLShape;
     getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
@@ -1061,6 +1063,11 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
 
+// @internal (undocumented)
+export const getDefaultCameraOptions: (cameraOptions: Partial<Exclude<TLCameraOptions, 'type'>> & {
+    type: TLCameraOptions['type'];
+}) => TLCameraOptions;
+
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
 
@@ -1365,12 +1372,6 @@ export const MAX_PAGES = 40;
 
 // @internal (undocumented)
 export const MAX_SHAPES_PER_PAGE = 2000;
-
-// @internal (undocumented)
-export const MAX_ZOOM = 8;
-
-// @internal (undocumented)
-export const MIN_ZOOM = 0.1;
 
 // @public
 export function moveCameraWhenCloseToEdge(editor: Editor): void;
@@ -2990,9 +2991,6 @@ export class WeakMapCache<T extends object, K> {
 }
 
 export { whyAmIRunning }
-
-// @internal (undocumented)
-export const ZOOMS: number[];
 
 
 export * from "@tldraw/store";

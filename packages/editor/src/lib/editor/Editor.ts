@@ -81,8 +81,6 @@ import {
 	INTERNAL_POINTER_IDS,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
-	MAX_ZOOM,
-	MIN_ZOOM,
 	SVG_PADDING,
 	getDefaultCameraOptions,
 } from '../constants'
@@ -2078,7 +2076,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._cameraOptions
 	}
 
-	private getNaturalZoom() {
+	getNaturalZoom() {
 		const cameraOptions = this.getCameraOptions()
 		if (cameraOptions.type === 'infinite') return 1
 		const { padding } = cameraOptions
@@ -2600,13 +2598,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const inset = opts?.inset ?? Math.min(256, viewportScreenBounds.width * 0.28)
 
+		const naturalZoom = this.getNaturalZoom()
+		const { zoomMin, zoomMax } = this.getCameraOptions()
+
 		let zoom = clamp(
 			Math.min(
 				(viewportScreenBounds.width - inset) / bounds.width,
 				(viewportScreenBounds.height - inset) / bounds.height
 			),
-			MIN_ZOOM,
-			MAX_ZOOM
+			zoomMin * naturalZoom,
+			zoomMax * naturalZoom
 		)
 
 		if (opts?.targetZoom !== undefined) {
@@ -3147,7 +3148,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? Math.min(width / desiredWidth, height / desiredHeight)
 				: height / desiredHeight
 
-			const targetZoom = clamp(this.getCamera().z * ratio, MIN_ZOOM, MAX_ZOOM)
+			const naturalZoom = this.getNaturalZoom()
+			const { zoomMin, zoomMax } = this.getCameraOptions()
+			const targetZoom = clamp(
+				this.getCamera().z * ratio,
+				zoomMin * naturalZoom,
+				zoomMax * naturalZoom
+			)
 			const targetWidth = this.getViewportScreenBounds().w / targetZoom
 			const targetHeight = this.getViewportScreenBounds().h / targetZoom
 
