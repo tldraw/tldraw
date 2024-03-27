@@ -655,6 +655,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
+    isFrame: () => boolean;
+    // (undocumented)
     static migrations: Migrations;
     // (undocumented)
     onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
@@ -910,6 +912,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     indicator(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
+    isSticky: () => boolean;
+    // (undocumented)
     static migrations: Migrations;
     // (undocumented)
     onResize: TLOnResizeHandler<TLHighlightShape>;
@@ -1112,6 +1116,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
+    // (undocumented)
+    isSticky: () => boolean;
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)

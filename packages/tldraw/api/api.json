@@ -7501,6 +7501,36 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "tldraw!FrameShapeUtil#isFrame:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isFrame: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isFrame",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "tldraw!FrameShapeUtil.migrations:member",
               "docComment": "",
               "excerptTokens": [
@@ -10302,6 +10332,36 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "tldraw!HighlightShapeUtil#isSticky:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isSticky: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isSticky",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Property",
@@ -13156,6 +13216,36 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "indicator"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#isSticky:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isSticky: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isSticky",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Property",

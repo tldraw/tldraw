@@ -209,7 +209,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']) {
-		return false
+		return this.editor.getShapeUtil(type).isSticky(shape)
 	}
 
 	/**
@@ -220,8 +220,26 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	canDropShapes(shape: Shape, shapes: TLShape[]) {
-		return false
+		return shapes.every((droppedShape) =>
+			this.editor.getShapeUtil(droppedShape).isSticky(droppedShape)
+		)
 	}
+
+	/**
+	 * Whether the shape is a frame and carries the behaviors that go along with frames.
+	 * Frames are shapes that can contain other shapes, in a portal-like fashion.
+	 *
+	 * @public
+	 */
+	isFrame: TLShapeUtilFlag<Shape> = () => true
+
+	/**
+	 * Whether the shape should adhere to other shapes:
+	 *   stickers, washi tape, sticky notes, highlighters, etc.
+	 *
+	 * @public
+	 */
+	isSticky: TLShapeUtilFlag<Shape> = () => false
 
 	/**
 	 * Get the shape as an SVG object.
@@ -336,7 +354,12 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An object specifying whether the shape should hint that it can receive the dragged shapes.
 	 * @public
 	 */
-	onDragShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
+	onDragShapesOver(shape: Shape, shapes: TLShape[]) {
+		if (this.canDropShapes(shape, shapes)) {
+			this.editor.reparentShapes(shapes, shape.id)
+			return { shouldHint: true }
+		}
+	}
 
 	/**
 	 * A callback called when some other shapes are dragged out of this one.
@@ -345,7 +368,11 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dragged out.
 	 * @public
 	 */
-	onDragShapesOut?: TLOnDragHandler<Shape>
+	onDragShapesOut(shape: Shape, shapes: TLShape[]) {
+		if (this.canDropShapes(shape, shapes)) {
+			this.editor.reparentShapes(shapes, this.editor.getCurrentPage().id)
+		}
+	}
 
 	/**
 	 * A callback called when some other shapes are dropped over this one.

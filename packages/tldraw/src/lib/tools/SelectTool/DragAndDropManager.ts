@@ -16,8 +16,13 @@ export class DragAndDropManager {
 
 	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
 		if (this.first) {
+			const ancestorsFromSingleMovingShape =
+				movingShapes.length === 1 ? this.editor.getShapeAncestors(movingShapes[0]) : null
+			const singleAncestorFromSingleMovingShape =
+				ancestorsFromSingleMovingShape?.length === 1 ? ancestorsFromSingleMovingShape[0] : null
 			this.prevDroppingShapeId =
 				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint, movingShapes)?.id ??
+				singleAncestorFromSingleMovingShape?.id ??
 				null
 			this.first = false
 		}
