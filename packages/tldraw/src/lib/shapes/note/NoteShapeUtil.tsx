@@ -146,7 +146,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				/>
 				<rect rx={10} width={NOTE_SIZE} height={bounds.h} fill={theme.background} opacity={0.28} />
 				<SvgTextLabel
-					fontSize={LABEL_FONT_SIZES[shape.props.size]}
+					fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}
 					font={shape.props.font}
 					align={shape.props.align}
 					verticalAlign={shape.props.verticalAlign}
