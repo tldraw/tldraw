@@ -62,8 +62,13 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLCancelEvent } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
+import { TLDefaultColorStyle } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
+import { TLDefaultFillStyle } from '@tldraw/editor';
+import { TLDefaultFontStyle } from '@tldraw/editor';
+import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
+import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
@@ -614,6 +619,9 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
 export function FitFrameToContentMenuItem(): JSX_2.Element | null;
 
 // @public (undocumented)
+export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
+
+// @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static id: string;
@@ -967,6 +975,9 @@ export function isGifAnimated(file: Blob): Promise<boolean>;
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
 
 // @public (undocumented)
+export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
+
+// @public (undocumented)
 export function LanguageMenu(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1278,6 +1289,18 @@ export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export const TEXT_PROPS: {
+    lineHeight: number;
+    fontWeight: string;
+    fontVariant: string;
+    fontStyle: string;
+    padding: string;
+};
+
+// @public (undocumented)
+export const TextLabel: React_2.NamedExoticComponent<TextLabelProps>;
 
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
@@ -2474,6 +2497,19 @@ export function useDefaultHelpers(): {
 
 // @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
+
+// @public (undocumented)
+export function useEditableText(id: TLShapeId, type: string, text: string): {
+    rInput: React_2.RefObject<HTMLTextAreaElement>;
+    isEditing: boolean;
+    handleFocus: () => void;
+    handleBlur: () => void;
+    handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
+    handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
+    handleInputPointerDown: (e: React_2.PointerEvent) => void;
+    handleDoubleClick: (e: any) => any;
+    isEmpty: boolean;
+};
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
