@@ -1158,9 +1158,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
-    onStickShapesOut: (note: TLNoteShape, shapes: TLShape[]) => void;
+    onStickShape: (note: TLNoteShape, shape: TLShape) => void;
     // (undocumented)
-    onStickShapesOver: (note: TLNoteShape, shapes: TLShape[]) => {
+    onStickShapeOver: (note: TLNoteShape, shape: TLShape) => {
         shouldHint: boolean;
     };
     // (undocumented)

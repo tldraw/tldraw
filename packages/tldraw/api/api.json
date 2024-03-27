@@ -13467,12 +13467,12 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "tldraw!NoteShapeUtil#onStickShapesOut:member",
+              "canonicalReference": "tldraw!NoteShapeUtil#onStickShape:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onStickShapesOut: "
+                  "text": "onStickShape: "
                 },
                 {
                   "kind": "Content",
@@ -13485,7 +13485,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", shapes: "
+                  "text": ", shape: "
                 },
                 {
                   "kind": "Reference",
@@ -13494,7 +13494,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[]) => void"
+                  "text": ") => void"
                 },
                 {
                   "kind": "Content",
@@ -13504,7 +13504,7 @@
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "onStickShapesOut",
+              "name": "onStickShape",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 6
@@ -13515,12 +13515,12 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "tldraw!NoteShapeUtil#onStickShapesOver:member",
+              "canonicalReference": "tldraw!NoteShapeUtil#onStickShapeOver:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onStickShapesOver: "
+                  "text": "onStickShapeOver: "
                 },
                 {
                   "kind": "Content",
@@ -13533,7 +13533,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", shapes: "
+                  "text": ", shape: "
                 },
                 {
                   "kind": "Reference",
@@ -13542,7 +13542,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[]) => {\n        shouldHint: boolean;\n    }"
+                  "text": ") => {\n        shouldHint: boolean;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -13552,7 +13552,7 @@
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "onStickShapesOver",
+              "name": "onStickShapeOver",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 6

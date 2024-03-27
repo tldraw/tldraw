@@ -13880,6 +13880,60 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getStickingOverShape:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getStickingOverShape(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLUnknownShape",
+                  "canonicalReference": "@tldraw/tlschema!TLUnknownShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getStickingOverShape"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getStyleForNextShape:member(1)",
               "docComment": "/**\n * Get the style for the next shape.\n *\n * @param style - The style to get.\n *\n * @example\n * ```ts\n * const color = editor.getStyleForNextShape(DefaultColorStyle)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -32105,21 +32159,25 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#onStickShapes:member",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onStickShape:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onStickShapes?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnDragHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnDragHandler:type"
+                  "text": "onStickShape?: "
                 },
                 {
                   "kind": "Content",
-                  "text": "<Shape>"
+                  "text": "(shape: Shape, other: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => void"
                 },
                 {
                   "kind": "Content",
@@ -32129,10 +32187,10 @@
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
-              "name": "onStickShapes",
+              "name": "onStickShape",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 3
+                "endIndex": 4
               },
               "isStatic": false,
               "isProtected": false,
@@ -32140,21 +32198,25 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#onStickShapesOut:member",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onStickShapeOut:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onStickShapesOut?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnDragHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnDragHandler:type"
+                  "text": "onStickShapeOut?: "
                 },
                 {
                   "kind": "Content",
-                  "text": "<Shape>"
+                  "text": "(shape: Shape, other: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => void"
                 },
                 {
                   "kind": "Content",
@@ -32164,10 +32226,10 @@
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
-              "name": "onStickShapesOut",
+              "name": "onStickShapeOut",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 3
+                "endIndex": 4
               },
               "isStatic": false,
               "isProtected": false,
@@ -32175,21 +32237,25 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#onStickShapesOver:member",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onStickShapeOver:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onStickShapesOver?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnDragHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnDragHandler:type"
+                  "text": "onStickShapeOver?: "
                 },
                 {
                   "kind": "Content",
-                  "text": "<Shape, {\n        shouldHint: boolean;\n    }>"
+                  "text": "(shape: Shape, other: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => {\n        shouldHint: boolean;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -32199,10 +32265,10 @@
               "isReadonly": false,
               "isOptional": true,
               "releaseTag": "Public",
-              "name": "onStickShapesOver",
+              "name": "onStickShapeOver",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 3
+                "endIndex": 4
               },
               "isStatic": false,
               "isProtected": false,

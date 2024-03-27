@@ -16,6 +16,7 @@ import {
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 import { DragAndDropManager } from '../DragAndDropManager'
+import { StickingManager } from '../StickingManager'
 
 export class Translating extends StateNode {
 	static override id = 'translating'
@@ -38,6 +39,7 @@ export class Translating extends StateNode {
 	onCreate: (shape: TLShape | null) => void = () => void null
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
+	stickingManager = new StickingManager(this.editor)
 
 	override onEnter = (
 		info: TLPointerEventInfo & {
@@ -90,9 +92,11 @@ export class Translating extends StateNode {
 			{ ephemeral: true }
 		)
 		this.dragAndDropManager.clear()
+		this.stickingManager.clear()
 	}
 
 	override onTick = () => {
+		this.stickingManager.updateStickingNode(this.snapshot.movingShapes, this.updateParentTransforms)
 		this.dragAndDropManager.updateDroppingNode(
 			this.snapshot.movingShapes,
 			this.updateParentTransforms
@@ -167,6 +171,7 @@ export class Translating extends StateNode {
 	protected complete() {
 		this.updateShapes()
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
+		this.stickingManager.stickShapes(this.snapshot.movingShapes)
 		this.handleEnd()
 
 		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
@@ -265,6 +270,7 @@ export class Translating extends StateNode {
 	protected updateShapes() {
 		const { snapshot } = this
 		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
+		this.stickingManager.updateStickingNode(snapshot.movingShapes, this.updateParentTransforms)
 
 		moveShapesToPoint({
 			editor: this.editor,

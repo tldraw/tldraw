@@ -350,7 +350,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	onDragShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
 
-	onStickShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
+	onStickShapeOver?: (shape: Shape, other: TLShape) => { shouldHint: boolean }
 
 	/**
 	 * A callback called when some other shapes are dragged out of this one.
@@ -361,7 +361,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	onDragShapesOut?: TLOnDragHandler<Shape>
 
-	onStickShapesOut?: TLOnDragHandler<Shape>
+	onStickShapeOut?: (shape: Shape, other: TLShape) => void
 
 	/**
 	 * A callback called when some other shapes are dropped over this one.
@@ -372,7 +372,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	onDropShapesOver?: TLOnDragHandler<Shape>
 
-	onStickShapes?: TLOnDragHandler<Shape>
+	onStickShape?: (shape: Shape, other: TLShape) => void
 
 	/**
 	 * A callback called when a shape starts being resized.

@@ -766,6 +766,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSharedStyles(): ReadonlySharedStyleMap;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
+    // (undocumented)
+    getStickingOverShape(shape: TLShape): TLUnknownShape | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
     getViewportPageBounds(): Box;
@@ -1652,13 +1654,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onRotateEnd?: TLOnRotateEndHandler<Shape>;
     onRotateStart?: TLOnRotateStartHandler<Shape>;
     // (undocumented)
-    onStickShapes?: TLOnDragHandler<Shape>;
+    onStickShape?: (shape: Shape, other: TLShape) => void;
     // (undocumented)
-    onStickShapesOut?: TLOnDragHandler<Shape>;
+    onStickShapeOut?: (shape: Shape, other: TLShape) => void;
     // (undocumented)
-    onStickShapesOver?: TLOnDragHandler<Shape, {
+    onStickShapeOver?: (shape: Shape, other: TLShape) => {
         shouldHint: boolean;
-    }>;
+    };
     onTranslate?: TLOnTranslateHandler<Shape>;
     onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
     onTranslateStart?: TLOnTranslateStartHandler<Shape>;

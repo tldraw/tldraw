@@ -5008,6 +5008,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return idsToInclude
 	}
 
+	getStickingOverShape(shape: TLShape) {
+		// starting from the top...
+		const currentPageShapesSorted = this.getCurrentPageShapesSorted()
+		for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
+			const other = currentPageShapesSorted[i]
+
+			// don't allow sticking to yourself
+			if (other.id === shape.id) continue
+
+			// don't allow sticking to your children
+			if (this.hasAncestor(other, shape.id)) continue
+
+			// only allow shapes that can receive children
+			if (!this.getShapeUtil(other).canStickShape(other, shape)) continue
+
+			// don't stick to locked shapes
+			if (other.isLocked) continue
+
+			// don't stick if your bounds are outside the other shape's bounds
+			const shapeBounds = this.getShapePageBounds(shape)
+			const otherBounds = this.getShapePageBounds(other)
+			if (!shapeBounds || !otherBounds || !otherBounds.includes(shapeBounds)) continue
+
+			// don't stick if your geometry doesn't intersect the other shape's geometry
+			const shapeGeometry = this.getShapeGeometry(shape)
+			const otherGeometry = this.getShapeGeometry(other)
+			if (!shapeGeometry.vertices.some((v) => otherGeometry.hitTestPoint(v, 0, true))) continue
+
+			return other
+		}
+	}
+
 	/**
 	 * Get the shape that some shapes should be dropped on at a given point.
 	 *
