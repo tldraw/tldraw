@@ -99,6 +99,10 @@ export class Pointing extends StateNode {
 					type: 'note',
 					x: originPagePoint.x,
 					y: originPagePoint.y,
+					props: {
+						userName: this.editor.user?.getName() ?? '',
+						userId: this.editor.user?.getId() ?? '',
+					},
 				},
 			])
 			.select(id)

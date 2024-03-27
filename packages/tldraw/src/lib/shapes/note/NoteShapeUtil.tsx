@@ -9,6 +9,8 @@ import {
 	noteShapeMigrations,
 	noteShapeProps,
 	toDomPrecision,
+	usePresence,
+	useValue,
 } from '@tldraw/editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
@@ -39,6 +41,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
+			userName: '',
+			userId: '',
 		}
 	}
 
@@ -55,7 +59,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { color, font, size, align, text, verticalAlign },
+			props: { color, font, size, align, text, verticalAlign, userName, userId },
 		} = shape
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -91,6 +95,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							wrap
 						/>
 					</div>
+					<Attribution editor={this.editor} userName={userName} userId={userId} />
 				</div>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
@@ -176,6 +181,29 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			])
 		}
 	}
+}
+
+function Attribution({
+	editor,
+	userName,
+	userId,
+}: {
+	editor: Editor
+	userName?: string
+	userId?: string
+}) {
+	const presence = usePresence(userId || '')
+	const myUserName = useValue('user', () => editor.user.getName(), [editor])
+	const isMe = userId === editor.user.getId()
+
+	if (!presence && !isMe && !userName) return null
+
+	// User ids are the more up-to-date way to track user names
+	// but the users are not always present so we save the more
+	// persisent user name as well.
+	const otherUsersName = presence?.userName ?? userName
+
+	return <div className="tl-note__attribution">{isMe ? myUserName : otherUsersName}</div>
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
