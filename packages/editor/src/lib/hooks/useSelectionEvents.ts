@@ -71,6 +71,8 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
+					pagePoint: editor.inputs.currentPagePoint.clone(),
+					coalescedInfo: [],
 					...getPointerInfo(e),
 				})
 			}

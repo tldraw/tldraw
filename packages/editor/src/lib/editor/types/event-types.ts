@@ -1,5 +1,5 @@
 import { TLHandle, TLShape, VecModel } from '@tldraw/tlschema'
-import { VecLike } from '../../primitives/Vec'
+import { Vec, VecLike } from '../../primitives/Vec'
 import { TLSelectionHandle } from './selection-types'
 
 /** @public */
@@ -50,7 +50,7 @@ export interface TLBaseEventInfo {
 }
 
 /** @public */
-export type TLPointerEventInfo = TLBaseEventInfo & {
+export type TLBasePointerEventInfo = TLBaseEventInfo & {
 	type: 'pointer'
 	name: TLPointerEventName
 	// The pointer position in client space, i.e. clientX / clientY
@@ -59,6 +59,15 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 	button: number
 	isPen: boolean
 } & TLPointerEventTarget
+
+/** @public */
+export type TLPointerMoveEventInfo = TLBasePointerEventInfo & {
+	coalescedInfo: TLPointerMoveEventInfo[]
+	pagePoint: Vec
+}
+
+/** @public */
+export type TLPointerEventInfo = TLBasePointerEventInfo | TLPointerMoveEventInfo
 
 /** @public */
 export type TLClickEventInfo = TLBaseEventInfo & {
@@ -118,6 +127,8 @@ export type TLEventInfo =
 /** @public */
 export type TLPointerEvent = (info: TLPointerEventInfo) => void
 /** @public */
+export type TLPointerMoveEvent = (info: TLPointerMoveEventInfo) => void
+/** @public */
 export type TLClickEvent = (info: TLClickEventInfo) => void
 /** @public */
 export type TLKeyboardEvent = (info: TLKeyboardEventInfo) => void
@@ -151,7 +162,7 @@ export type TLExitEventHandler = (info: any, to: string) => void
 /** @public */
 export interface TLEventHandlers {
 	onPointerDown: TLPointerEvent
-	onPointerMove: TLPointerEvent
+	onPointerMove: TLPointerMoveEvent
 	onRightClick: TLPointerEvent
 	onDoubleClick: TLClickEvent
 	onTripleClick: TLClickEvent
