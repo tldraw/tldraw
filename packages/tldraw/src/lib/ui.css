@@ -29,6 +29,7 @@
 	pointer-events: all;
 	font-weight: inherit;
 	font-family: inherit;
+	line-height: inherit;
 	text-rendering: optimizeLegibility;
 	font-size: 12px;
 	gap: 0px;
@@ -337,6 +338,12 @@
 	z-index: var(--layer-panels);
 	-webkit-transform: translate3d(0, 0, 0);
 	--sab: env(safe-area-inset-bottom);
+	font-weight: 500;
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-smooth: antialiased;
+	text-rendering: optimizeLegibility;
 }
 
 .tlui-layout__top {
