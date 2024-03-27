@@ -36561,7 +36561,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ">"
+                  "text": "> & {\n        fit: 'contain' | 'cover' | 'infinite';\n    }"
                 },
                 {
                   "kind": "Content",
@@ -37032,12 +37032,30 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
                   "text": "TLCameraOptions",
                   "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
                 },
                 {
                   "kind": "Content",
-                  "text": ">"
+                  "text": ", 'fit'>> & {\n        fit: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCameraOptions",
+                  "canonicalReference": "@tldraw/editor!~TLCameraOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "['fit'];\n    }"
                 },
                 {
                   "kind": "Content",
@@ -37050,7 +37068,7 @@
               "name": "cameraOptions",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 5
+                "endIndex": 9
               }
             },
             {

@@ -22,6 +22,7 @@ export default function Develop() {
 					}
 				}}
 				cameraOptions={{
+					fit: 'cover',
 					bounds: {
 						x: 0,
 						y: 0,

@@ -20,9 +20,7 @@ export const MAX_ZOOM = 8
 
 /** @internal */
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions = {
-	bounds: null,
-	padding: 0,
-	elastic: 0.1,
+	fit: 'infinite',
 	zoomMax: 8,
 	zoomMin: 0.1,
 	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],

@@ -39,7 +39,7 @@ export class Dragging extends StateNode {
 		const delta = Vec.Sub(currentScreenPoint, originScreenPoint)
 
 		const cameraOptions = editor.getCameraOptions()
-		if (cameraOptions?.bounds) {
+		if (cameraOptions.fit !== 'infinite') {
 			const { x: cx, y: cy, z: cz } = this.camera
 			const point = { x: cx + delta.x / cz, y: cy + delta.y / cz, z: cz }
 

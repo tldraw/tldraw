@@ -18,22 +18,30 @@ export type TLSvgOptions = {
 
 /** @public */
 export type TLCameraOptions = {
-	/** The bounds of the content (in page space) */
-	bounds: BoxModel | null
-	/** The padding around the bounds (in screen space) */
-	padding: number | number[]
-	/** The maximum elastic distance around the bounds */
-	elastic: number
 	/** The speed of a scroll wheel / trackpad pan */
 	panSpeed: number
 	/** The speed of a scroll wheel / trackpad zoom */
 	zoomSpeed: number
 	/** The steps that a user can zoom between with zoom in / zoom out (zoom factors) */
-	zoomSteps: number[] | null
+	zoomSteps: number[]
 	/** A minimum zoom factor (e.g. .5x of the zoom at which the shape is fully on screen) */
 	zoomMin: number
 	/** A maximum zoom factor (e.g. 2x of the zoom at which the shape is fully on screen) */
 	zoomMax: number
 	/** Whether the camera is locked */
 	isLocked: boolean
-}
+} & (
+	| {
+			fit: 'infinite'
+	  }
+	| {
+			/** The fit logic for the camera. */
+			fit: 'contain' | 'cover'
+			/** The bounds of the content (in page space) */
+			bounds: BoxModel
+			/** The padding around the bounds (in screen space) */
+			padding: number | number[]
+			/** The maximum elastic distance around the bounds */
+			elastic: number
+	  }
+)

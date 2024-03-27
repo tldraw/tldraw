@@ -2036,7 +2036,9 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
     // (undocumented)
-    cameraOptions?: Partial<TLCameraOptions>;
+    cameraOptions?: Partial<TLCameraOptions> & {
+        fit: 'contain' | 'cover' | 'infinite';
+    };
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
@@ -2067,7 +2069,9 @@ export type TLEditorComponents = Partial<{
 
 // @public (undocumented)
 export interface TLEditorOptions {
-    cameraOptions?: Partial<TLCameraOptions>;
+    cameraOptions?: Partial<Exclude<TLCameraOptions, 'fit'>> & {
+        fit: TLCameraOptions['fit'];
+    };
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
