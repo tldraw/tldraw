@@ -34942,6 +34942,41 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/editor!StateNode#onLongPress:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onLongPress?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLEventHandlers",
+                  "canonicalReference": "@tldraw/editor!TLEventHandlers:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "['onLongPress']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onLongPress",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#onMiddleClick:member",
               "docComment": "",
               "excerptTokens": [
@@ -38357,6 +38392,34 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLEventHandlers#onLongPress:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onLongPress: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPointerEvent",
+                  "canonicalReference": "@tldraw/editor!TLPointerEvent:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onLongPress",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEventHandlers#onMiddleClick:member",
               "docComment": "",
               "excerptTokens": [
@@ -41004,7 +41067,7 @@
             },
             {
               "kind": "Content",
-              "text": "'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click'"
+              "text": "'long_press' | 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click'"
             },
             {
               "kind": "Content",

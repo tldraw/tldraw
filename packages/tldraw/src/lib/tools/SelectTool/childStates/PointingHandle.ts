@@ -37,8 +37,17 @@ export class PointingHandle extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
-			this.parent.transition('dragging_handle', this.info)
+			this.kickoff()
 		}
+	}
+
+	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+		this.kickoff()
+	}
+
+	private kickoff() {
+		if (this.editor.getInstanceState().isReadonly) return
+		this.parent.transition('dragging_handle', this.info)
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

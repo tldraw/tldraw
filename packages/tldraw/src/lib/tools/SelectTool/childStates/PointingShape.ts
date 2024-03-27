@@ -195,9 +195,17 @@ export class PointingShape extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			if (this.editor.getInstanceState().isReadonly) return
-			this.parent.transition('translating', info)
+			this.kickoff(info)
 		}
+	}
+
+	override onLongPress: TLEventHandlers['onLongPress'] = (info) => {
+		this.kickoff(info)
+	}
+
+	private kickoff(info: TLPointerEventInfo) {
+		if (this.editor.getInstanceState().isReadonly) return
+		this.parent.transition('translating', info)
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

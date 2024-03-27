@@ -107,3 +107,6 @@ export const COARSE_HANDLE_RADIUS = 20
 
 /** @internal */
 export const HANDLE_RADIUS = 12
+
+/** @internal */
+export const LONG_PRESS_DURATION = 500
