@@ -722,6 +722,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         isCulled: boolean;
         maskedPageBounds: Box | undefined;
     }[];
+    // (undocumented)
+    getSelectedAncestor(shape: TLShape | TLShapeId): null | TLShape;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
@@ -1604,6 +1606,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canResize: TLShapeUtilFlag<Shape>;
     canScroll: TLShapeUtilFlag<Shape>;
+    canSelectChildOnPointerDownWhileSelected(shape: Shape, child: TLShape): boolean;
     canSnap: TLShapeUtilFlag<Shape>;
     canUnmount: TLShapeUtilFlag<Shape>;
     abstract component(shape: Shape): any;

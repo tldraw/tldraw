@@ -212,6 +212,18 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
+	 * Get whether a shape's child can be immediately selected by clicking on
+	 * it, while the current shape is selected.
+	 *
+	 * @param shape - The shape.
+	 * @param child - The child shape.
+	 * @public
+	 */
+	canSelectChildOnPointerDownWhileSelected(shape: Shape, child: TLShape) {
+		return false
+	}
+
+	/**
 	 * Get whether the shape can receive children of a given type.
 	 *
 	 * @param shape - The shape type.

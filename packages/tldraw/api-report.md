@@ -1084,7 +1084,13 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
+    canDropShapes: () => boolean;
+    // (undocumented)
     canEdit: () => boolean;
+    // (undocumented)
+    canReceiveNewChildrenOfType: () => boolean;
+    // (undocumented)
+    canSelectChildOnPointerDownWhileSelected: () => boolean;
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
@@ -1149,6 +1155,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
+    // (undocumented)
+    onDragShapesOut: (note: TLNoteShape, shapes: TLShape[]) => void;
+    // (undocumented)
+    onDragShapesOver: (note: TLNoteShape, shapes: TLShape[]) => {
+        shouldHint: boolean;
+    };
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
