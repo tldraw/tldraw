@@ -16,10 +16,6 @@ export class Dragging extends StateNode {
 		this.update()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.update()
-	}
-
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
@@ -32,11 +28,14 @@ export class Dragging extends StateNode {
 		this.complete()
 	}
 
+	override onTick = () => {
+		this.update()
+	}
+
 	private update() {
 		const { editor } = this
 		const { currentScreenPoint, originScreenPoint } = editor.inputs
-		const delta = Vec.Sub(currentScreenPoint, originScreenPoint)
-		this.editor.pan(delta)
+		this.editor.setCamera(Vec.Sub(currentScreenPoint, originScreenPoint).add(this.camera))
 	}
 
 	private complete() {
