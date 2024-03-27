@@ -91,7 +91,7 @@ async function blockUnknownOrigins(request: Request) {
 	}
 
 	const origin = request.headers.get('origin')
-	if (env.IS_LOCAL !== 'true' && (!origin || !isAllowedOrigin(origin))) {
+	if (env.TLDRAW_ENV !== undefined && (!origin || !isAllowedOrigin(origin))) {
 		console.error('Attempting to connect from an invalid origin:', origin, env, request)
 		return new Response('Not allowed', { status: 403 })
 	}

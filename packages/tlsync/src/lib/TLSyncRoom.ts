@@ -42,6 +42,7 @@ import {
 } from './diff'
 import { interval } from './interval'
 import {
+	DriftHistogram,
 	TLIncompatibilityReason,
 	TLSYNC_PROTOCOL_VERSION,
 	TLSocketClientSentEvent,
@@ -183,6 +184,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	readonly events = createNanoEvents<{
 		room_became_empty: () => void
 		session_removed: (args: { sessionKey: string }) => void
+		client_time_drift: (drift: DriftHistogram) => void
 	}>()
 
 	// Values associated with each uid (must be serializable).
@@ -647,6 +649,9 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			case 'ping': {
 				if (session.state === RoomSessionState.Connected) {
 					session.lastInteractionTime = Date.now()
+				}
+				if (message.drift) {
+					this.events.emit('client_time_drift', message.drift)
 				}
 				return this.sendMessage(session.sessionKey, { type: 'pong' })
 			}

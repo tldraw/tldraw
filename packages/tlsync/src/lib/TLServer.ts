@@ -3,6 +3,7 @@ import * as WebSocket from 'ws'
 import { ServerSocketAdapter } from './ServerSocketAdapter'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
+import { DriftHistogram } from './protocol'
 import { schema } from './schema'
 import { RoomState } from './server-types'
 
@@ -44,6 +45,11 @@ export type TLServerEvent =
 			roomId: string
 			messageType: string
 			messageLength: number
+	  }
+	| {
+			type: 'message_delivery_drift'
+			roomId: string
+			drift: DriftHistogram
 	  }
 
 /**
@@ -107,6 +113,14 @@ export abstract class TLServer {
 					this.logEvent({ type: 'room', roomId: persistenceKey, name: 'fail_persist' })
 					console.error('failed to save to storage', err)
 				}
+			})
+
+			roomState.room.events.on('client_time_drift', (drift) => {
+				this.logEvent({
+					type: 'message_delivery_drift',
+					roomId: persistenceKey,
+					drift,
+				})
 			})
 
 			// persist on an interval...

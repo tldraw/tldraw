@@ -289,6 +289,21 @@ export class TLDrawDurableObject extends TLServer {
 				})
 				break
 			}
+			case 'message_delivery_drift': {
+				this.writeEvent(event.type, {
+					blobs: [event.roomId],
+					doubles: [
+						event.drift.p01,
+						event.drift.p05,
+						event.drift.p25,
+						event.drift.p50,
+						event.drift.p75,
+						event.drift.p95,
+						event.drift.p99,
+					],
+				})
+				break
+			}
 			default: {
 				exhaustiveSwitchError(event)
 			}

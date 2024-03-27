@@ -17,7 +17,10 @@ export type TLIncompatibilityReason =
 	(typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason]
 
 /** @public */
-export type TLSocketServerSentEvent<R extends UnknownRecord> =
+export type TLSocketServerSentEvent<R extends UnknownRecord> = {
+	/** timestamp of when the server sent this event */
+	ts?: number
+} & (
 	| {
 			type: 'connect'
 			hydrationType: 'wipe_all' | 'wipe_presence'
@@ -40,6 +43,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 	  }
 	| { type: 'data'; data: TLSocketServerSentDataEvent<R>[] }
 	| TLSocketServerSentDataEvent<R>
+)
 
 /** @public */
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
@@ -77,9 +81,13 @@ export type TLConnectRequest = {
 	schema: SerializedSchema
 }
 
+export type DriftHistogram = Record<'p01' | 'p05' | 'p25' | 'p50' | 'p75' | 'p95' | 'p99', number>
+
 /** @public */
 export type TLPingRequest = {
 	type: 'ping'
+	/** Difference in time between the client receiving events and the server sending them */
+	drift?: DriftHistogram
 }
 
 /** @public */

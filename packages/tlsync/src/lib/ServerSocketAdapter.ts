@@ -17,6 +17,7 @@ export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocke
 	}
 	// see TLRoomSocket for details on why this accepts a union and not just arrays
 	sendMessage(msg: TLSocketServerSentEvent<R>) {
+		msg.ts = Date.now()
 		const message = JSON.stringify(msg)
 		this.opts.logSendMessage(msg.type, message.length)
 		this.opts.ws.send(message)

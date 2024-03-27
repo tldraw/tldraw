@@ -62,6 +62,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	/** The last clock time from the most recent server update */
 	private lastServerClock = 0
 	private lastServerInteractionTimestamp = Date.now()
+	private lastServerMessageTimestamp: number | null = null
+	private unsentServerTimestampDrift: number[] = []
 
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
 	private pendingPushRequests: { request: TLPushRequest<R>; sent: boolean }[] = []
@@ -201,7 +203,35 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				this.debug('ping loop', { isConnectedToRoom: this.isConnectedToRoom })
 				if (!this.isConnectedToRoom) return
 				try {
-					this.socket.sendMessage({ type: 'ping' })
+					let drift = undefined
+					if (this.unsentServerTimestampDrift.length >= 100) {
+						this.unsentServerTimestampDrift.sort((a, b) => a - b)
+						drift = {
+							p01: this.unsentServerTimestampDrift[
+								Math.floor(this.unsentServerTimestampDrift.length * 0.01)
+							],
+							p05: this.unsentServerTimestampDrift[
+								Math.floor(this.unsentServerTimestampDrift.length * 0.05)
+							],
+							p25: this.unsentServerTimestampDrift[
+								Math.floor(this.unsentServerTimestampDrift.length * 0.25)
+							],
+							p50: this.unsentServerTimestampDrift[
+								Math.floor(this.unsentServerTimestampDrift.length * 0.5)
+							],
+							p75: this.unsentServerTimestampDrift[
+								Math.floor(this.unsentServerTimestampDrift.length * 0.75)
+							],
+							p95: this.unsentServerTimestampDrift[
+								Math.floor(this.unsentServerTimestampDrift.length * 0.95)
+							],
+							p99: this.unsentServerTimestampDrift[
+								Math.floor(this.unsentServerTimestampDrift.length * 0.99)
+							],
+						}
+						this.unsentServerTimestampDrift = []
+					}
+					this.socket.sendMessage({ type: 'ping', drift })
 				} catch (error) {
 					console.warn('ping failed, resetting', error)
 					this.resetConnection()
@@ -356,7 +386,17 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	/** Handle events received from the server */
 	private handleServerEvent = (event: TLSocketServerSentEvent<R>) => {
 		this.debug('received server event', event)
-		this.lastServerInteractionTimestamp = Date.now()
+
+		const now = Date.now()
+		if (event.ts && this.lastServerMessageTimestamp) {
+			const serverDelta = event.ts - this.lastServerMessageTimestamp
+			const localDelta = now - this.lastServerInteractionTimestamp
+			this.unsentServerTimestampDrift.push(serverDelta - localDelta)
+		}
+
+		this.lastServerInteractionTimestamp = now
+		this.lastServerMessageTimestamp = event.ts ?? null
+
 		// always update the lastServerClock when it is present
 		switch (event.type) {
 			case 'connect':
