@@ -7,14 +7,18 @@ import {
 	PageRecordType,
 	StateNode,
 	TLEventHandlers,
+	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapePartial,
 	Vec,
+	VecLike,
 	compact,
 	isPageId,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
+
+import { NOTE_SIZE } from '../../../shapes/note/NoteShapeUtil'
 import { DragAndDropManager } from '../DragAndDropManager'
 
 export class Translating extends StateNode {
@@ -35,6 +39,7 @@ export class Translating extends StateNode {
 
 	isCloning = false
 	isCreating = false
+	oneNoteShapeSelected = false
 	onCreate: (shape: TLShape | null) => void = () => void null
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
@@ -67,6 +72,12 @@ export class Translating extends StateNode {
 		this.editor.setCursor({ type: 'move', rotation: 0 })
 		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
 
+		const oneNoteShapeSelected =
+			this.selectionSnapshot.movingShapes.length === 1 &&
+			this.selectionSnapshot.movingShapes[0].type === 'note'
+		if (oneNoteShapeSelected) {
+			this.oneNoteShapeSelected = true
+		}
 		// Don't clone on create; otherwise clone on altKey
 		if (!this.isCreating) {
 			if (this.editor.inputs.altKey) {
@@ -90,6 +101,7 @@ export class Translating extends StateNode {
 			{ ephemeral: true }
 		)
 		this.dragAndDropManager.clear()
+		this.oneNoteShapeSelected = false
 	}
 
 	override onTick = () => {
@@ -101,7 +113,12 @@ export class Translating extends StateNode {
 	}
 
 	override onPointerMove = () => {
-		this.updateShapes()
+		let stickyPit = undefined
+		if (this.oneNoteShapeSelected) {
+			stickyPit = this.getStickyPit()
+		}
+
+		this.updateShapes(stickyPit)
 	}
 
 	override onKeyDown = () => {
@@ -262,7 +279,7 @@ export class Translating extends StateNode {
 		}
 	}
 
-	protected updateShapes() {
+	protected updateShapes(stickyPit?: VecLike) {
 		const { snapshot } = this
 		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
 
@@ -272,6 +289,7 @@ export class Translating extends StateNode {
 			averagePagePoint: snapshot.averagePagePoint,
 			initialSelectionPageBounds: snapshot.initialPageBounds,
 			initialSelectionSnapPoints: snapshot.initialSnapPoints,
+			stickyPit,
 		})
 
 		this.handleChange()
@@ -295,6 +313,83 @@ export class Translating extends StateNode {
 
 			shapeSnapshot.parentTransform = parentTransform
 		})
+	}
+
+	private getStickyPit = () => {
+		const findNearestNoteShape = (): TLNoteShape | undefined => {
+			const currentPagePoint = this.editor.inputs.currentPagePoint
+			return this.editor
+				.getCurrentPageShapes()
+				.filter((shape) => shape.type === 'note')
+				.filter((shape) => shape.id !== this.selectionSnapshot.movingShapes[0].id)
+				.filter((shape) => {
+					const distance = Vec.Dist(
+						{ x: shape.x + NOTE_SIZE / 2, y: shape.y + NOTE_SIZE / 2 },
+						currentPagePoint
+					)
+					return distance < 350
+				})
+				.sort((a, b) => {
+					const distanceA = Vec.Dist(
+						{ x: a.x + NOTE_SIZE / 2, y: a.y + NOTE_SIZE / 2 },
+						currentPagePoint
+					)
+					const distanceB = Vec.Dist(
+						{ x: b.x + NOTE_SIZE / 2, y: b.y + NOTE_SIZE / 2 },
+						currentPagePoint
+					)
+					return distanceA - distanceB
+				})[0] as TLNoteShape
+		}
+		const nearestNoteShape = findNearestNoteShape()
+
+		let direction: 'above' | 'below' | 'left' | 'right' | null = null
+		if (!nearestNoteShape) return undefined
+		if (
+			nearestNoteShape.y - this.editor.inputs.currentPagePoint.y > 0 &&
+			nearestNoteShape.x - this.editor.inputs.currentPagePoint.x < 0 &&
+			nearestNoteShape.x + NOTE_SIZE - this.editor.inputs.currentPagePoint.x > 0
+		) {
+			direction = 'above'
+		} else if (
+			nearestNoteShape.y + NOTE_SIZE - this.editor.inputs.currentPagePoint.y < 0 &&
+			nearestNoteShape.x - this.editor.inputs.currentPagePoint.x < 0 &&
+			nearestNoteShape.x + NOTE_SIZE - this.editor.inputs.currentPagePoint.x > 0
+		) {
+			direction = 'below'
+		} else if (
+			nearestNoteShape.x - this.editor.inputs.currentPagePoint.x > 0 &&
+			nearestNoteShape.y - this.editor.inputs.currentPagePoint.y < 0 &&
+			nearestNoteShape.y + NOTE_SIZE - this.editor.inputs.currentPagePoint.y > 0
+		) {
+			direction = 'left'
+		} else if (
+			nearestNoteShape.x + NOTE_SIZE - this.editor.inputs.currentPagePoint.x < 0 &&
+			nearestNoteShape.y - this.editor.inputs.currentPagePoint.y < 0 &&
+			nearestNoteShape.y + NOTE_SIZE - this.editor.inputs.currentPagePoint.y > 0
+		) {
+			direction = 'right'
+		}
+		const getStickyPit = (noteShape: TLShape | undefined) => {
+			if (!noteShape) return undefined
+			const GRID_OFFSET = 230
+			const noteShapeCenter = { x: noteShape.x + NOTE_SIZE / 2, y: noteShape.y + NOTE_SIZE / 2 }
+			switch (direction) {
+				case 'above':
+					return { x: noteShapeCenter.x, y: noteShapeCenter.y - GRID_OFFSET }
+				case 'below':
+					return { x: noteShapeCenter.x, y: noteShapeCenter.y + GRID_OFFSET }
+				case 'left':
+					return { x: noteShapeCenter.x - GRID_OFFSET, y: noteShapeCenter.y }
+				case 'right':
+					return { x: noteShapeCenter.x + GRID_OFFSET, y: noteShapeCenter.y }
+				default:
+					return
+			}
+		}
+		const stickyPit = getStickyPit(nearestNoteShape)
+		if (!stickyPit) return undefined
+		return stickyPit
 	}
 }
 
@@ -361,14 +456,29 @@ export function moveShapesToPoint({
 	averagePagePoint,
 	initialSelectionPageBounds,
 	initialSelectionSnapPoints,
+	stickyPit,
 }: {
 	editor: Editor
 	shapeSnapshots: MovingShapeSnapshot[]
 	averagePagePoint: Vec
 	initialSelectionPageBounds: Box
 	initialSelectionSnapPoints: BoundsSnapPoint[]
+	stickyPit?: VecLike
 }) {
 	const { inputs } = editor
+
+	if (stickyPit) {
+		const noteShape = editor.getShape(snapshots[0].shape.id)
+		const distance = Vec.Dist({ x: noteShape!.x + 100, y: noteShape!.y + 100 }, stickyPit)
+		console.log(distance)
+		if (distance < 20) {
+			return editor.updateShape({
+				...snapshots[0].shape,
+				x: stickyPit.x - 100,
+				y: stickyPit.y - 100,
+			})
+		}
+	}
 
 	const isGridMode = editor.getInstanceState().isGridMode
 
