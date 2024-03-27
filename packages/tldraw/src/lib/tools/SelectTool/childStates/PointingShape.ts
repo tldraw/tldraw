@@ -38,7 +38,7 @@ export class PointingShape extends StateNode {
 			selectedShapeIds.includes(outermostSelectingShape.id) ||
 			// ...or if the selected ancestor doesn't allow select on enter
 			(selectedAncestor &&
-				this.editor
+				!this.editor
 					.getShapeUtil(selectedAncestor)
 					.canSelectChildOnPointerDownWhileSelected(selectedAncestor, outermostSelectingShape)) ||
 			// ...or if the current point is NOT within the selection bounds
