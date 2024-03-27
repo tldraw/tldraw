@@ -22,7 +22,7 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { createSticky } from './toolStates/Pointing'
 
-export const INITIAL_NOTE_SIZE = 200
+const NOTE_SIZE = 200
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -48,12 +48,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	getHeight(shape: TLNoteShape) {
-		return INITIAL_NOTE_SIZE + shape.props.growY
+		return NOTE_SIZE + shape.props.growY
 	}
 
 	getGeometry(shape: TLNoteShape) {
 		const height = this.getHeight(shape)
-		return new Rectangle2d({ width: INITIAL_NOTE_SIZE, height, isFilled: true })
+		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
 	}
 
 	component(shape: TLNoteShape) {
@@ -72,7 +72,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				<div
 					style={{
 						position: 'absolute',
-						width: INITIAL_NOTE_SIZE,
+						width: NOTE_SIZE,
 						height: this.getHeight(shape),
 					}}
 				>
@@ -112,7 +112,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			this.editor.complete()
 
 			// Create a new sticky
-			const size = INITIAL_NOTE_SIZE
+			const size = NOTE_SIZE
 			const offset = new Vec(shape.x + size * 1.5 + 10, shape.y + size / 2)
 			const newSticky = createSticky(this.editor, undefined, offset)
 
@@ -138,7 +138,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return (
 			<rect
 				rx="6"
-				width={toDomPrecision(INITIAL_NOTE_SIZE)}
+				width={toDomPrecision(NOTE_SIZE)}
 				height={toDomPrecision(this.getHeight(shape))}
 			/>
 		)
@@ -155,7 +155,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		const rect1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 		rect1.setAttribute('rx', '10')
-		rect1.setAttribute('width', INITIAL_NOTE_SIZE.toString())
+		rect1.setAttribute('width', NOTE_SIZE.toString())
 		rect1.setAttribute('height', bounds.height.toString())
 		rect1.setAttribute('fill', theme[adjustedColor].solid)
 		rect1.setAttribute('stroke', theme[adjustedColor].solid)
@@ -164,7 +164,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		const rect2 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 		rect2.setAttribute('rx', '10')
-		rect2.setAttribute('width', INITIAL_NOTE_SIZE.toString())
+		rect2.setAttribute('width', NOTE_SIZE.toString())
 		rect2.setAttribute('height', bounds.height.toString())
 		rect2.setAttribute('fill', theme.background)
 		rect2.setAttribute('opacity', '.28')
@@ -228,15 +228,15 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		maxWidth: INITIAL_NOTE_SIZE - PADDING * 2,
+		maxWidth: NOTE_SIZE - PADDING * 2,
 	})
 
 	const nextHeight = nextTextSize.h + PADDING * 2
 
 	let growY: number | null = null
 
-	if (nextHeight > INITIAL_NOTE_SIZE) {
-		growY = nextHeight - INITIAL_NOTE_SIZE
+	if (nextHeight > NOTE_SIZE) {
+		growY = nextHeight - NOTE_SIZE
 	} else {
 		if (prevGrowY) {
 			growY = 0
