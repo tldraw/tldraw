@@ -1518,15 +1518,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Determine whether or not any of a shape's ancestors are selected.
 	 *
-	 * @param id - The id of the shape to check.
+	 * @param shape - The shape to check.
 	 *
 	 * @public
 	 */
 	isAncestorSelected(shape: TLShape | TLShapeId): boolean {
-		return this.getSelectedAncestor(shape) !== null
+		return this.findSelectedAncestor(shape) !== null
 	}
 
-	getSelectedAncestor(shape: TLShape | TLShapeId): TLShape | null {
+	/**
+	 * Find the first selected ancestor of a shape.
+	 *
+	 * @param shape - The shape to find the selected ancestor of.
+	 * @returns
+	 */
+	findSelectedAncestor(shape: TLShape | TLShapeId): TLShape | null {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
 		const _shape = this.getShape(id)
 		if (!_shape) return null
