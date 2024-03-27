@@ -1023,8 +1023,6 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     brush: BoxModel | null;
     // (undocumented)
-    canMoveCamera: boolean;
-    // (undocumented)
     chatMessage: string;
     // (undocumented)
     currentPageId: TLPageId;

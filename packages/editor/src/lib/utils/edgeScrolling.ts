@@ -33,11 +33,7 @@ function getEdgeProximityFactor(
  * @public
  */
 export function moveCameraWhenCloseToEdge(editor: Editor) {
-	if (
-		!editor.inputs.isDragging ||
-		editor.inputs.isPanning ||
-		!editor.getInstanceState().canMoveCamera
-	)
+	if (!editor.inputs.isDragging || editor.inputs.isPanning || editor.getCameraOptions().isLocked)
 		return
 
 	const {

@@ -6690,33 +6690,6 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!TLInstance#canMoveCamera:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "canMoveCamera: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "canMoveCamera",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tlschema!TLInstance#chatMessage:member",
               "docComment": "",
               "excerptTokens": [

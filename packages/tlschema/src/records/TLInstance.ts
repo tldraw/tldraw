@@ -38,7 +38,6 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isChatting: boolean
 	isPenMode: boolean
 	isGridMode: boolean
-	canMoveCamera: boolean
 	isFocused: boolean
 	devicePixelRatio: number
 	/**
@@ -101,7 +100,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			chatMessage: T.string,
 			isChatting: T.boolean,
 			highlightedUserIds: T.arrayOf(T.string),
-			canMoveCamera: T.boolean,
 			isFocused: T.boolean,
 			devicePixelRatio: T.number,
 			isCoarsePointer: T.boolean,
@@ -147,7 +145,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			chatMessage: '',
 			isChatting: false,
 			highlightedUserIds: [],
-			canMoveCamera: true,
 			isFocused: false,
 			devicePixelRatio: typeof window === 'undefined' ? 1 : window.devicePixelRatio,
 			isCoarsePointer: false,
@@ -187,11 +184,12 @@ export const instanceVersions = {
 	AddScribbles: 22,
 	AddInset: 23,
 	AddDuplicateProps: 24,
+	RemoveCanMoveCamera: 25,
 } as const
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: instanceVersions.AddDuplicateProps,
+	currentVersion: instanceVersions.RemoveCanMoveCamera,
 	migrators: {
 		[instanceVersions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -536,6 +534,14 @@ export const instanceMigrations = defineMigrations({
 				return {
 					...record,
 				}
+			},
+		},
+		[instanceVersions.RemoveCanMoveCamera]: {
+			up: ({ canMoveCamera: _, ...instance }) => {
+				return instance
+			},
+			down: (instance: TLInstance) => {
+				return { ...instance, canMoveCamera: true }
 			},
 		},
 	},

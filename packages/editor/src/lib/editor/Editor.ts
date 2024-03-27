@@ -2638,9 +2638,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param animation - The animation options.
 	 */
 	pan(offset: VecLike, animation?: TLAnimationOptions): this {
-		if (this.getCameraOptions().isLocked) return this
+		const { isLocked, panSpeed } = this.getCameraOptions()
+		if (isLocked) return this
 		const { x: cx, y: cy, z: cz } = this.getCamera()
-		this.setCamera({ x: cx + offset.x / cz, y: cy + offset.y / cz, z: cz }, animation)
+		this.setCamera(
+			{ x: (cx + offset.x * panSpeed) / cz, y: (cy + offset.y * panSpeed) / cz, z: cz },
+			animation
+		)
 		this._flushEventsForTick(0)
 		return this
 	}
@@ -8865,8 +8869,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const { x: cx, y: cy, z: cz } = this.getCamera()
 
+						const { panSpeed, zoomSpeed } = this.getCameraOptions()
+
 						this._setCamera(
-							new Vec(cx + dx / cz - x / cz + x / z, cy + dy / cz - y / cz + y / z, z),
+							new Vec(
+								cx + (dx * panSpeed) / cz - x / cz + x / (z * zoomSpeed),
+								cy + (dy * panSpeed) / cz - y / cz + y / (z * zoomSpeed),
+								z * zoomSpeed
+							),
 							{ immediate: true }
 						)
 
@@ -8912,7 +8922,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const { x: cx, y: cy, z: cz } = this.getCamera()
 
-						const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
+						const { zoomSpeed } = this.getCameraOptions()
+						const zoom = cz + (info.delta.z ?? 0) * zoomSpeed * cz
 
 						this._setCamera(
 							new Vec(cx + (x / zoom - x) - (x / cz - x), cy + (y / zoom - y) - (y / cz - y), zoom),

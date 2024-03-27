@@ -289,7 +289,7 @@ editor.setCamera(0, 0, 1)
 You can prevent the user from changing the camera using the [Editor#updateInstanceState](?) method.
 
 ```ts
-editor.updateInstanceState({ canMoveCamera: false })
+editor.setCameraOptions({ ...editor.getCameraOptions(), canMoveCamera: false })
 ```
 
 ### Turn on dark mode

@@ -59,7 +59,7 @@ it('zooms to from B to D when B >= (C - A)/2, else zooms from B to C', () => {
 it('does not zoom when camera is frozen', () => {
 	editor.setCamera({ x: 0, y: 0, z: 1 })
 	expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
-	editor.updateInstanceState({ canMoveCamera: false })
+	editor.setCameraOptions({ ...editor.getCameraOptions(), isLocked: true })
 	editor.zoomIn()
 	expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 })

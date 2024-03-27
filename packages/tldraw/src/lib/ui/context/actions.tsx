@@ -497,7 +497,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					} else {
 						ids = editor.getSelectedShapeIds()
 						const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-						offset = instanceState.canMoveCamera
+						offset = !editor.getCameraOptions().isLocked
 							? {
 									x: commonBounds.width + 10,
 									y: 0,

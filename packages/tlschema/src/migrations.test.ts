@@ -2030,6 +2030,18 @@ describe('Fractional indexing for line points', () => {
 	})
 })
 
+describe('removes can move camera', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.RemoveCanMoveCamera]
+
+	test('up works as expected', () => {
+		expect(up({ canMoveCamera: true })).toStrictEqual({})
+	})
+
+	test('down works as expected', () => {
+		expect(down({})).toStrictEqual({ canMoveCamera: true })
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {
