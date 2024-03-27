@@ -61,7 +61,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	component(shape: TLNoteShape) {
-		/* eslint-disable react-hooks/rules-of-hooks */
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const translation = useCurrentTranslation()
 		const {
 			id,
