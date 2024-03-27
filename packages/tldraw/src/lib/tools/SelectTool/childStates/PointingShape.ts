@@ -1,13 +1,11 @@
 import {
-	Group2d,
 	HIT_TEST_MARGIN,
 	StateNode,
-	TLArrowShape,
 	TLEventHandlers,
-	TLGeoShape,
 	TLPointerEventInfo,
 	TLShape,
 } from '@tldraw/editor'
+import { getTextLabels } from '../../../utils/shapes/shapes'
 
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
@@ -127,24 +125,22 @@ export class PointingShape extends StateNode {
 						// then we would want to begin editing the shape. At the moment we're relying on the shape label's onPointerUp
 						// handler to do this logic, and prevent the regular pointer up event, so we won't be here in that case.
 
-						// ! tldraw hack
-						// if the shape is a geo shape, and we're inside of the label, then we want to begin editing the label
-						if (
-							selectedShapeIds.length === 1 &&
-							(this.editor.isShapeOfType<TLGeoShape>(selectingShape, 'geo') ||
-								this.editor.isShapeOfType<TLArrowShape>(selectingShape, 'arrow'))
-						) {
-							const geometry = this.editor.getShapeGeometry(selectingShape)
-							const labelGeometry = (geometry as Group2d).children[1]
-							if (labelGeometry) {
+						// if the shape has a text label, and we're inside of the label, then we want to begin editing the label.
+						if (selectedShapeIds.length === 1) {
+							const geometry = this.editor.getShapeUtil(selectingShape).getGeometry(selectingShape)
+							const textLabels = getTextLabels(geometry)
+							const textLabel = textLabels.length === 1 ? textLabels[0] : undefined
+							// N.B. we're only interested if there is exactly one text label. We don't handle the
+							// case if there's potentially more than one text label at the moment.
+							if (textLabel) {
 								const pointInShapeSpace = this.editor.getPointInShapeSpace(
 									selectingShape,
 									currentPagePoint
 								)
 
 								if (
-									labelGeometry.bounds.containsPoint(pointInShapeSpace, 0) &&
-									labelGeometry.hitTestPoint(pointInShapeSpace)
+									textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
+									textLabel.hitTestPoint(pointInShapeSpace)
 								) {
 									this.editor.batch(() => {
 										this.editor.mark('editing on pointer up')

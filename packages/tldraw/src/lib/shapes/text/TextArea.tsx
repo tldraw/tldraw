@@ -2,6 +2,8 @@ import { stopEventPropagation } from '@tldraw/editor'
 import { forwardRef } from 'react'
 
 type TextAreaProps = {
+	id: string
+	isEditing: boolean
 	text: string
 	handleFocus: () => void
 	handleBlur: () => void
@@ -13,6 +15,8 @@ type TextAreaProps = {
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
 	{
+		id,
+		isEditing,
 		text,
 		handleFocus,
 		handleChange,
@@ -25,10 +29,13 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 ) {
 	return (
 		<textarea
+			id={id}
 			ref={ref}
 			className="tl-text tl-text-input"
 			name="text"
 			tabIndex={-1}
+			readOnly={!isEditing}
+			disabled={!isEditing}
 			autoComplete="off"
 			autoCapitalize="off"
 			autoCorrect="off"
@@ -45,7 +52,9 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 			onKeyDown={handleKeyDown}
 			onBlur={handleBlur}
 			onTouchEnd={stopEventPropagation}
-			onContextMenu={stopEventPropagation}
+			onContextMenu={(e) => {
+				isEditing && stopEventPropagation(e)
+			}}
 			onPointerDown={handleInputPointerDown}
 			onDoubleClick={handleDoubleClick}
 		/>

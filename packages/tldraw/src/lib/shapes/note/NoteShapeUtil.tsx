@@ -51,7 +51,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	getGeometry(shape: TLNoteShape) {
 		const height = this.getHeight(shape)
-		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
+		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true, isLabel: true })
 	}
 
 	component(shape: TLNoteShape) {

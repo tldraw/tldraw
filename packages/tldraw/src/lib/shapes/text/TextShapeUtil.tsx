@@ -55,6 +55,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			width: width * scale,
 			height: height * scale,
 			isFilled: true,
+			isLabel: true,
 		})
 	}
 

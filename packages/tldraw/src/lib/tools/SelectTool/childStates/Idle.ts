@@ -482,6 +482,12 @@ export class Idle extends StateNode {
 						target: 'shape',
 						shape: onlySelectedShape,
 					})
+
+					// XXX this is a hack to select the text in the textarea when we hit enter.
+					// Open to other ideas! I don't see how else to currently do this in the codebase.
+					;(
+						document.getElementById(`text-input-${onlySelectedShape.id}`) as HTMLTextAreaElement
+					)?.select()
 					return
 				}
 

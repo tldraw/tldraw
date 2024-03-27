@@ -14173,7 +14173,7 @@
         {
           "kind": "Function",
           "canonicalReference": "tldraw!removeFrame:function(1)",
-          "docComment": "/**\n * Remove a frame.\n *\n * @param editor - tlraw editor instance.\n *\n * @param ids - Ids of the frames you wish to remove.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Remove a frame.\n *\n * @param editor - tldraw editor instance.\n *\n * @param ids - Ids of the frames you wish to remove.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
