@@ -41,22 +41,6 @@ export class MediaHelpers {
 	}
 
 	/**
-	 * Read a blob into a data url
-	 * @public
-	 */
-	static blobToDataUrl(blob: Blob): Promise<string> {
-		return new Promise((resolve, reject) => {
-			const reader = new FileReader()
-			reader.onload = () => resolve(reader.result as string)
-			reader.onerror = (e) => {
-				console.error(e)
-				reject(new Error('Could not read blob'))
-			}
-			reader.readAsDataURL(blob)
-		})
-	}
-
-	/**
 	 * Get the size of a video blob
 	 *
 	 * @param src - A SharedBlob containing the video

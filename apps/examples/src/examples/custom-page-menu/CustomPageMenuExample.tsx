@@ -3,7 +3,7 @@ import 'tldraw/tldraw.css'
 
 function CustomPageMenu() {
 	return (
-		<div style={{ transform: 'rotate(3.14rad)' }}>
+		<div style={{ transform: 'rotate(3.14rad)', backgroundColor: 'thistle' }}>
 			<DefaultPageMenu />
 		</div>
 	)

@@ -1742,7 +1742,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"../misc/geometry-types\")."
+              "text": "<{\n        points: import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
@@ -1751,7 +1751,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n    } & {}>;\n    isComplete: "
+              "text": "[];\n        type: \"free\" | \"straight\";\n    } & {}>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -2348,7 +2348,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"..\")."
+              "text": "<{\n        points: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2357,7 +2357,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n    } & {}>;\n    isComplete: "
+              "text": "[];\n        type: \"free\" | \"straight\";\n    } & {}>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -2818,7 +2818,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        id: string;\n        x: number;\n        y: number;\n        index: "
+              "text": "<string, {\n        id: string;\n        index: "
             },
             {
               "kind": "Reference",
@@ -2827,7 +2827,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    } & {}>;\n}"
+              "text": ";\n        x: number;\n        y: number;\n    } & {}>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",
@@ -2900,7 +2900,16 @@
             },
             {
               "kind": "Content",
-              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    font: import(\"..\")."
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    fontSizeAdjustment: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number | undefined>;\n    font: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2963,7 +2972,7 @@
           "name": "noteShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 18
+            "endIndex": 20
           }
         },
         {

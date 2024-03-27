@@ -151,7 +151,7 @@ function circlePath(cx: number, cy: number, r: number) {
 	)
 }
 
-export function renderPartition(strokePoints: StrokePoint[], options: StrokeOptions = {}): string {
+function renderPartition(strokePoints: StrokePoint[], options: StrokeOptions = {}): string {
 	if (strokePoints.length === 0) return ''
 	if (strokePoints.length === 1) {
 		return circlePath(strokePoints[0].point.x, strokePoints[0].point.y, strokePoints[0].radius)

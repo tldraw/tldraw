@@ -1,3 +1,7 @@
+## 2.0.26
+
+- Bug fixes and performance improvements.
+
 ## 2.0.25
 
 - Translation improvements.
