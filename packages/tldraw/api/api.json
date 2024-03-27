@@ -1211,8 +1211,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -2200,8 +2200,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -5098,8 +5098,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -5952,8 +5952,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -7470,8 +7470,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -8427,8 +8427,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -10274,8 +10274,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -10861,8 +10861,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -12186,8 +12186,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -13128,8 +13128,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -15657,8 +15657,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -16478,7 +16478,7 @@
                 {
                   "kind": "Reference",
                   "text": "SerializedSchema",
-                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                  "canonicalReference": "@tldraw/store!SerializedSchema:type"
                 },
                 {
                   "kind": "Content",
@@ -28709,8 +28709,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",

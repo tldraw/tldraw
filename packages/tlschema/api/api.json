@@ -337,7 +337,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"..\")."
+              "text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"../records/TLShape\")."
             },
             {
               "kind": "Reference",
@@ -382,7 +382,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"..\")."
+              "text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"../records/TLShape\")."
             },
             {
               "kind": "Reference",
@@ -3100,8 +3100,17 @@
             },
             {
               "kind": "Reference",
-              "text": "Migrations",
-              "canonicalReference": "@tldraw/store!Migrations:interface"
+              "text": "LegacyMigrations",
+              "canonicalReference": "@tldraw/store!LegacyMigrations:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapePropsMigrations",
+              "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
             },
             {
               "kind": "Content",
@@ -3153,7 +3162,7 @@
           "name": "SchemaShapeInfo",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 12
+            "endIndex": 14
           }
         },
         {
@@ -9184,6 +9193,68 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 7
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLShapePropsMigrations = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    sequence: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        version: number;\n        dependsOn?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationId",
+              "canonicalReference": "@tldraw/store!MigrationId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n        up: (props: any) => any;\n        down: ((props: any) => any) | typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "NO_DOWN_MIGRATION",
+              "canonicalReference": "@tldraw/tlschema!~NO_DOWN_MIGRATION:var"
+            },
+            {
+              "kind": "Content",
+              "text": " | typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "RETIRED_DOWN_MIGRATION",
+              "canonicalReference": "@tldraw/tlschema!~RETIRED_DOWN_MIGRATION:var"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    }>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLShape.ts",
+          "releaseTag": "Public",
+          "name": "TLShapePropsMigrations",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 10
           }
         },
         {

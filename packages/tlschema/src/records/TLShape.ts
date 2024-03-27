@@ -195,6 +195,9 @@ export const NO_DOWN_MIGRATION = 'none' as const
 // than just suspending them, so if other browsers follow suit maybe it's less of a concern.
 export const RETIRED_DOWN_MIGRATION = 'retired' as const
 
+/**
+ * @public
+ */
 export type TLShapePropsMigrations = {
 	sequence: Array<{
 		version: number

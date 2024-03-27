@@ -23401,12 +23401,12 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "import(\"@tldraw/store\")."
+                  "text": "import(\"@tldraw/tlschema\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -31389,8 +31389,17 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "LegacyMigrations",
+                  "canonicalReference": "@tldraw/store!LegacyMigrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -31403,7 +31412,7 @@
               "name": "migrations",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 4
               },
               "isStatic": true,
               "isProtected": false,
@@ -37240,7 +37249,7 @@
                 {
                   "kind": "Reference",
                   "text": "SerializedSchema",
-                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                  "canonicalReference": "@tldraw/store!SerializedSchema:type"
                 },
                 {
                   "kind": "Content",
@@ -42096,8 +42105,17 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "LegacyMigrations",
+                  "canonicalReference": "@tldraw/store!LegacyMigrations:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -42110,7 +42128,7 @@
               "name": "migrations",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 4
               }
             },
             {

@@ -43,6 +43,7 @@ export interface SerializedSchemaV1 {
 	>
 }
 
+/** @public */
 export interface SerializedSchemaV2 {
 	schemaVersion: 2
 	sequences: {
@@ -53,6 +54,7 @@ export interface SerializedSchemaV2 {
 	}
 }
 
+/** @public */
 export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2
 
 export function upgradeSchema(schema: SerializedSchema): SerializedSchemaV2 {
