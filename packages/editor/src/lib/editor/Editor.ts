@@ -5038,6 +5038,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (shapeBounds.w * shapeBounds.h > otherBounds.w * otherBounds.h * 2) continue
 
 			// don't stick if your geometry doesn't intersect the other shape's geometry
+			// TODO: make this actually work!
 			const shapeGeometry = this.getShapeGeometry(shape)
 			const otherGeometry = this.getShapeGeometry(other)
 			if (!shapeGeometry.vertices.some((v) => otherGeometry.hitTestPoint(v, 0, true))) continue
