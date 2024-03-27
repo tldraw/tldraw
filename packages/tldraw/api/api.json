@@ -9424,7 +9424,7 @@
                 {
                   "kind": "Reference",
                   "text": "Dragging",
-                  "canonicalReference": "tldraw!~Dragging:class"
+                  "canonicalReference": "tldraw!~Dragging_2:class"
                 },
                 {
                   "kind": "Content",
@@ -12656,6 +12656,24 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Brushing",
+                  "canonicalReference": "tldraw!~Brushing:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Dragging",
+                  "canonicalReference": "tldraw!~Dragging:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
                   "text": "Idle",
                   "canonicalReference": "tldraw!~Idle_5:class"
                 },
@@ -12667,6 +12685,15 @@
                   "kind": "Reference",
                   "text": "Pointing",
                   "canonicalReference": "tldraw!~Pointing_4:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PointingDropZone",
+                  "canonicalReference": "tldraw!~PointingDropZone:class"
                 },
                 {
                   "kind": "Content",
@@ -12683,7 +12710,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 6
+                "endIndex": 12
               },
               "isStatic": true,
               "isProtected": false,
@@ -14445,7 +14472,7 @@
                 {
                   "kind": "Reference",
                   "text": "Brushing",
-                  "canonicalReference": "tldraw!~Brushing:class"
+                  "canonicalReference": "tldraw!~Brushing_2:class"
                 },
                 {
                   "kind": "Content",

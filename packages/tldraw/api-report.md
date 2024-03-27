@@ -858,7 +858,7 @@ export function GroupOrUngroupMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class HandTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Dragging | typeof Idle_8 | typeof Pointing_7)[];
+    static children: () => (typeof Dragging_2 | typeof Idle_8 | typeof Pointing_7)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1085,7 +1085,7 @@ export function MoveToPageMenu(): JSX_2.Element | null;
 // @public (undocumented)
 export class NoteShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_5 | typeof Pointing_4)[];
+    static children: () => (typeof Brushing | typeof Dragging | typeof Idle_5 | typeof Pointing_4 | typeof PointingDropZone)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1251,7 +1251,7 @@ export function SelectAllMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class SelectTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Brushing | typeof Crop | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_11 | typeof PointingArrowLabel | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof ScribbleBrushing | typeof Translating)[];
+    static children: () => (typeof Brushing_2 | typeof Crop | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_11 | typeof PointingArrowLabel | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof ScribbleBrushing | typeof Translating)[];
     // (undocumented)
     static id: string;
     // (undocumented)

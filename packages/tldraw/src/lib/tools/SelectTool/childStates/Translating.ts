@@ -76,6 +76,10 @@ export class Translating extends StateNode {
 		}
 
 		this.snapshot = this.selectionSnapshot
+		const { movingShapes } = this.snapshot
+		if (movingShapes.length === 1 && movingShapes[0].type === 'note') {
+			return this.editor.setCurrentTool('note.dragging', movingShapes[0])
+		}
 		this.handleStart()
 		this.updateShapes()
 	}
