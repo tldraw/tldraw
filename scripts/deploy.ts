@@ -185,6 +185,7 @@ name = "${previewId}-tldraw-assets"`
 
 let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
 	if (previewId && !didUpdateTlsyncWorker) {
 		appendFileSync(
 			join(worker, 'wrangler.toml'),
@@ -212,6 +213,8 @@ name = "${previewId}-tldraw-multiplayer"`
 			`TLDRAW_ENV:${env.TLDRAW_ENV}`,
 			'--var',
 			`APP_ORIGIN:${env.APP_ORIGIN}`,
+			'--var',
+			`WORKER_NAME:${workerId}`,
 		],
 		{
 			pwd: worker,
