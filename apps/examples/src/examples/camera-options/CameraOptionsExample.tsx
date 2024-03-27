@@ -2,7 +2,7 @@ import { TLCameraOptions, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const CAMERA_OPTIONS: TLCameraOptions = {
-	fit: 'contain',
+	type: 'contain',
 	bounds: {
 		x: 0,
 		y: 0,
@@ -17,7 +17,6 @@ const CAMERA_OPTIONS: TLCameraOptions = {
 	zoomMin: 0.5,
 	zoomSpeed: 1,
 	isLocked: false,
-	elastic: 0,
 }
 
 export default function CameraOptionsExample() {
@@ -30,7 +29,7 @@ export default function CameraOptionsExample() {
 					// These components are just included for debugging / visualization!
 					OnTheCanvas: () => {
 						// This component shows the bounds (in page space)
-						if (CAMERA_OPTIONS.fit === 'infinite') return null
+						if (CAMERA_OPTIONS.type === 'infinite') return null
 
 						const {
 							bounds: { x, y, w, h },
@@ -54,7 +53,7 @@ export default function CameraOptionsExample() {
 					},
 					InFrontOfTheCanvas: () => {
 						// This component shows the padding (in screen space)
-						if (CAMERA_OPTIONS.fit === 'infinite') return null
+						if (CAMERA_OPTIONS.type === 'infinite') return null
 
 						const {
 							padding: [py, px],

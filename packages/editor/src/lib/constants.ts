@@ -31,14 +31,13 @@ const DEFAULT_FIT_CONTAIN_CAMERA_OPTIONS = {
 	bounds: { x: 0, y: 0, w: 1200, h: 800 },
 	padding: [0, 0],
 	origin: [0.5, 0.5],
-	elastic: 0,
 }
 
 /** @internal */
 export const getDefaultCameraOptions = (
-	cameraOptions: Partial<Exclude<TLCameraOptions, 'fit'>> & { fit: TLCameraOptions['fit'] }
+	cameraOptions: Partial<Exclude<TLCameraOptions, 'type'>> & { type: TLCameraOptions['type'] }
 ): TLCameraOptions => {
-	switch (cameraOptions.fit) {
+	switch (cameraOptions.type) {
 		case 'infinite': {
 			return {
 				...DEFAULT_COMMON_CAMERA_OPTIONS,

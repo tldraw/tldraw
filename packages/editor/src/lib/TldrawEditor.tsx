@@ -115,7 +115,7 @@ export interface TldrawEditorBaseProps {
 	 */
 	inferDarkMode?: boolean
 
-	cameraOptions?: Partial<TLCameraOptions> & { fit: 'infinite' | 'contain' | 'cover' }
+	cameraOptions?: Partial<Exclude<TLCameraOptions, 'type'>> & Pick<TLCameraOptions, 'type'>
 }
 
 /**

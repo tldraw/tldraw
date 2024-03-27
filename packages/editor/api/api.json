@@ -17012,7 +17012,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "void"
+                  "text": "this"
                 },
                 {
                   "kind": "Content",
@@ -35835,7 +35835,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    zoomMin: number;\n    zoomMax: number;\n    isLocked: boolean;\n} & ({\n    fit: 'contain' | 'cover';\n    bounds: "
+              "text": "{\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    zoomMin: number;\n    zoomMax: number;\n    isLocked: boolean;\n} & ({\n    type: 'contain' | 'cover';\n    bounds: "
             },
             {
               "kind": "Reference",
@@ -35844,7 +35844,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    padding: number[];\n    origin: number[];\n    elastic: number;\n} | {\n    fit: 'infinite';\n})"
+              "text": ";\n    padding: number[];\n    origin: number[];\n} | {\n    type: 'infinite';\n})"
             },
             {
               "kind": "Content",
@@ -36560,12 +36560,39 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
                   "text": "TLCameraOptions",
                   "canonicalReference": "@tldraw/editor!TLCameraOptions:type"
                 },
                 {
                   "kind": "Content",
-                  "text": "> & {\n        fit: 'contain' | 'cover' | 'infinite';\n    }"
+                  "text": ", 'type'>> & "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pick",
+                  "canonicalReference": "!Pick:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCameraOptions",
+                  "canonicalReference": "@tldraw/editor!TLCameraOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", 'type'>"
                 },
                 {
                   "kind": "Content",
@@ -36578,7 +36605,7 @@
               "name": "cameraOptions",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 5
+                "endIndex": 11
               }
             },
             {
@@ -37050,7 +37077,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", 'fit'>> & {\n        fit: "
+                  "text": ", 'type'>> & "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pick",
+                  "canonicalReference": "!Pick:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
                 },
                 {
                   "kind": "Reference",
@@ -37059,7 +37095,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "['fit'];\n    }"
+                  "text": ", 'type'>"
                 },
                 {
                   "kind": "Content",
@@ -37072,7 +37108,7 @@
               "name": "cameraOptions",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 9
+                "endIndex": 11
               }
             },
             {

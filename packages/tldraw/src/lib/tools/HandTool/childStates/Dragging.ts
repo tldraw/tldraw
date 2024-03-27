@@ -1,4 +1,4 @@
-import { Box, CAMERA_SLIDE_FRICTION, StateNode, TLEventHandlers, Vec, clamp } from '@tldraw/editor'
+import { CAMERA_SLIDE_FRICTION, StateNode, TLEventHandlers, Vec } from '@tldraw/editor'
 
 export class Dragging extends StateNode {
 	static override id = 'dragging'
@@ -35,56 +35,8 @@ export class Dragging extends StateNode {
 	private update() {
 		const { editor } = this
 		const { currentScreenPoint, originScreenPoint } = editor.inputs
-
 		const delta = Vec.Sub(currentScreenPoint, originScreenPoint)
-
-		const cameraOptions = editor.getCameraOptions()
-		if (cameraOptions.fit !== 'infinite') {
-			const { x: cx, y: cy, z: cz } = this.camera
-			const point = { x: cx + delta.x / cz, y: cy + delta.y / cz, z: cz }
-
-			const vsb = editor.getViewportScreenBounds()
-
-			const { padding, elastic } = cameraOptions
-			let [py, px] = Array.isArray(padding) ? padding : [padding, padding]
-			py = Math.min(py, vsb.w / 2)
-			px = Math.min(px, vsb.h / 2)
-
-			const bounds = Box.From(cameraOptions.bounds)
-
-			const zx = (vsb.w - px * 2) / bounds.width
-			const zy = (vsb.h - py * 2) / bounds.height
-
-			if (point.z > zx) {
-				const minX = -bounds.maxX + (vsb.w - px) / point.z
-				const maxX = bounds.x + px / point.z
-				point.x = clamp(
-					point.x,
-					elastic ? minX - (minX - point.x) * elastic : minX,
-					elastic ? maxX + (point.x - maxX) * elastic : maxX
-				)
-			} else {
-				const cx = vsb.midX / point.z - bounds.midX
-				point.x = elastic ? cx - (cx - point.x) * elastic : cx
-			}
-
-			if (point.z > zy) {
-				const minY = -bounds.maxY + (vsb.h - py) / point.z
-				const maxY = bounds.y + py / point.z
-				point.y = clamp(
-					point.y,
-					elastic ? minY - (minY - point.y) * elastic : minY,
-					elastic ? maxY + (point.y - maxY) * elastic : maxY
-				)
-			} else {
-				const cy = vsb.midY / point.z - bounds.midY
-				point.y = elastic ? cy - (cy - point.y) * elastic : cy
-			}
-
-			this.editor.setCamera(point, { force: true })
-		} else {
-			this.editor.pan(delta)
-		}
+		this.editor.pan(delta)
 	}
 
 	private complete() {

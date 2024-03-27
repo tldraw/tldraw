@@ -4,7 +4,6 @@
 
 ```ts
 
-/// <reference types="@types/jest" />
 /// <reference types="react" />
 
 import { Atom } from '@tldraw/state';
@@ -867,7 +866,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         force?: boolean;
     }): this;
     // (undocumented)
-    setCameraOptions(options: TLCameraOptions): void;
+    setCameraOptions(options: TLCameraOptions): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     setCurrentPage(page: TLPage | TLPageId, historyOptions?: TLCommandHistoryOptions): this;
     setCurrentTool(id: string, info?: {}): this;
@@ -1948,13 +1947,12 @@ export type TLCameraOptions = {
     zoomMax: number;
     isLocked: boolean;
 } & ({
-    fit: 'contain' | 'cover';
+    type: 'contain' | 'cover';
     bounds: BoxModel;
     padding: number[];
     origin: number[];
-    elastic: number;
 } | {
-    fit: 'infinite';
+    type: 'infinite';
 });
 
 // @public (undocumented)
@@ -2053,9 +2051,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
     // (undocumented)
-    cameraOptions?: Partial<TLCameraOptions> & {
-        fit: 'contain' | 'cover' | 'infinite';
-    };
+    cameraOptions?: Partial<Exclude<TLCameraOptions, 'type'>> & Pick<TLCameraOptions, 'type'>;
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
@@ -2086,9 +2082,7 @@ export type TLEditorComponents = Partial<{
 
 // @public (undocumented)
 export interface TLEditorOptions {
-    cameraOptions?: Partial<Exclude<TLCameraOptions, 'fit'>> & {
-        fit: TLCameraOptions['fit'];
-    };
+    cameraOptions?: Partial<Exclude<TLCameraOptions, 'type'>> & Pick<TLCameraOptions, 'type'>;
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;

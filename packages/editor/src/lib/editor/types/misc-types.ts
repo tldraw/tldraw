@@ -32,18 +32,17 @@ export type TLCameraOptions = {
 	isLocked: boolean
 } & (
 	| {
-			fit: 'infinite'
+			/** The type of behavior. */
+			type: 'infinite'
 	  }
 	| {
-			/** The fit logic for the camera. */
-			fit: 'contain' | 'cover'
+			/** The type of behavior. */
+			type: 'contain' | 'cover'
 			/** The bounds of the content (in page space) */
 			bounds: BoxModel
 			/** The padding around the bounds (in screen space). Provide a number for x and y, or [x, y]. */
 			padding: number[]
 			/** The origin for placement when the bounds are smaller than the viewport. Provide a number for x and y, or [x, y].*/
 			origin: number[]
-			/** The maximum elastic distance around the bounds */
-			elastic: number
 	  }
 )
