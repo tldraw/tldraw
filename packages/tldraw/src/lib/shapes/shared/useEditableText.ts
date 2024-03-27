@@ -22,7 +22,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const rSelectionRanges = useRef<Range[] | null>()
 
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
-	const shape = editor.getShape(id) as T
+	const shape = editor.getShape(id)
 	const doesShapeAutoEditOnKeystroke =
 		shape && editor.getShapeUtil(type).doesAutoEditOnKeyStroke(shape)
 
