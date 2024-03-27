@@ -4,6 +4,7 @@
 
 ```ts
 
+/// <reference types="@types/jest" />
 /// <reference types="react" />
 
 import { Atom } from '@tldraw/state';

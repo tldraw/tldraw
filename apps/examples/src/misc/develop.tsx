@@ -22,14 +22,15 @@ export default function Develop() {
 					}
 				}}
 				cameraOptions={{
-					fit: 'cover',
+					fit: 'contain',
 					bounds: {
 						x: 0,
 						y: 0,
 						w: 800,
 						h: 800,
 					},
-					padding: [0, 100],
+					origin: [0.5, 0.5],
+					padding: [50, 100],
 					panSpeed: 1,
 					zoomSteps: [0.5, 0.75, 1, 1.5, 2],
 					zoomMax: 2,

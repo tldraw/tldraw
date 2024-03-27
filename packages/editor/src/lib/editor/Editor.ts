@@ -71,7 +71,6 @@ import {
 	COARSE_DRAG_DISTANCE,
 	COLLABORATOR_IDLE_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
-	DEFAULT_CAMERA_OPTIONS,
 	DRAG_DISTANCE,
 	FOLLOW_CHASE_PAN_SNAP,
 	FOLLOW_CHASE_PAN_UNSNAP,
@@ -85,6 +84,7 @@ import {
 	MAX_ZOOM,
 	MIN_ZOOM,
 	SVG_PADDING,
+	getDefaultCameraOptions,
 } from '../constants'
 import { Box } from '../primitives/Box'
 import { Mat, MatLike, MatModel } from '../primitives/Mat'
@@ -208,7 +208,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.snaps = new SnapManager(this)
 
-		this._cameraOptions = { ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions } as TLCameraOptions
+		this._cameraOptions = cameraOptions?.fit
+			? getDefaultCameraOptions(cameraOptions)
+			: getDefaultCameraOptions({ fit: 'infinite' })
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
@@ -2078,21 +2080,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private getNaturalZoom() {
 		const cameraOptions = this.getCameraOptions()
-		let naturalZoom = 1
-		if (cameraOptions.fit !== 'infinite') {
-			const { padding } = cameraOptions
-			const vsb = this.getViewportScreenBounds()
-			let [py, px] = Array.isArray(padding) ? padding : [padding, padding]
-			py = Math.min(py, vsb.w / 2)
-			px = Math.min(px, vsb.h / 2)
-			const bounds = Box.From(cameraOptions.bounds)
-			bounds.x -= px
-			bounds.y -= py
-			bounds.w += px * 2
-			bounds.h += py * 2
-			naturalZoom = Math.min(vsb.w / bounds.width, vsb.h / bounds.height)
+		if (cameraOptions.fit === 'infinite') {
+			return 1
 		}
-		return naturalZoom
+
+		const { padding } = cameraOptions
+		const vsb = this.getViewportScreenBounds()
+		let [py, px] = Array.isArray(padding) ? padding : [padding, padding]
+		py = Math.min(py, vsb.w / 2)
+		px = Math.min(px, vsb.h / 2)
+		const bounds = Box.From(cameraOptions.bounds)
+		bounds.x -= px
+		bounds.y -= py
+		bounds.w += px * 2
+		bounds.h += py * 2
+		return cameraOptions.fit === 'contain'
+			? Math.min(vsb.w / bounds.width, vsb.h / bounds.height)
+			: Math.max(vsb.w / bounds.width, vsb.h / bounds.height)
 	}
 
 	/** @public */
@@ -2125,7 +2129,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _setCamera(_point: VecLike, opts?: { immediate?: boolean; force?: boolean }): this {
+	private _setCamera(
+		_point: VecLike,
+		opts?: { immediate?: boolean; force?: boolean; initial?: boolean }
+	): this {
 		const currentCamera = this.getCamera()
 		const point = Vec.From(_point)
 
@@ -2147,15 +2154,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const { zoomMax, zoomMin } = cameraOptions
 				point.z = clamp(point.z, zoomMin, zoomMax)
 			} else {
-				const { zoomMax, zoomMin, padding } = cameraOptions
+				const { zoomMax, zoomMin, padding, origin } = cameraOptions
 
 				const vsb = this.getViewportScreenBounds()
 
 				// Get padding (it's either a number or an array of 2 numbers for t/b, l/r)
-				let [py, px] = Array.isArray(padding) ? padding : [padding, padding]
 				// Clamp padding to half the viewport size on either dimension
-				py = Math.min(py, vsb.w / 2)
-				px = Math.min(px, vsb.h / 2)
+				const py = Math.min(padding[0], vsb.w / 2)
+				const px = Math.min(padding[1], vsb.h / 2)
 
 				// Expand the bounds by the padding
 				const bounds = Box.From(cameraOptions.bounds)
@@ -2168,9 +2174,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const zy = (vsb.h - py * 2) / bounds.height
 
 				// The min and max zooms are factors of the smaller natural zoom axis
-				const minNaturalZoom = cameraOptions.fit === 'contain' ? Math.min(zx, zy) : Math.max(zx, zy)
-				const maxZ = zoomMax * minNaturalZoom
-				const minZ = zoomMin * minNaturalZoom
+				const fitZoom = cameraOptions.fit === 'contain' ? Math.min(zx, zy) : Math.max(zx, zy)
+				const maxZ = zoomMax * fitZoom
+				const minZ = zoomMin * fitZoom
+
+				if (opts?.initial) {
+					point.z = fitZoom
+				}
 
 				if (point.z < minZ || point.z > maxZ) {
 					// We're trying to zoom out past the minimum zoom level,
@@ -2189,18 +2199,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 					point.y = currentCamera.y + cyB - cyA
 				}
 
+				const [oy, ox] = origin
+
 				// We're past the natural zoom for the x axis, so clamp it with bounds + padding
-				// We're below the natural zoom for the x axis, so center it
 				if (point.z > zx) {
 					point.x = clamp(point.x, -bounds.maxX + (vsb.w - px) / point.z, bounds.x + px / point.z)
 				} else {
-					point.x = vsb.midX / point.z - bounds.midX
+					// We're below the natural zoom for the x axis, so apply the origin
+					point.x = (vsb.x + px) / point.z + ((vsb.w - px * 2) / point.z - bounds.width) * ox
 				}
 
 				if (point.z > zy) {
 					point.y = clamp(point.y, -bounds.maxY + (vsb.h - py) / point.z, bounds.y + py / point.z)
 				} else {
-					point.y = vsb.midY / point.z - bounds.midY
+					point.y = (vsb.y + py) / point.z + ((vsb.h - py * 2) / point.z - bounds.height) * oy
 				}
 			}
 		}
@@ -2940,11 +2952,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// noop
 		} else {
 			// Get padding (it's either a number or an array of 2 numbers for t/b, l/r)
-			const { padding } = cameraOptions
-			let [py, px] = Array.isArray(padding) ? padding : [padding, padding]
+			const { padding, origin } = cameraOptions
 			// Clamp padding to half the viewport size on either dimension
-			py = Math.min(py, vsb.w / 2)
-			px = Math.min(px, vsb.h / 2)
+			const py = Math.min(padding[0], vsb.w / 2)
+			const px = Math.min(padding[0], vsb.h / 2)
 
 			// Expand the bounds by the padding
 			const bounds = Box.From(cameraOptions.bounds)
@@ -2959,14 +2970,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 					? Math.min(vsb.w / bounds.width, vsb.h / bounds.height)
 					: Math.max(vsb.w / bounds.width, vsb.h / bounds.height)
 
+			const [oy, ox] = origin
+			const cx = vsb.midX / zoom - (bounds.minX + bounds.width * ox)
+			const cy = vsb.midY / zoom - (bounds.minY + bounds.height * oy)
+
 			// Keeping the current screen center, adjust zoom to the natural zoom
-			const { x, y } = vsb.center
-			const { x: cx, y: cy, z: cz } = this.getCamera()
-			this.setCamera({
-				x: cx + (x / zoom - x) - (x / cz - x),
-				y: cy + (y / zoom - y) - (y / cz - y),
-				z: zoom,
-			})
+			this._setCamera(
+				{
+					x: cx,
+					y: cy,
+					z: zoom,
+				},
+				{ initial: true }
+			)
 		}
 	}
 

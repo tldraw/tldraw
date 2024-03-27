@@ -18,15 +18,41 @@ export const MIN_ZOOM = 0.1
 /** @internal */
 export const MAX_ZOOM = 8
 
-/** @internal */
-export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions = {
-	fit: 'infinite',
+const DEFAULT_COMMON_CAMERA_OPTIONS = {
 	zoomMax: 8,
 	zoomMin: 0.1,
 	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
 	zoomSpeed: 1,
 	panSpeed: 1,
 	isLocked: false,
+}
+
+const DEFAULT_FIT_CONTAIN_CAMERA_OPTIONS = {
+	bounds: { x: 0, y: 0, w: 1200, h: 800 },
+	padding: [0, 0],
+	origin: [0.5, 0.5],
+	elastic: 0,
+}
+
+/** @internal */
+export const getDefaultCameraOptions = (
+	cameraOptions: Partial<Exclude<TLCameraOptions, 'fit'>> & { fit: TLCameraOptions['fit'] }
+): TLCameraOptions => {
+	switch (cameraOptions.fit) {
+		case 'infinite': {
+			return {
+				...DEFAULT_COMMON_CAMERA_OPTIONS,
+				...cameraOptions,
+			}
+		}
+		default: {
+			return {
+				...DEFAULT_COMMON_CAMERA_OPTIONS,
+				...DEFAULT_FIT_CONTAIN_CAMERA_OPTIONS,
+				...cameraOptions,
+			}
+		}
+	}
 }
 
 /** @internal */
