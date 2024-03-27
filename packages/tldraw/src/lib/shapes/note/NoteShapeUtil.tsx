@@ -101,13 +101,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	indicator(shape: TLNoteShape) {
-		return (
-			<rect
-				rx="6"
-				width={toDomPrecision(NOTE_SIZE)}
-				height={toDomPrecision(this.getHeight(shape))}
-			/>
-		)
+		return <rect width={toDomPrecision(NOTE_SIZE)} height={toDomPrecision(this.getHeight(shape))} />
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
