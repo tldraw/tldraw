@@ -3,7 +3,7 @@ import { memo, useEffect, useRef, useState } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 
 /** @internal */
-export const DebugPanel = memo(function DebugPanel() {
+export const DefaultDebugPanel = memo(function DefaultDebugPanel() {
 	const { DebugMenu } = useTldrawUiComponents()
 
 	return (

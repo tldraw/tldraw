@@ -362,7 +362,7 @@ test('clients using an out-of-date protocol will receive compatibility errors', 
 		type: 'connect',
 		connectRequestId: 'test',
 		lastServerClock: 0,
-		protocolVersion: TLSYNC_PROTOCOL_VERSION - 1,
+		protocolVersion: TLSYNC_PROTOCOL_VERSION - 2,
 		schema: schemaV2.serialize(),
 	})
 

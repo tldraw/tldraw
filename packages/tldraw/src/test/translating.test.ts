@@ -137,14 +137,14 @@ describe('When translating...', () => {
 
 		const before = editor.getShape<TLGeoShape>(ids.box1)!
 
-		editor.forceTick(5)
+		jest.advanceTimersByTime(100)
 		editor
 			// The change is bigger than expected because the camera moves
 			.expectShapeToMatch({ id: ids.box1, x: -160, y: 10 })
 			// We'll continue moving in the x postion, but now we'll also move in the y position.
 			// The speed in the y position is smaller since we are further away from the edge.
 			.pointerMove(0, 25)
-		editor.forceTick(2)
+		jest.advanceTimersByTime(100)
 		editor.pointerUp()
 
 		const after = editor.getShape<TLGeoShape>(ids.box1)!
@@ -159,16 +159,16 @@ describe('When translating...', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor.pointerDown(50, 50, ids.box1).pointerMove(1080, 50)
 
+		jest.advanceTimersByTime(100)
 		editor
-			.forceTick(4)
 			// The change is bigger than expected because the camera moves
-			.expectShapeToMatch({ id: ids.box1, x: 1140, y: 10 })
+			.expectShapeToMatch({ id: ids.box1, x: 1160, y: 10 })
 			.pointerMove(1080, 800)
-			.forceTick(6)
+		jest.advanceTimersByTime(100)
 		editor
-			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
+			.expectShapeToMatch({ id: ids.box1, x: 1300, y: 845.68 })
 			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: 1280, y: 845.68 })
+			.expectShapeToMatch({ id: ids.box1, x: 1300, y: 845.68 })
 	})
 
 	it('translates multiple shapes', () => {
@@ -1875,4 +1875,71 @@ it('clones a single shape simply', () => {
 	expect(editor.getOnlySelectedShape()).toBe(sticky2)
 	expect(editor.getEditingShape()).toBe(undefined)
 	expect(editor.getHoveredShape()).toBe(sticky2)
+})
+
+describe('Moving the camera while panning', () => {
+	it('moves things while dragging', () => {
+		editor.createShape({
+			type: 'geo',
+			id: ids.box1,
+			x: 0,
+			y: 0,
+			props: { geo: 'rectangle', w: 100, h: 100, fill: 'solid' },
+		})
+
+		editor
+			.expectShapeToMatch({ id: ids.box1, x: 0, y: 0 })
+			.expectToBeIn('select.idle')
+			.pointerMove(40, 40)
+			.pointerDown()
+			.expectToBeIn('select.pointing_shape')
+			.pointerMove(50, 50) // move by 10,10
+			.expectToBeIn('select.translating')
+			.expectShapeToMatch({ id: ids.box1, x: 10, y: 10 })
+			.wheel(-10, -10) // wheel by -10,-10
+			.expectShapeToMatch({ id: ids.box1, x: 20, y: 20 })
+			.wheel(-10, -10) // wheel by -10,-10
+			.expectShapeToMatch({ id: ids.box1, x: 30, y: 30 })
+	})
+
+	it('Correctly preserves screen point while dragging', async () => {
+		editor.createShape({
+			type: 'geo',
+			id: ids.box1,
+			x: 0,
+			y: 0,
+			props: { geo: 'rectangle', w: 100, h: 100, fill: 'solid' },
+		})
+
+		editor
+			.expectCameraToBe(0, 0, 1)
+			.expectShapeToMatch({ id: ids.box1, x: 0, y: 0 })
+			.expectPageBoundsToBe(ids.box1, { x: 0, y: 0 })
+			.expectScreenBoundsToBe(ids.box1, { x: 0, y: 0 })
+			.expectToBeIn('select.idle')
+			.pointerMove(40, 40)
+			.pointerDown()
+			.expectToBeIn('select.pointing_shape')
+			.pointerMove(50, 50) // move by 10,10
+			.expectToBeIn('select.translating')
+
+			// we haven't moved the camera from origin yet, so the
+			// point / page / screen points should all be identical
+			.expectCameraToBe(0, 0, 1)
+			.expectShapeToMatch({ id: ids.box1, x: 10, y: 10 })
+			.expectPageBoundsToBe(ids.box1, { x: 10, y: 10 })
+			.expectScreenBoundsToBe(ids.box1, { x: 10, y: 10 })
+
+			// now we move the camera by -10,-10
+			// since we're dragging, they should still all move together
+			.wheel(-10, -10)
+
+			// The camera has moved
+			.expectCameraToBe(-10, -10, 1)
+			.expectShapeToMatch({ id: ids.box1, x: 20, y: 20 })
+			.expectPageBoundsToBe(ids.box1, { x: 20, y: 20 })
+
+			// Screen bounds / point is still the same as it was before
+			.expectScreenBoundsToBe(ids.box1, { x: 10, y: 10 })
+	})
 })

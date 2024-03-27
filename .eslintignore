@@ -29,3 +29,5 @@ apps/vscode/extension/editor/tldraw-assets.json
 **/coverage/**/*
 
 apps/dotcom/public/sw.js
+
+patchedJestJsDom.js

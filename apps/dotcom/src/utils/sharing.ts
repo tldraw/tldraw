@@ -147,6 +147,7 @@ export function useSharing(): TLUiOverrides {
 							addToast({
 								title: 'Error',
 								description: msg('share-menu.upload-failed'),
+								severity: 'error',
 							})
 						}
 					},
@@ -242,6 +243,7 @@ async function getRoomData(
 		addToast({
 			title: 'Too big!',
 			description: msg('share-menu.project-too-large'),
+			severity: 'warning',
 		})
 
 		trackAnalyticsEvent('shared-fail-too-big', {
