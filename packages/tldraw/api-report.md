@@ -1099,6 +1099,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
+    canReceiveNewChildrenOfType: () => boolean;
+    // (undocumented)
+    canSelectChildOnPointerDownWhileSelected: () => boolean;
+    // (undocumented)
+    canStickShape: () => boolean;
+    // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
     doesAutoEditOnKeyStroke: () => boolean;
@@ -1168,6 +1174,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     } | undefined;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
+    // (undocumented)
+    onStickShape: (note: TLNoteShape, shape: TLShape) => void;
+    // (undocumented)
+    onStickShapeOver: (note: TLNoteShape, shape: TLShape) => {
+        shouldHint: boolean;
+    };
     // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;

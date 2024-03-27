@@ -1519,16 +1519,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Determine whether or not any of a shape's ancestors are selected.
 	 *
-	 * @param id - The id of the shape to check.
+	 * @param shape - The shape to check.
 	 *
 	 * @public
 	 */
 	isAncestorSelected(shape: TLShape | TLShapeId): boolean {
+		return this.findSelectedAncestor(shape) !== null
+	}
+
+	/**
+	 * Find the first selected ancestor of a shape.
+	 *
+	 * @param shape - The shape to find the selected ancestor of.
+	 *
+	 * @public
+	 */
+	findSelectedAncestor(shape: TLShape | TLShapeId): TLShape | null {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
 		const _shape = this.getShape(id)
-		if (!_shape) return false
+		if (!_shape) return null
 		const selectedShapeIds = this.getSelectedShapeIds()
-		return !!this.findShapeAncestor(_shape, (parent) => selectedShapeIds.includes(parent.id))
+		return this.findShapeAncestor(_shape, (parent) => selectedShapeIds.includes(parent.id)) ?? null
 	}
 
 	/**
@@ -4997,6 +5008,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		return idsToInclude
+	}
+
+	getStickingOverShape(shape: TLShape) {
+		// starting from the top...
+		const currentPageShapesSorted = this.getCurrentPageShapesSorted()
+		for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
+			const other = currentPageShapesSorted[i]
+
+			// don't allow sticking to yourself
+			if (other.id === shape.id) continue
+
+			// don't allow sticking to your children
+			if (this.hasAncestor(other, shape.id)) continue
+
+			// only allow shapes that can receive children
+			if (!this.getShapeUtil(other).canStickShape(other, shape)) continue
+
+			// don't stick to locked shapes
+			if (other.isLocked) continue
+
+			// don't stick if your bounds are outside the other shape's bounds
+			const shapeBounds = this.getShapePageBounds(shape)
+			const otherBounds = this.getShapePageBounds(other)
+			if (!shapeBounds || !otherBounds || !otherBounds.includes(shapeBounds)) continue
+
+			// don't stick if you completely contain the other shape
+			if (shapeBounds.contains(otherBounds)) continue
+
+			// don't stick if you're more than two times the size of the other shape
+			if (shapeBounds.w * shapeBounds.h > otherBounds.w * otherBounds.h * 2) continue
+
+			// don't stick if your geometry doesn't intersect the other shape's geometry
+			// TODO: make this actually work!
+			const shapeGeometry = this.getShapeGeometry(shape)
+			const otherGeometry = this.getShapeGeometry(other)
+			if (!shapeGeometry.vertices.some((v) => otherGeometry.hitTestPoint(v, 0, true))) continue
+
+			return other
+		}
 	}
 
 	/**

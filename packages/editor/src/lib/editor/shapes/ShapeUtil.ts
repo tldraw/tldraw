@@ -220,6 +220,18 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
+	 * Get whether a shape's child can be immediately selected by clicking on
+	 * it, while the current shape is selected.
+	 *
+	 * @param shape - The shape.
+	 * @param child - The child shape.
+	 * @public
+	 */
+	canSelectChildOnPointerDownWhileSelected(shape: Shape, child: TLShape) {
+		return false
+	}
+
+	/**
 	 * Get whether the shape can receive children of a given type.
 	 *
 	 * @param shape - The shape type.
@@ -227,6 +239,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	canDropShapes(shape: Shape, shapes: TLShape[]) {
+		return false
+	}
+
+	canStickShape(shape: Shape, other: TLShape) {
 		return false
 	}
 
@@ -345,6 +361,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	onDragShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
 
+	onStickShapeOver?: (shape: Shape, other: TLShape) => { shouldHint: boolean }
+
 	/**
 	 * A callback called when some other shapes are dragged out of this one.
 	 *
@@ -354,6 +372,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	onDragShapesOut?: TLOnDragHandler<Shape>
 
+	onStickShapeOut?: (shape: Shape, other: TLShape) => void
+
 	/**
 	 * A callback called when some other shapes are dropped over this one.
 	 *
@@ -362,6 +382,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onDropShapesOver?: TLOnDragHandler<Shape>
+
+	onStickShape?: (shape: Shape, other: TLShape) => void
 
 	/**
 	 * A callback called when a shape starts being resized.

@@ -44,9 +44,42 @@ export class DragAndDropManager {
 
 		const nextDroppingShapeId = this.editor.getDroppingOverShape(point, movingShapes)?.id ?? null
 
-		// is the next dropping shape id different than the last one?
+		// is the next dropping shape id same as the last one?
 		if (nextDroppingShapeId === this.prevDroppingShapeId) {
-			return
+			// if some shapes are still within their parent, do nothing
+			if (
+				movingShapes.some((shape) => {
+					const parent = this.editor.getShape(shape.parentId)
+					if (!parent) return true
+					const parentBounds = this.editor.getShapePageBounds(parent)
+					const shapeBounds = this.editor.getShapePageBounds(shape)
+					if (!parentBounds || !shapeBounds) return true
+					return parentBounds.includes(shapeBounds)
+				})
+			) {
+				return
+			}
+
+			// if all shapes are outside their parents, reparent each one
+
+			// group shapes by their parent
+			const parentChildGroups = new Map<TLShape, TLShape[]>()
+			for (const shape of movingShapes) {
+				const parent = this.editor.getShape(shape.parentId)
+				if (!parent) continue
+				const group = parentChildGroups.get(parent) ?? []
+				if (!parentChildGroups.has(parent)) {
+					parentChildGroups.set(parent, group)
+				}
+				group.push(shape)
+			}
+
+			// call onDragShapesOut for each parent
+			for (const [parent, children] of parentChildGroups) {
+				this.editor.getShapeUtil(parent).onDragShapesOut?.(parent, children)
+			}
+
+			this.prevDroppingShapeId = null
 		}
 
 		// the old previous one

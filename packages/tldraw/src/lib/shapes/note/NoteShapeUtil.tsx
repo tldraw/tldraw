@@ -5,6 +5,7 @@ import {
 	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	TLShape,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -30,6 +31,19 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override doesAutoEditOnKeyStroke = () => true
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => true
+
+	override canReceiveNewChildrenOfType = () => true
+	override canStickShape = () => true
+	override canSelectChildOnPointerDownWhileSelected = () => true
+
+	override onStickShapeOver = (note: TLNoteShape, shape: TLShape) => {
+		this.editor.reparentShapes([shape], note.id)
+		return { shouldHint: true }
+	}
+
+	override onStickShape = (note: TLNoteShape, shape: TLShape) => {
+		this.editor.reparentShapes([shape], note.id)
+	}
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {

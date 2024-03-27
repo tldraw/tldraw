@@ -655,6 +655,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         }[K];
     };
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
+    findSelectedAncestor(shape: TLShape | TLShapeId): null | TLShape;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
@@ -766,6 +767,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSharedStyles(): ReadonlySharedStyleMap;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
+    // (undocumented)
+    getStickingOverShape(shape: TLShape): TLUnknownShape | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     // @deprecated (undocumented)
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
@@ -1622,7 +1625,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canResize: TLShapeUtilFlag<Shape>;
     canScroll: TLShapeUtilFlag<Shape>;
+    canSelectChildOnPointerDownWhileSelected(shape: Shape, child: TLShape): boolean;
     canSnap: TLShapeUtilFlag<Shape>;
+    // (undocumented)
+    canStickShape(shape: Shape, other: TLShape): boolean;
     canUnmount: TLShapeUtilFlag<Shape>;
     abstract component(shape: Shape): any;
     // @internal
@@ -1667,6 +1673,14 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onRotate?: TLOnRotateHandler<Shape>;
     onRotateEnd?: TLOnRotateEndHandler<Shape>;
     onRotateStart?: TLOnRotateStartHandler<Shape>;
+    // (undocumented)
+    onStickShape?: (shape: Shape, other: TLShape) => void;
+    // (undocumented)
+    onStickShapeOut?: (shape: Shape, other: TLShape) => void;
+    // (undocumented)
+    onStickShapeOver?: (shape: Shape, other: TLShape) => {
+        shouldHint: boolean;
+    };
     onTranslate?: TLOnTranslateHandler<Shape>;
     onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
     onTranslateStart?: TLOnTranslateStartHandler<Shape>;
