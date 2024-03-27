@@ -3,8 +3,10 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLGroupShape,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	TLShape,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -28,6 +30,33 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override canEdit = () => true
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => true
+
+	override canReceiveNewChildrenOfType = () => true
+	override canDropShapes = () => true
+	override onDragShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
+		if (!shapes.every((child) => child.parentId === note.id)) {
+			this.editor.reparentShapes(
+				shapes.map((shape) => shape.id),
+				note.id
+			)
+			return { shouldHint: true }
+		}
+		return { shouldHint: false }
+	}
+
+	override onDragShapesOut = (note: TLNoteShape, shapes: TLShape[]) => {
+		const parent = this.editor.getShape(note.parentId)
+		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
+
+		// If frame is in a group, keep the shape
+		// moved out in that group
+
+		if (isInGroup) {
+			this.editor.reparentShapes(shapes, parent.id)
+		} else {
+			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
+		}
+	}
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
