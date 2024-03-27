@@ -636,15 +636,19 @@ export const LANGUAGES: readonly [{
 }, {
     readonly locale: "he";
     readonly label: "עברית";
+    readonly isRTL: true;
 }, {
     readonly locale: "ar";
     readonly label: "عربي";
+    readonly isRTL: true;
 }, {
     readonly locale: "fa";
     readonly label: "فارسی";
+    readonly isRTL: true;
 }, {
     readonly locale: "ku";
     readonly label: "کوردی";
+    readonly isRTL: true;
 }, {
     readonly locale: "ne";
     readonly label: "नेपाली";

@@ -28,6 +28,7 @@ type TextLabelProps = {
 	text: string
 	labelColor: TLDefaultColorStyle
 	bounds?: Box
+	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 	classNamePrefix?: string
 	style?: React.CSSProperties
 	textWidth?: number
@@ -47,6 +48,7 @@ export const TextLabel = React.memo(function TextLabel({
 	verticalAlign,
 	wrap,
 	bounds,
+	onKeyDown: handleKeyDownCustom,
 	classNamePrefix,
 	style,
 	textWidth,
@@ -120,6 +122,7 @@ export const TextLabel = React.memo(function TextLabel({
 					text={text}
 					isEditing={isEditing}
 					{...editableTextRest}
+					handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
 				/>
 			</div>
 		</div>

@@ -2396,6 +2396,7 @@ export type TLUiToolsProviderProps = {
 export type TLUiTranslation = {
     readonly locale: string;
     readonly label: string;
+    readonly isRTL?: boolean;
     readonly messages: Record<TLUiTranslationKey, string>;
 };
 
@@ -2487,6 +2488,9 @@ export function useCanUndo(): boolean;
 
 // @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
+
+// @public (undocumented)
+export const useCurrentTranslation: () => TLUiTranslation;
 
 // @public (undocumented)
 export function useDefaultHelpers(): {

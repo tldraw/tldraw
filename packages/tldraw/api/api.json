@@ -13269,7 +13269,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -13353,7 +13353,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -26378,7 +26378,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    readonly locale: string;\n    readonly label: string;\n    readonly messages: "
+              "text": "{\n    readonly locale: string;\n    readonly label: string;\n    readonly isRTL?: boolean;\n    readonly messages: "
             },
             {
               "kind": "Reference",
@@ -27404,6 +27404,31 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useCopyAs"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!useCurrentTranslation:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "useCurrentTranslation: () => "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiTranslation",
+              "canonicalReference": "tldraw!TLUiTranslation:type"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTranslation/useTranslation.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useCurrentTranslation"
         },
         {
           "kind": "Function",

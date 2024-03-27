@@ -1,22 +1,28 @@
 import {
+	ANIMATION_MEDIUM_MS,
 	Editor,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	TLShapeId,
+	Vec,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
 	rng,
 	toDomPrecision,
 } from '@tldraw/editor'
+import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
+import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import { createSticky } from './toolStates/Pointing'
 
 const NOTE_SIZE = 200
 
@@ -55,6 +61,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	component(shape: TLNoteShape) {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const translation = useCurrentTranslation()
 		const {
 			id,
 			type,
@@ -108,6 +116,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							text={text}
 							labelColor="black"
 							wrap
+							onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) =>
+								this.handleKeyDown(e, id, translation.isRTL)
+							}
 						/>
 					</div>
 				</div>
@@ -116,6 +127,55 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				)}
 			</>
 		)
+	}
+
+	private handleKeyDown = (
+		e: React.KeyboardEvent<HTMLTextAreaElement>,
+		id: TLShapeId,
+		isUiRTL: boolean | undefined
+	) => {
+		const shape = this.editor.getShape<TLNoteShape>(id)!
+		const isCmdOrCtrlEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
+		if (isCmdOrCtrlEnter || e.key === 'Tab') {
+			this.editor.complete()
+
+			// Create a new sticky
+			const size = NOTE_SIZE
+			const MARGIN = 10
+			let offset = new Vec(shape.x, shape.y)
+			if (isCmdOrCtrlEnter) {
+				const vertDirection = e.shiftKey ? -1 : 1
+				offset = Vec.Add(
+					offset,
+					new Vec(size / 2, vertDirection === 1 ? size * 1.5 + MARGIN : (-1 * size) / 2 - MARGIN)
+				)
+			} else {
+				// This is a XOR gate: e.shiftKey != isRightToLeftLanguage(shape.props.text)
+				const isRTL = !!(isRightToLeftLanguage(shape.props.text) || isUiRTL)
+				const horzDirection = e.shiftKey != isRTL ? -1 : 1
+				offset = Vec.Add(
+					offset,
+					new Vec(horzDirection === 1 ? size * 1.5 + MARGIN : (-1 * size) / 2 - MARGIN, size / 2)
+				)
+			}
+			const newSticky = createSticky(this.editor, undefined, offset)
+
+			// Go into edit mode on the new sticky
+			this.editor.setEditingShape(newSticky.id)
+			this.editor.setCurrentTool('select.editing_shape', {
+				target: 'shape',
+				shape: newSticky,
+			})
+
+			// Animate to the new sticky, if necessary.
+			const selectionPageBounds = this.editor.getSelectionPageBounds()
+			const viewportPageBounds = this.editor.getViewportPageBounds()
+			if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+				this.editor.centerOnPoint(selectionPageBounds.center, {
+					duration: ANIMATION_MEDIUM_MS,
+				})
+			}
+		}
 	}
 
 	indicator(shape: TLNoteShape) {

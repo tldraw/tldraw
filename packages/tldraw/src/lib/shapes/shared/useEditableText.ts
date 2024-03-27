@@ -4,7 +4,6 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
-	preventDefault,
 	stopEventPropagation,
 	useEditor,
 	useValue,
@@ -77,15 +76,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				case 'Enter': {
 					if (e.ctrlKey || e.metaKey) {
 						editor.complete()
-					}
-					break
-				}
-				case 'Tab': {
-					preventDefault(e)
-					if (e.shiftKey) {
-						TextHelpers.unindent(e.currentTarget)
-					} else {
-						TextHelpers.indent(e.currentTarget)
 					}
 					break
 				}
