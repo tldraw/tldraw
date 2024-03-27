@@ -34,10 +34,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override hideSelectionBoundsFg = () => true
 
 	override canReceiveNewChildrenOfType = () => true
-	override canDropShapes = () => true
+	override canStickShape = () => true
 	override canSelectChildOnPointerDownWhileSelected = () => true
 
-	override onDragShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
+	override onStickShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
 		if (!shapes.every((child) => child.parentId === note.id)) {
 			this.editor.reparentShapes(
 				shapes.map((shape) => shape.id),
@@ -48,7 +48,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return { shouldHint: false }
 	}
 
-	override onDragShapesOut = (note: TLNoteShape, shapes: TLShape[]) => {
+	override onStickShapesOut = (note: TLNoteShape, shapes: TLShape[]) => {
 		const parent = this.editor.getShape(note.parentId)
 		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
 

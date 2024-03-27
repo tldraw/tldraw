@@ -1084,13 +1084,13 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
-    canDropShapes: () => boolean;
-    // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
     canReceiveNewChildrenOfType: () => boolean;
     // (undocumented)
     canSelectChildOnPointerDownWhileSelected: () => boolean;
+    // (undocumented)
+    canStickShape: () => boolean;
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
@@ -1156,13 +1156,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         typeName: "shape";
     } | undefined;
     // (undocumented)
-    onDragShapesOut: (note: TLNoteShape, shapes: TLShape[]) => void;
+    onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
-    onDragShapesOver: (note: TLNoteShape, shapes: TLShape[]) => {
+    onStickShapesOut: (note: TLNoteShape, shapes: TLShape[]) => void;
+    // (undocumented)
+    onStickShapesOver: (note: TLNoteShape, shapes: TLShape[]) => {
         shouldHint: boolean;
     };
-    // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;

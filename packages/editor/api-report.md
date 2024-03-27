@@ -1607,6 +1607,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canScroll: TLShapeUtilFlag<Shape>;
     canSelectChildOnPointerDownWhileSelected(shape: Shape, child: TLShape): boolean;
     canSnap: TLShapeUtilFlag<Shape>;
+    // (undocumented)
+    canStickShape(shape: Shape, other: TLShape): boolean;
     canUnmount: TLShapeUtilFlag<Shape>;
     abstract component(shape: Shape): any;
     // (undocumented)
@@ -1649,6 +1651,14 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onRotate?: TLOnRotateHandler<Shape>;
     onRotateEnd?: TLOnRotateEndHandler<Shape>;
     onRotateStart?: TLOnRotateStartHandler<Shape>;
+    // (undocumented)
+    onStickShapes?: TLOnDragHandler<Shape>;
+    // (undocumented)
+    onStickShapesOut?: TLOnDragHandler<Shape>;
+    // (undocumented)
+    onStickShapesOver?: TLOnDragHandler<Shape, {
+        shouldHint: boolean;
+    }>;
     onTranslate?: TLOnTranslateHandler<Shape>;
     onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
     onTranslateStart?: TLOnTranslateStartHandler<Shape>;

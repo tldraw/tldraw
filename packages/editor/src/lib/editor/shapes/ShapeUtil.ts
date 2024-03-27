@@ -234,6 +234,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		return false
 	}
 
+	canStickShape(shape: Shape, other: TLShape) {
+		return false
+	}
+
 	/**
 	 * Get the shape as an SVG object.
 	 *
@@ -346,6 +350,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	onDragShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
 
+	onStickShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
+
 	/**
 	 * A callback called when some other shapes are dragged out of this one.
 	 *
@@ -355,6 +361,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	onDragShapesOut?: TLOnDragHandler<Shape>
 
+	onStickShapesOut?: TLOnDragHandler<Shape>
+
 	/**
 	 * A callback called when some other shapes are dropped over this one.
 	 *
@@ -363,6 +371,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onDropShapesOver?: TLOnDragHandler<Shape>
+
+	onStickShapes?: TLOnDragHandler<Shape>
 
 	/**
 	 * A callback called when a shape starts being resized.

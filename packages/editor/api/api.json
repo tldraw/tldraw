@@ -30774,6 +30774,71 @@
               "isAbstract": false
             },
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#canStickShape:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "canStickShape(shape: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Shape"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", other: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "other",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "canStickShape"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#canUnmount:member",
               "docComment": "/**\n * Whether the shape should unmount when not visible in the editor. Consider keeping this to false if the shape's `component` has local state.\n *\n * @public\n */\n",
@@ -32030,6 +32095,111 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "onRotateStart",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onStickShapes:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onStickShapes?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLOnDragHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnDragHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onStickShapes",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onStickShapesOut:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onStickShapesOut?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLOnDragHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnDragHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onStickShapesOut",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!ShapeUtil#onStickShapesOver:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onStickShapesOver?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLOnDragHandler",
+                  "canonicalReference": "@tldraw/editor!TLOnDragHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape, {\n        shouldHint: boolean;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onStickShapesOver",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
