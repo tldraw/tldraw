@@ -6,12 +6,6 @@
 	--layer-overlays: 500;
 	--layer-toasts: 650;
 	--layer-cursor: 700;
-	font-weight: 500;
-	line-height: 1.6;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	font-smooth: antialiased;
-	text-rendering: optimizeLegibility;
 }
 
 /* -------------------------------------------------- */
@@ -344,6 +338,12 @@
 	z-index: var(--layer-panels);
 	-webkit-transform: translate3d(0, 0, 0);
 	--sab: env(safe-area-inset-bottom);
+	font-weight: 500;
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-smooth: antialiased;
+	text-rendering: optimizeLegibility;
 }
 
 .tlui-layout__top {
