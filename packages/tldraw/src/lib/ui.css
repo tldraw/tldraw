@@ -1013,7 +1013,7 @@
 }
 
 .tlui-toast__icon {
-	padding-top: var(--space-4);
+	padding-top: 11px;
 	padding-left: var(--space-4);
 	color: var(--color-text-1);
 }
@@ -1026,6 +1026,22 @@
 	box-shadow: var(--shadow-2);
 	border-radius: var(--radius-3);
 	font-size: 12px;
+}
+
+.tlui-toast__container[data-severity='success'] .tlui-icon {
+	color: var(--color-success);
+}
+
+.tlui-toast__container[data-severity='info'] .tlui-icon {
+	color: var(--color-info);
+}
+
+.tlui-toast__container[data-severity='warning'] .tlui-icon {
+	color: var(--color-warning);
+}
+
+.tlui-toast__container[data-severity='error'] .tlui-icon {
+	color: var(--color-error);
 }
 
 .tlui-toast__main {
@@ -1043,6 +1059,8 @@
 .tlui-toast__title {
 	font-weight: bold;
 	color: var(--color-text-1);
+	/* this makes the default toast look better */
+	line-height: 16px;
 }
 
 .tlui-toast__description {

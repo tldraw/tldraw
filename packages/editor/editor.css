@@ -124,6 +124,10 @@
 	--color-text-3: hsl(220, 2%, 65%);
 	--color-text-shadow: hsl(0, 0%, 100%);
 	--color-primary: hsl(214, 84%, 56%);
+	--color-success: hsl(123, 46%, 34%);
+	--color-info: hsl(201, 98%, 41%);
+	--color-warning: hsl(27, 98%, 47%);
+	--color-error: hsl(0, 65%, 51%);
 	--color-warn: hsl(0, 90%, 43%);
 	--color-text: hsl(0, 0%, 0%);
 	--color-laser: hsl(0, 100%, 50%);
@@ -166,6 +170,10 @@
 	--color-text-3: hsl(210, 6%, 45%);
 	--color-text-shadow: hsl(210, 13%, 18%);
 	--color-primary: hsl(214, 84%, 56%);
+	--color-success: hsl(123, 38%, 57%);
+	--color-info: hsl(199, 92%, 56%);
+	--color-warning: hsl(36, 100%, 57%);
+	--color-error: hsl(4, 90%, 58%);
 	--color-warn: hsl(0, 81%, 66%);
 	--color-text: hsl(210, 17%, 98%);
 	--color-laser: hsl(0, 100%, 50%);

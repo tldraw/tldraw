@@ -76,6 +76,7 @@ export {
 } from './lib/ui/context/events'
 export {
 	useToasts,
+	type AlertSeverity,
 	type TLUiToast,
 	type TLUiToastAction,
 	type TLUiToastsContextType,

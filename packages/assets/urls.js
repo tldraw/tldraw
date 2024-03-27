@@ -140,6 +140,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/bring-to-front.svg', import.meta.url).href,
 				opts
 			),
+			'check-circle': formatAssetUrl(
+				new URL('./icons/icon/check-circle.svg', import.meta.url).href,
+				opts
+			),
 			check: formatAssetUrl(new URL('./icons/icon/check.svg', import.meta.url).href, opts),
 			'checkbox-checked': formatAssetUrl(
 				new URL('./icons/icon/checkbox-checked.svg', import.meta.url).href,
@@ -186,6 +190,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 			color: formatAssetUrl(new URL('./icons/icon/color.svg', import.meta.url).href, opts),
 			comment: formatAssetUrl(new URL('./icons/icon/comment.svg', import.meta.url).href, opts),
 			'cross-2': formatAssetUrl(new URL('./icons/icon/cross-2.svg', import.meta.url).href, opts),
+			'cross-circle': formatAssetUrl(
+				new URL('./icons/icon/cross-circle.svg', import.meta.url).href,
+				opts
+			),
 			cross: formatAssetUrl(new URL('./icons/icon/cross.svg', import.meta.url).href, opts),
 			'dash-dashed': formatAssetUrl(
 				new URL('./icons/icon/dash-dashed.svg', import.meta.url).href,
@@ -227,6 +235,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			),
 			duplicate: formatAssetUrl(new URL('./icons/icon/duplicate.svg', import.meta.url).href, opts),
 			edit: formatAssetUrl(new URL('./icons/icon/edit.svg', import.meta.url).href, opts),
+			error: formatAssetUrl(new URL('./icons/icon/error.svg', import.meta.url).href, opts),
 			'external-link': formatAssetUrl(
 				new URL('./icons/icon/external-link.svg', import.meta.url).href,
 				opts
