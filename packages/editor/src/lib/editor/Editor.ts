@@ -152,6 +152,46 @@ export type TLResizeShapeOptions = Partial<{
 }>
 
 /** @public */
+export type TLEditorInputs = {
+	/** The most recent pointer down's position in the current page space. */
+	originPagePoint: Vec
+	/** The most recent pointer down's position in screen space. */
+	originScreenPoint: Vec
+	/** The previous pointer position in the current page space. */
+	previousPagePoint: Vec
+	/** The previous pointer position in screen space. */
+	previousScreenPoint: Vec
+	/** The most recent pointer position in the current page space. */
+	currentPagePoint: Vec
+	/** The most recent pointer position in screen space. */
+	currentScreenPoint: Vec
+	/** A set containing the currently pressed keys. */
+	keys: Set<string>
+	/** A set containing the currently pressed buttons. */
+	buttons: Set<number>
+	/** Whether the input is from a pe. */
+	isPen: boolean
+	/** Whether the shift key is currently pressed. */
+	shiftKey: boolean
+	/** Whether the control or command key is currently pressed. */
+	ctrlKey: boolean
+	/** Whether the alt or option key is currently pressed. */
+	altKey: boolean
+	/** Whether the user is dragging. */
+	isDragging: boolean
+	/** Whether the user is pointing. */
+	isPointing: boolean
+	/** Whether the user is pinching. */
+	isPinching: boolean
+	/** Whether the user is editing. */
+	isEditing: boolean
+	/** Whether the user is panning. */
+	isPanning: boolean
+	/** Velocity of mouse pointer, in pixels per millisecond */
+	pointerVelocity: Vec
+}
+
+/** @public */
 export interface TLEditorOptions {
 	/**
 	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
@@ -2107,15 +2147,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 				name: 'pointer_move',
 				// weird but true: we need to put the screen point back into client space
 				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
-				pagePoint: this.inputs.currentPagePoint,
 				coalescedInfo: [],
 				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
+				inputs: null,
 				ctrlKey: this.inputs.ctrlKey,
 				altKey: this.inputs.altKey,
 				shiftKey: this.inputs.shiftKey,
 				button: 0,
 				isPen: this.getInstanceState().isPenMode ?? false,
 			}
+			event.inputs = this._getNewInputsFromEvent(event)
 			if (immediate) {
 				this._flushEventForTick(event)
 			} else {
@@ -8321,43 +8362,93 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	inputs = {
-		/** The most recent pointer down's position in the current page space. */
+	inputs: TLEditorInputs = {
 		originPagePoint: new Vec(),
-		/** The most recent pointer down's position in screen space. */
 		originScreenPoint: new Vec(),
-		/** The previous pointer position in the current page space. */
 		previousPagePoint: new Vec(),
-		/** The previous pointer position in screen space. */
 		previousScreenPoint: new Vec(),
-		/** The most recent pointer position in the current page space. */
 		currentPagePoint: new Vec(),
-		/** The most recent pointer position in screen space. */
 		currentScreenPoint: new Vec(),
-		/** A set containing the currently pressed keys. */
 		keys: new Set<string>(),
-		/** A set containing the currently pressed buttons. */
 		buttons: new Set<number>(),
-		/** Whether the input is from a pe. */
 		isPen: false,
-		/** Whether the shift key is currently pressed. */
 		shiftKey: false,
-		/** Whether the control or command key is currently pressed. */
 		ctrlKey: false,
-		/** Whether the alt or option key is currently pressed. */
 		altKey: false,
-		/** Whether the user is dragging. */
 		isDragging: false,
-		/** Whether the user is pointing. */
 		isPointing: false,
-		/** Whether the user is pinching. */
 		isPinching: false,
-		/** Whether the user is editing. */
 		isEditing: false,
-		/** Whether the user is panning. */
 		isPanning: false,
-		/** Velocity of mouse pointer, in pixels per millisecond */
 		pointerVelocity: new Vec(),
+	}
+
+	private _cloneInputs(inputs: TLEditorInputs): TLEditorInputs {
+		const {
+			isPen,
+			shiftKey,
+			ctrlKey,
+			altKey,
+			isDragging,
+			isPointing,
+			isPinching,
+			isEditing,
+			isPanning,
+		} = inputs
+		const clonedInputs: TLEditorInputs = {
+			originPagePoint: inputs.originPagePoint.clone(),
+			originScreenPoint: inputs.originScreenPoint.clone(),
+			previousPagePoint: inputs.previousPagePoint.clone(),
+			previousScreenPoint: inputs.previousScreenPoint.clone(),
+			currentPagePoint: inputs.previousScreenPoint.clone(),
+			currentScreenPoint: inputs.currentScreenPoint.clone(),
+			pointerVelocity: inputs.pointerVelocity.clone(),
+			keys: new Set(inputs.keys),
+			buttons: new Set(inputs.buttons),
+			isPen,
+			shiftKey,
+			ctrlKey,
+			altKey,
+			isDragging,
+			isPointing,
+			isPinching,
+			isEditing,
+			isPanning,
+		}
+		return clonedInputs
+	}
+
+	private _getNewInputsFromEvent(
+		info: TLPointerEventInfo | TLPinchEventInfo | TLWheelEventInfo
+	): TLEditorInputs {
+		const newInputs = this._cloneInputs(this.inputs)
+		const { previousScreenPoint, previousPagePoint, currentScreenPoint, currentPagePoint } =
+			newInputs
+
+		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+		const { x: cx, y: cy, z: cz } = this.getCamera()
+
+		const sx = info.point.x - screenBounds.x
+		const sy = info.point.y - screenBounds.y
+		const sz = info.point.z
+
+		previousScreenPoint.setTo(currentScreenPoint)
+		previousPagePoint.setTo(currentPagePoint)
+
+		// The "screen bounds" is relative to the user's actual screen.
+		// The "screen point" is relative to the "screen bounds";
+		// it will be 0,0 when its actual screen position is equal
+		// to screenBounds.point. This is confusing!
+		currentScreenPoint.set(sx, sy)
+		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz ?? 0.5)
+
+		newInputs.isPen = info.type === 'pointer' && info.isPen
+
+		// Reset velocity on pointer down
+		if (info.name === 'pointer_down') {
+			newInputs.pointerVelocity.set(0, 0)
+		}
+		return newInputs
 	}
 
 	/**
@@ -8424,7 +8515,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	cancel(): this {
-		this.dispatch({ type: 'misc', name: 'cancel' })
+		this.dispatch({ type: 'misc', name: 'cancel', inputs: null })
 		this._tickManager.tick()
 		return this
 	}
@@ -8440,7 +8531,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	interrupt(): this {
-		this.dispatch({ type: 'misc', name: 'interrupt' })
+		this.dispatch({ type: 'misc', name: 'interrupt', inputs: null })
 		this._tickManager.tick()
 		return this
 	}
@@ -8456,7 +8547,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	complete(): this {
-		this.dispatch({ type: 'misc', name: 'complete' })
+		this.dispatch({ type: 'misc', name: 'complete', inputs: null })
 		return this
 	}
 
@@ -8497,6 +8588,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			code: 'ShiftLeft',
+			inputs: null,
 		})
 	}
 
@@ -8514,6 +8606,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			code: 'AltLeft',
+			inputs: null,
 		})
 	}
 
@@ -8531,6 +8624,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			code: 'ControlLeft',
+			inputs: null,
 		})
 	}
 
@@ -8564,6 +8658,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return false
 	}
 
+	private _addInputsToEventInfo(info: TLEventInfo) {
+		if (info.type === 'pointer' || info.type === 'wheel' || info.type === 'pinch') {
+			info.inputs = this._getNewInputsFromEvent(info)
+		} else {
+			info.inputs = { ...this.inputs }
+		}
+	}
+
 	/**
 	 * Dispatch an event to the editor.
 	 *
@@ -8577,6 +8679,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispatch = (info: TLEventInfo): this => {
+		this._addInputsToEventInfo(info)
 		// Adding the first event to the queue
 		if (this._pendingEventsForNextTick.length === 0) {
 			this._pendingEventsForNextTick.push(info)
@@ -8613,7 +8716,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this._flushEventForTick(info)
 				}
 			}
-			this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
+			this.root.handleEvent({
+				type: 'misc',
+				name: 'tick',
+				elapsed,
+				inputs: structuredClone(this.inputs),
+			})
 			this.scribbles.tick(elapsed)
 		})
 		this._allEventsSinceLastTick.length = 0

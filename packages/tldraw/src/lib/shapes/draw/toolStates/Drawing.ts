@@ -69,9 +69,9 @@ export class Drawing extends StateNode {
 	}
 
 	processEvents(info: TLPointerMoveEventInfo) {
-		const { inputs } = this.editor
+		if (!info.inputs) return
 
-		if (this.isPen !== inputs.isPen) {
+		if (this.isPen !== info.inputs.isPen) {
 			// The user made a palm gesture before starting a pen gesture;
 			// ideally we'd start the new shape here but we could also just bail
 			// as the next interaction will work correctly
@@ -82,17 +82,20 @@ export class Drawing extends StateNode {
 			}
 		} else {
 			// If we came in from a menu but have no started dragging...
-			if (!this.canDraw && inputs.isDragging) {
+			if (!this.canDraw && info.inputs.isDragging) {
 				this.startShape()
 				this.canDraw = true // bad name
 			}
 		}
 
 		if (this.canDraw) {
-			if (inputs.isPen) {
+			if (info.inputs.isPen) {
 				// Don't update the shape if we haven't moved far enough from the last time we recorded a point
-				if (Vec.Dist(info.pagePoint, this.lastRecordedPoint) >= 1 / this.editor.getZoomLevel()) {
-					this.lastRecordedPoint = info.pagePoint.clone()
+				if (
+					Vec.Dist(info.inputs.currentPagePoint, this.lastRecordedPoint) >=
+					1 / this.editor.getZoomLevel()
+				) {
+					this.lastRecordedPoint = info.inputs.currentPagePoint.clone()
 					this.mergeNextPoint = false
 				} else {
 					this.mergeNextPoint = true
@@ -101,7 +104,7 @@ export class Drawing extends StateNode {
 				this.mergeNextPoint = false
 			}
 
-			this.updateShapes(info.pagePoint)
+			this.updateShapes(info.inputs?.currentPagePoint)
 		}
 	}
 

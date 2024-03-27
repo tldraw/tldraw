@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react'
-import { Vec } from '../primitives/Vec'
 import {
 	preventDefault,
 	releasePointerCapture,
@@ -25,6 +24,7 @@ export function useCanvasEvents() {
 						type: 'pointer',
 						target: 'canvas',
 						name: 'right_click',
+						inputs: null,
 						...getPointerInfo(e),
 					})
 					return
@@ -38,6 +38,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_down',
+					inputs: null,
 					...getPointerInfo(e),
 				})
 
@@ -54,22 +55,12 @@ export function useCanvasEvents() {
 			function onPointerMove(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
 
-				if (e.clientX === lastX && e.clientY === lastY) return
-				lastX = e.clientX
-				lastY = e.clientY
-
-				const { screenBounds } = editor.getInstanceState()
-				const { x: cx, y: cy, z: cz } = editor.getCamera()
-				const sx = lastX - screenBounds.x
-				const sy = lastY - screenBounds.y
-				const sz = e.pressure
-
 				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_move',
-					pagePoint: new Vec(sx / cz - cx, sy / cz - cy, sz ?? 0.5),
 					coalescedInfo: [],
+					inputs: null,
 					...getPointerInfo(e),
 				})
 			}
@@ -86,6 +77,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_up',
+					inputs: null,
 					...getPointerInfo(e),
 				})
 			}
