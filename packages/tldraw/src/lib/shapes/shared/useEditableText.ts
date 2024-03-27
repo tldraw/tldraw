@@ -20,9 +20,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const rSelectionRanges = useRef<Range[] | null>()
 
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
-	const shape = editor.getShape(id)
-	const doesShapeAutoEditOnKeystroke =
-		shape && editor.getShapeUtil(type).doesAutoEditOnKeyStroke(shape)
 
 	// If the shape is editing but the input element not focused, focus the element
 	useEffect(() => {
@@ -30,12 +27,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		if (elm && isEditing && document.activeElement !== elm) {
 			elm.focus()
 		}
-
-		// Select all of the text on enter.
-		if (elm && isEditing && doesShapeAutoEditOnKeystroke) {
-			elm.setSelectionRange(0, elm.value.length)
-		}
-	}, [isEditing, doesShapeAutoEditOnKeystroke])
+	}, [isEditing])
 
 	// When the label blurs, deselect all of the text and complete.
 	// This makes it so that the canvas does not have to be focused
