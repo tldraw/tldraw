@@ -4,7 +4,6 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
-	noop,
 	preventDefault,
 	stopEventPropagation,
 	useEditor,
@@ -171,7 +170,9 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	return {
 		rInput,
 		isEditing,
-		handleFocus: noop,
+		handleFocus: () => {
+			/* noop */
+		},
 		handleBlur,
 		handleKeyDown,
 		handleChange,
