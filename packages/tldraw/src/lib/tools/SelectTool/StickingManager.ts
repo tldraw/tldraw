@@ -57,7 +57,7 @@ export class StickingManager {
 					this.editor.getShapeUtil(stickingOverShape).onStickShape?.(stickingOverShape, shape)
 				}
 			} else {
-				if (adhesive) {
+				if (adhesive && this.editor.getShape(shape.parentId)) {
 					const page = this.editor.getCurrentPage()
 					if (page) {
 						this.editor.reparentShapes([shape], page.id)

@@ -5031,7 +5031,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const otherBounds = this.getShapePageBounds(other)
 			if (!shapeBounds || !otherBounds || !otherBounds.includes(shapeBounds)) continue
 
+			// don't stick if you completely contain the other shape
 			if (shapeBounds.contains(otherBounds)) continue
+
+			// don't stick if you're more than two times the size of the other shape
+			if (shapeBounds.w * shapeBounds.h > otherBounds.w * otherBounds.h * 2) continue
 
 			// don't stick if your geometry doesn't intersect the other shape's geometry
 			const shapeGeometry = this.getShapeGeometry(shape)
