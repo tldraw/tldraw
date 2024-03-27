@@ -1530,7 +1530,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Find the first selected ancestor of a shape.
 	 *
 	 * @param shape - The shape to find the selected ancestor of.
-	 * @returns
+	 *
+	 * @public
 	 */
 	findSelectedAncestor(shape: TLShape | TLShapeId): TLShape | null {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
