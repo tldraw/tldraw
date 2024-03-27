@@ -12,6 +12,7 @@ import {
 	createTLSchema,
 } from '@tldraw/tlschema'
 import { ZERO_INDEX_KEY, sortById } from '@tldraw/utils'
+import { NO_TL_ANALYTICS } from '../lib/TLAnalytics'
 import {
 	MAX_TOMBSTONES,
 	RoomSnapshot,
@@ -63,14 +64,14 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 
 describe('TLSyncRoom', () => {
 	it('can be constructed with a schema alone', () => {
-		const room = new TLSyncRoom<any>(schema)
+		const room = new TLSyncRoom<any>(schema, NO_TL_ANALYTICS)
 
 		// we populate the store with a default document if none is given
 		expect(room.getSnapshot().documents.length).toBeGreaterThan(0)
 	})
 
 	it('can be constructed with a snapshot', () => {
-		const room = new TLSyncRoom<TLRecord>(schema, makeSnapshot(records))
+		const room = new TLSyncRoom<TLRecord>(schema, NO_TL_ANALYTICS, makeSnapshot(records))
 
 		expect(
 			room
@@ -83,7 +84,7 @@ describe('TLSyncRoom', () => {
 	})
 
 	it('trims tombstones down if you pass too many in the snapshot', () => {
-		const room = new TLSyncRoom(schema, {
+		const room = new TLSyncRoom(schema, NO_TL_ANALYTICS, {
 			documents: [],
 			clock: MAX_TOMBSTONES + 100,
 			tombstones: Object.fromEntries(
@@ -117,6 +118,7 @@ describe('TLSyncRoom', () => {
 
 		const room = new TLSyncRoom(
 			schema,
+			NO_TL_ANALYTICS,
 			makeSnapshot([...records, oldArrow], {
 				schema: oldSerializedSchema,
 			})
@@ -131,6 +133,7 @@ describe('TLSyncRoom', () => {
 		const schema = createTLSchema({ shapes: {} })
 		const room = new TLSyncRoom(
 			schema,
+			NO_TL_ANALYTICS,
 			makeSnapshot([
 				...records,
 				schema.types.instance.create({

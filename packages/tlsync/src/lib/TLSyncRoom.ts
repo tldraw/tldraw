@@ -31,6 +31,7 @@ import {
 	SESSION_REMOVAL_WAIT_TIME,
 	SESSION_START_WAIT_TIME,
 } from './RoomSession'
+import { TLAnalyticsPoint } from './TLAnalytics'
 import {
 	NetworkDiff,
 	ObjectDiff,
@@ -208,6 +209,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 	constructor(
 		public readonly schema: StoreSchema<R, any>,
+		readonly reportTLAnalytics: (point: TLAnalyticsPoint) => void,
 		snapshot?: RoomSnapshot
 	) {
 		assert(
@@ -448,6 +450,12 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		}
 
 		session.debounceTimer = null
+
+		this.reportTLAnalytics({
+			type: 'outstanding_data_messages',
+			length: session.outstandingDataMessages.length,
+			num_clients: this.sessions.size,
+		})
 
 		if (session.outstandingDataMessages.length > 0) {
 			if (session.isV4Client) {

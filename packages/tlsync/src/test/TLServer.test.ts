@@ -1,6 +1,7 @@
 import { TLRecord, createTLStore, defaultShapeUtils } from 'tldraw'
 import { type WebSocket } from 'ws'
 import { RoomSessionState } from '../lib/RoomSession'
+import { NO_TL_ANALYTICS } from '../lib/TLAnalytics'
 import { DBLoadResult, TLServer } from '../lib/TLServer'
 import { chunk } from '../lib/chunk'
 import { RecordOpType } from '../lib/diff'
@@ -92,6 +93,7 @@ const openConnection = async () => {
 		sessionKey: 'test-session-key',
 		socket: sockets.server,
 		storeId: 'test-store-id',
+		reportTLAnalytics: NO_TL_ANALYTICS,
 	})
 }
 

@@ -12,8 +12,10 @@ import {
 } from '@tldraw/tlsync'
 import { assert, assertExists } from '@tldraw/utils'
 import { IRequest, Router } from 'itty-router'
+import { Client as PgClient } from 'pg'
 import Toucan from 'toucan-js'
 import { AlarmScheduler } from './AlarmScheduler'
+import { report } from './analytics'
 import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, Environment } from './types'
@@ -56,6 +58,8 @@ export class TLDrawDurableObject extends TLServer {
 
 	_documentInfo: DocumentInfo | null = null
 
+	private readonly analyticsPgClient: PgClient
+
 	constructor(
 		private controller: DurableObjectState,
 		private env: Environment
@@ -74,7 +78,13 @@ export class TLDrawDurableObject extends TLServer {
 			versionCache: env.ROOMS_HISTORY_EPHEMERAL,
 		}
 
+		this.analyticsPgClient = new PgClient({
+			connectionString: env.ANALYTICS_DB_HYPERDRIVE.connectionString,
+		})
+
 		controller.blockConcurrencyWhile(async () => {
+			await this.analyticsPgClient.connect()
+
 			const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
 			if (existingDocumentInfo?.version !== CURRENT_DOCUMENT_INFO_VERSION) {
 				this._documentInfo = null
@@ -184,15 +194,19 @@ export class TLDrawDurableObject extends TLServer {
 			delete tombstones[id]
 		})
 
-		const newRoom = new TLSyncRoom(roomState.room.schema, {
-			clock: oldRoom.clock + 1,
-			documents: snapshot.documents.map((d) => ({
-				lastChangedClock: oldRoom.clock + 1,
-				state: d.state,
-			})),
-			schema: snapshot.schema,
-			tombstones,
-		})
+		const newRoom = new TLSyncRoom(
+			roomState.room.schema,
+			(point) => report(this.analyticsPgClient, this.env.TLDRAW_ENV ?? 'undefined', point),
+			{
+				clock: oldRoom.clock + 1,
+				documents: snapshot.documents.map((d) => ({
+					lastChangedClock: oldRoom.clock + 1,
+					state: d.state,
+				})),
+				schema: snapshot.schema,
+				tombstones,
+			}
+		)
 
 		// replace room with new one and kick out all the clients
 		this.setRoomState(this.documentInfo.slug, { ...roomState, room: newRoom })
@@ -233,6 +247,8 @@ export class TLDrawDurableObject extends TLServer {
 					persistenceKey: this.documentInfo.slug!,
 					sessionKey,
 					storeId,
+					reportTLAnalytics: (point) =>
+						report(this.analyticsPgClient, this.env.TLDRAW_ENV ?? 'undefined', point),
 				})
 			)
 		} catch (e: any) {
