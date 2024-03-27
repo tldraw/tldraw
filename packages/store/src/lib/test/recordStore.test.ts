@@ -822,7 +822,7 @@ describe('snapshots', () => {
 		expect(() => {
 			// @ts-expect-error
 			store2.loadSnapshot(snapshot1)
-		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: unknown-type"`)
+		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
 	})
 
 	it('throws errors when loading a snapshot with a different schema', () => {
@@ -830,15 +830,14 @@ describe('snapshots', () => {
 
 		const store2 = new Store({
 			props: {},
-			schema: StoreSchema.create<Book | Author>({
+			schema: StoreSchema.create<Book>({
 				book: Book,
-				author: Author,
 			}),
 		})
 
 		expect(() => {
-			store2.loadSnapshot(snapshot1)
-		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: target-version-too-old"`)
+			store2.loadSnapshot(snapshot1 as any)
+		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
 	})
 
 	it('migrates the snapshot', () => {

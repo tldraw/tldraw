@@ -282,10 +282,12 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			])
 		)
 
+
 		const migrationResult = schema.migrateStoreSnapshot({
 			store: Object.fromEntries(
 				objectMapEntries(documents).map(([id, { state }]) => [id, state as R])
 			) as Record<IdOf<R>, R>,
+			// eslint-disable-next-line deprecation/deprecation
 			schema: snapshot.schema ?? schema.serializeEarliestVersion(),
 		})
 

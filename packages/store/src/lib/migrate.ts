@@ -55,6 +55,7 @@ export function createMigrationIds<ID extends string, Versions extends Record<st
 export function createRecordMigrations(opts: {
 	recordType: string
 	filter?: (record: UnknownRecord) => boolean
+	retroactive?: boolean
 	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]
 }): Migrations {
 	const sequenceId = opts.sequence[0]
@@ -70,7 +71,7 @@ export function createRecordMigrations(opts: {
 	)
 	return createMigrations({
 		sequenceId,
-		retroactive: false,
+		retroactive: opts.retroactive ?? true,
 		sequence: compiledSequence,
 	})
 }

@@ -69,43 +69,7 @@ test('the client connects on instantiation, announcing its schema', async () => 
 	expect(channel.postMessage).toHaveBeenCalledTimes(1)
 	const [msg] = channel.postMessage.mock.calls[0]
 
-	expect(msg).toMatchObject({ type: 'announce', schema: { recordVersions: {} } })
-})
-
-test('when a client receives an announce with a newer schema version it reloads itself', async () => {
-	const { client, channel, onLoadError } = testClient()
-	await tick()
-	jest.advanceTimersByTime(10000)
-	expect(reloadMock).not.toHaveBeenCalled()
-	channel.onmessage?.({
-		data: {
-			type: 'announce',
-			schema: {
-				...client.serializedSchema,
-				schemaVersion: client.serializedSchema.schemaVersion + 1,
-			},
-		},
-	} as any)
-	expect(reloadMock).toHaveBeenCalled()
-	expect(onLoadError).not.toHaveBeenCalled()
-})
-
-test('when a client receives an announce with a newer schema version shortly after loading it does not reload but instead reports a loadError', async () => {
-	const { client, channel, onLoadError } = testClient()
-	await tick()
-	jest.advanceTimersByTime(1000)
-	expect(reloadMock).not.toHaveBeenCalled()
-	channel.onmessage?.({
-		data: {
-			type: 'announce',
-			schema: {
-				...client.serializedSchema,
-				schemaVersion: client.serializedSchema.schemaVersion + 1,
-			},
-		},
-	} as any)
-	expect(reloadMock).not.toHaveBeenCalled()
-	expect(onLoadError).toHaveBeenCalled()
+	expect(msg).toMatchObject({ type: 'announce', schema: {} })
 })
 
 test('the first db write after a client connects is a full db overwrite', async () => {

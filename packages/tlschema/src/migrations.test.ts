@@ -3,7 +3,7 @@ import {
 	getTestMigration,
 	getTestShapePropsMigration,
 	testSchema,
-} from './__tests__/migrationTestUtils.test'
+} from './__tests__/migrationTestUtils'
 import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
