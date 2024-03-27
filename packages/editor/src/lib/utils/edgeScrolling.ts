@@ -71,5 +71,6 @@ export function moveCameraWhenCloseToEdge(editor: Editor) {
 	editor.setCamera({
 		x: camera.x + scrollDeltaX,
 		y: camera.y + scrollDeltaY,
+		z: camera.z,
 	})
 }

@@ -18837,37 +18837,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#updateCameraOnMount:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "updateCameraOnMount(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "updateCameraOnMount"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#updateCurrentPageState:member(1)",
               "docComment": "/**\n * Update this instance's page state.\n *\n * @param partial - The partial of the page state object containing the changes.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.updateCurrentPageState({ id: 'page1', editingShapeId: 'shape:123' })\n * editor.updateCurrentPageState({ id: 'page1', editingShapeId: 'shape:123' }, { ephemeral: true })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [

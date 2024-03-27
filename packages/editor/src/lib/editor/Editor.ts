@@ -2080,23 +2080,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private getNaturalZoom() {
 		const cameraOptions = this.getCameraOptions()
-		if (cameraOptions.fit === 'infinite') {
-			return 1
-		}
-
+		if (cameraOptions.fit === 'infinite') return 1
 		const { padding } = cameraOptions
 		const vsb = this.getViewportScreenBounds()
-		let [py, px] = Array.isArray(padding) ? padding : [padding, padding]
-		py = Math.min(py, vsb.w / 2)
-		px = Math.min(px, vsb.h / 2)
+		const py = Math.min(padding[0], vsb.w / 2)
+		const px = Math.min(padding[1], vsb.h / 2)
 		const bounds = Box.From(cameraOptions.bounds)
-		bounds.x -= px
-		bounds.y -= py
-		bounds.w += px * 2
-		bounds.h += py * 2
-		return cameraOptions.fit === 'contain'
-			? Math.min(vsb.w / bounds.width, vsb.h / bounds.height)
-			: Math.max(vsb.w / bounds.width, vsb.h / bounds.height)
+		const zx = (vsb.w - px * 2) / bounds.w
+		const zy = (vsb.h - py * 2) / bounds.h
+		return cameraOptions.fit === 'contain' ? Math.min(zx, zy) : Math.max(zx, zy)
 	}
 
 	/** @public */
@@ -2130,21 +2122,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _setCamera(
-		_point: VecLike,
+		point: Vec,
 		opts?: { immediate?: boolean; force?: boolean; initial?: boolean }
 	): this {
 		const currentCamera = this.getCamera()
-		const point = Vec.From(_point)
+
+		let { x, y, z } = point
 
 		// If force is true, then we'll set the camera to the point regardless of
 		// the camera options, so that we can handle gestures that permit elasticity
 		// or decay.
 		if (!opts?.force) {
 			// Apply any adjustments based on the camera options
-			const currentCamera = this.getCamera()
-			if (!Number.isFinite(point.x)) point.x = 0
-			if (!Number.isFinite(point.y)) point.y = 0
-			if (point.z === undefined || !Number.isFinite(point.z)) point.z = currentCamera.z
 
 			const cameraOptions = this.getCameraOptions()
 
@@ -2152,7 +2141,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (cameraOptions.fit === 'infinite') {
 				// constrain the zoom
 				const { zoomMax, zoomMin } = cameraOptions
-				point.z = clamp(point.z, zoomMin, zoomMax)
+				z = clamp(point.z, zoomMin, zoomMax)
 			} else {
 				const { zoomMax, zoomMin, padding, origin } = cameraOptions
 
@@ -2179,44 +2168,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const minZ = zoomMin * fitZoom
 
 				if (opts?.initial) {
-					point.z = fitZoom
+					z = fitZoom
 				}
 
-				if (point.z < minZ || point.z > maxZ) {
+				if (z < minZ || z > maxZ) {
 					// We're trying to zoom out past the minimum zoom level,
 					// or in past the maximum zoom level, so stop the camera
 					// but keep the current center
 					const cxA = -currentCamera.x + vsb.w / currentCamera.z / 2
 					const cyA = -currentCamera.y + vsb.h / currentCamera.z / 2
-					point.z = point.z < minZ ? minZ : maxZ
-					const cxB = -currentCamera.x + vsb.w / point.z / 2
-					const cyB = -currentCamera.y + vsb.h / point.z / 2
-					point.x = currentCamera.x + cxB - cxA
-					point.y = currentCamera.y + cyB - cyA
+					z = clamp(z, minZ, maxZ)
+					const cxB = -currentCamera.x + vsb.w / z / 2
+					const cyB = -currentCamera.y + vsb.h / z / 2
+					x = currentCamera.x + cxB - cxA
+					y = currentCamera.y + cyB - cyA
 				}
 
-				// For each axis...
-				// If we're doing the initial camera position, or if we're below the
-				// natural zoom for the axis, clamp it with bounds + padding; or else
-				// use the origin for that axis to decide where to put the content.
-				// min = padding in page space
-				// max = padding in page space + (free space in page space * (zoomed out ? origin : 1))
-				point.x = clamp(
-					point.x,
-					px / point.z +
-						((vsb.w - px * 2) / point.z - bounds.w) *
-							(point.z < zx || opts?.initial ? origin[1] : 1),
-					px / point.z
-				)
-				point.y = clamp(
-					point.y,
-					py / point.z +
-						((vsb.h - py * 2) / point.z - bounds.h) *
-							(point.z < zy || opts?.initial ? origin[0] : 1),
-					py / point.z
-				)
+				// Math salad time. (ง •̀_•́)ง
+				// For each axis... if we're doing the initial camera position, or
+				// if we're below the natural zoom for the axis: clamp it with bounds
+				// plus padding in page space; or else use the origin for that axis
+				// to decide where to put the content.
+
+				const minX = px / z - bounds.x
+				const minY = py / z - bounds.y
+				const freeW = (vsb.w - px * 2) / z - bounds.w
+				const freeH = (vsb.h - py * 2) / z - bounds.h
+				x = clamp(x, minX + freeW * (z < zx || opts?.initial ? origin[1] : 1), minX)
+				y = clamp(y, minY + freeH * (z < zy || opts?.initial ? origin[0] : 1), minY)
+
+				// Update the point
 			}
 		}
+		point.set(x, y, z)
 
 		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z) {
 			return this
@@ -2285,15 +2269,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
+		const _point = Vec.From(point)
+
+		if (!Number.isFinite(_point.x)) _point.x = 0
+		if (!Number.isFinite(_point.y)) _point.y = 0
+		if (_point.z === undefined || !Number.isFinite(_point.z)) point.z = this.getZoomLevel()
+
 		if (opts && (opts.duration || opts.easing)) {
 			const { width, height } = this.getViewportScreenBounds()
 			// todo: animate this
 			return this._animateToViewport(
-				new Box(-point.x, -point.y, width / point.z!, height / point.z!),
+				new Box(-point.x, -point.y, width / _point.z, height / _point.z),
 				opts
 			)
 		} else {
-			this._setCamera(point, opts)
+			this._setCamera(_point, opts)
 		}
 
 		return this
@@ -2386,15 +2376,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resetZoom(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
-		if (this.getCameraOptions().isLocked) return this
+		const { isLocked, fit } = this.getCameraOptions()
+		if (isLocked) return this
 
-		const { x: cx, y: cy, z: cz } = this.getCamera()
+		const currentCamera = this.getCamera()
+		const { x: cx, y: cy, z: cz } = currentCamera
 		const { x, y } = point
+
+		let z = 1
+
+		if (fit !== 'infinite') {
+			// For non-infinite fit, we'll set the camera to the natural zoom level...
+			// unless it's already there, in which case we'll set zoom to 100%
+			const naturalZoom = this.getNaturalZoom()
+			if (cz !== naturalZoom) {
+				z = naturalZoom
+			}
+		}
+
 		this.setCamera(
-			{ x: cx + (x / 1 - x) - (x / cz - x), y: cy + (y / 1 - y) - (y / cz - y), z: 1 },
+			{ x: cx + (x / z - x) - (x / cz - x), y: cy + (y / z - y) - (y / cz - y), z },
 			animation
 		)
-
 		return this
 	}
 
@@ -2676,7 +2679,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { elapsed, easing, duration, start, end } = this._viewportAnimation
 
 		if (elapsed > duration) {
-			this._setCamera({ x: -end.x, y: -end.y, z: this.getViewportScreenBounds().width / end.width })
+			this._setCamera(new Vec(-end.x, -end.y, this.getViewportScreenBounds().width / end.width))
 			cancel()
 			return
 		}
@@ -2688,7 +2691,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const top = start.minY + (end.minY - start.minY) * t
 		const right = start.maxX + (end.maxX - start.maxX) * t
 
-		this._setCamera({ x: -left, y: -top, z: this.getViewportScreenBounds().width / (right - left) })
+		this._setCamera(new Vec(-left, -top, this.getViewportScreenBounds().width / (right - left)))
 	}
 
 	/** @internal */
@@ -2707,11 +2710,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (duration === 0 || animationSpeed === 0) {
 			// If we have no animation, then skip the animation and just set the camera
-			return this._setCamera({
-				x: -targetViewportPage.x,
-				y: -targetViewportPage.y,
-				z: this.getViewportScreenBounds().width / targetViewportPage.width,
-			})
+			return this._setCamera(
+				new Vec(
+					-targetViewportPage.x,
+					-targetViewportPage.y,
+					this.getViewportScreenBounds().width / targetViewportPage.width
+				)
+			)
 		}
 
 		// Set our viewport animation
@@ -2770,7 +2775,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (currentSpeed < speedThreshold) {
 				cancel()
 			} else {
-				this._setCamera({ x: cx + movementVec.x, y: cy + movementVec.y, z: cz })
+				this._setCamera(new Vec(cx + movementVec.x, cy + movementVec.y, cz))
 			}
 		}
 
@@ -2918,7 +2923,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					{ screenBounds: screenBounds.toJson(), insets },
 					{ squashing: true, ephemeral: true }
 				)
-				this.updateCameraOnMount()
+				this.setCamera(this.getCamera())
 			} else {
 				if (center && !this.getInstanceState().followingUserId) {
 					// Get the page center before the change, make the change, and restore it
@@ -2934,7 +2939,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						{ screenBounds: screenBounds.toJson(), insets },
 						{ squashing: true, ephemeral: true }
 					)
-					this._setCamera({ ...this.getCamera() })
+					this._setCamera(Vec.From({ ...this.getCamera() }))
 				}
 			}
 		}
@@ -2943,48 +2948,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.updateRenderingBounds()
 
 		return this
-	}
-
-	updateCameraOnMount() {
-		const vsb = this.getViewportScreenBounds()
-		const cameraOptions = this.getCameraOptions()
-
-		if (cameraOptions.fit === 'infinite') {
-			// noop
-		} else {
-			// Get padding (it's either a number or an array of 2 numbers for t/b, l/r)
-			const { padding, origin } = cameraOptions
-			// Clamp padding to half the viewport size on either dimension
-			const py = Math.min(padding[0], vsb.w / 2)
-			const px = Math.min(padding[0], vsb.h / 2)
-
-			// Expand the bounds by the padding
-			const bounds = Box.From(cameraOptions.bounds)
-			bounds.x -= px
-			bounds.y -= py
-			bounds.w += px * 2
-			bounds.h += py * 2
-
-			// The natural zoom is the zoom at which the expanded bounds (with padding) would fit the viewport
-			const zoom =
-				cameraOptions.fit === 'contain'
-					? Math.min(vsb.w / bounds.width, vsb.h / bounds.height)
-					: Math.max(vsb.w / bounds.width, vsb.h / bounds.height)
-
-			const [oy, ox] = origin
-			const cx = vsb.midX / zoom - (bounds.minX + bounds.width * ox)
-			const cy = vsb.midY / zoom - (bounds.minY + bounds.height * oy)
-
-			// Keeping the current screen center, adjust zoom to the natural zoom
-			this._setCamera(
-				{
-					x: cx,
-					y: cy,
-					z: zoom,
-				},
-				{ initial: true }
-			)
-		}
 	}
 
 	/**
@@ -3210,11 +3173,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Update the camera!
 			isCaughtUp = false
 			this.stopCameraAnimation()
-			this._setCamera({
-				x: -(targetCenter.x - targetWidth / 2),
-				y: -(targetCenter.y - targetHeight / 2),
-				z: targetZoom,
-			})
+			this._setCamera(
+				new Vec(
+					-(targetCenter.x - targetWidth / 2),
+					-(targetCenter.y - targetHeight / 2),
+					targetZoom
+				)
+			)
 		}
 
 		this.once('stop-following', cancel)
@@ -8899,11 +8864,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const { x: cx, y: cy, z: cz } = this.getCamera()
 
 						this._setCamera(
-							{
-								x: cx + dx / cz - x / cz + x / z,
-								y: cy + dy / cz - y / cz + y / z,
-								z,
-							},
+							new Vec(cx + dx / cz - x / cz + x / z, cy + dy / cz - y / cz + y / z, z),
 							{ immediate: true }
 						)
 
@@ -8952,11 +8913,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
 
 						this._setCamera(
-							{
-								x: cx + (x / zoom - x) - (x / cz - x),
-								y: cy + (y / zoom - y) - (y / cz - y),
-								z: zoom,
-							},
+							new Vec(cx + (x / zoom - x) - (x / cz - x), cy + (y / zoom - y) - (y / cz - y), zoom),
 							{ immediate: true }
 						)
 
