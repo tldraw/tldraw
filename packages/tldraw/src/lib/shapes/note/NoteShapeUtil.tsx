@@ -14,6 +14,8 @@ import {
 	rng,
 	toDomPrecision,
 } from '@tldraw/editor'
+import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
+import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
@@ -59,6 +61,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	component(shape: TLNoteShape) {
+		/* eslint-disable react-hooks/rules-of-hooks */
+		const translation = useCurrentTranslation()
 		const {
 			id,
 			type,
@@ -112,7 +116,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							text={text}
 							labelColor="black"
 							wrap
-							onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => this.handleKeyDown(e, id)}
+							onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) =>
+								this.handleKeyDown(e, id, translation.isRTL)
+							}
 						/>
 					</div>
 				</div>
@@ -123,7 +129,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	private handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, id: TLShapeId) => {
+	private handleKeyDown = (
+		e: React.KeyboardEvent<HTMLTextAreaElement>,
+		id: TLShapeId,
+		isUiRTL: boolean | undefined
+	) => {
 		const shape = this.editor.getShape<TLNoteShape>(id)!
 		const isCmdOrCtrlEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
 		if (isCmdOrCtrlEnter || e.key === 'Tab') {
@@ -131,7 +141,23 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 			// Create a new sticky
 			const size = NOTE_SIZE
-			const offset = new Vec(shape.x + size * 1.5 + 10, shape.y + size / 2)
+			const MARGIN = 10
+			let offset = new Vec(shape.x, shape.y)
+			if (isCmdOrCtrlEnter) {
+				const vertDirection = e.shiftKey ? -1 : 1
+				offset = Vec.Add(
+					offset,
+					new Vec(size / 2, vertDirection === 1 ? size * 1.5 + MARGIN : (-1 * size) / 2 - MARGIN)
+				)
+			} else {
+				// This is a XOR gate: e.shiftKey != isRightToLeftLanguage(shape.props.text)
+				const isRTL = !!(isRightToLeftLanguage(shape.props.text) || isUiRTL)
+				const horzDirection = e.shiftKey != isRTL ? -1 : 1
+				offset = Vec.Add(
+					offset,
+					new Vec(horzDirection === 1 ? size * 1.5 + MARGIN : (-1 * size) / 2 - MARGIN, size / 2)
+				)
+			}
 			const newSticky = createSticky(this.editor, undefined, offset)
 
 			// Go into edit mode on the new sticky

@@ -22,7 +22,6 @@ export class Pointing extends StateNode {
 	markId = ''
 
 	shape = {} as TLNoteShape
-	shapes = [] as TLNoteShape[]
 
 	override onEnter = () => {
 		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
@@ -32,7 +31,6 @@ export class Pointing extends StateNode {
 			this.markId = `creating:${id}`
 			this.editor.mark(this.markId)
 			this.shape = createSticky(this.editor, id)
-			this.shapes = [this.shape]
 		}
 	}
 
@@ -85,12 +83,9 @@ export class Pointing extends StateNode {
 				})
 			}
 		}
-
-		this.shapes = []
 	}
 
 	private cancel() {
-		this.shapes = []
 		this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', this.info)
 	}

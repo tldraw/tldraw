@@ -1,7 +1,8 @@
 [
 	{
 		"locale": "ar",
-		"label": "عربي"
+		"label": "عربي",
+		"isRTL": true
 	},
 	{
 		"locale": "ca",
@@ -29,7 +30,8 @@
 	},
 	{
 		"locale": "fa",
-		"label": "فارسی"
+		"label": "فارسی",
+		"isRTL": true
 	},
 	{
 		"locale": "fi",
@@ -45,7 +47,8 @@
 	},
 	{
 		"locale": "he",
-		"label": "עברית"
+		"label": "עברית",
+		"isRTL": true
 	},
 	{
 		"locale": "hr",
@@ -65,7 +68,8 @@
 	},
 	{
 		"locale": "ku",
-		"label": "کوردی"
+		"label": "کوردی",
+		"isRTL": true
 	},
 	{
 		"locale": "hi-in",

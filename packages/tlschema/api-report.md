@@ -47,9 +47,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
@@ -61,9 +61,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     bend: T.Validator<number>;
@@ -200,8 +200,8 @@ export const drawShapeProps: {
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     segments: T.ArrayOfValidator<{
-        points: VecModel[];
         type: "free" | "straight";
+        points: VecModel[];
     } & {}>;
     isComplete: T.Validator<boolean>;
     isClosed: T.Validator<boolean>;
@@ -522,8 +522,8 @@ export const highlightShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     segments: T.ArrayOfValidator<{
-        points: VecModel[];
         type: "free" | "straight";
+        points: VecModel[];
     } & {}>;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
@@ -636,15 +636,19 @@ export const LANGUAGES: readonly [{
 }, {
     readonly locale: "he";
     readonly label: "עברית";
+    readonly isRTL: true;
 }, {
     readonly locale: "ar";
     readonly label: "عربي";
+    readonly isRTL: true;
 }, {
     readonly locale: "fa";
     readonly label: "فارسی";
+    readonly isRTL: true;
 }, {
     readonly locale: "ku";
     readonly label: "کوردی";
+    readonly isRTL: true;
 }, {
     readonly locale: "ne";
     readonly label: "नेपाली";
@@ -685,9 +689,9 @@ export const lineShapeProps: {
     spline: EnumStyleProp<"cubic" | "line">;
     points: T.DictValidator<string, {
         id: string;
-        index: IndexKey;
         x: number;
         y: number;
+        index: IndexKey;
     } & {}>;
 };
 

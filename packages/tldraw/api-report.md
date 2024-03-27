@@ -224,9 +224,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         end: UnionValidator<"type", {
@@ -238,9 +238,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         bend: Validator<number>;
@@ -499,8 +499,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
-        points: VecModel[];
         type: "free" | "straight";
+        points: VecModel[];
         }>;
         isComplete: Validator<boolean>;
         isClosed: Validator<boolean>;
@@ -918,8 +918,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
-        points: VecModel[];
         type: "free" | "straight";
+        points: VecModel[];
         }>;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
@@ -1062,9 +1062,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         spline: EnumStyleProp<"cubic" | "line">;
         points: DictValidator<string, {
         id: string;
-        index: IndexKey;
         x: number;
         y: number;
+        index: IndexKey;
         }>;
     };
     // (undocumented)
@@ -2396,6 +2396,7 @@ export type TLUiToolsProviderProps = {
 export type TLUiTranslation = {
     readonly locale: string;
     readonly label: string;
+    readonly isRTL?: boolean;
     readonly messages: Record<TLUiTranslationKey, string>;
 };
 
@@ -2487,6 +2488,9 @@ export function useCanUndo(): boolean;
 
 // @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
+
+// @public (undocumented)
+export const useCurrentTranslation: () => TLUiTranslation;
 
 // @public (undocumented)
 export function useDefaultHelpers(): {
