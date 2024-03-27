@@ -8666,7 +8666,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				type: 'misc',
 				name: 'tick',
 				elapsed,
-				inputs: structuredClone(this.inputs),
+				inputs: this._cloneInputs(this.inputs),
 			})
 			this.scribbles.tick(elapsed)
 		})
