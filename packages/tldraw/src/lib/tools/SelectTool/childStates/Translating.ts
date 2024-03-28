@@ -300,7 +300,7 @@ export class Translating extends StateNode {
 			checkForStickyPit: this.checkForStickyPit,
 		})
 		if (info) {
-			console.log(info)
+			// console.log({ info })
 			this.checkForStickyPit = info.checkForStickyPit
 		}
 
@@ -548,20 +548,19 @@ export function moveShapesToPoint({
 	if (stickyPit) {
 		const noteShape = editor.getShape(snapshots[0].shape.id)
 		const distance = Vec.Dist({ x: noteShape!.x + 100, y: noteShape!.y + 100 }, stickyPit)
-		console.log({ distance, firstCheck, checkForStickyPit })
+		// console.log({ distance, firstCheck, checkForStickyPit })
 		if (!checkForStickyPit && distance > 20) {
 			return { checkForStickyPit: true }
 		}
 		if (distance < 20 && firstCheck) {
-			// here
 			return { checkForStickyPit: false }
-		} else if (distance < 20) {
+		} else if (distance < 20 && checkForStickyPit) {
 			editor.updateShape({
 				...snapshots[0].shape,
 				x: stickyPit.x - 100,
 				y: stickyPit.y - 100,
 			})
-			return { checkForStickyPit: false }
+			return { checkForStickyPit: true }
 		}
 	}
 }
