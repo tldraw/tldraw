@@ -91,7 +91,11 @@ import { Vec, VecLike } from '../primitives/Vec'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
-import { intersectPolygonPolygon } from '../primitives/intersect'
+import {
+	intersectPolygonBounds,
+	intersectPolygonPolygon,
+	intersectPolylineBounds,
+} from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
@@ -5038,14 +5042,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (shapeBounds.w * shapeBounds.h > otherBounds.w * otherBounds.h * 2) continue
 
 			// don't stick if your geometry doesn't intersect the other shape's geometry
-			// TODO: make this actually work!
+			const otherBoundsInShapeSpace = Box.FromPoints(
+				otherBounds.corners.map((v) => this.getPointInShapeSpace(shape, v))
+			)
 			const shapeGeometry = this.getShapeGeometry(shape)
-			const shapePageTransform = this.getShapePageTransform(shape)
+
+			if (otherBoundsInShapeSpace.contains(shapeGeometry.bounds)) return other
+
 			if (
-				!shapeGeometry.vertices.some((v) => {
-					const point = shapePageTransform.applyToPoint(v)
-					return otherBounds.containsPoint(point)
-				})
+				shapeGeometry.isClosed &&
+				!intersectPolygonBounds(shapeGeometry.vertices, otherBoundsInShapeSpace)
+			) {
+				continue
+			} else if (
+				!shapeGeometry.isClosed &&
+				!intersectPolylineBounds(shapeGeometry.vertices, otherBoundsInShapeSpace)
 			) {
 				continue
 			}
