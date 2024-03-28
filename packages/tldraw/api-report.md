@@ -655,7 +655,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
-    kickOutFallenChildren(shape: TLFrameShape): void;
+    kickOutFallenShapes(shape: TLFrameShape, shapeIds?: TLShapeId[]): void;
     // (undocumented)
     static migrations: Migrations;
     // (undocumented)

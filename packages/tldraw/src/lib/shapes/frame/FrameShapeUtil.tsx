@@ -213,16 +213,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]): { shouldHint: boolean } => {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
-			const frameBounds = this.editor.getShapePageBounds(frame)
-			if (!frameBounds) return { shouldHint: false }
-			this.editor.reparentShapes(
-				shapes.filter((shape) => {
-					const shapeBounds = this.editor.getShapePageBounds(shape)
-					if (!shapeBounds) return false
-					if (frameBounds.includes(shapeBounds)) return true
-				}),
-				frame.id
-			)
+			this.editor.reparentShapes(shapes, frame.id)
 			return { shouldHint: true }
 		}
 		return { shouldHint: false }
@@ -243,20 +234,26 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
-		this.kickOutFallenChildren(shape)
+		this.kickOutFallenShapes(shape)
 	}
 
 	override onDropShapesOver = (shape: TLFrameShape, _shapes: TLShape[]) => {
-		// this.kickOutFallenChildren(shape)
+		this.kickOutFallenShapes(shape)
 	}
 
-	kickOutFallenChildren(shape: TLFrameShape) {
+	kickOutFallenShapes(
+		shape: TLFrameShape,
+		shapeIds: TLShapeId[] = this.editor.getSortedChildIdsForParent(shape.id)
+	) {
 		const bounds = this.editor.getShapePageBounds(shape)!
-		const children = this.editor.getSortedChildIdsForParent(shape.id)
+		const children = shapeIds
 
 		const shapesToReparent: TLShapeId[] = []
 
 		for (const childId of children) {
+			const child = this.editor.getShape(childId)
+			if (!child) continue
+			if (child.parentId !== shape.id) continue
 			const childBounds = this.editor.getShapePageBounds(childId)!
 			if (!bounds.includes(childBounds)) {
 				shapesToReparent.push(childId)
