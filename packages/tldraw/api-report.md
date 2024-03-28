@@ -655,6 +655,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
+    kickOutFallenChildren(shape: TLFrameShape): void;
+    // (undocumented)
     static migrations: Migrations;
     // (undocumented)
     onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
@@ -662,6 +664,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => {
         shouldHint: boolean;
     };
+    // (undocumented)
+    onDropShapesOver: (shape: TLFrameShape, _shapes: TLShape[]) => void;
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
     // (undocumented)

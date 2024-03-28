@@ -213,8 +213,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]): { shouldHint: boolean } => {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
+			const frameBounds = this.editor.getShapePageBounds(frame)
+			if (!frameBounds) return { shouldHint: false }
 			this.editor.reparentShapes(
-				shapes.map((shape) => shape.id),
+				shapes.filter((shape) => {
+					const shapeBounds = this.editor.getShapePageBounds(shape)
+					if (!shapeBounds) return false
+					if (frameBounds.includes(shapeBounds)) return true
+				}),
 				frame.id
 			)
 			return { shouldHint: true }
@@ -237,6 +243,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
+		this.kickOutFallenChildren(shape)
+	}
+
+	override onDropShapesOver = (shape: TLFrameShape, _shapes: TLShape[]) => {
+		// this.kickOutFallenChildren(shape)
+	}
+
+	kickOutFallenChildren(shape: TLFrameShape) {
 		const bounds = this.editor.getShapePageBounds(shape)!
 		const children = this.editor.getSortedChildIdsForParent(shape.id)
 
