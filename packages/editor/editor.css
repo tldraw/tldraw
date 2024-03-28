@@ -1143,6 +1143,7 @@ input,
 	height: 100%;
 	border-radius: 1px;
 	overflow: hidden;
+	opacity: 0.97;
 	box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.2);
 }
 
