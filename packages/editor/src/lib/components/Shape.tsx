@@ -26,7 +26,6 @@ export const Shape = memo(function Shape({
 	index,
 	backgroundIndex,
 	opacity,
-	isCulled,
 	dprMultiple,
 }: {
 	id: TLShapeId
@@ -35,7 +34,6 @@ export const Shape = memo(function Shape({
 	index: number
 	backgroundIndex: number
 	opacity: number
-	isCulled: boolean
 	dprMultiple: number
 }) {
 	const editor = useEditor()
