@@ -170,6 +170,33 @@ export const BubbleToolUi = track(() => {
 })
 ```
 
+## Side effects
+
+The [Editor#sideEffects](?) object lets you register callbacks for key parts of the lifecycle of records in the [Store](#Store).
+You can register callbacks for before or after a record is created, changed, or deleted.
+These callbacks are useful for applying constraints, maintaining relationships, or checking the integrity of different records in the document.
+For example, we use side effects to create a new [TLCamera](?) record every time a new page is made.
+
+The "before" callbacks allow you to modify the record itself, but shouldn't be used for modifying other records.
+You can create a different record in the place of what was asked, prevent a change (or make a different one) to an existing record, or stop something from being deleted.
+
+The "after" callbacks let you make changes to other records in response to something happening.
+You could create, update, or delete any related record, but you should avoid changing the same record that triggered the change.
+
+For example, if you wanted to know every time a new arrow is created, you could register a handler like this:
+
+```ts
+editor.sideEffects.registerAfterCreateHandler('shape', (newShape) => {
+	if (newShape.type === 'arrow') {
+		console.log('A new arrow shape was created', newShape)
+	}
+})
+```
+
+Side effect handlers are also given a `source` argument - either `"user"` or `"remote"`.
+This indicates whether the change originated from the current user, or from another remote user in the same multiplayer room.
+You could use this to e.g. prevent the current user from deleting shapes, but allow deletions from others in the same room.
+
 ## Inputs
 
 The [Editor#inputs](?) object holds information about the user's current input state, including their cursor position (in page space _and_ screen space), which keys are pressed, what their multi-click state is, and whether they are dragging, pointing, pinching, and so on.

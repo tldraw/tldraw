@@ -26,6 +26,7 @@ import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
@@ -766,7 +767,24 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
+    // @deprecated (undocumented)
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<{
+        svg: string;
+        width: number;
+        height: number;
+    } | undefined>;
+    // @internal (undocumented)
+    getUnorderedRenderingShapes(useEditorState: boolean): {
+        id: TLShapeId;
+        shape: TLShape;
+        util: ShapeUtil;
+        index: number;
+        backgroundIndex: number;
+        opacity: number;
+        isCulled: boolean;
+        maskedPageBounds: Box | undefined;
+    }[];
     getViewportPageBounds(): Box;
     getViewportPageCenter(): Vec;
     getViewportScreenBounds(): Box;
@@ -815,6 +833,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     pageToScreen(point: VecLike): {
+        x: number;
+        y: number;
+        z: number;
+    };
+    pageToViewport(point: VecLike): {
         x: number;
         y: number;
         z: number;
@@ -914,7 +937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         targetZoom?: number;
         inset?: number;
     } & TLAnimationOptions): this;
-    zoomToContent(): this;
+    zoomToContent(opts?: TLAnimationOptions): this;
     zoomToFit(animation?: TLAnimationOptions): this;
     zoomToSelection(animation?: TLAnimationOptions): this;
 }
@@ -1649,8 +1672,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     static props?: ShapeProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
-    toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<SVGElement> | SVGElement;
-    toSvg?(shape: Shape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
+    toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
+    toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
 }
 
@@ -1672,6 +1695,37 @@ export class SharedStyleMap extends ReadonlySharedStyleMap {
 
 // @public
 export function shortAngleDist(a0: number, a1: number): number;
+
+// @public
+export class SideEffectManager<CTX extends {
+    store: TLStore;
+    history: {
+        onBatchComplete: () => void;
+    };
+}> {
+    constructor(editor: CTX);
+    // (undocumented)
+    editor: CTX;
+    registerAfterChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterChangeHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerAfterCreateHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterCreateHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerAfterDeleteHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterDeleteHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerBatchCompleteHandler(handler: TLBatchCompleteHandler): () => void;
+    registerBeforeChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeChangeHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerBeforeCreateHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeCreateHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerBeforeDeleteHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeDeleteHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+}
 
 export { Signal }
 
@@ -1821,7 +1875,7 @@ export interface SvgExportContext {
 // @public (undocumented)
 export interface SvgExportDef {
     // (undocumented)
-    getElement: () => null | Promise<null | SVGElement | SVGElement[]> | SVGElement | SVGElement[];
+    getElement: () => null | Promise<null | ReactElement> | ReactElement;
     // (undocumented)
     key: string;
 }
@@ -2721,6 +2775,11 @@ export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends Record<string, unknown>>(arr: T): T;
+
+// @public
+export function useSvgExportContext(): {
+    isDarkMode: boolean;
+} | null;
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions & {

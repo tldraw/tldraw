@@ -1,4 +1,4 @@
-import { react, useLayoutReaction, useValue } from '@tldraw/state'
+import { react, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
@@ -13,6 +13,7 @@ import { useFixSafariDoubleTapZoomPencilEvents } from '../../hooks/useFixSafariD
 import { useGestureEvents } from '../../hooks/useGestureEvents'
 import { useHandleEvents } from '../../hooks/useHandleEvents'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
+import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
@@ -43,21 +44,25 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	useGestureEvents(rCanvas)
 	useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 
-	useLayoutReaction('position layers', () => {
-		const { x, y, z } = editor.getCamera()
+	useQuickReactor(
+		'position layers',
+		() => {
+			const { x, y, z } = editor.getCamera()
 
-		// Because the html container has a width/height of 1px, we
-		// need to create a small offset when zoomed to ensure that
-		// the html container and svg container are lined up exactly.
-		const offset =
-			z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
+			// Because the html container has a width/height of 1px, we
+			// need to create a small offset when zoomed to ensure that
+			// the html container and svg container are lined up exactly.
+			const offset =
+				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
-		const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-			x + offset
-		)}px,${toDomPrecision(y + offset)}px)`
-		setStyleProperty(rHtmlLayer.current, 'transform', transform)
-		setStyleProperty(rHtmlLayer2.current, 'transform', transform)
-	})
+			const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
+				x + offset
+			)}px,${toDomPrecision(y + offset)}px)`
+			setStyleProperty(rHtmlLayer.current, 'transform', transform)
+			setStyleProperty(rHtmlLayer2.current, 'transform', transform)
+		},
+		[editor]
+	)
 
 	const events = useCanvasEvents()
 
@@ -477,7 +482,7 @@ function CollaboratorHintDef() {
 function DebugSvgCopy({ id }: { id: TLShapeId }) {
 	const editor = useEditor()
 
-	const [html, setHtml] = useState('')
+	const [image, setImage] = useState<{ src: string; bounds: Box } | null>(null)
 
 	const isInRoot = useValue(
 		'is in root',
@@ -495,18 +500,19 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			const bb = editor.getShapePageBounds(id)
-			const el = await editor.getSvg([id], {
-				padding: 0,
+
+			const isSingleFrame = editor.isShapeOfType(id, 'frame')
+			const padding = isSingleFrame ? 0 : 10
+			const bounds = editor.getShapePageBounds(id)!.clone().expandBy(padding)
+			const result = await editor.getSvgString([id], {
+				padding,
 				background: editor.getInstanceState().exportBackground,
 			})
-			if (el && bb && latest === renderId) {
-				el.style.setProperty('overflow', 'visible')
-				el.setAttribute('preserveAspectRatio', 'xMidYMin slice')
-				el.style.setProperty('transform', `translate(${bb.x}px, ${bb.y + bb.h + 12}px)`)
-				el.style.setProperty('border', '1px solid black')
-				setHtml(el?.outerHTML)
-			}
+
+			if (latest !== renderId || !result) return
+
+			const svgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(result.svg)}`
+			setImage({ src: svgDataUrl, bounds })
 		})
 
 		return () => {
@@ -515,12 +521,22 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 		}
 	}, [editor, id, isInRoot])
 
-	if (!isInRoot) return null
+	if (!isInRoot || !image) return null
 
 	return (
-		<div style={{ paddingTop: 12, position: 'absolute' }}>
-			<div style={{ display: 'flex' }} dangerouslySetInnerHTML={{ __html: html }} />
-		</div>
+		<img
+			src={image.src}
+			width={image.bounds.width}
+			height={image.bounds.height}
+			style={{
+				position: 'absolute',
+				top: 0,
+				left: 0,
+				transform: `translate(${image.bounds.x}px, ${image.bounds.maxY + 12}px)`,
+				outline: '1px solid black',
+				maxWidth: 'none',
+			}}
+		/>
 	)
 }
 
