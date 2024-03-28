@@ -352,7 +352,7 @@ function ShapesWithSVGs() {
 	)
 }
 
-const shapesMap = new Map<TLShapeId, HTMLDivElement>()
+const portalTargets = new Map<TLShapeId, { div: HTMLDivElement; addedToDom: boolean }>()
 
 function ShapesToDisplay() {
 	const editor = useEditor()
@@ -370,12 +370,22 @@ function ShapesToDisplay() {
 	)
 	if (wrapperDiv.current) {
 		renderingShapes.forEach((shape) => {
-			let div = shapesMap.get(shape.id)
-			if (!div) {
-				div = document.createElement('div')
+			const shapeTarget = portalTargets.get(shape.id)
+			if (!shapeTarget) {
+				const div = document.createElement('div')
 				div.id = shape.id
-				shapesMap.set(shape.id, div)
-				wrapperDiv.current?.appendChild(div)
+				if (shape.isCulled) {
+					portalTargets.set(shape.id, { div, addedToDom: false })
+				} else {
+					wrapperDiv.current?.appendChild(div)
+					portalTargets.set(shape.id, { div, addedToDom: true })
+				}
+			} else if (shapeTarget.addedToDom && shape.isCulled) {
+				wrapperDiv.current?.removeChild(shapeTarget.div)
+				portalTargets.set(shape.id, { div: shapeTarget.div, addedToDom: false })
+			} else if (!shapeTarget.addedToDom && !shape.isCulled) {
+				wrapperDiv.current?.appendChild(shapeTarget.div)
+				portalTargets.set(shape.id, { div: shapeTarget.div, addedToDom: true })
 			}
 		})
 	}
@@ -383,14 +393,11 @@ function ShapesToDisplay() {
 	return (
 		<div ref={wrapperDiv} id="portal-target">
 			{renderingShapes.map((result) => {
-				const div = shapesMap.get(result.id)
-				if (!div) return null
+				const shapeTarget = portalTargets.get(result.id)
+				if (!shapeTarget) return null
 				return createPortal(
-					result.isCulled ? // <CulledShape shapeId={result.id} />
-					null : (
-						<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
-					),
-					div,
+					<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />,
+					shapeTarget.div,
 					result.id
 				)
 			})}
