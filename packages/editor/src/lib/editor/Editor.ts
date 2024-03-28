@@ -1,4 +1,5 @@
-import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
+import { Quadtree, Rectangle } from '@timohausmann/quadtree-ts'
+import { EMPTY_ARRAY, atom, computed, transact, whyAmIRunning } from '@tldraw/state'
 import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -3087,6 +3088,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
+	quadTree = new Quadtree({ width: 40000, height: 40000, x: -20000, y: -20000 })
+	shapesInTheTree = new Set<TLShapeId>()
+	quadRectsById = new Map<TLShapeId, Rectangle<TLShapeId>>()
+
+	@computed quadTree2() {
+		const shapes = this.getCurrentPageShapes()
+		whyAmIRunning()
+		for (let i = 0; i < shapes.length; i++) {
+			const shape = shapes[i]
+			if (!this.shapesInTheTree.has(shape.id)) {
+				const maskedPageBounds = this.getShapeMaskedPageBounds(shape.id)
+				if (!maskedPageBounds) continue
+
+				let rect = this.quadRectsById.get(shape.id)
+				if (!rect) {
+					rect = new Rectangle({
+						x: maskedPageBounds?.x,
+						y: maskedPageBounds?.y,
+						width: maskedPageBounds?.width,
+						height: maskedPageBounds?.height,
+						data: shape.id,
+					})
+				}
+
+				this.quadRectsById.set(shape.id, rect)
+				this.quadTree.insert(rect)
+				this.shapesInTheTree.add(shape.id)
+			}
+		}
+		return 'bla'
+	}
+
 	/** @internal */
 	getUnorderedRenderingShapes(
 		// The rendering state. We use this method both for rendering, which
@@ -3112,20 +3145,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 			backgroundIndex: number
 			opacity: number
 			isCulled: boolean
-			maskedPageBounds: Box | undefined
 		}[] = []
 
 		let nextIndex = MAX_SHAPES_PER_PAGE * 2
 		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE
 
 		// We only really need these if we're using editor state, but that's ok
-		const editingShapeId = this.getEditingShapeId()
-		const selectedShapeIds = this.getSelectedShapeIds()
 		const erasingShapeIds = this.getErasingShapeIds()
 		const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
 
-		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
-		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
+		const shapesInView = this.quadTree.retrieve(
+			new Rectangle({
+				x: renderingBoundsExpanded.x,
+				y: renderingBoundsExpanded.y,
+				width: renderingBoundsExpanded.width,
+				height: renderingBoundsExpanded.height,
+			})
+		)
+		const idsOfShapesInView = new Set(shapesInView.map((s) => (s as any).data))
 
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			const shape = this.getShape(id)
@@ -3135,27 +3172,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			let isCulled = false
 			let isShapeErasing = false
 			const util = this.getShapeUtil(shape)
-			const maskedPageBounds = this.getShapeMaskedPageBounds(id)
 
 			if (useEditorState) {
 				isShapeErasing = !isAncestorErasing && erasingShapeIds.includes(id)
 				if (isShapeErasing) {
 					opacity *= 0.32
 				}
-
-				isCulled =
-					isCullingOffScreenShapes &&
-					// only cull shapes that allow unmounting, i.e. not stateful components
-					util.canUnmount(shape) &&
-					// never cull editingg shapes
-					editingShapeId !== id &&
-					// if the shape is fully outside of its parent's clipping bounds...
-					(maskedPageBounds === undefined ||
-						// ...or if the shape is outside of the expanded viewport bounds...
-						(!renderingBoundsExpanded.includes(maskedPageBounds) &&
-							// ...and if it's not selected... then cull it
-							!selectedShapeIds.includes(id)))
 			}
+			isCulled = !idsOfShapesInView.has(id)
 
 			renderingShapes.push({
 				id,
@@ -3165,7 +3189,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				backgroundIndex: nextBackgroundIndex,
 				opacity,
 				isCulled,
-				maskedPageBounds,
 			})
 
 			nextIndex += 1
@@ -3193,6 +3216,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If we're using editor state, then we're only interested in on-screen shapes.
 		// If we're not using the editor state, then we're interested in ALL shapes, even those from other pages.
 		const pages = useEditorState ? [this.getCurrentPage()] : this.getPages()
+		// const ids = shapesInView.map((s) => (s as any).data)
 		for (const page of pages) {
 			for (const childId of this.getSortedChildIdsForParent(page.id)) {
 				addShapeById(childId, 1, false)
@@ -3208,7 +3232,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getRenderingShapes() {
+		let now = Date.now()
+		const bl = this.quadTree2()
 		const renderingShapes = this.getUnorderedRenderingShapes(true)
+		console.log('get rendering shapes in ', Date.now() - now)
+		now = Date.now()
 
 		// Its IMPORTANT that the result be sorted by id AND include the index
 		// that the shape should be displayed at. Steve, this is the past you
@@ -3220,7 +3248,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// drain. By always sorting by 'id' we keep the shapes always in the
 		// same order; but we later use index to set the element's 'z-index'
 		// to change the "rendered" position in z-space.
-		return renderingShapes.sort(sortById)
+		const result = renderingShapes.sort(sortById)
+		console.log('sorted shapes in ', Date.now() - now)
+
+		return result
 	}
 
 	/**

@@ -7172,6 +7172,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@timohausmann/quadtree-ts@npm:^2.2.2":
+  version: 2.2.2
+  resolution: "@timohausmann/quadtree-ts@npm:2.2.2"
+  checksum: d5d02bd5ad5042c976a6443c9415ec4fe401ca3c8853d0886357f65f3a01af2a07a6ea05bb24b57753b1a4c3ea03d90f81b11a90bcc1074ef25eef76fc338e92
+  languageName: node
+  linkType: hard
+
 "@tldraw/assets@workspace:*, @tldraw/assets@workspace:packages/assets":
   version: 0.0.0-use.local
   resolution: "@tldraw/assets@workspace:packages/assets"
@@ -7281,6 +7288,7 @@ __metadata:
     "@peculiar/webcrypto": "npm:^1.4.0"
     "@testing-library/jest-dom": "npm:^5.16.5"
     "@testing-library/react": "npm:^14.0.0"
+    "@timohausmann/quadtree-ts": "npm:^2.2.2"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"

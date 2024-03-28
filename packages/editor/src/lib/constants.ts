@@ -1,7 +1,7 @@
 import { EASINGS } from './primitives/easings'
 
 /** @internal */
-export const MAX_SHAPES_PER_PAGE = 2000
+export const MAX_SHAPES_PER_PAGE = 10000
 /** @internal */
 export const MAX_PAGES = 40
 
