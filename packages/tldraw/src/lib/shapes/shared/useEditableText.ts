@@ -1,10 +1,9 @@
 /* eslint-disable no-inner-declarations */
 
 import {
-	TLShape,
+	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
-	preventDefault,
 	stopEventPropagation,
 	useEditor,
 	useValue,
@@ -12,15 +11,11 @@ import {
 import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
-export function useEditableText<T extends Extract<TLShape, { props: { text: string } }>>(
-	id: T['id'],
-	type: T['type'],
-	text: string
-) {
+/** @public */
+export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const editor = useEditor()
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
-	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()
 
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
@@ -32,28 +27,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 			elm.focus()
 		}
 	}, [isEditing])
-
-	// When the label receives focus, set the value to the most  recent text value and select all of the text
-	const handleFocus = useCallback(() => {
-		// Store and turn off the skipSelectOnFocus flag
-		const skipSelect = rSkipSelectOnFocus.current
-		rSkipSelectOnFocus.current = false
-
-		// On the next frame, if we're not skipping select AND we have text in the element, then focus the text
-		requestAnimationFrame(() => {
-			const elm = rInput.current
-			if (!elm) return
-
-			const shape = editor.getShape<TLShape & { props: { text: string } }>(id)
-
-			if (shape) {
-				elm.value = shape.props.text
-				if (elm.value.length && !skipSelect) {
-					elm.select()
-				}
-			}
-		})
-	}, [editor, id])
 
 	// When the label blurs, deselect all of the text and complete.
 	// This makes it so that the canvas does not have to be focused
@@ -75,9 +48,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 							// and select all of the text
 							elm.focus()
 						} else {
-							// Otherwise, skip the select-all-on-focus behavior
-							// and restore the selection
-							rSkipSelectOnFocus.current = true
+							// Restore the selection
 							elm.focus()
 							const selection = window.getSelection()
 							if (selection) {
@@ -105,15 +76,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				case 'Enter': {
 					if (e.ctrlKey || e.metaKey) {
 						editor.complete()
-					}
-					break
-				}
-				case 'Tab': {
-					preventDefault(e)
-					if (e.shiftKey) {
-						TextHelpers.unindent(e.currentTarget)
-					} else {
-						TextHelpers.indent(e.currentTarget)
 					}
 					break
 				}
@@ -198,7 +160,9 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	return {
 		rInput,
 		isEditing,
-		handleFocus,
+		handleFocus: () => {
+			/* noop */
+		},
 		handleBlur,
 		handleKeyDown,
 		handleChange,

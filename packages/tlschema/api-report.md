@@ -47,9 +47,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
@@ -61,9 +61,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     bend: T.Validator<number>;
@@ -636,15 +636,19 @@ export const LANGUAGES: readonly [{
 }, {
     readonly locale: "he";
     readonly label: "עברית";
+    readonly isRTL: true;
 }, {
     readonly locale: "ar";
     readonly label: "عربي";
+    readonly isRTL: true;
 }, {
     readonly locale: "fa";
     readonly label: "فارسی";
+    readonly isRTL: true;
 }, {
     readonly locale: "ku";
     readonly label: "کوردی";
+    readonly isRTL: true;
 }, {
     readonly locale: "ne";
     readonly label: "नेपाली";
@@ -684,9 +688,9 @@ export const lineShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
     points: T.DictValidator<string, {
-        id: string;
         x: number;
         y: number;
+        id: string;
         index: IndexKey;
     } & {}>;
 };
@@ -701,6 +705,7 @@ export const noteShapeMigrations: Migrations;
 export const noteShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+    fontSizeAdjustment: T.Validator<number | undefined>;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
     verticalAlign: EnumStyleProp<"end" | "middle" | "start">;

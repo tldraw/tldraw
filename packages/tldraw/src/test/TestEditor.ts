@@ -85,7 +85,7 @@ export class TestEditor extends Editor {
 				lineHeight: number
 				maxWidth: null | number
 			}
-		): BoxModel => {
+		): BoxModel & { scrollWidth: number } => {
 			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
 				return curr.length > acc.length ? curr : acc
@@ -100,6 +100,7 @@ export class TestEditor extends Editor {
 				h:
 					(opts.maxWidth === null ? breaks.length : Math.ceil(w % opts.maxWidth) + breaks.length) *
 					opts.fontSize,
+				scrollWidth: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
 			}
 		}
 

@@ -418,7 +418,31 @@ export class Idle extends StateNode {
 			case 'ArrowUp':
 			case 'ArrowDown': {
 				this.nudgeSelectedShapes(false)
-				break
+				return
+			}
+		}
+
+		// For shapes that specify `doesAutoEditOnKeyStroke`, we start editing when a key is pressed.
+		// We exclude Delete/Backspace obviously, [ and ] are keyboard shortcuts we want to keep,
+		// and space is used for panning.
+		if (
+			!['Delete', 'Backspace', '[', ']', 'Enter', ' '].includes(info.key) &&
+			!info.altKey &&
+			!info.ctrlKey
+		) {
+			// If the only selected shape is editable, then begin editing it
+			const onlySelectedShape = this.editor.getOnlySelectedShape()
+			if (
+				onlySelectedShape &&
+				this.shouldStartEditingShape(onlySelectedShape) &&
+				this.editor.getShapeUtil(onlySelectedShape).doesAutoEditOnKeyStroke(onlySelectedShape)
+			) {
+				this.startEditingShape(onlySelectedShape, {
+					...info,
+					target: 'shape',
+					shape: onlySelectedShape,
+				})
+				return
 			}
 		}
 	}
@@ -458,6 +482,12 @@ export class Idle extends StateNode {
 						target: 'shape',
 						shape: onlySelectedShape,
 					})
+
+					// XXX this is a hack to select the text in the textarea when we hit enter.
+					// Open to other ideas! I don't see how else to currently do this in the codebase.
+					;(
+						document.getElementById(`text-input-${onlySelectedShape.id}`) as HTMLTextAreaElement
+					)?.select()
 					return
 				}
 
