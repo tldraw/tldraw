@@ -5,22 +5,17 @@ import {
 	LoadingScreen,
 	StoreSnapshot,
 	TLEditorComponents,
-	TLNoteShape,
 	TLOnMountHandler,
 	TLRecord,
 	TLStore,
 	TLStoreWithStatus,
 	TldrawEditor,
 	TldrawEditorBaseProps,
-	createShapeId,
-	stopEventPropagation,
-	track,
 	useEditor,
 	useEditorComponents,
 	useEvent,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
-	useValue,
 } from '@tldraw/editor'
 import { useLayoutEffect, useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
@@ -36,7 +31,6 @@ import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
-import { NOTE_GRID_OFFSET } from './shapes/note/NoteShapeUtil'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
@@ -97,7 +91,6 @@ export function Tldraw(props: TldrawProps) {
 			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
 			HoveredShapeIndicator: TldrawHoveredShapeIndicator,
-			InFrontOfTheCanvas: NoteDuplicationHandles,
 			..._components,
 		}),
 		[_components]
@@ -215,137 +208,4 @@ function InsideOfEditorAndUiContext({
 	}
 
 	return null
-}
-
-const HANDLE_SIZE = 10
-const NoteDuplicationHandles = track(() => {
-	const editor = useEditor()
-
-	const info = useValue(
-		'selection bounds',
-		() => {
-			const screenBounds = editor.getViewportScreenBounds()
-			const rotation = editor.getSelectionRotation()
-			const rotatedScreenBounds = editor.getSelectionRotatedScreenBounds()
-			const zoom = editor.getZoomLevel()
-			if (!rotatedScreenBounds) return
-			return {
-				x: rotatedScreenBounds.x - screenBounds.x,
-				y: rotatedScreenBounds.y - screenBounds.y,
-				width: rotatedScreenBounds.width,
-				height: rotatedScreenBounds.height,
-				rotation: rotation,
-				zoom,
-			}
-		},
-		[editor]
-	)
-
-	const shapes = editor.getSelectedShapes()
-	if (shapes.length === 0) return null
-	if (shapes.length > 1) return null
-	if (shapes[0].type !== 'note') return null
-	if (!info) return
-	const zoomOffsetAboveLeft = HANDLE_SIZE * 2.5 * info.zoom
-	console.log({ zoomOffsetAboveLeft, HANDLE_SIZE })
-	return (
-		<div
-			style={{
-				position: 'absolute',
-				top: 0,
-				left: 0,
-				transformOrigin: 'top left',
-				transform: `translate(${info.x}px, ${info.y}px) rotate(${info.rotation}rad)`,
-				pointerEvents: 'all',
-			}}
-			onPointerDown={stopEventPropagation}
-		>
-			<DuplicateInDirectionButton
-				shape={shapes[0] as TLNoteShape}
-				y={-HANDLE_SIZE * 2.5}
-				x={info.width / 2 - HANDLE_SIZE / 2}
-				direction={'above'}
-				rotation={-(Math.PI / 2)}
-			/>
-			<DuplicateInDirectionButton
-				shape={shapes[0] as TLNoteShape}
-				y={info.height / 2 - HANDLE_SIZE / 2}
-				x={-HANDLE_SIZE * 2.5}
-				direction={'left'}
-				rotation={Math.PI}
-			/>
-			<DuplicateInDirectionButton
-				shape={shapes[0] as TLNoteShape}
-				y={info.height / 2 - HANDLE_SIZE / 2}
-				x={info.width + HANDLE_SIZE * 1.5}
-				direction={'right'}
-				rotation={0}
-			/>
-			<DuplicateInDirectionButton
-				shape={shapes[0] as TLNoteShape}
-				y={info.height + HANDLE_SIZE * 1.5}
-				x={info.width / 2 - HANDLE_SIZE / 2}
-				direction={'below'}
-				rotation={Math.PI / 2}
-			/>
-		</div>
-	)
-})
-
-function DuplicateInDirectionButton({
-	x,
-	y,
-	rotation,
-	shape,
-	direction,
-}: {
-	x: number
-	y: number
-	rotation: number
-	shape: TLNoteShape
-	direction: 'above' | 'below' | 'left' | 'right'
-}) {
-	const editor = useEditor()
-
-	const offsetX =
-		direction === 'left' ? -NOTE_GRID_OFFSET : direction === 'right' ? NOTE_GRID_OFFSET : 0
-	const offsetY =
-		direction === 'above' ? -NOTE_GRID_OFFSET : direction === 'below' ? NOTE_GRID_OFFSET : 0
-
-	return (
-		<button
-			style={{
-				position: 'absolute',
-				width: HANDLE_SIZE * 2,
-				height: HANDLE_SIZE * 2,
-				pointerEvents: 'all',
-				border: 'none',
-				backgroundColor: 'transparent',
-				padding: '0',
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				cursor: 'pointer',
-				transform: `translate(${x}px, ${y}px) rotate(${rotation}rad)`,
-			}}
-			onPointerDown={(e) => {
-				stopEventPropagation(e)
-				const noteId = createShapeId()
-				editor.createShapes([
-					{ type: 'note', id: noteId, x: shape.x + offsetX, y: shape.y + offsetY },
-				])
-				const newNote = editor.getShape(noteId)
-			}}
-		>
-			<div
-				style={{
-					height: HANDLE_SIZE,
-					width: HANDLE_SIZE,
-					borderRadius: '10px',
-					border: '2px solid blue',
-					padding: '0',
-				}}
-			></div>
-		</button>
-	)
 }

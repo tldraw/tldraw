@@ -224,9 +224,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         end: UnionValidator<"type", {
@@ -238,9 +238,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         bend: Validator<number>;
@@ -1061,9 +1061,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
         points: DictValidator<string, {
-        id: string;
         x: number;
         y: number;
+        id: string;
         index: IndexKey;
         }>;
     };
@@ -1105,6 +1105,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getGeometry(shape: TLNoteShape): Rectangle2d;
     // (undocumented)
+    getHandles(shape: TLNoteShape): TLHandle[];
+    // (undocumented)
     getHeight(shape: TLNoteShape): number;
     // (undocumented)
     hideResizeHandles: () => boolean;
@@ -1125,6 +1127,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
+            buttons: VecModel[];
+            previews: VecModel[];
         };
         type: "note";
         x: number;
@@ -1149,6 +1153,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
+            buttons: VecModel[];
+            previews: VecModel[];
         };
         type: "note";
         x: number;
@@ -1174,6 +1180,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         growY: Validator<number>;
         url: Validator<string>;
         text: Validator<string>;
+        buttons: ArrayOfValidator<VecModel>;
+        previews: ArrayOfValidator<VecModel>;
     };
     // (undocumented)
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX_2.Element;

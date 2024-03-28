@@ -3,6 +3,7 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
 	getDefaultColorTheme,
@@ -40,7 +41,36 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
+			buttons: [
+				{ x: 0.5, y: -0.1 },
+				{ x: 1.1, y: 0.5 },
+				{ x: 0.5, y: 1.1 },
+				{ x: -0.1, y: 0.5 },
+			],
+			previews: [{ x: 0, y: 0 }],
 		}
+	}
+
+	override getHandles(shape: TLNoteShape): TLHandle[] {
+		const { buttons, previews } = shape.props
+		const directionArr = ['up', 'right', 'down', 'left']
+		const buttonsArr = buttons.map((button, i) => ({
+			id: 'note-button-' + directionArr[i],
+			type: 'vertex',
+			index: `${i}`,
+			x: button.x * NOTE_SIZE,
+			y: button.y * this.getHeight(shape),
+			canSnap: true,
+		}))
+		const previewsArr = previews.map((preview, i) => ({
+			id: 'note-preview-' + directionArr[i],
+			type: 'create',
+			index: `${i}`,
+			x: preview.x,
+			y: preview.y,
+			canSnap: true,
+		}))
+		return [...previewsArr, ...buttonsArr] as TLHandle[]
 	}
 
 	getHeight(shape: TLNoteShape) {
