@@ -1,5 +1,5 @@
 import { ContextMenuItem } from '@radix-ui/react-context-menu'
-import { preventDefault } from '@tldraw/editor'
+import { exhaustiveSwitchError, preventDefault } from '@tldraw/editor'
 import { useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
@@ -30,10 +30,6 @@ export type TLUiMenuItemProps<
 	 */
 	kbd?: string
 	/**
-	 * The title to display on the item.
-	 */
-	title?: string
-	/**
 	 * The label to display on the item. If it's a string, it will be translated. If it's an object, the keys will be used as the language keys and the values will be translated.
 	 */
 	label?: TranslationKey | { [key: string]: TranslationKey }
@@ -57,6 +53,10 @@ export type TLUiMenuItemProps<
 	 * Whether to show a spinner on the item.
 	 */
 	spinner?: boolean
+	/**
+	 * Whether the item is selected.
+	 */
+	isSelected?: boolean
 }
 
 /** @public */
@@ -73,6 +73,7 @@ export function TldrawUiMenuItem<
 	icon,
 	onSelect,
 	noClose,
+	isSelected,
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
@@ -196,8 +197,48 @@ export function TldrawUiMenuItem<
 				</TldrawUiButton>
 			)
 		}
+		case 'toolbar': {
+			return (
+				<TldrawUiButton
+					type="tool"
+					data-testid={`tools.${id}`}
+					aria-label={labelToUse}
+					data-value={id}
+					onClick={() => onSelect('toolbar')}
+					title={titleStr}
+					onTouchStart={(e) => {
+						preventDefault(e)
+						onSelect('toolbar')
+					}}
+					role="radio"
+					aria-checked={isSelected ? 'true' : 'false'}
+				>
+					<TldrawUiButtonIcon icon={icon!} />
+				</TldrawUiButton>
+			)
+		}
+		case 'toolbar-overflow': {
+			return (
+				<TldrawUiDropdownMenuItem aria-label={label}>
+					<TldrawUiButton
+						type="icon"
+						className="tlui-button-grid__button"
+						onClick={() => {
+							onSelect('toolbar')
+						}}
+						data-testid={`tools.more.${id}`}
+						title={titleStr}
+						role="radio"
+						aria-checked={isSelected ? 'true' : 'false'}
+						data-value={id}
+					>
+						<TldrawUiButtonIcon icon={icon!} />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuItem>
+			)
+		}
 		default: {
-			return null
+			throw exhaustiveSwitchError(menuType)
 		}
 	}
 }

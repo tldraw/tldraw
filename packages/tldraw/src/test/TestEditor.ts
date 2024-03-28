@@ -3,6 +3,7 @@ import {
 	BoxModel,
 	Editor,
 	HALF_PI,
+	IdOf,
 	Mat,
 	PageRecordType,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
@@ -84,7 +85,7 @@ export class TestEditor extends Editor {
 				lineHeight: number
 				maxWidth: null | number
 			}
-		): BoxModel => {
+		): BoxModel & { scrollWidth: number } => {
 			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
 				return curr.length > acc.length ? curr : acc
@@ -99,6 +100,7 @@ export class TestEditor extends Editor {
 				h:
 					(opts.maxWidth === null ? breaks.length : Math.ceil(w % opts.maxWidth) + breaks.length) *
 					opts.fontSize,
+				scrollWidth: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
 			}
 		}
 
@@ -205,6 +207,8 @@ export class TestEditor extends Editor {
 			y: +camera.y.toFixed(2),
 			z: +camera.z.toFixed(2),
 		}).toCloselyMatchObject({ x, y, z })
+
+		return this
 	}
 
 	expectShapeToMatch = <T extends TLShape = TLShape>(
@@ -215,6 +219,25 @@ export class TestEditor extends Editor {
 			const next = { ...shape, ...model }
 			expect(shape).toCloselyMatchObject(next)
 		})
+		return this
+	}
+
+	expectPageBoundsToBe = <T extends TLShape = TLShape>(id: IdOf<T>, bounds: Partial<BoxModel>) => {
+		const observedBounds = this.getShapePageBounds(id)!
+		expect(observedBounds).toCloselyMatchObject(bounds)
+		return this
+	}
+
+	expectScreenBoundsToBe = <T extends TLShape = TLShape>(
+		id: IdOf<T>,
+		bounds: Partial<BoxModel>
+	) => {
+		const pageBounds = this.getShapePageBounds(id)!
+		const screenPoint = this.pageToScreen(pageBounds.point)
+		const observedBounds = pageBounds.clone()
+		observedBounds.x = screenPoint.x
+		observedBounds.y = screenPoint.y
+		expect(observedBounds).toCloselyMatchObject(bounds)
 		return this
 	}
 
@@ -289,17 +312,6 @@ export class TestEditor extends Editor {
 
 	/* ------------------ Input Events ------------------ */
 
-	/**
-	Some of our updates are not synchronous any longer. For example, drawing happens on tick instead of on pointer move.
-	You can use this helper to force the tick, which will then process all the updates.
-	*/
-	forceTick = (count = 1) => {
-		for (let i = 0; i < count; i++) {
-			this.emit('tick', 16)
-		}
-		return this
-	}
-
 	pointerMove = (
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
@@ -309,7 +321,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_move',
-		}).forceTick()
+		})
 		return this
 	}
 

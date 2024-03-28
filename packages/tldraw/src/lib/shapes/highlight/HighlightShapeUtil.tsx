@@ -4,13 +4,10 @@ import {
 	Polygon2d,
 	SVGContainer,
 	ShapeUtil,
-	SvgExportContext,
-	TLDefaultColorTheme,
 	TLDrawShapeSegment,
 	TLHighlightShape,
 	TLOnResizeHandler,
 	VecLike,
-	getDefaultColorTheme,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
@@ -72,21 +69,17 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	component(shape: TLHighlightShape) {
 		return (
-			<HighlightRenderer
-				strokeWidth={getStrokeWidth(shape)}
-				shape={shape}
-				opacity={OVERLAY_OPACITY}
-			/>
+			<SVGContainer id={shape.id} style={{ opacity: OVERLAY_OPACITY }}>
+				<HighlightRenderer strokeWidth={getStrokeWidth(shape)} shape={shape} />
+			</SVGContainer>
 		)
 	}
 
 	override backgroundComponent(shape: TLHighlightShape) {
 		return (
-			<HighlightRenderer
-				strokeWidth={getStrokeWidth(shape)}
-				shape={shape}
-				opacity={UNDERLAY_OPACITY}
-			/>
+			<SVGContainer id={shape.id} style={{ opacity: UNDERLAY_OPACITY }}>
+				<HighlightRenderer strokeWidth={getStrokeWidth(shape)} shape={shape} />
+			</SVGContainer>
 		)
 	}
 
@@ -117,14 +110,24 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return <path d={strokePath} />
 	}
 
-	override toSvg(shape: TLHighlightShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
-		return highlighterToSvg(getStrokeWidth(shape), shape, OVERLAY_OPACITY, theme)
+	override toSvg(shape: TLHighlightShape) {
+		return (
+			<HighlightRenderer
+				strokeWidth={getStrokeWidth(shape)}
+				shape={shape}
+				opacity={OVERLAY_OPACITY}
+			/>
+		)
 	}
 
 	override toBackgroundSvg(shape: TLHighlightShape) {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
-		return highlighterToSvg(getStrokeWidth(shape), shape, UNDERLAY_OPACITY, theme)
+		return (
+			<HighlightRenderer
+				strokeWidth={getStrokeWidth(shape)}
+				shape={shape}
+				opacity={UNDERLAY_OPACITY}
+			/>
+		)
 	}
 
 	override onResize: TLOnResizeHandler<TLHighlightShape> = (shape, info) => {
@@ -216,35 +219,16 @@ function HighlightRenderer({
 	const color = theme[shape.props.color].highlight[colorSpace]
 
 	return (
-		<SVGContainer id={shape.id} style={{ opacity }}>
-			<path
-				d={solidStrokePath}
-				strokeLinecap="round"
-				fill="none"
-				pointerEvents="all"
-				stroke={color}
-				strokeWidth={sw}
-			/>
-		</SVGContainer>
+		<path
+			d={solidStrokePath}
+			strokeLinecap="round"
+			fill="none"
+			pointerEvents="all"
+			stroke={color}
+			strokeWidth={sw}
+			opacity={opacity}
+		/>
 	)
-}
-
-function highlighterToSvg(
-	strokeWidth: number,
-	shape: TLHighlightShape,
-	opacity: number,
-	theme: TLDefaultColorTheme
-) {
-	const { solidStrokePath, sw } = getHighlightSvgPath(shape, strokeWidth, false)
-
-	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	path.setAttribute('d', solidStrokePath)
-	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', theme[shape.props.color].highlight.srgb)
-	path.setAttribute('stroke-width', `${sw}`)
-	path.setAttribute('opacity', `${opacity}`)
-
-	return path
 }
 
 function getStrokeWidth(shape: TLHighlightShape) {

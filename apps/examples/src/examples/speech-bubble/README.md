@@ -2,7 +2,7 @@
 title: Speech bubble
 component: ./CustomShapeWithHandles.tsx
 category: shapes/tools
-priority: 2
+priority: 1
 ---
 
 A custom shape with handles

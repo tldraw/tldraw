@@ -168,7 +168,7 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 					let assetSrcToSave
 					try {
 						// try to save the asset as a base64 string
-						assetSrcToSave = await FileHelpers.fileToBase64(
+						assetSrcToSave = await FileHelpers.blobToDataUrl(
 							await (await fetch(record.props.src)).blob()
 						)
 					} catch {
@@ -267,6 +267,7 @@ export async function parseAndLoadDocument(
 		addToast({
 			title: msg('file-system.file-open-error.title'),
 			description,
+			severity: 'error',
 		})
 
 		return

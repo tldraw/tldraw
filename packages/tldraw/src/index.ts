@@ -33,6 +33,7 @@ export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
+export { TextLabel } from './lib/shapes/shared/TextLabel'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -42,6 +43,7 @@ export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 // UI
+export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
@@ -74,6 +76,7 @@ export {
 } from './lib/ui/context/events'
 export {
 	useToasts,
+	type AlertSeverity,
 	type TLUiToast,
 	type TLUiToastAction,
 	type TLUiToastsContextType,
@@ -87,12 +90,6 @@ export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
-	toolbarItem,
-	useToolbarSchema,
-	type TLUiToolbarItem,
-	type TLUiToolbarSchemaContextType,
-} from './lib/ui/hooks/useToolbarSchema'
-export {
 	useTools,
 	type TLUiToolItem,
 	type TLUiToolsContextType,
@@ -101,6 +98,7 @@ export {
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
 export { type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
+	useCurrentTranslation,
 	useTranslation,
 	type TLUiTranslationContextType,
 } from './lib/ui/hooks/useTranslation/useTranslation'
@@ -115,7 +113,7 @@ export {
 } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
-export { exportToBlob, getSvgAsImage, getSvgAsString } from './lib/utils/export/export'
+export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'
 export { exportAs } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
@@ -286,8 +284,6 @@ export {
 	FeatureFlags,
 } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
 
-export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
-
 export { type TLComponents } from './lib/Tldraw'
 
 /* ------------------- Primitives ------------------- */
@@ -372,6 +368,41 @@ export {
 // Slider
 export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
 
+// Toolbar
+export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
+export {
+	ArrowDownToolbarItem,
+	ArrowLeftToolbarItem,
+	ArrowRightToolbarItem,
+	ArrowToolbarItem,
+	ArrowUpToolbarItem,
+	AssetToolbarItem,
+	CheckBoxToolbarItem,
+	CloudToolbarItem,
+	DefaultToolbarContent,
+	DiamondToolbarItem,
+	DrawToolbarItem,
+	EllipseToolbarItem,
+	EraserToolbarItem,
+	FrameToolbarItem,
+	HandToolbarItem,
+	HexagonToolbarItem,
+	HighlightToolbarItem,
+	LaserToolbarItem,
+	LineToolbarItem,
+	NoteToolbarItem,
+	OvalToolbarItem,
+	RectangleToolbarItem,
+	RhombusToolbarItem,
+	SelectToolbarItem,
+	StarToolbarItem,
+	TextToolbarItem,
+	TrapezoidToolbarItem,
+	TriangleToolbarItem,
+	XBoxToolbarItem,
+	useIsToolSelected,
+} from './lib/ui/components/Toolbar/DefaultToolbarContent'
+
 /* ----------------- Menu Primitives ---------------- */
 
 // General UI components for building menus
@@ -395,3 +426,11 @@ export {
 	TldrawUiMenuSubmenu,
 	type TLUiMenuSubmenuProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
+
+/* ----------------- Constants ---------------- */
+
+export {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	TEXT_PROPS,
+} from './lib/shapes/shared/default-shape-constants'
