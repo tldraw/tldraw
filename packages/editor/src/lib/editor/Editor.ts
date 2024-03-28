@@ -3106,6 +3106,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.off('tick', this._decayCameraStateTimeout)
 			this._cameraState.set('idle')
 			this.updateRenderingBounds()
+			this.updateHoveredId()
 		}
 	}
 
