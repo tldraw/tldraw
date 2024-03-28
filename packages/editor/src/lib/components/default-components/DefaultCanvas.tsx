@@ -352,7 +352,7 @@ function ShapesWithSVGs() {
 	)
 }
 
-const portalTargets = new Map<TLShapeId, { div: HTMLDivElement; addedToDom: boolean }>()
+const portalInfo = new Map<TLShapeId, { container: HTMLDivElement; addedToDom: boolean }>()
 
 function ShapesToDisplay() {
 	const editor = useEditor()
@@ -370,22 +370,22 @@ function ShapesToDisplay() {
 	)
 	if (wrapperDiv.current) {
 		renderingShapes.forEach((shape) => {
-			const shapeTarget = portalTargets.get(shape.id)
-			if (!shapeTarget) {
+			const shapePortalInfo = portalInfo.get(shape.id)
+			if (!shapePortalInfo) {
 				const div = document.createElement('div')
 				div.id = shape.id
 				if (shape.isCulled) {
-					portalTargets.set(shape.id, { div, addedToDom: false })
+					portalInfo.set(shape.id, { container: div, addedToDom: false })
 				} else {
 					wrapperDiv.current?.appendChild(div)
-					portalTargets.set(shape.id, { div, addedToDom: true })
+					portalInfo.set(shape.id, { container: div, addedToDom: true })
 				}
-			} else if (shapeTarget.addedToDom && shape.isCulled) {
-				wrapperDiv.current?.removeChild(shapeTarget.div)
-				portalTargets.set(shape.id, { div: shapeTarget.div, addedToDom: false })
-			} else if (!shapeTarget.addedToDom && !shape.isCulled) {
-				wrapperDiv.current?.appendChild(shapeTarget.div)
-				portalTargets.set(shape.id, { div: shapeTarget.div, addedToDom: true })
+			} else if (shapePortalInfo.addedToDom && shape.isCulled) {
+				wrapperDiv.current?.removeChild(shapePortalInfo.container)
+				portalInfo.set(shape.id, { container: shapePortalInfo.container, addedToDom: false })
+			} else if (!shapePortalInfo.addedToDom && !shape.isCulled) {
+				wrapperDiv.current?.appendChild(shapePortalInfo.container)
+				portalInfo.set(shape.id, { container: shapePortalInfo.container, addedToDom: true })
 			}
 		})
 	}
@@ -393,11 +393,11 @@ function ShapesToDisplay() {
 	return (
 		<div ref={wrapperDiv} id="portal-target">
 			{renderingShapes.map((result) => {
-				const shapeTarget = portalTargets.get(result.id)
+				const shapeTarget = portalInfo.get(result.id)
 				if (!shapeTarget) return null
 				return createPortal(
 					<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />,
-					shapeTarget.div,
+					shapeTarget.container,
 					result.id
 				)
 			})}
