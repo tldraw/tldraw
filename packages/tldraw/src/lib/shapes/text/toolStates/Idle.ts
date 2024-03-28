@@ -8,7 +8,9 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				updateHoveredId(this.editor)
+				if (this.editor.getCameraState() !== 'moving') {
+					updateHoveredId(this.editor)
+				}
 			}
 		}
 	}

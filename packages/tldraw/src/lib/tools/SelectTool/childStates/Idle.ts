@@ -33,7 +33,9 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		updateHoveredId(this.editor)
+		if (this.editor.getCameraState() !== 'moving') {
+			updateHoveredId(this.editor)
+		}
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
