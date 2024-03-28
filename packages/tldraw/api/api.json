@@ -12895,7 +12895,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "() => boolean"
+                  "text": "(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", type: string) => boolean"
                 },
                 {
                   "kind": "Content",
@@ -12908,7 +12917,7 @@
               "name": "canReceiveNewChildrenOfType",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 4
               },
               "isStatic": false,
               "isProtected": false,

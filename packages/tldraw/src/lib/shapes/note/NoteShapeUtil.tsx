@@ -39,7 +39,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => true
 
-	override canReceiveNewChildrenOfType = () => true
+	override canReceiveNewChildrenOfType = (shape: TLNoteShape, type: string) => type !== 'frame'
 	override canDropShapes = () => true
 
 	override onDragShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
