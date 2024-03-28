@@ -18,7 +18,7 @@ import {
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 
-import { NOTE_SIZE } from '../../../shapes/note/NoteShapeUtil'
+import { NOTE_GRID_OFFSET, NOTE_SIZE } from '../../../shapes/note/NoteShapeUtil'
 import { DragAndDropManager } from '../DragAndDropManager'
 
 export class Translating extends StateNode {
@@ -118,7 +118,8 @@ export class Translating extends StateNode {
 	override onPointerMove = () => {
 		let stickyPit = undefined
 		if (this.oneNoteShapeSelected) {
-			stickyPit = this.getStickyPit()
+			const selectedNote = this.selectionSnapshot.movingShapes[0] as TLNoteShape
+			stickyPit = getStickyPit(this.editor, selectedNote)
 		}
 
 		this.updateShapes(stickyPit)
@@ -326,83 +327,86 @@ export class Translating extends StateNode {
 			shapeSnapshot.parentTransform = parentTransform
 		})
 	}
+}
 
-	private getStickyPit = () => {
-		const findNearestNoteShape = (): TLNoteShape | undefined => {
-			const currentPagePoint = this.editor.inputs.currentPagePoint
-			return this.editor
-				.getCurrentPageShapes()
-				.filter((shape) => shape.type === 'note')
-				.filter((shape) => shape.id !== this.selectionSnapshot.movingShapes[0].id)
-				.filter((shape) => {
-					const distance = Vec.Dist(
-						{ x: shape.x + NOTE_SIZE / 2, y: shape.y + NOTE_SIZE / 2 },
-						currentPagePoint
-					)
-					return distance < 350
-				})
-				.sort((a, b) => {
-					const distanceA = Vec.Dist(
-						{ x: a.x + NOTE_SIZE / 2, y: a.y + NOTE_SIZE / 2 },
-						currentPagePoint
-					)
-					const distanceB = Vec.Dist(
-						{ x: b.x + NOTE_SIZE / 2, y: b.y + NOTE_SIZE / 2 },
-						currentPagePoint
-					)
-					return distanceA - distanceB
-				})[0] as TLNoteShape
-		}
-		const nearestNoteShape = findNearestNoteShape()
-
-		let direction: 'above' | 'below' | 'left' | 'right' | null = null
-		if (!nearestNoteShape) return undefined
-		if (
-			nearestNoteShape.y - this.editor.inputs.currentPagePoint.y > 0 &&
-			nearestNoteShape.x - this.editor.inputs.currentPagePoint.x < 0 &&
-			nearestNoteShape.x + NOTE_SIZE - this.editor.inputs.currentPagePoint.x > 0
-		) {
-			direction = 'above'
-		} else if (
-			nearestNoteShape.y + NOTE_SIZE - this.editor.inputs.currentPagePoint.y < 0 &&
-			nearestNoteShape.x - this.editor.inputs.currentPagePoint.x < 0 &&
-			nearestNoteShape.x + NOTE_SIZE - this.editor.inputs.currentPagePoint.x > 0
-		) {
-			direction = 'below'
-		} else if (
-			nearestNoteShape.x - this.editor.inputs.currentPagePoint.x > 0 &&
-			nearestNoteShape.y - this.editor.inputs.currentPagePoint.y < 0 &&
-			nearestNoteShape.y + NOTE_SIZE - this.editor.inputs.currentPagePoint.y > 0
-		) {
-			direction = 'left'
-		} else if (
-			nearestNoteShape.x + NOTE_SIZE - this.editor.inputs.currentPagePoint.x < 0 &&
-			nearestNoteShape.y - this.editor.inputs.currentPagePoint.y < 0 &&
-			nearestNoteShape.y + NOTE_SIZE - this.editor.inputs.currentPagePoint.y > 0
-		) {
-			direction = 'right'
-		}
-		const getStickyPit = (noteShape: TLShape | undefined): VecLike | undefined => {
-			if (!noteShape) return undefined
-			const GRID_OFFSET = 230
-			const noteShapeCenter = { x: noteShape.x + NOTE_SIZE / 2, y: noteShape.y + NOTE_SIZE / 2 }
-			switch (direction) {
-				case 'above':
-					return { x: noteShapeCenter.x, y: noteShapeCenter.y - GRID_OFFSET }
-				case 'below':
-					return { x: noteShapeCenter.x, y: noteShapeCenter.y + GRID_OFFSET }
-				case 'left':
-					return { x: noteShapeCenter.x - GRID_OFFSET, y: noteShapeCenter.y }
-				case 'right':
-					return { x: noteShapeCenter.x + GRID_OFFSET, y: noteShapeCenter.y }
-				default:
-					return
-			}
-		}
-		const stickyPit = getStickyPit(nearestNoteShape)
-		if (!stickyPit) return undefined
-		return stickyPit
+export function getStickyPit(editor: Editor, selectedNote?: TLNoteShape) {
+	const findNearestNoteShape = (): TLNoteShape | undefined => {
+		const currentPagePoint = editor.inputs.currentPagePoint
+		return editor
+			.getCurrentPageShapes()
+			.filter((shape) => shape.type === 'note')
+			.filter((shape) => {
+				if (selectedNote) return shape.id !== selectedNote.id
+				else return false
+			})
+			.filter((shape) => {
+				const distance = Vec.Dist(
+					{ x: shape.x + NOTE_SIZE / 2, y: shape.y + NOTE_SIZE / 2 },
+					currentPagePoint
+				)
+				return distance < 350
+			})
+			.sort((a, b) => {
+				const distanceA = Vec.Dist(
+					{ x: a.x + NOTE_SIZE / 2, y: a.y + NOTE_SIZE / 2 },
+					currentPagePoint
+				)
+				const distanceB = Vec.Dist(
+					{ x: b.x + NOTE_SIZE / 2, y: b.y + NOTE_SIZE / 2 },
+					currentPagePoint
+				)
+				return distanceA - distanceB
+			})[0] as TLNoteShape
 	}
+	const nearestNoteShape = findNearestNoteShape()
+
+	let direction: 'above' | 'below' | 'left' | 'right' | null = null
+	if (!nearestNoteShape) return undefined
+	if (
+		nearestNoteShape.y - editor.inputs.currentPagePoint.y > 0 &&
+		nearestNoteShape.x - editor.inputs.currentPagePoint.x < 0 &&
+		nearestNoteShape.x + NOTE_SIZE - editor.inputs.currentPagePoint.x > 0
+	) {
+		direction = 'above'
+	} else if (
+		nearestNoteShape.y + NOTE_SIZE - editor.inputs.currentPagePoint.y < 0 &&
+		nearestNoteShape.x - editor.inputs.currentPagePoint.x < 0 &&
+		nearestNoteShape.x + NOTE_SIZE - editor.inputs.currentPagePoint.x > 0
+	) {
+		direction = 'below'
+	} else if (
+		nearestNoteShape.x - editor.inputs.currentPagePoint.x > 0 &&
+		nearestNoteShape.y - editor.inputs.currentPagePoint.y < 0 &&
+		nearestNoteShape.y + NOTE_SIZE - editor.inputs.currentPagePoint.y > 0
+	) {
+		direction = 'left'
+	} else if (
+		nearestNoteShape.x + NOTE_SIZE - editor.inputs.currentPagePoint.x < 0 &&
+		nearestNoteShape.y - editor.inputs.currentPagePoint.y < 0 &&
+		nearestNoteShape.y + NOTE_SIZE - editor.inputs.currentPagePoint.y > 0
+	) {
+		direction = 'right'
+	}
+	const getNearestStickyPit = (noteShape: TLShape | undefined): VecLike | undefined => {
+		if (!noteShape) return undefined
+
+		const noteShapeCenter = { x: noteShape.x + NOTE_SIZE / 2, y: noteShape.y + NOTE_SIZE / 2 }
+		switch (direction) {
+			case 'above':
+				return { x: noteShapeCenter.x, y: noteShapeCenter.y - NOTE_GRID_OFFSET }
+			case 'below':
+				return { x: noteShapeCenter.x, y: noteShapeCenter.y + NOTE_GRID_OFFSET }
+			case 'left':
+				return { x: noteShapeCenter.x - NOTE_GRID_OFFSET, y: noteShapeCenter.y }
+			case 'right':
+				return { x: noteShapeCenter.x + NOTE_GRID_OFFSET, y: noteShapeCenter.y }
+			default:
+				return
+		}
+	}
+	const stickyPit = getNearestStickyPit(nearestNoteShape)
+	if (!stickyPit) return undefined
+	return stickyPit
 }
 
 function getTranslatingSnapshot(editor: Editor) {
@@ -545,10 +549,9 @@ export function moveShapesToPoint({
 		),
 		{ squashing: true }
 	)
-	if (stickyPit) {
+	if (stickyPit && editor.inputs.pointerVelocity.len() < 0.5) {
 		const noteShape = editor.getShape(snapshots[0].shape.id)
 		const distance = Vec.Dist({ x: noteShape!.x + 100, y: noteShape!.y + 100 }, stickyPit)
-		// console.log({ distance, firstCheck, checkForStickyPit })
 		if (!checkForStickyPit && distance > 20) {
 			return { checkForStickyPit: true }
 		}

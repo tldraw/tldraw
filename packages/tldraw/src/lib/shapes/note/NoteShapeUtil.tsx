@@ -18,6 +18,7 @@ import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-s
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 export const NOTE_SIZE = 200
+export const NOTE_GRID_OFFSET = 230
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
