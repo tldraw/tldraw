@@ -3,6 +3,7 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
@@ -351,8 +352,11 @@ function ShapesWithSVGs() {
 	)
 }
 
+const shapesMap = new Map<TLShapeId, HTMLDivElement>()
+
 function ShapesToDisplay() {
 	const editor = useEditor()
+	const wrapperDiv = useRef<HTMLDivElement | null>(null)
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
@@ -364,13 +368,33 @@ function ShapesToDisplay() {
 			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
 		[editor]
 	)
+	if (wrapperDiv.current) {
+		renderingShapes.forEach((shape) => {
+			let div = shapesMap.get(shape.id)
+			if (!div) {
+				div = document.createElement('div')
+				div.id = shape.id
+				shapesMap.set(shape.id, div)
+				wrapperDiv.current?.appendChild(div)
+			}
+		})
+	}
 
 	return (
-		<>
-			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
-			))}
-		</>
+		<div ref={wrapperDiv} id="portal-target">
+			{renderingShapes.map((result) => {
+				const div = shapesMap.get(result.id)
+				if (!div) return null
+				return createPortal(
+					result.isCulled ? // <CulledShape shapeId={result.id} />
+					null : (
+						<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
+					),
+					div,
+					result.id
+				)
+			})}
+		</div>
 	)
 }
 

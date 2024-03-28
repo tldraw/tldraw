@@ -133,21 +133,15 @@ export const Shape = memo(function Shape({
 					data-shape-type={shape.type}
 					draggable={false}
 				>
-					{isCulled ? null : (
-						<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
-							<InnerShapeBackground shape={shape} util={util} />
-						</OptionalErrorBoundary>
-					)}
+					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
+						<InnerShapeBackground shape={shape} util={util} />
+					</OptionalErrorBoundary>
 				</div>
 			)}
 			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
-				{isCulled ? (
-					<CulledShape shapeId={shape.id} />
-				) : (
-					<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
-						<InnerShape shape={shape} util={util} />
-					</OptionalErrorBoundary>
-				)}
+				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
+					<InnerShape shape={shape} util={util} />
+				</OptionalErrorBoundary>
 			</div>
 		</>
 	)
@@ -173,7 +167,11 @@ const InnerShapeBackground = memo(
 	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
 
-const CulledShape = function CulledShape<T extends TLShape>({ shapeId }: { shapeId: IdOf<T> }) {
+export const CulledShape = function CulledShape<T extends TLShape>({
+	shapeId,
+}: {
+	shapeId: IdOf<T>
+}) {
 	const editor = useEditor()
 	const culledRef = useRef<HTMLDivElement>(null)
 
