@@ -124,6 +124,14 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 		const allMigrations = Object.values(this.migrations).flatMap((m) => m.sequence)
 		this.sortedMigrations = sortMigrations(allMigrations)
+
+		for (const migration of this.sortedMigrations) {
+			if (!migration.dependsOn?.length) continue
+			for (const dep of migration.dependsOn) {
+				const depMigration = allMigrations.find((m) => m.id === dep)
+				assert(depMigration, `Migration '${migration.id}' depends on missing migration '${dep}'`)
+			}
+		}
 	}
 
 	validateRecord(
