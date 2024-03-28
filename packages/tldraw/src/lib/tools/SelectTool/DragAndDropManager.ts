@@ -30,6 +30,8 @@ export class DragAndDropManager {
 				if (res && res.shouldHint) {
 					this.editor.setHintingShapes([prevDroppingShape.id])
 				}
+
+				cb?.()
 			}
 			this.first = false
 		}
