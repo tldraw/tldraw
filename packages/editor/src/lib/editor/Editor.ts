@@ -1,5 +1,5 @@
 import { Quadtree, Rectangle } from '@timohausmann/quadtree-ts'
-import { EMPTY_ARRAY, atom, computed, transact, whyAmIRunning } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -3094,7 +3094,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	@computed quadTree2() {
 		const shapes = this.getCurrentPageShapes()
-		whyAmIRunning()
 		for (let i = 0; i < shapes.length; i++) {
 			const shape = shapes[i]
 			if (!this.shapesInTheTree.has(shape.id)) {
