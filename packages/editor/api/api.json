@@ -19000,7 +19000,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#updateHoveredId:member(1)",
-              "docComment": "/**\n * Calculate the currently hovered shape based on the current page point.\n *\n * @public\n */\n",
+              "docComment": "/**\n * Calculate and update the currently hovered shape based on the current page point.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

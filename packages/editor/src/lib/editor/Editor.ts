@@ -1916,7 +1916,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Calculate the currently hovered shape based on the current page point.
+	 * Calculate and update the currently hovered shape based on the current page point.
 	 *
 	 * @public
 	 */
