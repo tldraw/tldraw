@@ -6380,13 +6380,17 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultHandle.tsx",
           "returnTypeTokenRange": {
             "startIndex": 3,
-            "endIndex": 5
+            "endIndex": 6
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

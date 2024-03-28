@@ -6,6 +6,7 @@ import {
 	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	createShapeId,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -20,7 +21,7 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 export const NOTE_SIZE = 200
 export const NOTE_GRID_OFFSET = 230
-type NoteHandleId =
+export type NoteHandleId =
 	| 'note-button-up'
 	| 'note-preview-up'
 	| 'note-button-down'
@@ -242,7 +243,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			}
 		}
 		const offset = getOffset(handleId, shape)
-		this.editor.createShape({ type: 'note', x: offset.x, y: offset.y })
+		const id = createShapeId()
+		this.editor.createShape({ id, type: 'note', x: offset.x, y: offset.y })
+		this.editor.select(id)
 	}
 	override onDoubleClickHandle = (shape: TLNoteShape) => {
 		return shape

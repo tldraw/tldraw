@@ -466,7 +466,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent;
 export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps): JSX_2.Element;
+export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export const DefaultHandles: ({ children }: TLHandlesProps) => JSX_2.Element;

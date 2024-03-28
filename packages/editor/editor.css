@@ -520,11 +520,15 @@ input,
 	pointer-events: none;
 }
 
+
 .tl-handle__create {
 	opacity: 0;
 }
 .tl-handle__create:hover {
 	opacity: 1;
+}
+.tl-handle__note-create:hover {
+	opacity: 0.1;
 }
 
 .tl-handle__bg:active {
