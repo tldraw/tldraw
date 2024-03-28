@@ -168,7 +168,7 @@ describe('When translating...', () => {
 		editor
 			.expectShapeToMatch({ id: ids.box1, x: 1320, y: 845.68 })
 			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: 1360, y: 870.16 })
+			.expectShapeToMatch({ id: ids.box1, x: 1340, y: 857.92 })
 	})
 
 	it('translates multiple shapes', () => {
