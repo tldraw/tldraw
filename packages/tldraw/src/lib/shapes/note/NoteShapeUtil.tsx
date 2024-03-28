@@ -74,8 +74,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const adjustedColor = color === 'black' ? 'yellow' : color
 
 		const noteHeight = this.getHeight(shape)
-		const shadowHeight = Math.max(this.getHeight(shape) * 0.618, 200)
-		const ratio = noteHeight / shadowHeight
 		const random = rng(shape.id)
 		const noteRotation = random() * 4
 
@@ -88,14 +86,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						height: noteHeight,
 					}}
 				>
-					<div
-						className="tl-note__shadow"
-						style={{
-							height: shadowHeight,
-							transform: `perspective(300px) rotateZ(${noteRotation}deg) rotateX(30deg) translateY(${-Math.abs(noteRotation)}px) scaleX(${0.85}) scaleY(${ratio})`,
-						}}
-					/>
-
+					<NoteShapeShadow height={noteHeight} rotation={noteRotation} />
 					<div
 						className="tl-note__container"
 						style={{
@@ -313,4 +304,18 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 			},
 		}
 	}
+}
+
+function NoteShapeShadow({ height, rotation }: { height: number; rotation: number }) {
+	const shadowHeight = Math.max(height * 0.618, 200)
+	const ratio = height / shadowHeight
+	return (
+		<div
+			className="tl-note__shadow"
+			style={{
+				height,
+				transform: `perspective(300px) rotateZ(${rotation}deg) rotateX(30deg) translateY(${-Math.abs(rotation)}px) scaleX(${0.85}) scaleY(${ratio})`,
+			}}
+		/>
+	)
 }
