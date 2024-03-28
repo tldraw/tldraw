@@ -182,16 +182,19 @@ function validateMigrationId(id: string, expectedSequenceId?: string) {
 	if (expectedSequenceId) {
 		assert(
 			id.startsWith(expectedSequenceId + '/'),
-			`Every migration in a sequence must have the same sequence id expected something like "${expectedSequenceId}/<number>" but got "${id}"`
+			`Every migration in sequence '${expectedSequenceId}' must have an id starting with '${expectedSequenceId}/'. Got invalid id: '${id}'`
 		)
 	}
 
-	assert(id.match(/^(.*?)\/(0|[1-9]\d*)$/), `Invalid migration id: ${id}`)
+	assert(id.match(/^(.*?)\/(0|[1-9]\d*)$/), `Invalid migration id: '${id}'`)
 }
 
 export function validateMigrations(migrations: Migrations) {
-	assert(!migrations.sequenceId.includes('/'), 'Migration id cannot contain a "/"')
-	assert(migrations.sequenceId.length, 'Migration id must be a non-empty string')
+	assert(
+		!migrations.sequenceId.includes('/'),
+		`sequenceId cannot contain a '/', got ${migrations.sequenceId}`
+	)
+	assert(migrations.sequenceId.length, 'sequenceId must be a non-empty string')
 
 	if (migrations.sequence.length === 0) {
 		return
@@ -199,14 +202,17 @@ export function validateMigrations(migrations: Migrations) {
 
 	validateMigrationId(migrations.sequence[0].id, migrations.sequenceId)
 	let n = parseMigrationId(migrations.sequence[0].id).version
-	assert(n === 1, 'Migration numbers must start at 1')
+	assert(
+		n === 1,
+		`Expected the first migrationId to be '${migrations.sequenceId}/1' but got '${migrations.sequence[0].id}'`
+	)
 	for (let i = 1; i < migrations.sequence.length; i++) {
 		const id = migrations.sequence[i].id
 		validateMigrationId(id, migrations.sequenceId)
 		const m = parseMigrationId(id).version
 		assert(
 			m === n + 1,
-			`Migration id numbers must increase in increments of 1: ${migrations.sequence[i].id}`
+			`Migration id numbers must increase in increments of 1, expected ${migrations.sequenceId}/${n + 1} but got '${migrations.sequence[i].id}'`
 		)
 		n = m
 	}
