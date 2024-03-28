@@ -44,6 +44,7 @@ export const pointerVersions = createMigrationIds('com.tldraw.pointer', {
 
 /** @internal */
 export const pointerMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.pointer',
 	recordType: 'pointer',
 	sequence: [
 		{

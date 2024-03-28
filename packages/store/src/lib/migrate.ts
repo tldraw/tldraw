@@ -35,8 +35,41 @@ export function defineMigrations(opts: {
 	}
 }
 
+function squashDependsOn(sequence: Array<Migration | StandaloneDependsOn>): Migration[] {
+	const result: Migration[] = []
+	for (let i = sequence.length - 1; i >= 0; i--) {
+		const elem = sequence[i]
+		if (!('id' in elem)) {
+			const dependsOn = elem.dependsOn
+			const prev = result[0]
+			if (prev) {
+				result[0] = {
+					...prev,
+					dependsOn: dependsOn.concat(prev.dependsOn ?? []),
+				}
+			}
+		} else {
+			result.unshift(elem)
+		}
+	}
+	return result
+}
+
 /** @public */
-export function createMigrations(migrations: Migrations): Migrations {
+export function createMigrations({
+	sequence,
+	sequenceId,
+	retroactive,
+}: {
+	sequenceId: string
+	retroactive: boolean
+	sequence: Array<Migration | StandaloneDependsOn>
+}): Migrations {
+	const migrations: Migrations = {
+		sequenceId,
+		retroactive,
+		sequence: squashDependsOn(sequence),
+	}
 	validateMigrations(migrations)
 	return migrations
 }
@@ -56,23 +89,25 @@ export function createRecordMigrations(opts: {
 	recordType: string
 	filter?: (record: UnknownRecord) => boolean
 	retroactive?: boolean
+	sequenceId: string
 	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]
 }): Migrations {
-	const sequenceId = opts.sequence[0]
-		? parseMigrationId(opts.sequence[0].id).sequenceId
-		: `com.tldraw.${opts.recordType}`
-	const compiledSequence: Migration[] = opts.sequence.map(
-		(m): Migration => ({
-			...m,
-			scope: 'record',
-			filter: (r: UnknownRecord) =>
-				r.typeName === opts.recordType && (m.filter?.(r) ?? true) && (opts.filter?.(r) ?? true),
-		})
-	)
+	const sequenceId = opts.sequenceId
 	return createMigrations({
 		sequenceId,
 		retroactive: opts.retroactive ?? true,
-		sequence: compiledSequence,
+		sequence: opts.sequence.map((m) =>
+			'id' in m
+				? {
+						...m,
+						scope: 'record',
+						filter: (r: UnknownRecord) =>
+							r.typeName === opts.recordType &&
+							(m.filter?.(r) ?? true) &&
+							(opts.filter?.(r) ?? true),
+					}
+				: m
+		),
 	})
 }
 
@@ -85,10 +120,14 @@ export type LegacyMigration<Before = any, After = any> = {
 /** @public */
 export type MigrationId = `${string}/${number}`
 
+export type StandaloneDependsOn = {
+	readonly dependsOn: readonly MigrationId[]
+}
+
 /** @public */
 export type Migration = {
 	readonly id: MigrationId
-	readonly dependsOn?: MigrationId[]
+	readonly dependsOn?: readonly MigrationId[] | undefined
 } & (
 	| {
 			readonly scope: 'record'

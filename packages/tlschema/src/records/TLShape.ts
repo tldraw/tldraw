@@ -102,6 +102,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 
 /** @internal */
 export const rootShapeMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.shape',
 	recordType: 'shape',
 	sequence: [
 		{
@@ -199,12 +200,18 @@ export const RETIRED_DOWN_MIGRATION = 'retired' as const
  * @public
  */
 export type TLShapePropsMigrations = {
-	sequence: Array<{
-		version: number
-		dependsOn?: MigrationId[]
-		up: (props: any) => any
-		down: typeof NO_DOWN_MIGRATION | typeof RETIRED_DOWN_MIGRATION | ((props: any) => any)
-	}>
+	sequence: Array<
+		| { readonly dependsOn: readonly MigrationId[] }
+		| {
+				readonly version: number
+				readonly dependsOn?: MigrationId[]
+				readonly up: (props: any) => any
+				readonly down:
+					| typeof NO_DOWN_MIGRATION
+					| typeof RETIRED_DOWN_MIGRATION
+					| ((props: any) => any)
+		  }
+	>
 }
 
 export function createShapePropsMigrations(
@@ -232,27 +239,30 @@ export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) 
 				createMigrations({
 					sequenceId,
 					retroactive: false,
-					sequence: migrations.sequence.map(
-						({ version, up, down }): Migration => ({
-							id: `${sequenceId}/${version}`,
-							scope: 'record',
-							filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
-							up: (record: any) => {
-								const result = up(record.props)
-								if (result) {
-									record.props = result
-								}
-							},
-							down:
-								typeof down === 'function'
-									? (record: any) => {
-											const result = down(record.props)
-											if (result) {
-												record.props = result
-											}
+					sequence: migrations.sequence.map((m) =>
+						'version' in m
+							? {
+									id: `${sequenceId}/${m.version}`,
+									scope: 'record',
+									filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
+									dependsOn: m.dependsOn,
+									up: (record: any) => {
+										const result = m.up(record.props)
+										if (result) {
+											record.props = result
 										}
-									: undefined,
-						})
+									},
+									down:
+										typeof m.down === 'function'
+											? (record: any) => {
+													const result = (m.down as (props: any) => any)(record.props)
+													if (result) {
+														record.props = result
+													}
+												}
+											: undefined,
+								}
+							: m
 					),
 				})
 			)

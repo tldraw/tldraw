@@ -198,6 +198,7 @@ export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 
 /** @public */
 export const instanceMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.instance',
 	recordType: 'instance',
 	sequence: [
 		{

@@ -74,6 +74,7 @@ interface UserV2 extends BaseRecord<'user', RecordId<UserV2>> {
 }
 
 const userV2Migrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.user',
 	recordType: 'user',
 	sequence: [
 		{

@@ -39,6 +39,7 @@ export const documentVersions = createMigrationIds('com.tldraw.document', {
 
 /** @internal */
 export const documentMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.document',
 	recordType: 'document',
 	sequence: [
 		{

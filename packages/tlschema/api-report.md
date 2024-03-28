@@ -1213,10 +1213,12 @@ export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>
 // @public (undocumented)
 export type TLShapePropsMigrations = {
     sequence: Array<{
-        version: number;
-        dependsOn?: MigrationId[];
-        up: (props: any) => any;
-        down: ((props: any) => any) | typeof NO_DOWN_MIGRATION | typeof RETIRED_DOWN_MIGRATION;
+        readonly dependsOn: readonly MigrationId[];
+    } | {
+        readonly version: number;
+        readonly dependsOn?: MigrationId[];
+        readonly up: (props: any) => any;
+        readonly down: ((props: any) => any) | typeof NO_DOWN_MIGRATION | typeof RETIRED_DOWN_MIGRATION;
     }>;
 };
 

@@ -61,6 +61,7 @@ export const instancePageStateVersions = createMigrationIds('com.tldraw.instance
 
 /** @public */
 export const instancePageStateMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.instance_page_state',
 	recordType: 'instance_page_state',
 	sequence: [
 		{

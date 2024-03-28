@@ -36,6 +36,7 @@ export { Versions as bookmarkAssetVersions }
 
 /** @internal */
 export const bookmarkAssetMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.asset.bookmark',
 	recordType: 'asset',
 	filter: (asset) => (asset as TLAsset).type === 'bookmark',
 	sequence: [

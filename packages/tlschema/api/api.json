@@ -9215,7 +9215,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n        version: number;\n        dependsOn?: "
+              "text": "<{\n        readonly dependsOn: readonly "
             },
             {
               "kind": "Reference",
@@ -9224,7 +9224,16 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n        up: (props: any) => any;\n        down: ((props: any) => any) | typeof "
+              "text": "[];\n    } | {\n        readonly version: number;\n        readonly dependsOn?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationId",
+              "canonicalReference": "@tldraw/store!MigrationId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n        readonly up: (props: any) => any;\n        readonly down: ((props: any) => any) | typeof "
             },
             {
               "kind": "Reference",
@@ -9254,7 +9263,7 @@
           "name": "TLShapePropsMigrations",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 10
+            "endIndex": 12
           }
         },
         {

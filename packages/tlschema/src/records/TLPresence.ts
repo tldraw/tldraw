@@ -82,6 +82,7 @@ export const instancePresenceVersions = createMigrationIds('com.tldraw.instance_
 } as const)
 
 export const instancePresenceMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.instance_presence',
 	recordType: 'instance_presence',
 	sequence: [
 		{
