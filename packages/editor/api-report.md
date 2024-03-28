@@ -2148,7 +2148,7 @@ export interface TLEventHandlers {
     // (undocumented)
     onPointerDown: TLPointerEvent;
     // (undocumented)
-    onPointerMove: TLPointerMoveEvent;
+    onPointerMove: TLPointerEvent;
     // (undocumented)
     onPointerUp: TLPointerEvent;
     // (undocumented)
@@ -2408,7 +2408,14 @@ export type TLPinchEventName = 'pinch_end' | 'pinch_start' | 'pinch';
 export type TLPointerEvent = (info: TLPointerEventInfo) => void;
 
 // @public (undocumented)
-export type TLPointerEventInfo = TLBasePointerEventInfo | TLPointerMoveEventInfo;
+export type TLPointerEventInfo = TLBaseEventInfo & {
+    type: 'pointer';
+    name: TLPointerEventName;
+    point: VecLike;
+    pointerId: number;
+    button: number;
+    isPen: boolean;
+} & TLPointerEventTarget;
 
 // @public (undocumented)
 export type TLPointerEventName = 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click';
@@ -2428,12 +2435,6 @@ export type TLPointerEventTarget = {
 } | {
     target: 'shape';
     shape: TLShape;
-};
-
-// @public (undocumented)
-export type TLPointerMoveEventInfo = TLBasePointerEventInfo & {
-    coalescedInfo: TLPointerMoveEventInfo[];
-    pagePoint: Vec;
 };
 
 // @public (undocumented)

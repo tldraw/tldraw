@@ -7,7 +7,7 @@ import {
 	TLDrawShapeSegment,
 	TLEventHandlers,
 	TLHighlightShape,
-	TLPointerMoveEventInfo,
+	TLPointerEventInfo,
 	TLShapePartial,
 	Vec,
 	VecModel,
@@ -25,7 +25,7 @@ type DrawableShape = TLDrawShape | TLHighlightShape
 export class Drawing extends StateNode {
 	static override id = 'drawing'
 
-	info = {} as TLPointerMoveEventInfo
+	info = {} as TLPointerEventInfo
 
 	initialShape?: DrawableShape
 
@@ -51,7 +51,7 @@ export class Drawing extends StateNode {
 
 	markId = null as null | string
 
-	override onEnter = (info: TLPointerMoveEventInfo) => {
+	override onEnter = (info: TLPointerEventInfo) => {
 		this.markId = null
 		this.info = info
 		this.canDraw = !this.editor.getIsMenuOpen()
@@ -61,14 +61,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info: TLPointerMoveEventInfo) => {
-		const coalescedInfo = info.coalescedInfo
-		coalescedInfo.forEach((ci: TLPointerMoveEventInfo) => {
-			this.processEvents(ci)
-		})
-	}
-
-	processEvents(info: TLPointerMoveEventInfo) {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		const { inputs } = this.editor
 
 		if (this.isPen !== inputs.isPen) {
@@ -91,8 +84,11 @@ export class Drawing extends StateNode {
 		if (this.canDraw) {
 			if (inputs.isPen) {
 				// Don't update the shape if we haven't moved far enough from the last time we recorded a point
-				if (Vec.Dist(info.pagePoint, this.lastRecordedPoint) >= 1 / this.editor.getZoomLevel()) {
-					this.lastRecordedPoint = info.pagePoint.clone()
+				if (
+					Vec.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
+					1 / this.editor.getZoomLevel()
+				) {
+					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.mergeNextPoint = false
 				} else {
 					this.mergeNextPoint = true
@@ -101,7 +97,7 @@ export class Drawing extends StateNode {
 				this.mergeNextPoint = false
 			}
 
-			this.updateShapes(info.pagePoint)
+			this.updateShapes()
 		}
 	}
 
@@ -119,7 +115,7 @@ export class Drawing extends StateNode {
 				}
 			}
 		}
-		this.updateShapes(this.editor.inputs.currentPagePoint)
+		this.updateShapes()
 	}
 
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
@@ -141,7 +137,7 @@ export class Drawing extends StateNode {
 			}
 		}
 
-		this.updateShapes(this.editor.inputs.currentPagePoint)
+		this.updateShapes()
 	}
 
 	override onExit? = () => {
@@ -283,8 +279,9 @@ export class Drawing extends StateNode {
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
-	private updateShapes(currentPagePoint: Vec) {
+	private updateShapes() {
 		const { initialShape } = this
+		const { inputs } = this.editor
 
 		if (!initialShape) return
 
@@ -299,7 +296,7 @@ export class Drawing extends StateNode {
 
 		const { segments } = shape.props
 
-		const { x, y, z } = this.editor.getPointInShapeSpace(shape, currentPagePoint).toFixed()
+		const { x, y, z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
 
 		const newPoint = { x, y, z: this.isPen ? +(z! * 1.25).toFixed(2) : 0.5 }
 
@@ -312,7 +309,7 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec.Dist(pagePointWhereNextSegmentChanged, currentPagePoint) > DRAG_DISTANCE
+					Vec.Dist(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
 
 				// Find the distance from where the pointer was when shift was released and
 				// where it is now; if it's far enough away, then update the page point where
@@ -385,7 +382,7 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec.Dist(pagePointWhereNextSegmentChanged, currentPagePoint) > DRAG_DISTANCE
+					Vec.Dist(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
 
 				// Find the distance from where the pointer was when shift was released and
 				// where it is now; if it's far enough away, then update the page point where
@@ -441,7 +438,7 @@ export class Drawing extends StateNode {
 				const newSegment = newSegments[newSegments.length - 1]
 
 				const { pagePointWhereCurrentSegmentChanged } = this
-				const { ctrlKey } = this.editor.inputs
+				const { ctrlKey, currentPagePoint } = this.editor.inputs
 
 				if (!pagePointWhereCurrentSegmentChanged)
 					throw Error('We should have a point where the segment changed')
@@ -630,8 +627,8 @@ export class Drawing extends StateNode {
 						{
 							id: newShapeId,
 							type: this.shapeType,
-							x: toFixed(currentPagePoint.x),
-							y: toFixed(currentPagePoint.y),
+							x: toFixed(inputs.currentPagePoint.x),
+							y: toFixed(inputs.currentPagePoint.y),
 							props: {
 								isPen: this.isPen,
 								segments: [
@@ -646,7 +643,7 @@ export class Drawing extends StateNode {
 
 					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
 					this.mergeNextPoint = false
-					this.lastRecordedPoint = currentPagePoint.clone()
+					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.currentLineLength = 0
 				}
 

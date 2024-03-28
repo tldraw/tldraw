@@ -127,7 +127,6 @@ import {
 	TLEventInfo,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
-	TLPointerMoveEventInfo,
 	TLWheelEventInfo,
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
@@ -2108,8 +2107,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				name: 'pointer_move',
 				// weird but true: we need to put the screen point back into client space
 				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
-				pagePoint: this.inputs.currentPagePoint,
-				coalescedInfo: [],
 				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
 				ctrlKey: this.inputs.ctrlKey,
 				altKey: this.inputs.altKey,
@@ -8353,21 +8350,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	capturedPointerId: number | null = null
 
-	private _shouldCoalesce = (info: TLEventInfo) => {
-		if (!this._isCoalesableEvent(info)) return false
-		return (
-			this._pendingEventsForNextTick.length === 1 &&
-			this._pendingEventsForNextTick[0].name === info.name
-		)
-	}
-
-	private _isCoalesableEvent = (info: TLEventInfo): info is TLPointerMoveEventInfo => {
-		if ((info as any).coalescedInfo) {
-			return true
-		}
-		return false
-	}
-
 	/**
 	 * Dispatch an event to the editor.
 	 *
@@ -8381,32 +8363,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispatch = (info: TLEventInfo): this => {
-		// Adding the first event to the queue
-		if (this._pendingEventsForNextTick.length === 0) {
-			this._pendingEventsForNextTick.push(info)
-			if (this._isCoalesableEvent(info)) {
-				this._allEventsSinceLastTick.push(info)
-			}
-		} else {
-			if (this._shouldCoalesce(info)) {
-				// We only care for the last event
-				this._pendingEventsForNextTick = [info]
-				// But we also store all the other events if we have an coalesable event
-				if (this._isCoalesableEvent(info)) {
-					this._allEventsSinceLastTick.push(info)
-				}
-			} else {
-				// Event has changed. We flush the currently pending events
-				this._flushEventsForTick(0)
-				// Then we add the new event to the queue (flushing clears the queue)
-				this._pendingEventsForNextTick = [info]
-			}
-		}
+		this._pendingEventsForNextTick.push(info)
 		return this
 	}
 
 	private _pendingEventsForNextTick: TLEventInfo[] = []
-	private _allEventsSinceLastTick: TLPointerMoveEventInfo[] = []
 
 	private _flushEventsForTick = (elapsed: number) => {
 		this.batch(() => {
@@ -8420,7 +8381,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
 			this.scribbles.tick(elapsed)
 		})
-		this._allEventsSinceLastTick.length = 0
 	}
 
 	private _flushEventForTick = (info: TLEventInfo) => {
@@ -8854,9 +8814,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		if (this._isCoalesableEvent(info)) {
-			info.coalescedInfo = this._allEventsSinceLastTick
-		}
 		// Send the event to the statechart. It will be handled by all
 		// active states, starting at the root.
 		this.root.handleEvent(info)

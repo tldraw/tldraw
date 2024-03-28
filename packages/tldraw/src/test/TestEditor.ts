@@ -328,16 +328,9 @@ export class TestEditor extends Editor {
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
 	) => {
-		const { screenBounds } = this.getInstanceState()
-		const { x: cx, y: cy, z: cz } = this.getCamera()
-		const sx = x - screenBounds.x
-		const sy = y - screenBounds.y
-
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_move',
-			pagePoint: new Vec(sx / cz - cx, sy / cz - cy),
-			coalescedInfo: [],
 		}).forceTick()
 		return this
 	}
