@@ -12924,6 +12924,36 @@
               "isAbstract": false
             },
             {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#canSelectChildOnPointerDownWhileSelected:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "canSelectChildOnPointerDownWhileSelected: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "canSelectChildOnPointerDownWhileSelected",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "tldraw!NoteShapeUtil#component:member(1)",
               "docComment": "",

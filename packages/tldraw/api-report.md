@@ -1103,6 +1103,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canReceiveNewChildrenOfType: (shape: TLNoteShape, type: string) => boolean;
     // (undocumented)
+    canSelectChildOnPointerDownWhileSelected: () => boolean;
+    // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
     doesAutoEditOnKeyStroke: () => boolean;

@@ -41,6 +41,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override canReceiveNewChildrenOfType = (shape: TLNoteShape, type: string) => type !== 'frame'
 	override canDropShapes = () => true
+	override canSelectChildOnPointerDownWhileSelected = () => true
 
 	override onDragShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
 		if (!shapes.every((child) => child.parentId === note.id)) {

@@ -231,6 +231,20 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
+	 * TODO: give this a name that's less of a mouthful
+	 *
+	 * Get whether a shape's child can be immediately selected by clicking on
+	 * it, while the current shape is selected.
+	 *
+	 * @param shape - The shape.
+	 * @param child - The child shape.
+	 * @public
+	 */
+	canSelectChildOnPointerDownWhileSelected(shape: Shape, child: TLShape) {
+		return false
+	}
+
+	/**
 	 * Get the shape as an SVG object.
 	 *
 	 * @param shape - The shape.
