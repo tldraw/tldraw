@@ -1922,7 +1922,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateHoveredId() {
 		if (this.getCameraState() === 'moving') return this
-		// todo: consider replacing `get hoveredShapeId` with this; it would mean keeping hoveredShapeId in memory rather than in the store and possibly re-computing it more often than necessary
+		// todo: consider replacing `getHoveredShapeId` with this; it would mean keeping hoveredShapeId in memory rather than in the store and possibly re-computing it more often than necessary
 		const hitShape = this.getShapeAtPoint(this.inputs.currentPagePoint, {
 			hitInside: false,
 			hitLabels: false,
