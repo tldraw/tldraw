@@ -1,12 +1,10 @@
 import { useQuickReactor, useStateTracking } from '@tldraw/state'
-import { IdOf } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { memo, useCallback, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Mat } from '../primitives/Mat'
-import { toDomPrecision } from '../primitives/utils'
 import { setStyleProperty } from '../utils/dom'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
@@ -132,22 +130,23 @@ export const Shape = memo(function Shape({
 					className="tl-shape tl-shape-background"
 					data-shape-type={shape.type}
 					draggable={false}
+					style={{ display: isCulled ? 'none' : undefined }}
 				>
-					{isCulled ? null : (
-						<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
-							<InnerShapeBackground shape={shape} util={util} />
-						</OptionalErrorBoundary>
-					)}
+					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
+						<InnerShapeBackground shape={shape} util={util} />
+					</OptionalErrorBoundary>
 				</div>
 			)}
-			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
-				{isCulled ? (
-					<CulledShape shapeId={shape.id} />
-				) : (
-					<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
-						<InnerShape shape={shape} util={util} />
-					</OptionalErrorBoundary>
-				)}
+			<div
+				ref={containerRef}
+				className="tl-shape"
+				data-shape-type={shape.type}
+				draggable={false}
+				style={{ display: isCulled ? 'none' : undefined }}
+			>
+				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
+					<InnerShape shape={shape} util={util} />
+				</OptionalErrorBoundary>
 			</div>
 		</>
 	)
@@ -172,23 +171,3 @@ const InnerShapeBackground = memo(
 	},
 	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
-
-const CulledShape = function CulledShape<T extends TLShape>({ shapeId }: { shapeId: IdOf<T> }) {
-	const editor = useEditor()
-	const culledRef = useRef<HTMLDivElement>(null)
-
-	useQuickReactor(
-		'set shape stuff',
-		() => {
-			const bounds = editor.getShapeGeometry(shapeId).bounds
-			setStyleProperty(
-				culledRef.current,
-				'transform',
-				`translate(${toDomPrecision(bounds.minX)}px, ${toDomPrecision(bounds.minY)}px)`
-			)
-		},
-		[editor]
-	)
-
-	return <div ref={culledRef} className="tl-shape__culled" />
-}
