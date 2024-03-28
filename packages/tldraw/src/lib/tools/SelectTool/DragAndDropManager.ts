@@ -1,6 +1,6 @@
 import { Editor, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
 
-const LAG_DURATION = 100
+const LAG_DURATION = 20
 
 /** @public */
 export class DragAndDropManager {
@@ -16,14 +16,25 @@ export class DragAndDropManager {
 
 	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
 		if (this.first) {
-			this.prevDroppingShapeId =
-				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint, movingShapes)?.id ??
-				null
+			const prevDroppingShape = this.editor.getDroppingOverShape(
+				this.editor.inputs.originPagePoint,
+				movingShapes
+			)
+			this.prevDroppingShapeId = prevDroppingShape?.id ?? null
+			if (prevDroppingShape) {
+				const res = this.editor
+					.getShapeUtil(prevDroppingShape)
+					.onDragShapesOver?.(prevDroppingShape, movingShapes)
+
+				if (res && res.shouldHint) {
+					this.editor.setHintingShapes([prevDroppingShape.id])
+				}
+			}
 			this.first = false
 		}
 
 		if (this.droppingNodeTimer === null) {
-			this.setDragTimer(movingShapes, LAG_DURATION * 10, cb)
+			this.setDragTimer(movingShapes, LAG_DURATION, cb)
 		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
 			clearInterval(this.droppingNodeTimer)
 			this.setDragTimer(movingShapes, LAG_DURATION, cb)
