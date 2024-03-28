@@ -390,6 +390,25 @@ function ShapesToDisplay() {
 		})
 	}
 
+	useEffect(() => {
+		function cleanContainerDivs() {
+			if (!wrapperDiv.current) return
+			const divIdsToRemove = new Set(portalInfo.keys())
+			const shapes = editor.getCurrentPageShapeIds()
+			shapes.forEach((shape) => {
+				divIdsToRemove.delete(shape)
+			})
+			divIdsToRemove.forEach((divId) => {
+				const pi = portalInfo.get(divId)
+				if (!pi) return
+				wrapperDiv.current?.removeChild(pi.container)
+				portalInfo.delete(divId)
+			})
+		}
+		const interval = setInterval(cleanContainerDivs, 1000)
+		return () => clearInterval(interval)
+	}, [editor])
+
 	return (
 		<div ref={wrapperDiv} id="portal-target">
 			{renderingShapes.map((result) => {
