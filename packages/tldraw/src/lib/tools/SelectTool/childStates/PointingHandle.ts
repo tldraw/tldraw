@@ -1,4 +1,10 @@
-import { StateNode, TLArrowShape, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import {
+	StateNode,
+	TLArrowShape,
+	TLEventHandlers,
+	TLNoteShape,
+	TLPointerEventInfo,
+} from '@tldraw/editor'
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
@@ -15,6 +21,13 @@ export class PointingHandle extends StateNode {
 			if (initialTerminal?.type === 'binding') {
 				this.editor.setHintingShapes([initialTerminal.boundShapeId])
 			}
+		}
+		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
+			this.editor
+				.getShapeUtil<TLNoteShape>(shape)
+				// todo: fix this
+				// @ts-expect-error
+				.onHandlePointerDown({ shape, handleId: this.info.handle.id })
 		}
 
 		this.editor.updateInstanceState(

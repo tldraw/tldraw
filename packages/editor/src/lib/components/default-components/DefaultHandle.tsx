@@ -16,6 +16,19 @@ export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandlePro
 	const bgRadius = (isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoom
 	const fgRadius = (handle.type === 'create' && isCoarse ? 3 : 4) / zoom
 
+	// todo: this is bad
+	// @ts-expect-error
+	if (handle.type === 'note-create') {
+		return (
+			<rect
+				className="tl-handle tl-handle__create"
+				width={200}
+				height={200}
+				fill="rgba(255,192,120,0.2)"
+			/>
+		)
+	}
+
 	return (
 		<g
 			className={classNames(

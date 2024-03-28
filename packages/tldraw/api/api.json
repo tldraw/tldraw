@@ -13443,6 +13443,50 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#onDoubleClickHandle:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onDoubleClickHandle: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onDoubleClickHandle",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "tldraw!NoteShapeUtil#onEditEnd:member",
               "docComment": "",
               "excerptTokens": [
@@ -13480,6 +13524,54 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 5
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#onHandlePointerDown:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onHandlePointerDown: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "({ shape, handleId }: {\n        shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        handleId: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "NoteHandleId",
+                  "canonicalReference": "tldraw!~NoteHandleId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n    }) => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onHandlePointerDown",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
               },
               "isStatic": false,
               "isProtected": false,

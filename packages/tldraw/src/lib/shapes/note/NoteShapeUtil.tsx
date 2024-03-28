@@ -20,6 +20,15 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 export const NOTE_SIZE = 200
 export const NOTE_GRID_OFFSET = 230
+type NoteHandleId =
+	| 'note-button-up'
+	| 'note-preview-up'
+	| 'note-button-down'
+	| 'note-preview-down'
+	| 'note-button-left'
+	| 'note-preview-left'
+	| 'note-button-right'
+	| 'note-preview-right'
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -47,7 +56,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				{ x: 0.5, y: 1.1 },
 				{ x: -0.1, y: 0.5 },
 			],
-			previews: [{ x: 0, y: 0 }],
+			previews: [
+				{ x: 0, y: -1.14 },
+				{ x: 1.14, y: 0 },
+				{ x: 0, y: 1.14 },
+				{ x: -1.14, y: 0 },
+			],
 		}
 	}
 
@@ -64,10 +78,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		}))
 		const previewsArr = previews.map((preview, i) => ({
 			id: 'note-preview-' + directionArr[i],
-			type: 'create',
+			type: 'note-create',
 			index: `${i}`,
-			x: preview.x,
-			y: preview.y,
+			x: preview.x * NOTE_SIZE,
+			y: preview.y * NOTE_SIZE,
 			canSnap: true,
 		}))
 		return [...previewsArr, ...buttonsArr] as TLHandle[]
@@ -207,6 +221,31 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				},
 			])
 		}
+	}
+	onHandlePointerDown = ({ shape, handleId }: { shape: TLNoteShape; handleId: NoteHandleId }) => {
+		const getOffset = (handleId: NoteHandleId, shape: TLNoteShape) => {
+			switch (handleId) {
+				case 'note-button-right':
+				case 'note-preview-right':
+					return { x: shape.x + NOTE_GRID_OFFSET, y: shape.y }
+				case 'note-button-left':
+				case 'note-preview-left':
+					return { x: shape.x - NOTE_GRID_OFFSET, y: shape.y }
+				case 'note-button-up':
+				case 'note-preview-up':
+					return { x: shape.x, y: shape.y - NOTE_GRID_OFFSET }
+				case 'note-button-down':
+				case 'note-preview-down':
+					return { x: shape.x, y: shape.y + NOTE_GRID_OFFSET }
+				default:
+					throw new Error('this should not happen')
+			}
+		}
+		const offset = getOffset(handleId, shape)
+		this.editor.createShape({ type: 'note', x: offset.x, y: offset.y })
+	}
+	override onDoubleClickHandle = (shape: TLNoteShape) => {
+		return shape
 	}
 }
 
