@@ -3061,7 +3061,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// box just for rendering, and we only update after the camera stops moving.
 
 	private _cameraStateTimeoutRemaining = 0
-	private _lastUpdateRenderingBoundsTimestamp = Date.now()
 
 	private _decayCameraStateTimeout = (elapsed: number) => {
 		this._cameraStateTimeoutRemaining -= elapsed
@@ -3077,11 +3076,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// always reset the timeout
 		this._cameraStateTimeoutRemaining = CAMERA_MOVING_TIMEOUT
 
-		const now = Date.now()
-
 		// If the state is idle, then start the tick
 		if (this._cameraState.__unsafe__getWithoutCapture() === 'idle') {
-			this._lastUpdateRenderingBoundsTimestamp = now // don't render right away
 			this._cameraState.set('moving')
 			this.on('tick', this._decayCameraStateTimeout)
 		}
