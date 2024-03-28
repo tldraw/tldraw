@@ -42,13 +42,18 @@ export function createMigrationIds<ID extends string, Versions extends Record<st
 };
 
 // @public (undocumented)
-export function createMigrations(migrations: Migrations): Migrations;
+export function createMigrations({ sequence, sequenceId, retroactive, }: {
+    sequenceId: string;
+    retroactive: boolean;
+    sequence: Array<Migration | StandaloneDependsOn>;
+}): Migrations;
 
 // @internal (undocumented)
 export function createRecordMigrations(opts: {
     recordType: string;
     filter?: (record: UnknownRecord) => boolean;
     retroactive?: boolean;
+    sequenceId: string;
     sequence: Omit<Extract<Migration, {
         scope: 'record';
     }>, 'scope'>[];
@@ -113,7 +118,7 @@ export interface LegacyMigrations extends LegacyBaseMigrationsInfo {
 // @public (undocumented)
 export type Migration = {
     readonly id: MigrationId;
-    readonly dependsOn?: MigrationId[];
+    readonly dependsOn?: readonly MigrationId[] | undefined;
 } & ({
     readonly scope: 'record';
     readonly filter?: (record: UnknownRecord) => boolean;

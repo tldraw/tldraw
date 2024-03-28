@@ -31,6 +31,7 @@ export const assetVersions = createMigrationIds('com.tldraw.asset', {
 
 /** @internal */
 export const assetMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.asset',
 	recordType: 'asset',
 	sequence: [
 		{

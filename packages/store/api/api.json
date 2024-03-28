@@ -767,12 +767,38 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function createMigrations(migrations: "
+              "text": "export declare function createMigrations({ sequence, sequenceId, retroactive, }: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    sequenceId: string;\n    retroactive: boolean;\n    sequence: "
             },
             {
               "kind": "Reference",
-              "text": "Migrations",
-              "canonicalReference": "@tldraw/store!Migrations:interface"
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Migration",
+              "canonicalReference": "@tldraw/store!Migration:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "StandaloneDependsOn",
+              "canonicalReference": "@tldraw/store!~StandaloneDependsOn:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n}"
             },
             {
               "kind": "Content",
@@ -790,17 +816,17 @@
           ],
           "fileUrlPath": "packages/store/src/lib/migrate.ts",
           "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 4
+            "startIndex": 9,
+            "endIndex": 10
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "migrations",
+              "parameterName": "{ sequence, sequenceId, retroactive, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 8
               },
               "isOptional": false
             }
@@ -1371,7 +1397,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    readonly dependsOn?: "
+              "text": ";\n    readonly dependsOn?: readonly "
             },
             {
               "kind": "Reference",
@@ -1380,7 +1406,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n} & ({\n    readonly scope: 'record';\n    readonly filter?: (record: "
+              "text": "[] | undefined;\n} & ({\n    readonly scope: 'record';\n    readonly filter?: (record: "
             },
             {
               "kind": "Reference",

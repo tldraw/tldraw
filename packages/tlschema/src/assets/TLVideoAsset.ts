@@ -42,6 +42,7 @@ export { Versions as videoAssetVersions }
 
 /** @internal */
 export const videoAssetMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.asset.video',
 	recordType: 'asset',
 	filter: (asset) => (asset as TLAsset).type === 'video',
 	sequence: [

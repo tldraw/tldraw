@@ -45,6 +45,7 @@ export const pageVersions = createMigrationIds('com.tldraw.page', {
 
 /** @internal */
 export const pageMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.page',
 	recordType: 'page',
 	sequence: [
 		{

@@ -42,6 +42,7 @@ export { Versions as imageAssetVersions }
 
 /** @internal */
 export const imageAssetMigrations = createRecordMigrations({
+	sequenceId: 'com.tldraw.asset.image',
 	recordType: 'asset',
 	filter: (asset) => (asset as TLAsset).type === 'image',
 	sequence: [
