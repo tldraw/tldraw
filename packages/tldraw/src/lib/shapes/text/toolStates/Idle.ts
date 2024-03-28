@@ -1,5 +1,4 @@
 import { StateNode, TLEventHandlers } from '@tldraw/editor'
-import { updateHoveredId } from '../../../tools/selection-logic/updateHoveredId'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -8,9 +7,7 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				if (this.editor.getCameraState() !== 'moving') {
-					updateHoveredId(this.editor)
-				}
+				this.editor.updateHoveredId()
 			}
 		}
 	}

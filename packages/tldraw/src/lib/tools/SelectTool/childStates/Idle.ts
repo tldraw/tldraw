@@ -18,14 +18,13 @@ import {
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
-import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onEnter = () => {
 		this.parent.setCurrentToolIdMask(undefined)
-		updateHoveredId(this.editor)
+		this.editor.updateHoveredId()
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
@@ -33,9 +32,7 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		if (this.editor.getCameraState() !== 'moving') {
-			updateHoveredId(this.editor)
-		}
+		this.editor.updateHoveredId()
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {

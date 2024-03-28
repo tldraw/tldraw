@@ -18999,6 +18999,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#updateHoveredId:member(1)",
+              "docComment": "/**\n * Calculate the currently hovered shape based on the current page point.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "updateHoveredId(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "updateHoveredId"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#updateInstanceState:member(1)",
               "docComment": "/**\n * Update the instance's state.\n *\n * @param partial - A partial object to update the instance state with.\n *\n * @param historyOptions - The history options for the change.\n *\n * @public\n */\n",
               "excerptTokens": [

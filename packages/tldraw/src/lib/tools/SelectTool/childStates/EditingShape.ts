@@ -7,7 +7,6 @@ import {
 	TLGeoShape,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
@@ -15,7 +14,7 @@ export class EditingShape extends StateNode {
 	override onEnter = () => {
 		const editingShape = this.editor.getEditingShape()
 		if (!editingShape) throw Error('Entered editing state without an editing shape')
-		updateHoveredId(this.editor)
+		this.editor.updateHoveredId()
 		this.editor.select(editingShape)
 	}
 
@@ -37,7 +36,7 @@ export class EditingShape extends StateNode {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				updateHoveredId(this.editor)
+				this.editor.updateHoveredId()
 				return
 			}
 		}
