@@ -44,16 +44,16 @@ export class SpatialIndex {
 
 	getShapesInsideBounds(bounds: Box): TLShapeId[] {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const result = this.rebrushIncremental().get()
-		return this.searchTree(this.rBush, bounds)
+		const result = this.rBushIncremental().get()
+		return this.rBush.search(bounds).map((b) => b.id)
 	}
 
 	@computed
-	rebrushIncremental() {
-		return this._rebrushIncremental()
+	rBushIncremental() {
+		return this._rBushIncremental()
 	}
 
-	_rebrushIncremental() {
+	_rBushIncremental() {
 		const { store } = this.editor
 		const shapeHistory = store.query.filterHistory('shape')
 
@@ -145,16 +145,5 @@ export class SpatialIndex {
 
 		this.rBush.load(elementsToAdd)
 		return { epoch }
-	}
-
-	private searchTree(tree: TldrawRBush, renderingBounds: Box): TLShapeId[] {
-		return tree
-			.search({
-				minX: renderingBounds.x,
-				minY: renderingBounds.y,
-				maxX: renderingBounds.x + renderingBounds.width,
-				maxY: renderingBounds.y + renderingBounds.height,
-			})
-			.map((b) => b.id)
 	}
 }
