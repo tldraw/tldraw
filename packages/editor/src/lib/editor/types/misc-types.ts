@@ -37,7 +37,7 @@ export type TLCameraOptions = {
 	  }
 	| {
 			/** The type of behavior. */
-			type: 'contain' | 'cover'
+			type: 'contain' | 'cover' | 'limit'
 			/** The bounds of the content (in page space) */
 			bounds: BoxModel
 			/** The padding around the bounds (in screen space). Provide a number for x and y, or [x, y]. */

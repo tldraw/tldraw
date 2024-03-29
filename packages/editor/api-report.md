@@ -1997,7 +1997,7 @@ export type TLCameraOptions = {
     zoomMax: number;
     isLocked: boolean;
 } & ({
-    type: 'contain' | 'cover';
+    type: 'contain' | 'cover' | 'limit';
     bounds: BoxModel;
     padding: number[];
     origin: number[];

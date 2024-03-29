@@ -2163,7 +2163,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				const zx = (vsb.w - px * 2) / bounds.w
 				const zy = (vsb.h - py * 2) / bounds.h
-				const fitZoom = cameraOptions.type === 'contain' ? Math.min(zx, zy) : Math.max(zx, zy)
+				const fitZoom =
+					cameraOptions.type === 'limit'
+						? 1
+						: cameraOptions.type === 'contain'
+							? Math.min(zx, zy)
+							: Math.max(zx, zy)
 				const maxZ = zoomMax * fitZoom
 				const minZ = zoomMin * fitZoom
 

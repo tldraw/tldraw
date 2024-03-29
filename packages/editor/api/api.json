@@ -36802,7 +36802,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    zoomMin: number;\n    zoomMax: number;\n    isLocked: boolean;\n} & ({\n    type: 'contain' | 'cover';\n    bounds: "
+              "text": "{\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    zoomMin: number;\n    zoomMax: number;\n    isLocked: boolean;\n} & ({\n    type: 'contain' | 'cover' | 'limit';\n    bounds: "
             },
             {
               "kind": "Reference",
