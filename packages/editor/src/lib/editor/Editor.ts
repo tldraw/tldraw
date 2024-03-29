@@ -2093,26 +2093,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.batch(() => {
-			this.store.put([{ ...currentCamera, ...point }]) // include id and meta here
+			const camera = { ...currentCamera, ...point }
+			this.store.put([camera]) // include id and meta here
 
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
-			const { currentScreenPoint } = this.inputs
+			const { currentScreenPoint, currentPagePoint } = this.inputs
 			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
-			this.dispatch({
-				type: 'pointer',
-				target: 'canvas',
-				name: 'pointer_move',
-				// weird but true: we need to put the screen point back into client space
-				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
-				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
-				ctrlKey: this.inputs.ctrlKey,
-				altKey: this.inputs.altKey,
-				shiftKey: this.inputs.shiftKey,
-				button: 0,
-				isPen: this.getInstanceState().isPenMode ?? false,
-			})
+			// compare the next page point (derived from the curent camera) to the current page point
+			if (
+				currentScreenPoint.x / camera.z - camera.x !== currentPagePoint.x ||
+				currentScreenPoint.y / camera.z - camera.y !== currentPagePoint.y
+			) {
+				// If it's changed, dispatch a pointer event
+				this.dispatch({
+					type: 'pointer',
+					target: 'canvas',
+					name: 'pointer_move',
+					// weird but true: we need to put the screen point back into client space
+					point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
+					pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
+					ctrlKey: this.inputs.ctrlKey,
+					altKey: this.inputs.altKey,
+					shiftKey: this.inputs.shiftKey,
+					button: 0,
+					isPen: this.getInstanceState().isPenMode ?? false,
+				})
+			}
 
 			this._tickCameraState()
 		})
