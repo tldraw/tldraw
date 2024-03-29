@@ -42,14 +42,6 @@ export class SpatialIndex {
 		return e
 	}
 
-	@computed
-	getShapesInRenderingBoundsExpanded() {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const result = this.rebrushIncremental().get()
-		const bounds = this.editor.getRenderingBoundsExpanded()
-		return this.searchTree(this.rBush, bounds)
-	}
-
 	getShapesInsideBounds(bounds: Box): TLShapeId[] {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const result = this.rebrushIncremental().get()
