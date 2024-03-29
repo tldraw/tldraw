@@ -116,17 +116,14 @@ export function getSaveFileCopyAction(
 				const defaultName =
 					saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
 
-				console.log('getting blob')
 				const blobToSave = serializeTldrawJsonBlob(editor.store)
 
-				console.log('getting handle')
 				const handle = await fileSave(blobToSave, {
 					fileName: defaultName,
 					extensions: [TLDRAW_FILE_EXTENSION],
 					description: 'tldraw project',
 				})
 
-				console.log('got handle')
 				if (handle) {
 					// we deliberately don't store the handle for re-use
 					// next time. we always want to save a copy, but to
