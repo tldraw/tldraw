@@ -1,0 +1,124 @@
+import { RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
+import { TLShape, TLShapeId, isShape, isShapeId } from '@tldraw/tlschema'
+import RBush from 'rbush'
+import { Box } from '../../primitives/Box'
+import { Editor } from '../Editor'
+
+type Element = {
+	minX: number
+	minY: number
+	maxX: number
+	maxY: number
+	id: TLShapeId
+}
+
+class TldrawRBush extends RBush<Element> {}
+
+export class SpatialIndex {
+	shapesInTree = new Map<TLShapeId, Element>()
+	rBush = new TldrawRBush()
+
+	constructor(private editor: Editor) {}
+
+	private getElement(shape: TLShape): Element | null {
+		const bounds = this.editor.getShapeMaskedPageBounds(shape)
+		if (!bounds) return null
+		return {
+			minX: bounds.x,
+			minY: bounds.y,
+			maxX: bounds.x + bounds.w,
+			maxY: bounds.y + bounds.h,
+			id: shape.id,
+		}
+	}
+
+	private addElementToArray(shape: TLShape, a: Element[]): Element | null {
+		const e = this.getElement(shape)
+		if (!e) return null
+		a.push(e)
+		return e
+	}
+
+	getShapesInRenderingBoundsExpanded() {
+		const { store } = this.editor
+		const shapeHistory = store.query.filterHistory('shape')
+
+		return computed<TLShapeId[]>('getShapesInView', (prevValue, lastComputedEpoch) => {
+			const renderingBoundsExpanded = this.editor.getRenderingBoundsExpanded()
+			const shapes = this.editor.getCurrentPageShapes()
+
+			if (isUninitialized(prevValue)) {
+				return this.fromScratch(renderingBoundsExpanded, shapes)
+			}
+			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
+
+			if (diff === RESET_VALUE) {
+				return this.fromScratch(renderingBoundsExpanded, shapes)
+			}
+
+			const elementsToAdd: Element[] = []
+			for (const changes of diff) {
+				for (const record of Object.values(changes.added)) {
+					if (isShape(record)) {
+						const e = this.addElementToArray(record, elementsToAdd)
+						if (!e) continue
+						this.shapesInTree.set(record.id, e)
+					}
+				}
+
+				for (const [_from, to] of Object.values(changes.updated)) {
+					if (isShape(to)) {
+						const currentElement = this.shapesInTree.get(to.id)
+						if (currentElement) {
+							this.shapesInTree.delete(to.id)
+							this.rBush.remove(currentElement)
+						}
+						const newE = this.getElement(to)
+						if (!newE) continue
+						this.shapesInTree.set(to.id, newE)
+						elementsToAdd.push(newE)
+					}
+				}
+				this.rBush.load(elementsToAdd)
+
+				for (const id of Object.keys(changes.removed)) {
+					if (isShapeId(id)) {
+						const currentElement = this.shapesInTree.get(id)
+						if (currentElement) {
+							this.shapesInTree.delete(id)
+							this.rBush.remove(currentElement)
+						}
+					}
+				}
+			}
+			return this.searchTree(this.rBush, renderingBoundsExpanded)
+		})
+	}
+
+	private fromScratch(renderingBounds: Box, shapes: TLShape[]) {
+		this.rBush.clear()
+		this.shapesInTree = new Map<TLShapeId, Element>()
+		const elementsToAdd: Element[] = []
+
+		for (let i = 0; i < shapes.length; i++) {
+			const shape = shapes[i]
+			const e = this.addElementToArray(shape, elementsToAdd)
+			if (!e) continue
+			this.shapesInTree.set(shape.id, e)
+			elementsToAdd.push(e)
+		}
+		this.rBush.load(elementsToAdd)
+		return this.searchTree(this.rBush, renderingBounds)
+	}
+
+	private searchTree(tree: TldrawRBush, renderingBounds: Box): TLShapeId[] {
+		return tree
+			.search({
+				minX: renderingBounds.x,
+				minY: renderingBounds.y,
+				maxX: renderingBounds.x + renderingBounds.width,
+				maxY: renderingBounds.y + renderingBounds.height,
+			})
+			.map((b) => b.id)
+	}
+}

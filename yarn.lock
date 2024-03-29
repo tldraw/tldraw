@@ -7488,6 +7488,7 @@ __metadata:
     "@types/core-js": "npm:^2.5.5"
     "@types/lodash.throttle": "npm:^4.1.7"
     "@types/lodash.uniq": "npm:^4.5.7"
+    "@types/rbush": "npm:3.0.3"
     "@types/react-test-renderer": "npm:^18.0.0"
     "@types/wicg-file-system-access": "npm:^2020.9.5"
     "@use-gesture/react": "npm:^10.2.27"
@@ -7504,6 +7505,7 @@ __metadata:
     lodash.throttle: "npm:^4.1.1"
     lodash.uniq: "npm:^4.5.0"
     nanoid: "npm:4.0.2"
+    rbush: "npm:^3.0.1"
     react-test-renderer: "npm:^18.2.0"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:
@@ -8327,6 +8329,13 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: a25686339bd2718e6a93943e7807ed68dd9c74a9da28aa77212086ee0ce9a173c0a232af9e3f6835acd09938dfc8a0f98c6bccf1a6c6a905fb003ab07f9e08f2
+  languageName: node
+  linkType: hard
+
+"@types/rbush@npm:3.0.3":
+  version: 3.0.3
+  resolution: "@types/rbush@npm:3.0.3"
+  checksum: 59c75d20d3ebf95f8853a98f67d437adc047bf875df6e6bba90884fdfa8fa927402ccec762ecbc8724d98f9ed14c9e97d16eddb709a702021ce1874da5d0d8d7
   languageName: node
   linkType: hard
 
@@ -21060,6 +21069,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"quickselect@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "quickselect@npm:2.0.0"
+  checksum: ed2e78431050d223fb75da20ee98011aef1a03f7cb04e1a32ee893402e640be3cfb76d72e9dbe01edf3bb457ff6a62e5c2d85748424d1aa531f6ba50daef098c
+  languageName: node
+  linkType: hard
+
 "raf@npm:^3.4.1":
   version: 3.4.1
   resolution: "raf@npm:3.4.1"
@@ -21094,6 +21110,15 @@ __metadata:
     iconv-lite: "npm:0.4.24"
     unpipe: "npm:1.0.0"
   checksum: 863b5171e140546a4d99f349b720abac4410338e23df5e409cfcc3752538c9caf947ce382c89129ba976f71894bd38b5806c774edac35ebf168d02aa1ac11a95
+  languageName: node
+  linkType: hard
+
+"rbush@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "rbush@npm:3.0.1"
+  dependencies:
+    quickselect: "npm:^2.0.0"
+  checksum: 489e2e7d9889888ad533518f194e3ab7cc19b1f1365a38ee99fbdda542a47f41cda7dc89870180050f4d04ea402e9ff294e1d767d03c0f1694e0028b7609eec9
   languageName: node
   linkType: hard
 

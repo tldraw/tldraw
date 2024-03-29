@@ -59,7 +59,8 @@
 		"is-plain-object": "^5.0.0",
 		"lodash.throttle": "^4.1.1",
 		"lodash.uniq": "^4.5.0",
-		"nanoid": "4.0.2"
+		"nanoid": "4.0.2",
+		"rbush": "^3.0.1"
 	},
 	"peerDependencies": {
 		"react": "^18",
@@ -72,6 +73,7 @@
 		"@types/benchmark": "^2.1.2",
 		"@types/lodash.throttle": "^4.1.7",
 		"@types/lodash.uniq": "^4.5.7",
+		"@types/rbush": "3.0.3",
 		"@types/react-test-renderer": "^18.0.0",
 		"@types/wicg-file-system-access": "^2020.9.5",
 		"benchmark": "^2.1.4",
