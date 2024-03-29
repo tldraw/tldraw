@@ -13308,6 +13308,60 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getShapesInsideBounds:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getShapesInsideBounds(bounds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "bounds",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getShapesInsideBounds"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getShapeStyleIfExists:member(1)",
               "docComment": "",
               "excerptTokens": [

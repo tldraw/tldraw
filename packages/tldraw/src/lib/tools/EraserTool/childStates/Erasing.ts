@@ -1,4 +1,5 @@
 import {
+	Box,
 	HIT_TEST_MARGIN,
 	StateNode,
 	TLEventHandlers,
@@ -6,6 +7,7 @@ import {
 	TLGroupShape,
 	TLPointerEventInfo,
 	TLShapeId,
+	compact,
 	pointInPolygon,
 } from '@tldraw/editor'
 
@@ -81,7 +83,6 @@ export class Erasing extends StateNode {
 	update() {
 		const erasingShapeIds = this.editor.getErasingShapeIds()
 		const zoomLevel = this.editor.getZoomLevel()
-		const currentPageShapes = this.editor.getCurrentPageShapes()
 		const {
 			inputs: { currentPagePoint, previousPagePoint },
 		} = this.editor
@@ -91,8 +92,12 @@ export class Erasing extends StateNode {
 		this.pushPointToScribble()
 
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
+		const bounds = Box.FromPoints([currentPagePoint, previousPagePoint]).expandBy(HIT_TEST_MARGIN)
+		const candidates = compact(
+			this.editor.getShapesInsideBounds(bounds).map((id) => this.editor.getShape(id))
+		)
 
-		for (const shape of currentPageShapes) {
+		for (const shape of candidates) {
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask

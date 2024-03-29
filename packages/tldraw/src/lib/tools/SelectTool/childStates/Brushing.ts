@@ -14,6 +14,7 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
+	compact,
 	moveCameraWhenCloseToEdge,
 	pointInPolygon,
 	polygonsIntersect,
@@ -104,7 +105,6 @@ export class Brushing extends StateNode {
 
 	private hitTestShapes() {
 		const zoomLevel = this.editor.getZoomLevel()
-		const currentPageShapes = this.editor.getCurrentPageShapes()
 		const currentPageId = this.editor.getCurrentPageId()
 		const {
 			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
@@ -130,8 +130,12 @@ export class Brushing extends StateNode {
 
 		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
 
-		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
-			shape = currentPageShapes[i]
+		const candidates = compact(
+			this.editor.getShapesInsideBounds(this.brush).map((id) => this.editor.getShape(id))
+		)
+
+		testAllShapes: for (let i = 0, n = candidates.length; i < n; i++) {
+			shape = candidates[i]
 			if (excludedShapeIds.has(shape.id)) continue testAllShapes
 			if (results.has(shape.id)) continue testAllShapes
 

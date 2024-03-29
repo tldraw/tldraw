@@ -3105,9 +3105,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	@computed
-	private getShapesInRenderingBoundsExpanded() {
-		return this._spatialIndex.getShapesInRenderingBoundsExpanded()
+	getShapesInsideBounds(bounds: Box) {
+		return this._spatialIndex.getShapesInsideBounds(bounds)
 	}
 
 	/** @internal */

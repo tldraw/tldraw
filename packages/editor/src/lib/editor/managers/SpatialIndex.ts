@@ -42,71 +42,96 @@ export class SpatialIndex {
 		return e
 	}
 
+	@computed
 	getShapesInRenderingBoundsExpanded() {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const result = this.rebrushIncremental().get()
+		const bounds = this.editor.getRenderingBoundsExpanded()
+		return this.searchTree(this.rBush, bounds)
+	}
+
+	getShapesInsideBounds(bounds: Box): TLShapeId[] {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const result = this.rebrushIncremental().get()
+		return this.searchTree(this.rBush, bounds)
+	}
+
+	@computed
+	rebrushIncremental() {
+		return this._rebrushIncremental()
+	}
+
+	_rebrushIncremental() {
 		const { store } = this.editor
 		const shapeHistory = store.query.filterHistory('shape')
 
-		return computed<TLShapeId[]>('getShapesInView', (prevValue, lastComputedEpoch) => {
-			const currentPageId = this.editor.getCurrentPageId()
-			const renderingBoundsExpanded = this.editor.getRenderingBoundsExpanded()
-			const shapes = this.editor.getCurrentPageShapes()
+		return computed<{ epoch: number }>(
+			'getShapesInView',
+			(prevValue, lastComputedEpoch) => {
+				const currentPageId = this.editor.getCurrentPageId()
+				const renderingBoundsExpanded = this.editor.getRenderingBoundsExpanded()
+				const shapes = this.editor.getCurrentPageShapes()
 
-			if (isUninitialized(prevValue)) {
-				this.lastPageId = currentPageId
-				return this.fromScratch(renderingBoundsExpanded, shapes)
-			}
-			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
+				if (isUninitialized(prevValue)) {
+					this.lastPageId = currentPageId
+					return this.fromScratch(renderingBoundsExpanded, shapes, lastComputedEpoch)
+				}
+				const diff = shapeHistory.getDiffSince(lastComputedEpoch)
 
-			if (diff === RESET_VALUE) {
-				this.lastPageId = currentPageId
-				return this.fromScratch(renderingBoundsExpanded, shapes)
-			}
-
-			if (this.lastPageId !== currentPageId) {
-				this.lastPageId = currentPageId
-				return this.fromScratch(renderingBoundsExpanded, shapes)
-			}
-
-			const elementsToAdd: Element[] = []
-			for (const changes of diff) {
-				for (const record of Object.values(changes.added)) {
-					if (isShape(record)) {
-						const e = this.addElementToArray(record, elementsToAdd)
-						if (!e) continue
-						this.shapesInTree.set(record.id, e)
-					}
+				if (diff === RESET_VALUE) {
+					this.lastPageId = currentPageId
+					return this.fromScratch(renderingBoundsExpanded, shapes, lastComputedEpoch)
 				}
 
-				for (const [_from, to] of Object.values(changes.updated)) {
-					if (isShape(to)) {
-						const currentElement = this.shapesInTree.get(to.id)
-						if (currentElement) {
-							this.shapesInTree.delete(to.id)
-							this.rBush.remove(currentElement)
-						}
-						const newE = this.getElement(to)
-						if (!newE) continue
-						this.shapesInTree.set(to.id, newE)
-						elementsToAdd.push(newE)
-					}
+				if (this.lastPageId !== currentPageId) {
+					this.lastPageId = currentPageId
+					return this.fromScratch(renderingBoundsExpanded, shapes, lastComputedEpoch)
 				}
-				this.rBush.load(elementsToAdd)
 
-				for (const id of Object.keys(changes.removed)) {
-					if (isShapeId(id)) {
-						const currentElement = this.shapesInTree.get(id)
-						if (currentElement) {
-							this.shapesInTree.delete(id)
-							this.rBush.remove(currentElement)
+				const elementsToAdd: Element[] = []
+				for (const changes of diff) {
+					for (const record of Object.values(changes.added)) {
+						if (isShape(record)) {
+							const e = this.addElementToArray(record, elementsToAdd)
+							if (!e) continue
+							this.shapesInTree.set(record.id, e)
 						}
 					}
+
+					for (const [_from, to] of Object.values(changes.updated)) {
+						if (isShape(to)) {
+							const currentElement = this.shapesInTree.get(to.id)
+							if (currentElement) {
+								this.shapesInTree.delete(to.id)
+								this.rBush.remove(currentElement)
+							}
+							const newE = this.getElement(to)
+							if (!newE) continue
+							this.shapesInTree.set(to.id, newE)
+							elementsToAdd.push(newE)
+						}
+					}
+					this.rBush.load(elementsToAdd)
+
+					for (const id of Object.keys(changes.removed)) {
+						if (isShapeId(id)) {
+							const currentElement = this.shapesInTree.get(id)
+							if (currentElement) {
+								this.shapesInTree.delete(id)
+								this.rBush.remove(currentElement)
+							}
+						}
+					}
 				}
+				return { epoch: lastComputedEpoch }
+			},
+			{
+				isEqual: (a, b) => a.epoch === b.epoch,
 			}
-			return this.searchTree(this.rBush, renderingBoundsExpanded)
-		})
+		)
 	}
 
-	private fromScratch(renderingBounds: Box, shapes: TLShape[]) {
+	private fromScratch(renderingBounds: Box, shapes: TLShape[], epoch: number) {
 		this.rBush.clear()
 		this.shapesInTree = new Map<TLShapeId, Element>()
 		const elementsToAdd: Element[] = []
@@ -120,7 +145,7 @@ export class SpatialIndex {
 		}
 
 		this.rBush.load(elementsToAdd)
-		return this.searchTree(this.rBush, renderingBounds)
+		return { epoch }
 	}
 
 	private searchTree(tree: TldrawRBush, renderingBounds: Box): TLShapeId[] {

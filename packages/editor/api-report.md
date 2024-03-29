@@ -755,6 +755,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
     }): TLShape[];
     // (undocumented)
+    getShapesInsideBounds(bounds: Box): TLShapeId[];
+    // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
     // (undocumented)
@@ -1375,7 +1377,7 @@ export interface MatModel {
 export const MAX_PAGES = 40;
 
 // @internal (undocumented)
-export const MAX_SHAPES_PER_PAGE = 2000;
+export const MAX_SHAPES_PER_PAGE = 20000;
 
 // @internal (undocumented)
 export const MAX_ZOOM = 8;

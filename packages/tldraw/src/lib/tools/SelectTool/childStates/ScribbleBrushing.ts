@@ -1,4 +1,5 @@
 import {
+	Box,
 	Geometry2d,
 	HIT_TEST_MARGIN,
 	StateNode,
@@ -8,6 +9,7 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
+	compact,
 	intersectLineSegmentPolyline,
 	pointInPolygon,
 } from '@tldraw/editor'
@@ -84,7 +86,6 @@ export class ScribbleBrushing extends StateNode {
 
 	private updateScribbleSelection(addPoint: boolean) {
 		const zoomLevel = this.editor.getZoomLevel()
-		const currentPageShapes = this.editor.getCurrentPageShapes()
 		const {
 			inputs: { shiftKey, originPagePoint, previousPagePoint, currentPagePoint },
 		} = this.editor
@@ -95,11 +96,15 @@ export class ScribbleBrushing extends StateNode {
 			this.pushPointToScribble()
 		}
 
-		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
 
-		for (let i = 0, n = shapes.length; i < n; i++) {
-			shape = shapes[i]
+		const bounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(HIT_TEST_MARGIN)
+		const candidates = compact(
+			this.editor.getShapesInsideBounds(bounds).map((id) => this.editor.getShape(id))
+		)
+
+		for (let i = 0, n = candidates.length; i < n; i++) {
+			shape = candidates[i]
 			geometry = this.editor.getShapeGeometry(shape)
 
 			// If the shape is a group or is already selected or locked, don't select it
