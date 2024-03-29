@@ -276,7 +276,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 		setState((prev) => ({ ...prev, isEditing: false }))
 	}, [setState])
 
-	const name = state.name || documentSettings.name || defaultDocumentName
+	const name = state.name ?? (documentSettings.name || defaultDocumentName)
 
 	return (
 		<div className="tlui-document-name__input__wrapper">

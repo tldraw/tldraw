@@ -43,7 +43,6 @@ export interface TLUiActionItem<
 	icon?: IconType
 	id: string
 	kbd?: string
-	title?: string
 	label?: TransationKey | { [key: string]: TransationKey }
 	readonlyOk?: boolean
 	checkbox?: boolean

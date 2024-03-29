@@ -5,7 +5,7 @@ import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../../shared/freehand/svg'
 import { getSvgPathForLineGeometry } from './svg'
 
-export function getLineDrawFreehandOptions(strokeWidth: number) {
+function getLineDrawFreehandOptions(strokeWidth: number) {
 	return {
 		size: strokeWidth,
 		thinning: 0.4,
@@ -16,18 +16,7 @@ export function getLineDrawFreehandOptions(strokeWidth: number) {
 	}
 }
 
-export function getLineSolidFreehandOptions(strokeWidth: number) {
-	return {
-		size: strokeWidth,
-		thinning: 0,
-		streamline: 0,
-		smoothing: 0.5,
-		simulatePressure: false,
-		last: true,
-	}
-}
-
-export function getLineStrokePoints(
+function getLineStrokePoints(
 	shape: TLLineShape,
 	spline: CubicSpline2d | Polyline2d,
 	strokeWidth: number
@@ -38,7 +27,7 @@ export function getLineStrokePoints(
 	return getStrokePoints(points, options)
 }
 
-export function getLineDrawStrokeOutlinePoints(
+function getLineDrawStrokeOutlinePoints(
 	shape: TLLineShape,
 	spline: CubicSpline2d | Polyline2d,
 	strokeWidth: number
@@ -50,15 +39,6 @@ export function getLineDrawStrokeOutlinePoints(
 	)
 }
 
-export function getLineSolidStrokeOutlinePoints(
-	shape: TLLineShape,
-	spline: CubicSpline2d | Polyline2d,
-	strokeWidth: number
-) {
-	const options = getLineSolidFreehandOptions(strokeWidth)
-	return getStrokeOutlinePoints(getLineStrokePoints(shape, spline, strokeWidth), options)
-}
-
 export function getLineDrawPath(
 	shape: TLLineShape,
 	spline: CubicSpline2d | Polyline2d,
@@ -66,15 +46,6 @@ export function getLineDrawPath(
 ) {
 	const stroke = getLineDrawStrokeOutlinePoints(shape, spline, strokeWidth)
 	return getSvgPathFromPoints(stroke)
-}
-
-export function getLineSolidPath(
-	shape: TLLineShape,
-	spline: CubicSpline2d | Polyline2d,
-	strokeWidth: number
-) {
-	const outlinePoints = getLineSolidStrokeOutlinePoints(shape, spline, strokeWidth)
-	return getSvgPathFromPoints(outlinePoints)
 }
 
 export function getLineIndicatorPath(

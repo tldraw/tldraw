@@ -3,9 +3,13 @@ import { ReactNode, createContext, useCallback, useContext, useState } from 'rea
 import { TLUiIconType } from '../icon-types'
 
 /** @public */
+export type AlertSeverity = 'success' | 'info' | 'warning' | 'error'
+
+/** @public */
 export interface TLUiToast {
 	id: string
 	icon?: TLUiIconType
+	severity?: AlertSeverity
 	title?: string
 	description?: string
 	actions?: TLUiToastAction[]
