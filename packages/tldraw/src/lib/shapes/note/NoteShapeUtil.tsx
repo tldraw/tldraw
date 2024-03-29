@@ -83,7 +83,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							id={id}
 							type={type}
 							font={font}
-							size={size}
+							fontSize={LABEL_FONT_SIZES[size]}
+							lineHeight={TEXT_PROPS.lineHeight}
 							align={align}
 							verticalAlign={verticalAlign}
 							text={text}

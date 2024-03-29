@@ -2,6 +2,7 @@
 
 import {
 	TLShape,
+	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
 	preventDefault,
@@ -12,11 +13,8 @@ import {
 import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
-export function useEditableText<T extends Extract<TLShape, { props: { text: string } }>>(
-	id: T['id'],
-	type: T['type'],
-	text: string
-) {
+/** @public */
+export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const editor = useEditor()
 
 	const rInput = useRef<HTMLTextAreaElement>(null)

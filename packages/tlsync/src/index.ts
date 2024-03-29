@@ -1,4 +1,4 @@
-export { TLServer, type DBLoadResult } from './lib/TLServer'
+export { TLServer, type DBLoadResult, type TLServerEvent } from './lib/TLServer'
 export {
 	TLSyncClient,
 	type TLPersistentClientSocket,
