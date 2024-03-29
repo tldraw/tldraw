@@ -1,5 +1,5 @@
 import { RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
-import { TLShape, TLShapeId, isShape, isShapeId } from '@tldraw/tlschema'
+import { TLPageId, TLShape, TLShapeId, isShape, isShapeId } from '@tldraw/tlschema'
 import RBush from 'rbush'
 import { Box } from '../../primitives/Box'
 import { Editor } from '../Editor'
@@ -17,8 +17,11 @@ class TldrawRBush extends RBush<Element> {}
 export class SpatialIndex {
 	shapesInTree = new Map<TLShapeId, Element>()
 	rBush = new TldrawRBush()
+	lastPageId: TLPageId | null
 
-	constructor(private editor: Editor) {}
+	constructor(private editor: Editor) {
+		this.lastPageId = editor.getCurrentPageId()
+	}
 
 	private getElement(shape: TLShape): Element | null {
 		const bounds = this.editor.getShapeMaskedPageBounds(shape)
@@ -44,15 +47,23 @@ export class SpatialIndex {
 		const shapeHistory = store.query.filterHistory('shape')
 
 		return computed<TLShapeId[]>('getShapesInView', (prevValue, lastComputedEpoch) => {
+			const currentPageId = this.editor.getCurrentPageId()
 			const renderingBoundsExpanded = this.editor.getRenderingBoundsExpanded()
 			const shapes = this.editor.getCurrentPageShapes()
 
 			if (isUninitialized(prevValue)) {
+				this.lastPageId = currentPageId
 				return this.fromScratch(renderingBoundsExpanded, shapes)
 			}
 			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
 
 			if (diff === RESET_VALUE) {
+				this.lastPageId = currentPageId
+				return this.fromScratch(renderingBoundsExpanded, shapes)
+			}
+
+			if (this.lastPageId !== currentPageId) {
+				this.lastPageId = currentPageId
 				return this.fromScratch(renderingBoundsExpanded, shapes)
 			}
 
@@ -107,6 +118,7 @@ export class SpatialIndex {
 			this.shapesInTree.set(shape.id, e)
 			elementsToAdd.push(e)
 		}
+
 		this.rBush.load(elementsToAdd)
 		return this.searchTree(this.rBush, renderingBounds)
 	}
