@@ -27,10 +27,10 @@ export class SpatialIndex {
 		const bounds = this.editor.getShapeMaskedPageBounds(shape)
 		if (!bounds) return null
 		return {
-			minX: bounds.x,
-			minY: bounds.y,
-			maxX: bounds.x + bounds.w,
-			maxY: bounds.y + bounds.h,
+			minX: bounds.minX,
+			minY: bounds.minY,
+			maxX: bounds.maxX,
+			maxY: bounds.maxY,
 			id: shape.id,
 		}
 	}
@@ -65,73 +65,80 @@ export class SpatialIndex {
 		const { store } = this.editor
 		const shapeHistory = store.query.filterHistory('shape')
 
-		return computed<{ epoch: number }>(
-			'getShapesInView',
-			(prevValue, lastComputedEpoch) => {
-				const currentPageId = this.editor.getCurrentPageId()
-				const renderingBoundsExpanded = this.editor.getRenderingBoundsExpanded()
-				const shapes = this.editor.getCurrentPageShapes()
+		return computed<{ epoch: number }>('getShapesInView', (prevValue, lastComputedEpoch) => {
+			let isDirty = false
+			const currentPageId = this.editor.getCurrentPageId()
+			const shapes = this.editor.getCurrentPageShapes()
 
-				if (isUninitialized(prevValue)) {
-					this.lastPageId = currentPageId
-					return this.fromScratch(renderingBoundsExpanded, shapes, lastComputedEpoch)
-				}
-				const diff = shapeHistory.getDiffSince(lastComputedEpoch)
-
-				if (diff === RESET_VALUE) {
-					this.lastPageId = currentPageId
-					return this.fromScratch(renderingBoundsExpanded, shapes, lastComputedEpoch)
-				}
-
-				if (this.lastPageId !== currentPageId) {
-					this.lastPageId = currentPageId
-					return this.fromScratch(renderingBoundsExpanded, shapes, lastComputedEpoch)
-				}
-
-				const elementsToAdd: Element[] = []
-				for (const changes of diff) {
-					for (const record of Object.values(changes.added)) {
-						if (isShape(record)) {
-							const e = this.addElementToArray(record, elementsToAdd)
-							if (!e) continue
-							this.shapesInTree.set(record.id, e)
-						}
-					}
-
-					for (const [_from, to] of Object.values(changes.updated)) {
-						if (isShape(to)) {
-							const currentElement = this.shapesInTree.get(to.id)
-							if (currentElement) {
-								this.shapesInTree.delete(to.id)
-								this.rBush.remove(currentElement)
-							}
-							const newE = this.getElement(to)
-							if (!newE) continue
-							this.shapesInTree.set(to.id, newE)
-							elementsToAdd.push(newE)
-						}
-					}
-					this.rBush.load(elementsToAdd)
-
-					for (const id of Object.keys(changes.removed)) {
-						if (isShapeId(id)) {
-							const currentElement = this.shapesInTree.get(id)
-							if (currentElement) {
-								this.shapesInTree.delete(id)
-								this.rBush.remove(currentElement)
-							}
-						}
-					}
-				}
-				return { epoch: lastComputedEpoch }
-			},
-			{
-				isEqual: (a, b) => a.epoch === b.epoch,
+			if (isUninitialized(prevValue)) {
+				this.lastPageId = currentPageId
+				return this.fromScratch(shapes, lastComputedEpoch)
 			}
-		)
+			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
+
+			if (diff === RESET_VALUE) {
+				this.lastPageId = currentPageId
+				return this.fromScratch(shapes, lastComputedEpoch)
+			}
+
+			if (this.lastPageId !== currentPageId) {
+				this.lastPageId = currentPageId
+				return this.fromScratch(shapes, lastComputedEpoch)
+			}
+
+			const elementsToAdd: Element[] = []
+			for (const changes of diff) {
+				for (const record of Object.values(changes.added)) {
+					if (isShape(record)) {
+						const e = this.addElementToArray(record, elementsToAdd)
+						if (!e) continue
+						this.shapesInTree.set(record.id, e)
+					}
+				}
+
+				for (const [_from, to] of Object.values(changes.updated)) {
+					if (isShape(to)) {
+						const currentElement = this.shapesInTree.get(to.id)
+						if (currentElement) {
+							const newBounds = this.editor.getShapeMaskedPageBounds(to.id)
+							if (
+								newBounds?.minX === currentElement.minX &&
+								newBounds.minY === currentElement.minY &&
+								newBounds?.maxX === currentElement.maxX &&
+								newBounds.maxY === currentElement.maxY
+							) {
+								continue
+							}
+							this.shapesInTree.delete(to.id)
+							this.rBush.remove(currentElement)
+						}
+						const newE = this.getElement(to)
+						if (!newE) continue
+						this.shapesInTree.set(to.id, newE)
+						elementsToAdd.push(newE)
+					}
+				}
+				this.rBush.load(elementsToAdd)
+				if (elementsToAdd.length) {
+					isDirty = true
+				}
+
+				for (const id of Object.keys(changes.removed)) {
+					if (isShapeId(id)) {
+						const currentElement = this.shapesInTree.get(id)
+						if (currentElement) {
+							this.shapesInTree.delete(id)
+							this.rBush.remove(currentElement)
+							isDirty = true
+						}
+					}
+				}
+			}
+			return isDirty ? { epoch: lastComputedEpoch } : prevValue
+		})
 	}
 
-	private fromScratch(renderingBounds: Box, shapes: TLShape[], epoch: number) {
+	private fromScratch(shapes: TLShape[], epoch: number) {
 		this.rBush.clear()
 		this.shapesInTree = new Map<TLShapeId, Element>()
 		const elementsToAdd: Element[] = []
