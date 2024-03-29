@@ -4,6 +4,7 @@ export class Dragging extends StateNode {
 	static override id = 'dragging'
 
 	camera = new Vec()
+	prev = new Vec()
 
 	override onEnter = () => {
 		const { editor } = this
@@ -35,7 +36,11 @@ export class Dragging extends StateNode {
 	private update() {
 		const { editor } = this
 		const { currentScreenPoint, originScreenPoint } = editor.inputs
-		this.editor.setCamera(Vec.Sub(currentScreenPoint, originScreenPoint).add(this.camera))
+		const next = Vec.Sub(currentScreenPoint, originScreenPoint).add(this.camera)
+		if (next.equals(this.prev)) return
+		this.prev.setTo(next)
+		console.log('setting to', next.toJson())
+		this.editor.setCamera({ x: next.x, y: next.y }) // leave out z
 	}
 
 	private complete() {

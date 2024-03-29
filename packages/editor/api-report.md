@@ -884,9 +884,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCamera(point: VecLike, opts?: TLAnimationOptions & {
         immediate?: boolean;
         force?: boolean;
+        initial?: boolean;
     }): this;
     // (undocumented)
-    setCameraOptions(options: TLCameraOptions): this;
+    setCameraOptions(options: TLCameraOptions, opts?: {
+        immediate?: boolean;
+        force?: boolean;
+        initial?: boolean;
+    }): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     setCurrentPage(page: TLPage | TLPageId, historyOptions?: TLCommandHistoryOptions): this;
     setCurrentTool(id: string, info?: {}): this;

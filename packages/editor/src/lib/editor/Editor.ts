@@ -2090,9 +2090,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @public */
-	setCameraOptions(options: TLCameraOptions) {
+	setCameraOptions(
+		options: TLCameraOptions,
+		opts?: { immediate?: boolean; force?: boolean; initial?: boolean }
+	) {
 		this._cameraOptions = options
-		this.setCamera(this.getCamera())
+		this.setCamera(this.getCamera(), opts)
 		return this
 	}
 
@@ -2201,44 +2204,46 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const freeH = (vsb.h - py * 2) / z - bounds.h
 				x = clamp(x, minX + freeW * (z < zx || opts?.initial ? origin[1] : 1), minX)
 				y = clamp(y, minY + freeH * (z < zy || opts?.initial ? origin[0] : 1), minY)
-
-				// Update the point
 			}
 		}
-		point.set(x, y, z)
 
-		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z) {
+		if (currentCamera.x === x && currentCamera.y === y && currentCamera.z === z) {
 			return this
 		}
 
 		this.batch(() => {
-			this.store.put([{ ...currentCamera, ...point }]) // include id and meta here
+			this.store.put([{ ...currentCamera, x, y, z }]) // include id and meta here
 
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
-			const { currentScreenPoint } = this.inputs
+			const { currentScreenPoint, currentPagePoint } = this.inputs
 			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
-			const event: TLPointerEventInfo = {
-				type: 'pointer',
-				target: 'canvas',
-				name: 'pointer_move',
-				// weird but true: we need to put the screen point back into client space
-				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
-				pagePoint: this.inputs.currentPagePoint,
-				coalescedInfo: [],
-				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
-				ctrlKey: this.inputs.ctrlKey,
-				altKey: this.inputs.altKey,
-				shiftKey: this.inputs.shiftKey,
-				button: 0,
-				isPen: this.getInstanceState().isPenMode ?? false,
-			}
+			// compare the next page point (derived from the curent camera) to the current page point
+			if (
+				currentScreenPoint.x / z - x !== currentPagePoint.x ||
+				currentScreenPoint.y / z - y !== currentPagePoint.y
+			) {
+				// If it's changed, dispatch a pointer event
+				const event: TLPointerEventInfo = {
+					type: 'pointer',
+					target: 'canvas',
+					name: 'pointer_move',
+					// weird but true: we need to put the screen point back into client space
+					point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
+					pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
+					ctrlKey: this.inputs.ctrlKey,
+					altKey: this.inputs.altKey,
+					shiftKey: this.inputs.shiftKey,
+					button: 0,
+					isPen: this.getInstanceState().isPenMode ?? false,
+				}
 
-			if (opts?.immediate) {
-				this._flushEventForTick(event)
-			} else {
-				this.dispatch(event)
+				if (opts?.immediate) {
+					this._flushEventForTick(event)
+				} else {
+					this.dispatch(event)
+				}
 			}
 
 			this._tickCameraState()
@@ -2264,7 +2269,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setCamera(
 		point: VecLike,
-		opts?: TLAnimationOptions & { immediate?: boolean; force?: boolean }
+		opts?: TLAnimationOptions & { immediate?: boolean; force?: boolean; initial?: boolean }
 	): this {
 		// Stop any camera animations
 		this.stopCameraAnimation()
@@ -2648,7 +2653,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (isLocked) return this
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 		this.setCamera(
-			{ x: (cx + offset.x * panSpeed) / cz, y: (cy + offset.y * panSpeed) / cz, z: cz },
+			{ x: cx + (offset.x * panSpeed) / cz, y: cy + (offset.y * panSpeed) / cz, z: cz },
 			animation
 		)
 		this._flushEventsForTick(0)
