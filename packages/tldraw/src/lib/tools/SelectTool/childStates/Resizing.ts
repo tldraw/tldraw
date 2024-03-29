@@ -303,7 +303,9 @@ export class Resizing extends StateNode {
 			})
 		}
 
+		const now = Date.now()
 		for (const id of shapeSnapshots.keys()) {
+			console.log('updating shapshot', id)
 			const snapshot = shapeSnapshots.get(id)!
 
 			this.editor.resizeShape(id, scale, {
@@ -319,11 +321,13 @@ export class Resizing extends StateNode {
 				scaleAxisRotation: selectionRotation,
 			})
 		}
+		console.log('resizing from resizing took for snapshots', Date.now() - now)
 
 		if (this.editor.inputs.ctrlKey) {
 			this.didHoldCommand = true
 
 			for (const { id, children } of frames) {
+				console.log('updating frame', id)
 				if (!children.length) continue
 				const initial = shapeSnapshots.get(id)!.shape
 				const current = this.editor.getShape(id)!
