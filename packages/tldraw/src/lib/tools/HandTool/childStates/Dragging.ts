@@ -39,7 +39,6 @@ export class Dragging extends StateNode {
 		const next = Vec.Sub(currentScreenPoint, originScreenPoint).add(this.camera)
 		if (next.equals(this.prev)) return
 		this.prev.setTo(next)
-		console.log('setting to', next.toJson())
 		this.editor.setCamera({ x: next.x, y: next.y }) // leave out z
 	}
 
