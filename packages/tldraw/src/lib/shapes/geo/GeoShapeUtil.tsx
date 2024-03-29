@@ -31,6 +31,7 @@ import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
+	LABEL_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
@@ -46,7 +47,6 @@ import { GeoShapeBody } from './components/GeoShapeBody'
 import { getOvalIndicatorPath } from './components/SolidStyleOval'
 import { getLines } from './getLines'
 
-const LABEL_PADDING = 16
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
@@ -383,32 +383,42 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { id, type, props } = shape
 		const { labelColor, fill, font, align, verticalAlign, size, text } = props
 
+		const isEditing = this.editor.getEditingShapeId() === id
+		const showHtmlContainer = isEditing || shape.props.url || shape.props.text
+
 		return (
 			<>
 				<SVGContainer id={id}>
 					<GeoShapeBody shape={shape} />
 				</SVGContainer>
-				<HTMLContainer
-					id={shape.id}
-					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h + props.growY }}
-				>
-					<TextLabel
-						id={id}
-						type={type}
-						font={font}
-						fill={fill}
-						size={size}
-						align={align}
-						verticalAlign={verticalAlign}
-						text={text}
-						labelColor={labelColor}
-						wrap
-						bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
-					/>
-					{shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-					)}
-				</HTMLContainer>
+				{showHtmlContainer && (
+					<HTMLContainer
+						id={shape.id}
+						style={{
+							overflow: 'hidden',
+							width: shape.props.w,
+							height: shape.props.h + props.growY,
+						}}
+					>
+						<TextLabel
+							id={id}
+							type={type}
+							font={font}
+							fontSize={LABEL_FONT_SIZES[size]}
+							lineHeight={TEXT_PROPS.lineHeight}
+							fill={fill}
+							align={align}
+							verticalAlign={verticalAlign}
+							text={text}
+							labelColor={labelColor}
+							wrap
+							bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
+						/>
+						{shape.props.url && (
+							<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+						)}
+					</HTMLContainer>
+				)}
 			</>
 		)
 	}

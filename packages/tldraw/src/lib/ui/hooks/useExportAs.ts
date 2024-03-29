@@ -19,9 +19,9 @@ export function useExportAs() {
 				console.error(e.message)
 				addToast({
 					id: 'export-fail',
-					// icon: 'error',
 					title: msg('toast.error.export-fail.title'),
 					description: msg('toast.error.export-fail.desc'),
+					severity: 'error',
 				})
 			})
 		},

@@ -33,6 +33,7 @@ export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
+export { TextLabel } from './lib/shapes/shared/TextLabel'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -42,6 +43,7 @@ export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 // UI
+export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
@@ -74,6 +76,7 @@ export {
 } from './lib/ui/context/events'
 export {
 	useToasts,
+	type AlertSeverity,
 	type TLUiToast,
 	type TLUiToastAction,
 	type TLUiToastsContextType,
@@ -422,3 +425,11 @@ export {
 	TldrawUiMenuSubmenu,
 	type TLUiMenuSubmenuProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
+
+/* ----------------- Constants ---------------- */
+
+export {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	TEXT_PROPS,
+} from './lib/shapes/shared/default-shape-constants'
