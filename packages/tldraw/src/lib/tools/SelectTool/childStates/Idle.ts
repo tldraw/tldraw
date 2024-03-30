@@ -20,6 +20,17 @@ import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCrop
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
+const SKIPPED_KEYS_FOR_AUTO_EDITING = [
+	'Delete',
+	'Backspace',
+	'[',
+	']',
+	'Enter',
+	' ',
+	'Shift',
+	'Tab',
+]
+
 export class Idle extends StateNode {
 	static override id = 'idle'
 
@@ -425,11 +436,7 @@ export class Idle extends StateNode {
 		// For shapes that specify `doesAutoEditOnKeyStroke`, we start editing when a key is pressed.
 		// We exclude Delete/Backspace obviously, [ and ] are keyboard shortcuts we want to keep,
 		// and space is used for panning.
-		if (
-			!['Delete', 'Backspace', '[', ']', 'Enter', ' ', 'Shift'].includes(info.key) &&
-			!info.altKey &&
-			!info.ctrlKey
-		) {
+		if (!SKIPPED_KEYS_FOR_AUTO_EDITING.includes(info.key) && !info.altKey && !info.ctrlKey) {
 			// If the only selected shape is editable, then begin editing it
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
 			if (
