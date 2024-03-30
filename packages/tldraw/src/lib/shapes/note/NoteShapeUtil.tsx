@@ -336,15 +336,13 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 				// If we didn't find any in that position, then create a new one
 				if (!nextSticky) {
-					// Remove the offset from the center to get the top left corner
-					point.subXY(NOTE_SIZE / 2, NOTE_SIZE / 2)
 					const id = createShapeId()
 					editor
 						.createShape({
 							id,
 							type: 'note',
-							x: point.x,
-							y: point.y,
+							x: point.x - NOTE_SIZE / 2, // remove offsets
+							y: point.y - NOTE_SIZE / 2,
 							rotation: shape.rotation,
 						})
 						.select(id)
