@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	ANIMATION_MEDIUM_MS,
 	Editor,
@@ -77,7 +76,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const adjustedColor = color === 'black' ? 'yellow' : color
 		const noteHeight = this.getHeight(shape)
 
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const editor = useEditor()
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const rotation = useValue('shape rotation', () => editor.getShape(id)?.rotation ?? 0, [editor])
 
 		const oy = Math.cos(rotation)
