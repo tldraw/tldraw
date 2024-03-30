@@ -15,6 +15,8 @@ import {
 	noteShapeProps,
 	rng,
 	toDomPrecision,
+	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 import { isRightToLeftLanguage } from '../../utils/text/text'
@@ -101,55 +103,63 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
-
 		const noteHeight = this.getHeight(shape)
-		const shadowHeight = Math.max(this.getHeight(shape) * 0.618, 200)
-		const ratio = noteHeight / shadowHeight
-		const random = rng(shape.id)
-		const noteRotation = random() * 4
+
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const editor = useEditor()
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const rotation = useValue('shape rotation', () => editor.getShape(id)?.rotation ?? 0, [editor])
+
+		const oy = Math.cos(rotation)
+		const ox = Math.sin(rotation)
+
+		const random = rng(id)
+		const randomizedRotation = random() * 4
+		const shadowBlur = 20 + random() * 2
+		const shadowWidth = NOTE_SIZE - shadowBlur * 2 //(3 + Math.abs(ox))
+		const heightRatio = noteHeight / NOTE_SIZE
 
 		return (
 			<>
 				<div
+					className="tl-note"
 					style={{
-						position: 'absolute',
 						width: NOTE_SIZE,
 						height: noteHeight,
 					}}
 				>
 					<div
-						className="tl-note__shadow"
-						style={{
-							height: shadowHeight,
-							transform: `perspective(300px) rotateZ(${noteRotation}deg) rotateX(30deg) translateY(${-Math.abs(noteRotation)}px) scaleX(${0.85}) scaleY(${ratio})`,
-						}}
-					/>
-
-					<div
 						className="tl-note__container"
 						style={{
-							opacity: 1,
 							color: theme[adjustedColor].solid,
-							backgroundColor: theme[adjustedColor].solid,
 						}}
 					>
-						<div className="tl-note__scrim" />
-						<TextLabel
-							id={id}
-							type={type}
-							font={font}
-							fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
-							lineHeight={TEXT_PROPS.lineHeight}
-							align={align}
-							verticalAlign={verticalAlign}
-							text={text}
-							labelColor="black"
-							wrap
-							onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) =>
-								this.handleKeyDown(e, id, translation.isRTL)
-							}
+						<div
+							className="tl-note__shadow"
+							style={{
+								height: noteHeight,
+								boxShadow: `${ox * shadowBlur}px ${oy * 0.75 * shadowBlur}px ${shadowBlur}px rgba(0,0,0,.72), ${ox * shadowBlur}px ${oy * 0.75 * shadowBlur}px ${shadowBlur * 2}px ${shadowBlur / 2}px rgba(0,0,0,.55)`,
+								transform: `scaleX(${shadowWidth / NOTE_SIZE}) translateY(${-shadowBlur}px) perspective(${noteHeight / heightRatio}px) rotateX(${shadowBlur}deg) rotateY(${ox * -2}deg) rotateZ(${randomizedRotation + -ox}deg) `,
+							}}
 						/>
+						<div className="tl-note__body" />
+						<div className="tl-note__scrim" />
 					</div>
+					<TextLabel
+						id={id}
+						type={type}
+						font={font}
+						fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
+						lineHeight={TEXT_PROPS.lineHeight}
+						align={align}
+						verticalAlign={verticalAlign}
+						text={text}
+						labelColor="black"
+						wrap
+						onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) =>
+							this.handleKeyDown(e, id, translation.isRTL)
+						}
+					/>
 				</div>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
