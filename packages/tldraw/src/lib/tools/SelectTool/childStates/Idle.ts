@@ -426,7 +426,7 @@ export class Idle extends StateNode {
 		// We exclude Delete/Backspace obviously, [ and ] are keyboard shortcuts we want to keep,
 		// and space is used for panning.
 		if (
-			!['Delete', 'Backspace', '[', ']', 'Enter', ' '].includes(info.key) &&
+			!['Delete', 'Backspace', '[', ']', 'Enter', ' ', 'Shift'].includes(info.key) &&
 			!info.altKey &&
 			!info.ctrlKey
 		) {
