@@ -4356,6 +4356,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			filter?: (shape: TLShape) => boolean
 		}
 	): TLShape | undefined {
+		const now = Date.now()
 		const zoomLevel = this.getZoomLevel()
 		const viewportPageBounds = this.getViewportPageBounds()
 		const {
@@ -4372,10 +4373,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
-		const shapesToCheck = (
-			opts.renderingOnly
-				? this.getCurrentPageRenderingShapesSorted()
-				: this.getCurrentPageShapesSorted()
+		// Old logic
+		// const shapesToCheck = (
+		// 	opts.renderingOnly
+		// 		? this.getCurrentPageRenderingShapesSorted()
+		// 		: this.getCurrentPageShapesSorted()
+		// ).filter((shape) => {
+		// 	if (this.isShapeOfType(shape, 'group')) return false
+		// 	const pageMask = this.getShapeMask(shape)
+		// 	if (pageMask && !pointInPolygon(point, pageMask)) return false
+		// 	if (filter) return filter(shape)
+		// 	return true
+		// })
+
+		// New logic
+		const shapesToCheck = compact(
+			this.getShapesInsideBounds(Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN)).map((id) =>
+				this.getShape(id)
+			)
 		).filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
@@ -4400,6 +4415,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// let's check whether the shape has a label and check that
 					for (const childGeometry of (geometry as Group2d).children) {
 						if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
+							console.log('shape at point took', Date.now() - now)
 							return shape
 						}
 					}
@@ -4413,6 +4429,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the hit is within the frame's outer margin, then select the frame
 				const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 				if (Math.abs(distance) <= margin) {
+					console.log('shape at point took', Date.now() - now)
 					return inMarginClosestToEdgeHit || shape
 				}
 
@@ -4423,6 +4440,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// frame. If `hitFrameInside` is true (e.g. used drawing an arrow into the
 					// frame) we the frame itself; other wise, (e.g. when hovering or pointing)
 					// we would want to return null.
+					console.log('shape at point took', Date.now() - now)
 					return (
 						inMarginClosestToEdgeHit ||
 						inHollowSmallestAreaHit ||
@@ -4475,6 +4493,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
 						// other hits would be occluded by the shape.
+						console.log('shape at point took', Date.now() - now)
 						return inMarginClosestToEdgeHit || shape
 					} else {
 						// If the shape is bigger than the viewport, then skip it.
@@ -4507,6 +4526,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
 				if (distance < HIT_TEST_MARGIN / zoomLevel) {
+					console.log('shape at point took', Date.now() - now)
 					return shape
 				}
 			}
@@ -4517,6 +4537,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// had the shortest distance between the point and the shape edge),
 		// or else the hollow shape with the smallest area—or if we didn't hit
 		// any margins or any hollow shapes, then null.
+		console.log('shape at point took', Date.now() - now)
 		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
 	}
 
