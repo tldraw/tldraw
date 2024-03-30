@@ -63,18 +63,15 @@ export class SpatialIndex {
 			const shapes = this.editor.getCurrentPageShapes()
 
 			if (isUninitialized(prevValue)) {
-				this.lastPageId = currentPageId
 				return this.fromScratch(shapes, lastComputedEpoch)
 			}
 			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
 
 			if (diff === RESET_VALUE) {
-				this.lastPageId = currentPageId
 				return this.fromScratch(shapes, lastComputedEpoch)
 			}
 
 			if (this.lastPageId !== currentPageId) {
-				this.lastPageId = currentPageId
 				return this.fromScratch(shapes, lastComputedEpoch)
 			}
 
@@ -131,6 +128,7 @@ export class SpatialIndex {
 	}
 
 	private fromScratch(shapes: TLShape[], epoch: number) {
+		this.lastPageId = this.editor.getCurrentPageId()
 		this.rBush.clear()
 		this.shapesInTree = new Map<TLShapeId, Element>()
 		const elementsToAdd: Element[] = []
