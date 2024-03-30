@@ -9,6 +9,7 @@ import {
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
+import { NOTE_PIT_RADIUS, getNotePits } from '../../../tools/selection-logic/getNotePits'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -24,13 +25,22 @@ export class Pointing extends StateNode {
 	shape = {} as TLNoteShape
 
 	override onEnter = () => {
-		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
+		const { editor } = this
+
+		this.wasFocusedOnEnter = !editor.getIsMenuOpen()
 
 		if (this.wasFocusedOnEnter) {
 			const id = createShapeId()
 			this.markId = `creating:${id}`
-			this.editor.mark(this.markId)
-			this.shape = createSticky(this.editor, id, this.editor.inputs.originPagePoint)
+			editor.mark(this.markId)
+
+			// Check for note pits; if the pointer is close to one, place the note centered on the pit
+			const center = this.editor.inputs.originPagePoint.clone()
+			const offset = getNotePitOffset(this.editor, center)
+			if (offset) {
+				center.sub(offset)
+			}
+			this.shape = createSticky(this.editor, id, center)
 		}
 	}
 
@@ -38,7 +48,12 @@ export class Pointing extends StateNode {
 		if (this.editor.inputs.isDragging) {
 			if (!this.wasFocusedOnEnter) {
 				const id = createShapeId()
-				this.shape = createSticky(this.editor, id, this.editor.inputs.originPagePoint)
+				const center = this.editor.inputs.originPagePoint.clone()
+				const offset = getNotePitOffset(this.editor, center)
+				if (offset) {
+					center.sub(offset)
+				}
+				this.shape = createSticky(this.editor, id, center)
 			}
 
 			this.editor.setCurrentTool('select.translating', {
@@ -90,6 +105,23 @@ export class Pointing extends StateNode {
 		this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', this.info)
 	}
+}
+
+export function getNotePitOffset(editor: Editor, center: Vec) {
+	let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
+	let offset: Vec | undefined
+	for (const pit of getNotePits(editor, 0)) {
+		// only check page rotations of zero
+		if (pit.rotation === 0) {
+			const deltaToPit = Vec.Sub(center, pit.point)
+			const dist = deltaToPit.len()
+			if (dist < min) {
+				min = dist
+				offset = deltaToPit
+			}
+		}
+	}
+	return offset
 }
 
 export function createSticky(editor: Editor, id: TLShapeId, center: Vec) {
