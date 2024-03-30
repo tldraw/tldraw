@@ -9,6 +9,7 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
+	createShapeId,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -26,7 +27,6 @@ import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
-import { createSticky } from './toolStates/Pointing'
 
 const NOTE_SIZE = 200
 const NEW_NOTE_MARGIN = 20
@@ -331,13 +331,27 @@ function useNoteKeydownHandler(id: TLShapeId) {
 					}
 				}
 
-				// If we didn't find any, then create a new one
+				editor.complete()
+				editor.mark()
+
+				// If we didn't find any in that position, then create a new one
 				if (!nextSticky) {
-					nextSticky = createSticky(editor, undefined, point, shape.rotation)
+					// Remove the offset from the center to get the top left corner
+					point.subXY(NOTE_SIZE / 2, NOTE_SIZE / 2)
+					const id = createShapeId()
+					editor
+						.createShape({
+							id,
+							type: 'note',
+							x: point.x,
+							y: point.y,
+							rotation: shape.rotation,
+						})
+						.select(id)
+					nextSticky = editor.getShape(id)!
 				}
 
 				// Finish this sticky and start editing the next one
-				editor.complete()
 				editor.select(nextSticky)
 				editor.setEditingShape(nextSticky)
 				editor.setCurrentTool('select.editing_shape', {

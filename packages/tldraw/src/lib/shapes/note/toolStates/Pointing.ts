@@ -30,14 +30,15 @@ export class Pointing extends StateNode {
 			const id = createShapeId()
 			this.markId = `creating:${id}`
 			this.editor.mark(this.markId)
-			this.shape = createSticky(this.editor, id)
+			this.shape = createSticky(this.editor, id, this.editor.inputs.originPagePoint)
 		}
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			if (!this.wasFocusedOnEnter) {
-				this.shape = createSticky(this.editor, createShapeId())
+				const id = createShapeId()
+				this.shape = createSticky(this.editor, id, this.editor.inputs.originPagePoint)
 			}
 
 			this.editor.setCurrentTool('select.translating', {
@@ -91,29 +92,14 @@ export class Pointing extends StateNode {
 	}
 }
 
-export function createSticky(
-	editor: Editor,
-	id?: TLShapeId,
-	creationPoint?: Vec,
-	rotation?: number
-) {
-	const {
-		inputs: { originPagePoint },
-	} = editor
-
-	creationPoint = creationPoint || originPagePoint
-	id = id || createShapeId()
-
+export function createSticky(editor: Editor, id: TLShapeId, center: Vec) {
 	editor
-		.createShapes([
-			{
-				id,
-				type: 'note',
-				x: creationPoint.x,
-				y: creationPoint.y,
-				rotation,
-			},
-		])
+		.createShape({
+			id,
+			type: 'note',
+			x: center.x,
+			y: center.y,
+		})
 		.select(id)
 
 	const shape = editor.getShape<TLNoteShape>(id)!
