@@ -351,7 +351,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 						.createShape({
 							id,
 							type: 'note',
-							x: point.x, // remove offsets
+							x: point.x,
 							y: point.y,
 							rotation: shape.rotation,
 						})
