@@ -379,7 +379,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	component(shape: TLGeoShape) {
+	component(shape: TLGeoShape, isCulled: boolean) {
 		const { id, type, props } = shape
 		const { labelColor, fill, font, align, verticalAlign, size, text } = props
 
@@ -388,7 +388,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		return (
 			<>
-				<SVGContainer id={id}>
+				<SVGContainer id={id} style={{ display: isCulled ? 'none' : undefined }}>
 					<GeoShapeBody shape={shape} />
 				</SVGContainer>
 				{showHtmlContainer && (
@@ -398,6 +398,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							overflow: 'hidden',
 							width: shape.props.w,
 							height: shape.props.h + props.growY,
+							display: isCulled ? 'none' : undefined,
 						}}
 					>
 						<TextLabel
@@ -415,7 +416,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
 						/>
 						{shape.props.url && (
-							<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+							<HyperlinkButton
+								url={shape.props.url}
+								zoomLevel={this.editor.getZoomLevel()}
+								isCulled={isCulled}
+							/>
 						)}
 					</HTMLContainer>
 				)}

@@ -76,7 +76,9 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return resizeBox(shape, info, { minWidth, minHeight })
 	}
 
-	override component(shape: TLEmbedShape) {
+	override component(shape: TLEmbedShape, isCulled: boolean) {
+		// TODO: I think embed can never be culled right now, check getUnorderedRenderingShapes
+		// Or maybe we just shouldn't apply this logic for embeds?
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const embedInfo = useMemo(() => getEmbedInfoUnsafely(url), [url])
@@ -107,7 +109,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			if (!idFromGistUrl) throw Error('No gist id!')
 
 			return (
-				<HTMLContainer className="tl-embed-container" id={shape.id}>
+				<HTMLContainer
+					className="tl-embed-container"
+					id={shape.id}
+					style={{ display: isCulled ? 'none' : undefined }}
+				>
 					<Gist
 						id={idFromGistUrl}
 						width={toDomPrecision(w)!}

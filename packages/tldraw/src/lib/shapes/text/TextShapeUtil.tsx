@@ -62,7 +62,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
 
-	component(shape: TLTextShape) {
+	component(shape: TLTextShape, isCulled: boolean) {
 		const {
 			id,
 			props: { font, size, text, color, scale, align },
@@ -71,7 +71,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const { width, height } = this.getMinDimensions(shape)
 
 		return (
-			<HTMLContainer id={shape.id}>
+			<HTMLContainer id={shape.id} style={{ display: isCulled ? 'none' : undefined }}>
 				<TextLabel
 					id={id}
 					classNamePrefix="tl-text-shape"

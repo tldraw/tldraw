@@ -43,7 +43,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 	}
 
-	component(shape: TLImageShape) {
+	component(shape: TLImageShape, isCulled: boolean) {
 		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
@@ -108,6 +108,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						color: 'var(--color-text-3)',
 						backgroundColor: asset ? 'transparent' : 'var(--color-low)',
 						border: asset ? 'none' : '1px solid var(--color-low-border)',
+						display: isCulled ? 'none' : undefined,
 					}}
 				>
 					<div className="tl-image-container" style={containerStyle}>
@@ -115,7 +116,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					</div>
 					)
 					{'url' in shape.props && shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+						<HyperlinkButton
+							url={shape.props.url}
+							zoomLevel={this.editor.getZoomLevel()}
+							isCulled={isCulled}
+						/>
 					)}
 				</HTMLContainer>
 			)
@@ -157,7 +162,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					</div>
 					)
 					{shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+						<HyperlinkButton
+							url={shape.props.url}
+							zoomLevel={this.editor.getZoomLevel()}
+							isCulled={isCulled}
+						/>
 					)}
 				</HTMLContainer>
 			</>

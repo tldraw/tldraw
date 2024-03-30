@@ -51,7 +51,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
 	}
 
-	component(shape: TLNoteShape) {
+	component(shape: TLNoteShape, isCulled: boolean) {
 		const {
 			id,
 			type,
@@ -69,6 +69,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						position: 'absolute',
 						width: NOTE_SIZE,
 						height: this.getHeight(shape),
+						display: isCulled ? 'none' : undefined,
 					}}
 				>
 					<div
@@ -94,7 +95,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					</div>
 				</div>
 				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+					<HyperlinkButton
+						url={shape.props.url}
+						zoomLevel={this.editor.getZoomLevel()}
+						isCulled={isCulled}
+					/>
 				)}
 			</>
 		)

@@ -65,7 +65,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	abstract component(shape: Shape): any
+	abstract component(shape: Shape, isCulled: boolean): any
 
 	/**
 	 * Get JSX describing the shape's indicator (as an SVG element).

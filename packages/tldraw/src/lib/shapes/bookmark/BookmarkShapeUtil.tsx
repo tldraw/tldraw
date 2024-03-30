@@ -39,7 +39,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		}
 	}
 
-	override component(shape: TLBookmarkShape) {
+	override component(shape: TLBookmarkShape, isCulled: boolean) {
 		const asset = (
 			shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
 		) as TLBookmarkAsset
@@ -49,7 +49,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		const address = getHumanReadableAddress(shape)
 
 		return (
-			<HTMLContainer>
+			<HTMLContainer style={{ display: isCulled ? 'none' : undefined }}>
 				<div
 					className="tl-bookmark__container"
 					style={{
@@ -67,7 +67,11 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 						) : (
 							<div className="tl-bookmark__placeholder" />
 						)}
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+						<HyperlinkButton
+							url={shape.props.url}
+							zoomLevel={this.editor.getZoomLevel()}
+							isCulled={isCulled}
+						/>
 					</div>
 					<div className="tl-bookmark__copy_container">
 						{asset?.props.title && (

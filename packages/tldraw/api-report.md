@@ -172,7 +172,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canSnap: () => boolean;
     // (undocumented)
-    component(shape: TLArrowShape): JSX_2.Element | null;
+    component(shape: TLArrowShape, isCulled: boolean): JSX_2.Element | null;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     // (undocumented)
@@ -273,7 +273,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize: () => boolean;
     // (undocumented)
-    component(shape: TLBookmarkShape): JSX_2.Element;
+    component(shape: TLBookmarkShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLBookmarkShape['props'];
     // (undocumented)
@@ -471,7 +471,7 @@ export class DrawShapeTool extends StateNode {
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
-    component(shape: TLDrawShape): JSX_2.Element;
+    component(shape: TLDrawShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     expandSelectionOutlinePx(shape: TLDrawShape): number;
     // (undocumented)
@@ -538,7 +538,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canUnmount: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
-    component(shape: TLEmbedShape): JSX_2.Element;
+    component(shape: TLEmbedShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
@@ -647,7 +647,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
     // (undocumented)
-    component(shape: TLFrameShape): JSX_2.Element;
+    component(shape: TLFrameShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLFrameShape['props'];
     // (undocumented)
@@ -700,7 +700,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    component(shape: TLGeoShape): JSX_2.Element;
+    component(shape: TLGeoShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     // (undocumented)
@@ -896,7 +896,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     backgroundComponent(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
-    component(shape: TLHighlightShape): JSX_2.Element;
+    component(shape: TLHighlightShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLHighlightShape['props'];
     // (undocumented)
@@ -940,7 +940,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop: () => boolean;
     // (undocumented)
-    component(shape: TLImageShape): JSX_2.Element;
+    component(shape: TLImageShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
     // (undocumented)
@@ -1029,7 +1029,7 @@ export class LineShapeTool extends StateNode {
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
-    component(shape: TLLineShape): JSX_2.Element;
+    component(shape: TLLineShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLLineShape['props'];
     // (undocumented)
@@ -1099,7 +1099,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    component(shape: TLNoteShape): JSX_2.Element;
+    component(shape: TLNoteShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
@@ -1322,7 +1322,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    component(shape: TLTextShape): JSX_2.Element;
+    component(shape: TLTextShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLTextShape['props'];
     // (undocumented)
@@ -2586,7 +2586,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    component(shape: TLVideoShape): JSX_2.Element;
+    component(shape: TLVideoShape, isCulled: boolean): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLVideoShape['props'];
     // (undocumented)

@@ -1150,7 +1150,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind: () => boolean;
     // (undocumented)
-    component(shape: TLGroupShape): JSX_2.Element | null;
+    component(shape: TLGroupShape, isCulled: boolean): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLGroupShape['props'];
     // (undocumented)
@@ -1624,7 +1624,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canScroll: TLShapeUtilFlag<Shape>;
     canSnap: TLShapeUtilFlag<Shape>;
     canUnmount: TLShapeUtilFlag<Shape>;
-    abstract component(shape: Shape): any;
+    abstract component(shape: Shape, isCulled: boolean): any;
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)

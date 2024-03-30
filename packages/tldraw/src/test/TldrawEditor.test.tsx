@@ -255,14 +255,14 @@ describe('Custom shapes', () => {
 			}
 		}
 
-		component(shape: CardShape) {
+		component(shape: CardShape, isCulled: boolean) {
 			return (
 				<HTMLContainer
 					id={shape.id}
 					data-testid="card-shape"
 					style={{
 						border: '1px solid black',
-						display: 'flex',
+						display: isCulled ? 'none' : 'flex',
 						alignItems: 'center',
 						justifyContent: 'center',
 						pointerEvents: 'all',

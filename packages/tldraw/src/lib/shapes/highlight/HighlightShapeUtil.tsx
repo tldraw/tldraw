@@ -67,9 +67,12 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		})
 	}
 
-	component(shape: TLHighlightShape) {
+	component(shape: TLHighlightShape, isCulled: boolean) {
 		return (
-			<SVGContainer id={shape.id} style={{ opacity: OVERLAY_OPACITY }}>
+			<SVGContainer
+				id={shape.id}
+				style={{ opacity: OVERLAY_OPACITY, display: isCulled ? 'none' : undefined }}
+			>
 				<HighlightRenderer strokeWidth={getStrokeWidth(shape)} shape={shape} />
 			</SVGContainer>
 		)

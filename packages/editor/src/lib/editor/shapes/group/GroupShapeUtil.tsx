@@ -48,7 +48,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		})
 	}
 
-	component(shape: TLGroupShape) {
+	component(shape: TLGroupShape, isCulled: boolean) {
 		const isErasing = this.editor.getErasingShapeIds().includes(shape.id)
 
 		const { hintingShapeIds } = this.editor.getCurrentPageState()
@@ -74,7 +74,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 
 		return (
-			<SVGContainer id={shape.id}>
+			<SVGContainer id={shape.id} style={{ display: isCulled ? 'none' : undefined }}>
 				<DashedOutlineBox className="tl-group" bounds={bounds} />
 			</SVGContainer>
 		)

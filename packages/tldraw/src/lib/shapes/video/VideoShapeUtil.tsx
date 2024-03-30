@@ -33,7 +33,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		}
 	}
 
-	component(shape: TLVideoShape) {
+	component(shape: TLVideoShape, isCulled: boolean) {
 		const { editor } = this
 		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
 		const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
@@ -153,6 +153,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 						color: 'var(--color-text-3)',
 						backgroundColor: asset ? 'transparent' : 'var(--color-low)',
 						border: asset ? 'none' : '1px solid var(--color-low-border)',
+						display: isCulled ? 'none' : undefined,
 					}}
 				>
 					<div className="tl-counter-scaled">
@@ -187,7 +188,11 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 					</div>
 				</HTMLContainer>
 				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
+					<HyperlinkButton
+						url={shape.props.url}
+						zoomLevel={editor.getZoomLevel()}
+						isCulled={isCulled}
+					/>
 				)}
 			</>
 		)

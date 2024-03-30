@@ -55,7 +55,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		})
 	}
 
-	override component(shape: TLFrameShape) {
+	override component(shape: TLFrameShape, isCulled: boolean) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
@@ -77,7 +77,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		return (
 			<>
-				<SVGContainer>
+				<SVGContainer style={{ display: isCulled ? 'none' : undefined }}>
 					<rect
 						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
 						width={bounds.width}
@@ -89,6 +89,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				{isCreating ? null : (
 					<FrameHeading
 						id={shape.id}
+						isCulled={isCulled}
 						name={shape.props.name}
 						width={bounds.width}
 						height={bounds.height}
