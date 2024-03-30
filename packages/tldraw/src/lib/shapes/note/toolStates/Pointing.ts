@@ -91,7 +91,12 @@ export class Pointing extends StateNode {
 	}
 }
 
-export function createSticky(editor: Editor, id?: TLShapeId, creationPoint?: Vec) {
+export function createSticky(
+	editor: Editor,
+	id?: TLShapeId,
+	creationPoint?: Vec,
+	rotation?: number
+) {
 	const {
 		inputs: { originPagePoint },
 	} = editor
@@ -106,6 +111,7 @@ export function createSticky(editor: Editor, id?: TLShapeId, creationPoint?: Vec
 				type: 'note',
 				x: creationPoint.x,
 				y: creationPoint.y,
+				rotation,
 			},
 		])
 		.select(id)

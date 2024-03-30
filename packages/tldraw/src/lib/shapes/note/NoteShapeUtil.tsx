@@ -6,6 +6,7 @@ import {
 	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	TLShape,
 	TLShapeId,
 	Vec,
 	getDefaultColorTheme,
@@ -16,6 +17,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { useCallback } from 'react'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -27,6 +29,7 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { createSticky } from './toolStates/Pointing'
 
 const NOTE_SIZE = 200
+const NEW_NOTE_MARGIN = 20
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -63,8 +66,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	component(shape: TLNoteShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const translation = useCurrentTranslation()
 		const {
 			id,
 			type,
@@ -72,18 +73,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		} = shape
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const handleKeyDown = useNoteKeydownHandler(id)
+
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
 		const noteHeight = this.getHeight(shape)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const editor = useEditor()
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const rotation = useValue('shape rotation', () => editor.getShape(id)?.rotation ?? 0, [editor])
+		const rotation = useValue('shape rotation', () => this.editor.getShape(id)?.rotation ?? 0, [
+			this.editor,
+		])
 
+		// Shadow stuff
 		const oy = Math.cos(rotation)
 		const ox = Math.sin(rotation)
-
 		const random = rng(id)
 		const randomizedRotation = random() * 4
 		const shadowBlur = 20 + random() * 2
@@ -127,9 +131,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						text={text}
 						labelColor="black"
 						wrap
-						onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) =>
-							this.handleKeyDown(e, id, translation.isRTL)
-						}
+						onKeyDown={handleKeyDown}
 					/>
 				</div>
 				{'url' in shape.props && shape.props.url && (
@@ -137,55 +139,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				)}
 			</>
 		)
-	}
-
-	private handleKeyDown = (
-		e: React.KeyboardEvent<HTMLTextAreaElement>,
-		id: TLShapeId,
-		isUiRTL: boolean | undefined
-	) => {
-		const shape = this.editor.getShape<TLNoteShape>(id)!
-		const isCmdOrCtrlEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
-		if (isCmdOrCtrlEnter || e.key === 'Tab') {
-			this.editor.complete()
-
-			// Create a new sticky
-			const size = NOTE_SIZE
-			const MARGIN = 10
-			let offset = new Vec(shape.x, shape.y)
-			if (isCmdOrCtrlEnter) {
-				const vertDirection = e.shiftKey ? -1 : 1
-				offset = Vec.Add(
-					offset,
-					new Vec(size / 2, vertDirection === 1 ? size * 1.5 + MARGIN : (-1 * size) / 2 - MARGIN)
-				)
-			} else {
-				// This is a XOR gate: e.shiftKey != isRightToLeftLanguage(shape.props.text)
-				const isRTL = !!(isRightToLeftLanguage(shape.props.text) || isUiRTL)
-				const horzDirection = e.shiftKey != isRTL ? -1 : 1
-				offset = Vec.Add(
-					offset,
-					new Vec(horzDirection === 1 ? size * 1.5 + MARGIN : (-1 * size) / 2 - MARGIN, size / 2)
-				)
-			}
-			const newSticky = createSticky(this.editor, undefined, offset)
-
-			// Go into edit mode on the new sticky
-			this.editor.setEditingShape(newSticky.id)
-			this.editor.setCurrentTool('select.editing_shape', {
-				target: 'shape',
-				shape: newSticky,
-			})
-
-			// Animate to the new sticky, if necessary.
-			const selectionPageBounds = this.editor.getSelectionPageBounds()
-			const viewportPageBounds = this.editor.getViewportPageBounds()
-			if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-				this.editor.centerOnPoint(selectionPageBounds.center, {
-					duration: ANIMATION_MEDIUM_MS,
-				})
-			}
-		}
 	}
 
 	indicator(shape: TLNoteShape) {
@@ -323,4 +276,88 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 			},
 		}
 	}
+}
+
+function useNoteKeydownHandler(id: TLShapeId) {
+	const editor = useEditor()
+	const translation = useCurrentTranslation()
+
+	return useCallback(
+		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+			const shape = editor.getShape<TLNoteShape>(id)
+			if (!shape) return
+
+			const isTab = e.key === 'Tab'
+			const isCmdEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
+			if (isTab || isCmdEnter) {
+				e.preventDefault()
+
+				const isRTL = !!(isRightToLeftLanguage(shape.props.text) || translation.isRTL)
+
+				// Get the center of a default sized note at the current note's page position
+				const centerInPageSpace = editor
+					.getShapeParentTransform(id)
+					.applyToPoint(new Vec(shape.x + NOTE_SIZE / 2, shape.y + NOTE_SIZE / 2))
+
+				// Based on the inputs, calculate the offset to the next note
+				// tab controls x axis (shift inverts direction set by RTL)
+				// cmd enter is the y axis (shift inverts direction)
+				const offset = new Vec(
+					isTab ? (e.shiftKey != isRTL ? -1 : 1) : 0,
+					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
+				).mul(NOTE_SIZE + NEW_NOTE_MARGIN)
+
+				// Rotate the offset to match the current note's page rotation
+				offset.rot(editor.getShapePageTransform(id).rotation())
+
+				// Add the offset to the center to get the center of the next note
+				const point = centerInPageSpace.add(offset)
+
+				// There might already be a note in that position! If there is, we'll
+				// select the next note and switch focus to it. If there's not, then
+				// we'll create a new note in that position.
+
+				let nextSticky: TLShape | undefined
+
+				// First, try to find a sticky note already in that position
+				const allShapesOnPage = editor.getCurrentPageShapesSorted()
+				for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
+					const shape = allShapesOnPage[i]
+					if (shape.type === 'note') {
+						if (editor.isPointInShape(shape, point, { hitInside: true })) {
+							nextSticky = shape
+							break
+						}
+					}
+				}
+
+				// If we didn't find any, then create a new one
+				if (!nextSticky) {
+					nextSticky = createSticky(editor, undefined, point, shape.rotation)
+				}
+
+				// Finish this sticky and start editing the next one
+				editor.complete()
+				editor.select(nextSticky)
+				editor.setEditingShape(nextSticky)
+				editor.setCurrentTool('select.editing_shape', {
+					target: 'shape',
+					shape: nextSticky,
+				})
+
+				// Select any text that's in the newly selected sticky
+				;(document.getElementById(`text-input-${nextSticky.id}`) as HTMLTextAreaElement)?.select()
+
+				// Animate to the next sticky if it would be off screen
+				const selectionPageBounds = editor.getSelectionPageBounds()
+				const viewportPageBounds = editor.getViewportPageBounds()
+				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+					editor.centerOnPoint(selectionPageBounds.center, {
+						duration: ANIMATION_MEDIUM_MS,
+					})
+				}
+			}
+		},
+		[id, editor, translation.isRTL]
+	)
 }
