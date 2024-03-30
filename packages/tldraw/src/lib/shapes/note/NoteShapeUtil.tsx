@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	ANIMATION_MEDIUM_MS,
 	Editor,
@@ -13,6 +14,8 @@ import {
 	noteShapeProps,
 	rng,
 	toDomPrecision,
+	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 import { isRightToLeftLanguage } from '../../utils/text/text'
@@ -72,10 +75,19 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
-
 		const noteHeight = this.getHeight(shape)
-		const random = rng(shape.id)
-		const noteRotation = random() * 4
+
+		const editor = useEditor()
+		const rotation = useValue('shape rotation', () => editor.getShape(id)?.rotation ?? 0, [editor])
+
+		const oy = Math.cos(rotation)
+		const ox = Math.sin(rotation)
+
+		const random = rng(id)
+		const randomizedRotation = random() * 4
+		const shadowBlur = 20 + random() * 2
+		const shadowWidth = NOTE_SIZE - shadowBlur * 2 //(3 + Math.abs(ox))
+		const heightRatio = noteHeight / NOTE_SIZE
 
 		return (
 			<>
@@ -86,11 +98,18 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						height: noteHeight,
 					}}
 				>
-					<NoteShapeShadow height={noteHeight} rotation={noteRotation} />
+					<div
+						className="tl-note__shadow"
+						style={{
+							height: noteHeight,
+							width: NOTE_SIZE,
+							boxShadow: `${ox * shadowBlur}px ${oy * 0.75 * shadowBlur}px ${shadowBlur}px rgba(0,0,0,.62), ${ox * shadowBlur}px ${oy * 0.75 * shadowBlur}px ${shadowBlur * 2}px ${shadowBlur / 2}px rgba(0,0,0,.45)`,
+							transform: `scaleX(${shadowWidth / NOTE_SIZE}) translateY(${-shadowBlur}px) perspective(${noteHeight / heightRatio}px) rotateX(${shadowBlur}deg) rotateY(${ox * -2}deg) rotateZ(${randomizedRotation + -ox}deg) `,
+						}}
+					/>
 					<div
 						className="tl-note__container"
 						style={{
-							opacity: 1,
 							color: theme[adjustedColor].solid,
 							backgroundColor: theme[adjustedColor].solid,
 						}}
@@ -304,18 +323,4 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 			},
 		}
 	}
-}
-
-function NoteShapeShadow({ height, rotation }: { height: number; rotation: number }) {
-	const shadowHeight = Math.max(height * 0.618, 200)
-	const ratio = height / shadowHeight
-	return (
-		<div
-			className="tl-note__shadow"
-			style={{
-				height,
-				transform: `perspective(300px) rotateZ(${rotation}deg) rotateX(30deg) translateY(${-Math.abs(rotation)}px) scaleX(${0.85}) scaleY(${ratio})`,
-			}}
-		/>
-	)
 }

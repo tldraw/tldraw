@@ -1143,7 +1143,13 @@ input,
 	height: 100%;
 	border-radius: 1px;
 	overflow: hidden;
-	box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.2);
+	/* box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.2); */
+	pointer-events: all;
+	opacity: 1;
+}
+
+.tl-note__container:hover {
+	opacity: 0.5;
 }
 
 .tl-note__container .tl-text-label {
@@ -1154,12 +1160,9 @@ input,
 	background-color: none;
 	width: 100%;
 	position: absolute;
-	bottom: 4px;
 	left: 0px;
+	bottom: 0px;
 	transform-origin: bottom center;
-	box-shadow:
-		0 0 32px 0px rgba(0, 0, 0, 0.4),
-		0 0 24px 0px rgba(0, 0, 0, 0.3);
 }
 
 .tl-note__scrim {
@@ -1169,6 +1172,9 @@ input,
 	height: 100%;
 	width: 100%;
 	background-color: var(--color-background);
+	box-shadow:
+		0px 4px 8px -8px inset currentColor,
+		0px 50px 8px -10px inset rgba(0, 0, 0, 0.08);
 	opacity: 0.2;
 }
 
