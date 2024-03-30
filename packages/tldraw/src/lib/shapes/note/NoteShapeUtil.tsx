@@ -297,7 +297,9 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				// Get the center of a default sized note at the current note's page position
 				const centerInPageSpace = editor
 					.getShapeParentTransform(id)
-					.applyToPoint(new Vec(shape.x + NOTE_SIZE / 2, shape.y + NOTE_SIZE / 2))
+					.applyToPoint(new Vec(shape.x, shape.y))
+
+				const pageRotation = editor.getShapePageTransform(id).rotation()
 
 				// Based on the inputs, calculate the offset to the next note
 				// tab controls x axis (shift inverts direction set by RTL)
@@ -307,25 +309,33 @@ function useNoteKeydownHandler(id: TLShapeId) {
 					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
 				).mul(NOTE_SIZE + NEW_NOTE_MARGIN)
 
-				// Rotate the offset to match the current note's page rotation
-				offset.rot(editor.getShapePageTransform(id).rotation())
+				// If we're placing below, then we need to add th growY, too
+				if (isCmdEnter && !e.shiftKey) {
+					offset.y += shape.props.growY
+				}
 
-				// Add the offset to the center to get the center of the next note
-				const point = centerInPageSpace.add(offset)
+				// Rotate the offset to match the current note's page rotation, and
+				// ddd the offset to the center to get the center of the next note
+				const point = centerInPageSpace.add(offset.rot(pageRotation))
 
 				// There might already be a note in that position! If there is, we'll
 				// select the next note and switch focus to it. If there's not, then
 				// we'll create a new note in that position.
 
-				let nextSticky: TLShape | undefined
+				let nextNote: TLShape | undefined
 
-				// First, try to find a sticky note already in that position
+				// Check the center of where a new note would be
+				const pointToCheck = Vec.Add(point, new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2).rot(pageRotation))
+
+				// Start from the top of the stack, and work our way down
 				const allShapesOnPage = editor.getCurrentPageShapesSorted()
+
 				for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
-					const shape = allShapesOnPage[i]
-					if (shape.type === 'note') {
-						if (editor.isPointInShape(shape, point, { hitInside: true })) {
-							nextSticky = shape
+					const otherNote = allShapesOnPage[i]
+					if (otherNote.type === 'note') {
+						if (otherNote.id === id) continue
+						if (editor.isPointInShape(otherNote, pointToCheck)) {
+							nextNote = otherNote
 							break
 						}
 					}
@@ -335,30 +345,30 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				editor.mark()
 
 				// If we didn't find any in that position, then create a new one
-				if (!nextSticky) {
+				if (!nextNote) {
 					const id = createShapeId()
 					editor
 						.createShape({
 							id,
 							type: 'note',
-							x: point.x - NOTE_SIZE / 2, // remove offsets
-							y: point.y - NOTE_SIZE / 2,
+							x: point.x, // remove offsets
+							y: point.y,
 							rotation: shape.rotation,
 						})
 						.select(id)
-					nextSticky = editor.getShape(id)!
+					nextNote = editor.getShape(id)!
 				}
 
 				// Finish this sticky and start editing the next one
-				editor.select(nextSticky)
-				editor.setEditingShape(nextSticky)
+				editor.select(nextNote)
+				editor.setEditingShape(nextNote)
 				editor.setCurrentTool('select.editing_shape', {
 					target: 'shape',
-					shape: nextSticky,
+					shape: nextNote,
 				})
 
 				// Select any text that's in the newly selected sticky
-				;(document.getElementById(`text-input-${nextSticky.id}`) as HTMLTextAreaElement)?.select()
+				;(document.getElementById(`text-input-${nextNote.id}`) as HTMLTextAreaElement)?.select()
 
 				// Animate to the next sticky if it would be off screen
 				const selectionPageBounds = editor.getSelectionPageBounds()
