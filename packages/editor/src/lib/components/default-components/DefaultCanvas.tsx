@@ -382,10 +382,10 @@ function ShapesToDisplay() {
 				}
 			} else if (shapePortalInfo.addedToDom && shape.isCulled) {
 				wrapperDiv.current?.removeChild(shapePortalInfo.container)
-				portalInfo.set(shape.id, { container: shapePortalInfo.container, addedToDom: false })
+				shapePortalInfo.addedToDom = false
 			} else if (!shapePortalInfo.addedToDom && !shape.isCulled) {
 				wrapperDiv.current?.appendChild(shapePortalInfo.container)
-				portalInfo.set(shape.id, { container: shapePortalInfo.container, addedToDom: true })
+				shapePortalInfo.addedToDom = true
 			}
 		})
 	}

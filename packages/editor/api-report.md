@@ -1375,7 +1375,7 @@ export interface MatModel {
 export const MAX_PAGES = 40;
 
 // @internal (undocumented)
-export const MAX_SHAPES_PER_PAGE = 2000;
+export const MAX_SHAPES_PER_PAGE = 20000;
 
 // @internal (undocumented)
 export const MAX_ZOOM = 8;
