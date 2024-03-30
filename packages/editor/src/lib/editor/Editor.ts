@@ -3106,6 +3106,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	getShapesInsideBounds(bounds: Box) {
+		const shapeIdsInsideBounds = this.getShapeIdsInsideBounds(bounds)
+		return compact(shapeIdsInsideBounds.map((id) => this.getShape(id)))
+	}
+
+	getShapeIdsInsideBounds(bounds: Box) {
 		return this._spatialIndex.getShapesInsideBounds(bounds)
 	}
 
@@ -4388,11 +4393,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// })
 
 		// New logic
-		const shapesToCheck = compact(
-			this.getShapesInsideBounds(Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN)).map((id) =>
-				this.getShape(id)
-			)
-		).filter((shape) => {
+		const bounds = Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN)
+		const shapesToCheck = this.getShapesInsideBounds(bounds).filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false

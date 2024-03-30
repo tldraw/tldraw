@@ -12805,6 +12805,60 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getShapeIdsInsideBounds:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getShapeIdsInsideBounds(bounds: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "bounds",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getShapeIdsInsideBounds"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getShapeLocalTransform:member(1)",
               "docComment": "/**\n * Get the local transform for a shape as a matrix model. This transform reflects both its translation (x, y) from from either its parent's top left corner, if the shape's parent is another shape, or else from the 0,0 of the page, if the shape's parent is the page; and the shape's rotation.\n *\n * @param shape - The shape to get the local transform for.\n *\n * @example\n * ```ts\n * editor.getShapeLocalTransform(myShape)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -13326,12 +13380,21 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                  "text": "NonNullable",
+                  "canonicalReference": "!NonNullable:type"
                 },
                 {
                   "kind": "Content",
-                  "text": "[]"
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined>[]"
                 },
                 {
                   "kind": "Content",
@@ -13341,7 +13404,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 5
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
