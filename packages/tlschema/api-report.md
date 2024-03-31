@@ -918,6 +918,10 @@ export type TLDefaultColorThemeColor = {
     solid: string;
     semi: string;
     pattern: string;
+    note: {
+        fill: string;
+        text: string;
+    };
     highlight: {
         srgb: string;
         p3: string;
