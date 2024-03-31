@@ -84,6 +84,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			this.editor,
 		])
 
+		const showShadows = this.editor.getZoomLevel() > 0.5
+
 		// Shadow stuff
 		const oy = Math.cos(rotation)
 		const ox = Math.sin(rotation)
@@ -99,10 +101,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					height: noteHeight,
 					color: theme[color].note.text,
 					backgroundColor: theme[color].note.fill,
-					boxShadow: `
+					borderBottom: showShadows ? 'none' : `2px solid rgba(144, 144, 144, .5)`,
+					boxShadow: showShadows
+						? `
 						${ox * 3}px 4px 4px -4px rgba(0,0,0,.4),
 						${ox * 6}px ${(6 + lift * 8) * oy}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
-						0px 50px 8px -10px inset rgba(0,0,0,0.035)`,
+						0px 50px 8px -10px inset rgba(0,0,0,${0.0375 + 0.025 * random()})`
+						: 'none',
 				}}
 			>
 				<TextLabel
