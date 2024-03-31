@@ -129,14 +129,15 @@ export class TestEditor extends Editor {
 	 * @param count - The number of shapes to get.
 	 */
 	getLastCreatedShapes(count = 1) {
-		return this._lastCreatedShapes.slice(-count)
+		return this._lastCreatedShapes.slice(-count).map((s) => this.getShape(s))
 	}
 
 	/**
 	 * Get the last created shape.
 	 */
 	getLastCreatedShape<T extends TLShape>() {
-		return this._lastCreatedShapes[this._lastCreatedShapes.length - 1] as T
+		const lastShape = this._lastCreatedShapes[this._lastCreatedShapes.length - 1] as T
+		return this.getShape<T>(lastShape)!
 	}
 
 	elm: HTMLDivElement

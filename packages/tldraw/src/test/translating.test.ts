@@ -2006,4 +2006,42 @@ describe('Note shape grid helper positions / pits', () => {
 				.expectShapeToMatch({ ...shape, x: rotatedPointPosition.x, y: rotatedPointPosition.y }) // and in the pit
 		}
 	})
+
+	it('Snaps correctly to the top when the translating shape has growY', () => {
+		editor
+			.createShape({ type: 'note' })
+			.createShape({ type: 'note', x: 500, y: 500 })
+			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+			.pointerMove(600, 600)
+			// start translating
+			.pointerDown()
+
+		const shape = editor.getLastCreatedShape<TLNoteShape>()
+		expect(shape.props.growY).toBe(100)
+
+		const pit = defaultPitLocations[0] // top
+		editor
+			.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
+			.expectShapeToMatch({ ...shape, x: pit.x - 104, y: pit.y - 104 }) // not in the pit — the pit is further up!
+			.pointerMove(pit.x - 4, pit.y - 4 - 100) // account for the translating shape's growY
+			.expectShapeToMatch({ ...shape, x: pit.x - 100, y: pit.y - 200 }) // and we're in the pit
+	})
+
+	it('Snaps correctly to the bottom when the not-translating shape has growY', () => {
+		editor
+			.createShape({ type: 'note' })
+			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+			.createShape({ type: 'note', x: 500, y: 500 })
+			.pointerMove(600, 600)
+			// start translating
+			.pointerDown()
+
+		const shape = editor.getLastCreatedShape<TLNoteShape>()
+
+		editor
+			.pointerMove(104, 324) // not exactly in the pit...
+			.expectShapeToMatch({ ...shape, x: 4, y: 224 }) // not in the pit — the pit is further down!
+			.pointerMove(104, 424) // account for the shape's growY
+			.expectShapeToMatch({ ...shape, x: 0, y: 320 }) // and we're in the pit (420 - 100 = 320)
+	})
 })
