@@ -27,6 +27,7 @@ import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import { useForceSolid } from '../shared/useForceSolid'
 
 const NOTE_SIZE = 200
 const NEW_NOTE_MARGIN = 20
@@ -84,7 +85,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			this.editor,
 		])
 
-		const showShadows = this.editor.getZoomLevel() > 0.5
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const hideShadows = useForceSolid()
 
 		// Shadow stuff
 		const oy = Math.cos(rotation)
@@ -101,13 +103,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					height: noteHeight,
 					color: theme[color].note.text,
 					backgroundColor: theme[color].note.fill,
-					borderBottom: showShadows ? 'none' : `2px solid rgba(144, 144, 144, .5)`,
-					boxShadow: showShadows
-						? `
-						${ox * 3}px 4px 4px -4px rgba(0,0,0,.4),
+					borderBottom: hideShadows ? `3px solid rgb(144, 144, 144)` : 'none',
+					boxShadow: hideShadows
+						? 'none'
+						: `${ox * 3}px 4px 4px -4px rgba(0,0,0,.4),
 						${ox * 6}px ${(6 + lift * 8) * oy}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
-						0px 50px 8px -10px inset rgba(0,0,0,${0.0375 + 0.025 * random()})`
-						: 'none',
+						0px 50px 8px -10px inset rgba(0,0,0,${0.0375 + 0.025 * random()})`,
 				}}
 			>
 				<TextLabel
