@@ -190,6 +190,35 @@ describe('Grid placement helpers', () => {
 		}
 	})
 
+	it('Falls into a sticky pit when empty', () => {
+		editor
+			.createShape({ type: 'note', x: 0, y: 0 })
+			.setCurrentTool('note')
+			.pointerMove(324, 104)
+			.click()
+			.expectShapeToMatch({
+				...editor.getLastCreatedShape(),
+				// in da pit
+				x: 220,
+				y: 0,
+			})
+	})
+
+	it('Does note create a new sticky note in a sticky pit if a note is already there', () => {
+		editor
+			.createShape({ type: 'note', x: 0, y: 0 })
+			.createShape({ type: 'note', x: 228, y: 8 }) // make a shape kinda there already!
+			.setCurrentTool('note')
+			.pointerMove(324, 104)
+			.click()
+			.expectShapeToMatch({
+				...editor.getLastCreatedShape(),
+				// outta da pit
+				x: 224,
+				y: 4,
+			})
+	})
+
 	it('Does not fall into pits around rotated notes', () => {
 		editor.createShape({ type: 'note', x: 0, y: 0, rotation: 0.0000001 })
 
