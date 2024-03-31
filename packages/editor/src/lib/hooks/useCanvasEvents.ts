@@ -107,6 +107,7 @@ export function useCanvasEvents() {
 				;(e as any).isKilled = true
 				if (
 					(e.target as HTMLElement).tagName !== 'A' &&
+					(e.target as HTMLElement).tagName !== 'LI' &&
 					(e.target as HTMLElement).tagName !== 'TEXTAREA'
 				) {
 					preventDefault(e)
