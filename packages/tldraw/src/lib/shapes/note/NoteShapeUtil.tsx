@@ -100,8 +100,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					color: theme[color].note.text,
 					backgroundColor: theme[color].note.fill,
 					boxShadow: `
-						${ox * 3}px 4px 4px -4px rgba(0,0,0,.3),
-						${ox * 6}px ${(6 + lift * 8) * oy}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.25 + lift * 0.1}), 
+						${ox * 3}px 4px 4px -4px rgba(0,0,0,.4),
+						${ox * 6}px ${(6 + lift * 8) * oy}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
 						0px 50px 8px -10px inset rgba(0,0,0,0.035)`,
 				}}
 			>
