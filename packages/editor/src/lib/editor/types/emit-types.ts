@@ -1,5 +1,5 @@
 import { HistoryEntry } from '@tldraw/store'
-import { TLPageId, TLRecord, TLShape } from '@tldraw/tlschema'
+import { TLPageId, TLRecord } from '@tldraw/tlschema'
 import { TLEventInfo } from './event-types'
 
 /** @public */
@@ -10,7 +10,6 @@ export interface TLEventMap {
 	change: [HistoryEntry<TLRecord>]
 	update: []
 	crash: [{ error: unknown }]
-	'create-shapes': [{ shapes: TLShape[] }]
 	'stop-camera-animation': []
 	'stop-following': []
 	event: [TLEventInfo]

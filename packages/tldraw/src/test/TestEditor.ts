@@ -116,13 +116,27 @@ export class TestEditor extends Editor {
 		// Turn off edge scrolling for tests. Tests that require this can turn it back on.
 		this.user.updateUserPreferences({ edgeScrollSpeed: 0 })
 
-		this.on('create-shapes', ({ shapes }) => (this._lastCreatedShapes = shapes))
+		this.sideEffects.registerAfterCreateHandler('shape', (record) => {
+			this._lastCreatedShapes.push(record)
+		})
 	}
 
 	private _lastCreatedShapes: TLShape[] = []
 
-	getLastCreatedShapes() {
-		return this._lastCreatedShapes
+	/**
+	 * Get the last created shapes.
+	 *
+	 * @param count - The number of shapes to get.
+	 */
+	getLastCreatedShapes(count = 1) {
+		return this._lastCreatedShapes.slice(-count)
+	}
+
+	/**
+	 * Get the last created shape.
+	 */
+	getLastCreatedShape() {
+		return this._lastCreatedShapes[this._lastCreatedShapes.length - 1]
 	}
 
 	elm: HTMLDivElement

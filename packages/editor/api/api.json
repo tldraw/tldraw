@@ -38753,42 +38753,6 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!TLEventMap#\"create-shapes\":member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "'create-shapes': "
-                },
-                {
-                  "kind": "Content",
-                  "text": "[{\n        shapes: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[];\n    }]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "\"create-shapes\"",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 4
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEventMap#\"mark-history\":member",
               "docComment": "",
               "excerptTokens": [

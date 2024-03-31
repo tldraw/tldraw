@@ -161,7 +161,7 @@ describe('Grid placement helpers', () => {
 				.pointerMove(pit.x + OFFSET_DISTANCE, pit.y + OFFSET_DISTANCE) // too far from the pit
 				.click()
 				.expectShapeToMatch({
-					id: editor.getLastCreatedShapes()[0].id,
+					...editor.getLastCreatedShape(),
 					x: pit.x + OFFSET_DISTANCE - 100,
 					y: pit.y + OFFSET_DISTANCE - 100,
 				})
@@ -183,7 +183,7 @@ describe('Grid placement helpers', () => {
 				.pointerMove(pit.x + OFFSET_DISTANCE, pit.y + OFFSET_DISTANCE)
 				.click()
 				.expectShapeToMatch({
-					id: editor.getLastCreatedShapes()[0].id,
+					...editor.getLastCreatedShape(),
 					x: pit.x - 100,
 					y: pit.y - 100,
 				})
@@ -205,7 +205,7 @@ describe('Grid placement helpers', () => {
 				.pointerMove(pit.x + OFFSET_DISTANCE, pit.y + OFFSET_DISTANCE)
 				.click()
 				.expectShapeToMatch({
-					id: editor.getLastCreatedShapes()[0].id,
+					...editor.getLastCreatedShape(),
 					x: pit.x + OFFSET_DISTANCE - 100,
 					y: pit.y + OFFSET_DISTANCE - 100,
 				})
@@ -213,9 +213,10 @@ describe('Grid placement helpers', () => {
 	})
 
 	it('Falls into correct pit below notes with growY', () => {
-		editor
-			.createShape({ type: 'note', x: 0, y: 0 })
-			.updateShape({ id: editor.getLastCreatedShapes()[0].id, type: 'note', props: { growY: 100 } })
+		editor.createShape({ type: 'note', x: 0, y: 0 }).updateShape({
+			...editor.getLastCreatedShape(),
+			props: { growY: 100 },
+		})
 
 		// Misses the pit below the note because the note has growY
 		// instead of being at 100, 320, it's at 100, 320 + 100 = 320
@@ -224,7 +225,7 @@ describe('Grid placement helpers', () => {
 			.pointerMove(100, 324)
 			.click()
 			.expectShapeToMatch({
-				id: editor.getLastCreatedShapes()[0].id,
+				...editor.getLastCreatedShape(),
 				x: 0,
 				y: 224,
 			})
@@ -236,7 +237,7 @@ describe('Grid placement helpers', () => {
 			.pointerMove(100, 424)
 			.click()
 			.expectShapeToMatch({
-				id: editor.getLastCreatedShapes()[0].id,
+				...editor.getLastCreatedShape(),
 				x: 0,
 				y: 320,
 			})
