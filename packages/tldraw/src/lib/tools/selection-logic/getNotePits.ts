@@ -7,10 +7,17 @@ export const NOTE_SIZE = 200
 /** @internal */
 export const NOTE_PIT_RADIUS = 10
 /** @internal */
-export type NotePit = { rotation: number; point: Vec }
+export type NotePit = Vec
+
+const DEFAULT_PITS = [
+	new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN), // t
+	new Vec(NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // r
+	new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN), // b
+	new Vec(NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // l
+]
 
 /** @internal */
-export function getNotePits(editor: Editor, extraHeight: number) {
+export function getNotePits(editor: Editor, rotation: number, extraHeight: number) {
 	const selectedShapeIds = editor.getSelectedShapeIds()
 	const allUnselectedNoteShapes = editor
 		.getCurrentPageShapes()
@@ -20,18 +27,25 @@ export function getNotePits(editor: Editor, extraHeight: number) {
 			if (!editor.isShapeOfType<TLNoteShape>(shape, 'note')) return
 
 			const transform = editor.getShapePageTransform(shape.id)!
-			const pagePoint = transform.point()
 			const pageRotation = transform.rotation()
-			const center = Vec.Add(pagePoint, new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2))
 
-			return [
-				Vec.AddXY(center, 0, -(NOTE_SIZE + ADJACENT_NOTE_MARGIN + extraHeight)),
-				Vec.AddXY(center, NOTE_SIZE + ADJACENT_NOTE_MARGIN, 0),
-				Vec.AddXY(center, 0, NOTE_SIZE + (shape.props.growY ?? 0) + ADJACENT_NOTE_MARGIN),
-				Vec.AddXY(center, -(NOTE_SIZE + ADJACENT_NOTE_MARGIN), 0),
-			].map((v) => ({ rotation: pageRotation, point: v.rotWith(pagePoint, pageRotation) }))
+			// We only want to create pits for notes with the specified rotation
+			if (rotation !== pageRotation) return
+
+			// Get the four pits around the note
+			const pagePoint = transform.point()
+
+			return DEFAULT_PITS.map((v, i) => {
+				const point = v.clone()
+				if (i === 0 && extraHeight) {
+					// apply top margin (the growY of the moving note shape)
+					point.y -= extraHeight
+				} else if (i === 2 && shape.props.growY) {
+					// apply bottom margin (the growY of this note shape)
+					point.y += shape.props.growY
+				}
+				return point.rot(pageRotation).add(pagePoint)
+			})
 		})
-	).filter(
-		(pit) => !allUnselectedNoteShapes.some((shape) => editor.isPointInShape(shape, pit.point))
-	)
+	).filter((pit) => !allUnselectedNoteShapes.some((shape) => editor.isPointInShape(shape, pit)))
 }

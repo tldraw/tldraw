@@ -327,9 +327,19 @@ function getTranslatingSnapshot(editor: Editor) {
 		})
 	)
 
+	const onlySelectedShape = editor.getOnlySelectedShape()
+
 	let initialSnapPoints: BoundsSnapPoint[] = []
-	if (editor.getSelectedShapeIds().length === 1) {
-		initialSnapPoints = editor.snaps.shapeBounds.getSnapPoints(editor.getSelectedShapeIds()[0])!
+
+	let notePits: NotePit[] | undefined
+
+	if (onlySelectedShape) {
+		initialSnapPoints = editor.snaps.shapeBounds.getSnapPoints(onlySelectedShape.id)!
+
+		if (editor.isShapeOfType<TLNoteShape>(onlySelectedShape, 'note')) {
+			const pageRotation = editor.getShapePageTransform(onlySelectedShape)!.rotation()
+			notePits = getNotePits(editor, pageRotation, onlySelectedShape.props.growY ?? 0)
+		}
 	} else {
 		const selectionPageBounds = editor.getSelectionPageBounds()
 		if (selectionPageBounds) {
@@ -339,13 +349,6 @@ function getTranslatingSnapshot(editor: Editor) {
 				y: p.y,
 			}))
 		}
-	}
-
-	let notePits: NotePit[] | undefined
-
-	const onlySelectedShape = editor.getOnlySelectedShape()
-	if (onlySelectedShape && editor.isShapeOfType<TLNoteShape>(onlySelectedShape, 'note')) {
-		notePits = getNotePits(editor, onlySelectedShape.props.growY ?? 0)
 	}
 
 	return {
@@ -427,13 +430,12 @@ export function moveShapesToPoint({
 				)
 
 				for (const pit of notePits) {
-					if (pit.rotation === noteSnapshot.pageRotation) {
-						const deltaToPit = Vec.Sub(pageCenter, pit.point)
-						const dist = deltaToPit.len()
-						if (dist < min) {
-							min = dist
-							offset = deltaToPit
-						}
+					// We've already filtered pits with the same page rotation
+					const deltaToPit = Vec.Sub(pageCenter, pit)
+					const dist = deltaToPit.len()
+					if (dist < min) {
+						min = dist
+						offset = deltaToPit
 					}
 				}
 

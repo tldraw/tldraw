@@ -110,15 +110,13 @@ export class Pointing extends StateNode {
 export function getNotePitOffset(editor: Editor, center: Vec) {
 	let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
 	let offset: Vec | undefined
-	for (const pit of getNotePits(editor, 0)) {
+	for (const pit of getNotePits(editor, 0, 0)) {
 		// only check page rotations of zero
-		if (pit.rotation === 0) {
-			const deltaToPit = Vec.Sub(center, pit.point)
-			const dist = deltaToPit.len()
-			if (dist < min) {
-				min = dist
-				offset = deltaToPit
-			}
+		const deltaToPit = Vec.Sub(center, pit)
+		const dist = deltaToPit.len()
+		if (dist < min) {
+			min = dist
+			offset = deltaToPit
 		}
 	}
 	return offset
