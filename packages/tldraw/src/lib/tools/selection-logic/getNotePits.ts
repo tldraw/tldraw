@@ -32,7 +32,6 @@ export function getNotePits(editor: Editor, rotation: number, extraHeight: numbe
 			// We only want to create pits for notes with the specified rotation
 			if (rotation !== pageRotation) return
 
-			// Get the four pits around the note
 			const pagePoint = transform.point()
 
 			return DEFAULT_PITS.map((v, i) => {
