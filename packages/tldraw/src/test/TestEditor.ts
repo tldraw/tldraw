@@ -135,8 +135,8 @@ export class TestEditor extends Editor {
 	/**
 	 * Get the last created shape.
 	 */
-	getLastCreatedShape() {
-		return this._lastCreatedShapes[this._lastCreatedShapes.length - 1]
+	getLastCreatedShape<T extends TLShape>() {
+		return this._lastCreatedShapes[this._lastCreatedShapes.length - 1] as T
 	}
 
 	elm: HTMLDivElement
