@@ -144,3 +144,102 @@ describe('When in the pointing state', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 })
+
+describe('Grid placement helpers', () => {
+	it('Creates a new sticky note outside of a sticky pit', () => {
+		editor.createShape({ type: 'note', x: 0, y: 0 })
+
+		for (const pit of [
+			{ x: 100, y: -120 },
+			{ x: 320, y: 100 },
+			{ x: 100, y: 320 },
+			{ x: -120, y: 100 },
+		]) {
+			const OFFSET_DISTANCE = 8
+			editor
+				.setCurrentTool('note')
+				.pointerMove(pit.x + OFFSET_DISTANCE, pit.y + OFFSET_DISTANCE) // too far from the pit
+				.click()
+				.expectShapeToMatch({
+					id: editor.getLastCreatedShapes()[0].id,
+					x: pit.x + OFFSET_DISTANCE - 100,
+					y: pit.y + OFFSET_DISTANCE - 100,
+				})
+		}
+	})
+
+	it('Creates a new sticky note in a sticky pit', () => {
+		editor.createShape({ type: 'note', x: 0, y: 0 })
+
+		for (const pit of [
+			{ x: 100, y: -120 },
+			{ x: 320, y: 100 },
+			{ x: 100, y: 320 },
+			{ x: -120, y: 100 },
+		]) {
+			const OFFSET_DISTANCE = 7 // close enough to the pit to fall into it
+			editor
+				.setCurrentTool('note')
+				.pointerMove(pit.x + OFFSET_DISTANCE, pit.y + OFFSET_DISTANCE)
+				.click()
+				.expectShapeToMatch({
+					id: editor.getLastCreatedShapes()[0].id,
+					x: pit.x - 100,
+					y: pit.y - 100,
+				})
+		}
+	})
+
+	it('Does not fall into pits around rotated notes', () => {
+		editor.createShape({ type: 'note', x: 0, y: 0, rotation: 0.0000001 })
+
+		for (const pit of [
+			{ x: 100, y: -120 },
+			{ x: 320, y: 100 },
+			{ x: 100, y: 320 },
+			{ x: -120, y: 100 },
+		]) {
+			const OFFSET_DISTANCE = 7 // close enough to the pit to fall into it (if it weren't rotated)
+			editor
+				.setCurrentTool('note')
+				.pointerMove(pit.x + OFFSET_DISTANCE, pit.y + OFFSET_DISTANCE)
+				.click()
+				.expectShapeToMatch({
+					id: editor.getLastCreatedShapes()[0].id,
+					x: pit.x + OFFSET_DISTANCE - 100,
+					y: pit.y + OFFSET_DISTANCE - 100,
+				})
+		}
+	})
+
+	it('Falls into correct pit below notes with growY', () => {
+		editor
+			.createShape({ type: 'note', x: 0, y: 0 })
+			.updateShape({ id: editor.getLastCreatedShapes()[0].id, type: 'note', props: { growY: 100 } })
+
+		// Misses the pit below the note because the note has growY
+		// instead of being at 100, 320, it's at 100, 320 + 100 = 320
+		editor
+			.setCurrentTool('note')
+			.pointerMove(100, 324)
+			.click()
+			.expectShapeToMatch({
+				id: editor.getLastCreatedShapes()[0].id,
+				x: 0,
+				y: 224,
+			})
+			.undo()
+
+		// Let's get it in that pit
+		editor
+			.setCurrentTool('note')
+			.pointerMove(100, 424)
+			.click()
+			.expectShapeToMatch({
+				id: editor.getLastCreatedShapes()[0].id,
+				x: 0,
+				y: 320,
+			})
+			.undo()
+	})
+})

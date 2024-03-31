@@ -2178,6 +2178,10 @@ export interface TLEventMap {
         reason: 'push' | 'redo' | 'undo';
     }];
     // (undocumented)
+    'create-shapes': [{
+        shapes: TLShape[];
+    }];
+    // (undocumented)
     'mark-history': [{
         id: string;
     }];

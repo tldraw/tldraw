@@ -6692,6 +6692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				})
 
+				this.emit('create-shapes', { shapes: shapeRecordsToCreate })
 				this.store.put(shapeRecordsToCreate)
 			},
 			undo: ({ partials }) => {
