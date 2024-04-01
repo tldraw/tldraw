@@ -128,6 +128,7 @@ export function registerDefaultExternalContentHandlers(
 			console.error(error)
 			toasts.addToast({
 				title: msg('assets.url.failed'),
+				severity: 'error',
 			})
 			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
 		}
@@ -250,6 +251,7 @@ export function registerDefaultExternalContentHandlers(
 				} catch (error) {
 					toasts.addToast({
 						title: msg('assets.files.upload-failed'),
+						severity: 'error',
 					})
 					console.error(error)
 					return null
@@ -369,6 +371,7 @@ export function registerDefaultExternalContentHandlers(
 			} catch (e) {
 				toasts.addToast({
 					title: msg('assets.url.failed'),
+					severity: 'error',
 				})
 				return
 			}

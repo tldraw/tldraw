@@ -430,7 +430,6 @@ export function MoveToPageMenu() {
 							}
 							trackEvent('move-to-page', { source: 'context-menu' })
 						}}
-						title={page.name}
 					/>
 				))}
 			</TldrawUiMenuGroup>
