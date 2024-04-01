@@ -258,3 +258,36 @@ it('Puts the new shape into a frame based on its center', () => {
 	// Should be a child of the frame
 	expect(newShape.parentId).toBe(frameA.id)
 })
+
+function testNoteShapeFrameRotations(sourceRotation: number, rotation: number) {
+	editor.createShape({ type: 'frame', x: 220, y: 0, rotation: rotation })
+	const frameA = editor.getLastCreatedShape()!
+	// top left won't be in the frame, but the center will (barely but yes)
+	editor.createShape({ type: 'note', x: 0, y: 0, rotation: sourceRotation })
+	const shapeA = editor.getLastCreatedShape()!
+	// to the right
+	const handle = editor.getShapeHandles(shapeA.id)![1]
+	editor
+		.select(shapeA.id)
+		.pointerDown(handle.x, handle.y, {
+			target: 'handle',
+			shape: shapeA,
+			handle,
+		})
+		.expectToBeIn('select.pointing_handle')
+		.pointerUp()
+
+	const newShape = editor.getLastCreatedShape()
+	// Should be a child of the frame
+	expect(newShape.parentId).toBe(frameA.id)
+
+	expect(editor.getShapePageTransform(newShape).rotation()).toBeCloseTo(sourceRotation)
+
+	editor.cancel().undo()
+}
+
+it('Puts the new shape into a rotated frame and keeps the source page rotation', () => {
+	testNoteShapeFrameRotations(0, 0.01)
+	testNoteShapeFrameRotations(0.01, 0)
+	testNoteShapeFrameRotations(0.01, 0.01)
+})
