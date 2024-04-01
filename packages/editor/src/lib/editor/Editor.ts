@@ -34,7 +34,6 @@ import {
 	TLUnknownShape,
 	TLVideoAsset,
 	createShapeId,
-	getDefaultColorTheme,
 	getShapePropKeysByStyle,
 	isPageId,
 	isShape,
@@ -47,7 +46,6 @@ import {
 	assert,
 	compact,
 	dedupe,
-	deepCopy,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -61,11 +59,13 @@ import {
 	structuredClone,
 } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
+import { flushSync } from 'react-dom'
+import { createRoot } from 'react-dom/client'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	ANIMATION_MEDIUM_MS,
-	CAMERA_MAX_RENDERING_INTERVAL,
 	CAMERA_MOVING_TIMEOUT,
 	CAMERA_SLIDE_FRICTION,
 	COARSE_DRAG_DISTANCE,
@@ -83,7 +83,6 @@ import {
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
 	MIN_ZOOM,
-	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
 import { Box } from '../primitives/Box'
@@ -104,6 +103,7 @@ import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
+import { getSvgJsx } from './getSvgJsx'
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
@@ -120,7 +120,6 @@ import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/shar
 import { getStraightArrowInfo } from './shapes/shared/arrow/straight-arrow'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
-import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import {
@@ -207,6 +206,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.getContainer = getContainer ?? (() => document.body)
 
 		this.textMeasure = new TextManager(this)
+		this._tickManager = new TickManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -637,6 +637,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.updateRenderingBounds()
 
+		this.on('tick', this.tick)
+
 		requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
@@ -664,7 +666,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly disposables = new Set<() => void>()
 
 	/** @internal */
-	private _tickManager = new TickManager(this)
+	private readonly _tickManager
 
 	/**
 	 * A manager for the app's snapping feature.
@@ -714,7 +716,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getContainer: () => HTMLElement
 
 	/**
-	 * A manager for side effects and correct state enforcement.
+	 * A manager for side effects and correct state enforcement. See {@link SideEffectManager} for details.
 	 *
 	 * @public
 	 */
@@ -1647,19 +1649,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getSelectionRotation(): number {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		if (selectedShapeIds.length === 0) {
-			return 0
-		}
-		if (selectedShapeIds.length === 1) {
-			return this.getShapePageTransform(this.getSelectedShapeIds()[0])!.rotation()
+		let foundFirst = false // annoying but we can't use an i===0 check because we need to skip over undefineds
+		let rotation = 0
+		for (let i = 0, n = selectedShapeIds.length; i < n; i++) {
+			const pageTransform = this.getShapePageTransform(selectedShapeIds[i])
+			if (!pageTransform) continue
+			if (foundFirst) {
+				if (pageTransform.rotation() !== rotation) {
+					// There are at least 2 different rotations, so the common rotation is zero
+					return 0
+				}
+			} else {
+				// First rotation found
+				foundFirst = true
+				rotation = pageTransform.rotation()
+			}
 		}
 
-		const allRotations = selectedShapeIds.map((id) => this.getShapePageTransform(id)!.rotation())
-		// if the rotations are all compatible with each other, return the rotation of any one of them
-		if (allRotations.every((rotation) => Math.abs(rotation - allRotations[0]) < Math.PI / 180)) {
-			return this.getShapePageTransform(selectedShapeIds[0])!.rotation()
-		}
-		return 0
+		return rotation
 	}
 
 	/**
@@ -1693,9 +1700,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				.flatMap((id) => {
 					const pageTransform = this.getShapePageTransform(id)
 					if (!pageTransform) return []
-					return pageTransform.applyToPoints(this.getShapeGeometry(id).vertices)
+					return pageTransform.applyToPoints(this.getShapeGeometry(id).bounds.corners)
 				})
-				.map((p) => Vec.Rot(p, -selectionRotation))
+				.map((p) => p.rot(-selectionRotation))
 		)
 		// now position box so that it's top-left corner is in the right place
 		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
@@ -2086,26 +2093,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.batch(() => {
-			this.store.put([{ ...currentCamera, ...point }]) // include id and meta here
+			const camera = { ...currentCamera, ...point }
+			this.store.put([camera]) // include id and meta here
 
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
-			const { currentScreenPoint } = this.inputs
+			const { currentScreenPoint, currentPagePoint } = this.inputs
 			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
-			this.dispatch({
-				type: 'pointer',
-				target: 'canvas',
-				name: 'pointer_move',
-				// weird but true: we need to put the screen point back into client space
-				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
-				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
-				ctrlKey: this.inputs.ctrlKey,
-				altKey: this.inputs.altKey,
-				shiftKey: this.inputs.shiftKey,
-				button: 0,
-				isPen: this.getInstanceState().isPenMode ?? false,
-			})
+			// compare the next page point (derived from the curent camera) to the current page point
+			if (
+				currentScreenPoint.x / camera.z - camera.x !== currentPagePoint.x ||
+				currentScreenPoint.y / camera.z - camera.y !== currentPagePoint.y
+			) {
+				// If it's changed, dispatch a pointer event
+				this.dispatch({
+					type: 'pointer',
+					target: 'canvas',
+					name: 'pointer_move',
+					// weird but true: we need to put the screen point back into client space
+					point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
+					pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
+					ctrlKey: this.inputs.ctrlKey,
+					altKey: this.inputs.altKey,
+					shiftKey: this.inputs.shiftKey,
+					button: 0,
+					isPen: this.getInstanceState().isPenMode ?? false,
+				})
+			}
 
 			this._tickCameraState()
 		})
@@ -2190,11 +2205,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomToContent(): this {
+	zoomToContent(opts: TLAnimationOptions = { duration: 220 }): this {
 		const bounds = this.getSelectionPageBounds() ?? this.getCurrentPageBounds()
 
 		if (bounds) {
-			this.zoomToBounds(bounds, { targetZoom: Math.min(1, this.getZoomLevel()), duration: 220 })
+			this.zoomToBounds(bounds, { targetZoom: Math.min(1, this.getZoomLevel()), ...opts })
 		}
 
 		return this
@@ -2858,7 +2873,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.pageToScreen({ x: 100, y: 100 })
 	 * ```
 	 *
-	 * @param point - The point in screen space.
+	 * @param point - The point in page space.
 	 *
 	 * @public
 	 */
@@ -2869,6 +2884,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return {
 			x: (point.x + cx) * cz + screenBounds.x,
 			y: (point.y + cy) * cz + screenBounds.y,
+			z: point.z ?? 0.5,
+		}
+	}
+
+	/**
+	 * Convert a point in the current page space to a point in current viewport space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.pageToViewport({ x: 100, y: 100 })
+	 * ```
+	 *
+	 * @param point - The point in page space.
+	 *
+	 * @public
+	 */
+	pageToViewport(point: VecLike) {
+		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
+
+		return {
+			x: (point.x + cx) * cz,
+			y: (point.y + cy) * cz,
 			z: point.z ?? 0.5,
 		}
 	}
@@ -3055,14 +3092,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._lastUpdateRenderingBoundsTimestamp = now // don't render right away
 			this._cameraState.set('moving')
 			this.on('tick', this._decayCameraStateTimeout)
-		} else {
-			if (now - this._lastUpdateRenderingBoundsTimestamp > CAMERA_MAX_RENDERING_INTERVAL) {
-				this.updateRenderingBounds()
-			}
 		}
 	}
 
-	private getUnorderedRenderingShapes(
+	/** @internal */
+	getUnorderedRenderingShapes(
 		// The rendering state. We use this method both for rendering, which
 		// is based on other state, and for computing order for SVG export,
 		// which should work even when things are for example off-screen.
@@ -5216,7 +5250,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					? getIndexBetween(shape.index, siblingAbove.index)
 					: getIndexAbove(shape.index)
 
-				let newShape: TLShape = deepCopy(shape)
+				let newShape: TLShape = structuredClone(shape)
 
 				if (
 					this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
@@ -7859,13 +7893,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			let newShape: TLShape
 
 			if (preserveIds) {
-				newShape = deepCopy(shape)
+				newShape = structuredClone(shape)
 				idMap.set(shape.id, shape.id)
 			} else {
 				const id = idMap.get(shape.id)!
 
 				// Create the new shape (new except for the id)
-				newShape = deepCopy({ ...shape, id })
+				newShape = structuredClone({ ...shape, id })
 			}
 
 			if (rootShapeIds.includes(shape.id)) {
@@ -8051,7 +8085,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get an exported SVG of the given shapes.
+	 * Get an exported SVG string of the given shapes.
 	 *
 	 * @param ids - The shapes (or shape ids) to export.
 	 * @param opts - Options for the export.
@@ -8060,220 +8094,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
+	async getSvgString(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
+		const svg = await getSvgJsx(this, shapes, opts)
+		if (!svg) return undefined
+		return { svg: renderToStaticMarkup(svg.jsx), width: svg.width, height: svg.height }
+	}
+
+	/** @deprecated Use {@link Editor.getSvgString} instead */
 	async getSvg(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
-
-		if (ids.length === 0) return
-		if (!window.document) throw Error('No document')
-
-		const {
-			scale = 1,
-			background = false,
-			padding = SVG_PADDING,
-			preserveAspectRatio = false,
-		} = opts
-
-		const isDarkMode = opts.darkMode ?? this.user.getIsDarkMode()
-		const theme = getDefaultColorTheme({ isDarkMode })
-
-		// ---Figure out which shapes we need to include
-		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
-		const renderingShapes = this.getUnorderedRenderingShapes(false).filter(({ id }) =>
-			shapeIdsToInclude.has(id)
-		)
-
-		// --- Common bounding box of all shapes
-		let bbox = null
-		if (opts.bounds) {
-			bbox = opts.bounds
-		} else {
-			for (const { maskedPageBounds } of renderingShapes) {
-				if (!maskedPageBounds) continue
-				if (bbox) {
-					bbox.union(maskedPageBounds)
-				} else {
-					bbox = maskedPageBounds.clone()
-				}
-			}
-		}
-
-		// no unmasked shapes to export
-		if (!bbox) return
-
-		const singleFrameShapeId =
-			ids.length === 1 && this.isShapeOfType<TLFrameShape>(this.getShape(ids[0])!, 'frame')
-				? ids[0]
-				: null
-		if (!singleFrameShapeId) {
-			// Expand by an extra 32 pixels
-			bbox.expandBy(padding)
-		}
-
-		// We want the svg image to be BIGGER THAN USUAL to account for image quality
-		const w = bbox.width * scale
-		const h = bbox.height * scale
-
-		// --- Create the SVG
-
-		// Embed our custom fonts
-		const svg = window.document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-
-		if (preserveAspectRatio) {
-			svg.setAttribute('preserveAspectRatio', preserveAspectRatio)
-		}
-
-		svg.setAttribute('direction', 'ltr')
-		svg.setAttribute('width', w + '')
-		svg.setAttribute('height', h + '')
-		svg.setAttribute('viewBox', `${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`)
-		svg.setAttribute('stroke-linecap', 'round')
-		svg.setAttribute('stroke-linejoin', 'round')
-		// Add current background color, or else background will be transparent
-
-		if (background) {
-			if (singleFrameShapeId) {
-				svg.style.setProperty('background', theme.solid)
-			} else {
-				svg.style.setProperty('background-color', theme.background)
-			}
-		} else {
-			svg.style.setProperty('background-color', 'transparent')
-		}
-
-		try {
-			document.body.focus?.() // weird but necessary
-		} catch (e) {
-			// not implemented
-		}
-
-		// Add the defs to the svg
-		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-		svg.append(defs)
-
-		const exportDefPromisesById = new Map<string, Promise<void>>()
-		const exportContext: SvgExportContext = {
-			isDarkMode,
-			addExportDef: (def: SvgExportDef) => {
-				if (exportDefPromisesById.has(def.key)) return
-				const promise = (async () => {
-					const elements = await def.getElement()
-					if (!elements) return
-
-					const comment = document.createComment(`def: ${def.key}`)
-					defs.appendChild(comment)
-
-					for (const element of Array.isArray(elements) ? elements : [elements]) {
-						defs.appendChild(element)
-					}
-				})()
-				exportDefPromisesById.set(def.key, promise)
-			},
-		}
-
-		const unorderedShapeElements = (
-			await Promise.all(
-				renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
-					// Don't render the frame if we're only exporting a single frame
-					if (id === singleFrameShapeId) return []
-
-					const shape = this.getShape(id)!
-
-					if (this.isShapeOfType<TLGroupShape>(shape, 'group')) return []
-
-					const util = this.getShapeUtil(shape)
-
-					let shapeSvgElement = await util.toSvg?.(shape, exportContext)
-					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, exportContext)
-
-					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
-					if (shapeSvgElement) {
-						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(shapeSvgElement)
-						shapeSvgElement = outerElement
-					}
-
-					if (backgroundSvgElement) {
-						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(backgroundSvgElement)
-						backgroundSvgElement = outerElement
-					}
-
-					if (!shapeSvgElement && !backgroundSvgElement) {
-						const bounds = this.getShapePageBounds(shape)!
-						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-						elm.setAttribute('width', bounds.width + '')
-						elm.setAttribute('height', bounds.height + '')
-						elm.setAttribute('fill', theme.solid)
-						elm.setAttribute('stroke', theme.grey.pattern)
-						elm.setAttribute('stroke-width', '1')
-						shapeSvgElement = elm
-					}
-
-					let pageTransform = this.getShapePageTransform(shape)!.toCssString()
-					if ('scale' in shape.props) {
-						if (shape.props.scale !== 1) {
-							pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
-						}
-					}
-
-					shapeSvgElement?.setAttribute('transform', pageTransform)
-					backgroundSvgElement?.setAttribute('transform', pageTransform)
-					shapeSvgElement?.setAttribute('opacity', opacity + '')
-					backgroundSvgElement?.setAttribute('opacity', opacity + '')
-
-					// Create svg mask if shape has a frame as parent
-					const pageMask = this.getShapeMask(shape.id)
-					if (pageMask) {
-						// Create a clip path and add it to defs
-						const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
-						defs.appendChild(clipPathEl)
-						const id = uniqueId()
-						clipPathEl.id = id
-
-						// Create a polyline mask that does the clipping
-						const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-						mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
-						clipPathEl.appendChild(mask)
-
-						// Create group that uses the clip path and wraps the shape elements
-						if (shapeSvgElement) {
-							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-							outerElement.setAttribute('clip-path', `url(#${id})`)
-							outerElement.appendChild(shapeSvgElement)
-							shapeSvgElement = outerElement
-						}
-
-						if (backgroundSvgElement) {
-							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-							outerElement.setAttribute('clip-path', `url(#${id})`)
-							outerElement.appendChild(backgroundSvgElement)
-							backgroundSvgElement = outerElement
-						}
-					}
-
-					const elements = []
-					if (shapeSvgElement) {
-						elements.push({ zIndex: index, element: shapeSvgElement })
-					}
-					if (backgroundSvgElement) {
-						elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
-					}
-
-					return elements
-				})
-			)
-		).flat()
-
-		await Promise.all(exportDefPromisesById.values())
-
-		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
-			svg.appendChild(element)
-		}
-
-		return svg
+		const svg = await getSvgJsx(this, shapes, opts)
+		if (!svg) return undefined
+		const fragment = new DocumentFragment()
+		const root = createRoot(fragment)
+		flushSync(() => root.render(svg.jsx))
+		const rendered = fragment.firstElementChild
+		root.unmount()
+		return rendered as SVGSVGElement
 	}
 
 	/* --------------------- Events --------------------- */
@@ -8373,6 +8209,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				meta: {},
 			},
 		])
+	}
+
+	/** @internal */
+	private tick = (elapsed = 0) => {
+		this.dispatch({ type: 'misc', name: 'tick', elapsed })
+		this.scribbles.tick(elapsed)
 	}
 
 	/**

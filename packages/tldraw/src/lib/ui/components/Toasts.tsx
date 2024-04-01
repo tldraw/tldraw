@@ -1,11 +1,18 @@
 import * as T from '@radix-ui/react-toast'
 import * as React from 'react'
-import { TLUiToast, useToasts } from '../context/toasts'
+import { AlertSeverity, TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
 import { TldrawUiIcon } from './primitives/TldrawUiIcon'
+
+const SEVERITY_TO_ICON: { [msg in AlertSeverity]: TLUiIconType } = {
+	success: 'check-circle',
+	warning: 'warning-triangle',
+	error: 'cross-circle',
+	info: 'info-circle',
+}
 
 function Toast({ toast }: { toast: TLUiToast }) {
 	const { removeToast } = useToasts()
@@ -19,15 +26,18 @@ function Toast({ toast }: { toast: TLUiToast }) {
 
 	const hasActions = toast.actions && toast.actions.length > 0
 
+	const icon = toast.icon || (toast.severity && SEVERITY_TO_ICON[toast.severity])
+
 	return (
 		<T.Root
 			onOpenChange={onOpenChange}
 			className="tlui-toast__container"
 			duration={toast.keepOpen ? Infinity : 5000}
+			data-severity={toast.severity}
 		>
-			{toast.icon && (
+			{icon && (
 				<div className="tlui-toast__icon">
-					<TldrawUiIcon icon={toast.icon as TLUiIconType} />
+					<TldrawUiIcon icon={icon} />
 				</div>
 			)}
 			<div className="tlui-toast__main">

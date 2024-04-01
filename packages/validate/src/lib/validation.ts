@@ -1,6 +1,7 @@
 import {
 	IndexKey,
 	JsonValue,
+	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
 	exhaustiveSwitchError,
 	getOwnProperty,
 	hasOwnProperty,
@@ -698,7 +699,9 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return (
 		typeof value === 'object' &&
 		value !== null &&
-		(value.constructor === Object || !value.constructor)
+		(Object.getPrototypeOf(value) === Object.prototype ||
+			Object.getPrototypeOf(value) === null ||
+			Object.getPrototypeOf(value) === STRUCTURED_CLONE_OBJECT_PROTOTYPE)
 	)
 }
 

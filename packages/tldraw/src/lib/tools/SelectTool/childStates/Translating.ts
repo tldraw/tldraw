@@ -10,7 +10,6 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapePartial,
-	TLTickEventHandler,
 	Vec,
 	compact,
 	isPageId,
@@ -93,7 +92,7 @@ export class Translating extends StateNode {
 		this.dragAndDropManager.clear()
 	}
 
-	override onTick: TLTickEventHandler = () => {
+	override onTick = () => {
 		this.dragAndDropManager.updateDroppingNode(
 			this.snapshot.movingShapes,
 			this.updateParentTransforms

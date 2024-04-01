@@ -239,6 +239,14 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 		}
 	}, [documentSettings.name, editor, state.isEditing, state.name, setState])
 
+	useEffect(() => {
+		if (documentSettings.name) {
+			document.title = `${documentSettings.name} · tldraw`
+		} else {
+			document.title = 'tldraw'
+		}
+	}, [documentSettings.name])
+
 	const handleChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {
 			const value = e.currentTarget.value
@@ -268,7 +276,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 		setState((prev) => ({ ...prev, isEditing: false }))
 	}, [setState])
 
-	const name = state.name || documentSettings.name || defaultDocumentName
+	const name = state.name ?? (documentSettings.name || defaultDocumentName)
 
 	return (
 		<div className="tlui-document-name__input__wrapper">
