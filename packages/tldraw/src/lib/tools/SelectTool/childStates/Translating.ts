@@ -15,7 +15,7 @@ import {
 	isPageId,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
-import { NOTE_PIT_RADIUS, NOTE_SIZE, NotePit, getNotePits } from '../../selection-logic/getNotePits'
+import { NOTE_PIT_RADIUS, NOTE_SIZE, NotePit, getNotePits } from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
 
 export class Translating extends StateNode {
@@ -404,43 +404,41 @@ export function moveShapesToPoint({
 	editor.snaps.clearIndicators()
 
 	// If the user isn't moving super quick
-	if (editor.inputs.pointerVelocity.len() < 0.5) {
-		const isSnapping = editor.user.getIsSnapMode() ? !inputs.ctrlKey : inputs.ctrlKey
-		if (isSnapping) {
-			// snapping
-			const { nudge } = editor.snaps.shapeBounds.snapTranslateShapes({
-				dragDelta: delta,
-				initialSelectionPageBounds: initialPageBounds,
-				lockedAxis: flatten,
-				initialSelectionSnapPoints: initialSnapPoints,
-			})
+	const isSnapping = editor.user.getIsSnapMode() ? !inputs.ctrlKey : inputs.ctrlKey
+	if (isSnapping && editor.inputs.pointerVelocity.len() < 0.5) {
+		// snapping
+		const { nudge } = editor.snaps.shapeBounds.snapTranslateShapes({
+			dragDelta: delta,
+			initialSelectionPageBounds: initialPageBounds,
+			lockedAxis: flatten,
+			initialSelectionSnapPoints: initialSnapPoints,
+		})
 
-			delta.add(nudge)
-		} else {
-			// for sticky notes, snap to grid position next to other notes
-			if (notePits && shapeSnapshots.length === 1 && shapeSnapshots[0].shape.type === 'note') {
-				const noteSnapshot = shapeSnapshots[0]
+		delta.add(nudge)
+	} else {
+		// for sticky notes, snap to grid position next to other notes
+		if (notePits && shapeSnapshots.length === 1 && shapeSnapshots[0].shape.type === 'note') {
+			const noteSnapshot = shapeSnapshots[0]
 
-				let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
-				let offset = new Vec(0, 0)
+			let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
+			let offset = new Vec(0, 0)
 
-				const pageCenter = Vec.Add(
-					Vec.Add(averagePagePoint, delta),
-					new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2).rot(noteSnapshot.pageRotation)
-				)
+			const pageCenter = Vec.Add(
+				Vec.Add(averagePagePoint, delta),
+				new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2).rot(noteSnapshot.pageRotation)
+			)
 
-				for (const pit of notePits) {
-					// We've already filtered pits with the same page rotation
-					const deltaToPit = Vec.Sub(pageCenter, pit)
-					const dist = deltaToPit.len()
-					if (dist < min) {
-						min = dist
-						offset = deltaToPit
-					}
+			for (const pit of notePits) {
+				// We've already filtered pits with the same page rotation
+				const deltaToPit = Vec.Sub(pageCenter, pit)
+				const dist = deltaToPit.len()
+				if (dist < min) {
+					min = dist
+					offset = deltaToPit
 				}
-
-				delta.sub(offset)
 			}
+
+			delta.sub(offset)
 		}
 	}
 
