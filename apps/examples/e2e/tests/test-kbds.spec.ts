@@ -89,7 +89,7 @@ test.describe('Keyboard Shortcuts', () => {
 			await page.keyboard.press(key)
 			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'select-tool',
-				data: { id: tool, source: 'kbd' },
+				data: { id: tool, source: 'toolbar' },
 			})
 		}
 	})
@@ -211,6 +211,13 @@ test.describe('Actions on shapes', () => {
 
 	test('Operations on shapes', async () => {
 		await setupPageWithShapes(page)
+
+		// needs shapes on the canvas
+		await page.keyboard.press('Control+Shift+c')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'copy-as',
+			data: { format: 'svg', source: 'kbd' },
+		})
 
 		// select-all — Cmd+A
 		await page.keyboard.press('Control+a')
@@ -353,14 +360,6 @@ test.describe('Actions on shapes', () => {
 		// 	name: 'open-menu',
 		// 	data: { source: 'dialog' },
 		// })
-
-		/* --------------------- Export --------------------- */
-
-		await page.keyboard.press('Control+Shift+c')
-		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'copy-as',
-			data: { format: 'svg', source: 'kbd' },
-		})
 	})
 })
 

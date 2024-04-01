@@ -2,15 +2,19 @@ import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
 /** @public */
-export const TLSYNC_PROTOCOL_VERSION = 4
+export const TLSYNC_PROTOCOL_VERSION = 5
 
 /** @public */
-export enum TLIncompatibilityReason {
-	ClientTooOld = 'clientTooOld',
-	ServerTooOld = 'serverTooOld',
-	InvalidRecord = 'invalidRecord',
-	InvalidOperation = 'invalidOperation',
-}
+export const TLIncompatibilityReason = {
+	ClientTooOld: 'clientTooOld',
+	ServerTooOld: 'serverTooOld',
+	InvalidRecord: 'invalidRecord',
+	InvalidOperation: 'invalidOperation',
+} as const
+
+/** @public */
+export type TLIncompatibilityReason =
+	(typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason]
 
 /** @public */
 export type TLSocketServerSentEvent<R extends UnknownRecord> =
@@ -28,13 +32,21 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			reason: TLIncompatibilityReason
 	  }
 	| {
+			type: 'error'
+			error?: any
+	  }
+	| {
+			type: 'pong'
+	  }
+	| { type: 'data'; data: TLSocketServerSentDataEvent<R>[] }
+	| TLSocketServerSentDataEvent<R>
+
+/** @public */
+export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
+	| {
 			type: 'patch'
 			diff: NetworkDiff<R>
 			serverClock: number
-	  }
-	| {
-			type: 'error'
-			error?: any
 	  }
 	| {
 			type: 'push_result'
@@ -42,16 +54,13 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			serverClock: number
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
 	  }
-	| {
-			type: 'pong'
-	  }
 
 /** @public */
 export type TLPushRequest<R extends UnknownRecord> =
 	| {
 			type: 'push'
 			clientClock: number
-			presence: [RecordOpType.Patch, ObjectDiff] | [RecordOpType.Put, R]
+			presence: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
 	  }
 	| {
 			type: 'push'

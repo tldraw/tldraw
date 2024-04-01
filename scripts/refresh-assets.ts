@@ -402,9 +402,9 @@ async function writeAssetDeclarationDTSFile() {
 }
 
 async function copyVersionToDotCom() {
-	const packageVersion = await import(join(REPO_ROOT, 'packages', 'tldraw', 'package.json')).then(
-		(pkg) => pkg.version
-	)
+	const packageJson = await readJsonIfExists(join(REPO_ROOT, 'packages', 'tldraw', 'package.json'))
+	const packageVersion = packageJson.version
+
 	const file = `export const version = '${packageVersion}'`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',

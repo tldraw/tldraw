@@ -55,7 +55,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	private historyCache = new Map<string, Computed<number, RecordsDiff<R>>>()
 
 	/**
-	 * Create a derivation that contains the hisotry for a given type
+	 * Create a derivation that contains the history for a given type
 	 *
 	 * @param typeName - The name of the type to filter by.
 	 * @returns A derivation that returns the ids of all records of the given type.

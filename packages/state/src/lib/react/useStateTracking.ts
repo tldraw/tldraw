@@ -3,8 +3,10 @@ import { EffectScheduler } from '../core'
 
 /** @internal */
 export function useStateTracking<T>(name: string, render: () => T): T {
-	// user render is only called at the bottom of this function, indirectly via scheduler.execute()
-	// we need it to always be up-to-date when calling scheduler.execute() but it'd be wasteful to
+	// This hook creates an effect scheduler that will trigger re-renders when its reactive dependencies change, but it
+	// defers the actual execution of the effect to the consumer of this hook.
+
+	// We need the exec fn to always be up-to-date when calling scheduler.execute() but it'd be wasteful to
 	// instantiate a new EffectScheduler on every render, so we use an immediately-updated ref
 	// to wrap it
 	const renderRef = React.useRef(render)

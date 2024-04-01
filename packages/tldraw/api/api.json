@@ -173,6 +173,32 @@
       "preserveMemberOrder": false,
       "members": [
         {
+          "kind": "TypeAlias",
+          "canonicalReference": "tldraw!AlertSeverity:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type AlertSeverity = "
+            },
+            {
+              "kind": "Content",
+              "text": "'error' | 'info' | 'success' | 'warning'"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/context/toasts.tsx",
+          "releaseTag": "Public",
+          "name": "AlertSeverity",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
           "kind": "Function",
           "canonicalReference": "tldraw!AlignMenuItems:function(1)",
           "docComment": "/**\n * @public\n */\n",
@@ -244,6 +270,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!ArrowDownToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ArrowDownToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ArrowDownToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!ArrowheadStylePickerSet:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -304,6 +363,72 @@
             }
           ],
           "name": "ArrowheadStylePickerSet"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!ArrowLeftToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ArrowLeftToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ArrowLeftToolbarItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!ArrowRightToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ArrowRightToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ArrowRightToolbarItem"
         },
         {
           "kind": "Class",
@@ -1412,7 +1537,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n        color: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        color: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1421,7 +1546,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n        fill: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        fill: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1639,9 +1764,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -1651,7 +1780,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -1714,6 +1843,105 @@
             "endIndex": 5
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!ArrowToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ArrowToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ArrowToolbarItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!ArrowUpToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ArrowUpToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ArrowUpToolbarItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!AssetToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function AssetToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "AssetToolbarItem"
         },
         {
           "kind": "Class",
@@ -2253,6 +2481,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!CheckBoxToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function CheckBoxToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "CheckBoxToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!ClipboardMenuGroup:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -2286,12 +2547,45 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!CloudToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function CloudToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "CloudToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!CommonStylePickerSet:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function CommonStylePickerSet({ styles }: "
+              "text": "export declare function CommonStylePickerSet({ styles, theme, }: "
             },
             {
               "kind": "Content",
@@ -2301,6 +2595,15 @@
               "kind": "Reference",
               "text": "ReadonlySharedStyleMap",
               "canonicalReference": "@tldraw/editor!ReadonlySharedStyleMap:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    theme: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorTheme",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorTheme:type"
             },
             {
               "kind": "Content",
@@ -2326,17 +2629,17 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanelContent.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 5,
-            "endIndex": 7
+            "startIndex": 7,
+            "endIndex": 9
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ styles }",
+              "parameterName": "{ styles, theme, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 4
+                "endIndex": 6
               },
               "isOptional": false
             }
@@ -2427,18 +2730,96 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [],
           "name": "ConversionsMenuGroup"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!ConvertToBookmarkMenuItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ConvertToBookmarkMenuItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ConvertToBookmarkMenuItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!ConvertToEmbedMenuItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ConvertToEmbedMenuItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "ConvertToEmbedMenuItem"
         },
         {
           "kind": "Function",
@@ -2558,6 +2939,39 @@
             }
           ],
           "name": "copyAs"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!CopyAsMenuGroup:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function CopyAsMenuGroup(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "CopyAsMenuGroup"
         },
         {
           "kind": "Function",
@@ -3606,20 +4020,33 @@
         {
           "kind": "Variable",
           "canonicalReference": "tldraw!DefaultToolbar:var",
-          "docComment": "/**\n * @public\n */\n",
+          "docComment": "/**\n * The default toolbar for the editor. `children` defaults to the `DefaultToolbarContent` component. Depending on the screen size, the children will overflow into a drop-down menu, with the most recently active item from the overflow being shown in the main toolbar.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
               "text": "DefaultToolbar: "
             },
             {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
               "kind": "Reference",
-              "text": "React.NamedExoticComponent",
+              "text": "NamedExoticComponent",
               "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
             },
             {
               "kind": "Content",
-              "text": "<object>"
+              "text": "<{\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}>"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbar.tsx",
@@ -3628,8 +4055,41 @@
           "name": "DefaultToolbar",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 6
           }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!DefaultToolbarContent:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DefaultToolbarContent(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DefaultToolbarContent"
         },
         {
           "kind": "Variable",
@@ -3805,6 +4265,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "DeleteMenuItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!DiamondToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DiamondToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DiamondToolbarItem"
         },
         {
           "kind": "Function",
@@ -4689,7 +5182,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n        fill: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        fill: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -4808,9 +5301,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -4820,7 +5317,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -4886,6 +5383,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!DrawToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DrawToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "DrawToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!DuplicateMenuItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -4904,13 +5434,17 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -4937,13 +5471,17 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -4985,12 +5523,12 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "tldraw!EmbedsGroup:function(1)",
+          "canonicalReference": "tldraw!EllipseToolbarItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function EmbedsGroup(): "
+              "text": "export declare function EllipseToolbarItem(): "
             },
             {
               "kind": "Content",
@@ -5006,7 +5544,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 3
@@ -5014,7 +5552,7 @@
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [],
-          "name": "EmbedsGroup"
+          "name": "EllipseToolbarItem"
         },
         {
           "kind": "Class",
@@ -5796,6 +6334,39 @@
           "implementsTokenRanges": []
         },
         {
+          "kind": "Function",
+          "canonicalReference": "tldraw!EraserToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function EraserToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "EraserToolbarItem"
+        },
+        {
           "kind": "TypeAlias",
           "canonicalReference": "tldraw!EventsProviderProps:type",
           "docComment": "/**\n * @public\n */\n",
@@ -6325,18 +6896,59 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [],
           "name": "FitFrameToContentMenuItem"
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "tldraw!FONT_FAMILIES:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "FONT_FAMILIES: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultFontStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultFontStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", string>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/default-shape-constants.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "FONT_FAMILIES",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
         },
         {
           "kind": "Class",
@@ -7213,27 +7825,13 @@
                   "text": "): "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "Promise",
-                  "canonicalReference": "!Promise:interface"
-                },
-                {
                   "kind": "Content",
-                  "text": "<"
+                  "text": "import(\"react/jsx-runtime\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "> | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -7243,7 +7841,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 10
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -7306,6 +7904,39 @@
             "endIndex": 5
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!FrameToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function FrameToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "FrameToolbarItem"
         },
         {
           "kind": "Class",
@@ -7880,7 +8511,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            geo: \"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\";\n            labelColor: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            fill: \"none\" | \"pattern\" | \"semi\" | \"solid\";\n            dash: \"dashed\" | \"dotted\" | \"draw\" | \"solid\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            w: number;\n            h: number;\n            text: string;\n        };\n        type: \"geo\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            geo: \"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\";\n            labelColor: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            fill: \"none\" | \"pattern\" | \"semi\" | \"solid\";\n            dash: \"dashed\" | \"dotted\" | \"draw\" | \"solid\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            w: number;\n            h: number;\n            text: string;\n        };\n        type: \"geo\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -7964,7 +8595,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            geo: \"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\";\n            labelColor: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            fill: \"none\" | \"pattern\" | \"semi\" | \"solid\";\n            dash: \"dashed\" | \"dotted\" | \"draw\" | \"solid\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            w: number;\n            h: number;\n            text: string;\n        };\n        type: \"geo\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            geo: \"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\";\n            labelColor: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            fill: \"none\" | \"pattern\" | \"semi\" | \"solid\";\n            dash: \"dashed\" | \"dotted\" | \"draw\" | \"solid\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            w: number;\n            h: number;\n            text: string;\n        };\n        type: \"geo\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8247,7 +8878,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n        color: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        color: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8256,7 +8887,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n        fill: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        fill: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8402,9 +9033,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGElement",
-                  "canonicalReference": "!SVGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -8414,7 +9049,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -8594,12 +9229,11 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function getSvgAsImage(svg: "
+              "text": "export declare function getSvgAsImage(svgString: "
             },
             {
-              "kind": "Reference",
-              "text": "SVGElement",
-              "canonicalReference": "!SVGElement:interface"
+              "kind": "Content",
+              "text": "string"
             },
             {
               "kind": "Content",
@@ -8615,7 +9249,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    type: 'jpeg' | 'png' | 'webp';\n    quality: number;\n    scale: number;\n}"
+              "text": "{\n    type: 'jpeg' | 'png' | 'webp';\n    quality: number;\n    scale: number;\n    width: number;\n    height: number;\n}"
             },
             {
               "kind": "Content",
@@ -8653,7 +9287,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "svg",
+              "parameterName": "svgString",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -8681,57 +9315,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "tldraw!getSvgAsString:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function getSvgAsString(svg: "
-            },
-            {
-              "kind": "Reference",
-              "text": "SVGElement",
-              "canonicalReference": "!SVGElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Reference",
-              "text": "Promise",
-              "canonicalReference": "!Promise:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<string>"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/export/export.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 5
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "svg",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "getSvgAsString"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "tldraw!GroupMenuItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -8750,13 +9333,17 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -9037,6 +9624,72 @@
             "endIndex": 2
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!HandToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function HandToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "HandToolbarItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!HexagonToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function HexagonToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "HexagonToolbarItem"
         },
         {
           "kind": "Class",
@@ -9749,7 +10402,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n        size: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        size: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -9832,9 +10485,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGPathElement",
-                  "canonicalReference": "!SVGPathElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -9844,7 +10501,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -9879,21 +10536,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", ctx: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SvgExportContext",
-                  "canonicalReference": "@tldraw/editor!SvgExportContext:interface"
-                },
-                {
-                  "kind": "Content",
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGPathElement",
-                  "canonicalReference": "!SVGPathElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -9902,8 +10554,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 3,
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -9914,14 +10566,6 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "ctx",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
                   },
                   "isOptional": false
                 }
@@ -9966,6 +10610,39 @@
             "endIndex": 5
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!HighlightToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function HighlightToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "HighlightToolbarItem"
         },
         {
           "kind": "Class",
@@ -10467,16 +11144,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<"
+                  "text": "<import(\"react/jsx-runtime\")."
                 },
                 {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
-                  "text": ">"
+                  "text": " | null>"
                 },
                 {
                   "kind": "Content",
@@ -10632,25 +11309,53 @@
         },
         {
           "kind": "Variable",
-          "canonicalReference": "tldraw!LanguageMenu:var",
+          "canonicalReference": "tldraw!LABEL_FONT_SIZES:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "LanguageMenu: "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react\")."
+              "text": "LABEL_FONT_SIZES: "
             },
             {
               "kind": "Reference",
-              "text": "MemoExoticComponent",
-              "canonicalReference": "@types/react!React.MemoExoticComponent:type"
+              "text": "Record",
+              "canonicalReference": "!Record:type"
             },
             {
               "kind": "Content",
-              "text": "<() => import(\"react/jsx-runtime\")."
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultSizeStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultSizeStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", number>"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/default-shape-constants.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "LABEL_FONT_SIZES",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!LanguageMenu:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function LanguageMenu(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
             },
             {
               "kind": "Reference",
@@ -10659,17 +11364,18 @@
             },
             {
               "kind": "Content",
-              "text": ">"
+              "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/LanguageMenu.tsx",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "LanguageMenu",
-          "variableTypeTokenRange": {
+          "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 6
-          }
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "LanguageMenu"
         },
         {
           "kind": "Class",
@@ -10840,6 +11546,39 @@
             "endIndex": 2
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!LaserToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function LaserToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "LaserToolbarItem"
         },
         {
           "kind": "Class",
@@ -11078,17 +11817,13 @@
                 },
                 {
                   "kind": "Content",
-                  "text": " | undefined"
-                },
-                {
-                  "kind": "Content",
                   "text": ";"
                 }
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 6
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -11623,7 +12358,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n        dash: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        dash: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -11703,21 +12438,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", ctx: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SvgExportContext",
-                  "canonicalReference": "@tldraw/editor!SvgExportContext:interface"
-                },
-                {
-                  "kind": "Content",
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -11726,8 +12456,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 3,
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -11738,14 +12468,6 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "ctx",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
                   },
                   "isOptional": false
                 }
@@ -11793,12 +12515,12 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "tldraw!LockGroup:function(1)",
+          "canonicalReference": "tldraw!LineToolbarItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function LockGroup(): "
+              "text": "export declare function LineToolbarItem(): "
             },
             {
               "kind": "Content",
@@ -11814,7 +12536,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 3
@@ -11822,7 +12544,7 @@
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [],
-          "name": "LockGroup"
+          "name": "LineToolbarItem"
         },
         {
           "kind": "Function",
@@ -11893,39 +12615,6 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "MoveToPageMenu"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "tldraw!MultiShapeMenuGroup:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function MultiShapeMenuGroup(): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "MultiShapeMenuGroup"
         },
         {
           "kind": "Class",
@@ -12523,7 +13212,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12607,7 +13296,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12726,7 +13415,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n        size: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        size: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12836,9 +13525,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -12848,7 +13541,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -12911,6 +13604,39 @@
             "endIndex": 5
           },
           "implementsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!NoteToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function NoteToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "NoteToolbarItem"
         },
         {
           "kind": "Function",
@@ -12981,6 +13707,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "OpacitySlider"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!OvalToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function OvalToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "OvalToolbarItem"
         },
         {
           "kind": "Function",
@@ -13341,6 +14100,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!RectangleToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function RectangleToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "RectangleToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!removeFrame:function(1)",
           "docComment": "/**\n * Remove a frame.\n *\n * @param editor - tlraw editor instance.\n *\n * @param ids - Ids of the frames you wish to remove.\n *\n * @public\n */\n",
           "excerptTokens": [
@@ -13426,13 +14218,17 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -13511,6 +14307,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!RhombusToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function RhombusToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "RhombusToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!RotateCWMenuItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -13541,6 +14370,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "RotateCWMenuItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!SelectAllMenuItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function SelectAllMenuItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "SelectAllMenuItem"
         },
         {
           "kind": "Class",
@@ -13918,6 +14780,39 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!SelectToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function SelectToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "SelectToolbarItem"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!serializeTldrawJson:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -14075,72 +14970,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "tldraw!SetSelectionGroup:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function SetSelectionGroup(): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "SetSelectionGroup"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "tldraw!ShapeSubmenu:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function ShapeSubmenu(): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/MainMenu/DefaultMainMenuContent.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "ShapeSubmenu"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "tldraw!SplineStylePickerSet:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -14234,6 +15063,99 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "StackMenuItems"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!StarToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function StarToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "StarToolbarItem"
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "tldraw!TEXT_PROPS:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TEXT_PROPS: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    lineHeight: number;\n    fontWeight: string;\n    fontVariant: string;\n    fontStyle: string;\n    padding: string;\n}"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/default-shape-constants.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "TEXT_PROPS",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "tldraw!TextLabel:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TextLabel: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.NamedExoticComponent",
+              "canonicalReference": "@types/react!React.NamedExoticComponent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TextLabelProps",
+              "canonicalReference": "tldraw!~TextLabelProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/TextLabel.tsx",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "TextLabel",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
         },
         {
           "kind": "Class",
@@ -14837,7 +15759,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        isLocked: boolean;\n        opacity: number;\n        props: {\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            w: number;\n            text: string;\n            scale: number;\n            autoSize: boolean;\n        };\n        meta: import(\"@tldraw/editor\")."
+                  "text": ";\n        isLocked: boolean;\n        opacity: number;\n        props: {\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            w: number;\n            text: string;\n            scale: number;\n            autoSize: boolean;\n        };\n        meta: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -14903,7 +15825,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        x: number;\n        y: number;\n        props: {\n            w: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            text: string;\n            scale: number;\n            autoSize: boolean;\n        };\n        type: \"text\";\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        x: number;\n        y: number;\n        props: {\n            w: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            text: string;\n            scale: number;\n            autoSize: boolean;\n        };\n        type: \"text\";\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -15123,7 +16045,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n        size: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        size: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -15233,9 +16155,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -15245,7 +16171,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 6
+                "endIndex": 7
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -15316,11 +16242,20 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TextStylePickerSet({ styles }: "
+              "text": "export declare function TextStylePickerSet({ theme, styles, }: "
             },
             {
               "kind": "Content",
-              "text": "{\n    styles: "
+              "text": "{\n    theme: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorTheme",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorTheme:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    styles: "
             },
             {
               "kind": "Reference",
@@ -15355,22 +16290,55 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/StylePanel/DefaultStylePanelContent.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 5,
-            "endIndex": 8
+            "startIndex": 7,
+            "endIndex": 10
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ styles }",
+              "parameterName": "{ theme, styles, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 4
+                "endIndex": 6
               },
               "isOptional": false
             }
           ],
           "name": "TextStylePickerSet"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!TextToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function TextToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "TextToolbarItem"
         },
         {
           "kind": "TypeAlias",
@@ -15713,7 +16681,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "tldraw!TldrawImage:var",
-          "docComment": "/**\n * A renderered SVG image of a Tldraw snapshot.\n *\n * @example\n * ```tsx\n * <TldrawImage snapshot={snapshot} />\n * \tsnapshot={snapshot}\n * \tpageId={pageId}\n * \tbackground={false}\n *  darkMode={true}\n *  bounds={new Box(0,0,600,400)}\n *  scale={1}\n * />\n * ```\n *\n * @public\n */\n",
+          "docComment": "/**\n * A renderered SVG image of a Tldraw snapshot.\n *\n * @example\n * ```tsx\n * <TldrawImage\n * \tsnapshot={snapshot}\n * \tpageId={pageId}\n * \tbackground={false}\n *  darkMode={true}\n *  bounds={new Box(0,0,600,400)}\n *  scale={1}\n * />\n * ```\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -16390,7 +17358,16 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n        DebugMenu: null | "
+              "text": ">;\n        DebugPanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        DebugMenu: null | "
             },
             {
               "kind": "Reference",
@@ -16499,87 +17476,6 @@
             {
               "kind": "Content",
               "text": ", {\n            addToast: (toast: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/toasts\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToast",
-              "canonicalReference": "tldraw!TLUiToast:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Partial",
-              "canonicalReference": "!Partial:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        toolbar: import(\"./overrides\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiOverride",
-              "canonicalReference": "tldraw!~TLUiOverride:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./hooks/useToolbarSchema\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolbarSchemaContextType",
-              "canonicalReference": "tldraw!TLUiToolbarSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", {\n            tools: import(\"./hooks/useTools\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolsContextType",
-              "canonicalReference": "tldraw!TLUiToolsContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        } & {\n            addToast: (toast: "
             },
             {
               "kind": "Reference",
@@ -16804,87 +17700,6 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        toolbar: import(\"./overrides\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiOverride",
-              "canonicalReference": "tldraw!~TLUiOverride:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./hooks/useToolbarSchema\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolbarSchemaContextType",
-              "canonicalReference": "tldraw!TLUiToolbarSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", {\n            tools: import(\"./hooks/useTools\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolsContextType",
-              "canonicalReference": "tldraw!TLUiToolsContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        } & {\n            addToast: (toast: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/toasts\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToast",
-              "canonicalReference": "tldraw!TLUiToast:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Partial",
-              "canonicalReference": "!Partial:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
               "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        tools: import(\"./overrides\")."
             },
             {
@@ -16993,7 +17808,7 @@
           "name": "TldrawUi",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 183
+            "endIndex": 149
           }
         },
         {
@@ -18813,7 +19628,7 @@
             },
             {
               "kind": "Content",
-              "text": ">({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }: "
+              "text": ">({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, isSelected, }: "
             },
             {
               "kind": "Reference",
@@ -18855,7 +19670,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, }",
+              "parameterName": "{ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, isSelected, }",
               "parameterTypeTokenRange": {
                 "startIndex": 9,
                 "endIndex": 11
@@ -19151,7 +19966,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "tldraw!TldrawUiProps:type",
-          "docComment": "/**\n * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -19470,33 +20285,6 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "readonlyOk",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "tldraw!TLUiActionItem#title:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "title?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "title",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -19841,6 +20629,34 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tldraw!TLUiButtonPickerProps#theme:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "theme: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLDefaultColorTheme",
+                  "canonicalReference": "@tldraw/tlschema!TLDefaultColorTheme:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "theme",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
               }
             },
             {
@@ -23296,7 +24112,7 @@
             },
             {
               "kind": "Content",
-              "text": "'align-bottom-center' | 'align-bottom-left' | 'align-bottom-right' | 'align-bottom' | 'align-center-center' | 'align-center-horizontal' | 'align-center-left' | 'align-center-right' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top-center' | 'align-top-left' | 'align-top-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'aspect-ratio' | 'avatar' | 'blob' | 'bring-forward' | 'bring-to-front' | 'check' | 'checkbox-checked' | 'checkbox-empty' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'code' | 'collab' | 'color' | 'comment' | 'cross-2' | 'cross' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'file' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'hidden' | 'image' | 'info-circle' | 'leading' | 'link' | 'lock-small' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'page' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'ruler' | 'search' | 'send-backward' | 'send-to-back' | 'settings-horizontal' | 'settings-vertical-1' | 'settings-vertical' | 'share-1' | 'share-2' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'status-online' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-justify' | 'text-align-left' | 'text-align-right' | 'tool-arrow' | 'tool-embed' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-text' | 'trash' | 'triangle-down' | 'triangle-up' | 'twitter' | 'undo' | 'ungroup' | 'unlock-small' | 'unlock' | 'vertical-align-center' | 'vertical-align-end' | 'vertical-align-start' | 'visible' | 'warning-triangle' | 'zoom-in' | 'zoom-out'"
+              "text": "'align-bottom-center' | 'align-bottom-left' | 'align-bottom-right' | 'align-bottom' | 'align-center-center' | 'align-center-horizontal' | 'align-center-left' | 'align-center-right' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top-center' | 'align-top-left' | 'align-top-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'aspect-ratio' | 'avatar' | 'blob' | 'bring-forward' | 'bring-to-front' | 'check-circle' | 'check' | 'checkbox-checked' | 'checkbox-empty' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'code' | 'collab' | 'color' | 'comment' | 'cross-2' | 'cross-circle' | 'cross' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'error' | 'external-link' | 'file' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'hidden' | 'image' | 'info-circle' | 'leading' | 'link' | 'lock-small' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'page' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'ruler' | 'search' | 'send-backward' | 'send-to-back' | 'settings-horizontal' | 'settings-vertical-1' | 'settings-vertical' | 'share-1' | 'share-2' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'status-online' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-justify' | 'text-align-left' | 'text-align-right' | 'tool-arrow' | 'tool-embed' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-text' | 'trash' | 'triangle-down' | 'triangle-up' | 'twitter' | 'undo' | 'ungroup' | 'unlock-small' | 'unlock' | 'vertical-align-center' | 'vertical-align-end' | 'vertical-align-start' | 'visible' | 'warning-triangle' | 'zoom-in' | 'zoom-out'"
             },
             {
               "kind": "Content",
@@ -24226,7 +25042,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    icon?: IconType;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk?: boolean;\n    onSelect: (source: "
+              "text": "{\n    id: string;\n    icon?: IconType;\n    kbd?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk?: boolean;\n    onSelect: (source: "
             },
             {
               "kind": "Reference",
@@ -24244,7 +25060,7 @@
             },
             {
               "kind": "Content",
-              "text": "<void> | void;\n    disabled?: boolean;\n    noClose?: boolean;\n    spinner?: boolean;\n}"
+              "text": "<void> | void;\n    disabled?: boolean;\n    noClose?: boolean;\n    spinner?: boolean;\n    isSelected?: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -24390,33 +25206,6 @@
             },
             {
               "kind": "Content",
-              "text": "['overrides']>>;\n    toolbar: "
-            },
-            {
-              "kind": "Reference",
-              "text": "WithDefaultHelpers",
-              "canonicalReference": "tldraw!~WithDefaultHelpers:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "NonNullable",
-              "canonicalReference": "!NonNullable:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolbarSchemaProviderProps",
-              "canonicalReference": "tldraw!~TLUiToolbarSchemaProviderProps:type"
-            },
-            {
-              "kind": "Content",
               "text": "['overrides']>>;\n    tools: "
             },
             {
@@ -24465,7 +25254,7 @@
           "name": "TLUiOverrides",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 23
+            "endIndex": 17
           }
         },
         {
@@ -24921,6 +25710,34 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tldraw!TLUiToast#severity:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "severity?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AlertSeverity",
+                  "canonicalReference": "tldraw!AlertSeverity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "severity",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tldraw!TLUiToast#title:member",
               "docComment": "",
               "excerptTokens": [
@@ -25108,72 +25925,6 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 10
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "tldraw!TLUiToolbarItem:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLUiToolbarItem = "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    id: string;\n    type: 'item';\n    readonlyOk?: boolean;\n    toolItem: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolItem",
-              "canonicalReference": "tldraw!TLUiToolItem:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n}"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToolbarSchema.tsx",
-          "releaseTag": "Public",
-          "name": "TLUiToolbarItem",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 4
-          }
-        },
-        {
-          "kind": "TypeAlias",
-          "canonicalReference": "tldraw!TLUiToolbarSchemaContextType:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLUiToolbarSchemaContextType = "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolbarItem",
-              "canonicalReference": "tldraw!TLUiToolbarItem:type"
-            },
-            {
-              "kind": "Content",
-              "text": "[]"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToolbarSchema.tsx",
-          "releaseTag": "Public",
-          "name": "TLUiToolbarSchemaContextType",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 3
           }
         },
         {
@@ -25659,7 +26410,7 @@
             },
             {
               "kind": "Content",
-              "text": "'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-json.short' | 'action.copy-as-json' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.duplicate' | 'action.edit-link' | 'action.exit-pen-mode' | 'action.export-all-as-json.short' | 'action.export-all-as-json' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-json.short' | 'action.export-as-json' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.pack' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-size' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-lock' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'debug-panel.more' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'edit-pages-dialog.move-down' | 'edit-pages-dialog.move-up' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.keyboard-shortcuts' | 'help-menu.title' | 'help-menu.twitter' | 'home-project-dialog.description' | 'home-project-dialog.ok' | 'home-project-dialog.title' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.language' | 'menu.preferences' | 'menu.shape' | 'menu.title' | 'menu.view' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'rename-project-dialog.cancel' | 'rename-project-dialog.rename' | 'rename-project-dialog.title' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.default-project-name' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.readonly-link' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'status.online' | 'style-panel.align' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'tool-panel.drawing' | 'tool-panel.more' | 'tool-panel.shapes' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.asset' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.frame' | 'tool.hand' | 'tool.hexagon' | 'tool.highlight' | 'tool.laser' | 'tool.line' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.rectangle' | 'tool.rhombus' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open'"
+              "text": "'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-json.short' | 'action.copy-as-json' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.duplicate' | 'action.edit-link' | 'action.exit-pen-mode' | 'action.export-all-as-json.short' | 'action.export-all-as-json' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-json.short' | 'action.export-as-json' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.pack' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-size' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-lock' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.white' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'debug-panel.more' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'edit-pages-dialog.move-down' | 'edit-pages-dialog.move-up' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.keyboard-shortcuts' | 'help-menu.title' | 'help-menu.twitter' | 'home-project-dialog.description' | 'home-project-dialog.ok' | 'home-project-dialog.title' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.language' | 'menu.preferences' | 'menu.title' | 'menu.view' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'rename-project-dialog.cancel' | 'rename-project-dialog.rename' | 'rename-project-dialog.title' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.default-project-name' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.readonly-link' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'status.online' | 'style-panel.align' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'tool-panel.drawing' | 'tool-panel.more' | 'tool-panel.shapes' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.asset' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.frame' | 'tool.hand' | 'tool.hexagon' | 'tool.highlight' | 'tool.laser' | 'tool.line' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.rectangle' | 'tool.rhombus' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open'"
             },
             {
               "kind": "Content",
@@ -25729,13 +26480,17 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -25927,13 +26682,17 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -26107,50 +26866,69 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "tldraw!toolbarItem:function(1)",
+          "canonicalReference": "tldraw!TrapezoidToolbarItem:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function toolbarItem(toolItem: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolItem",
-              "canonicalReference": "tldraw!TLUiToolItem:interface"
+              "text": "export declare function TrapezoidToolbarItem(): "
             },
             {
               "kind": "Content",
-              "text": "): "
+              "text": "import(\"react/jsx-runtime\")."
             },
             {
               "kind": "Reference",
-              "text": "TLUiToolbarItem",
-              "canonicalReference": "tldraw!TLUiToolbarItem:type"
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToolbarSchema.tsx",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
           "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 4
+            "startIndex": 1,
+            "endIndex": 3
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
-          "parameters": [
+          "parameters": [],
+          "name": "TrapezoidToolbarItem"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!TriangleToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
             {
-              "parameterName": "toolItem",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
+              "kind": "Content",
+              "text": "export declare function TriangleToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
             }
           ],
-          "name": "toolbarItem"
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "TriangleToolbarItem"
         },
         {
           "kind": "Function",
@@ -26313,13 +27091,17 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/components/menu-items.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 3
+            "endIndex": 4
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -26697,6 +27479,147 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!useEditableText:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useEditableText(id: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", type: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", text: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    rInput: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.RefObject",
+              "canonicalReference": "@types/react!React.RefObject:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "HTMLTextAreaElement",
+              "canonicalReference": "!HTMLTextAreaElement:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n    isEditing: boolean;\n    handleFocus: () => void;\n    handleBlur: () => void;\n    handleKeyDown: (e: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.KeyboardEvent",
+              "canonicalReference": "@types/react!React.KeyboardEvent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "HTMLTextAreaElement",
+              "canonicalReference": "!HTMLTextAreaElement:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => void;\n    handleChange: (e: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ChangeEvent",
+              "canonicalReference": "@types/react!React.ChangeEvent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "HTMLTextAreaElement",
+              "canonicalReference": "!HTMLTextAreaElement:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => void;\n    handleInputPointerDown: (e: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.PointerEvent",
+              "canonicalReference": "@types/react!React.PointerEvent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ") => void;\n    handleDoubleClick: (e: any) => any;\n    isEmpty: boolean;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/useEditableText.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 7,
+            "endIndex": 22
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "id",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "type",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "text",
+              "parameterTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "useEditableText"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!useExportAs:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -26740,6 +27663,52 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useExportAs"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!useIsToolSelected:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useIsToolSelected(tool: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiToolItem",
+              "canonicalReference": "tldraw!TLUiToolItem:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "boolean"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "tool",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "useIsToolSelected"
         },
         {
           "kind": "Function",
@@ -27332,7 +28301,16 @@
             },
             {
               "kind": "Content",
-              "text": "> | null;\n    DebugMenu: "
+              "text": "> | null;\n    DebugPanel: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    DebugMenu: "
             },
             {
               "kind": "Reference",
@@ -27378,7 +28356,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/ui/context/components.tsx",
           "returnTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 55
+            "endIndex": 57
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -27413,35 +28391,6 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useToasts"
-        },
-        {
-          "kind": "Function",
-          "canonicalReference": "tldraw!useToolbarSchema:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function useToolbarSchema(): "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiToolbarSchemaContextType",
-              "canonicalReference": "tldraw!TLUiToolbarSchemaContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useToolbarSchema.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "useToolbarSchema"
         },
         {
           "kind": "Function",
@@ -27936,9 +28885,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Content",
+                  "text": "import(\"react/jsx-runtime\")."
+                },
+                {
                   "kind": "Reference",
-                  "text": "SVGGElement",
-                  "canonicalReference": "!SVGGElement:interface"
+                  "text": "JSX.Element",
+                  "canonicalReference": "@types/react!JSX.Element:interface"
                 },
                 {
                   "kind": "Content",
@@ -27948,7 +28901,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -28036,6 +28989,39 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "ViewSubmenu"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!XBoxToolbarItem:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function XBoxToolbarItem(): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react/jsx-runtime\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/Toolbar/DefaultToolbarContent.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "XBoxToolbarItem"
         },
         {
           "kind": "Function",
