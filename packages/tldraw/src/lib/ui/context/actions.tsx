@@ -1296,7 +1296,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.setStyleForNextShapes(style, 'white', { squashing: false })
 						editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
 					})
-					trackEvent('set-style', { source: 'style-panel', id: style.id, value: 'white' })
+					trackEvent('set-style', { source, id: style.id, value: 'white' })
 				},
 			},
 		]
