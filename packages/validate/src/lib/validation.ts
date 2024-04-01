@@ -818,8 +818,8 @@ export function dict<Key extends string, Value>(
  * @example
  *
  * ```ts
- * const catValidator = T.object({ kind: T.value('cat'), meow: T.boolean })
- * const dogValidator = T.object({ kind: T.value('dog'), bark: T.boolean })
+ * const catValidator = T.object({ kind: T.literal('cat'), meow: T.boolean })
+ * const dogValidator = T.object({ kind: T.literal('dog'), bark: T.boolean })
  * const animalValidator = T.union('kind', { cat: catValidator, dog: dogValidator })
  * ```
  *
