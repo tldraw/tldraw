@@ -74,6 +74,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const zoom = this.editor.getZoomLevel()
 		const offset = CLONE_HANDLE_MARGIN / zoom
 
+		if (zoom < 0.25) return []
+
 		return [
 			{
 				id: 'top',

@@ -15,7 +15,8 @@ export type TLHandleProps = {
 export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps) {
 	const bgRadius = (isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoom
 	const fgRadius =
-		(handle.type === 'create' && isCoarse ? 3 : handle.type === 'clone' ? 3 : 4) / zoom
+		(handle.type === 'create' && isCoarse ? 3 : handle.type === 'clone' ? 2.5 : 4) /
+		Math.max(zoom, 0.35)
 
 	return (
 		<g className={classNames(`tl-handle tl-handle__${handle.type}`, className)}>
