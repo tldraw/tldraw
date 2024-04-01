@@ -1285,7 +1285,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'select-white-color',
 				label: 'color-style.white',
-				kbd: '!?w',
+				kbd: '?t',
 				onSelect(source) {
 					const style = DefaultColorStyle
 					editor.batch(() => {
