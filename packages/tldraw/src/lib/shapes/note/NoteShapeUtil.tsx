@@ -322,32 +322,28 @@ function useNoteKeydownHandler(id: TLShapeId) {
 			if (isTab || isCmdEnter) {
 				e.preventDefault()
 
-				const isRTL = !!(isRightToLeftLanguage(shape.props.text) || translation.isRTL)
-
-				// Get the center of a default sized note at the current note's page position
-				const centerInPageSpace = editor
-					.getShapeParentTransform(id)
-					.applyToPoint(new Vec(shape.x, shape.y))
-
-				const pageRotation = editor.getShapePageTransform(id).rotation()
+				const pageTransform = editor.getShapePageTransform(id)
+				const pageRotation = pageTransform.rotation()
 
 				// Based on the inputs, calculate the offset to the next note
 				// tab controls x axis (shift inverts direction set by RTL)
 				// cmd enter is the y axis (shift inverts direction)
-				const offset = new Vec(
-					isTab ? (e.shiftKey != isRTL ? -1 : 1) : 0,
-					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
-				).mul(NOTE_SIZE + ADJACENT_NOTE_MARGIN)
-
-				// If we're placing below, then we need to add th growY, too
-				if (isCmdEnter && !e.shiftKey) {
-					offset.y += shape.props.growY
-				}
-
-				// Rotate the offset to match the current note's page rotation, and
-				// ddd the offset to the center to get the center of the next note
-				const topLeft = centerInPageSpace.add(offset.rot(pageRotation))
-				const center = Vec.Add(topLeft, Vec.Rot(CENTER_OFFSET, pageRotation))
+				const isRTL = !!(isRightToLeftLanguage(shape.props.text) || translation.isRTL)
+				const offsetLength =
+					NOTE_SIZE +
+					ADJACENT_NOTE_MARGIN +
+					// If we're growing down, we need to account for the current shape's growY
+					(isCmdEnter && !e.shiftKey ? shape.props.growY : 0)
+				const center = pageTransform.point().add(
+					// Get the normalized direction based on inputs
+					new Vec(
+						isTab ? (e.shiftKey != isRTL ? -1 : 1) : 0,
+						isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
+					)
+						.mul(offsetLength)
+						.add(CENTER_OFFSET)
+						.rot(pageRotation)
+				)
 				const newNote = createOrSelectNoteInPosition(editor, shape, center, pageRotation)
 				if (newNote) {
 					startEditingNoteShape(editor, newNote)
