@@ -51,6 +51,18 @@ export class Drawing extends StateNode {
 
 	markId = null as null | string
 
+	pendingChanges = [] as (
+		| {
+				action: 'create'
+				partial: TLShapePartial<DrawableShape>
+				point: Vec
+		  }
+		| {
+				action: 'update'
+				partial: TLShapePartial<DrawableShape>
+		  }
+	)[]
+
 	override onEnter = (info: TLPointerEventInfo) => {
 		this.markId = null
 		this.info = info
@@ -277,6 +289,23 @@ export class Drawing extends StateNode {
 		])
 		this.currentLineLength = 0
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
+	}
+
+	override onTick = () => {
+		const pending = [...this.pendingChanges]
+		this.pendingChanges.length = 0
+
+		for (const change of pending) {
+			if (change.action === 'create') {
+				this.editor.createShapes([change.partial])
+				this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(change.partial.id)!)
+				this.mergeNextPoint = false
+				this.lastRecordedPoint = change.point.clone()
+				this.currentLineLength = 0
+			} else {
+				this.editor.updateShapes([change.partial])
+			}
+		}
 	}
 
 	private updateShapes() {
@@ -570,7 +599,10 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShapes([shapePartial], { squashing: true })
+				this.pendingChanges.push({
+					action: 'update',
+					partial: shapePartial,
+				})
 
 				break
 			}
@@ -615,16 +647,23 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShapes([shapePartial], { squashing: true })
+				this.pendingChanges.push({
+					action: 'update',
+					partial: shapePartial,
+				})
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (newPoints.length > 500) {
-					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
+					this.pendingChanges.push({
+						action: 'update',
+						partial: { ...shapePartial, props: { isComplete: true } },
+					})
 
 					const newShapeId = createShapeId()
 
-					this.editor.createShapes<DrawableShape>([
-						{
+					this.pendingChanges.push({
+						action: 'create',
+						partial: {
 							id: newShapeId,
 							type: this.shapeType,
 							x: toFixed(inputs.currentPagePoint.x),
@@ -639,12 +678,8 @@ export class Drawing extends StateNode {
 								],
 							},
 						},
-					])
-
-					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
-					this.mergeNextPoint = false
-					this.lastRecordedPoint = inputs.currentPagePoint.clone()
-					this.currentLineLength = 0
+						point: this.editor.inputs.currentPagePoint.clone(),
+					})
 				}
 
 				break
