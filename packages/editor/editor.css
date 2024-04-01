@@ -523,8 +523,14 @@ input,
 .tl-handle__create {
 	opacity: 0;
 }
+
 .tl-handle__create:hover {
 	opacity: 1;
+}
+
+.tl-handle__clone > .tl-handle__fg {
+	fill: var(--color-selection-stroke);
+	stroke: transparent;
 }
 
 .tl-handle__bg:active {

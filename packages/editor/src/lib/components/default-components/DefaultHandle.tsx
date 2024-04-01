@@ -17,16 +17,7 @@ export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandlePro
 	const fgRadius = (handle.type === 'create' && isCoarse ? 3 : 4) / zoom
 
 	return (
-		<g
-			className={classNames(
-				'tl-handle',
-				{
-					'tl-handle__virtual': handle.type === 'virtual',
-					'tl-handle__create': handle.type === 'create',
-				},
-				className
-			)}
-		>
+		<g className={classNames(`tl-handle tl-handle__${handle.type}`, className)}>
 			<circle className="tl-handle__bg" r={bgRadius} />
 			<circle className="tl-handle__fg" r={fgRadius} />
 		</g>

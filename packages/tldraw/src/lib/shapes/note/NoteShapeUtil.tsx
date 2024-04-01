@@ -124,6 +124,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			this.editor,
 		])
 
+		// todo: consider hiding shadows on dark mode if they're invisible anyway
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const hideShadows = useForceSolid()
 
@@ -145,7 +146,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					borderBottom: hideShadows ? `3px solid rgb(144, 144, 144)` : 'none',
 					boxShadow: hideShadows
 						? 'none'
-						: `${ox * 3}px 4px 4px -4px rgba(0,0,0,.4),
+						: `${ox * 3}px ${4 - lift}px 4px -4px rgba(0,0,0,.8),
 						${ox * 6}px ${(6 + lift * 8) * oy}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
 						0px 50px 8px -10px inset rgba(0,0,0,${0.0375 + 0.025 * random()})`,
 				}}
