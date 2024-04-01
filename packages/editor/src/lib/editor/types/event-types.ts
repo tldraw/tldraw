@@ -50,17 +50,6 @@ export interface TLBaseEventInfo {
 }
 
 /** @public */
-export type TLBasePointerEventInfo = TLBaseEventInfo & {
-	type: 'pointer'
-	name: TLPointerEventName
-	// The pointer position in client space, i.e. clientX / clientY
-	point: VecLike
-	pointerId: number
-	button: number
-	isPen: boolean
-} & TLPointerEventTarget
-
-/** @public */
 export type TLPointerEventInfo = TLBaseEventInfo & {
 	type: 'pointer'
 	name: TLPointerEventName
