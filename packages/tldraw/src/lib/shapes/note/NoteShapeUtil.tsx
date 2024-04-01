@@ -30,6 +30,7 @@ import { useForceSolid } from '../shared/useForceSolid'
 import {
 	ADJACENT_NOTE_MARGIN,
 	CENTER_OFFSET,
+	CLONE_HANDLE_MARGIN,
 	NOTE_SIZE,
 	createOrSelectNoteInPosition,
 	startEditingNoteShape,
@@ -71,7 +72,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override getHandles(shape: TLNoteShape): TLHandle[] {
 		const zoom = this.editor.getZoomLevel()
-		const offset = ADJACENT_NOTE_MARGIN / zoom
+		const offset = CLONE_HANDLE_MARGIN / zoom
 
 		return [
 			{

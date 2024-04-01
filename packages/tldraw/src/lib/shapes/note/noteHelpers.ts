@@ -11,6 +11,8 @@ import {
 /** @internal */
 export const ADJACENT_NOTE_MARGIN = 20
 /** @internal */
+export const CLONE_HANDLE_MARGIN = 15
+/** @internal */
 export const NOTE_SIZE = 200
 /** @internal */
 export const CENTER_OFFSET = { x: NOTE_SIZE / 2, y: NOTE_SIZE / 2 }
