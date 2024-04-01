@@ -71,7 +71,7 @@ export class PointingHandle extends StateNode {
 				if (nextNote) {
 					// Center the shape on the current pointer
 					const centeredOnPointer = editor
-						.getPointInParentSpace(nextNote, editor.inputs.currentPagePoint)
+						.getPointInParentSpace(nextNote, editor.inputs.originPagePoint)
 						.sub(Vec.Rot(CENTER_OFFSET, nextNote.rotation))
 					editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
 
@@ -79,7 +79,7 @@ export class PointingHandle extends StateNode {
 					editor.select(nextNote.id).setCurrentTool('select.translating', {
 						...this.info,
 						target: 'shape',
-						shape: nextNote,
+						shape: editor.getShape(nextNote),
 						onInteractionEnd: 'note',
 						isCreating: true,
 						onCreate: () => {

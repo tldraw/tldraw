@@ -1,0 +1,260 @@
+import { Vec } from '@tldraw/editor'
+import { TestEditor } from '../../../test/TestEditor'
+
+let editor: TestEditor
+
+beforeEach(() => {
+	editor = new TestEditor()
+})
+afterEach(() => {
+	editor?.dispose()
+})
+
+function testCloneHandles(x: number, y: number, rotation: number) {
+	editor.createShape({ type: 'note', x, y, rotation })
+
+	const shape = editor.getLastCreatedShape()!
+
+	editor.select(shape.id)
+
+	const handles = editor.getShapeHandles(shape.id)!
+
+	const positions = [new Vec(0, -220), new Vec(220, 0), new Vec(0, 220), new Vec(-220, 0)].map(
+		(v) => v.rot(rotation).addXY(x, y)
+	)
+
+	handles.forEach((handle, i) => {
+		editor.select(shape.id)
+		editor.pointerDown(handle.x, handle.y, {
+			target: 'handle',
+			shape,
+			handle,
+		})
+
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.pointerUp()
+
+		const newShape = editor.getLastCreatedShape()
+
+		expect(newShape.id).not.toBe(shape.id)
+
+		const expectedPosition = positions[i]
+
+		editor.expectShapeToMatch({
+			id: newShape.id,
+			type: 'note',
+			x: expectedPosition.x,
+			y: expectedPosition.y,
+		})
+
+		editor.expectToBeIn('select.editing_shape')
+
+		editor.cancel().undo()
+	})
+}
+
+describe('Note clone handles', () => {
+	it('Creates a new sticky note using handles', () => {
+		testCloneHandles(0, 0, 0)
+	})
+
+	it('Creates a new sticky note when translated', () => {
+		testCloneHandles(100, 100, 0)
+	})
+
+	it('Creates a new sticky when rotated', () => {
+		testCloneHandles(0, 0, Math.PI / 2)
+	})
+
+	it('Creates a new sticky when translated and rotated', () => {
+		testCloneHandles(100, 100, Math.PI / 2)
+	})
+})
+
+function testDragCloneHandles(x: number, y: number, rotation: number) {
+	editor.createShape({ type: 'note', x, y, rotation })
+
+	const shape = editor.getLastCreatedShape()!
+
+	editor.select(shape.id)
+
+	const handles = editor.getShapeHandles(shape.id)!
+
+	handles.forEach((handle) => {
+		editor.select(shape.id)
+		editor.pointerMove(handle.x, handle.y)
+		editor.pointerDown(handle.x, handle.y, {
+			target: 'handle',
+			shape,
+			handle,
+		})
+
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.pointerMove(handle.x + 30, handle.y + 30)
+
+		editor.expectToBeIn('select.translating')
+
+		const newShape = editor.getLastCreatedShape()
+
+		expect(newShape.id).not.toBe(shape.id)
+
+		const offset = new Vec(100, 100).rot(rotation)
+
+		editor.expectShapeToMatch({
+			id: newShape.id,
+			type: 'note',
+			x: handle.x + 30 - offset.x,
+			y: handle.y + 30 - offset.y,
+		})
+
+		editor.pointerUp()
+
+		editor.expectToBeIn('select.editing_shape')
+
+		editor.cancel().undo()
+	})
+}
+
+describe('Dragging clone handles', () => {
+	it('Creates a new sticky note using handles', () => {
+		testDragCloneHandles(0, 0, 0)
+	})
+
+	it('Creates a new sticky note when translated', () => {
+		testDragCloneHandles(100, 100, 0)
+	})
+
+	it('Creates a new sticky when rotated', () => {
+		testDragCloneHandles(0, 0, Math.PI / 2)
+	})
+
+	it('Creates a new sticky when translated and rotated', () => {
+		testDragCloneHandles(100, 100, Math.PI / 2)
+	})
+})
+
+it('Selects an adjacent note when clicking the clone handle', () => {
+	editor.createShape({ type: 'note', x: 220, y: 0 })
+	const shapeA = editor.getLastCreatedShape()!
+
+	editor.createShape({ type: 'note', x: 0, y: 0 })
+	const shapeB = editor.getLastCreatedShape()!
+
+	editor.select(shapeB.id)
+
+	const handles = editor.getShapeHandles(shapeB.id)!
+
+	const handle = handles[1]
+
+	editor.select(shapeB.id)
+	editor.pointerDown(handle.x, handle.y, {
+		target: 'handle',
+		shape: shapeB,
+		handle,
+	})
+
+	editor.expectToBeIn('select.pointing_handle')
+
+	editor.pointerUp()
+
+	// Because there's a shape already in that direction...
+
+	// We didn't create a new shape; newShape is still shapeB
+	expect(editor.getLastCreatedShape().id).toBe(shapeB.id)
+
+	// the first shape is selected and we're editing it
+	expect(editor.getSelectedShapeIds()).toEqual([shapeA.id])
+
+	editor.expectToBeIn('select.editing_shape')
+})
+
+it('Creates an adjacent note when dragging the clone handle', () => {
+	editor.createShape({ type: 'note', x: 220, y: 0 })
+	const shapeA = editor.getLastCreatedShape()!
+
+	editor.createShape({ type: 'note', x: 0, y: 0 })
+	const shapeB = editor.getLastCreatedShape()!
+
+	editor.select(shapeB.id)
+
+	const handles = editor.getShapeHandles(shapeB.id)!
+
+	const handle = handles[1]
+
+	editor.select(shapeB.id)
+	editor.pointerDown(handle.x, handle.y, {
+		target: 'handle',
+		shape: shapeB,
+		handle,
+	})
+
+	editor.expectToBeIn('select.pointing_handle')
+
+	editor.pointerMove(handle.x + 30, handle.y + 30)
+
+	const newShape = editor.getLastCreatedShape()
+
+	expect(newShape.id).not.toBe(shapeB.id)
+	expect(newShape.id).not.toBe(shapeA.id)
+
+	const offset = new Vec(100, 100).rot(0)
+
+	editor.expectShapeToMatch({
+		id: newShape.id,
+		type: 'note',
+		x: handle.x + 30 - offset.x,
+		y: handle.y + 30 - offset.y,
+	})
+
+	editor.pointerUp()
+
+	editor.expectToBeIn('select.editing_shape')
+})
+
+it('Does not put the new shape into a frame if its center is not in the frame', () => {
+	editor.createShape({ type: 'frame', x: 321, y: 100 }) // one pixel too far...
+	const frameA = editor.getLastCreatedShape()!
+	// center no longer in the frame
+	editor.createShape({ type: 'note', x: 0, y: 0 })
+	const shapeA = editor.getLastCreatedShape()!
+	// to the right
+	const handle = editor.getShapeHandles(shapeA.id)![1]
+	editor
+		.select(shapeA.id)
+		.pointerDown(handle.x, handle.y, {
+			target: 'handle',
+			shape: shapeA,
+			handle,
+		})
+		.expectToBeIn('select.pointing_handle')
+		.pointerUp()
+
+	const newShape = editor.getLastCreatedShape()
+	// Should be a child of the frame
+	expect(newShape.parentId).not.toBe(frameA.id)
+})
+
+it('Puts the new shape into a frame based on its center', () => {
+	editor.createShape({ type: 'frame', x: 320, y: 100 })
+	const frameA = editor.getLastCreatedShape()!
+	// top left won't be in the frame, but the center will (barely but yes)
+	editor.createShape({ type: 'note', x: 0, y: 0 })
+	const shapeA = editor.getLastCreatedShape()!
+	// to the right
+	const handle = editor.getShapeHandles(shapeA.id)![1]
+	editor
+		.select(shapeA.id)
+		.pointerDown(handle.x, handle.y, {
+			target: 'handle',
+			shape: shapeA,
+			handle,
+		})
+		.expectToBeIn('select.pointing_handle')
+		.pointerUp()
+
+	const newShape = editor.getLastCreatedShape()
+	// Should be a child of the frame
+	expect(newShape.parentId).toBe(frameA.id)
+})
