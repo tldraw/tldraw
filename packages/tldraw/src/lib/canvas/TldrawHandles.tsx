@@ -3,6 +3,9 @@ import { TLHandlesProps, useEditor, useValue } from '@tldraw/editor'
 /** @public */
 export function TldrawHandles({ children }: TLHandlesProps) {
 	const editor = useEditor()
+
+	// todo: maybe display note shape handles here?
+
 	const shouldDisplayHandles = useValue(
 		'shouldDisplayHandles',
 		() => editor.isInAny('select.idle', 'select.pointing_handle'),

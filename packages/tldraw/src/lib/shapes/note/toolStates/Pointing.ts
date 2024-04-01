@@ -9,7 +9,7 @@ import {
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
-import { NOTE_PIT_RADIUS, getNotePits } from '../../../tools/selection-logic/getNotePits'
+import { NOTE_PIT_RADIUS, getNotePits } from '../noteHelpers'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

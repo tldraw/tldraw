@@ -15,7 +15,7 @@ import {
 	isPageId,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
-import { NOTE_PIT_RADIUS, NOTE_SIZE, NotePit, getNotePits } from '../../selection-logic/getNotePits'
+import { NOTE_PIT_RADIUS, NOTE_SIZE, NotePit, getNotePits } from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
 
 export class Translating extends StateNode {

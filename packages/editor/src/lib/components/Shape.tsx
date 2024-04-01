@@ -180,7 +180,8 @@ const CulledShape = function CulledShape<T extends TLShape>({ shapeId }: { shape
 	useQuickReactor(
 		'set shape stuff',
 		() => {
-			const bounds = editor.getShapeGeometry(shapeId).bounds
+			const bounds = editor.getShapeGeometry(shapeId)?.bounds
+			if (!bounds) return
 			setStyleProperty(
 				culledRef.current,
 				'transform',

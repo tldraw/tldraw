@@ -1,15 +1,14 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	Editor,
+	IndexKey,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
-	TLShape,
 	TLShapeId,
 	Vec,
-	createShapeId,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -28,9 +27,13 @@ import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { useForceSolid } from '../shared/useForceSolid'
-
-const NOTE_SIZE = 200
-const NEW_NOTE_MARGIN = 20
+import {
+	ADJACENT_NOTE_MARGIN,
+	CENTER_OFFSET,
+	NOTE_SIZE,
+	createOrSelectNoteInPosition,
+	startEditingNoteShape,
+} from './noteHelpers'
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -64,6 +67,42 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	getGeometry(shape: TLNoteShape) {
 		const height = this.getHeight(shape)
 		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true, isLabel: true })
+	}
+
+	override getHandles(shape: TLNoteShape): TLHandle[] {
+		const zoom = this.editor.getZoomLevel()
+		const offset = ADJACENT_NOTE_MARGIN / zoom
+
+		return [
+			{
+				id: 'top',
+				index: 'a1' as IndexKey,
+				type: 'clone',
+				x: NOTE_SIZE / 2,
+				y: -offset,
+			},
+			{
+				id: 'right',
+				index: 'a2' as IndexKey,
+				type: 'clone',
+				x: NOTE_SIZE + offset,
+				y: this.getHeight(shape) / 2,
+			},
+			{
+				id: 'bottom',
+				index: 'a3' as IndexKey,
+				type: 'clone',
+				x: NOTE_SIZE / 2,
+				y: this.getHeight(shape) + offset,
+			},
+			{
+				id: 'left',
+				index: 'a4' as IndexKey,
+				type: 'clone',
+				x: -offset,
+				y: this.getHeight(shape) / 2,
+			},
+		]
 	}
 
 	component(shape: TLNoteShape) {
@@ -298,7 +337,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const offset = new Vec(
 					isTab ? (e.shiftKey != isRTL ? -1 : 1) : 0,
 					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
-				).mul(NOTE_SIZE + NEW_NOTE_MARGIN)
+				).mul(NOTE_SIZE + ADJACENT_NOTE_MARGIN)
 
 				// If we're placing below, then we need to add th growY, too
 				if (isCmdEnter && !e.shiftKey) {
@@ -307,67 +346,11 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 				// Rotate the offset to match the current note's page rotation, and
 				// ddd the offset to the center to get the center of the next note
-				const point = centerInPageSpace.add(offset.rot(pageRotation))
-
-				// There might already be a note in that position! If there is, we'll
-				// select the next note and switch focus to it. If there's not, then
-				// we'll create a new note in that position.
-
-				let nextNote: TLShape | undefined
-
-				// Check the center of where a new note would be
-				const pointToCheck = Vec.Add(point, new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2).rot(pageRotation))
-
-				// Start from the top of the stack, and work our way down
-				const allShapesOnPage = editor.getCurrentPageShapesSorted()
-
-				for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
-					const otherNote = allShapesOnPage[i]
-					if (otherNote.type === 'note') {
-						if (otherNote.id === id) continue
-						if (editor.isPointInShape(otherNote, pointToCheck)) {
-							nextNote = otherNote
-							break
-						}
-					}
-				}
-
-				editor.complete()
-				editor.mark()
-
-				// If we didn't find any in that position, then create a new one
-				if (!nextNote) {
-					const id = createShapeId()
-					editor
-						.createShape({
-							id,
-							type: 'note',
-							x: point.x,
-							y: point.y,
-							rotation: shape.rotation,
-						})
-						.select(id)
-					nextNote = editor.getShape(id)!
-				}
-
-				// Finish this sticky and start editing the next one
-				editor.select(nextNote)
-				editor.setEditingShape(nextNote)
-				editor.setCurrentTool('select.editing_shape', {
-					target: 'shape',
-					shape: nextNote,
-				})
-
-				// Select any text that's in the newly selected sticky
-				;(document.getElementById(`text-input-${nextNote.id}`) as HTMLTextAreaElement)?.select()
-
-				// Animate to the next sticky if it would be off screen
-				const selectionPageBounds = editor.getSelectionPageBounds()
-				const viewportPageBounds = editor.getViewportPageBounds()
-				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-					editor.centerOnPoint(selectionPageBounds.center, {
-						duration: ANIMATION_MEDIUM_MS,
-					})
+				const topLeft = centerInPageSpace.add(offset.rot(pageRotation))
+				const center = Vec.Add(topLeft, Vec.Rot(CENTER_OFFSET, pageRotation))
+				const newNote = createOrSelectNoteInPosition(editor, shape, center, pageRotation)
+				if (newNote) {
+					startEditingNoteShape(editor, newNote)
 				}
 			}
 		},
