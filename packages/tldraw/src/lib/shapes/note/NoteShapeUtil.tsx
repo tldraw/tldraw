@@ -45,7 +45,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override canEdit = () => true
 	override doesAutoEditOnKeyStroke = () => true
 	override hideResizeHandles = () => true
-	override hideSelectionBoundsFg = () => true
+	override hideSelectionBoundsFg = () => false
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {

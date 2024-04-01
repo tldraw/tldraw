@@ -33323,6 +33323,29 @@
           "implementsTokenRanges": []
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/editor!SIDES:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "SIDES: "
+            },
+            {
+              "kind": "Content",
+              "text": "readonly [\"top\", \"right\", \"bottom\", \"left\"]"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/constants.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "SIDES",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
           "kind": "Function",
           "canonicalReference": "@tldraw/editor!SIN:function(1)",
           "docComment": "/**\n * @public\n */\n",

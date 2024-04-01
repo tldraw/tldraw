@@ -530,7 +530,7 @@ input,
 
 .tl-handle__clone > .tl-handle__fg {
 	fill: var(--color-selection-stroke);
-	stroke: transparent;
+	stroke: none;
 }
 
 .tl-handle__bg:active {

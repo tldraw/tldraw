@@ -8,7 +8,13 @@ export function TldrawHandles({ children }: TLHandlesProps) {
 
 	const shouldDisplayHandles = useValue(
 		'shouldDisplayHandles',
-		() => editor.isInAny('select.idle', 'select.pointing_handle'),
+		() => {
+			if (editor.isIn('select.editing_shape')) {
+				const editingShape = editor.getEditingShape()
+				return editingShape && editor.isShapeOfType(editingShape, 'note')
+			}
+			return editor.isInAny('select.idle', 'select.pointing_handle')
+		},
 		[editor]
 	)
 
