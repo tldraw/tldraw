@@ -328,23 +328,25 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				// Based on the inputs, calculate the offset to the next note
 				// tab controls x axis (shift inverts direction set by RTL)
 				// cmd enter is the y axis (shift inverts direction)
-				const isRTL = !!(isRightToLeftLanguage(shape.props.text) || translation.isRTL)
+				const isRTL = !!(translation.isRTL || isRightToLeftLanguage(shape.props.text))
+
 				const offsetLength =
 					NOTE_SIZE +
 					ADJACENT_NOTE_MARGIN +
 					// If we're growing down, we need to account for the current shape's growY
 					(isCmdEnter && !e.shiftKey ? shape.props.growY : 0)
-				const center = pageTransform.point().add(
-					// Get the normalized direction based on inputs
-					new Vec(
-						isTab ? (e.shiftKey != isRTL ? -1 : 1) : 0,
-						isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
-					)
-						.mul(offsetLength)
-						.add(CENTER_OFFSET)
-						.rot(pageRotation)
+
+				const adjacentCenter = new Vec(
+					isTab ? (e.shiftKey != isRTL ? -1 : 1) : 0,
+					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
 				)
-				const newNote = createOrSelectNoteInPosition(editor, shape, center, pageRotation)
+					.mul(offsetLength)
+					.add(CENTER_OFFSET)
+					.rot(pageRotation)
+					.add(pageTransform.point())
+
+				const newNote = createOrSelectNoteInPosition(editor, shape, adjacentCenter, pageRotation)
+
 				if (newNote) {
 					startEditingNoteShape(editor, newNote)
 				}

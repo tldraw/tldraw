@@ -19,7 +19,7 @@ export const NOTE_PIT_RADIUS = 10
 /** @internal */
 export type NotePit = Vec
 
-const DEFAULT_PITS = [
+const DEFAULT_PITS: NotePit[] = [
 	new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN), // t
 	new Vec(NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // r
 	new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN), // b
