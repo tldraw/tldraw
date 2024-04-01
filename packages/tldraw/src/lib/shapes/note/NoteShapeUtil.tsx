@@ -27,6 +27,7 @@ import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import { useForceSolid } from '../shared/useForceSolid'
 
 const NOTE_SIZE = 200
 const NEW_NOTE_MARGIN = 20
@@ -77,7 +78,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
-		const adjustedColor = color === 'black' ? 'yellow' : color
 		const noteHeight = this.getHeight(shape)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -85,59 +85,50 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			this.editor,
 		])
 
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const hideShadows = useForceSolid()
+
 		// Shadow stuff
 		const oy = Math.cos(rotation)
 		const ox = Math.sin(rotation)
 		const random = rng(id)
-		const randomizedRotation = random() * 4
-		const shadowBlur = 20 + random() * 2
-		const shadowWidth = NOTE_SIZE - shadowBlur * 2 //(3 + Math.abs(ox))
-		const heightRatio = noteHeight / NOTE_SIZE
+		const lift = 1 + random() * 0.5
 
 		return (
-			<>
-				<div
-					className="tl-note"
-					style={{
-						width: NOTE_SIZE,
-						height: noteHeight,
-					}}
-				>
-					<div
-						className="tl-note__container"
-						style={{
-							color: theme[adjustedColor].solid,
-						}}
-					>
-						<div
-							className="tl-note__shadow"
-							style={{
-								height: noteHeight,
-								boxShadow: `${ox * shadowBlur}px ${oy * 0.75 * shadowBlur}px ${shadowBlur}px rgba(0,0,0,.72), ${ox * shadowBlur}px ${oy * 0.75 * shadowBlur}px ${shadowBlur * 2}px ${shadowBlur / 2}px rgba(0,0,0,.55)`,
-								transform: `scaleX(${shadowWidth / NOTE_SIZE}) translateY(${-shadowBlur}px) perspective(${noteHeight / heightRatio}px) rotateX(${shadowBlur}deg) rotateY(${ox * -2}deg) rotateZ(${randomizedRotation + -ox}deg) `,
-							}}
-						/>
-						<div className="tl-note__body" />
-						<div className="tl-note__scrim" />
-					</div>
-					<TextLabel
-						id={id}
-						type={type}
-						font={font}
-						fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
-						lineHeight={TEXT_PROPS.lineHeight}
-						align={align}
-						verticalAlign={verticalAlign}
-						text={text}
-						labelColor="black"
-						wrap
-						onKeyDown={handleKeyDown}
-					/>
-				</div>
+			<div
+				id={id}
+				className="tl-note__container"
+				style={{
+					width: NOTE_SIZE,
+					height: noteHeight,
+					color: theme[color].note.text,
+					backgroundColor: theme[color].note.fill,
+					borderBottom: hideShadows ? `3px solid rgb(144, 144, 144)` : 'none',
+					boxShadow: hideShadows
+						? 'none'
+						: `${ox * 3}px 4px 4px -4px rgba(0,0,0,.4),
+						${ox * 6}px ${(6 + lift * 8) * oy}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
+						0px 50px 8px -10px inset rgba(0,0,0,${0.0375 + 0.025 * random()})`,
+				}}
+			>
+				<TextLabel
+					id={id}
+					type={type}
+					font={font}
+					fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
+					lineHeight={TEXT_PROPS.lineHeight}
+					align={align}
+					verticalAlign={verticalAlign}
+					text={text}
+					isNote
+					labelColor={color}
+					wrap
+					onKeyDown={handleKeyDown}
+				/>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 				)}
-			</>
+			</div>
 		)
 	}
 

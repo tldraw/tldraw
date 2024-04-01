@@ -5326,7 +5326,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    solid: string;\n    semi: string;\n    pattern: string;\n    highlight: {\n        srgb: string;\n        p3: string;\n    };\n}"
+              "text": "{\n    solid: string;\n    semi: string;\n    pattern: string;\n    note: {\n        fill: string;\n        text: string;\n    };\n    highlight: {\n        srgb: string;\n        p3: string;\n    };\n}"
             },
             {
               "kind": "Content",
