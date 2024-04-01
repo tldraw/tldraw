@@ -411,7 +411,7 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof HighlightShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
+export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
@@ -457,7 +457,7 @@ export function downsizeImage(blob: Blob, width: number, height: number, opts?: 
 // @public (undocumented)
 export class DrawShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_3)[];
+    static children: () => (typeof Drawing | typeof Idle_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -686,7 +686,7 @@ export function FrameToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_2 | typeof Pointing_2)[];
+    static children: () => (typeof Idle_3 | typeof Pointing_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -880,7 +880,7 @@ export function HexagonToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class HighlightShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_3)[];
+    static children: () => (typeof Drawing | typeof Idle_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
