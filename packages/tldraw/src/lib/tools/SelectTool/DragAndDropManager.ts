@@ -1,6 +1,6 @@
 import { Editor, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
 
-const SLOW_POINTER_LAG_DURATION = 20
+const INITIAL_POINTER_LAG_DURATION = 20
 const FAST_POINTER_LAG_DURATION = 100
 
 /** @public */
@@ -37,7 +37,7 @@ export class DragAndDropManager {
 		}
 
 		if (this.droppingNodeTimer === null) {
-			this.setDragTimer(movingShapes, SLOW_POINTER_LAG_DURATION, cb)
+			this.setDragTimer(movingShapes, INITIAL_POINTER_LAG_DURATION, cb)
 		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
 			clearInterval(this.droppingNodeTimer)
 			this.setDragTimer(movingShapes, FAST_POINTER_LAG_DURATION, cb)
