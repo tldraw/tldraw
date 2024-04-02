@@ -17,22 +17,9 @@ export class DragAndDropManager {
 
 	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
 		if (this.first) {
-			const prevDroppingShape = this.editor.getDroppingOverShape(
-				this.editor.inputs.originPagePoint,
-				movingShapes
-			)
-			this.prevDroppingShapeId = prevDroppingShape?.id ?? null
-			if (prevDroppingShape) {
-				const res = this.editor
-					.getShapeUtil(prevDroppingShape)
-					.onDragShapesOver?.(prevDroppingShape, movingShapes)
-
-				if (res && res.shouldHint) {
-					this.editor.setHintingShapes([prevDroppingShape.id])
-				}
-
-				cb?.()
-			}
+			this.prevDroppingShapeId =
+				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint, movingShapes)?.id ??
+				null
 			this.first = false
 		}
 
