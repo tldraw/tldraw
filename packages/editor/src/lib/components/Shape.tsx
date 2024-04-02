@@ -77,7 +77,6 @@ export const Shape = memo(function Shape({
 			if (transform !== prev.transform) {
 				setStyleProperty(containerRef.current, 'transform', transform)
 				setStyleProperty(bgContainerRef.current, 'transform', transform)
-				setStyleProperty(culledContainerRef.current, 'transform', transform)
 				const culledPageTransform = pageTransform.clone().translate(bounds.minX, bounds.minY)
 				setStyleProperty(
 					culledContainerRef.current,
