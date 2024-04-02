@@ -301,6 +301,7 @@ export {
 	intersectPolygonBounds,
 	intersectPolygonPolygon,
 	linesIntersect,
+	polygonIntersectsPolyline,
 	polygonsIntersect,
 } from './lib/primitives/intersect'
 export {

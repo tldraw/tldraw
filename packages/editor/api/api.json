@@ -28144,6 +28144,77 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/editor!polygonIntersectsPolyline:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function polygonIntersectsPolyline(polygon: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", polyline: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "boolean"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/intersect.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 7,
+            "endIndex": 8
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "polygon",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "polyline",
+              "parameterTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 6
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "polygonIntersectsPolyline"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/editor!polygonsIntersect:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [

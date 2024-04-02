@@ -1448,6 +1448,9 @@ export class Polygon2d extends Polyline2d {
 }
 
 // @public (undocumented)
+export function polygonIntersectsPolyline(polygon: VecLike[], polyline: VecLike[]): boolean;
+
+// @public (undocumented)
 export function polygonsIntersect(a: VecLike[], b: VecLike[]): boolean;
 
 // @public (undocumented)

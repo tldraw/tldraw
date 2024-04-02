@@ -971,6 +971,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 // @public (undocumented)
 export function isGifAnimated(file: Blob): Promise<boolean>;
 
+// @internal (undocumented)
+export function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId): boolean;
+
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
 

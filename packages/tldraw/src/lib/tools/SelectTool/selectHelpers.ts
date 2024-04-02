@@ -1,8 +1,12 @@
-import { Editor, TLShape, TLShapeId, polygonsIntersect } from '@tldraw/editor'
+import {
+	Editor,
+	TLShape,
+	TLShapeId,
+	polygonIntersectsPolyline,
+	polygonsIntersect,
+} from '@tldraw/editor'
 
-/**
- * @internal
- */
+/** @internal */
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	const shapes = shapeIds.map((id) => editor.getShape(id)).filter((s) => s) as TLShape[]
 	const effectedParents: TLShape[] = shapes.map((shape) => {
@@ -32,7 +36,8 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	editor.reparentShapes(kickedOutChildren, editor.getCurrentPageId())
 }
 
-function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId) {
+/** @internal */
+export function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId) {
 	const occluderPageBounds = editor.getShapePageBounds(occluder)
 	if (!occluderPageBounds) return false
 
@@ -56,5 +61,9 @@ function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId) {
 		return editor.getPointInShapeSpace(shape, v)
 	})
 
-	return !polygonsIntersect(shapeGeometry.vertices, occluderCornersInShapeSpace)
+	if (shapeGeometry.isClosed) {
+		return !polygonsIntersect(shapeGeometry.vertices, occluderCornersInShapeSpace)
+	}
+
+	return polygonIntersectsPolyline(shapeGeometry.vertices, occluderCornersInShapeSpace)
 }
