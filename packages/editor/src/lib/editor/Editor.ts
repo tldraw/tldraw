@@ -4356,7 +4356,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			filter?: (shape: TLShape) => boolean
 		}
 	): TLShape | undefined {
-		const now = Date.now()
 		const zoomLevel = this.getZoomLevel()
 		const viewportPageBounds = this.getViewportPageBounds()
 		const {
@@ -4373,21 +4372,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
-		// Old logic
-		// Best to compare to main though, since this is already using rendering shapes which is improved via rbush
-		// const shapesToCheck = (
-		// 	opts.renderingOnly
-		// 		? this.getCurrentPageRenderingShapesSorted()
-		// 		: this.getCurrentPageShapesSorted()
-		// ).filter((shape) => {
-		// 	if (this.isShapeOfType(shape, 'group')) return false
-		// 	const pageMask = this.getShapeMask(shape)
-		// 	if (pageMask && !pointInPolygon(point, pageMask)) return false
-		// 	if (filter) return filter(shape)
-		// 	return true
-		// })
-
-		// New logic
 		const bounds = Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN)
 		const shapesToCheck = this.getShapesInsideBounds(bounds).filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
