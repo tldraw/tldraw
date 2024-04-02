@@ -28,8 +28,16 @@ const DEFAULT_PITS: NotePit[] = [
 	new Vec(NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // l
 ]
 
-/** @internal */
-export function getNotePitsForShape(
+/**
+ * Get the adjacent positions for a particular note shape.
+ *
+ * @param pagePoint - The point of the note shape on the page.
+ * @param pageRotation - The rotation of the note shape on the page.
+ * @param growY - The growY of the note shape.
+ * @param extraHeight - The extra height to add to the top position above the note shape (ie the growY of the dragging shape).
+ *
+ * @internal */
+export function getNoteAdjacentPositions(
 	pagePoint: Vec,
 	pageRotation: number,
 	growY: number,
@@ -48,8 +56,19 @@ export function getNotePitsForShape(
 	})
 }
 
-/** @internal */
-export function getNotePits(editor: Editor, rotation: number, extraHeight: number) {
+/**
+ * Get all of the available note adjacent positions, excluding the selected shapes.
+ *
+ * @param editor - The editor instance.
+ * @param rotation - The rotation of the note shape.
+ * @param extraHeight - The extra height to add to the top position above the note shape (ie the growY of the dragging shape).
+ *
+ * @internal */
+export function getAvailableNoteAdjacentPositions(
+	editor: Editor,
+	rotation: number,
+	extraHeight: number
+) {
 	const selectedShapeIds = editor.getSelectedShapeIds()
 	const allUnselectedNoteShapes = editor
 		.getCurrentPageShapes()
@@ -62,13 +81,22 @@ export function getNotePits(editor: Editor, rotation: number, extraHeight: numbe
 			// We only want to create pits for notes with the specified rotation
 			if (rotation !== pageRotation) return
 			const pagePoint = transform.point()
-			return getNotePitsForShape(pagePoint, pageRotation, shape.props.growY, extraHeight)
+			return getNoteAdjacentPositions(pagePoint, pageRotation, shape.props.growY, extraHeight)
 		})
 	).filter((pit) => !allUnselectedNoteShapes.some((shape) => editor.isPointInShape(shape, pit)))
 }
 
-/** @internal */
-export function createOrSelectNoteInPosition(
+/**
+ * For a particular adjacent note position, get the shape in that position or create a new one.
+ *
+ * @param editor - The editor instance.
+ * @param shape - The note shape to create or select.
+ * @param center - The center of the note shape.
+ * @param pageRotation - The rotation of the note shape on the page.
+ * @param forceNew - Whether to force the creation of a new note shape.
+ *
+ * @internal */
+export function getNoteShapeForAdjacentPosition(
 	editor: Editor,
 	shape: TLNoteShape,
 	center: Vec,
@@ -111,6 +139,16 @@ export function createOrSelectNoteInPosition(
 			x: center.x,
 			y: center.y,
 			rotation: pageRotation,
+			opacity: shape.opacity,
+			props: {
+				// Use the props of the shape we're cloning
+				...shape.props,
+				// ...except for these values, which should reset to their defaults
+				text: '',
+				growY: 0,
+				fontSizeAdjustment: 0,
+				url: '',
+			},
 		})
 
 		// Now we need to correct its location within its new parent

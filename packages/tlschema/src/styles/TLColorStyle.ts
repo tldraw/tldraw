@@ -15,6 +15,7 @@ const colors = [
 	'light-green',
 	'light-red',
 	'red',
+	'white',
 ] as const
 
 /** @public */
@@ -208,6 +209,19 @@ export const DefaultColorThemePalette: {
 				p3: 'color(display-p3 0.972 0.8705 0.05)',
 			},
 		},
+		white: {
+			solid: '#FFFFFF',
+			semi: '#f5f5f5',
+			pattern: '#f9f9f9',
+			note: {
+				fill: '#FFFFFF',
+				text: '#000000',
+			},
+			highlight: {
+				srgb: '#ffffff',
+				p3: 'color(display-p3 1 1 1)',
+			},
+		},
 	},
 	darkMode: {
 		id: 'dark',
@@ -369,6 +383,19 @@ export const DefaultColorThemePalette: {
 			highlight: {
 				srgb: '#d2b700',
 				p3: 'color(display-p3 0.8078 0.7225 0.0312)',
+			},
+		},
+		white: {
+			solid: '#FFFFFF',
+			semi: '#f5f5f5',
+			pattern: '#f9f9f9',
+			note: {
+				fill: '#FFFFFF',
+				text: '#000000',
+			},
+			highlight: {
+				srgb: '#ffffff',
+				p3: 'color(display-p3 1 1 1)',
 			},
 		},
 	},

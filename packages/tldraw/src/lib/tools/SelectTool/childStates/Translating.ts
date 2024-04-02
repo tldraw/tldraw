@@ -15,7 +15,12 @@ import {
 	isPageId,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
-import { NOTE_PIT_RADIUS, NOTE_SIZE, NotePit, getNotePits } from '../../../shapes/note/noteHelpers'
+import {
+	NOTE_PIT_RADIUS,
+	NOTE_SIZE,
+	NotePit,
+	getAvailableNoteAdjacentPositions,
+} from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
@@ -336,15 +341,8 @@ function getTranslatingSnapshot(editor: Editor) {
 
 	let initialSnapPoints: BoundsSnapPoint[] = []
 
-	let notePits: NotePit[] | undefined
-
 	if (onlySelectedShape) {
 		initialSnapPoints = editor.snaps.shapeBounds.getSnapPoints(onlySelectedShape.id)!
-
-		if (editor.isShapeOfType<TLNoteShape>(onlySelectedShape, 'note')) {
-			const pageRotation = editor.getShapePageTransform(onlySelectedShape)!.rotation()
-			notePits = getNotePits(editor, pageRotation, onlySelectedShape.props.growY ?? 0)
-		}
 	} else {
 		const selectionPageBounds = editor.getSelectionPageBounds()
 		if (selectionPageBounds) {
@@ -356,13 +354,53 @@ function getTranslatingSnapshot(editor: Editor) {
 		}
 	}
 
+	let noteAdjacentPositions: NotePit[] | undefined
+	let noteSnapshot: MovingShapeSnapshot | undefined
+
+	const { originPagePoint } = editor.inputs
+
+	if (shapeSnapshots.length === 1) {
+		noteSnapshot = shapeSnapshots[0]
+	} else {
+		const allHoveredNotes = shapeSnapshots.filter(
+			(s) =>
+				editor.isShapeOfType<TLNoteShape>(s.shape, 'note') &&
+				editor.isPointInShape(s.shape, originPagePoint)
+		)
+
+		if (allHoveredNotes.length === 0) {
+			// noop
+		} else if (allHoveredNotes.length === 1) {
+			// just one, easy
+			noteSnapshot = allHoveredNotes[0]
+		} else {
+			// More than one under the cursor, so we need to find the highest shape in z-order
+			const allShapesSorted = editor.getCurrentPageShapesSorted()
+			noteSnapshot = allHoveredNotes
+				.map((s) => ({
+					snapshot: s,
+					index: allShapesSorted.findIndex((shape) => shape.id === s.shape.id),
+				}))
+				.sort((a, b) => b.index - a.index)[0]?.snapshot // highest up first
+		}
+	}
+
+	if (noteSnapshot) {
+		noteAdjacentPositions = getAvailableNoteAdjacentPositions(
+			editor,
+			noteSnapshot.pageRotation,
+			(noteSnapshot.shape as TLNoteShape).props.growY ?? 0
+		)
+	}
+
 	return {
 		averagePagePoint: Vec.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
 		initialPageBounds: editor.getSelectionPageBounds()!,
 		initialSnapPoints,
-		notePits,
+		noteAdjacentPositions,
+		noteSnapshot,
 	}
 }
 
@@ -384,8 +422,14 @@ export function moveShapesToPoint({
 }) {
 	const { inputs } = editor
 
-	const { notePits, initialPageBounds, initialSnapPoints, shapeSnapshots, averagePagePoint } =
-		snapshot
+	const {
+		noteSnapshot,
+		noteAdjacentPositions,
+		initialPageBounds,
+		initialSnapPoints,
+		shapeSnapshots,
+		averagePagePoint,
+	} = snapshot
 
 	const isGridMode = editor.getInstanceState().isGridMode
 
@@ -422,18 +466,16 @@ export function moveShapesToPoint({
 		delta.add(nudge)
 	} else {
 		// for sticky notes, snap to grid position next to other notes
-		if (notePits && shapeSnapshots.length === 1 && shapeSnapshots[0].shape.type === 'note') {
-			const noteSnapshot = shapeSnapshots[0]
-
+		if (noteSnapshot && noteAdjacentPositions) {
 			let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
 			let offset = new Vec(0, 0)
 
 			const pageCenter = Vec.Add(
-				Vec.Add(averagePagePoint, delta),
+				Vec.Add(noteSnapshot.pagePoint, delta),
 				new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2).rot(noteSnapshot.pageRotation)
 			)
 
-			for (const pit of notePits) {
+			for (const pit of noteAdjacentPositions) {
 				// We've already filtered pits with the same page rotation
 				const deltaToPit = Vec.Sub(pageCenter, pit)
 				const dist = deltaToPit.len()
