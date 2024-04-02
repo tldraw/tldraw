@@ -73,7 +73,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return resizeBox(shape, info, { minWidth, minHeight })
 	}
 
-	override component(shape: TLEmbedShape, isCulled: boolean) {
+	override component(shape: TLEmbedShape) {
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const embedInfo = useMemo(() => getEmbedInfoUnsafely(url), [url])
@@ -104,11 +104,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			if (!idFromGistUrl) throw Error('No gist id!')
 
 			return (
-				<HTMLContainer
-					className="tl-embed-container"
-					id={shape.id}
-					style={{ display: isCulled ? 'none' : undefined }}
-				>
+				<HTMLContainer className="tl-embed-container" id={shape.id}>
 					<Gist
 						id={idFromGistUrl}
 						width={toDomPrecision(w)!}

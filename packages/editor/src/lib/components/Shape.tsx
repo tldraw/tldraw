@@ -69,13 +69,7 @@ export const Shape = memo(function Shape({
 			}
 
 			// Page transform
-			const pageTransform = editor.getShapePageTransform(shape).clone()
-			const bounds = editor.getShapeGeometry(shape).bounds
-			if (isCulled) {
-				pageTransform.e += bounds.minX
-				pageTransform.f += bounds.minY
-			}
-			const transform = Mat.toCssString(pageTransform)
+			const transform = Mat.toCssString(editor.getShapePageTransform(id))
 			if (transform !== prev.transform) {
 				setStyleProperty(containerRef.current, 'transform', transform)
 				setStyleProperty(bgContainerRef.current, 'transform', transform)
@@ -85,6 +79,7 @@ export const Shape = memo(function Shape({
 			// Width / Height
 			// We round the shape width and height up to the nearest multiple of dprMultiple
 			// to avoid the browser making miscalculations when applying the transform.
+			const bounds = editor.getShapeGeometry(shape).bounds
 			const widthRemainder = bounds.w % dprMultiple
 			const heightRemainder = bounds.h % dprMultiple
 			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
@@ -99,7 +94,7 @@ export const Shape = memo(function Shape({
 				prev.height = height
 			}
 		},
-		[editor, isCulled]
+		[editor]
 	)
 
 	// This stuff changes pretty infrequently, so we can change them together
@@ -144,12 +139,13 @@ export const Shape = memo(function Shape({
 			)}
 			<div
 				ref={containerRef}
-				className={isCulled ? 'tl-shape tl-shape__culled' : 'tl-shape'}
+				className="tl-shape"
 				data-shape-type={shape.type}
 				draggable={false}
+				style={{ display: isCulled ? 'none' : undefined }}
 			>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
-					<InnerShape shape={shape} util={util} isCulled={isCulled} />
+					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
 			</div>
 		</>
@@ -157,21 +153,10 @@ export const Shape = memo(function Shape({
 })
 
 const InnerShape = memo(
-	function InnerShape<T extends TLShape>({
-		shape,
-		util,
-		isCulled,
-	}: {
-		shape: T
-		util: ShapeUtil<T>
-		isCulled: boolean
-	}) {
-		return useStateTracking('InnerShape:' + shape.type, () => util.component(shape, isCulled))
+	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
+		return useStateTracking('InnerShape:' + shape.type, () => util.component(shape))
 	},
-	(prev, next) =>
-		prev.shape.props === next.shape.props &&
-		prev.shape.meta === next.shape.meta &&
-		prev.isCulled === next.isCulled
+	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
 
 const InnerShapeBackground = memo(

@@ -23129,14 +23129,6 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", isCulled: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
                   "text": "): "
                 },
                 {
@@ -23159,8 +23151,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 8
+                "startIndex": 3,
+                "endIndex": 6
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -23171,14 +23163,6 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "isCulled",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
                   },
                   "isOptional": false
                 }
@@ -30791,14 +30775,6 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", isCulled: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
                   "text": "): "
                 },
                 {
@@ -30812,8 +30788,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 3,
+                "endIndex": 4
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -30824,14 +30800,6 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "isCulled",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
                   },
                   "isOptional": false
                 }

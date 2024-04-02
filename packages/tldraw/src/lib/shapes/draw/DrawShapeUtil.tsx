@@ -86,9 +86,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		})
 	}
 
-	component(shape: TLDrawShape, isCulled: boolean) {
+	component(shape: TLDrawShape) {
 		return (
-			<SVGContainer id={shape.id} style={{ display: isCulled ? 'none' : undefined }}>
+			<SVGContainer id={shape.id}>
 				<DrawShapSvg shape={shape} forceSolid={useForceSolid()} />
 			</SVGContainer>
 		)

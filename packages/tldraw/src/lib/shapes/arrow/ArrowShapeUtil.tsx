@@ -515,7 +515,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	component(shape: TLArrowShape, isCulled: boolean) {
+	component(shape: TLArrowShape) {
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
 		const shouldDisplayHandles =
 			this.editor.isInAny(
@@ -535,10 +535,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		return (
 			<>
-				<SVGContainer
-					id={shape.id}
-					style={{ minWidth: 50, minHeight: 50, display: isCulled ? 'none' : undefined }}
-				>
+				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
 					<ArrowSvg
 						shape={shape}
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape === shape}
@@ -553,7 +550,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						position={labelPosition.box.center}
 						width={labelPosition.box.w}
 						labelColor={shape.props.labelColor}
-						style={{ display: isCulled ? 'none' : undefined }}
 					/>
 				)}
 			</>

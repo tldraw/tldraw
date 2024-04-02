@@ -13,13 +13,11 @@ import { FrameLabelInput } from './FrameLabelInput'
 
 export const FrameHeading = function FrameHeading({
 	id,
-	isCulled,
 	name,
 	width,
 	height,
 }: {
 	id: TLShapeId
-	isCulled: boolean
 	name: string
 	width: number
 	height: number
@@ -106,7 +104,6 @@ export const FrameHeading = function FrameHeading({
 				}px + var(--space-5))`,
 				bottom: '100%',
 				transform: `${labelTranslate} scale(var(--tl-scale)) translateX(calc(-1 * var(--space-3))`,
-				display: isCulled ? 'none' : undefined,
 			}}
 			onPointerDown={handlePointerDown}
 		>

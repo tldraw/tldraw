@@ -125,9 +125,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		}
 	}
 
-	component(shape: TLLineShape, isCulled: boolean) {
+	component(shape: TLLineShape) {
 		return (
-			<SVGContainer id={shape.id} style={{ display: isCulled ? 'none' : undefined }}>
+			<SVGContainer id={shape.id}>
 				<LineShapeSvg shape={shape} />
 			</SVGContainer>
 		)
