@@ -680,8 +680,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
     static type: "frame";
-    // (undocumented)
-    unparentEscapedChildren(shape: TLFrameShape, shapeIds?: TLShapeId[]): void;
 }
 
 // @public (undocumented)
@@ -980,6 +978,9 @@ export function isGifAnimated(file: Blob): Promise<boolean>;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
+
+// @internal (undocumented)
+export function kickoutOccludedShapes(editor: Editor, shapes: TLShape[]): void;
 
 // @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;

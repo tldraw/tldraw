@@ -1,6 +1,5 @@
 import {
 	BaseBoxShapeUtil,
-	Box,
 	Geometry2d,
 	Rectangle2d,
 	SVGContainer,
@@ -10,19 +9,17 @@ import {
 	TLOnResizeEndHandler,
 	TLOnResizeHandler,
 	TLShape,
-	TLShapeId,
 	canonicalizeRotation,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
-	intersectPolygonBounds,
-	intersectPolylineBounds,
 	last,
 	resizeBox,
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
+import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
 import { FrameHeading } from './components/FrameHeading'
@@ -233,58 +230,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
-		this.unparentEscapedChildren(shape)
+		kickoutOccludedShapes(this.editor, [shape])
 	}
 
 	override onDropShapesOver = (shape: TLFrameShape, _shapes: TLShape[]) => {
-		this.unparentEscapedChildren(shape)
-	}
-
-	unparentEscapedChildren(
-		shape: TLFrameShape,
-		shapeIds: TLShapeId[] = this.editor.getSortedChildIdsForParent(shape.id)
-	) {
-		const bounds = this.editor.getShapePageBounds(shape)!
-		const children = shapeIds
-
-		const shapesToReparent: TLShapeId[] = []
-
-		for (const childId of children) {
-			const child = this.editor.getShape(childId)
-			if (!child) continue
-			if (child.parentId !== shape.id) continue
-			const childBounds = this.editor.getShapePageBounds(childId)!
-
-			// If the child's bounds are completely inside the frame, keep it
-			if (bounds.contains(childBounds)) continue
-
-			// If the child's bounds are completely outside the frame, unparent it
-			if (!bounds.includes(childBounds)) {
-				shapesToReparent.push(childId)
-				continue
-			}
-
-			// If we've made it this far, the child's bounds must intersect the edge of the frame
-			// If the child's geometry is outside the frame, unparent it
-
-			const childGeometry = this.editor.getShapeGeometry(childId)
-			const boundsInChildSpace = Box.FromPoints(
-				bounds.corners.map((v) => this.editor.getPointInShapeSpace(child, v))
-			)
-
-			if (childGeometry.isClosed) {
-				if (!intersectPolygonBounds(childGeometry.vertices, boundsInChildSpace)) {
-					shapesToReparent.push(childId)
-					continue
-				}
-			} else if (!intersectPolylineBounds(childGeometry.vertices, boundsInChildSpace)) {
-				shapesToReparent.push(childId)
-			}
-		}
-
-		if (shapesToReparent.length > 0) {
-			this.editor.reparentShapes(shapesToReparent, this.editor.getCurrentPageId())
-		}
+		kickoutOccludedShapes(this.editor, [shape])
 	}
 
 	override onResize: TLOnResizeHandler<any> = (shape, info) => {
