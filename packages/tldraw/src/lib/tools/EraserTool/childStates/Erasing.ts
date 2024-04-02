@@ -7,7 +7,6 @@ import {
 	TLGroupShape,
 	TLPointerEventInfo,
 	TLShapeId,
-	compact,
 	pointInPolygon,
 } from '@tldraw/editor'
 
@@ -93,9 +92,7 @@ export class Erasing extends StateNode {
 
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
 		const bounds = Box.FromPoints([currentPagePoint, previousPagePoint]).expandBy(HIT_TEST_MARGIN)
-		const candidates = compact(
-			this.editor.getShapesInsideBounds(bounds).map((id) => this.editor.getShape(id))
-		)
+		const candidates = this.editor.getShapesInsideBounds(bounds)
 
 		for (const shape of candidates) {
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue

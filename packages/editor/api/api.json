@@ -13349,21 +13349,12 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "NonNullable",
-                  "canonicalReference": "!NonNullable:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
                   "text": "TLShape",
                   "canonicalReference": "@tldraw/tlschema!TLShape:type"
                 },
                 {
                   "kind": "Content",
-                  "text": " | undefined>[]"
+                  "text": "[]"
                 },
                 {
                   "kind": "Content",
@@ -13373,7 +13364,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 7
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,

@@ -9,7 +9,6 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
-	compact,
 	intersectLineSegmentPolyline,
 	pointInPolygon,
 } from '@tldraw/editor'
@@ -99,9 +98,7 @@ export class ScribbleBrushing extends StateNode {
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
 
 		const bounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(HIT_TEST_MARGIN)
-		const candidates = compact(
-			this.editor.getShapesInsideBounds(bounds).map((id) => this.editor.getShape(id))
-		)
+		const candidates = this.editor.getShapesInsideBounds(bounds)
 
 		for (let i = 0, n = candidates.length; i < n; i++) {
 			shape = candidates[i]

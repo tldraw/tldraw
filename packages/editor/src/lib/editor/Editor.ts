@@ -3108,7 +3108,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	getShapesInsideBounds(bounds: Box) {
+	getShapesInsideBounds(bounds: Box): TLShape[] {
 		const shapeIdsInsideBounds = this.getShapeIdsInsideBounds(bounds)
 		return compact(shapeIdsInsideBounds.map((id) => this.getShape(id)))
 	}
@@ -4376,7 +4376,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		const bounds = Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN)
-		const shapesToCheck = this.getShapesInsideBounds(bounds).filter((shape) => {
+		const shapesWithinBounds = new Set(this.getShapeIdsInsideBounds(bounds))
+		const shapesToCheck = (
+			opts.renderingOnly
+				? this.getCurrentPageRenderingShapesSorted()
+				: this.getCurrentPageShapesSorted()
+		).filter((shape) => {
+			if (!shapesWithinBounds.has(shape.id)) return false
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false

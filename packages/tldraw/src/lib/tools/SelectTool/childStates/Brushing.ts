@@ -14,7 +14,6 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
-	compact,
 	moveCameraWhenCloseToEdge,
 	pointInPolygon,
 	polygonsIntersect,
@@ -130,9 +129,7 @@ export class Brushing extends StateNode {
 
 		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
 
-		const candidates = compact(
-			this.editor.getShapesInsideBounds(this.brush).map((id) => this.editor.getShape(id))
-		)
+		const candidates = this.editor.getShapesInsideBounds(this.brush)
 
 		testAllShapes: for (let i = 0, n = candidates.length; i < n; i++) {
 			shape = candidates[i]
