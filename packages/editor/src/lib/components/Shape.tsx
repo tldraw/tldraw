@@ -43,6 +43,7 @@ export const Shape = memo(function Shape({
 	const { ShapeErrorFallback } = useEditorComponents()
 
 	const containerRef = useRef<HTMLDivElement>(null)
+	const culledContainerRef = useRef<HTMLDivElement>(null)
 	const bgContainerRef = useRef<HTMLDivElement>(null)
 
 	const memoizedStuffRef = useRef({
@@ -64,22 +65,31 @@ export const Shape = memo(function Shape({
 			const clipPath = editor.getShapeClipPath(id) ?? 'none'
 			if (clipPath !== prev.clipPath) {
 				setStyleProperty(containerRef.current, 'clip-path', clipPath)
+				setStyleProperty(culledContainerRef.current, 'clip-path', clipPath)
 				setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
 				prev.clipPath = clipPath
 			}
 
 			// Page transform
-			const transform = Mat.toCssString(editor.getShapePageTransform(id))
+			const pageTransform = editor.getShapePageTransform(id)
+			const transform = Mat.toCssString(pageTransform)
+			const bounds = editor.getShapeGeometry(shape).bounds
 			if (transform !== prev.transform) {
 				setStyleProperty(containerRef.current, 'transform', transform)
 				setStyleProperty(bgContainerRef.current, 'transform', transform)
+				setStyleProperty(culledContainerRef.current, 'transform', transform)
+				const culledPageTransform = pageTransform.clone().translate(bounds.minX, bounds.minY)
+				setStyleProperty(
+					culledContainerRef.current,
+					'transform',
+					Mat.toCssString(culledPageTransform)
+				)
 				prev.transform = transform
 			}
 
 			// Width / Height
 			// We round the shape width and height up to the nearest multiple of dprMultiple
 			// to avoid the browser making miscalculations when applying the transform.
-			const bounds = editor.getShapeGeometry(shape).bounds
 			const widthRemainder = bounds.w % dprMultiple
 			const heightRemainder = bounds.h % dprMultiple
 			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
@@ -88,6 +98,8 @@ export const Shape = memo(function Shape({
 			if (width !== prev.width || height !== prev.height) {
 				setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
 				setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
+				setStyleProperty(culledContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
+				setStyleProperty(culledContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
 				setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
 				setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
 				prev.width = width
@@ -102,6 +114,7 @@ export const Shape = memo(function Shape({
 		'set opacity and z-index',
 		() => {
 			const container = containerRef.current
+			const culledContainer = culledContainerRef.current
 			const bgContainer = bgContainerRef.current
 
 			// Opacity
@@ -110,6 +123,7 @@ export const Shape = memo(function Shape({
 
 			// Z-Index
 			setStyleProperty(container, 'z-index', index)
+			setStyleProperty(culledContainer, 'z-index', index)
 			setStyleProperty(bgContainer, 'z-index', backgroundIndex)
 		},
 		[opacity, index, backgroundIndex]
@@ -148,6 +162,12 @@ export const Shape = memo(function Shape({
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
 			</div>
+			<div
+				ref={culledContainerRef}
+				className="tl-shape tl-shape__culled"
+				draggable={false}
+				style={{ display: isCulled ? undefined : 'none' }}
+			></div>
 		</>
 	)
 })
