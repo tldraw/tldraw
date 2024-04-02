@@ -111,6 +111,16 @@ export function createOrSelectNoteInPosition(
 			x: center.x,
 			y: center.y,
 			rotation: pageRotation,
+			opacity: shape.opacity,
+			props: {
+				// Use the props of the shape we're cloning
+				...shape.props,
+				// ...except for these values, which should reset to their defaults
+				text: '',
+				growY: 0,
+				fontSizeAdjustment: 0,
+				url: '',
+			},
 		})
 
 		// Now we need to correct its location within its new parent
