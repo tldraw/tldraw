@@ -17,6 +17,7 @@ import {
 } from '@tldraw/editor'
 import { NOTE_PIT_RADIUS, NOTE_SIZE, NotePit, getNotePits } from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
+import { kickoutOccludedShapes } from '../selectHelpers'
 
 export class Translating extends StateNode {
 	static override id = 'translating'
@@ -169,6 +170,7 @@ export class Translating extends StateNode {
 	protected complete() {
 		this.updateShapes()
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
+		kickoutOccludedShapes(this.editor, this.snapshot.movingShapes)
 		this.handleEnd()
 
 		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {

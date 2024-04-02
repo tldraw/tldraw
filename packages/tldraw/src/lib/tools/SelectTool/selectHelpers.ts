@@ -11,10 +11,13 @@ import {
  * @internal
  */
 export function kickoutOccludedShapes(editor: Editor, shapes: TLShape[]) {
-	const effectedParents: TLShape[] = shapes
+	const effectedParents: TLShape[] = shapes.map((shape) => {
+		const parent = editor.getShape(shape.parentId)
+		if (!parent) return shape
+		return parent
+	})
 
 	const kickedOutChildren: TLShapeId[] = []
-
 	for (const parent of effectedParents) {
 		const childIds = editor.getSortedChildIdsForParent(parent.id)
 
@@ -24,42 +27,44 @@ export function kickoutOccludedShapes(editor: Editor, shapes: TLShape[]) {
 
 		// For each child, check whether its bounds overlap with the parent's bounds
 		for (const childId of childIds) {
-			const childPageBounds = editor.getShapeMaskedPageBounds(childId)
-			if (!childPageBounds) {
-				kickedOutChildren.push(childId)
-				continue
-			}
-
-			// If the child's bounds are completely inside the parent, keep it
-			if (parentPageBounds.contains(childPageBounds)) {
-				continue
-			}
-
-			// If the child's bounds are completely outside the parent, unparent it
-			if (!parentPageBounds.includes(childPageBounds)) {
-				kickedOutChildren.push(childId)
-				continue
-			}
-
-			// If we've made it this far, the child's bounds must intersect the edge of the parent
-			// If the child's geometry is outside the parent, unparent it
-
-			const childGeometry = editor.getShapeGeometry(childId)
-			const parentBoundsInChildSpace = Box.FromPoints(
-				parentPageBounds.corners.map((v) => editor.getPointInShapeSpace(childId, v))
-			)
-
-			// If the child's geometry intersects the parent, keep it
-			if (
-				childGeometry.isClosed
-					? !intersectPolygonBounds(childGeometry.vertices, parentBoundsInChildSpace)
-					: !intersectPolylineBounds(childGeometry.vertices, parentBoundsInChildSpace)
-			) {
+			if (isShapeOccluded(editor, parent, childId)) {
 				kickedOutChildren.push(childId)
 			}
 		}
 	}
 
 	// now kick out the children
+	// TODO: make this reparent to the parent's parent?
 	editor.reparentShapes(kickedOutChildren, editor.getCurrentPageId())
+}
+
+function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId) {
+	const occluderPageBounds = editor.getShapePageBounds(occluder)
+	if (!occluderPageBounds) return false
+
+	const shapePageBounds = editor.getShapePageBounds(shape)
+	if (!shapePageBounds) return true
+
+	// If the shape's bounds are completely inside the occluder, it's not occluded
+	if (occluderPageBounds.contains(shapePageBounds)) {
+		return false
+	}
+
+	// If the shape's bounds are completely outside the occluder, it's occluded
+	if (!occluderPageBounds.includes(shapePageBounds)) {
+		return true
+	}
+
+	// If we've made it this far, the shape's bounds must intersect the edge of the occluder
+	// In this case, we need to look at the shape's geometry for a more fine-grained check
+	const shapeGeometry = editor.getShapeGeometry(shape)
+	const occluderBoundsInShapeSpace = Box.FromPoints(
+		occluderPageBounds.corners.map((v) => editor.getPointInShapeSpace(shape, v))
+	)
+
+	// If the shape's geometry intersects the occluder, it's not occluded
+	if (shapeGeometry.isClosed) {
+		return !intersectPolygonBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
+	}
+	return !intersectPolylineBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
 }

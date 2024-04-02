@@ -7632,54 +7632,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "tldraw!FrameShapeUtil#onDropShapesOver:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onDropShapesOver: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLFrameShape",
-                  "canonicalReference": "@tldraw/tlschema!TLFrameShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", _shapes: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]) => void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onDropShapesOver",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 6
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "tldraw!FrameShapeUtil#onResize:member",
               "docComment": "",
               "excerptTokens": [
@@ -7708,50 +7660,6 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "tldraw!FrameShapeUtil#onResizeEnd:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onResizeEnd: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnResizeEndHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnResizeEndHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLFrameShape",
-                  "canonicalReference": "@tldraw/tlschema!TLFrameShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onResizeEnd",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
               },
               "isStatic": false,
               "isProtected": false,

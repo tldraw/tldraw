@@ -6,7 +6,6 @@ import {
 	SvgExportContext,
 	TLFrameShape,
 	TLGroupShape,
-	TLOnResizeEndHandler,
 	TLOnResizeHandler,
 	TLShape,
 	canonicalizeRotation,
@@ -19,7 +18,6 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
 import { FrameHeading } from './components/FrameHeading'
@@ -227,14 +225,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		} else {
 			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
 		}
-	}
-
-	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
-		kickoutOccludedShapes(this.editor, [shape])
-	}
-
-	override onDropShapesOver = (shape: TLFrameShape, _shapes: TLShape[]) => {
-		kickoutOccludedShapes(this.editor, [shape])
 	}
 
 	override onResize: TLOnResizeHandler<any> = (shape, info) => {
