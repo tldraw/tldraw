@@ -129,7 +129,7 @@ export class TestEditor extends Editor {
 	 * @param count - The number of shapes to get.
 	 */
 	getLastCreatedShapes(count = 1) {
-		return this._lastCreatedShapes.slice(-count).map((s) => this.getShape(s))
+		return this._lastCreatedShapes.slice(-count).map((s) => this.getShape(s)!)
 	}
 
 	/**

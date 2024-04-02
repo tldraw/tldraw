@@ -2044,4 +2044,46 @@ describe('Note shape grid helper positions / pits', () => {
 			.pointerMove(104, 424) // account for the shape's growY
 			.expectShapeToMatch({ ...shape, x: 0, y: 320 }) // and we're in the pit (420 - 100 = 320)
 	})
+
+	it('Snaps multiple notes to the pit using the note under the cursor', () => {
+		editor.createShape({ type: 'note' })
+		editor.createShape({ type: 'note', x: 500, y: 500 })
+		editor.createShape({ type: 'note', x: 700, y: 500 })
+		const [shapeA, shapeB, shapeC] = editor.getLastCreatedShapes(3)
+
+		const pit = { x: 320, y: 100 } // right of shapeA
+
+		editor.select(shapeB, shapeC)
+
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 500, y: 500, w: 400, h: 200 })
+
+		editor
+			.pointerMove(600, 600) // center of b
+			.pointerDown()
+			.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
+
+		// B snaps the selection to the pit
+		editor.expectShapeToMatch({ ...shapeB, x: 220, y: 0 })
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 220, y: 0, w: 400, h: 200 })
+
+		editor.cancel()
+		editor
+			.pointerMove(800, 600) // center of c
+			.pointerDown()
+			.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
+
+		// C snaps the selection to the pit
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 20, y: 0, w: 400, h: 200 })
+
+		editor.cancel()
+		editor
+			.pointerMove(800, 600) // center of c
+			.pointerDown()
+			.pointerMove(pit.x - 4 + 200, pit.y - 4) // B is almost in the pit...
+
+		// Even though B is in the same place as it was when it snapped (while dragging over B),
+		// because our cursor is over C it won't fall into the pit—because it's not hovered
+		editor.expectShapeToMatch({ ...shapeB, x: 216, y: -4 })
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 216, y: -4, w: 400, h: 200 })
+	})
 })
