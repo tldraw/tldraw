@@ -1,4 +1,5 @@
 import { Editor, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
+import { isShapeOccluded } from './selectHelpers'
 
 const INITIAL_POINTER_LAG_DURATION = 20
 const FAST_POINTER_LAG_DURATION = 100
@@ -17,6 +18,12 @@ export class DragAndDropManager {
 
 	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
 		if (this.first) {
+			this.editor.setHintingShapes(
+				movingShapes
+					.map((s) => this.editor.findShapeAncestor(s, (v) => v.type !== 'group'))
+					.filter((s) => s) as TLShape[]
+			)
+
 			this.prevDroppingShapeId =
 				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint, movingShapes)?.id ??
 				null
@@ -47,6 +54,28 @@ export class DragAndDropManager {
 
 		// is the next dropping shape id different than the last one?
 		if (nextDroppingShapeId === this.prevDroppingShapeId) {
+			// Group moving shapes by their ancestor
+			const shapesGroupedByAncestor = new Map<TLShapeId, TLShape[]>()
+			for (const shape of movingShapes) {
+				const ancestor = this.editor.findShapeAncestor(shape, (v) => v.type !== 'group')
+				if (!ancestor) continue
+				const shapes = shapesGroupedByAncestor.get(ancestor.id) ?? []
+				shapes.push(shape)
+				shapesGroupedByAncestor.set(ancestor.id, shapes)
+			}
+
+			// Only hint an ancestor if some shapes will drop into it on pointer up
+			const hintingShapes = []
+			for (const [ancestorId, shapes] of shapesGroupedByAncestor) {
+				const ancestor = this.editor.getShape(ancestorId)
+				if (!ancestor) continue
+				if (shapes.some((shape) => !isShapeOccluded(this.editor, ancestor, shape.id))) {
+					hintingShapes.push(ancestor.id)
+				}
+			}
+
+			this.editor.setHintingShapes(hintingShapes)
+
 			return
 		}
 
