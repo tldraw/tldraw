@@ -147,6 +147,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					color: theme[color].note.text,
 					backgroundColor: theme[color].note.fill,
 					borderBottom: hideShadows ? `3px solid rgb(144, 144, 144)` : 'none',
+					opacity: hideShadows ? 1 : 0.99,
 					boxShadow: hideShadows
 						? 'none'
 						: `${ox * 3}px ${4 - lift}px 4px -4px rgba(0,0,0,.8),
