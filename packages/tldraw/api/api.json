@@ -5218,7 +5218,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
+                  "text": "<{\n            points: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -5227,7 +5227,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[];\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
+                  "text": "[];\n            type: \"free\" | \"straight\";\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -10538,7 +10538,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
+                  "text": "<{\n            points: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -10547,7 +10547,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[];\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
+                  "text": "[];\n            type: \"free\" | \"straight\";\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12512,7 +12512,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, {\n            id: string;\n            x: number;\n            y: number;\n            index: import(\"@tldraw/editor\")."
+                  "text": "<string, {\n            id: string;\n            index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12521,7 +12521,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        }>;\n    }"
+                  "text": ";\n            x: number;\n            y: number;\n        }>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -13243,6 +13243,60 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "tldraw!NoteShapeUtil#getHandles:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHandles(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLHandle",
+                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHandles"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "tldraw!NoteShapeUtil#getHeight:member(1)",
               "docComment": "",
               "excerptTokens": [
@@ -13459,7 +13513,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            fontSizeAdjustment: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            fontSizeAdjustment: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: "
                 },
                 {
                   "kind": "Reference",
@@ -13543,7 +13597,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            fontSizeAdjustment: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        props: {\n            growY: number;\n            fontSizeAdjustment: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: "
                 },
                 {
                   "kind": "Reference",

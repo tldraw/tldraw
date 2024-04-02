@@ -1742,7 +1742,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"../misc/geometry-types\")."
+              "text": "<{\n        points: import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
@@ -1751,7 +1751,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n    } & {}>;\n    isComplete: "
+              "text": "[];\n        type: \"free\" | \"straight\";\n    } & {}>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -2348,7 +2348,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"..\")."
+              "text": "<{\n        points: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2357,7 +2357,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n    } & {}>;\n    isComplete: "
+              "text": "[];\n        type: \"free\" | \"straight\";\n    } & {}>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -2818,7 +2818,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        id: string;\n        x: number;\n        y: number;\n        index: "
+              "text": "<string, {\n        id: string;\n        index: "
             },
             {
               "kind": "Reference",
@@ -2827,7 +2827,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    } & {}>;\n}"
+              "text": ";\n        x: number;\n        y: number;\n    } & {}>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",
@@ -5326,7 +5326,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    solid: string;\n    semi: string;\n    pattern: string;\n    highlight: {\n        srgb: string;\n        p3: string;\n    };\n}"
+              "text": "{\n    solid: string;\n    semi: string;\n    pattern: string;\n    note: {\n        fill: string;\n        text: string;\n    };\n    highlight: {\n        srgb: string;\n        p3: string;\n    };\n}"
             },
             {
               "kind": "Content",

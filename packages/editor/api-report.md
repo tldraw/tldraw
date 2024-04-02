@@ -1731,6 +1731,9 @@ export class SideEffectManager<CTX extends {
     }>): () => void;
 }
 
+// @public (undocumented)
+export const SIDES: readonly ["top", "right", "bottom", "left"];
+
 export { Signal }
 
 // @public (undocumented)

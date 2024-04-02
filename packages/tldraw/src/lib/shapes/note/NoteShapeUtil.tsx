@@ -1,16 +1,16 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	Editor,
+	IndexKey,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
 	TLGroupShape,
+	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
 	TLShape,
 	TLShapeId,
 	Vec,
-	createShapeId,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -29,8 +29,15 @@ import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
-const NOTE_SIZE = 200
-const NEW_NOTE_MARGIN = 20
+import { useForceSolid } from '../shared/useForceSolid'
+import {
+	ADJACENT_NOTE_MARGIN,
+	CENTER_OFFSET,
+	CLONE_HANDLE_MARGIN,
+	NOTE_SIZE,
+	createOrSelectNoteInPosition,
+	startEditingNoteShape,
+} from './noteHelpers'
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -41,7 +48,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override canEdit = () => true
 	override doesAutoEditOnKeyStroke = () => true
 	override hideResizeHandles = () => true
-	override hideSelectionBoundsFg = () => true
+	override hideSelectionBoundsFg = () => false
 
 	override canReceiveNewChildrenOfType = (shape: TLNoteShape, type: string) => type !== 'frame'
 	override canDropShapes = () => true
@@ -93,6 +100,44 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true, isLabel: true })
 	}
 
+	override getHandles(shape: TLNoteShape): TLHandle[] {
+		const zoom = this.editor.getZoomLevel()
+		const offset = CLONE_HANDLE_MARGIN / zoom
+
+		if (zoom < 0.25) return []
+
+		return [
+			{
+				id: 'top',
+				index: 'a1' as IndexKey,
+				type: 'clone',
+				x: NOTE_SIZE / 2,
+				y: -offset,
+			},
+			{
+				id: 'right',
+				index: 'a2' as IndexKey,
+				type: 'clone',
+				x: NOTE_SIZE + offset,
+				y: this.getHeight(shape) / 2,
+			},
+			{
+				id: 'bottom',
+				index: 'a3' as IndexKey,
+				type: 'clone',
+				x: NOTE_SIZE / 2,
+				y: this.getHeight(shape) + offset,
+			},
+			{
+				id: 'left',
+				index: 'a4' as IndexKey,
+				type: 'clone',
+				x: -offset,
+				y: this.getHeight(shape) / 2,
+			},
+		]
+	}
+
 	component(shape: TLNoteShape) {
 		const {
 			id,
@@ -105,7 +150,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
-		const adjustedColor = color === 'black' ? 'yellow' : color
 		const noteHeight = this.getHeight(shape)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -113,58 +157,51 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			this.editor,
 		])
 
+		// todo: consider hiding shadows on dark mode if they're invisible anyway
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const hideShadows = useForceSolid()
+
 		// Shadow stuff
 		const oy = Math.cos(rotation)
 		const ox = Math.sin(rotation)
 		const random = rng(id)
-		const randomizedRotation = random() * 4
-		const shadowBlur = 20 + random() * 2
-		const shadowWidth = NOTE_SIZE - shadowBlur * 2 //(3 + Math.abs(ox))
-		const heightRatio = noteHeight / NOTE_SIZE
+		const lift = 1 + random() * 0.5
 
 		return (
-			<>
-				<div
-					className="tl-note"
-					style={{
-						width: NOTE_SIZE,
-						height: noteHeight,
-					}}
-				>
-					<div
-						className="tl-note__container"
-						style={{
-							color: theme[adjustedColor].solid,
-						}}
-					>
-						<div
-							className="tl-note__shadow"
-							style={{
-								height: noteHeight,
-								boxShadow: `${ox * shadowBlur}px ${oy * 0.75 * shadowBlur}px ${shadowBlur}px rgba(0,0,0,.72), ${ox * shadowBlur}px ${oy * 0.75 * shadowBlur}px ${shadowBlur * 2}px ${shadowBlur / 2}px rgba(0,0,0,.55)`,
-								transform: `scaleX(${shadowWidth / NOTE_SIZE}) translateY(${-shadowBlur}px) perspective(${noteHeight / heightRatio}px) rotateX(${shadowBlur}deg) rotateY(${ox * -2}deg) rotateZ(${randomizedRotation + -ox}deg) `,
-							}}
-						/>
-						<div className="tl-note__body" />
-						<div className="tl-note__scrim" />
-					</div>
-					<TextLabel
-						id={id}
-						type={type}
-						font={font}
-						fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
-						lineHeight={TEXT_PROPS.lineHeight}
-						align={align}
-						verticalAlign={verticalAlign}
-						text={text}
-						labelColor="black"
-						onKeyDown={handleKeyDown}
-					/>
-				</div>
+			<div
+				id={id}
+				className="tl-note__container"
+				style={{
+					width: NOTE_SIZE,
+					height: noteHeight,
+					color: theme[color].note.text,
+					backgroundColor: theme[color].note.fill,
+					borderBottom: hideShadows ? `3px solid rgb(144, 144, 144)` : 'none',
+					boxShadow: hideShadows
+						? 'none'
+						: `${ox * 3}px ${4 - lift}px 4px -4px rgba(0,0,0,.8),
+						${ox * 6}px ${(6 + lift * 8) * oy}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
+						0px 50px 8px -10px inset rgba(0,0,0,${0.0375 + 0.025 * random()})`,
+				}}
+			>
+				<TextLabel
+					id={id}
+					type={type}
+					font={font}
+					fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
+					lineHeight={TEXT_PROPS.lineHeight}
+					align={align}
+					verticalAlign={verticalAlign}
+					text={text}
+					isNote
+					labelColor={color}
+					wrap
+					onKeyDown={handleKeyDown}
+				/>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 				)}
-			</>
+			</div>
 		)
 	}
 
@@ -319,91 +356,33 @@ function useNoteKeydownHandler(id: TLShapeId) {
 			if (isTab || isCmdEnter) {
 				e.preventDefault()
 
-				const isRTL = !!(isRightToLeftLanguage(shape.props.text) || translation.isRTL)
-
-				// Get the center of a default sized note at the current note's page position
-				const centerInPageSpace = editor
-					.getShapeParentTransform(id)
-					.applyToPoint(new Vec(shape.x, shape.y))
-
-				const pageRotation = editor.getShapePageTransform(id).rotation()
+				const pageTransform = editor.getShapePageTransform(id)
+				const pageRotation = pageTransform.rotation()
 
 				// Based on the inputs, calculate the offset to the next note
 				// tab controls x axis (shift inverts direction set by RTL)
 				// cmd enter is the y axis (shift inverts direction)
-				const offset = new Vec(
+				const isRTL = !!(translation.isRTL || isRightToLeftLanguage(shape.props.text))
+
+				const offsetLength =
+					NOTE_SIZE +
+					ADJACENT_NOTE_MARGIN +
+					// If we're growing down, we need to account for the current shape's growY
+					(isCmdEnter && !e.shiftKey ? shape.props.growY : 0)
+
+				const adjacentCenter = new Vec(
 					isTab ? (e.shiftKey != isRTL ? -1 : 1) : 0,
 					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
-				).mul(NOTE_SIZE + NEW_NOTE_MARGIN)
+				)
+					.mul(offsetLength)
+					.add(CENTER_OFFSET)
+					.rot(pageRotation)
+					.add(pageTransform.point())
 
-				// If we're placing below, then we need to add th growY, too
-				if (isCmdEnter && !e.shiftKey) {
-					offset.y += shape.props.growY
-				}
+				const newNote = createOrSelectNoteInPosition(editor, shape, adjacentCenter, pageRotation)
 
-				// Rotate the offset to match the current note's page rotation, and
-				// ddd the offset to the center to get the center of the next note
-				const point = centerInPageSpace.add(offset.rot(pageRotation))
-
-				// There might already be a note in that position! If there is, we'll
-				// select the next note and switch focus to it. If there's not, then
-				// we'll create a new note in that position.
-
-				let nextNote: TLShape | undefined
-
-				// Check the center of where a new note would be
-				const pointToCheck = Vec.Add(point, new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2).rot(pageRotation))
-
-				// Start from the top of the stack, and work our way down
-				const allShapesOnPage = editor.getCurrentPageShapesSorted()
-
-				for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
-					const otherNote = allShapesOnPage[i]
-					if (otherNote.type === 'note') {
-						if (otherNote.id === id) continue
-						if (editor.isPointInShape(otherNote, pointToCheck)) {
-							nextNote = otherNote
-							break
-						}
-					}
-				}
-
-				editor.complete()
-				editor.mark()
-
-				// If we didn't find any in that position, then create a new one
-				if (!nextNote) {
-					const id = createShapeId()
-					editor
-						.createShape({
-							id,
-							type: 'note',
-							x: point.x,
-							y: point.y,
-							rotation: shape.rotation,
-						})
-						.select(id)
-					nextNote = editor.getShape(id)!
-				}
-
-				// Finish this sticky and start editing the next one
-				editor.select(nextNote)
-				editor.setEditingShape(nextNote)
-				editor.setCurrentTool('select.editing_shape', {
-					target: 'shape',
-					shape: nextNote,
-				})
-
-				// Select any text that's in the newly selected sticky
-				;(document.getElementById(`text-input-${nextNote.id}`) as HTMLTextAreaElement)?.select()
-
-				// Animate to the next sticky if it would be off screen
-				const selectionPageBounds = editor.getSelectionPageBounds()
-				const viewportPageBounds = editor.getViewportPageBounds()
-				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-					editor.centerOnPoint(selectionPageBounds.center, {
-						duration: ANIMATION_MEDIUM_MS,
-					})
+				if (newNote) {
+					startEditingNoteShape(editor, newNote)
 				}
 			}
 		},

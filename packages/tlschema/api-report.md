@@ -200,8 +200,8 @@ export const drawShapeProps: {
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     segments: T.ArrayOfValidator<{
-        type: "free" | "straight";
         points: VecModel[];
+        type: "free" | "straight";
     } & {}>;
     isComplete: T.Validator<boolean>;
     isClosed: T.Validator<boolean>;
@@ -522,8 +522,8 @@ export const highlightShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     segments: T.ArrayOfValidator<{
-        type: "free" | "straight";
         points: VecModel[];
+        type: "free" | "straight";
     } & {}>;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
@@ -689,9 +689,9 @@ export const lineShapeProps: {
     spline: EnumStyleProp<"cubic" | "line">;
     points: T.DictValidator<string, {
         id: string;
+        index: IndexKey;
         x: number;
         y: number;
-        index: IndexKey;
     } & {}>;
 };
 
@@ -918,6 +918,10 @@ export type TLDefaultColorThemeColor = {
     solid: string;
     semi: string;
     pattern: string;
+    note: {
+        fill: string;
+        text: string;
+    };
     highlight: {
         srgb: string;
         p3: string;
