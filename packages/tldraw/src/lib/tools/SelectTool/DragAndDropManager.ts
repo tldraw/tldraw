@@ -76,19 +76,7 @@ export class DragAndDropManager {
 			this.editor
 				.getShapeUtil(nextDroppingShape)
 				.onDragShapesOver?.(nextDroppingShape, movingShapes)
-
-			// const res = this.editor
-			// 	.getShapeUtil(nextDroppingShape)
-			// 	.onDragShapesOver?.(nextDroppingShape, movingShapes)
-
-			// if (res && res.shouldHint) {
-			// 	this.editor.setHintingShapes([nextDroppingShape.id])
-			// }
 		}
-		// else {
-		// 	// If we're dropping onto the page, then clear hinting ids
-		// 	this.editor.setHintingShapes([])
-		// }
 
 		this.hintParents(movingShapes)
 		cb?.()
