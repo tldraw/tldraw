@@ -131,6 +131,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const hideShadows = useForceSolid()
 
+		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
+
 		// Shadow stuff
 		const oy = Math.cos(rotation)
 		const ox = Math.sin(rotation)
@@ -164,6 +166,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					verticalAlign={verticalAlign}
 					text={text}
 					isNote
+					isSelected={isSelected}
 					labelColor={color}
 					wrap
 					onKeyDown={handleKeyDown}

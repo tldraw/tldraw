@@ -530,6 +530,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (!info?.isValid) return null
 
 		const labelPosition = getArrowLabelPosition(this.editor, shape)
+		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
 
 		return (
 			<>
@@ -546,6 +547,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					size={shape.props.size}
 					position={labelPosition.box.center}
 					width={labelPosition.box.w}
+					isSelected={isSelected}
 					labelColor={shape.props.labelColor}
 				/>
 			</>

@@ -181,6 +181,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		})
 		const vertices = getSpeechBubbleVertices(shape)
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
+		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
 
 		return (
 			<>
@@ -203,6 +204,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					verticalAlign="start"
 					text={text}
 					labelColor={color}
+					isSelected={isSelected}
 					wrap
 				/>
 			</>

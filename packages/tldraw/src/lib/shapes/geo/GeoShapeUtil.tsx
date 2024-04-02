@@ -382,6 +382,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
 		const { labelColor, fill, font, align, verticalAlign, size, text } = props
+		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
 
 		return (
 			<>
@@ -402,6 +403,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						align={align}
 						verticalAlign={verticalAlign}
 						text={text}
+						isSelected={isSelected}
 						labelColor={labelColor}
 						wrap
 						bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}

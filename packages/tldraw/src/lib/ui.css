@@ -346,6 +346,17 @@
 	text-rendering: optimizeLegibility;
 }
 
+/** 
+ * This ensures that when starting a drag action at textarea
+ * that our pointer move events won't be blocked by the UI layer.
+ * Our textareas live on a different z-index layer to enable
+ * easier text editing and so their z-index messes with the
+ * normal drag operations.
+ */
+.tl-container[data-isdragging='true'] .tlui-layout * {
+	pointer-events: none;
+}
+
 .tlui-layout__top {
 	grid-column: 1;
 	grid-row: 1;

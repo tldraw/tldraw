@@ -29,6 +29,7 @@ type TextLabelProps = {
 	labelColor: TLDefaultColorStyle
 	bounds?: Box
 	isNote?: boolean
+	isSelected: boolean
 	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 	classNamePrefix?: string
 	style?: React.CSSProperties
@@ -50,6 +51,7 @@ export const TextLabel = React.memo(function TextLabel({
 	wrap,
 	bounds,
 	isNote,
+	isSelected,
 	onKeyDown: handleKeyDownCustom,
 	classNamePrefix,
 	style,
@@ -85,6 +87,7 @@ export const TextLabel = React.memo(function TextLabel({
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
+			data-isselected={isSelected}
 			style={{
 				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
 				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,

@@ -10,11 +10,15 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	font,
 	position,
 	width,
+	isSelected,
 	labelColor,
-}: { id: TLShapeId; position: VecLike; width?: number; labelColor: TLDefaultColorStyle } & Pick<
-	TLArrowShape['props'],
-	'text' | 'size' | 'font'
->) {
+}: {
+	id: TLShapeId
+	position: VecLike
+	width?: number
+	labelColor: TLDefaultColorStyle
+	isSelected: boolean
+} & Pick<TLArrowShape['props'], 'text' | 'size' | 'font'>) {
 	return (
 		<TextLabel
 			id={id}
@@ -28,6 +32,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 			text={text}
 			labelColor={labelColor}
 			textWidth={width}
+			isSelected={isSelected}
 			style={{
 				transform: `translate(${position.x}px, ${position.y}px)`,
 			}}

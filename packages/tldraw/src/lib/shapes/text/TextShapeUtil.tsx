@@ -70,6 +70,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
+		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
 
 		return (
 			<HTMLContainer id={shape.id}>
@@ -84,6 +85,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					verticalAlign="middle"
 					text={text}
 					labelColor={color}
+					isSelected={isSelected}
 					textWidth={width}
 					textHeight={height}
 					style={{
