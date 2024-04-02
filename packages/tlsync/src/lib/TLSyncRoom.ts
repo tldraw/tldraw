@@ -282,7 +282,6 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			])
 		)
 
-
 		const migrationResult = schema.migrateStoreSnapshot({
 			store: Object.fromEntries(
 				objectMapEntries(documents).map(([id, { state }]) => [id, state as R])
@@ -698,7 +697,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		}
 		const migrations = this.schema.getMigrationsSince(message.schema)
 		// if the client's store is at a different version to ours, we can't support them
-		if (!migrations.ok || migrations.value.some((m) => m.scope === 'store')) {
+		if (!migrations.ok || migrations.value.some((m) => m.scope === 'store' || !m.down)) {
 			this.rejectSession(session, TLIncompatibilityReason.ClientTooOld)
 			return
 		}
