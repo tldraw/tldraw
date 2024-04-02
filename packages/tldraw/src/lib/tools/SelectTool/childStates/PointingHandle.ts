@@ -76,17 +76,20 @@ export class PointingHandle extends StateNode {
 					editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
 
 					// Then select and begin translating the shape
-					editor.select(nextNote.id).setCurrentTool('select.translating', {
-						...this.info,
-						target: 'shape',
-						shape: editor.getShape(nextNote),
-						onInteractionEnd: 'note',
-						isCreating: true,
-						onCreate: () => {
-							// When we're done, start editing it
-							startEditingNoteShape(editor, nextNote)
-						},
-					})
+					editor
+						.setHoveredShape(nextNote.id) // important!
+						.select(nextNote.id)
+						.setCurrentTool('select.translating', {
+							...this.info,
+							target: 'shape',
+							shape: editor.getShape(nextNote),
+							onInteractionEnd: 'note',
+							isCreating: true,
+							onCreate: () => {
+								// When we're done, start editing it
+								startEditingNoteShape(editor, nextNote)
+							},
+						})
 					return
 				}
 			}

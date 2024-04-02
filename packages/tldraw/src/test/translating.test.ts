@@ -2049,7 +2049,7 @@ describe('Note shape grid helper positions / pits', () => {
 		editor.createShape({ type: 'note' })
 		editor.createShape({ type: 'note', x: 500, y: 500 })
 		editor.createShape({ type: 'note', x: 700, y: 500 })
-		const [shapeA, shapeB, shapeC] = editor.getLastCreatedShapes(3)
+		const [shapeB, shapeC] = editor.getLastCreatedShapes(2)
 
 		const pit = { x: 320, y: 100 } // right of shapeA
 
