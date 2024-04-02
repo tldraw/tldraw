@@ -1,4 +1,4 @@
-import { IndexKey, TLArrowShape, Vec, createShapeId } from '@tldraw/editor'
+import { IndexKey, TLArrowShape, Vec, createShapeId, getArrowBindings } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -530,8 +530,8 @@ describe('line bug', () => {
 			.keyUp('Shift')
 
 		expect(editor.getCurrentPageShapes().length).toBe(2)
-		const arrow = editor.getCurrentPageShapes()[1] as TLArrowShape
-		expect(arrow.props.end.type).toBe('binding')
+		const bindings = getArrowBindings(editor, editor.getCurrentPageShapes()[1] as TLArrowShape)
+		expect(bindings.end).toBeDefined()
 	})
 
 	it('works as expected when binding to a straight horizontal line', () => {
@@ -552,7 +552,7 @@ describe('line bug', () => {
 			.pointerUp()
 
 		expect(editor.getCurrentPageShapes().length).toBe(2)
-		const arrow = editor.getCurrentPageShapes()[1] as TLArrowShape
-		expect(arrow.props.end.type).toBe('binding')
+		const bindings = getArrowBindings(editor, editor.getCurrentPageShapes()[1] as TLArrowShape)
+		expect(bindings.end).toBeDefined()
 	})
 })

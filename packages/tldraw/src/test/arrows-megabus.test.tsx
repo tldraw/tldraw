@@ -1,4 +1,4 @@
-import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
+import { TLArrowShape, TLShapeId, Vec, createShapeId, getArrowBindings } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -20,6 +20,7 @@ const ids = {
 }
 
 const arrow = () => editor.getOnlySelectedShape() as TLArrowShape
+const bindings = () => getArrowBindings(editor, arrow())
 
 beforeEach(() => {
 	editor = new TestEditor()
@@ -127,18 +128,17 @@ describe('When binding an arrow to a shape', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(99, 50)
-		expect(arrow().props.start.type).toBe('point')
-		expect(arrow().props.end.type).toBe('point')
+		expect(bindings().start).toBeUndefined()
+		expect(bindings().end).toBeUndefined()
 	})
 
 	it('binds to the shape when dragged into the shape edge', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(100, 50)
-		expect(arrow().props.end).toMatchObject({
-			type: 'binding',
-			boundShapeId: ids.box1,
-			normalizedAnchor: { x: 0, y: 0.5 },
+		expect(bindings().end).toMatchObject({
+			toId: ids.box1,
+			props: { normalizedAnchor: { x: 0, y: 0.5 } },
 		})
 	})
 
@@ -146,21 +146,22 @@ describe('When binding an arrow to a shape', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(250, 50)
-		expect(arrow().props.end.type).toBe('point')
+		expect(bindings().end).toBeUndefined()
 	})
 
 	it('binds and then unbinds when moved out', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(150, 50)
-		expect(arrow().props.end).toMatchObject({
-			type: 'binding',
-			boundShapeId: ids.box1,
-			normalizedAnchor: { x: 0.5, y: 0.5 },
-			isPrecise: true, // enclosed
+		expect(bindings().end).toMatchObject({
+			toId: ids.box1,
+			props: {
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isPrecise: true, // enclosed
+			},
 		})
 		editor.pointerMove(250, 50)
-		expect(arrow().props.end.type).toBe('point')
+		expect(bindings().end).toBeUndefined()
 	})
 
 	it('does not bind when control key is held', () => {
@@ -168,7 +169,7 @@ describe('When binding an arrow to a shape', () => {
 		editor.keyDown('Control')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(100, 50)
-		expect(arrow().props.end.type).toBe('point')
+		expect(bindings().end).toBeUndefined()
 	})
 
 	it('does not bind when the shape is locked', () => {
@@ -176,7 +177,7 @@ describe('When binding an arrow to a shape', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(100, 50)
-		expect(arrow().props.end.type).toBe('point')
+		expect(bindings().end).toBeUndefined()
 	})
 
 	it('should use timer on keyup when using control key to skip binding', () => {
@@ -185,22 +186,22 @@ describe('When binding an arrow to a shape', () => {
 		editor.pointerMove(100, 50)
 
 		// can press control while dragging to switch into no-binding mode
-		expect(arrow().props.end.type).toBe('binding')
+		expect(bindings().end).toBeDefined()
 		editor.keyDown('Control')
-		expect(arrow().props.end.type).toBe('point')
+		expect(bindings().end).toBeUndefined()
 
 		editor.keyUp('Control')
-		expect(arrow().props.end.type).toBe('point') // there's a short delay here, it should still be a point
+		expect(bindings().end).toBeUndefined() // there's a short delay here, it should still be a point
 		jest.advanceTimersByTime(1000) // once the timer runs out...
-		expect(arrow().props.end.type).toBe('binding')
+		expect(bindings().end).toBeDefined()
 
 		editor.keyDown('Control') // no delay when pressing control again though
-		expect(arrow().props.end.type).toBe('point')
+		expect(bindings().end).toBeUndefined()
 
 		editor.keyUp('Control')
 		editor.pointerUp()
 		jest.advanceTimersByTime(1000) // once the timer runs out...
-		expect(arrow().props.end.type).toBe('point') // still a point because interaction ended before timer ended
+		expect(bindings().end).toBeUndefined() // still a point because interaction ended before timer ended
 	})
 })
 
@@ -607,13 +608,14 @@ describe('When binding an arrow to an ancestor', () => {
 
 		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
 		if (!arrow) throw Error('No arrow')
-		if (arrow.props.start.type !== 'binding') throw Error('no binding')
-		if (arrow.props.end.type !== 'binding') throw Error('no binding')
+		const bindings = getArrowBindings(editor, arrow)
+		if (!bindings.start) throw Error('no binding')
+		if (!bindings.end) throw Error('no binding')
 
-		expect(arrow.props.start.boundShapeId).toBe(ids.box1)
-		expect(arrow.props.end.boundShapeId).toBe(ids.frame)
-		expect(arrow.props.start.isPrecise).toBe(false)
-		expect(arrow.props.end.isPrecise).toBe(true)
+		expect(bindings.start.toId).toBe(ids.box1)
+		expect(bindings.end.toId).toBe(ids.frame)
+		expect(bindings.start.props.isPrecise).toBe(false)
+		expect(bindings.end.props.isPrecise).toBe(true)
 	})
 
 	it('binds precisely from parent to child', () => {
@@ -642,13 +644,14 @@ describe('When binding an arrow to an ancestor', () => {
 
 		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow') as TLArrowShape
 		if (!arrow) throw Error('No arrow')
-		if (arrow.props.start.type !== 'binding') throw Error('no binding')
-		if (arrow.props.end.type !== 'binding') throw Error('no binding')
+		const bindings = getArrowBindings(editor, arrow)
+		if (!bindings.start) throw Error('no binding')
+		if (!bindings.end) throw Error('no binding')
 
-		expect(arrow.props.start.boundShapeId).toBe(ids.frame)
-		expect(arrow.props.end.boundShapeId).toBe(ids.box1)
-		expect(arrow.props.start.isPrecise).toBe(false)
-		expect(arrow.props.end.isPrecise).toBe(true)
+		expect(bindings.start.toId).toBe(ids.frame)
+		expect(bindings.end.toId).toBe(ids.box1)
+		expect(bindings.start.props.isPrecise).toBe(false)
+		expect(bindings.end.props.isPrecise).toBe(true)
 	})
 })
 

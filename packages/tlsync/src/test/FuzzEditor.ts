@@ -1,16 +1,18 @@
 import {
 	Editor,
 	PageRecordType,
-	TLArrowShapeTerminal,
+	TLArrowBinding,
 	TLPage,
 	TLPageId,
 	TLShape,
 	TLShapeId,
 	TLStore,
+	VecModel,
 	createShapeId,
 	defaultShapeUtils,
 	defaultTools,
 } from 'tldraw'
+import { defaultBindingUtils } from 'tldraw/src/lib/defaultBindingUtils'
 import { RandomSource } from './RandomSource'
 
 export type Op =
@@ -37,8 +39,8 @@ export type Op =
 	  }
 	| {
 			type: 'create-arrow'
-			start: TLArrowShapeTerminal
-			end: TLArrowShapeTerminal
+			start: TLArrowBinding | VecModel
+			end: TLArrowBinding | VecModel
 	  }
 	| {
 			type: 'delete-shape'
@@ -97,6 +99,7 @@ export class FuzzEditor extends RandomSource {
 		super(_seed)
 		this.editor = new Editor({
 			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
 			tools: defaultTools,
 			initialState: 'select',
 			store,

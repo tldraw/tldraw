@@ -121,7 +121,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			if (!migration.dependsOn?.length) continue
 			for (const dep of migration.dependsOn) {
 				const depMigration = allMigrations.find((m) => m.id === dep)
-				assert(depMigration, `Migration '${migration.id}' depends on missing migration '${dep}'`)
+				// TODO: we can't assert here because the store migrations depend on the arrow
+				// migrations, but the arrow migrations might not be present if we're using the
+				// editor without arrows :/
+				if (!depMigration) {
+					console.warn(`Migration '${migration.id}' depends on missing migration '${dep}'`)
+				}
 			}
 		}
 	}

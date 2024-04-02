@@ -5,7 +5,6 @@ import {
 	PageRecordType,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
-	TLArrowShapeTerminal,
 	TLAsset,
 	TLAssetId,
 	TLDefaultColorStyle,
@@ -410,12 +409,10 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 										arrowheadStart: getV2Arrowhead(v1Shape.decorations?.start),
 										arrowheadEnd: getV2Arrowhead(v1Shape.decorations?.end),
 										start: {
-											type: 'point',
 											x: coerceNumber(v1Shape.handles.start.point[0]),
 											y: coerceNumber(v1Shape.handles.start.point[1]),
 										},
 										end: {
-											type: 'point',
 											x: coerceNumber(v1Shape.handles.end.point[0]),
 											y: coerceNumber(v1Shape.handles.end.point[1]),
 										},
@@ -563,18 +560,19 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								})
 
 								if (change) {
-									if (change.props?.[handleId]) {
-										const terminal = change.props?.[handleId] as TLArrowShapeTerminal
-										if (terminal.type === 'binding') {
-											terminal.isExact = binding.distance === 0
+									// TODO(alex): can we delete this?
+									// if (change.props?.[handleId]) {
+									// 	const terminal = change.props?.[handleId] as TLArrowShapeTerminal
+									// 	if (terminal.type === 'binding') {
+									// 		terminal.isExact = binding.distance === 0
 
-											if (terminal.boundShapeId !== targetId) {
-												console.warn('Hit the wrong shape!')
-												terminal.boundShapeId = targetId
-												terminal.normalizedAnchor = { x: 0.5, y: 0.5 }
-											}
-										}
-									}
+									// 		if (terminal.boundShapeId !== targetId) {
+									// 			console.warn('Hit the wrong shape!')
+									// 			terminal.boundShapeId = targetId
+									// 			terminal.normalizedAnchor = { x: 0.5, y: 0.5 }
+									// 		}
+									// 	}
+									// }
 									editor.updateShapes([change])
 								}
 							}

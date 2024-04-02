@@ -26,6 +26,7 @@ import {
 	createTLStore,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
+import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
@@ -60,12 +61,17 @@ export class TestEditor extends Editor {
 		elm.tabIndex = 0
 
 		const shapeUtilsWithDefaults = [...defaultShapeUtils, ...(options.shapeUtils ?? [])]
+		const bindingUtilsWithDefaults = [...defaultBindingUtils, ...(options.bindingUtils ?? [])]
 
 		super({
 			...options,
-			shapeUtils: [...shapeUtilsWithDefaults],
+			shapeUtils: shapeUtilsWithDefaults,
+			bindingUtils: bindingUtilsWithDefaults,
 			tools: [...defaultTools, ...defaultShapeTools, ...(options.tools ?? [])],
-			store: createTLStore({ shapeUtils: [...shapeUtilsWithDefaults] }),
+			store: createTLStore({
+				shapeUtils: shapeUtilsWithDefaults,
+				bindingUtils: bindingUtilsWithDefaults,
+			}),
 			getContainer: () => elm,
 			initialState: 'select',
 		})

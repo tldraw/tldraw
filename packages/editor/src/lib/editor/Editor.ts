@@ -6,10 +6,14 @@ import {
 	PageRecordType,
 	StyleProp,
 	StylePropValue,
+	TLArrowBinding,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
+	TLBinding,
+	TLBindingId,
+	TLBindingPartial,
 	TLCursor,
 	TLCursorType,
 	TLDOCUMENT_ID,
@@ -31,8 +35,10 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLStore,
+	TLUnknownBinding,
 	TLUnknownShape,
 	TLVideoAsset,
+	createBindingId,
 	createShapeId,
 	getShapePropKeysByStyle,
 	isPageId,
@@ -60,6 +66,7 @@ import { EventEmitter } from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { TLUser, createTLUser } from '../config/createTLUser'
+import { checkBindings } from '../config/defaultBindings'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	ANIMATION_MEDIUM_MS,
@@ -98,7 +105,7 @@ import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
-import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
+import { BindingUtil, TLBindingUtilConstructor } from './bindings/BindingUtil'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
@@ -115,7 +122,7 @@ import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
 import { TLArrowInfo } from './shapes/shared/arrow/arrow-types'
 import { getCurvedArrowInfo } from './shapes/shared/arrow/curved-arrow'
-import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/shared/arrow/shared'
+import { getArrowBindings, getIsArrowStraight } from './shapes/shared/arrow/shared'
 import { getStraightArrowInfo } from './shapes/shared/arrow/straight-arrow'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -161,6 +168,10 @@ export interface TLEditorOptions {
 	 */
 	shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[]
 	/**
+	 * An array of bindings to use in the editor. These will be used to create and manage bindings in the editor.
+	 */
+	bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[]
+	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
 	tools: readonly TLStateNodeConstructor[]
@@ -189,6 +200,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		store,
 		user,
 		shapeUtils,
+		bindingUtils,
 		tools,
 		getContainer,
 		initialState,
@@ -248,6 +260,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.shapeUtils = _shapeUtils
 		this.styleProps = _styleProps
 
+		const allBindingUtils = checkBindings(bindingUtils)
+		const _bindingUtils = {} as Record<string, BindingUtil<any>>
+		for (const Util of allBindingUtils) {
+			const util = new Util(this)
+			_bindingUtils[Util.type] = util
+		}
+		this.bindingUtils = _bindingUtils
+
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
@@ -265,118 +285,118 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const invalidParents = new Set<TLShapeId>()
 
-		const reparentArrow = (arrowId: TLArrowShape['id']) => {
-			const arrow = this.getShape<TLArrowShape>(arrowId)
-			if (!arrow) return
-			const { start, end } = arrow.props
-			const startShape = start.type === 'binding' ? this.getShape(start.boundShapeId) : undefined
-			const endShape = end.type === 'binding' ? this.getShape(end.boundShapeId) : undefined
+		// const reparentArrow = (arrowId: TLArrowShape['id']) => {
+		// 	const arrow = this.getShape<TLArrowShape>(arrowId)
+		// 	if (!arrow) return
+		// 	const { start, end } = arrow.props
+		// 	const startShape = start.type === 'binding' ? this.getShape(start.boundShapeId) : undefined
+		// 	const endShape = end.type === 'binding' ? this.getShape(end.boundShapeId) : undefined
 
-			const parentPageId = this.getAncestorPageId(arrow)
-			if (!parentPageId) return
+		// 	const parentPageId = this.getAncestorPageId(arrow)
+		// 	if (!parentPageId) return
 
-			let nextParentId: TLParentId
-			if (startShape && endShape) {
-				// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
-				nextParentId = this.findCommonAncestor([startShape, endShape]) ?? parentPageId
-			} else if (startShape || endShape) {
-				const bindingParentId = (startShape || endShape)?.parentId
-				// If the arrow and the shape that it is bound to have the same parent, then keep that parent
-				if (bindingParentId && bindingParentId === arrow.parentId) {
-					nextParentId = arrow.parentId
-				} else {
-					// if arrow has one binding, keep arrow on its own page
-					nextParentId = parentPageId
-				}
-			} else {
-				return
-			}
+		// 	let nextParentId: TLParentId
+		// 	if (startShape && endShape) {
+		// 		// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
+		// 		nextParentId = this.findCommonAncestor([startShape, endShape]) ?? parentPageId
+		// 	} else if (startShape || endShape) {
+		// 		const bindingParentId = (startShape || endShape)?.parentId
+		// 		// If the arrow and the shape that it is bound to have the same parent, then keep that parent
+		// 		if (bindingParentId && bindingParentId === arrow.parentId) {
+		// 			nextParentId = arrow.parentId
+		// 		} else {
+		// 			// if arrow has one binding, keep arrow on its own page
+		// 			nextParentId = parentPageId
+		// 		}
+		// 	} else {
+		// 		return
+		// 	}
 
-			if (nextParentId && nextParentId !== arrow.parentId) {
-				this.reparentShapes([arrowId], nextParentId)
-			}
+		// 	if (nextParentId && nextParentId !== arrow.parentId) {
+		// 		this.reparentShapes([arrowId], nextParentId)
+		// 	}
 
-			const reparentedArrow = this.getShape<TLArrowShape>(arrowId)
-			if (!reparentedArrow) throw Error('no reparented arrow')
+		// 	const reparentedArrow = this.getShape<TLArrowShape>(arrowId)
+		// 	if (!reparentedArrow) throw Error('no reparented arrow')
 
-			const startSibling = this.getShapeNearestSibling(reparentedArrow, startShape)
-			const endSibling = this.getShapeNearestSibling(reparentedArrow, endShape)
+		// 	const startSibling = this.getShapeNearestSibling(reparentedArrow, startShape)
+		// 	const endSibling = this.getShapeNearestSibling(reparentedArrow, endShape)
 
-			let highestSibling: TLShape | undefined
+		// 	let highestSibling: TLShape | undefined
 
-			if (startSibling && endSibling) {
-				highestSibling = startSibling.index > endSibling.index ? startSibling : endSibling
-			} else if (startSibling && !endSibling) {
-				highestSibling = startSibling
-			} else if (endSibling && !startSibling) {
-				highestSibling = endSibling
-			} else {
-				return
-			}
+		// 	if (startSibling && endSibling) {
+		// 		highestSibling = startSibling.index > endSibling.index ? startSibling : endSibling
+		// 	} else if (startSibling && !endSibling) {
+		// 		highestSibling = startSibling
+		// 	} else if (endSibling && !startSibling) {
+		// 		highestSibling = endSibling
+		// 	} else {
+		// 		return
+		// 	}
 
-			let finalIndex: IndexKey
+		// 	let finalIndex: IndexKey
 
-			const higherSiblings = this.getSortedChildIdsForParent(highestSibling.parentId)
-				.map((id) => this.getShape(id)!)
-				.filter((sibling) => sibling.index > highestSibling!.index)
+		// 	const higherSiblings = this.getSortedChildIdsForParent(highestSibling.parentId)
+		// 		.map((id) => this.getShape(id)!)
+		// 		.filter((sibling) => sibling.index > highestSibling!.index)
 
-			if (higherSiblings.length) {
-				// there are siblings above the highest bound sibling, we need to
-				// insert between them.
+		// 	if (higherSiblings.length) {
+		// 		// there are siblings above the highest bound sibling, we need to
+		// 		// insert between them.
 
-				// if the next sibling is also a bound arrow though, we can end up
-				// all fighting for the same indexes. so lets find the next
-				// non-arrow sibling...
-				const nextHighestNonArrowSibling = higherSiblings.find(
-					(sibling) => sibling.type !== 'arrow'
-				)
+		// 		// if the next sibling is also a bound arrow though, we can end up
+		// 		// all fighting for the same indexes. so lets find the next
+		// 		// non-arrow sibling...
+		// 		const nextHighestNonArrowSibling = higherSiblings.find(
+		// 			(sibling) => sibling.type !== 'arrow'
+		// 		)
 
-				if (
-					// ...then, if we're above the last shape we want to be above...
-					reparentedArrow.index > highestSibling.index &&
-					// ...but below the next non-arrow sibling...
-					(!nextHighestNonArrowSibling || reparentedArrow.index < nextHighestNonArrowSibling.index)
-				) {
-					// ...then we're already in the right place. no need to update!
-					return
-				}
+		// 		if (
+		// 			// ...then, if we're above the last shape we want to be above...
+		// 			reparentedArrow.index > highestSibling.index &&
+		// 			// ...but below the next non-arrow sibling...
+		// 			(!nextHighestNonArrowSibling || reparentedArrow.index < nextHighestNonArrowSibling.index)
+		// 		) {
+		// 			// ...then we're already in the right place. no need to update!
+		// 			return
+		// 		}
 
-				// otherwise, we need to find the index between the highest sibling
-				// we want to be above, and the next highest sibling we want to be
-				// below:
-				finalIndex = getIndexBetween(highestSibling.index, higherSiblings[0].index)
-			} else {
-				// if there are no siblings above us, we can just get the next index:
-				finalIndex = getIndexAbove(highestSibling.index)
-			}
+		// 		// otherwise, we need to find the index between the highest sibling
+		// 		// we want to be above, and the next highest sibling we want to be
+		// 		// below:
+		// 		finalIndex = getIndexBetween(highestSibling.index, higherSiblings[0].index)
+		// 	} else {
+		// 		// if there are no siblings above us, we can just get the next index:
+		// 		finalIndex = getIndexAbove(highestSibling.index)
+		// 	}
 
-			if (finalIndex !== reparentedArrow.index) {
-				this.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }])
-			}
-		}
+		// 	if (finalIndex !== reparentedArrow.index) {
+		// 		this.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }])
+		// 	}
+		// }
 
-		const unbindArrowTerminal = (arrow: TLArrowShape, handleId: 'start' | 'end') => {
-			const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
-			this.store.put([{ ...arrow, props: { ...arrow.props, [handleId]: { type: 'point', x, y } } }])
-		}
+		// const unbindArrowTerminal = (arrow: TLArrowShape, handleId: 'start' | 'end') => {
+		// 	const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
+		// 	this.store.put([{ ...arrow, props: { ...arrow.props, [handleId]: { type: 'point', x, y } } }])
+		// }
 
-		const arrowDidUpdate = (arrow: TLArrowShape) => {
-			// if the shape is an arrow and its bound shape is on another page
-			// or was deleted, unbind it
-			for (const handle of ['start', 'end'] as const) {
-				const terminal = arrow.props[handle]
-				if (terminal.type !== 'binding') continue
-				const boundShape = this.getShape(terminal.boundShapeId)
-				const isShapeInSamePageAsArrow =
-					this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
-				if (!boundShape || !isShapeInSamePageAsArrow) {
-					unbindArrowTerminal(arrow, handle)
-				}
-			}
+		// const arrowDidUpdate = (arrow: TLArrowShape) => {
+		// 	// if the shape is an arrow and its bound shape is on another page
+		// 	// or was deleted, unbind it
+		// 	for (const handle of ['start', 'end'] as const) {
+		// 		const terminal = arrow.props[handle]
+		// 		if (terminal.type !== 'binding') continue
+		// 		const boundShape = this.getShape(terminal.boundShapeId)
+		// 		const isShapeInSamePageAsArrow =
+		// 			this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
+		// 		if (!boundShape || !isShapeInSamePageAsArrow) {
+		// 			unbindArrowTerminal(arrow, handle)
+		// 		}
+		// 	}
 
-			// always check the arrow parents
-			reparentArrow(arrow.id)
-		}
+		// 	// always check the arrow parents
+		// 	reparentArrow(arrow.id)
+		// }
 
 		const cleanupInstancePageState = (
 			prevPageState: TLInstancePageState,
@@ -450,28 +470,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.sideEffects.register({
 				shape: {
 					afterCreate: (record) => {
-						if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
-							arrowDidUpdate(record)
-						}
+						// if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
+						// 	arrowDidUpdate(record)
+						// }
 					},
 					afterChange: (prev, next) => {
-						if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
-							arrowDidUpdate(next)
-						}
+						// if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
+						// 	arrowDidUpdate(next)
+						// }
 
 						// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
-						if (prev.parentId !== next.parentId) {
-							const reparentBoundArrows = (id: TLShapeId) => {
-								const boundArrows = this._getArrowBindingsIndex().get()[id]
-								if (boundArrows?.length) {
-									for (const arrow of boundArrows) {
-										reparentArrow(arrow.arrowId)
-									}
-								}
-							}
-							reparentBoundArrows(next.id)
-							this.visitDescendants(next.id, reparentBoundArrows)
-						}
+						// if (prev.parentId !== next.parentId) {
+						// 	const reparentBoundArrows = (id: TLShapeId) => {
+						// 		const boundArrows = this._getArrowBindingsIndex().get()[id]
+						// 		if (boundArrows?.length) {
+						// 			for (const arrow of boundArrows) {
+						// 				reparentArrow(arrow.arrowId)
+						// 			}
+						// 		}
+						// 	}
+						// 	reparentBoundArrows(next.id)
+						// 	this.visitDescendants(next.id, reparentBoundArrows)
+						// }
 
 						// if this shape moved to a new page, clean up any previous page's instance state
 						if (prev.parentId !== next.parentId && isPageId(next.parentId)) {
@@ -504,14 +524,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 							invalidParents.add(record.parentId)
 						}
 						// clean up any arrows bound to this shape
-						const bindings = this._getArrowBindingsIndex().get()[record.id]
-						if (bindings?.length) {
-							for (const { arrowId, handleId } of bindings) {
-								const arrow = this.getShape<TLArrowShape>(arrowId)
-								if (!arrow) continue
-								unbindArrowTerminal(arrow, handleId)
-							}
-						}
+						// const bindings = this._getArrowBindingsIndex().get()[record.id]
+						// if (bindings?.length) {
+						// 	for (const { arrowId, handleId } of bindings) {
+						// 		const arrow = this.getShape<TLArrowShape>(arrowId)
+						// 		if (!arrow) continue
+						// 		unbindArrowTerminal(arrow, handleId)
+						// 	}
+						// }
 						const deletedIds = new Set([record.id])
 						const updates = compact(
 							this.getPageStates().map((pageState) => {
@@ -792,6 +812,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return shapeUtil
 	}
 
+	/* ------------------- Binding Utils ------------------ */
+	/**
+	 * A map of shape utility classes (TLShapeUtils) by shape type.
+	 *
+	 * @public
+	 */
+	bindingUtils: { readonly [K in string]?: BindingUtil<TLUnknownBinding> }
+
+	/**
+	 * Get a binding util from a binding itself.
+	 *
+	 * @example
+	 * ```ts
+	 * const util = editor.getBindingUtil(myArrowBinding)
+	 * const util = editor.getBindingUtil('arrow')
+	 * const util = editor.getBindingUtil<TLArrowBinding>(myArrowBinding)
+	 * const util = editor.getBindingUtil(TLArrowBinding)('arrow')
+	 * ```
+	 *
+	 * @param binding - A binding, binding partial, or binding type.
+	 *
+	 * @public
+	 */
+	getBindingUtil<S extends TLUnknownBinding>(binding: S | TLBindingPartial<S>): BindingUtil<S>
+	getBindingUtil<S extends TLUnknownBinding>(type: S['type']): BindingUtil<S>
+	getBindingUtil<T extends BindingUtil>(
+		type: T extends BindingUtil<infer R> ? R['type'] : string
+	): T
+	getBindingUtil(arg: string | { type: string }) {
+		const type = typeof arg === 'string' ? arg : arg.type
+		const bindingUtil = getOwnProperty(this.bindingUtils, type)
+		assert(bindingUtil, `No binding util found for type "${type}"`)
+		return bindingUtil
+	}
+
 	/* --------------------- History -------------------- */
 
 	/**
@@ -913,12 +968,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Arrows --------------------- */
 	// todo: move these to tldraw or replace with a bindings API
 
-	/** @internal */
-	@computed
-	private _getArrowBindingsIndex() {
-		return arrowBindingsIndex(this)
-	}
-
 	/**
 	 * Get all arrows bound to a shape.
 	 *
@@ -927,15 +976,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getArrowsBoundTo(shapeId: TLShapeId) {
-		return this._getArrowBindingsIndex().get()[shapeId] || EMPTY_ARRAY
+		const ids = new Set(
+			this.getBindingsToShape<TLArrowBinding>(shapeId, 'arrow').map((b) => b.fromId)
+		)
+		return compact(Array.from(ids, (id) => this.getShape<TLArrowShape>(id)))
 	}
 
 	@computed
 	private getArrowInfoCache() {
 		return this.store.createComputedCache<TLArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
+			const bindings = getArrowBindings(this, shape)
 			return getIsArrowStraight(shape)
-				? getStraightArrowInfo(this, shape)
-				: getCurvedArrowInfo(this, shape)
+				? getStraightArrowInfo(this, shape, bindings)
+				: getCurvedArrowInfo(this, shape, bindings)
 		})
 	}
 
@@ -4836,6 +4889,99 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return match
 	}
 
+	/* -------------------- Bindings -------------------- */
+
+	getBinding(id: TLBindingId): TLBinding | undefined {
+		return this.store.get(id) as TLBinding | undefined
+	}
+
+	// TODO: maintain these indexes more pro-actively
+	getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(
+		shape: TLShape | TLShapeId,
+		type: Binding['type']
+	): Binding[] {
+		const id = typeof shape === 'string' ? shape : shape.id
+		return this.store.query.exec('binding', {
+			fromId: { eq: id },
+			type: { eq: type },
+		}) as Binding[]
+	}
+	getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(
+		shape: TLShape | TLShapeId,
+		type: Binding['type']
+	): Binding[] {
+		const id = typeof shape === 'string' ? shape : shape.id
+		return this.store.query.exec('binding', {
+			toId: { eq: id },
+			type: { eq: type },
+		}) as Binding[]
+	}
+	getAllBindingsForShape(shape: TLShape | TLShapeId): TLBinding[] {
+		const id = typeof shape === 'string' ? shape : shape.id
+		const from = this.store.query.index('binding', 'fromId').get().get(id) ?? new Set()
+		const to = this.store.query.index('binding', 'toId').get().get(id)
+		const shapes = []
+		for (const id of from) {
+			shapes.push(this.store.get(id) as TLBinding)
+		}
+		if (to) {
+			for (const id of to) {
+				if (from.has(id)) continue
+				shapes.push(this.store.get(id) as TLBinding)
+			}
+		}
+		return shapes
+	}
+
+	createBindings(partials: RequiredKeys<TLBindingPartial, 'type' | 'toId' | 'fromId'>[]) {
+		const bindings = partials.map((partial) => {
+			const util = this.getBindingUtil<TLUnknownBinding>(partial.type)
+			const defaultProps = util.getDefaultProps()
+			return this.store.schema.types.binding.create({
+				...partial,
+				id: partial.id ?? createBindingId(),
+				props: {
+					...defaultProps,
+					...partial.props,
+				},
+			})
+		})
+		this.store.put(bindings)
+	}
+	createBinding(partial: RequiredKeys<TLBindingPartial, 'type' | 'fromId' | 'toId'>) {
+		return this.createBindings([partial])
+	}
+
+	updateBindings(partials: (TLBindingPartial | null | undefined)[]) {
+		const updated: TLBinding[] = []
+
+		for (const partial of partials) {
+			if (!partial) continue
+
+			const current = this.getBinding(partial.id)
+			if (!current) continue
+
+			const updatedBinding = applyPartialToBinding(current, partial)
+			if (updatedBinding === current) continue
+
+			updated.push(updatedBinding)
+		}
+
+		this.store.put(updated)
+	}
+
+	updateBinding(partial: TLBindingPartial) {
+		return this.updateBindings([partial])
+	}
+
+	deleteBindings(bindings: (TLBinding | TLBindingId)[]) {
+		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
+		this.store.remove(ids)
+	}
+	deleteBinding(binding: TLBinding | TLBindingId) {
+		return this.deleteBindings([binding])
+	}
+
 	/* -------------------- Commands -------------------- */
 
 	/**
@@ -4999,80 +5145,80 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				let newShape: TLShape = structuredClone(shape)
 
-				if (
-					this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
-					this.isShapeOfType<TLArrowShape>(newShape, 'arrow')
-				) {
-					const info = this.getArrowInfo(shape)
-					let newStartShapeId: TLShapeId | undefined = undefined
-					let newEndShapeId: TLShapeId | undefined = undefined
+				// if (
+				// 	this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
+				// 	this.isShapeOfType<TLArrowShape>(newShape, 'arrow')
+				// ) {
+				// 	const info = this.getArrowInfo(shape)
+				// 	let newStartShapeId: TLShapeId | undefined = undefined
+				// 	let newEndShapeId: TLShapeId | undefined = undefined
 
-					if (shape.props.start.type === 'binding') {
-						newStartShapeId = idsMap.get(shape.props.start.boundShapeId)
+				// 	if (shape.props.start.type === 'binding') {
+				// 		newStartShapeId = idsMap.get(shape.props.start.boundShapeId)
 
-						if (!newStartShapeId) {
-							if (info?.isValid) {
-								const { x, y } = info.start.point
-								newShape.props.start = {
-									type: 'point',
-									x,
-									y,
-								}
-							} else {
-								const { start } = getArrowTerminalsInArrowSpace(this, shape)
-								newShape.props.start = {
-									type: 'point',
-									x: start.x,
-									y: start.y,
-								}
-							}
-						}
-					}
+				// 		if (!newStartShapeId) {
+				// 			if (info?.isValid) {
+				// 				const { x, y } = info.start.point
+				// 				newShape.props.start = {
+				// 					type: 'point',
+				// 					x,
+				// 					y,
+				// 				}
+				// 			} else {
+				// 				const { start } = getArrowTerminalsInArrowSpace(this, shape)
+				// 				newShape.props.start = {
+				// 					type: 'point',
+				// 					x: start.x,
+				// 					y: start.y,
+				// 				}
+				// 			}
+				// 		}
+				// 	}
 
-					if (shape.props.end.type === 'binding') {
-						newEndShapeId = idsMap.get(shape.props.end.boundShapeId)
-						if (!newEndShapeId) {
-							if (info?.isValid) {
-								const { x, y } = info.end.point
-								newShape.props.end = {
-									type: 'point',
-									x,
-									y,
-								}
-							} else {
-								const { end } = getArrowTerminalsInArrowSpace(this, shape)
-								newShape.props.start = {
-									type: 'point',
-									x: end.x,
-									y: end.y,
-								}
-							}
-						}
-					}
+				// 	if (shape.props.end.type === 'binding') {
+				// 		newEndShapeId = idsMap.get(shape.props.end.boundShapeId)
+				// 		if (!newEndShapeId) {
+				// 			if (info?.isValid) {
+				// 				const { x, y } = info.end.point
+				// 				newShape.props.end = {
+				// 					type: 'point',
+				// 					x,
+				// 					y,
+				// 				}
+				// 			} else {
+				// 				const { end } = getArrowTerminalsInArrowSpace(this, shape)
+				// 				newShape.props.start = {
+				// 					type: 'point',
+				// 					x: end.x,
+				// 					y: end.y,
+				// 				}
+				// 			}
+				// 		}
+				// 	}
 
-					const infoAfter = getIsArrowStraight(newShape)
-						? getStraightArrowInfo(this, newShape)
-						: getCurvedArrowInfo(this, newShape)
+				// 	const infoAfter = getIsArrowStraight(newShape)
+				// 		? getStraightArrowInfo(this, newShape)
+				// 		: getCurvedArrowInfo(this, newShape)
 
-					if (info?.isValid && infoAfter?.isValid && !getIsArrowStraight(shape)) {
-						const mpA = Vec.Med(info.start.handle, info.end.handle)
-						const distA = Vec.Dist(info.middle, mpA)
-						const distB = Vec.Dist(infoAfter.middle, mpA)
-						if (newShape.props.bend < 0) {
-							newShape.props.bend += distB - distA
-						} else {
-							newShape.props.bend -= distB - distA
-						}
-					}
+				// 	if (info?.isValid && infoAfter?.isValid && !getIsArrowStraight(shape)) {
+				// 		const mpA = Vec.Med(info.start.handle, info.end.handle)
+				// 		const distA = Vec.Dist(info.middle, mpA)
+				// 		const distB = Vec.Dist(infoAfter.middle, mpA)
+				// 		if (newShape.props.bend < 0) {
+				// 			newShape.props.bend += distB - distA
+				// 		} else {
+				// 			newShape.props.bend -= distB - distA
+				// 		}
+				// 	}
 
-					if (newShape.props.start.type === 'binding' && newStartShapeId) {
-						newShape.props.start.boundShapeId = newStartShapeId
-					}
+				// 	if (newShape.props.start.type === 'binding' && newStartShapeId) {
+				// 		newShape.props.start.boundShapeId = newStartShapeId
+				// 	}
 
-					if (newShape.props.end.type === 'binding' && newEndShapeId) {
-						newShape.props.end.boundShapeId = newEndShapeId
-					}
-				}
+				// 	if (newShape.props.end.type === 'binding' && newEndShapeId) {
+				// 		newShape.props.end.boundShapeId = newEndShapeId
+				// 	}
+				// }
 
 				newShape = { ...newShape, id: createId, x: shape.x + ox, y: shape.y + oy, index }
 
@@ -5430,11 +5576,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				.filter((shape) => {
 					if (!shape) return false
 
-					if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-						if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
-							return false
-						}
-					}
+					// if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+					// 	if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
+					// 		return false
+					// 	}
+					// }
 
 					return true
 				})
@@ -5576,11 +5722,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				.filter((shape) => {
 					if (!shape) return false
 
-					if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-						if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
-							return false
-						}
-					}
+					// if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+					// 	if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
+					// 		return false
+					// 	}
+					// }
 
 					return true
 				})
@@ -7270,75 +7416,75 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			shape = structuredClone(shape) as typeof shape
 
-			if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-				const startBindingId =
-					shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : undefined
+			// if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			// 	const startBindingId =
+			// 		shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : undefined
 
-				const endBindingId =
-					shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : undefined
+			// 	const endBindingId =
+			// 		shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : undefined
 
-				const info = this.getArrowInfo(shape)
+			// 	const info = this.getArrowInfo(shape)
 
-				if (shape.props.start.type === 'binding') {
-					if (!shapesForContent.some((s) => s.id === startBindingId)) {
-						// Uh oh, the arrow's bound-to shape isn't among the shapes
-						// that we're getting the content for. We should try to adjust
-						// the arrow so that it appears in the place it would be
-						if (info?.isValid) {
-							const { x, y } = info.start.point
-							shape.props.start = {
-								type: 'point',
-								x,
-								y,
-							}
-						} else {
-							const { start } = getArrowTerminalsInArrowSpace(this, shape)
-							shape.props.start = {
-								type: 'point',
-								x: start.x,
-								y: start.y,
-							}
-						}
-					}
-				}
+			// 	if (shape.props.start.type === 'binding') {
+			// 		if (!shapesForContent.some((s) => s.id === startBindingId)) {
+			// 			// Uh oh, the arrow's bound-to shape isn't among the shapes
+			// 			// that we're getting the content for. We should try to adjust
+			// 			// the arrow so that it appears in the place it would be
+			// 			if (info?.isValid) {
+			// 				const { x, y } = info.start.point
+			// 				shape.props.start = {
+			// 					type: 'point',
+			// 					x,
+			// 					y,
+			// 				}
+			// 			} else {
+			// 				const { start } = getArrowTerminalsInArrowSpace(this, shape)
+			// 				shape.props.start = {
+			// 					type: 'point',
+			// 					x: start.x,
+			// 					y: start.y,
+			// 				}
+			// 			}
+			// 		}
+			// 	}
 
-				if (shape.props.end.type === 'binding') {
-					if (!shapesForContent.some((s) => s.id === endBindingId)) {
-						if (info?.isValid) {
-							const { x, y } = info.end.point
-							shape.props.end = {
-								type: 'point',
-								x,
-								y,
-							}
-						} else {
-							const { end } = getArrowTerminalsInArrowSpace(this, shape)
-							shape.props.end = {
-								type: 'point',
-								x: end.x,
-								y: end.y,
-							}
-						}
-					}
-				}
+			// 	if (shape.props.end.type === 'binding') {
+			// 		if (!shapesForContent.some((s) => s.id === endBindingId)) {
+			// 			if (info?.isValid) {
+			// 				const { x, y } = info.end.point
+			// 				shape.props.end = {
+			// 					type: 'point',
+			// 					x,
+			// 					y,
+			// 				}
+			// 			} else {
+			// 				const { end } = getArrowTerminalsInArrowSpace(this, shape)
+			// 				shape.props.end = {
+			// 					type: 'point',
+			// 					x: end.x,
+			// 					y: end.y,
+			// 				}
+			// 			}
+			// 		}
+			// 	}
 
-				const infoAfter = getIsArrowStraight(shape)
-					? getStraightArrowInfo(this, shape)
-					: getCurvedArrowInfo(this, shape)
+			// 	const infoAfter = getIsArrowStraight(shape)
+			// 		? getStraightArrowInfo(this, shape)
+			// 		: getCurvedArrowInfo(this, shape)
 
-				if (info?.isValid && infoAfter?.isValid && !getIsArrowStraight(shape)) {
-					const mpA = Vec.Med(info.start.handle, info.end.handle)
-					const distA = Vec.Dist(info.middle, mpA)
-					const distB = Vec.Dist(infoAfter.middle, mpA)
-					if (shape.props.bend < 0) {
-						shape.props.bend += distB - distA
-					} else {
-						shape.props.bend -= distB - distA
-					}
-				}
+			// 	if (info?.isValid && infoAfter?.isValid && !getIsArrowStraight(shape)) {
+			// 		const mpA = Vec.Med(info.start.handle, info.end.handle)
+			// 		const distA = Vec.Dist(info.middle, mpA)
+			// 		const distB = Vec.Dist(infoAfter.middle, mpA)
+			// 		if (shape.props.bend < 0) {
+			// 			shape.props.bend += distB - distA
+			// 		} else {
+			// 			shape.props.bend -= distB - distA
+			// 		}
+			// 	}
 
-				return shape
-			}
+			// 	return shape
+			// }
 
 			return shape
 		})
@@ -7550,24 +7696,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 				index = getIndexAbove(index)
 			}
 
-			if (this.isShapeOfType<TLArrowShape>(newShape, 'arrow')) {
-				if (newShape.props.start.type === 'binding') {
-					const mappedId = idMap.get(newShape.props.start.boundShapeId)
-					newShape.props.start = mappedId
-						? { ...newShape.props.start, boundShapeId: mappedId }
-						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
-							// convert the binding to a point at the time of copying
-							{ type: 'point', x: 0, y: 0 }
-				}
-				if (newShape.props.end.type === 'binding') {
-					const mappedId = idMap.get(newShape.props.end.boundShapeId)
-					newShape.props.end = mappedId
-						? { ...newShape.props.end, boundShapeId: mappedId }
-						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
-							// convert the binding to a point at the time of copying
-							{ type: 'point', x: 0, y: 0 }
-				}
-			}
+			// if (this.isShapeOfType<TLArrowShape>(newShape, 'arrow')) {
+			// 	if (newShape.props.start.type === 'binding') {
+			// 		const mappedId = idMap.get(newShape.props.start.boundShapeId)
+			// 		newShape.props.start = mappedId
+			// 			? { ...newShape.props.start, boundShapeId: mappedId }
+			// 			: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
+			// 				// convert the binding to a point at the time of copying
+			// 				{ type: 'point', x: 0, y: 0 }
+			// 	}
+			// 	if (newShape.props.end.type === 'binding') {
+			// 		const mappedId = idMap.get(newShape.props.end.boundShapeId)
+			// 		newShape.props.end = mappedId
+			// 			? { ...newShape.props.end, boundShapeId: mappedId }
+			// 			: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
+			// 				// convert the binding to a point at the time of copying
+			// 				{ type: 'point', x: 0, y: 0 }
+			// 	}
+			// }
 
 			return newShape
 		})
@@ -8513,6 +8659,41 @@ function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 }
 
 function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T {
+	if (!partial) return prev
+	let next = null as null | T
+	const entries = Object.entries(partial)
+	for (let i = 0, n = entries.length; i < n; i++) {
+		const [k, v] = entries[i]
+		if (v === undefined) continue
+
+		// Is the key a special key? We don't update those
+		if (k === 'id' || k === 'type' || k === 'typeName') continue
+
+		// Is the value the same as it was before?
+		if (v === (prev as any)[k]) continue
+
+		// There's a new value, so create the new shape if we haven't already (should we be cloning this?)
+		if (!next) next = { ...prev }
+
+		// for props / meta properties, we support updates with partials of this object
+		if (k === 'props' || k === 'meta') {
+			next[k] = { ...prev[k] } as JsonObject
+			for (const [nextKey, nextValue] of Object.entries(v as object)) {
+				if (nextValue !== undefined) {
+					;(next[k] as JsonObject)[nextKey] = nextValue
+				}
+			}
+			continue
+		}
+
+		// base property
+		;(next as any)[k] = v
+	}
+	if (!next) return prev
+	return next
+}
+
+function applyPartialToBinding<T extends TLBinding>(prev: T, partial?: TLBindingPartial<T>): T {
 	if (!partial) return prev
 	let next = null as null | T
 	const entries = Object.entries(partial)

@@ -111,10 +111,6 @@ export class Pointing extends StateNode {
 		})
 
 		if (change) {
-			const startTerminal = change.props?.start
-			if (startTerminal?.type === 'binding') {
-				this.editor.setHintingShapes([startTerminal.boundShapeId])
-			}
 			this.editor.updateShapes([change])
 		}
 
@@ -148,10 +144,6 @@ export class Pointing extends StateNode {
 			})
 
 			if (change) {
-				const endTerminal = change.props?.end
-				if (endTerminal?.type === 'binding') {
-					this.editor.setHintingShapes([endTerminal.boundShapeId])
-				}
 				this.editor.updateShapes([change])
 			}
 		}

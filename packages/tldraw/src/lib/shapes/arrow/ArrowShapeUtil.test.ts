@@ -1,11 +1,13 @@
 import {
-	assert,
-	createShapeId,
 	HALF_PI,
 	TLArrowShape,
-	TLArrowShapeTerminal,
 	TLShapeId,
+	arrowBindingMakeItSo,
+	assert,
+	createShapeId,
+	getArrowBindings,
 } from '@tldraw/editor'
+import { describe } from 'node:test'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -42,23 +44,25 @@ beforeEach(() => {
 				x: 150,
 				y: 150,
 				props: {
-					start: {
-						type: 'binding',
-						isExact: false,
-						boundShapeId: ids.box1,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
-					},
-					end: {
-						type: 'binding',
-						isExact: false,
-						boundShapeId: ids.box2,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
-					},
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: 0 },
 				},
 			},
 		])
+
+	arrowBindingMakeItSo(editor, ids.arrow1, ids.box1, {
+		terminal: 'start',
+		isExact: false,
+		isPrecise: false,
+		normalizedAnchor: { x: 0.5, y: 0.5 },
+	})
+
+	arrowBindingMakeItSo(editor, ids.arrow1, ids.box2, {
+		terminal: 'end',
+		isExact: false,
+		isPrecise: false,
+		normalizedAnchor: { x: 0.5, y: 0.5 },
+	})
 })
 
 describe('When translating a bound shape', () => {
@@ -91,6 +95,11 @@ describe('When translating a bound shape', () => {
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
 				},
+			},
+		})
+		expect(getArrowBindings(editor, editor.getShape(ids.arrow1)!)).toMatchObject({
+			start: {
+				toId: ids.box1,
 			},
 		})
 	})
@@ -300,8 +309,9 @@ describe('Other cases when arrow are moved', () => {
 		editor.setCurrentTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
 		let arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		assert(editor.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
-		assert(arrow.props.end.type === 'binding')
-		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
+		let bindings = getArrowBindings(editor, arrow)
+		assert(bindings.end)
+		expect(bindings.end.toId).toBe(ids.box3)
 
 		// translate:
 		editor.selectAll().nudgeShapes(editor.getSelectedShapeIds(), { x: 0, y: 1 })
@@ -309,8 +319,9 @@ describe('Other cases when arrow are moved', () => {
 		// arrow should still be bound to box3
 		arrow = editor.getShape(arrow.id)!
 		assert(editor.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
-		assert(arrow.props.end.type === 'binding')
-		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
+		bindings = getArrowBindings(editor, arrow)
+		assert(bindings.end)
+		expect(bindings.end.toId).toBe(ids.box3)
 	})
 })
 
@@ -342,11 +353,7 @@ describe('When a shape is rotated', () => {
 			},
 		})
 
-		const anchor = (
-			editor.getShape<TLArrowShape>(arrow.id)!.props.end as TLArrowShapeTerminal & {
-				type: 'binding'
-			}
-		).normalizedAnchor
+		const anchor = getArrowBindings(editor, editor.getShape(arrow.id)!).end!.props.normalizedAnchor
 		expect(anchor.x).toBeCloseTo(0.5)
 		expect(anchor.y).toBeCloseTo(0.75)
 	})

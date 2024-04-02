@@ -12,6 +12,7 @@ import {
 	assert,
 	compact,
 	createShapeId,
+	getArrowBindings,
 	sortByIndex,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
@@ -1723,20 +1724,17 @@ describe('moving handles within a group', () => {
 		editor.pointerDown(50, 50).pointerMove(60, 60).pointerUp(60, 60)
 
 		let arrow = onlySelectedShape() as TLArrowShape
+		let bindings = getArrowBindings(editor, arrow)
 
 		expect(arrow.parentId).toBe(groupA.id)
 
-		expect(arrow.props.start.type).toBe('point')
-		if (arrow.props.start.type === 'point') {
-			expect(arrow.props.start.x).toBe(0)
-			expect(arrow.props.start.y).toBe(0)
-		}
+		expect(bindings.start).toBeUndefined()
+		expect(arrow.props.start.x).toBe(0)
+		expect(arrow.props.start.y).toBe(0)
 
-		expect(arrow.props.end.type).toBe('point')
-		if (arrow.props.end.type === 'point') {
-			expect(arrow.props.end.x).toBe(10)
-			expect(arrow.props.end.y).toBe(10)
-		}
+		expect(bindings.end).toBeUndefined()
+		expect(arrow.props.end.x).toBe(10)
+		expect(arrow.props.end.y).toBe(10)
 
 		editor.expectToBeIn('select.idle')
 
@@ -1759,20 +1757,17 @@ describe('moving handles within a group', () => {
 		editor.pointerMove(60, -10)
 
 		arrow = editor.getShape(arrow.id)!
+		bindings = getArrowBindings(editor, arrow)
 
 		expect(arrow.parentId).toBe(groupA.id)
 
-		expect(arrow.props.start.type).toBe('point')
-		if (arrow.props.start.type === 'point') {
-			expect(arrow.props.start.x).toBe(0)
-			expect(arrow.props.start.y).toBe(0)
-		}
+		expect(bindings.start).toBeUndefined()
+		expect(arrow.props.start.x).toBe(0)
+		expect(arrow.props.start.y).toBe(0)
 
-		expect(arrow.props.end.type).toBe('point')
-		if (arrow.props.end.type === 'point') {
-			expect(arrow.props.end.x).toBe(10)
-			expect(arrow.props.end.y).toBe(-60)
-		}
+		expect(bindings.end).toBeUndefined()
+		expect(arrow.props.end.x).toBe(10)
+		expect(arrow.props.end.y).toBe(-60)
 
 		expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 			x: 0,
