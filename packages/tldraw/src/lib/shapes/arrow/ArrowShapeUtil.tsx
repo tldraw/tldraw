@@ -530,8 +530,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (!info?.isValid) return null
 
 		const labelPosition = getArrowLabelPosition(this.editor, shape)
-		const isEditing = this.editor.getEditingShapeId() === shape.id
-		const showArrowLabel = isEditing || shape.props.text
 
 		return (
 			<>
@@ -541,17 +539,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape === shape}
 					/>
 				</SVGContainer>
-				{showArrowLabel && (
-					<ArrowTextLabel
-						id={shape.id}
-						text={shape.props.text}
-						font={shape.props.font}
-						size={shape.props.size}
-						position={labelPosition.box.center}
-						width={labelPosition.box.w}
-						labelColor={shape.props.labelColor}
-					/>
-				)}
+				<ArrowTextLabel
+					id={shape.id}
+					text={shape.props.text}
+					font={shape.props.font}
+					size={shape.props.size}
+					position={labelPosition.box.center}
+					width={labelPosition.box.w}
+					labelColor={shape.props.labelColor}
+				/>
 			</>
 		)
 	}
