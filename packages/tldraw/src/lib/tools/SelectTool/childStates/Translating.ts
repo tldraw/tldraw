@@ -216,7 +216,7 @@ export class Translating extends StateNode {
 		this.editor.setHoveredShape(null)
 
 		const ancestors = this.snapshot.movingShapes
-			.map((s) => this.editor.findShapeAncestor(s, (v) => v.type !== 'group'))
+			.map((s) => this.editor.findShapeAncestor(s, (v) => v.type === 'note'))
 			.filter((s) => s) as TLShape[]
 
 		this.editor.setHintingShapes(ancestors)
