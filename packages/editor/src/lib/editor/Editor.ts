@@ -3211,10 +3211,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getRenderingShapes() {
-		let now = Date.now()
 		const renderingShapes = this.getUnorderedRenderingShapes(true)
-		console.log('unordered took', Date.now() - now, 'ms')
-		now = Date.now()
 
 		// Its IMPORTANT that the result be sorted by id AND include the index
 		// that the shape should be displayed at. Steve, this is the past you
@@ -3226,9 +3223,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// drain. By always sorting by 'id' we keep the shapes always in the
 		// same order; but we later use index to set the element's 'z-index'
 		// to change the "rendered" position in z-space.
-		const sorted = renderingShapes.sort(sortById)
-		// console.log('sorting took', Date.now() - now, 'ms')
-		return sorted
+		return renderingShapes.sort(sortById)
 	}
 
 	/**
@@ -4418,7 +4413,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// let's check whether the shape has a label and check that
 					for (const childGeometry of (geometry as Group2d).children) {
 						if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
-							console.log('shape at point took', Date.now() - now)
 							return shape
 						}
 					}
@@ -4432,7 +4426,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the hit is within the frame's outer margin, then select the frame
 				const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 				if (Math.abs(distance) <= margin) {
-					console.log('shape at point took', Date.now() - now)
 					return inMarginClosestToEdgeHit || shape
 				}
 
@@ -4443,7 +4436,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// frame. If `hitFrameInside` is true (e.g. used drawing an arrow into the
 					// frame) we the frame itself; other wise, (e.g. when hovering or pointing)
 					// we would want to return null.
-					console.log('shape at point took', Date.now() - now)
 					return (
 						inMarginClosestToEdgeHit ||
 						inHollowSmallestAreaHit ||
@@ -4496,7 +4488,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
 						// other hits would be occluded by the shape.
-						console.log('shape at point took', Date.now() - now)
 						return inMarginClosestToEdgeHit || shape
 					} else {
 						// If the shape is bigger than the viewport, then skip it.
@@ -4529,7 +4520,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
 				if (distance < HIT_TEST_MARGIN / zoomLevel) {
-					console.log('shape at point took', Date.now() - now)
 					return shape
 				}
 			}
@@ -4540,7 +4530,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// had the shortest distance between the point and the shape edge),
 		// or else the hollow shape with the smallest area—or if we didn't hit
 		// any margins or any hollow shapes, then null.
-		console.log('shape at point took', Date.now() - now)
 		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
 	}
 
@@ -6279,7 +6268,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		options: TLResizeShapeOptions = {}
 	): this {
 		const id = typeof shape === 'string' ? shape : shape.id
-		const now = Date.now()
 		if (this.getInstanceState().isReadonly) return this
 
 		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
@@ -6415,7 +6403,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				{ squashing: true }
 			)
 		}
-		console.log('resigin shape', id, Date.now() - now)
 
 		return this
 	}
