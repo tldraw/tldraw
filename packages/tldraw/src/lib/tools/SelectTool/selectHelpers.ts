@@ -64,7 +64,7 @@ function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId) {
 
 	// If the shape's geometry intersects the occluder, it's not occluded
 	if (shapeGeometry.isClosed) {
-		return !intersectPolygonBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
+		return intersectPolygonBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
 	}
-	return !intersectPolylineBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
+	return intersectPolylineBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
 }
