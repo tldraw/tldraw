@@ -1,11 +1,4 @@
-import {
-	Box,
-	Editor,
-	TLShape,
-	TLShapeId,
-	intersectPolygonBounds,
-	intersectPolylineBounds,
-} from '@tldraw/editor'
+import { Editor, TLShape, TLShapeId, polygonsIntersect } from '@tldraw/editor'
 
 /**
  * @internal
@@ -59,14 +52,9 @@ function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId) {
 	// If we've made it this far, the shape's bounds must intersect the edge of the occluder
 	// In this case, we need to look at the shape's geometry for a more fine-grained check
 	const shapeGeometry = editor.getShapeGeometry(shape)
-	const occluderBoundsInShapeSpace = Box.FromPoints(
-		occluderPageBounds.corners.map((v) => editor.getPointInShapeSpace(shape, v))
-	)
+	const occluderCornersInShapeSpace = occluderPageBounds.corners.map((v) => {
+		return editor.getPointInShapeSpace(shape, v)
+	})
 
-	// If the shape's geometry intersects the occluder, it's not occluded
-	if (shapeGeometry.isClosed) {
-		return !intersectPolylineBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
-	}
-
-	return !intersectPolygonBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
+	return !polygonsIntersect(shapeGeometry.vertices, occluderCornersInShapeSpace)
 }
