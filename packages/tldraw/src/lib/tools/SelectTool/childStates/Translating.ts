@@ -352,19 +352,40 @@ function getTranslatingSnapshot(editor: Editor) {
 	let noteAdjacentPositions: NotePit[] | undefined
 	let noteSnapshot: MovingShapeSnapshot | undefined
 
-	const underCursor = editor.getHoveredShape()
-	if (underCursor) {
-		if (editor.isShapeOfType<TLNoteShape>(underCursor, 'note')) {
-			const snapshot = shapeSnapshots.find((s) => s.shape.id === underCursor.id)
-			if (snapshot) {
-				noteSnapshot = snapshot
-				noteAdjacentPositions = getAvailableNoteAdjacentPositions(
-					editor,
-					snapshot.pageRotation,
-					underCursor.props.growY ?? 0
-				)
-			}
+	const { originPagePoint } = editor.inputs
+
+	if (shapeSnapshots.length === 1) {
+		noteSnapshot = shapeSnapshots[0]
+	} else {
+		const allHoveredNotes = shapeSnapshots.filter(
+			(s) =>
+				editor.isShapeOfType<TLNoteShape>(s.shape, 'note') &&
+				editor.isPointInShape(s.shape, originPagePoint)
+		)
+
+		if (allHoveredNotes.length === 0) {
+			// noop
+		} else if (allHoveredNotes.length === 1) {
+			// just one, easy
+			noteSnapshot = allHoveredNotes[0]
+		} else {
+			// More than one under the cursor, so we need to find the highest shape in z-order
+			const allShapesSorted = editor.getCurrentPageShapesSorted()
+			noteSnapshot = allHoveredNotes
+				.map((s) => ({
+					snapshot: s,
+					index: allShapesSorted.findIndex((shape) => shape.id === s.shape.id),
+				}))
+				.sort((a, b) => b.index - a.index)[0]?.snapshot // highest up first
 		}
+	}
+
+	if (noteSnapshot) {
+		noteAdjacentPositions = getAvailableNoteAdjacentPositions(
+			editor,
+			noteSnapshot.pageRotation,
+			(noteSnapshot.shape as TLNoteShape).props.growY ?? 0
+		)
 	}
 
 	return {
