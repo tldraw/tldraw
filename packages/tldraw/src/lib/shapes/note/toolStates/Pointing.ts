@@ -9,7 +9,7 @@ import {
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
-import { NOTE_PIT_RADIUS, getNotePits } from '../noteHelpers'
+import { NOTE_PIT_RADIUS, getAvailableNoteAdjacentPositions } from '../noteHelpers'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -110,7 +110,7 @@ export class Pointing extends StateNode {
 export function getNotePitOffset(editor: Editor, center: Vec) {
 	let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
 	let offset: Vec | undefined
-	for (const pit of getNotePits(editor, 0, 0)) {
+	for (const pit of getAvailableNoteAdjacentPositions(editor, 0, 0)) {
 		// only check page rotations of zero
 		const deltaToPit = Vec.Sub(center, pit)
 		const dist = deltaToPit.len()

@@ -10,8 +10,8 @@ import {
 } from '@tldraw/editor'
 import {
 	CENTER_OFFSET,
-	createOrSelectNoteInPosition,
-	getNotePitsForShape,
+	getNoteAdjacentPositions,
+	getNoteShapeForAdjacentPosition,
 	startEditingNoteShape,
 } from '../../../shapes/note/noteHelpers'
 
@@ -116,10 +116,10 @@ function getNoteForPit(editor: Editor, shape: TLNoteShape, handle: TLHandle, for
 	const pageTransform = editor.getShapePageTransform(shape.id)!
 	const pagePoint = pageTransform.point()
 	const pageRotation = pageTransform.rotation()
-	const pits = getNotePitsForShape(pagePoint, pageRotation, shape.props.growY, 0)
+	const pits = getNoteAdjacentPositions(pagePoint, pageRotation, shape.props.growY, 0)
 	const index = editor.getShapeHandles(shape.id)!.findIndex((h) => h.id === handle.id)
 	if (pits[index]) {
 		const pit = pits[index]
-		return createOrSelectNoteInPosition(editor, shape, pit, pageRotation, forceNew)
+		return getNoteShapeForAdjacentPosition(editor, shape, pit, pageRotation, forceNew)
 	}
 }

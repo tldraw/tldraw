@@ -15,7 +15,12 @@ import {
 	isPageId,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
-import { NOTE_PIT_RADIUS, NOTE_SIZE, NotePit, getNotePits } from '../../../shapes/note/noteHelpers'
+import {
+	NOTE_PIT_RADIUS,
+	NOTE_SIZE,
+	NotePit,
+	getAvailableNoteAdjacentPositions,
+} from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
 
 export class Translating extends StateNode {
@@ -331,15 +336,8 @@ function getTranslatingSnapshot(editor: Editor) {
 
 	let initialSnapPoints: BoundsSnapPoint[] = []
 
-	let notePits: NotePit[] | undefined
-
 	if (onlySelectedShape) {
 		initialSnapPoints = editor.snaps.shapeBounds.getSnapPoints(onlySelectedShape.id)!
-
-		if (editor.isShapeOfType<TLNoteShape>(onlySelectedShape, 'note')) {
-			const pageRotation = editor.getShapePageTransform(onlySelectedShape)!.rotation()
-			notePits = getNotePits(editor, pageRotation, onlySelectedShape.props.growY ?? 0)
-		}
 	} else {
 		const selectionPageBounds = editor.getSelectionPageBounds()
 		if (selectionPageBounds) {
@@ -351,13 +349,32 @@ function getTranslatingSnapshot(editor: Editor) {
 		}
 	}
 
+	let noteAdjacentPositions: NotePit[] | undefined
+	let noteSnapshot: MovingShapeSnapshot | undefined
+
+	const underCursor = editor.getHoveredShape()
+	if (underCursor) {
+		if (editor.isShapeOfType<TLNoteShape>(underCursor, 'note')) {
+			const snapshot = shapeSnapshots.find((s) => s.shape.id === underCursor.id)
+			if (snapshot) {
+				noteSnapshot = snapshot
+				noteAdjacentPositions = getAvailableNoteAdjacentPositions(
+					editor,
+					snapshot.pageRotation,
+					underCursor.props.growY ?? 0
+				)
+			}
+		}
+	}
+
 	return {
 		averagePagePoint: Vec.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
 		initialPageBounds: editor.getSelectionPageBounds()!,
 		initialSnapPoints,
-		notePits,
+		noteAdjacentPositions,
+		noteSnapshot,
 	}
 }
 
@@ -379,8 +396,14 @@ export function moveShapesToPoint({
 }) {
 	const { inputs } = editor
 
-	const { notePits, initialPageBounds, initialSnapPoints, shapeSnapshots, averagePagePoint } =
-		snapshot
+	const {
+		noteSnapshot,
+		noteAdjacentPositions,
+		initialPageBounds,
+		initialSnapPoints,
+		shapeSnapshots,
+		averagePagePoint,
+	} = snapshot
 
 	const isGridMode = editor.getInstanceState().isGridMode
 
@@ -417,18 +440,16 @@ export function moveShapesToPoint({
 		delta.add(nudge)
 	} else {
 		// for sticky notes, snap to grid position next to other notes
-		if (notePits && shapeSnapshots.length === 1 && shapeSnapshots[0].shape.type === 'note') {
-			const noteSnapshot = shapeSnapshots[0]
-
+		if (noteSnapshot && noteAdjacentPositions) {
 			let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
 			let offset = new Vec(0, 0)
 
 			const pageCenter = Vec.Add(
-				Vec.Add(averagePagePoint, delta),
+				Vec.Add(noteSnapshot.pagePoint, delta),
 				new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2).rot(noteSnapshot.pageRotation)
 			)
 
-			for (const pit of notePits) {
+			for (const pit of noteAdjacentPositions) {
 				// We've already filtered pits with the same page rotation
 				const deltaToPit = Vec.Sub(pageCenter, pit)
 				const dist = deltaToPit.len()

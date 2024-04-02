@@ -32,7 +32,7 @@ import {
 	CENTER_OFFSET,
 	CLONE_HANDLE_MARGIN,
 	NOTE_SIZE,
-	createOrSelectNoteInPosition,
+	getNoteShapeForAdjacentPosition,
 	startEditingNoteShape,
 } from './noteHelpers'
 
@@ -349,7 +349,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 					.rot(pageRotation)
 					.add(pageTransform.point())
 
-				const newNote = createOrSelectNoteInPosition(editor, shape, adjacentCenter, pageRotation)
+				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
 					startEditingNoteShape(editor, newNote)
