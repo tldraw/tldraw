@@ -975,7 +975,7 @@ export function isGifAnimated(file: Blob): Promise<boolean>;
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
 
 // @internal (undocumented)
-export function kickoutOccludedShapes(editor: Editor, shapes: TLShape[]): void;
+export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): void;
 
 // @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;

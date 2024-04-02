@@ -112,11 +112,7 @@ export class Resizing extends StateNode {
 	}
 
 	private complete() {
-		const { shapeSnapshots } = this.snapshot
-		kickoutOccludedShapes(
-			this.editor,
-			[...shapeSnapshots].map(([_id, { shape }]) => shape)
-		)
+		kickoutOccludedShapes(this.editor, this.snapshot.selectedShapeIds)
 
 		this.handleResizeEnd()
 

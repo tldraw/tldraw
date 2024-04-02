@@ -131,7 +131,7 @@ export class Rotating extends StateNode {
 		})
 		kickoutOccludedShapes(
 			this.editor,
-			this.snapshot.shapeSnapshots.map((s) => s.shape)
+			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
 		)
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)

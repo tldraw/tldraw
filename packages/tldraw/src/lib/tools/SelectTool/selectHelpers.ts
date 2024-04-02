@@ -10,7 +10,8 @@ import {
 /**
  * @internal
  */
-export function kickoutOccludedShapes(editor: Editor, shapes: TLShape[]) {
+export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
+	const shapes = shapeIds.map((id) => editor.getShape(id)).filter((s) => s) as TLShape[]
 	const effectedParents: TLShape[] = shapes.map((shape) => {
 		const parent = editor.getShape(shape.parentId)
 		if (!parent) return shape
@@ -64,7 +65,8 @@ function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId) {
 
 	// If the shape's geometry intersects the occluder, it's not occluded
 	if (shapeGeometry.isClosed) {
-		return !intersectPolygonBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
+		return !intersectPolylineBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
 	}
-	return !intersectPolylineBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
+
+	return !intersectPolygonBounds(shapeGeometry.vertices, occluderBoundsInShapeSpace)
 }
