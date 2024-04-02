@@ -1623,7 +1623,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canResize: TLShapeUtilFlag<Shape>;
     canScroll: TLShapeUtilFlag<Shape>;
-    canSelectChildOnPointerDownWhileSelected(shape: Shape, child: TLShape): boolean;
     canSnap: TLShapeUtilFlag<Shape>;
     canUnmount: TLShapeUtilFlag<Shape>;
     abstract component(shape: Shape): any;

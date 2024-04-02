@@ -34,11 +34,8 @@ export class PointingShape extends StateNode {
 			outermostSelectingShape.id === focusedGroupId ||
 			// ...or if the shape is within the selection
 			selectedShapeIds.includes(outermostSelectingShape.id) ||
-			// ...or if the selected ancestor doesn't allow select on enter
-			(selectedAncestor &&
-				!this.editor
-					.getShapeUtil(selectedAncestor)
-					.canSelectChildOnPointerDownWhileSelected(selectedAncestor, outermostSelectingShape)) ||
+			// ...or if an ancestor of the shape is selected (except note shapes)...
+			(selectedAncestor && selectedAncestor.type !== 'note') ||
 			// ...or if the current point is NOT within the selection bounds
 			(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
 		) {
