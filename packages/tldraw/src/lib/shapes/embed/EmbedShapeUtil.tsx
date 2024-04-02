@@ -34,9 +34,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
 	override canEdit: TLShapeUtilFlag<TLEmbedShape> = () => true
-	override canUnmount: TLShapeUtilFlag<TLEmbedShape> = (shape: TLEmbedShape) => {
-		return !!getEmbedInfo(shape.props.url)?.definition?.canUnmount
-	}
 	override canResize = (shape: TLEmbedShape) => {
 		return !!getEmbedInfo(shape.props.url)?.definition?.doesResize
 	}
@@ -77,8 +74,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override component(shape: TLEmbedShape, isCulled: boolean) {
-		// TODO: I think embed can never be culled right now, check getUnorderedRenderingShapes
-		// Or maybe we just shouldn't apply this logic for embeds?
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const embedInfo = useMemo(() => getEmbedInfoUnsafely(url), [url])

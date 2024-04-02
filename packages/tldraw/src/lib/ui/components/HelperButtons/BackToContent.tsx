@@ -17,10 +17,8 @@ export function BackToContent() {
 			const renderingShapes = editor.getRenderingShapes()
 			const renderingBounds = editor.getRenderingBounds()
 
-			// renderingShapes will also include shapes that have the canUnmount flag
-			// set to true. These shapes will be on the canvas but may not be in the
-			// viewport... so we also need to narrow down the list to only shapes that
-			// are ALSO in the viewport.
+			// Rendering shapes includes all the shapes in the current page.
+			// We have to filter them down to just the shapes that are inside the renderingBounds.
 			const visibleShapes = renderingShapes.filter(
 				(s) => s.maskedPageBounds && renderingBounds.includes(s.maskedPageBounds)
 			)
