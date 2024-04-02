@@ -163,7 +163,7 @@ export const Shape = memo(function Shape({
 			</div>
 			<div
 				ref={culledContainerRef}
-				className="tl-shape tl-shape__culled"
+				className="tl-shape__culled"
 				draggable={false}
 				style={{ display: isCulled ? undefined : 'none' }}
 			></div>
