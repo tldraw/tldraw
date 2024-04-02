@@ -59,15 +59,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				shapes.map((shape) => shape.id),
 				note.id
 			)
+			return { shouldHint: true }
 		}
-		return { shouldHint: true }
+		return { shouldHint: false }
 	}
 
 	override onDragShapesOut = (note: TLNoteShape, shapes: TLShape[]) => {
 		const parent = this.editor.getShape(note.parentId)
 		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
 
-		// If sticky is in a group, keep the in that group
+		// If sticky is in a group, keep the shape in that group
 
 		if (isInGroup) {
 			this.editor.reparentShapes(shapes, parent.id)
