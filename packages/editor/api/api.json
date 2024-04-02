@@ -24806,6 +24806,82 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/editor!intersectPolylineBounds:function(1)",
+          "docComment": "/**\n * Find the intersections between a polyline and a bounding box.\n *\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function intersectPolylineBounds(points: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", bounds: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/intersect.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 6,
+            "endIndex": 9
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "points",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "bounds",
+              "parameterTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 5
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "intersectPolylineBounds"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/editor!isSafeFloat:function(1)",
           "docComment": "/**\n * Check if a float is safe to use. ie: Not too big or small.\n *\n * @public\n */\n",
           "excerptTokens": [

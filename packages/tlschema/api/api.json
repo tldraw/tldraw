@@ -1742,7 +1742,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n        points: import(\"../misc/geometry-types\")."
+              "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
@@ -1751,7 +1751,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n        type: \"free\" | \"straight\";\n    } & {}>;\n    isComplete: "
+              "text": "[];\n    } & {}>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -2348,7 +2348,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n        points: import(\"..\")."
+              "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2357,7 +2357,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n        type: \"free\" | \"straight\";\n    } & {}>;\n    isComplete: "
+              "text": "[];\n    } & {}>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -2818,7 +2818,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        id: string;\n        index: "
+              "text": "<string, {\n        id: string;\n        x: number;\n        y: number;\n        index: "
             },
             {
               "kind": "Reference",
@@ -2827,7 +2827,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n        x: number;\n        y: number;\n    } & {}>;\n}"
+              "text": ";\n    } & {}>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",

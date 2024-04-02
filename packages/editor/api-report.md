@@ -1229,6 +1229,9 @@ export function intersectPolygonBounds(points: VecLike[], bounds: Box): null | V
 export function intersectPolygonPolygon(polygonA: VecLike[], polygonB: VecLike[]): null | VecLike[];
 
 // @public
+export function intersectPolylineBounds(points: VecLike[], bounds: Box): null | VecLike[];
+
+// @public
 export const isSafeFloat: (n: number) => boolean;
 
 // @public (undocumented)

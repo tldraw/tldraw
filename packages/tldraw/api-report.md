@@ -499,8 +499,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
-        points: VecModel[];
         type: "free" | "straight";
+        points: VecModel[];
         }>;
         isComplete: Validator<boolean>;
         isClosed: Validator<boolean>;
@@ -655,8 +655,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
-    kickOutFallenShapes(shape: TLFrameShape, shapeIds?: TLShapeId[]): void;
-    // (undocumented)
     static migrations: Migrations;
     // (undocumented)
     onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
@@ -682,6 +680,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
     static type: "frame";
+    // (undocumented)
+    unparentEscapedChildren(shape: TLFrameShape, shapeIds?: TLShapeId[]): void;
 }
 
 // @public (undocumented)
@@ -922,8 +922,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         segments: ArrayOfValidator<    {
-        points: VecModel[];
         type: "free" | "straight";
+        points: VecModel[];
         }>;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
@@ -1066,9 +1066,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         spline: EnumStyleProp<"cubic" | "line">;
         points: DictValidator<string, {
         id: string;
-        index: IndexKey;
         x: number;
         y: number;
+        index: IndexKey;
         }>;
     };
     // (undocumented)

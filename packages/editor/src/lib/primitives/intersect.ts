@@ -316,3 +316,22 @@ export function polygonsIntersect(a: VecLike[], b: VecLike[]) {
 	}
 	return false
 }
+
+/**
+ * Find the intersections between a polyline and a bounding box.
+ *
+ * @public
+ */
+export function intersectPolylineBounds(points: VecLike[], bounds: Box) {
+	const result: VecLike[] = []
+	let segmentIntersection: VecLike[] | null
+
+	for (const side of bounds.sides) {
+		segmentIntersection = intersectLineSegmentPolyline(side[0], side[1], points)
+		if (segmentIntersection) result.push(...segmentIntersection)
+	}
+
+	if (result.length === 0) return null // no intersection
+
+	return result
+}

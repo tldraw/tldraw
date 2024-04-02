@@ -5218,7 +5218,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n            points: import(\"@tldraw/editor\")."
+                  "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -5227,7 +5227,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[];\n            type: \"free\" | \"straight\";\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
+                  "text": "[];\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -7500,76 +7500,6 @@
               "name": "indicator"
             },
             {
-              "kind": "Method",
-              "canonicalReference": "tldraw!FrameShapeUtil#kickOutFallenShapes:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "kickOutFallenShapes(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLFrameShape",
-                  "canonicalReference": "@tldraw/tlschema!TLFrameShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", shapeIds?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 6,
-                "endIndex": 7
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "shapeIds",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 5
-                  },
-                  "isOptional": true
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "kickOutFallenShapes"
-            },
-            {
               "kind": "Property",
               "canonicalReference": "tldraw!FrameShapeUtil.migrations:member",
               "docComment": "",
@@ -8015,6 +7945,76 @@
               "isStatic": true,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "tldraw!FrameShapeUtil#unparentEscapedChildren:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "unparentEscapedChildren(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLFrameShape",
+                  "canonicalReference": "@tldraw/tlschema!TLFrameShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", shapeIds?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "shapeIds",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "unparentEscapedChildren"
             }
           ],
           "extendsTokenRange": {
@@ -10538,7 +10538,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n            points: import(\"@tldraw/editor\")."
+                  "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -10547,7 +10547,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[];\n            type: \"free\" | \"straight\";\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
+                  "text": "[];\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12512,7 +12512,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, {\n            id: string;\n            index: import(\"@tldraw/editor\")."
+                  "text": "<string, {\n            id: string;\n            x: number;\n            y: number;\n            index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12521,7 +12521,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n            x: number;\n            y: number;\n        }>;\n    }"
+                  "text": ";\n        }>;\n    }"
                 },
                 {
                   "kind": "Content",
