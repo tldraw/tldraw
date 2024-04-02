@@ -23,7 +23,6 @@ import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { Migrations } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { PointerEventHandler } from 'react';
-import RBush from 'rbush';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
@@ -905,8 +904,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         speedThreshold?: number | undefined;
     }): this;
     readonly snaps: SnapManager;
-    // (undocumented)
-    _spatialIndex: SpatialIndex;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;
     startFollowingUser(userId: string): this;
     stopCameraAnimation(): this;
@@ -1379,7 +1376,7 @@ export interface MatModel {
 export const MAX_PAGES = 40;
 
 // @internal (undocumented)
-export const MAX_SHAPES_PER_PAGE = 2000;
+export const MAX_SHAPES_PER_PAGE = 20000;
 
 // @internal (undocumented)
 export const MAX_ZOOM = 8;

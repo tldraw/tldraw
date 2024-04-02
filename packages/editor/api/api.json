@@ -7441,37 +7441,6 @@
           "preserveMemberOrder": false,
           "members": [
             {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#_spatialIndex:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "_spatialIndex: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SpatialIndex",
-                  "canonicalReference": "@tldraw/editor!~SpatialIndex:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "_spatialIndex",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
               "kind": "Constructor",
               "canonicalReference": "@tldraw/editor!Editor:constructor(1)",
               "docComment": "/**\n * Constructs a new instance of the `Editor` class\n */\n",
