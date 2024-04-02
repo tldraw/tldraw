@@ -48,4 +48,54 @@ describe('compareSchemas', () => {
 			)
 		).toBe(-1)
 	})
+
+	it('returns -1 if a sequence is present in both schemas and the left one is lower than the right', () => {
+		expect(
+			compareSchemas(
+				{
+					schemaVersion: 2,
+					sequences: {
+						foo: {
+							retroactive: false,
+							version: 1,
+						},
+					},
+				},
+				{
+					schemaVersion: 2,
+					sequences: {
+						foo: {
+							retroactive: false,
+							version: 2,
+						},
+					},
+				}
+			)
+		).toBe(-1)
+	})
+
+	it('returns -1 if a sequence is present in both schemas and the left one is lower than the right', () => {
+		expect(
+			compareSchemas(
+				{
+					schemaVersion: 2,
+					sequences: {
+						foo: {
+							retroactive: false,
+							version: 2,
+						},
+					},
+				},
+				{
+					schemaVersion: 2,
+					sequences: {
+						foo: {
+							retroactive: false,
+							version: 1,
+						},
+					},
+				}
+			)
+		).toBe(1)
+	})
 })
