@@ -18,6 +18,7 @@ export class SpatialIndex {
 	shapesInTree = new Map<TLShapeId, Element>()
 	rBush = new TldrawRBush()
 	lastPageId: TLPageId | null
+	calculationNumber = 0
 
 	constructor(private editor: Editor) {
 		this.lastPageId = editor.getCurrentPageId()
@@ -57,22 +58,22 @@ export class SpatialIndex {
 		const { store } = this.editor
 		const shapeHistory = store.query.filterHistory('shape')
 
-		return computed<{ epoch: number }>('getShapesInView', (prevValue, lastComputedEpoch) => {
+		return computed<number>('getShapesInView', (prevValue, lastComputedEpoch) => {
 			let isDirty = false
 			const currentPageId = this.editor.getCurrentPageId()
 			const shapes = this.editor.getCurrentPageShapes()
 
 			if (isUninitialized(prevValue)) {
-				return this.fromScratch(shapes, lastComputedEpoch)
+				return this.fromScratch(shapes)
 			}
 			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
 
 			if (diff === RESET_VALUE) {
-				return this.fromScratch(shapes, lastComputedEpoch)
+				return this.fromScratch(shapes)
 			}
 
 			if (this.lastPageId !== currentPageId) {
-				return this.fromScratch(shapes, lastComputedEpoch)
+				return this.fromScratch(shapes)
 			}
 
 			const elementsToAdd: Element[] = []
@@ -123,11 +124,11 @@ export class SpatialIndex {
 					}
 				}
 			}
-			return isDirty ? { epoch: lastComputedEpoch } : prevValue
+			return isDirty ? this.calculationNumber++ : prevValue
 		})
 	}
 
-	private fromScratch(shapes: TLShape[], epoch: number) {
+	private fromScratch(shapes: TLShape[]) {
 		this.lastPageId = this.editor.getCurrentPageId()
 		this.rBush.clear()
 		this.shapesInTree = new Map<TLShapeId, Element>()
@@ -142,6 +143,6 @@ export class SpatialIndex {
 		}
 
 		this.rBush.load(elementsToAdd)
-		return { epoch }
+		return this.calculationNumber++
 	}
 }
