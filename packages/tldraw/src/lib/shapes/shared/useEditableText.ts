@@ -38,10 +38,10 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 			const elm = rInput.current
 			const editingShapeId = editor.getEditingShapeId()
 			// Did we move to a different shape?
-			if (elm && editingShapeId) {
+			if (editingShapeId) {
 				// important! these ^v are two different things
 				// is that shape OUR shape?
-				if (editingShapeId === id) {
+				if (elm && editingShapeId === id) {
 					if (ranges) {
 						if (!ranges.length) {
 							// If we don't have any ranges, restore selection
@@ -61,7 +61,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				}
 			} else {
 				window.getSelection()?.removeAllRanges()
-				editor.complete()
 			}
 		})
 	}, [editor, id])
@@ -142,6 +141,8 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
+			if (!isEditing) return
+
 			editor.dispatch({
 				...getPointerInfo(e),
 				type: 'pointer',
@@ -152,7 +153,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 			stopEventPropagation(e) // we need to prevent blurring the input
 		},
-		[editor, id]
+		[editor, id, isEditing]
 	)
 
 	const handleDoubleClick = stopEventPropagation

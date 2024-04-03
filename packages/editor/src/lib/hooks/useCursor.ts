@@ -74,14 +74,6 @@ export function useCursor() {
 		() => {
 			const { type, rotation } = editor.getInstanceState().cursor
 
-			// TODO(mime): Obviously, this needs to live in a better place. It's here because cursor
-			// changes are related currently to isDragging changes.
-			// We use this rule to enable CSS rules (in ui.css) to make sure that our
-			// UI doesn't block pointer move events when initiating a drag from within a textarea.
-			// Our textareas live on a different z-index layer to enable easier text editing and
-			// so their z-index messes with the normal drag operations.
-			container.setAttribute('data-isdragging', editor.inputs.isDragging ? 'true' : 'false')
-
 			if (STATIC_CURSORS.includes(type)) {
 				container.style.setProperty('--tl-cursor', `var(--tl-cursor-${type})`)
 				return
