@@ -64,8 +64,8 @@ export function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShap
 	})
 
 	if (shapeGeometry.isClosed) {
-		return !polygonsIntersect(shapeGeometry.vertices, occluderCornersInShapeSpace)
+		return !polygonsIntersect(occluderCornersInShapeSpace, shapeGeometry.vertices)
 	}
 
-	return !polygonIntersectsPolyline(shapeGeometry.vertices, occluderCornersInShapeSpace)
+	return !polygonIntersectsPolyline(occluderCornersInShapeSpace, shapeGeometry.vertices)
 }

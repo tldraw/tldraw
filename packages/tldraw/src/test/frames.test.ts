@@ -1,5 +1,6 @@
 import {
 	DefaultFillStyle,
+	GeoShapeGeoStyle,
 	TLArrowShape,
 	TLFrameShape,
 	TLShapeId,
@@ -1042,6 +1043,29 @@ function dragCreateRect({
 	return rectId
 }
 
+function dragCreateTriangle({
+	down,
+	move,
+	up,
+}: {
+	down: [number, number]
+	move: [number, number]
+	up: [number, number]
+}): TLShapeId {
+	editor.setCurrentTool('geo')
+	const originalStyle = editor.getStyleForNextShape(GeoShapeGeoStyle)
+	editor.setStyleForNextShapes(GeoShapeGeoStyle, 'triangle')
+	editor.pointerDown(...down)
+	editor.pointerMove(...move)
+	editor.pointerUp(...up)
+	const shapes = editor.getSelectedShapes()
+	editor.selectNone()
+	editor.setStyleForNextShapes(GeoShapeGeoStyle, originalStyle)
+	const rectId = shapes[0].id
+	editor.select(shapes[0].id)
+	return rectId
+}
+
 function createRect({ pos, size }: { pos: [number, number]; size: [number, number] }) {
 	const rectId: TLShapeId = createShapeId()
 	editor.createShapes([
@@ -1099,5 +1123,18 @@ describe('Unparenting behavior', () => {
 		expect(editor.getShape(rect2.id)!.parentId).toBe(frame.id)
 		editor.pointerUp(200, 200)
 		expect(editor.getShape(rect2.id)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it("unparents a shape if its geometry doesn't overlap with the frame", () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		dragCreateTriangle({ down: [80, 80], move: [120, 120], up: [120, 120] })
+		const [frame, triangle] = editor.getLastCreatedShapes(2)
+
+		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
+		editor.pointerDown(85, 85)
+		editor.pointerMove(95, 95)
+		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
+		editor.pointerUp(95, 95)
+		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
 })
