@@ -703,7 +703,8 @@ input,
 	padding: 0px;
 	margin: 0px;
 	border: none;
-	height: 100%;
+	width: fit-content;
+	height: fit-content;
 	font-variant: normal;
 	font-style: normal;
 	pointer-events: all;
@@ -810,6 +811,17 @@ input,
 	min-height: 1px;
 	overflow: visible;
 	outline: none;
+}
+
+.tl-text-content__wrapper {
+	position: relative;
+	width: fit-content;
+	height: fit-content;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	min-height: auto;
 }
 
 .tl-text-content {
@@ -1028,17 +1040,6 @@ input,
 	pointer-events: all;
 }
 
-.tl-text-label__inner {
-	position: relative;
-	width: fit-content;
-	height: fit-content;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	pointer-events: none;
-	min-height: auto;
-}
-
 .tl-text-label__inner > .tl-text-content {
 	position: relative;
 	top: 0px;
@@ -1127,17 +1128,7 @@ input,
 
 .tl-arrow-label textarea {
 	z-index: 3;
-	margin: 0px;
 	padding: 4px;
-	height: 100%;
-	width: 100%;
-	position: absolute;
-	resize: none;
-	border: 0px;
-	user-select: all;
-	-webkit-user-select: text;
-	caret-color: var(--color-text);
-	border-image: none;
 	/* Don't allow textarea to be zero width */
 	min-width: 4px;
 }

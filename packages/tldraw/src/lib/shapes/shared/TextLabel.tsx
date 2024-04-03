@@ -101,7 +101,7 @@ export const TextLabel = React.memo(function TextLabel({
 			}}
 		>
 			<div
-				className={`${cssPrefix}-label__inner`}
+				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
 					lineHeight: fontSize * lineHeight + 'px',
