@@ -836,13 +836,6 @@ input,
 	cursor: var(--tl-cursor-text);
 }
 
-.tl-text-shape__wrapper[data-isediting='false'] .tl-text-input,
-.tl-arrow-label[data-isediting='false'] .tl-text-input,
-.tl-text-label[data-isediting='false'] .tl-text-input {
-	opacity: 0;
-	cursor: var(--tl-cursor-default);
-}
-
 .tl-text-input::selection {
 	background: var(--color-selected);
 	color: var(--color-selected-contrast);
