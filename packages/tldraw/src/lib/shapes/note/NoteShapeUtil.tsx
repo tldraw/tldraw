@@ -176,7 +176,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
 					lineHeight={TEXT_PROPS.lineHeight}
 					align={align}
-					verticalAlign={verticalAlign}
+					verticalAlign={shape.props.growY > 0 ? 'start' : verticalAlign}
 					text={text}
 					isNote
 					labelColor={color}
