@@ -110,18 +110,18 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		let labelTranslate: string
 		switch (labelSide) {
-			case 0:
+			case 0: // top
 				labelTranslate = ``
 				break
-			case 3:
+			case 3: // right
 				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, 0) rotate(90)`
 				break
-			case 2:
+			case 2: // bottom
 				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, ${toDomPrecision(
 					shape.props.h
 				)}) rotate(180)`
 				break
-			case 1:
+			case 1: // left
 				labelTranslate = `translate(0, ${toDomPrecision(shape.props.h)}) rotate(270)`
 				break
 			default:
