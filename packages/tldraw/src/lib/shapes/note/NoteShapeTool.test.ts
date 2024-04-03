@@ -204,17 +204,17 @@ describe('Grid placement helpers', () => {
 			})
 	})
 
-	it('Does note create a new sticky note in a sticky pit if a note is already there', () => {
+	it('Does not create a new sticky note in a sticky pit if a note is already there', () => {
 		editor
 			.createShape({ type: 'note', x: 0, y: 0 })
-			.createShape({ type: 'note', x: 228, y: 8 }) // make a shape kinda there already!
+			.createShape({ type: 'note', x: 330, y: 8 }) // make a shape kinda there already!
 			.setCurrentTool('note')
-			.pointerMove(324, 104)
+			.pointerMove(300, 104)
 			.click()
 			.expectShapeToMatch({
 				...editor.getLastCreatedShape(),
 				// outta da pit
-				x: 224,
+				x: 200,
 				y: 4,
 			})
 	})

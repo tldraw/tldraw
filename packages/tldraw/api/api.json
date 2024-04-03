@@ -1645,7 +1645,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1690,7 +1690,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12350,7 +12350,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, {\n            id: string;\n            x: number;\n            y: number;\n            index: import(\"@tldraw/editor\")."
+                  "text": "<string, {\n            x: number;\n            y: number;\n            id: string;\n            index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",

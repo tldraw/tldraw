@@ -183,7 +183,7 @@ it('Creates an adjacent note when dragging the clone handle', () => {
 
 	const handles = editor.getShapeHandles(shapeB.id)!
 
-	const handle = handles[1]
+	const handle = handles[0]
 
 	editor.select(shapeB.id)
 	editor.pointerDown(handle.x, handle.y, {
