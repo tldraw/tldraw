@@ -1,6 +1,10 @@
 name: Publish new packages from main
 # This bumps the version, updates the changelogs, publishes a GitHub release, and publishes the packages to npm.
 
+# Prevent more than one non-canary npm publishing job from running at the same time
+concurrency:
+  group: npm-publish
+
 # Package publishing is manually triggered on github actions dashboard
 on:
   workflow_dispatch:
@@ -72,6 +76,4 @@ jobs:
     secrets:
       VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
       NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
-    needs: [
-      deploy
-    ]
+    needs: [deploy]

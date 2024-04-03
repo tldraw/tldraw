@@ -42,6 +42,7 @@ export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 // UI
+export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
@@ -74,6 +75,7 @@ export {
 } from './lib/ui/context/events'
 export {
 	useToasts,
+	type AlertSeverity,
 	type TLUiToast,
 	type TLUiToastAction,
 	type TLUiToastsContextType,
@@ -86,12 +88,6 @@ export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
-export {
-	toolbarItem,
-	useToolbarSchema,
-	type TLUiToolbarItem,
-	type TLUiToolbarSchemaContextType,
-} from './lib/ui/hooks/useToolbarSchema'
 export {
 	useTools,
 	type TLUiToolItem,
@@ -115,7 +111,7 @@ export {
 } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
-export { exportToBlob, getSvgAsImage, getSvgAsString } from './lib/utils/export/export'
+export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'
 export { exportAs } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
@@ -201,12 +197,14 @@ export {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
+	ConvertToBookmarkMenuItem,
+	ConvertToEmbedMenuItem,
+	CopyAsMenuGroup,
 	CopyMenuItem,
 	CutMenuItem,
 	DeleteMenuItem,
 	DuplicateMenuItem,
 	EditLinkMenuItem,
-	EmbedsGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	MoveToPageMenu,
@@ -214,7 +212,7 @@ export {
 	PrintItem,
 	RemoveFrameMenuItem,
 	ReorderMenuSubmenu,
-	SetSelectionGroup,
+	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleDarkModeItem,
 	ToggleDebugModeItem,
@@ -243,11 +241,8 @@ export {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	LockGroup,
 	MiscMenuGroup,
-	MultiShapeMenuGroup,
 	PreferencesGroup,
-	ShapeSubmenu,
 	UndoRedoGroup,
 	ViewSubmenu,
 } from './lib/ui/components/MainMenu/DefaultMainMenuContent'
@@ -286,8 +281,6 @@ export {
 	ExampleDialog,
 	FeatureFlags,
 } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
-
-export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
 
 export { TextArea, TldrawTextLabel } from './lib/shapes/shared/text/TldrawTextLabel'
 
@@ -374,6 +367,41 @@ export {
 
 // Slider
 export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
+
+// Toolbar
+export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
+export {
+	ArrowDownToolbarItem,
+	ArrowLeftToolbarItem,
+	ArrowRightToolbarItem,
+	ArrowToolbarItem,
+	ArrowUpToolbarItem,
+	AssetToolbarItem,
+	CheckBoxToolbarItem,
+	CloudToolbarItem,
+	DefaultToolbarContent,
+	DiamondToolbarItem,
+	DrawToolbarItem,
+	EllipseToolbarItem,
+	EraserToolbarItem,
+	FrameToolbarItem,
+	HandToolbarItem,
+	HexagonToolbarItem,
+	HighlightToolbarItem,
+	LaserToolbarItem,
+	LineToolbarItem,
+	NoteToolbarItem,
+	OvalToolbarItem,
+	RectangleToolbarItem,
+	RhombusToolbarItem,
+	SelectToolbarItem,
+	StarToolbarItem,
+	TextToolbarItem,
+	TrapezoidToolbarItem,
+	TriangleToolbarItem,
+	XBoxToolbarItem,
+	useIsToolSelected,
+} from './lib/ui/components/Toolbar/DefaultToolbarContent'
 
 /* ----------------- Menu Primitives ---------------- */
 

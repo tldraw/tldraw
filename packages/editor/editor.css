@@ -124,6 +124,10 @@
 	--color-text-3: hsl(220, 2%, 65%);
 	--color-text-shadow: hsl(0, 0%, 100%);
 	--color-primary: hsl(214, 84%, 56%);
+	--color-success: hsl(123, 46%, 34%);
+	--color-info: hsl(201, 98%, 41%);
+	--color-warning: hsl(27, 98%, 47%);
+	--color-error: hsl(0, 65%, 51%);
 	--color-warn: hsl(0, 90%, 43%);
 	--color-text: hsl(0, 0%, 0%);
 	--color-laser: hsl(0, 100%, 50%);
@@ -166,6 +170,10 @@
 	--color-text-3: hsl(210, 6%, 45%);
 	--color-text-shadow: hsl(210, 13%, 18%);
 	--color-primary: hsl(214, 84%, 56%);
+	--color-success: hsl(123, 38%, 57%);
+	--color-info: hsl(199, 92%, 56%);
+	--color-warning: hsl(36, 100%, 57%);
+	--color-error: hsl(4, 90%, 58%);
 	--color-warn: hsl(0, 81%, 66%);
 	--color-text: hsl(210, 17%, 98%);
 	--color-laser: hsl(0, 100%, 50%);
@@ -332,6 +340,8 @@ input,
 .tl-shape__culled {
 	position: relative;
 	background-color: var(--color-culled);
+	width: 100%;
+	height: 100%;
 }
 
 /* ---------------- Shape Containers ---------------- */
@@ -687,7 +697,8 @@ input,
 	padding: 0px;
 	margin: 0px;
 	border: none;
-	height: 100%;
+	width: fit-content;
+	height: fit-content;
 	font-variant: normal;
 	font-style: normal;
 	pointer-events: all;
@@ -726,7 +737,6 @@ input,
 .tl-text-wrapper[data-align='end-legacy'] {
 	text-align: right;
 }
-
 
 .tl-text-wrapper[data-isediting='true'] .tl-text-content {
 	opacity: 0;
@@ -795,6 +805,17 @@ input,
 	min-height: 1px;
 	overflow: visible;
 	outline: none;
+}
+
+.tl-text-content__wrapper {
+	position: relative;
+	width: fit-content;
+	height: fit-content;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	min-height: auto;
 }
 
 .tl-text-content {
@@ -1006,17 +1027,6 @@ input,
 	pointer-events: all;
 }
 
-.tl-text-label__inner {
-	position: relative;
-	width: fit-content;
-	height: fit-content;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	pointer-events: none;
-	min-height: auto;
-}
-
 .tl-text-label__inner > .tl-text-content {
 	position: relative;
 	top: 0px;
@@ -1105,17 +1115,7 @@ input,
 
 .tl-arrow-label textarea {
 	z-index: 3;
-	margin: 0px;
 	padding: 4px;
-	height: 100%;
-	width: 100%;
-	position: absolute;
-	resize: none;
-	border: 0px;
-	user-select: all;
-	-webkit-user-select: text;
-	caret-color: var(--color-text);
-	border-image: none;
 	/* Don't allow textarea to be zero width */
 	min-width: 4px;
 }

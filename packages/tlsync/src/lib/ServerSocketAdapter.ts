@@ -2,19 +2,26 @@ import { UnknownRecord } from '@tldraw/store'
 import ws from 'ws'
 import { TLRoomSocket } from './TLSyncRoom'
 import { TLSocketServerSentEvent } from './protocol'
-import { serializeMessage } from './serializeMessage'
+
+type ServerSocketAdapterOptions = {
+	readonly ws: WebSocket | ws.WebSocket
+	readonly logSendMessage: (type: string, size: number) => void
+}
 
 /** @public */
 export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocket<R> {
-	constructor(public readonly ws: WebSocket | ws.WebSocket) {}
+	constructor(public readonly opts: ServerSocketAdapterOptions) {}
 	// eslint-disable-next-line no-restricted-syntax
 	get isOpen(): boolean {
-		return this.ws.readyState === 1 // ready state open
+		return this.opts.ws.readyState === 1 // ready state open
 	}
+	// see TLRoomSocket for details on why this accepts a union and not just arrays
 	sendMessage(msg: TLSocketServerSentEvent<R>) {
-		this.ws.send(serializeMessage(msg))
+		const message = JSON.stringify(msg)
+		this.opts.logSendMessage(msg.type, message.length)
+		this.opts.ws.send(message)
 	}
 	close() {
-		this.ws.close()
+		this.opts.ws.close()
 	}
 }

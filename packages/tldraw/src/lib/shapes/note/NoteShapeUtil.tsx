@@ -1,5 +1,4 @@
 import {
-	DefaultFontFamilies,
 	Editor,
 	Rectangle2d,
 	ShapeUtil,
@@ -14,9 +13,9 @@ import {
 } from '@tldraw/editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
-import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 
 const NOTE_SIZE = 200
 
@@ -54,12 +53,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	component(shape: TLNoteShape) {
 		const {
-			props: { color },
+			id,
+			type,
+			props: { color, font, size, align, text, verticalAlign },
 		} = shape
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
+		/* eslint-disable-next-line react-hooks/rules-of-hooks */
+		const { TextLabel } = useEditorComponents()
 
 		return (
 			<>
@@ -78,7 +81,20 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						}}
 					>
 						<div className="tl-note__scrim" />
-						<TextLabelWrapper shape={shape} />
+						{TextLabel && (
+							<TextLabel
+								id={id}
+								type={type}
+								font={font}
+								fontSize={LABEL_FONT_SIZES[size]}
+								lineHeight={TEXT_PROPS.lineHeight}
+								align={align}
+								verticalAlign={verticalAlign}
+								text={text}
+								labelColor="black"
+								wrap
+							/>
+						)}
 					</div>
 				</div>
 				{'url' in shape.props && shape.props.url && (
@@ -100,42 +116,34 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
+		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-
-		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
 		const adjustedColor = shape.props.color === 'black' ? 'yellow' : shape.props.color
 
-		const rect1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		rect1.setAttribute('rx', '10')
-		rect1.setAttribute('width', NOTE_SIZE.toString())
-		rect1.setAttribute('height', bounds.height.toString())
-		rect1.setAttribute('fill', theme[adjustedColor].solid)
-		rect1.setAttribute('stroke', theme[adjustedColor].solid)
-		rect1.setAttribute('stroke-width', '1')
-		g.appendChild(rect1)
-
-		const rect2 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		rect2.setAttribute('rx', '10')
-		rect2.setAttribute('width', NOTE_SIZE.toString())
-		rect2.setAttribute('height', bounds.height.toString())
-		rect2.setAttribute('fill', theme.background)
-		rect2.setAttribute('opacity', '.28')
-		g.appendChild(rect2)
-
-		const textElm = getTextLabelSvgElement({
-			editor: this.editor,
-			shape,
-			font: DefaultFontFamilies[shape.props.font],
-			bounds,
-		})
-
-		textElm.setAttribute('fill', theme.text)
-		textElm.setAttribute('stroke', 'none')
-		g.appendChild(textElm)
-
-		return g
+		return (
+			<>
+				<rect
+					rx={10}
+					width={NOTE_SIZE}
+					height={bounds.h}
+					fill={theme[adjustedColor].solid}
+					stroke={theme[adjustedColor].solid}
+					strokeWidth={1}
+				/>
+				<rect rx={10} width={NOTE_SIZE} height={bounds.h} fill={theme.background} opacity={0.28} />
+				<SvgTextLabel
+					fontSize={LABEL_FONT_SIZES[shape.props.size]}
+					font={shape.props.font}
+					align={shape.props.align}
+					verticalAlign={shape.props.verticalAlign}
+					text={shape.props.text}
+					labelColor="black"
+					bounds={bounds}
+					stroke={false}
+				/>
+			</>
+		)
 	}
 
 	override onBeforeCreate = (next: TLNoteShape) => {
@@ -173,33 +181,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			])
 		}
 	}
-}
-
-function TextLabelWrapper({ shape }: { shape: TLNoteShape }) {
-	const { TextLabel } = useEditorComponents()
-
-	const {
-		id,
-		type,
-		props: { font, size, align, text, verticalAlign },
-	} = shape
-
-	return (
-		TextLabel && (
-			<TextLabel
-				id={id}
-				type={type}
-				font={font}
-				fontSize={LABEL_FONT_SIZES[size]}
-				lineHeight={TEXT_PROPS.lineHeight}
-				align={align}
-				verticalAlign={verticalAlign}
-				text={text}
-				labelColor="black"
-				wrap
-			/>
-		)
-	)
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {

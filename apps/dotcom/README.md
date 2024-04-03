@@ -60,21 +60,24 @@ You need to have a psql client [installed](https://www.timescale.com/blog/how-to
 
 ## Sending emails
 
-We are using [Resend](https://resend.com/) for sending emails. It allows us to write emails as React components. Emails live in a separate app `apps/tl-emails`. 
+We are using [Resend](https://resend.com/) for sending emails. It allows us to write emails as React components. Emails live in a separate app `apps/tl-emails`.
 
 Right now we are only using Resend via Supabase, but in the future we will probably also include Resend in our application and send emails directly.
 
 The development workflow is as follows:
 
 ### 1. Creating / updating an email template
- To start the development server for email run `yarn dev-email` from the root folder of our repo. You can then open [http://localhost:3333](http://localhost:3333) to see the result. This allows for quick local development of email templates. 
+
+To start the development server for email run `yarn dev-email` from the root folder of our repo. You can then open [http://localhost:3333](http://localhost:3333) to see the result. This allows for quick local development of email templates.
 
 Any images you want to use in the email should be uploaded to supabase to the `email` bucket.
 
 Supabase provides some custom params (like the magic link url) that we can insert into our email, [check their website](https://supabase.com/dashboard/project/faafybhoymfftncjttyq/auth/templates) for more info.
 
 ### 2. Generating the `html` version of the email
-Once you are happy with the email template you can run `yarn build-email` from the root folder of our repo. This will generate the `html` version of the email and place it in `apps/tl-emails/out` folder. 
+
+Once you are happy with the email template you can run `yarn build-email` from the root folder of our repo. This will generate the `html` version of the email and place it in `apps/tl-emails/out` folder.
 
 ### 3. Updating the template in Supabase
+
 Once you have the `html` version of the email you can copy it into the Supabase template editor. You can find the templates [here](https://supabase.com/dashboard/project/faafybhoymfftncjttyq/auth/templates).

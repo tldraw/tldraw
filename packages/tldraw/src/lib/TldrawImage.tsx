@@ -14,7 +14,7 @@ import {
 import { memo, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
-import { getSvgAsImage, getSvgAsString } from './utils/export/export'
+import { getSvgAsImage } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /**
@@ -51,7 +51,7 @@ export type TldrawImageProps = Expand<
  *
  * @example
  * ```tsx
- * <TldrawImage snapshot={snapshot} />
+ * <TldrawImage
  * 	snapshot={snapshot}
  * 	pageId={pageId}
  * 	background={false}
@@ -108,7 +108,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		const shapeIds = editor.getCurrentPageShapeIds()
 
 		async function setSvg() {
-			const svg = await editor.getSvg([...shapeIds], {
+			const svgResult = await editor.getSvgString([...shapeIds], {
 				bounds,
 				scale,
 				background,
@@ -117,19 +117,20 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 				preserveAspectRatio,
 			})
 
-			if (svg && !isCancelled) {
+			if (svgResult && !isCancelled) {
 				if (format === 'svg') {
-					const string = await getSvgAsString(svg)
 					if (!isCancelled) {
-						const blob = new Blob([string], { type: 'image/svg+xml' })
+						const blob = new Blob([svgResult.svg], { type: 'image/svg+xml' })
 						const url = URL.createObjectURL(blob)
 						setUrl(url)
 					}
 				} else if (format === 'png') {
-					const blob = await getSvgAsImage(svg, editor.environment.isSafari, {
+					const blob = await getSvgAsImage(svgResult.svg, editor.environment.isSafari, {
 						type: format,
 						quality: 1,
 						scale: 2,
+						width: svgResult.width,
+						height: svgResult.height,
 					})
 					if (blob && !isCancelled) {
 						const url = URL.createObjectURL(blob)

@@ -57,12 +57,19 @@ export class TextManager {
 		public editor: Editor,
 		measureMethod: MeasureMethod = 'text'
 	) {
+		const container = this.editor.getContainer()
+
+		// Remove any existing text measure element that
+		// is a descendant of this editor's container
+		container.querySelector('#tldraw_text_measure')?.remove()
+
 		const elm = document.createElement('div')
 		elm.id = `tldraw_text_measure`
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
 		elm.tabIndex = -1
-		this.editor.getContainer().appendChild(elm)
+		container.appendChild(elm)
+
 		this.baseElm = elm
 
 		const reactComponentElm = document.createElement('div')
@@ -70,7 +77,7 @@ export class TextManager {
 		reactComponentElm.classList.add('tl-text')
 		reactComponentElm.classList.add('tl-text-measure')
 		reactComponentElm.tabIndex = -1
-		this.editor.getContainer().appendChild(reactComponentElm)
+		container.appendChild(reactComponentElm)
 		this.reactComponentElm = reactComponentElm
 
 		this.measureMethod = measureMethod

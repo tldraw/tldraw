@@ -25,7 +25,6 @@ export type TLHistoryMark = {
 /** @public */
 export type TLCommand<Name extends string = any, Data = any> = {
 	type: 'command'
-	id: string
 	data: Data
 	name: Name
 	/**

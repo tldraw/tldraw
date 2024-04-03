@@ -45,7 +45,7 @@ export type TLTextLabel = ITextLabel<TextLabelProps>
  */
 export const DefaultTextLabel: TLTextLabel = React.memo(function DefaultTextLabel({ text }) {
 	return (
-		<div className={`tl-text-label tl-text-wrapper`}>
+		<div className="tl-text-label tl-text-wrapper">
 			<div className="tl-text tl-text-content" dir="ltr">
 				{text}
 			</div>
