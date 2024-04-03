@@ -9,6 +9,7 @@ const overrides: TLUiOverrides = {
 	//[a]
 	actions(_editor, actions): TLUiActionsContextType {
 		actions['toggle-grid'].kbd = 'x'
+		actions['copy-as-png'].kbd = '$1'
 		return actions
 	},
 	//[b]
