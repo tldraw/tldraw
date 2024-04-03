@@ -795,6 +795,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	undo(): this {
+		this._flushEventsForTick(0)
 		this.history.undo()
 		return this
 	}
@@ -819,6 +820,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	redo(): this {
+		this._flushEventsForTick(0)
 		this.history.redo()
 		return this
 	}
@@ -8173,7 +8175,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const sx = info.point.x - screenBounds.x
 		const sy = info.point.y - screenBounds.y
-		const sz = info.point.z
+		const sz = info.point.z ?? 0.5
 
 		previousScreenPoint.setTo(currentScreenPoint)
 		previousPagePoint.setTo(currentPagePoint)
@@ -8183,7 +8185,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// it will be 0,0 when its actual screen position is equal
 		// to screenBounds.point. This is confusing!
 		currentScreenPoint.set(sx, sy)
-		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz ?? 0.5)
+		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz)
 
 		this.inputs.isPen = info.type === 'pointer' && info.isPen
 
@@ -8360,6 +8362,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	dispatch = (info: TLEventInfo): this => {
 		this._pendingEventsForNextTick.push(info)
+		if (!(info.type === 'pointer' || info.type === 'wheel' || info.type === 'pinch')) {
+			this._flushEventsForTick(0)
+		}
 		return this
 	}
 

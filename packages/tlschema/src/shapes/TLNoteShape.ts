@@ -14,7 +14,7 @@ import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 export const noteShapeProps = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
-	fontSizeAdjustment: T.optional(T.positiveNumber),
+	fontSizeAdjustment: T.positiveNumber,
 	font: DefaultFontStyle,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
@@ -29,19 +29,20 @@ export type TLNoteShapeProps = ShapePropsType<typeof noteShapeProps>
 /** @public */
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
-const Versions = {
+export const noteShapeVersions = {
 	AddUrlProp: 1,
 	RemoveJustify: 2,
 	MigrateLegacyAlign: 3,
 	AddVerticalAlign: 4,
 	MakeUrlsValid: 5,
+	AddFontSizeAdjustment: 6,
 } as const
 
 /** @internal */
 export const noteShapeMigrations = defineMigrations({
-	currentVersion: Versions.MakeUrlsValid,
+	currentVersion: noteShapeVersions.AddFontSizeAdjustment,
 	migrators: {
-		[Versions.AddUrlProp]: {
+		[noteShapeVersions.AddUrlProp]: {
 			up: (shape) => {
 				return { ...shape, props: { ...shape.props, url: '' } }
 			},
@@ -50,7 +51,7 @@ export const noteShapeMigrations = defineMigrations({
 				return { ...shape, props }
 			},
 		},
-		[Versions.RemoveJustify]: {
+		[noteShapeVersions.RemoveJustify]: {
 			up: (shape) => {
 				let newAlign = shape.props.align
 				if (newAlign === 'justify') {
@@ -70,7 +71,7 @@ export const noteShapeMigrations = defineMigrations({
 			},
 		},
 
-		[Versions.MigrateLegacyAlign]: {
+		[noteShapeVersions.MigrateLegacyAlign]: {
 			up: (shape) => {
 				let newAlign: TLDefaultHorizontalAlignStyle
 				switch (shape.props.align) {
@@ -116,7 +117,7 @@ export const noteShapeMigrations = defineMigrations({
 				}
 			},
 		},
-		[Versions.AddVerticalAlign]: {
+		[noteShapeVersions.AddVerticalAlign]: {
 			up: (shape) => {
 				return {
 					...shape,
@@ -135,7 +136,7 @@ export const noteShapeMigrations = defineMigrations({
 				}
 			},
 		},
-		[Versions.MakeUrlsValid]: {
+		[noteShapeVersions.MakeUrlsValid]: {
 			up: (shape) => {
 				const url = shape.props.url
 				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
@@ -144,6 +145,15 @@ export const noteShapeMigrations = defineMigrations({
 				return shape
 			},
 			down: (shape) => shape,
+		},
+		[noteShapeVersions.AddFontSizeAdjustment]: {
+			up: (shape) => {
+				return { ...shape, props: { ...shape.props, fontSizeAdjustment: 0 } }
+			},
+			down: (shape) => {
+				const { fontSizeAdjustment: _, ...props } = shape.props
+				return { ...shape, props }
+			},
 		},
 	},
 })

@@ -13656,7 +13656,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<number | undefined>;\n        font: import(\"@tldraw/editor\")."
+                  "text": "<number>;\n        font: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
