@@ -2093,6 +2093,9 @@ describe('Note shape grid helper positions / pits', () => {
 		editor.createShape({ type: 'note', x: 501, y: 501 })
 		const [shapeB, shapeC] = editor.getLastCreatedShapes(2)
 
+		// For the purposes of this test, let's leave the stickies unparented
+		editor.reparentShapes([shapeC], editor.getCurrentPageId())
+
 		const pit = { x: 320, y: 100 } // right of shapeA
 
 		editor.select(shapeB, shapeC)
