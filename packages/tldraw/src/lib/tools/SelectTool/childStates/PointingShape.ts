@@ -12,6 +12,7 @@ export class PointingShape extends StateNode {
 
 	hitShape = {} as TLShape
 	hitShapeForPointerUp = {} as TLShape
+	isDoubleClick = false
 
 	didSelectOnEnter = false
 
@@ -24,6 +25,7 @@ export class PointingShape extends StateNode {
 		} = this.editor
 
 		this.hitShape = info.shape
+		this.isDoubleClick = false
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
 
 		if (
@@ -155,6 +157,16 @@ export class PointingShape extends StateNode {
 
 										this.editor.setEditingShape(selectingShape.id)
 										this.editor.setCurrentTool('select.editing_shape')
+
+										if (this.isDoubleClick) {
+											// XXX this is a hack to select the text in the textarea when we hit enter.
+											// Open to other ideas! I don't see how else to currently do this in the codebase.
+											;(
+												document.getElementById(
+													`text-input-${selectingShape.id}`
+												) as HTMLTextAreaElement
+											).select()
+										}
 									})
 									return
 								}
@@ -187,6 +199,10 @@ export class PointingShape extends StateNode {
 		}
 
 		this.parent.transition('idle', info)
+	}
+
+	override onDoubleClick: TLEventHandlers['onDoubleClick'] = () => {
+		this.isDoubleClick = true
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {

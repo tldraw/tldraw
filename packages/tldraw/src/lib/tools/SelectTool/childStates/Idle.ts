@@ -282,7 +282,7 @@ export class Idle extends StateNode {
 					}
 
 					if (this.shouldStartEditingShape(onlySelectedShape)) {
-						this.startEditingShape(onlySelectedShape, info)
+						this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					}
 				}
 				break
@@ -316,7 +316,7 @@ export class Idle extends StateNode {
 
 				// If the shape can edit, then begin editing
 				if (this.shouldStartEditingShape(shape)) {
-					this.startEditingShape(shape, info)
+					this.startEditingShape(shape, info, true /* select all */)
 				} else {
 					// If the shape's double click handler has not created a change,
 					// and if the shape cannot edit, then create a text shape and
@@ -338,7 +338,7 @@ export class Idle extends StateNode {
 					// If the shape's double click handler has not created a change,
 					// and if the shape can edit, then begin editing the shape.
 					if (this.shouldStartEditingShape(shape)) {
-						this.startEditingShape(shape, info)
+						this.startEditingShape(shape, info, true /* select all */)
 					}
 				}
 			}
@@ -484,17 +484,15 @@ export class Idle extends StateNode {
 				// If the only selected shape is editable, then begin editing it
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				if (onlySelectedShape && this.shouldStartEditingShape(onlySelectedShape)) {
-					this.startEditingShape(onlySelectedShape, {
-						...info,
-						target: 'shape',
-						shape: onlySelectedShape,
-					})
-
-					// XXX this is a hack to select the text in the textarea when we hit enter.
-					// Open to other ideas! I don't see how else to currently do this in the codebase.
-					;(
-						document.getElementById(`text-input-${onlySelectedShape.id}`) as HTMLTextAreaElement
-					)?.select()
+					this.startEditingShape(
+						onlySelectedShape,
+						{
+							...info,
+							target: 'shape',
+							shape: onlySelectedShape,
+						},
+						true /* select all */
+					)
 					return
 				}
 
@@ -516,11 +514,21 @@ export class Idle extends StateNode {
 		return this.editor.getShapeUtil(shape).canEdit(shape)
 	}
 
-	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
+	private startEditingShape(
+		shape: TLShape,
+		info: TLClickEventInfo | TLKeyboardEventInfo,
+		shouldSelectAll?: boolean
+	) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.editor.mark('editing shape')
 		this.editor.setEditingShape(shape.id)
 		this.parent.transition('editing_shape', info)
+
+		if (shouldSelectAll) {
+			// XXX this is a hack to select the text in the textarea when we hit enter.
+			// Open to other ideas! I don't see how else to currently do this in the codebase.
+			;(document.getElementById(`text-input-${shape.id}`) as HTMLTextAreaElement)?.select()
+		}
 	}
 
 	isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
