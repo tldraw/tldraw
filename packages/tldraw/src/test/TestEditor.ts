@@ -335,6 +335,17 @@ export class TestEditor extends Editor {
 
 	/* ------------------ Input Events ------------------ */
 
+	/**
+	Some of our updates are not synchronous any longer. For example, drawing happens on tick instead of on pointer move.
+	You can use this helper to force the tick, which will then process all the updates.
+	*/
+	forceTick = (count = 1) => {
+		for (let i = 0; i < count; i++) {
+			this.emit('tick', 16)
+		}
+		return this
+	}
+
 	pointerMove = (
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
@@ -344,7 +355,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_move',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -357,7 +368,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_down',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -370,7 +381,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_up',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -404,17 +415,17 @@ export class TestEditor extends Editor {
 			type: 'click',
 			name: 'double_click',
 			phase: 'up',
-		})
+		}).forceTick()
 		return this
 	}
 
 	keyDown = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) })
+		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
 	}
 
 	keyRepeat = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) })
+		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) }).forceTick()
 		return this
 	}
 
@@ -426,7 +437,7 @@ export class TestEditor extends Editor {
 				altKey: this.inputs.altKey && key !== 'Alt',
 				...options,
 			}),
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -440,7 +451,7 @@ export class TestEditor extends Editor {
 			altKey: this.inputs.altKey,
 			...options,
 			delta: { x: dx, y: dy },
-		})
+		}).forceTick(2)
 		return this
 	}
 
@@ -462,7 +473,7 @@ export class TestEditor extends Editor {
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -506,7 +517,7 @@ export class TestEditor extends Editor {
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
-		})
+		}).forceTick()
 		return this
 	}
 	/* ------ Interaction Helpers ------ */
