@@ -150,7 +150,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					boxShadow: hideShadows
 						? 'none'
 						: `${ox * 3}px ${4 - lift}px 4px -4px rgba(0,0,0,.8),
-						${ox * 6}px ${(6 + lift * 8) * oy}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
+						${ox * 6}px ${(6 + lift * 8) * Math.max(0, oy)}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
 						0px 50px 8px -10px inset rgba(0,0,0,${0.0375 + 0.025 * random()})`,
 				}}
 			>
