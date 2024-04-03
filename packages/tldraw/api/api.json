@@ -12791,7 +12791,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "() => boolean"
+                  "text": "(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLNoteShape",
+                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", _shapes: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]) => boolean"
                 },
                 {
                   "kind": "Content",
@@ -12804,7 +12822,7 @@
               "name": "canDropShapes",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
+                "endIndex": 6
               },
               "isStatic": false,
               "isProtected": false,
@@ -13537,7 +13555,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[]) => {\n        shouldHint: boolean;\n    }"
+                  "text": "[]) => void"
                 },
                 {
                   "kind": "Content",

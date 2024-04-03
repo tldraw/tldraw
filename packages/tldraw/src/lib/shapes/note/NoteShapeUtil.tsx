@@ -50,18 +50,18 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => false
 
-	override canReceiveNewChildrenOfType = (shape: TLNoteShape, type: string) => type !== 'frame'
-	override canDropShapes = () => true
+	override canReceiveNewChildrenOfType = (shape: TLNoteShape, type: string) => {
+		return !shape.isLocked && type !== 'frame'
+	}
+
+	override canDropShapes = (shape: TLNoteShape, _shapes: TLShape[]): boolean => {
+		return !shape.isLocked
+	}
 
 	override onDragShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
 		if (!shapes.every((child) => child.parentId === note.id)) {
-			this.editor.reparentShapes(
-				shapes.map((shape) => shape.id),
-				note.id
-			)
-			return { shouldHint: false }
+			this.editor.reparentShapes(shapes, note.id)
 		}
-		return { shouldHint: false }
 	}
 
 	override onDragShapesOut = (note: TLNoteShape, shapes: TLShape[]) => {

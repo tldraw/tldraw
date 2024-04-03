@@ -1098,7 +1098,7 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
-    canDropShapes: () => boolean;
+    canDropShapes: (shape: TLNoteShape, _shapes: TLShape[]) => boolean;
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
@@ -1176,9 +1176,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onDragShapesOut: (note: TLNoteShape, shapes: TLShape[]) => void;
     // (undocumented)
-    onDragShapesOver: (note: TLNoteShape, shapes: TLShape[]) => {
-        shouldHint: boolean;
-    };
+    onDragShapesOver: (note: TLNoteShape, shapes: TLShape[]) => void;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
