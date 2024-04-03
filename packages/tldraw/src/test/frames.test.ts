@@ -1134,6 +1134,22 @@ describe('Unparenting behavior', () => {
 		editor.pointerDown(85, 85)
 		editor.pointerMove(95, 95)
 		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+		editor.pointerUp(95, 95)
+		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it("only parents on pointer up if the shape's geometry overlaps with the frame", () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		dragCreateTriangle({ down: [120, 120], move: [160, 160], up: [160, 160] })
+		const [frame, triangle] = editor.getLastCreatedShapes(2)
+
+		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
+		editor.pointerDown(125, 125)
+		editor.pointerMove(95, 95)
+		jest.advanceTimersByTime(200)
+		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
 		editor.pointerUp(95, 95)
 		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
