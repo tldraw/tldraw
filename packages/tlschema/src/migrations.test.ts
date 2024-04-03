@@ -20,7 +20,7 @@ import { embedShapeMigrations } from './shapes/TLEmbedShape'
 import { GeoShapeVersions, geoShapeMigrations } from './shapes/TLGeoShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
 import { lineShapeMigrations, lineShapeVersions } from './shapes/TLLineShape'
-import { noteShapeMigrations } from './shapes/TLNoteShape'
+import { noteShapeMigrations, noteShapeVersions } from './shapes/TLNoteShape'
 import { textShapeMigrations } from './shapes/TLTextShape'
 import { videoShapeMigrations } from './shapes/TLVideoShape'
 import { storeMigrations, storeVersions } from './store-migrations'
@@ -2027,6 +2027,18 @@ describe('Fractional indexing for line points', () => {
 				],
 			},
 		})
+	})
+})
+
+describe('Add font size adjustment to notes', () => {
+	const { up, down } = noteShapeMigrations.migrators[noteShapeVersions.AddFontSizeAdjustment]
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { fontSizeAdjustment: 0 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { fontSizeAdjustment: 0 } })).toEqual({ props: {} })
 	})
 })
 

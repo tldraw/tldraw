@@ -2909,7 +2909,7 @@
             },
             {
               "kind": "Content",
-              "text": "<number | undefined>;\n    font: import(\"..\")."
+              "text": "<number>;\n    font: import(\"..\")."
             },
             {
               "kind": "Reference",

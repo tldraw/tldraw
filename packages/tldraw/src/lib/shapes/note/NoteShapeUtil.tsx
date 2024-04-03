@@ -4,9 +4,11 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLGroupShape,
 	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	TLShape,
 	TLShapeId,
 	Vec,
 	getDefaultColorTheme,
@@ -26,6 +28,7 @@ import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
+
 import { useForceSolid } from '../shared/useForceSolid'
 import {
 	ADJACENT_NOTE_MARGIN,
@@ -46,6 +49,36 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override doesAutoEditOnKeyStroke = () => true
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => false
+
+	override canReceiveNewChildrenOfType = (shape: TLNoteShape, type: string) => {
+		return !shape.isLocked && type !== 'frame'
+	}
+
+	override canDropShapes = (shape: TLNoteShape, _shapes: TLShape[]): boolean => {
+		return !shape.isLocked
+	}
+
+	override onDragShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
+		if (!shapes.every((child) => child.parentId === note.id)) {
+			const shapesWithoutFrames = shapes.filter(
+				(shape) => !this.editor.isShapeOfType(shape, 'frame')
+			)
+			this.editor.reparentShapes(shapesWithoutFrames, note.id)
+		}
+	}
+
+	override onDragShapesOut = (note: TLNoteShape, shapes: TLShape[]) => {
+		const parent = this.editor.getShape(note.parentId)
+		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
+
+		// If sticky is in a group, keep the shape in that group
+
+		if (isInGroup) {
+			this.editor.reparentShapes(shapes, parent.id)
+		} else {
+			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
+		}
+	}
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -148,12 +181,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					height: noteHeight,
 					color: theme[color].note.text,
 					backgroundColor: theme[color].note.fill,
-					borderBottom: hideShadows ? `3px solid rgb(144, 144, 144)` : 'none',
+					borderBottom: hideShadows ? `3px solid rgb(15, 23, 31, .2)` : 'none',
 					boxShadow: hideShadows
 						? 'none'
-						: `${ox * 3}px ${4 - lift}px 4px -4px rgba(0,0,0,.8),
-						${ox * 6}px ${(6 + lift * 8) * oy}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
-						0px 50px 8px -10px inset rgba(0,0,0,${0.0375 + 0.025 * random()})`,
+						: `${ox * 3}px ${4 - lift}px 5px -5px rgba(15, 23, 31,1),
+						${ox * 6}px ${(4 + lift * 7) * Math.max(0, oy)}px ${6 + lift * 8}px -${4 + lift * 6}px rgba(15, 23, 31,${0.3 + lift * 0.1}), 
+						0px 48px 10px -10px inset rgba(15, 23, 31,${0.02 + random() * 0.005})`,
 				}}
 			>
 				<TextLabel
@@ -258,8 +291,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
-	const BORDER = 1
-	const PADDING = 16 + BORDER
+	const PADDING = 16
 	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
 
 	let fontSizeAdjustment = 0
