@@ -4,6 +4,7 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLDefaultSizeStyle,
 	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
@@ -35,6 +36,13 @@ import {
 	getNoteShapeForAdjacentPosition,
 	startEditingNoteShape,
 } from './noteHelpers'
+
+const FONT_SIZE_TO_LINE_HEIGHT: Record<TLDefaultSizeStyle, number> = {
+	s: 1.46,
+	m: 1.375,
+	l: 1.36,
+	xl: 1.35,
+}
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -177,12 +185,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					type={type}
 					font={font}
 					fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
-					lineHeight={TEXT_PROPS.lineHeight}
+					lineHeight={FONT_SIZE_TO_LINE_HEIGHT[size]}
 					align={align}
 					verticalAlign={shape.props.growY > 0 ? 'start' : verticalAlign}
 					text={text}
 					isNote
 					labelColor={color}
+					padding={getPadding(shape)}
 					wrap
 					onKeyDown={handleKeyDown}
 				/>
@@ -273,7 +282,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 }
 
 function getPadding(shape: TLNoteShape) {
-	return (TEXT_PROPS.lineHeight * LABEL_FONT_SIZES[shape.props.size]) / 2 / 1.5
+	return (FONT_SIZE_TO_LINE_HEIGHT[shape.props.size] * LABEL_FONT_SIZES[shape.props.size]) / 2 / 1.5
 }
 
 function getOffsetForPosition(shape: TLNoteShape, i: number) {
