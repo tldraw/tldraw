@@ -1174,7 +1174,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        fontSizeAdjustment: Validator<number | undefined>;
+        fontSizeAdjustment: Validator<number>;
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
         verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
