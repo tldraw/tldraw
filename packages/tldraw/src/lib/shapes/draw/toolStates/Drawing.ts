@@ -62,9 +62,7 @@ export class Drawing extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		const {
-			editor: { inputs },
-		} = this
+		const { inputs } = this.editor
 
 		if (this.isPen !== inputs.isPen) {
 			// The user made a palm gesture before starting a pen gesture;
@@ -282,8 +280,8 @@ export class Drawing extends StateNode {
 	}
 
 	private updateShapes() {
-		const { inputs } = this.editor
 		const { initialShape } = this
+		const { inputs } = this.editor
 
 		if (!initialShape) return
 
@@ -440,7 +438,7 @@ export class Drawing extends StateNode {
 				const newSegment = newSegments[newSegments.length - 1]
 
 				const { pagePointWhereCurrentSegmentChanged } = this
-				const { currentPagePoint, ctrlKey } = this.editor.inputs
+				const { ctrlKey, currentPagePoint } = this.editor.inputs
 
 				if (!pagePointWhereCurrentSegmentChanged)
 					throw Error('We should have a point where the segment changed')
@@ -623,16 +621,14 @@ export class Drawing extends StateNode {
 				if (newPoints.length > 500) {
 					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
-					const { currentPagePoint } = this.editor.inputs
-
 					const newShapeId = createShapeId()
 
 					this.editor.createShapes<DrawableShape>([
 						{
 							id: newShapeId,
 							type: this.shapeType,
-							x: toFixed(currentPagePoint.x),
-							y: toFixed(currentPagePoint.y),
+							x: toFixed(inputs.currentPagePoint.x),
+							y: toFixed(inputs.currentPagePoint.y),
 							props: {
 								isPen: this.isPen,
 								segments: [
@@ -647,7 +643,7 @@ export class Drawing extends StateNode {
 
 					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
 					this.mergeNextPoint = false
-					this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
+					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.currentLineLength = 0
 				}
 
