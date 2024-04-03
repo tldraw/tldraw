@@ -26,7 +26,6 @@ export const Shape = memo(function Shape({
 	index,
 	backgroundIndex,
 	opacity,
-	isCulled,
 	dprMultiple,
 }: {
 	id: TLShapeId
@@ -35,7 +34,6 @@ export const Shape = memo(function Shape({
 	index: number
 	backgroundIndex: number
 	opacity: number
-	isCulled: boolean
 	dprMultiple: number
 }) {
 	const editor = useEditor()
@@ -58,6 +56,27 @@ export const Shape = memo(function Shape({
 		() => {
 			const shape = editor.getShape(id)
 			if (!shape) return // probably the shape was just deleted
+
+			{
+				// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
+				const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
+				const selectedShapeIds = editor.getSelectedShapeIds()
+				const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
+			const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
+				const isCulled =
+					isCullingOffScreenShapes &&
+					// never cull editing shapes
+					editor.getEditingShapeId() !== id &&
+					// if the shape is fully outside of its parent's clipping bounds...
+					(maskedPageBounds === undefined ||
+						// ...or if the shape is outside of the expanded viewport bounds...
+						(!renderingBoundsExpanded.includes(maskedPageBounds) &&
+							// ...and if it's not selected... then cull it
+							!selectedShapeIds.includes(id)))
+				setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+				setStyleProperty(culledContainerRef.current, 'display', isCulled ? 'block' : 'none')
+				setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+			}
 
 			const prev = memoizedStuffRef.current
 
@@ -143,30 +162,18 @@ export const Shape = memo(function Shape({
 					className="tl-shape tl-shape-background"
 					data-shape-type={shape.type}
 					draggable={false}
-					style={{ display: isCulled ? 'none' : undefined }}
 				>
 					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 						<InnerShapeBackground shape={shape} util={util} />
 					</OptionalErrorBoundary>
 				</div>
 			)}
-			<div
-				ref={containerRef}
-				className="tl-shape"
-				data-shape-type={shape.type}
-				draggable={false}
-				style={{ display: isCulled ? 'none' : undefined }}
-			>
+			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
 			</div>
-			<div
-				ref={culledContainerRef}
-				className="tl-shape__culled"
-				draggable={false}
-				style={{ display: isCulled ? undefined : 'none' }}
-			></div>
+			<div ref={culledContainerRef} className="tl-shape__culled" draggable={false}></div>
 		</>
 	)
 })
