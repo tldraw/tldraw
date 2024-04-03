@@ -1024,6 +1024,24 @@ function dragCreateFrame({
 	return frameId
 }
 
+function dragCreateRect({
+	down,
+	move,
+	up,
+}: {
+	down: [number, number]
+	move: [number, number]
+	up: [number, number]
+}): TLShapeId {
+	editor.setCurrentTool('geo')
+	editor.pointerDown(...down)
+	editor.pointerMove(...move)
+	editor.pointerUp(...up)
+	const shapes = editor.getSelectedShapes()
+	const rectId = shapes[0].id
+	return rectId
+}
+
 function createRect({ pos, size }: { pos: [number, number]; size: [number, number] }) {
 	const rectId: TLShapeId = createShapeId()
 	editor.createShapes([
@@ -1037,3 +1055,34 @@ function createRect({ pos, size }: { pos: [number, number]; size: [number, numbe
 	])
 	return rectId
 }
+
+describe('Unparenting behavior', () => {
+	it("unparents a shape when it's dragged out of a frame, even when the pointer doesn't move across the edge of the frame", () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		dragCreateRect({ down: [80, 50], move: [120, 60], up: [120, 60] })
+		const [frame, rect] = editor.getLastCreatedShapes(2)
+
+		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+		editor.pointerDown(110, 50)
+		editor.pointerMove(140, 50)
+		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+		editor.pointerUp(140, 50)
+		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it("unparents a shape when it's rotated out of a frame", () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		dragCreateRect({ down: [95, 10], move: [200, 20], up: [200, 20] })
+		const [frame, rect] = editor.getLastCreatedShapes(2)
+
+		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+		editor.pointerDown(200, 20, {
+			target: 'selection',
+			handle: 'top_right_rotate',
+		})
+		editor.pointerMove(200, 200)
+		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+		editor.pointerUp(200, 200)
+		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
+	})
+})
