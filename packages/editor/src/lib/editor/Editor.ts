@@ -4037,7 +4037,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed private _getShapeMaskCache(): ComputedCache<Vec[], TLShape> {
 		return this.store.createComputedCache('pageMaskCache', (shape) => {
 			// todo: Consider adding a flag for this hardcoded behaviour
-			if (isPageId(shape.parentId) || shape.type === 'note') return undefined
+			if (
+				isPageId(shape.parentId) ||
+				shape.type === 'note' ||
+				this.findShapeAncestor(shape, (v) => v.type === 'note')
+			)
+				return undefined
 
 			const frameAncestors = this.getShapeAncestors(shape.id).filter((shape) =>
 				this.isShapeOfType<TLFrameShape>(shape, 'frame')
