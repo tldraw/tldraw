@@ -8,31 +8,17 @@ import { useEditor } from '../../hooks/useEditor'
 import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { OptionalErrorBoundary } from '../ErrorBoundary'
 
-class ShapeWithPropsEquality {
-	constructor(public shape: TLShape | undefined) {}
-	equals(other: ShapeWithPropsEquality) {
-		return (
-			this.shape?.isLocked === other?.shape?.isLocked &&
-			this.shape?.props === other?.shape?.props &&
-			this.shape?.meta === other?.shape?.meta
-		)
-	}
-}
-
 // need an extra layer of indirection here to allow hooks to be used inside the indicator render
 const EvenInnererIndicator = ({ shape, util }: { shape: TLShape; util: ShapeUtil<any> }) => {
-	return useStateTracking('Indicator:' + shape.type, () => util.indicator(shape))
+	return useStateTracking('Indicator: ' + shape.type, () => util.indicator(shape))
 }
 
 const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
-	const shape = useValue('shape', () => new ShapeWithPropsEquality(editor.store.get(id)), [
-		editor,
-		id,
-	])
+	const shape = useValue('shape for indicator', () => editor.store.get(id), [editor, id])
 
 	const { ShapeIndicatorErrorFallback } = useEditorComponents()
 
-	if (!shape.shape || shape.shape.isLocked) return null
+	if (!shape || shape.isLocked) return null
 
 	return (
 		<OptionalErrorBoundary
@@ -41,11 +27,7 @@ const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
 				editor.annotateError(error, { origin: 'react.shapeIndicator', willCrashApp: false })
 			}
 		>
-			<EvenInnererIndicator
-				key={shape.shape.id}
-				shape={shape.shape}
-				util={editor.getShapeUtil(shape.shape)}
-			/>
+			<EvenInnererIndicator key={shape.id} shape={shape} util={editor.getShapeUtil(shape)} />
 		</OptionalErrorBoundary>
 	)
 }
@@ -68,7 +50,7 @@ export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
 	const editor = useEditor()
 
 	const transform = useValue(
-		'transform',
+		'indicator transform',
 		() => {
 			const pageTransform = editor.getShapePageTransform(shapeId)
 			if (!pageTransform) return ''

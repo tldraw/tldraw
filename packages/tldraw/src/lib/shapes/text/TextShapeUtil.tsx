@@ -1,6 +1,5 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
-	DefaultFontFamilies,
+	Box,
 	Editor,
 	HTMLContainer,
 	Rectangle2d,
@@ -12,15 +11,13 @@ import {
 	TLTextShape,
 	Vec,
 	WeakMapCache,
-	getDefaultColorTheme,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
 	useEditor,
 	useEditorComponents,
 } from '@tldraw/editor'
-import React from 'react'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
@@ -65,17 +62,46 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
 
 	component(shape: TLTextShape) {
+		const {
+			id,
+			props: { font, size, text, color, scale, align },
+		} = shape
+
 		const { width, height } = this.getMinDimensions(shape)
+
+		/* eslint-disable-next-line react-hooks/rules-of-hooks */
+		const { TextLabel } = useEditorComponents()
 
 		return (
 			<HTMLContainer id={shape.id}>
-				<TextLabelWrapper shape={shape} width={width} height={height} />
+				{TextLabel && (
+					<TextLabel
+						id={id}
+						classNamePrefix="tl-text-shape"
+						type="text"
+						font={font}
+						fontSize={FONT_SIZES[size]}
+						lineHeight={TEXT_PROPS.lineHeight}
+						align={align}
+						verticalAlign="middle"
+						text={text}
+						labelColor={color}
+						textWidth={width}
+						textHeight={height}
+						style={{
+							transform: `scale(${scale})`,
+							transformOrigin: 'top left',
+						}}
+						wrap
+					/>
+				)}
 			</HTMLContainer>
 		)
 	}
 
 	indicator(shape: TLTextShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
+		/* eslint-disable-next-line react-hooks/rules-of-hooks */
 		const editor = useEditor()
 		if (shape.props.autoSize && editor.getEditingShapeId() === shape.id) return null
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
@@ -83,51 +109,24 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
+		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const text = shape.props.text
-
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
-		const opts = {
-			fontSize: FONT_SIZES[shape.props.size],
-			fontFamily: DefaultFontFamilies[shape.props.font],
-			textAlign: shape.props.align,
-			verticalTextAlign: 'middle' as const,
-			width,
-			height,
-			padding: 0, // no padding?
-			lineHeight: TEXT_PROPS.lineHeight,
-			fontStyle: 'normal',
-			fontWeight: 'normal',
-			overflow: 'wrap' as const,
-		}
-
-		const color = theme[shape.props.color].solid
-		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
-		const textBgEl = createTextSvgElementFromSpans(
-			this.editor,
-			this.editor.textMeasure.measureTextSpans(text, opts),
-			{
-				...opts,
-				stroke: theme.background,
-				strokeWidth: 2,
-				fill: theme.background,
-				padding: 0,
-			}
+		return (
+			<SvgTextLabel
+				fontSize={FONT_SIZES[shape.props.size]}
+				font={shape.props.font}
+				align={shape.props.align}
+				verticalAlign="middle"
+				text={shape.props.text}
+				labelColor={shape.props.color}
+				bounds={new Box(0, 0, width, height)}
+				padding={0}
+			/>
 		)
-
-		const textElm = textBgEl.cloneNode(true) as SVGTextElement
-		textElm.setAttribute('fill', color)
-		textElm.setAttribute('stroke', 'none')
-
-		groupEl.append(textBgEl)
-		groupEl.append(textElm)
-
-		return groupEl
 	}
 
 	override onResize: TLOnResizeHandler<TLTextShape> = (shape, info) => {
@@ -302,49 +301,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 }
-
-const TextLabelWrapper = React.memo(function TextLabelWrapper({
-	shape,
-	width,
-	height,
-}: {
-	shape: TLTextShape
-	width: number
-	height: number
-}) {
-	const { TextLabel } = useEditorComponents()
-
-	const {
-		id,
-		props: { font, size, text, color, scale, align },
-	} = shape
-
-	return (
-		TextLabel && (
-			<TextLabel
-				id={id}
-				classNamePrefix="tl-text-shape"
-				type="text"
-				font={font}
-				fontSize={FONT_SIZES[size]}
-				lineHeight={TEXT_PROPS.lineHeight}
-				align={align}
-				verticalAlign="middle"
-				text={text}
-				labelColor={color}
-				textWidth={width}
-				textHeight={height}
-				style={{
-					transform: `scale(${scale})`,
-					transformOrigin: 'top left',
-				}}
-				wrap
-			/>
-		)
-	)
-
-	// 				className="tl-text-shape__wrapper tl-text-shadow"
-})
 
 function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	const { font, text, autoSize, size, w } = props

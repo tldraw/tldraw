@@ -139,6 +139,7 @@ export {
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
 export type {
+	SideEffectManager,
 	TLAfterChangeHandler,
 	TLAfterCreateHandler,
 	TLAfterDeleteHandler,
@@ -196,7 +197,11 @@ export { getArrowTerminalsInArrowSpace } from './lib/editor/shapes/shared/arrow/
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
-export { type SvgExportContext, type SvgExportDef } from './lib/editor/types/SvgExportContext'
+export {
+	useSvgExportContext,
+	type SvgExportContext,
+	type SvgExportDef,
+} from './lib/editor/types/SvgExportContext'
 export { type TLContent } from './lib/editor/types/clipboard-types'
 export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'
 export {
@@ -227,7 +232,6 @@ export {
 	type TLPointerEventName,
 	type TLPointerEventTarget,
 	type TLTickEvent,
-	type TLTickEventHandler,
 	type TLWheelEvent,
 	type TLWheelEventInfo,
 	type UiEvent,
@@ -251,6 +255,7 @@ export { getCursor } from './lib/hooks/useCursor'
 export { EditorContext, useEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useEvent } from './lib/hooks/useEvent'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
@@ -258,6 +263,7 @@ export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
+export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'

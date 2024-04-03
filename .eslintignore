@@ -17,6 +17,7 @@
 **/next.config.js
 **/setupTests.js
 **/setupJest.js
+**/jestResolver.js
 apps/vscode/extension/editor
 apps/examples/www
 apps/docs/api-content.json
@@ -28,3 +29,5 @@ apps/vscode/extension/editor/tldraw-assets.json
 **/coverage/**/*
 
 apps/dotcom/public/sw.js
+
+patchedJestJsDom.js

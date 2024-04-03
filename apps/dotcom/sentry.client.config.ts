@@ -2,7 +2,7 @@
 // The config you add here will be used whenever a page is visited.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import { extraErrorDataIntegration } from '@sentry/integrations'
+import { ExtraErrorData } from '@sentry/integrations'
 import * as Sentry from '@sentry/react'
 import { Editor, getErrorAnnotations } from 'tldraw'
 import { sentryReleaseName } from './sentry-release-name'
@@ -22,7 +22,7 @@ Sentry.init({
 	tracesSampleRate: 1.0,
 	release: sentryReleaseName,
 	environment: env,
-	integrations: [extraErrorDataIntegration({ depth: 10, captureErrorCause: true })],
+	integrations: [new ExtraErrorData({ depth: 10 }) as any],
 	// ...
 	// Note: if you want to override the automatic release value, do not set a
 	// `release` value here - use the environment variable `SENTRY_RELEASE`, so

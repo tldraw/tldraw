@@ -9,9 +9,9 @@ import {
 	DefaultMainMenu,
 	EditSubmenu,
 	Editor,
+	ExportFileContentSubMenu,
 	ExtrasGroup,
 	PreferencesGroup,
-	ShapeSubmenu,
 	TLComponents,
 	Tldraw,
 	TldrawTextLabel,
@@ -51,8 +51,8 @@ const components: TLComponents = {
 		<DefaultMainMenu>
 			<LocalFileMenu />
 			<EditSubmenu />
-			<ShapeSubmenu />
 			<ViewSubmenu />
+			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
 			<Links />
@@ -62,7 +62,7 @@ const components: TLComponents = {
 		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuGroup id="shortcuts-dialog.file">
+				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
 					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
 					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
 				</TldrawUiMenuGroup>

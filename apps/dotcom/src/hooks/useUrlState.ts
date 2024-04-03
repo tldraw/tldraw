@@ -50,6 +50,17 @@ export function useUrlState(onChangeUrl: (params: UrlStateParams) => void) {
 
 		const url = new URL(location.href)
 
+		// We need to check the page first so that any changes to the camera will be applied to the correct page.
+		if (url.searchParams.has(PARAMS.page) || url.searchParams.has(PARAMS.p)) {
+			const newPageId =
+				url.searchParams.get(PARAMS.page) ?? 'page:' + url.searchParams.get(PARAMS.p)
+			if (newPageId) {
+				if (editor.store.has(newPageId as TLPageId)) {
+					editor.setCurrentPage(newPageId as TLPageId)
+				}
+			}
+		}
+
 		if (url.searchParams.has(PARAMS.viewport) || url.searchParams.has(PARAMS.v)) {
 			const newViewportRaw = url.searchParams.get(PARAMS.viewport) ?? url.searchParams.get(PARAMS.v)
 			if (newViewportRaw) {
@@ -67,15 +78,6 @@ export function useUrlState(onChangeUrl: (params: UrlStateParams) => void) {
 					})
 				} catch (err) {
 					console.error(err)
-				}
-			}
-		}
-		if (url.searchParams.has(PARAMS.page) || url.searchParams.has(PARAMS.p)) {
-			const newPageId =
-				url.searchParams.get(PARAMS.page) ?? 'page:' + url.searchParams.get(PARAMS.p)
-			if (newPageId) {
-				if (editor.store.has(newPageId as TLPageId)) {
-					editor.setCurrentPage(newPageId as TLPageId)
 				}
 			}
 		}

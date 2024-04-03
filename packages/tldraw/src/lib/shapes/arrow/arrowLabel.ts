@@ -27,7 +27,7 @@ import {
 
 const labelSizeCache = new WeakMap<TLArrowShape, Vec>()
 
-export function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
+function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 	const cachedSize = labelSizeCache.get(shape)
 	if (cachedSize) return cachedSize
 

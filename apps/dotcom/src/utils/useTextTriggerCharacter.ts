@@ -12,7 +12,11 @@ export function useTextTriggerCharacter(
 	if (breakpoint < 5 /* PORTRAIT_BREAKPOINT.TABLET_SM */) {
 		// We don't support emojis on mobile because mobile devices
 		// have emoji keyboards built in to them.
-		return { onKeyDown: () => {/* do nothing */} }
+		return {
+			onKeyDown: async () => {
+				return false
+			},
+		}
 	}
 
 	// N.B. We could chain multiple onKeyDown handlers here if we wanted to (say, for hashtags, or @-mentions)

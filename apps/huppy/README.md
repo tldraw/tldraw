@@ -13,8 +13,8 @@ REPO_SYNC_HOOK_SECRET=<hook secret here>
 
 DM alex to get hold of these credentials.
 
-To start the server, run `yarn dev-repo-sync`. Once running, you can go to
-https://localhost:3000/deliveries to get to a list of github webhook event
+To start the server, run `yarn dev-huppy`. Once running, you can go to
+http://localhost:3000/deliveries to get to a list of github webhook event
 deliveries. To test your code, pick an event that does roughly what you want and
 hit 'simulate'. You can also ask GitHub to re-deliver events to the production
 version of repo-sync through this UI.
@@ -22,7 +22,7 @@ version of repo-sync through this UI.
 Huppy-bot isn't currently deployed automatically. To deploy, use:
 
 ```sh
-fly deploy --config apps/repo-sync/fly.toml --dockerfile apps/repo-sync/Dockerfile
+fly deploy --config apps/huppy/fly.toml --dockerfile apps/huppy/Dockerfile
 ```
 
 from the repo root.

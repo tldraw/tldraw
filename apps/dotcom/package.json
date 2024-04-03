@@ -27,7 +27,7 @@
 		"@tldraw/tlsync": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
-		"browser-fs-access": "^0.33.0",
+		"browser-fs-access": "^0.35.0",
 		"emoji-mart": "patch:emoji-mart@npm%3A5.5.2#~/.yarn/patches/emoji-mart-npm-5.5.2-10ed58131e.patch",
 		"idb": "^7.1.1",
 		"nanoid": "4.0.2",
@@ -60,7 +60,7 @@
 		"roots": [
 			"<rootDir>"
 		],
-		"testEnvironment": "jsdom",
+		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"transformIgnorePatterns": [
 			"node_modules/(?!(nanoid|nanoevents)/)"
 		],

@@ -19,7 +19,6 @@ import {
 	TLOnResizeHandler,
 	Vec,
 	ZERO_INDEX_KEY,
-	deepCopy,
 	getDefaultColorTheme,
 	resizeBox,
 	structuredClone,
@@ -164,7 +163,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			}
 		}
 
-		const next = deepCopy(shape)
+		const next = structuredClone(shape)
 		next.props.tail.x = newPoint.x / w
 		next.props.tail.y = newPoint.y / fullHeight
 
@@ -173,13 +172,18 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	component(shape: SpeechBubbleShape) {
 		const {
-			props: { color, size },
+			id,
+			type,
+			props: { color, font, size, align, text },
 		} = shape
 		const theme = getDefaultColorTheme({
 			isDarkMode: this.editor.user.getIsDarkMode(),
 		})
 		const vertices = getSpeechBubbleVertices(shape)
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
+
+		/* eslint-disable-next-line react-hooks/rules-of-hooks */
+		const { TextLabel } = useEditorComponents()
 
 		return (
 			<>
@@ -192,7 +196,20 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					/>
 				</svg>
 
-				<TextLabelWrapper shape={shape} />
+				{TextLabel && (
+					<TextLabel
+						id={id}
+						type={type}
+						font={font}
+						fontSize={LABEL_FONT_SIZES[size]}
+						lineHeight={TEXT_PROPS.lineHeight}
+						align={align}
+						verticalAlign="start"
+						text={text}
+						labelColor={color}
+						wrap
+					/>
+				)}
 			</>
 		)
 	}
@@ -216,7 +233,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
 		const PADDING = 17
 
-		const nextTextSize = this.editor.textMeasure.measure(shape.props.text, {
+		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize: LABEL_FONT_SIZES[shape.props.size],
@@ -243,33 +260,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			},
 		}
 	}
-}
-
-function TextLabelWrapper({ shape }: { shape: SpeechBubbleShape }) {
-	const { TextLabel } = useEditorComponents()
-
-	const {
-		id,
-		type,
-		props: { color, font, align, size, text },
-	} = shape
-
-	return (
-		TextLabel && (
-			<TextLabel
-				id={id}
-				type={type}
-				font={font}
-				fontSize={LABEL_FONT_SIZES[size]}
-				lineHeight={TEXT_PROPS.lineHeight}
-				align={align}
-				verticalAlign="start"
-				text={text}
-				labelColor={color}
-				wrap
-			/>
-		)
-	)
 }
 
 /*

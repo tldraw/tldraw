@@ -1,26 +1,27 @@
-import { track, useQuickReactor, useStateTracking } from '@tldraw/state'
+import { useQuickReactor, useStateTracking } from '@tldraw/state'
+import { IdOf } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import * as React from 'react'
+import { memo, useCallback, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Mat } from '../primitives/Mat'
 import { toDomPrecision } from '../primitives/utils'
-import { nearestMultiple } from '../utils/nearestMultiple'
+import { setStyleProperty } from '../utils/dom'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /*
 This component renders shapes on the canvas. There are two stages: positioning
 and styling the shape's container using CSS, and then rendering the shape's 
 JSX using its shape util's render method. Rendering the "inside" of a shape is
-more expensive than positioning it or changing its color, so we use React.memo
+more expensive than positioning it or changing its color, so we use memo
 to wrap the inner shape and only re-render it when the shape's props change. 
 
 The shape also receives props for its index and opacity. The index is used to
 determine the z-index of the shape, and the opacity is used to set the shape's
 opacity based on its own opacity and that of its parent's.
 */
-export const Shape = track(function Shape({
+export const Shape = memo(function Shape({
 	id,
 	shape,
 	util,
@@ -28,6 +29,7 @@ export const Shape = track(function Shape({
 	backgroundIndex,
 	opacity,
 	isCulled,
+	dprMultiple,
 }: {
 	id: TLShapeId
 	shape: TLShape
@@ -36,78 +38,87 @@ export const Shape = track(function Shape({
 	backgroundIndex: number
 	opacity: number
 	isCulled: boolean
+	dprMultiple: number
 }) {
 	const editor = useEditor()
 
 	const { ShapeErrorFallback } = useEditorComponents()
 
-	const containerRef = React.useRef<HTMLDivElement>(null)
-	const backgroundContainerRef = React.useRef<HTMLDivElement>(null)
+	const containerRef = useRef<HTMLDivElement>(null)
+	const bgContainerRef = useRef<HTMLDivElement>(null)
 
-	const setProperty = React.useCallback((property: string, value: string) => {
-		containerRef.current?.style.setProperty(property, value)
-		backgroundContainerRef.current?.style.setProperty(property, value)
-	}, [])
+	const memoizedStuffRef = useRef({
+		transform: '',
+		clipPath: 'none',
+		width: 0,
+		height: 0,
+	})
 
 	useQuickReactor(
-		'set shape container transform position',
+		'set shape stuff',
 		() => {
 			const shape = editor.getShape(id)
 			if (!shape) return // probably the shape was just deleted
 
-			const pageTransform = editor.getShapePageTransform(id)
-			const transform = Mat.toCssString(pageTransform)
-			setProperty('transform', transform)
-		},
-		[editor, setProperty]
-	)
+			const prev = memoizedStuffRef.current
 
-	useQuickReactor(
-		'set shape container clip path',
-		() => {
-			const shape = editor.getShape(id)
-			if (!shape) return null
+			// Clip path
+			const clipPath = editor.getShapeClipPath(id) ?? 'none'
+			if (clipPath !== prev.clipPath) {
+				setStyleProperty(containerRef.current, 'clip-path', clipPath)
+				setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
+				prev.clipPath = clipPath
+			}
 
-			const clipPath = editor.getShapeClipPath(id)
-			setProperty('clip-path', clipPath ?? 'none')
-		},
-		[editor, setProperty]
-	)
+			// Page transform
+			const transform = Mat.toCssString(editor.getShapePageTransform(id))
+			if (transform !== prev.transform) {
+				setStyleProperty(containerRef.current, 'transform', transform)
+				setStyleProperty(bgContainerRef.current, 'transform', transform)
+				prev.transform = transform
+			}
 
-	useQuickReactor(
-		'set shape height and width',
-		() => {
-			const shape = editor.getShape(id)
-			if (!shape) return null
-
+			// Width / Height
+			// We round the shape width and height up to the nearest multiple of dprMultiple
+			// to avoid the browser making miscalculations when applying the transform.
 			const bounds = editor.getShapeGeometry(shape).bounds
-			const dpr = Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100
-			// dprMultiple is the smallest number we can multiply dpr by to get an integer
-			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-			const dprMultiple = nearestMultiple(dpr)
-			// We round the shape width and height up to the nearest multiple of dprMultiple to avoid the browser
-			// making miscalculations when applying the transform.
 			const widthRemainder = bounds.w % dprMultiple
-			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
 			const heightRemainder = bounds.h % dprMultiple
+			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
 			const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
-			setProperty('width', Math.max(width, dprMultiple) + 'px')
-			setProperty('height', Math.max(height, dprMultiple) + 'px')
+
+			if (width !== prev.width || height !== prev.height) {
+				setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
+				setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
+				setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
+				setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
+				prev.width = width
+				prev.height = height
+			}
 		},
 		[editor]
 	)
 
-	// Set the opacity of the container when the opacity changes
-	React.useLayoutEffect(() => {
-		setProperty('opacity', opacity + '')
-		containerRef.current?.style.setProperty('z-index', index + '')
-		backgroundContainerRef.current?.style.setProperty('z-index', backgroundIndex + '')
-	}, [opacity, index, backgroundIndex, setProperty])
+	// This stuff changes pretty infrequently, so we can change them together
+	useQuickReactor(
+		'set opacity and z-index',
+		() => {
+			const container = containerRef.current
+			const bgContainer = bgContainerRef.current
 
-	const annotateError = React.useCallback(
-		(error: any) => {
-			editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
+			// Opacity
+			setStyleProperty(container, 'opacity', opacity)
+			setStyleProperty(bgContainer, 'opacity', opacity)
+
+			// Z-Index
+			setStyleProperty(container, 'z-index', index)
+			setStyleProperty(bgContainer, 'z-index', backgroundIndex)
 		},
+		[opacity, index, backgroundIndex]
+	)
+
+	const annotateError = useCallback(
+		(error: any) => editor.annotateError(error, { origin: 'shape', willCrashApp: false }),
 		[editor]
 	)
 
@@ -117,12 +128,12 @@ export const Shape = track(function Shape({
 		<>
 			{util.backgroundComponent && (
 				<div
-					ref={backgroundContainerRef}
+					ref={bgContainerRef}
 					className="tl-shape tl-shape-background"
 					data-shape-type={shape.type}
 					draggable={false}
 				>
-					{!isCulled && (
+					{isCulled ? null : (
 						<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 							<InnerShapeBackground shape={shape} util={util} />
 						</OptionalErrorBoundary>
@@ -131,7 +142,7 @@ export const Shape = track(function Shape({
 			)}
 			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
 				{isCulled ? (
-					<CulledShape shape={shape} />
+					<CulledShape shapeId={shape.id} />
 				) : (
 					<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 						<InnerShape shape={shape} util={util} />
@@ -142,17 +153,14 @@ export const Shape = track(function Shape({
 	)
 })
 
-const InnerShape = React.memo(
+const InnerShape = memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
 		return useStateTracking('InnerShape:' + shape.type, () => util.component(shape))
 	},
-	(prev, next) =>
-		prev.shape.props === next.shape.props &&
-		prev.shape.meta === next.shape.meta &&
-		prev.util === next.util
+	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
 
-const InnerShapeBackground = React.memo(
+const InnerShapeBackground = memo(
 	function InnerShapeBackground<T extends TLShape>({
 		shape,
 		util,
@@ -165,23 +173,22 @@ const InnerShapeBackground = React.memo(
 	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
 
-const CulledShape = React.memo(
-	function CulledShape<T extends TLShape>({ shape }: { shape: T }) {
-		const editor = useEditor()
-		const bounds = editor.getShapeGeometry(shape).bounds
+const CulledShape = function CulledShape<T extends TLShape>({ shapeId }: { shapeId: IdOf<T> }) {
+	const editor = useEditor()
+	const culledRef = useRef<HTMLDivElement>(null)
 
-		return (
-			<div
-				className="tl-shape__culled"
-				style={{
-					transform: `translate(${toDomPrecision(bounds.minX)}px, ${toDomPrecision(
-						bounds.minY
-					)}px)`,
-					width: Math.max(1, toDomPrecision(bounds.width)),
-					height: Math.max(1, toDomPrecision(bounds.height)),
-				}}
-			/>
-		)
-	},
-	() => true
-)
+	useQuickReactor(
+		'set shape stuff',
+		() => {
+			const bounds = editor.getShapeGeometry(shapeId).bounds
+			setStyleProperty(
+				culledRef.current,
+				'transform',
+				`translate(${toDomPrecision(bounds.minX)}px, ${toDomPrecision(bounds.minY)}px)`
+			)
+		},
+		[editor]
+	)
+
+	return <div ref={culledRef} className="tl-shape__culled" />
+}
