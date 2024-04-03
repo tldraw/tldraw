@@ -1066,6 +1066,24 @@ function dragCreateTriangle({
 	return rectId
 }
 
+function dragCreateLine({
+	down,
+	move,
+	up,
+}: {
+	down: [number, number]
+	move: [number, number]
+	up: [number, number]
+}): TLShapeId {
+	editor.setCurrentTool('line')
+	editor.pointerDown(...down)
+	editor.pointerMove(...move)
+	editor.pointerUp(...up)
+	const shapes = editor.getSelectedShapes()
+	const lineId = shapes[0].id
+	return lineId
+}
+
 function createRect({ pos, size }: { pos: [number, number]; size: [number, number] }) {
 	const rectId: TLShapeId = createShapeId()
 	editor.createShapes([
@@ -1151,5 +1169,18 @@ describe('Unparenting behavior', () => {
 		expect(editor.getHintingShapeIds()).toHaveLength(0)
 		editor.pointerUp(95, 95)
 		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('unparents an occluded shape after dragging a handle out of a frame', () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		dragCreateLine({ down: [90, 90], move: [120, 120], up: [120, 120] })
+		const [frame, line] = editor.getLastCreatedShapes(2)
+
+		expect(editor.getShape(line.id)!.parentId).toBe(frame.id)
+		editor.pointerDown(90, 90)
+		editor.pointerMove(110, 110)
+		expect(editor.getShape(line.id)!.parentId).toBe(frame.id)
+		editor.pointerUp(110, 110)
+		expect(editor.getShape(line.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
 })
