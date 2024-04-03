@@ -25,7 +25,9 @@ export class PointingShape extends StateNode {
 
 		this.hitShape = info.shape
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
-		const selectedAncestor = this.editor.findSelectedAncestor(outermostSelectingShape.id)
+		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
+			selectedShapeIds.includes(parent.id)
+		)
 
 		if (
 			// If the shape has an onClick handler

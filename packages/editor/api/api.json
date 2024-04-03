@@ -9485,69 +9485,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#findSelectedAncestor:member(1)",
-              "docComment": "/**\n * Find the first selected ancestor of a shape.\n *\n * @param shape - The shape to find the selected ancestor of.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "findSelectedAncestor(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "null | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 7
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 4
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "findSelectedAncestor"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#findShapeAncestor:member(1)",
               "docComment": "/**\n * Find the first ancestor matching the given predicate\n *\n * @param shape - The shape to check the ancestors for.\n *\n * @example\n * ```ts\n * const ancestor = editor.findShapeAncestor(myShape)\n * const ancestor = editor.findShapeAncestor(myShape.id)\n * const ancestor = editor.findShapeAncestor(myShape.id, (shape) => shape.type === 'frame')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -14640,64 +14577,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "interrupt"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#isAncestorSelected:member(1)",
-              "docComment": "/**\n * Determine whether or not any of a shape's ancestors are selected.\n *\n * @param shape - The shape to check.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "isAncestorSelected(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 4
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "isAncestorSelected"
             },
             {
               "kind": "Method",

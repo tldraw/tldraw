@@ -655,7 +655,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         }[K];
     };
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
-    findSelectedAncestor(shape: TLShape | TLShapeId): null | TLShape;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
@@ -815,7 +814,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         pointerVelocity: Vec;
     };
     interrupt(): this;
-    isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
