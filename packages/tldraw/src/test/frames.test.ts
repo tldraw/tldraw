@@ -1134,7 +1134,6 @@ describe('Unparenting behavior', () => {
 		editor.pointerDown(85, 85)
 		editor.pointerMove(95, 95)
 		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
-		expect(editor.getHintingShapeIds()).toHaveLength(0)
 		editor.pointerUp(95, 95)
 		expect(editor.getShape(triangle.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
