@@ -8382,8 +8382,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this._flushEventForTick(info)
 				}
 			}
-			this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
-			this.scribbles.tick(elapsed)
+			if (elapsed > 0) {
+				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
+				this.scribbles.tick(elapsed)
+			}
 		})
 	}
 
