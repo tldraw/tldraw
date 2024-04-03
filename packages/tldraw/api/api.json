@@ -27608,7 +27608,16 @@
             },
             {
               "kind": "Content",
-              "text": ">) => void;\n    handleChange: (e: "
+              "text": ">) => "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<void>;\n    handleChange: (e: "
             },
             {
               "kind": "Reference",
@@ -27645,7 +27654,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/useEditableText.ts",
           "returnTypeTokenRange": {
             "startIndex": 11,
-            "endIndex": 26
+            "endIndex": 28
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

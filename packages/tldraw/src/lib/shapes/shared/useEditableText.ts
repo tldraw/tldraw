@@ -14,7 +14,7 @@ import {
 import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
-const DefaultTextTriggerHook = () => ({ onKeyDown: () => false })
+const DefaultTextTriggerHook = () => ({ onKeyDown: async () => false })
 
 /** @public */
 export function useEditableText(
@@ -111,14 +111,14 @@ export function useEditableText(
 	// When the user presses ctrl / meta enter, complete the editing state.
 	// When the user presses tab, indent or unindent the text.
 	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
 
 			const inputEl = e.target as HTMLTextAreaElement
 			// Here we possibly pass control to a custom text handling component passed in by the user, if present.
 			if (inputEl && inputEl.previousSibling) {
 				const coords = getCaretPosition(editor, inputEl, inputEl.previousSibling)
-				const isHandledByCustomLogic = onCustomKeyDown(e, coords)
+				const isHandledByCustomLogic = await onCustomKeyDown(e, coords)
 				if (isHandledByCustomLogic) {
 					return
 				}

@@ -2512,7 +2512,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string, optio
     isEditing: boolean;
     handleFocus: () => void;
     handleBlur: () => void;
-    handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
+    handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => Promise<void>;
     handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
     handleInputPointerDown: (e: React_2.PointerEvent) => void;
     handleDoubleClick: (e: any) => any;

@@ -22694,42 +22694,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Group2d#findLabels:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "findLabels(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Geometry2d",
-                  "canonicalReference": "@tldraw/editor!Geometry2d:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "findLabels"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Group2d#getArea:member(1)",
               "docComment": "",
               "excerptTokens": [
