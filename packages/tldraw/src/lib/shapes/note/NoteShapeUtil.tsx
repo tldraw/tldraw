@@ -60,7 +60,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override onDragShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
 		if (!shapes.every((child) => child.parentId === note.id)) {
-			this.editor.reparentShapes(shapes, note.id)
+			const shapesWithoutFrames = shapes.filter(
+				(shape) => !this.editor.isShapeOfType(shape, 'frame')
+			)
+			this.editor.reparentShapes(shapesWithoutFrames, note.id)
 		}
 	}
 
