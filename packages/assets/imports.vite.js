@@ -55,6 +55,7 @@ import iconsAvatar from './icons/icon/avatar.svg?url'
 import iconsBlob from './icons/icon/blob.svg?url'
 import iconsBringForward from './icons/icon/bring-forward.svg?url'
 import iconsBringToFront from './icons/icon/bring-to-front.svg?url'
+import iconsCheckCircle from './icons/icon/check-circle.svg?url'
 import iconsCheck from './icons/icon/check.svg?url'
 import iconsCheckboxChecked from './icons/icon/checkbox-checked.svg?url'
 import iconsCheckboxEmpty from './icons/icon/checkbox-empty.svg?url'
@@ -71,6 +72,7 @@ import iconsCollab from './icons/icon/collab.svg?url'
 import iconsColor from './icons/icon/color.svg?url'
 import iconsComment from './icons/icon/comment.svg?url'
 import iconsCross2 from './icons/icon/cross-2.svg?url'
+import iconsCrossCircle from './icons/icon/cross-circle.svg?url'
 import iconsCross from './icons/icon/cross.svg?url'
 import iconsDashDashed from './icons/icon/dash-dashed.svg?url'
 import iconsDashDotted from './icons/icon/dash-dotted.svg?url'
@@ -85,6 +87,7 @@ import iconsDotsVertical from './icons/icon/dots-vertical.svg?url'
 import iconsDragHandleDots from './icons/icon/drag-handle-dots.svg?url'
 import iconsDuplicate from './icons/icon/duplicate.svg?url'
 import iconsEdit from './icons/icon/edit.svg?url'
+import iconsError from './icons/icon/error.svg?url'
 import iconsExternalLink from './icons/icon/external-link.svg?url'
 import iconsFile from './icons/icon/file.svg?url'
 import iconsFillNone from './icons/icon/fill-none.svg?url'
@@ -271,6 +274,7 @@ export function getAssetUrlsByImport(opts) {
 			blob: formatAssetUrl(iconsBlob, opts),
 			'bring-forward': formatAssetUrl(iconsBringForward, opts),
 			'bring-to-front': formatAssetUrl(iconsBringToFront, opts),
+			'check-circle': formatAssetUrl(iconsCheckCircle, opts),
 			check: formatAssetUrl(iconsCheck, opts),
 			'checkbox-checked': formatAssetUrl(iconsCheckboxChecked, opts),
 			'checkbox-empty': formatAssetUrl(iconsCheckboxEmpty, opts),
@@ -287,6 +291,7 @@ export function getAssetUrlsByImport(opts) {
 			color: formatAssetUrl(iconsColor, opts),
 			comment: formatAssetUrl(iconsComment, opts),
 			'cross-2': formatAssetUrl(iconsCross2, opts),
+			'cross-circle': formatAssetUrl(iconsCrossCircle, opts),
 			cross: formatAssetUrl(iconsCross, opts),
 			'dash-dashed': formatAssetUrl(iconsDashDashed, opts),
 			'dash-dotted': formatAssetUrl(iconsDashDotted, opts),
@@ -301,6 +306,7 @@ export function getAssetUrlsByImport(opts) {
 			'drag-handle-dots': formatAssetUrl(iconsDragHandleDots, opts),
 			duplicate: formatAssetUrl(iconsDuplicate, opts),
 			edit: formatAssetUrl(iconsEdit, opts),
+			error: formatAssetUrl(iconsError, opts),
 			'external-link': formatAssetUrl(iconsExternalLink, opts),
 			file: formatAssetUrl(iconsFile, opts),
 			'fill-none': formatAssetUrl(iconsFillNone, opts),

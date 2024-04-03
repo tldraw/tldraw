@@ -29,7 +29,7 @@ export function getSvgPathForBezierCurve(curve: CubicBezier2d, first: boolean) {
 	)},${toDomPrecision(d.y)}`
 }
 
-export function getSvgPathForCubicSpline(spline: CubicSpline2d, isClosed: boolean) {
+function getSvgPathForCubicSpline(spline: CubicSpline2d, isClosed: boolean) {
 	let d = spline.segments.reduce((d, segment, i) => {
 		return d + getSvgPathForBezierCurve(segment, i === 0)
 	}, '')
@@ -41,7 +41,7 @@ export function getSvgPathForCubicSpline(spline: CubicSpline2d, isClosed: boolea
 	return d
 }
 
-export function getSvgPathForPolylineSpline(spline: Polyline2d, isClosed: boolean) {
+function getSvgPathForPolylineSpline(spline: Polyline2d, isClosed: boolean) {
 	let d = spline.segments.reduce((d, segment, i) => {
 		return d + getSvgPathForEdge(segment, i === 0)
 	}, '')

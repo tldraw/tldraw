@@ -4,7 +4,7 @@ import {
 	TLImageShapeCrop,
 	TLShapePartial,
 	Vec,
-	deepCopy,
+	structuredClone,
 } from '@tldraw/editor'
 
 export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>
@@ -44,7 +44,7 @@ export function getTranslateCroppedImageChange(
 
 	const yCrop = oldCrop.bottomRight.y - oldCrop.topLeft.y
 	const xCrop = oldCrop.bottomRight.x - oldCrop.topLeft.x
-	const newCrop = deepCopy(oldCrop)
+	const newCrop = structuredClone(oldCrop)
 
 	newCrop.topLeft.x = Math.min(1 - xCrop, Math.max(0, newCrop.topLeft.x - delta.x / w))
 	newCrop.topLeft.y = Math.min(1 - yCrop, Math.max(0, newCrop.topLeft.y - delta.y / h))

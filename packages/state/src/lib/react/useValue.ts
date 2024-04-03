@@ -69,7 +69,7 @@ export function useValue() {
 					// unmount us instead of re-rendering so the error is
 					// irrelevant. if we're not in a zombie-child, react will
 					// call `getSnapshot` again in the render phase, and the
-					// error will be thrown as expected.å
+					// error will be thrown as expected.
 					return {}
 				}
 			}

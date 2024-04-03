@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
 
 :root {
 	--gray-light: #f5f5f5;
@@ -17,6 +17,8 @@ body {
 	/* mobile viewport bug fix */
 	min-height: -webkit-fill-available;
 	height: 100%;
+	/* prevent two-finger swipe to go back */
+	overscroll-behavior-x: none;
 }
 @media screen and (max-width: 600px) {
 	html,

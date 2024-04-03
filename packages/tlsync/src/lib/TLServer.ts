@@ -20,6 +20,32 @@ export type DBLoadResult =
 			type: 'room_not_found'
 	  }
 
+export type TLServerEvent =
+	| {
+			type: 'client'
+			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
+			roomId: string
+			clientId: string
+			instanceId: string
+			localClientId: string
+	  }
+	| {
+			type: 'room'
+			name:
+				| 'failed_load_from_db'
+				| 'failed_persist_to_db'
+				| 'room_empty'
+				| 'fail_persist'
+				| 'room_start'
+			roomId: string
+	  }
+	| {
+			type: 'send_message'
+			roomId: string
+			messageType: string
+			messageLength: number
+	  }
+
 /**
  * This class manages rooms for a websocket server.
  *
@@ -116,7 +142,19 @@ export abstract class TLServer {
 		const clientId = nanoid()
 		const [roomState, roomOpenKind] = await this.getInitialRoomState(persistenceKey)
 
-		roomState.room.handleNewSession(sessionKey, new ServerSocketAdapter(socket))
+		roomState.room.handleNewSession(
+			sessionKey,
+			new ServerSocketAdapter({
+				ws: socket,
+				logSendMessage: (messageType, messageLength) =>
+					this.logEvent({
+						type: 'send_message',
+						roomId: persistenceKey,
+						messageType,
+						messageLength,
+					}),
+			})
+		)
 
 		if (roomOpenKind === 'new' || roomOpenKind === 'reopen') {
 			// Record that the room is now active
@@ -223,22 +261,7 @@ export abstract class TLServer {
 	 * @param event - The event to log.
 	 * @public
 	 */
-	abstract logEvent(
-		event:
-			| {
-					type: 'client'
-					roomId: string
-					name: string
-					clientId: string
-					instanceId: string
-					localClientId: string
-			  }
-			| {
-					type: 'room'
-					roomId: string
-					name: string
-			  }
-	): void
+	abstract logEvent(event: TLServerEvent): void
 
 	/**
 	 * Get a room by its id.
