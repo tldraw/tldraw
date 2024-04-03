@@ -255,8 +255,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
-	const BORDER = 1
-	const PADDING = 16 + BORDER
+	const PADDING = 16
 	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
 
 	let fontSizeAdjustment = 0
