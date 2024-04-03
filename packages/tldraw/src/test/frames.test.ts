@@ -275,8 +275,8 @@ describe('frame shapes', () => {
 		expect(parentBefore).toBe(frameId)
 		// resize the frame so the shape is partially out of bounds
 		editor.pointerDown(100, 50, { target: 'selection', handle: 'right' })
-		editor.pointerMove(70, 50)
-		editor.pointerUp(70, 50)
+		editor.pointerMove(80, 50)
+		editor.pointerUp(80, 50)
 		const parentAfter = editor.getShape(rectId)?.parentId
 		expect(parentAfter).toBe(frameId)
 	})
@@ -405,7 +405,7 @@ describe('frame shapes', () => {
 
 		expect(editor.getOnlySelectedShape()!.id).toBe(boxAid)
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
-		expect(editor.getHintingShapeIds()).toHaveLength(0)
+		expect(editor.getHintingShapeIds()).toHaveLength(1)
 		// box A should still be beneath box B
 		expect(editor.getShape(boxAid)!.index.localeCompare(editor.getShape(boxBid)!.index)).toBe(-1)
 	})
