@@ -87,11 +87,12 @@ export const rootShapeVersions = {
 	AddIsLocked: 1,
 	HoistOpacity: 2,
 	AddMeta: 3,
+	AddWhite: 4,
 } as const
 
 /** @internal */
 export const rootShapeMigrations = defineMigrations({
-	currentVersion: rootShapeVersions.AddMeta,
+	currentVersion: rootShapeVersions.AddWhite,
 	migrators: {
 		[rootShapeVersions.AddIsLocked]: {
 			up: (record) => {
@@ -144,6 +145,21 @@ export const rootShapeMigrations = defineMigrations({
 			down: ({ meta: _, ...record }) => {
 				return {
 					...record,
+				}
+			},
+		},
+		[rootShapeVersions.AddWhite]: {
+			up: (record) => {
+				return {
+					...record,
+				}
+			},
+			down: ({ record }) => {
+				return {
+					...record,
+					props: {
+						color: record.props.color === 'white' ? 'black' : record.props.color,
+					},
 				}
 			},
 		},
