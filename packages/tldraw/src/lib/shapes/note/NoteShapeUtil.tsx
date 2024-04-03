@@ -146,12 +146,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					height: noteHeight,
 					color: theme[color].note.text,
 					backgroundColor: theme[color].note.fill,
-					borderBottom: hideShadows ? `3px solid rgb(144, 144, 144)` : 'none',
+					borderBottom: hideShadows ? `3px solid rgb(15, 23, 31, .2)` : 'none',
 					boxShadow: hideShadows
 						? 'none'
-						: `${ox * 3}px ${4 - lift}px 4px -4px rgba(0,0,0,.8),
-						${ox * 6}px ${(6 + lift * 8) * Math.max(0, oy)}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
-						0px 48px 10px -10px inset rgba(10,10,7,${0.02 + random() * 0.005})`,
+						: `${ox * 3}px ${4 - lift}px 5px -5px rgba(15, 23, 31,1),
+						${ox * 6}px ${(4 + lift * 7) * Math.max(0, oy)}px ${6 + lift * 8}px -${4 + lift * 6}px rgba(15, 23, 31,${0.3 + lift * 0.1}), 
+						0px 48px 10px -10px inset rgba(15, 23, 31,${0.02 + random() * 0.005})`,
 				}}
 			>
 				<TextLabel
