@@ -14580,64 +14580,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#isAncestorSelected:member(1)",
-              "docComment": "/**\n * Determine whether or not any of a shape's ancestors are selected.\n *\n * @param id - The id of the shape to check.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "isAncestorSelected(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shape",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 4
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "isAncestorSelected"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#isIn:member(1)",
               "docComment": "/**\n * Get whether a certain tool (or other state node) is currently active.\n *\n * @param path - The path of active states, separated by periods.\n *\n * @example\n * ```ts\n * editor.isIn('select')\n * editor.isIn('select.brushing')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -28081,6 +28023,77 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "@tldraw/editor!polygonIntersectsPolyline:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function polygonIntersectsPolyline(polygon: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", polyline: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecLike",
+              "canonicalReference": "@tldraw/editor!VecLike:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "boolean"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/primitives/intersect.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 7,
+            "endIndex": 8
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "polygon",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "polyline",
+              "parameterTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 6
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "polygonIntersectsPolyline"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "@tldraw/editor!polygonsIntersect:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -31678,7 +31691,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#onDragShapesOver:member",
-              "docComment": "/**\n * A callback called when some other shapes are dragged over this one.\n *\n * @param shape - The shape.\n *\n * @param shapes - The shapes that are being dragged over this one.\n *\n * @returns An object specifying whether the shape should hint that it can receive the dragged shapes.\n *\n * @example\n * ```ts\n * onDragShapesOver = (shape, shapes) => {\n * \treturn { shouldHint: true }\n * }\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * A callback called when some other shapes are dragged over this one.\n *\n * @param shape - The shape.\n *\n * @param shapes - The shapes that are being dragged over this one.\n *\n * @example\n * ```ts\n * onDragShapesOver = (shape, shapes) => {\n * \tthis.editor.reparentShapes(shapes, shape.id)\n * }\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -31691,7 +31704,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<Shape, {\n        shouldHint: boolean;\n    }>"
+                  "text": "<Shape>"
                 },
                 {
                   "kind": "Content",

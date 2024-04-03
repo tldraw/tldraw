@@ -25,6 +25,9 @@ export class PointingShape extends StateNode {
 
 		this.hitShape = info.shape
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
+		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
+			selectedShapeIds.includes(parent.id)
+		)
 
 		if (
 			// If the shape has an onClick handler
@@ -33,7 +36,9 @@ export class PointingShape extends StateNode {
 			outermostSelectingShape.id === focusedGroupId ||
 			// ...or if the shape is within the selection
 			selectedShapeIds.includes(outermostSelectingShape.id) ||
-			this.editor.isAncestorSelected(outermostSelectingShape.id) ||
+			// ...or if an ancestor of the shape is selected (except note shapes)...
+			// todo: Consider adding a flag for this hardcoded behaviour
+			(selectedAncestor && selectedAncestor.type !== 'note') ||
 			// ...or if the current point is NOT within the selection bounds
 			(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
 		) {
