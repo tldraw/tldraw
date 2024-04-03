@@ -8365,7 +8365,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	dispatch = (info: TLEventInfo): this => {
 		this._pendingEventsForNextTick.push(info)
-		if (info.type !== 'pointer') {
+		if (!(info.type === 'pointer' || info.type === 'wheel' || info.type === 'pinch')) {
 			this._flushEventsForTick(0)
 		}
 		return this
