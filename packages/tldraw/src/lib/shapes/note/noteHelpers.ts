@@ -124,7 +124,7 @@ export function getNoteShapeForAdjacentPosition(
 		}
 	}
 
-	// editor.complete()
+	editor.complete()
 	editor.mark()
 
 	// If we didn't find any in that position, then create a new one
