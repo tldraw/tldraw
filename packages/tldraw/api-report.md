@@ -658,9 +658,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
     // (undocumented)
-    onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => {
-        shouldHint: boolean;
-    };
+    onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => void;
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
     // (undocumented)

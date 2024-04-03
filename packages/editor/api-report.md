@@ -1657,9 +1657,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDoubleClickEdge?: TLOnDoubleClickHandler<Shape>;
     onDoubleClickHandle?: TLOnDoubleClickHandleHandler<Shape>;
     onDragShapesOut?: TLOnDragHandler<Shape>;
-    onDragShapesOver?: TLOnDragHandler<Shape, {
-        shouldHint: boolean;
-    }>;
+    onDragShapesOver?: TLOnDragHandler<Shape>;
     onDropShapesOver?: TLOnDragHandler<Shape>;
     onEditEnd?: TLOnEditEndHandler<Shape>;
     onHandleDrag?: TLOnHandleDragHandler<Shape>;

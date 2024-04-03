@@ -31691,7 +31691,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#onDragShapesOver:member",
-              "docComment": "/**\n * A callback called when some other shapes are dragged over this one.\n *\n * @param shape - The shape.\n *\n * @param shapes - The shapes that are being dragged over this one.\n *\n * @returns An object specifying whether the shape should hint that it can receive the dragged shapes.\n *\n * @example\n * ```ts\n * onDragShapesOver = (shape, shapes) => {\n * \treturn { shouldHint: true }\n * }\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * A callback called when some other shapes are dragged over this one.\n *\n * @param shape - The shape.\n *\n * @param shapes - The shapes that are being dragged over this one.\n *\n * @example\n * ```ts\n * onDragShapesOver = (shape, shapes) => {\n * \tthis.editor.reparentShapes(shapes, shape.id)\n * }\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -31704,7 +31704,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<Shape, {\n        shouldHint: boolean;\n    }>"
+                  "text": "<Shape>"
                 },
                 {
                   "kind": "Content",

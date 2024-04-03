@@ -59,7 +59,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				shapes.map((shape) => shape.id),
 				note.id
 			)
-			return { shouldHint: true }
+			return { shouldHint: false }
 		}
 		return { shouldHint: false }
 	}

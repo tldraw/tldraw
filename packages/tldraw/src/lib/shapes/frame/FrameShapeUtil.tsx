@@ -205,12 +205,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return !shape.isLocked
 	}
 
-	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]): { shouldHint: boolean } => {
+	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]) => {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
 			this.editor.reparentShapes(shapes, frame.id)
-			return { shouldHint: true }
 		}
-		return { shouldHint: false }
 	}
 
 	override onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {

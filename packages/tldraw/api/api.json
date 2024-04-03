@@ -7611,7 +7611,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[]) => {\n        shouldHint: boolean;\n    }"
+                  "text": "[]) => void"
                 },
                 {
                   "kind": "Content",
