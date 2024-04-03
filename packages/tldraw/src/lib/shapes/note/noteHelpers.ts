@@ -196,7 +196,6 @@ function zoomToShapeIfOffscreen(editor: Editor) {
 	const selectionPageBounds = editor.getSelectionPageBounds()
 	const viewportPageBounds = editor.getViewportPageBounds()
 	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		console.log('centering on point', viewportPageBounds, selectionPageBounds)
 		editor.centerOnPoint(selectionPageBounds.center, {
 			duration: ANIMATION_MEDIUM_MS,
 		})
