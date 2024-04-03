@@ -1099,7 +1099,7 @@ function createRect({ pos, size }: { pos: [number, number]; size: [number, numbe
 }
 
 describe('Unparenting behavior', () => {
-	it("unparents a shape when it's dragged out of a frame, even when the pointer doesn't move across the edge of the frame", () => {
+	it("unparents a shape when it's completely dragged out of a frame, even when the pointer doesn't move across the edge of the frame", () => {
 		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
 		dragCreateRect({ down: [80, 50], move: [120, 60], up: [120, 60] })
 		const [frame, rect] = editor.getLastCreatedShapes(2)
@@ -1109,6 +1109,33 @@ describe('Unparenting behavior', () => {
 		editor.pointerMove(140, 50)
 		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
 		editor.pointerUp(140, 50)
+		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it("doesn't unparent a shape when it's partially dragged out of a frame, when the pointer doesn't move across the edge of the frame", () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		dragCreateRect({ down: [80, 50], move: [120, 60], up: [120, 60] })
+		const [frame, rect] = editor.getLastCreatedShapes(2)
+
+		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+		editor.pointerDown(110, 50)
+		editor.pointerMove(120, 50)
+		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+		editor.pointerUp(120, 50)
+		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+	})
+
+	it('unparents a shape when the pointer drags across the edge of a frame, even if its geometry overlaps with the frame', () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		dragCreateRect({ down: [80, 50], move: [120, 60], up: [120, 60] })
+		const [frame, rect] = editor.getLastCreatedShapes(2)
+
+		expect(editor.getShape(rect.id)!.parentId).toBe(frame.id)
+		editor.pointerDown(90, 50)
+		editor.pointerMove(110, 50)
+		jest.advanceTimersByTime(200)
+		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
+		editor.pointerUp(110, 50)
 		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
 
