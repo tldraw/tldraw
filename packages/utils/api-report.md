@@ -177,6 +177,9 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 };
 
 // @public
+export function mapRange(a1: number, b1: number, a2: number, b2: number, s: number): number;
+
+// @public
 export class MediaHelpers {
     static getImageSize(blob: Blob): Promise<{
         w: number;
@@ -290,6 +293,9 @@ export function rng(seed?: string): () => number;
 
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
+
+// @public
+export function scale(a1: number, b1: number, a2: number, b2: number): (s: number) => number;
 
 // @internal
 export function setInLocalStorage(key: string, value: string): void;

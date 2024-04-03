@@ -26,7 +26,6 @@ export const Shape = memo(function Shape({
 	index,
 	backgroundIndex,
 	opacity,
-	isCulled,
 	dprMultiple,
 }: {
 	id: TLShapeId
@@ -35,7 +34,6 @@ export const Shape = memo(function Shape({
 	index: number
 	backgroundIndex: number
 	opacity: number
-	isCulled: boolean
 	dprMultiple: number
 }) {
 	const editor = useEditor()
@@ -43,7 +41,6 @@ export const Shape = memo(function Shape({
 	const { ShapeErrorFallback } = useEditorComponents()
 
 	const containerRef = useRef<HTMLDivElement>(null)
-	const culledContainerRef = useRef<HTMLDivElement>(null)
 	const bgContainerRef = useRef<HTMLDivElement>(null)
 
 	const memoizedStuffRef = useRef({
@@ -59,13 +56,16 @@ export const Shape = memo(function Shape({
 			const shape = editor.getShape(id)
 			if (!shape) return // probably the shape was just deleted
 
+			const isCulled = editor.isShapeCulled(shape)
+			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+
 			const prev = memoizedStuffRef.current
 
 			// Clip path
 			const clipPath = editor.getShapeClipPath(id) ?? 'none'
 			if (clipPath !== prev.clipPath) {
 				setStyleProperty(containerRef.current, 'clip-path', clipPath)
-				setStyleProperty(culledContainerRef.current, 'clip-path', clipPath)
 				setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
 				prev.clipPath = clipPath
 			}
@@ -77,12 +77,6 @@ export const Shape = memo(function Shape({
 			if (transform !== prev.transform) {
 				setStyleProperty(containerRef.current, 'transform', transform)
 				setStyleProperty(bgContainerRef.current, 'transform', transform)
-				const culledPageTransform = pageTransform.clone().translate(bounds.minX, bounds.minY)
-				setStyleProperty(
-					culledContainerRef.current,
-					'transform',
-					Mat.toCssString(culledPageTransform)
-				)
 				prev.transform = transform
 			}
 
@@ -97,8 +91,6 @@ export const Shape = memo(function Shape({
 			if (width !== prev.width || height !== prev.height) {
 				setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
 				setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
-				setStyleProperty(culledContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-				setStyleProperty(culledContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
 				setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
 				setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
 				prev.width = width
@@ -113,7 +105,6 @@ export const Shape = memo(function Shape({
 		'set opacity and z-index',
 		() => {
 			const container = containerRef.current
-			const culledContainer = culledContainerRef.current
 			const bgContainer = bgContainerRef.current
 
 			// Opacity
@@ -122,7 +113,6 @@ export const Shape = memo(function Shape({
 
 			// Z-Index
 			setStyleProperty(container, 'z-index', index)
-			setStyleProperty(culledContainer, 'z-index', index)
 			setStyleProperty(bgContainer, 'z-index', backgroundIndex)
 		},
 		[opacity, index, backgroundIndex]
@@ -143,30 +133,17 @@ export const Shape = memo(function Shape({
 					className="tl-shape tl-shape-background"
 					data-shape-type={shape.type}
 					draggable={false}
-					style={{ display: isCulled ? 'none' : undefined }}
 				>
 					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 						<InnerShapeBackground shape={shape} util={util} />
 					</OptionalErrorBoundary>
 				</div>
 			)}
-			<div
-				ref={containerRef}
-				className="tl-shape"
-				data-shape-type={shape.type}
-				draggable={false}
-				style={{ display: isCulled ? 'none' : undefined }}
-			>
+			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
 			</div>
-			<div
-				ref={culledContainerRef}
-				className="tl-shape__culled"
-				draggable={false}
-				style={{ display: isCulled ? undefined : 'none' }}
-			></div>
 		</>
 	)
 })

@@ -24,7 +24,7 @@ export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export { MediaHelpers } from './lib/media'
-export { invLerp, lerp, modulate, rng } from './lib/number'
+export { invLerp, lerp, mapRange, modulate, rng, scale } from './lib/number'
 export {
 	areObjectsShallowEqual,
 	filterEntries,

@@ -720,8 +720,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         index: number;
         backgroundIndex: number;
         opacity: number;
-        isCulled: boolean;
-        maskedPageBounds: Box | undefined;
     }[];
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
@@ -782,8 +780,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         index: number;
         backgroundIndex: number;
         opacity: number;
-        isCulled: boolean;
-        maskedPageBounds: Box | undefined;
     }[];
     getViewportPageBounds(): Box;
     getViewportPageCenter(): Vec;
@@ -821,6 +817,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         margin?: number | undefined;
         hitInside?: boolean | undefined;
     }): boolean;
+    // (undocumented)
+    isShapeCulled(shape: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     // (undocumented)

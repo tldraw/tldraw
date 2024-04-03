@@ -20,6 +20,7 @@ import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
 import { nearestMultiple } from '../../utils/nearestMultiple'
+import { CulledShapes } from '../CulledShapes'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
@@ -90,46 +91,54 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	])
 
 	return (
-		<div
-			ref={rCanvas}
-			draggable={false}
-			className={classNames('tl-canvas', className)}
-			data-testid="canvas"
-			{...events}
-		>
-			<svg className="tl-svg-context">
-				<defs>
-					{shapeSvgDefs}
-					<CursorDef />
-					<CollaboratorHintDef />
-					{SvgDefs && <SvgDefs />}
-				</defs>
-			</svg>
-			{Background && <Background />}
-			<GridWrapper />
-
-			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
-				<OnTheCanvasWrapper />
-				<SelectionBackgroundWrapper />
-				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
-			</div>
-			<div className="tl-overlays">
-				<div ref={rHtmlLayer2} className="tl-html-layer">
-					{debugGeometry ? <GeometryDebuggingView /> : null}
-					<HandlesWrapper />
-					<BrushWrapper />
-					<ScribbleWrapper />
-					<ZoomBrushWrapper />
-					<SelectedIdIndicators />
-					<HoveredShapeIndicator />
-					<HintedShapeIndicator />
-					<SnapIndicatorWrapper />
-					<SelectionForegroundWrapper />
-					<LiveCollaborators />
+		<>
+			{Background && (
+				<div className="tl-background">
+					<Background />
 				</div>
-				<InFrontOfTheCanvasWrapper />
+			)}
+			<div
+				ref={rCanvas}
+				draggable={false}
+				className={classNames('tl-canvas', className)}
+				data-testid="canvas"
+				{...events}
+			>
+				<svg className="tl-svg-context">
+					<defs>
+						{shapeSvgDefs}
+						<CursorDef />
+						<CollaboratorHintDef />
+						{SvgDefs && <SvgDefs />}
+					</defs>
+				</svg>
+				<GridWrapper />
+				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
+					<OnTheCanvasWrapper />
+					<SelectionBackgroundWrapper />
+					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
+				</div>
+				<div className="tl-overlays">
+					<div ref={rHtmlLayer2} className="tl-html-layer">
+						{debugGeometry ? <GeometryDebuggingView /> : null}
+						<HandlesWrapper />
+						<BrushWrapper />
+						<ScribbleWrapper />
+						<ZoomBrushWrapper />
+						<SelectedIdIndicators />
+						<HoveredShapeIndicator />
+						<HintedShapeIndicator />
+						<SnapIndicatorWrapper />
+						<SelectionForegroundWrapper />
+						<LiveCollaborators />
+					</div>
+					<InFrontOfTheCanvasWrapper />
+				</div>
 			</div>
-		</div>
+			<div className="tl-culled-shapes">
+				<CulledShapes />
+			</div>
+		</>
 	)
 }
 
