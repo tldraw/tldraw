@@ -1085,4 +1085,19 @@ describe('Unparenting behavior', () => {
 		editor.pointerUp(200, 200)
 		expect(editor.getShape(rect.id)!.parentId).toBe(editor.getCurrentPageId())
 	})
+
+	it("unparents shapes if they're resized out of a frame", () => {
+		dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		dragCreateRect({ down: [10, 10], move: [20, 20], up: [20, 20] })
+		dragCreateRect({ down: [80, 80], move: [90, 90], up: [90, 90] })
+		const [frame, rect1, rect2] = editor.getLastCreatedShapes(3)
+
+		editor.select(rect1.id, rect2.id)
+		editor.pointerDown(90, 90, { target: 'selection', handle: 'top_right' })
+		expect(editor.getShape(rect2.id)!.parentId).toBe(frame.id)
+		editor.pointerMove(200, 200)
+		expect(editor.getShape(rect2.id)!.parentId).toBe(frame.id)
+		editor.pointerUp(200, 200)
+		expect(editor.getShape(rect2.id)!.parentId).toBe(editor.getCurrentPageId())
+	})
 })
