@@ -74,32 +74,27 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 			const elm = rInput.current
 			const editingShapeId = editor.getEditingShapeId()
 			// Did we move to a different shape?
-			if (editingShapeId) {
-				// important! these ^v are two different things
-				// is that shape OUR shape?
-				if (elm && editingShapeId === id) {
-					if (ranges) {
-						if (!ranges.length) {
-							// If we don't have any ranges, restore selection
-							// and select all of the text
-							elm.focus()
-						} else {
-							// Otherwise, skip the select-all-on-focus behavior
-							// and restore the selection
-							rSkipSelectOnFocus.current = true
-							elm.focus()
-							const selection = window.getSelection()
-							if (selection) {
-								ranges.forEach((range) => selection.addRange(range))
-							}
-						}
-					} else {
+			// important! these ^v are two different things
+			// is that shape OUR shape?
+			if (elm && editingShapeId === id) {
+				if (ranges) {
+					if (!ranges.length) {
+						// If we don't have any ranges, restore selection
+						// and select all of the text
 						elm.focus()
+					} else {
+						// Otherwise, skip the select-all-on-focus behavior
+						// and restore the selection
+						rSkipSelectOnFocus.current = true
+						elm.focus()
+						const selection = window.getSelection()
+						if (selection) {
+							ranges.forEach((range) => selection.addRange(range))
+						}
 					}
+				} else {
+					elm.focus()
 				}
-			} else {
-				window.getSelection()?.removeAllRanges()
-				editor.complete()
 			}
 		})
 	}, [editor, id])

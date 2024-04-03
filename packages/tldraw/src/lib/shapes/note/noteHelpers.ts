@@ -172,15 +172,7 @@ export function getNoteShapeForAdjacentPosition(
 		nextNote = editor.getShape(id)!
 	}
 
-	// Animate to the next sticky if it would be off screen
-	const selectionPageBounds = editor.getSelectionPageBounds()
-	const viewportPageBounds = editor.getViewportPageBounds()
-	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		editor.centerOnPoint(selectionPageBounds.center, {
-			duration: ANIMATION_MEDIUM_MS,
-		})
-	}
-
+	zoomToShapeIfOffscreen(editor)
 	return nextNote
 }
 
@@ -197,9 +189,14 @@ export function startEditingNoteShape(editor: Editor, shape: TLShape) {
 	// Select any text that's in the newly selected sticky
 	;(document.getElementById(`text-input-${shape.id}`) as HTMLTextAreaElement)?.select()
 
+	zoomToShapeIfOffscreen(editor)
+}
+
+function zoomToShapeIfOffscreen(editor: Editor) {
 	const selectionPageBounds = editor.getSelectionPageBounds()
 	const viewportPageBounds = editor.getViewportPageBounds()
 	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+		console.log('centering on point', viewportPageBounds, selectionPageBounds)
 		editor.centerOnPoint(selectionPageBounds.center, {
 			duration: ANIMATION_MEDIUM_MS,
 		})
