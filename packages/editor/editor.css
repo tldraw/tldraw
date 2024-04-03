@@ -1041,25 +1041,11 @@ input,
 	pointer-events: all;
 }
 
-<<<<<<< HEAD
 .tl-text-wrapper .tl-text-content {
 	pointer-events: all;
 	z-index: var(--layer-canvas-content);
 }
 
-.tl-text-label__inner {
-	position: relative;
-	width: fit-content;
-	height: fit-content;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	pointer-events: none;
-	min-height: auto;
-}
-
-=======
->>>>>>> stickies-rc
 .tl-text-label__inner > .tl-text-content {
 	position: relative;
 	top: 0px;
@@ -1167,10 +1153,6 @@ input,
 }
 
 .tl-arrow-label textarea {
-<<<<<<< HEAD
-=======
-	z-index: 3;
->>>>>>> stickies-rc
 	padding: 4px;
 	/* Don't allow textarea to be zero width */
 	min-width: 4px;
