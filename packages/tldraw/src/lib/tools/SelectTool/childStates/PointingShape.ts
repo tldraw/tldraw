@@ -37,6 +37,7 @@ export class PointingShape extends StateNode {
 			// ...or if the shape is within the selection
 			selectedShapeIds.includes(outermostSelectingShape.id) ||
 			// ...or if an ancestor of the shape is selected (except note shapes)...
+			// todo: Consider adding a flag for this hardcoded behaviour
 			(selectedAncestor && selectedAncestor.type !== 'note') ||
 			// ...or if the current point is NOT within the selection bounds
 			(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
