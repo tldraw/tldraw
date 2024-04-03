@@ -1,9 +1,10 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	Editor,
+	IndexKey,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
+	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
 	TLShapeId,
@@ -13,7 +14,10 @@ import {
 	noteShapeProps,
 	rng,
 	toDomPrecision,
+	useEditor,
+	useValue,
 } from '@tldraw/editor'
+import { useCallback } from 'react'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -22,9 +26,15 @@ import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
-import { createSticky } from './toolStates/Pointing'
-
-const NOTE_SIZE = 200
+import { useForceSolid } from '../shared/useForceSolid'
+import {
+	ADJACENT_NOTE_MARGIN,
+	CENTER_OFFSET,
+	CLONE_HANDLE_MARGIN,
+	NOTE_SIZE,
+	getNoteShapeForAdjacentPosition,
+	startEditingNoteShape,
+} from './noteHelpers'
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -35,7 +45,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override canEdit = () => true
 	override doesAutoEditOnKeyStroke = () => true
 	override hideResizeHandles = () => true
-	override hideSelectionBoundsFg = () => true
+	override hideSelectionBoundsFg = () => false
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -56,9 +66,45 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true, isLabel: true })
 	}
 
+	override getHandles(shape: TLNoteShape): TLHandle[] {
+		const zoom = this.editor.getZoomLevel()
+		const offset = CLONE_HANDLE_MARGIN / zoom
+
+		if (zoom < 0.25) return []
+
+		return [
+			{
+				id: 'top',
+				index: 'a1' as IndexKey,
+				type: 'clone',
+				x: NOTE_SIZE / 2,
+				y: -offset,
+			},
+			{
+				id: 'right',
+				index: 'a2' as IndexKey,
+				type: 'clone',
+				x: NOTE_SIZE + offset,
+				y: getNoteHeight(shape) / 2,
+			},
+			{
+				id: 'bottom',
+				index: 'a3' as IndexKey,
+				type: 'clone',
+				x: NOTE_SIZE / 2,
+				y: getNoteHeight(shape) + offset,
+			},
+			{
+				id: 'left',
+				index: 'a4' as IndexKey,
+				type: 'clone',
+				x: -offset,
+				y: getNoteHeight(shape) / 2,
+			},
+		]
+	}
+
 	component(shape: TLNoteShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const translation = useCurrentTranslation()
 		const {
 			id,
 			type,
@@ -66,122 +112,82 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		} = shape
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const handleKeyDown = useNoteKeydownHandler(id)
+
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
-		const adjustedColor = color === 'black' ? 'yellow' : color
+		const noteHeight = getNoteHeight(shape)
 		const notesCount = getExtraNoteCount(shape)
 
-		const noteHeight = getNoteHeight(shape)
-		const shadowHeight = Math.max(getNoteHeight(shape) * 0.618, 200)
-		const ratio = noteHeight / shadowHeight
-		const random = rng(shape.id)
-		const noteRotation = random() * 4
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const rotation = useValue('shape rotation', () => this.editor.getShape(id)?.rotation ?? 0, [
+			this.editor,
+		])
+
+		// todo: consider hiding shadows on dark mode if they're invisible anyway
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const hideShadows = useForceSolid()
+
+		// Shadow stuff
+		const oy = Math.cos(rotation)
+		const ox = Math.sin(rotation)
+		const random = rng(id)
+		const lift = 1 + random() * 0.5
 
 		return (
-			<>
-				<div
-					className="tl-note"
-					style={{
-						position: 'relative',
-						color: theme[adjustedColor].solid,
-					}}
-				>
-					<div
-						className="tl-note__shadow"
-						style={{
-							height: shadowHeight,
-							transform: `perspective(300px) rotateZ(${noteRotation}deg) rotateX(30deg) translateY(${-Math.abs(noteRotation)}px) scaleX(${0.85}) scaleY(${ratio})`,
-						}}
-					/>
-
-					{Array.from(Array(1 + notesCount)).map((_, i) => {
-						return (
-							<div
-								className="tl-note__container"
-								key={`${shape.id}-note-${i}`}
-								style={{
-									left: i > 0 ? random() * 5 : 0,
-									width: NOTE_SIZE,
-									height: NOTE_SIZE,
-									transform: i > 0 ? `rotate(${random() * 2}deg)` : 'none',
-									marginTop: getOffsetForPosition(shape, i),
-									backgroundColor: theme[adjustedColor].solid,
-								}}
-							>
-								<div className="tl-note__scrim" />
-							</div>
-						)
-					})}
-					<TextLabel
-						id={id}
-						type={type}
-						font={font}
-						fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
-						lineHeight={TEXT_PROPS.lineHeight}
-						align={align}
-						verticalAlign={shape.props.growY > 0 ? 'start' : verticalAlign}
-						text={text}
-						labelColor="black"
-						padding={getPadding(shape)}
-						wrap
-						onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) =>
-							this.handleKeyDown(e, id, translation.isRTL)
-						}
-					/>
-				</div>
+			<div
+				id={id}
+				className="tl-note"
+				style={{
+					width: NOTE_SIZE,
+					height: noteHeight,
+					color: theme[color].note.text,
+					backgroundColor: theme[color].note.fill,
+					borderBottom: hideShadows ? `3px solid rgb(144, 144, 144)` : 'none',
+					boxShadow: hideShadows
+						? 'none'
+						: `${ox * 3}px ${4 - lift}px 4px -4px rgba(0,0,0,.8),
+						${ox * 6}px ${(6 + lift * 8) * oy}px ${6 + lift * 8}px -${6 + lift * 6}px rgba(0,0,0,${0.3 + lift * 0.1}), 
+						0px 50px 8px -10px inset rgba(0,0,0,${0.0375 + 0.025 * random()})`,
+				}}
+			>
+				{Array.from(Array(1 + notesCount)).map((_, i) => {
+					return (
+						<div
+							className="tl-note__container"
+							key={`${shape.id}-note-${i}`}
+							style={{
+								left: i > 0 ? random() * 5 : 0,
+								width: NOTE_SIZE,
+								height: NOTE_SIZE,
+								transform: i > 0 ? `rotate(${random() * 2}deg)` : 'none',
+								marginTop: getOffsetForPosition(shape, i),
+								backgroundColor: theme[color].note.fill,
+							}}
+						>
+							<div className="tl-note__scrim" />
+						</div>
+					)
+				})}
+				<TextLabel
+					id={id}
+					type={type}
+					font={font}
+					fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
+					lineHeight={TEXT_PROPS.lineHeight}
+					align={align}
+					verticalAlign={verticalAlign}
+					text={text}
+					isNote
+					labelColor={color}
+					wrap
+					onKeyDown={handleKeyDown}
+				/>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 				)}
-			</>
+			</div>
 		)
-	}
-
-	private handleKeyDown = (
-		e: React.KeyboardEvent<HTMLTextAreaElement>,
-		id: TLShapeId,
-		isUiRTL: boolean | undefined
-	) => {
-		const shape = this.editor.getShape<TLNoteShape>(id)!
-		const isCmdOrCtrlEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
-		if (isCmdOrCtrlEnter || e.key === 'Tab') {
-			this.editor.complete()
-
-			// Create a new sticky
-			const size = NOTE_SIZE
-			const MARGIN = 10
-			let offset = new Vec(shape.x, shape.y)
-			if (isCmdOrCtrlEnter) {
-				const vertDirection = e.shiftKey ? -1 : 1
-				offset = Vec.Add(
-					offset,
-					new Vec(size / 2, vertDirection === 1 ? size * 1.5 + MARGIN : (-1 * size) / 2 - MARGIN)
-				)
-			} else {
-				// This is a XOR gate: e.shiftKey != isRightToLeftLanguage(shape.props.text)
-				const isRTL = !!(isRightToLeftLanguage(shape.props.text) || isUiRTL)
-				const horzDirection = e.shiftKey != isRTL ? -1 : 1
-				offset = Vec.Add(
-					offset,
-					new Vec(horzDirection === 1 ? size * 1.5 + MARGIN : (-1 * size) / 2 - MARGIN, size / 2)
-				)
-			}
-			const newSticky = createSticky(this.editor, undefined, offset)
-
-			// Go into edit mode on the new sticky
-			this.editor.setEditingShape(newSticky.id)
-			this.editor.setCurrentTool('select.editing_shape', {
-				target: 'shape',
-				shape: newSticky,
-			})
-
-			// Animate to the new sticky, if necessary.
-			const selectionPageBounds = this.editor.getSelectionPageBounds()
-			const viewportPageBounds = this.editor.getViewportPageBounds()
-			if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-				this.editor.centerOnPoint(selectionPageBounds.center, {
-					duration: ANIMATION_MEDIUM_MS,
-				})
-			}
-		}
 	}
 
 	indicator(shape: TLNoteShape) {
@@ -353,4 +359,52 @@ function getNoteHeight(shape: TLNoteShape) {
 	} else {
 		return NOTE_SIZE
 	}
+}
+
+function useNoteKeydownHandler(id: TLShapeId) {
+	const editor = useEditor()
+	const translation = useCurrentTranslation()
+
+	return useCallback(
+		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+			const shape = editor.getShape<TLNoteShape>(id)
+			if (!shape) return
+
+			const isTab = e.key === 'Tab'
+			const isCmdEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
+			if (isTab || isCmdEnter) {
+				e.preventDefault()
+
+				const pageTransform = editor.getShapePageTransform(id)
+				const pageRotation = pageTransform.rotation()
+
+				// Based on the inputs, calculate the offset to the next note
+				// tab controls x axis (shift inverts direction set by RTL)
+				// cmd enter is the y axis (shift inverts direction)
+				const isRTL = !!(translation.isRTL || isRightToLeftLanguage(shape.props.text))
+
+				const offsetLength =
+					NOTE_SIZE +
+					ADJACENT_NOTE_MARGIN +
+					// If we're growing down, we need to account for the current shape's growY
+					(isCmdEnter && !e.shiftKey ? shape.props.growY : 0)
+
+				const adjacentCenter = new Vec(
+					isTab ? (e.shiftKey != isRTL ? -1 : 1) : 0,
+					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
+				)
+					.mul(offsetLength)
+					.add(CENTER_OFFSET)
+					.rot(pageRotation)
+					.add(pageTransform.point())
+
+				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
+
+				if (newNote) {
+					startEditingNoteShape(editor, newNote)
+				}
+			}
+		},
+		[id, editor, translation.isRTL]
+	)
 }

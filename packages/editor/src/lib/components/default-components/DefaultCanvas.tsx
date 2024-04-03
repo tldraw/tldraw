@@ -226,7 +226,9 @@ function HandlesWrapper() {
 		[editor]
 	)
 
-	if (!shapeIdWithHandles) return null
+	if (!shapeIdWithHandles) {
+		return null
+	}
 
 	return <HandlesWrapperInner shapeId={shapeIdWithHandles} />
 }
@@ -388,7 +390,6 @@ function SelectedIdIndicators() {
 					'select.idle',
 					'select.brushing',
 					'select.scribble_brushing',
-					'select.editing_shape',
 					'select.pointing_shape',
 					'select.pointing_selection',
 					'select.pointing_handle'

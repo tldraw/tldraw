@@ -3,7 +3,6 @@ import {
 	Geometry2d,
 	Rectangle2d,
 	SVGContainer,
-	SelectionEdge,
 	SvgExportContext,
 	TLFrameShape,
 	TLGroupShape,
@@ -12,7 +11,6 @@ import {
 	TLShape,
 	TLShapeId,
 	canonicalizeRotation,
-	exhaustiveSwitchError,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
@@ -108,28 +106,26 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		// rotate right 45 deg
 		const offsetRotation = pageRotation + Math.PI / 4
 		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
-		const labelSide: SelectionEdge = (['top', 'left', 'bottom', 'right'] as const)[
-			Math.floor(scaledRotation)
-		]
+		const labelSide = Math.floor(scaledRotation)
 
 		let labelTranslate: string
 		switch (labelSide) {
-			case 'top':
+			case 0: // top
 				labelTranslate = ``
 				break
-			case 'right':
+			case 3: // right
 				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, 0) rotate(90)`
 				break
-			case 'bottom':
+			case 2: // bottom
 				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, ${toDomPrecision(
 					shape.props.h
 				)}) rotate(180)`
 				break
-			case 'left':
+			case 1: // left
 				labelTranslate = `translate(0, ${toDomPrecision(shape.props.h)}) rotate(270)`
 				break
 			default:
-				exhaustiveSwitchError(labelSide)
+				throw Error('labelSide out of bounds')
 		}
 
 		// Truncate with ellipsis

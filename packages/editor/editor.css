@@ -523,8 +523,14 @@ input,
 .tl-handle__create {
 	opacity: 0;
 }
+
 .tl-handle__create:hover {
 	opacity: 1;
+}
+
+.tl-handle__clone > .tl-handle__fg {
+	fill: var(--color-selection-stroke);
+	stroke: none;
 }
 
 .tl-handle__bg:active {
@@ -697,7 +703,8 @@ input,
 	padding: 0px;
 	margin: 0px;
 	border: none;
-	height: 100%;
+	width: fit-content;
+	height: fit-content;
 	font-variant: normal;
 	font-style: normal;
 	pointer-events: all;
@@ -806,6 +813,17 @@ input,
 	outline: none;
 }
 
+.tl-text-content__wrapper {
+	position: relative;
+	width: fit-content;
+	height: fit-content;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	min-height: auto;
+}
+
 .tl-text-content {
 	pointer-events: none;
 }
@@ -816,12 +834,6 @@ input,
 	-webkit-user-select: text;
 	overflow: hidden;
 	cursor: var(--tl-cursor-text);
-}
-
-.tl-text-shape__wrapper[data-isediting='false'] .tl-text-input,
-.tl-arrow-label[data-isediting='false'] .tl-text-input,
-.tl-text-label[data-isediting='false'] .tl-text-input {
-	opacity: 0;
 }
 
 .tl-text-input::selection {
@@ -1021,17 +1033,6 @@ input,
 	pointer-events: all;
 }
 
-.tl-text-label__inner {
-	position: relative;
-	width: fit-content;
-	height: fit-content;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	pointer-events: none;
-	min-height: auto;
-}
-
 .tl-text-label__inner > .tl-text-content {
 	position: relative;
 	top: 0px;
@@ -1120,17 +1121,7 @@ input,
 
 .tl-arrow-label textarea {
 	z-index: 3;
-	margin: 0px;
 	padding: 4px;
-	height: 100%;
-	width: 100%;
-	position: absolute;
-	resize: none;
-	border: 0px;
-	user-select: all;
-	-webkit-user-select: text;
-	caret-color: var(--color-text);
-	border-image: none;
 	/* Don't allow textarea to be zero width */
 	min-width: 4px;
 }
@@ -1145,37 +1136,19 @@ input,
 
 .tl-note__container {
 	position: relative;
-	border-radius: 1px;
-	overflow: hidden;
-	box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.2);
+	pointer-events: all;
+	opacity: 1;
 	z-index: 1;
+	border-radius: 1px;
 }
 
-.tl-note .tl-text-label {
+.tl-note__container > .tl-text-label {
 	text-shadow: none;
+	color: currentColor;
+	z-index: 4;
 }
 
-.tl-note__shadow {
-	background-color: none;
-	width: 100%;
-	position: absolute;
-	bottom: 4px;
-	left: 0px;
-	transform-origin: bottom center;
-	box-shadow:
-		0 0 32px 0px rgba(0, 0, 0, 0.4),
-		0 0 24px 0px rgba(0, 0, 0, 0.3);
-}
-
-.tl-note__scrim {
-	position: absolute;
-	z-index: 10;
-	inset: 0px;
-	height: 100%;
-	width: 100%;
-	background-color: var(--color-background);
-	opacity: 0.2;
-}
+/* --------------------- Loading -------------------- */
 
 .tl-loading {
 	background-color: var(--color-background);

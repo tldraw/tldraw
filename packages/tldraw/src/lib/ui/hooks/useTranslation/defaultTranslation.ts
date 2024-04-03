@@ -115,6 +115,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.zoom-to-selection': 'Zoom to selection',
 	'assets.files.upload-failed': 'Upload failed',
 	'assets.url.failed': "Couldn't load URL preview",
+	'color-style.white': 'White',
 	'color-style.black': 'Black',
 	'color-style.blue': 'Blue',
 	'color-style.green': 'Green',

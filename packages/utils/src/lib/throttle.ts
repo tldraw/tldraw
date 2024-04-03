@@ -6,7 +6,7 @@ const isTest = () =>
 
 const fpsQueue: Array<() => void> = []
 const targetFps = 60
-const targetTimePerFrame = 1000 / targetFps
+const targetTimePerFrame = Math.ceil(1000 / targetFps)
 let frame: number | undefined
 let time = 0
 let last = 0

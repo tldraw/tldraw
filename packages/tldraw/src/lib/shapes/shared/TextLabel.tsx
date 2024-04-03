@@ -9,7 +9,7 @@ import {
 	getDefaultColorTheme,
 	useIsDarkMode,
 } from '@tldraw/editor'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { TextArea } from '../text/TextArea'
 import { TextHelpers } from './TextHelpers'
 import { isLegacyAlign } from './legacyProps'
@@ -28,6 +28,7 @@ type TextLabelProps = {
 	text: string
 	labelColor: TLDefaultColorStyle
 	bounds?: Box
+	isNote?: boolean
 	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 	classNamePrefix?: string
 	style?: React.CSSProperties
@@ -49,6 +50,7 @@ export const TextLabel = React.memo(function TextLabel({
 	verticalAlign,
 	wrap,
 	bounds,
+	isNote,
 	onKeyDown: handleKeyDownCustom,
 	classNamePrefix,
 	style,
@@ -57,13 +59,6 @@ export const TextLabel = React.memo(function TextLabel({
 	padding,
 }: TextLabelProps) {
 	const { rInput, isEmpty, isEditing, ...editableTextRest } = useEditableText(id, type, text)
-
-	const [initialText, setInitialText] = useState(text)
-	useEffect(() => {
-		if (!isEditing) {
-			setInitialText(text)
-		}
-	}, [isEditing, text])
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.length > 0
@@ -101,13 +96,13 @@ export const TextLabel = React.memo(function TextLabel({
 			}}
 		>
 			<div
-				className={`${cssPrefix}-label__inner`}
+				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
 					lineHeight: fontSize * lineHeight + 'px',
 					minHeight: lineHeight + 32,
 					minWidth: textWidth || 0,
-					color: theme[labelColor].solid,
+					color: isNote ? theme[labelColor].note.text : theme[labelColor].solid,
 					width: textWidth,
 					height: textHeight,
 				}}
@@ -115,18 +110,17 @@ export const TextLabel = React.memo(function TextLabel({
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="ltr" style={{ padding }}>
 					{finalText}
 				</div>
-				<TextArea
-					id={`text-input-${id}`}
-					ref={rInput}
-					// We need to add the initial value as the key here because we need this component to
-					// 'reset' when this state changes and grab the latest defaultValue.
-					key={initialText}
-					text={text}
-					padding={padding}
-					isEditing={isEditing}
-					{...editableTextRest}
-					handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
-				/>
+				{isEditing && (
+					<TextArea
+						id={`text-input-${id}`}
+						ref={rInput}
+						text={text}
+						padding={padding}
+						isEditing={isEditing}
+						{...editableTextRest}
+						handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
+					/>
+				)}
 			</div>
 		</div>
 	)
