@@ -158,6 +158,7 @@ export const rootShapeMigrations = defineMigrations({
 				return {
 					...record,
 					props: {
+						...record.props,
 						color: record.props.color === 'white' ? 'black' : record.props.color,
 					},
 				}
