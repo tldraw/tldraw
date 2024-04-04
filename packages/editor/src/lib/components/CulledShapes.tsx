@@ -14,15 +14,15 @@ function setupWebGl(canvas: HTMLCanvasElement | null, isDarkMode: boolean) {
   precision mediump float;
   
   in vec2 shapeVertexPosition;
-  uniform vec2 viewportStartUniform; 
-  uniform vec2 viewportEndUniform; 
+  uniform vec2 viewportStart; 
+  uniform vec2 viewportEnd; 
 
   void main() {
-    float viewportWidth = viewportEndUniform.x - viewportStartUniform.x;
-    float viewportHeight = viewportEndUniform.y - viewportStartUniform.y;
+    float viewportWidth = viewportEnd.x - viewportStart.x;
+    float viewportHeight = viewportEnd.y - viewportStart.y;
 	vec2 finalPosition = vec2(
-		2.0 * (shapeVertexPosition.x - viewportStartUniform.x) / viewportWidth - 1.0, 
-		1.0 - 2.0 * (shapeVertexPosition.y - viewportStartUniform.y) / viewportHeight
+		2.0 * (shapeVertexPosition.x - viewportStart.x) / viewportWidth - 1.0, 
+		1.0 - 2.0 * (shapeVertexPosition.y - viewportStart.y) / viewportHeight
 );
     gl_Position = vec4(finalPosition, 0.0, 1.0);
   }`
@@ -73,8 +73,8 @@ function setupWebGl(canvas: HTMLCanvasElement | null, isDarkMode: boolean) {
 		return
 	}
 
-	const viewportStartUniformLocation = context.getUniformLocation(program, 'viewportStartUniform')
-	const viewportEndUniformLocation = context.getUniformLocation(program, 'viewportEndUniform')
+	const viewportStartUniformLocation = context.getUniformLocation(program, 'viewportStart')
+	const viewportEndUniformLocation = context.getUniformLocation(program, 'viewportEnd')
 	if (!viewportStartUniformLocation || !viewportEndUniformLocation) {
 		return
 	}
