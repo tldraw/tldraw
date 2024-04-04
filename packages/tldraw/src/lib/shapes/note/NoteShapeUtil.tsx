@@ -227,9 +227,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			)
 		)
 
+		const isSelected = this.editor.getSelectedShapeIds().includes(shape.id)
+
 		return (
 			<>
-				<DashedOutlineBox className="tl-parent-group" bounds={descendantsBounds} />
+				{isSelected && <DashedOutlineBox className="tl-parent-group" bounds={descendantsBounds} />}
 				<rect
 					rx="1"
 					width={toDomPrecision(NOTE_SIZE)}
