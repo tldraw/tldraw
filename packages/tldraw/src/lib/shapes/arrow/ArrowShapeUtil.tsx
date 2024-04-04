@@ -536,6 +536,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const labelPosition = getArrowLabelPosition(this.editor, shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const isEditing = this.editor.getEditingShapeId() === shape.id
+		const showArrowLabel = isEditing || shape.props.text
 
 		return (
 			<>
@@ -545,16 +547,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape === shape}
 					/>
 				</SVGContainer>
-				<ArrowTextLabel
-					id={shape.id}
-					text={shape.props.text}
-					font={shape.props.font}
-					size={shape.props.size}
-					position={labelPosition.box.center}
-					width={labelPosition.box.w}
-					isSelected={isSelected}
-					labelColor={shape.props.labelColor}
-				/>
+				{showArrowLabel && (
+					<ArrowTextLabel
+						id={shape.id}
+						text={shape.props.text}
+						font={shape.props.font}
+						size={shape.props.size}
+						position={labelPosition.box.center}
+						width={labelPosition.box.w}
+						isSelected={isSelected}
+						labelColor={shape.props.labelColor}
+					/>
+				)}
 			</>
 		)
 	}

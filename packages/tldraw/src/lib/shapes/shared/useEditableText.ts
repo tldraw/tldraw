@@ -4,6 +4,7 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
+	setPointerCapture,
 	stopEventPropagation,
 	useEditor,
 	useValue,
@@ -147,8 +148,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
-			if (!isEditing) return
-
 			editor.dispatch({
 				...getPointerInfo(e),
 				type: 'pointer',
@@ -158,8 +157,12 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 			})
 
 			stopEventPropagation(e) // we need to prevent blurring the input
+
+			// This is important so that when dragging a shape using the text label,
+			// the shape continues to be dragged, even if the cursor is over the UI.
+			setPointerCapture(e.currentTarget, e)
 		},
-		[editor, id, isEditing]
+		[editor, id]
 	)
 
 	const handleDoubleClick = stopEventPropagation
