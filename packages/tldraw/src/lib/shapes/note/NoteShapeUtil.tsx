@@ -1,8 +1,10 @@
 import {
-	Box,
 	DashedOutlineBox,
 	Editor,
+	Group2d,
 	IndexKey,
+	Polygon2d,
+	Polyline2d,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
@@ -220,12 +222,27 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	indicator(shape: TLNoteShape) {
 		const descendantIds = [...this.editor.getShapeAndDescendantIds([shape.id])]
 
-		// todo: there's gotta be a better way of doing this
-		const descendantsBounds = Box.FromPoints(
-			Box.Common(descendantIds.map((id) => this.editor.getShapePageBounds(id)!)).corners.map(
-				(corner) => this.editor.getPointInShapeSpace(shape.id, corner)
-			)
-		)
+		const descendantsGeometry = new Group2d({
+			children: descendantIds.map((descendantId) => {
+				const descendant = this.editor.getShape(descendantId)!
+				const geometry = this.editor.getShapeGeometry(descendantId)
+				const points = this.editor
+					.getShapePageTransform(descendant)!
+					.applyToPoints(geometry.vertices)
+					.map((point) => this.editor.getPointInShapeSpace(shape, point))
+
+				if (geometry.isClosed) {
+					return new Polygon2d({
+						points,
+						isFilled: true,
+					})
+				}
+
+				return new Polyline2d({
+					points,
+				})
+			}),
+		})
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isSelected = useValue(
@@ -236,7 +253,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		return (
 			<>
-				{isSelected && <DashedOutlineBox className="tl-parent-group" bounds={descendantsBounds} />}
+				{isSelected && (
+					<DashedOutlineBox className="tl-parent-group" bounds={descendantsGeometry.bounds} />
+				)}
 				<rect
 					rx="1"
 					width={toDomPrecision(NOTE_SIZE)}
