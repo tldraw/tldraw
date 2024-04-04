@@ -105,34 +105,34 @@ export const CulledShapes = track(function CulledShapes() {
 			viewportStartUniformLocation,
 			viewportEndUniformLocation,
 		} = webGl
-const shapeVertices = computed('calculate shape vertices', () => {
-	const editingShapeId = editor.getEditingShapeId()
-	const selectedShapeIds = editor.getSelectedShapeIds()
-	const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
+		const shapeVertices = computed('calculate shape vertices', () => {
+			const editingShapeId = editor.getEditingShapeId()
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
 
-	return editor.getUnorderedRenderingShapes().reduce((result, { shape }) => {
-		if (editingShapeId !== shape.id && !selectedShapeIds.includes(shape.id)) {
-			const maskedPageBounds = editor.getShapeMaskedPageBounds(shape)
-			if (maskedPageBounds && !renderingBoundsExpanded.includes(maskedPageBounds)) {
-				result.push(
-					maskedPageBounds.minX,
-					maskedPageBounds.minY,
-					maskedPageBounds.minX,
-					maskedPageBounds.maxY,
-					maskedPageBounds.maxX,
-					maskedPageBounds.maxY,
-					maskedPageBounds.minX,
-					maskedPageBounds.minY,
-					maskedPageBounds.maxX,
-					maskedPageBounds.minY,
-					maskedPageBounds.maxX,
-					maskedPageBounds.maxY
-				)
-			}
-		}
-		return result
-	}, [] as number[])
-})
+			return editor.getUnorderedRenderingShapes(true).reduce((result, { shape }) => {
+				if (editingShapeId !== shape.id && !selectedShapeIds.includes(shape.id)) {
+					const maskedPageBounds = editor.getShapeMaskedPageBounds(shape)
+					if (maskedPageBounds && !renderingBoundsExpanded.includes(maskedPageBounds)) {
+						result.push(
+							maskedPageBounds.minX,
+							maskedPageBounds.minY,
+							maskedPageBounds.minX,
+							maskedPageBounds.maxY,
+							maskedPageBounds.maxX,
+							maskedPageBounds.maxY,
+							maskedPageBounds.minX,
+							maskedPageBounds.minY,
+							maskedPageBounds.maxX,
+							maskedPageBounds.minY,
+							maskedPageBounds.maxX,
+							maskedPageBounds.maxY
+						)
+					}
+				}
+				return result
+			}, [] as number[])
+		})
 		return react('render culled shapes ', () => {
 			const canvas = canvasRef.current
 			if (!canvas || !isCullingOffScreenShapes) return
