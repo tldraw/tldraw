@@ -227,7 +227,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			)
 		)
 
-		const isSelected = this.editor.getSelectedShapeIds().includes(shape.id)
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const isSelected = useValue(
+			'is selected',
+			() => this.editor.getSelectedShapeIds().includes(shape.id),
+			[this.editor]
+		)
 
 		return (
 			<>
