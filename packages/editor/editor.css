@@ -309,6 +309,11 @@ input,
 	contain: size layout;
 }
 
+.tl-culled-shapes-canvas {
+	width: 100%;
+	height: 100%;
+}
+
 /* --------------------- Layers --------------------- */
 
 .tl-html-layer {

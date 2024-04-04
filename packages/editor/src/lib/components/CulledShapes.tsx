@@ -164,6 +164,6 @@ export const CulledShapes = track(function CulledShapes() {
 		})
 	}, [isCullingOffScreenShapes, isDarkMode, editor])
 	return isCullingOffScreenShapes ? (
-		<canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
+		<canvas ref={canvasRef} className="tl-culled-shapes-canvas" />
 	) : null
 })
