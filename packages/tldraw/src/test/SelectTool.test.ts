@@ -559,3 +559,14 @@ describe('When in readonly mode', () => {
 		expect(editor.getEditingShapeId()).toBe(ids.embed1)
 	})
 })
+
+// This should be end to end, the problem is the blur handler of the react component
+it('goes into pointing canvas', () => {
+	editor
+		.createShape({ type: 'note' })
+		.pointerMove(50, 50)
+		.doubleClick()
+		.expectToBeIn('select.editing_shape')
+		.pointerDown(300, 300)
+		.expectToBeIn('select.pointing_canvas')
+})

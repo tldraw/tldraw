@@ -8235,7 +8235,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	cancel(): this {
 		this.dispatch({ type: 'misc', name: 'cancel' })
-		this._tickManager.tick()
 		return this
 	}
 
@@ -8251,7 +8250,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	interrupt(): this {
 		this.dispatch({ type: 'misc', name: 'interrupt' })
-		this._tickManager.tick()
 		return this
 	}
 
@@ -8390,8 +8388,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this._flushEventForTick(info)
 				}
 			}
-			this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
-			this.scribbles.tick(elapsed)
+			if (elapsed > 0) {
+				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
+				this.scribbles.tick(elapsed)
+			}
 		})
 	}
 
