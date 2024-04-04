@@ -1,63 +1,39 @@
-import { track } from '@tldraw/state'
-import { scale } from '@tldraw/utils'
+import { computed, react, track } from '@tldraw/state'
 import { useEffect, useRef } from 'react'
 import { useEditor } from '../hooks/useEditor'
 
-export const CulledShapes = track(function CulledShapes() {
-	const editor = useEditor()
-
-	const canvasRef = useRef<HTMLCanvasElement | null>(null)
-	const contextRef = useRef<WebGL2RenderingContext | null>(null)
-	const vertextShaderRef = useRef<any>(null)
-	const fragmentShaderRef = useRef<any>(null)
-	const programRef = useRef<any>(null)
-
-	const renderingShapes = editor.getRenderingShapes()
-	const viewport = editor.getViewportPageBounds()
-	const selectedShapeIds = editor.getSelectedShapeIds()
-	const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
-	const editingShapeId = editor.getEditingShapeId()
-	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
-
-	useEffect(() => {
-		if (!isCullingOffScreenShapes) return
-		// Parts of the below code are taken from MIT licensed project:
-		// https://github.com/sessamekesh/webgl-tutorials-2023
-
-		const canvas = canvasRef.current
-		if (!canvas) return
-
-		let context = contextRef.current
-		if (!context) {
-			context = canvas.getContext('webgl2')
-			if (!context) return
-			contextRef.current = context
-		}
-
-		let vertexShader = vertextShaderRef.current
-		if (!vertexShader) {
-			const vertexShaderSourceCode = `#version 300 es
+// Parts of the below code are taken from MIT licensed project:
+// https://github.com/sessamekesh/webgl-tutorials-2023
+function getProgram(canvas: HTMLCanvasElement | null) {
+	if (!canvas) return
+	const context = canvas.getContext('webgl2')
+	if (!context) return
+	const vertexShaderSourceCode = `#version 300 es
   precision mediump float;
   
-  in vec2 vertexPosition;
+  in vec2 shapeVertexPosition;
+  uniform vec2 viewportStartUniform; 
+  uniform vec2 viewportEndUniform; 
 
   void main() {
-    gl_Position = vec4(vertexPosition, 0.0, 1.0);
+    float viewportWidth = viewportEndUniform.x - viewportStartUniform.x;
+    float viewportHeight = viewportEndUniform.y - viewportStartUniform.y;
+	vec2 finalPosition = vec2(
+		2.0 * (shapeVertexPosition.x - viewportStartUniform.x) / viewportWidth - 1.0, 
+		1.0 - 2.0 * (shapeVertexPosition.y - viewportStartUniform.y) / viewportHeight
+);
+    gl_Position = vec4(finalPosition, 0.0, 1.0);
   }`
 
-			vertexShader = context.createShader(context.VERTEX_SHADER)
-			if (!vertexShader) return
-			vertextShaderRef.current = vertexShader
-			context.shaderSource(vertexShader, vertexShaderSourceCode)
-			context.compileShader(vertexShader)
-			if (!context.getShaderParameter(vertexShader, context.COMPILE_STATUS)) {
-				return
-			}
-		}
+	const vertexShader = context.createShader(context.VERTEX_SHADER)
+	if (!vertexShader) return
+	context.shaderSource(vertexShader, vertexShaderSourceCode)
+	context.compileShader(vertexShader)
+	if (!context.getShaderParameter(vertexShader, context.COMPILE_STATUS)) {
+		return
+	}
 
-		let fragmentShader = fragmentShaderRef.current
-		if (!fragmentShader) {
-			const fragmentShaderSourceCode = `#version 300 es
+	const fragmentShaderSourceCode = `#version 300 es
   precision mediump float;
   
   out vec4 outputColor;
@@ -66,101 +42,121 @@ export const CulledShapes = track(function CulledShapes() {
     outputColor = vec4(0.922, 0.933, 0.941, 1.0);
   }`
 
-			fragmentShader = context.createShader(context.FRAGMENT_SHADER)
-			if (!fragmentShader) return
-			fragmentShaderRef.current = fragmentShader
-			context.shaderSource(fragmentShader, fragmentShaderSourceCode)
-			context.compileShader(fragmentShader)
-			if (!context.getShaderParameter(fragmentShader, context.COMPILE_STATUS)) {
-				return
-			}
-		}
+	const fragmentShader = context.createShader(context.FRAGMENT_SHADER)
+	if (!fragmentShader) return
+	context.shaderSource(fragmentShader, fragmentShaderSourceCode)
+	context.compileShader(fragmentShader)
+	if (!context.getShaderParameter(fragmentShader, context.COMPILE_STATUS)) {
+		return
+	}
 
-		let program = programRef.current
-		if (!program) {
-			program = context.createProgram()
-			if (!program) return
-			programRef.current = program
-			context.attachShader(program, vertexShader)
-			context.attachShader(program, fragmentShader)
-			context.linkProgram(program)
-			if (!context.getProgramParameter(program, context.LINK_STATUS)) {
-				return
-			}
-		}
+	const program = context.createProgram()
+	if (!program) return
+	context.attachShader(program, vertexShader)
+	context.attachShader(program, fragmentShader)
+	context.linkProgram(program)
+	if (!context.getProgramParameter(program, context.LINK_STATUS)) {
+		return
+	}
+	context.useProgram(program)
 
-		const vertexPositionAttributeLocation = context.getAttribLocation(program, 'vertexPosition')
-		if (vertexPositionAttributeLocation < 0) {
-			return
-		}
+	const shapeVertexPositionAttributeLocation = context.getAttribLocation(
+		program,
+		'shapeVertexPosition'
+	)
+	if (shapeVertexPositionAttributeLocation < 0) {
+		return
+	}
 
-		canvas.width = canvas.clientWidth
-		canvas.height = canvas.clientHeight
-		context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT)
+	const viewportStartUniformLocation = context.getUniformLocation(program, 'viewportStartUniform')
+	const viewportEndUniformLocation = context.getUniformLocation(program, 'viewportEndUniform')
+	if (!viewportStartUniformLocation || !viewportEndUniformLocation) {
+		return
+	}
+	context.enableVertexAttribArray(shapeVertexPositionAttributeLocation)
+	return {
+		context,
+		program,
+		shapeVertexPositionAttributeLocation,
+		viewportStartUniformLocation,
+		viewportEndUniformLocation,
+	}
+}
 
-		context.viewport(0, 0, canvas.width, canvas.height)
+export const CulledShapes = track(function CulledShapes() {
+	const editor = useEditor()
+	const canvasRef = useRef<HTMLCanvasElement>(null)
 
-		context.useProgram(program)
-		context.enableVertexAttribArray(vertexPositionAttributeLocation)
+	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
 
-		const triangleVertices: number[] = []
+	useEffect(() => {
+		const result = getProgram(canvasRef.current)
+		if (!result) return
+		const {
+			context,
+			shapeVertexPositionAttributeLocation,
+			viewportStartUniformLocation,
+			viewportEndUniformLocation,
+		} = result
+		const shapeVertices = computed('calculate shape vertices', () => {
+			const vertices: number[] = []
+			editor.getRenderingShapes().forEach(({ shape }) => {
+				if (!editor.isShapeCulled(shape)) return
 
-		renderingShapes.forEach(({ shape }) => {
-			if (!editor.isShapeCulled(shape)) return
+				const shapePageBounds = editor.getShapePageBounds(shape)
+				if (!shapePageBounds) return
 
-			const shapePageBounds = editor.getShapePageBounds(shape)
-			if (!shapePageBounds) return
-
-			// We need to scale the position from the page dimensions to something webgl understands
-			// y is also flipped compared to our page coordinates
-			const xScale = scale(viewport.minX, viewport.maxX, -1, 1)
-			const yScale = scale(viewport.minY, viewport.maxY, 1, -1)
-
-			const minX = xScale(shape.x)
-			const maxX = xScale(shapePageBounds.x + shapePageBounds.width)
-			const minY = yScale(shape.y)
-			const maxY = yScale(shapePageBounds.y + shapePageBounds.height)
-
-			// We create the rectangle around shapes bounds by stitching together two triangles
-			triangleVertices.push(
-        minX,
-        minY,
-        minX,
-        maxY,
-        maxX,
-        maxY,
-        minX,
-        minY,
-        maxX,
-        minY,
-        maxX,
-        maxY,
-			)
+				vertices.push(
+					shapePageBounds.minX,
+					shapePageBounds.minY,
+					shapePageBounds.minX,
+					shapePageBounds.maxY,
+					shapePageBounds.maxX,
+					shapePageBounds.maxY,
+					shapePageBounds.minX,
+					shapePageBounds.minY,
+					shapePageBounds.maxX,
+					shapePageBounds.minY,
+					shapePageBounds.maxX,
+					shapePageBounds.maxY
+				)
+			})
+			return vertices
 		})
+		return react('render culled shapes ', () => {
+			const canvas = canvasRef.current
+			if (!canvas || !isCullingOffScreenShapes) return
 
-		const triangleGeoCpuBuffer = new Float32Array(triangleVertices)
-		const triangleGeoBuffer = context.createBuffer()
-		context.bindBuffer(context.ARRAY_BUFFER, triangleGeoBuffer)
-		context.bufferData(context.ARRAY_BUFFER, triangleGeoCpuBuffer, context.STATIC_DRAW)
+			const width = canvas.clientWidth
+			const height = canvas.clientHeight
+			if (width !== canvas.width || height !== canvas.height) {
+				canvas.width = width
+				canvas.height = height
+				context.viewport(0, 0, width, height)
+			}
 
-		context.vertexAttribPointer(
-			vertexPositionAttributeLocation,
-			2,
-			context.FLOAT,
-			false,
-			2 * Float32Array.BYTES_PER_ELEMENT,
-			0
-		)
-		context.drawArrays(context.TRIANGLES, 0, triangleVertices.length / 2)
-	}, [
-		viewport,
-		renderingShapes,
-		editor,
-		isCullingOffScreenShapes,
-		editingShapeId,
-		renderingBoundsExpanded,
-		selectedShapeIds,
-	])
+			context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT)
+
+			const viewport = editor.getViewportPageBounds()
+			context.uniform2f(viewportStartUniformLocation, viewport.minX, viewport.minY)
+			context.uniform2f(viewportEndUniformLocation, viewport.maxX, viewport.maxY)
+			const verticesArray = shapeVertices.get()
+			const triangleGeoCpuBuffer = new Float32Array(verticesArray)
+			const triangleGeoBuffer = context.createBuffer()
+			context.bindBuffer(context.ARRAY_BUFFER, triangleGeoBuffer)
+			context.bufferData(context.ARRAY_BUFFER, triangleGeoCpuBuffer, context.STATIC_DRAW)
+
+			context.vertexAttribPointer(
+				shapeVertexPositionAttributeLocation,
+				2,
+				context.FLOAT,
+				false,
+				2 * Float32Array.BYTES_PER_ELEMENT,
+				0
+			)
+			context.drawArrays(context.TRIANGLES, 0, verticesArray.length / 2)
+		})
+	}, [isCullingOffScreenShapes, editor])
 	return isCullingOffScreenShapes ? (
 		<canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
 	) : null
