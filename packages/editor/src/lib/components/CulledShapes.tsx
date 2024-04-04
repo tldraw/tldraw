@@ -1,9 +1,9 @@
-import { useValue } from '@tldraw/state'
+import { track } from '@tldraw/state'
 import { scale } from '@tldraw/utils'
 import { useEffect, useRef } from 'react'
 import { useEditor } from '../hooks/useEditor'
 
-export function CulledShapes() {
+export const CulledShapes = track(function CulledShapes() {
 	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const editor = useEditor()
 	const contextRef = useRef<WebGL2RenderingContext | null>(null)
@@ -11,15 +11,13 @@ export function CulledShapes() {
 	const fragmentShaderRef = useRef<any>(null)
 	const programRef = useRef<any>(null)
 
-	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
-	const viewport = useValue('viewport', () => editor.getViewportPageBounds(), [editor])
+	const renderingShapes = editor.getRenderingShapes()
+	const viewport = editor.getViewportPageBounds()
 
 	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
-	const selectedShapeIds = useValue('selected', () => editor.getSelectedShapeIds(), [editor])
-	const renderingBoundsExpanded = useValue('rendering', () => editor.getRenderingBoundsExpanded(), [
-		editor,
-	])
-	const editingShapeId = useValue('editing', () => editor.getEditingShapeId(), [editor])
+	const selectedShapeIds = editor.getSelectedShapeIds()
+	const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
+	const editingShapeId = editor.getEditingShapeId()
 	useEffect(() => {
 		if (!isCullingOffScreenShapes) return
 		// Parts of the below code are taken from MIT licensed project:
@@ -155,4 +153,4 @@ export function CulledShapes() {
 	return isCullingOffScreenShapes ? (
 		<canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
 	) : null
-}
+})
