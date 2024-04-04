@@ -8388,8 +8388,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			if (elapsed > 0) {
 				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
-				this.scribbles.tick(elapsed)
 			}
+			this.scribbles.tick(elapsed)
 		})
 	}
 
@@ -8669,6 +8669,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
 									this.getZoomLevel()
 						) {
+							clearTimeout(this._longPressTimeout)
 							inputs.isDragging = true
 						}
 						break
@@ -8811,6 +8812,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						break
 					}
 					case 'pointer_up': {
+						clearTimeout(this._longPressTimeout)
+
 						const otherEvent = this._clickManager.transformPointerUpEvent(info)
 						if (info.name !== otherEvent.name) {
 							this.root.handleEvent(info)
