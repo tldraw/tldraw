@@ -1,5 +1,5 @@
 import { StoreSchema } from '../StoreSchema'
-import { Migrations } from '../migrate'
+import { MigrationSequence } from '../migrate'
 
 describe('dependsOn', () => {
 	it('requires the depended on ids to be present', () => {
@@ -31,7 +31,7 @@ describe('dependsOn', () => {
 	})
 
 	it('makes sure the migrations are sorted', () => {
-		const foo: Migrations = {
+		const foo: MigrationSequence = {
 			sequenceId: 'foo',
 			retroactive: false,
 			sequence: [
@@ -45,7 +45,7 @@ describe('dependsOn', () => {
 				},
 			],
 		}
-		const bar: Migrations = {
+		const bar: MigrationSequence = {
 			sequenceId: 'bar',
 			retroactive: false,
 			sequence: [

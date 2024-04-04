@@ -46,7 +46,7 @@ export function createMigrations({ sequence, sequenceId, retroactive, }: {
     sequenceId: string;
     retroactive: boolean;
     sequence: Array<Migration | StandaloneDependsOn>;
-}): Migrations;
+}): MigrationSequence;
 
 // @internal (undocumented)
 export function createRecordMigrations(opts: {
@@ -57,7 +57,7 @@ export function createRecordMigrations(opts: {
     sequence: Omit<Extract<Migration, {
         scope: 'record';
     }>, 'scope'>[];
-}): Migrations;
+}): MigrationSequence;
 
 // @public
 export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
@@ -159,7 +159,7 @@ export type MigrationResult<T> = {
 };
 
 // @public (undocumented)
-export interface Migrations {
+export interface MigrationSequence {
     retroactive: boolean;
     // (undocumented)
     sequence: Migration[];
@@ -342,7 +342,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
     migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>>;
     // (undocumented)
-    readonly migrations: Record<string, Migrations>;
+    readonly migrations: Record<string, MigrationSequence>;
     // (undocumented)
     serialize(): SerializedSchemaV2;
     // @deprecated (undocumented)
@@ -359,7 +359,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 // @public (undocumented)
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
-    migrations?: Migrations[];
+    migrations?: MigrationSequence[];
     onValidationFailure?: (data: {
         error: unknown;
         store: Store<R>;

@@ -13,7 +13,7 @@ import {
 	MigrationFailureReason,
 	MigrationId,
 	MigrationResult,
-	Migrations,
+	MigrationSequence,
 	parseMigrationId,
 	sortMigrations,
 	validateMigrations,
@@ -83,7 +83,7 @@ export function upgradeSchema(schema: SerializedSchema): SerializedSchemaV2 {
 
 /** @public */
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
-	migrations?: Migrations[]
+	migrations?: MigrationSequence[]
 	/** @public */
 	onValidationFailure?: (data: {
 		error: unknown
@@ -108,7 +108,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return new StoreSchema<R, P>(types as any, options ?? {})
 	}
 
-	readonly migrations: Record<string, Migrations> = {}
+	readonly migrations: Record<string, MigrationSequence> = {}
 	readonly sortedMigrations: readonly Migration[]
 
 	private constructor(

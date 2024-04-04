@@ -10,7 +10,7 @@ import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationId } from '@tldraw/store';
-import { Migrations } from '@tldraw/store';
+import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
@@ -77,7 +77,7 @@ export const arrowShapeProps: {
 export const assetIdValidator: T.Validator<TLAssetId>;
 
 // @internal (undocumented)
-export const assetMigrations: Migrations;
+export const assetMigrations: MigrationSequence;
 
 // @public (undocumented)
 export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
@@ -709,7 +709,7 @@ export const parentIdValidator: T.Validator<TLParentId>;
 export const PointerRecordType: RecordType<TLPointer, never>;
 
 // @internal (undocumented)
-export const rootShapeMigrations: Migrations;
+export const rootShapeMigrations: MigrationSequence;
 
 // @public (undocumented)
 export type SchemaShapeInfo = {

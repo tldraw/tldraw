@@ -2,7 +2,7 @@ import assert from 'assert'
 import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { SerializedSchemaV2, StoreSchema } from '../StoreSchema'
-import { Migrations } from '../migrate'
+import { MigrationSequence } from '../migrate'
 
 const mockSequence = ({
 	id,
@@ -14,7 +14,7 @@ const mockSequence = ({
 	retroactive: boolean
 	versions: number
 	filter?: (r: TestRecordType) => boolean
-}): Migrations => ({
+}): MigrationSequence => ({
 	sequenceId: id,
 	retroactive,
 	sequence: new Array(versions).fill(0).map((_, i) => ({
@@ -41,11 +41,11 @@ const TestRecordType = createRecordType<TestRecordType>('test', {
 	scope: 'document',
 })
 
-const makeSchema = (migrations: Migrations[]) => {
+const makeSchema = (migrations: MigrationSequence[]) => {
 	return StoreSchema.create({ test: TestRecordType }, { migrations })
 }
 
-const makePersistedSchema = (...args: Array<[migrations: Migrations, version: number]>) => {
+const makePersistedSchema = (...args: Array<[migrations: MigrationSequence, version: number]>) => {
 	return {
 		schemaVersion: 2,
 		sequences: Object.fromEntries(
