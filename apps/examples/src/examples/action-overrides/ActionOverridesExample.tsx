@@ -6,9 +6,12 @@ export default function BasicExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				overrides={{
-					actions: (_editor, schema, _helpers) => {
-						schema.delete.kbd = 'x'
-						return schema
+					actions: (_editor, actions, _helpers) => {
+						const newActions = {
+							...actions,
+							delete: { ...actions['delete'], kbd: 'x' },
+						}
+						return newActions
 					},
 				}}
 			/>
