@@ -1,6 +1,8 @@
 import {
 	DebugFlag,
 	Editor,
+	PageRecordType,
+	TLPageId,
 	TLShapePartial,
 	createShapeId,
 	debugFlags,
@@ -168,6 +170,14 @@ export function DefaultDebugMenuContent() {
 				<TldrawUiMenuItem id="throw-error" onSelect={() => setError(true)} label={'Throw error'} />
 				<TldrawUiMenuItem id="hard-reset" onSelect={hardResetEditor} label={'Hard reset'} />
 			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="performance">
+				<TldrawUiMenuItem
+					id="panning"
+					label={'Panning test'}
+					onSelect={() => panningTest(editor)}
+				/>
+				<TldrawUiMenuItem id="zoom" label={'Zoom test'} onSelect={() => zoomTest(editor)} />
+			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
 				<DebugFlags />
 				<FeatureFlags />
@@ -280,7 +290,7 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 
 let t = 0
 
-function createNShapes(editor: Editor, n: number) {
+function createNShapes(editor: Editor, n: number, offset = 0) {
 	const shapesToCreate: TLShapePartial[] = Array(n)
 	const cols = Math.floor(Math.sqrt(n))
 
@@ -289,7 +299,7 @@ function createNShapes(editor: Editor, n: number) {
 		shapesToCreate[i] = {
 			id: createShapeId('box' + t),
 			type: 'geo',
-			x: (i % cols) * 132,
+			x: (i % cols) * 132 + offset,
 			y: Math.floor(i / cols) * 132,
 		}
 	}
@@ -297,4 +307,82 @@ function createNShapes(editor: Editor, n: number) {
 	editor.batch(() => {
 		editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))
 	})
+}
+
+function panningTest(editor: Editor) {
+	const newPageId = setupPage(editor)
+
+	createNShapes(editor, 1000)
+	createNShapes(editor, 1000, 4100)
+	editor.selectNone()
+
+	setTimeout(() => {
+		editor.zoomIn(editor.getViewportPageCenter(), { duration: 1000 })
+
+		setTimeout(() => {
+			editor.setCamera({ x: -4000, y: -1000 }, { duration: 1000 })
+
+			setTimeout(() => {
+				editor.setCamera({ x: -5000, y: -2000 }, { duration: 1000 })
+				setTimeout(() => {
+					editor.setCamera({ x: -600, y: -3000 }, { duration: 1000 })
+					setTimeout(() => {
+						editor.setCamera({ x: -7000, y: -2000 }, { duration: 1000 })
+						removePage(editor, newPageId)
+					}, 1000)
+				}, 1000)
+			}, 1000)
+		}, 1000)
+	}, 1000)
+}
+
+function zoomTest(editor: Editor) {
+	const newPageId = setupPage(editor)
+	createNShapes(editor, 1000)
+	createNShapes(editor, 1000, 4100)
+	editor.selectNone()
+	editor.setCamera({ x: -3500, y: -1400 })
+
+	setTimeout(() => {
+		editor.zoomIn(editor.getViewportScreenCenter(), { duration: 1000 })
+		setTimeout(() => {
+			editor.zoomIn(editor.getViewportScreenCenter(), { duration: 1000 })
+			setTimeout(() => {
+				editor.zoomOut(editor.getViewportScreenCenter(), { duration: 1000 })
+				setTimeout(() => {
+					editor.zoomOut(editor.getViewportScreenCenter(), { duration: 1000 })
+					setTimeout(() => {
+						editor.zoomOut(editor.getViewportScreenCenter(), { duration: 1000 })
+						setTimeout(() => {
+							editor.zoomOut(editor.getViewportScreenCenter(), { duration: 1000 })
+							setTimeout(() => {
+								editor.zoomOut(editor.getViewportScreenCenter(), { duration: 1000 })
+								removePage(editor, newPageId)
+							}, 1000)
+						}, 1000)
+					}, 1000)
+				}, 1000)
+			}, 1000)
+		}, 1000)
+	}, 1000)
+}
+
+const setupPage = (editor: Editor) => {
+	const pages = editor.getPages()
+	const perfPageExists = pages.filter((p) => p.name === 'performance').length > 0
+
+	if (perfPageExists) {
+		editor.deletePage(pages.find((p) => p.name === 'performance')!.id)
+	}
+	const newPageId = PageRecordType.createId()
+	editor.createPage({ name: 'performance', id: newPageId })
+	editor.setCurrentPage(newPageId)
+	return newPageId
+}
+
+const removePage = (editor: Editor, id: TLPageId) => {
+	// a little delay to make it easier to see in the performance tab
+	setTimeout(() => {
+		editor.deletePage(id)
+	}, 2000)
 }
