@@ -16,7 +16,6 @@ class TldrawRBush extends RBush<Element> {}
 
 export class SpatialIndex {
 	shapesInTree = new Map<TLShapeId, Element>()
-	rBush = new TldrawRBush()
 	lastPageId: TLPageId | null
 	calculationNumber = 0
 
@@ -45,8 +44,12 @@ export class SpatialIndex {
 
 	getShapesInsideBounds(bounds: Box): TLShapeId[] {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const now = Date.now()
 		const result = this.rBushIncremental().get()
-		return this.rBush.search(bounds).map((b) => b.id)
+		const rbush = new TldrawRBush().fromJSON(result)
+		const r = rbush.search(bounds).map((b) => b.id)
+		// console.log('loading took', Date.now() - now, 'ms')
+		return r
 	}
 
 	@computed
@@ -58,7 +61,7 @@ export class SpatialIndex {
 		const { store } = this.editor
 		const shapeHistory = store.query.filterHistory('shape')
 
-		return computed<number>('getShapesInView', (prevValue, lastComputedEpoch) => {
+		return computed<string>('getShapesInView', (prevValue, lastComputedEpoch) => {
 			let isDirty = false
 			const currentPageId = this.editor.getCurrentPageId()
 			const shapes = this.editor.getCurrentPageShapes()
@@ -76,6 +79,9 @@ export class SpatialIndex {
 				return this.fromScratch(shapes)
 			}
 
+			const rBush = new TldrawRBush().fromJSON(prevValue)
+			// console.log(rBush)
+			// console.log(prevValue)
 			const elementsToAdd: Element[] = []
 			for (const changes of diff) {
 				for (const record of Object.values(changes.added)) {
@@ -100,7 +106,7 @@ export class SpatialIndex {
 								continue
 							}
 							this.shapesInTree.delete(to.id)
-							this.rBush.remove(currentElement)
+							rBush.remove(currentElement)
 						}
 						const newE = this.getElement(to)
 						if (!newE) continue
@@ -108,29 +114,28 @@ export class SpatialIndex {
 						elementsToAdd.push(newE)
 					}
 				}
-				this.rBush.load(elementsToAdd)
+				rBush.load(elementsToAdd)
 				if (elementsToAdd.length) {
 					isDirty = true
 				}
-
 				for (const id of Object.keys(changes.removed)) {
 					if (isShapeId(id)) {
 						const currentElement = this.shapesInTree.get(id)
 						if (currentElement) {
 							this.shapesInTree.delete(id)
-							this.rBush.remove(currentElement)
+							rBush.remove(currentElement)
 							isDirty = true
 						}
 					}
 				}
 			}
-			return isDirty ? this.calculationNumber++ : prevValue
+
+			return isDirty ? rBush.toJSON() : prevValue
 		})
 	}
 
 	private fromScratch(shapes: TLShape[]) {
 		this.lastPageId = this.editor.getCurrentPageId()
-		this.rBush.clear()
 		this.shapesInTree = new Map<TLShapeId, Element>()
 		const elementsToAdd: Element[] = []
 
@@ -142,7 +147,6 @@ export class SpatialIndex {
 			elementsToAdd.push(e)
 		}
 
-		this.rBush.load(elementsToAdd)
-		return this.calculationNumber++
+		return new TldrawRBush().load(elementsToAdd).toJSON()
 	}
 }
