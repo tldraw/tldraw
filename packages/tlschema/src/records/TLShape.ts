@@ -214,6 +214,9 @@ export type TLShapePropsMigrations = {
 	>
 }
 
+/**
+ * @public
+ */
 export function createShapePropsMigrations(
 	migrations: TLShapePropsMigrations
 ): TLShapePropsMigrations {

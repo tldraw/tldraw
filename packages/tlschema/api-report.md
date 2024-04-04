@@ -49,9 +49,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
@@ -63,9 +63,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     bend: T.Validator<number>;
@@ -141,6 +141,9 @@ export const createPresenceStateDerivation: ($user: Signal<{
 
 // @public (undocumented)
 export function createShapeId(id?: string): TLShapeId;
+
+// @public (undocumented)
+export function createShapePropsMigrations(migrations: TLShapePropsMigrations): TLShapePropsMigrations;
 
 // @public (undocumented)
 export function createShapeValidator<Type extends string, Props extends JsonObject, Meta extends JsonObject>(type: Type, props?: {
@@ -668,10 +671,10 @@ export const lineShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
     points: T.DictValidator<string, {
-        id: string;
         x: number;
         y: number;
         index: IndexKey;
+        id: string;
     } & {}>;
 };
 
