@@ -66,7 +66,6 @@ import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	ANIMATION_MEDIUM_MS,
-	CAMERA_MAX_RENDERING_INTERVAL,
 	CAMERA_MOVING_TIMEOUT,
 	CAMERA_SLIDE_FRICTION,
 	COARSE_DRAG_DISTANCE,
@@ -80,7 +79,6 @@ import {
 	FOLLOW_CHASE_ZOOM_UNSNAP,
 	HIT_TEST_MARGIN,
 	INTERNAL_POINTER_IDS,
-	LONG_PRESS_DURATION,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
@@ -639,7 +637,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.updateRenderingBounds()
 
-		this.on('tick', this.tick)
+		this.on('tick', this._flushEventsForTick)
 
 		requestAnimationFrame(() => {
 			this._tickManager.start()
@@ -2087,7 +2085,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _setCamera(point: VecLike): this {
+	private _setCamera(point: VecLike, immediate = false): this {
 		const currentCamera = this.getCamera()
 
 		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z) {
@@ -2095,26 +2093,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.batch(() => {
-			this.store.put([{ ...currentCamera, ...point }]) // include id and meta here
+			const camera = { ...currentCamera, ...point }
+			this.store.put([camera]) // include id and meta here
 
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
-			const { currentScreenPoint } = this.inputs
+			const { currentScreenPoint, currentPagePoint } = this.inputs
 			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
-			this.dispatch({
-				type: 'pointer',
-				target: 'canvas',
-				name: 'pointer_move',
-				// weird but true: we need to put the screen point back into client space
-				point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
-				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
-				ctrlKey: this.inputs.ctrlKey,
-				altKey: this.inputs.altKey,
-				shiftKey: this.inputs.shiftKey,
-				button: 0,
-				isPen: this.getInstanceState().isPenMode ?? false,
-			})
+			// compare the next page point (derived from the curent camera) to the current page point
+			if (
+				currentScreenPoint.x / camera.z - camera.x !== currentPagePoint.x ||
+				currentScreenPoint.y / camera.z - camera.y !== currentPagePoint.y
+			) {
+				// If it's changed, dispatch a pointer event
+				const event: TLPointerEventInfo = {
+					type: 'pointer',
+					target: 'canvas',
+					name: 'pointer_move',
+					// weird but true: we need to put the screen point back into client space
+					point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
+					pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
+					ctrlKey: this.inputs.ctrlKey,
+					altKey: this.inputs.altKey,
+					shiftKey: this.inputs.shiftKey,
+					button: 0,
+					isPen: this.getInstanceState().isPenMode ?? false,
+				}
+				if (immediate) {
+					this._flushEventForTick(event)
+				} else {
+					this.dispatch(event)
+				}
+			}
 
 			this._tickCameraState()
 		})
@@ -2489,6 +2500,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!this.getInstanceState().canMoveCamera) return this
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 		this.setCamera({ x: cx + offset.x / cz, y: cy + offset.y / cz, z: cz }, animation)
+		this._flushEventsForTick(0)
 		return this
 	}
 
@@ -3086,10 +3098,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._lastUpdateRenderingBoundsTimestamp = now // don't render right away
 			this._cameraState.set('moving')
 			this.on('tick', this._decayCameraStateTimeout)
-		} else {
-			if (now - this._lastUpdateRenderingBoundsTimestamp > CAMERA_MAX_RENDERING_INTERVAL) {
-				this.updateRenderingBounds()
-			}
 		}
 	}
 
@@ -8209,12 +8217,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		])
 	}
 
-	/** @internal */
-	private tick = (elapsed = 0) => {
-		this.dispatch({ type: 'misc', name: 'tick', elapsed })
-		this.scribbles.tick(elapsed)
-	}
-
 	/**
 	 * Dispatch a cancel event.
 	 *
@@ -8365,6 +8367,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispatch = (info: TLEventInfo): this => {
+		this._pendingEventsForNextTick.push(info)
+		if (!(info.type === 'pointer' || info.type === 'wheel' || info.type === 'pinch')) {
+			this._flushEventsForTick(0)
+		}
+		return this
+	}
+
+	private _pendingEventsForNextTick: TLEventInfo[] = []
+
+	private _flushEventsForTick = (elapsed: number) => {
+		this.batch(() => {
+			if (this._pendingEventsForNextTick.length > 0) {
+				const events = [...this._pendingEventsForNextTick]
+				this._pendingEventsForNextTick.length = 0
+				for (const info of events) {
+					this._flushEventForTick(info)
+				}
+			}
+			if (elapsed > 0) {
+				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
+				this.scribbles.tick(elapsed)
+			}
+		})
+	}
+
+	private _flushEventForTick = (info: TLEventInfo) => {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
 		if (this.getCrashingError()) return this
@@ -8372,162 +8400,261 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { inputs } = this
 		const { type } = info
 
-		this.batch(() => {
-			if (info.type === 'misc') {
-				// stop panning if the interaction is cancelled or completed
-				if (info.name === 'cancel' || info.name === 'complete') {
-					this.inputs.isDragging = false
+		if (info.type === 'misc') {
+			// stop panning if the interaction is cancelled or completed
+			if (info.name === 'cancel' || info.name === 'complete') {
+				this.inputs.isDragging = false
 
-					if (this.inputs.isPanning) {
-						this.inputs.isPanning = false
-						this.updateInstanceState({
-							cursor: {
-								type: this._prevCursor,
-								rotation: 0,
-							},
-						})
-					}
+				if (this.inputs.isPanning) {
+					this.inputs.isPanning = false
+					this.updateInstanceState({
+						cursor: {
+							type: this._prevCursor,
+							rotation: 0,
+						},
+					})
 				}
-
-				this.root.handleEvent(info)
-				return
 			}
 
-			if (info.shiftKey) {
-				clearInterval(this._shiftKeyTimeout)
-				this._shiftKeyTimeout = -1
-				inputs.shiftKey = true
-			} else if (!info.shiftKey && inputs.shiftKey && this._shiftKeyTimeout === -1) {
-				this._shiftKeyTimeout = setTimeout(this._setShiftKeyTimeout, 150)
-			}
+			this.root.handleEvent(info)
+			return
+		}
 
-			if (info.altKey) {
-				clearInterval(this._altKeyTimeout)
-				this._altKeyTimeout = -1
-				inputs.altKey = true
-			} else if (!info.altKey && inputs.altKey && this._altKeyTimeout === -1) {
-				this._altKeyTimeout = setTimeout(this._setAltKeyTimeout, 150)
-			}
+		if (info.shiftKey) {
+			clearInterval(this._shiftKeyTimeout)
+			this._shiftKeyTimeout = -1
+			inputs.shiftKey = true
+		} else if (!info.shiftKey && inputs.shiftKey && this._shiftKeyTimeout === -1) {
+			this._shiftKeyTimeout = setTimeout(this._setShiftKeyTimeout, 150)
+		}
 
-			if (info.ctrlKey) {
-				clearInterval(this._ctrlKeyTimeout)
-				this._ctrlKeyTimeout = -1
-				inputs.ctrlKey = true /** @internal */ /** @internal */ /** @internal */
-			} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === -1) {
-				this._ctrlKeyTimeout = setTimeout(this._setCtrlKeyTimeout, 150)
-			}
+		if (info.altKey) {
+			clearInterval(this._altKeyTimeout)
+			this._altKeyTimeout = -1
+			inputs.altKey = true
+		} else if (!info.altKey && inputs.altKey && this._altKeyTimeout === -1) {
+			this._altKeyTimeout = setTimeout(this._setAltKeyTimeout, 150)
+		}
 
-			const { originPagePoint, originScreenPoint, currentPagePoint, currentScreenPoint } = inputs
+		if (info.ctrlKey) {
+			clearInterval(this._ctrlKeyTimeout)
+			this._ctrlKeyTimeout = -1
+			inputs.ctrlKey = true /** @internal */ /** @internal */ /** @internal */
+		} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === -1) {
+			this._ctrlKeyTimeout = setTimeout(this._setCtrlKeyTimeout, 150)
+		}
 
-			if (!inputs.isPointing) {
-				inputs.isDragging = false
-			}
+		const { originPagePoint, originScreenPoint, currentPagePoint, currentScreenPoint } = inputs
 
-			switch (type) {
-				case 'pinch': {
-					if (!this.getInstanceState().canMoveCamera) return
-					clearTimeout(this._longPressTimeout)
-					this._updateInputsFromEvent(info)
+		if (!inputs.isPointing) {
+			inputs.isDragging = false
+		}
 
-					switch (info.name) {
-						case 'pinch_start': {
-							if (inputs.isPinching) return
+		switch (type) {
+			case 'pinch': {
+				if (!this.getInstanceState().canMoveCamera) return
+				clearTimeout(this._longPressTimeout)
+				this._updateInputsFromEvent(info)
 
-							if (!inputs.isEditing) {
-								this._pinchStart = this.getCamera().z
-								if (!this._selectedShapeIdsAtPointerDown.length) {
-									this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
-								}
+				switch (info.name) {
+					case 'pinch_start': {
+						if (inputs.isPinching) return
 
-								this._didPinch = true
-
-								inputs.isPinching = true
-
-								this.interrupt()
+						if (!inputs.isEditing) {
+							this._pinchStart = this.getCamera().z
+							if (!this._selectedShapeIdsAtPointerDown.length) {
+								this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
 							}
 
-							return // Stop here!
+							this._didPinch = true
+
+							inputs.isPinching = true
+
+							this.interrupt()
 						}
-						case 'pinch': {
-							if (!inputs.isPinching) return
 
-							const {
-								point: { z = 1 },
-								delta: { x: dx, y: dy },
-							} = info
+						return // Stop here!
+					}
+					case 'pinch': {
+						if (!inputs.isPinching) return
 
-							const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-							const { x, y } = Vec.SubXY(info.point, screenBounds.x, screenBounds.y)
+						const {
+							point: { z = 1 },
+							delta: { x: dx, y: dy },
+						} = info
 
-							const { x: cx, y: cy, z: cz } = this.getCamera()
+						const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+						const { x, y } = Vec.SubXY(info.point, screenBounds.x, screenBounds.y)
 
-							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
+						const { x: cx, y: cy, z: cz } = this.getCamera()
 
-							this.setCamera({
+						const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
+
+						this.stopCameraAnimation()
+						if (this.getInstanceState().followingUserId) {
+							this.stopFollowingUser()
+						}
+						this._setCamera(
+							{
 								x: cx + dx / cz - x / cz + x / zoom,
 								y: cy + dy / cz - y / cz + y / zoom,
 								z: zoom,
+							},
+							true
+						)
+
+						return // Stop here!
+					}
+					case 'pinch_end': {
+						if (!inputs.isPinching) return this
+
+						inputs.isPinching = false
+						const { _selectedShapeIdsAtPointerDown } = this
+						this.setSelectedShapes(this._selectedShapeIdsAtPointerDown, { squashing: true })
+						this._selectedShapeIdsAtPointerDown = []
+
+						if (this._didPinch) {
+							this._didPinch = false
+							this.once('tick', () => {
+								if (!this._didPinch) {
+									this.setSelectedShapes(_selectedShapeIdsAtPointerDown, { squashing: true })
+								}
 							})
-
-							return // Stop here!
 						}
-						case 'pinch_end': {
-							if (!inputs.isPinching) return this
 
-							inputs.isPinching = false
-							const { _selectedShapeIdsAtPointerDown } = this
-							this.setSelectedShapes(this._selectedShapeIdsAtPointerDown, { squashing: true })
-							this._selectedShapeIdsAtPointerDown = []
-
-							if (this._didPinch) {
-								this._didPinch = false
-								requestAnimationFrame(() => {
-									if (!this._didPinch) {
-										this.setSelectedShapes(_selectedShapeIdsAtPointerDown, { squashing: true })
-									}
-								})
-							}
-
-							return // Stop here!
-						}
+						return // Stop here!
 					}
 				}
-				case 'wheel': {
-					if (!this.getInstanceState().canMoveCamera) return
+			}
+			case 'wheel': {
+				if (!this.getInstanceState().canMoveCamera) return
 
-					this._updateInputsFromEvent(info)
+				this._updateInputsFromEvent(info)
 
-					if (this.getIsMenuOpen()) {
-						// noop
-					} else {
-						if (inputs.ctrlKey) {
-							// todo: Start or update the zoom end interval
+				if (this.getIsMenuOpen()) {
+					// noop
+				} else {
+					this.stopCameraAnimation()
+					if (this.getInstanceState().followingUserId) {
+						this.stopFollowingUser()
+					}
+					if (inputs.ctrlKey) {
+						// todo: Start or update the zoom end interval
 
-							// If the alt or ctrl keys are pressed,
-							// zoom or pan the camera and then return.
+						// If the alt or ctrl keys are pressed,
+						// zoom or pan the camera and then return.
 
-							// Subtract the top left offset from the user's point
+						// Subtract the top left offset from the user's point
 
-							const { x, y } = this.inputs.currentScreenPoint
+						const { x, y } = this.inputs.currentScreenPoint
 
-							const { x: cx, y: cy, z: cz } = this.getCamera()
+						const { x: cx, y: cy, z: cz } = this.getCamera()
 
-							const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
+						const zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cz + (info.delta.z ?? 0) * cz))
 
-							this.setCamera({
+						this._setCamera(
+							{
 								x: cx + (x / zoom - x) - (x / cz - x),
 								y: cy + (y / zoom - y) - (y / cz - y),
 								z: zoom,
-							})
+							},
+							true
+						)
 
-							// We want to return here because none of the states in our
-							// statechart should respond to this event (a camera zoom)
+						// We want to return here because none of the states in our
+						// statechart should respond to this event (a camera zoom)
+						return
+					}
+
+					// Update the camera here, which will dispatch a pointer move...
+					// this will also update the pointer position, etc
+					const { x: cx, y: cy, z: cz } = this.getCamera()
+					this._setCamera({ x: cx + info.delta.x / cz, y: cy + info.delta.y / cz, z: cz }, true)
+
+					if (
+						!inputs.isDragging &&
+						inputs.isPointing &&
+						originPagePoint.dist(currentPagePoint) >
+							(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
+								this.getZoomLevel()
+					) {
+						inputs.isDragging = true
+					}
+				}
+				break
+			}
+			case 'pointer': {
+				// If we're pinching, return
+				if (inputs.isPinching) return
+
+				this._updateInputsFromEvent(info)
+
+				const { isPen } = info
+
+				switch (info.name) {
+					case 'pointer_down': {
+						this.clearOpenMenus()
+
+						this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
+
+						// Firefox bug fix...
+						// If it's a left-mouse-click, we store the pointer id for later user
+						if (info.button === 0) {
+							this.capturedPointerId = info.pointerId
+						}
+
+						// Add the button from the buttons set
+						inputs.buttons.add(info.button)
+
+						inputs.isPointing = true
+						inputs.isDragging = false
+
+						if (this.getInstanceState().isPenMode) {
+							if (!isPen) {
+								return
+							}
+						} else {
+							if (isPen) {
+								this.updateInstanceState({ isPenMode: true })
+							}
+						}
+
+						if (info.button === 5) {
+							// Eraser button activates eraser
+							this._restoreToolId = this.getCurrentToolId()
+							this.complete()
+							this.setCurrentTool('eraser')
+						} else if (info.button === 1) {
+							// Middle mouse pan activates panning
+							if (!this.inputs.isPanning) {
+								this._prevCursor = this.getInstanceState().cursor.type
+							}
+
+							this.inputs.isPanning = true
+						}
+
+						if (this.inputs.isPanning) {
+							this.stopCameraAnimation()
+							this.setCursor({ type: 'grabbing', rotation: 0 })
+							return this
+						}
+
+						originScreenPoint.setTo(currentScreenPoint)
+						originPagePoint.setTo(currentPagePoint)
+						break
+					}
+					case 'pointer_move': {
+						// If the user is in pen mode, but the pointer is not a pen, stop here.
+						if (!isPen && this.getInstanceState().isPenMode) {
 							return
 						}
 
-						// Update the camera here, which will dispatch a pointer move...
-						// this will also update the pointer position, etc
-						this.pan(info.delta)
+						if (this.inputs.isPanning && this.inputs.isPointing) {
+							// Handle panning
+							const { currentScreenPoint, previousScreenPoint } = this.inputs
+							this.pan(Vec.Sub(currentScreenPoint, previousScreenPoint))
+							return
+						}
 
 						if (
 							!inputs.isDragging &&
@@ -8536,279 +8663,171 @@ export class Editor extends EventEmitter<TLEventMap> {
 								(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
 									this.getZoomLevel()
 						) {
-							clearTimeout(this._longPressTimeout)
 							inputs.isDragging = true
 						}
+						break
 					}
-					break
-				}
-				case 'pointer': {
-					// If we're pinching, return
-					if (inputs.isPinching) return
+					case 'pointer_up': {
+						// Remove the button from the buttons set
+						inputs.buttons.delete(info.button)
 
-					this._updateInputsFromEvent(info)
+						inputs.isPointing = false
+						inputs.isDragging = false
 
-					const { isPen } = info
-
-					switch (info.name) {
-						case 'pointer_down': {
-							this.clearOpenMenus()
-
-							if (!this.getInstanceState().isCoarsePointer) {
-								this._longPressTimeout = setTimeout(() => {
-									this.dispatch({ ...info, name: 'long_press' })
-								}, LONG_PRESS_DURATION)
-							}
-
-							this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
-
-							// Firefox bug fix...
-							// If it's a left-mouse-click, we store the pointer id for later user
-							if (info.button === 0) {
-								this.capturedPointerId = info.pointerId
-							}
-
-							// Add the button from the buttons set
-							inputs.buttons.add(info.button)
-
-							inputs.isPointing = true
-							inputs.isDragging = false
-
-							if (this.getInstanceState().isPenMode) {
-								if (!isPen) {
-									return
-								}
-							} else {
-								if (isPen) {
-									this.updateInstanceState({ isPenMode: true })
-								}
-							}
-
-							if (info.button === 5) {
-								// Eraser button activates eraser
-								this._restoreToolId = this.getCurrentToolId()
-								this.complete()
-								this.setCurrentTool('eraser')
-							} else if (info.button === 1) {
-								// Middle mouse pan activates panning
-								if (!this.inputs.isPanning) {
-									this._prevCursor = this.getInstanceState().cursor.type
-								}
-
-								this.inputs.isPanning = true
-							}
-
-							if (this.inputs.isPanning) {
-								this.stopCameraAnimation()
-								this.updateInstanceState({
-									cursor: {
-										type: 'grabbing',
-										rotation: 0,
-									},
-								})
-								return this
-							}
-
-							originScreenPoint.setTo(currentScreenPoint)
-							originPagePoint.setTo(currentPagePoint)
-							break
+						if (this.getIsMenuOpen()) {
+							// Suppressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
+							return
 						}
-						case 'pointer_move': {
-							// If the user is in pen mode, but the pointer is not a pen, stop here.
-							if (!isPen && this.getInstanceState().isPenMode) {
-								return
-							}
 
-							if (this.inputs.isPanning && this.inputs.isPointing) {
-								// Handle panning
-								const { currentScreenPoint, previousScreenPoint } = this.inputs
-								this.pan(Vec.Sub(currentScreenPoint, previousScreenPoint))
-								return
-							}
-
-							if (
-								!inputs.isDragging &&
-								inputs.isPointing &&
-								originPagePoint.dist(currentPagePoint) >
-									(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-										this.getZoomLevel()
-							) {
-								inputs.isDragging = true
-							}
-							break
+						if (!isPen && this.getInstanceState().isPenMode) {
+							return
 						}
-						case 'pointer_up': {
-							// Remove the button from the buttons set
-							inputs.buttons.delete(info.button)
 
-							inputs.isPointing = false
-							inputs.isDragging = false
+						// Firefox bug fix...
+						// If it's the same pointer that we stored earlier...
+						// ... then it's probably still a left-mouse-click!
+						if (this.capturedPointerId === info.pointerId) {
+							this.capturedPointerId = null
+							info.button = 0
+						}
 
-							if (this.getIsMenuOpen()) {
-								// Suppressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
-								return
-							}
+						if (inputs.isPanning) {
+							if (info.button === 1) {
+								if (!this.inputs.keys.has(' ')) {
+									inputs.isPanning = false
 
-							if (!isPen && this.getInstanceState().isPenMode) {
-								return
-							}
-
-							// Firefox bug fix...
-							// If it's the same pointer that we stored earlier...
-							// ... then it's probably still a left-mouse-click!
-							if (this.capturedPointerId === info.pointerId) {
-								this.capturedPointerId = null
-								info.button = 0
-							}
-
-							if (inputs.isPanning) {
-								if (info.button === 1) {
-									if (!this.inputs.keys.has(' ')) {
-										inputs.isPanning = false
-
-										this.slideCamera({
-											speed: Math.min(2, this.inputs.pointerVelocity.len()),
-											direction: this.inputs.pointerVelocity,
-											friction: CAMERA_SLIDE_FRICTION,
-										})
-										this.updateInstanceState({
-											cursor: { type: this._prevCursor, rotation: 0 },
-										})
-									} else {
-										this.slideCamera({
-											speed: Math.min(2, this.inputs.pointerVelocity.len()),
-											direction: this.inputs.pointerVelocity,
-											friction: CAMERA_SLIDE_FRICTION,
-										})
-										this.updateInstanceState({
-											cursor: {
-												type: 'grab',
-												rotation: 0,
-											},
-										})
-									}
-								} else if (info.button === 0) {
 									this.slideCamera({
 										speed: Math.min(2, this.inputs.pointerVelocity.len()),
 										direction: this.inputs.pointerVelocity,
 										friction: CAMERA_SLIDE_FRICTION,
 									})
-									this.updateInstanceState({
-										cursor: {
-											type: 'grab',
-											rotation: 0,
-										},
+									this.setCursor({ type: this._prevCursor, rotation: 0 })
+								} else {
+									this.slideCamera({
+										speed: Math.min(2, this.inputs.pointerVelocity.len()),
+										direction: this.inputs.pointerVelocity,
+										friction: CAMERA_SLIDE_FRICTION,
+									})
+									this.setCursor({
+										type: 'grab',
+										rotation: 0,
 									})
 								}
-							} else {
-								if (info.button === 5) {
-									// Eraser button activates eraser
-									this.complete()
-									this.setCurrentTool(this._restoreToolId)
-								}
-							}
-
-							break
-						}
-					}
-
-					break
-				}
-				case 'keyboard': {
-					// please, please
-					if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
-					if (info.key === 'AltRight') info.key = 'AltLeft'
-					if (info.code === 'ControlRight') info.code = 'ControlLeft'
-
-					switch (info.name) {
-						case 'key_down': {
-							// Add the key from the keys set
-							inputs.keys.add(info.code)
-
-							// If the space key is pressed (but meta / control isn't!) activate panning
-							if (!info.ctrlKey && info.code === 'Space') {
-								if (!this.inputs.isPanning) {
-									this._prevCursor = this.getInstanceState().cursor.type
-								}
-
-								this.inputs.isPanning = true
-								this.updateInstanceState({
-									cursor: { type: this.inputs.isPointing ? 'grabbing' : 'grab', rotation: 0 },
+							} else if (info.button === 0) {
+								this.slideCamera({
+									speed: Math.min(2, this.inputs.pointerVelocity.len()),
+									direction: this.inputs.pointerVelocity,
+									friction: CAMERA_SLIDE_FRICTION,
+								})
+								this.setCursor({
+									type: 'grab',
+									rotation: 0,
 								})
 							}
-
-							break
-						}
-						case 'key_up': {
-							// Remove the key from the keys set
-							inputs.keys.delete(info.code)
-
-							if (info.code === 'Space' && !this.inputs.buttons.has(1)) {
-								this.inputs.isPanning = false
-								this.updateInstanceState({
-									cursor: { type: this._prevCursor, rotation: 0 },
-								})
+						} else {
+							if (info.button === 5) {
+								// Eraser button activates eraser
+								this.complete()
+								this.setCurrentTool(this._restoreToolId)
 							}
-
-							break
 						}
-						case 'key_repeat': {
-							// noop
-							break
-						}
-					}
-					break
-				}
-			}
 
-			// Correct the info name for right / middle clicks
-			if (info.type === 'pointer') {
-				if (info.button === 1) {
-					info.name = 'middle_click'
-				} else if (info.button === 2) {
-					info.name = 'right_click'
-				}
-
-				// If a pointer event, send the event to the click manager.
-				if (info.isPen === this.getInstanceState().isPenMode) {
-					switch (info.name) {
-						case 'pointer_down': {
-							const otherEvent = this._clickManager.transformPointerDownEvent(info)
-							if (info.name !== otherEvent.name) {
-								this.root.handleEvent(info)
-								this.emit('event', info)
-								this.root.handleEvent(otherEvent)
-								this.emit('event', otherEvent)
-								return
-							}
-
-							break
-						}
-						case 'pointer_up': {
-							const otherEvent = this._clickManager.transformPointerUpEvent(info)
-							if (info.name !== otherEvent.name) {
-								this.root.handleEvent(info)
-								this.emit('event', info)
-								this.root.handleEvent(otherEvent)
-								this.emit('event', otherEvent)
-								return
-							}
-
-							break
-						}
-						case 'pointer_move': {
-							this._clickManager.handleMove()
-							break
-						}
+						break
 					}
 				}
+
+				break
+			}
+			case 'keyboard': {
+				// please, please
+				if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
+				if (info.key === 'AltRight') info.key = 'AltLeft'
+				if (info.code === 'ControlRight') info.code = 'ControlLeft'
+
+				switch (info.name) {
+					case 'key_down': {
+						// Add the key from the keys set
+						inputs.keys.add(info.code)
+
+						// If the space key is pressed (but meta / control isn't!) activate panning
+						if (!info.ctrlKey && info.code === 'Space') {
+							if (!this.inputs.isPanning) {
+								this._prevCursor = this.getInstanceState().cursor.type
+							}
+
+							this.inputs.isPanning = true
+							this.setCursor({ type: this.inputs.isPointing ? 'grabbing' : 'grab', rotation: 0 })
+						}
+
+						break
+					}
+					case 'key_up': {
+						// Remove the key from the keys set
+						inputs.keys.delete(info.code)
+
+						if (info.code === 'Space' && !this.inputs.buttons.has(1)) {
+							this.inputs.isPanning = false
+							this.setCursor({ type: this._prevCursor, rotation: 0 })
+						}
+
+						break
+					}
+					case 'key_repeat': {
+						// noop
+						break
+					}
+				}
+				break
+			}
+		}
+
+		// Correct the info name for right / middle clicks
+		if (info.type === 'pointer') {
+			if (info.button === 1) {
+				info.name = 'middle_click'
+			} else if (info.button === 2) {
+				info.name = 'right_click'
 			}
 
-			// Send the event to the statechart. It will be handled by all
-			// active states, starting at the root.
-			this.root.handleEvent(info)
-			this.emit('event', info)
-		})
+			// If a pointer event, send the event to the click manager.
+			if (info.isPen === this.getInstanceState().isPenMode) {
+				switch (info.name) {
+					case 'pointer_down': {
+						const otherEvent = this._clickManager.transformPointerDownEvent(info)
+						if (info.name !== otherEvent.name) {
+							this.root.handleEvent(info)
+							this.emit('event', info)
+							this.root.handleEvent(otherEvent)
+							this.emit('event', otherEvent)
+							return
+						}
+
+						break
+					}
+					case 'pointer_up': {
+						const otherEvent = this._clickManager.transformPointerUpEvent(info)
+						if (info.name !== otherEvent.name) {
+							this.root.handleEvent(info)
+							this.emit('event', info)
+							this.root.handleEvent(otherEvent)
+							this.emit('event', otherEvent)
+							return
+						}
+
+						break
+					}
+					case 'pointer_move': {
+						this._clickManager.handleMove()
+						break
+					}
+				}
+			}
+		}
+
+		// Send the event to the statechart. It will be handled by all
+		// active states, starting at the root.
+		this.root.handleEvent(info)
+		this.emit('event', info)
 
 		return this
 	}
