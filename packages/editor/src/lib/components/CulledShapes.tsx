@@ -52,8 +52,6 @@ export function CulledShapes() {
 			context.shaderSource(vertexShader, vertexShaderSourceCode)
 			context.compileShader(vertexShader)
 			if (!context.getShaderParameter(vertexShader, context.COMPILE_STATUS)) {
-				const errorMessage = context.getShaderInfoLog(vertexShader)
-				console.log(`Failed to compile vertex shader: ${errorMessage}`)
 				return
 			}
 		}
@@ -75,8 +73,6 @@ export function CulledShapes() {
 			context.shaderSource(fragmentShader, fragmentShaderSourceCode)
 			context.compileShader(fragmentShader)
 			if (!context.getShaderParameter(fragmentShader, context.COMPILE_STATUS)) {
-				const errorMessage = context.getShaderInfoLog(fragmentShader)
-				console.log(`Failed to compile fragment shader: ${errorMessage}`)
 				return
 			}
 		}
@@ -90,15 +86,12 @@ export function CulledShapes() {
 			context.attachShader(program, fragmentShader)
 			context.linkProgram(program)
 			if (!context.getProgramParameter(program, context.LINK_STATUS)) {
-				const errorMessage = context.getProgramInfoLog(program)
-				console.log(`Failed to link GPU program: ${errorMessage}`)
 				return
 			}
 		}
 
 		const vertexPositionAttributeLocation = context.getAttribLocation(program, 'vertexPosition')
 		if (vertexPositionAttributeLocation < 0) {
-			console.log(`Failed to get attribute location for vertexPosition`)
 			return
 		}
 
