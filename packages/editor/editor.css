@@ -351,15 +351,6 @@ input,
 	contain: size layout;
 }
 
-.tl-shape__culled {
-	position: absolute;
-	pointer-events: none;
-	overflow: visible;
-	transform-origin: top left;
-	contain: size layout;
-	background-color: var(--color-culled);
-}
-
 /* ---------------- Shape Containers ---------------- */
 
 .tl-svg-container {
