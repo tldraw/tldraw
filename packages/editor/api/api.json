@@ -14817,7 +14817,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#isShapeCulled:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Returns whether the shape is culled or not. Culled shapes are shapes that are not not currently being edited, that are not selected, and that are either completely masked by their parent or are outside of the expanded rendering bounds.\n *\n * @param shape - Shape (or shape id) to check\n *\n * @returns Whether the shape is culled or not\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

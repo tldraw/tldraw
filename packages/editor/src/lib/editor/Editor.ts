@@ -4591,6 +4591,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return results
 	}
 
+	/**
+	 * Returns whether the shape is culled or not.
+	 * Culled shapes are shapes that are not not currently being edited, that are not selected,
+	 * and that are either completely masked by their parent or are outside of the expanded rendering bounds.
+	 *
+	 * @param shape - Shape (or shape id) to check
+	 * @returns Whether the shape is culled or not
+	 *
+	 * @public
+	 */
 	isShapeCulled(shape: TLShape | TLShapeId): boolean {
 		const id = typeof shape === 'string' ? shape : shape.id
 		if (this.getEditingShapeId() === id) return false
