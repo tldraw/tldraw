@@ -1599,10 +1599,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * The id of the app's only selected shape.
+	 *
+	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape's id.
+	 *
+	 * @public
+	 * @readonly
+	 */
+	@computed getOnlySelectedShapeId(): TLShapeId | null {
+		return this.getOnlySelectedShape()?.id ?? null
+	}
+
+	/**
 	 * The app's only selected shape.
 	 *
-	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected
-	 *   shape.
+	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape.
 	 *
 	 * @public
 	 * @readonly

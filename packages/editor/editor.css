@@ -28,6 +28,12 @@
 	--layer-shapes: 300;
 	--layer-overlays: 400;
 	--layer-following-indicator: 1000;
+
+	/* z index for text editors */
+	--layer-text-container: 1;
+	--layer-text-content: 3;
+	--layer-text-editor: 4;
+
 	/* Misc */
 	--tl-zoom: 1;
 
@@ -770,7 +776,6 @@ input,
 	white-space: pre-wrap;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
-	pointer-events: all;
 	text-rendering: auto;
 	text-transform: none;
 	text-indent: 0px;
@@ -834,6 +839,12 @@ input,
 	-webkit-user-select: text;
 	overflow: hidden;
 	cursor: var(--tl-cursor-text);
+}
+
+.tl-text-wrapper[data-isediting='false'] .tl-text-input,
+.tl-arrow-label[data-isediting='false'] .tl-text-input {
+	opacity: 0;
+	cursor: var(--tl-cursor-default);
 }
 
 .tl-text-input::selection {
@@ -1033,6 +1044,11 @@ input,
 	pointer-events: all;
 }
 
+.tl-text-wrapper .tl-text-content {
+	pointer-events: all;
+	z-index: var(--layer-text-content);
+}
+
 .tl-text-label__inner > .tl-text-content {
 	position: relative;
 	top: 0px;
@@ -1042,7 +1058,6 @@ input,
 	width: fit-content;
 	border-radius: var(--radius-1);
 	max-width: 100%;
-	z-index: 3;
 }
 
 .tl-text-label__inner > .tl-text-input {
@@ -1051,7 +1066,29 @@ input,
 	height: 100%;
 	width: 100%;
 	padding: 16px;
-	z-index: 4;
+}
+
+.tl-text-wrapper[data-isselected='true'] .tl-text-input {
+	z-index: var(--layer-text-editor);
+	pointer-events: all;
+}
+
+/* These three rules help preserve clicking into specific points in text areas *while*
+ * already in edit mode when jumping from shape to shape. */
+.tl-canvas[data-iseditinganything='true'] .tl-text-wrapper:hover .tl-text-input {
+	z-index: var(--layer-text-editor);
+	pointer-events: all;
+}
+/* This part of the rule helps preserve the occlusion rules for the shapes so we
+ * don't click on shapes that are behind other shapes.
+ * One extra nuance is arrows which have weird geometry and just gets in the way.
+ */
+.tl-canvas[data-iseditinganything='true'] .tl-shape:not([data-shape-type='arrow']) {
+	pointer-events: all;
+}
+/* But, re-disable the pointer-events rule for the svg container. */
+.tl-canvas[data-iseditinganything='true'] .tl-shape .tl-svg-container {
+	pointer-events: none;
 }
 
 .tl-text-label[data-textwrap='true'] > .tl-text-label__inner {
@@ -1105,7 +1142,7 @@ input,
 	position: relative;
 	height: max-content;
 	width: max-content;
-	pointer-events: all;
+	pointer-events: none;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -1114,13 +1151,11 @@ input,
 .tl-arrow-label .tl-arrow {
 	position: relative;
 	height: max-content;
-	z-index: 2;
 	padding: 4px;
 	overflow: visible;
 }
 
 .tl-arrow-label textarea {
-	z-index: 3;
 	padding: 4px;
 	/* Don't allow textarea to be zero width */
 	min-width: 4px;
@@ -1134,14 +1169,13 @@ input,
 	height: 100%;
 	pointer-events: all;
 	opacity: 1;
-	z-index: 1;
+	z-index: var(--layer-text-container);
 	border-radius: 1px;
 }
 
 .tl-note__container > .tl-text-label {
 	text-shadow: none;
 	color: currentColor;
-	z-index: 4;
 }
 
 /* --------------------- Loading -------------------- */

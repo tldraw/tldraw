@@ -27788,7 +27788,16 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    isEditing: boolean;\n    handleFocus: () => void;\n    handleBlur: () => void;\n    handleKeyDown: (e: "
+              "text": ">;\n    isEditing: boolean;\n    handleFocus: typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "noop",
+              "canonicalReference": "tldraw!~noop:function"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    handleBlur: () => void;\n    handleKeyDown: (e: "
             },
             {
               "kind": "Reference",
@@ -27833,7 +27842,7 @@
             },
             {
               "kind": "Content",
-              "text": ") => void;\n    handleDoubleClick: (e: any) => any;\n    isEmpty: boolean;\n}"
+              "text": ") => void;\n    handleDoubleClick: (e: any) => any;\n    isEmpty: boolean;\n    isEditingAnything: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -27843,7 +27852,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/useEditableText.ts",
           "returnTypeTokenRange": {
             "startIndex": 7,
-            "endIndex": 22
+            "endIndex": 24
           },
           "releaseTag": "Public",
           "overloadIndex": 1,

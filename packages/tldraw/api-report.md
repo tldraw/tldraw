@@ -62,7 +62,6 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLCancelEvent } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
-import { TLDefaultColorStyle } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
@@ -2527,13 +2526,14 @@ export function useDialogs(): TLUiDialogsContextType;
 export function useEditableText(id: TLShapeId, type: string, text: string): {
     rInput: React_2.RefObject<HTMLTextAreaElement>;
     isEditing: boolean;
-    handleFocus: () => void;
+    handleFocus: typeof noop;
     handleBlur: () => void;
     handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
     handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
     handleInputPointerDown: (e: React_2.PointerEvent) => void;
     handleDoubleClick: (e: any) => any;
     isEmpty: boolean;
+    isEditingAnything: boolean;
 };
 
 // @public (undocumented)

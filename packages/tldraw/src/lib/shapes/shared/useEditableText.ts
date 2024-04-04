@@ -1,7 +1,6 @@
 /* eslint-disable no-inner-declarations */
 
 import {
-	TLShape,
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
@@ -17,13 +16,15 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const editor = useEditor()
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
-	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()
 
+	const isEditingAnything = useValue(
+		'isEditingAnything',
+		() => editor.getEditingShapeId() !== null,
+		[editor]
+	)
+
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
-	const shape = editor.getShape(id)
-	const doesShapeAutoEditOnKeystroke =
-		shape && editor.getShapeUtil(type).doesAutoEditOnKeyStroke(shape)
 
 	// If the shape is editing but the input element not focused, focus the element
 	useEffect(() => {
@@ -31,38 +32,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		if (elm && isEditing && document.activeElement !== elm) {
 			elm.focus()
 		}
-
-		// Place the cursor at the end of the text.
-		if (elm && isEditing && doesShapeAutoEditOnKeystroke) {
-			elm.setSelectionRange(0, elm.value.length)
-		}
-	}, [isEditing, doesShapeAutoEditOnKeystroke])
-
-	// When the label receives focus, set the value to the most  recent text value and select all of the text
-	const handleFocus = useCallback(() => {
-		if (doesShapeAutoEditOnKeystroke) {
-			return
-		}
-
-		// Store and turn off the skipSelectOnFocus flag
-		const skipSelect = rSkipSelectOnFocus.current
-		rSkipSelectOnFocus.current = false
-
-		// On the next frame, if we're not skipping select AND we have text in the element, then focus the text
-		requestAnimationFrame(() => {
-			const elm = rInput.current
-			if (!elm) return
-
-			const shape = editor.getShape<TLShape & { props: { text: string } }>(id)
-
-			if (shape) {
-				elm.value = shape.props.text
-				if (elm.value.length && !skipSelect) {
-					elm.select()
-				}
-			}
-		})
-	}, [editor, id, doesShapeAutoEditOnKeystroke])
+	}, [isEditing])
 
 	// When the label blurs, deselect all of the text and complete.
 	// This makes it so that the canvas does not have to be focused
@@ -74,32 +44,35 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 			const elm = rInput.current
 			const editingShapeId = editor.getEditingShapeId()
 			// Did we move to a different shape?
-			// important! these ^v are two different things
-			// is that shape OUR shape?
-			if (elm && editingShapeId === id) {
-				if (ranges) {
-					if (!ranges.length) {
-						// If we don't have any ranges, restore selection
-						// and select all of the text
-						elm.focus()
-					} else {
-						// Otherwise, skip the select-all-on-focus behavior
-						// and restore the selection
-						rSkipSelectOnFocus.current = true
-						elm.focus()
-						const selection = window.getSelection()
-						if (selection) {
-							ranges.forEach((range) => selection.addRange(range))
+			if (editingShapeId) {
+				// important! these ^v are two different things
+				// is that shape OUR shape?
+				if (elm && editingShapeId === id) {
+					if (ranges) {
+						if (!ranges.length) {
+							// If we don't have any ranges, restore selection
+							// and select all of the text
+							elm.focus()
+						} else {
+							// Restore the selection
+							elm.focus()
+							const selection = window.getSelection()
+							if (selection) {
+								ranges.forEach((range) => selection.addRange(range))
+							}
 						}
+					} else {
+						elm.focus()
 					}
-				} else {
-					elm.focus()
 				}
+			} else {
+				window.getSelection()?.removeAllRanges()
 			}
 		})
 	}, [editor, id])
 
 	// When the user presses ctrl / meta enter, complete the editing state.
+	// When the user presses tab, indent or unindent the text.
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
@@ -174,6 +147,8 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
+			if (!isEditing) return
+
 			editor.dispatch({
 				...getPointerInfo(e),
 				type: 'pointer',
@@ -184,7 +159,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 			stopEventPropagation(e) // we need to prevent blurring the input
 		},
-		[editor, id]
+		[editor, id, isEditing]
 	)
 
 	const handleDoubleClick = stopEventPropagation
@@ -192,12 +167,17 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	return {
 		rInput,
 		isEditing,
-		handleFocus,
+		handleFocus: noop,
 		handleBlur,
 		handleKeyDown,
 		handleChange,
 		handleInputPointerDown,
 		handleDoubleClick,
 		isEmpty,
+		isEditingAnything,
 	}
+}
+
+function noop() {
+	return
 }
