@@ -2041,6 +2041,34 @@ describe('Add font size adjustment to notes', () => {
 		expect(down({ props: { fontSizeAdjustment: 0 } })).toEqual({ props: {} })
 	})
 })
+    
+describe('add white', () => {
+	const { up, down } = rootShapeMigrations.migrators[rootShapeVersions.AddWhite]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				props: {},
+			})
+		).toEqual({
+			props: {},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					color: 'white',
+				},
+			})
+		).toEqual({
+			props: {
+				color: 'black',
+			},
+		})
+	})
+})
 
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
