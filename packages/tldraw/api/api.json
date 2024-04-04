@@ -13037,8 +13037,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Rectangle2d",
-                  "canonicalReference": "@tldraw/editor!Rectangle2d:class"
+                  "text": "Group2d",
+                  "canonicalReference": "@tldraw/editor!Group2d:class"
                 },
                 {
                   "kind": "Content",

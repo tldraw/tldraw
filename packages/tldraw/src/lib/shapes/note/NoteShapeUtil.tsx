@@ -1,5 +1,6 @@
 import {
 	Editor,
+	Group2d,
 	IndexKey,
 	Rectangle2d,
 	ShapeUtil,
@@ -99,8 +100,32 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	getGeometry(shape: TLNoteShape) {
-		const height = this.getHeight(shape)
-		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true, isLabel: true })
+		const noteHeight = this.getHeight(shape)
+		const { labelHeight, labelWidth } = getLabelSize(this.editor, shape)
+
+		return new Group2d({
+			children: [
+				new Rectangle2d({ width: NOTE_SIZE, height: noteHeight, isFilled: true }),
+				new Rectangle2d({
+					x:
+						shape.props.align === 'start'
+							? 0
+							: shape.props.align === 'end'
+								? NOTE_SIZE - labelWidth
+								: (NOTE_SIZE - labelWidth) / 2,
+					y:
+						shape.props.verticalAlign === 'start'
+							? 0
+							: shape.props.verticalAlign === 'end'
+								? noteHeight - labelHeight
+								: (noteHeight - labelHeight) / 2,
+					width: labelWidth,
+					height: labelHeight,
+					isFilled: true,
+					isLabel: true,
+				}),
+			],
+		})
 	}
 
 	override getHandles(shape: TLNoteShape): TLHandle[] {
@@ -296,48 +321,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 }
 
 function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
-	const PADDING = 16
 	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
-
-	let fontSizeAdjustment = 0
-	let iterations = 0
-	let nextHeight = NOTE_SIZE
-
-	// We slightly make the font smaller if the text is too big for the note, width-wise.
-	do {
-		fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
-		const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
-			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: fontSizeAdjustment,
-			maxWidth: NOTE_SIZE - PADDING * 2,
-			disableOverflowWrapBreaking: true,
-		})
-
-		nextHeight = nextTextSize.h + PADDING * 2
-
-		if (fontSizeAdjustment <= 14) {
-			// Too small, just rely now on CSS `overflow-wrap: break-word`
-			// We need to recalculate the text measurement here with break-word enabled.
-			const nextTextSizeWithOverflowBreak = editor.textMeasure.measureText(shape.props.text, {
-				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[shape.props.font],
-				fontSize: fontSizeAdjustment,
-				maxWidth: NOTE_SIZE - PADDING * 2,
-			})
-			nextHeight = nextTextSizeWithOverflowBreak.h + PADDING * 2
-			break
-		}
-
-		if (nextTextSize.scrollWidth.toFixed(0) === nextTextSize.w.toFixed(0)) {
-			break
-		}
-	} while (iterations++ < 50)
+	const { labelHeight, fontSizeAdjustment } = getLabelSize(editor, shape)
 
 	let growY: number | null = null
 
-	if (nextHeight > NOTE_SIZE) {
-		growY = nextHeight - NOTE_SIZE
+	if (labelHeight > NOTE_SIZE) {
+		growY = labelHeight - NOTE_SIZE
 	} else {
 		if (prevGrowY) {
 			growY = 0
@@ -358,6 +348,61 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 				fontSizeAdjustment,
 			},
 		}
+	}
+}
+
+function getLabelSize(editor: Editor, shape: TLNoteShape) {
+	const text = shape.props.text
+
+	if (!text) {
+		return { labelHeight: 0, labelWidth: 0, fontSizeAdjustment: 0 }
+	}
+
+	const PADDING = 16
+	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
+
+	let fontSizeAdjustment = 0
+	let iterations = 0
+	let labelHeight = NOTE_SIZE
+	let labelWidth = NOTE_SIZE
+
+	// We slightly make the font smaller if the text is too big for the note, width-wise.
+	do {
+		fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
+		const nextTextSize = editor.textMeasure.measureText(text, {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontSize: fontSizeAdjustment,
+			maxWidth: NOTE_SIZE - PADDING * 2,
+			disableOverflowWrapBreaking: true,
+		})
+
+		labelHeight = nextTextSize.h + PADDING * 2
+		labelWidth = nextTextSize.w + PADDING * 2
+
+		if (fontSizeAdjustment <= 14) {
+			// Too small, just rely now on CSS `overflow-wrap: break-word`
+			// We need to recalculate the text measurement here with break-word enabled.
+			const nextTextSizeWithOverflowBreak = editor.textMeasure.measureText(text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize: fontSizeAdjustment,
+				maxWidth: NOTE_SIZE - PADDING * 2,
+			})
+			labelHeight = nextTextSizeWithOverflowBreak.h + PADDING * 2
+			labelWidth = nextTextSizeWithOverflowBreak.w + PADDING * 2
+			break
+		}
+
+		if (nextTextSize.scrollWidth.toFixed(0) === nextTextSize.w.toFixed(0)) {
+			break
+		}
+	} while (iterations++ < 50)
+
+	return {
+		labelHeight,
+		labelWidth,
+		fontSizeAdjustment,
 	}
 }
 

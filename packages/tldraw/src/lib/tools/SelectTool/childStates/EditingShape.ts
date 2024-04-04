@@ -71,6 +71,7 @@ export class EditingShape extends StateNode {
 						selectingShape,
 						this.editor.inputs.currentPagePoint
 					)
+					console.log('editing', textLabel.bounds)
 					if (
 						textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
 						textLabel.hitTestPoint(pointInShapeSpace)
