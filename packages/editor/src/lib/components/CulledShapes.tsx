@@ -107,7 +107,7 @@ export function CulledShapes() {
 		const shapes = renderingShapes
 		const triangleVertices: number[] = []
 
-		shapes.forEach(({ shape, id }) => {
+		shapes.forEach(({ shape }) => {
 			const isCulled = editor.isShapeCulled(shape)
 			if (!isCulled) return
 
