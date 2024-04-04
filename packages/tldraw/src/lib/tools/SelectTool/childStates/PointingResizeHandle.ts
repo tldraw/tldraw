@@ -49,15 +49,15 @@ export class PointingResizeHandle extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
-			this.kickoff()
+			this.startResizing()
 		}
 	}
 
 	override onLongPress: TLEventHandlers['onLongPress'] = () => {
-		this.kickoff()
+		this.startResizing()
 	}
 
-	private kickoff() {
+	private startResizing() {
 		if (this.editor.getInstanceState().isReadonly) return
 		this.parent.transition('resizing', this.info)
 	}

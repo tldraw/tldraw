@@ -35,15 +35,15 @@ export class PointingRotateHandle extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
-			this.kickoff()
+			this.startRotating()
 		}
 	}
 
 	override onLongPress: TLEventHandlers['onLongPress'] = () => {
-		this.kickoff()
+		this.startRotating()
 	}
 
-	private kickoff() {
+	private startRotating() {
 		if (this.editor.getInstanceState().isReadonly) return
 		this.parent.transition('rotating', this.info)
 	}
