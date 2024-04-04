@@ -11,6 +11,7 @@ import {
 	defaultShapeUtils,
 	defaultTools,
 } from 'tldraw'
+import { defaultBindingUtils } from 'tldraw/src/lib/defaultBindingUtils'
 import { RandomSource } from './RandomSource'
 
 export type Op =
@@ -97,6 +98,7 @@ export class FuzzEditor extends RandomSource {
 		super(_seed)
 		this.editor = new Editor({
 			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
 			tools: defaultTools,
 			initialState: 'select',
 			store,

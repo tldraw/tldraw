@@ -93,21 +93,15 @@ describe('When deleting arrows', () => {
 	it('Restores any bindings on undo', () => {
 		editor.select(ids.arrow1)
 		editor.mark('before deleting')
-		// @ts-expect-error
-		expect(editor._getArrowBindingsIndex().get()[ids.box1]).not.toBeUndefined()
-		// @ts-expect-error
-		expect(editor._getArrowBindingsIndex().get()[ids.box2]).not.toBeUndefined()
+		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([{ arrowId: ids.arrow1, handleId: 'start' }])
+		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([{ arrowId: ids.arrow1, handleId: 'end' }])
 
 		editor.deleteShapes(editor.getSelectedShapeIds()) // delete the selected shapes
-		// @ts-expect-error
-		expect(editor._getArrowBindingsIndex().get()[ids.box1]).toBeUndefined()
-		// @ts-expect-error
-		expect(editor._getArrowBindingsIndex().get()[ids.box2]).toBeUndefined()
+		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([])
+		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([])
 
 		editor.undo()
-		// @ts-expect-error
-		expect(editor._getArrowBindingsIndex().get()[ids.box1]).not.toBeUndefined()
-		// @ts-expect-error
-		expect(editor._getArrowBindingsIndex().get()[ids.box2]).not.toBeUndefined()
+		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([{ arrowId: ids.arrow1, handleId: 'start' }])
+		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([{ arrowId: ids.arrow1, handleId: 'end' }])
 	})
 })

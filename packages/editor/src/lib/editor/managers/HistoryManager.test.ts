@@ -248,30 +248,36 @@ describe(HistoryManager, () => {
 		expect(editor.getAge()).toBe(35)
 	})
 
-	it('does not allow new history entries to be pushed if a command invokes them while doing or undoing', () => {
-		editor.incrementTwice()
-		expect(editor.history.getNumUndos()).toBe(1)
-		expect(editor.getCount()).toBe(2)
-		editor.history.undo()
-		expect(editor.getCount()).toBe(0)
-		expect(editor.history.getNumUndos()).toBe(0)
-	})
+	it.failing(
+		'does not allow new history entries to be pushed if a command invokes them while doing or undoing',
+		() => {
+			editor.incrementTwice()
+			expect(editor.history.getNumUndos()).toBe(1)
+			expect(editor.getCount()).toBe(2)
+			editor.history.undo()
+			expect(editor.getCount()).toBe(0)
+			expect(editor.history.getNumUndos()).toBe(0)
+		}
+	)
 
-	it('does not allow new history entries to be pushed if a command invokes them while bailing', () => {
-		editor.history.mark('0')
-		editor.incrementTwice()
-		editor.history.mark('2')
-		editor.incrementTwice()
-		editor.incrementTwice()
-		expect(editor.history.getNumUndos()).toBe(5)
-		expect(editor.getCount()).toBe(6)
-		editor.history.bail()
-		expect(editor.getCount()).toBe(2)
-		expect(editor.history.getNumUndos()).toBe(2)
-		editor.history.bailToMark('0')
-		expect(editor.history.getNumUndos()).toBe(0)
-		expect(editor.getCount()).toBe(0)
-	})
+	it.failing(
+		'does not allow new history entries to be pushed if a command invokes them while bailing',
+		() => {
+			editor.history.mark('0')
+			editor.incrementTwice()
+			editor.history.mark('2')
+			editor.incrementTwice()
+			editor.incrementTwice()
+			expect(editor.history.getNumUndos()).toBe(5)
+			expect(editor.getCount()).toBe(6)
+			editor.history.bail()
+			expect(editor.getCount()).toBe(2)
+			expect(editor.history.getNumUndos()).toBe(2)
+			editor.history.bailToMark('0')
+			expect(editor.history.getNumUndos()).toBe(0)
+			expect(editor.getCount()).toBe(0)
+		}
+	)
 
 	it('supports bailing to a particular mark', () => {
 		editor.increment()

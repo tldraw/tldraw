@@ -1,4 +1,4 @@
-import { atom, transact } from '@tldraw/state'
+import { atom, react, transact } from '@tldraw/state'
 import { devFreeze } from '@tldraw/store'
 import { uniqueId } from '../../utils/uniqueId'
 import { TLCommandHandler, TLCommandHistoryOptions, TLHistoryEntry } from '../types/history-types'
@@ -15,6 +15,8 @@ type CommandFn<Data> = (...args: any[]) =>
 type ExtractData<Fn> = Fn extends CommandFn<infer Data> ? Data : never
 type ExtractArgs<Fn> = Parameters<Extract<Fn, (...args: any[]) => any>>
 
+let nextId = 1
+
 export class HistoryManager<
 	CTX extends {
 		emit: (name: 'change-history' | 'mark-history', ...args: any) => void
@@ -27,7 +29,9 @@ export class HistoryManager<
 	constructor(
 		private readonly ctx: CTX,
 		private readonly annotateError: (error: unknown) => void
-	) {}
+	) {
+		react('undos', () => console.log('undos', this._undos.get().toArray()))
+	}
 
 	onBatchComplete: () => void = () => void null
 
@@ -55,56 +59,70 @@ export class HistoryManager<
 				this.batch(() => exec(...args))
 				return this.ctx
 			}
+			nextId++
+			const id = nextId
 
-			const result = constructor(...args)
+			console.groupCollapsed('exec', id, name)
+			try {
+				const result = constructor(...args)
+				console.trace(name, id, { args, result })
 
-			if (!result) {
+				if (!result) {
+					return this.ctx
+				}
+
+				const { data, ephemeral, squashing, preservesRedoStack } = result
+
+				this.ignoringUpdates((undos, redos) => {
+					handle.do(data)
+					return { undos, redos }
+				})
+
+				if (!ephemeral) {
+					const prev = this._undos.get().head
+					if (
+						squashing &&
+						prev &&
+						prev.type === 'command' &&
+						prev.name === name &&
+						prev.preservesRedoStack === preservesRedoStack
+					) {
+						// replace the last command with a squashed version
+						this._undos.update((undos) =>
+							undos.tail.push({
+								...prev,
+								data: devFreeze(handle.squash!(prev.data, data)),
+							})
+						)
+					} else {
+						// add to the undo stack
+						this._undos.update((undos) =>
+							undos.push({
+								type: 'command',
+								name,
+								data: devFreeze(data),
+								preservesRedoStack: preservesRedoStack,
+							})
+						)
+					}
+
+					if (!result.preservesRedoStack) {
+						this._redos.set(stack())
+					}
+
+					this.ctx.emit('change-history', { reason: 'push' })
+				}
+
+				// todo(alex): fix history
+				// handle.do(data)
+				// if (!ephemeral) {
+				// 	this.ctx.emit('change-history', { reason: 'push' })
+				// }
+
 				return this.ctx
+			} finally {
+				console.groupEnd()
 			}
-
-			const { data, ephemeral, squashing, preservesRedoStack } = result
-
-			this.ignoringUpdates((undos, redos) => {
-				handle.do(data)
-				return { undos, redos }
-			})
-
-			if (!ephemeral) {
-				const prev = this._undos.get().head
-				if (
-					squashing &&
-					prev &&
-					prev.type === 'command' &&
-					prev.name === name &&
-					prev.preservesRedoStack === preservesRedoStack
-				) {
-					// replace the last command with a squashed version
-					this._undos.update((undos) =>
-						undos.tail.push({
-							...prev,
-							data: devFreeze(handle.squash!(prev.data, data)),
-						})
-					)
-				} else {
-					// add to the undo stack
-					this._undos.update((undos) =>
-						undos.push({
-							type: 'command',
-							name,
-							data: devFreeze(data),
-							preservesRedoStack: preservesRedoStack,
-						})
-					)
-				}
-
-				if (!result.preservesRedoStack) {
-					this._redos.set(stack())
-				}
-
-				this.ctx.emit('change-history', { reason: 'push' })
-			}
-
-			return this.ctx
 		}
 
 		return exec

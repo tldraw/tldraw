@@ -43,9 +43,11 @@ describe('restoring bound arrows', () => {
 
 	it('removes bound arrows on delete, restores them on undo but only when change was done by user', () => {
 		editor.mark('deleting')
+		console.log('before', arrow())
 		editor.deleteShapes([ids.box2])
 		expect(arrow().props.end.type).toBe('point')
 		editor.undo()
+		console.log('after', arrow())
 		expect(arrow().props.end.type).toBe('binding')
 		editor.redo()
 		expect(arrow().props.end.type).toBe('point')

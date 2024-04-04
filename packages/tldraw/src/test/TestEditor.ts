@@ -26,6 +26,8 @@ import {
 	createTLStore,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
+import { TLArrowBinding } from '../lib/bindings/arrow/ArrowBindingUtil'
+import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
@@ -60,12 +62,14 @@ export class TestEditor extends Editor {
 		elm.tabIndex = 0
 
 		const shapeUtilsWithDefaults = [...defaultShapeUtils, ...(options.shapeUtils ?? [])]
+		const bindingUtilsWithDefaults = [...defaultBindingUtils, ...(options.bindingUtils ?? [])]
 
 		super({
 			...options,
-			shapeUtils: [...shapeUtilsWithDefaults],
+			shapeUtils: shapeUtilsWithDefaults,
+			bindingUtils: bindingUtilsWithDefaults,
 			tools: [...defaultTools, ...defaultShapeTools, ...(options.tools ?? [])],
-			store: createTLStore({ shapeUtils: [...shapeUtilsWithDefaults] }),
+			store: createTLStore({ shapeUtils: shapeUtilsWithDefaults }),
 			getContainer: () => elm,
 			initialState: 'select',
 		})
@@ -639,6 +643,11 @@ export class TestEditor extends Editor {
 
 	getPageRotation(shape: TLShape) {
 		return this.getPageRotationById(shape.id)
+	}
+
+	getArrowsBoundTo(shape: TLShapeId | TLShape) {
+		const bindings = this.getBindingsToShape<TLArrowBinding>(shape, 'arrow')
+		return bindings.map((binding) => ({ arrowId: binding.fromId, handleId: binding.terminal }))
 	}
 }
 

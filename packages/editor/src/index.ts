@@ -134,6 +134,13 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export {
+	BindingUtil,
+	type TLAnyBindingUtilConstructor,
+	type TLBinding,
+	type TLBindingUtilConstructor,
+	type TLUnknownBinding,
+} from './lib/editor/bindings/BindingsUtil'
 export type {
 	SideEffectManager,
 	TLAfterChangeHandler,
