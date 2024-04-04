@@ -266,6 +266,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return getGrowY(this.editor, next, prev.props.growY)
 	}
 
+	override onTranslateStart = (shape: TLNoteShape) => {
+		this.editor.bringToFront([shape])
+	}
+
 	override onEditEnd: TLOnEditEndHandler<TLNoteShape> = (shape) => {
 		const {
 			id,
