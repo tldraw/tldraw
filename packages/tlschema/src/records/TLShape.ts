@@ -154,7 +154,7 @@ export const rootShapeMigrations = defineMigrations({
 					...record,
 				}
 			},
-			down: ({ record }) => {
+			down: (record) => {
 				return {
 					...record,
 					props: {
