@@ -628,7 +628,9 @@ export class Idle extends StateNode {
 				? MAJOR_NUDGE_FACTOR
 				: MINOR_NUDGE_FACTOR
 
-		this.editor.nudgeShapes(this.editor.getSelectedShapeIds(), delta.mul(step))
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
+		this.editor.nudgeShapes(selectedShapeIds, delta.mul(step))
+		kickoutOccludedShapes(this.editor, selectedShapeIds)
 	}
 
 	private canInteractWithShapeInReadOnly(shape: TLShape) {
