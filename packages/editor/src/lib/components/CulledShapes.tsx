@@ -124,7 +124,7 @@ export function CulledShapes() {
 			const minY = yScale(shape.y)
 			const maxY = yScale(shapePageBounds.y + shapePageBounds.height)
 
-			// We create the rectangle around shapes bounds by sticthing together two triangles
+			// We create the rectangle around shapes bounds by stitching together two triangles
 			triangleVertices.push(...[minX, minY, minX, maxY, maxX, maxY])
 			triangleVertices.push(...[minX, minY, maxX, minY, maxX, maxY])
 		})
