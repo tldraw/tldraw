@@ -122,8 +122,20 @@ export const CulledShapes = track(function CulledShapes() {
 			const maxY = yScale(shapePageBounds.y + shapePageBounds.height)
 
 			// We create the rectangle around shapes bounds by stitching together two triangles
-			triangleVertices.push(...[minX, minY, minX, maxY, maxX, maxY])
-			triangleVertices.push(...[minX, minY, maxX, minY, maxX, maxY])
+			triangleVertices.push(
+        minX,
+        minY,
+        minX,
+        maxY,
+        maxX,
+        maxY,
+        minX,
+        minY,
+        maxX,
+        minY,
+        maxX,
+        maxY,
+			)
 		})
 
 		const triangleGeoCpuBuffer = new Float32Array(triangleVertices)
