@@ -24,7 +24,7 @@
 	/* Z Index */
 	--layer-background: 100;
 	--layer-grid: 150;
-	--layer-culled-shapes: 150;
+	--layer-culled-shapes: 175;
 	--layer-canvas: 200;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
