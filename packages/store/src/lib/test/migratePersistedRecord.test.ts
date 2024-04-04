@@ -230,6 +230,7 @@ test('does not go up or down if theres a store migration in the path', () => {
 	assert(update3.type === 'success', 'the update should be successful')
 	expect((update3.value[r0.id] as TestRecordType).versions).toEqual({ foo: 2 })
 })
+
 test('does not go down if theres a migrations without the down migrator in the path', () => {
 	const foo = mockSequence({ id: 'foo', retroactive: false, versions: 3 })
 	delete (foo.sequence[1] as any).down
@@ -245,4 +246,31 @@ test('does not go down if theres a migrations without the down migrator in the p
 	const r3 = makeTestRecord(schema.serialize())
 	const update2 = schema.migratePersistedRecord(r3, v0Schema, 'down')
 	expect(update2.type).toBe('error')
+})
+
+test('allows returning a new record from the migrator fn', () => {
+	const foo = mockSequence({ id: 'foo', retroactive: false, versions: 3 })
+	foo.sequence[1] = {
+		id: 'foo/2',
+		scope: 'record',
+		up(r) {
+			const record = r as TestRecordType
+			return { ...record, versions: { ...record.versions, foo: 2 } }
+		},
+		down(r) {
+			const record = r as TestRecordType
+			return { ...record, versions: { ...record.versions, foo: 1 } }
+		},
+	}
+	const schema = makeSchema([foo])
+	const v0Schema = makePersistedSchema([foo, 0])
+
+	const r0 = makeTestRecord(v0Schema)
+	const r3 = makeTestRecord(schema.serialize())
+	const update = schema.migratePersistedRecord(r0, v0Schema, 'up')
+	assert(update.type === 'success', 'the update should be successful')
+	expect((update.value as TestRecordType).versions).toEqual({ foo: 3 })
+	const update2 = schema.migratePersistedRecord(r3, v0Schema, 'down')
+	assert(update2.type === 'success', 'the update should be successful')
+	expect((update2.value as TestRecordType).versions).toEqual({ foo: 0 })
 })
