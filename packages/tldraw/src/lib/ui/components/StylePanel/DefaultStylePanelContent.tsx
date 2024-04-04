@@ -77,12 +77,12 @@ function useStyleChangeCallback() {
 
 	return React.useMemo(
 		() =>
-			function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
+			function handleStyleChange<T>(style: StyleProp<T>, value: T) {
 				editor.batch(() => {
 					if (editor.isIn('select')) {
-						editor.setStyleForSelectedShapes(style, value, { squashing })
+						editor.setStyleForSelectedShapes(style, value)
 					}
-					editor.setStyleForNextShapes(style, value, { squashing })
+					editor.setStyleForNextShapes(style, value)
 					editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
 				})
 
@@ -325,13 +325,13 @@ export function OpacitySlider() {
 	const msg = useTranslation()
 
 	const handleOpacityValueChange = React.useCallback(
-		(value: number, squashing: boolean) => {
+		(value: number) => {
 			const item = tldrawSupportedOpacities[value]
 			editor.batch(() => {
 				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(item, { squashing })
+					editor.setOpacityForSelectedShapes(item)
 				}
-				editor.setOpacityForNextShapes(item, { squashing })
+				editor.setOpacityForNextShapes(item)
 				editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
 			})
 

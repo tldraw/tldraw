@@ -240,7 +240,6 @@ export {
 } from './lib/editor/types/external-content'
 export {
 	type TLCommand,
-	type TLCommandHandler,
 	type TLHistoryEntry,
 	type TLHistoryMark,
 } from './lib/editor/types/history-types'

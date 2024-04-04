@@ -102,7 +102,7 @@ export class TranslatingCrop extends StateNode {
 		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 
 		if (partial) {
-			this.editor.updateShapes([partial], { squashing: true })
+			this.editor.updateShapes([partial])
 		}
 	}
 }

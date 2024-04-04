@@ -185,7 +185,7 @@ describe('<TldrawEditor />', () => {
 		await act(async () => {
 			editor.updateInstanceState(
 				{ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } },
-				{ ephemeral: true, squashing: true }
+				{ ephemeral: true }
 			)
 		})
 
@@ -306,7 +306,7 @@ describe('Custom shapes', () => {
 		await act(async () => {
 			editor.updateInstanceState(
 				{ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } },
-				{ ephemeral: true, squashing: true }
+				{ ephemeral: true }
 			)
 		})
 

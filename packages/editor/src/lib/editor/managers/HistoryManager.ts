@@ -1,27 +1,28 @@
 import { atom, transact } from '@tldraw/state'
-import { devFreeze } from '@tldraw/store'
+import {
+	RecordsDiff,
+	Store,
+	UnknownRecord,
+	devFreeze,
+	reverseRecordsDiff,
+	squashRecordDiffs,
+} from '@tldraw/store'
+import { TLRecord } from '@tldraw/tlschema'
 import { uniqueId } from '../../utils/uniqueId'
-import { TLCommandHandler, TLCommandHistoryOptions, TLHistoryEntry } from '../types/history-types'
+import { TLCommandHistoryOptions, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'
 
-type CommandFn<Data> = (...args: any[]) =>
-	| ({
-			data: Data
-	  } & TLCommandHistoryOptions)
-	| null
-	| undefined
-	| void
-
-type ExtractData<Fn> = Fn extends CommandFn<infer Data> ? Data : never
-type ExtractArgs<Fn> = Parameters<Extract<Fn, (...args: any[]) => any>>
+type CommandFn = (...args: any[]) => TLCommandHistoryOptions | void
 
 export class HistoryManager<
+	R extends UnknownRecord,
 	CTX extends {
+		store: Store<R>
 		emit: (name: 'change-history' | 'mark-history', ...args: any) => void
 	},
 > {
-	_undos = atom<Stack<TLHistoryEntry>>('HistoryManager.undos', stack()) // Updated by each action that includes and undo
-	_redos = atom<Stack<TLHistoryEntry>>('HistoryManager.redos', stack()) // Updated when a user undoes
+	_undos = atom<Stack<TLHistoryEntry<R>>>('HistoryManager.undos', stack()) // Updated by each action that includes and undo
+	_redos = atom<Stack<TLHistoryEntry<R>>>('HistoryManager.redos', stack()) // Updated when a user undoes
 	_batchDepth = 0 // A flag for whether the user is in a batch operation
 
 	constructor(
@@ -31,7 +32,7 @@ export class HistoryManager<
 
 	onBatchComplete: () => void = () => void null
 
-	private _commands: Record<string, TLCommandHandler<any>> = {}
+	private knownCommands = new Set<string>()
 
 	getNumUndos() {
 		return this._undos.get().length
@@ -39,40 +40,37 @@ export class HistoryManager<
 	getNumRedos() {
 		return this._redos.get().length
 	}
-	createCommand = <Name extends string, Constructor extends CommandFn<any>>(
-		name: Name,
-		constructor: Constructor,
-		handle: TLCommandHandler<ExtractData<Constructor>>
-	) => {
-		if (this._commands[name]) {
+	createCommand = <Name extends string, Fn extends CommandFn>(name: Name, runCommand: Fn) => {
+		if (this.knownCommands.has(name)) {
 			throw new Error(`Duplicate command: ${name}`)
 		}
-		this._commands[name] = handle
+		this.knownCommands.add(name)
 
-		const exec = (...args: ExtractArgs<Constructor>) => {
+		const exec = (...args: Parameters<Fn>): CTX => {
 			if (!this._batchDepth) {
 				// If we're not batching, run again in a batch
 				this.batch(() => exec(...args))
 				return this.ctx
 			}
 
-			const result = constructor(...args)
-
-			if (!result) {
-				return this.ctx
-			}
-
-			const { data, ephemeral, squashing, preservesRedoStack } = result
-
+			let diff!: RecordsDiff<R>
+			let options!: TLCommandHistoryOptions | void
 			this.ignoringUpdates((undos, redos) => {
-				handle.do(data)
+				diff = this.ctx.store!.extractingChanges(() => {
+					options = runCommand(...args)
+				})
 				return { undos, redos }
 			})
+
+			// if nothing happend, we don't need to record a history entry:
+			if (isDiffEmpty(diff)) return this.ctx
+
+			const ephemeral = options?.ephemeral
+			const preservesRedoStack = options?.preservesRedoStack
 
 			if (!ephemeral) {
 				const prev = this._undos.get().head
 				if (
-					squashing &&
 					prev &&
 					prev.type === 'command' &&
 					prev.name === name &&
@@ -82,7 +80,7 @@ export class HistoryManager<
 					this._undos.update((undos) =>
 						undos.tail.push({
 							...prev,
-							data: devFreeze(handle.squash!(prev.data, data)),
+							diff: devFreeze(squashRecordDiffs([prev.diff, diff])),
 						})
 					)
 				} else {
@@ -91,13 +89,13 @@ export class HistoryManager<
 						undos.push({
 							type: 'command',
 							name,
-							data: devFreeze(data),
+							diff: devFreeze(diff),
 							preservesRedoStack: preservesRedoStack,
 						})
 					)
 				}
 
-				if (!result.preservesRedoStack) {
+				if (!preservesRedoStack) {
 					this._redos.set(stack())
 				}
 
@@ -109,6 +107,8 @@ export class HistoryManager<
 
 		return exec
 	}
+
+	createCommand2 = this.createCommand
 
 	batch = (fn: () => void) => {
 		try {
@@ -136,9 +136,9 @@ export class HistoryManager<
 
 	private ignoringUpdates = (
 		fn: (
-			undos: Stack<TLHistoryEntry>,
-			redos: Stack<TLHistoryEntry>
-		) => { undos: Stack<TLHistoryEntry>; redos: Stack<TLHistoryEntry> }
+			undos: Stack<TLHistoryEntry<R>>,
+			redos: Stack<TLHistoryEntry<R>>
+		) => { undos: Stack<TLHistoryEntry<R>>; redos: Stack<TLHistoryEntry<R>> }
 	) => {
 		let undos = this._undos.get()
 		let redos = this._redos.get()
@@ -206,8 +206,7 @@ export class HistoryManager<
 						return { undos, redos }
 					}
 				} else {
-					const handler = this._commands[command.name]
-					handler.undo(command.data)
+					this.ctx.store.applyDiff(reverseRecordsDiff(command.diff))
 				}
 			}
 
@@ -253,12 +252,7 @@ export class HistoryManager<
 						break
 					}
 				} else {
-					const handler = this._commands[command.name]
-					if (handler.redo) {
-						handler.redo(command.data)
-					} else {
-						handler.do(command.data)
-					}
+					this.ctx.store.applyDiff(command.diff)
 				}
 			}
 
@@ -301,4 +295,12 @@ export class HistoryManager<
 		this._undos.set(stack())
 		this._redos.set(stack())
 	}
+}
+
+function isDiffEmpty(diff: RecordsDiff<TLRecord>) {
+	return (
+		Object.keys(diff.added).length === 0 &&
+		Object.keys(diff.updated).length === 0 &&
+		Object.keys(diff.removed).length === 0
+	)
 }

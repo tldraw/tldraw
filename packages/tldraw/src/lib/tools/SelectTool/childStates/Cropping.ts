@@ -200,7 +200,7 @@ export class Cropping extends StateNode {
 			},
 		}
 
-		this.editor.updateShapes([partial], { squashing: true })
+		this.editor.updateShapes([partial])
 		this.updateCursor()
 	}
 

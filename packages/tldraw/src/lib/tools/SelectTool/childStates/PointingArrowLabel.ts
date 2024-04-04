@@ -100,10 +100,11 @@ export class PointingArrowLabel extends StateNode {
 			nextLabelPosition = 0.5
 		}
 
-		this.editor.updateShape<TLArrowShape>(
-			{ id: shape.id, type: shape.type, props: { labelPosition: nextLabelPosition } },
-			{ squashing: true }
-		)
+		this.editor.updateShape<TLArrowShape>({
+			id: shape.id,
+			type: shape.type,
+			props: { labelPosition: nextLabelPosition },
+		})
 	}
 
 	override onPointerUp = () => {

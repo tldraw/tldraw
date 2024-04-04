@@ -144,16 +144,13 @@ export class ScribbleBrushing extends StateNode {
 			}
 		}
 
-		this.editor.setSelectedShapes(
-			[
-				...new Set<TLShapeId>(
-					shiftKey
-						? [...newlySelectedShapeIds, ...initialSelectedShapeIds]
-						: [...newlySelectedShapeIds]
-				),
-			],
-			{ squashing: true }
-		)
+		this.editor.setSelectedShapes([
+			...new Set<TLShapeId>(
+				shiftKey
+					? [...newlySelectedShapeIds, ...initialSelectedShapeIds]
+					: [...newlySelectedShapeIds]
+			),
+		])
 	}
 
 	private complete() {
@@ -162,7 +159,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private cancel() {
-		this.editor.setSelectedShapes([...this.initialSelectedShapeIds], { squashing: true })
+		this.editor.setSelectedShapes([...this.initialSelectedShapeIds])
 		this.parent.transition('idle')
 	}
 }

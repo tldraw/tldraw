@@ -172,6 +172,7 @@ function runTest(seed: number) {
 				ops.push({ peerId: peer.id, op, id: ops.length })
 
 				allOk('before applyOp')
+				console.log('apply op', op)
 				peer.editor.applyOp(op)
 				allOk('after applyOp')
 
@@ -272,6 +273,10 @@ const MAX_PEERS = 4
 // test.only('seed 8343632005032947', () => {
 // 	runTest(8343632005032947)
 // })
+
+test.only('seed 8360926944486245 - undo/redo page integrity regression', () => {
+	runTest(8360926944486245)
+})
 
 test('fuzzzzz', () => {
 	for (let i = 0; i < NUM_TESTS; i++) {
