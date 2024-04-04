@@ -1,5 +1,7 @@
 import {
 	Editor,
+	TLFrameShape,
+	TLNoteShape,
 	TLShape,
 	TLShapeId,
 	polygonIntersectsPolyline,
@@ -9,7 +11,7 @@ import {
 /** @internal */
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	const shapes = shapeIds.map((id) => editor.getShape(id)).filter((s) => s) as TLShape[]
-	const effectedParents: TLShape[] = shapes
+	const effectedParents = shapes
 		.map((shape) => {
 			const parent = editor.getShape(shape.parentId)
 			if (!parent) return shape
@@ -27,7 +29,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 
 		// For each child, check whether its bounds overlap with the parent's bounds
 		for (const childId of childIds) {
-			if (isShapeOccluded(editor, parent, childId)) {
+			if (isShapeOccluded(editor, parent as TLFrameShape | TLNoteShape, childId)) {
 				kickedOutChildren.push(childId)
 			}
 		}
@@ -39,27 +41,31 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 }
 
 /** @internal */
-export function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId) {
+export function isShapeOccluded(
+	editor: Editor,
+	occluder: TLNoteShape | TLFrameShape,
+	shape: TLShapeId
+) {
 	const occluderPageBounds = editor.getShapePageBounds(occluder)
 	if (!occluderPageBounds) return false
 
 	const shapePageBounds = editor.getShapePageBounds(shape)
 	if (!shapePageBounds) return true
 
-	// If the shape's bounds are completely inside the occluder, it's not occluded
-	if (occluderPageBounds.contains(shapePageBounds)) {
-		return false
-	}
-
 	// If the shape's bounds are completely outside the occluder, it's occluded
 	if (!occluderPageBounds.includes(shapePageBounds)) {
 		return true
 	}
 
-	// If we've made it this far, the shape's bounds must intersect the edge of the occluder
-	// In this case, we need to look at the shape's geometry for a more fine-grained check
+	// Otherwise, look at the shape's geometry for a more fine-grained check
 	const shapeGeometry = editor.getShapeGeometry(shape)
-	const occluderCornersInShapeSpace = occluderPageBounds.corners.map((v) => {
+	const occluderGeometry = editor.getShapeGeometry(occluder)
+	const occluderPageTransform = editor.getShapePageTransform(occluder)
+	const occluderCornersInPageSpace = occluderGeometry.vertices.map((corner) => {
+		return occluderPageTransform.applyToPoint(corner)
+	})
+
+	const occluderCornersInShapeSpace = occluderCornersInPageSpace.map((v) => {
 		return editor.getPointInShapeSpace(shape, v)
 	})
 
