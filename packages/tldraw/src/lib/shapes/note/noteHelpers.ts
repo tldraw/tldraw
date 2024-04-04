@@ -1,12 +1,5 @@
-import {
-	ANIMATION_MEDIUM_MS,
-	Editor,
-	TLNoteShape,
-	TLShape,
-	Vec,
-	compact,
-	createShapeId,
-} from '@tldraw/editor'
+import { Editor, TLNoteShape, TLShape, Vec, compact, createShapeId } from '@tldraw/editor'
+import { zoomToShapeIfOffscreen } from '../shared/TextHelpers'
 
 /** @internal */
 export const ADJACENT_NOTE_MARGIN = 20
@@ -174,30 +167,4 @@ export function getNoteShapeForAdjacentPosition(
 
 	zoomToShapeIfOffscreen(editor)
 	return nextNote
-}
-
-/** @internal */
-export function startEditingNoteShape(editor: Editor, shape: TLShape) {
-	// Finish this sticky and start editing the next one
-	editor.select(shape)
-	editor.setEditingShape(shape)
-	editor.setCurrentTool('select.editing_shape', {
-		target: 'shape',
-		shape: shape,
-	})
-
-	// Select any text that's in the newly selected sticky
-	;(document.getElementById(`text-input-${shape.id}`) as HTMLTextAreaElement)?.select()
-
-	zoomToShapeIfOffscreen(editor)
-}
-
-function zoomToShapeIfOffscreen(editor: Editor) {
-	const selectionPageBounds = editor.getSelectionPageBounds()
-	const viewportPageBounds = editor.getViewportPageBounds()
-	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		editor.centerOnPoint(selectionPageBounds.center, {
-			duration: ANIMATION_MEDIUM_MS,
-		})
-	}
 }

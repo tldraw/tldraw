@@ -15,6 +15,7 @@ import {
 	createShapeId,
 	pointInPolygon,
 } from '@tldraw/editor'
+import { startEditingShapeWithLabel } from '../../../shapes/shared/TextHelpers'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
@@ -446,11 +447,15 @@ export class Idle extends StateNode {
 				this.shouldStartEditingShape(onlySelectedShape) &&
 				this.editor.getShapeUtil(onlySelectedShape).doesAutoEditOnKeyStroke(onlySelectedShape)
 			) {
-				this.startEditingShape(onlySelectedShape, {
-					...info,
-					target: 'shape',
-					shape: onlySelectedShape,
-				})
+				this.startEditingShape(
+					onlySelectedShape,
+					{
+						...info,
+						target: 'shape',
+						shape: onlySelectedShape,
+					},
+					true /* select all */
+				)
 				return
 			}
 		}
@@ -522,15 +527,8 @@ export class Idle extends StateNode {
 		shouldSelectAll?: boolean
 	) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
-		this.editor.mark('editing shape')
-		this.editor.setEditingShape(shape.id)
+		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll)
 		this.parent.transition('editing_shape', info)
-
-		if (shouldSelectAll) {
-			// XXX this is a hack to select the text in the textarea when we hit enter.
-			// Open to other ideas! I don't see how else to currently do this in the codebase.
-			;(document.getElementById(`text-input-${shape.id}`) as HTMLTextAreaElement)?.select()
-		}
 	}
 
 	isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1

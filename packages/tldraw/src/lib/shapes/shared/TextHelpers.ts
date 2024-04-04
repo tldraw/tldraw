@@ -4,6 +4,8 @@
  * Copyright (c) Federico Brigante <opensource@bfred.it> (bfred.it)
  */
 
+import { ANIMATION_MEDIUM_MS, Editor, TLShape } from '@tldraw/editor'
+
 // TODO: Most of this file can be moved into a DOM utils library.
 
 /** @internal */
@@ -289,4 +291,37 @@ function getCaretIndex(element: HTMLElement) {
 		position = preCaretRange.toString().length
 	}
 	return position
+}
+
+/** @internal */
+export function startEditingShapeWithLabel(
+	editor: Editor,
+	shape: TLShape,
+	shouldSelectAll?: boolean
+) {
+	// Finish this shape and start editing the next one
+	editor.select(shape)
+	editor.mark('editing shape')
+	editor.setEditingShape(shape)
+	editor.setCurrentTool('select.editing_shape', {
+		target: 'shape',
+		shape: shape,
+	})
+
+	if (shouldSelectAll) {
+		// Select any text that's in the newly selected sticky
+		;(document.getElementById(`text-input-${shape.id}`) as HTMLTextAreaElement)?.select()
+	}
+
+	zoomToShapeIfOffscreen(editor)
+}
+
+export function zoomToShapeIfOffscreen(editor: Editor) {
+	const selectionPageBounds = editor.getSelectionPageBounds()
+	const viewportPageBounds = editor.getViewportPageBounds()
+	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+		editor.centerOnPoint(selectionPageBounds.center, {
+			duration: ANIMATION_MEDIUM_MS,
+		})
+	}
 }

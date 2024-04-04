@@ -29,6 +29,7 @@ import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
+import { startEditingShapeWithLabel } from '../shared/TextHelpers'
 import { useForceSolid } from '../shared/useForceSolid'
 import {
 	ADJACENT_NOTE_MARGIN,
@@ -36,7 +37,6 @@ import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_SIZE,
 	getNoteShapeForAdjacentPosition,
-	startEditingNoteShape,
 } from './noteHelpers'
 
 /** @public */
@@ -401,7 +401,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
-					startEditingNoteShape(editor, newNote)
+					startEditingShapeWithLabel(editor, newNote, true /* selectAll */)
 				}
 			}
 		},
