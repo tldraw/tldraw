@@ -1,5 +1,5 @@
 import { SerializedSchemaV2, StoreSchema } from '../StoreSchema'
-import { Migrations } from '../migrate'
+import { MigrationSequence } from '../migrate'
 
 const mockSequence = ({
 	id,
@@ -20,9 +20,12 @@ const mockSequence = ({
 				// noop
 			},
 		})),
-	}) satisfies Migrations
+	}) satisfies MigrationSequence
 
-function getMigrationsBetween(serialized: SerializedSchemaV2['sequences'], current: Migrations[]) {
+function getMigrationsBetween(
+	serialized: SerializedSchemaV2['sequences'],
+	current: MigrationSequence[]
+) {
 	const schema = StoreSchema.create({}, { migrations: current })
 	const ms = schema.getMigrationsSince({ schemaVersion: 2, sequences: serialized })
 	if (!ms.ok) {

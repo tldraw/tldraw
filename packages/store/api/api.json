@@ -806,8 +806,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Migrations",
-              "canonicalReference": "@tldraw/store!Migrations:interface"
+              "text": "MigrationSequence",
+              "canonicalReference": "@tldraw/store!MigrationSequence:interface"
             },
             {
               "kind": "Content",
@@ -1757,22 +1757,22 @@
         },
         {
           "kind": "Interface",
-          "canonicalReference": "@tldraw/store!Migrations:interface",
+          "canonicalReference": "@tldraw/store!MigrationSequence:interface",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export interface Migrations "
+              "text": "export interface MigrationSequence "
             }
           ],
           "fileUrlPath": "packages/store/src/lib/migrate.ts",
           "releaseTag": "Public",
-          "name": "Migrations",
+          "name": "MigrationSequence",
           "preserveMemberOrder": false,
           "members": [
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/store!Migrations#retroactive:member",
+              "canonicalReference": "@tldraw/store!MigrationSequence#retroactive:member",
               "docComment": "/**\n * retroactive should be true if the migrations should be applied to snapshots that were created before this migration sequence was added to the schema.\n *\n * In general:\n *\n * - retroactive should be true when app developers create their own new migration sequences. - retroactive should be false when library developers ship a migration sequence. When you install a library for the first time, any migrations that were added in the library before that point should generally _not_ be applied to your existing data.\n */\n",
               "excerptTokens": [
                 {
@@ -1799,7 +1799,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/store!Migrations#sequence:member",
+              "canonicalReference": "@tldraw/store!MigrationSequence#sequence:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -1831,7 +1831,7 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/store!Migrations#sequenceId:member",
+              "canonicalReference": "@tldraw/store!MigrationSequence#sequenceId:member",
               "docComment": "",
               "excerptTokens": [
                 {
@@ -5322,8 +5322,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "MigrationSequence",
+                  "canonicalReference": "@tldraw/store!MigrationSequence:interface"
                 },
                 {
                   "kind": "Content",
@@ -5616,8 +5616,8 @@
             },
             {
               "kind": "Reference",
-              "text": "Migrations",
-              "canonicalReference": "@tldraw/store!Migrations:interface"
+              "text": "MigrationSequence",
+              "canonicalReference": "@tldraw/store!MigrationSequence:interface"
             },
             {
               "kind": "Content",

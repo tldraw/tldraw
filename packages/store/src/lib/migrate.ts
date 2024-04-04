@@ -64,8 +64,8 @@ export function createMigrations({
 	sequenceId: string
 	retroactive: boolean
 	sequence: Array<Migration | StandaloneDependsOn>
-}): Migrations {
-	const migrations: Migrations = {
+}): MigrationSequence {
+	const migrations: MigrationSequence = {
 		sequenceId,
 		retroactive,
 		sequence: squashDependsOn(sequence),
@@ -91,7 +91,7 @@ export function createRecordMigrations(opts: {
 	retroactive?: boolean
 	sequenceId: string
 	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]
-}): Migrations {
+}): MigrationSequence {
 	const sequenceId = opts.sequenceId
 	return createMigrations({
 		sequenceId,
@@ -159,7 +159,7 @@ export interface LegacyMigrations extends LegacyBaseMigrationsInfo {
 }
 
 /** @public */
-export interface Migrations {
+export interface MigrationSequence {
 	sequenceId: string
 	/**
 	 * retroactive should be true if the migrations should be applied to snapshots that were created before
@@ -228,7 +228,7 @@ function validateMigrationId(id: string, expectedSequenceId?: string) {
 	assert(id.match(/^(.*?)\/(0|[1-9]\d*)$/), `Invalid migration id: '${id}'`)
 }
 
-export function validateMigrations(migrations: Migrations) {
+export function validateMigrations(migrations: MigrationSequence) {
 	assert(
 		!migrations.sequenceId.includes('/'),
 		`sequenceId cannot contain a '/', got ${migrations.sequenceId}`

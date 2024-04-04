@@ -1,7 +1,7 @@
 import {
 	Migration,
 	MigrationId,
-	Migrations,
+	MigrationSequence,
 	RecordId,
 	UnknownRecord,
 	createMigrationIds,
@@ -221,7 +221,7 @@ export function createShapePropsMigrations(
 }
 
 export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) {
-	const result: Migrations[] = []
+	const result: MigrationSequence[] = []
 
 	for (const [shapeType, { migrations }] of Object.entries(shapes)) {
 		const sequenceId = `com.tldraw.shape.${shapeType}`
