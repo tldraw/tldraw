@@ -18,14 +18,14 @@ function setupWebGl(canvas: HTMLCanvasElement | null, isDarkMode: boolean) {
   uniform vec2 viewportEnd; 
 
   void main() {
-    // We need to transform from page coordinates to something WebGl understands
-    float viewportWidth = viewportEnd.x - viewportStart.x;
-    float viewportHeight = viewportEnd.y - viewportStart.y;
+	// We need to transform from page coordinates to something WebGl understands
+	float viewportWidth = viewportEnd.x - viewportStart.x;
+	float viewportHeight = viewportEnd.y - viewportStart.y;
 	vec2 finalPosition = vec2(
 		2.0 * (shapeVertexPosition.x - viewportStart.x) / viewportWidth - 1.0, 
 		1.0 - 2.0 * (shapeVertexPosition.y - viewportStart.y) / viewportHeight
-);
-    gl_Position = vec4(finalPosition, 0.0, 1.0);
+	);
+	gl_Position = vec4(finalPosition, 0.0, 1.0);
   }`
 
 	const vertexShader = context.createShader(context.VERTEX_SHADER)
@@ -45,7 +45,7 @@ function setupWebGl(canvas: HTMLCanvasElement | null, isDarkMode: boolean) {
   out vec4 outputColor;
 
   void main() {
-    outputColor = ${color};
+	outputColor = ${color};
   }`
 
 	const fragmentShader = context.createShader(context.FRAGMENT_SHADER)
