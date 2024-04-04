@@ -145,7 +145,6 @@ export class PointingShape extends StateNode {
 									currentPagePoint
 								)
 
-								console.log('pointing', textLabel.bounds)
 								if (
 									textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
 									textLabel.hitTestPoint(pointInShapeSpace)
