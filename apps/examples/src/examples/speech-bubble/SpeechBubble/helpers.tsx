@@ -1,4 +1,4 @@
-import { Vec, VecLike, lerp, mapRange, pointInPolygon } from 'tldraw'
+import { Vec, VecLike, lerp, pointInPolygon } from 'tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
 export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
@@ -182,4 +182,18 @@ function intersectLineSegmentLineSegment(a1: VecLike, a2: VecLike, b1: VecLike, 
 	}
 
 	return null // no intersection
+}
+
+/**
+ * Inverse linear interpolation
+ */
+function invLerp(a: number, b: number, v: number) {
+	return (v - a) / (b - a)
+}
+/**
+ * Maps a value from one range to another.
+ * e.g. mapRange(10, 20, 50, 100, 15) => 75
+ */
+function mapRange(a1: number, b1: number, a2: number, b2: number, s: number) {
+	return lerp(a2, b2, invLerp(a1, b1, s))
 }

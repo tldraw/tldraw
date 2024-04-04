@@ -24,27 +24,6 @@ export function invLerp(a: number, b: number, t: number) {
 }
 
 /**
- * Maps a value from one range to another.
- * e.g. mapRange(10, 20, 50, 100, 15) returns 75
- *
- * @public
- */
-export function mapRange(a1: number, b1: number, a2: number, b2: number, s: number) {
-	return lerp(a2, b2, invLerp(a1, b1, s))
-}
-
-/**
- * Returns a function that maps a value from one range to another.
- * const scale = scale(10, 20, 50, 100)
- * scale(15) returns 75
- *
- * @public
- */
-export function scale(a1: number, b1: number, a2: number, b2: number) {
-	return (s: number) => mapRange(a1, b1, a2, b2, s)
-}
-
-/**
  * Seeded random number generator, using [xorshift](https://en.wikipedia.org/wiki/Xorshift). The
  * result will always be betweeen -1 and 1.
  *
