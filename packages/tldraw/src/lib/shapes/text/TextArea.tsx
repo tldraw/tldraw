@@ -52,9 +52,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 			onKeyDown={handleKeyDown}
 			onBlur={handleBlur}
 			onTouchEnd={stopEventPropagation}
-			onContextMenu={(e) => {
-				isEditing && stopEventPropagation(e)
-			}}
+			onContextMenu={isEditing ? stopEventPropagation : undefined}
 			onPointerDown={handleInputPointerDown}
 			onDoubleClick={handleDoubleClick}
 		/>

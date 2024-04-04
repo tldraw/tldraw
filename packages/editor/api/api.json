@@ -11341,6 +11341,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getOnlySelectedShapeId:member(1)",
+              "docComment": "/**\n * The id of the app's only selected shape.\n *\n * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape's id.\n *\n * @public @readonly\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getOnlySelectedShapeId(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getOnlySelectedShapeId"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getOpenMenus:member(1)",
               "docComment": "/**\n * A set of strings representing any open menus. When menus are open, certain interactions will behave differently; for example, when a draw tool is selected and a menu is open, a pointer-down will not create a dot (because the user is probably trying to close the menu) however a pointer-down event followed by a drag will begin drawing a line (because the user is BOTH trying to close the menu AND start drawing a line).\n *\n * @public\n */\n",
               "excerptTokens": [

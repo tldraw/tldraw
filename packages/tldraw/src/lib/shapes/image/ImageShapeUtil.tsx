@@ -50,7 +50,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
 
-		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
 		useEffect(() => {
 			if (asset?.props.src && 'mimeType' in asset.props && asset?.props.mimeType === 'image/gif') {

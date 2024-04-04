@@ -66,7 +66,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				const info = (resizingState as typeof resizingState & { info: { isCreating: boolean } })
 					?.info
 				if (!info) return false
-				return info.isCreating && this.editor.getOnlySelectedShape()?.id === shape.id
+				return info.isCreating && this.editor.getOnlySelectedShapeId() === shape.id
 			},
 			[shape.id]
 		)

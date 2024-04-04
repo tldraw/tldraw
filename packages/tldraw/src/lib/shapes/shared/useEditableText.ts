@@ -18,6 +18,12 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const rInput = useRef<HTMLTextAreaElement>(null)
 	const rSelectionRanges = useRef<Range[] | null>()
 
+	const isEditingAnything = useValue(
+		'isEditingAnything',
+		() => editor.getEditingShapeId() !== null,
+		[editor]
+	)
+
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
 
 	// If the shape is editing but the input element not focused, focus the element
@@ -161,14 +167,17 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	return {
 		rInput,
 		isEditing,
-		handleFocus: () => {
-			/* noop */
-		},
+		handleFocus: noop,
 		handleBlur,
 		handleKeyDown,
 		handleChange,
 		handleInputPointerDown,
 		handleDoubleClick,
 		isEmpty,
+		isEditingAnything,
 	}
+}
+
+function noop() {
+	return
 }
