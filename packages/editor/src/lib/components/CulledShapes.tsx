@@ -4,8 +4,9 @@ import { useEffect, useRef } from 'react'
 import { useEditor } from '../hooks/useEditor'
 
 export const CulledShapes = track(function CulledShapes() {
-	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const editor = useEditor()
+
+	const canvasRef = useRef<HTMLCanvasElement | null>(null)
 	const contextRef = useRef<WebGL2RenderingContext | null>(null)
 	const vertextShaderRef = useRef<any>(null)
 	const fragmentShaderRef = useRef<any>(null)
@@ -13,11 +14,11 @@ export const CulledShapes = track(function CulledShapes() {
 
 	const renderingShapes = editor.getRenderingShapes()
 	const viewport = editor.getViewportPageBounds()
-
-	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
 	const selectedShapeIds = editor.getSelectedShapeIds()
 	const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
 	const editingShapeId = editor.getEditingShapeId()
+	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
+
 	useEffect(() => {
 		if (!isCullingOffScreenShapes) return
 		// Parts of the below code are taken from MIT licensed project:
@@ -102,12 +103,10 @@ export const CulledShapes = track(function CulledShapes() {
 		context.useProgram(program)
 		context.enableVertexAttribArray(vertexPositionAttributeLocation)
 
-		const shapes = renderingShapes
 		const triangleVertices: number[] = []
 
-		shapes.forEach(({ shape }) => {
-			const isCulled = editor.isShapeCulled(shape)
-			if (!isCulled) return
+		renderingShapes.forEach(({ shape }) => {
+			if (!editor.isShapeCulled(shape)) return
 
 			const shapePageBounds = editor.getShapePageBounds(shape)
 			if (!shapePageBounds) return
