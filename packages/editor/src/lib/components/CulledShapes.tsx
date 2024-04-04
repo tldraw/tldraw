@@ -4,7 +4,7 @@ import { useEditor } from '../hooks/useEditor'
 
 // Parts of the below code are taken from MIT licensed project:
 // https://github.com/sessamekesh/webgl-tutorials-2023
-function getProgram(canvas: HTMLCanvasElement | null) {
+function setupWebGl(canvas: HTMLCanvasElement | null) {
 	if (!canvas) return
 	const context = canvas.getContext('webgl2')
 	if (!context) return
@@ -90,14 +90,14 @@ export const CulledShapes = track(function CulledShapes() {
 	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
 
 	useEffect(() => {
-		const result = getProgram(canvasRef.current)
-		if (!result) return
+		const webGl = setupWebGl(canvasRef.current)
+		if (!webGl) return
 		const {
 			context,
 			shapeVertexPositionAttributeLocation,
 			viewportStartUniformLocation,
 			viewportEndUniformLocation,
-		} = result
+		} = webGl
 		const shapeVertices = computed('calculate shape vertices', () => {
 			return editor.getRenderingShapes().reduce((result, { shape }) => {
 				if (!editor.isShapeCulled(shape)) return result
