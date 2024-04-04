@@ -535,7 +535,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (!info?.isValid) return null
 
 		const labelPosition = getArrowLabelPosition(this.editor, shape)
-		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
 		return (
 			<>

@@ -1,5 +1,6 @@
 import { TLArrowShape, TLDefaultColorStyle, TLShapeId, VecLike } from '@tldraw/editor'
 import * as React from 'react'
+import { useDefaultColorTheme } from '../../shared/ShapeFill'
 import { TextLabel } from '../../shared/TextLabel'
 import { ARROW_LABEL_FONT_SIZES, TEXT_PROPS } from '../../shared/default-shape-constants'
 
@@ -19,6 +20,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	labelColor: TLDefaultColorStyle
 	isSelected: boolean
 } & Pick<TLArrowShape['props'], 'text' | 'size' | 'font'>) {
+	const theme = useDefaultColorTheme()
 	return (
 		<TextLabel
 			id={id}
@@ -30,7 +32,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 			align="middle"
 			verticalAlign="middle"
 			text={text}
-			labelColor={labelColor}
+			labelColor={theme[labelColor].solid}
 			textWidth={width}
 			isSelected={isSelected}
 			style={{

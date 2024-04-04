@@ -2,7 +2,6 @@
 import {
 	Box,
 	Editor,
-	HTMLContainer,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
@@ -17,6 +16,7 @@ import {
 	toDomPrecision,
 	useEditor,
 } from '@tldraw/editor'
+import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
@@ -70,31 +70,30 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
-		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const theme = useDefaultColorTheme()
 
 		return (
-			<HTMLContainer id={shape.id}>
-				<TextLabel
-					id={id}
-					classNamePrefix="tl-text-shape"
-					type="text"
-					font={font}
-					fontSize={FONT_SIZES[size]}
-					lineHeight={TEXT_PROPS.lineHeight}
-					align={align}
-					verticalAlign="middle"
-					text={text}
-					labelColor={color}
-					isSelected={isSelected}
-					textWidth={width}
-					textHeight={height}
-					style={{
-						transform: `scale(${scale})`,
-						transformOrigin: 'top left',
-					}}
-					wrap
-				/>
-			</HTMLContainer>
+			<TextLabel
+				id={id}
+				classNamePrefix="tl-text-shape"
+				type="text"
+				font={font}
+				fontSize={FONT_SIZES[size]}
+				lineHeight={TEXT_PROPS.lineHeight}
+				align={align}
+				verticalAlign="middle"
+				text={text}
+				labelColor={theme[color].solid}
+				isSelected={isSelected}
+				textWidth={width}
+				textHeight={height}
+				style={{
+					transform: `scale(${scale})`,
+					transformOrigin: 'top left',
+				}}
+				wrap
+			/>
 		)
 	}
 

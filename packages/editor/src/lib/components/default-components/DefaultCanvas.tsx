@@ -88,7 +88,11 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const debugGeometry = useValue('debug_geometry', () => debugFlags.debugGeometry.get(), [
 		debugFlags,
 	])
-	const isEditing = useValue('isEditingAnything', () => !!editor.getEditingShape(), [editor])
+	const isEditingAnything = useValue(
+		'isEditingAnything',
+		() => editor.getEditingShapeId() !== null,
+		[editor]
+	)
 
 	return (
 		<div
@@ -96,7 +100,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			draggable={false}
 			className={classNames('tl-canvas', className)}
 			data-testid="canvas"
-			data-isediting={isEditing}
+			data-iseditinganything={isEditingAnything}
 			{...events}
 		>
 			<svg className="tl-svg-context">

@@ -750,6 +750,11 @@ export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
     [K in keyof Shape['props']]: T.Validatable<Shape['props'][K]>;
 };
 
+// @public (undocumented)
+export type ShapePropsType<Config extends Record<string, T.Validatable<any>>> = Expand<{
+    [K in keyof Config]: T.TypeOf<Config[K]>;
+}>;
+
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal

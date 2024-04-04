@@ -164,7 +164,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const hideShadows = useForceSolid()
 
-		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
 		// Shadow stuff
 		const oy = Math.cos(rotation)
@@ -172,42 +172,45 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const random = rng(id)
 		const lift = 1 + random() * 0.5
 
+		const zoom = this.editor.getZoomLevel()
+
 		return (
-			<div
-				id={id}
-				className="tl-note__container"
-				style={{
-					width: NOTE_SIZE,
-					height: noteHeight,
-					color: theme[color].note.text,
-					backgroundColor: theme[color].note.fill,
-					borderBottom: hideShadows ? `3px solid rgb(15, 23, 31, .2)` : 'none',
-					boxShadow: hideShadows
-						? 'none'
-						: `${ox * 3}px ${4 - lift}px 5px -5px rgba(15, 23, 31,1),
+			<>
+				<div
+					id={id}
+					className="tl-note__container"
+					style={{
+						width: NOTE_SIZE,
+						height: noteHeight,
+						backgroundColor: theme[color].note.fill,
+						borderBottom: hideShadows ? `3px solid rgb(15, 23, 31, .2)` : 'none',
+						boxShadow: hideShadows
+							? 'none'
+							: `${ox * 3}px ${4 - lift}px 5px -5px rgba(15, 23, 31,1),
 						${ox * 6}px ${(4 + lift * 7) * Math.max(0, oy)}px ${6 + lift * 8}px -${4 + lift * 6}px rgba(15, 23, 31,${0.3 + lift * 0.1}), 
 						0px 48px 10px -10px inset rgba(15, 23, 31,${0.02 + random() * 0.005})`,
-				}}
-			>
-				<TextLabel
-					id={id}
-					type={type}
-					font={font}
-					fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
-					lineHeight={TEXT_PROPS.lineHeight}
-					align={align}
-					verticalAlign={verticalAlign}
-					text={text}
-					isNote
-					isSelected={isSelected}
-					labelColor={color}
-					wrap
-					onKeyDown={handleKeyDown}
-				/>
+					}}
+				>
+					<TextLabel
+						id={id}
+						type={type}
+						font={font}
+						fontSize={fontSizeAdjustment || LABEL_FONT_SIZES[size]}
+						lineHeight={TEXT_PROPS.lineHeight}
+						align={align}
+						verticalAlign={verticalAlign}
+						text={text}
+						isNote
+						isSelected={isSelected}
+						labelColor={theme[color].note.text}
+						wrap
+						onKeyDown={handleKeyDown}
+					/>
+				</div>
 				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+					<HyperlinkButton url={shape.props.url} zoomLevel={zoom} />
 				)}
-			</div>
+			</>
 		)
 	}
 

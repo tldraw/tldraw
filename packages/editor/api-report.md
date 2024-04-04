@@ -702,6 +702,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInstanceState(): TLInstance;
     getIsMenuOpen(): boolean;
     getOnlySelectedShape(): null | TLShape;
+    getOnlySelectedShapeId(): null | TLShapeId;
     getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
