@@ -1,7 +1,5 @@
 import {
 	Editor,
-	TLFrameShape,
-	TLNoteShape,
 	TLShape,
 	TLShapeId,
 	polygonIntersectsPolyline,
@@ -29,7 +27,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 
 		// For each child, check whether its bounds overlap with the parent's bounds
 		for (const childId of childIds) {
-			if (isShapeOccluded(editor, parent as TLFrameShape | TLNoteShape, childId)) {
+			if (isShapeOccluded(editor, parent, childId)) {
 				kickedOutChildren.push(childId)
 			}
 		}
@@ -41,11 +39,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 }
 
 /** @internal */
-export function isShapeOccluded(
-	editor: Editor,
-	occluder: TLNoteShape | TLFrameShape,
-	shape: TLShapeId
-) {
+export function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId) {
 	const occluderPageBounds = editor.getShapePageBounds(occluder)
 	if (!occluderPageBounds) return false
 
