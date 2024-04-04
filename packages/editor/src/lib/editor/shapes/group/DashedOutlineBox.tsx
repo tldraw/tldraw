@@ -3,6 +3,7 @@ import { useEditor } from '../../../hooks/useEditor'
 import { Box } from '../../../primitives/Box'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 
+/** @internal */
 export function DashedOutlineBox({ bounds, className }: { bounds: Box; className: string }) {
 	const editor = useEditor()
 

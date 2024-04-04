@@ -429,6 +429,12 @@ export class CubicSpline2d extends Geometry2d {
     _segments?: CubicBezier2d[];
 }
 
+// @internal (undocumented)
+export function DashedOutlineBox({ bounds, className }: {
+    bounds: Box;
+    className: string;
+}): JSX_2.Element;
+
 // @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 

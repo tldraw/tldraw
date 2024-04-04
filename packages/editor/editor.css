@@ -875,6 +875,12 @@ input,
 	opacity: 0.5;
 }
 
+.tl-parent-group {
+	stroke: var(--color-selected);
+	stroke-width: calc(1px * var(--tl-scale));
+	opacity: 0.5;
+}
+
 /* ------------------- Bookmark Shape ------------------- */
 
 .tl-bookmark__container {

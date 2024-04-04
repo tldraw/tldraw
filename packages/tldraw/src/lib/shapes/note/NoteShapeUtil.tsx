@@ -1,4 +1,6 @@
 import {
+	Box,
+	DashedOutlineBox,
 	Editor,
 	IndexKey,
 	Rectangle2d,
@@ -28,7 +30,6 @@ import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
-
 import { useForceSolid } from '../shared/useForceSolid'
 import {
 	ADJACENT_NOTE_MARGIN,
@@ -217,12 +218,24 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	indicator(shape: TLNoteShape) {
+		const descendantIds = [...this.editor.getShapeAndDescendantIds([shape.id])]
+
+		// todo: there's gotta be a better way of doing this
+		const descendantsBounds = Box.FromPoints(
+			Box.Common(descendantIds.map((id) => this.editor.getShapePageBounds(id)!)).corners.map(
+				(corner) => this.editor.getPointInShapeSpace(shape.id, corner)
+			)
+		)
+
 		return (
-			<rect
-				rx="1"
-				width={toDomPrecision(NOTE_SIZE)}
-				height={toDomPrecision(this.getHeight(shape))}
-			/>
+			<>
+				<DashedOutlineBox className="tl-parent-group" bounds={descendantsBounds} />
+				<rect
+					rx="1"
+					width={toDomPrecision(NOTE_SIZE)}
+					height={toDomPrecision(this.getHeight(shape))}
+				/>
+			</>
 		)
 	}
 

@@ -384,14 +384,11 @@ function ShapesToDisplay() {
 
 function SelectedIdIndicators() {
 	const editor = useEditor()
-	const indicatedShapeIds = useValue(
-		'indicatedShapeIds',
-		() => {
-			const selectedShapeIds = editor.getSelectedShapeIds()
-			return [...editor.getShapeAndDescendantIds(selectedShapeIds)]
-		},
-		[editor]
-	)
+
+	const selectedShapeIds = useValue('selectedShapeIds', () => editor.getSelectedShapeIds(), [
+		editor,
+	])
+
 	const shouldDisplay = useValue(
 		'should display selected ids',
 		() => {
@@ -417,7 +414,7 @@ function SelectedIdIndicators() {
 
 	return (
 		<>
-			{indicatedShapeIds.map((id) => (
+			{selectedShapeIds.map((id) => (
 				<ShapeIndicator
 					key={id + '_indicator'}
 					className="tl-user-indicator__selected"

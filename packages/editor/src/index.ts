@@ -184,6 +184,7 @@ export {
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
+export { DashedOutlineBox } from './lib/editor/shapes/group/DashedOutlineBox'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export {
 	type TLArcInfo,
