@@ -46,20 +46,20 @@ export function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShap
 	const shapePageBounds = editor.getShapePageBounds(shape)
 	if (!shapePageBounds) return true
 
+	// If the shape's bounds are completely inside the occluder, it's not occluded
+	if (occluderPageBounds.contains(shapePageBounds)) {
+		return false
+	}
+
 	// If the shape's bounds are completely outside the occluder, it's occluded
 	if (!occluderPageBounds.includes(shapePageBounds)) {
 		return true
 	}
 
-	// Otherwise, look at the shape's geometry for a more fine-grained check
+	// If we've made it this far, the shape's bounds must intersect the edge of the occluder
+	// In this case, we need to look at the shape's geometry for a more fine-grained check
 	const shapeGeometry = editor.getShapeGeometry(shape)
-	const occluderGeometry = editor.getShapeGeometry(occluder)
-	const occluderPageTransform = editor.getShapePageTransform(occluder)
-	const occluderCornersInPageSpace = occluderGeometry.vertices.map((corner) => {
-		return occluderPageTransform.applyToPoint(corner)
-	})
-
-	const occluderCornersInShapeSpace = occluderCornersInPageSpace.map((v) => {
+	const occluderCornersInShapeSpace = occluderPageBounds.corners.map((v) => {
 		return editor.getPointInShapeSpace(shape, v)
 	})
 
