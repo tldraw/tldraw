@@ -71,9 +71,7 @@ export const Shape = memo(function Shape({
 			}
 
 			// Page transform
-			const pageTransform = editor.getShapePageTransform(id)
-			const transform = Mat.toCssString(pageTransform)
-			const bounds = editor.getShapeGeometry(shape).bounds
+			const transform = Mat.toCssString(editor.getShapePageTransform(id))
 			if (transform !== prev.transform) {
 				setStyleProperty(containerRef.current, 'transform', transform)
 				setStyleProperty(bgContainerRef.current, 'transform', transform)
@@ -83,6 +81,7 @@ export const Shape = memo(function Shape({
 			// Width / Height
 			// We round the shape width and height up to the nearest multiple of dprMultiple
 			// to avoid the browser making miscalculations when applying the transform.
+			const bounds = editor.getShapeGeometry(shape).bounds
 			const widthRemainder = bounds.w % dprMultiple
 			const heightRemainder = bounds.h % dprMultiple
 			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
