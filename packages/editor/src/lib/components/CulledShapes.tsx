@@ -4,10 +4,12 @@ import { useEditor } from '../hooks/useEditor'
 
 // Parts of the below code are taken from MIT licensed project:
 // https://github.com/sessamekesh/webgl-tutorials-2023
-function setupWebGl(canvas: HTMLCanvasElement | null) {
+function setupWebGl(canvas: HTMLCanvasElement | null, isDarkMode: boolean) {
 	if (!canvas) return
+
 	const context = canvas.getContext('webgl2')
 	if (!context) return
+
 	const vertexShaderSourceCode = `#version 300 es
   precision mediump float;
   
@@ -32,6 +34,9 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
 	if (!context.getShaderParameter(vertexShader, context.COMPILE_STATUS)) {
 		return
 	}
+	// Dark = hsl(210, 11%, 19%)
+	// Light = hsl(204, 14%, 93%)
+	const color = isDarkMode ? 'vec4(0.169, 0.188, 0.212, 1.0)' : 'vec4(0.922, 0.933, 0.941, 1.0)'
 
 	const fragmentShaderSourceCode = `#version 300 es
   precision mediump float;
@@ -39,7 +44,7 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
   out vec4 outputColor;
 
   void main() {
-    outputColor = vec4(0.922, 0.933, 0.941, 1.0);
+    outputColor = ${color};
   }`
 
 	const fragmentShader = context.createShader(context.FRAGMENT_SHADER)
@@ -85,12 +90,13 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
 
 export const CulledShapes = track(function CulledShapes() {
 	const editor = useEditor()
+	const isDarkMode = editor.user.getUserPreferences().isDarkMode
 	const canvasRef = useRef<HTMLCanvasElement>(null)
 
 	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
 
 	useEffect(() => {
-		const webGl = setupWebGl(canvasRef.current)
+		const webGl = setupWebGl(canvasRef.current, isDarkMode)
 		if (!webGl) return
 		const {
 			context,
@@ -155,7 +161,7 @@ export const CulledShapes = track(function CulledShapes() {
 			)
 			context.drawArrays(context.TRIANGLES, 0, verticesArray.length / 2)
 		})
-	}, [isCullingOffScreenShapes, editor])
+	}, [isCullingOffScreenShapes, isDarkMode, editor])
 	return isCullingOffScreenShapes ? (
 		<canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
 	) : null
