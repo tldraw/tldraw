@@ -156,9 +156,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const noteHeight = this.getHeight(shape)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const rotation = useValue('shape rotation', () => this.editor.getShape(id)?.rotation ?? 0, [
-			this.editor,
-		])
+		const rotation = useValue(
+			'shape rotation',
+			() => this.editor.getShapePageTransform(id)?.rotation() ?? 0,
+			[this.editor]
+		)
 
 		// todo: consider hiding shadows on dark mode if they're invisible anyway
 		// eslint-disable-next-line react-hooks/rules-of-hooks
