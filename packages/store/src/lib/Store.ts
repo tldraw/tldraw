@@ -1,5 +1,6 @@
 import { Atom, Computed, Reactor, atom, computed, reactor, transact } from '@tldraw/state'
 import {
+	assert,
 	filterEntries,
 	objectMapEntries,
 	objectMapFromEntries,
@@ -357,7 +358,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	put = (records: R[], phaseOverride?: 'initialize'): void => {
-		transact(() => {
+		this.transactWithAfterEvents(() => {
 			const updates: Record<IdOf<UnknownRecord>, [from: R, to: R]> = {}
 			const additions: Record<IdOf<UnknownRecord>, R> = {}
 
@@ -402,7 +403,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					recordAtom.set(devFreeze(record))
 
 					didChange = true
-					updates[record.id] = [initialValue, recordAtom.__unsafe__getWithoutCapture()]
+					const updated = recordAtom.__unsafe__getWithoutCapture()
+					updates[record.id] = [initialValue, updated]
+					this.addDiffForAfterEvent(initialValue, updated, source)
 				} else {
 					if (beforeCreate) record = beforeCreate(record, source)
 
@@ -420,6 +423,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 					// Mark the change as a new addition.
 					additions[record.id] = record
+					this.addDiffForAfterEvent(null, record, source)
 
 					// Assign the atom to the map under the record's id.
 					if (!map) {
@@ -441,24 +445,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				updated: updates,
 				removed: {} as Record<IdOf<R>, R>,
 			})
-
-			if (this._runCallbacks) {
-				const { onAfterCreate, onAfterChange } = this
-
-				if (onAfterCreate) {
-					// Run the onAfterChange callback for addition.
-					Object.values(additions).forEach((record) => {
-						onAfterCreate(record, source)
-					})
-				}
-
-				if (onAfterChange) {
-					// Run the onAfterChange callback for update.
-					Object.values(updates).forEach(([from, to]) => {
-						onAfterChange(from, to, source)
-					})
-				}
-			}
 		})
 	}
 
@@ -469,7 +455,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	remove = (ids: IdOf<R>[]): void => {
-		transact(() => {
+		this.transactWithAfterEvents(() => {
 			const cancelled = [] as IdOf<R>[]
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
@@ -496,7 +482,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					if (!result) result = { ...atoms }
 					if (!removed) removed = {} as Record<IdOf<R>, R>
 					delete result[id]
-					removed[id] = atoms[id].get()
+					const record = atoms[id].get()
+					removed[id] = record
+					this.addDiffForAfterEvent(record, null, source)
 				}
 
 				return result ?? atoms
@@ -505,17 +493,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			if (!removed) return
 			// Update the history with the removed records.
 			this.updateHistory({ added: {}, updated: {}, removed } as RecordsDiff<R>)
-
-			// If we have an onAfterChange, run it for each removed record.
-			if (this.onAfterDelete && this._runCallbacks) {
-				let record: R
-				for (let i = 0, n = ids.length; i < n; i++) {
-					record = removed[ids[i]]
-					if (record) {
-						this.onAfterDelete(record, source)
-					}
-				}
-			}
 		})
 	}
 
@@ -737,24 +714,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	applyDiff(diff: RecordsDiff<R>, runCallbacks = true) {
-		const prevRunCallbacks = this._runCallbacks
-		try {
-			this._runCallbacks = runCallbacks
-			transact(() => {
-				const toPut = objectMapValues(diff.added).concat(
-					objectMapValues(diff.updated).map(([_from, to]) => to)
-				)
-				const toRemove = objectMapKeys(diff.removed)
-				if (toPut.length) {
-					this.put(toPut)
-				}
-				if (toRemove.length) {
-					this.remove(toRemove)
-				}
-			})
-		} finally {
-			this._runCallbacks = prevRunCallbacks
-		}
+		this.transactWithAfterEvents(() => {
+			const toPut = objectMapValues(diff.added).concat(
+				objectMapValues(diff.updated).map(([_from, to]) => to)
+			)
+			const toRemove = objectMapKeys(diff.removed)
+			if (toPut.length) {
+				this.put(toPut)
+			}
+			if (toRemove.length) {
+				this.remove(toRemove)
+			}
+		}, runCallbacks)
 	}
 
 	/**
@@ -845,6 +816,59 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	/** @internal */
 	isPossiblyCorrupted() {
 		return this._isPossiblyCorrupted
+	}
+
+	private pendingAfterEvents: Map<
+		IdOf<R>,
+		{ before: R | null; after: R | null; source: 'remote' | 'user' }
+	> | null = null
+	private addDiffForAfterEvent(before: R | null, after: R | null, source: 'remote' | 'user') {
+		assert(this.pendingAfterEvents, 'must be in event operation')
+		if (before === after) return
+		if (before && after) assert(before.id === after.id)
+		if (!before && !after) return
+		const id = (before || after)!.id
+		const existing = this.pendingAfterEvents.get(id)
+		if (existing) {
+			assert(existing.source === source, 'source cannot change within a single event operation')
+			existing.after = after
+		} else {
+			this.pendingAfterEvents.set(id, { before, after, source })
+		}
+	}
+	private transactWithAfterEvents<T>(fn: () => T, runCallbacks = true): T {
+		return transact(() => {
+			if (this.pendingAfterEvents) return fn()
+
+			this.pendingAfterEvents = new Map()
+			const prevRunCallbacks = this._runCallbacks
+			this._runCallbacks = runCallbacks ?? prevRunCallbacks
+			try {
+				const result = fn()
+
+				while (this.pendingAfterEvents) {
+					const events = this.pendingAfterEvents
+					this.pendingAfterEvents = null
+
+					if (!runCallbacks) continue
+
+					for (const { before, after, source } of events.values()) {
+						if (before && after) {
+							this.onAfterChange?.(before, after, source)
+						} else if (before && !after) {
+							this.onAfterDelete?.(before, source)
+						} else if (!before && after) {
+							this.onAfterCreate?.(after, source)
+						}
+					}
+				}
+
+				return result
+			} finally {
+				this.pendingAfterEvents = null
+				this._runCallbacks = prevRunCallbacks
+			}
+		})
 	}
 }
 

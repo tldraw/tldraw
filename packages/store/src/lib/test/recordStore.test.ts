@@ -915,3 +915,10 @@ describe('snapshots', () => {
 		}).not.toThrow()
 	})
 })
+
+describe('diffs', () => {
+	it.todo('creates diffs')
+	it.todo('applies diffs')
+	it.todo('reverts diffs')
+	it.todo('sends out diff after callbacks atomically')
+})

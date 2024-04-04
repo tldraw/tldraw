@@ -2387,7 +2387,7 @@
             },
             {
               "kind": "Content",
-              "text": "Value | (() => Value)"
+              "text": "(() => Value) | Value"
             },
             {
               "kind": "Content",
@@ -2813,7 +2813,7 @@
             },
             {
               "kind": "Content",
-              "text": "undefined | any[]"
+              "text": "any[] | undefined"
             },
             {
               "kind": "Content",
