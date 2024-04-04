@@ -73,13 +73,13 @@ function setupWebGl(canvas: HTMLCanvasElement | null, isDarkMode: boolean) {
 	if (shapeVertexPositionAttributeLocation < 0) {
 		return
 	}
+	context.enableVertexAttribArray(shapeVertexPositionAttributeLocation)
 
 	const viewportStartUniformLocation = context.getUniformLocation(program, 'viewportStart')
 	const viewportEndUniformLocation = context.getUniformLocation(program, 'viewportEnd')
 	if (!viewportStartUniformLocation || !viewportEndUniformLocation) {
 		return
 	}
-	context.enableVertexAttribArray(shapeVertexPositionAttributeLocation)
 	return {
 		context,
 		program,
