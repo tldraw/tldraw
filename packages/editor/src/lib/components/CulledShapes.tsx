@@ -18,6 +18,7 @@ function setupWebGl(canvas: HTMLCanvasElement | null, isDarkMode: boolean) {
   uniform vec2 viewportEnd; 
 
   void main() {
+    // We need to transform from page coordinates to something WebGl understands
     float viewportWidth = viewportEnd.x - viewportStart.x;
     float viewportHeight = viewportEnd.y - viewportStart.y;
 	vec2 finalPosition = vec2(
