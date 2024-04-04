@@ -385,7 +385,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				// Based on the inputs, calculate the offset to the next note
 				// tab controls x axis (shift inverts direction set by RTL)
 				// cmd enter is the y axis (shift inverts direction)
-				const isRTL = !!(translation.isRTL || isRightToLeftLanguage(shape.props.text))
+				const isRTL = !!(translation.dir === 'rtl' || isRightToLeftLanguage(shape.props.text))
 
 				const offsetLength =
 					NOTE_SIZE +
@@ -409,6 +409,6 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				}
 			}
 		},
-		[id, editor, translation.isRTL]
+		[id, editor, translation.dir]
 	)
 }

@@ -26610,7 +26610,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    readonly locale: string;\n    readonly label: string;\n    readonly isRTL?: boolean;\n    readonly messages: "
+              "text": "{\n    readonly locale: string;\n    readonly label: string;\n    readonly messages: "
             },
             {
               "kind": "Reference",
@@ -26628,7 +26628,7 @@
             },
             {
               "kind": "Content",
-              "text": ", string>;\n}"
+              "text": ", string>;\n    readonly dir: 'ltr' | 'rtl';\n}"
             },
             {
               "kind": "Content",

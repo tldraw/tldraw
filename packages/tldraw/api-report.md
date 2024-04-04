@@ -2408,8 +2408,8 @@ export type TLUiToolsProviderProps = {
 export type TLUiTranslation = {
     readonly locale: string;
     readonly label: string;
-    readonly isRTL?: boolean;
     readonly messages: Record<TLUiTranslationKey, string>;
+    readonly dir: 'ltr' | 'rtl';
 };
 
 // @public (undocumented)
