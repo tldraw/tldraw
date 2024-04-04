@@ -17,7 +17,6 @@ import {
 	rng,
 	toDomPrecision,
 	useEditor,
-	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
@@ -155,12 +154,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const theme = useDefaultColorTheme()
 		const noteHeight = this.getHeight(shape)
 
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const rotation = useValue(
-			'shape rotation',
-			() => this.editor.getShapePageTransform(id)?.rotation() ?? 0,
-			[this.editor]
-		)
+		const rotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		// todo: consider hiding shadows on dark mode if they're invisible anyway
 		// eslint-disable-next-line react-hooks/rules-of-hooks
