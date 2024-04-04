@@ -4750,8 +4750,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const maskedPageBounds = this.getShapeMaskedPageBounds(shape)
 		if (maskedPageBounds === undefined) return true
 
-		const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
-		return !renderingBoundsExpanded.includes(maskedPageBounds)
+		return !this.getRenderingBoundsExpanded().includes(maskedPageBounds)
 	}
 
 	/**
