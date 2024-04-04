@@ -99,14 +99,13 @@ export const CulledShapes = track(function CulledShapes() {
 			viewportEndUniformLocation,
 		} = result
 		const shapeVertices = computed('calculate shape vertices', () => {
-			const vertices: number[] = []
-			editor.getRenderingShapes().forEach(({ shape }) => {
-				if (!editor.isShapeCulled(shape)) return
+			return editor.getRenderingShapes().reduce((result, { shape }) => {
+				if (!editor.isShapeCulled(shape)) return result
 
 				const shapePageBounds = editor.getShapePageBounds(shape)
-				if (!shapePageBounds) return
+				if (!shapePageBounds) return result
 
-				vertices.push(
+				result.push(
 					shapePageBounds.minX,
 					shapePageBounds.minY,
 					shapePageBounds.minX,
@@ -120,8 +119,8 @@ export const CulledShapes = track(function CulledShapes() {
 					shapePageBounds.maxX,
 					shapePageBounds.maxY
 				)
-			})
-			return vertices
+				return result
+			}, [] as number[])
 		})
 		return react('render culled shapes ', () => {
 			const canvas = canvasRef.current
