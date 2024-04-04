@@ -4592,30 +4592,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Returns whether the shape is culled or not.
-	 * Culled shapes are shapes that are not not currently being edited, that are not selected,
-	 * and that are either completely masked by their parent or are outside of the expanded rendering bounds.
-	 *
-	 * @param shape - Shape (or shape id) to check
-	 * @returns Whether the shape is culled or not
-	 *
-	 * @public
-	 */
-	isShapeCulled(shape: TLShape | TLShapeId): boolean {
-		const id = typeof shape === 'string' ? shape : shape.id
-		if (this.getEditingShapeId() === id) return false
-
-		const selectedShapeIds = this.getSelectedShapeIds()
-		if (selectedShapeIds.includes(id)) return false
-
-		const maskedPageBounds = this.getShapeMaskedPageBounds(shape)
-		if (maskedPageBounds === undefined) return true
-
-		const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
-		return !renderingBoundsExpanded.includes(maskedPageBounds)
-	}
-
-	/**
 	 * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
@@ -4752,6 +4728,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		return shapeIsInPage
+	}
+
+	/**
+	 * Returns whether the shape is culled or not.
+	 * Culled shapes are shapes that are not not currently being edited, that are not selected,
+	 * and that are either completely masked by their parent or are outside of the expanded rendering bounds.
+	 *
+	 * @param shape - Shape (or shape id) to check
+	 * @returns Whether the shape is culled or not
+	 *
+	 * @public
+	 */
+	isShapeCulled(shape: TLShape | TLShapeId): boolean {
+		const id = typeof shape === 'string' ? shape : shape.id
+		if (this.getEditingShapeId() === id) return false
+
+		const selectedShapeIds = this.getSelectedShapeIds()
+		if (selectedShapeIds.includes(id)) return false
+
+		const maskedPageBounds = this.getShapeMaskedPageBounds(shape)
+		if (maskedPageBounds === undefined) return true
+
+		const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
+		return !renderingBoundsExpanded.includes(maskedPageBounds)
 	}
 
 	/**
