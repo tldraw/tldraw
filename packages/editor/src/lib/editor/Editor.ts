@@ -79,6 +79,7 @@ import {
 	FOLLOW_CHASE_ZOOM_UNSNAP,
 	HIT_TEST_MARGIN,
 	INTERNAL_POINTER_IDS,
+	LONG_PRESS_DURATION,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
@@ -8578,6 +8579,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
 								this.getZoomLevel()
 					) {
+						clearTimeout(this._longPressTimeout)
 						inputs.isDragging = true
 					}
 				}
@@ -8594,6 +8596,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				switch (info.name) {
 					case 'pointer_down': {
 						this.clearOpenMenus()
+
+						this._longPressTimeout = setTimeout(() => {
+							this.dispatch({ ...info, name: 'long_press' })
+						}, LONG_PRESS_DURATION)
 
 						this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
 
