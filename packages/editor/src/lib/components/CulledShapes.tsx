@@ -31,8 +31,8 @@ export function CulledShapes() {
 		let context = contextRef.current
 		if (!context) {
 			context = canvas.getContext('webgl2')
-			contextRef.current = context
 			if (!context) return
+			contextRef.current = context
 		}
 
 		let vertexShader = vertextShaderRef.current
@@ -85,6 +85,7 @@ export function CulledShapes() {
 		if (!program) {
 			program = context.createProgram()
 			if (!program) return
+			programRef.current = program
 			context.attachShader(program, vertexShader)
 			context.attachShader(program, fragmentShader)
 			context.linkProgram(program)
@@ -140,7 +141,6 @@ export function CulledShapes() {
 		context.bindBuffer(context.ARRAY_BUFFER, triangleGeoBuffer)
 		context.bufferData(context.ARRAY_BUFFER, triangleGeoCpuBuffer, context.STATIC_DRAW)
 
-		context.bindBuffer(context.ARRAY_BUFFER, triangleGeoBuffer)
 		context.vertexAttribPointer(
 			vertexPositionAttributeLocation,
 			2,
