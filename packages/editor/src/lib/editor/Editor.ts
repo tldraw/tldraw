@@ -22,6 +22,7 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
+	TLNoteShape,
 	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
@@ -7473,12 +7474,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// We can have many deep levels of grouped shape
 			// Making a recursive function to look through all the levels
 			const addShapeById = (shape: TLShape) => {
-				if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+				const isGroup = this.isShapeOfType<TLGroupShape>(shape, 'group')
+				const isNote = this.isShapeOfType<TLNoteShape>(shape, 'note')
+
+				if (isGroup || isNote) {
 					const childIds = this.getSortedChildIdsForParent(shape.id)
 					for (const childId of childIds) {
 						addShapeById(this.getShape(childId)!)
 					}
-				} else {
+				}
+
+				if (!isGroup) {
 					const util = this.getShapeUtil(shape)
 					const stylePropKey = this.styleProps[shape.type].get(style)
 					if (stylePropKey) {
