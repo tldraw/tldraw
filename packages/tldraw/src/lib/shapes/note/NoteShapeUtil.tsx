@@ -318,8 +318,17 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 
 		if (fontSizeAdjustment <= 14) {
 			// Too small, just rely now on CSS `overflow-wrap: break-word`
+			// We need to recalculate the text measurement here with break-word enabled.
+			const nextTextSizeWithOverflowBreak = editor.textMeasure.measureText(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize: fontSizeAdjustment,
+				maxWidth: NOTE_SIZE - PADDING * 2,
+			})
+			nextHeight = nextTextSizeWithOverflowBreak.h + PADDING * 2
 			break
 		}
+
 		if (nextTextSize.scrollWidth.toFixed(0) === nextTextSize.w.toFixed(0)) {
 			break
 		}
