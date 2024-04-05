@@ -51,6 +51,8 @@ export const Shape = memo(function Shape({
 		clipPath: 'none',
 		width: 0,
 		height: 0,
+		x: 0,
+		y: 0,
 	})
 
 	useQuickReactor(
@@ -74,14 +76,15 @@ export const Shape = memo(function Shape({
 			const pageTransform = editor.getShapePageTransform(id)
 			const transform = Mat.toCssString(pageTransform)
 			const bounds = editor.getShapeGeometry(shape).bounds
+
+			// Update if the tranform has changed
 			if (transform !== prev.transform) {
 				setStyleProperty(containerRef.current, 'transform', transform)
 				setStyleProperty(bgContainerRef.current, 'transform', transform)
-				const culledPageTransform = pageTransform.clone().translate(bounds.minX, bounds.minY)
 				setStyleProperty(
 					culledContainerRef.current,
 					'transform',
-					Mat.toCssString(culledPageTransform)
+					`${Mat.toCssString(pageTransform)} translate(${bounds.x}px, ${bounds.y}px)`
 				)
 				prev.transform = transform
 			}
@@ -122,10 +125,22 @@ export const Shape = memo(function Shape({
 
 			// Z-Index
 			setStyleProperty(container, 'z-index', index)
-			setStyleProperty(culledContainer, 'z-index', index)
 			setStyleProperty(bgContainer, 'z-index', backgroundIndex)
 		},
 		[opacity, index, backgroundIndex]
+	)
+
+	useQuickReactor(
+		'handle culled',
+		() => {
+			const container = containerRef.current
+			const bgContainer = bgContainerRef.current
+			const culledContainer = culledContainerRef.current
+			setStyleProperty(container, 'display', isCulled ? 'none' : 'block')
+			setStyleProperty(bgContainer, 'display', isCulled ? 'none' : 'block')
+			setStyleProperty(culledContainer, 'display', isCulled ? 'block' : 'none')
+		},
+		[isCulled]
 	)
 
 	const annotateError = useCallback(
@@ -137,36 +152,24 @@ export const Shape = memo(function Shape({
 
 	return (
 		<>
+			<div ref={culledContainerRef} className="tl-shape__culled" draggable={false} />
 			{util.backgroundComponent && (
 				<div
 					ref={bgContainerRef}
 					className="tl-shape tl-shape-background"
 					data-shape-type={shape.type}
 					draggable={false}
-					style={{ display: isCulled ? 'none' : undefined }}
 				>
 					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 						<InnerShapeBackground shape={shape} util={util} />
 					</OptionalErrorBoundary>
 				</div>
 			)}
-			<div
-				ref={containerRef}
-				className="tl-shape"
-				data-shape-type={shape.type}
-				draggable={false}
-				style={{ display: isCulled ? 'none' : undefined }}
-			>
+			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
 			</div>
-			<div
-				ref={culledContainerRef}
-				className="tl-shape__culled"
-				draggable={false}
-				style={{ display: isCulled ? undefined : 'none' }}
-			></div>
 		</>
 	)
 })

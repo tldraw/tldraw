@@ -344,6 +344,7 @@ input,
 	transform-origin: top left;
 	contain: size layout;
 	background-color: var(--color-culled);
+	z-index: 0;
 }
 
 /* ---------------- Shape Containers ---------------- */
