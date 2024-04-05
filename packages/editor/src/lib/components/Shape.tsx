@@ -43,7 +43,6 @@ export const Shape = memo(function Shape({
 	const { ShapeErrorFallback } = useEditorComponents()
 
 	const containerRef = useRef<HTMLDivElement>(null)
-	const culledContainerRef = useRef<HTMLDivElement>(null)
 	const bgContainerRef = useRef<HTMLDivElement>(null)
 
 	const memoizedStuffRef = useRef({
@@ -67,7 +66,6 @@ export const Shape = memo(function Shape({
 			const clipPath = editor.getShapeClipPath(id) ?? 'none'
 			if (clipPath !== prev.clipPath) {
 				setStyleProperty(containerRef.current, 'clip-path', clipPath)
-				setStyleProperty(culledContainerRef.current, 'clip-path', clipPath)
 				setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
 				prev.clipPath = clipPath
 			}
@@ -81,11 +79,6 @@ export const Shape = memo(function Shape({
 			if (transform !== prev.transform) {
 				setStyleProperty(containerRef.current, 'transform', transform)
 				setStyleProperty(bgContainerRef.current, 'transform', transform)
-				setStyleProperty(
-					culledContainerRef.current,
-					'transform',
-					`${Mat.toCssString(pageTransform)} translate(${bounds.x}px, ${bounds.y}px)`
-				)
 				prev.transform = transform
 			}
 
@@ -100,8 +93,6 @@ export const Shape = memo(function Shape({
 			if (width !== prev.width || height !== prev.height) {
 				setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
 				setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
-				setStyleProperty(culledContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-				setStyleProperty(culledContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
 				setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
 				setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
 				prev.width = width
@@ -132,10 +123,8 @@ export const Shape = memo(function Shape({
 	useLayoutEffect(() => {
 		const container = containerRef.current
 		const bgContainer = bgContainerRef.current
-		const culledContainer = culledContainerRef.current
 		setStyleProperty(container, 'display', isCulled ? 'none' : 'block')
 		setStyleProperty(bgContainer, 'display', isCulled ? 'none' : 'block')
-		setStyleProperty(culledContainer, 'display', isCulled ? 'block' : 'none')
 	}, [isCulled])
 
 	const annotateError = useCallback(
@@ -147,7 +136,6 @@ export const Shape = memo(function Shape({
 
 	return (
 		<>
-			<div ref={culledContainerRef} className="tl-shape__culled" draggable={false} />
 			{util.backgroundComponent && (
 				<div
 					ref={bgContainerRef}

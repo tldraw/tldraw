@@ -20,6 +20,7 @@ import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
 import { nearestMultiple } from '../../utils/nearestMultiple'
+import { CulledShapes } from '../CulledShapes'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
@@ -46,7 +47,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 
 	useQuickReactor(
 		'position layers',
-		() => {
+		function positionLayersWhenCameraMoves() {
 			const { x, y, z } = editor.getCamera()
 
 			// Because the html container has a width/height of 1px, we
@@ -105,9 +106,15 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{SvgDefs && <SvgDefs />}
 				</defs>
 			</svg>
-			{Background && <Background />}
+			{Background && (
+				<div className="tl-background__wrapper">
+					<Background />
+				</div>
+			)}
 			<GridWrapper />
-
+			<div className="tl-culled-shapes">
+				<CulledShapes />
+			</div>
 			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 				<OnTheCanvasWrapper />
 				<SelectionBackgroundWrapper />
