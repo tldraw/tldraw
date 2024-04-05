@@ -1060,8 +1060,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         points: DictValidator<string, {
         x: number;
         y: number;
-        index: IndexKey;
         id: string;
+        index: IndexKey;
         }>;
     };
     // (undocumented)

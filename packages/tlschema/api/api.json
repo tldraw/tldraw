@@ -2865,7 +2865,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        x: number;\n        y: number;\n        index: "
+              "text": "<string, {\n        x: number;\n        y: number;\n        id: string;\n        index: "
             },
             {
               "kind": "Reference",
@@ -2874,7 +2874,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n        id: string;\n    } & {}>;\n}"
+              "text": ";\n    } & {}>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",
