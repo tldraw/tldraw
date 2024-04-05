@@ -4,6 +4,7 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
+	setPointerCapture,
 	stopEventPropagation,
 	useEditor,
 	useValue,
@@ -17,6 +18,12 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
 	const rSelectionRanges = useRef<Range[] | null>()
+
+	const isEditingAnything = useValue(
+		'isEditingAnything',
+		() => editor.getEditingShapeId() !== null,
+		[editor]
+	)
 
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
 
@@ -38,10 +45,10 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 			const elm = rInput.current
 			const editingShapeId = editor.getEditingShapeId()
 			// Did we move to a different shape?
-			if (elm && editingShapeId) {
+			if (editingShapeId) {
 				// important! these ^v are two different things
 				// is that shape OUR shape?
-				if (editingShapeId === id) {
+				if (elm && editingShapeId === id) {
 					if (ranges) {
 						if (!ranges.length) {
 							// If we don't have any ranges, restore selection
@@ -61,7 +68,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				}
 			} else {
 				window.getSelection()?.removeAllRanges()
-				editor.complete()
 			}
 		})
 	}, [editor, id])
@@ -151,6 +157,10 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 			})
 
 			stopEventPropagation(e) // we need to prevent blurring the input
+
+			// This is important so that when dragging a shape using the text label,
+			// the shape continues to be dragged, even if the cursor is over the UI.
+			setPointerCapture(e.currentTarget, e)
 		},
 		[editor, id]
 	)
@@ -160,14 +170,17 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	return {
 		rInput,
 		isEditing,
-		handleFocus: () => {
-			/* noop */
-		},
+		handleFocus: noop,
 		handleBlur,
 		handleKeyDown,
 		handleChange,
 		handleInputPointerDown,
 		handleDoubleClick,
 		isEmpty,
+		isEditingAnything,
 	}
+}
+
+function noop() {
+	return
 }

@@ -636,19 +636,15 @@ export const LANGUAGES: readonly [{
 }, {
     readonly locale: "he";
     readonly label: "עברית";
-    readonly isRTL: true;
 }, {
     readonly locale: "ar";
     readonly label: "عربي";
-    readonly isRTL: true;
 }, {
     readonly locale: "fa";
     readonly label: "فارسی";
-    readonly isRTL: true;
 }, {
     readonly locale: "ku";
     readonly label: "کوردی";
-    readonly isRTL: true;
 }, {
     readonly locale: "ne";
     readonly label: "नेपाली";
@@ -705,7 +701,7 @@ export const noteShapeMigrations: Migrations;
 export const noteShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    fontSizeAdjustment: T.Validator<number | undefined>;
+    fontSizeAdjustment: T.Validator<number>;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
     verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
@@ -749,6 +745,11 @@ export const shapeIdValidator: T.Validator<TLShapeId>;
 export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
     [K in keyof Shape['props']]: T.Validatable<Shape['props'][K]>;
 };
+
+// @public (undocumented)
+export type ShapePropsType<Config extends Record<string, T.Validatable<any>>> = Expand<{
+    [K in keyof Config]: T.TypeOf<Config[K]>;
+}>;
 
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {

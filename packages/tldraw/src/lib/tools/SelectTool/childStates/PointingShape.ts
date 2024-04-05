@@ -12,6 +12,7 @@ export class PointingShape extends StateNode {
 
 	hitShape = {} as TLShape
 	hitShapeForPointerUp = {} as TLShape
+	isDoubleClick = false
 
 	didSelectOnEnter = false
 
@@ -24,7 +25,11 @@ export class PointingShape extends StateNode {
 		} = this.editor
 
 		this.hitShape = info.shape
+		this.isDoubleClick = false
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
+		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
+			selectedShapeIds.includes(parent.id)
+		)
 
 		if (
 			// If the shape has an onClick handler
@@ -33,7 +38,9 @@ export class PointingShape extends StateNode {
 			outermostSelectingShape.id === focusedGroupId ||
 			// ...or if the shape is within the selection
 			selectedShapeIds.includes(outermostSelectingShape.id) ||
-			this.editor.isAncestorSelected(outermostSelectingShape.id) ||
+			// ...or if an ancestor of the shape is selected (except note shapes)...
+			// todo: Consider adding a flag for this hardcoded behaviour
+			(selectedAncestor && selectedAncestor.type !== 'note') ||
 			// ...or if the current point is NOT within the selection bounds
 			(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
 		) {
@@ -155,6 +162,16 @@ export class PointingShape extends StateNode {
 
 										this.editor.setEditingShape(selectingShape.id)
 										this.editor.setCurrentTool('select.editing_shape')
+
+										if (this.isDoubleClick) {
+											// XXX this is a hack to select the text in the textarea when we hit enter.
+											// Open to other ideas! I don't see how else to currently do this in the codebase.
+											;(
+												document.getElementById(
+													`text-input-${selectingShape.id}`
+												) as HTMLTextAreaElement
+											).select()
+										}
 									})
 									return
 								}
@@ -189,11 +206,23 @@ export class PointingShape extends StateNode {
 		this.parent.transition('idle', info)
 	}
 
+	override onDoubleClick: TLEventHandlers['onDoubleClick'] = () => {
+		this.isDoubleClick = true
+	}
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			if (this.editor.getInstanceState().isReadonly) return
-			this.parent.transition('translating', info)
+			this.startTranslating(info)
 		}
+	}
+
+	override onLongPress: TLEventHandlers['onLongPress'] = (info) => {
+		this.startTranslating(info)
+	}
+
+	private startTranslating(info: TLPointerEventInfo) {
+		if (this.editor.getInstanceState().isReadonly) return
+		this.parent.transition('translating', info)
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

@@ -6,10 +6,8 @@ import {
 	SvgExportContext,
 	TLFrameShape,
 	TLGroupShape,
-	TLOnResizeEndHandler,
 	TLOnResizeHandler,
 	TLShape,
-	TLShapeId,
 	canonicalizeRotation,
 	frameShapeMigrations,
 	frameShapeProps,
@@ -68,7 +66,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				const info = (resizingState as typeof resizingState & { info: { isCreating: boolean } })
 					?.info
 				if (!info) return false
-				return info.isCreating && this.editor.getOnlySelectedShape()?.id === shape.id
+				return info.isCreating && this.editor.getOnlySelectedShapeId() === shape.id
 			},
 			[shape.id]
 		)
@@ -110,18 +108,18 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		let labelTranslate: string
 		switch (labelSide) {
-			case 0:
+			case 0: // top
 				labelTranslate = ``
 				break
-			case 3:
+			case 3: // right
 				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, 0) rotate(90)`
 				break
-			case 2:
+			case 2: // bottom
 				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, ${toDomPrecision(
 					shape.props.h
 				)}) rotate(180)`
 				break
-			case 1:
+			case 1: // left
 				labelTranslate = `translate(0, ${toDomPrecision(shape.props.h)}) rotate(270)`
 				break
 			default:
@@ -207,15 +205,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return !shape.isLocked
 	}
 
-	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]): { shouldHint: boolean } => {
+	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]) => {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
-			this.editor.reparentShapes(
-				shapes.map((shape) => shape.id),
-				frame.id
-			)
-			return { shouldHint: true }
+			this.editor.reparentShapes(shapes, frame.id)
 		}
-		return { shouldHint: false }
 	}
 
 	override onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
@@ -229,24 +222,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			this.editor.reparentShapes(shapes, parent.id)
 		} else {
 			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
-		}
-	}
-
-	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
-		const bounds = this.editor.getShapePageBounds(shape)!
-		const children = this.editor.getSortedChildIdsForParent(shape.id)
-
-		const shapesToReparent: TLShapeId[] = []
-
-		for (const childId of children) {
-			const childBounds = this.editor.getShapePageBounds(childId)!
-			if (!bounds.includes(childBounds)) {
-				shapesToReparent.push(childId)
-			}
-		}
-
-		if (shapesToReparent.length > 0) {
-			this.editor.reparentShapes(shapesToReparent, this.editor.getCurrentPageId())
 		}
 	}
 

@@ -1,11 +1,14 @@
-import { Vec } from '@tldraw/editor'
+import { Box, Vec } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
 
 beforeEach(() => {
 	editor = new TestEditor()
+	// We don't want the camera to move when the shape gets created off screen
+	editor.updateViewportScreenBounds(new Box(0, 0, 2000, 2000))
 })
+
 afterEach(() => {
 	editor?.dispose()
 })
@@ -24,8 +27,14 @@ function testCloneHandles(x: number, y: number, rotation: number) {
 	)
 
 	handles.forEach((handle, i) => {
+		const handleInPageSpace = editor.getShapePageTransform(shape).applyToPoint(handle)
 		editor.select(shape.id)
-		editor.pointerDown(handle.x, handle.y, {
+		editor.pointerMove(handleInPageSpace.x, handleInPageSpace.y)
+		expect(editor.inputs.currentPagePoint).toMatchObject({
+			x: handleInPageSpace.x,
+			y: handleInPageSpace.y,
+		})
+		editor.pointerDown(handleInPageSpace.x, handleInPageSpace.y, {
 			target: 'handle',
 			shape,
 			handle,
@@ -50,25 +59,21 @@ function testCloneHandles(x: number, y: number, rotation: number) {
 
 		editor.expectToBeIn('select.editing_shape')
 
-		editor.cancel().undo()
+		editor.cancel().undo().forceTick()
 	})
 }
 
 describe('Note clone handles', () => {
 	it('Creates a new sticky note using handles', () => {
-		testCloneHandles(0, 0, 0)
-	})
-
-	it('Creates a new sticky note when translated', () => {
-		testCloneHandles(100, 100, 0)
+		testCloneHandles(1000, 1000, 0)
 	})
 
 	it('Creates a new sticky when rotated', () => {
-		testCloneHandles(0, 0, Math.PI / 2)
+		testCloneHandles(1000, 1000, Math.PI / 2)
 	})
 
 	it('Creates a new sticky when translated and rotated', () => {
-		testCloneHandles(100, 100, Math.PI / 2)
+		testCloneHandles(1000, 1000, Math.PI / 2)
 	})
 })
 
@@ -82,9 +87,10 @@ function testDragCloneHandles(x: number, y: number, rotation: number) {
 	const handles = editor.getShapeHandles(shape.id)!
 
 	handles.forEach((handle) => {
+		const handleInPageSpace = editor.getShapePageTransform(shape).applyToPoint(handle)
 		editor.select(shape.id)
-		editor.pointerMove(handle.x, handle.y)
-		editor.pointerDown(handle.x, handle.y, {
+		editor.pointerMove(handleInPageSpace.x, handleInPageSpace.y)
+		editor.pointerDown(handleInPageSpace.x, handleInPageSpace.y, {
 			target: 'handle',
 			shape,
 			handle,
@@ -92,7 +98,7 @@ function testDragCloneHandles(x: number, y: number, rotation: number) {
 
 		editor.expectToBeIn('select.pointing_handle')
 
-		editor.pointerMove(handle.x + 30, handle.y + 30)
+		editor.pointerMove(handleInPageSpace.x + 30, handleInPageSpace.y + 30)
 
 		editor.expectToBeIn('select.translating')
 
@@ -105,8 +111,8 @@ function testDragCloneHandles(x: number, y: number, rotation: number) {
 		editor.expectShapeToMatch({
 			id: newShape.id,
 			type: 'note',
-			x: handle.x + 30 - offset.x,
-			y: handle.y + 30 - offset.y,
+			x: handleInPageSpace.x + 30 - offset.x,
+			y: handleInPageSpace.y + 30 - offset.y,
 		})
 
 		editor.pointerUp()
@@ -119,27 +125,23 @@ function testDragCloneHandles(x: number, y: number, rotation: number) {
 
 describe('Dragging clone handles', () => {
 	it('Creates a new sticky note using handles', () => {
-		testDragCloneHandles(0, 0, 0)
-	})
-
-	it('Creates a new sticky note when translated', () => {
-		testDragCloneHandles(100, 100, 0)
+		testDragCloneHandles(1000, 1000, 0)
 	})
 
 	it('Creates a new sticky when rotated', () => {
-		testDragCloneHandles(0, 0, Math.PI / 2)
+		testDragCloneHandles(1000, 1000, Math.PI / 2)
 	})
 
 	it('Creates a new sticky when translated and rotated', () => {
-		testDragCloneHandles(100, 100, Math.PI / 2)
+		testDragCloneHandles(1000, 1000, Math.PI / 2)
 	})
 })
 
 it('Selects an adjacent note when clicking the clone handle', () => {
-	editor.createShape({ type: 'note', x: 220, y: 0 })
+	editor.createShape({ type: 'note', x: 1220, y: 1000 })
 	const shapeA = editor.getLastCreatedShape()!
 
-	editor.createShape({ type: 'note', x: 0, y: 0 })
+	editor.createShape({ type: 'note', x: 1000, y: 1000 })
 	const shapeB = editor.getLastCreatedShape()!
 
 	editor.select(shapeB.id)
@@ -171,17 +173,17 @@ it('Selects an adjacent note when clicking the clone handle', () => {
 })
 
 it('Creates an adjacent note when dragging the clone handle', () => {
-	editor.createShape({ type: 'note', x: 220, y: 0 })
+	editor.createShape({ type: 'note', x: 1220, y: 1000 })
 	const shapeA = editor.getLastCreatedShape()!
 
-	editor.createShape({ type: 'note', x: 0, y: 0 })
+	editor.createShape({ type: 'note', x: 1000, y: 1000 })
 	const shapeB = editor.getLastCreatedShape()!
 
 	editor.select(shapeB.id)
 
 	const handles = editor.getShapeHandles(shapeB.id)!
 
-	const handle = handles[1]
+	const handle = handles[0]
 
 	editor.select(shapeB.id)
 	editor.pointerDown(handle.x, handle.y, {
@@ -214,10 +216,10 @@ it('Creates an adjacent note when dragging the clone handle', () => {
 })
 
 it('Does not put the new shape into a frame if its center is not in the frame', () => {
-	editor.createShape({ type: 'frame', x: 321, y: 100 }) // one pixel too far...
+	editor.createShape({ type: 'frame', x: 1321, y: 1000 }) // one pixel too far...
 	const frameA = editor.getLastCreatedShape()!
 	// center no longer in the frame
-	editor.createShape({ type: 'note', x: 0, y: 0 })
+	editor.createShape({ type: 'note', x: 1000, y: 1000 })
 	const shapeA = editor.getLastCreatedShape()!
 	// to the right
 	const handle = editor.getShapeHandles(shapeA.id)![1]
@@ -237,10 +239,10 @@ it('Does not put the new shape into a frame if its center is not in the frame', 
 })
 
 it('Puts the new shape into a frame based on its center', () => {
-	editor.createShape({ type: 'frame', x: 320, y: 100 })
+	editor.createShape({ type: 'frame', x: 1320, y: 1100 })
 	const frameA = editor.getLastCreatedShape()!
 	// top left won't be in the frame, but the center will (barely but yes)
-	editor.createShape({ type: 'note', x: 0, y: 0 })
+	editor.createShape({ type: 'note', x: 1000, y: 1000 })
 	const shapeA = editor.getLastCreatedShape()!
 	// to the right
 	const handle = editor.getShapeHandles(shapeA.id)![1]
@@ -260,10 +262,10 @@ it('Puts the new shape into a frame based on its center', () => {
 })
 
 function testNoteShapeFrameRotations(sourceRotation: number, rotation: number) {
-	editor.createShape({ type: 'frame', x: 220, y: 0, rotation: rotation })
+	editor.createShape({ type: 'frame', x: 1220, y: 1000, rotation: rotation })
 	const frameA = editor.getLastCreatedShape()!
 	// top left won't be in the frame, but the center will (barely but yes)
-	editor.createShape({ type: 'note', x: 0, y: 0, rotation: sourceRotation })
+	editor.createShape({ type: 'note', x: 1000, y: 1000, rotation: sourceRotation })
 	const shapeA = editor.getLastCreatedShape()!
 	// to the right
 	const handle = editor.getShapeHandles(shapeA.id)![1]

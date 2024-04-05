@@ -306,15 +306,20 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// If no bound shapes are in the selection, unbind any bound shapes
 
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
-
-		if (
-			(startBindingId &&
-				(selectedShapeIds.includes(startBindingId) ||
-					this.editor.isAncestorSelected(startBindingId))) ||
-			(endBindingId &&
-				(selectedShapeIds.includes(endBindingId) || this.editor.isAncestorSelected(endBindingId)))
-		) {
-			return
+		const shapesToCheck = new Set<string>()
+		if (startBindingId) {
+			// Add shape and all ancestors to set
+			shapesToCheck.add(startBindingId)
+			this.editor.getShapeAncestors(startBindingId).forEach((a) => shapesToCheck.add(a.id))
+		}
+		if (endBindingId) {
+			// Add shape and all ancestors to set
+			shapesToCheck.add(endBindingId)
+			this.editor.getShapeAncestors(endBindingId).forEach((a) => shapesToCheck.add(a.id))
+		}
+		// If any of the shapes are selected, return
+		for (const id of selectedShapeIds) {
+			if (shapesToCheck.has(id)) return
 		}
 
 		let result = shape
@@ -530,6 +535,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (!info?.isValid) return null
 
 		const labelPosition = getArrowLabelPosition(this.editor, shape)
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const showArrowLabel = isEditing || shape.props.text
 
@@ -549,6 +555,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						size={shape.props.size}
 						position={labelPosition.box.center}
 						width={labelPosition.box.w}
+						isSelected={isSelected}
 						labelColor={shape.props.labelColor}
 					/>
 				)}

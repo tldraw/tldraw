@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
 	Editor,
@@ -26,6 +27,7 @@ import {
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import {
@@ -381,10 +383,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
-		const { labelColor, fill, font, align, verticalAlign, size, text } = props
-
+		const { fill, font, align, verticalAlign, size, text } = props
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const theme = useDefaultColorTheme()
 		const isEditing = this.editor.getEditingShapeId() === id
-		const showHtmlContainer = isEditing || shape.props.url || shape.props.text
+		const showHtmlContainer = isEditing || shape.props.text
 
 		return (
 			<>
@@ -410,14 +413,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							align={align}
 							verticalAlign={verticalAlign}
 							text={text}
-							labelColor={labelColor}
+							isSelected={isSelected}
+							labelColor={theme[props.labelColor].solid}
 							wrap
-							bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
 						/>
-						{shape.props.url && (
-							<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-						)}
 					</HTMLContainer>
+				)}
+				{shape.props.url && (
+					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 				)}
 			</>
 		)

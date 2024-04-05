@@ -1,12 +1,5 @@
-import {
-	ANIMATION_MEDIUM_MS,
-	Editor,
-	TLNoteShape,
-	TLShape,
-	Vec,
-	compact,
-	createShapeId,
-} from '@tldraw/editor'
+import { Editor, TLNoteShape, TLShape, Vec, compact, createShapeId } from '@tldraw/editor'
+import { zoomToShapeIfOffscreen } from '../shared/TextHelpers'
 
 /** @internal */
 export const ADJACENT_NOTE_MARGIN = 20
@@ -15,13 +8,11 @@ export const CLONE_HANDLE_MARGIN = 0
 /** @internal */
 export const NOTE_SIZE = 200
 /** @internal */
-export const CENTER_OFFSET = { x: NOTE_SIZE / 2, y: NOTE_SIZE / 2 }
+export const NOTE_CENTER_OFFSET = { x: NOTE_SIZE / 2, y: NOTE_SIZE / 2 }
 /** @internal */
 export const NOTE_PIT_RADIUS = 10
-/** @internal */
-export type NotePit = Vec
 
-const DEFAULT_PITS: NotePit[] = [
+const DEFAULT_PITS = [
 	new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN), // t
 	new Vec(NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // r
 	new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN), // b
@@ -159,7 +150,7 @@ export function getNoteShapeForAdjacentPosition(
 		// space as the newly created shape (i.e its parent's space)
 		const topLeft = editor.getPointInParentSpace(
 			createdShape,
-			Vec.Sub(center, Vec.Rot(CENTER_OFFSET, pageRotation))
+			Vec.Sub(center, Vec.Rot(NOTE_CENTER_OFFSET, pageRotation))
 		)
 
 		editor.updateShape({
@@ -172,36 +163,6 @@ export function getNoteShapeForAdjacentPosition(
 		nextNote = editor.getShape(id)!
 	}
 
-	// Animate to the next sticky if it would be off screen
-	const selectionPageBounds = editor.getSelectionPageBounds()
-	const viewportPageBounds = editor.getViewportPageBounds()
-	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		editor.centerOnPoint(selectionPageBounds.center, {
-			duration: ANIMATION_MEDIUM_MS,
-		})
-	}
-
+	zoomToShapeIfOffscreen(editor)
 	return nextNote
-}
-
-/** @internal */
-export function startEditingNoteShape(editor: Editor, shape: TLShape) {
-	// Finish this sticky and start editing the next one
-	editor.select(shape)
-	editor.setEditingShape(shape)
-	editor.setCurrentTool('select.editing_shape', {
-		target: 'shape',
-		shape: shape,
-	})
-
-	// Select any text that's in the newly selected sticky
-	;(document.getElementById(`text-input-${shape.id}`) as HTMLTextAreaElement)?.select()
-
-	const selectionPageBounds = editor.getSelectionPageBounds()
-	const viewportPageBounds = editor.getViewportPageBounds()
-	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		editor.centerOnPoint(selectionPageBounds.center, {
-			duration: ANIMATION_MEDIUM_MS,
-		})
-	}
 }

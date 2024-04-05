@@ -37,14 +37,21 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		const isDragging = this.editor.inputs.isDragging
-
-		if (isDragging) {
-			this.parent.transition('cropping', {
-				...this.info,
-				onInteractionEnd: this.info.onInteractionEnd,
-			})
+		if (this.editor.inputs.isDragging) {
+			this.startCropping()
 		}
+	}
+
+	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+		this.startCropping()
+	}
+
+	private startCropping() {
+		if (this.editor.getInstanceState().isReadonly) return
+		this.parent.transition('cropping', {
+			...this.info,
+			onInteractionEnd: this.info.onInteractionEnd,
+		})
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

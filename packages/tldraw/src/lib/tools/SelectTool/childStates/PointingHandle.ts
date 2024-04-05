@@ -9,11 +9,11 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import {
-	CENTER_OFFSET,
+	NOTE_CENTER_OFFSET,
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
-	startEditingNoteShape,
 } from '../../../shapes/note/noteHelpers'
+import { startEditingShapeWithLabel } from '../../../shapes/shared/TextHelpers'
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
@@ -53,7 +53,7 @@ export class PointingHandle extends StateNode {
 			const { editor } = this
 			const nextNote = getNoteForPit(editor, shape, handle, false)
 			if (nextNote) {
-				startEditingNoteShape(editor, nextNote)
+				startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
 				return
 			}
 		}
@@ -64,6 +64,8 @@ export class PointingHandle extends StateNode {
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		const { editor } = this
 		if (editor.inputs.isDragging) {
+			if (this.editor.getInstanceState().isReadonly) return
+
 			const { shape, handle } = this.info
 
 			if (editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
@@ -72,7 +74,7 @@ export class PointingHandle extends StateNode {
 					// Center the shape on the current pointer
 					const centeredOnPointer = editor
 						.getPointInParentSpace(nextNote, editor.inputs.originPagePoint)
-						.sub(Vec.Rot(CENTER_OFFSET, nextNote.rotation))
+						.sub(Vec.Rot(NOTE_CENTER_OFFSET, nextNote.rotation))
 					editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
 
 					// Then select and begin translating the shape
@@ -87,15 +89,24 @@ export class PointingHandle extends StateNode {
 							isCreating: true,
 							onCreate: () => {
 								// When we're done, start editing it
-								startEditingNoteShape(editor, nextNote)
+								startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
 							},
 						})
 					return
 				}
 			}
 
-			this.parent.transition('dragging_handle', this.info)
+			this.startDraggingHandle()
 		}
+	}
+
+	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+		this.startDraggingHandle()
+	}
+
+	private startDraggingHandle() {
+		if (this.editor.getInstanceState().isReadonly) return
+		this.parent.transition('dragging_handle', this.info)
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

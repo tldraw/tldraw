@@ -41,7 +41,7 @@ export class PointingArrowLabel extends StateNode {
 		this.info = info
 		this.shapeId = shape.id
 		this.didDrag = false
-		this.wasAlreadySelected = this.editor.getOnlySelectedShape()?.id === shape.id
+		this.wasAlreadySelected = this.editor.getOnlySelectedShapeId() === shape.id
 		this.updateCursor()
 
 		const geometry = this.editor.getShapeGeometry<Group2d>(shape)

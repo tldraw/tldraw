@@ -48,6 +48,7 @@ export const TranslationProvider = track(function TranslationProvider({
 			return {
 				locale: 'en',
 				label: 'English',
+				dir: 'ltr',
 				messages: { ...DEFAULT_TRANSLATION, ...overrides['en'] },
 			}
 		}
@@ -55,6 +56,7 @@ export const TranslationProvider = track(function TranslationProvider({
 		return {
 			locale: 'en',
 			label: 'English',
+			dir: 'ltr',
 			messages: DEFAULT_TRANSLATION,
 		}
 	})
