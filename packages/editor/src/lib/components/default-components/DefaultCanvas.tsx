@@ -106,9 +106,15 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{SvgDefs && <SvgDefs />}
 				</defs>
 			</svg>
-			{Background && <Background />}
+			{Background && (
+				<div className="tl-background__wrapper">
+					<Background />
+				</div>
+			)}
 			<GridWrapper />
-			<CulledShapes />
+			<div className="tl-culled-shapes">
+				<CulledShapes />
+			</div>
 			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 				<OnTheCanvasWrapper />
 				<SelectionBackgroundWrapper />

@@ -285,12 +285,15 @@ input,
 /* ------------------- Background ------------------- */
 
 .tl-background {
+	z-index: var(--layer-background);
+}
+
+.tl-background {
 	position: absolute;
 	background-color: var(--color-background);
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-background);
 }
 
 /* --------------------- Grid Layer --------------------- */

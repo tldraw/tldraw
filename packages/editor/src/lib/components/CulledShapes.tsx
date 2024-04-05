@@ -173,6 +173,6 @@ export function CulledShapes() {
 		})
 	}, [isCullingOffScreenShapes, isDarkMode, editor])
 	return isCullingOffScreenShapes ? (
-		<canvas ref={canvasRef} className="tl-culled-shapes tl-culled-shapes__canvas" />
+		<canvas ref={canvasRef} className="tl-culled-shapes__canvas" />
 	) : null
 }
