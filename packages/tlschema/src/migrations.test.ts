@@ -1,9 +1,5 @@
 import { createRecordType } from '@tldraw/store'
-import {
-	getTestMigration,
-	getTestShapePropsMigration,
-	testSchema,
-} from './__tests__/migrationTestUtils'
+import { getTestMigration, testSchema } from './__tests__/migrationTestUtils'
 import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
 import { imageAssetVersions } from './assets/TLImageAsset'
 import { videoAssetVersions } from './assets/TLVideoAsset'
@@ -169,21 +165,21 @@ describe('Removing dialogs from instance', () => {
 
 describe('Adding url props', () => {
 	for (const [name, { up }] of [
-		['video shape', getTestShapePropsMigration('video', videoShapeVersions.AddUrlProp)],
-		['note shape', getTestShapePropsMigration('note', noteShapeVersions.AddUrlProp)],
-		['geo shape', getTestShapePropsMigration('geo', geoShapeVersions.AddUrlProp)],
-		['image shape', getTestShapePropsMigration('image', imageShapeVersions.AddUrlProp)],
+		['video shape', getTestMigration(videoShapeVersions.AddUrlProp)],
+		['note shape', getTestMigration(noteShapeVersions.AddUrlProp)],
+		['geo shape', getTestMigration(geoShapeVersions.AddUrlProp)],
+		['image shape', getTestMigration(imageShapeVersions.AddUrlProp)],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
-			expect(up({})).toEqual({ url: '' })
+			expect(up({ props: {} })).toEqual({ props: { url: '' } })
 		})
 	}
 })
 
 describe('Bookmark null asset id', () => {
-	const { up } = getTestShapePropsMigration('bookmark', bookmarkShapeVersions.NullAssetId)
+	const { up } = getTestMigration(bookmarkShapeVersions.NullAssetId)
 	test('up works as expected', () => {
-		expect(up({})).toEqual({ assetId: null })
+		expect(up({ props: {} })).toEqual({ props: { assetId: null } })
 	})
 })
 
@@ -226,28 +222,47 @@ describe('Cleaning up junk data in instance.propsForNextShape', () => {
 })
 
 describe('Generating original URL from embed URL in GenOriginalUrlInEmbed', () => {
-	const { up } = getTestShapePropsMigration('embed', embedShapeVersions.GenOriginalUrlInEmbed)
+	const { up } = getTestMigration(embedShapeVersions.GenOriginalUrlInEmbed)
 	test('up works as expected', () => {
-		expect(up({ url: 'https://codepen.io/Rplus/embed/PWZYRM' })).toEqual({
-			url: 'https://codepen.io/Rplus/pen/PWZYRM',
-			tmpOldUrl: 'https://codepen.io/Rplus/embed/PWZYRM',
+		expect(up({ props: { url: 'https://codepen.io/Rplus/embed/PWZYRM' } })).toEqual({
+			props: {
+				url: 'https://codepen.io/Rplus/pen/PWZYRM',
+				tmpOldUrl: 'https://codepen.io/Rplus/embed/PWZYRM',
+			},
 		})
 	})
 
 	test('invalid up works as expected', () => {
-		expect(up({ url: 'https://example.com' })).toEqual({
-			url: '',
-			tmpOldUrl: 'https://example.com',
+		expect(up({ props: { url: 'https://example.com' } })).toEqual({
+			props: {
+				url: '',
+				tmpOldUrl: 'https://example.com',
+			},
 		})
 	})
 })
 
 describe('Adding isPen prop', () => {
-	const { up } = getTestShapePropsMigration('draw', drawShapeVersions.AddInPen)
+	const { up } = getTestMigration(drawShapeVersions.AddInPen)
 
 	test('up works as expected with a shape that is not a pen shape', () => {
 		expect(
 			up({
+				props: {
+					segments: [
+						{
+							type: 'free',
+							points: [
+								{ x: 0, y: 0, z: 0.5 },
+								{ x: 1, y: 1, z: 0.5 },
+							],
+						},
+					],
+				},
+			})
+		).toEqual({
+			props: {
+				isPen: false,
 				segments: [
 					{
 						type: 'free',
@@ -257,24 +272,28 @@ describe('Adding isPen prop', () => {
 						],
 					},
 				],
-			})
-		).toEqual({
-			isPen: false,
-			segments: [
-				{
-					type: 'free',
-					points: [
-						{ x: 0, y: 0, z: 0.5 },
-						{ x: 1, y: 1, z: 0.5 },
-					],
-				},
-			],
+			},
 		})
 	})
 
 	test('up works as expected when converting to pen', () => {
 		expect(
 			up({
+				props: {
+					segments: [
+						{
+							type: 'free',
+							points: [
+								{ x: 0, y: 0, z: 0.2315 },
+								{ x: 1, y: 1, z: 0.2421 },
+							],
+						},
+					],
+				},
+			})
+		).toEqual({
+			props: {
+				isPen: true,
 				segments: [
 					{
 						type: 'free',
@@ -284,18 +303,7 @@ describe('Adding isPen prop', () => {
 						],
 					},
 				],
-			})
-		).toEqual({
-			isPen: true,
-			segments: [
-				{
-					type: 'free',
-					points: [
-						{ x: 0, y: 0, z: 0.2315 },
-						{ x: 1, y: 1, z: 0.2421 },
-					],
-				},
-			],
+			},
 		})
 	})
 })
@@ -314,11 +322,13 @@ describe('Adding isLocked prop', () => {
 
 describe('Adding labelColor prop to geo / arrow shapes', () => {
 	for (const [name, { up }] of [
-		['arrow shape', getTestShapePropsMigration('arrow', arrowShapeVersions.AddLabelColor)],
-		['geo shape', getTestShapePropsMigration('geo', geoShapeVersions.AddLabelColor)],
+		['arrow shape', getTestMigration(arrowShapeVersions.AddLabelColor)],
+		['geo shape', getTestMigration(geoShapeVersions.AddLabelColor)],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
-			expect(up({ color: 'red' })).toEqual({ color: 'red', labelColor: 'black' })
+			expect(up({ props: { color: 'red' } })).toEqual({
+				props: { color: 'red', labelColor: 'black' },
+			})
 		})
 	}
 })
@@ -487,25 +497,25 @@ describe('Adding zoomBrush prop to instance', () => {
 
 describe('Removing align=justify from shape align props', () => {
 	for (const [name, { up }] of [
-		['text', getTestShapePropsMigration('text', textShapeVersions.RemoveJustify)],
-		['note', getTestShapePropsMigration('note', noteShapeVersions.RemoveJustify)],
-		['geo', getTestShapePropsMigration('geo', geoShapeVersions.RemoveJustify)],
+		['text', getTestMigration(textShapeVersions.RemoveJustify)],
+		['note', getTestMigration(noteShapeVersions.RemoveJustify)],
+		['geo', getTestMigration(geoShapeVersions.RemoveJustify)],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
-			expect(up({ align: 'justify' })).toEqual({ align: 'start' })
-			expect(up({ align: 'end' })).toEqual({ align: 'end' })
+			expect(up({ props: { align: 'justify' } })).toEqual({ props: { align: 'start' } })
+			expect(up({ props: { align: 'end' } })).toEqual({ props: { align: 'end' } })
 		})
 	}
 })
 
 describe('Add crop=null to image shapes', () => {
-	const { up, down } = getTestShapePropsMigration('image', imageShapeVersions.AddCropProp)
+	const { up, down } = getTestMigration(imageShapeVersions.AddCropProp)
 	test('up works as expected', () => {
-		expect(up({ w: 100 })).toEqual({ w: 100, crop: null })
+		expect(up({ props: { w: 100 } })).toEqual({ props: { w: 100, crop: null } })
 	})
 
 	test('down works as expected', () => {
-		expect(down({ w: 100, crop: null })).toEqual({ w: 100 })
+		expect(down({ props: { w: 100, crop: null } })).toEqual({ props: { w: 100 } })
 	})
 })
 
@@ -530,18 +540,20 @@ describe('Adding name to document', () => {
 })
 
 describe('Adding check-box to geo shape', () => {
-	const { up } = getTestShapePropsMigration('geo', geoShapeVersions.AddCheckBox)
+	const { up } = getTestMigration(geoShapeVersions.AddCheckBox)
 
 	test('up works as expected', () => {
-		expect(up({ geo: 'rectangle' })).toEqual({ geo: 'rectangle' })
+		expect(up({ props: { geo: 'rectangle' } })).toEqual({ props: { geo: 'rectangle' } })
 	})
 })
 
 describe('Add verticalAlign to geo shape', () => {
-	const { up } = getTestShapePropsMigration('geo', geoShapeVersions.AddVerticalAlign)
+	const { up } = getTestMigration(geoShapeVersions.AddVerticalAlign)
 
 	test('up works as expected', () => {
-		expect(up({ type: 'ellipse' })).toEqual({ type: 'ellipse', verticalAlign: 'middle' })
+		expect(up({ props: { type: 'ellipse' } })).toEqual({
+			props: { type: 'ellipse', verticalAlign: 'middle' },
+		})
 	})
 })
 
@@ -558,36 +570,48 @@ describe('Add verticalAlign to props for next shape', () => {
 })
 
 describe('Migrate GeoShape legacy horizontal alignment', () => {
-	const { up } = getTestShapePropsMigration('geo', geoShapeVersions.MigrateLegacyAlign)
+	const { up } = getTestMigration(geoShapeVersions.MigrateLegacyAlign)
 
 	test('up works as expected', () => {
-		expect(up({ align: 'start', type: 'ellipse' })).toEqual({
-			align: 'start-legacy',
-			type: 'ellipse',
+		expect(up({ props: { align: 'start', type: 'ellipse' } })).toEqual({
+			props: {
+				align: 'start-legacy',
+				type: 'ellipse',
+			},
 		})
-		expect(up({ align: 'middle', type: 'ellipse' })).toEqual({
-			align: 'middle-legacy',
-			type: 'ellipse',
+		expect(up({ props: { align: 'middle', type: 'ellipse' } })).toEqual({
+			props: {
+				align: 'middle-legacy',
+				type: 'ellipse',
+			},
 		})
-		expect(up({ align: 'end', type: 'ellipse' })).toEqual({ align: 'end-legacy', type: 'ellipse' })
+		expect(up({ props: { align: 'end', type: 'ellipse' } })).toEqual({
+			props: { align: 'end-legacy', type: 'ellipse' },
+		})
 	})
 })
 
 describe('adding cloud shape', () => {
-	const { up } = getTestShapePropsMigration('geo', geoShapeVersions.AddCloud)
+	const { up } = getTestMigration(geoShapeVersions.AddCloud)
 
 	test('up does nothing', () => {
-		expect(up({ geo: 'rectangle' })).toEqual({ geo: 'rectangle' })
+		expect(up({ props: { geo: 'rectangle' } })).toEqual({ props: { geo: 'rectangle' } })
 	})
 })
 
 describe('Migrate NoteShape legacy horizontal alignment', () => {
-	const { up } = getTestShapePropsMigration('note', noteShapeVersions.MigrateLegacyAlign)
+	const { up } = getTestMigration(noteShapeVersions.MigrateLegacyAlign)
 
 	test('up works as expected', () => {
-		expect(up({ align: 'start', color: 'red' })).toEqual({ align: 'start-legacy', color: 'red' })
-		expect(up({ align: 'middle', color: 'red' })).toEqual({ align: 'middle-legacy', color: 'red' })
-		expect(up({ align: 'end', color: 'red' })).toEqual({ align: 'end-legacy', color: 'red' })
+		expect(up({ props: { align: 'start', color: 'red' } })).toEqual({
+			props: { align: 'start-legacy', color: 'red' },
+		})
+		expect(up({ props: { align: 'middle', color: 'red' } })).toEqual({
+			props: { align: 'middle-legacy', color: 'red' },
+		})
+		expect(up({ props: { align: 'end', color: 'red' } })).toEqual({
+			props: { align: 'end-legacy', color: 'red' },
+		})
 	})
 })
 
@@ -792,10 +816,12 @@ describe('making instance state independent', () => {
 })
 
 describe('Adds NoteShape vertical alignment', () => {
-	const { up } = getTestShapePropsMigration('note', noteShapeVersions.AddVerticalAlign)
+	const { up } = getTestMigration(noteShapeVersions.AddVerticalAlign)
 
 	test('up works as expected', () => {
-		expect(up({ color: 'red' })).toEqual({ verticalAlign: 'middle', color: 'red' })
+		expect(up({ props: { color: 'red' } })).toEqual({
+			props: { color: 'red', verticalAlign: 'middle' },
+		})
 	})
 })
 
@@ -883,29 +909,37 @@ describe('Adds chat properties to instance', () => {
 })
 
 describe('Removes does resize from embed', () => {
-	const { up } = getTestShapePropsMigration('embed', embedShapeVersions.RemoveDoesResize)
+	const { up } = getTestMigration(embedShapeVersions.RemoveDoesResize)
 	test('up works as expected', () => {
-		expect(up({ url: 'https://tldraw.com', doesResize: true })).toEqual({
-			url: 'https://tldraw.com',
+		expect(up({ props: { url: 'https://tldraw.com', doesResize: true } })).toEqual({
+			props: {
+				url: 'https://tldraw.com',
+			},
 		})
 	})
 })
 
 describe('Removes tmpOldUrl from embed', () => {
-	const { up } = getTestShapePropsMigration('embed', embedShapeVersions.RemoveTmpOldUrl)
+	const { up } = getTestMigration(embedShapeVersions.RemoveTmpOldUrl)
 	test('up works as expected', () => {
-		expect(up({ url: 'https://tldraw.com', tmpOldUrl: 'https://tldraw.com' })).toEqual({
-			url: 'https://tldraw.com',
+		expect(up({ props: { url: 'https://tldraw.com', tmpOldUrl: 'https://tldraw.com' } })).toEqual({
+			props: {
+				url: 'https://tldraw.com',
+			},
 		})
 	})
 })
 
 describe('Removes overridePermissions from embed', () => {
-	const { up } = getTestShapePropsMigration('embed', embedShapeVersions.RemovePermissionOverrides)
+	const { up } = getTestMigration(embedShapeVersions.RemovePermissionOverrides)
 
 	test('up works as expected', () => {
-		expect(up({ url: 'https://tldraw.com', overridePermissions: { display: 'maybe' } })).toEqual({
-			url: 'https://tldraw.com',
+		expect(
+			up({ props: { url: 'https://tldraw.com', overridePermissions: { display: 'maybe' } } })
+		).toEqual({
+			props: {
+				url: 'https://tldraw.com',
+			},
 		})
 	})
 })
@@ -1005,16 +1039,40 @@ describe('Renames selectedShapeIds in presence', () => {
 })
 
 describe('Adding canSnap to line handles', () => {
-	const { up } = getTestShapePropsMigration('line', lineShapeVersions.AddSnapHandles)
+	const { up } = getTestMigration(lineShapeVersions.AddSnapHandles)
 
 	test(`up works as expected`, () => {
 		expect(
 			up({
+				props: {
+					handles: {
+						start: {
+							id: 'start',
+							type: 'vertex',
+							canBind: false,
+							index: 'a1',
+							x: 0,
+							y: 0,
+						},
+						end: {
+							id: 'end',
+							type: 'vertex',
+							canBind: false,
+							index: 'a2',
+							x: 100.66015625,
+							y: -22.07421875,
+						},
+					},
+				},
+			})
+		).toEqual({
+			props: {
 				handles: {
 					start: {
 						id: 'start',
 						type: 'vertex',
 						canBind: false,
+						canSnap: true,
 						index: 'a1',
 						x: 0,
 						y: 0,
@@ -1023,31 +1081,11 @@ describe('Adding canSnap to line handles', () => {
 						id: 'end',
 						type: 'vertex',
 						canBind: false,
+						canSnap: true,
 						index: 'a2',
 						x: 100.66015625,
 						y: -22.07421875,
 					},
-				},
-			})
-		).toEqual({
-			handles: {
-				start: {
-					id: 'start',
-					type: 'vertex',
-					canBind: false,
-					canSnap: true,
-					index: 'a1',
-					x: 0,
-					y: 0,
-				},
-				end: {
-					id: 'end',
-					type: 'vertex',
-					canBind: false,
-					canSnap: true,
-					index: 'a2',
-					x: 100.66015625,
-					y: -22.07421875,
 				},
 			},
 		})
@@ -1087,47 +1125,55 @@ describe('add scribbles to TLInstance', () => {
 })
 
 describe('add isPrecise to arrow handles', () => {
-	const { up, down } = getTestShapePropsMigration('arrow', arrowShapeVersions.AddIsPrecise)
+	const { up, down } = getTestMigration(arrowShapeVersions.AddIsPrecise)
 
 	test('up works as expected', () => {
 		expect(
 			up({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
 				start: {
 					type: 'point',
 				},
 				end: {
 					type: 'binding',
 					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
 				},
-			})
-		).toEqual({
-			start: {
-				type: 'point',
-			},
-			end: {
-				type: 'binding',
-				normalizedAnchor: { x: 0.5, y: 0.5 },
-				isPrecise: false,
 			},
 		})
 		expect(
 			up({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.15, y: 0.15 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
 				start: {
 					type: 'point',
 				},
 				end: {
 					type: 'binding',
 					normalizedAnchor: { x: 0.15, y: 0.15 },
+					isPrecise: true,
 				},
-			})
-		).toEqual({
-			start: {
-				type: 'point',
-			},
-			end: {
-				type: 'binding',
-				normalizedAnchor: { x: 0.15, y: 0.15 },
-				isPrecise: true,
 			},
 		})
 	})
@@ -1135,85 +1181,99 @@ describe('add isPrecise to arrow handles', () => {
 	test('down works as expected', () => {
 		expect(
 			down({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: true,
+					},
+				},
+			})
+		).toEqual({
+			props: {
 				start: {
 					type: 'point',
 				},
 				end: {
 					type: 'binding',
 					normalizedAnchor: { x: 0.5, y: 0.5 },
-					isPrecise: true,
 				},
-			})
-		).toEqual({
-			start: {
-				type: 'point',
-			},
-			end: {
-				type: 'binding',
-				normalizedAnchor: { x: 0.5, y: 0.5 },
 			},
 		})
 
 		expect(
 			down({
+				props: {
+					start: {
+						type: 'point',
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.25, y: 0.25 },
+						isPrecise: true,
+					},
+				},
+			})
+		).toEqual({
+			props: {
 				start: {
 					type: 'point',
 				},
 				end: {
 					type: 'binding',
 					normalizedAnchor: { x: 0.25, y: 0.25 },
-					isPrecise: true,
 				},
-			})
-		).toEqual({
-			start: {
-				type: 'point',
-			},
-			end: {
-				type: 'binding',
-				normalizedAnchor: { x: 0.25, y: 0.25 },
 			},
 		})
 
 		expect(
 			down({
-				start: {
-					type: 'binding',
-					normalizedAnchor: { x: 0.5, y: 0.5 },
-					isPrecise: false,
-				},
-				end: {
-					type: 'binding',
-					normalizedAnchor: { x: 0.15, y: 0.15 },
-					isPrecise: false,
+				props: {
+					start: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
+					},
+					end: {
+						type: 'binding',
+						normalizedAnchor: { x: 0.15, y: 0.15 },
+						isPrecise: false,
+					},
 				},
 			})
 		).toEqual({
-			start: {
-				type: 'binding',
-				normalizedAnchor: { x: 0.5, y: 0.5 },
-			},
-			end: {
-				type: 'binding',
-				normalizedAnchor: { x: 0.5, y: 0.5 },
+			props: {
+				start: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+				end: {
+					type: 'binding',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
 			},
 		})
 	})
 })
 
 describe('add AddLabelPosition to arrow handles', () => {
-	const { up, down } = getTestShapePropsMigration('arrow', arrowShapeVersions.AddLabelPosition)
+	const { up, down } = getTestMigration(arrowShapeVersions.AddLabelPosition)
 
 	test('up works as expected', () => {
-		expect(up({})).toEqual({ labelPosition: 0.5 })
+		expect(up({ props: {} })).toEqual({ props: { labelPosition: 0.5 } })
 	})
 
 	test('down works as expected', () => {
 		expect(
 			down({
-				labelPosition: 0.5,
+				props: {
+					labelPosition: 0.5,
+				},
 			})
-		).toEqual({})
+		).toEqual({ props: {} })
 	})
 })
 
@@ -1222,17 +1282,17 @@ const validUrl = ''
 
 describe('Make urls valid for all the shapes', () => {
 	const migrations = [
-		['bookmark shape', getTestShapePropsMigration('bookmark', bookmarkShapeVersions.MakeUrlsValid)],
-		['geo shape', getTestShapePropsMigration('geo', geoShapeVersions.MakeUrlsValid)],
-		['image shape', getTestShapePropsMigration('image', imageShapeVersions.MakeUrlsValid)],
-		['note shape', getTestShapePropsMigration('note', noteShapeVersions.MakeUrlsValid)],
-		['video shape', getTestShapePropsMigration('video', videoShapeVersions.MakeUrlsValid)],
+		['bookmark shape', getTestMigration(bookmarkShapeVersions.MakeUrlsValid)],
+		['geo shape', getTestMigration(geoShapeVersions.MakeUrlsValid)],
+		['image shape', getTestMigration(imageShapeVersions.MakeUrlsValid)],
+		['note shape', getTestMigration(noteShapeVersions.MakeUrlsValid)],
+		['video shape', getTestMigration(videoShapeVersions.MakeUrlsValid)],
 	] as const
 
 	for (const [shapeName, { up, down }] of migrations) {
 		it(`works for ${shapeName}`, () => {
-			const shape = { url: invalidUrl }
-			expect(up(shape)).toEqual({ url: validUrl })
+			const shape = { props: { url: invalidUrl } }
+			expect(up(shape)).toEqual({ props: { url: validUrl } })
 			expect(down(shape)).toEqual(shape)
 		})
 	}
@@ -1265,10 +1325,64 @@ describe('Add duplicate props to instance', () => {
 })
 
 describe('Remove extra handle props', () => {
-	const { up, down } = getTestShapePropsMigration('line', lineShapeVersions.RemoveExtraHandleProps)
+	const { up, down } = getTestMigration(lineShapeVersions.RemoveExtraHandleProps)
 	it('up works as expected', () => {
 		expect(
 			up({
+				props: {
+					handles: {
+						start: {
+							id: 'start',
+							type: 'vertex',
+							canBind: false,
+							canSnap: true,
+							index: 'a1',
+							x: 0,
+							y: 0,
+						},
+						end: {
+							id: 'end',
+							type: 'vertex',
+							canBind: false,
+							canSnap: true,
+							index: 'a2',
+							x: 190,
+							y: -62,
+						},
+						'handle:a1V': {
+							id: 'handle:a1V',
+							type: 'vertex',
+							canBind: false,
+							index: 'a1V',
+							x: 76,
+							y: 60,
+						},
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				handles: {
+					a1: { x: 0, y: 0 },
+					a1V: { x: 76, y: 60 },
+					a2: { x: 190, y: -62 },
+				},
+			},
+		})
+	})
+	it('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					handles: {
+						a1: { x: 0, y: 0 },
+						a1V: { x: 76, y: 60 },
+						a2: { x: 190, y: -62 },
+					},
+				},
+			})
+		).toEqual({
+			props: {
 				handles: {
 					start: {
 						id: 'start',
@@ -1292,57 +1406,11 @@ describe('Remove extra handle props', () => {
 						id: 'handle:a1V',
 						type: 'vertex',
 						canBind: false,
+						canSnap: true,
 						index: 'a1V',
 						x: 76,
 						y: 60,
 					},
-				},
-			})
-		).toEqual({
-			handles: {
-				a1: { x: 0, y: 0 },
-				a1V: { x: 76, y: 60 },
-				a2: { x: 190, y: -62 },
-			},
-		})
-	})
-	it('down works as expected', () => {
-		expect(
-			down({
-				handles: {
-					a1: { x: 0, y: 0 },
-					a1V: { x: 76, y: 60 },
-					a2: { x: 190, y: -62 },
-				},
-			})
-		).toEqual({
-			handles: {
-				start: {
-					id: 'start',
-					type: 'vertex',
-					canBind: false,
-					canSnap: true,
-					index: 'a1',
-					x: 0,
-					y: 0,
-				},
-				end: {
-					id: 'end',
-					type: 'vertex',
-					canBind: false,
-					canSnap: true,
-					index: 'a2',
-					x: 190,
-					y: -62,
-				},
-				'handle:a1V': {
-					id: 'handle:a1V',
-					type: 'vertex',
-					canBind: false,
-					canSnap: true,
-					index: 'a1V',
-					x: 76,
-					y: 60,
 				},
 			},
 		})
@@ -1350,77 +1418,93 @@ describe('Remove extra handle props', () => {
 })
 
 describe('Restore some handle props', () => {
-	const { up, down } = getTestShapePropsMigration('line', lineShapeVersions.HandlesToPoints)
+	const { up, down } = getTestMigration(lineShapeVersions.HandlesToPoints)
 	it('up works as expected', () => {
 		expect(
 			up({
-				handles: {
-					a1: { x: 0, y: 0 },
-					a1V: { x: 76, y: 60 },
-					a2: { x: 190, y: -62 },
+				props: {
+					handles: {
+						a1: { x: 0, y: 0 },
+						a1V: { x: 76, y: 60 },
+						a2: { x: 190, y: -62 },
+					},
 				},
 			})
 		).toEqual({
-			points: [
-				{ x: 0, y: 0 },
-				{ x: 76, y: 60 },
-				{ x: 190, y: -62 },
-			],
-		})
-	})
-	it('down works as expected', () => {
-		expect(
-			down({
+			props: {
 				points: [
 					{ x: 0, y: 0 },
 					{ x: 76, y: 60 },
 					{ x: 190, y: -62 },
 				],
+			},
+		})
+	})
+	it('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					points: [
+						{ x: 0, y: 0 },
+						{ x: 76, y: 60 },
+						{ x: 190, y: -62 },
+					],
+				},
 			})
 		).toEqual({
-			handles: {
-				a1: { x: 0, y: 0 },
-				a2: { x: 76, y: 60 },
-				a3: { x: 190, y: -62 },
+			props: {
+				handles: {
+					a1: { x: 0, y: 0 },
+					a2: { x: 76, y: 60 },
+					a3: { x: 190, y: -62 },
+				},
 			},
 		})
 	})
 })
 
 describe('Fractional indexing for line points', () => {
-	const { up, down } = getTestShapePropsMigration('line', lineShapeVersions.PointIndexIds)
+	const { up, down } = getTestMigration(lineShapeVersions.PointIndexIds)
 	it('up works as expected', () => {
 		expect(
 			up({
-				points: [
-					{ x: 0, y: 0 },
-					{ x: 76, y: 60 },
-					{ x: 190, y: -62 },
-				],
+				props: {
+					points: [
+						{ x: 0, y: 0 },
+						{ x: 76, y: 60 },
+						{ x: 190, y: -62 },
+					],
+				},
 			})
 		).toEqual({
-			points: {
-				a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
-				a2: { id: 'a2', index: 'a2', x: 76, y: 60 },
-				a3: { id: 'a3', index: 'a3', x: 190, y: -62 },
+			props: {
+				points: {
+					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+					a2: { id: 'a2', index: 'a2', x: 76, y: 60 },
+					a3: { id: 'a3', index: 'a3', x: 190, y: -62 },
+				},
 			},
 		})
 	})
 	it('down works as expected', () => {
 		expect(
 			down({
-				points: {
-					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
-					a3: { id: 'a3', index: 'a3', x: 190, y: -62 },
-					a2: { id: 'a2', index: 'a2', x: 76, y: 60 },
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+						a3: { id: 'a3', index: 'a3', x: 190, y: -62 },
+						a2: { id: 'a2', index: 'a2', x: 76, y: 60 },
+					},
 				},
 			})
 		).toEqual({
-			points: [
-				{ x: 0, y: 0 },
-				{ x: 76, y: 60 },
-				{ x: 190, y: -62 },
-			],
+			props: {
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 76, y: 60 },
+					{ x: 190, y: -62 },
+				],
+			},
 		})
 	})
 })

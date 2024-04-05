@@ -1218,10 +1218,10 @@ export type TLShapePropsMigrations = {
     sequence: Array<{
         readonly dependsOn: readonly MigrationId[];
     } | {
-        readonly version: number;
+        readonly id: MigrationId;
         readonly dependsOn?: MigrationId[];
         readonly up: (props: any) => any;
-        readonly down: ((props: any) => any) | typeof NO_DOWN_MIGRATION | typeof RETIRED_DOWN_MIGRATION;
+        readonly down?: ((props: any) => any) | typeof NO_DOWN_MIGRATION | typeof RETIRED_DOWN_MIGRATION;
     }>;
 };
 

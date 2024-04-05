@@ -1,5 +1,9 @@
 import { T } from '@tldraw/validate'
-import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrations,
+} from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
 import { DefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
@@ -24,9 +28,9 @@ export type TLTextShapeProps = ShapePropsType<typeof textShapeProps>
 /** @public */
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('text', {
 	RemoveJustify: 1,
-} as const
+})
 
 export { Versions as textShapeVersions }
 
@@ -34,7 +38,7 @@ export { Versions as textShapeVersions }
 export const textShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
-			version: Versions.RemoveJustify,
+			id: Versions.RemoveJustify,
 			up: (props) => {
 				if (props.align === 'justify') {
 					props.align = 'start'

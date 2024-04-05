@@ -1,7 +1,11 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { vecModelValidator } from '../misc/geometry-types'
-import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrations,
+} from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
@@ -28,11 +32,11 @@ export type TLImageShapeProps = ShapePropsType<typeof imageShapeProps>
 /** @public */
 export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('image', {
 	AddUrlProp: 1,
 	AddCropProp: 2,
 	MakeUrlsValid: 3,
-} as const
+})
 
 export { Versions as imageShapeVersions }
 
@@ -40,14 +44,14 @@ export { Versions as imageShapeVersions }
 export const imageShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
-			version: Versions.AddUrlProp,
+			id: Versions.AddUrlProp,
 			up: (props) => {
 				props.url = ''
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.AddCropProp,
+			id: Versions.AddCropProp,
 			up: (props) => {
 				props.crop = null
 			},
@@ -56,7 +60,7 @@ export const imageShapeMigrations = createShapePropsMigrations({
 			},
 		},
 		{
-			version: Versions.MakeUrlsValid,
+			id: Versions.MakeUrlsValid,
 			up: (props) => {
 				if (!T.linkUrl.isValid(props.url)) {
 					props.url = ''

@@ -1,5 +1,9 @@
 import { T } from '@tldraw/validate'
-import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrations,
+} from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
@@ -612,12 +616,12 @@ export type EmbedDefinition = {
 	readonly fromEmbedUrl: (url: string) => string | undefined
 }
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('embed', {
 	GenOriginalUrlInEmbed: 1,
 	RemoveDoesResize: 2,
 	RemoveTmpOldUrl: 3,
 	RemovePermissionOverrides: 4,
-} as const
+})
 
 export { Versions as embedShapeVersions }
 
@@ -625,7 +629,7 @@ export { Versions as embedShapeVersions }
 export const embedShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
-			version: Versions.GenOriginalUrlInEmbed,
+			id: Versions.GenOriginalUrlInEmbed,
 			// add tmpOldUrl property
 			up: (props) => {
 				try {
@@ -652,21 +656,21 @@ export const embedShapeMigrations = createShapePropsMigrations({
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.RemoveDoesResize,
+			id: Versions.RemoveDoesResize,
 			up: (props) => {
 				delete props.doesResize
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.RemoveTmpOldUrl,
+			id: Versions.RemoveTmpOldUrl,
 			up: (props) => {
 				delete props.tmpOldUrl
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.RemovePermissionOverrides,
+			id: Versions.RemovePermissionOverrides,
 			up: (props) => {
 				delete props.overridePermissions
 			},

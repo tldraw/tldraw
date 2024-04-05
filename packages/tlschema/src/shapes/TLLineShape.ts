@@ -1,6 +1,10 @@
 import { IndexKey, getIndices, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrations,
+} from '../records/TLShape'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -39,18 +43,18 @@ export type TLLineShapeProps = ShapePropsType<typeof lineShapeProps>
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
 /** @internal */
-export const lineShapeVersions = {
+export const lineShapeVersions = createShapePropsMigrationIds('line', {
 	AddSnapHandles: 1,
 	RemoveExtraHandleProps: 2,
 	HandlesToPoints: 3,
 	PointIndexIds: 4,
-} as const
+})
 
 /** @internal */
 export const lineShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
-			version: lineShapeVersions.AddSnapHandles,
+			id: lineShapeVersions.AddSnapHandles,
 			up: (props) => {
 				for (const handle of Object.values(props.handles)) {
 					;(handle as any).canSnap = true
@@ -59,7 +63,7 @@ export const lineShapeMigrations = createShapePropsMigrations({
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: lineShapeVersions.RemoveExtraHandleProps,
+			id: lineShapeVersions.RemoveExtraHandleProps,
 			up: (props) => {
 				props.handles = objectMapFromEntries(
 					Object.values(props.handles).map((handle: any) => [
@@ -96,7 +100,7 @@ export const lineShapeMigrations = createShapePropsMigrations({
 			},
 		},
 		{
-			version: lineShapeVersions.HandlesToPoints,
+			id: lineShapeVersions.HandlesToPoints,
 			up: (props) => {
 				const sortedHandles = (
 					Object.entries(props.handles) as [IndexKey, { x: number; y: number }][]
@@ -127,7 +131,7 @@ export const lineShapeMigrations = createShapePropsMigrations({
 			},
 		},
 		{
-			version: lineShapeVersions.PointIndexIds,
+			id: lineShapeVersions.PointIndexIds,
 			up: (props) => {
 				const indices = getIndices(props.points.length)
 

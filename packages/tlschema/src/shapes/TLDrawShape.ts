@@ -1,6 +1,10 @@
 import { T } from '@tldraw/validate'
 import { vecModelValidator } from '../misc/geometry-types'
-import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrations,
+} from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultFillStyle } from '../styles/TLFillStyle'
@@ -33,9 +37,9 @@ export type TLDrawShapeProps = ShapePropsType<typeof drawShapeProps>
 /** @public */
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,
-} as const
+})
 
 export { Versions as drawShapeVersions }
 
@@ -43,7 +47,7 @@ export { Versions as drawShapeVersions }
 export const drawShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
-			version: Versions.AddInPen,
+			id: Versions.AddInPen,
 			up: (props) => {
 				// Rather than checking to see whether the shape is a pen at runtime,
 				// from now on we're going to use the type of device reported to us

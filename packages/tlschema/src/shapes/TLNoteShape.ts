@@ -1,5 +1,9 @@
 import { T } from '@tldraw/validate'
-import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrations,
+} from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
 import { DefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
@@ -25,13 +29,13 @@ export type TLNoteShapeProps = ShapePropsType<typeof noteShapeProps>
 /** @public */
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('note', {
 	AddUrlProp: 1,
 	RemoveJustify: 2,
 	MigrateLegacyAlign: 3,
 	AddVerticalAlign: 4,
 	MakeUrlsValid: 5,
-} as const
+})
 
 export { Versions as noteShapeVersions }
 
@@ -39,14 +43,14 @@ export { Versions as noteShapeVersions }
 export const noteShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
-			version: Versions.AddUrlProp,
+			id: Versions.AddUrlProp,
 			up: (props) => {
 				props.url = ''
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.RemoveJustify,
+			id: Versions.RemoveJustify,
 			up: (props) => {
 				if (props.align === 'justify') {
 					props.align = 'start'
@@ -55,7 +59,7 @@ export const noteShapeMigrations = createShapePropsMigrations({
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.MigrateLegacyAlign,
+			id: Versions.MigrateLegacyAlign,
 			up: (props) => {
 				switch (props.align) {
 					case 'start':
@@ -72,14 +76,14 @@ export const noteShapeMigrations = createShapePropsMigrations({
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.AddVerticalAlign,
+			id: Versions.AddVerticalAlign,
 			up: (props) => {
 				props.verticalAlign = 'middle'
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.MakeUrlsValid,
+			id: Versions.MakeUrlsValid,
 			up: (props) => {
 				if (!T.linkUrl.isValid(props.url)) {
 					props.url = ''
