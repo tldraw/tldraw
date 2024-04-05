@@ -86,6 +86,9 @@ export const ANIMATION_MEDIUM_MS = 320;
 // @internal (undocumented)
 export const ANIMATION_SHORT_MS = 80;
 
+// @public (undocumented)
+export function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T;
+
 // @internal (undocumented)
 export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
     delta: number;
@@ -723,6 +726,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         isCulled: boolean;
         maskedPageBounds: Box | undefined;
     }[];
+    getResizedShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): TLShape | undefined;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
@@ -863,7 +867,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     renderingBoundsMargin: number;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, animation?: TLAnimationOptions): this;
-    resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
+    resizeShape(id: TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
     screenToPage(point: VecLike): {

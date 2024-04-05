@@ -96,6 +96,7 @@ import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
+import { applyPartialToShape } from '../utils/applyPartialToShape'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
@@ -5634,23 +5635,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		).center
 
 		this.batch(() => {
-			for (const shape of shapesToFlip) {
-				const bounds = this.getShapeGeometry(shape).bounds
-				const initialPageTransform = this.getShapePageTransform(shape.id)
-				if (!initialPageTransform) continue
-				this.resizeShape(
-					shape.id,
-					{ x: operation === 'horizontal' ? -1 : 1, y: operation === 'vertical' ? -1 : 1 },
-					{
-						initialBounds: bounds,
-						initialPageTransform,
-						initialShape: shape,
-						mode: 'scale_shape',
-						scaleOrigin: scaleOriginPage,
-						scaleAxisRotation: 0,
-					}
-				)
-			}
+			this.updateShapes(
+				shapesToFlip.map((shape) => {
+					const bounds = this.getShapeGeometry(shape).bounds
+					const initialPageTransform = this.getShapePageTransform(shape.id)
+					if (!initialPageTransform) return
+					return this.getResizedShape(
+						shape.id,
+						{ x: operation === 'horizontal' ? -1 : 1, y: operation === 'vertical' ? -1 : 1 },
+						{
+							initialBounds: bounds,
+							initialPageTransform,
+							initialShape: shape,
+							mode: 'scale_shape',
+							scaleOrigin: scaleOriginPage,
+							scaleAxisRotation: 0,
+						}
+					)
+				})
+			)
 		})
 
 		return this
@@ -6167,22 +6170,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const { x, y } = Vec.Add(localOffset, shape)
 						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], { squashing: true })
 						const scale = new Vec(1, commonBounds.height / pageBounds.height)
-						this.resizeShape(shape.id, scale, {
-							initialBounds: bounds,
-							scaleOrigin: new Vec(pageBounds.center.x, commonBounds.minY),
-							scaleAxisRotation: 0,
-						})
+						this.updateShape(
+							this.getResizedShape(shape.id, scale, {
+								initialBounds: bounds,
+								scaleOrigin: new Vec(pageBounds.center.x, commonBounds.minY),
+								scaleAxisRotation: 0,
+							})
+						)
 					}
 				})
 				break
 			}
 			case 'horizontal': {
 				this.batch(() => {
-					for (const shape of shapesToStretch) {
+					shapesToStretch.map((shape) => {
 						const bounds = shapeBounds[shape.id]
 						const pageBounds = shapePageBounds[shape.id]
 						const pageRotation = this.getShapePageTransform(shape)!.rotation()
-						if (pageRotation % PI2) continue
+						if (pageRotation % PI2) return
 						const localOffset = new Vec(commonBounds.minX - pageBounds.minX, 0)
 						const parentTransform = this.getShapeParentTransform(shape)
 						if (parentTransform) localOffset.rot(-parentTransform.rotation())
@@ -6190,14 +6195,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const { x, y } = Vec.Add(localOffset, shape)
 						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], { squashing: true })
 						const scale = new Vec(commonBounds.width / pageBounds.width, 1)
-						this.resizeShape(shape.id, scale, {
-							initialBounds: bounds,
-							scaleOrigin: new Vec(commonBounds.minX, pageBounds.center.y),
-							scaleAxisRotation: 0,
-						})
-					}
+						this.updateShape(
+							this.getResizedShape(shape.id, scale, {
+								initialBounds: bounds,
+								scaleOrigin: new Vec(commonBounds.minX, pageBounds.center.y),
+								scaleAxisRotation: 0,
+							})
+						)
+					})
 				})
-
 				break
 			}
 		}
@@ -6214,44 +6220,58 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	resizeShape(
+	resizeShape(id: TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this {
+		this.updateShape(this.getResizedShape(id, scale, options))
+		return this
+	}
+
+	/**
+	 * Get a resized shape.
+	 *
+	 * @param id - The id of the shape to resize.
+	 * @param scale - The scale factor to apply to the shape.
+	 * @param options - Additional options.
+	 *
+	 * @public
+	 */
+	getResizedShape(
 		shape: TLShapeId | TLShape,
 		scale: VecLike,
 		options: TLResizeShapeOptions = {}
-	): this {
+	): TLShape | undefined {
 		const id = typeof shape === 'string' ? shape : shape.id
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getInstanceState().isReadonly) return
 
 		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
 		if (!Number.isFinite(scale.y)) scale = new Vec(scale.x, 1)
 
 		const initialShape = options.initialShape ?? this.getShape(id)
-		if (!initialShape) return this
+		if (!initialShape) return
 
 		const scaleOrigin = options.scaleOrigin ?? this.getShapePageBounds(id)?.center
-		if (!scaleOrigin) return this
+		if (!scaleOrigin) return
 
 		const pageTransform = options.initialPageTransform
 			? Mat.Cast(options.initialPageTransform)
 			: this.getShapePageTransform(id)
-		if (!pageTransform) return this
+		if (!pageTransform) return
 
 		const pageRotation = pageTransform.rotation()
 
-		if (pageRotation == null) return this
+		if (pageRotation == null) return
 
 		const scaleAxisRotation = options.scaleAxisRotation ?? pageRotation
 
 		const initialBounds = options.initialBounds ?? this.getShapeGeometry(id).bounds
 
-		if (!initialBounds) return this
+		if (!initialBounds) return
 
 		if (!areAnglesCompatible(pageRotation, scaleAxisRotation)) {
 			// shape is awkwardly rotated, keep the aspect ratio locked and adopt the scale factor
 			// from whichever axis is being scaled the least, to avoid the shape getting bigger
 			// than the bounds of the selection
 			// const minScale = Math.min(Math.abs(scale.x), Math.abs(scale.y))
-			return this._resizeUnalignedShape(id, scale, {
+			return this.getResizedUnalignedShape(id, scale, {
 				...options,
 				initialBounds,
 				scaleOrigin,
@@ -6301,30 +6321,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// need to adjust the shape's x and y points in case the parent has moved since start of resizing
 			const { x, y } = this.getPointInParentSpace(initialShape.id, initialPagePoint)
 
-			this.updateShapes(
-				[
+			return {
+				...initialShape,
+				x: newLocalPoint.x,
+				y: newLocalPoint.y,
+				...util.onResize(
+					{ ...initialShape, x, y },
 					{
-						id,
-						type: initialShape.type as any,
-						x: newLocalPoint.x,
-						y: newLocalPoint.y,
-						...util.onResize(
-							{ ...initialShape, x, y },
-							{
-								newPoint: newLocalPoint,
-								handle: options.dragHandle ?? 'bottom_right',
-								// don't set isSingle to true for children
-								mode: options.mode ?? 'scale_shape',
-								scaleX: myScale.x,
-								scaleY: myScale.y,
-								initialBounds,
-								initialShape,
-							}
-						),
-					},
-				],
-				{ squashing: true }
-			)
+						newPoint: newLocalPoint,
+						handle: options.dragHandle ?? 'bottom_right',
+						// don't set isSingle to true for children
+						mode: options.mode ?? 'scale_shape',
+						scaleX: myScale.x,
+						scaleY: myScale.y,
+						initialBounds,
+						initialShape,
+					}
+				),
+			}
 		} else {
 			const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
 			// get the model changes from the shape util
@@ -6343,20 +6357,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const delta = Vec.Sub(newPageCenterInParentSpace, initialPageCenterInParentSpace)
 			// apply the changes to the model
-			this.updateShapes(
-				[
-					{
-						id,
-						type: initialShape.type as any,
-						x: initialShape.x + delta.x,
-						y: initialShape.y + delta.y,
-					},
-				],
-				{ squashing: true }
-			)
+			return {
+				...initialShape,
+				x: initialShape.x + delta.x,
+				y: initialShape.y + delta.y,
+			}
 		}
-
-		return this
 	}
 
 	/** @internal */
@@ -6381,7 +6387,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _resizeUnalignedShape(
+	private getResizedUnalignedShape(
 		id: TLShapeId,
 		scale: VecLike,
 		options: {
@@ -6391,7 +6397,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			initialShape: TLShape
 			initialPageTransform: MatLike
 		}
-	) {
+	): TLShape | undefined {
 		const { type } = options.initialShape
 		// If a shape is not aligned with the scale axis we need to treat it differently to avoid skewing.
 		// Instead of skewing we normalize the scale aspect ratio (i.e. keep the same scale magnitude in both axes)
@@ -6409,10 +6415,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// first we can scale the shape about its center point
-		this.resizeShape(id, shapeScale, {
+		const resizedShape = this.getResizedShape(id, shapeScale, {
 			initialShape: options.initialShape,
 			initialBounds: options.initialBounds,
 		})
+		if (!resizedShape) throw Error('could not resize shape!')
+		this.store.put([resizedShape])
 
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation
 		// to make sure the shape is mirrored correctly
@@ -6442,16 +6450,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const pageTransform = this.getShapePageTransform(id)!
 		const currentPageCenter = pageBounds.center
 		const shapePageTransformOrigin = pageTransform.point()
-		if (!currentPageCenter || !shapePageTransformOrigin) return this
+		if (!currentPageCenter || !shapePageTransformOrigin) return
 		const pageDelta = Vec.Sub(postScaleShapePageCenter, currentPageCenter)
 
 		// and finally figure out what the shape's new position should be
 		const postScaleShapePagePoint = Vec.Add(shapePageTransformOrigin, pageDelta)
 		const { x, y } = this.getPointInParentSpace(id, postScaleShapePagePoint)
-
-		this.updateShapes([{ id, type, x, y }], { squashing: true })
-
-		return this
+		return { ...this.getShape(id), x, y } as TLShape
 	}
 
 	/**
@@ -8843,39 +8848,4 @@ export class Editor extends EventEmitter<TLEventMap> {
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
-}
-
-function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T {
-	if (!partial) return prev
-	let next = null as null | T
-	const entries = Object.entries(partial)
-	for (let i = 0, n = entries.length; i < n; i++) {
-		const [k, v] = entries[i]
-		if (v === undefined) continue
-
-		// Is the key a special key? We don't update those
-		if (k === 'id' || k === 'type' || k === 'typeName') continue
-
-		// Is the value the same as it was before?
-		if (v === (prev as any)[k]) continue
-
-		// There's a new value, so create the new shape if we haven't already (should we be cloning this?)
-		if (!next) next = { ...prev }
-
-		// for props / meta properties, we support updates with partials of this object
-		if (k === 'props' || k === 'meta') {
-			next[k] = { ...prev[k] } as JsonObject
-			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				if (nextValue !== undefined) {
-					;(next[k] as JsonObject)[nextKey] = nextValue
-				}
-			}
-			continue
-		}
-
-		// base property
-		;(next as any)[k] = v
-	}
-	if (!next) return prev
-	return next
 }
