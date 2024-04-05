@@ -109,8 +109,6 @@ export function CulledShapes() {
 			viewportEndUniformLocation,
 		} = webGl
 
-		let didCullAnything = false
-
 		const shapeVertices = computed('shape vertices', function calculateCulledShapeVertices() {
 			const results: number[] = []
 
@@ -151,13 +149,6 @@ export function CulledShapes() {
 			}
 
 			const verticesArray = shapeVertices.get()
-			const willCullAnything = verticesArray.length > 0
-
-			if (!didCullAnything && !willCullAnything) {
-				return
-			}
-
-			didCullAnything = willCullAnything
 
 			context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT)
 
