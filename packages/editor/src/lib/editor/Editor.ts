@@ -4624,7 +4624,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
-		// console.log('current pge sorted')
 		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
 		// todo: consider making a derivation or something, or merging with rendering shapes
 		const shapes = new Set(this.getCurrentPageShapes().sort(sortByIndex))

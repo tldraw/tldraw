@@ -124,7 +124,6 @@ export const Shape = memo(function Shape({
 			const shape = editor.getShape(id)
 			if (!shape) return // probably the shape was just deleted
 
-			// console.log(shape.id)
 			const isCulled = editor.isShapeCulled(shape)
 			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
 			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
