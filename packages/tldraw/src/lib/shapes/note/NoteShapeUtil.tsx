@@ -128,6 +128,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override getHandles(shape: TLNoteShape): TLHandle[] {
 		const zoom = this.editor.getZoomLevel()
 		const offset = CLONE_HANDLE_MARGIN / zoom
+		const noteHeight = getNoteHeight(shape)
 
 		if (zoom < 0.25) return []
 
@@ -144,21 +145,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				index: 'a2' as IndexKey,
 				type: 'clone',
 				x: NOTE_SIZE + offset,
-				y: getNoteHeight(shape) / 2,
+				y: noteHeight / 2,
 			},
 			{
 				id: 'bottom',
 				index: 'a3' as IndexKey,
 				type: 'clone',
 				x: NOTE_SIZE / 2,
-				y: getNoteHeight(shape) + offset,
+				y: noteHeight + offset,
 			},
 			{
 				id: 'left',
 				index: 'a4' as IndexKey,
 				type: 'clone',
 				x: -offset,
-				y: getNoteHeight(shape) / 2,
+				y: noteHeight / 2,
 			},
 		]
 	}
