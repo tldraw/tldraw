@@ -12,6 +12,7 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
+	WeakMapCache,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -95,12 +96,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		}
 	}
 
-	getHeight(shape: TLNoteShape) {
-		return NOTE_SIZE + shape.props.growY
-	}
-
 	getGeometry(shape: TLNoteShape) {
-		const noteHeight = this.getHeight(shape)
+		const noteHeight = getNoteHeight(shape)
 		const { labelHeight, labelWidth } = getLabelSize(this.editor, shape)
 
 		return new Group2d({
@@ -147,21 +144,21 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				index: 'a2' as IndexKey,
 				type: 'clone',
 				x: NOTE_SIZE + offset,
-				y: this.getHeight(shape) / 2,
+				y: getNoteHeight(shape) / 2,
 			},
 			{
 				id: 'bottom',
 				index: 'a3' as IndexKey,
 				type: 'clone',
 				x: NOTE_SIZE / 2,
-				y: this.getHeight(shape) + offset,
+				y: getNoteHeight(shape) + offset,
 			},
 			{
 				id: 'left',
 				index: 'a4' as IndexKey,
 				type: 'clone',
 				x: -offset,
-				y: this.getHeight(shape) / 2,
+				y: getNoteHeight(shape) / 2,
 			},
 		]
 	}
@@ -178,7 +175,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
-		const noteHeight = this.getHeight(shape)
+		const noteHeight = getNoteHeight(shape)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const rotation = useValue(
@@ -246,7 +243,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			<rect
 				rx="1"
 				width={toDomPrecision(NOTE_SIZE)}
-				height={toDomPrecision(this.getHeight(shape))}
+				height={toDomPrecision(getNoteHeight(shape))}
 			/>
 		)
 	}
@@ -284,7 +281,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override onBeforeCreate = (next: TLNoteShape) => {
-		return getGrowY(this.editor, next, next.props.growY)
+		return getSizeAdjustments(this.editor, next)
 	}
 
 	override onBeforeUpdate = (prev: TLNoteShape, next: TLNoteShape) => {
@@ -296,7 +293,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			return
 		}
 
-		return getGrowY(this.editor, next, prev.props.growY)
+		return getSizeAdjustments(this.editor, next)
 	}
 
 	override onEditEnd: TLOnEditEndHandler<TLNoteShape> = (shape) => {
@@ -320,38 +317,30 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 }
 
-function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
-	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
+/**
+ * Get the growY and fontSizeAdjustment for a shape.
+ */
+function getSizeAdjustments(editor: Editor, shape: TLNoteShape) {
 	const { labelHeight, fontSizeAdjustment } = getLabelSize(editor, shape)
+	// When the label height is more than the height of the shape, we add extra height to it
+	const growY = Math.max(0, labelHeight - NOTE_SIZE)
 
-	let growY: number | null = null
-
-	if (labelHeight > NOTE_SIZE) {
-		growY = labelHeight - NOTE_SIZE
-	} else {
-		if (prevGrowY) {
-			growY = 0
-		}
-	}
-
-	if (
-		growY !== null ||
-		(shape.props.fontSizeAdjustment === 0
-			? fontSizeAdjustment !== unadjustedFontSize
-			: fontSizeAdjustment !== shape.props.fontSizeAdjustment)
-	) {
+	if (growY !== shape.props.growY || fontSizeAdjustment !== shape.props.fontSizeAdjustment) {
 		return {
 			...shape,
 			props: {
 				...shape.props,
-				growY: growY ?? 0,
+				growY,
 				fontSizeAdjustment,
 			},
 		}
 	}
 }
 
-function getLabelSize(editor: Editor, shape: TLNoteShape) {
+/**
+ * Get the label size for a note.
+ */
+function _getLabelSize(editor: Editor, shape: TLNoteShape) {
 	const text = shape.props.text
 
 	if (!text) {
@@ -406,6 +395,12 @@ function getLabelSize(editor: Editor, shape: TLNoteShape) {
 	}
 }
 
+const labelSizesForNote = new WeakMapCache<TLShape, ReturnType<typeof _getLabelSize>>()
+
+function getLabelSize(editor: Editor, shape: TLNoteShape) {
+	return labelSizesForNote.get(shape, () => _getLabelSize(editor, shape))
+}
+
 function useNoteKeydownHandler(id: TLShapeId) {
 	const editor = useEditor()
 	const translation = useCurrentTranslation()
@@ -452,4 +447,8 @@ function useNoteKeydownHandler(id: TLShapeId) {
 		},
 		[id, editor, translation.isRTL]
 	)
+}
+
+function getNoteHeight(shape: TLNoteShape) {
+	return NOTE_SIZE + shape.props.growY
 }

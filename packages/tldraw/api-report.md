@@ -1113,8 +1113,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
     // (undocumented)
-    getHeight(shape: TLNoteShape): number;
-    // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;

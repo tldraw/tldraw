@@ -359,7 +359,10 @@ function getTranslatingSnapshot(editor: Editor) {
 
 	const { originPagePoint } = editor.inputs
 
-	if (shapeSnapshots.length === 1) {
+	if (
+		shapeSnapshots.length === 1 &&
+		editor.isShapeOfType<TLNoteShape>(shapeSnapshots[0].shape, 'note')
+	) {
 		noteSnapshot = shapeSnapshots[0]
 	} else {
 		const allHoveredNotes = shapeSnapshots.filter(
