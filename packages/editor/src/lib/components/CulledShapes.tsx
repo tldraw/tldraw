@@ -116,27 +116,24 @@ export function CulledShapes() {
 
 			const results: number[] = []
 
-			for (const { shape } of editor.getRenderingShapes()) {
-				if (editingShapeId !== shape.id && !selectedShapeIds.includes(shape.id)) {
-					const maskedPageBounds = editor.getShapeMaskedPageBounds(shape)
-					if (maskedPageBounds && !renderingBoundsExpanded.includes(maskedPageBounds)) {
-						results.push(
-							// triangle 1
-							maskedPageBounds.minX,
-							maskedPageBounds.minY,
-							maskedPageBounds.minX,
-							maskedPageBounds.maxY,
-							maskedPageBounds.maxX,
-							maskedPageBounds.maxY,
-							// triangle 2
-							maskedPageBounds.minX,
-							maskedPageBounds.minY,
-							maskedPageBounds.maxX,
-							maskedPageBounds.minY,
-							maskedPageBounds.maxX,
-							maskedPageBounds.maxY
-						)
-					}
+			for (const { isCulled, maskedPageBounds } of editor.getRenderingShapes()) {
+				if (isCulled && maskedPageBounds) {
+					results.push(
+						// triangle 1
+						maskedPageBounds.minX,
+						maskedPageBounds.minY,
+						maskedPageBounds.minX,
+						maskedPageBounds.maxY,
+						maskedPageBounds.maxX,
+						maskedPageBounds.maxY,
+						// triangle 2
+						maskedPageBounds.minX,
+						maskedPageBounds.minY,
+						maskedPageBounds.maxX,
+						maskedPageBounds.minY,
+						maskedPageBounds.maxX,
+						maskedPageBounds.maxY
+					)
 				}
 			}
 
