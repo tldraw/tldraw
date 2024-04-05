@@ -24,6 +24,7 @@
 	/* Z Index */
 	--layer-background: 100;
 	--layer-grid: 150;
+	--layer-culled-shapes: 175;
 	--layer-canvas: 200;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
@@ -234,6 +235,20 @@ input,
 	content-visibility: auto;
 	touch-action: none;
 	contain: strict;
+}
+
+.tl-culled-shapes {
+	width: 100%;
+	height: 100%;
+	z-index: var(--layer-culled-shapes);
+	position: absolute;
+	pointer-events: none;
+	contain: size layout;
+}
+
+.tl-culled-shapes__canvas {
+	width: 100%;
+	height: 100%;
 }
 
 .tl-shapes {
