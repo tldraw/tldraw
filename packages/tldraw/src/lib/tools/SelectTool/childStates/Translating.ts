@@ -18,7 +18,6 @@ import {
 import {
 	NOTE_PIT_RADIUS,
 	NOTE_SIZE,
-	NotePit,
 	getAvailableNoteAdjacentPositions,
 } from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
@@ -354,12 +353,15 @@ function getTranslatingSnapshot(editor: Editor) {
 		}
 	}
 
-	let noteAdjacentPositions: NotePit[] | undefined
+	let noteAdjacentPositions: Vec[] | undefined
 	let noteSnapshot: MovingShapeSnapshot | undefined
 
 	const { originPagePoint } = editor.inputs
 
-	if (shapeSnapshots.length === 1) {
+	if (
+		shapeSnapshots.length === 1 &&
+		editor.isShapeOfType<TLNoteShape>(shapeSnapshots[0].shape, 'note')
+	) {
 		noteSnapshot = shapeSnapshots[0]
 	} else {
 		const allHoveredNotes = shapeSnapshots.filter(

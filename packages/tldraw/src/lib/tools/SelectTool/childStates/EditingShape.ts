@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLFrameShape, TLTextShape } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLFrameShape, TLShape, TLTextShape } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
@@ -6,9 +6,12 @@ import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
 
+	hitShapeForPointerUp: TLShape | null = null
+
 	override onEnter = () => {
 		const editingShape = this.editor.getEditingShape()
 		if (!editingShape) throw Error('Entered editing state without an editing shape')
+		this.hitShapeForPointerUp = null
 		updateHoveredId(this.editor)
 		this.editor.select(editingShape)
 	}
@@ -28,6 +31,16 @@ export class EditingShape extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+		// In the case where on pointer down we hit a shape's label, we need to check if the user is dragging.
+		// and if they are, we need to transition to translating instead.
+		if (this.hitShapeForPointerUp && this.editor.inputs.isDragging) {
+			if (this.editor.getInstanceState().isReadonly) return
+			this.editor.select(this.hitShapeForPointerUp)
+			this.parent.transition('translating', info)
+			this.hitShapeForPointerUp = null
+			return
+		}
+
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
@@ -36,6 +49,7 @@ export class EditingShape extends StateNode {
 			}
 		}
 	}
+
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		switch (info.target) {
 			case 'canvas': {
@@ -80,22 +94,11 @@ export class EditingShape extends StateNode {
 							// If we clicked on the editing geo / arrow shape's label, do nothing
 							return
 						} else {
-							// Stay in edit mode to maintain flow of editing.
-							this.editor.batch(() => {
-								this.editor.mark('editing on pointer up')
-								this.editor.select(selectingShape.id)
+							this.hitShapeForPointerUp = selectingShape
 
-								const util = this.editor.getShapeUtil(selectingShape)
-								if (this.editor.getInstanceState().isReadonly) {
-									if (!util.canEditInReadOnly(selectingShape)) {
-										this.parent.transition('pointing_shape', info)
-										return
-									}
-								}
-
-								this.editor.setEditingShape(selectingShape.id)
-								this.editor.setCurrentTool('select.editing_shape')
-							})
+							// When clicking on a different shape's label, we need to clear the other selection
+							// proactively until the pointer up happens.
+							requestAnimationFrame(() => window.getSelection()?.removeAllRanges())
 							return
 						}
 					}
@@ -121,6 +124,32 @@ export class EditingShape extends StateNode {
 		this.parent.transition('idle', info)
 		// then feed the pointer down event back into the state chart as if it happened in that state
 		this.editor.root.handleEvent(info)
+	}
+
+	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
+		// If we're not dragging, and it's a hit to the label, begin editing the shape.
+		const hitShape = this.hitShapeForPointerUp
+		if (hitShape) {
+			// Stay in edit mode to maintain flow of editing.
+			this.editor.batch(() => {
+				if (!hitShape) return
+
+				this.editor.mark('editing on pointer up')
+				this.editor.select(hitShape.id)
+
+				const util = this.editor.getShapeUtil(hitShape)
+				if (this.editor.getInstanceState().isReadonly) {
+					if (!util.canEditInReadOnly(hitShape)) {
+						this.parent.transition('pointing_shape', info)
+						return
+					}
+				}
+
+				this.editor.setEditingShape(hitShape.id)
+				this.editor.setCurrentTool('select.editing_shape')
+			})
+			return
+		}
 	}
 
 	override onComplete: TLEventHandlers['onComplete'] = (info) => {
