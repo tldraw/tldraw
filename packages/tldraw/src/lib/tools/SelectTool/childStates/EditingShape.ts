@@ -51,6 +51,8 @@ export class EditingShape extends StateNode {
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+		this.hitShapeForPointerUp = null
+
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
@@ -130,6 +132,8 @@ export class EditingShape extends StateNode {
 		// If we're not dragging, and it's a hit to the label, begin editing the shape.
 		const hitShape = this.hitShapeForPointerUp
 		if (hitShape) {
+			this.hitShapeForPointerUp = null
+
 			// Stay in edit mode to maintain flow of editing.
 			this.editor.batch(() => {
 				if (!hitShape) return
