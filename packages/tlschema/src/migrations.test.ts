@@ -1426,7 +1426,7 @@ describe('Fractional indexing for line points', () => {
 })
 
 describe('add white', () => {
-	const { up, down } = rootShapeMigrations.migrators[rootShapeVersions.AddWhite]
+	const { up, down } = getTestMigration(rootShapeVersions.AddWhite)
 
 	test('up works as expected', () => {
 		expect(
