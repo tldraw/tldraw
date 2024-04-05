@@ -116,7 +116,6 @@ export const Shape = memo(function Shape({
 		'set opacity and z-index',
 		() => {
 			const container = containerRef.current
-			const culledContainer = culledContainerRef.current
 			const bgContainer = bgContainerRef.current
 
 			// Opacity
