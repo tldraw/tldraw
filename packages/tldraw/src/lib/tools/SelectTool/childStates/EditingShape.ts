@@ -96,6 +96,9 @@ export class EditingShape extends StateNode {
 						} else {
 							this.hitShapeForPointerUp = selectingShape
 
+							this.editor.mark('editing on pointer up')
+							this.editor.select(selectingShape.id)
+
 							// When clicking on a different shape's label, we need to clear the other selection
 							// proactively until the pointer up happens.
 							requestAnimationFrame(() => window.getSelection()?.removeAllRanges())
@@ -133,9 +136,6 @@ export class EditingShape extends StateNode {
 			// Stay in edit mode to maintain flow of editing.
 			this.editor.batch(() => {
 				if (!hitShape) return
-
-				this.editor.mark('editing on pointer up')
-				this.editor.select(hitShape.id)
 
 				const util = this.editor.getShapeUtil(hitShape)
 				if (this.editor.getInstanceState().isReadonly) {
