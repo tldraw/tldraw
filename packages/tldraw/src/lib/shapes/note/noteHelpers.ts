@@ -15,13 +15,11 @@ export const CLONE_HANDLE_MARGIN = 0
 /** @internal */
 export const NOTE_SIZE = 200
 /** @internal */
-export const CENTER_OFFSET = { x: NOTE_SIZE / 2, y: NOTE_SIZE / 2 }
+export const NOTE_CENTER_OFFSET = { x: NOTE_SIZE / 2, y: NOTE_SIZE / 2 }
 /** @internal */
 export const NOTE_PIT_RADIUS = 10
-/** @internal */
-export type NotePit = Vec
 
-const DEFAULT_PITS: NotePit[] = [
+const DEFAULT_PITS = [
 	new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN), // t
 	new Vec(NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // r
 	new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN), // b
@@ -159,7 +157,7 @@ export function getNoteShapeForAdjacentPosition(
 		// space as the newly created shape (i.e its parent's space)
 		const topLeft = editor.getPointInParentSpace(
 			createdShape,
-			Vec.Sub(center, Vec.Rot(CENTER_OFFSET, pageRotation))
+			Vec.Sub(center, Vec.Rot(NOTE_CENTER_OFFSET, pageRotation))
 		)
 
 		editor.updateShape({

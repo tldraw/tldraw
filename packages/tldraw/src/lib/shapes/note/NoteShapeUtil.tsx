@@ -39,8 +39,8 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { useForceSolid } from '../shared/useForceSolid'
 import {
 	ADJACENT_NOTE_MARGIN,
-	CENTER_OFFSET,
 	CLONE_HANDLE_MARGIN,
+	NOTE_CENTER_OFFSET,
 	NOTE_SIZE,
 	getNoteShapeForAdjacentPosition,
 	startEditingNoteShape,
@@ -439,7 +439,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
 				)
 					.mul(offsetLength)
-					.add(CENTER_OFFSET)
+					.add(NOTE_CENTER_OFFSET)
 					.rot(pageRotation)
 					.add(pageTransform.point())
 
