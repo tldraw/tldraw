@@ -1823,6 +1823,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onKeyUp?: TLEventHandlers['onKeyUp'];
     // (undocumented)
+    onLongPress?: TLEventHandlers['onLongPress'];
+    // (undocumented)
     onMiddleClick?: TLEventHandlers['onMiddleClick'];
     // (undocumented)
     onPointerDown?: TLEventHandlers['onPointerDown'];
@@ -2143,6 +2145,8 @@ export interface TLEventHandlers {
     // (undocumented)
     onKeyUp: TLKeyboardEvent;
     // (undocumented)
+    onLongPress: TLPointerEvent;
+    // (undocumented)
     onMiddleClick: TLPointerEvent;
     // (undocumented)
     onPointerDown: TLPointerEvent;
@@ -2417,7 +2421,7 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 } & TLPointerEventTarget;
 
 // @public (undocumented)
-export type TLPointerEventName = 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click';
+export type TLPointerEventName = 'long_press' | 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click';
 
 // @public (undocumented)
 export type TLPointerEventTarget = {

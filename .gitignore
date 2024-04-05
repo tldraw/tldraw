@@ -93,3 +93,5 @@ apps/docs/content/gen
 
 .wrangler
 /vercel.json
+license-report-prod.html
+license-report.html
