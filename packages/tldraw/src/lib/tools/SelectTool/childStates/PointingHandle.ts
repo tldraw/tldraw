@@ -12,8 +12,8 @@ import {
 	NOTE_CENTER_OFFSET,
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
-	startEditingNoteShape,
 } from '../../../shapes/note/noteHelpers'
+import { startEditingShapeWithLabel } from '../../../shapes/shared/TextHelpers'
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
@@ -53,7 +53,7 @@ export class PointingHandle extends StateNode {
 			const { editor } = this
 			const nextNote = getNoteForPit(editor, shape, handle, false)
 			if (nextNote) {
-				startEditingNoteShape(editor, nextNote)
+				startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
 				return
 			}
 		}
@@ -89,7 +89,7 @@ export class PointingHandle extends StateNode {
 							isCreating: true,
 							onCreate: () => {
 								// When we're done, start editing it
-								startEditingNoteShape(editor, nextNote)
+								startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
 							},
 						})
 					return
