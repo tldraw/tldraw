@@ -3160,8 +3160,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				isCulled =
 					isCullingOffScreenShapes &&
-					// only cull shapes that allow unmounting, i.e. not stateful components
-					util.canUnmount(shape) &&
 					// never cull editingg shapes
 					editingShapeId !== id &&
 					// if the shape is fully outside of its parent's clipping bounds...

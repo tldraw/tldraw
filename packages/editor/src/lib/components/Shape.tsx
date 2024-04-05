@@ -1,12 +1,10 @@
 import { useQuickReactor, useStateTracking } from '@tldraw/state'
-import { IdOf } from '@tldraw/store'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { memo, useCallback, useRef } from 'react'
+import { memo, useCallback, useLayoutEffect, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Mat } from '../primitives/Mat'
-import { toDomPrecision } from '../primitives/utils'
 import { setStyleProperty } from '../utils/dom'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
@@ -45,6 +43,7 @@ export const Shape = memo(function Shape({
 	const { ShapeErrorFallback } = useEditorComponents()
 
 	const containerRef = useRef<HTMLDivElement>(null)
+	const culledContainerRef = useRef<HTMLDivElement>(null)
 	const bgContainerRef = useRef<HTMLDivElement>(null)
 
 	const memoizedStuffRef = useRef({
@@ -52,6 +51,8 @@ export const Shape = memo(function Shape({
 		clipPath: 'none',
 		width: 0,
 		height: 0,
+		x: 0,
+		y: 0,
 	})
 
 	useQuickReactor(
@@ -66,22 +67,31 @@ export const Shape = memo(function Shape({
 			const clipPath = editor.getShapeClipPath(id) ?? 'none'
 			if (clipPath !== prev.clipPath) {
 				setStyleProperty(containerRef.current, 'clip-path', clipPath)
+				setStyleProperty(culledContainerRef.current, 'clip-path', clipPath)
 				setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
 				prev.clipPath = clipPath
 			}
 
 			// Page transform
-			const transform = Mat.toCssString(editor.getShapePageTransform(id))
+			const pageTransform = editor.getShapePageTransform(id)
+			const transform = Mat.toCssString(pageTransform)
+			const bounds = editor.getShapeGeometry(shape).bounds
+
+			// Update if the tranform has changed
 			if (transform !== prev.transform) {
 				setStyleProperty(containerRef.current, 'transform', transform)
 				setStyleProperty(bgContainerRef.current, 'transform', transform)
+				setStyleProperty(
+					culledContainerRef.current,
+					'transform',
+					`${Mat.toCssString(pageTransform)} translate(${bounds.x}px, ${bounds.y}px)`
+				)
 				prev.transform = transform
 			}
 
 			// Width / Height
 			// We round the shape width and height up to the nearest multiple of dprMultiple
 			// to avoid the browser making miscalculations when applying the transform.
-			const bounds = editor.getShapeGeometry(shape).bounds
 			const widthRemainder = bounds.w % dprMultiple
 			const heightRemainder = bounds.h % dprMultiple
 			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
@@ -90,6 +100,8 @@ export const Shape = memo(function Shape({
 			if (width !== prev.width || height !== prev.height) {
 				setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
 				setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
+				setStyleProperty(culledContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
+				setStyleProperty(culledContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
 				setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
 				setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
 				prev.width = width
@@ -117,6 +129,15 @@ export const Shape = memo(function Shape({
 		[opacity, index, backgroundIndex]
 	)
 
+	useLayoutEffect(() => {
+		const container = containerRef.current
+		const bgContainer = bgContainerRef.current
+		const culledContainer = culledContainerRef.current
+		setStyleProperty(container, 'display', isCulled ? 'none' : 'block')
+		setStyleProperty(bgContainer, 'display', isCulled ? 'none' : 'block')
+		setStyleProperty(culledContainer, 'display', isCulled ? 'block' : 'none')
+	}, [isCulled])
+
 	const annotateError = useCallback(
 		(error: any) => editor.annotateError(error, { origin: 'shape', willCrashApp: false }),
 		[editor]
@@ -126,6 +147,7 @@ export const Shape = memo(function Shape({
 
 	return (
 		<>
+			<div ref={culledContainerRef} className="tl-shape__culled" draggable={false} />
 			{util.backgroundComponent && (
 				<div
 					ref={bgContainerRef}
@@ -133,21 +155,15 @@ export const Shape = memo(function Shape({
 					data-shape-type={shape.type}
 					draggable={false}
 				>
-					{isCulled ? null : (
-						<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
-							<InnerShapeBackground shape={shape} util={util} />
-						</OptionalErrorBoundary>
-					)}
+					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
+						<InnerShapeBackground shape={shape} util={util} />
+					</OptionalErrorBoundary>
 				</div>
 			)}
 			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
-				{isCulled ? (
-					<CulledShape shapeId={shape.id} />
-				) : (
-					<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
-						<InnerShape shape={shape} util={util} />
-					</OptionalErrorBoundary>
-				)}
+				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
+					<InnerShape shape={shape} util={util} />
+				</OptionalErrorBoundary>
 			</div>
 		</>
 	)
@@ -172,23 +188,3 @@ const InnerShapeBackground = memo(
 	},
 	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
-
-const CulledShape = function CulledShape<T extends TLShape>({ shapeId }: { shapeId: IdOf<T> }) {
-	const editor = useEditor()
-	const culledRef = useRef<HTMLDivElement>(null)
-
-	useQuickReactor(
-		'set shape stuff',
-		() => {
-			const bounds = editor.getShapeGeometry(shapeId).bounds
-			setStyleProperty(
-				culledRef.current,
-				'transform',
-				`translate(${toDomPrecision(bounds.minX)}px, ${toDomPrecision(bounds.minY)}px)`
-			)
-		},
-		[editor]
-	)
-
-	return <div ref={culledRef} className="tl-shape__culled" />
-}

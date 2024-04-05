@@ -338,10 +338,13 @@ input,
 }
 
 .tl-shape__culled {
-	position: relative;
+	position: absolute;
+	pointer-events: none;
+	overflow: visible;
+	transform-origin: top left;
+	contain: size layout;
 	background-color: var(--color-culled);
-	width: 100%;
-	height: 100%;
+	z-index: 0;
 }
 
 /* ---------------- Shape Containers ---------------- */
