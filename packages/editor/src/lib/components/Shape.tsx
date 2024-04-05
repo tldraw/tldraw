@@ -118,30 +118,15 @@ export const Shape = memo(function Shape({
 		[opacity, index, backgroundIndex]
 	)
 
-	// This stuff changes pretty infrequently, so we can change them together
 	useQuickReactor(
 		'set display',
 		() => {
 			const shape = editor.getShape(id)
 			if (!shape) return // probably the shape was just deleted
 
-			// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
-			const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
-			const selectedShapeIds = editor.getSelectedShapeIds()
-			const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
-			const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
-			const isCulled =
-				isCullingOffScreenShapes &&
-				// never cull editing shapes
-				editor.getEditingShapeId() !== id &&
-				// if the shape is fully outside of its parent's clipping bounds...
-				(maskedPageBounds === undefined ||
-					// ...or if the shape is outside of the expanded viewport bounds...
-					(!renderingBoundsExpanded.includes(maskedPageBounds) &&
-						// ...and if it's not selected... then cull it
-						!selectedShapeIds.includes(id)))
+			// console.log(shape.id)
+			const isCulled = editor.isShapeCulled(shape)
 			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
-			setStyleProperty(culledContainerRef.current, 'display', isCulled ? 'block' : 'none')
 			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
 		},
 		[editor]

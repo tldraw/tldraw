@@ -22,9 +22,11 @@ export function useChangedShapesReactor(
 				if (!beforeInfo) {
 					continue
 				} else {
-					if (afterInfo.isCulled && !beforeInfo.isCulled) {
+					const isAfterCulled = editor.isShapeCulled(afterInfo.id)
+					const isBeforeCulled = editor.isShapeCulled(beforeInfo.id)
+					if (isAfterCulled && !isBeforeCulled) {
 						culled.push(afterInfo.shape)
-					} else if (!afterInfo.isCulled && beforeInfo.isCulled) {
+					} else if (!isAfterCulled && isBeforeCulled) {
 						restored.push(afterInfo.shape)
 					}
 					beforeToVisit.delete(beforeInfo)

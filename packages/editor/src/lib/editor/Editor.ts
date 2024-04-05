@@ -3126,48 +3126,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 			index: number
 			backgroundIndex: number
 			opacity: number
-			isCulled: boolean
-			maskedPageBounds: Box | undefined
 		}[] = []
 
 		let nextIndex = MAX_SHAPES_PER_PAGE * 2
 		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE
 
-		// We only really need these if we're using editor state, but that's ok
-		const editingShapeId = this.getEditingShapeId()
-		const selectedShapeIds = this.getSelectedShapeIds()
 		const erasingShapeIds = this.getErasingShapeIds()
-		const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
-
-		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
-		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
 
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			const shape = this.getShape(id)
 			if (!shape) return
 
 			opacity *= shape.opacity
-			let isCulled = false
 			let isShapeErasing = false
 			const util = this.getShapeUtil(shape)
-			const maskedPageBounds = this.getShapeMaskedPageBounds(id)
 
 			if (useEditorState) {
 				isShapeErasing = !isAncestorErasing && erasingShapeIds.includes(id)
 				if (isShapeErasing) {
 					opacity *= 0.32
 				}
-
-				isCulled =
-					isCullingOffScreenShapes &&
-					// never cull editingg shapes
-					editingShapeId !== id &&
-					// if the shape is fully outside of its parent's clipping bounds...
-					(maskedPageBounds === undefined ||
-						// ...or if the shape is outside of the expanded viewport bounds...
-						(!renderingBoundsExpanded.includes(maskedPageBounds) &&
-							// ...and if it's not selected... then cull it
-							!selectedShapeIds.includes(id)))
 			}
 
 			renderingShapes.push({
@@ -3177,8 +3155,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				index: nextIndex,
 				backgroundIndex: nextBackgroundIndex,
 				opacity,
-				isCulled,
-				maskedPageBounds,
 			})
 
 			nextIndex += 1
@@ -4266,6 +4242,51 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.isShapeOrAncestorLocked(this.getShapeParent(shape))
 	}
 
+	@computed
+	private _getShapeCullingInfoCache(): ComputedCache<boolean, TLShape> {
+		return this.store.createComputedCache(
+			'shapeCullingInfo',
+			({ id }) => {
+				// We don't cull shapes that are being edited
+				if (this.getEditingShapeId() === id) return false
+
+				const maskedPageBounds = this.getShapeMaskedPageBounds(id)
+				// if the shape is fully outside of its parent's clipping bounds...
+				if (maskedPageBounds === undefined) return true
+
+				// We don't cull selected shapes
+				if (this.getSelectedShapeIds().includes(id)) return false
+				const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
+				// the shape is outside of the expanded viewport bounds...
+				return !renderingBoundsExpanded.includes(maskedPageBounds)
+			},
+			(a, b) => this.getShapeMaskedPageBounds(a) === this.getShapeMaskedPageBounds(b)
+		)
+	}
+
+	/**
+	 * Get whether the shape is culled or not.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.isShapeCulled(myShape)
+	 * editor.isShapeCulled(myShapeId)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to get the culled info for.
+	 *
+	 * @public
+	 */
+	isShapeCulled(shape: TLShape | TLShapeId): boolean {
+		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
+		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
+		if (!isCullingOffScreenShapes) return false
+
+		const id = typeof shape === 'string' ? shape : shape.id
+
+		return this._getShapeCullingInfoCache().get(id)! as boolean
+	}
+
 	/**
 	 * The bounds of the current page (the common bounds of all of the shapes on the page).
 	 *
@@ -4603,6 +4624,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
+		// console.log('current pge sorted')
 		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
 		// todo: consider making a derivation or something, or merging with rendering shapes
 		const shapes = new Set(this.getCurrentPageShapes().sort(sortByIndex))
@@ -4638,7 +4660,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
 		return this.getRenderingShapes()
-			.filter(({ isCulled }) => !isCulled)
+			.filter(({ id }) => !this.isShapeCulled(id))
 			.sort((a, b) => a.index - b.index)
 			.map(({ shape }) => shape)
 	}
