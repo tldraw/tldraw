@@ -386,31 +386,39 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { fill, font, align, verticalAlign, size, text } = props
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const theme = useDefaultColorTheme()
+		const isEditing = this.editor.getEditingShapeId() === id
+		const showHtmlContainer = isEditing || shape.props.text
 
 		return (
 			<>
 				<SVGContainer id={id}>
 					<GeoShapeBody shape={shape} />
 				</SVGContainer>
-				<HTMLContainer
-					id={shape.id}
-					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h + props.growY }}
-				>
-					<TextLabel
-						id={id}
-						type={type}
-						font={font}
-						fontSize={LABEL_FONT_SIZES[size]}
-						lineHeight={TEXT_PROPS.lineHeight}
-						fill={fill}
-						align={align}
-						verticalAlign={verticalAlign}
-						text={text}
-						isSelected={isSelected}
-						labelColor={theme[props.labelColor].solid}
-						wrap
-					/>
-				</HTMLContainer>
+				{showHtmlContainer && (
+					<HTMLContainer
+						id={shape.id}
+						style={{
+							overflow: 'hidden',
+							width: shape.props.w,
+							height: shape.props.h + props.growY,
+						}}
+					>
+						<TextLabel
+							id={id}
+							type={type}
+							font={font}
+							fontSize={LABEL_FONT_SIZES[size]}
+							lineHeight={TEXT_PROPS.lineHeight}
+							fill={fill}
+							align={align}
+							verticalAlign={verticalAlign}
+							text={text}
+							isSelected={isSelected}
+							labelColor={theme[props.labelColor].solid}
+							wrap
+						/>
+					</HTMLContainer>
+				)}
 				{shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 				)}
