@@ -1,5 +1,9 @@
 import { T } from '@tldraw/validate'
-import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrations,
+} from '../records/TLShape'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -66,7 +70,7 @@ export type TLGeoShapeProps = ShapePropsType<typeof geoShapeProps>
 /** @public */
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
-const geoShapeVersions = {
+const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	AddUrlProp: 1,
 	AddLabelColor: 2,
 	RemoveJustify: 3,
@@ -75,7 +79,7 @@ const geoShapeVersions = {
 	MigrateLegacyAlign: 6,
 	AddCloud: 7,
 	MakeUrlsValid: 8,
-} as const
+})
 
 export { geoShapeVersions as geoShapeVersions }
 
@@ -83,21 +87,21 @@ export { geoShapeVersions as geoShapeVersions }
 export const geoShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
-			version: geoShapeVersions.AddUrlProp,
+			id: geoShapeVersions.AddUrlProp,
 			up: (props) => {
 				props.url = ''
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: geoShapeVersions.AddLabelColor,
+			id: geoShapeVersions.AddLabelColor,
 			up: (props) => {
 				props.labelColor = 'black'
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: geoShapeVersions.RemoveJustify,
+			id: geoShapeVersions.RemoveJustify,
 			up: (props) => {
 				if (props.align === 'justify') {
 					props.align = 'start'
@@ -106,21 +110,21 @@ export const geoShapeMigrations = createShapePropsMigrations({
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: geoShapeVersions.AddCheckBox,
+			id: geoShapeVersions.AddCheckBox,
 			up: (_props) => {
 				// noop
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: geoShapeVersions.AddVerticalAlign,
+			id: geoShapeVersions.AddVerticalAlign,
 			up: (props) => {
 				props.verticalAlign = 'middle'
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: geoShapeVersions.MigrateLegacyAlign,
+			id: geoShapeVersions.MigrateLegacyAlign,
 			up: (props) => {
 				let newAlign: TLDefaultHorizontalAlignStyle
 				switch (props.align) {
@@ -139,14 +143,14 @@ export const geoShapeMigrations = createShapePropsMigrations({
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: geoShapeVersions.AddCloud,
+			id: geoShapeVersions.AddCloud,
 			up: (_props) => {
 				// noop
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: geoShapeVersions.MakeUrlsValid,
+			id: geoShapeVersions.MakeUrlsValid,
 			up: (props) => {
 				if (!T.linkUrl.isValid(props.url)) {
 					props.url = ''

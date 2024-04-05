@@ -1,6 +1,10 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import { RETIRED_DOWN_MIGRATION, createShapePropsMigrations } from '../records/TLShape'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrations,
+} from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
@@ -19,10 +23,10 @@ export type TLVideoShapeProps = ShapePropsType<typeof videoShapeProps>
 /** @public */
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('video', {
 	AddUrlProp: 1,
 	MakeUrlsValid: 2,
-} as const
+})
 
 export { Versions as videoShapeVersions }
 
@@ -30,14 +34,14 @@ export { Versions as videoShapeVersions }
 export const videoShapeMigrations = createShapePropsMigrations({
 	sequence: [
 		{
-			version: Versions.AddUrlProp,
+			id: Versions.AddUrlProp,
 			up: (props) => {
 				props.url = ''
 			},
 			down: RETIRED_DOWN_MIGRATION,
 		},
 		{
-			version: Versions.MakeUrlsValid,
+			id: Versions.MakeUrlsValid,
 			up: (props) => {
 				if (!T.linkUrl.isValid(props.url)) {
 					props.url = ''

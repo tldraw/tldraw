@@ -203,10 +203,10 @@ export type TLShapePropsMigrations = {
 	sequence: Array<
 		| { readonly dependsOn: readonly MigrationId[] }
 		| {
-				readonly version: number
+				readonly id: MigrationId
 				readonly dependsOn?: MigrationId[]
 				readonly up: (props: any) => any
-				readonly down:
+				readonly down?:
 					| typeof NO_DOWN_MIGRATION
 					| typeof RETIRED_DOWN_MIGRATION
 					| ((props: any) => any)
@@ -221,6 +221,16 @@ export function createShapePropsMigrations(
 	migrations: TLShapePropsMigrations
 ): TLShapePropsMigrations {
 	return migrations
+}
+
+/**
+ * @public
+ */
+export function createShapePropsMigrationIds<S extends string, T extends Record<string, number>>(
+	shapeType: S,
+	ids: T
+): { [k in keyof T]: `com.tldraw.shape.${S}/${T[k]}` } {
+	return mapObjectMapValues(ids, (_k, v) => `com.tldraw.shape.${shapeType}/${v}`) as any
 }
 
 export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) {
@@ -243,9 +253,9 @@ export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) 
 					sequenceId,
 					retroactive: false,
 					sequence: migrations.sequence.map((m) =>
-						'version' in m
+						'id' in m
 							? {
-									id: `${sequenceId}/${m.version}`,
+									id: m.id,
 									scope: 'record',
 									filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
 									dependsOn: m.dependsOn,
