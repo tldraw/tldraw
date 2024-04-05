@@ -107,7 +107,12 @@ export function useCanvasEvents() {
 				;(e as any).isKilled = true
 				if (
 					(e.target as HTMLElement).tagName !== 'A' &&
-					(e.target as HTMLElement).tagName !== 'TEXTAREA'
+					(e.target as HTMLElement).tagName !== 'TEXTAREA' &&
+					// When in EditingShape state, we are actually clicking on a 'DIV'
+					// not A/TEXTAREA element yet. So, to preserve cursor position
+					// for edit mode on mobile we need to not preventDefault.
+					// TODO: Find out if we still need this preventDefault in general though.
+					!editor.getEditingShape()
 				) {
 					preventDefault(e)
 				}
