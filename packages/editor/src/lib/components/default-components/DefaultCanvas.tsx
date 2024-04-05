@@ -376,8 +376,8 @@ function ShapesToDisplay() {
 
 	return (
 		<>
-			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
+			{renderingShapes.map(({ isCulled: _isCulled, ...rest }) => (
+				<Shape key={rest.id + '_shape'} {...rest} dprMultiple={dprMultiple} />
 			))}
 		</>
 	)

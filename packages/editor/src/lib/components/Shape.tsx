@@ -1,6 +1,6 @@
 import { useQuickReactor, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { memo, useCallback, useLayoutEffect, useRef } from 'react'
+import { memo, useCallback, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -26,7 +26,6 @@ export const Shape = memo(function Shape({
 	index,
 	backgroundIndex,
 	opacity,
-	isCulled,
 	dprMultiple,
 }: {
 	id: TLShapeId
@@ -35,7 +34,6 @@ export const Shape = memo(function Shape({
 	index: number
 	backgroundIndex: number
 	opacity: number
-	isCulled: boolean
 	dprMultiple: number
 }) {
 	const editor = useEditor()
@@ -120,13 +118,34 @@ export const Shape = memo(function Shape({
 		[opacity, index, backgroundIndex]
 	)
 
-	useLayoutEffect(() => {
-		const container = containerRef.current
-		const bgContainer = bgContainerRef.current
-		setStyleProperty(container, 'display', isCulled ? 'none' : 'block')
-		setStyleProperty(bgContainer, 'display', isCulled ? 'none' : 'block')
-	}, [isCulled])
+	// This stuff changes pretty infrequently, so we can change them together
+	useQuickReactor(
+		'set display',
+		() => {
+			const shape = editor.getShape(id)
+			if (!shape) return // probably the shape was just deleted
 
+			// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
+			const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
+			const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
+			const isCulled =
+				isCullingOffScreenShapes &&
+				// never cull editing shapes
+				editor.getEditingShapeId() !== id &&
+				// if the shape is fully outside of its parent's clipping bounds...
+				(maskedPageBounds === undefined ||
+					// ...or if the shape is outside of the expanded viewport bounds...
+					(!renderingBoundsExpanded.includes(maskedPageBounds) &&
+						// ...and if it's not selected... then cull it
+						!selectedShapeIds.includes(id)))
+			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+			setStyleProperty(culledContainerRef.current, 'display', isCulled ? 'block' : 'none')
+			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+		},
+		[editor]
+	)
 	const annotateError = useCallback(
 		(error: any) => editor.annotateError(error, { origin: 'shape', willCrashApp: false }),
 		[editor]
