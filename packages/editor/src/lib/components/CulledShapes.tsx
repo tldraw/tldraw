@@ -109,11 +109,9 @@ export function CulledShapes() {
 			viewportEndUniformLocation,
 		} = webGl
 
-		const shapeVertices = computed('shape vertices', function calculateCulledShapeVertices() {
-			const editingShapeId = editor.getEditingShapeId()
-			const selectedShapeIds = editor.getSelectedShapeIds()
-			const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
+		let didCullAnything = false
 
+		const shapeVertices = computed('shape vertices', function calculateCulledShapeVertices() {
 			const results: number[] = []
 
 			for (const { isCulled, maskedPageBounds } of editor.getRenderingShapes()) {
@@ -152,9 +150,16 @@ export function CulledShapes() {
 				context.viewport(0, 0, width, height)
 			}
 
-			context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT)
-
 			const verticesArray = shapeVertices.get()
+			const willCullAnything = verticesArray.length > 0
+
+			if (!didCullAnything && !willCullAnything) {
+				return
+			}
+
+			didCullAnything = willCullAnything
+
+			context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT)
 
 			if (verticesArray.length > 0) {
 				const viewport = editor.getViewportPageBounds() // when the viewport changes...
