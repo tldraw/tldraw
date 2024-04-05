@@ -3216,7 +3216,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getRenderingShapes() {
 		const now = Date.now()
 		const renderingShapes = this.getUnorderedRenderingShapes(true)
-		console.log(Date.now() - now)
+		console.log('getUnorderedRenderingShapes', Date.now() - now)
 
 		// Its IMPORTANT that the result be sorted by id AND include the index
 		// that the shape should be displayed at. Steve, this is the past you

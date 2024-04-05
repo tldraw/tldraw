@@ -48,7 +48,7 @@ export class SpatialIndex {
 		const result = this.rBushIncremental().get()
 		const rbush = new TldrawRBush().fromJSON(result)
 		const r = rbush.search(bounds).map((b) => b.id)
-		// console.log('loading took', Date.now() - now, 'ms')
+		console.log('shapes inside bounds', Date.now() - now, 'ms')
 		return r
 	}
 
