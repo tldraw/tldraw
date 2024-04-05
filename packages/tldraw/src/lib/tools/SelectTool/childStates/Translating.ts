@@ -358,33 +358,26 @@ function getTranslatingSnapshot(editor: Editor) {
 
 	const { originPagePoint } = editor.inputs
 
-	if (
-		shapeSnapshots.length === 1 &&
-		editor.isShapeOfType<TLNoteShape>(shapeSnapshots[0].shape, 'note')
-	) {
-		noteSnapshot = shapeSnapshots[0]
-	} else {
-		const allHoveredNotes = shapeSnapshots.filter(
-			(s) =>
-				editor.isShapeOfType<TLNoteShape>(s.shape, 'note') &&
-				editor.isPointInShape(s.shape, originPagePoint)
-		)
+	const allHoveredNotes = shapeSnapshots.filter(
+		(s) =>
+			editor.isShapeOfType<TLNoteShape>(s.shape, 'note') &&
+			editor.isPointInShape(s.shape, originPagePoint)
+	)
 
-		if (allHoveredNotes.length === 0) {
-			// noop
-		} else if (allHoveredNotes.length === 1) {
-			// just one, easy
-			noteSnapshot = allHoveredNotes[0]
-		} else {
-			// More than one under the cursor, so we need to find the highest shape in z-order
-			const allShapesSorted = editor.getCurrentPageShapesSorted()
-			noteSnapshot = allHoveredNotes
-				.map((s) => ({
-					snapshot: s,
-					index: allShapesSorted.findIndex((shape) => shape.id === s.shape.id),
-				}))
-				.sort((a, b) => b.index - a.index)[0]?.snapshot // highest up first
-		}
+	if (allHoveredNotes.length === 0) {
+		// noop
+	} else if (allHoveredNotes.length === 1) {
+		// just one, easy
+		noteSnapshot = allHoveredNotes[0]
+	} else {
+		// More than one under the cursor, so we need to find the highest shape in z-order
+		const allShapesSorted = editor.getCurrentPageShapesSorted()
+		noteSnapshot = allHoveredNotes
+			.map((s) => ({
+				snapshot: s,
+				index: allShapesSorted.findIndex((shape) => shape.id === s.shape.id),
+			}))
+			.sort((a, b) => b.index - a.index)[0]?.snapshot // highest up first
 	}
 
 	if (noteSnapshot) {
