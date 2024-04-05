@@ -17,8 +17,7 @@ const overrides: TLUiOverrides = {
 	},
 	//[b]
 	tools(_editor, tools): TLUiToolsContextType {
-		const newTools = { ...tools }
-		newTools['draw'].kbd = 'p'
+		const newTools = { ...tools, draw: { ...tools.draw, kbd: 'p' } }
 		return newTools
 	},
 }
