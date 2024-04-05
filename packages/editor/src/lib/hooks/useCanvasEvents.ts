@@ -112,7 +112,10 @@ export function useCanvasEvents() {
 					// not A/TEXTAREA element yet. So, to preserve cursor position
 					// for edit mode on mobile we need to not preventDefault.
 					// TODO: Find out if we still need this preventDefault in general though.
-					!editor.getEditingShape()
+					!(
+						editor.getEditingShape() &&
+						(e.target as HTMLElement).className.includes('tl-text-content')
+					)
 				) {
 					preventDefault(e)
 				}
