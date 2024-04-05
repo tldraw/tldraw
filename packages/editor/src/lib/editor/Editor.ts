@@ -3325,7 +3325,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getCurrentPageId(): TLPageId {
+	@computed getCurrentPageId(): TLPageId {
 		return this.getInstanceState().currentPageId
 	}
 
