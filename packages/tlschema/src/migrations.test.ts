@@ -2041,7 +2041,7 @@ describe('Add font size adjustment to notes', () => {
 		expect(down({ props: { fontSizeAdjustment: 0 } })).toEqual({ props: {} })
 	})
 })
-    
+
 describe('add white', () => {
 	const { up, down } = rootShapeMigrations.migrators[rootShapeVersions.AddWhite]
 
