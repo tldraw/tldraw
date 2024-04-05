@@ -527,6 +527,7 @@ export class Idle extends StateNode {
 		shouldSelectAll?: boolean
 	) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
+		this.editor.mark('editing shape')
 		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll)
 		this.parent.transition('editing_shape', info)
 	}
