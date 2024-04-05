@@ -28,7 +28,12 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
-import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	LABEL_PADDING,
+	TEXT_PROPS,
+} from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 import { useForceSolid } from '../shared/useForceSolid'
@@ -348,7 +353,6 @@ function _getLabelSize(editor: Editor, shape: TLNoteShape) {
 		return { labelHeight: 0, labelWidth: 0, fontSizeAdjustment: 0 }
 	}
 
-	const PADDING = 16
 	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
 
 	let fontSizeAdjustment = 0
@@ -363,12 +367,12 @@ function _getLabelSize(editor: Editor, shape: TLNoteShape) {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize: fontSizeAdjustment,
-			maxWidth: NOTE_SIZE - PADDING * 2,
+			maxWidth: NOTE_SIZE - LABEL_PADDING * 2,
 			disableOverflowWrapBreaking: true,
 		})
 
-		labelHeight = nextTextSize.h + PADDING * 2
-		labelWidth = nextTextSize.w + PADDING * 2
+		labelHeight = nextTextSize.h + LABEL_PADDING * 2
+		labelWidth = nextTextSize.w + LABEL_PADDING * 2
 
 		if (fontSizeAdjustment <= 14) {
 			// Too small, just rely now on CSS `overflow-wrap: break-word`
@@ -377,10 +381,10 @@ function _getLabelSize(editor: Editor, shape: TLNoteShape) {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize: fontSizeAdjustment,
-				maxWidth: NOTE_SIZE - PADDING * 2,
+				maxWidth: NOTE_SIZE - LABEL_PADDING * 2,
 			})
-			labelHeight = nextTextSizeWithOverflowBreak.h + PADDING * 2
-			labelWidth = nextTextSizeWithOverflowBreak.w + PADDING * 2
+			labelHeight = nextTextSizeWithOverflowBreak.h + LABEL_PADDING * 2
+			labelWidth = nextTextSizeWithOverflowBreak.w + LABEL_PADDING * 2
 			break
 		}
 
