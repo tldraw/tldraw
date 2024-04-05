@@ -63,6 +63,8 @@ test.describe('smoke tests', () => {
 		await page.mouse.move(100, 100)
 		await page.mouse.down()
 		await page.mouse.up()
+		await page.waitForTimeout(20)
+
 		expect(await getAllShapeTypes(page)).toEqual(['geo'])
 
 		const getSelectedShapeColor = async () =>
