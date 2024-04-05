@@ -118,7 +118,10 @@ export class Resizing extends StateNode {
 
 	private cancel() {
 		// Restore initial models
+		const shapes = Array.from(this.snapshot.shapeSnapshots.values()).map((s) => s.shape)
+		this.updateShapesInStore(shapes)
 		this.editor.bailToMark(this.markId)
+
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {
