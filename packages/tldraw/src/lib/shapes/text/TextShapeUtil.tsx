@@ -70,9 +70,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const { width, height } = this.getMinDimensions(shape)
 
-		const transformOrigin =
-			align === 'start' ? 'top left' : align === 'end' ? 'top right' : 'top center'
-
 		return (
 			<HTMLContainer id={shape.id}>
 				<TextLabel
@@ -90,7 +87,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					textHeight={height}
 					style={{
 						transform: `scale(${scale})`,
-						transformOrigin: transformOrigin,
+						transformOrigin: 'top left',
 					}}
 					wrap
 				/>
