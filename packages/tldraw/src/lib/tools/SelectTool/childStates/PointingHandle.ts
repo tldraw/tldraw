@@ -64,38 +64,6 @@ export class PointingHandle extends StateNode {
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		const { editor } = this
 		if (editor.inputs.isDragging) {
-			if (this.editor.getInstanceState().isReadonly) return
-
-			const { shape, handle } = this.info
-
-			if (editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
-				const nextNote = getNoteForPit(editor, shape, handle, true)
-				if (nextNote) {
-					// Center the shape on the current pointer
-					const centeredOnPointer = editor
-						.getPointInParentSpace(nextNote, editor.inputs.originPagePoint)
-						.sub(Vec.Rot(NOTE_CENTER_OFFSET, nextNote.rotation))
-					editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
-
-					// Then select and begin translating the shape
-					editor
-						.setHoveredShape(nextNote.id) // important!
-						.select(nextNote.id)
-						.setCurrentTool('select.translating', {
-							...this.info,
-							target: 'shape',
-							shape: editor.getShape(nextNote),
-							onInteractionEnd: 'note',
-							isCreating: true,
-							onCreate: () => {
-								// When we're done, start editing it
-								startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
-							},
-						})
-					return
-				}
-			}
-
 			this.startDraggingHandle()
 		}
 	}
@@ -105,7 +73,38 @@ export class PointingHandle extends StateNode {
 	}
 
 	private startDraggingHandle() {
-		if (this.editor.getInstanceState().isReadonly) return
+		const { editor } = this
+		if (editor.getInstanceState().isReadonly) return
+		const { shape, handle } = this.info
+
+		if (editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
+			const nextNote = getNoteForPit(editor, shape, handle, true)
+			if (nextNote) {
+				// Center the shape on the current pointer
+				const centeredOnPointer = editor
+					.getPointInParentSpace(nextNote, editor.inputs.originPagePoint)
+					.sub(Vec.Rot(NOTE_CENTER_OFFSET, nextNote.rotation))
+				editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
+
+				// Then select and begin translating the shape
+				editor
+					.setHoveredShape(nextNote.id) // important!
+					.select(nextNote.id)
+					.setCurrentTool('select.translating', {
+						...this.info,
+						target: 'shape',
+						shape: editor.getShape(nextNote),
+						onInteractionEnd: 'note',
+						isCreating: true,
+						onCreate: () => {
+							// When we're done, start editing it
+							startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
+						},
+					})
+				return
+			}
+		}
+
 		this.parent.transition('dragging_handle', this.info)
 	}
 
