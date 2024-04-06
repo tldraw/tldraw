@@ -53,6 +53,7 @@ export const debugFlags: Record<string, DebugFlag<boolean>> = {
 	forceSrgb: createDebugValue('forceSrgbColors', { defaults: { all: false } }),
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
+	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
 }
 
 declare global {

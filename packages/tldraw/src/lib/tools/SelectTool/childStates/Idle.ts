@@ -13,6 +13,7 @@ import {
 	Vec,
 	VecLike,
 	createShapeId,
+	debugFlags,
 	pointInPolygon,
 } from '@tldraw/editor'
 import { startEditingShapeWithLabel } from '../../../shapes/shared/TextHelpers'
@@ -21,6 +22,17 @@ import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCrop
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 import { kickoutOccludedShapes } from '../selectHelpers'
+
+const SKIPPED_KEYS_FOR_AUTO_EDITING = [
+	'Delete',
+	'Backspace',
+	'[',
+	']',
+	'Enter',
+	' ',
+	'Shift',
+	'Tab',
+]
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -422,6 +434,33 @@ export class Idle extends StateNode {
 			case 'ArrowDown': {
 				this.nudgeSelectedShapes(false)
 				return
+			}
+		}
+
+		if (debugFlags['editOnType'].get()) {
+			// This feature flag lets us start editing a note shape's label when a key is pressed.
+			// We exclude certain keys to avoid conflicting with modifiers, but there are conflicts
+			// with other action kbds, hence why this is kept behind a feature flag.
+			if (!SKIPPED_KEYS_FOR_AUTO_EDITING.includes(info.key) && !info.altKey && !info.ctrlKey) {
+				// If the only selected shape is editable, then begin editing it
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
+				if (
+					onlySelectedShape &&
+					this.shouldStartEditingShape(onlySelectedShape) &&
+					// If it's a note shape, then edit on type
+					this.editor.isShapeOfType(onlySelectedShape, 'note')
+				) {
+					this.startEditingShape(
+						onlySelectedShape,
+						{
+							...info,
+							target: 'shape',
+							shape: onlySelectedShape,
+						},
+						true /* select all */
+					)
+					return
+				}
 			}
 		}
 	}
