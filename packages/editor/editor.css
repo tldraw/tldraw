@@ -24,6 +24,7 @@
 	/* Z Index */
 	--layer-background: 100;
 	--layer-grid: 150;
+	--layer-culled-shapes: 175;
 	--layer-canvas: 200;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
@@ -236,6 +237,20 @@ input,
 	contain: strict;
 }
 
+.tl-culled-shapes {
+	width: 100%;
+	height: 100%;
+	z-index: var(--layer-culled-shapes);
+	position: absolute;
+	pointer-events: none;
+	contain: size layout;
+}
+
+.tl-culled-shapes__canvas {
+	width: 100%;
+	height: 100%;
+}
+
 .tl-shapes {
 	position: relative;
 	z-index: var(--layer-shapes);
@@ -269,13 +284,16 @@ input,
 
 /* ------------------- Background ------------------- */
 
+.tl-background__wrapper {
+	z-index: var(--layer-background);
+}
+
 .tl-background {
 	position: absolute;
 	background-color: var(--color-background);
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-background);
 }
 
 /* --------------------- Grid Layer --------------------- */
@@ -338,10 +356,13 @@ input,
 }
 
 .tl-shape__culled {
-	position: relative;
+	position: absolute;
+	pointer-events: none;
+	overflow: visible;
+	transform-origin: top left;
+	contain: size layout;
 	background-color: var(--color-culled);
-	width: 100%;
-	height: 100%;
+	z-index: 0;
 }
 
 /* ---------------- Shape Containers ---------------- */

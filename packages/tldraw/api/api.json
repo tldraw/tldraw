@@ -5706,50 +5706,6 @@
               "isAbstract": false
             },
             {
-              "kind": "Property",
-              "canonicalReference": "tldraw!EmbedShapeUtil#canUnmount:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "canUnmount: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeUtilFlag",
-                  "canonicalReference": "@tldraw/editor!TLShapeUtilFlag:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLEmbedShape",
-                  "canonicalReference": "@tldraw/tlschema!TLEmbedShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "canUnmount",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
               "kind": "Method",
               "canonicalReference": "tldraw!EmbedShapeUtil#component:member(1)",
               "docComment": "",

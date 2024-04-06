@@ -1623,7 +1623,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canResize: TLShapeUtilFlag<Shape>;
     canScroll: TLShapeUtilFlag<Shape>;
     canSnap: TLShapeUtilFlag<Shape>;
-    canUnmount: TLShapeUtilFlag<Shape>;
     abstract component(shape: Shape): any;
     // (undocumented)
     editor: Editor;
@@ -1823,6 +1822,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     onKeyRepeat?: TLEventHandlers['onKeyRepeat'];
     // (undocumented)
     onKeyUp?: TLEventHandlers['onKeyUp'];
+    // (undocumented)
+    onLongPress?: TLEventHandlers['onLongPress'];
     // (undocumented)
     onMiddleClick?: TLEventHandlers['onMiddleClick'];
     // (undocumented)
@@ -2144,6 +2145,8 @@ export interface TLEventHandlers {
     // (undocumented)
     onKeyUp: TLKeyboardEvent;
     // (undocumented)
+    onLongPress: TLPointerEvent;
+    // (undocumented)
     onMiddleClick: TLPointerEvent;
     // (undocumented)
     onPointerDown: TLPointerEvent;
@@ -2418,7 +2421,7 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 } & TLPointerEventTarget;
 
 // @public (undocumented)
-export type TLPointerEventName = 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click';
+export type TLPointerEventName = 'long_press' | 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click';
 
 // @public (undocumented)
 export type TLPointerEventTarget = {

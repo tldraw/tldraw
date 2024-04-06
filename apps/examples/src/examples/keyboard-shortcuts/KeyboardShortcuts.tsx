@@ -1,6 +1,5 @@
 import { TLUiActionsContextType, TLUiOverrides, TLUiToolsContextType, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
-import jsonSnapshot from './snapshot.json'
 
 // There's a guide at the bottom of this file!
 
@@ -8,13 +7,18 @@ import jsonSnapshot from './snapshot.json'
 const overrides: TLUiOverrides = {
 	//[a]
 	actions(_editor, actions): TLUiActionsContextType {
-		actions['toggle-grid'].kbd = 'x'
-		return actions
+		const newActions = {
+			...actions,
+			'toggle-grid': { ...actions['toggle-grid'], kbd: 'x' },
+			'copy-as-png': { ...actions['copy-as-png'], kbd: '$1' },
+		}
+
+		return newActions
 	},
 	//[b]
 	tools(_editor, tools): TLUiToolsContextType {
-		tools['draw'].kbd = 'p'
-		return tools
+		const newTools = { ...tools, draw: { ...tools.draw, kbd: 'p' } }
+		return newTools
 	},
 }
 
@@ -22,7 +26,7 @@ const overrides: TLUiOverrides = {
 export default function KeyboardShortcuts() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="tldraw_kbd_shortcuts" overrides={overrides} snapshot={jsonSnapshot} />
+			<Tldraw overrides={overrides} />
 		</div>
 	)
 }
