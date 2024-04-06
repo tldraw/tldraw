@@ -86,6 +86,9 @@ export const ANIMATION_MEDIUM_MS = 320;
 // @internal (undocumented)
 export const ANIMATION_SHORT_MS = 80;
 
+// @public (undocumented)
+export function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T;
+
 // @internal (undocumented)
 export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
     delta: number;
