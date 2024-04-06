@@ -954,6 +954,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getArrowInfoCache().get(id)
 	}
 
+	/**
+	 * Get the uncached info about an arrow that may not be in the store yet.
+	 *
+	 * @public
+	 */
+	getUncachedArrowInfo(shape: TLArrowShape): TLArrowInfo | undefined {
+		return getIsArrowStraight(shape)
+			? getStraightArrowInfo(this, shape)
+			: getCurvedArrowInfo(this, shape)
+	}
+
 	/* --------------------- Errors --------------------- */
 
 	/** @internal */
@@ -3980,14 +3991,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed private _getShapePageBoundsCache(): ComputedCache<Box, TLShape> {
 		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
 			const pageTransform = this._getShapePageTransformCache().get(shape.id)
-
-			if (!pageTransform) return new Box()
-
-			const result = Box.FromPoints(
-				Mat.applyToPoints(pageTransform, this.getShapeGeometry(shape).vertices)
-			)
-
-			return result
+			return pageTransform
+				? Box.FromPoints(Mat.applyToPoints(pageTransform, this.getShapeGeometry(shape).vertices))
+				: new Box()
 		})
 	}
 

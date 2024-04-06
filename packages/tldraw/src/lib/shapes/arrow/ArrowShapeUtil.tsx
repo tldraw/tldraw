@@ -93,7 +93,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	getGeometry(shape: TLArrowShape) {
-		const info = this.editor.getArrowInfo(shape)!
+		// We can't cache the arrow info from the editor's cache because
+		// we may be asking about the geometry of a future version of the
+		// shape (ie in resizing) and the editor may only have the stale
+		// cached version
+		const info = this.editor.getUncachedArrowInfo(shape)
+		if (!info) throw Error('Arrow info not found')
 
 		const debugGeom: Geometry2d[] = []
 
@@ -114,7 +119,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		let labelGeom
 		if (shape.props.text.trim()) {
 			const labelPosition = getArrowLabelPosition(this.editor, shape)
-			debugGeom.push(...labelPosition.debugGeom)
+			debugGeom.push(...labelPosition.debugGeom) // todo: remove this debugging geometry?
 			labelGeom = new Rectangle2d({
 				x: labelPosition.box.x,
 				y: labelPosition.box.y,

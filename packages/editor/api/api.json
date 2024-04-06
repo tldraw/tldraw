@@ -14174,6 +14174,60 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getUncachedArrowInfo:member(1)",
+              "docComment": "/**\n * Get the uncached info about an arrow that may not be in the store yet.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getUncachedArrowInfo(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLArrowShape",
+                  "canonicalReference": "@tldraw/tlschema!TLArrowShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLArrowInfo",
+                  "canonicalReference": "@tldraw/editor!TLArrowInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getUncachedArrowInfo"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getViewportPageBounds:member(1)",
               "docComment": "/**\n * The current viewport in the current page space.\n *\n * @public\n */\n",
               "excerptTokens": [

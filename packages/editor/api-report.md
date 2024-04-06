@@ -777,6 +777,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         width: number;
         height: number;
     } | undefined>;
+    getUncachedArrowInfo(shape: TLArrowShape): TLArrowInfo | undefined;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): {
         id: TLShapeId;
