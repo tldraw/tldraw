@@ -5,7 +5,6 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLGroupShape,
 	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
@@ -55,36 +54,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override canEdit = () => true
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => false
-
-	override canReceiveNewChildrenOfType = (shape: TLNoteShape, type: string) => {
-		return !shape.isLocked && type !== 'frame'
-	}
-
-	override canDropShapes = (shape: TLNoteShape, _shapes: TLShape[]): boolean => {
-		return !shape.isLocked
-	}
-
-	override onDragShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
-		if (!shapes.every((child) => child.parentId === note.id)) {
-			const shapesWithoutFrames = shapes.filter(
-				(shape) => !this.editor.isShapeOfType(shape, 'frame')
-			)
-			this.editor.reparentShapes(shapesWithoutFrames, note.id)
-		}
-	}
-
-	override onDragShapesOut = (note: TLNoteShape, shapes: TLShape[]) => {
-		const parent = this.editor.getShape(note.parentId)
-		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
-
-		// If sticky is in a group, keep the shape in that group
-
-		if (isInGroup) {
-			this.editor.reparentShapes(shapes, parent.id)
-		} else {
-			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
-		}
-	}
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
