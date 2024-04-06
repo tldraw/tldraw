@@ -13,6 +13,7 @@ import {
 	Vec,
 	VecLike,
 	createShapeId,
+	debugFlags,
 	pointInPolygon,
 } from '@tldraw/editor'
 import { startEditingShapeWithLabel } from '../../../shapes/shared/TextHelpers'
@@ -436,27 +437,31 @@ export class Idle extends StateNode {
 			}
 		}
 
-		// For shapes that specify `doesAutoEditOnKeyStroke`, we start editing when a key is pressed.
-		// We exclude Delete/Backspace obviously, [ and ] are keyboard shortcuts we want to keep,
-		// and space is used for panning.
-		if (!SKIPPED_KEYS_FOR_AUTO_EDITING.includes(info.key) && !info.altKey && !info.ctrlKey) {
-			// If the only selected shape is editable, then begin editing it
-			const onlySelectedShape = this.editor.getOnlySelectedShape()
-			if (
-				onlySelectedShape &&
-				this.shouldStartEditingShape(onlySelectedShape) &&
-				this.editor.getShapeUtil(onlySelectedShape).doesAutoEditOnKeyStroke(onlySelectedShape)
-			) {
-				this.startEditingShape(
-					onlySelectedShape,
-					{
-						...info,
-						target: 'shape',
-						shape: onlySelectedShape,
-					},
-					true /* select all */
-				)
-				return
+		if (debugFlags['editOnType'].get()) {
+			// This feature flag lets us start editing a note shape's label when a key is pressed.
+			// We exclude certain keys to avoid conflicting with modifiers, but there are conflicts
+			// with other action kbds, hence why this is kept behind a feature flag.
+			if (!SKIPPED_KEYS_FOR_AUTO_EDITING.includes(info.key) && !info.altKey && !info.ctrlKey) {
+				// If the only selected shape is editable, then begin editing it
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
+				if (
+					onlySelectedShape &&
+					// If it's a note shape, then edit on type
+					this.editor.isShapeOfType(onlySelectedShape, 'note') &&
+					// If it's not locked or anything
+					this.shouldStartEditingShape(onlySelectedShape)
+				) {
+					this.startEditingShape(
+						onlySelectedShape,
+						{
+							...info,
+							target: 'shape',
+							shape: onlySelectedShape,
+						},
+						true /* select all */
+					)
+					return
+				}
 			}
 		}
 	}
