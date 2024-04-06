@@ -90,13 +90,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canScroll: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape should unmount when not visible in the editor. Consider keeping this to false if the shape's `component` has local state.
-	 *
-	 * @public
-	 */
-	canUnmount: TLShapeUtilFlag<Shape> = () => true
-
-	/**
 	 * Whether the shape can be bound to by an arrow.
 	 *
 	 * @param _otherShape - The other shape attempting to bind to this shape.

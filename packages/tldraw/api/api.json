@@ -1645,7 +1645,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1690,7 +1690,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -5700,50 +5700,6 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 4
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "tldraw!EmbedShapeUtil#canUnmount:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "canUnmount: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeUtilFlag",
-                  "canonicalReference": "@tldraw/editor!TLShapeUtilFlag:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLEmbedShape",
-                  "canonicalReference": "@tldraw/tlschema!TLEmbedShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "canUnmount",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
               },
               "isStatic": false,
               "isProtected": false,

@@ -24,7 +24,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: true,
 		overridePermissions: {
 			'allow-top-navigation': true,
 		},
@@ -50,7 +49,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: true,
 		toEmbedUrl: (url) => {
 			if (
 				!!url.match(
@@ -81,7 +79,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			if (url.includes('/maps/')) {
 				const match = url.match(/@(.*),(.*),(.*)z/)
@@ -120,7 +117,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			// e.g. extract "steveruizok.mathFact" from https://www.val.town/v/steveruizok.mathFact
@@ -149,7 +145,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			const matches = urlObj && urlObj.pathname.match(/\/s\/([^/]+)\/?/)
@@ -176,7 +171,6 @@ export const EMBED_DEFINITIONS = [
 		width: 520,
 		height: 400,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const CODEPEN_URL_REGEXP = /https:\/\/codepen.io\/([^/]+)\/pen\/([^/]+)/
 			const matches = url.match(CODEPEN_URL_REGEXP)
@@ -203,7 +197,6 @@ export const EMBED_DEFINITIONS = [
 		width: 520,
 		height: 400,
 		doesResize: false,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const SCRATCH_URL_REGEXP = /https?:\/\/scratch.mit.edu\/projects\/([^/]+)/
 			const matches = url.match(SCRATCH_URL_REGEXP)
@@ -230,7 +223,6 @@ export const EMBED_DEFINITIONS = [
 		width: 800,
 		height: 450,
 		doesResize: true,
-		canUnmount: false,
 		overridePermissions: {
 			'allow-presentation': true,
 		},
@@ -275,7 +267,6 @@ export const EMBED_DEFINITIONS = [
 		minWidth: 460,
 		minHeight: 360,
 		doesResize: true,
-		canUnmount: false,
 		instructionLink: 'https://support.google.com/calendar/answer/41207?hl=en',
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
@@ -318,7 +309,6 @@ export const EMBED_DEFINITIONS = [
 		minWidth: 460,
 		minHeight: 360,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 
@@ -353,7 +343,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/\/([^/]+)\/([^/]+)/)) {
@@ -378,7 +367,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/\/@([^/]+)\/([^/]+)/)) {
@@ -406,7 +394,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/map\//)) {
@@ -432,7 +419,6 @@ export const EMBED_DEFINITIONS = [
 		minHeight: 500,
 		overrideOutlineRadius: 12,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/(artist|album)\//)) {
@@ -455,7 +441,6 @@ export const EMBED_DEFINITIONS = [
 		width: 640,
 		height: 360,
 		doesResize: true,
-		canUnmount: false,
 		isAspectRatioLocked: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
@@ -486,7 +471,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		isAspectRatioLocked: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
@@ -510,7 +494,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		isAspectRatioLocked: false,
 		backgroundColor: '#fff',
 		toEmbedUrl: (url) => {
@@ -619,7 +602,6 @@ export type EmbedDefinition = {
 	readonly width: number
 	readonly height: number
 	readonly doesResize: boolean
-	readonly canUnmount: boolean
 	readonly isAspectRatioLocked?: boolean
 	readonly overridePermissions?: TLEmbedShapePermissions
 	readonly instructionLink?: string

@@ -222,9 +222,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         end: UnionValidator<"type", {
@@ -236,9 +236,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         bend: Validator<number>;
@@ -533,8 +533,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     canEditInReadOnly: () => boolean;
     // (undocumented)
     canResize: (shape: TLEmbedShape) => boolean;
-    // (undocumented)
-    canUnmount: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
     component(shape: TLEmbedShape): JSX_2.Element;
     // (undocumented)

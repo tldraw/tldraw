@@ -30810,41 +30810,6 @@
               "isAbstract": false
             },
             {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!ShapeUtil#canUnmount:member",
-              "docComment": "/**\n * Whether the shape should unmount when not visible in the editor. Consider keeping this to false if the shape's `component` has local state.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "canUnmount: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeUtilFlag",
-                  "canonicalReference": "@tldraw/editor!TLShapeUtilFlag:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<Shape>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "canUnmount",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!ShapeUtil#component:member(1)",
               "docComment": "/**\n * Get a JSX element for the shape (as an HTML element).\n *\n * @param shape - The shape.\n *\n * @public\n */\n",
