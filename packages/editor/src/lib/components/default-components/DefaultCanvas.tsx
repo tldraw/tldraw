@@ -232,9 +232,7 @@ function HandlesWrapper() {
 		[editor]
 	)
 
-	if (!shapeIdWithHandles) {
-		return null
-	}
+	if (!shapeIdWithHandles) return null
 
 	return <HandlesWrapperInner shapeId={shapeIdWithHandles} />
 }
