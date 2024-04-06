@@ -1106,6 +1106,9 @@ export function getPointOnCircle(center: VecLike, r: number, a: number): Vec;
 // @public (undocumented)
 export function getPolygonVertices(width: number, height: number, sides: number): Vec[];
 
+// @public
+export function getResizedShapePartial(editor: Editor, shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): TLShape;
+
 // @internal (undocumented)
 export function getRotationSnapshot({ editor }: {
     editor: Editor;

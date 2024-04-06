@@ -115,7 +115,7 @@ import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { resizeShape } from './resize'
+import { getResizedShapePartial } from './resize'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
 import { TLArrowInfo } from './shapes/shared/arrow/arrow-types'
 import { getCurvedArrowInfo } from './shapes/shared/arrow/curved-arrow'
@@ -6228,7 +6228,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		options: TLResizeShapeOptions = {}
 	): this {
 		// This will throw errors if a problem is found (ie a shape is missing) so consider try/catch for it
-		resizeShape(this, shape, scale, options)
+		this.updateShapes([getResizedShapePartial(this, shape, scale, options)], { squashing: true })
 		return this
 	}
 

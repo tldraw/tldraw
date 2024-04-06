@@ -7,25 +7,7 @@ import { applyPartialToShape } from '../utils/applyPartialToShape'
 import { Editor, TLResizeShapeOptions } from './Editor'
 
 /**
- * Resize a shape.
- *
- * @param id - The id of the shape to resize.
- * @param scale - The scale factor to apply to the shape.
- * @param options - Additional options.
- *
- * @public
- */
-export function resizeShape(
-	editor: Editor,
-	shape: TLShapeId | TLShape,
-	scale: VecLike,
-	options: TLResizeShapeOptions = {}
-) {
-	editor.updateShapes([getResizedShapePartial(editor, shape, scale, options)], { squashing: true })
-}
-
-/**
- * Resize a shape.
+ * Get the partial for a resized shape.
  *
  * @param id - The id of the shape to resize.
  * @param scale - The scale factor to apply to the shape.
