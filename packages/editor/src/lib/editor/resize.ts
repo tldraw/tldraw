@@ -76,8 +76,9 @@ export function getResizedShapePartial(
 
 	if (util.onResize && util.canResize(initialShape)) {
 		// get the model changes from the shape util
+
 		const newPagePoint = scalePagePoint(
-			Mat.applyToPoint(pageTransform, new Vec(0, 0)),
+			pageTransform.point(),
 			scaleOrigin,
 			scale,
 			scaleAxisRotation

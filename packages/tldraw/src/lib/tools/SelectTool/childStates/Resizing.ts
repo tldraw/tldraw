@@ -48,19 +48,17 @@ export class Resizing extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
+	getShapeFromPartial = (partial: TLShapePartial) => {
+		const prev = this.editor.getShape(partial.id)!
+		if (!prev) return
+		const next = applyPartialToShape(prev, partial)
+		const withChange = this.editor.getShapeUtil(next).onBeforeUpdate?.(prev, next)
+		if (withChange) return withChange
+		return next
+	}
+
 	updateShapesInStore = (partials: TLShapePartial[]) => {
-		this.editor.store.put(
-			compact(
-				partials.map((partial) => {
-					const prev = this.editor.getShape(partial.id)!
-					if (!prev) return
-					const next = applyPartialToShape(prev, partial)
-					const withChange = this.editor.getShapeUtil(next).onBeforeUpdate?.(prev, next)
-					if (withChange) return withChange
-					return next
-				})
-			)
-		)
+		this.editor.store.put(compact(partials.map(this.getShapeFromPartial)))
 	}
 
 	override onEnter: TLEnterEventHandler = (info: ResizingInfo) => {
@@ -185,7 +183,7 @@ export class Resizing extends StateNode {
 		const shapes = Array.from(this.snapshot.shapeSnapshots.values()).map((s) => s.shape)
 
 		this.editor.history._undos.update((undos) =>
-			undos.tail.push({
+			undos.push({
 				type: 'command',
 				name: 'updateShapes',
 				data: {
@@ -337,9 +335,12 @@ export class Resizing extends StateNode {
 			})
 		}
 
-		const resizedShapes = compact(
-			Array.from(shapeSnapshots.values()).map((snapshot) => {
-				return getResizedShapePartial(this.editor, snapshot.shape.id, scale, {
+		for (const [_, snapshot] of shapeSnapshots) {
+			// We need to update the store one by one, so that children pick up
+			// the page transform of their resized parents. But should they?
+			// We update frames again later...
+			this.updateShapesInStore([
+				getResizedShapePartial(this.editor, snapshot.shape.id, scale, {
 					initialShape: snapshot.shape,
 					initialBounds: snapshot.bounds,
 					initialPageTransform: snapshot.pageTransform,
@@ -350,11 +351,9 @@ export class Resizing extends StateNode {
 							: 'scale_shape',
 					scaleOrigin: scaleOriginPage,
 					scaleAxisRotation: selectionRotation,
-				})
-			})
-		)
-
-		this.updateShapesInStore(resizedShapes)
+				}),
+			])
+		}
 
 		if (this.editor.inputs.ctrlKey) {
 			this.didHoldCommand = true
