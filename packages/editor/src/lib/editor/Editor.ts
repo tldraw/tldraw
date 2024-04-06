@@ -6221,7 +6221,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resizeShape(id: TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this {
-		this.updateShape(this.getResizedShape(id, scale, options))
+		this.updateShape(this.getResizedShape(id, scale, options), { squashing: true })
 		return this
 	}
 
@@ -6293,14 +6293,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (util.onResize && util.canResize(initialShape)) {
 			// get the model changes from the shape util
-			const newPagePoint = this._scalePagePoint(
-				Mat.applyToPoint(pageTransform, new Vec(0, 0)),
-				scaleOrigin,
-				scale,
-				scaleAxisRotation
-			)
 
-			const newLocalPoint = this.getPointInParentSpace(initialShape.id, newPagePoint)
+			// Get the point in the same coordinate space as the shape
+			const newLocalPoint = this.getPointInParentSpace(
+				initialShape.id,
+				this._scalePagePoint(pageTransform.point(), scaleOrigin, scale, scaleAxisRotation)
+			)
 
 			// resize the shape's local bounding box
 			const myScale = new Vec(scale.x, scale.y)
