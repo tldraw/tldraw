@@ -14,12 +14,15 @@ export type TLHandleProps = {
 /** @public */
 export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps) {
 	const br = (isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoom
-	const fr =
-		(handle.type === 'create' && isCoarse ? 3 : handle.type === 'clone' ? 3 : 4) /
-		Math.max(zoom, 0.35)
 
 	if (handle.type === 'clone') {
+		// bouba
+		const fr = 3 / Math.max(zoom, 0.35)
 		const path = `M0,${-fr} A${fr},${fr} 0 0,1 0,${fr}`
+		// kiki
+		// const fr = 4 / Math.max(zoom, 0.35)
+		// const path = `M0,${-fr} L${fr},0 L0,${fr} Z`
+
 		const index = SIDES.indexOf(handle.id as (typeof SIDES)[number])
 		return (
 			<g className={classNames(`tl-handle tl-handle__${handle.type}`, className)}>
@@ -30,6 +33,7 @@ export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandlePro
 		)
 	}
 
+	const fr = (handle.type === 'create' && isCoarse ? 3 : 4) / Math.max(zoom, 0.35)
 	return (
 		<g className={classNames(`tl-handle tl-handle__${handle.type}`, className)}>
 			<circle className="tl-handle__bg" r={br} />
