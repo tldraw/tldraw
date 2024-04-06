@@ -85,7 +85,7 @@ export class Resizing extends StateNode {
 		}
 
 		this.handleResizeStart()
-		this.updateShapes()
+		this.updateResizingShapes()
 	}
 
 	override onTick = () => {
@@ -93,14 +93,14 @@ export class Resizing extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.updateShapes()
+		this.updateResizingShapes()
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {
-		this.updateShapes()
+		this.updateResizingShapes()
 	}
 	override onKeyUp: TLEventHandlers['onKeyUp'] = () => {
-		this.updateShapes()
+		this.updateResizingShapes()
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
@@ -195,7 +195,7 @@ export class Resizing extends StateNode {
 		)
 	}
 
-	private updateShapes() {
+	private updateResizingShapes() {
 		const { altKey, shiftKey } = this.editor.inputs
 		const {
 			frames,
