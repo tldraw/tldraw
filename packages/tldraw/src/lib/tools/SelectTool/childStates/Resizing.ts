@@ -180,8 +180,8 @@ export class Resizing extends StateNode {
 			this.updateShapesInStore(changes)
 		}
 
+		// Finally, add the undo entry to the history
 		const shapes = Array.from(this.snapshot.shapeSnapshots.values()).map((s) => s.shape)
-
 		this.editor.history._undos.update((undos) =>
 			undos.push({
 				type: 'command',
@@ -356,6 +356,8 @@ export class Resizing extends StateNode {
 		}
 
 		if (this.editor.inputs.ctrlKey) {
+			// If the user is holding ctrl, then preseve the initial position
+			// of the frame's children relative to the frame's top left corner
 			this.didHoldCommand = true
 
 			for (const { id, children } of frames) {
@@ -364,39 +366,33 @@ export class Resizing extends StateNode {
 				const current = this.editor.getShape(id)!
 				if (!(initial && current)) continue
 
-				// If the user is holding ctrl, then preseve the position of the frame's children
 				const dx = current.x - initial.x
 				const dy = current.y - initial.y
 
 				const delta = new Vec(dx, dy).rot(-initial.rotation)
 
 				if (delta.x !== 0 || delta.y !== 0) {
-					for (const child of children) {
-						this.updateShapesInStore([
-							{
-								...child,
-								x: child.x - delta.x,
-								y: child.y - delta.y,
-							},
-						])
-					}
+					this.updateShapesInStore(
+						children.map((child) => ({
+							...child,
+							x: child.x - delta.x,
+							y: child.y - delta.y,
+						}))
+					)
 				}
 			}
 		} else if (this.didHoldCommand) {
+			// Put the children back where they're supposed to be
 			this.didHoldCommand = false
-
-			for (const { children } of frames) {
-				if (!children.length) continue
-				for (const child of children) {
-					this.updateShapesInStore([
-						{
-							...child,
-							x: child.x,
-							y: child.y,
-						},
-					])
-				}
-			}
+			this.updateShapesInStore(
+				frames.flatMap(({ children }) =>
+					children.map((child) => ({
+						...child,
+						x: child.x,
+						y: child.y,
+					}))
+				)
+			)
 		}
 	}
 
