@@ -271,10 +271,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return getSizeAdjustments(this.editor, next)
 	}
 
-	override onTranslateStart = (shape: TLNoteShape) => {
-		this.editor.bringToFront([shape])
-	}
-
 	override onEditEnd: TLOnEditEndHandler<TLNoteShape> = (shape) => {
 		const {
 			id,

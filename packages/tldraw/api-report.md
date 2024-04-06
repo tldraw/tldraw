@@ -222,9 +222,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
-        type: "point";
         x: number;
         y: number;
+        type: "point";
         }>;
         }, never>;
         end: UnionValidator<"type", {
@@ -236,9 +236,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
-        type: "point";
         x: number;
         y: number;
+        type: "point";
         }>;
         }, never>;
         bend: Validator<number>;
@@ -1164,8 +1164,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     } | undefined;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
-    // (undocumented)
-    onTranslateStart: (shape: TLNoteShape) => void;
     // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;

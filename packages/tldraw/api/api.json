@@ -1645,7 +1645,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
+                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1690,7 +1690,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
+                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13307,45 +13307,6 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 5
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "tldraw!NoteShapeUtil#onTranslateStart:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onTranslateStart: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(shape: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLNoteShape",
-                  "canonicalReference": "@tldraw/tlschema!TLNoteShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ") => void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onTranslateStart",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 4
               },
               "isStatic": false,
               "isProtected": false,
