@@ -318,7 +318,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	onAfterCreate?: (record: R, source: 'remote' | 'user') => void
 
 	/**
-	 * A callback before after each record's change.
+	 * A callback fired before each record's change.
 	 *
 	 * @param prev - The previous value, if any.
 	 * @param next - The next value.
