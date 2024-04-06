@@ -446,9 +446,10 @@ export class Idle extends StateNode {
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				if (
 					onlySelectedShape &&
-					this.shouldStartEditingShape(onlySelectedShape) &&
 					// If it's a note shape, then edit on type
-					this.editor.isShapeOfType(onlySelectedShape, 'note')
+					this.editor.isShapeOfType(onlySelectedShape, 'note') &&
+					// If it's not locked or anything
+					this.shouldStartEditingShape(onlySelectedShape)
 				) {
 					this.startEditingShape(
 						onlySelectedShape,
