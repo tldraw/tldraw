@@ -2996,6 +2996,7 @@ describe('snapping while the grid is enabled', () => {
 	})
 })
 
+// I think this is getting confused with frames
 describe('resizing a shape with a child', () => {
 	it('should not snap to the child', () => {
 		// 0 1   11           50
