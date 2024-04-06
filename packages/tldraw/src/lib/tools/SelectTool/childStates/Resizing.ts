@@ -15,8 +15,10 @@ import {
 	TLShapePartial,
 	Vec,
 	VecLike,
+	applyPartialToShape,
 	areAnglesCompatible,
 	compact,
+	getResizedShapePartial,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 
@@ -45,6 +47,21 @@ export class Resizing extends StateNode {
 	creationCursorOffset = { x: 0, y: 0 } as VecLike
 
 	private snapshot = {} as any as Snapshot
+
+	updateShapesInStore = (partials: TLShapePartial[]) => {
+		this.editor.store.put(
+			compact(
+				partials.map((partial) => {
+					const prev = this.editor.getShape(partial.id)!
+					if (!prev) return
+					const next = applyPartialToShape(prev, partial)
+					const withChange = this.editor.getShapeUtil(next).onBeforeUpdate?.(prev, next)
+					if (withChange) return withChange
+					return next
+				})
+			)
+		)
+	}
 
 	override onEnter: TLEnterEventHandler = (info: ResizingInfo) => {
 		const { isCreating = false, creationCursorOffset = { x: 0, y: 0 } } = info
@@ -102,7 +119,10 @@ export class Resizing extends StateNode {
 
 	private cancel() {
 		// Restore initial models
+		const shapes = Array.from(this.snapshot.shapeSnapshots.values()).map((s) => s.shape)
+		this.updateShapesInStore(shapes)
 		this.editor.bailToMark(this.markId)
+
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {
@@ -140,7 +160,7 @@ export class Resizing extends StateNode {
 		})
 
 		if (changes.length > 0) {
-			this.editor.updateShapes(changes)
+			this.updateShapesInStore(changes)
 		}
 	}
 
@@ -159,8 +179,22 @@ export class Resizing extends StateNode {
 		})
 
 		if (changes.length > 0) {
-			this.editor.updateShapes(changes)
+			this.updateShapesInStore(changes)
 		}
+
+		const shapes = Array.from(this.snapshot.shapeSnapshots.values()).map((s) => s.shape)
+
+		this.editor.history._undos.update((undos) =>
+			undos.tail.push({
+				type: 'command',
+				name: 'updateShapes',
+				data: {
+					snapshots: Object.fromEntries(shapes.map((s) => [s.id, s])),
+					updates: Object.fromEntries(shapes.map((s) => [s.id, this.editor.getShape(s)!])),
+				},
+				preservesRedoStack: false,
+			})
+		)
 	}
 
 	private updateShapes() {
@@ -303,22 +337,24 @@ export class Resizing extends StateNode {
 			})
 		}
 
-		for (const id of shapeSnapshots.keys()) {
-			const snapshot = shapeSnapshots.get(id)!
-
-			this.editor.resizeShape(id, scale, {
-				initialShape: snapshot.shape,
-				initialBounds: snapshot.bounds,
-				initialPageTransform: snapshot.pageTransform,
-				dragHandle,
-				mode:
-					selectedShapeIds.length === 1 && id === selectedShapeIds[0]
-						? 'resize_bounds'
-						: 'scale_shape',
-				scaleOrigin: scaleOriginPage,
-				scaleAxisRotation: selectionRotation,
+		const resizedShapes = compact(
+			Array.from(shapeSnapshots.values()).map((snapshot) => {
+				return getResizedShapePartial(this.editor, snapshot.shape.id, scale, {
+					initialShape: snapshot.shape,
+					initialBounds: snapshot.bounds,
+					initialPageTransform: snapshot.pageTransform,
+					dragHandle,
+					mode:
+						selectedShapeIds.length === 1 && snapshot.shape.id === selectedShapeIds[0]
+							? 'resize_bounds'
+							: 'scale_shape',
+					scaleOrigin: scaleOriginPage,
+					scaleAxisRotation: selectionRotation,
+				})
 			})
-		}
+		)
+
+		this.updateShapesInStore(resizedShapes)
 
 		if (this.editor.inputs.ctrlKey) {
 			this.didHoldCommand = true
@@ -337,12 +373,13 @@ export class Resizing extends StateNode {
 
 				if (delta.x !== 0 || delta.y !== 0) {
 					for (const child of children) {
-						this.editor.updateShape({
-							id: child.id,
-							type: child.type,
-							x: child.x - delta.x,
-							y: child.y - delta.y,
-						})
+						this.updateShapesInStore([
+							{
+								...child,
+								x: child.x - delta.x,
+								y: child.y - delta.y,
+							},
+						])
 					}
 				}
 			}
@@ -352,12 +389,13 @@ export class Resizing extends StateNode {
 			for (const { children } of frames) {
 				if (!children.length) continue
 				for (const child of children) {
-					this.editor.updateShape({
-						id: child.id,
-						type: child.type,
-						x: child.x,
-						y: child.y,
-					})
+					this.updateShapesInStore([
+						{
+							...child,
+							x: child.x,
+							y: child.y,
+						},
+					])
 				}
 			}
 		}
