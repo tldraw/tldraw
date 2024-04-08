@@ -11955,16 +11955,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ">;\n        index: number;\n        backgroundIndex: number;\n        opacity: number;\n        isCulled: boolean;\n        maskedPageBounds: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Box",
-                  "canonicalReference": "@tldraw/editor!Box:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | undefined;\n    }[]"
+                  "text": ">;\n        index: number;\n        backgroundIndex: number;\n        opacity: number;\n    }[]"
                 },
                 {
                   "kind": "Content",
@@ -11974,7 +11965,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 12
+                "endIndex": 10
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -14822,6 +14813,64 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "isPointInShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#isShapeCulled:member(1)",
+              "docComment": "/**\n * Get whether the shape is culled or not.\n *\n * @param shape - The shape (or shape id) to get the culled info for.\n *\n * @example\n * ```ts\n * editor.isShapeCulled(myShape)\n * editor.isShapeCulled(myShapeId)\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isShapeCulled(shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shape",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "isShapeCulled"
             },
             {
               "kind": "Method",
