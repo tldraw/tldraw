@@ -41,7 +41,7 @@ export class Group2d extends Geometry2d {
 
 		for (const child of children) {
 			const nearest = child.nearestPoint(point)
-			const dist = nearest.dist(point)
+			const dist = Vec.Dist2(nearest, point)
 			if (dist < d) {
 				d = dist
 				p = nearest

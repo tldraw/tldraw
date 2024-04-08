@@ -69,7 +69,7 @@ export class CubicSpline2d extends Geometry2d {
 		let dist = Infinity
 		for (const segment of this.segments) {
 			const p = segment.nearestPoint(A)
-			const d = p.dist(A)
+			const d = Vec.Dist2(p, A)
 			if (d < dist) {
 				nearest = p
 				dist = d

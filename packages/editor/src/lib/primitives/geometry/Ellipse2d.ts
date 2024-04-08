@@ -78,7 +78,7 @@ export class Ellipse2d extends Geometry2d {
 		let dist = Infinity
 		for (const edge of this.edges) {
 			const p = edge.nearestPoint(A)
-			const d = p.dist(A)
+			const d = Vec.Dist2(p, A)
 			if (d < dist) {
 				nearest = p
 				dist = d

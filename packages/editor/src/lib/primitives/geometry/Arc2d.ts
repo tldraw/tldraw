@@ -55,9 +55,9 @@ export class Arc2d extends Geometry2d {
 		let distance = Infinity
 		let nearest: Vec | undefined
 		for (const pt of [A, B, P]) {
-			if (point.dist(pt) < distance) {
+			if (Vec.Dist2(point, pt) < distance) {
 				nearest = pt
-				distance = point.dist(pt)
+				distance = Vec.Dist2(point, pt)
 			}
 		}
 

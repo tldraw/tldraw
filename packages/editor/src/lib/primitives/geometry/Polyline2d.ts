@@ -56,7 +56,7 @@ export class Polyline2d extends Geometry2d {
 		let d: number // distance from A to p
 		for (let i = 0; i < segments.length; i++) {
 			p = segments[i].nearestPoint(A)
-			d = p.dist(A)
+			d = Vec.Dist2(p, A)
 			if (d < dist) {
 				nearest = p
 				dist = d
