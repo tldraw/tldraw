@@ -318,7 +318,8 @@ function _getLabelSize(editor: Editor, shape: TLNoteShape) {
 	const text = shape.props.text
 
 	if (!text) {
-		return { labelHeight: 0, labelWidth: 0, fontSizeAdjustment: 0 }
+		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
+		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
 	}
 
 	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
