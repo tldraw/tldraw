@@ -10,11 +10,16 @@ import {
 /** @internal */
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	const shapes = shapeIds.map((id) => editor.getShape(id)).filter((s) => s) as TLShape[]
-	const effectedParents = shapes.map((shape) => {
-		const parent = editor.getShape(shape.parentId)
-		if (!parent) return shape
-		return parent
-	})
+	const effectedParents = shapes
+		.map((shape) => {
+			const parent = editor.getShape(shape.parentId)
+			if (!parent) return shape
+			return parent
+		})
+		.filter((parent) => {
+			const shapeUtil = editor.getShapeUtil(parent)
+			return shapeUtil.onDragShapesOut
+		})
 
 	const kickedOutChildrenMap = new Map<TLShape, TLShapeId[]>()
 	for (const parent of effectedParents) {
