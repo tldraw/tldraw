@@ -375,6 +375,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			const beforeCreate = this.onBeforeCreate && this._runCallbacks ? this.onBeforeCreate : null
 			const beforeUpdate = this.onBeforeChange && this._runCallbacks ? this.onBeforeChange : null
+			const afterCreate = this.onAfterCreate && this._runCallbacks ? this.onAfterCreate : null
+			const afterChange = this.onAfterChange && this._runCallbacks ? this.onAfterChange : null
+
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
 			for (let i = 0, n = records.length; i < n; i++) {
@@ -434,30 +437,28 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.atoms.set(map)
 			}
 
-			// If we did change, update the history
+			// If we didn't change anything, bail here
 			if (!didChange) return
+
+			// If we did change, update the history
 			this.updateHistory({
 				added: additions,
 				updated: updates,
 				removed: {} as Record<IdOf<R>, R>,
 			})
 
-			if (this._runCallbacks) {
-				const { onAfterCreate, onAfterChange } = this
+			if (afterCreate) {
+				// Run the onAfterChange callback for addition.
+				Object.values(additions).forEach((record) => {
+					afterCreate(record, source)
+				})
+			}
 
-				if (onAfterCreate) {
-					// Run the onAfterChange callback for addition.
-					Object.values(additions).forEach((record) => {
-						onAfterCreate(record, source)
-					})
-				}
-
-				if (onAfterChange) {
-					// Run the onAfterChange callback for update.
-					Object.values(updates).forEach(([from, to]) => {
-						onAfterChange(from, to, source)
-					})
-				}
+			if (afterChange) {
+				// Run the onAfterChange callback for update.
+				Object.values(updates).forEach(([from, to]) => {
+					afterChange(from, to, source)
+				})
 			}
 		})
 	}
