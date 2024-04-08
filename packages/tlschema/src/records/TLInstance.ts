@@ -1,7 +1,7 @@
 import {
 	BaseRecord,
 	createMigrationIds,
-	createRecordMigrations,
+	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
 } from '@tldraw/store'
@@ -197,7 +197,7 @@ export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 // TODO: rewrite these to use mutation
 
 /** @public */
-export const instanceMigrations = createRecordMigrations({
+export const instanceMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.instance',
 	recordType: 'instance',
 	sequence: [

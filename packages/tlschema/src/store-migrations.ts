@@ -1,4 +1,4 @@
-import { createMigrationIds, createMigrations } from '@tldraw/store'
+import { createMigrationIds, createMigrationSequence } from '@tldraw/store'
 import { objectMapEntries } from '@tldraw/utils'
 import { TLShape } from './records/TLShape'
 
@@ -12,7 +12,7 @@ const Versions = createMigrationIds('com.tldraw.store', {
 export { Versions as storeVersions }
 
 /** @public */
-export const storeMigrations = createMigrations({
+export const storeMigrations = createMigrationSequence({
 	sequenceId: 'com.tldraw.store',
 	retroactive: false,
 	sequence: [

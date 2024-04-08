@@ -1116,12 +1116,12 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/tlschema!createShapePropsMigrations:function(1)",
+          "canonicalReference": "@tldraw/tlschema!createShapePropsMigrationSequence:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function createShapePropsMigrations(migrations: "
+              "text": "export declare function createShapePropsMigrationSequence(migrations: "
             },
             {
               "kind": "Reference",
@@ -1159,7 +1159,7 @@
               "isOptional": false
             }
           ],
-          "name": "createShapePropsMigrations"
+          "name": "createShapePropsMigrationSequence"
         },
         {
           "kind": "Function",

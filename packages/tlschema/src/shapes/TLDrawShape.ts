@@ -3,7 +3,7 @@ import { vecModelValidator } from '../misc/geometry-types'
 import {
 	RETIRED_DOWN_MIGRATION,
 	createShapePropsMigrationIds,
-	createShapePropsMigrations,
+	createShapePropsMigrationSequence,
 } from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -44,7 +44,7 @@ const Versions = createShapePropsMigrationIds('draw', {
 export { Versions as drawShapeVersions }
 
 /** @internal */
-export const drawShapeMigrations = createShapePropsMigrations({
+export const drawShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: Versions.AddInPen,

@@ -56,13 +56,13 @@ function squashDependsOn(sequence: Array<Migration | StandaloneDependsOn>): Migr
 }
 
 /** @public */
-export function createMigrations({
+export function createMigrationSequence({
 	sequence,
 	sequenceId,
-	retroactive,
+	retroactive = true,
 }: {
 	sequenceId: string
-	retroactive: boolean
+	retroactive?: boolean
 	sequence: Array<Migration | StandaloneDependsOn>
 }): MigrationSequence {
 	const migrations: MigrationSequence = {
@@ -85,7 +85,7 @@ export function createMigrationIds<ID extends string, Versions extends Record<st
 }
 
 /** @internal */
-export function createRecordMigrations(opts: {
+export function createRecordMigrationSequence(opts: {
 	recordType: string
 	filter?: (record: UnknownRecord) => boolean
 	retroactive?: boolean
@@ -93,7 +93,7 @@ export function createRecordMigrations(opts: {
 	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]
 }): MigrationSequence {
 	const sequenceId = opts.sequenceId
-	return createMigrations({
+	return createMigrationSequence({
 		sequenceId,
 		retroactive: opts.retroactive ?? true,
 		sequence: opts.sequence.map((m) =>

@@ -3,7 +3,7 @@ import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { SerializedStore } from '../Store'
 import { StoreSchema } from '../StoreSchema'
-import { createMigrationIds, createMigrations } from '../migrate'
+import { createMigrationIds, createMigrationSequence } from '../migrate'
 
 const UserVersion = createMigrationIds('com.tldraw.user', {
 	AddLocale: 1,
@@ -17,7 +17,7 @@ interface User extends BaseRecord<'user', RecordId<User>> {
 	phoneNumber: string | null
 }
 
-const userMigrations = createMigrations({
+const userMigrations = createMigrationSequence({
 	sequenceId: 'com.tldraw.user',
 	retroactive: true,
 	sequence: [
@@ -101,7 +101,7 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const rootShapeMigrations = createMigrations({
+const rootShapeMigrations = createMigrationSequence({
 	sequenceId: 'com.tldraw.shape',
 	retroactive: true,
 	sequence: [
@@ -130,7 +130,7 @@ const rootShapeMigrations = createMigrations({
 	],
 })
 
-const rectangleMigrations = createMigrations({
+const rectangleMigrations = createMigrationSequence({
 	sequenceId: 'com.tldraw.shape.rectangle',
 	retroactive: true,
 	sequence: [
@@ -148,7 +148,7 @@ const rectangleMigrations = createMigrations({
 	],
 })
 
-const ovalMigrations = createMigrations({
+const ovalMigrations = createMigrationSequence({
 	sequenceId: 'com.tldraw.shape.oval',
 	retroactive: true,
 	sequence: [
@@ -190,7 +190,7 @@ const StoreVersions = createMigrationIds('com.tldraw.store', {
 	RemoveOrg: 1,
 })
 
-const snapshotMigrations = createMigrations({
+const snapshotMigrations = createMigrationSequence({
 	sequenceId: 'com.tldraw.store',
 	retroactive: true,
 	sequence: [

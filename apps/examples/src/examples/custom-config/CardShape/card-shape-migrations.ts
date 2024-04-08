@@ -1,5 +1,5 @@
 import { createShapePropsMigrationIds } from '@tldraw/tlschema/src/records/TLShape'
-import { createShapePropsMigrations } from 'tldraw'
+import { createShapePropsMigrationSequence } from 'tldraw'
 
 const versions = createShapePropsMigrationIds(
 	// this must match the shape type in the shape definition
@@ -10,7 +10,7 @@ const versions = createShapePropsMigrationIds(
 )
 
 // Migrations for the custom card shape (optional but very helpful)
-export const cardShapeMigrations = createShapePropsMigrations({
+export const cardShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: versions.AddSomeProperty,

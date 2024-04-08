@@ -1,7 +1,7 @@
 import {
 	BaseRecord,
 	createMigrationIds,
-	createRecordMigrations,
+	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
 } from '@tldraw/store'
@@ -60,7 +60,7 @@ export const instancePageStateVersions = createMigrationIds('com.tldraw.instance
 } as const)
 
 /** @public */
-export const instancePageStateMigrations = createRecordMigrations({
+export const instancePageStateMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.instance_page_state',
 	recordType: 'instance_page_state',
 	sequence: [

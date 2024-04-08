@@ -1,16 +1,16 @@
-import { createMigrations } from '../migrate'
+import { createMigrationSequence } from '../migrate'
 
-describe(createMigrations, () => {
+describe(createMigrationSequence, () => {
 	it('allows dependsOn to be deferred', () => {
 		expect(
-			createMigrations({
+			createMigrationSequence({
 				sequenceId: 'foo',
 				retroactive: false,
 				sequence: [{ dependsOn: ['bar/1'] }],
 			}).sequence.length
 		).toBe(0)
 
-		const result = createMigrations({
+		const result = createMigrationSequence({
 			sequenceId: 'foo',
 			retroactive: false,
 			sequence: [
@@ -28,7 +28,7 @@ describe(createMigrations, () => {
 		expect(result.sequence.length).toBe(1)
 		expect(result.sequence[0].dependsOn?.length).toBeFalsy()
 
-		const result2 = createMigrations({
+		const result2 = createMigrationSequence({
 			sequenceId: 'foo',
 			retroactive: false,
 			sequence: [
@@ -46,7 +46,7 @@ describe(createMigrations, () => {
 		expect(result2.sequence.length).toBe(1)
 		expect(result2.sequence[0].dependsOn).toEqual(['bar/1'])
 
-		const result3 = createMigrations({
+		const result3 = createMigrationSequence({
 			sequenceId: 'foo',
 			retroactive: false,
 			sequence: [

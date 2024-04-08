@@ -1,7 +1,7 @@
 import {
 	BaseRecord,
 	createMigrationIds,
-	createRecordMigrations,
+	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
 } from '@tldraw/store'
@@ -38,7 +38,7 @@ export const documentVersions = createMigrationIds('com.tldraw.document', {
 } as const)
 
 /** @internal */
-export const documentMigrations = createRecordMigrations({
+export const documentMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.document',
 	recordType: 'document',
 	sequence: [

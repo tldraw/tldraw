@@ -1,7 +1,7 @@
 import {
 	BaseRecord,
 	createMigrationIds,
-	createRecordMigrations,
+	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
 } from '@tldraw/store'
@@ -81,7 +81,7 @@ export const instancePresenceVersions = createMigrationIds('com.tldraw.instance_
 	RenameSelectedShapeIds: 5,
 } as const)
 
-export const instancePresenceMigrations = createRecordMigrations({
+export const instancePresenceMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.instance_presence',
 	recordType: 'instance_presence',
 	sequence: [

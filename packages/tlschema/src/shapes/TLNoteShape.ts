@@ -2,7 +2,7 @@ import { T } from '@tldraw/validate'
 import {
 	RETIRED_DOWN_MIGRATION,
 	createShapePropsMigrationIds,
-	createShapePropsMigrations,
+	createShapePropsMigrationSequence,
 } from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
@@ -40,7 +40,7 @@ const Versions = createShapePropsMigrationIds('note', {
 export { Versions as noteShapeVersions }
 
 /** @internal */
-export const noteShapeMigrations = createShapePropsMigrations({
+export const noteShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: Versions.AddUrlProp,

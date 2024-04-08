@@ -4,7 +4,7 @@ import { vecModelValidator } from '../misc/geometry-types'
 import {
 	RETIRED_DOWN_MIGRATION,
 	createShapePropsMigrationIds,
-	createShapePropsMigrations,
+	createShapePropsMigrationSequence,
 } from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
@@ -41,7 +41,7 @@ const Versions = createShapePropsMigrationIds('image', {
 export { Versions as imageShapeVersions }
 
 /** @internal */
-export const imageShapeMigrations = createShapePropsMigrations({
+export const imageShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: Versions.AddUrlProp,

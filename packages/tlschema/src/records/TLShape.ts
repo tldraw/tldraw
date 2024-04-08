@@ -5,8 +5,8 @@ import {
 	RecordId,
 	UnknownRecord,
 	createMigrationIds,
-	createMigrations,
-	createRecordMigrations,
+	createMigrationSequence,
+	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
 import { mapObjectMapValues } from '@tldraw/utils'
@@ -101,7 +101,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 } as const)
 
 /** @internal */
-export const rootShapeMigrations = createRecordMigrations({
+export const rootShapeMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.shape',
 	recordType: 'shape',
 	sequence: [
@@ -217,7 +217,7 @@ export type TLShapePropsMigrations = {
 /**
  * @public
  */
-export function createShapePropsMigrations(
+export function createShapePropsMigrationSequence(
 	migrations: TLShapePropsMigrations
 ): TLShapePropsMigrations {
 	return migrations
@@ -241,7 +241,7 @@ export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) 
 		if (!migrations) {
 			// provide empty migrations sequence to allow for future migrations
 			result.push(
-				createMigrations({
+				createMigrationSequence({
 					sequenceId,
 					retroactive: false,
 					sequence: [],
@@ -249,7 +249,7 @@ export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) 
 			)
 		} else if ('sequence' in migrations) {
 			result.push(
-				createMigrations({
+				createMigrationSequence({
 					sequenceId,
 					retroactive: false,
 					sequence: migrations.sequence.map((m) =>
@@ -282,7 +282,7 @@ export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) 
 		} else {
 			// legacy migrations, will be removed in the future
 			result.push(
-				createMigrations({
+				createMigrationSequence({
 					sequenceId,
 					retroactive: false,
 					sequence: Object.keys(migrations.migrators)

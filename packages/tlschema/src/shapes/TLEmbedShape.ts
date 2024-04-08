@@ -2,7 +2,7 @@ import { T } from '@tldraw/validate'
 import {
 	RETIRED_DOWN_MIGRATION,
 	createShapePropsMigrationIds,
-	createShapePropsMigrations,
+	createShapePropsMigrationSequence,
 } from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
@@ -626,7 +626,7 @@ const Versions = createShapePropsMigrationIds('embed', {
 export { Versions as embedShapeVersions }
 
 /** @internal */
-export const embedShapeMigrations = createShapePropsMigrations({
+export const embedShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: Versions.GenOriginalUrlInEmbed,

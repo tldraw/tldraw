@@ -762,16 +762,16 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "@tldraw/store!createMigrations:function(1)",
+          "canonicalReference": "@tldraw/store!createMigrationSequence:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function createMigrations({ sequence, sequenceId, retroactive, }: "
+              "text": "export declare function createMigrationSequence({ sequence, sequenceId, retroactive, }: "
             },
             {
               "kind": "Content",
-              "text": "{\n    sequenceId: string;\n    retroactive: boolean;\n    sequence: "
+              "text": "{\n    sequenceId: string;\n    retroactive?: boolean;\n    sequence: "
             },
             {
               "kind": "Reference",
@@ -831,7 +831,7 @@
               "isOptional": false
             }
           ],
-          "name": "createMigrations"
+          "name": "createMigrationSequence"
         },
         {
           "kind": "Function",
