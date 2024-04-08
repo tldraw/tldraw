@@ -1,6 +1,6 @@
 import { Computed, react, RESET_VALUE, transact } from '@tldraw/state'
 import { BaseRecord, RecordId } from '../BaseRecord'
-import { createMigrations } from '../migrate'
+import { createMigrationSequence } from '../migrate'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, RecordsDiff, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
@@ -857,7 +857,7 @@ describe('snapshots', () => {
 				},
 				{
 					migrations: [
-						createMigrations({
+						createMigrationSequence({
 							sequenceId: 'com.tldraw',
 							retroactive: true,
 							sequence: [

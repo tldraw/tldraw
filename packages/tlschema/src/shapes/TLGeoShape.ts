@@ -2,7 +2,7 @@ import { T } from '@tldraw/validate'
 import {
 	RETIRED_DOWN_MIGRATION,
 	createShapePropsMigrationIds,
-	createShapePropsMigrations,
+	createShapePropsMigrationSequence,
 } from '../records/TLShape'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
@@ -84,7 +84,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 export { geoShapeVersions as geoShapeVersions }
 
 /** @internal */
-export const geoShapeMigrations = createShapePropsMigrations({
+export const geoShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: geoShapeVersions.AddUrlProp,

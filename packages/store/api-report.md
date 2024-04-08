@@ -42,14 +42,14 @@ export function createMigrationIds<ID extends string, Versions extends Record<st
 };
 
 // @public (undocumented)
-export function createMigrations({ sequence, sequenceId, retroactive, }: {
+export function createMigrationSequence({ sequence, sequenceId, retroactive, }: {
     sequenceId: string;
-    retroactive: boolean;
+    retroactive?: boolean;
     sequence: Array<Migration | StandaloneDependsOn>;
 }): MigrationSequence;
 
 // @internal (undocumented)
-export function createRecordMigrations(opts: {
+export function createRecordMigrationSequence(opts: {
     recordType: string;
     filter?: (record: UnknownRecord) => boolean;
     retroactive?: boolean;

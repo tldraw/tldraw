@@ -1,4 +1,4 @@
-import { createMigrationIds, createRecordMigrations } from '@tldraw/store'
+import { createMigrationIds, createRecordMigrationSequence } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLAsset } from '../records/TLAsset'
 import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
@@ -41,7 +41,7 @@ const Versions = createMigrationIds('com.tldraw.asset.video', {
 export { Versions as videoAssetVersions }
 
 /** @internal */
-export const videoAssetMigrations = createRecordMigrations({
+export const videoAssetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset.video',
 	recordType: 'asset',
 	filter: (asset) => (asset as TLAsset).type === 'video',

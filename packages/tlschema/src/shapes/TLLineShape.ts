@@ -3,7 +3,7 @@ import { T } from '@tldraw/validate'
 import {
 	RETIRED_DOWN_MIGRATION,
 	createShapePropsMigrationIds,
-	createShapePropsMigrations,
+	createShapePropsMigrationSequence,
 } from '../records/TLShape'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
@@ -51,7 +51,7 @@ export const lineShapeVersions = createShapePropsMigrationIds('line', {
 })
 
 /** @internal */
-export const lineShapeMigrations = createShapePropsMigrations({
+export const lineShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: lineShapeVersions.AddSnapHandles,

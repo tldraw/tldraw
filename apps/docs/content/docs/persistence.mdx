@@ -241,10 +241,10 @@ To enable this, tldraw provides two ways to add custom migrations:
 
 #### Shape props migrations
 
-If you have a custom shape type, you can define a `migrations` property on the shape util class. Use the `createShapePropsMigrations` helper to define this property.
+If you have a custom shape type, you can define a `migrations` property on the shape util class. Use the `createShapePropsMigrationSequence` helper to define this property.
 
 ```ts
-import { createShapePropsMigrations, createShapePropsMigrationIds, ShapeUtil } from 'tldraw'
+import { createShapePropsMigrationSequence, createShapePropsMigrationIds, ShapeUtil } from 'tldraw'
 
 // Migrations must start a 1 and be sequential integers.
 const Versions = createShapePropMigrationIds('custom-shape', {
@@ -253,7 +253,7 @@ const Versions = createShapePropMigrationIds('custom-shape', {
 
 class MyCustomShapeUtil extends ShapeUtil {
 	static type = 'custom-shape'
-	static migrations = createShapePropsMigrations({
+	static migrations = createShapePropsMigrationSequence({
 		sequence: [
 			{
 				id: Versions.AddColor,
@@ -289,9 +289,9 @@ const Versions = createMigrationIds(SEQUENCE_ID, {
 Then create a migration sequence.
 
 ```ts
-import { createMigrations, isShape } from 'tldraw'
+import { createMigrationSequence, isShape } from 'tldraw'
 
-const myMigrations = createMigrations({
+const myMigrations = createMigrationSequence({
 	sequenceId: SEQUENCE_ID,
 	// Setting 'retroactive' to true will make sure the migration runs when loading snapshots
 	// that were created before this sequence existed. You almost certainly want this.
@@ -352,7 +352,7 @@ You can convert your legacy migrations to the new migrations format by the follo
 + })
 ```
 
-2. Replace your `defineMigrations` call with `createShapePropsMigrations`
+2. Replace your `defineMigrations` call with `createShapePropsMigrationSequence`
 
 ```ts
 const migrations = defineMigrations({
@@ -369,7 +369,7 @@ const migrations = defineMigrations({
 Becomes
 
 ```ts
-const migrations = createShapePropsMigrations({
+const migrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: Versions.AddColor,

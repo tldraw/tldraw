@@ -1,7 +1,7 @@
 import {
 	BaseRecord,
 	createMigrationIds,
-	createRecordMigrations,
+	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
 } from '@tldraw/store'
@@ -43,7 +43,7 @@ export const pointerVersions = createMigrationIds('com.tldraw.pointer', {
 })
 
 /** @internal */
-export const pointerMigrations = createRecordMigrations({
+export const pointerMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.pointer',
 	recordType: 'pointer',
 	sequence: [

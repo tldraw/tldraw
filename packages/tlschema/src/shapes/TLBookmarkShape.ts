@@ -3,7 +3,7 @@ import { assetIdValidator } from '../assets/TLBaseAsset'
 import {
 	RETIRED_DOWN_MIGRATION,
 	createShapePropsMigrationIds,
-	createShapePropsMigrations,
+	createShapePropsMigrationSequence,
 } from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
@@ -29,7 +29,7 @@ const Versions = createShapePropsMigrationIds('bookmark', {
 export { Versions as bookmarkShapeVersions }
 
 /** @internal */
-export const bookmarkShapeMigrations = createShapePropsMigrations({
+export const bookmarkShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: Versions.NullAssetId,

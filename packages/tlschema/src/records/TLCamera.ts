@@ -1,7 +1,7 @@
 import {
 	BaseRecord,
 	createMigrationIds,
-	createRecordMigrations,
+	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
 } from '@tldraw/store'
@@ -46,7 +46,7 @@ export const cameraVersions = createMigrationIds('com.tldraw.camera', {
 })
 
 /** @internal */
-export const cameraMigrations = createRecordMigrations({
+export const cameraMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.camera',
 	recordType: 'camera',
 	sequence: [

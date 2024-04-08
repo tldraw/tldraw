@@ -1,4 +1,4 @@
-import { createMigrationIds, createRecordMigrations } from '@tldraw/store'
+import { createMigrationIds, createRecordMigrationSequence } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLAsset } from '../records/TLAsset'
 import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
@@ -35,7 +35,7 @@ const Versions = createMigrationIds('com.tldraw.asset.bookmark', {
 export { Versions as bookmarkAssetVersions }
 
 /** @internal */
-export const bookmarkAssetMigrations = createRecordMigrations({
+export const bookmarkAssetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset.bookmark',
 	recordType: 'asset',
 	filter: (asset) => (asset as TLAsset).type === 'bookmark',

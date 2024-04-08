@@ -1,4 +1,4 @@
-import { createMigrationIds, createRecordMigrations } from '@tldraw/store'
+import { createMigrationIds, createRecordMigrationSequence } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLAsset } from '../records/TLAsset'
 import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
@@ -41,7 +41,7 @@ const Versions = createMigrationIds('com.tldraw.asset.image', {
 export { Versions as imageAssetVersions }
 
 /** @internal */
-export const imageAssetMigrations = createRecordMigrations({
+export const imageAssetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset.image',
 	recordType: 'asset',
 	filter: (asset) => (asset as TLAsset).type === 'image',

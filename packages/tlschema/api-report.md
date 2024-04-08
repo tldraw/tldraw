@@ -143,7 +143,7 @@ export const createPresenceStateDerivation: ($user: Signal<{
 export function createShapeId(id?: string): TLShapeId;
 
 // @public (undocumented)
-export function createShapePropsMigrations(migrations: TLShapePropsMigrations): TLShapePropsMigrations;
+export function createShapePropsMigrationSequence(migrations: TLShapePropsMigrations): TLShapePropsMigrations;
 
 // @public (undocumented)
 export function createShapeValidator<Type extends string, Props extends JsonObject, Meta extends JsonObject>(type: Type, props?: {

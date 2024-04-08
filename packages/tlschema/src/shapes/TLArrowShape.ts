@@ -3,7 +3,7 @@ import { vecModelValidator } from '../misc/geometry-types'
 import {
 	RETIRED_DOWN_MIGRATION,
 	createShapePropsMigrationIds,
-	createShapePropsMigrations,
+	createShapePropsMigrationSequence,
 } from '../records/TLShape'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
@@ -89,7 +89,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 })
 
 /** @internal */
-export const arrowShapeMigrations = createShapePropsMigrations({
+export const arrowShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: arrowShapeVersions.AddLabelColor,

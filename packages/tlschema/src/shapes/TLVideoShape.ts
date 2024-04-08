@@ -3,7 +3,7 @@ import { assetIdValidator } from '../assets/TLBaseAsset'
 import {
 	RETIRED_DOWN_MIGRATION,
 	createShapePropsMigrationIds,
-	createShapePropsMigrations,
+	createShapePropsMigrationSequence,
 } from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
@@ -31,7 +31,7 @@ const Versions = createShapePropsMigrationIds('video', {
 export { Versions as videoShapeVersions }
 
 /** @internal */
-export const videoShapeMigrations = createShapePropsMigrations({
+export const videoShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
 			id: Versions.AddUrlProp,

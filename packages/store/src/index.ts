@@ -26,8 +26,8 @@ export { devFreeze } from './lib/devFreeze'
 export {
 	MigrationFailureReason,
 	createMigrationIds,
-	createMigrations,
-	createRecordMigrations,
+	createMigrationSequence,
+	createRecordMigrationSequence,
 	// eslint-disable-next-line deprecation/deprecation
 	defineMigrations,
 	parseMigrationId,

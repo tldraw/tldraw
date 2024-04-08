@@ -1,6 +1,6 @@
 import {
 	createMigrationIds,
-	createRecordMigrations,
+	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
 } from '@tldraw/store'
@@ -30,7 +30,7 @@ export const assetVersions = createMigrationIds('com.tldraw.asset', {
 } as const)
 
 /** @internal */
-export const assetMigrations = createRecordMigrations({
+export const assetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset',
 	recordType: 'asset',
 	sequence: [

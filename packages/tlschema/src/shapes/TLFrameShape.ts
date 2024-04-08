@@ -1,5 +1,5 @@
 import { T } from '@tldraw/validate'
-import { createShapePropsMigrations } from '../records/TLShape'
+import { createShapePropsMigrationSequence } from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
@@ -15,6 +15,6 @@ type TLFrameShapeProps = ShapePropsType<typeof frameShapeProps>
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
 
 /** @internal */
-export const frameShapeMigrations = createShapePropsMigrations({
+export const frameShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [],
 })

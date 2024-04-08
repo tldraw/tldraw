@@ -6,8 +6,8 @@ import {
 	StoreSchema,
 	UnknownRecord,
 	createMigrationIds,
-	createMigrations,
-	createRecordMigrations,
+	createMigrationSequence,
+	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
 import { TLSyncClient } from '../lib/TLSyncClient'
@@ -73,7 +73,7 @@ interface UserV2 extends BaseRecord<'user', RecordId<UserV2>> {
 	birthdate: string | null
 }
 
-const userV2Migrations = createRecordMigrations({
+const userV2Migrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.user',
 	recordType: 'user',
 	sequence: [
@@ -102,7 +102,7 @@ const UserV2 = createRecordType<UserV2>('user', {
 type RV1 = UserV1 | PresenceV1
 type RV2 = UserV2 | PresenceV1
 
-const userV1Migrations = createMigrations({
+const userV1Migrations = createMigrationSequence({
 	sequenceId: 'com.tldraw.user',
 	sequence: [],
 	retroactive: true,
@@ -125,7 +125,7 @@ const schemaV3 = StoreSchema.create<RV2>(
 	{
 		migrations: [
 			userV2Migrations,
-			createMigrations({
+			createMigrationSequence({
 				sequenceId: 'com.tldraw.store',
 				retroactive: true,
 				sequence: [

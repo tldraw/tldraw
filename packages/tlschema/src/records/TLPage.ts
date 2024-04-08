@@ -1,7 +1,7 @@
 import {
 	BaseRecord,
 	createMigrationIds,
-	createRecordMigrations,
+	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
 } from '@tldraw/store'
@@ -44,7 +44,7 @@ export const pageVersions = createMigrationIds('com.tldraw.page', {
 })
 
 /** @internal */
-export const pageMigrations = createRecordMigrations({
+export const pageMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.page',
 	recordType: 'page',
 	sequence: [
