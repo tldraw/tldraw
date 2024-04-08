@@ -90,6 +90,9 @@ export class IncrementalSetConstructor<T> {
     remove(item: T): void;
 }
 
+// @internal
+export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>): boolean;
+
 // @public (undocumented)
 export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
     value: unknown;
@@ -215,13 +218,21 @@ export type SerializedStore<R extends UnknownRecord> = Record<IdOf<R>, R>;
 // @public
 export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T>;
 
+// @internal
+export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[]): void;
+
 // @public
 export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     constructor(config: {
+        id?: string;
         initialData?: SerializedStore<R>;
         schema: StoreSchema<R, Props>;
         props: Props;
     });
+    // @internal
+    accumulatingChanges(accumulator: RecordsDiff<R>, fn: () => void): void;
+    // @internal (undocumented)
+    addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
     allRecords: () => R[];
     // (undocumented)
     applyDiff(diff: RecordsDiff<R>, runCallbacks?: boolean): void;
@@ -230,7 +241,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     createSelectedComputedCache: <T, J, V extends R = R>(name: string, selector: (record: V) => T | undefined, derive: (input: T) => J | undefined) => ComputedCache<J, V>;
     // @internal (undocumented)
     ensureStoreIsUsable(): void;
-    // (undocumented)
     extractingChanges(fn: () => void): RecordsDiff<R>;
     filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope): {
         added: { [K in IdOf<R>]: R; };

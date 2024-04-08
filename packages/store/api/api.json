@@ -1947,7 +1947,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/Store.ts",
+          "fileUrlPath": "packages/store/src/lib/RecordsDiff.ts",
           "releaseTag": "Public",
           "name": "RecordsDiff",
           "typeParameters": [
@@ -2916,7 +2916,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/Store.ts",
+          "fileUrlPath": "packages/store/src/lib/RecordsDiff.ts",
           "returnTypeTokenRange": {
             "startIndex": 4,
             "endIndex": 6
@@ -3155,7 +3155,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/store/src/lib/Store.ts",
+          "fileUrlPath": "packages/store/src/lib/RecordsDiff.ts",
           "returnTypeTokenRange": {
             "startIndex": 6,
             "endIndex": 8
@@ -3295,7 +3295,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        initialData?: "
+                  "text": "{\n        id?: string;\n        initialData?: "
                 },
                 {
                   "kind": "Reference",
@@ -3544,7 +3544,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/store!Store#extractingChanges:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Run `fn` and return a {@link RecordsDiff} of the changes that occurred as a result.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

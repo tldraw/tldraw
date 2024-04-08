@@ -45,10 +45,12 @@ export class HistoryManager<
 
 			switch (this.state) {
 				case HistoryRecorderState.Recording:
+					this._hackyPendingDiffAtom.set(this._hackyPendingDiffAtom.get() + 1)
 					squashRecordDiffsMutable(this.pendingDiff, [entry.changes])
 					this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
 					break
 				case HistoryRecorderState.RecordingPreserveRedoStack:
+					this._hackyPendingDiffAtom.set(this._hackyPendingDiffAtom.get() + 1)
 					squashRecordDiffsMutable(this.pendingDiff, [entry.changes])
 					break
 				case HistoryRecorderState.Paused:
@@ -59,6 +61,7 @@ export class HistoryManager<
 		})
 	}
 
+	private _hackyPendingDiffAtom = atom('HistoryManager._hackyPendingDiffAtom', 0)
 	private pendingDiff = createEmptyDiff<R>()
 	private flushPendingDiff() {
 		if (isRecordsDiffEmpty(this.pendingDiff)) return
@@ -73,7 +76,9 @@ export class HistoryManager<
 	onBatchComplete: () => void = () => void null
 
 	getNumUndos() {
-		return this.stacks.get().undos.length
+		this._hackyPendingDiffAtom.get()
+		const hasPendingDiff = !isRecordsDiffEmpty(this.pendingDiff)
+		return this.stacks.get().undos.length + (hasPendingDiff ? 1 : 0)
 	}
 	getNumRedos() {
 		return this.stacks.get().redos.length
@@ -131,10 +136,6 @@ export class HistoryManager<
 		try {
 			let { undos, redos } = this.stacks.get()
 
-			if (undos.length === 0) {
-				return
-			}
-
 			// start by collecting the pending diff (everything since the last mark).
 			// we'll accumulate the diff to undo in this variable so we can apply it atomically.
 			const diffToUndo = reverseRecordsDiff(this.pendingDiff)
@@ -143,6 +144,7 @@ export class HistoryManager<
 				redos = redos.push({ type: 'diff', diff: this.pendingDiff })
 			}
 
+			this._hackyPendingDiffAtom.set(this._hackyPendingDiffAtom.get() + 1)
 			this.pendingDiff = createEmptyDiff()
 
 			let didFindMark = false
