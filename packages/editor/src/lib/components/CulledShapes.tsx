@@ -1,5 +1,6 @@
 import { computed, react } from '@tldraw/state'
 import { useEffect, useRef } from 'react'
+import { MAX_SHAPES_PER_PAGE } from '../constants'
 import { useEditor } from '../hooks/useEditor'
 import { useIsDarkMode } from '../hooks/useIsDarkMode'
 
@@ -109,6 +110,9 @@ export function CulledShapes() {
 			viewportEndUniformLocation,
 		} = webGl
 
+		// Each shape requires 12 numbers: 2 triangles * 3 vertices per triangle * 2 positions (x, y) per vertex
+		const triangleGeoCpuBuffer = new Float32Array(12 * MAX_SHAPES_PER_PAGE)
+
 		const shapeVertices = computed('shape vertices', function calculateCulledShapeVertices() {
 			const results: number[] = []
 
@@ -156,7 +160,7 @@ export function CulledShapes() {
 				const viewport = editor.getViewportPageBounds() // when the viewport changes...
 				context.uniform2f(viewportStartUniformLocation, viewport.minX, viewport.minY)
 				context.uniform2f(viewportEndUniformLocation, viewport.maxX, viewport.maxY)
-				const triangleGeoCpuBuffer = new Float32Array(verticesArray)
+				triangleGeoCpuBuffer.set(verticesArray)
 				const triangleGeoBuffer = context.createBuffer()
 				context.bindBuffer(context.ARRAY_BUFFER, triangleGeoBuffer)
 				context.bufferData(context.ARRAY_BUFFER, triangleGeoCpuBuffer, context.STATIC_DRAW)
