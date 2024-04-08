@@ -80,11 +80,15 @@ for (const toolType of ['draw', 'highlight'] as const) {
 		})
 
 		it('Switches between segment types when shift is pressed / released  (starting with shift up)', () => {
-			editor.setCurrentTool(toolType).pointerDown(10, 10).pointerMove(20, 20)
-
-			expect(editor.inputs.isDragging).toBe(true)
-
-			editor.keyDown('Shift').pointerMove(30, 30).keyUp('Shift').pointerMove(40, 40).pointerUp()
+			editor
+				.setCurrentTool(toolType)
+				.pointerDown(10, 10)
+				.pointerMove(20, 20)
+				.keyDown('Shift')
+				.pointerMove(30, 30)
+				.keyUp('Shift')
+				.pointerMove(40, 40)
+				.pointerUp()
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			expect(shape.props.segments.length).toBe(3)

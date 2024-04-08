@@ -54,10 +54,12 @@ export class Arc2d extends Geometry2d {
 
 		let distance = Infinity
 		let nearest: Vec | undefined
+		let tDist: number
 		for (const pt of [A, B, P]) {
-			if (Vec.Dist2(point, pt) < distance) {
+			tDist = Vec.Dist2(point, pt)
+			if (tDist < distance) {
 				nearest = pt
-				distance = Vec.Dist2(point, pt)
+				distance = tDist
 			}
 		}
 

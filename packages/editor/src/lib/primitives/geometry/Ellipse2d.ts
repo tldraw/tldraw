@@ -76,12 +76,13 @@ export class Ellipse2d extends Geometry2d {
 	nearestPoint(A: Vec): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
+		let tDist: number
 		for (const edge of this.edges) {
 			const p = edge.nearestPoint(A)
-			const d = Vec.Dist2(p, A)
-			if (d < dist) {
+			tDist = Vec.Dist2(p, A)
+			if (tDist < dist) {
 				nearest = p
-				dist = d
+				dist = tDist
 			}
 		}
 

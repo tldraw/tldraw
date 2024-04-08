@@ -17,7 +17,7 @@ type TLClickState =
 	| 'pendingOverflow'
 	| 'overflow'
 
-const SQUARED_MAX_CLICK_DISTANCE = 40 ** 2
+const MAX_CLICK_DISTANCE = 40
 
 export class ClickManager {
 	constructor(public editor: Editor) {}
@@ -107,7 +107,7 @@ export class ClickManager {
 
 		if (
 			this._previousScreenPoint &&
-			Vec.Dist2(this._previousScreenPoint, this._clickScreenPoint) > SQUARED_MAX_CLICK_DISTANCE
+			this._previousScreenPoint.dist(this._clickScreenPoint) > MAX_CLICK_DISTANCE
 		) {
 			this._clickState = 'idle'
 		}

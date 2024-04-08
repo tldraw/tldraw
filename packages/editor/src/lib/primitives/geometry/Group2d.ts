@@ -39,12 +39,14 @@ export class Group2d extends Geometry2d {
 			throw Error('no children')
 		}
 
+		let tPoint: Vec
+		let tDist: number
 		for (const child of children) {
-			const nearest = child.nearestPoint(point)
-			const dist = Vec.Dist2(nearest, point)
-			if (dist < d) {
-				d = dist
-				p = nearest
+			tPoint = child.nearestPoint(point)
+			tDist = Vec.Dist2(tPoint, point)
+			if (tDist < d) {
+				d = tDist
+				p = tPoint
 			}
 		}
 		if (!p) throw Error('nearest point not found')
