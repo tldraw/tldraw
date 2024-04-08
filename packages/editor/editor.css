@@ -1106,7 +1106,8 @@ input,
  *  - arrows which have weird geometry and just gets in the way.
  *  - draw shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
  */
-.tl-canvas[data-iseditinganything='true'] .tl-shape:not([data-shape-type='arrow']):not([data-shape-type='draw']) {
+.tl-canvas[data-iseditinganything='true']
+	.tl-shape:not([data-shape-type='arrow']):not([data-shape-type='draw']) {
 	pointer-events: all;
 }
 /* But, re-disable the pointer-events rule for the svg container. */
