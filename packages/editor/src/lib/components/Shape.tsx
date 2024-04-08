@@ -1,6 +1,6 @@
 import { useQuickReactor, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { memo, useCallback, useLayoutEffect, useRef } from 'react'
+import { memo, useCallback, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -26,7 +26,6 @@ export const Shape = memo(function Shape({
 	index,
 	backgroundIndex,
 	opacity,
-	isCulled,
 	dprMultiple,
 }: {
 	id: TLShapeId
@@ -35,7 +34,6 @@ export const Shape = memo(function Shape({
 	index: number
 	backgroundIndex: number
 	opacity: number
-	isCulled: boolean
 	dprMultiple: number
 }) {
 	const editor = useEditor()
@@ -120,13 +118,18 @@ export const Shape = memo(function Shape({
 		[opacity, index, backgroundIndex]
 	)
 
-	useLayoutEffect(() => {
-		const container = containerRef.current
-		const bgContainer = bgContainerRef.current
-		setStyleProperty(container, 'display', isCulled ? 'none' : 'block')
-		setStyleProperty(bgContainer, 'display', isCulled ? 'none' : 'block')
-	}, [isCulled])
+	useQuickReactor(
+		'set display',
+		() => {
+			const shape = editor.getShape(id)
+			if (!shape) return // probably the shape was just deleted
 
+			const isCulled = editor.isShapeCulled(shape)
+			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+		},
+		[editor]
+	)
 	const annotateError = useCallback(
 		(error: any) => editor.annotateError(error, { origin: 'shape', willCrashApp: false }),
 		[editor]

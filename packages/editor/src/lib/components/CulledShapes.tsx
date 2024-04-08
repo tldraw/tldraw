@@ -112,8 +112,9 @@ export function CulledShapes() {
 		const shapeVertices = computed('shape vertices', function calculateCulledShapeVertices() {
 			const results: number[] = []
 
-			for (const { isCulled, maskedPageBounds } of editor.getRenderingShapes()) {
-				if (isCulled && maskedPageBounds) {
+			for (const { id } of editor.getUnorderedRenderingShapes(true)) {
+				const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
+				if (editor.isShapeCulled(id) && maskedPageBounds) {
 					results.push(
 						// triangle 1
 						maskedPageBounds.minX,

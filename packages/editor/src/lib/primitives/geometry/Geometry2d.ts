@@ -55,14 +55,17 @@ export abstract class Geometry2d {
 	}
 
 	nearestPointOnLineSegment(A: Vec, B: Vec): Vec {
-		let distance = Infinity
+		const { vertices } = this
 		let nearest: Vec | undefined
-		for (let i = 0; i < this.vertices.length; i++) {
-			const point = this.vertices[i]
-			const d = Vec.DistanceToLineSegment(A, B, point)
-			if (d < distance) {
-				distance = d
-				nearest = point
+		let dist = Infinity
+		let d: number
+		let p: Vec
+		for (let i = 0; i < vertices.length; i++) {
+			p = vertices[i]
+			d = Vec.DistanceToLineSegment(A, B, p)
+			if (d < dist) {
+				dist = d
+				nearest = p
 			}
 		}
 		if (!nearest) throw Error('nearest point not found')
