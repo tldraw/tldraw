@@ -44,11 +44,11 @@ export class SpatialIndex {
 
 	getShapesInsideBounds(bounds: Box): TLShapeId[] {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const now = Date.now()
+		// const now = Date.now()
 		const result = this.rBushIncremental().get()
 		const rbush = new TldrawRBush().fromJSON(result)
 		const r = rbush.search(bounds).map((b) => b.id)
-		console.log('shapes inside bounds', Date.now() - now, 'ms')
+		// console.log('shapes inside bounds', Date.now() - now, 'ms')
 		return r
 	}
 
