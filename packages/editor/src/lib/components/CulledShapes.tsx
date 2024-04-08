@@ -90,7 +90,7 @@ function setupWebGl(canvas: HTMLCanvasElement | null, isDarkMode: boolean) {
 	}
 }
 
-export function CulledShapes() {
+function _CulledShapes() {
 	const editor = useEditor()
 	const isDarkMode = useIsDarkMode()
 	const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -176,4 +176,11 @@ export function CulledShapes() {
 	return isCullingOffScreenShapes ? (
 		<canvas ref={canvasRef} className="tl-culled-shapes__canvas" />
 	) : null
+}
+
+export function CulledShapes() {
+	if (process.env.NODE_ENV === 'test') {
+		return null
+	}
+	return _CulledShapes()
 }
