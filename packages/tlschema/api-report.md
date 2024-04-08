@@ -153,8 +153,9 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<{ [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>;
 
 // @public
-export function createTLSchema({ shapes, }?: {
+export function createTLSchema({ shapes, migrations, }?: {
     shapes?: Record<string, SchemaShapeInfo>;
+    migrations?: readonly MigrationSequence[];
 }): TLSchema;
 
 // @public (undocumented)

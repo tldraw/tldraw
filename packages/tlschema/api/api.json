@@ -1347,7 +1347,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function createTLSchema({ shapes, }?: "
+              "text": "export declare function createTLSchema({ shapes, migrations, }?: "
             },
             {
               "kind": "Content",
@@ -1369,7 +1369,16 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n}"
+              "text": ">;\n    migrations?: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationSequence",
+              "canonicalReference": "@tldraw/store!MigrationSequence:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n}"
             },
             {
               "kind": "Content",
@@ -1387,17 +1396,17 @@
           ],
           "fileUrlPath": "packages/tlschema/src/createTLSchema.ts",
           "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 8
+            "startIndex": 9,
+            "endIndex": 10
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ shapes, }",
+              "parameterName": "{ shapes, migrations, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 6
+                "endIndex": 8
               },
               "isOptional": true
             }

@@ -1,4 +1,4 @@
-import { LegacyMigrations, StoreSchema } from '@tldraw/store'
+import { LegacyMigrations, MigrationSequence, StoreSchema } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
@@ -76,9 +76,11 @@ const defaultShapes: { [T in TLDefaultShape['type']]: SchemaShapeInfo } = {
  * @public */
 export function createTLSchema({
 	shapes = defaultShapes,
+	migrations,
 	// TODO: allow passing in custom migration sequences
 }: {
 	shapes?: Record<string, SchemaShapeInfo>
+	migrations?: readonly MigrationSequence[]
 } = {}): TLSchema {
 	const stylesById = new Map<string, StyleProp<unknown>>()
 	for (const shape of objectMapValues(shapes)) {
@@ -123,6 +125,8 @@ export function createTLSchema({
 				videoAssetMigrations,
 
 				...processShapeMigrations(shapes),
+
+				...(migrations ?? []),
 			],
 			onValidationFailure,
 			createIntegrityChecker,
