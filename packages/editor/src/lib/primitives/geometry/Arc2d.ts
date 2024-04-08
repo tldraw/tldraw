@@ -52,17 +52,16 @@ export class Arc2d extends Geometry2d {
 		// Get the point (P) on the arc, then pick the nearest of A, B, and P
 		const P = _center.clone().add(point.clone().sub(_center).uni().mul(radius))
 
-		let distance = Infinity
 		let nearest: Vec | undefined
-		let tDist: number
-		for (const pt of [A, B, P]) {
-			tDist = Vec.Dist2(point, pt)
-			if (tDist < distance) {
-				nearest = pt
-				distance = tDist
+		let dist = Infinity
+		let d: number
+		for (const p of [A, B, P]) {
+			d = Vec.Dist2(point, p)
+			if (d < dist) {
+				nearest = p
+				dist = d
 			}
 		}
-
 		if (!nearest) throw Error('nearest point not found')
 		return nearest
 	}

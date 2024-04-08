@@ -51,7 +51,6 @@ export class Polyline2d extends Geometry2d {
 		const { segments } = this
 		let nearest = this.points[0]
 		let dist = Infinity
-
 		let p: Vec // current point on segment
 		let d: number // distance from A to p
 		for (let i = 0; i < segments.length; i++) {
@@ -62,7 +61,7 @@ export class Polyline2d extends Geometry2d {
 				dist = d
 			}
 		}
-
+		if (!nearest) throw Error('nearest point not found')
 		return nearest
 	}
 

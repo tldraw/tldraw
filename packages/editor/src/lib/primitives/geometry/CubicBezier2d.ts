@@ -55,14 +55,14 @@ export class CubicBezier2d extends Polyline2d {
 	nearestPoint(A: Vec): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
-		let tDist: number
-		let tPoint: Vec
+		let d: number
+		let p: Vec
 		for (const edge of this.segments) {
-			tPoint = edge.nearestPoint(A)
-			tDist = Vec.Dist2(tPoint, A)
-			if (tDist < dist) {
-				nearest = tPoint
-				dist = tDist
+			p = edge.nearestPoint(A)
+			d = Vec.Dist2(p, A)
+			if (d < dist) {
+				nearest = p
+				dist = d
 			}
 		}
 
