@@ -165,25 +165,12 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		[editor, id]
 	)
 
-	const handleFocus = useCallback(() => {
-		const elm = rInput.current
-		if (elm && isEditing) {
-			// XXX: argh, this is a hack to make sure the cursor is _visible_
-			// in Safari/WebKit. When first loading tldraw, and clicking into an
-			// editable area, sometimes, the cursor is present but not visible.
-			// After a while it will always be visible after it has 'warmed up'.
-			// This tricks forces it to shake it awake and make it visible always.
-			elm.blur()
-			elm.focus()
-		}
-	}, [isEditing])
-
 	const handleDoubleClick = stopEventPropagation
 
 	return {
 		rInput,
 		isEditing,
-		handleFocus,
+		handleFocus: noop,
 		handleBlur,
 		handleKeyDown,
 		handleChange,
@@ -192,4 +179,8 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		isEmpty,
 		isEditingAnything,
 	}
+}
+
+function noop() {
+	return
 }
