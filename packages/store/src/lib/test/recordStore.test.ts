@@ -1,7 +1,8 @@
 import { Computed, react, RESET_VALUE, transact } from '@tldraw/state'
 import { BaseRecord, RecordId } from '../BaseRecord'
+import { RecordsDiff } from '../RecordsDiff'
 import { createRecordType } from '../RecordType'
-import { CollectionDiff, RecordsDiff, Store } from '../Store'
+import { CollectionDiff, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
 interface Book extends BaseRecord<'book', RecordId<Book>> {

@@ -1,4 +1,4 @@
-import { objectMapFromEntries } from '@tldraw/utils'
+import { objectMapEntries } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 
 /**
@@ -7,112 +7,96 @@ import { IdOf, UnknownRecord } from './BaseRecord'
  * @public
  */
 export type RecordsDiff<R extends UnknownRecord> = {
-	readonly added: null | { readonly [K in IdOf<R>]: R }
-	readonly updated: null | { readonly [K in IdOf<R>]: readonly [from: R, to: R] }
-	readonly removed: null | { readonly [K in IdOf<R>]: R }
+	added: Record<IdOf<R>, R>
+	updated: Record<IdOf<R>, [from: R, to: R]>
+	removed: Record<IdOf<R>, R>
 }
 
-/** @internal */
-export class WorkingRecordsDiff<R extends UnknownRecord> {
-	static merged<R extends UnknownRecord>(diffs: WorkingRecordsDiff<R>[]): WorkingRecordsDiff<R> {
-		const merged = new WorkingRecordsDiff<R>()
-		for (const diff of diffs) {
-			merged.merge(diff)
-		}
-		return merged
+/** @public */
+export function reverseRecordsDiff(diff: RecordsDiff<any>) {
+	const result: RecordsDiff<any> = { added: diff.removed, removed: diff.added, updated: {} }
+	for (const [from, to] of Object.values(diff.updated)) {
+		result.updated[from.id] = [to, from]
 	}
-	constructor(
-		public added: null | Map<IdOf<R>, R> = null,
-		public updated: null | Map<IdOf<R>, [from: R, to: R]> = null,
-		public removed: null | Map<IdOf<R>, R> = null
-	) {}
+	return result
+}
 
-	isEmpty() {
-		return (
-			(this.added === null || this.added.size === 0) &&
-			(this.updated === null || this.updated.size === 0) &&
-			(this.removed === null || this.removed.size === 0)
-		)
-	}
+/**
+ * Is a records diff empty?
+ * @internal
+ */
+export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>) {
+	return (
+		Object.keys(diff.added).length === 0 &&
+		Object.keys(diff.updated).length === 0 &&
+		Object.keys(diff.removed).length === 0
+	)
+}
 
-	toJson(): RecordsDiff<R> {
-		return {
-			added: this.added && this.added.size ? objectMapFromEntries([...this.added.entries()]) : null,
-			updated:
-				this.updated && this.updated.size
-					? objectMapFromEntries([...this.updated.entries()])
-					: null,
-			removed:
-				this.removed && this.removed.size
-					? objectMapFromEntries([...this.removed.entries()])
-					: null,
-		}
-	}
+/**
+ * Squash a collection of diffs into a single diff.
+ *
+ * @param diffs - An array of diffs to squash.
+ * @returns A single diff that represents the squashed diffs.
+ * @public
+ */
+export function squashRecordDiffs<T extends UnknownRecord>(
+	diffs: RecordsDiff<T>[]
+): RecordsDiff<T> {
+	const result = { added: {}, removed: {}, updated: {} } as RecordsDiff<T>
 
-	merge(diff: WorkingRecordsDiff<R>) {
-		if (diff.added) {
-			for (const record of diff.added.values()) {
-				this.add(record)
+	squashRecordDiffsMutable(result, diffs)
+	return result
+}
+
+/**
+ * Apply the array `diffs` to the `target` diff, mutating it in-place.
+ * @internal
+ */
+export function squashRecordDiffsMutable<T extends UnknownRecord>(
+	target: RecordsDiff<T>,
+	diffs: RecordsDiff<T>[]
+): void {
+	for (const diff of diffs) {
+		for (const [id, value] of objectMapEntries(diff.added)) {
+			if (target.removed[id]) {
+				const original = target.removed[id]
+				delete target.removed[id]
+				if (original !== value) {
+					target.updated[id] = [original, value]
+				}
+			} else {
+				target.added[id] = value
 			}
 		}
-		if (diff.updated) {
-			for (const update of diff.updated.values()) {
-				this.update(update[0], update[1])
+
+		for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
+			if (target.added[id]) {
+				target.added[id] = to
+				delete target.updated[id]
+				delete target.removed[id]
+				continue
+			}
+			if (target.updated[id]) {
+				target.updated[id] = [target.updated[id][0], to]
+				delete target.removed[id]
+				continue
+			}
+
+			target.updated[id] = diff.updated[id]
+			delete target.removed[id]
+		}
+
+		for (const [id, value] of objectMapEntries(diff.removed)) {
+			// the same record was added in this diff sequence, just drop it
+			if (target.added[id]) {
+				delete target.added[id]
+			} else if (target.updated[id]) {
+				target.removed[id] = target.updated[id][0]
+				delete target.updated[id]
+			} else {
+				target.removed[id] = value
 			}
 		}
-		if (diff.removed) {
-			for (const record of diff.removed.values()) {
-				this.remove(record)
-			}
-		}
-	}
-
-	add(record: R) {
-		const removedOriginal = this.removed?.get(record.id)
-		if (removedOriginal) {
-			this.removed!.delete(record.id)
-			if (removedOriginal !== record) {
-				if (!this.updated) this.updated = new Map()
-				this.updated.set(record.id, [removedOriginal, record])
-			}
-		} else {
-			if (!this.added) this.added = new Map()
-			this.added.set(record.id, record)
-		}
-	}
-
-	update(prev: R, next: R) {
-		if (this.added?.has(prev.id)) {
-			this.updated?.delete(prev.id)
-			this.removed?.delete(prev.id)
-			this.added.set(next.id, next)
-			return
-		}
-
-		const existingUpdated = this.updated?.get(prev.id)
-		if (existingUpdated) {
-			existingUpdated[1] = next
-			this.removed?.delete(prev.id)
-			return
-		}
-
-		if (!this.updated) this.updated = new Map()
-		this.updated.set(prev.id, [prev, next])
-		this.removed?.delete(prev.id)
-	}
-
-	remove(record: R) {
-		if (this.added?.has(record.id)) {
-			this.added.delete(record.id)
-			return
-		}
-		if (!this.removed) this.removed = new Map()
-		const updated = this.updated?.get(record.id)
-		if (updated) {
-			this.updated?.delete(record.id)
-			this.removed?.set(record.id, updated[1])
-			return
-		}
-		this.removed.set(record.id, record)
 	}
 }

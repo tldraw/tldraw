@@ -1,5 +1,6 @@
 import { Atom, Computed, Reactor, atom, computed, reactor, transact } from '@tldraw/state'
 import {
+	assert,
 	filterEntries,
 	objectMapEntries,
 	objectMapFromEntries,
@@ -11,7 +12,7 @@ import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { Cache } from './Cache'
 import { RecordScope } from './RecordType'
-import { RecordsDiff, WorkingRecordsDiff } from './RecordsDiff'
+import { RecordsDiff, squashRecordDiffs, squashRecordDiffsMutable } from './RecordsDiff'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { devFreeze } from './devFreeze'
@@ -39,10 +40,6 @@ export type StoreListenerFilters = {
  */
 export type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
 	changes: RecordsDiff<R>
-	source: ChangeSource
-}
-type WorkingHistoryEntry<R extends UnknownRecord = UnknownRecord> = {
-	changes: WorkingRecordsDiff<R>
 	source: ChangeSource
 }
 
@@ -262,40 +259,36 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @returns
 	 */
 	filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope) {
-		const added = change.added
-			? filterEntries(change.added, (_, r) => this.scopedTypes[scope].has(r.typeName))
-			: null
-		const updated = change.updated
-			? filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName))
-			: null
-		const removed = change.removed
-			? filterEntries(change.removed, (_, r) => this.scopedTypes[scope].has(r.typeName))
-			: null
+		const result = {
+			added: filterEntries(change.added, (_, r) => this.scopedTypes[scope].has(r.typeName)),
+			updated: filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName)),
+			removed: filterEntries(change.removed, (_, r) => this.scopedTypes[scope].has(r.typeName)),
+		}
 		if (
-			(!added || Object.keys(added).length === 0) &&
-			(!updated || Object.keys(updated).length === 0) &&
-			(!removed || Object.keys(removed).length === 0)
+			Object.keys(result.added).length === 0 &&
+			Object.keys(result.updated).length === 0 &&
+			Object.keys(result.removed).length === 0
 		) {
 			return null
 		}
-		return { added, updated, removed }
+		return result
 	}
 
-	// /**
-	//  * Update the history with a diff of changes.
-	//  *
-	//  * @param changes - The changes to add to the history.
-	//  */
-	// private updateHistory(changes: RecordsDiff<R>): void {
-	// 	this.historyAccumulator.add({
-	// 		changes,
-	// 		source: this.isMergingRemoteChanges ? 'remote' : 'user',
-	// 	})
-	// 	if (this.listeners.size === 0) {
-	// 		this.historyAccumulator.clear()
-	// 	}
-	// 	this.history.set(this.history.get() + 1, changes)
-	// }
+	/**
+	 * Update the history with a diff of changes.
+	 *
+	 * @param changes - The changes to add to the history.
+	 */
+	private updateHistory(changes: RecordsDiff<R>): void {
+		this.historyAccumulator.add({
+			changes,
+			source: this.isMergingRemoteChanges ? 'remote' : 'user',
+		})
+		if (this.listeners.size === 0) {
+			this.historyAccumulator.clear()
+		}
+		this.history.set(this.history.get() + 1, changes)
+	}
 
 	validate(phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests') {
 		this.allRecords().forEach((record) => this.schema.validateRecord(this, record, phase, null))
@@ -357,12 +350,21 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	put = (records: R[], phaseOverride?: 'initialize'): void => {
-		this.atomic(() => {
+		this.transactWithAfterEvents(() => {
+			const updates: Record<IdOf<UnknownRecord>, [from: R, to: R]> = {}
+			const additions: Record<IdOf<UnknownRecord>, R> = {}
+
 			const currentMap = this.atoms.__unsafe__getWithoutCapture()
 			let map = null as null | Record<IdOf<UnknownRecord>, Atom<R>>
 
 			// Iterate through all records, creating, updating or removing as needed
 			let record: R
+
+			// There's a chance that, despite having records, all of the values are
+			// identical to what they were before; and so we'd end up with an "empty"
+			// history entry. Let's keep track of whether we've actually made any
+			// changes (e.g. additions, deletions, or updates that produce a new value).
+			let didChange = false
 
 			const beforeCreate = this.onBeforeCreate && this._runCallbacks ? this.onBeforeCreate : null
 			const beforeUpdate = this.onBeforeChange && this._runCallbacks ? this.onBeforeChange : null
@@ -390,12 +392,16 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 					if (validated === initialValue) continue
 
-					const updated = devFreeze(record)
-					recordAtom.set(updated)
+					recordAtom.set(devFreeze(record))
 
-					this.atomicDiffAccumulator!.update(initialValue, updated)
+					didChange = true
+					const updated = recordAtom.__unsafe__getWithoutCapture()
+					updates[record.id] = [initialValue, updated]
+					this.addDiffForAfterEvent(initialValue, updated, source)
 				} else {
 					if (beforeCreate) record = beforeCreate(record, source)
+
+					didChange = true
 
 					// If we don't have an atom, create one.
 
@@ -408,7 +414,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					)
 
 					// Mark the change as a new addition.
-					this.atomicDiffAccumulator!.add(record)
+					additions[record.id] = record
+					this.addDiffForAfterEvent(null, record, source)
 
 					// Assign the atom to the map under the record's id.
 					if (!map) {
@@ -422,6 +429,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			if (map) {
 				this.atoms.set(map)
 			}
+
+			// If we did change, update the history
+			if (!didChange) return
+			this.updateHistory({
+				added: additions,
+				updated: updates,
+				removed: {} as Record<IdOf<R>, R>,
+			})
 		})
 	}
 
@@ -432,7 +447,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	remove = (ids: IdOf<R>[]): void => {
-		this.atomic(() => {
+		this.transactWithAfterEvents(() => {
 			const cancelled = [] as IdOf<R>[]
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
@@ -671,10 +686,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			return fn()
 		}
 
-		if (this.atomicDiffAccumulator) {
-			throw new Error('Cannot merge remote changes while in an atomic transaction')
-		}
-
 		try {
 			this.isMergingRemoteChanges = true
 			transact(fn)
@@ -697,8 +708,24 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 	}
 
+	/**
+	 * Like {@link extractingChanges}, but accumulates the changes into the provided accumulator
+	 * diff instead of returning a fresh diff.
+	 * @internal
+	 */
+	accumulatingChanges(accumulator: RecordsDiff<R>, fn: () => void) {
+		const changes: Array<RecordsDiff<R>> = []
+		const dispose = this.historyAccumulator.addInterceptor((entry) => changes.push(entry.changes))
+		try {
+			transact(fn)
+			squashRecordDiffsMutable(accumulator, changes)
+		} finally {
+			dispose()
+		}
+	}
+
 	applyDiff(diff: RecordsDiff<R>, runCallbacks = true) {
-		this.atomic(() => {
+		this.transactWithAfterEvents(() => {
 			const toPut = objectMapValues(diff.added).concat(
 				objectMapValues(diff.updated).map(([_from, to]) => to)
 			)
@@ -802,46 +829,54 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		return this._isPossiblyCorrupted
 	}
 
-	private atomicDiffAccumulator: WorkingRecordsDiff<R> | null = null
-	private atomic<T>(fn: () => T, runCallbacks = true): T {
+	private pendingAfterEvents: Map<
+		IdOf<R>,
+		{ before: R | null; after: R | null; source: 'remote' | 'user' }
+	> | null = null
+	private addDiffForAfterEvent(before: R | null, after: R | null, source: 'remote' | 'user') {
+		assert(this.pendingAfterEvents, 'must be in event operation')
+		if (before === after) return
+		if (before && after) assert(before.id === after.id)
+		if (!before && !after) return
+		const id = (before || after)!.id
+		const existing = this.pendingAfterEvents.get(id)
+		if (existing) {
+			assert(existing.source === source, 'source cannot change within a single event operation')
+			existing.after = after
+		} else {
+			this.pendingAfterEvents.set(id, { before, after, source })
+		}
+	}
+	private transactWithAfterEvents<T>(fn: () => T, runCallbacks = true): T {
 		return transact(() => {
-			if (this.atomicDiffAccumulator) return fn()
+			if (this.pendingAfterEvents) return fn()
 
-			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
-			this.atomicDiffAccumulator = new WorkingRecordsDiff()
+			this.pendingAfterEvents = new Map()
 			const prevRunCallbacks = this._runCallbacks
 			this._runCallbacks = runCallbacks ?? prevRunCallbacks
 			try {
 				const result = fn()
 
-				while (this.atomicDiffAccumulator) {
-					const changes = this.atomicDiffAccumulator
-					this.atomicDiffAccumulator = null
-
-					this.historyAccumulator.add({ source, changes })
+				while (this.pendingAfterEvents) {
+					const events = this.pendingAfterEvents
+					this.pendingAfterEvents = null
 
 					if (!runCallbacks) continue
 
-					if (changes.added && this.onAfterCreate) {
-						for (const added of changes.added.values()) {
-							this.onAfterCreate(added, source)
-						}
-					}
-					if (changes.updated && this.onAfterChange) {
-						for (const update of changes.updated.values()) {
-							this.onAfterChange(update[0], update[1], source)
-						}
-					}
-					if (changes.removed && this.onAfterDelete) {
-						for (const removed of changes.removed.values()) {
-							this.onAfterDelete(removed, source)
+					for (const { before, after, source } of events.values()) {
+						if (before && after) {
+							this.onAfterChange?.(before, after, source)
+						} else if (before && !after) {
+							this.onAfterDelete?.(before, source)
+						} else if (!before && after) {
+							this.onAfterCreate?.(after, source)
 						}
 					}
 				}
 
 				return result
 			} finally {
-				this.atomicDiffAccumulator = null
+				this.pendingAfterEvents = null
 				this._runCallbacks = prevRunCallbacks
 			}
 		})
@@ -856,86 +891,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 }
 
 /**
- * Squash a collection of diffs into a single diff.
- *
- * @param diffs - An array of diffs to squash.
- * @returns A single diff that represents the squashed diffs.
- * @public
- */
-export function squashRecordDiffs<T extends UnknownRecord>(
-	diffs: RecordsDiff<T>[]
-): RecordsDiff<T> {
-	const result = { added: {}, removed: {}, updated: {} } as RecordsDiff<T>
-
-	squashRecordDiffsMutable(result, diffs)
-	return result
-}
-
-/**
- * Apply the array `diffs` to the `target` diff, mutating it in-place.
- * @internal
- */
-export function squashRecordDiffsMutable<T extends UnknownRecord>(
-	target: RecordsDiff<T>,
-	diffs: RecordsDiff<T>[]
-): void {
-	for (const diff of diffs) {
-		for (const [id, value] of objectMapEntries(diff.added)) {
-			if (target.removed[id]) {
-				const original = target.removed[id]
-				delete target.removed[id]
-				if (original !== value) {
-					target.updated[id] = [original, value]
-				}
-			} else {
-				target.added[id] = value
-			}
-		}
-
-		for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
-			if (target.added[id]) {
-				target.added[id] = to
-				delete target.updated[id]
-				delete target.removed[id]
-				continue
-			}
-			if (target.updated[id]) {
-				target.updated[id] = [target.updated[id][0], to]
-				delete target.removed[id]
-				continue
-			}
-
-			target.updated[id] = diff.updated[id]
-			delete target.removed[id]
-		}
-
-		for (const [id, value] of objectMapEntries(diff.removed)) {
-			// the same record was added in this diff sequence, just drop it
-			if (target.added[id]) {
-				delete target.added[id]
-			} else if (target.updated[id]) {
-				target.removed[id] = target.updated[id][0]
-				delete target.updated[id]
-			} else {
-				target.removed[id] = value
-			}
-		}
-	}
-}
-
-/**
- * Is a records diff empty?
- * @internal
- */
-export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>) {
-	return (
-		Object.keys(diff.added).length === 0 &&
-		Object.keys(diff.updated).length === 0 &&
-		Object.keys(diff.removed).length === 0
-	)
-}
-
-/**
  * Collect all history entries by their adjacent sources.
  * For example, [user, user, remote, remote, user] would result in [user, remote, user],
  * with adjacent entries of the same source squashed into a single entry.
@@ -945,13 +900,13 @@ export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>
  * @public
  */
 function squashHistoryEntries<T extends UnknownRecord>(
-	entries: WorkingHistoryEntry<T>[]
+	entries: HistoryEntry<T>[]
 ): HistoryEntry<T>[] {
 	if (entries.length === 0) return []
 
-	const chunked: WorkingHistoryEntry<T>[][] = []
-	let chunk: WorkingHistoryEntry<T>[] = [entries[0]]
-	let entry: WorkingHistoryEntry<T>
+	const chunked: HistoryEntry<T>[][] = []
+	let chunk: HistoryEntry<T>[] = [entries[0]]
+	let entry: HistoryEntry<T>
 
 	for (let i = 1, n = entries.length; i < n; i++) {
 		entry = entries[i]
@@ -967,39 +922,24 @@ function squashHistoryEntries<T extends UnknownRecord>(
 	return devFreeze(
 		chunked.map((chunk) => ({
 			source: chunk[0].source,
-			changes: WorkingRecordsDiff.merged(chunk.map((e) => e.changes)).toJson(),
+			changes: squashRecordDiffs(chunk.map((e) => e.changes)),
 		}))
 	)
 }
 
-/** @public */
-export function reverseRecordsDiff<R extends UnknownRecord>(diff: RecordsDiff<R>) {
-	const result = {
-		added: diff.removed,
-		removed: diff.added,
-		updated: {} as Record<IdOf<R>, [R, R]>,
-	}
-	if (diff.updated) {
-		for (const [from, to] of objectMapValues(diff.updated)) {
-			result.updated[from.id as IdOf<R>] = [to, from]
-		}
-	}
-	return result
-}
-
 class HistoryAccumulator<T extends UnknownRecord> {
-	private _history: WorkingHistoryEntry<T>[] = []
+	private _history: HistoryEntry<T>[] = []
 
-	private _interceptors: Set<(entry: WorkingHistoryEntry<T>) => void> = new Set()
+	private _interceptors: Set<(entry: HistoryEntry<T>) => void> = new Set()
 
-	addInterceptor(fn: (entry: WorkingHistoryEntry<T>) => void) {
+	addInterceptor(fn: (entry: HistoryEntry<T>) => void) {
 		this._interceptors.add(fn)
 		return () => {
 			this._interceptors.delete(fn)
 		}
 	}
 
-	add(entry: WorkingHistoryEntry<T>) {
+	add(entry: HistoryEntry<T>) {
 		this._history.push(entry)
 		for (const interceptor of this._interceptors) {
 			interceptor(entry)
