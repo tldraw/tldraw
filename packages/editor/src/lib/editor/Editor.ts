@@ -8594,7 +8594,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (
 						!inputs.isDragging &&
 						inputs.isPointing &&
-						originPagePoint.dist(currentPagePoint) >
+						Vec.Dist2(originPagePoint, currentPagePoint) >
 							(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
 								this.getZoomLevel()
 					) {
@@ -8684,7 +8684,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (
 							!inputs.isDragging &&
 							inputs.isPointing &&
-							originPagePoint.dist(currentPagePoint) >
+							Vec.Dist2(originPagePoint, currentPagePoint) >
 								(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
 									this.getZoomLevel()
 						) {

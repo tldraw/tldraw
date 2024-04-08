@@ -227,7 +227,7 @@ export class ClickManager {
 		if (
 			this._clickState !== 'idle' &&
 			this._clickScreenPoint &&
-			this._clickScreenPoint.dist(this.editor.inputs.currentScreenPoint) >
+			Vec.Dist2(this._clickScreenPoint, this.editor.inputs.currentScreenPoint) >
 				(this.editor.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
 		) {
 			this.cancelDoubleClickTimeout()

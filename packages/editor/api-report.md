@@ -514,7 +514,7 @@ export function degreesToRadians(d: number): number;
 export const DOUBLE_CLICK_DURATION = 450;
 
 // @internal (undocumented)
-export const DRAG_DISTANCE = 4;
+export const DRAG_DISTANCE = 16;
 
 // @public (undocumented)
 export const EASINGS: {
