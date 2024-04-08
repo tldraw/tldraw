@@ -9,7 +9,11 @@ import {
 import { TextDecoder, TextEncoder } from 'util'
 
 global.TextEncoder = TextEncoder
-global.TextDecoder = TextDecoder
+global.TextDecoder = TextDecoder as any
+
+global.HTMLCanvasElement.prototype.getContext = (() => {
+	// return whatever getContext has to return
+}) as any
 
 function convertNumbersInObject(obj: any, roundToNearest: number) {
 	if (!obj) return obj
