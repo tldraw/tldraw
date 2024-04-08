@@ -21,7 +21,7 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
-			editor.updateInstanceState({ isChangingStyle: false }, { ephemeral: true })
+			editor.updateInstanceState({ isChangingStyle: false }, { history: 'ephemeral' })
 		}
 	}, [editor, isMobile])
 

@@ -1130,10 +1130,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-transparent', { source })
 					editor.updateInstanceState(
-						{
-							exportBackground: !editor.getInstanceState().exportBackground,
-						},
-						{ ephemeral: true }
+						{ exportBackground: !editor.getInstanceState().exportBackground },
+						{ history: 'ephemeral' }
 					)
 				},
 				checkbox: true,
@@ -1294,7 +1292,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							editor.setStyleForSelectedShapes(style, 'white')
 						}
 						editor.setStyleForNextShapes(style, 'white')
-						editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
+						editor.updateInstanceState({ isChangingStyle: true }, { history: 'ephemeral' })
 					})
 					trackEvent('set-style', { source, id: style.id, value: 'white' })
 				},

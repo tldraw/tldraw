@@ -37,7 +37,7 @@ export function MobileStylePanel() {
 	const handleStylesOpenChange = useCallback(
 		(isOpen: boolean) => {
 			if (!isOpen) {
-				editor.updateInstanceState({ isChangingStyle: false }, { ephemeral: true })
+				editor.updateInstanceState({ isChangingStyle: false }, { history: 'ephemeral' })
 			}
 		},
 		[editor]

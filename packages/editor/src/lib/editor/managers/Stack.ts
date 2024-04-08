@@ -22,6 +22,10 @@ class EmptyStackItem<T> implements Iterable<T> {
 		return new StackItem<T>(head, this)
 	}
 
+	replaceHead(head: T): Stack<T> {
+		return this.push(head)
+	}
+
 	toArray() {
 		return EMPTY_ARRAY
 	}
@@ -48,6 +52,10 @@ class StackItem<T> implements Iterable<T> {
 
 	push(head: T): Stack<T> {
 		return new StackItem(head, this)
+	}
+
+	replaceHead(head: T): Stack<T> {
+		return new StackItem(head, this.tail)
 	}
 
 	toArray() {

@@ -3,16 +3,22 @@ import {
 	RecordsDiff,
 	Store,
 	UnknownRecord,
-	devFreeze,
+	isRecordsDiffEmpty,
 	reverseRecordsDiff,
-	squashRecordDiffs,
+	squashRecordDiffsMutable,
 } from '@tldraw/store'
-import { TLRecord } from '@tldraw/tlschema'
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import { uniqueId } from '../../utils/uniqueId'
-import { TLCommandHistoryOptions, TLHistoryEntry } from '../types/history-types'
-import { Stack, stack } from './Stack'
+import { TLHistoryBatchOptions, TLHistoryEntry } from '../types/history-types'
+import { stack } from './Stack'
 
-type CommandFn = (...args: any[]) => TLCommandHistoryOptions | void
+type CommandFn = (...args: any[]) => void
+
+enum HistoryRecorderState {
+	Recording = 'recording',
+	RecordingPreserveRedoStack = 'recordingPreserveRedoStack',
+	Paused = 'paused',
+}
 
 export class HistoryManager<
 	R extends UnknownRecord,
@@ -21,136 +27,95 @@ export class HistoryManager<
 		emit: (name: 'change-history' | 'mark-history', ...args: any) => void
 	},
 > {
-	_undos = atom<Stack<TLHistoryEntry<R>>>('HistoryManager.undos', stack()) // Updated by each action that includes and undo
-	_redos = atom<Stack<TLHistoryEntry<R>>>('HistoryManager.redos', stack()) // Updated when a user undoes
-	_batchDepth = 0 // A flag for whether the user is in a batch operation
+	/** @internal */
+	stacks = atom('HistoryManager.stacks', {
+		undos: stack<TLHistoryEntry<R>>(),
+		redos: stack<TLHistoryEntry<R>>(),
+	})
+
+	private state: HistoryRecorderState = HistoryRecorderState.Recording
+	readonly dispose: () => void
 
 	constructor(
 		private readonly ctx: CTX,
 		private readonly annotateError: (error: unknown) => void
-	) {}
+	) {
+		this.dispose = this.ctx.store.addHistoryInterceptor((entry, source) => {
+			if (source !== 'user') return
+
+			switch (this.state) {
+				case HistoryRecorderState.Recording:
+					squashRecordDiffsMutable(this.pendingDiff, [entry.changes])
+					this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
+					break
+				case HistoryRecorderState.RecordingPreserveRedoStack:
+					squashRecordDiffsMutable(this.pendingDiff, [entry.changes])
+					break
+				case HistoryRecorderState.Paused:
+					break
+				default:
+					exhaustiveSwitchError(this.state)
+			}
+		})
+	}
+
+	private pendingDiff = createEmptyDiff<R>()
+	private flushPendingDiff() {
+		if (isRecordsDiffEmpty(this.pendingDiff)) return
+
+		this.stacks.update(({ undos, redos }) => ({
+			undos: undos.push({ type: 'diff', diff: this.pendingDiff }),
+			redos,
+		}))
+		this.pendingDiff = createEmptyDiff<R>()
+	}
 
 	onBatchComplete: () => void = () => void null
 
-	private knownCommands = new Set<string>()
-
 	getNumUndos() {
-		return this._undos.get().length
+		return this.stacks.get().undos.length
 	}
 	getNumRedos() {
-		return this._redos.get().length
-	}
-	createCommand = <Name extends string, Fn extends CommandFn>(name: Name, runCommand: Fn) => {
-		if (this.knownCommands.has(name)) {
-			throw new Error(`Duplicate command: ${name}`)
-		}
-		this.knownCommands.add(name)
-
-		const exec = (...args: Parameters<Fn>): CTX => {
-			if (!this._batchDepth) {
-				// If we're not batching, run again in a batch
-				this.batch(() => exec(...args))
-				return this.ctx
-			}
-
-			let diff!: RecordsDiff<R>
-			let options!: TLCommandHistoryOptions | void
-			this.ignoringUpdates((undos, redos) => {
-				diff = this.ctx.store!.extractingChanges(() => {
-					options = runCommand(...args)
-				})
-				return { undos, redos }
-			})
-
-			// if nothing happend, we don't need to record a history entry:
-			if (isDiffEmpty(diff)) return this.ctx
-
-			const ephemeral = options?.ephemeral
-			const preservesRedoStack = options?.preservesRedoStack
-
-			if (!ephemeral) {
-				const prev = this._undos.get().head
-				if (
-					prev &&
-					prev.type === 'command' &&
-					prev.name === name &&
-					prev.preservesRedoStack === preservesRedoStack
-				) {
-					// replace the last command with a squashed version
-					this._undos.update((undos) =>
-						undos.tail.push({
-							...prev,
-							diff: devFreeze(squashRecordDiffs([prev.diff, diff])),
-						})
-					)
-				} else {
-					// add to the undo stack
-					this._undos.update((undos) =>
-						undos.push({
-							type: 'command',
-							name,
-							diff: devFreeze(diff),
-							preservesRedoStack: preservesRedoStack,
-						})
-					)
-				}
-
-				if (!preservesRedoStack) {
-					this._redos.set(stack())
-				}
-
-				this.ctx.emit('change-history', { reason: 'push' })
-			}
-
-			return this.ctx
-		}
-
-		return exec
+		return this.stacks.get().redos.length
 	}
 
-	createCommand2 = this.createCommand
+	/** @internal */
+	_isInBatch = false
+	batch = (fn: () => void, opts?: TLHistoryBatchOptions) => {
+		const previousState = this.state
+		this.state = opts?.history ? modeToState[opts.history] : this.state
 
-	batch = (fn: () => void) => {
 		try {
-			this._batchDepth++
-			if (this._batchDepth === 1) {
-				transact(() => {
-					const mostRecentAction = this._undos.get().head
-					fn()
-					if (mostRecentAction !== this._undos.get().head) {
-						this.onBatchComplete()
-					}
-				})
-			} else {
+			if (this._isInBatch) {
 				fn()
+				return this
 			}
-		} catch (error) {
-			this.annotateError(error)
-			throw error
-		} finally {
-			this._batchDepth--
-		}
 
-		return this
+			this._isInBatch = true
+			try {
+				transact(() => {
+					fn()
+					this.onBatchComplete()
+					this.ctx.emit('change-history', { reason: 'push' })
+				})
+			} catch (error) {
+				this.annotateError(error)
+				throw error
+			} finally {
+				this._isInBatch = false
+			}
+
+			return this
+		} finally {
+			this.state = previousState
+		}
 	}
 
-	private ignoringUpdates = (
-		fn: (
-			undos: Stack<TLHistoryEntry<R>>,
-			redos: Stack<TLHistoryEntry<R>>
-		) => { undos: Stack<TLHistoryEntry<R>>; redos: Stack<TLHistoryEntry<R>> }
-	) => {
-		let undos = this._undos.get()
-		let redos = this._redos.get()
-
-		this._undos.set(stack())
-		this._redos.set(stack())
-		try {
-			;({ undos, redos } = transact(() => fn(undos, redos)))
-		} finally {
-			this._undos.set(undos)
-			this._redos.set(redos)
-		}
+	ephemeral(fn: () => void) {
+		return this.batch(fn, { history: 'ephemeral' })
+	}
+	preserveRedoStack(fn: () => void) {
+		return this.batch(fn, { history: 'preserveRedoStack' })
 	}
 
 	// History
@@ -161,61 +126,74 @@ export class HistoryManager<
 		pushToRedoStack: boolean
 		toMark?: string
 	}) => {
-		this.ignoringUpdates((undos, redos) => {
-			if (undos.length === 0) {
-				return { undos, redos }
-			}
-
-			while (undos.head?.type === 'STOP') {
-				const mark = undos.head
-				undos = undos.tail
-				if (pushToRedoStack) {
-					redos = redos.push(mark)
-				}
-				if (mark.id === toMark) {
-					this.ctx.emit(
-						'change-history',
-						pushToRedoStack ? { reason: 'undo' } : { reason: 'bail', markId: toMark }
-					)
-					return { undos, redos }
-				}
-			}
+		const previousState = this.state
+		this.state = HistoryRecorderState.Paused
+		try {
+			let { undos, redos } = this.stacks.get()
 
 			if (undos.length === 0) {
-				this.ctx.emit(
-					'change-history',
-					pushToRedoStack ? { reason: 'undo' } : { reason: 'bail', markId: toMark }
-				)
-				return { undos, redos }
+				return
 			}
 
-			while (undos.head) {
-				const command = undos.head
-				undos = undos.tail
+			// start by collecting the pending diff (everything since the last mark).
+			// we'll accumulate the diff to undo in this variable so we can apply it atomically.
+			const diffToUndo = reverseRecordsDiff(this.pendingDiff)
 
-				if (pushToRedoStack) {
-					redos = redos.push(command)
-				}
+			if (pushToRedoStack) {
+				redos = redos.push({ type: 'diff', diff: this.pendingDiff })
+			}
 
-				if (command.type === 'STOP') {
-					if (command.onUndo && (!toMark || command.id === toMark)) {
-						this.ctx.emit(
-							'change-history',
-							pushToRedoStack ? { reason: 'undo' } : { reason: 'bail', markId: toMark }
-						)
-						return { undos, redos }
+			this.pendingDiff = createEmptyDiff()
+
+			let didFindMark = false
+			if (isRecordsDiffEmpty(diffToUndo)) {
+				// if nothing has happened since the last mark, pop any intermediate marks off the stack
+				while (undos.head?.type === 'stop') {
+					const mark = undos.head
+					undos = undos.tail
+					if (pushToRedoStack) {
+						redos = redos.push(mark)
 					}
-				} else {
-					this.ctx.store.applyDiff(reverseRecordsDiff(command.diff))
+					if (mark.id === toMark) {
+						didFindMark = true
+						break
+					}
 				}
 			}
+
+			if (!didFindMark) {
+				loop: while (undos.head) {
+					const undo = undos.head
+					undos = undos.tail
+
+					if (pushToRedoStack) {
+						redos = redos.push(undo)
+					}
+
+					switch (undo.type) {
+						case 'diff':
+							squashRecordDiffsMutable(diffToUndo, [reverseRecordsDiff(undo.diff)])
+							break
+						case 'stop':
+							if (!toMark) break loop
+							if (undo.id === toMark) break loop
+							break
+						default:
+							exhaustiveSwitchError(undo)
+					}
+				}
+			}
+
+			this.ctx.store.applyDiff(diffToUndo)
+			this.stacks.set({ undos, redos })
 
 			this.ctx.emit(
 				'change-history',
 				pushToRedoStack ? { reason: 'undo' } : { reason: 'bail', markId: toMark }
 			)
-			return { undos, redos }
-		})
+		} finally {
+			this.state = previousState
+		}
 
 		return this
 	}
@@ -227,38 +205,44 @@ export class HistoryManager<
 	}
 
 	redo = () => {
-		this.ignoringUpdates((undos, redos) => {
+		const previousState = this.state
+		this.state = HistoryRecorderState.Paused
+		try {
+			this.flushPendingDiff()
+
+			let { undos, redos } = this.stacks.get()
 			if (redos.length === 0) {
-				return { undos, redos }
+				return
 			}
 
-			while (redos.head?.type === 'STOP') {
+			// ignore any intermediate marks - this should take us to the first `diff` entry
+			while (redos.head?.type === 'stop') {
 				undos = undos.push(redos.head)
 				redos = redos.tail
 			}
 
-			if (redos.length === 0) {
-				this.ctx.emit('change-history', { reason: 'redo' })
-				return { undos, redos }
-			}
+			// accumulate diffs to be redone so they can be applied atomically
+			const diffToRedo = createEmptyDiff<R>()
 
 			while (redos.head) {
-				const command = redos.head
-				undos = undos.push(redos.head)
+				const redo = redos.head
+				undos = undos.push(redo)
 				redos = redos.tail
 
-				if (command.type === 'STOP') {
-					if (command.onRedo) {
-						break
-					}
+				if (redo.type === 'diff') {
+					squashRecordDiffsMutable(diffToRedo, [redo.diff])
 				} else {
-					this.ctx.store.applyDiff(command.diff)
+					break
 				}
 			}
 
+			this.ctx.store.applyDiff(diffToRedo)
+			this.stacks.set({ undos, redos })
+
 			this.ctx.emit('change-history', { reason: 'redo' })
-			return { undos, redos }
-		})
+		} finally {
+			this.state = previousState
+		}
 
 		return this
 	}
@@ -275,16 +259,11 @@ export class HistoryManager<
 		return this
 	}
 
-	mark = (id = uniqueId(), onUndo = true, onRedo = true) => {
-		const mostRecent = this._undos.get().head
-		// dedupe marks, why not
-		if (mostRecent && mostRecent.type === 'STOP') {
-			if (mostRecent.id === id && mostRecent.onUndo === onUndo && mostRecent.onRedo === onRedo) {
-				return mostRecent.id
-			}
-		}
-
-		this._undos.update((undos) => undos.push({ type: 'STOP', id, onUndo, onRedo }))
+	mark = (id = uniqueId()) => {
+		transact(() => {
+			this.flushPendingDiff()
+			this.stacks.update(({ undos, redos }) => ({ undos: undos.push({ type: 'stop', id }), redos }))
+		})
 
 		this.ctx.emit('mark-history', { id })
 
@@ -292,15 +271,17 @@ export class HistoryManager<
 	}
 
 	clear() {
-		this._undos.set(stack())
-		this._redos.set(stack())
+		this.stacks.set({ undos: stack(), redos: stack() })
+		this.pendingDiff = createEmptyDiff<R>()
 	}
 }
 
-function isDiffEmpty(diff: RecordsDiff<TLRecord>) {
-	return (
-		Object.keys(diff.added).length === 0 &&
-		Object.keys(diff.updated).length === 0 &&
-		Object.keys(diff.removed).length === 0
-	)
+function createEmptyDiff<R extends UnknownRecord>() {
+	return { added: {}, updated: {}, removed: {} } as RecordsDiff<R>
 }
+
+const modeToState = {
+	record: HistoryRecorderState.Recording,
+	ephemeral: HistoryRecorderState.Paused,
+	preserveRedoStack: HistoryRecorderState.RecordingPreserveRedoStack,
+} as const

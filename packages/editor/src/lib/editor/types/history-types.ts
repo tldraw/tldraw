@@ -1,36 +1,27 @@
 import { RecordsDiff, UnknownRecord } from '@tldraw/store'
 
 /** @public */
-export type TLCommandHistoryOptions = Partial<{
-	/**
-	 * When true, this command will not add anything to the undo / redo stack. Its change will never be undone or redone.
-	 */
-	ephemeral: boolean
-	/**
-	 * When true, adding this this command will not clear out the redo stack.
-	 */
-	preservesRedoStack: boolean
-}>
-
-/** @public */
-export type TLHistoryMark = {
-	type: 'STOP'
+export interface TLHistoryMark {
+	type: 'stop'
 	id: string
-	onUndo: boolean
-	onRedo: boolean
 }
 
 /** @public */
-export type TLCommand<R extends UnknownRecord> = {
-	type: 'command'
+export interface TLHistoryDiff<R extends UnknownRecord> {
+	type: 'diff'
 	diff: RecordsDiff<R>
-	name: string
-	/**
-	 * Allows for commands that change state and should be undoable, but are 'inconsequential' and
-	 * should not clear the redo stack. e.g. modifying the set of selected ids.
-	 */
-	preservesRedoStack?: boolean
 }
 
 /** @public */
-export type TLHistoryEntry<R extends UnknownRecord> = TLHistoryMark | TLCommand<R>
+export type TLHistoryEntry<R extends UnknownRecord> = TLHistoryMark | TLHistoryDiff<R>
+
+/** @public */
+export interface TLHistoryBatchOptions {
+	/**
+	 * How should this change interact with the history stack?
+	 * - record: Add to the undo stack and clear the redo stack
+	 * - ephemeral: Do not add to the undo stack or the redo stack
+	 * - preserveRedoStack: Add to the undo stack but do not clear the redo stack
+	 */
+	history?: 'record' | 'ephemeral' | 'preserveRedoStack'
+}

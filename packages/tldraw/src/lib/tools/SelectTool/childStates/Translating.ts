@@ -85,10 +85,7 @@ export class Translating extends StateNode {
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clearIndicators()
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.dragAndDropManager.clear()
 	}
 

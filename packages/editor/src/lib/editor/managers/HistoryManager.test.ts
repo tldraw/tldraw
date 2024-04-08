@@ -1,6 +1,6 @@
 import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
 import { noop } from '@tldraw/utils'
-import { TLCommandHistoryOptions } from '../types/history-types'
+import { TLHistoryBatchOptions } from '../types/history-types'
 import { HistoryManager } from './HistoryManager'
 import { stack } from './Stack'
 
@@ -52,28 +52,28 @@ function createCounterHistoryManager() {
 		store.update(ids.age, (c) => ({ ...c, value: age }))
 	}
 
-	const increment = manager.createCommand('increment', (n = 1) => {
+	const increment = (n = 1) => {
 		_setCount(getCount() + n)
-	})
+	}
 
-	const decrement = manager.createCommand('decrement', (n = 1) => {
+	const decrement = (n = 1) => {
 		_setCount(getCount() - n)
-	})
+	}
 
-	const setName = manager.createCommand('setName', (name = 'David') => {
-		_setName(name)
-		return { ephemeral: true }
-	})
+	const setName = (name = 'David') => {
+		manager.ephemeral(() => _setName(name))
+	}
 
-	const setAge = manager.createCommand('setAge', (age = 35) => {
-		_setAge(age)
-		return { preservesRedoStack: true }
-	})
+	const setAge = (age = 35) => {
+		manager.preserveRedoStack(() => _setAge(age))
+	}
 
-	const incrementTwice = manager.createCommand('incrementTwice', () => {
-		increment()
-		increment()
-	})
+	const incrementTwice = () => {
+		manager.batch(() => {
+			increment()
+			increment()
+		})
+	}
 
 	return {
 		increment,
@@ -103,9 +103,9 @@ describe(HistoryManager, () => {
 		editor.decrement()
 		expect(editor.getCount()).toBe(3)
 
-		const undos = [...editor.history._undos.get()]
+		const undos = [...editor.history.stacks.get().undos]
 		const parsedUndos = JSON.parse(JSON.stringify(undos))
-		editor.history._undos.set(stack(parsedUndos))
+		editor.history.stacks.update(({ redos }) => ({ undos: stack(parsedUndos), redos }))
 
 		editor.history.undo()
 
@@ -278,8 +278,8 @@ describe('history options', () => {
 	let manager: HistoryManager<TestRecord, any>
 
 	let getState: () => { a: number; b: number }
-	let setA: (n: number, historyOptions?: TLCommandHistoryOptions) => any
-	let setB: (n: number, historyOptions?: TLCommandHistoryOptions) => any
+	let setA: (n: number, historyOptions?: TLHistoryBatchOptions) => any
+	let setB: (n: number, historyOptions?: TLHistoryBatchOptions) => any
 
 	beforeEach(() => {
 		const store = new Store({ schema: testSchema, props: null })
@@ -295,15 +295,13 @@ describe('history options', () => {
 			return { a: store.get(ids.a)!.value as number, b: store.get(ids.b)!.value as number }
 		}
 
-		setA = manager.createCommand('setA', (n: number, historyOptions?: TLCommandHistoryOptions) => {
-			store.update(ids.a, (s) => ({ ...s, value: n }))
-			return historyOptions
-		})
+		setA = (n: number, historyOptions?: TLHistoryBatchOptions) => {
+			manager.batch(() => store.update(ids.a, (s) => ({ ...s, value: n })), historyOptions)
+		}
 
-		setB = manager.createCommand('setB', (n: number, historyOptions?: TLCommandHistoryOptions) => {
-			store.update(ids.b, (s) => ({ ...s, value: n }))
-			return historyOptions
-		})
+		setB = (n: number, historyOptions?: TLHistoryBatchOptions) => {
+			manager.batch(() => store.update(ids.b, (s) => ({ ...s, value: n })), historyOptions)
+		}
 	})
 
 	it('sets, undoes, redoes', () => {
@@ -352,7 +350,7 @@ describe('history options', () => {
 		manager.mark()
 		setB(1) // B 0->1
 		manager.mark()
-		setB(2, { ephemeral: true }) // B 0->2, but ephemeral
+		setB(2, { history: 'ephemeral' }) // B 0->2, but ephemeral
 
 		expect(getState()).toMatchObject({ a: 1, b: 2 })
 
@@ -390,7 +388,7 @@ describe('history options', () => {
 		manager.mark()
 		setB(1)
 		setB(2) // squashes with the previous command
-		setB(3, { ephemeral: true }) // squashes with the previous command
+		setB(3, { history: 'ephemeral' }) // squashes with the previous command
 
 		expect(getState()).toMatchObject({ a: 1, b: 3 })
 

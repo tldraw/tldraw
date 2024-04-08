@@ -17,7 +17,9 @@ export const PageItemInput = function PageItemInput({
 
 	const handleChange = useCallback(
 		(value: string) => {
-			editor.renamePage(id, value ? value : 'New Page', { ephemeral: true })
+			editor.history.ephemeral(() => {
+				editor.renamePage(id, value ? value : 'New Page')
+			})
 		},
 		[editor, id]
 	)
@@ -25,7 +27,7 @@ export const PageItemInput = function PageItemInput({
 	const handleComplete = useCallback(
 		(value: string) => {
 			editor.mark('rename page')
-			editor.renamePage(id, value || 'New Page', { ephemeral: false })
+			editor.renamePage(id, value || 'New Page')
 		},
 		[editor, id]
 	)

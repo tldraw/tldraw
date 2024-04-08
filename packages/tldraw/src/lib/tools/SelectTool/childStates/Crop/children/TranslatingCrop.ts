@@ -32,10 +32,7 @@ export class TranslatingCrop extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onPointerMove = () => {

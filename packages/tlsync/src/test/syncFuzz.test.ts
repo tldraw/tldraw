@@ -8,6 +8,7 @@ import {
 	computed,
 	createPresenceStateDerivation,
 	createTLStore,
+	isRecordsDiffEmpty,
 } from 'tldraw'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { schema } from '../lib/schema'
@@ -105,6 +106,15 @@ class FuzzTestInstance extends RandomSource {
 	}
 }
 
+function assertPeerStoreIsUsable(peer: FuzzTestInstance) {
+	const diffToEnsureUsable = peer.store.extractingChanges(() => peer.store.ensureStoreIsUsable())
+	if (!isRecordsDiffEmpty(diffToEnsureUsable)) {
+		throw new Error(
+			`store of ${peer.id} was not usable. diff to ensure usable: ${JSON.stringify(diffToEnsureUsable, null, 2)}`
+		)
+	}
+}
+
 let totalNumShapes = 0
 let totalNumPages = 0
 
@@ -172,8 +182,8 @@ function runTest(seed: number) {
 				ops.push({ peerId: peer.id, op, id: ops.length })
 
 				allOk('before applyOp')
-				console.log('apply op', op)
 				peer.editor.applyOp(op)
+				assertPeerStoreIsUsable(peer)
 				allOk('after applyOp')
 
 				server.flushDebouncingMessages()
@@ -228,6 +238,11 @@ function runTest(seed: number) {
 			}
 		}
 
+		// peers should all be usable without changes:
+		for (const peer of peers) {
+			assertPeerStoreIsUsable(peer)
+		}
+
 		const equalityResults = []
 		for (let i = 0; i < peers.length; i++) {
 			const row = []
@@ -274,8 +289,11 @@ const MAX_PEERS = 4
 // 	runTest(8343632005032947)
 // })
 
-test.only('seed 8360926944486245 - undo/redo page integrity regression', () => {
+test('seed 8360926944486245 - undo/redo page integrity regression', () => {
 	runTest(8360926944486245)
+})
+test.only('seed 3467175630814895 - undo/redo page integrity regression', () => {
+	runTest(3467175630814895)
 })
 
 test('fuzzzzz', () => {
