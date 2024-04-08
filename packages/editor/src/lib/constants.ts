@@ -34,10 +34,10 @@ export const DOUBLE_CLICK_DURATION = 450
 export const MULTI_CLICK_DURATION = 200
 
 /** @internal */
-export const COARSE_DRAG_DISTANCE = 36
+export const COARSE_DRAG_DISTANCE = 36 // 6 squared
 
 /** @internal */
-export const DRAG_DISTANCE = 16
+export const DRAG_DISTANCE = 16 // 4 squared
 
 /** @internal */
 export const SVG_PADDING = 32
