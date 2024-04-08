@@ -60,21 +60,46 @@ export function getAvailableNoteAdjacentPositions(
 	rotation: number,
 	extraHeight: number
 ) {
-	const selectedShapeIds = editor.getSelectedShapeIds()
-	const allUnselectedNoteShapes = editor
-		.getCurrentPageShapes()
-		.filter((shape) => shape.type === 'note' && !selectedShapeIds.includes(shape.id))
-	return compact(
-		allUnselectedNoteShapes.flatMap((shape) => {
-			if (!editor.isShapeOfType<TLNoteShape>(shape, 'note')) return
-			const transform = editor.getShapePageTransform(shape.id)!
-			const pageRotation = transform.rotation()
-			// We only want to create pits for notes with the specified rotation
-			if (rotation !== pageRotation) return
-			const pagePoint = transform.point()
-			return getNoteAdjacentPositions(pagePoint, pageRotation, shape.props.growY, extraHeight)
-		})
-	).filter((pit) => !allUnselectedNoteShapes.some((shape) => editor.isPointInShape(shape, pit)))
+	const selectedShapeIds = new Set(editor.getSelectedShapeIds())
+	const minSize = (NOTE_SIZE + ADJACENT_NOTE_MARGIN + extraHeight) ** 2
+	const allCenters = new Map<TLNoteShape, Vec>()
+	const positions: (Vec | undefined)[] = []
+
+	// Get all the positions that are adjacent to the selected note shapes
+	for (const shape of editor.getCurrentPageShapes()) {
+		if (!editor.isShapeOfType<TLNoteShape>(shape, 'note') || selectedShapeIds.has(shape.id)) {
+			continue
+		}
+
+		const transform = editor.getShapePageTransform(shape.id)!
+
+		// If the note has a different rotation, we can't use its adjacent positions
+		if (rotation !== transform.rotation()) continue
+
+		// Save the unselected note shape's center
+		allCenters.set(shape, editor.getShapePageBounds(shape)!.center)
+
+		// And push its position to the positions array
+		positions.push(
+			...getNoteAdjacentPositions(transform.point(), rotation, shape.props.growY, extraHeight)
+		)
+	}
+
+	// Remove positions that are inside of another note shape
+	const len = positions.length
+	let position: Vec | undefined
+	for (const [shape, center] of allCenters) {
+		for (let i = 0; i < len; i++) {
+			position = positions[i]
+			if (!position) continue
+			if (Vec.Dist2(center, position) > minSize) continue
+			if (editor.isPointInShape(shape, position)) {
+				positions[i] = undefined
+			}
+		}
+	}
+
+	return compact(positions)
 }
 
 /**
@@ -104,11 +129,17 @@ export function getNoteShapeForAdjacentPosition(
 	// Start from the top of the stack, and work our way down
 	const allShapesOnPage = editor.getCurrentPageShapesSorted()
 
+	const minDistance = NOTE_SIZE + ADJACENT_NOTE_MARGIN
+
 	for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
 		const otherNote = allShapesOnPage[i]
-		if (otherNote.type === 'note') {
-			if (otherNote.id === shape.id) continue
-			if (editor.isPointInShape(otherNote, center)) {
+		if (otherNote.type === 'note' && otherNote.id !== shape.id) {
+			const otherBounds = editor.getShapePageBounds(otherNote)
+			if (
+				otherBounds &&
+				otherBounds.center.dist(center) < minDistance &&
+				editor.isPointInShape(otherNote, center)
+			) {
 				nextNote = otherNote
 				break
 			}
