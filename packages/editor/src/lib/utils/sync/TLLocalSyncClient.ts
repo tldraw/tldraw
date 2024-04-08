@@ -183,6 +183,7 @@ export class TLLocalSyncClient {
 					data.sessionStateSnapshot ?? extractSessionStateFromLegacySnapshot(documentSnapshot)
 				const migrationResult = this.store.schema.migrateStoreSnapshot({
 					store: documentSnapshot,
+					// eslint-disable-next-line deprecation/deprecation
 					schema: data.schema ?? this.store.schema.serializeEarliestVersion(),
 				})
 
@@ -213,6 +214,7 @@ export class TLLocalSyncClient {
 				// if their schema is later than ours, we need to refresh
 				const comparison = compareSchemas(
 					this.serializedSchema,
+					// eslint-disable-next-line deprecation/deprecation
 					msg.schema ?? this.store.schema.serializeEarliestVersion()
 				)
 				if (comparison === -1) {
