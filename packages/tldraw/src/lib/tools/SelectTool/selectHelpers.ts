@@ -10,17 +10,16 @@ import {
 /** @internal */
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	const shapes = shapeIds.map((id) => editor.getShape(id)).filter((s) => s) as TLShape[]
-	const effectedParents = shapes
-		.map((shape) => {
-			const parent = editor.getShape(shape.parentId)
-			if (!parent) return shape
-			return parent
-		})
-		.filter((shape) => shape.type === 'frame')
+	const effectedParents = shapes.map((shape) => {
+		const parent = editor.getShape(shape.parentId)
+		if (!parent) return shape
+		return parent
+	})
 
-	const kickedOutChildren: TLShapeId[] = []
+	const kickedOutChildrenMap = new Map<TLShape, TLShapeId[]>()
 	for (const parent of effectedParents) {
 		const childIds = editor.getSortedChildIdsForParent(parent.id)
+		if (childIds.length === 0) continue
 
 		// Get the bounds of the parent shape
 		const parentPageBounds = editor.getShapePageBounds(parent)
@@ -29,13 +28,22 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 		// For each child, check whether its bounds overlap with the parent's bounds
 		for (const childId of childIds) {
 			if (isShapeOccluded(editor, parent, childId)) {
+				const kickedOutChildren = kickedOutChildrenMap.get(parent) ?? []
 				kickedOutChildren.push(childId)
+				kickedOutChildrenMap.set(parent, kickedOutChildren)
 			}
 		}
 	}
 
-	// now kick out the children
-	editor.reparentShapes(kickedOutChildren, editor.getCurrentPageId())
+	// now call onDragShapesOut for each parent
+	for (const [parent, kickedOutChildrenIds] of kickedOutChildrenMap) {
+		const shapeUtil = editor.getShapeUtil(parent)
+		const kickedOutChildren = kickedOutChildrenIds
+			.map((id) => editor.getShape(id))
+			.filter((s) => s) as TLShape[]
+
+		shapeUtil.onDragShapesOut?.(parent, kickedOutChildren)
+	}
 }
 
 /** @internal */
