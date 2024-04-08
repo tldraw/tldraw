@@ -1,4 +1,4 @@
-import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
+import { MigrationSequence, SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
@@ -73,6 +73,11 @@ export interface TldrawEditorBaseProps {
 	 * An array of shape utils to use in the editor.
 	 */
 	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+
+	/**
+	 * An array of migrations to apply to the editor's schema.
+	 */
+	migrations?: readonly MigrationSequence[]
 
 	/**
 	 * An array of tools to add to the editor's state chart.
@@ -160,6 +165,10 @@ export const TldrawEditor = memo(function TldrawEditor({
 		components,
 	}
 
+	if (rest.migrations?.length && store) {
+		throw new Error('Cannot provide migrations when a store is also provided')
+	}
+
 	return (
 		<div
 			ref={setContainer}
@@ -185,7 +194,12 @@ export const TldrawEditor = memo(function TldrawEditor({
 								)
 							) : (
 								// We have no store (it's undefined) so create one and possibly sync it
-								<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
+								<TldrawEditorWithOwnStore
+									{...withDefaults}
+									store={store}
+									user={user}
+									migrations={rest.migrations}
+								/>
 							)}
 						</EditorComponentsProvider>
 					</ContainerProvider>
@@ -198,10 +212,20 @@ export const TldrawEditor = memo(function TldrawEditor({
 function TldrawEditorWithOwnStore(
 	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapeUtils' | 'tools'>
 ) {
-	const { defaultName, snapshot, initialData, shapeUtils, persistenceKey, sessionId, user } = props
+	const {
+		defaultName,
+		snapshot,
+		initialData,
+		shapeUtils,
+		migrations,
+		persistenceKey,
+		sessionId,
+		user,
+	} = props
 
 	const syncedStore = useLocalStore({
 		shapeUtils,
+		migrations,
 		initialData,
 		persistenceKey,
 		sessionId,

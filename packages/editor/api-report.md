@@ -21,6 +21,7 @@ import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
+import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
@@ -2079,6 +2080,7 @@ export interface TldrawEditorBaseProps {
     components?: TLEditorComponents;
     inferDarkMode?: boolean;
     initialState?: string;
+    migrations?: readonly MigrationSequence[];
     onMount?: TLOnMountHandler;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
@@ -2591,6 +2593,7 @@ export type TLStoreOptions = {
     schema?: StoreSchema<TLRecord, TLStoreProps>;
 } | {
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    migrations?: readonly MigrationSequence[];
 });
 
 // @public (undocumented)
