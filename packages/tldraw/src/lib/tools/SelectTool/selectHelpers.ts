@@ -2,6 +2,7 @@ import {
 	Editor,
 	TLShape,
 	TLShapeId,
+	pointInPolygon,
 	polygonIntersectsPolyline,
 	polygonsIntersect,
 } from '@tldraw/editor'
@@ -9,13 +10,13 @@ import {
 /** @internal */
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	const shapes = shapeIds.map((id) => editor.getShape(id)).filter((s) => s) as TLShape[]
-	const effectedParents: TLShape[] = shapes
+	const effectedParents = shapes
 		.map((shape) => {
 			const parent = editor.getShape(shape.parentId)
 			if (!parent) return shape
 			return parent
 		})
-		.filter((shape) => shape.type === 'frame' || shape.type === 'note')
+		.filter((shape) => shape.type === 'frame')
 
 	const kickedOutChildren: TLShapeId[] = []
 	for (const parent of effectedParents) {
@@ -34,38 +35,41 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	}
 
 	// now kick out the children
-	// TODO: make this reparent to the parent's parent?
 	editor.reparentShapes(kickedOutChildren, editor.getCurrentPageId())
 }
 
 /** @internal */
 export function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId) {
 	const occluderPageBounds = editor.getShapePageBounds(occluder)
-	if (!occluderPageBounds) return false
-
 	const shapePageBounds = editor.getShapePageBounds(shape)
-	if (!shapePageBounds) return true
-
-	// If the shape's bounds are completely inside the occluder, it's not occluded
-	if (occluderPageBounds.contains(shapePageBounds)) {
-		return false
-	}
+	if (!occluderPageBounds) return true
+	if (!shapePageBounds) return false
 
 	// If the shape's bounds are completely outside the occluder, it's occluded
 	if (!occluderPageBounds.includes(shapePageBounds)) {
 		return true
 	}
 
-	// If we've made it this far, the shape's bounds must intersect the edge of the occluder
-	// In this case, we need to look at the shape's geometry for a more fine-grained check
-	const shapeGeometry = editor.getShapeGeometry(shape)
-	const occluderCornersInShapeSpace = occluderPageBounds.corners.map((v) => {
+	const occluderGeometry = editor.getShapeGeometry(occluder)
+	const occluderPageTransform = editor.getShapePageTransform(occluder)
+	const occluderPageCorners = occluderGeometry.vertices.map((v) => {
+		return occluderPageTransform.applyToPoint(v)
+	})
+
+	const occluderShapeCorners = occluderPageCorners.map((v) => {
 		return editor.getPointInShapeSpace(shape, v)
 	})
 
-	if (shapeGeometry.isClosed) {
-		return !polygonsIntersect(occluderCornersInShapeSpace, shapeGeometry.vertices)
+	// If any of the shape's vertices are inside the occluder, it's not occluded
+	const shapeGeometry = editor.getShapeGeometry(shape)
+	if (shapeGeometry.vertices.some((v) => pointInPolygon(v, occluderShapeCorners))) {
+		return false
 	}
 
-	return !polygonIntersectsPolyline(occluderCornersInShapeSpace, shapeGeometry.vertices)
+	// If any the shape's vertices intersect the edge of the occluder, it's not occluded
+	if (shapeGeometry.isClosed) {
+		return !polygonsIntersect(occluderShapeCorners, shapeGeometry.vertices)
+	}
+
+	return !polygonIntersectsPolyline(occluderShapeCorners, shapeGeometry.vertices)
 }
