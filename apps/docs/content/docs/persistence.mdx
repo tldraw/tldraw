@@ -1,5 +1,5 @@
 ---
-title: Persistence & Collaboration
+title: Persistence
 status: published
 author: steveruizok
 date: 3/22/2023
@@ -314,7 +314,7 @@ const myMigrations = createMigrations({
 })
 ```
 
-And finally pass your migrations in to tldraw. Where you do this will depend on how custom your setup is, but it's probably one or two of these:
+And finally pass your migrations in to tldraw via the `migrations` config option. There are a few places where you might need to do this, depending on how specialized your usage of Tldraw is:
 
 ```tsx
 // When rendering the Tldraw component
