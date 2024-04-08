@@ -221,9 +221,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
-        type: "point";
         x: number;
         y: number;
+        type: "point";
         }>;
         }, never>;
         end: UnionValidator<"type", {
@@ -235,9 +235,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
-        type: "point";
         x: number;
         y: number;
+        type: "point";
         }>;
         }, never>;
         bend: Validator<number>;
@@ -1058,9 +1058,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
         points: DictValidator<string, {
+        id: string;
         x: number;
         y: number;
-        id: string;
         index: IndexKey;
         }>;
     };
