@@ -16,8 +16,8 @@ import 'tldraw/tldraw.css'
 type MyGridShape = TLBaseShape<'my-grid-shape', Record<string, never>>
 type MyCounterShape = TLBaseShape<'my-counter-shape', Record<string, never>>
 
-const COUNTER_SIZE = 100
-
+// [2]
+const SLOT_SIZE = 100
 class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 	static override type = 'my-counter-shape' as const
 
@@ -29,7 +29,7 @@ class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 	}
 
 	getGeometry(): Geometry2d {
-		return new Circle2d({ radius: COUNTER_SIZE / 2 - 10, isFilled: true })
+		return new Circle2d({ radius: SLOT_SIZE / 2 - 10, isFilled: true })
 	}
 
 	component() {
@@ -40,17 +40,16 @@ class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 					border: '1px solid #ff8787',
 					borderRadius: '50%',
 				}}
-			></HTMLContainer>
+			/>
 		)
 	}
 
 	indicator() {
-		return (
-			<circle r={COUNTER_SIZE / 2 - 10} cx={COUNTER_SIZE / 2 - 10} cy={COUNTER_SIZE / 2 - 10} />
-		)
+		return <circle r={SLOT_SIZE / 2 - 10} cx={SLOT_SIZE / 2 - 10} cy={SLOT_SIZE / 2 - 10} />
 	}
 }
 
+// [3]
 class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 	static override type = 'my-grid-shape' as const
 
@@ -60,8 +59,8 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 
 	getGeometry(): Geometry2d {
 		return new Rectangle2d({
-			width: COUNTER_SIZE * 5,
-			height: COUNTER_SIZE * 2,
+			width: SLOT_SIZE * 5,
+			height: SLOT_SIZE * 2,
 			isFilled: true,
 		})
 	}
@@ -69,6 +68,7 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 	override canResize = () => false
 	override hideResizeHandles = () => true
 
+	// [a]
 	override canDropShapes = (shape: MyGridShape, shapes: TLShape[]) => {
 		if (shapes.every((s) => s.type === 'my-counter-shape')) {
 			return true
@@ -76,12 +76,14 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		return false
 	}
 
+	// [b]
 	override onDragShapesOver = (shape: MyGridShape, shapes: TLShape[]) => {
 		if (!shapes.every((child) => child.parentId === shape.id)) {
 			this.editor.reparentShapes(shapes, shape.id)
 		}
 	}
 
+	// [c]
 	override onDragShapesOut = (shape: MyGridShape, shapes: TLShape[]) => {
 		this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
 	}
@@ -93,18 +95,18 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 					backgroundColor: '#efefef',
 					borderRight: '1px solid #ccc',
 					borderBottom: '1px solid #ccc',
-					backgroundSize: `${COUNTER_SIZE}px ${COUNTER_SIZE}px`,
+					backgroundSize: `${SLOT_SIZE}px ${SLOT_SIZE}px`,
 					backgroundImage: `
 						linear-gradient(to right, #ccc 1px, transparent 1px),
 						linear-gradient(to bottom, #ccc 1px, transparent 1px)
 					`,
 				}}
-			></HTMLContainer>
+			/>
 		)
 	}
 
 	indicator() {
-		return <rect width={COUNTER_SIZE * 5} height={COUNTER_SIZE * 2} />
+		return <rect width={SLOT_SIZE * 5} height={SLOT_SIZE * 2} />
 	}
 }
 
@@ -125,5 +127,25 @@ export default function DragAndDropExample() {
 }
 
 /*
+
+This example demonstrates how to use the drag-and-drop system.
+
+[1] Define some shape types. For the purposes of this example, we'll define two
+shapes: a grid and a counter.
+
+[2] Make a shape util for the first shape. For this example, we'll make a simple
+red circle that you drag and drop onto the other shape.
+
+[3] Make the other shape util. In this example, we'll make a grid that you can
+place the the circle counters onto.
+
+    [a] Use the `canDropShapes` method to specify which shapes can be dropped onto
+    the grid shape.
+
+    [b] Use the `onDragShapesOver` method to reparent counters to the grid shape
+    when they are dragged on top.
+
+    [c] Use the `onDragShapesOut` method to reparent counters back to the page
+    when they are dragged off.
 
 */
