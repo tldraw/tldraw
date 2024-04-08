@@ -335,14 +335,12 @@ export class Resizing extends StateNode {
 			})
 		}
 
-		const partials: TLShapePartial[] = Array(shapeSnapshots.size)
-
 		for (const [_, snapshot] of shapeSnapshots) {
 			// We need to update the store one by one, so that children pick up
 			// the page transform of their resized parents. But should they?
 			// We update frames again later...
 
-			partials.push(
+			this.updateShapesInStore([
 				getResizedShapePartial(this.editor, snapshot.shape.id, scale, {
 					initialShape: snapshot.shape,
 					initialBounds: snapshot.bounds,
@@ -354,11 +352,9 @@ export class Resizing extends StateNode {
 							: 'scale_shape',
 					scaleOrigin: scaleOriginPage,
 					scaleAxisRotation: selectionRotation,
-				})
-			)
+				}),
+			])
 		}
-
-		this.updateShapesInStore(partials)
 
 		if (this.editor.inputs.ctrlKey) {
 			// If the user is holding ctrl, then preseve the initial position
