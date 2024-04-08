@@ -256,7 +256,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    color: import(\"../styles/StyleProp\")."
+							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    color: import(\"../styles/StyleProp\")."
 						},
 						{
 							"kind": "Reference",
@@ -265,7 +265,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    fill: import(\"../styles/StyleProp\")."
+							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    fill: import(\"../styles/StyleProp\")."
 						},
 						{
 							"kind": "Reference",
@@ -337,7 +337,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"..\")."
+							"text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"../records/TLShape\")."
 						},
 						{
 							"kind": "Reference",
@@ -382,7 +382,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"..\")."
+							"text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"../records/TLShape\")."
 						},
 						{
 							"kind": "Reference",
@@ -1116,6 +1116,53 @@
 				},
 				{
 					"kind": "Function",
+					"canonicalReference": "@tldraw/tlschema!createShapePropsMigrationSequence:function(1)",
+					"docComment": "/**\n * @public\n */\n",
+					"excerptTokens": [
+						{
+							"kind": "Content",
+							"text": "export declare function createShapePropsMigrationSequence(migrations: "
+						},
+						{
+							"kind": "Reference",
+							"text": "TLShapePropsMigrations",
+							"canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
+						},
+						{
+							"kind": "Content",
+							"text": "): "
+						},
+						{
+							"kind": "Reference",
+							"text": "TLShapePropsMigrations",
+							"canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
+						},
+						{
+							"kind": "Content",
+							"text": ";"
+						}
+					],
+					"fileUrlPath": "packages/tlschema/src/records/TLShape.ts",
+					"returnTypeTokenRange": {
+						"startIndex": 3,
+						"endIndex": 4
+					},
+					"releaseTag": "Public",
+					"overloadIndex": 1,
+					"parameters": [
+						{
+							"parameterName": "migrations",
+							"parameterTypeTokenRange": {
+								"startIndex": 1,
+								"endIndex": 2
+							},
+							"isOptional": false
+						}
+					],
+					"name": "createShapePropsMigrationSequence"
+				},
+				{
+					"kind": "Function",
 					"canonicalReference": "@tldraw/tlschema!createShapeValidator:function(1)",
 					"docComment": "/**\n * @public\n */\n",
 					"excerptTokens": [
@@ -1300,7 +1347,7 @@
 					"excerptTokens": [
 						{
 							"kind": "Content",
-							"text": "export declare function createTLSchema({ shapes, }?: "
+							"text": "export declare function createTLSchema({ shapes, migrations, }?: "
 						},
 						{
 							"kind": "Content",
@@ -1322,7 +1369,16 @@
 						},
 						{
 							"kind": "Content",
-							"text": ">;\n}"
+							"text": ">;\n    migrations?: readonly "
+						},
+						{
+							"kind": "Reference",
+							"text": "MigrationSequence",
+							"canonicalReference": "@tldraw/store!MigrationSequence:interface"
+						},
+						{
+							"kind": "Content",
+							"text": "[];\n}"
 						},
 						{
 							"kind": "Content",
@@ -1340,17 +1396,17 @@
 					],
 					"fileUrlPath": "packages/tlschema/src/createTLSchema.ts",
 					"returnTypeTokenRange": {
-						"startIndex": 7,
-						"endIndex": 8
+						"startIndex": 9,
+						"endIndex": 10
 					},
 					"releaseTag": "Public",
 					"overloadIndex": 1,
 					"parameters": [
 						{
-							"parameterName": "{ shapes, }",
+							"parameterName": "{ shapes, migrations, }",
 							"parameterTypeTokenRange": {
 								"startIndex": 1,
-								"endIndex": 6
+								"endIndex": 8
 							},
 							"isOptional": true
 						}
@@ -1377,7 +1433,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">"
+							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">"
 						}
 					],
 					"fileUrlPath": "packages/tlschema/src/styles/TLColorStyle.ts",
@@ -1706,7 +1762,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    fill: import(\"..\")."
+							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    fill: import(\"..\")."
 						},
 						{
 							"kind": "Reference",
@@ -1801,7 +1857,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "readonly [{\n    readonly type: \"tldraw\";\n    readonly title: \"tldraw\";\n    readonly hostnames: readonly [\"beta.tldraw.com\", \"tldraw.com\", \"localhost:3000\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: true;\n    readonly overridePermissions: {\n        readonly 'allow-top-navigation': true;\n    };\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"figma\";\n    readonly title: \"Figma\";\n    readonly hostnames: readonly [\"figma.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_maps\";\n    readonly title: \"Google Maps\";\n    readonly hostnames: readonly [\"google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"val_town\";\n    readonly title: \"Val Town\";\n    readonly hostnames: readonly [\"val.town\"];\n    readonly minWidth: 260;\n    readonly minHeight: 100;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"codesandbox\";\n    readonly title: \"CodeSandbox\";\n    readonly hostnames: readonly [\"codesandbox.io\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"codepen\";\n    readonly title: \"Codepen\";\n    readonly hostnames: readonly [\"codepen.io\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 520;\n    readonly height: 400;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"scratch\";\n    readonly title: \"Scratch\";\n    readonly hostnames: readonly [\"scratch.mit.edu\"];\n    readonly width: 520;\n    readonly height: 400;\n    readonly doesResize: false;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"youtube\";\n    readonly title: \"YouTube\";\n    readonly hostnames: readonly [\"*.youtube.com\", \"youtube.com\", \"youtu.be\"];\n    readonly width: 800;\n    readonly height: 450;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly overridePermissions: {\n        readonly 'allow-presentation': true;\n    };\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_calendar\";\n    readonly title: \"Google Calendar\";\n    readonly hostnames: readonly [\"calendar.google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minWidth: 460;\n    readonly minHeight: 360;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly instructionLink: \"https://support.google.com/calendar/answer/41207?hl=en\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_slides\";\n    readonly title: \"Google Slides\";\n    readonly hostnames: readonly [\"docs.google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minWidth: 460;\n    readonly minHeight: 360;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"github_gist\";\n    readonly title: \"GitHub Gist\";\n    readonly hostnames: readonly [\"gist.github.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"replit\";\n    readonly title: \"Replit\";\n    readonly hostnames: readonly [\"replit.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"felt\";\n    readonly title: \"Felt\";\n    readonly hostnames: readonly [\"felt.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"spotify\";\n    readonly title: \"Spotify\";\n    readonly hostnames: readonly [\"open.spotify.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minHeight: 500;\n    readonly overrideOutlineRadius: 12;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"vimeo\";\n    readonly title: \"Vimeo\";\n    readonly hostnames: readonly [\"vimeo.com\", \"player.vimeo.com\"];\n    readonly width: 640;\n    readonly height: 360;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"excalidraw\";\n    readonly title: \"Excalidraw\";\n    readonly hostnames: readonly [\"excalidraw.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"observable\";\n    readonly title: \"Observable\";\n    readonly hostnames: readonly [\"observablehq.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly canUnmount: false;\n    readonly isAspectRatioLocked: false;\n    readonly backgroundColor: \"#fff\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}]"
+							"text": "readonly [{\n    readonly type: \"tldraw\";\n    readonly title: \"tldraw\";\n    readonly hostnames: readonly [\"beta.tldraw.com\", \"tldraw.com\", \"localhost:3000\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly overridePermissions: {\n        readonly 'allow-top-navigation': true;\n    };\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"figma\";\n    readonly title: \"Figma\";\n    readonly hostnames: readonly [\"figma.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_maps\";\n    readonly title: \"Google Maps\";\n    readonly hostnames: readonly [\"google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"val_town\";\n    readonly title: \"Val Town\";\n    readonly hostnames: readonly [\"val.town\"];\n    readonly minWidth: 260;\n    readonly minHeight: 100;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"codesandbox\";\n    readonly title: \"CodeSandbox\";\n    readonly hostnames: readonly [\"codesandbox.io\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"codepen\";\n    readonly title: \"Codepen\";\n    readonly hostnames: readonly [\"codepen.io\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 520;\n    readonly height: 400;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"scratch\";\n    readonly title: \"Scratch\";\n    readonly hostnames: readonly [\"scratch.mit.edu\"];\n    readonly width: 520;\n    readonly height: 400;\n    readonly doesResize: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"youtube\";\n    readonly title: \"YouTube\";\n    readonly hostnames: readonly [\"*.youtube.com\", \"youtube.com\", \"youtu.be\"];\n    readonly width: 800;\n    readonly height: 450;\n    readonly doesResize: true;\n    readonly overridePermissions: {\n        readonly 'allow-presentation': true;\n    };\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_calendar\";\n    readonly title: \"Google Calendar\";\n    readonly hostnames: readonly [\"calendar.google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minWidth: 460;\n    readonly minHeight: 360;\n    readonly doesResize: true;\n    readonly instructionLink: \"https://support.google.com/calendar/answer/41207?hl=en\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_slides\";\n    readonly title: \"Google Slides\";\n    readonly hostnames: readonly [\"docs.google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minWidth: 460;\n    readonly minHeight: 360;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"github_gist\";\n    readonly title: \"GitHub Gist\";\n    readonly hostnames: readonly [\"gist.github.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"replit\";\n    readonly title: \"Replit\";\n    readonly hostnames: readonly [\"replit.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"felt\";\n    readonly title: \"Felt\";\n    readonly hostnames: readonly [\"felt.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"spotify\";\n    readonly title: \"Spotify\";\n    readonly hostnames: readonly [\"open.spotify.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minHeight: 500;\n    readonly overrideOutlineRadius: 12;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"vimeo\";\n    readonly title: \"Vimeo\";\n    readonly hostnames: readonly [\"vimeo.com\", \"player.vimeo.com\"];\n    readonly width: 640;\n    readonly height: 360;\n    readonly doesResize: true;\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"excalidraw\";\n    readonly title: \"Excalidraw\";\n    readonly hostnames: readonly [\"excalidraw.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"observable\";\n    readonly title: \"Observable\";\n    readonly hostnames: readonly [\"observablehq.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly isAspectRatioLocked: false;\n    readonly backgroundColor: \"#fff\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}]"
 						}
 					],
 					"fileUrlPath": "packages/tlschema/src/shapes/TLEmbedShape.ts",
@@ -1824,7 +1880,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "{\n    readonly type: string;\n    readonly title: string;\n    readonly hostnames: readonly string[];\n    readonly minWidth?: number;\n    readonly minHeight?: number;\n    readonly width: number;\n    readonly height: number;\n    readonly doesResize: boolean;\n    readonly canUnmount: boolean;\n    readonly isAspectRatioLocked?: boolean;\n    readonly overridePermissions?: "
+							"text": "{\n    readonly type: string;\n    readonly title: string;\n    readonly hostnames: readonly string[];\n    readonly minWidth?: number;\n    readonly minHeight?: number;\n    readonly width: number;\n    readonly height: number;\n    readonly doesResize: boolean;\n    readonly isAspectRatioLocked?: boolean;\n    readonly overridePermissions?: "
 						},
 						{
 							"kind": "Reference",
@@ -2111,7 +2167,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    color: import(\"../styles/StyleProp\")."
+							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    color: import(\"../styles/StyleProp\")."
 						},
 						{
 							"kind": "Reference",
@@ -2120,7 +2176,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    fill: import(\"../styles/StyleProp\")."
+							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    fill: import(\"../styles/StyleProp\")."
 						},
 						{
 							"kind": "Reference",
@@ -2330,7 +2386,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    size: import(\"..\")."
+							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    size: import(\"..\")."
 						},
 						{
 							"kind": "Reference",
@@ -2782,7 +2838,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    dash: import(\"../styles/StyleProp\")."
+							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    dash: import(\"../styles/StyleProp\")."
 						},
 						{
 							"kind": "Reference",
@@ -2891,7 +2947,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    size: import(\"..\")."
+							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    size: import(\"..\")."
 						},
 						{
 							"kind": "Reference",
@@ -3100,8 +3156,17 @@
 						},
 						{
 							"kind": "Reference",
-							"text": "Migrations",
-							"canonicalReference": "@tldraw/store!Migrations:interface"
+							"text": "LegacyMigrations",
+							"canonicalReference": "@tldraw/store!LegacyMigrations:interface"
+						},
+						{
+							"kind": "Content",
+							"text": " | "
+						},
+						{
+							"kind": "Reference",
+							"text": "TLShapePropsMigrations",
+							"canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
 						},
 						{
 							"kind": "Content",
@@ -3153,7 +3218,7 @@
 					"name": "SchemaShapeInfo",
 					"typeTokenRange": {
 						"startIndex": 1,
-						"endIndex": 12
+						"endIndex": 14
 					}
 				},
 				{
@@ -3773,7 +3838,7 @@
 						},
 						{
 							"kind": "Content",
-							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"yellow\">;\n    size: import(\"..\")."
+							"text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    size: import(\"..\")."
 						},
 						{
 							"kind": "Reference",
@@ -9184,6 +9249,86 @@
 					"typeTokenRange": {
 						"startIndex": 1,
 						"endIndex": 7
+					}
+				},
+				{
+					"kind": "TypeAlias",
+					"canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type",
+					"docComment": "/**\n * @public\n */\n",
+					"excerptTokens": [
+						{
+							"kind": "Content",
+							"text": "export type TLShapePropsMigrations = "
+						},
+						{
+							"kind": "Content",
+							"text": "{\n    sequence: "
+						},
+						{
+							"kind": "Reference",
+							"text": "Array",
+							"canonicalReference": "!Array:interface"
+						},
+						{
+							"kind": "Content",
+							"text": "<{\n        readonly dependsOn: readonly "
+						},
+						{
+							"kind": "Reference",
+							"text": "MigrationId",
+							"canonicalReference": "@tldraw/store!MigrationId:type"
+						},
+						{
+							"kind": "Content",
+							"text": "[];\n    } | {\n        readonly id: "
+						},
+						{
+							"kind": "Reference",
+							"text": "MigrationId",
+							"canonicalReference": "@tldraw/store!MigrationId:type"
+						},
+						{
+							"kind": "Content",
+							"text": ";\n        readonly dependsOn?: "
+						},
+						{
+							"kind": "Reference",
+							"text": "MigrationId",
+							"canonicalReference": "@tldraw/store!MigrationId:type"
+						},
+						{
+							"kind": "Content",
+							"text": "[];\n        readonly up: (props: any) => any;\n        readonly down?: ((props: any) => any) | typeof "
+						},
+						{
+							"kind": "Reference",
+							"text": "NO_DOWN_MIGRATION",
+							"canonicalReference": "@tldraw/tlschema!~NO_DOWN_MIGRATION:var"
+						},
+						{
+							"kind": "Content",
+							"text": " | typeof "
+						},
+						{
+							"kind": "Reference",
+							"text": "RETIRED_DOWN_MIGRATION",
+							"canonicalReference": "@tldraw/tlschema!~RETIRED_DOWN_MIGRATION:var"
+						},
+						{
+							"kind": "Content",
+							"text": ";\n    }>;\n}"
+						},
+						{
+							"kind": "Content",
+							"text": ";"
+						}
+					],
+					"fileUrlPath": "packages/tlschema/src/records/TLShape.ts",
+					"releaseTag": "Public",
+					"name": "TLShapePropsMigrations",
+					"typeTokenRange": {
+						"startIndex": 1,
+						"endIndex": 14
 					}
 				},
 				{

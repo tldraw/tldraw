@@ -293,10 +293,6 @@ import { createMigrationSequence, isShape } from 'tldraw'
 
 const myMigrations = createMigrationSequence({
 	sequenceId: SEQUENCE_ID,
-	// Setting 'retroactive' to true will make sure the migration runs when loading snapshots
-	// that were created before this sequence existed. You almost certainly want this.
-	// Setting 'retroactive' to false is mainly useful when publishing a 3rd party tldraw plugin to npm.
-	retroactive: true,
 	sequence: [
 		{
 			id: Versions.AddColor,

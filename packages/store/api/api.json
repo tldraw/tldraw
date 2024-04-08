@@ -657,7 +657,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/store!createMigrationIds:function(1)",
-          "docComment": "/**\n * @public\n */\n",
+          "docComment": "/**\n * Creates a named set of migration ids given a named set of version numbers and a sequence id.\n *\n * See the [migration guide](https://tldraw.dev/docs/persistence#Migrations) for more info on how to use this API.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -763,7 +763,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/store!createMigrationSequence:function(1)",
-          "docComment": "/**\n * @public\n */\n",
+          "docComment": "/**\n * Creates a migration sequence. See the [migration guide](https://tldraw.dev/docs/persistence#Migrations) for more info on how to use this API.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -951,7 +951,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/store!defineMigrations:function(1)",
-          "docComment": "/**\n * @deprecated\n *\n * use `createShapeMigrations` instead\n *\n * @public\n */\n",
+          "docComment": "/**\n * @deprecated\n *\n * use `createShapePropsMigrationSequence` instead. See [the docs](https://tldraw.dev/docs/persistence#Updating-legacy-shape-migrations-defineMigrations) for how to migrate.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

@@ -2,10 +2,11 @@ import { assert, objectMapEntries } from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
 import { SerializedStore } from './Store'
 
-// TODO: add link to docs that explain to use
+let didWarn = false
+
 /**
  * @public
- * @deprecated use `createShapeMigrations` instead
+ * @deprecated use `createShapePropsMigrationSequence` instead. See [the docs](https://tldraw.dev/docs/persistence#Updating-legacy-shape-migrations-defineMigrations) for how to migrate.
  */
 export function defineMigrations(opts: {
 	firstVersion?: number
@@ -14,8 +15,13 @@ export function defineMigrations(opts: {
 	subTypeKey?: string
 	subTypeMigrations?: Record<string, LegacyBaseMigrationsInfo>
 }): LegacyMigrations {
-	// TODO: log warning to upgrade to new migrations API
 	const { currentVersion, firstVersion, migrators = {}, subTypeKey, subTypeMigrations } = opts
+	if (!didWarn) {
+		console.warn(
+			`The 'defineMigrations' function is deprecated and will be removed in a future release. Use the new migrations API instead. See the migration guide for more info: https://tldraw.dev/docs/persistence#Updating-legacy-shape-migrations-defineMigrations`
+		)
+		didWarn = true
+	}
 
 	// Some basic guards against impossible version combinations, some of which will be caught by TypeScript
 	if (typeof currentVersion === 'number' && typeof firstVersion === 'number') {
@@ -55,7 +61,11 @@ function squashDependsOn(sequence: Array<Migration | StandaloneDependsOn>): Migr
 	return result
 }
 
-/** @public */
+/**
+ * Creates a migration sequence.
+ * See the [migration guide](https://tldraw.dev/docs/persistence#Migrations) for more info on how to use this API.
+ * @public
+ */
 export function createMigrationSequence({
 	sequence,
 	sequenceId,
@@ -74,7 +84,13 @@ export function createMigrationSequence({
 	return migrations
 }
 
-/** @public */
+/**
+ * Creates a named set of migration ids given a named set of version numbers and a sequence id.
+ *
+ * See the [migration guide](https://tldraw.dev/docs/persistence#Migrations) for more info on how to use this API.
+ * @public
+ * @public
+ */
 export function createMigrationIds<ID extends string, Versions extends Record<string, number>>(
 	sequenceId: ID,
 	versions: Versions

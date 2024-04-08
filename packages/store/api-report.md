@@ -36,12 +36,12 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
     get(id: IdOf<R>): Data | undefined;
 };
 
-// @public (undocumented)
+// @public
 export function createMigrationIds<ID extends string, Versions extends Record<string, number>>(sequenceId: ID, versions: Versions): {
     [K in keyof Versions]: `${ID}/${Versions[K]}`;
 };
 
-// @public (undocumented)
+// @public
 export function createMigrationSequence({ sequence, sequenceId, retroactive, }: {
     sequenceId: string;
     retroactive?: boolean;
