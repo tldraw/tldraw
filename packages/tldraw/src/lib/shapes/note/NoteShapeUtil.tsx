@@ -181,7 +181,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						width: NOTE_SIZE,
 						height: noteHeight,
 						backgroundColor: theme[color].note.fill,
-						opacity: hideShadows ? 1 : 0.99,
 						borderBottom: hideShadows ? `3px solid rgb(15, 23, 31, .2)` : 'none',
 						boxShadow: hideShadows
 							? 'none'
