@@ -7,8 +7,8 @@ import { components } from './ui-overrides'
  * This example demonstrates how to add custom migrations for `meta` properties, or any other
  * data in your store snapshots.
  *
- * If you have a custom shape type and you want to add migrations for it's props object,
- * there is a simpler API for that. Check out the `custom-config` example for more info.
+ * If you have a custom shape type and you want to add migrations for its `props` object,
+ * there is a simpler dedicated API for that. Check out [the docs](https://tldraw.dev/docs/persistence#Shape-props-migrations) for more info.
  */
 
 /**
@@ -47,7 +47,7 @@ const migrations = createMigrationSequence({
 			scope: 'record',
 			// When `scope` is 'record', you can specify a filter function to only apply the migration to records that match the filter.
 			filter: (record) => record.typeName === 'page',
-			// this up function will be called on all records that match the filter
+			// This up function will be called on all records that match the filter
 			up(page: any) {
 				if (page.meta.backgroundTheme === 'purple') {
 					page.meta.backgroundTheme = 'blue'
@@ -57,15 +57,13 @@ const migrations = createMigrationSequence({
 	],
 })
 
-export default function CustomConfigExample() {
+export default function MetaMigrationsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				// Pass in the custom migrations
 				migrations={[migrations]}
-				onMount={(editor) => {
-					editor.store.loadSnapshot(snapshot)
-				}}
+				snapshot={snapshot}
 				components={components}
 			/>
 		</div>

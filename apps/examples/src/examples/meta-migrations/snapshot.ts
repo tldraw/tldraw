@@ -41,7 +41,7 @@ export const snapshot = {
 				backgroundTheme: 'purple',
 			},
 			id: 'page:purple',
-			name: 'Purple',
+			name: 'Purple (but now blue)',
 			index: 'a0',
 			typeName: 'page',
 		},
