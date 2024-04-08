@@ -1102,9 +1102,11 @@ input,
 }
 /* This part of the rule helps preserve the occlusion rules for the shapes so we
  * don't click on shapes that are behind other shapes.
- * One extra nuance is arrows which have weird geometry and just gets in the way.
+ * One extra nuance is we don't use this behavior for:
+ *  - arrows which have weird geometry and just gets in the way.
+ *  - draw shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
  */
-.tl-canvas[data-iseditinganything='true'] .tl-shape:not([data-shape-type='arrow']) {
+.tl-canvas[data-iseditinganything='true'] .tl-shape:not([data-shape-type='arrow']):not([data-shape-type='draw']) {
 	pointer-events: all;
 }
 /* But, re-disable the pointer-events rule for the svg container. */
