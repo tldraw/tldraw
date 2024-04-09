@@ -1,3 +1,4 @@
+import { Box, TLShapeId, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -45,4 +46,93 @@ it('lists shapes in viewport', () => {
 	editor.setEditingShape(ids.C)
 	// or shapes being edited
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.D]))
+})
+
+const shapeSize = 100
+const numberOfShapes = 100
+
+function getChangeOutsideBounds(viewportSize: number) {
+	const changeDirection = Math.random() > 0.5 ? 1 : -1
+	const maxChange = 1000
+	const changeAmount = 1 + Math.random() * maxChange
+	if (changeDirection === 1) {
+		// We need to get past the viewport size and then add a bit more
+		return viewportSize + changeAmount
+	} else {
+		// We also need to take the shape with into account
+		return -changeAmount - shapeSize
+	}
+}
+
+function getChangeInsideBounds(viewportSize: number) {
+	// We can go from -shapeSize to viewportSize
+	return -shapeSize + Math.random() * (viewportSize + shapeSize)
+}
+
+function createFuzzShape(viewport: Box) {
+	const id = createShapeId()
+	if (Math.random() > 0.5) {
+		const positionChange = Math.random()
+		// Should x, or y, or both go outside the bounds?
+		const dimensionChange = positionChange < 0.33 ? 'x' : positionChange < 0.66 ? 'y' : 'both'
+		const xOutsideBounds = dimensionChange === 'x' || dimensionChange === 'both'
+		const yOutsideBounds = dimensionChange === 'y' || dimensionChange === 'both'
+
+		// Create a shape outside the viewport
+		editor.createShape({
+			id,
+			type: 'geo',
+			x:
+				viewport.x +
+				(xOutsideBounds ? getChangeOutsideBounds(viewport.w) : getChangeInsideBounds(viewport.w)),
+			y:
+				viewport.y +
+				(yOutsideBounds ? getChangeOutsideBounds(viewport.h) : getChangeInsideBounds(viewport.h)),
+			props: { w: shapeSize, h: shapeSize },
+		})
+		return { isCulled: true, id }
+	} else {
+		// Create a shape inside the viewport
+		editor.createShape({
+			id,
+			type: 'geo',
+			x: viewport.x + getChangeInsideBounds(viewport.w),
+			y: viewport.y + getChangeInsideBounds(viewport.h),
+			props: { w: shapeSize, h: shapeSize },
+		})
+		return { isCulled: false, id }
+	}
+}
+
+it('correctly calculates the culled shapes when adding and deleting shapes', () => {
+	const viewport = editor.getViewportPageBounds()
+	const shapes: Array<TLShapeId | undefined> = []
+	for (let i = 0; i < numberOfShapes; i++) {
+		const { isCulled, id } = createFuzzShape(viewport)
+		shapes.push(id)
+		if (isCulled) {
+			expect(editor.getCulledShapes()).toContain(id)
+		} else {
+			expect(editor.getCulledShapes()).not.toContain(id)
+		}
+	}
+	const numberOfShapesToDelete = Math.floor((Math.random() * numberOfShapes) / 2)
+	for (let i = 0; i < numberOfShapesToDelete; i++) {
+		const index = Math.floor(Math.random() * (shapes.length - 1))
+		const id = shapes[index]
+		if (id) {
+			editor.deleteShape(id)
+			shapes[index] = undefined
+			expect(editor.getCulledShapes()).not.toContain(id)
+		}
+	}
+
+	const culledShapesIncremental = editor.getCulledShapes()
+
+	// force full refresh
+	editor.pan({ x: -1, y: 0 })
+	editor.pan({ x: 1, y: 0 })
+
+	const culledShapeFromScratch = editor.getCulledShapes()
+	expect(culledShapesIncremental).toEqual(culledShapeFromScratch)
 })
