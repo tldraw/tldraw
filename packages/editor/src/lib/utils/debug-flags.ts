@@ -8,9 +8,7 @@ import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } 
 // development. Use `createFeatureFlag` to create a boolean flag which will be
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
-export const featureFlags: Record<string, DebugFlag<boolean>> = {
-	blockHitTestsWhileMovingCamera: createFeatureFlag('moving camera blocker'),
-}
+export const featureFlags: Record<string, DebugFlag<boolean>> = {}
 
 /** @internal */
 export const pointerCaptureTrackingObject = createDebugValue(
@@ -104,6 +102,7 @@ function createDebugValue<T>(
 	})
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function createFeatureFlag(
 	name: string,
 	defaults: Defaults<boolean> = { all: true, production: false }

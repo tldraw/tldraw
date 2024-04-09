@@ -17,7 +17,7 @@ import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
-import { debugFlags, featureFlags } from '../../utils/debug-flags'
+import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
 import { nearestMultiple } from '../../utils/nearestMultiple'
 import { CulledShapes } from '../CulledShapes'
@@ -594,14 +594,7 @@ function InFrontOfTheCanvasWrapper() {
 
 function MovingCameraHitTestBlocker() {
 	const editor = useEditor()
-	const shouldDisplay = useValue(
-		'should display',
-		() => featureFlags.blockHitTestsWhileMovingCamera.get(),
-		[editor]
-	)
 	const cameraState = useValue('camera state', () => editor.getCameraState(), [editor])
-
-	if (!shouldDisplay) return null
 
 	return (
 		<div
