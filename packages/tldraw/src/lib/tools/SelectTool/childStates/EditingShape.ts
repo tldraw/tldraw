@@ -55,7 +55,7 @@ export class EditingShape extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
+				const hitShape = getHitShapeOnCanvasPointerDown(this.editor, true /* hitLabels */)
 				if (hitShape) {
 					this.onPointerDown({
 						...info,
