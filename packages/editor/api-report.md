@@ -756,6 +756,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
     }): TLShape[];
     // (undocumented)
+    getShapesOutsideViewport(): Computed<Map<TLShapeId, Box | undefined>, unknown>;
+    // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
     // (undocumented)

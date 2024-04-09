@@ -4267,33 +4267,35 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return isCulled ? { isCulled, maskedPageBounds } : { isCulled }
 	}
 
-	getCulledShapes(): Map<TLShapeId, Box | undefined> {
-		return this._getCulledShapes().get()
+	private _getShapeCullingInfo2(
+		id: TLShapeId,
+		renderingBoundsExpanded: Box
+	): { isCulled: false } | { isCulled: true; maskedPageBounds: Box | undefined } {
+		const maskedPageBounds = this.getShapeMaskedPageBounds(id)
+		if (maskedPageBounds === undefined) return { isCulled: true, maskedPageBounds: undefined }
+
+		const isCulled = !renderingBoundsExpanded.includes(maskedPageBounds)
+		return isCulled ? { isCulled, maskedPageBounds } : { isCulled }
 	}
 
 	@computed
-	private _getCulledShapes() {
-		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
+	getShapesOutsideViewport() {
+		return this._getShapesOutsideViewport()
+	}
 
+	private _getShapesOutsideViewport() {
+		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
 		const shapeHistory = this.store.query.filterHistory('shape')
 		let lastPageId: TLPageId | null = null
-		let prevRenderingBoundsExpanded: Box
-
+		let prevViewportPageBounds: Box
 		function fromScratch(editor: Editor): Map<TLShapeId, Box | undefined> {
-			const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
-			prevRenderingBoundsExpanded = renderingBoundsExpanded.clone()
-			lastPageId = editor.getCurrentPageId()
 			const shapes = editor.getCurrentPageShapeIds()
+			lastPageId = editor.getCurrentPageId()
+			const viewportPage = editor.getViewportPageBounds()
+			prevViewportPageBounds = viewportPage.clone()
 			const culledShapes = new Map<TLShapeId, Box | undefined>()
-			const selectedShapeIds = editor.getSelectedShapeIds()
-			const editingId = editor.getEditingShapeId()
 			shapes.forEach((id) => {
-				const ci = editor._getShapeCullingInfo(
-					id,
-					selectedShapeIds,
-					editingId,
-					renderingBoundsExpanded
-				)
+				const ci = editor._getShapeCullingInfo2(id, viewportPage)
 				if (ci.isCulled) {
 					culledShapes.set(id, ci.maskedPageBounds)
 				}
@@ -4318,24 +4320,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (lastPageId !== currentPageId) {
 					return fromScratch(this)
 				}
-				const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
-				if (
-					!prevRenderingBoundsExpanded ||
-					!renderingBoundsExpanded.equals(prevRenderingBoundsExpanded)
-				) {
+				const viewportPageBounds = this.getViewportPageBounds()
+				if (!prevViewportPageBounds || !viewportPageBounds.equals(prevViewportPageBounds)) {
 					return fromScratch(this)
 				}
-				const selectedShapeIds = this.getSelectedShapeIds()
-				const editingId = this.getEditingShapeId()
 				const nextValue = new Map(prevValue)
 				let isDirty = false
 				const checkShapeCullingInfo = (id: TLShapeId) => {
-					const ci = this._getShapeCullingInfo(
-						id,
-						selectedShapeIds,
-						editingId,
-						renderingBoundsExpanded
-					)
+					const ci = this._getShapeCullingInfo2(id, viewportPageBounds)
 					if (ci.isCulled && !prevValue.has(id)) {
 						nextValue.set(id, ci.maskedPageBounds)
 						isDirty = true
@@ -4366,6 +4358,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return isDirty ? nextValue : prevValue
 			}
 		)
+	}
+
+	@computed
+	getCulledShapes() {
+		const shapesOutsideRenderingBoundsExpanded = this.getShapesOutsideViewport().get()
+		const selectedShapeIds = this.getSelectedShapeIds()
+		const editingId = this.getEditingShapeId()
+		const culled = new Map<TLShapeId, Box | undefined>(shapesOutsideRenderingBoundsExpanded)
+		if (editingId) {
+			culled.delete(editingId)
+		}
+		selectedShapeIds.forEach((id) => culled.delete(id))
+		return culled
 	}
 
 	/**

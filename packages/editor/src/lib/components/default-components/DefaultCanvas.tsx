@@ -20,7 +20,6 @@ import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
 import { nearestMultiple } from '../../utils/nearestMultiple'
-import { CulledShapes } from '../CulledShapes'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
@@ -97,9 +96,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<Background />
 				</div>
 			)}
-			<div className="tl-culled-shapes">
-				<CulledShapes />
-			</div>
 			<div
 				ref={rCanvas}
 				draggable={false}
