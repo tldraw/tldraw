@@ -3,6 +3,7 @@ import {
 	RecordsDiff,
 	Store,
 	UnknownRecord,
+	createEmptyRecordsDiff,
 	isRecordsDiffEmpty,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
@@ -11,8 +12,6 @@ import { exhaustiveSwitchError } from '@tldraw/utils'
 import { uniqueId } from '../../utils/uniqueId'
 import { TLHistoryBatchOptions, TLHistoryEntry } from '../types/history-types'
 import { stack } from './Stack'
-
-type CommandFn = (...args: any[]) => void
 
 enum HistoryRecorderState {
 	Recording = 'recording',
@@ -28,12 +27,19 @@ export class HistoryManager<
 	},
 > {
 	/** @internal */
-	stacks = atom('HistoryManager.stacks', {
-		undos: stack<TLHistoryEntry<R>>(),
-		redos: stack<TLHistoryEntry<R>>(),
-	})
+	stacks = atom(
+		'HistoryManager.stacks',
+		{
+			undos: stack<TLHistoryEntry<R>>(),
+			redos: stack<TLHistoryEntry<R>>(),
+		},
+		{
+			isEqual: (a, b) => a.undos === b.undos && a.redos === b.redos,
+		}
+	)
 
 	private state: HistoryRecorderState = HistoryRecorderState.Recording
+	private readonly pendingDiff = new PendingDiff<R>()
 	readonly dispose: () => void
 
 	constructor(
@@ -45,13 +51,11 @@ export class HistoryManager<
 
 			switch (this.state) {
 				case HistoryRecorderState.Recording:
-					this._hackyPendingDiffAtom.set(this._hackyPendingDiffAtom.get() + 1)
-					squashRecordDiffsMutable(this.pendingDiff, [entry.changes])
+					this.pendingDiff.apply(entry.changes)
 					this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
 					break
 				case HistoryRecorderState.RecordingPreserveRedoStack:
-					this._hackyPendingDiffAtom.set(this._hackyPendingDiffAtom.get() + 1)
-					squashRecordDiffsMutable(this.pendingDiff, [entry.changes])
+					this.pendingDiff.apply(entry.changes)
 					break
 				case HistoryRecorderState.Paused:
 					break
@@ -61,24 +65,33 @@ export class HistoryManager<
 		})
 	}
 
-	private _hackyPendingDiffAtom = atom('HistoryManager._hackyPendingDiffAtom', 0)
-	private pendingDiff = createEmptyDiff<R>()
-	private flushPendingDiff() {
-		if (isRecordsDiffEmpty(this.pendingDiff)) return
+	// private hasPendingDiff = atom('HistoryManager.hasPendingDiff', false)
+	// private _pendingDiff = createEmptyDiff<R>()
+	// private getPendingDiff() {
+	// 	return this._pendingDiff
+	// }
+	// private setPendingDiff(diff: RecordsDiff<R>) {
+	// 	this._pendingDiff = diff
+	// 	this.didUpdatePendingDiff()
+	// }
+	// private didUpdatePendingDiff() {
+	// 	this.hasPendingDiff.set(isRecordsDiffEmpty(this._pendingDiff))
+	// }
+	// private appendToPending
+	flushPendingDiff() {
+		if (this.pendingDiff.isEmpty()) return
 
+		const diff = this.pendingDiff.clear()
 		this.stacks.update(({ undos, redos }) => ({
-			undos: undos.push({ type: 'diff', diff: this.pendingDiff }),
+			undos: undos.push({ type: 'diff', diff }),
 			redos,
 		}))
-		this.pendingDiff = createEmptyDiff<R>()
 	}
 
 	onBatchComplete: () => void = () => void null
 
 	getNumUndos() {
-		this._hackyPendingDiffAtom.get()
-		const hasPendingDiff = !isRecordsDiffEmpty(this.pendingDiff)
-		return this.stacks.get().undos.length + (hasPendingDiff ? 1 : 0)
+		return this.stacks.get().undos.length + (this.pendingDiff.isEmpty() ? 0 : 1)
 	}
 	getNumRedos() {
 		return this.stacks.get().redos.length
@@ -138,14 +151,12 @@ export class HistoryManager<
 
 			// start by collecting the pending diff (everything since the last mark).
 			// we'll accumulate the diff to undo in this variable so we can apply it atomically.
-			const diffToUndo = reverseRecordsDiff(this.pendingDiff)
+			const pendingDiff = this.pendingDiff.clear()
+			const diffToUndo = reverseRecordsDiff(pendingDiff)
 
 			if (pushToRedoStack) {
-				redos = redos.push({ type: 'diff', diff: this.pendingDiff })
+				redos = redos.push({ type: 'diff', diff: pendingDiff })
 			}
-
-			this._hackyPendingDiffAtom.set(this._hackyPendingDiffAtom.get() + 1)
-			this.pendingDiff = createEmptyDiff()
 
 			let didFindMark = false
 			if (isRecordsDiffEmpty(diffToUndo)) {
@@ -224,7 +235,7 @@ export class HistoryManager<
 			}
 
 			// accumulate diffs to be redone so they can be applied atomically
-			const diffToRedo = createEmptyDiff<R>()
+			const diffToRedo = createEmptyRecordsDiff<R>()
 
 			while (redos.head) {
 				const redo = redos.head
@@ -274,12 +285,8 @@ export class HistoryManager<
 
 	clear() {
 		this.stacks.set({ undos: stack(), redos: stack() })
-		this.pendingDiff = createEmptyDiff<R>()
+		this.pendingDiff.clear()
 	}
-}
-
-function createEmptyDiff<R extends UnknownRecord>() {
-	return { added: {}, updated: {}, removed: {} } as RecordsDiff<R>
 }
 
 const modeToState = {
@@ -287,3 +294,24 @@ const modeToState = {
 	ephemeral: HistoryRecorderState.Paused,
 	preserveRedoStack: HistoryRecorderState.RecordingPreserveRedoStack,
 } as const
+
+class PendingDiff<R extends UnknownRecord> {
+	private diff = createEmptyRecordsDiff<R>()
+	private isEmptyAtom = atom('PendingDiff.isEmpty', true)
+
+	clear() {
+		const diff = this.diff
+		this.diff = createEmptyRecordsDiff<R>()
+		this.isEmptyAtom.set(true)
+		return diff
+	}
+
+	isEmpty() {
+		return this.isEmptyAtom.get()
+	}
+
+	apply(diff: RecordsDiff<R>) {
+		squashRecordDiffsMutable(this.diff, [diff])
+		this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
+	}
+}
