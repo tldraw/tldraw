@@ -19,6 +19,21 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const rInput = useRef<HTMLTextAreaElement>(null)
 	const rSelectionRanges = useRef<Range[] | null>()
 
+	useEffect(() => {
+		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
+			if (shapeId === id) {
+				const elm = rInput.current
+				if (elm) {
+					elm.select()
+				}
+			}
+		}
+		editor.on('select-all-text', selectAllIfEditing)
+		return () => {
+			editor.off('select-all-text', selectAllIfEditing)
+		}
+	}, [editor, id])
+
 	const isEditingAnything = useValue(
 		'isEditingAnything',
 		() => editor.getEditingShapeId() !== null,
@@ -73,7 +88,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	}, [editor, id])
 
 	// When the user presses ctrl / meta enter, complete the editing state.
-	// When the user presses tab, indent or unindent the text.
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return

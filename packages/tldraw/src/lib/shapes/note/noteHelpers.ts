@@ -129,7 +129,7 @@ export function getNoteShapeForAdjacentPosition(
 	// Start from the top of the stack, and work our way down
 	const allShapesOnPage = editor.getCurrentPageShapesSorted()
 
-	const minDistance = NOTE_SIZE + ADJACENT_NOTE_MARGIN
+	const minDistance = NOTE_SIZE + ADJACENT_NOTE_MARGIN ** 2
 
 	for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
 		const otherNote = allShapesOnPage[i]
@@ -137,7 +137,7 @@ export function getNoteShapeForAdjacentPosition(
 			const otherBounds = editor.getShapePageBounds(otherNote)
 			if (
 				otherBounds &&
-				otherBounds.center.dist(center) < minDistance &&
+				Vec.Dist2(otherBounds.center, center) < minDistance &&
 				editor.isPointInShape(otherNote, center)
 			) {
 				nextNote = otherNote

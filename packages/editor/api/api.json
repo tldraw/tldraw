@@ -38965,6 +38965,42 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/editor!TLEventMap#\"select-all-text\":member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "'select-all-text': "
+                },
+                {
+                  "kind": "Content",
+                  "text": "[{\n        shapeId: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n    }]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "\"select-all-text\"",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEventMap#\"stop-camera-animation\":member",
               "docComment": "",
               "excerptTokens": [

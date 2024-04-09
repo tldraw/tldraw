@@ -163,13 +163,7 @@ export class PointingShape extends StateNode {
 										this.editor.setCurrentTool('select.editing_shape')
 
 										if (this.isDoubleClick) {
-											// XXX this is a hack to select the text in the textarea when we hit enter.
-											// Open to other ideas! I don't see how else to currently do this in the codebase.
-											;(
-												document.getElementById(
-													`text-input-${selectingShape.id}`
-												) as HTMLTextAreaElement
-											).select()
+											this.editor.emit('select-all-text', { shapeId: selectingShape.id })
 										}
 									})
 									return
