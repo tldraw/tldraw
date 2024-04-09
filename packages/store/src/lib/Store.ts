@@ -12,7 +12,7 @@ import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { Cache } from './Cache'
 import { RecordScope } from './RecordType'
-import { RecordsDiff, squashRecordDiffs, squashRecordDiffsMutable } from './RecordsDiff'
+import { RecordsDiff } from './RecordsDiff'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { devFreeze } from './devFreeze'
@@ -258,19 +258,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param change - the records diff
 	 * @returns
 	 */
-	filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope) {
+	filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope): RecordsDiff<R> | null {
 		const result = {
-			added: filterEntries(change.added, (_, r) => this.scopedTypes[scope].has(r.typeName)),
-			updated: filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName)),
-			removed: filterEntries(change.removed, (_, r) => this.scopedTypes[scope].has(r.typeName)),
+			added: change.added
+				? filterEntries(change.added, (_, r) => this.scopedTypes[scope].has(r.typeName))
+				: null,
+			updated: change.updated
+				? filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName))
+				: null,
+			removed: change.removed
+				? filterEntries(change.removed, (_, r) => this.scopedTypes[scope].has(r.typeName))
+				: null,
 		}
-		if (
-			Object.keys(result.added).length === 0 &&
-			Object.keys(result.updated).length === 0 &&
-			Object.keys(result.removed).length === 0
-		) {
-			return null
-		}
+		if (result.added && Object.keys(result.added).length === 0) result.added = null
+		if (result.updated && Object.keys(result.updated).length === 0) result.updated = null
+		if (result.removed && Object.keys(result.removed).length === 0) result.removed = null
+		if (RecordsDiff.isEmpty(result)) return null
 		return result
 	}
 
@@ -702,23 +705,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const dispose = this.historyAccumulator.addInterceptor((entry) => changes.push(entry.changes))
 		try {
 			transact(fn)
-			return squashRecordDiffs(changes)
-		} finally {
-			dispose()
-		}
-	}
-
-	/**
-	 * Like {@link extractingChanges}, but accumulates the changes into the provided accumulator
-	 * diff instead of returning a fresh diff.
-	 * @internal
-	 */
-	accumulatingChanges(accumulator: RecordsDiff<R>, fn: () => void) {
-		const changes: Array<RecordsDiff<R>> = []
-		const dispose = this.historyAccumulator.addInterceptor((entry) => changes.push(entry.changes))
-		try {
-			transact(fn)
-			squashRecordDiffsMutable(accumulator, changes)
+			return RecordsDiff.squash(changes)
 		} finally {
 			dispose()
 		}
@@ -726,10 +713,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	applyDiff(diff: RecordsDiff<R>, runCallbacks = true) {
 		this.transactWithAfterEvents(() => {
-			const toPut = objectMapValues(diff.added).concat(
-				objectMapValues(diff.updated).map(([_from, to]) => to)
-			)
-			const toRemove = objectMapKeys(diff.removed)
+			const toAdd = diff.added ? objectMapValues(diff.added) : []
+			const toUpdate = diff.updated ? objectMapValues(diff.updated).map((u) => u[1]) : []
+			const toPut = toAdd.concat(toUpdate)
+			const toRemove = diff.removed ? objectMapKeys(diff.removed) : []
 			if (toPut.length) {
 				this.put(toPut)
 			}
@@ -922,7 +909,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 	return devFreeze(
 		chunked.map((chunk) => ({
 			source: chunk[0].source,
-			changes: squashRecordDiffs(chunk.map((e) => e.changes)),
+			changes: RecordsDiff.squash(chunk.map((e) => e.changes)),
 		}))
 	)
 }

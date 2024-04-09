@@ -81,63 +81,35 @@ export class StoreQueries<R extends UnknownRecord> {
 				const diff = this.history.getDiffSince(lastComputedEpoch)
 				if (diff === RESET_VALUE) return this.history.get()
 
-				const res = { added: {}, removed: {}, updated: {} } as RecordsDiff<S>
-				let numAdded = 0
-				let numRemoved = 0
-				let numUpdated = 0
+				const res = RecordsDiff.create<S>()
 
 				for (const changes of diff) {
-					for (const added of objectMapValues(changes.added)) {
-						if (added.typeName === typeName) {
-							if (res.removed[added.id as IdOf<S>]) {
-								const original = res.removed[added.id as IdOf<S>]
-								delete res.removed[added.id as IdOf<S>]
-								numRemoved--
-								if (original !== added) {
-									res.updated[added.id as IdOf<S>] = [original, added as S]
-									numUpdated++
-								}
-							} else {
-								res.added[added.id as IdOf<S>] = added as S
-								numAdded++
+					if (changes.added) {
+						for (const added of objectMapValues(changes.added)) {
+							if (added.typeName === typeName) {
+								RecordsDiff.addRecord(res, added)
 							}
 						}
 					}
 
-					for (const [from, to] of objectMapValues(changes.updated)) {
-						if (to.typeName === typeName) {
-							if (res.added[to.id as IdOf<S>]) {
-								res.added[to.id as IdOf<S>] = to as S
-							} else if (res.updated[to.id as IdOf<S>]) {
-								res.updated[to.id as IdOf<S>] = [res.updated[to.id as IdOf<S>][0], to as S]
-							} else {
-								res.updated[to.id as IdOf<S>] = [from as S, to as S]
-								numUpdated++
+					if (changes.updated) {
+						for (const [from, to] of objectMapValues(changes.updated)) {
+							if (to.typeName === typeName) {
+								RecordsDiff.updateRecord(res, from, to)
 							}
 						}
 					}
 
-					for (const removed of objectMapValues(changes.removed)) {
-						if (removed.typeName === typeName) {
-							if (res.added[removed.id as IdOf<S>]) {
-								// was added during this diff sequence, so just undo the add
-								delete res.added[removed.id as IdOf<S>]
-								numAdded--
-							} else if (res.updated[removed.id as IdOf<S>]) {
-								// remove oldest version
-								res.removed[removed.id as IdOf<S>] = res.updated[removed.id as IdOf<S>][0]
-								delete res.updated[removed.id as IdOf<S>]
-								numUpdated--
-								numRemoved++
-							} else {
-								res.removed[removed.id as IdOf<S>] = removed as S
-								numRemoved++
+					if (changes.removed) {
+						for (const removed of objectMapValues(changes.removed)) {
+							if (removed.typeName === typeName) {
+								RecordsDiff.removeRecord(res, removed)
 							}
 						}
 					}
 				}
 
-				if (numAdded || numRemoved || numUpdated) {
+				if (!RecordsDiff.isEmpty(res)) {
 					return withDiff(this.history.get(), res)
 				} else {
 					return lastValue
@@ -239,26 +211,32 @@ export class StoreQueries<R extends UnknownRecord> {
 				}
 
 				for (const changes of history) {
-					for (const record of objectMapValues(changes.added)) {
-						if (record.typeName === typeName) {
-							const value = (record as S)[property]
-							add(value, record.id)
-						}
-					}
-					for (const [from, to] of objectMapValues(changes.updated)) {
-						if (to.typeName === typeName) {
-							const prev = (from as S)[property]
-							const next = (to as S)[property]
-							if (prev !== next) {
-								remove(prev, to.id)
-								add(next, to.id)
+					if (changes.added) {
+						for (const record of objectMapValues(changes.added)) {
+							if (record.typeName === typeName) {
+								const value = (record as S)[property]
+								add(value, record.id)
 							}
 						}
 					}
-					for (const record of objectMapValues(changes.removed)) {
-						if (record.typeName === typeName) {
-							const value = (record as S)[property]
-							remove(value, record.id)
+					if (changes.updated) {
+						for (const [from, to] of objectMapValues(changes.updated)) {
+							if (to.typeName === typeName) {
+								const prev = (from as S)[property]
+								const next = (to as S)[property]
+								if (prev !== next) {
+									remove(prev, to.id)
+									add(next, to.id)
+								}
+							}
+						}
+					}
+					if (changes.removed) {
+						for (const record of objectMapValues(changes.removed)) {
+							if (record.typeName === typeName) {
+								const value = (record as S)[property]
+								remove(value, record.id)
+							}
 						}
 					}
 				}
@@ -416,23 +394,29 @@ export class StoreQueries<R extends UnknownRecord> {
 				) as IncrementalSetConstructor<IdOf<S>>
 
 				for (const changes of history) {
-					for (const added of objectMapValues(changes.added)) {
-						if (added.typeName === typeName && objectMatchesQuery(query, added)) {
-							setConstructor.add(added.id)
-						}
-					}
-					for (const [_, updated] of objectMapValues(changes.updated)) {
-						if (updated.typeName === typeName) {
-							if (objectMatchesQuery(query, updated)) {
-								setConstructor.add(updated.id)
-							} else {
-								setConstructor.remove(updated.id)
+					if (changes.added) {
+						for (const added of objectMapValues(changes.added)) {
+							if (added.typeName === typeName && objectMatchesQuery(query, added)) {
+								setConstructor.add(added.id)
 							}
 						}
 					}
-					for (const removed of objectMapValues(changes.removed)) {
-						if (removed.typeName === typeName) {
-							setConstructor.remove(removed.id)
+					if (changes.updated) {
+						for (const [_, updated] of objectMapValues(changes.updated)) {
+							if (updated.typeName === typeName) {
+								if (objectMatchesQuery(query, updated)) {
+									setConstructor.add(updated.id)
+								} else {
+									setConstructor.remove(updated.id)
+								}
+							}
+						}
+					}
+					if (changes.removed) {
+						for (const removed of objectMapValues(changes.removed)) {
+							if (removed.typeName === typeName) {
+								setConstructor.remove(removed.id)
+							}
 						}
 					}
 				}
