@@ -1196,6 +1196,55 @@ export function hardResetEditor(): void;
 export const HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
 
 // @public (undocumented)
+export class HistoryManager<R extends UnknownRecord> {
+    constructor(opts: {
+        store: Store<R>;
+        annotateError?: (error: unknown) => void;
+    });
+    // (undocumented)
+    bail: () => this;
+    // (undocumented)
+    bailToMark: (id: string) => this;
+    // (undocumented)
+    batch: (fn: () => void, opts?: TLHistoryBatchOptions) => this;
+    // (undocumented)
+    clear(): void;
+    // @internal (undocumented)
+    debug(): {
+        undos: (NonNullable<TLHistoryEntry<R>> | undefined)[];
+        redos: (NonNullable<TLHistoryEntry<R>> | undefined)[];
+        pendingDiff: {
+            diff: RecordsDiff<R>;
+            isEmpty: boolean;
+        };
+        state: HistoryRecorderState;
+    };
+    // (undocumented)
+    readonly dispose: () => void;
+    // (undocumented)
+    ephemeral(fn: () => void): this;
+    // (undocumented)
+    getNumRedos(): number;
+    // (undocumented)
+    getNumUndos(): number;
+    // @internal (undocumented)
+    _isInBatch: boolean;
+    // (undocumented)
+    mark: (id?: string) => string;
+    // (undocumented)
+    onBatchComplete: () => void;
+    // (undocumented)
+    redo: () => this | undefined;
+    // @internal (undocumented)
+    stacks: Atom<    {
+    undos: Stack<TLHistoryEntry<R>>;
+    redos: Stack<TLHistoryEntry<R>>;
+    }, unknown>;
+    // (undocumented)
+    undo: () => this;
+}
+
+// @public (undocumented)
 export const HIT_TEST_MARGIN = 8;
 
 // @public (undocumented)
@@ -2267,17 +2316,6 @@ export type TLHandleProps = {
 export type TLHandlesProps = {
     children: ReactNode;
 };
-
-// @public (undocumented)
-export type TLHistoryEntry<R extends UnknownRecord> = TLHistoryDiff<R> | TLHistoryMark;
-
-// @public (undocumented)
-export interface TLHistoryMark {
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    type: 'stop';
-}
 
 // @public (undocumented)
 export type TLHoveredShapeIndicatorProps = {

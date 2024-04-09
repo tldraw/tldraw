@@ -19,6 +19,7 @@ enum HistoryRecorderState {
 	Paused = 'paused',
 }
 
+/** @public */
 export class HistoryManager<R extends UnknownRecord> {
 	private readonly store: Store<R>
 
@@ -62,7 +63,7 @@ export class HistoryManager<R extends UnknownRecord> {
 		})
 	}
 
-	flushPendingDiff() {
+	private flushPendingDiff() {
 		if (this.pendingDiff.isEmpty()) return
 
 		const diff = this.pendingDiff.clear()

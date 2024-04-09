@@ -57,7 +57,6 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/utils'
-import { setTimeout } from 'core-js'
 import { EventEmitter } from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
@@ -1374,10 +1373,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCursor = (cursor: Partial<TLCursor>): this => {
-		this.updateInstanceState(
-			{ cursor: { ...this.getInstanceState().cursor, ...cursor } },
-			{ history: 'ephemeral' }
-		)
+		this.updateInstanceState({ cursor: { ...this.getInstanceState().cursor, ...cursor } })
 		return this
 	}
 
@@ -1867,7 +1863,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setHoveredShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
 		if (id === this.getHoveredShapeId()) return this
-		this.updateCurrentPageState({ hoveredShapeId: id }, { history: 'ephemeral' })
+		this.updateCurrentPageState({ hoveredShapeId: id })
 		return this
 	}
 
@@ -2736,25 +2732,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (_willSetInitialBounds) {
 				// If we have just received the initial bounds, don't center the camera.
 				this._willSetInitialBounds = false
-				this.updateInstanceState(
-					{ screenBounds: screenBounds.toJson(), insets },
-					{ history: 'ephemeral' }
-				)
+				this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
 			} else {
 				if (center && !this.getInstanceState().followingUserId) {
 					// Get the page center before the change, make the change, and restore it
 					const before = this.getViewportPageCenter()
-					this.updateInstanceState(
-						{ screenBounds: screenBounds.toJson(), insets },
-						{ history: 'ephemeral' }
-					)
+					this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
 					this.centerOnPoint(before)
 				} else {
 					// Otherwise,
-					this.updateInstanceState(
-						{ screenBounds: screenBounds.toJson(), insets },
-						{ history: 'ephemeral' }
-					)
+					this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
 				}
 			}
 		}
@@ -3276,16 +3263,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getCurrentPage(): TLPage {
-		const x = this.getPage(this.getCurrentPageId())!
-		if (!x) {
-			console.log(
-				'NO CURRENT PAGE IN',
-				this.store.id,
-				this.getCurrentPageId(),
-				this.store.serialize()
-			)
-		}
-		return x
+		return this.getPage(this.getCurrentPageId())!
 	}
 
 	/**
