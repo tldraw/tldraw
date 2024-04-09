@@ -231,20 +231,22 @@ const SlideList = track(() => {
 	if (slides.length === 0) return null
 	return (
 		<div
+			className="scroll-light"
 			style={{
-				position: 'fixed',
 				display: 'flex',
 				flexDirection: 'column',
 				gap: 4,
-				top: 100,
-				maxHeight: 'calc(100vh - 200px)',
-				left: 8,
+				maxHeight: 'calc(100% - 60px - 50px)',
+				margin: '50px 0px',
 				padding: 4,
 				backgroundColor: 'var(--color-low)',
 				pointerEvents: 'all',
-				borderRadius: 8,
-				overflow: 'scroll',
-				// bottom: 100,
+				borderTopRightRadius: 'var(--radius-4)',
+				borderBottomRightRadius: 'var(--radius-4)',
+				overflow: 'auto',
+				borderRight: '2px solid var(--color-background)',
+				borderBottom: '2px solid var(--color-background)',
+				borderTop: '2px solid var(--color-background)',
 			}}
 			onPointerDown={(e) => stopEventPropagation(e)}
 		>
@@ -285,7 +287,8 @@ const moveToSlide = (editor: Editor, slide: SlideShape) => {
 }
 
 const components: TLComponents = {
-	InFrontOfTheCanvas: SlideList,
+	HelperButtons: SlideList,
+	Minimap: null,
 	Toolbar: (props) => {
 		const tools = useTools()
 		const isSlideSelected = useIsToolSelected(tools['slide'])
