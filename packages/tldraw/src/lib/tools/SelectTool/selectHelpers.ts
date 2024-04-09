@@ -10,7 +10,7 @@ import {
 /** @internal */
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 	const shapes = shapeIds.map((id) => editor.getShape(id)).filter((s) => s) as TLShape[]
-	const effectedParents = shapes
+	const affectedParents = shapes
 		.map((shape) => {
 			const parent = editor.getShape(shape.parentId)
 			if (!parent) return shape
@@ -19,7 +19,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 		.filter((shape) => shape.type === 'frame')
 
 	const kickedOutChildren: TLShapeId[] = []
-	for (const parent of effectedParents) {
+	for (const parent of affectedParents) {
 		const childIds = editor.getSortedChildIdsForParent(parent.id)
 
 		// Get the bounds of the parent shape
