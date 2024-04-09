@@ -58,38 +58,48 @@ export const notVisibleShapes = (editor: Editor) => {
 		if (!prevViewportPageBounds || !viewportPageBounds.equals(prevViewportPageBounds)) {
 			return fromScratch(editor)
 		}
-		const nextValue = new Set(prevValue)
-		let isDirty = false
 
-		const checkShapeCullingInfo = (id: TLShapeId) => {
-			if (!prevValue.has(id) && isShapeNotVisible(editor, id, viewportPageBounds)) {
-				nextValue.add(id)
-				isDirty = true
-			}
+		let nextValue = null as null | Set<TLShapeId>
+		const addId = (id: TLShapeId) => {
+			// Already added
+			if (prevValue.has(id)) return
+			if (!nextValue) nextValue = new Set(prevValue)
+			nextValue.add(id)
+		}
+		const deleteId = (id: TLShapeId) => {
+			// No need to delete since it's not there
+			if (!prevValue.has(id)) return
+			if (!nextValue) nextValue = new Set(prevValue)
+			nextValue.delete(id)
 		}
 
 		for (const changes of diff) {
 			for (const record of Object.values(changes.added)) {
 				if (isShape(record)) {
-					checkShapeCullingInfo(record.id)
+					const isCulled = isShapeNotVisible(editor, record.id, viewportPageBounds)
+					if (isCulled) {
+						addId(record.id)
+					}
 				}
 			}
 
 			for (const [_from, to] of Object.values(changes.updated)) {
 				if (isShape(to)) {
-					checkShapeCullingInfo(to.id)
+					const isCulled = isShapeNotVisible(editor, to.id, viewportPageBounds)
+					if (isCulled) {
+						addId(to.id)
+					} else {
+						deleteId(to.id)
+					}
 				}
 			}
 			for (const id of Object.keys(changes.removed)) {
 				if (isShapeId(id)) {
-					const hasBeenDeleted = nextValue.delete(id)
-					if (hasBeenDeleted) {
-						isDirty = true
-					}
+					deleteId(id)
 				}
 			}
 		}
 
-		return isDirty ? nextValue : prevValue
+		return nextValue ?? prevValue
 	})
 }

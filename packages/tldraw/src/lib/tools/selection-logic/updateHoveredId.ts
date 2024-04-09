@@ -1,6 +1,6 @@
-import { Editor, HIT_TEST_MARGIN, TLShape } from '@tldraw/editor'
+import { Editor, HIT_TEST_MARGIN, TLShape, throttle } from '@tldraw/editor'
 
-export function updateHoveredId(editor: Editor) {
+function _updateHoveredId(editor: Editor) {
 	// todo: consider replacing `get hoveredShapeId` with this; it would mean keeping hoveredShapeId in memory rather than in the store and possibly re-computing it more often than necessary
 	const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint, {
 		hitInside: false,
@@ -30,3 +30,6 @@ export function updateHoveredId(editor: Editor) {
 
 	return editor.setHoveredShape(shapeToHover.id)
 }
+
+export const updateHoveredId =
+	process.env.NODE_ENV === 'test' ? _updateHoveredId : throttle(_updateHoveredId, 32)

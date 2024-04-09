@@ -107,3 +107,6 @@ export const HANDLE_RADIUS = 12
 
 /** @internal */
 export const LONG_PRESS_DURATION = 500
+
+/** @internal */
+export const TEXT_SHADOW_LOD = 0.35

@@ -4621,10 +4621,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
 		const culledShapes = this.getCulledShapes()
-		return this.getUnorderedRenderingShapes(true)
-			.filter(({ id }) => !culledShapes.has(id))
-			.sort((a, b) => a.index - b.index)
-			.map(({ shape }) => shape)
+		return this.getCurrentPageShapesSorted().filter(({ id }) => !culledShapes.has(id))
 	}
 
 	/**
@@ -8351,7 +8348,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	dispatch = (info: TLEventInfo): this => {
 		this._pendingEventsForNextTick.push(info)
-		if (!(info.type === 'pointer' || info.type === 'wheel' || info.type === 'pinch')) {
+		if (
+			!(
+				(info.type === 'pointer' && info.name === 'pointer_move') ||
+				info.type === 'wheel' ||
+				info.type === 'pinch'
+			)
+		) {
 			this._flushEventsForTick(0)
 		}
 		return this
