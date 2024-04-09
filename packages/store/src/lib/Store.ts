@@ -258,7 +258,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param change - the records diff
 	 * @returns
 	 */
-	filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope) {
+	private filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope) {
 		const result = {
 			added: filterEntries(change.added, (_, r) => this.scopedTypes[scope].has(r.typeName)),
 			updated: filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName)),
@@ -785,14 +785,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					.get()
 			},
 		}
-	}
-
-	getRecordType = <T extends R>(record: R): T => {
-		const type = this.schema.types[record.typeName as R['typeName']]
-		if (!type) {
-			throw new Error(`Record type ${record.typeName} not found`)
-		}
-		return type as unknown as T
 	}
 
 	private _integrityChecker?: () => void | undefined
