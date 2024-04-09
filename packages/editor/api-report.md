@@ -2190,6 +2190,10 @@ export interface TLEventMap {
         count: number;
     }];
     // (undocumented)
+    'select-all-text': [{
+        shapeId: TLShapeId;
+    }];
+    // (undocumented)
     'stop-camera-animation': [];
     // (undocumented)
     'stop-following': [];

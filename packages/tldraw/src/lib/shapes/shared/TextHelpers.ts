@@ -294,11 +294,7 @@ function getCaretIndex(element: HTMLElement) {
 }
 
 /** @internal */
-export function startEditingShapeWithLabel(
-	editor: Editor,
-	shape: TLShape,
-	shouldSelectAll?: boolean
-) {
+export function startEditingShapeWithLabel(editor: Editor, shape: TLShape, selectAll = false) {
 	// Finish this shape and start editing the next one
 	editor.select(shape)
 	editor.setEditingShape(shape)
@@ -306,12 +302,9 @@ export function startEditingShapeWithLabel(
 		target: 'shape',
 		shape: shape,
 	})
-
-	if (shouldSelectAll) {
-		// Select any text that's in the newly selected sticky
-		;(document.getElementById(`text-input-${shape.id}`) as HTMLTextAreaElement)?.select()
+	if (selectAll) {
+		editor.emit('select-all-text', { shapeId: shape.id })
 	}
-
 	zoomToShapeIfOffscreen(editor)
 }
 
