@@ -118,7 +118,7 @@ export function useEditableText(
 				}
 			}
 		},
-		[editor, isEditing]
+		[editor, isEditing, opts.disableTab]
 	)
 
 	// When the text changes, update the text value.
