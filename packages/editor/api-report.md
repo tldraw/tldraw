@@ -675,7 +675,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getCrashingError(): unknown;
     getCroppingShapeId(): null | TLShapeId;
-    getCulledShapes(): Map<TLShapeId, Box | undefined>;
+    getCulledShapes(): Set<TLShapeId>;
     getCurrentPage(): TLPage;
     getCurrentPageBounds(): Box | undefined;
     getCurrentPageId(): TLPageId;

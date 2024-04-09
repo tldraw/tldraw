@@ -186,11 +186,6 @@ export interface TLEditorOptions {
 	inferDarkMode?: boolean
 }
 
-type TLCulledShapeInfo = {
-	id: TLShapeId
-	maskedPageBounds: Box | undefined
-}
-
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	constructor({
@@ -4254,7 +4249,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the shapes that are not visible.
+	 * Get culled shapes.
 	 *
 	 * @public
 	 */
@@ -4263,7 +4258,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const notVisibleShapes = this._notVisibleShapes().get()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
-		const culledShapes = new Map<TLShapeId, Box | undefined>(notVisibleShapes)
+		const culledShapes = new Set<TLShapeId>(notVisibleShapes)
 		// we don't cull the shape we are editing
 		if (editingId) {
 			culledShapes.delete(editingId)

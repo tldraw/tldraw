@@ -10287,7 +10287,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCulledShapes:member(1)",
-              "docComment": "/**\n * Get the shapes that are not visible.\n *\n * @public\n */\n",
+              "docComment": "/**\n * Get culled shapes.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10295,8 +10295,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Map",
-                  "canonicalReference": "!Map:interface"
+                  "text": "Set",
+                  "canonicalReference": "!Set:interface"
                 },
                 {
                   "kind": "Content",
@@ -10309,16 +10309,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Box",
-                  "canonicalReference": "@tldraw/editor!Box:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | undefined>"
+                  "text": ">"
                 },
                 {
                   "kind": "Content",
@@ -10328,7 +10319,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 7
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
