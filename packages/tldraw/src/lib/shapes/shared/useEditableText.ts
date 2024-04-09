@@ -88,7 +88,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	}, [editor, id])
 
 	// When the user presses ctrl / meta enter, complete the editing state.
-	// When the user presses tab, indent or unindent the text.
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
