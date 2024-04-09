@@ -4661,11 +4661,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
-		return this.getUnorderedRenderingShapes(true)
-			.filter(({ id }) => !this.isShapeCulled(id))
-			.sort((a, b) => a.index - b.index)
-			.map(({ shape }) => shape)
+	@computed
+	getCurrentPageRenderingShapesSorted(): TLShape[] {
+		return this.getCurrentPageShapesSorted().filter((shape) => !this.isShapeCulled(shape))
 	}
 
 	/**
