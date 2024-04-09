@@ -59,7 +59,7 @@ function getChangeOutsideBounds(viewportSize: number) {
 		// We need to get past the viewport size and then add a bit more
 		return viewportSize + changeAmount
 	} else {
-		// We also need to take the shape with into account
+		// We also need to take the shape size into account
 		return -changeAmount - shapeSize
 	}
 }
