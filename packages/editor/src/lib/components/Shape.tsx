@@ -50,6 +50,7 @@ export const Shape = memo(function Shape({
 		height: 0,
 		x: 0,
 		y: 0,
+		isCulled: false,
 	})
 
 	useQuickReactor(
@@ -126,8 +127,11 @@ export const Shape = memo(function Shape({
 
 			const culledShapes = editor.getCulledShapes()
 			const isCulled = culledShapes.has(id)
-			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
-			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+			if (isCulled !== memoizedStuffRef.current.isCulled) {
+				setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+				setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+				memoizedStuffRef.current.isCulled = isCulled
+			}
 		},
 		[editor]
 	)
