@@ -4256,9 +4256,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// We don't cull selected shapes
 				if (this.getSelectedShapeIds().includes(id)) return false
-				const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
 				// the shape is outside of the expanded viewport bounds...
-				return !renderingBoundsExpanded.includes(maskedPageBounds)
+				return !this.getViewportPageBounds().includes(maskedPageBounds)
 			},
 			(a, b) => this.getShapeMaskedPageBounds(a) === this.getShapeMaskedPageBounds(b)
 		)
