@@ -4622,7 +4622,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed
 	getCurrentPageRenderingShapesSorted(): TLShape[] {
 		const culledShapes = this.getCulledShapes()
-		return this.getCurrentPageShapesSorted().filter((shape) => !culledShapes.has(shape))
+		return this.getCurrentPageShapesSorted().filter((shape) => !culledShapes.has(shape.id))
 	}
 
 	/**
