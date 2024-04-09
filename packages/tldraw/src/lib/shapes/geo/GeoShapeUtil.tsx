@@ -294,8 +294,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		const labelSize = getLabelSize(this.editor, shape)
-		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8)))) // not sure if bug
+		const minWidth = 100
+		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(minWidth, Math.max(1, w - 8))))
+		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
+		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(minHeight, Math.max(1, w - 8)))) // not sure if bug
 
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
@@ -386,8 +388,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { fill, font, align, verticalAlign, size, text } = props
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const theme = useDefaultColorTheme()
-		const isEditing = this.editor.getEditingShapeId() === id
-		const showHtmlContainer = isEditing || shape.props.text
+		const isEditingAnything = this.editor.getEditingShapeId() !== null
+		const showHtmlContainer = isEditingAnything || shape.props.text
 
 		return (
 			<>
