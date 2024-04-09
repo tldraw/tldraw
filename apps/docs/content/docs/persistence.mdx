@@ -176,9 +176,12 @@ For a good example of this pattern, see the [yjs-example](https://github.com/tld
 You can listen for incremental updates to the document state by calling `editor.store.listen`, e.g.
 
 ```ts
-const unlisten = editor.store.listen((update) => {
-  console.log('update', update)
-}, { scope: 'document', source: 'user' })
+const unlisten = editor.store.listen(
+	(update) => {
+		console.log('update', update)
+	},
+	{ scope: 'document', source: 'user' }
+)
 ```
 
 These updates contain information about which records were added, removed, and updated. See [HistoryEntry](?)
@@ -187,7 +190,7 @@ The `scope` filter can be used to listen for changes to a specific record scope,
 
 The `source` filter can be used to listen for changes from a specific source, e.g. `user`, `remote`, or `all`. (See [Store#mergeRemoteChanges](?) for more information on remote changes.)
 
-Note that these incremental updates do not include the schema version. You should make sure that you keep a record of the latest schema version if you are incrementally updating a persistence target across multiple tldraw sessions.
+Note that these incremental updates do not include the schema version. You should make sure that you keep a record of the latest schema version for your snapshots.
 
 You can get the schema version by calling `editor.store.schema.serialize()` and the returned value can replace the `schema` property in the snapshot next time you need to load a snapshot. The schema does not change at runtime so you only need to do this once per session.
 
