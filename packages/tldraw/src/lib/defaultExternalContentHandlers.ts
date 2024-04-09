@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	FileHelpers,
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
@@ -10,14 +11,18 @@ import {
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
-	Vec2d,
+	Vec,
 	VecLike,
+	assert,
 	compact,
 	createShapeId,
+	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
-import { containBoxSize, getResizedImageDataUrl, isGifAnimated } from './utils/assets/assets'
+import { TLUiToastsContextType } from './ui/context/toasts'
+import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
+import { containBoxSize, downsizeImage, isGifAnimated } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
 
@@ -28,9 +33,9 @@ export type TLExternalContentProps = {
 	// The maximum size (in bytes) of an asset. Assets larger than this will be rejected. Defaults to 10mb (10 * 1024 * 1024).
 	maxAssetSize: number
 	// The mime types of images that are allowed to be handled. Defaults to ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].
-	acceptedImageMimeTypes: string[]
+	acceptedImageMimeTypes: readonly string[]
 	// The mime types of videos that are allowed to be handled. Defaults to ['video/mp4', 'video/webm', 'video/quicktime'].
-	acceptedVideoMimeTypes: string[]
+	acceptedVideoMimeTypes: readonly string[]
 }
 
 export function registerDefaultExternalContentHandlers(
@@ -40,90 +45,67 @@ export function registerDefaultExternalContentHandlers(
 		maxAssetSize,
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
-	}: TLExternalContentProps
+	}: TLExternalContentProps,
+	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
-	editor.registerExternalAssetHandler('file', async ({ file }) => {
-		return await new Promise((resolve, reject) => {
-			if (
-				!acceptedImageMimeTypes.includes(file.type) &&
-				!acceptedVideoMimeTypes.includes(file.type)
-			) {
-				console.warn(`File type not allowed: ${file.type}`)
-				reject()
+	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
+		const name = _file.name
+		let file: Blob = _file
+		const isImageType = acceptedImageMimeTypes.includes(file.type)
+		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+
+		assert(isImageType || isVideoType, `File type not allowed: ${file.type}`)
+		assert(
+			file.size <= maxAssetSize,
+			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
+		)
+
+		if (file.type === 'video/quicktime') {
+			// hack to make .mov videos work
+			file = new Blob([file], { type: 'video/mp4' })
+		}
+
+		let size = isImageType
+			? await MediaHelpers.getImageSize(file)
+			: await MediaHelpers.getVideoSize(file)
+
+		const isAnimated = file.type === 'image/gif' ? await isGifAnimated(file) : isVideoType
+
+		const hash = await getHashForBuffer(await file.arrayBuffer())
+
+		if (isFinite(maxImageDimension)) {
+			const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
+			if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+				size = resizedSize
 			}
+		}
 
-			if (file.size > maxAssetSize) {
-				console.warn(
-					`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
-						maxAssetSize / 1024
-					).toFixed()}kb`
-				)
-				reject()
-			}
+		// Always rescale the image
+		if (file.type === 'image/jpeg' || file.type === 'image/png') {
+			file = await downsizeImage(file, size.w, size.h, {
+				type: file.type,
+				quality: 0.92,
+			})
+		}
 
-			const reader = new FileReader()
-			reader.onerror = () => reject(reader.error)
-			reader.onload = async () => {
-				let dataUrl = reader.result as string
+		const assetId: TLAssetId = AssetRecordType.createId(hash)
 
-				// Hack to make .mov videos work via dataURL.
-				if (file.type === 'video/quicktime' && dataUrl.includes('video/quicktime')) {
-					dataUrl = dataUrl.replace('video/quicktime', 'video/mp4')
-				}
-
-				const isImageType = acceptedImageMimeTypes.includes(file.type)
-
-				let size: {
-					w: number
-					h: number
-				}
-				let isAnimated: boolean
-
-				if (isImageType) {
-					size = await MediaHelpers.getImageSizeFromSrc(dataUrl)
-					isAnimated = file.type === 'image/gif' && (await isGifAnimated(file))
-				} else {
-					isAnimated = true
-					size = await MediaHelpers.getVideoSizeFromSrc(dataUrl)
-				}
-
-				if (isFinite(maxImageDimension)) {
-					const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
-					if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
-						size = resizedSize
-					}
-				}
-
-				// Always rescale the image
-				if (file.type === 'image/jpeg' || file.type === 'image/png') {
-					dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h, {
-						type: file.type,
-						quality: 0.92,
-					})
-				}
-
-				const assetId: TLAssetId = AssetRecordType.createId(getHashForString(dataUrl))
-
-				const asset = AssetRecordType.create({
-					id: assetId,
-					type: isImageType ? 'image' : 'video',
-					typeName: 'asset',
-					props: {
-						name: file.name,
-						src: dataUrl,
-						w: size.w,
-						h: size.h,
-						mimeType: file.type,
-						isAnimated,
-					},
-				})
-
-				resolve(asset)
-			}
-
-			reader.readAsDataURL(file)
+		const asset = AssetRecordType.create({
+			id: assetId,
+			type: isImageType ? 'image' : 'video',
+			typeName: 'asset',
+			props: {
+				name,
+				src: await FileHelpers.blobToDataUrl(file),
+				w: size.w,
+				h: size.h,
+				mimeType: file.type,
+				isAnimated,
+			},
 		})
+
+		return asset
 	})
 
 	// urls -> bookmark asset
@@ -144,6 +126,10 @@ export function registerDefaultExternalContentHandlers(
 			}
 		} catch (error) {
 			console.error(error)
+			toasts.addToast({
+				title: msg('assets.url.failed'),
+				severity: 'error',
+			})
 			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
 		}
 
@@ -226,7 +212,7 @@ export function registerDefaultExternalContentHandlers(
 			point ??
 			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
 
-		const pagePoint = new Vec2d(position.x, position.y)
+		const pagePoint = new Vec(position.x, position.y)
 
 		const assets: TLAsset[] = []
 
@@ -263,6 +249,10 @@ export function registerDefaultExternalContentHandlers(
 
 					assets[i] = asset
 				} catch (error) {
+					toasts.addToast({
+						title: msg('assets.files.upload-failed'),
+						severity: 'error',
+					})
 					console.error(error)
 					return null
 				}
@@ -374,9 +364,17 @@ export function registerDefaultExternalContentHandlers(
 		let shouldAlsoCreateAsset = false
 		if (!asset) {
 			shouldAlsoCreateAsset = true
-			const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
-			if (!bookmarkAsset) throw Error('Could not create an asset')
-			asset = bookmarkAsset
+			try {
+				const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
+				if (!bookmarkAsset) throw Error('Could not create an asset')
+				asset = bookmarkAsset
+			} catch (e) {
+				toasts.addToast({
+					title: msg('assets.url.failed'),
+					severity: 'error',
+				})
+				return
+			}
 		}
 
 		editor.batch(() => {
@@ -404,7 +402,7 @@ export async function createShapesForAssets(
 ): Promise<TLShapeId[]> {
 	if (!assets.length) return []
 
-	const currentPoint = Vec2d.From(position)
+	const currentPoint = Vec.From(position)
 	const partials: TLShapePartial[] = []
 
 	for (const asset of assets) {
@@ -489,7 +487,7 @@ function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 		editor.updateShapes(
 			editor.getSelectedShapes().map((shape) => {
 				const localRotation = editor.getShapeParentTransform(shape).decompose().rotation
-				const localDelta = Vec2d.Rot(offset, -localRotation)
+				const localDelta = Vec.Rot(offset, -localRotation)
 				return {
 					id: shape.id,
 					type: shape.type,

@@ -46,7 +46,7 @@ module.exports = {
 		'react-hooks/rules-of-hooks': 'error',
 		'react-hooks/exhaustive-deps': 'error',
 		'import/no-extraneous-dependencies': 'error',
-		'import/no-internal-modules': ['error', { forbid: ['@tldraw/*/**'] }],
+		'import/no-internal-modules': ['error', { forbid: ['@tldraw/*/**', 'tldraw/**'] }],
 		'@typescript-eslint/consistent-type-exports': [
 			'error',
 			{ fixMixedExportsWithInlineTypeSpecifier: true },
@@ -57,6 +57,18 @@ module.exports = {
 			'error',
 			{ selector: "MethodDefinition[kind='set']", message: 'Property setters are not allowed' },
 			{ selector: "MethodDefinition[kind='get']", message: 'Property getters are not allowed' },
+			{
+				selector: 'Identifier[name=localStorage]',
+				message: 'Use the getFromLocalStorage/setInLocalStorage helpers instead',
+			},
+			{
+				selector: 'Identifier[name=sessionStorage]',
+				message: 'Use the getFromSessionStorage/setInSessionStorage helpers instead',
+			},
+		],
+		'no-restricted-globals': [
+			'error',
+			{ name: 'structuredClone', message: 'Use structuredClone from @tldraw/util instead' },
 		],
 	},
 	parser: '@typescript-eslint/parser',
@@ -88,13 +100,27 @@ module.exports = {
 			files: ['apps/examples/**/*'],
 			rules: {
 				'import/no-internal-modules': 'off',
+				'no-restricted-syntax': 'off',
 			},
 		},
-		// {
-		// 	files: ['packages/tldraw/src/test/**/*'],
-		// 	rules: {
-		// 		'import/no-internal-modules': 'off',
-		// 	},
-		// },
+		{
+			files: ['apps/huppy/**/*', 'scripts/**/*'],
+			rules: {
+				'no-console': 'off',
+			},
+		},
+		{
+			files: ['apps/dotcom/**/*'],
+			rules: {
+				'no-restricted-properties': [
+					2,
+					{
+						object: 'crypto',
+						property: 'randomUUID',
+						message: 'Please use the makeUUID util instead.',
+					},
+				],
+			},
+		},
 	],
 }

@@ -1,5 +1,4 @@
-import { Box2d } from './Box2d'
-import { Vec2d, VecLike } from './Vec2d'
+import { Vec, VecLike } from './Vec'
 
 /** @public */
 export function precise(A: VecLike) {
@@ -14,11 +13,9 @@ export function average(A: VecLike, B: VecLike) {
 /** @public */
 export const PI = Math.PI
 /** @public */
-export const TAU = PI / 2
+export const HALF_PI = PI / 2
 /** @public */
 export const PI2 = PI * 2
-/** @public */
-export const EPSILON = Math.PI / 180
 /** @public */
 export const SIN = Math.sin
 
@@ -149,52 +146,6 @@ export function shortAngleDist(a0: number, a1: number): number {
 }
 
 /**
- * Get the long angle distance between two angles.
- *
- * @param a0 - The first angle.
- * @param a1 - The second angle.
- * @public
- */
-export function longAngleDist(a0: number, a1: number): number {
-	return PI2 - shortAngleDist(a0, a1)
-}
-
-/**
- * Interpolate an angle between two angles.
- *
- * @param a0 - The first angle.
- * @param a1 - The second angle.
- * @param t - The interpolation value.
- * @public
- */
-export function lerpAngles(a0: number, a1: number, t: number): number {
-	return a0 + shortAngleDist(a0, a1) * t
-}
-
-/**
- * Get the short distance between two angles.
- *
- * @param a0 - The first angle.
- * @param a1 - The second angle.
- * @public
- */
-export function angleDelta(a0: number, a1: number): number {
-	return shortAngleDist(a0, a1)
-}
-
-/**
- * Get the "sweep" or short distance between two points on a circle's perimeter.
- *
- * @param C - The center of the circle.
- * @param A - The first point.
- * @param B - The second point.
- * @public
- */
-export function getSweep(C: VecLike, A: VecLike, B: VecLike): number {
-	return angleDelta(Vec2d.Angle(C, A), Vec2d.Angle(C, B))
-}
-
-/**
  * Clamp radians within 0 and 2PI
  *
  * @param r - The radian value.
@@ -232,38 +183,6 @@ export function areAnglesCompatible(a: number, b: number) {
 }
 
 /**
- * Is angle c between angles a and b?
- *
- * @param a - The first angle.
- * @param b - The second angle.
- * @param c - The third angle.
- * @public
- */
-export function isAngleBetween(a: number, b: number, c: number): boolean {
-	// Normalize the angles to ensure they're in the same domain
-	a = canonicalizeRotation(a)
-	b = canonicalizeRotation(b)
-	c = canonicalizeRotation(c)
-
-	// Compute vectors corresponding to angles a and b
-	const ax = Math.cos(a)
-	const ay = Math.sin(a)
-	const bx = Math.cos(b)
-	const by = Math.sin(b)
-
-	// Compute the vector corresponding to angle c
-	const cx = Math.cos(c)
-	const cy = Math.sin(c)
-
-	// Calculate dot products
-	const dotAc = ax * cx + ay * cy
-	const dotBc = bx * cx + by * cy
-
-	// If angle c is between a and b, both dot products should be >= 0
-	return dotAc >= 0 && dotBc >= 0
-}
-
-/**
  * Convert degrees to radians.
  *
  * @param d - The degree in degrees.
@@ -284,53 +203,53 @@ export function radiansToDegrees(r: number): number {
 }
 
 /**
- * Get the length of an arc between two points on a circle's perimeter.
- *
- * @param C - The circle's center as [x, y].
- * @param r - The circle's radius.
- * @param A - The first point.
- * @param B - The second point.
- * @public
- */
-export function getArcLength(C: VecLike, r: number, A: VecLike, B: VecLike): number {
-	const sweep = getSweep(C, A, B)
-	return r * PI2 * (sweep / PI2)
-}
-
-/**
  * Get a point on the perimeter of a circle.
  *
- * @param cx - The center x of the circle.
- * @param cy - The center y of the circle.
+ * @param center - The center of the circle.
  * @param r - The radius of the circle.
- * @param a - The normalized point on the circle.
+ * @param a - The angle in radians.
  * @public
  */
-export function getPointOnCircle(cx: number, cy: number, r: number, a: number) {
-	return new Vec2d(cx + r * Math.cos(a), cy + r * Math.sin(a))
+export function getPointOnCircle(center: VecLike, r: number, a: number) {
+	return new Vec(center.x, center.y).add(Vec.FromAngle(a, r))
 }
+
 /** @public */
 export function getPolygonVertices(width: number, height: number, sides: number) {
 	const cx = width / 2
 	const cy = height / 2
-	const pointsOnPerimeter: Vec2d[] = []
+	const pointsOnPerimeter: Vec[] = []
+
 	let minX = Infinity
+	let maxX = -Infinity
 	let minY = Infinity
+	let maxY = -Infinity
 	for (let i = 0; i < sides; i++) {
 		const step = PI2 / sides
-		const t = -TAU + i * step
+		const t = -HALF_PI + i * step
 		const x = cx + cx * Math.cos(t)
 		const y = cy + cy * Math.sin(t)
 		if (x < minX) minX = x
 		if (y < minY) minY = y
-		pointsOnPerimeter.push(new Vec2d(x, y))
+		if (x > maxX) maxX = x
+		if (y > maxY) maxY = y
+		pointsOnPerimeter.push(new Vec(x, y))
 	}
 
-	if (minX !== 0 || minY !== 0) {
+	// Bounds of calculated points
+	const w = maxX - minX
+	const h = maxY - minY
+
+	// Difference between input bounds and calculated bounds
+	const dx = width - w
+	const dy = height - h
+
+	// If there's a difference, scale the points to the input bounds
+	if (dx !== 0 || dy !== 0) {
 		for (let i = 0; i < pointsOnPerimeter.length; i++) {
 			const pt = pointsOnPerimeter[i]
-			pt.x -= minX
-			pt.y -= minY
+			pt.x = ((pt.x - minX) / w) * width
+			pt.y = ((pt.y - minY) / h) * height
 		}
 	}
 
@@ -373,89 +292,9 @@ export function rangeIntersection(
 	return null
 }
 
-/**
- * Gets the width/height of a star given its input bounds.
- *
- * @param sides - Number of sides
- * @param w - T target width
- * @param h - Target height
- * @returns Box2d
- * @public
- */
-export const getStarBounds = (sides: number, w: number, h: number): Box2d => {
-	const step = PI2 / sides / 2
-	const rightMostIndex = Math.floor(sides / 4) * 2
-	const leftMostIndex = sides * 2 - rightMostIndex
-	const topMostIndex = 0
-	const bottomMostIndex = Math.floor(sides / 2) * 2
-	const maxX = (Math.cos(-TAU + rightMostIndex * step) * w) / 2
-	const minX = (Math.cos(-TAU + leftMostIndex * step) * w) / 2
-	const minY = (Math.sin(-TAU + topMostIndex * step) * h) / 2
-	const maxY = (Math.sin(-TAU + bottomMostIndex * step) * h) / 2
-	return new Box2d(0, 0, maxX - minX, maxY - minY)
-}
-
 /** Helper for point in polygon */
 function cross(x: VecLike, y: VecLike, z: VecLike): number {
 	return (y.x - x.x) * (z.y - x.y) - (z.x - x.x) * (y.y - x.y)
-}
-
-/**
- * Utils for working with points.
- *
- * @public
- */
-/**
- * Get whether a point is inside of a circle.
- *
- * @param A - The point to check.
- * @param C - The circle's center point as [x, y].
- * @param r - The circle's radius.
- * @returns Boolean
- * @public
- */
-export function pointInCircle(A: VecLike, C: VecLike, r: number): boolean {
-	return Vec2d.Dist(A, C) <= r
-}
-
-/**
- * Get whether a point is inside of an ellipse.
- *
- * @param point - The point to check.
- * @param center - The ellipse's center point as [x, y].
- * @param rx - The ellipse's x radius.
- * @param ry - The ellipse's y radius.
- * @param rotation - The ellipse's rotation.
- * @returns Boolean
- * @public
- */
-export function pointInEllipse(
-	A: VecLike,
-	C: VecLike,
-	rx: number,
-	ry: number,
-	rotation = 0
-): boolean {
-	rotation = rotation || 0
-	const cos = Math.cos(rotation)
-	const sin = Math.sin(rotation)
-	const delta = Vec2d.Sub(A, C)
-	const tdx = cos * delta.x + sin * delta.y
-	const tdy = sin * delta.x - cos * delta.y
-
-	return (tdx * tdx) / (rx * rx) + (tdy * tdy) / (ry * ry) <= 1
-}
-
-/**
- * Get whether a point is inside of a rectangle.
- *
- * @param A - The point to check.
- * @param point - The rectangle's top left point as [x, y].
- * @param size - The rectangle's size as [width, height].
- * @public
- */
-export function pointInRect(A: VecLike, point: VecLike, size: VecLike): boolean {
-	return !(A.x < point.x || A.x > point.x + size.x || A.y < point.y || A.y > point.y + size.y)
 }
 
 /**
@@ -474,7 +313,13 @@ export function pointInPolygon(A: VecLike, points: VecLike[]): boolean {
 
 	for (let i = 0; i < points.length; i++) {
 		a = points[i]
+		// Point is the same as one of the corners of the polygon
+		if (a.x === A.x && a.y === A.y) return true
+
 		b = points[(i + 1) % points.length]
+
+		// Point is on the polygon edge
+		if (Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)) return true
 
 		if (a.y <= A.y) {
 			if (b.y > A.y && cross(a, b, A) > 0) {
@@ -489,258 +334,19 @@ export function pointInPolygon(A: VecLike, points: VecLike[]): boolean {
 }
 
 /**
- * Get whether a point is inside of a bounds.
- *
- * @param A - The point to check.
- * @param b - The bounds to check.
- * @returns Boolean
- * @public
- */
-export function pointInBounds(A: VecLike, b: Box2d): boolean {
-	return !(A.x < b.minX || A.x > b.maxX || A.y < b.minY || A.y > b.maxY)
-}
-
-/**
- * Hit test a point and a polyline using a minimum distance.
- *
- * @param A - The point to check.
- * @param points - The points that make up the polyline.
- * @param distance - The mininum distance that qualifies a hit.
- * @returns Boolean
- * @public
- */
-export function pointInPolyline(A: VecLike, points: VecLike[], distance = 3): boolean {
-	for (let i = 1; i < points.length; i++) {
-		if (Vec2d.DistanceToLineSegment(points[i - 1], points[i], A) < distance) {
-			return true
-		}
-	}
-	return false
-}
-
-/**
- * Get whether a point is within a certain distance from a polyline.
- *
- * @param A - The point to check.
- * @param points - The points that make up the polyline.
- * @param distance - The mininum distance that qualifies a hit.
- * @public
- */
-export function pointNearToPolyline(A: VecLike, points: VecLike[], distance = 8) {
-	const len = points.length
-	for (let i = 1; i < len; i++) {
-		const p1 = points[i - 1]
-		const p2 = points[i]
-		const d = Vec2d.DistanceToLineSegment(p1, p2, A)
-		if (d < distance) return true
-	}
-	return false
-}
-
-/**
- * Get whether a point is within a certain distance from a line segment.
- *
- * @param A - The point to check.
- * @param p1 - The polyline's first point.
- * @param p2 - The polyline's second point.
- * @param distance - The mininum distance that qualifies a hit.
- * @public
- */
-export function pointNearToLineSegment(A: VecLike, p1: VecLike, p2: VecLike, distance = 8) {
-	const d = Vec2d.DistanceToLineSegment(p1, p2, A)
-	if (d < distance) return true
-	return false
-}
-
-/**
- * Simplify a line (using Ramer-Douglas-Peucker algorithm).
- *
- * @param points - An array of points as [x, y, ...][]
- * @param tolerance - The minimum line distance (also called epsilon).
- * @returns Simplified array as [x, y, ...][]
- * @public
- */
-export function simplify(points: VecLike[], tolerance = 1): VecLike[] {
-	const len = points.length
-	const a = points[0]
-	const b = points[len - 1]
-	const { x: x1, y: y1 } = a
-	const { x: x2, y: y2 } = b
-	if (len > 2) {
-		let distance = 0
-		let index = 0
-		const max = new Vec2d(y2 - y1, x2 - x1).len2()
-		for (let i = 1; i < len - 1; i++) {
-			const { x: x0, y: y0 } = points[i]
-			const d = Math.pow(x0 * (y2 - y1) + x1 * (y0 - y2) + x2 * (y1 - y0), 2) / max
-			if (distance > d) continue
-			distance = d
-			index = i
-		}
-		if (distance > tolerance) {
-			const l0 = simplify(points.slice(0, index + 1), tolerance)
-			const l1 = simplify(points.slice(index + 1), tolerance)
-			return l0.concat(l1.slice(1))
-		}
-	}
-	return [a, b]
-}
-
-function _getSqSegDist(p: VecLike, p1: VecLike, p2: VecLike) {
-	let x = p1.x
-	let y = p1.y
-	let dx = p2.x - x
-	let dy = p2.y - y
-	if (dx !== 0 || dy !== 0) {
-		const t = ((p.x - x) * dx + (p.y - y) * dy) / (dx * dx + dy * dy)
-		if (t > 1) {
-			x = p2.x
-			y = p2.y
-		} else if (t > 0) {
-			x += dx * t
-			y += dy * t
-		}
-	}
-	dx = p.x - x
-	dy = p.y - y
-	return dx * dx + dy * dy
-}
-
-function _simplifyStep(
-	points: VecLike[],
-	first: number,
-	last: number,
-	sqTolerance: number,
-	result: VecLike[]
-) {
-	let maxSqDist = sqTolerance
-	let index = -1
-	for (let i = first + 1; i < last; i++) {
-		const sqDist = _getSqSegDist(points[i], points[first], points[last])
-		if (sqDist > maxSqDist) {
-			index = i
-			maxSqDist = sqDist
-		}
-	}
-	if (index > -1 && maxSqDist > sqTolerance) {
-		if (index - first > 1) _simplifyStep(points, first, index, sqTolerance, result)
-		result.push(points[index])
-		if (last - index > 1) _simplifyStep(points, index, last, sqTolerance, result)
-	}
-}
-
-/** @public */
-export function simplify2(points: VecLike[], tolerance = 1) {
-	if (points.length <= 2) return points
-	const sqTolerance = tolerance * tolerance
-	// Radial distance
-	let A = points[0]
-	let B = points[1]
-	const newPoints = [A]
-	for (let i = 1, len = points.length; i < len; i++) {
-		B = points[i]
-		if ((B.x - A.x) * (B.x - A.x) + (B.y - A.y) * (B.y - A.y) > sqTolerance) {
-			newPoints.push(B)
-			A = B
-		}
-	}
-	if (A !== B) newPoints.push(B)
-	// Ramer-Douglas-Peucker
-	const last = newPoints.length - 1
-	const result = [newPoints[0]]
-	_simplifyStep(newPoints, 0, last, sqTolerance, result)
-	result.push(newPoints[last], points[points.length - 1])
-	return result
-}
-
-/** @public */
-export function getMinX(pts: VecLike[]) {
-	let top = pts[0]
-	for (let i = 1; i < pts.length; i++) {
-		if (pts[i].x < top.x) {
-			top = pts[i]
-		}
-	}
-	return top.x
-}
-
-/** @public */
-export function getMinY(pts: VecLike[]) {
-	let top = pts[0]
-	for (let i = 1; i < pts.length; i++) {
-		if (pts[i].y < top.y) {
-			top = pts[i]
-		}
-	}
-	return top.y
-}
-
-/** @public */
-export function getMaxX(pts: VecLike[]) {
-	let top = pts[0]
-	for (let i = 1; i < pts.length; i++) {
-		if (pts[i].x > top.x) {
-			top = pts[i]
-		}
-	}
-	return top.x
-}
-
-/** @public */
-export function getMaxY(pts: VecLike[]) {
-	let top = pts[0]
-	for (let i = 1; i < pts.length; i++) {
-		if (pts[i].y > top.y) {
-			top = pts[i]
-		}
-	}
-	return top.y
-}
-
-/** @public */
-export function getMidX(pts: VecLike[]) {
-	const a = getMinX(pts)
-	const b = getMaxX(pts)
-
-	return a + (b - a) / 2
-}
-
-/** @public */
-export function getMidY(pts: VecLike[]) {
-	const a = getMinY(pts)
-	const b = getMaxY(pts)
-
-	return a + (b - a) / 2
-}
-
-/** @public */
-export function getWidth(pts: VecLike[]) {
-	const a = getMinX(pts)
-	const b = getMaxX(pts)
-	return b - a
-}
-
-/** @public */
-export function getHeight(pts: VecLike[]) {
-	const a = getMinY(pts)
-	const b = getMaxY(pts)
-	return b - a
-}
-
-/**
  * The DOM likes values to be fixed to 3 decimal places
  *
  * @public
  */
 export function toDomPrecision(v: number) {
-	return +v.toFixed(4)
+	return Math.round(v * 1e4) / 1e4
 }
 
 /**
  * @public
  */
 export function toFixed(v: number) {
-	return +v.toFixed(2)
+	return Math.round(v * 1e2) / 1e2
 }
 
 /**
@@ -749,4 +355,75 @@ export function toFixed(v: number) {
  */
 export const isSafeFloat = (n: number) => {
 	return Math.abs(n) < Number.MAX_SAFE_INTEGER
+}
+
+/**
+ * Get the angle of a point on an arc.
+ * @param fromAngle - The angle from center to arc's start point (A) on the circle
+ * @param toAngle - The angle from center to arc's end point (B) on the circle
+ * @param direction - The direction of the arc (1 = counter-clockwise, -1 = clockwise)
+ * @returns The distance in radians between the two angles according to the direction
+ * @public
+ */
+export function angleDistance(fromAngle: number, toAngle: number, direction: number) {
+	const dist =
+		direction < 0
+			? clockwiseAngleDist(fromAngle, toAngle)
+			: counterClockwiseAngleDist(fromAngle, toAngle)
+	return dist
+}
+
+/**
+ * Returns the t value of the point on the arc.
+ *
+ * @param mAB - The measure of the arc from A to B, negative if counter-clockwise
+ * @param A - The angle from center to arc's start point (A) on the circle
+ * @param B - The angle from center to arc's end point (B) on the circle
+ * @param P - The angle on the circle (P) to find the t value for
+ *
+ * @returns The t value of the point on the arc, with 0 being the start and 1 being the end
+ *
+ * @public
+ */
+export function getPointInArcT(mAB: number, A: number, B: number, P: number): number {
+	let mAP: number
+	if (Math.abs(mAB) > PI) {
+		mAP = shortAngleDist(A, P)
+		const mPB = shortAngleDist(P, B)
+		if (Math.abs(mAP) < Math.abs(mPB)) {
+			return mAP / mAB
+		} else {
+			return (mAB - mPB) / mAB
+		}
+	} else {
+		mAP = shortAngleDist(A, P)
+		const t = mAP / mAB
+
+		// If the arc is something like -2.8 to 2.2, then we'll get a weird bug
+		// where the measurement to the center is negative but measure to points
+		// near the end are positive
+		if (Math.sign(mAP) !== Math.sign(mAB)) {
+			return Math.abs(t) > 0.5 ? 1 : 0
+		}
+
+		return t
+	}
+}
+
+/**
+ * Get the measure of an arc.
+ *
+ * @param A - The angle from center to arc's start point (A) on the circle
+ * @param B - The angle from center to arc's end point (B) on the circle
+ * @param sweepFlag - 1 if the arc is clockwise, 0 if counter-clockwise
+ * @param largeArcFlag - 1 if the arc is greater than 180 degrees, 0 if less than 180 degrees
+ *
+ * @returns The measure of the arc, negative if counter-clockwise
+ *
+ * @public
+ */
+export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number) {
+	const m = ((2 * ((B - A) % PI2)) % PI2) - ((B - A) % PI2)
+	if (!largeArcFlag) return m
+	return (PI2 - Math.abs(m)) * (sweepFlag ? 1 : -1)
 }

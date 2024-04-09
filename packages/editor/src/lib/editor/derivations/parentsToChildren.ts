@@ -1,8 +1,7 @@
 import { computed, isUninitialized, RESET_VALUE } from '@tldraw/state'
 import { RecordsDiff } from '@tldraw/store'
 import { isShape, TLParentId, TLRecord, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
-import { compact } from '@tldraw/utils'
-import { sortByIndex } from '../../utils/reordering/reordering'
+import { compact, sortByIndex } from '@tldraw/utils'
 
 type Parents2Children = Record<TLParentId, TLShapeId[]>
 

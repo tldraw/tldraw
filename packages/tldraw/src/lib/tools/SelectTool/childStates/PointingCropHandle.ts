@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLPointerEventInfo, TLShape } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
@@ -12,23 +12,19 @@ export class PointingCropHandle extends StateNode {
 
 	private info = {} as TLPointingCropHandleInfo
 
-	private updateCursor(shape: TLShape) {
-		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.updateInstanceState({
-			cursor: {
-				type: cursorType,
-				rotation: shape.rotation,
-			},
-		})
-	}
-
 	override onEnter = (info: TLPointingCropHandleInfo) => {
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		const selectedShape = this.editor.getSelectedShapes()[0]
 		if (!selectedShape) return
 
-		this.updateCursor(selectedShape)
+		const cursorType = CursorTypeMap[this.info.handle!]
+		this.editor.updateInstanceState({
+			cursor: {
+				type: cursorType,
+				rotation: this.editor.getSelectionRotation(),
+			},
+		})
 		this.editor.setCroppingShape(selectedShape.id)
 	}
 
@@ -41,14 +37,21 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		const isDragging = this.editor.inputs.isDragging
-
-		if (isDragging) {
-			this.parent.transition('cropping', {
-				...this.info,
-				onInteractionEnd: this.info.onInteractionEnd,
-			})
+		if (this.editor.inputs.isDragging) {
+			this.startCropping()
 		}
+	}
+
+	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+		this.startCropping()
+	}
+
+	private startCropping() {
+		if (this.editor.getInstanceState().isReadonly) return
+		this.parent.transition('cropping', {
+			...this.info,
+			onInteractionEnd: this.info.onInteractionEnd,
+		})
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

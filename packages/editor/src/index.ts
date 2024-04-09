@@ -17,6 +17,7 @@ export {
 	type Atom,
 	type Signal,
 } from '@tldraw/state'
+export type { TLCommandHistoryOptions } from './lib/editor/types/history-types'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -33,72 +34,60 @@ export {
 	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
-export { Canvas } from './lib/components/Canvas'
 export {
 	ErrorBoundary,
 	OptionalErrorBoundary,
 	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
-export { PositionedOnCanvas } from './lib/components/PositionedOnCanvas'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
-export { ShapeIndicator, type TLShapeIndicatorComponent } from './lib/components/ShapeIndicator'
-export {
-	DefaultBackground,
-	type TLBackgroundComponent,
-} from './lib/components/default-components/DefaultBackground'
-export {
-	DefaultBrush,
-	type TLBrushComponent,
-} from './lib/components/default-components/DefaultBrush'
+export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
+export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
+export { DefaultCanvas } from './lib/components/default-components/DefaultCanvas'
 export {
 	DefaultCollaboratorHint,
-	type TLCollaboratorHintComponent,
+	type TLCollaboratorHintProps,
 } from './lib/components/default-components/DefaultCollaboratorHint'
 export {
 	DefaultCursor,
-	type TLCursorComponent,
+	type TLCursorProps,
 } from './lib/components/default-components/DefaultCursor'
 export { DefaultErrorFallback } from './lib/components/default-components/DefaultErrorFallback'
-export { DefaultGrid, type TLGridComponent } from './lib/components/default-components/DefaultGrid'
+export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
 export {
 	DefaultHandle,
-	type TLHandleComponent,
+	type TLHandleProps,
 } from './lib/components/default-components/DefaultHandle'
 export {
 	DefaultHandles,
-	type TLHandlesComponent,
+	type TLHandlesProps,
 } from './lib/components/default-components/DefaultHandles'
 export {
 	DefaultHoveredShapeIndicator,
-	type TLHoveredShapeIndicatorComponent,
+	type TLHoveredShapeIndicatorProps,
 } from './lib/components/default-components/DefaultHoveredShapeIndicator'
-export { type TLInFrontOfTheCanvas } from './lib/components/default-components/DefaultInFrontOfTheCanvas'
-export { type TLOnTheCanvas } from './lib/components/default-components/DefaultOnTheCanvas'
 export {
 	DefaultScribble,
-	type TLScribbleComponent,
+	type TLScribbleProps,
 } from './lib/components/default-components/DefaultScribble'
 export {
 	DefaultSelectionBackground,
-	type TLSelectionBackgroundComponent,
+	type TLSelectionBackgroundProps,
 } from './lib/components/default-components/DefaultSelectionBackground'
 export {
 	DefaultSelectionForeground,
-	type TLSelectionForegroundComponent,
+	type TLSelectionForegroundProps,
 } from './lib/components/default-components/DefaultSelectionForeground'
 export {
-	DefaultSnapLine,
-	type TLSnapLineComponent,
-} from './lib/components/default-components/DefaultSnapLine'
+	DefaultShapeIndicator,
+	type TLShapeIndicatorProps,
+} from './lib/components/default-components/DefaultShapeIndicator'
 export {
-	DefaultSpinner,
-	type TLSpinnerComponent,
-} from './lib/components/default-components/DefaultSpinner'
-export {
-	DefaultSvgDefs,
-	type TLSvgDefsComponent,
-} from './lib/components/default-components/DefaultSvgDefs'
+	DefaultSnapIndicator,
+	type TLSnapIndicatorProps,
+} from './lib/components/default-components/DefaultSnapIndictor'
+export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
+export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
@@ -145,13 +134,27 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export type {
+	SideEffectManager,
+	TLAfterChangeHandler,
+	TLAfterCreateHandler,
+	TLAfterDeleteHandler,
+	TLBatchCompleteHandler,
+	TLBeforeChangeHandler,
+	TLBeforeCreateHandler,
+	TLBeforeDeleteHandler,
+} from './lib/editor/managers/SideEffectManager'
+export {
+	type BoundsSnapGeometry,
+	type BoundsSnapPoint,
+} from './lib/editor/managers/SnapManager/BoundsSnaps'
+export { type HandleSnapGeometry } from './lib/editor/managers/SnapManager/HandleSnaps'
 export {
 	SnapManager,
-	type GapsSnapLine,
-	type PointsSnapLine,
-	type SnapLine,
-	type SnapPoint,
-} from './lib/editor/managers/SnapManager'
+	type GapsSnapIndicator,
+	type PointsSnapIndicator,
+	type SnapIndicator,
+} from './lib/editor/managers/SnapManager/SnapManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
@@ -164,7 +167,7 @@ export {
 	type TLOnDoubleClickHandler,
 	type TLOnDragHandler,
 	type TLOnEditEndHandler,
-	type TLOnHandleChangeHandler,
+	type TLOnHandleDragHandler,
 	type TLOnResizeEndHandler,
 	type TLOnResizeHandler,
 	type TLOnResizeStartHandler,
@@ -181,20 +184,20 @@ export {
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
-export { getArrowheadPathForType } from './lib/editor/shapes/shared/arrow/arrowheads'
 export {
-	getCurvedArrowHandlePath,
-	getSolidCurvedArrowPath,
-} from './lib/editor/shapes/shared/arrow/curved-arrow'
+	type TLArcInfo,
+	type TLArrowInfo,
+	type TLArrowPoint,
+} from './lib/editor/shapes/shared/arrow/arrow-types'
 export { getArrowTerminalsInArrowSpace } from './lib/editor/shapes/shared/arrow/shared'
-export {
-	getSolidStraightArrowPath,
-	getStraightArrowHandlePath,
-} from './lib/editor/shapes/shared/arrow/straight-arrow'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
-export { type SvgExportContext, type SvgExportDef } from './lib/editor/types/SvgExportContext'
+export {
+	useSvgExportContext,
+	type SvgExportContext,
+	type SvgExportDef,
+} from './lib/editor/types/SvgExportContext'
 export { type TLContent } from './lib/editor/types/clipboard-types'
 export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'
 export {
@@ -225,7 +228,6 @@ export {
 	type TLPointerEventName,
 	type TLPointerEventTarget,
 	type TLTickEvent,
-	type TLTickEventHandler,
 	type TLWheelEvent,
 	type TLWheelEventInfo,
 	type UiEvent,
@@ -244,10 +246,12 @@ export {
 } from './lib/editor/types/history-types'
 export { type RequiredKeys, type TLSvgOptions } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
-export { useContainer } from './lib/hooks/useContainer'
+export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { useEditor } from './lib/hooks/useEditor'
+export { EditorContext, useEditor } from './lib/hooks/useEditor'
+export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useEvent } from './lib/hooks/useEvent'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
@@ -255,11 +259,12 @@ export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
+export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export {
-	Box2d,
+	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	rotateSelectionHandle,
 	type BoxLike,
@@ -267,9 +272,9 @@ export {
 	type SelectionCorner,
 	type SelectionEdge,
 	type SelectionHandle,
-} from './lib/primitives/Box2d'
-export { Matrix2d, type Matrix2dModel } from './lib/primitives/Matrix2d'
-export { Vec2d, type VecLike } from './lib/primitives/Vec2d'
+} from './lib/primitives/Box'
+export { Mat, type MatLike, type MatModel } from './lib/primitives/Mat'
+export { Vec, type VecLike } from './lib/primitives/Vec'
 export { EASINGS } from './lib/primitives/easings'
 export { Arc2d } from './lib/primitives/geometry/Arc2d'
 export { Circle2d } from './lib/primitives/geometry/Circle2d'
@@ -279,24 +284,30 @@ export { Edge2d } from './lib/primitives/geometry/Edge2d'
 export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
 export { Geometry2d } from './lib/primitives/geometry/Geometry2d'
 export { Group2d } from './lib/primitives/geometry/Group2d'
+export { Point2d } from './lib/primitives/geometry/Point2d'
 export { Polygon2d } from './lib/primitives/geometry/Polygon2d'
 export { Polyline2d } from './lib/primitives/geometry/Polyline2d'
 export { Rectangle2d } from './lib/primitives/geometry/Rectangle2d'
 export { Stadium2d } from './lib/primitives/geometry/Stadium2d'
 export {
+	intersectCircleCircle,
+	intersectCirclePolygon,
+	intersectCirclePolyline,
+	intersectLineSegmentCircle,
+	intersectLineSegmentLineSegment,
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
+	intersectPolygonBounds,
 	intersectPolygonPolygon,
 	linesIntersect,
 	polygonsIntersect,
 } from './lib/primitives/intersect'
 export {
-	EPSILON,
+	HALF_PI,
 	PI,
 	PI2,
 	SIN,
-	TAU,
-	angleDelta,
+	angleDistance,
 	approximately,
 	areAnglesCompatible,
 	average,
@@ -304,25 +315,15 @@ export {
 	clamp,
 	clampRadians,
 	clockwiseAngleDist,
+	counterClockwiseAngleDist,
 	degreesToRadians,
-	getArcLength,
+	getArcMeasure,
+	getPointInArcT,
 	getPointOnCircle,
 	getPolygonVertices,
-	getStarBounds,
-	getSweep,
-	isAngleBetween,
 	isSafeFloat,
-	lerpAngles,
-	longAngleDist,
 	perimeterOfEllipse,
-	pointInBounds,
-	pointInCircle,
-	pointInEllipse,
 	pointInPolygon,
-	pointInPolyline,
-	pointInRect,
-	pointNearToLineSegment,
-	pointNearToPolyline,
 	precise,
 	radiansToDegrees,
 	rangeIntersection,
@@ -355,16 +356,6 @@ export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
 export {
-	getIndexAbove,
-	getIndexBelow,
-	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBelow,
-	getIndicesBetween,
-	sortByIndex,
-} from './lib/utils/reordering/reordering'
-export {
 	applyRotationToSnapshotShapes,
 	getRotationSnapshot,
 	type TLRotationSnapshot,
@@ -378,8 +369,8 @@ export { openWindow } from './lib/utils/window-open'
 
 /** @polyfills */
 
-import 'core-js/stable/array/at'
-import 'core-js/stable/array/flat'
-import 'core-js/stable/array/flat-map'
-import 'core-js/stable/string/at'
-import 'core-js/stable/string/replace-all'
+import 'core-js/stable/array/at.js'
+import 'core-js/stable/array/flat-map.js'
+import 'core-js/stable/array/flat.js'
+import 'core-js/stable/string/at.js'
+import 'core-js/stable/string/replace-all.js'

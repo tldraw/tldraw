@@ -2,6 +2,7 @@ import {
 	TLDefaultShape,
 	TLShapeId,
 	TLShapePartial,
+	ZERO_INDEX_KEY,
 	assert,
 	assertExists,
 	createShapeId,
@@ -26,7 +27,7 @@ type CommonProps = {
 	rotation?: number
 	isLocked?: number
 	ref?: string
-	children?: JSX.Element | JSX.Element[]
+	children?: React.JSX.Element | React.JSX.Element[]
 	opacity?: number
 }
 
@@ -45,14 +46,20 @@ export const TL = new Proxy(
 			return createElement(key as string)
 		},
 	}
-) as { [K in TLDefaultShape['type']]: (props: PropsForShape<K>) => null }
+) as { [K in TLDefaultShape['type']]: (props: PropsForShape<K>) => null } & Record<
+	string,
+	(props: PropsForShape<string>) => null
+>
 
-export function shapesFromJsx(shapes: JSX.Element | Array<JSX.Element>) {
+export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Element>) {
 	const ids = {} as Record<string, TLShapeId>
 	const currentPageShapes: Array<TLShapePartial> = []
 
-	function addChildren(children: JSX.Element | Array<JSX.Element>, parentId?: TLShapeId) {
-		let nextIndex = 'a0'
+	function addChildren(
+		children: React.JSX.Element | Array<React.JSX.Element>,
+		parentId?: TLShapeId
+	) {
+		let nextIndex = ZERO_INDEX_KEY
 
 		for (const el of Array.isArray(children) ? children : [children]) {
 			const shapeType = (el.type as any)[shapeTypeSymbol] as string

@@ -1,19 +1,19 @@
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { ComponentType } from 'react'
+import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
 
 /** @public */
-export type TLHandleComponent = ComponentType<{
+export type TLHandleProps = {
 	shapeId: TLShapeId
 	handle: TLHandle
 	zoom: number
 	isCoarse: boolean
 	className?: string
-}>
+}
 
 /** @public */
-export const DefaultHandle: TLHandleComponent = ({ handle, isCoarse, className, zoom }) => {
-	const bgRadius = (isCoarse ? 20 : 12) / zoom
+export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps) {
+	const bgRadius = (isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoom
 	const fgRadius = (handle.type === 'create' && isCoarse ? 3 : 4) / zoom
 
 	return (

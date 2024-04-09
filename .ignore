@@ -2,9 +2,9 @@ dist
 .tsbuild-dev
 .tsbuild-pub
 .tsbuild
-node\*modules
+node_modules
 *.d.ts
-*.md
+**/api-report.md
 **/_archive
 **/*.tsbuildinfo
 yarn.lock
@@ -16,5 +16,15 @@ yarn.lock
 apps/example/www/index.css
 **/dist/*
 *.cjs
+apps/docs/.next
 
 packages/tldraw/tldraw.css
+
+**/dist-cjs/**/*
+**/dist-esm/**/*
+**/*.js.map
+**/*.api.json
+apps/docs/utils/vector-db
+apps/docs/content/releases/**/*
+apps/docs/content/reference/**/*
+packages/**/api

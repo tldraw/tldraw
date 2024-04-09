@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/editor'
+import { IndexKey, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -7,6 +7,7 @@ const ids = {
 	box1: createShapeId('box1'),
 	line1: createShapeId('line1'),
 	embed1: createShapeId('embed1'),
+	arrow1: createShapeId('arrow1'),
 }
 
 jest.useFakeTimers()
@@ -113,7 +114,7 @@ describe('PointingHandle', () => {
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
-			handle: { id: 'start', type: 'vertex', index: 'a1', x: 0, y: 0 },
+			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.expectToBeIn('select.pointing_handle')
 
@@ -126,7 +127,7 @@ describe('PointingHandle', () => {
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
-			handle: { id: 'start', type: 'vertex', index: 'a1', x: 0, y: 0 },
+			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.expectToBeIn('select.pointing_handle')
 		editor.cancel()
@@ -141,7 +142,7 @@ describe('DraggingHandle', () => {
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
-			handle: { id: 'start', type: 'vertex', index: 'a1', x: 0, y: 0 },
+			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.dragging_handle')
@@ -157,11 +158,61 @@ describe('DraggingHandle', () => {
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
-			handle: { id: 'start', type: 'vertex', index: 'a1', x: 0, y: 0 },
+			handle: { id: 'start', type: 'vertex', index: 'a1' as IndexKey, x: 0, y: 0 },
 		})
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.dragging_handle')
 		editor.cancel()
+		editor.expectToBeIn('select.idle')
+	})
+})
+
+describe('PointingLabel', () => {
+	it('Enters from pointing_arrow_label and exits to idle', () => {
+		editor.createShapes([
+			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+		])
+		const shape = editor.getShape(ids.arrow1)
+		editor.pointerDown(150, 150, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Bails on escape', () => {
+		editor.createShapes([
+			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+		])
+		const shape = editor.getShape(ids.arrow1)
+
+		editor.pointerDown(150, 150, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
+		editor.createShapes([
+			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+		])
+		const shape = editor.getShape(ids.arrow1)
+		editor.pointerDown(0, 150, {
+			target: 'shape',
+			shape,
+		})
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.translating')
+
+		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
 	})
 })
@@ -442,4 +493,15 @@ describe('When in readonly mode', () => {
 		editor.keyUp('Enter')
 		expect(editor.getEditingShapeId()).toBe(ids.embed1)
 	})
+})
+
+// This should be end to end, the problem is the blur handler of the react component
+it('goes into pointing canvas', () => {
+	editor
+		.createShape({ type: 'note' })
+		.pointerMove(50, 50)
+		.doubleClick()
+		.expectToBeIn('select.editing_shape')
+		.pointerDown(300, 300)
+		.expectToBeIn('select.pointing_canvas')
 })

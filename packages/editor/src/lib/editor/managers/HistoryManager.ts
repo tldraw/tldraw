@@ -18,7 +18,7 @@ type ExtractArgs<Fn> = Parameters<Extract<Fn, (...args: any[]) => any>>
 export class HistoryManager<
 	CTX extends {
 		emit: (name: 'change-history' | 'mark-history', ...args: any) => void
-	}
+	},
 > {
 	_undos = atom<Stack<TLHistoryEntry>>('HistoryManager.undos', stack()) // Updated by each action that includes and undo
 	_redos = atom<Stack<TLHistoryEntry>>('HistoryManager.redos', stack()) // Updated when a user undoes
@@ -82,7 +82,6 @@ export class HistoryManager<
 					this._undos.update((undos) =>
 						undos.tail.push({
 							...prev,
-							id: uniqueId(),
 							data: devFreeze(handle.squash!(prev.data, data)),
 						})
 					)
@@ -93,7 +92,6 @@ export class HistoryManager<
 							type: 'command',
 							name,
 							data: devFreeze(data),
-							id: uniqueId(),
 							preservesRedoStack: preservesRedoStack,
 						})
 					)
@@ -117,9 +115,9 @@ export class HistoryManager<
 			this._batchDepth++
 			if (this._batchDepth === 1) {
 				transact(() => {
-					const mostRecentActionId = this._undos.get().head?.id
+					const mostRecentAction = this._undos.get().head
 					fn()
-					if (mostRecentActionId !== this._undos.get().head?.id) {
+					if (mostRecentAction !== this._undos.get().head) {
 						this.onBatchComplete()
 					}
 				})

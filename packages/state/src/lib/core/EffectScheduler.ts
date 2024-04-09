@@ -103,7 +103,8 @@ class __EffectScheduler__<Result> {
 		}
 	}
 
-	private maybeExecute = () => {
+	/** @internal */
+	readonly maybeExecute = () => {
 		// bail out if we have been detached before this runs
 		if (!this._isActivelyListening) return
 		this.execute()

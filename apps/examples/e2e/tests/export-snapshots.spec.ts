@@ -1,11 +1,14 @@
-import test, { Page, expect } from '@playwright/test'
-import { Editor, TLShapeId, TLShapePartial } from '@tldraw/tldraw'
+import { Page, expect } from '@playwright/test'
 import assert from 'assert'
 import { rename, writeFile } from 'fs/promises'
-import { setupPage } from '../shared-e2e'
+import { Editor, TLShapeId, TLShapePartial } from 'tldraw'
+import { setup } from '../shared-e2e'
+import test, { ApiFixture } from './fixtures/fixtures'
 
 declare const editor: Editor
 
+// hi steve. please don't comment these out. they stop us getting bugs. u can just ask if they're
+// holding u up <3
 test.describe('Export snapshots', () => {
 	const snapshots = {
 		'Exports geo text with leading line breaks': [
@@ -189,10 +192,10 @@ test.describe('Export snapshots', () => {
 	const snapshotsToTest = Object.entries(snapshots)
 	const filteredSnapshots = snapshotsToTest // maybe we filter these down, there are a lot of them
 
+	test.beforeEach(setup)
+
 	for (const [name, shapes] of filteredSnapshots) {
-		test(`Exports with ${name} in dark mode`, async ({ browser }) => {
-			const page = await browser.newPage()
-			await setupPage(page)
+		test(`Exports with ${name} in dark mode`, async ({ page, api }) => {
 			await page.evaluate((shapes) => {
 				editor.user.updateUserPreferences({ isDarkMode: true })
 				editor
@@ -202,11 +205,11 @@ test.describe('Export snapshots', () => {
 					.createShapes(shapes)
 			}, shapes as any)
 
-			await snapshotTest(page)
+			await snapshotTest(page, api)
 		})
 	}
 
-	async function snapshotTest(page: Page) {
+	async function snapshotTest(page: Page, api: ApiFixture) {
 		const downloadAndSnapshot = page.waitForEvent('download').then(async (download) => {
 			const path = (await download.path()) as string
 			assert(path)
@@ -214,11 +217,11 @@ test.describe('Export snapshots', () => {
 			await writeFile(
 				path + '.html',
 				`
-							<!DOCTYPE html>
-							<meta charset="utf-8" />
-							<meta name="viewport" content="width=device-width, initial-scale=1" />
-							<img src="${path}.svg" />
-			`,
+								<!DOCTYPE html>
+								<meta charset="utf-8" />
+								<meta name="viewport" content="width=device-width, initial-scale=1" />
+								<img src="${path}.svg" />
+				`,
 				'utf-8'
 			)
 
@@ -229,7 +232,7 @@ test.describe('Export snapshots', () => {
 				clip,
 			})
 		})
-		await page.evaluate(() => (window as any)['tldraw-export']())
+		await api.exportAsSvg()
 		await downloadAndSnapshot
 	}
 })

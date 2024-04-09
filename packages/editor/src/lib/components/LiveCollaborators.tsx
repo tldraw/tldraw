@@ -144,7 +144,7 @@ const Collaborator = track(function Collaborator({
 					<CollaboratorShapeIndicator
 						className="tl-collaborator__shape-indicator"
 						key={userId + '_' + shapeId}
-						id={shapeId}
+						shapeId={shapeId}
 						color={color}
 						opacity={0.5}
 					/>
@@ -157,8 +157,8 @@ function getStateFromElapsedTime(elapsed: number) {
 	return elapsed > COLLABORATOR_INACTIVE_TIMEOUT
 		? 'inactive'
 		: elapsed > COLLABORATOR_IDLE_TIMEOUT
-		? 'idle'
-		: 'active'
+			? 'idle'
+			: 'active'
 }
 
 function useCollaboratorState(latestPresence: TLInstancePresence | null) {

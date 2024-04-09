@@ -19,6 +19,12 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
+// @internal
+export function clearLocalStorage(): void;
+
+// @internal
+export function clearSessionStorage(): void;
+
 // @internal (undocumented)
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
@@ -31,8 +37,11 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 // @public
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
-// @public
-export function deepCopy<T = unknown>(obj: T): T;
+// @internal
+export function deleteFromLocalStorage(key: string): void;
+
+// @internal
+export function deleteFromSessionStorage(key: string): void;
 
 // @public (undocumented)
 export type ErrorResult<E> = {
@@ -50,9 +59,10 @@ export type Expand<T> = T extends infer O ? {
 
 // @public
 export class FileHelpers {
-    // @internal (undocumented)
-    static base64ToFile(dataURL: string): Promise<ArrayBuffer>;
-    static fileToBase64(file: Blob): Promise<string>;
+    static blobToDataUrl(file: Blob): Promise<string>;
+    static blobToText(file: Blob): Promise<string>;
+    // (undocumented)
+    static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
 }
 
 // @internal
@@ -62,17 +72,50 @@ export function filterEntries<Key extends string, Value>(object: {
     [K in Key]: Value;
 };
 
+// @internal
+export function fpsThrottle(fn: () => void): () => void;
+
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
 
+// @internal
+export function getFromLocalStorage(key: string): null | string;
+
+// @internal
+export function getFromSessionStorage(key: string): null | string;
+
+// @public
+export function getHashForBuffer(buffer: ArrayBuffer): string;
+
 // @public
 export function getHashForObject(obj: any): string;
 
 // @public
 export function getHashForString(string: string): string;
+
+// @public
+export function getIndexAbove(below: IndexKey): IndexKey;
+
+// @public
+export function getIndexBelow(above: IndexKey): IndexKey;
+
+// @public
+export function getIndexBetween(below: IndexKey, above?: IndexKey): IndexKey;
+
+// @public
+export function getIndices(n: number, start?: IndexKey): IndexKey[];
+
+// @public
+export function getIndicesAbove(below: IndexKey, n: number): IndexKey[];
+
+// @public
+export function getIndicesBelow(above: IndexKey, n: number): IndexKey[];
+
+// @public
+export function getIndicesBetween(below: IndexKey | undefined, above: IndexKey | undefined, n: number): IndexKey[];
 
 // @internal (undocumented)
 export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
@@ -84,16 +127,24 @@ export function getOwnProperty(obj: object, key: string): unknown;
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @public
+export type IndexKey = string & {
+    __orderKey: true;
+};
+
+// @public
+export function invLerp(a: number, b: number, t: number): number;
+
+// @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
+
+// @internal (undocumented)
+export const isNativeStructuredClone: boolean;
 
 // @public
 export function isNonNull<T>(value: T): value is typeof value extends null ? never : T;
 
 // @public
 export function isNonNullish<T>(value: T): value is typeof value extends undefined ? never : typeof value extends null ? never : T;
-
-// @public (undocumented)
-export function isValidUrl(url: string): boolean;
 
 // @public (undocumented)
 export type JsonArray = JsonValue[];
@@ -125,16 +176,26 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
     [K in Key]: ValueAfter;
 };
 
+// @internal (undocumented)
+export function measureCbDuration(name: string, cb: () => any): any;
+
+// @internal (undocumented)
+export function measureDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
+
 // @public
 export class MediaHelpers {
-    static getImageSizeFromSrc(dataURL: string): Promise<{
+    static getImageSize(blob: Blob): Promise<{
         w: number;
         h: number;
     }>;
-    static getVideoSizeFromSrc(src: string): Promise<{
+    static getVideoSize(blob: Blob): Promise<{
         w: number;
         h: number;
     }>;
+    static loadImage(src: string): Promise<HTMLImageElement>;
+    static loadVideo(src: string): Promise<HTMLVideoElement>;
+    // (undocumented)
+    static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
 }
 
 // @internal (undocumented)
@@ -212,9 +273,6 @@ export function promiseWithResolve<T>(): Promise<T> & {
     reject: (reason?: any) => void;
 };
 
-// @internal
-export function rafThrottle(fn: () => void): () => void;
-
 // @public (undocumented)
 export type RecursivePartial<T> = {
     [P in keyof T]?: RecursivePartial<T[P]>;
@@ -239,12 +297,26 @@ export function rng(seed?: string): () => number;
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
+// @internal
+export function setInLocalStorage(key: string, value: string): void;
+
+// @internal
+export function setInSessionStorage(key: string, value: string): void;
+
 // @public (undocumented)
 export function sortById<T extends {
     id: any;
 }>(a: T, b: T): -1 | 1;
 
-// @public (undocumented)
+// @public
+export function sortByIndex<T extends {
+    index: IndexKey;
+}>(a: T, b: T): -1 | 0 | 1;
+
+// @internal
+export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
+
+// @public
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 
@@ -252,10 +324,16 @@ export { structuredClone_2 as structuredClone }
 export function throttle<T extends (...args: any) => any>(func: T, limit: number): (...args: Parameters<T>) => ReturnType<T>;
 
 // @internal
-export function throttledRaf(fn: () => void): void;
+export function throttleToNextFrame(fn: () => void): () => void;
+
+// @internal (undocumented)
+export function validateIndexKey(key: string): asserts key is IndexKey;
 
 // @internal (undocumented)
 export function warnDeprecatedGetter(name: string): void;
+
+// @public
+export const ZERO_INDEX_KEY: IndexKey;
 
 // (No @packageDocumentation comment for this package)
 

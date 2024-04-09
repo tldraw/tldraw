@@ -1,4 +1,4 @@
-import { Vec2d } from '@tldraw/editor'
+import { Vec } from '@tldraw/editor'
 
 /**
  * The options object for `getStroke` or `getStrokePoints`.
@@ -39,9 +39,9 @@ export interface StrokeOptions {
  * @public
  */
 export interface StrokePoint {
-	point: Vec2d
-	input: Vec2d
-	vector: Vec2d
+	point: Vec
+	input: Vec
+	vector: Vec
 	pressure: number
 	distance: number
 	runningLength: number

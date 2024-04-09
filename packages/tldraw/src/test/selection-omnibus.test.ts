@@ -119,6 +119,77 @@ describe('Hovering shapes', () => {
 	})
 })
 
+describe('brushing', () => {
+	beforeEach(() => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', props: { fill: 'solid', w: 50, h: 50 } }])
+		editor.user.updateUserPreferences({ isWrapMode: false })
+	})
+
+	afterAll(() => {
+		editor.user.updateUserPreferences({ isWrapMode: false })
+	})
+
+	it('brushes on wrap', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+	})
+
+	it('brushes on intersection', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(10, 10)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+	})
+
+	it('brushes only on wrap when ctrl key is down', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(10, 10)
+		editor.keyDown('Control')
+		expect(editor.getSelectedShapeIds().length).toBe(0)
+		editor.pointerMove(100, 100)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+	})
+})
+
+describe('brushing with wrap mode on', () => {
+	beforeEach(() => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', props: { fill: 'solid', w: 50, h: 50 } }])
+		editor.user.updateUserPreferences({ isWrapMode: true })
+	})
+
+	afterAll(() => {
+		editor.user.updateUserPreferences({ isWrapMode: false })
+	})
+
+	it('brushes on wrap', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+	})
+
+	it('does not brush on intersection', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(10, 10)
+		expect(editor.getSelectedShapeIds().length).toBe(0)
+	})
+
+	it('brushes on intersection when ctrl key is down', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(10, 10)
+		expect(editor.getSelectedShapeIds().length).toBe(0)
+		editor.keyDown('Control')
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+		editor.pointerMove(100, 100)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
+	})
+})
+
 describe('when shape is filled', () => {
 	let box1: TLGeoShape
 	beforeEach(() => {
@@ -684,8 +755,8 @@ describe('when a frame has multiple children', () => {
 		editor.pointerDown()
 		editor.pointerMove(30, 30)
 		editor.expectToBeIn('select.brushing')
-		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.pointerUp()
 	})
 
 	it('brush selects shapes when containing them in a drag from outside of the frame', () => {
@@ -1473,6 +1544,7 @@ describe('When double clicking an editable shape', () => {
 
 describe('shift brushes to add to the selection', () => {
 	beforeEach(() => {
+		editor.user.updateUserPreferences({ isWrapMode: false })
 		editor
 			.createShapes([
 				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
@@ -1710,6 +1782,55 @@ describe('right clicking', () => {
 })
 
 describe('When brushing close to the edges of the screen', () => {
+	it('moves the camera', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		const camera1 = editor.getCamera()
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(0, 0)
+		jest.advanceTimersByTime(100)
+		editor.pointerUp()
+		const camera2 = editor.getCamera()
+		expect(camera2.x).toBeGreaterThan(camera1.x) // for some reason > is left
+		expect(camera2.y).toBeGreaterThan(camera1.y) // for some reason > is up
+	})
+
+	it('moves the camera correctly when the viewport is nonzero', () => {
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		const camera1 = editor.getCamera()
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		jest.advanceTimersByTime(100)
+		editor.pointerUp()
+		const camera2 = editor.getCamera()
+		// should NOT have moved the camera by edge scrolling
+		expect(camera2.x).toEqual(camera1.x)
+		expect(camera2.y).toEqual(camera1.y)
+
+		// Now change the bounds so that the corner is at 100,100 on the screen
+		editor.setScreenBounds({ ...editor.getViewportScreenBounds(), x: 100, y: 100 })
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		const camera3 = editor.getCamera()
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		jest.advanceTimersByTime(100)
+		editor.pointerUp()
+		const camera4 = editor.getCamera()
+		// should NOT have moved the camera by edge scrolling because the edge is now "inset"
+		expect(camera4.x).toEqual(camera3.x)
+		expect(camera4.y).toEqual(camera3.y)
+
+		editor.pointerDown()
+		editor.pointerMove(90, 90) // off the edge of the component
+		jest.advanceTimersByTime(100)
+		const camera5 = editor.getCamera()
+		// should have moved the camera by edge scrolling off the component edge
+		expect(camera5.x).toBeGreaterThan(camera4.x)
+		expect(camera5.y).toBeGreaterThan(camera4.y)
+	})
+
 	it('selects shapes that are outside of the viewport', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])

@@ -17,9 +17,17 @@
 **/next.config.js
 **/setupTests.js
 **/setupJest.js
+**/jestResolver.js
 apps/vscode/extension/editor
 apps/examples/www
 apps/docs/api-content.json
 apps/docs/content.json
 apps/vscode/extension/editor/index.js
 apps/vscode/extension/editor/tldraw-assets.json
+**/sentry.server.config.js
+**/scripts/upload-sourcemaps.js
+**/coverage/**/*
+
+apps/dotcom/public/sw.js
+
+patchedJestJsDom.js

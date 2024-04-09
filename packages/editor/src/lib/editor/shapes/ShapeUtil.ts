@@ -1,17 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Migrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
-import { Box2d } from '../../primitives/Box2d'
-import { Vec2d } from '../../primitives/Vec2d'
+import { ReactElement } from 'react'
+import { Box } from '../../primitives/Box'
+import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
+import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
+import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { SvgExportContext } from '../types/SvgExportContext'
 import { TLResizeHandle } from '../types/selection-types'
 
 /** @public */
 export interface TLShapeUtilConstructor<
 	T extends TLUnknownShape,
-	U extends ShapeUtil<T> = ShapeUtil<T>
+	U extends ShapeUtil<T> = ShapeUtil<T>,
 > {
 	new (editor: Editor): U
 	type: T['type']
@@ -87,13 +90,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canScroll: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape should unmount when not visible in the editor. Consider keeping this to false if the shape's `component` has local state.
-	 *
-	 * @public
-	 */
-	canUnmount: TLShapeUtilFlag<Shape> = () => true
-
-	/**
 	 * Whether the shape can be bound to by an arrow.
 	 *
 	 * @param _otherShape - The other shape attempting to bind to this shape.
@@ -150,7 +146,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	hideResizeHandles: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape should hide its resize handles when selected.
+	 * Whether the shape should hide its rotation handles when selected.
 	 *
 	 * @public
 	 */
@@ -200,25 +196,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	getHandles?(shape: Shape): TLHandle[]
 
 	/**
-	 * Get an array of outline segments for the shape. For most shapes,
-	 * this will be a single segment that includes the entire outline.
-	 * For shapes with handles, this might be segments of the outline
-	 * between each handle.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * util.getOutlineSegments(myShape)
-	 * ```
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	getOutlineSegments(shape: Shape): Vec2d[][] {
-		return [this.editor.getShapeGeometry(shape).vertices]
-	}
-
-	/**
 	 * Get whether the shape can receive children of a given type.
 	 *
 	 * @param type - The shape type.
@@ -247,7 +224,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement>
+	toSvg?(shape: Shape, ctx: SvgExportContext): ReactElement | null | Promise<ReactElement | null>
 
 	/**
 	 * Get the shape's background layer as an SVG object.
@@ -257,7 +234,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement> | null
+	toBackgroundSvg?(
+		shape: Shape,
+		ctx: SvgExportContext
+	): ReactElement | null | Promise<ReactElement | null>
 
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number {
@@ -274,6 +254,22 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return []
+	}
+
+	/**
+	 * Get the geometry to use when snapping to this this shape in translate/resize operations. See
+	 * {@link BoundsSnapGeometry} for details.
+	 */
+	getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry {
+		return {}
+	}
+
+	/**
+	 * Get the geometry to use when snapping handles to this shape. See {@link HandleSnapGeometry}
+	 * for details.
+	 */
+	getHandleSnapGeometry(shape: Shape): HandleSnapGeometry {
+		return {}
 	}
 
 	//  Events
@@ -412,6 +408,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	onTranslateEnd?: TLOnTranslateEndHandler<Shape>
 
 	/**
+	 * A callback called when a shape's handle changes.
+	 *
+	 * @param shape - The current shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleDrag?: TLOnHandleDragHandler<Shape>
+
+	/**
 	 * A callback called when a shape starts being rotated.
 	 *
 	 * @param shape - The shape.
@@ -439,16 +445,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	onRotateEnd?: TLOnRotateEndHandler<Shape>
-
-	/**
-	 * A callback called when a shape's handle changes.
-	 *
-	 * @param shape - The current shape.
-	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
-	 * @returns A change to apply to the shape, or void.
-	 * @public
-	 */
-	onHandleChange?: TLOnHandleChangeHandler<Shape>
 
 	/**
 	 * Not currently used.
@@ -554,12 +550,12 @@ export type TLResizeMode = 'scale_shape' | 'resize_bounds'
  * @public
  */
 export type TLResizeInfo<T extends TLShape> = {
-	newPoint: Vec2d
+	newPoint: Vec
 	handle: TLResizeHandle
 	mode: TLResizeMode
 	scaleX: number
 	scaleY: number
-	initialBounds: Box2d
+	initialBounds: Box
 	initialShape: T
 }
 
@@ -587,7 +583,7 @@ export type TLOnBindingChangeHandler<T extends TLShape> = (shape: T) => TLShapeP
 export type TLOnChildrenChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial[] | void
 
 /** @public */
-export type TLOnHandleChangeHandler<T extends TLShape> = (
+export type TLOnHandleDragHandler<T extends TLShape> = (
 	shape: T,
 	info: {
 		handle: TLHandle

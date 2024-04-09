@@ -14,7 +14,7 @@ export function getIncrementedName(name: string, others: string[]) {
 		result = /^.*(\d+)$/.exec(result)?.[1]
 			? result.replace(/(\d+)(?=\D?)$/, (m) => {
 					return (+m + 1).toString()
-			  })
+				})
 			: `${result} 1`
 	}
 

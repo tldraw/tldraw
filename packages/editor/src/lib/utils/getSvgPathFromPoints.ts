@@ -1,4 +1,4 @@
-import { VecLike } from '../primitives/Vec2d'
+import { VecLike } from '../primitives/Vec'
 import { average, precise } from '../primitives/utils'
 
 /**

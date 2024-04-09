@@ -1,7 +1,7 @@
-import { preventDefault, useEditor, useValue } from '@tldraw/editor'
+import { Editor, TLPointerEventInfo, preventDefault, useEditor, useValue } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
-import { useActions } from './useActions'
+import { useActions } from '../context/actions'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -18,7 +18,7 @@ const SKIP_KBDS = [
 export function useKeyboardShortcuts() {
 	const editor = useEditor()
 
-	const isReadonly = useReadonly()
+	const isReadonlyMode = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
@@ -31,21 +31,26 @@ export function useKeyboardShortcuts() {
 		hotkeys.setScope(editor.store.id)
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: container, scope: editor.store.id }, callback)
+			hotkeys(keys, { element: document.body, scope: editor.store.id }, callback)
+		}
+
+		const hotUp = (keys: string, callback: (event: KeyboardEvent) => void) => {
+			hotkeys(
+				keys,
+				{ element: document.body, keyup: true, keydown: false, scope: editor.store.id },
+				callback
+			)
 		}
 
 		// Add hotkeys for actions and tools.
 		// Except those that in SKIP_KBDS!
-		const areShortcutsDisabled = () =>
-			editor.getIsMenuOpen() || editor.getEditingShapeId() !== null || editor.getCrashingError()
-
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
-			if (isReadonly && !action.readonlyOk) continue
+			if (isReadonlyMode && !action.readonlyOk) continue
 			if (SKIP_KBDS.includes(action.id)) continue
 
 			hot(getHotkeysStringFromKbd(action.kbd), (event) => {
-				if (areShortcutsDisabled()) return
+				if (areShortcutsDisabled(editor)) return
 				preventDefault(event)
 				action.onSelect('kbd')
 			})
@@ -59,16 +64,68 @@ export function useKeyboardShortcuts() {
 			if (SKIP_KBDS.includes(tool.id)) continue
 
 			hot(getHotkeysStringFromKbd(tool.kbd), (event) => {
-				if (areShortcutsDisabled()) return
+				if (areShortcutsDisabled(editor)) return
 				preventDefault(event)
 				tool.onSelect('kbd')
 			})
 		}
 
+		hot(',', (e) => {
+			// Skip if shortcuts are disabled
+			if (areShortcutsDisabled(editor)) return
+
+			// Don't press again if already pressed
+			if (editor.inputs.keys.has('Comma')) return
+
+			preventDefault(e) // prevent whatever would normally happen
+			container.focus() // Focus if not already focused
+
+			editor.inputs.keys.add('Comma')
+
+			const { x, y, z } = editor.inputs.currentScreenPoint
+			const info: TLPointerEventInfo = {
+				type: 'pointer',
+				name: 'pointer_down',
+				point: { x, y, z },
+				shiftKey: e.shiftKey,
+				altKey: e.altKey,
+				ctrlKey: e.metaKey || e.ctrlKey,
+				pointerId: 0,
+				button: 0,
+				isPen: editor.getInstanceState().isPenMode,
+				target: 'canvas',
+			}
+
+			editor.dispatch(info)
+		})
+
+		hotUp(',', (e) => {
+			if (areShortcutsDisabled(editor)) return
+			if (!editor.inputs.keys.has('Comma')) return
+
+			editor.inputs.keys.delete('Comma')
+
+			const { x, y, z } = editor.inputs.currentScreenPoint
+			const info: TLPointerEventInfo = {
+				type: 'pointer',
+				name: 'pointer_up',
+				point: { x, y, z },
+				shiftKey: e.shiftKey,
+				altKey: e.altKey,
+				ctrlKey: e.metaKey || e.ctrlKey,
+				pointerId: 0,
+				button: 0,
+				isPen: editor.getInstanceState().isPenMode,
+				target: 'canvas',
+			}
+
+			editor.dispatch(info)
+		})
+
 		return () => {
 			hotkeys.deleteScope(editor.store.id)
 		}
-	}, [actions, tools, isReadonly, editor, isFocused])
+	}, [actions, tools, isReadonlyMode, editor, isFocused])
 }
 
 function getHotkeysStringFromKbd(kbd: string) {
@@ -118,4 +175,8 @@ function getKeys(key: string) {
 	}
 
 	return keys
+}
+
+export function areShortcutsDisabled(editor: Editor) {
+	return editor.getIsMenuOpen() || editor.getEditingShapeId() !== null || editor.getCrashingError()
 }

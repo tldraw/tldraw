@@ -1,6 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { vec2dModelValidator } from '../misc/geometry-types'
+import { vecModelValidator } from '../misc/geometry-types'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -41,7 +41,7 @@ const ArrowShapeTerminal = T.union('type', {
 	binding: T.object({
 		type: T.literal('binding'),
 		boundShapeId: shapeIdValidator,
-		normalizedAnchor: vec2dModelValidator,
+		normalizedAnchor: vecModelValidator,
 		isExact: T.boolean,
 		isPrecise: T.boolean,
 	}),
@@ -69,6 +69,7 @@ export const arrowShapeProps = {
 	end: ArrowShapeTerminal,
 	bend: T.number,
 	text: T.string,
+	labelPosition: T.number,
 }
 
 /** @public */
@@ -80,11 +81,12 @@ export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 export const ArrowMigrationVersions = {
 	AddLabelColor: 1,
 	AddIsPrecise: 2,
+	AddLabelPosition: 3,
 } as const
 
 /** @internal */
 export const arrowShapeMigrations = defineMigrations({
-	currentVersion: ArrowMigrationVersions.AddIsPrecise,
+	currentVersion: ArrowMigrationVersions.AddLabelPosition,
 	migrators: {
 		[ArrowMigrationVersions.AddLabelColor]: {
 			up: (record) => {
@@ -104,6 +106,7 @@ export const arrowShapeMigrations = defineMigrations({
 				}
 			},
 		},
+
 		[ArrowMigrationVersions.AddIsPrecise]: {
 			up: (record) => {
 				const { start, end } = record.props
@@ -118,14 +121,14 @@ export const arrowShapeMigrations = defineMigrations({
 										isPrecise: !(
 											start.normalizedAnchor.x === 0.5 && start.normalizedAnchor.y === 0.5
 										),
-								  }
+									}
 								: start,
 						end:
 							(end as TLArrowShapeTerminal).type === 'binding'
 								? {
 										...end,
 										isPrecise: !(end.normalizedAnchor.x === 0.5 && end.normalizedAnchor.y === 0.5),
-								  }
+									}
 								: end,
 					},
 				}
@@ -153,6 +156,25 @@ export const arrowShapeMigrations = defineMigrations({
 						start: nStart,
 						end: nEnd,
 					},
+				}
+			},
+		},
+
+		[ArrowMigrationVersions.AddLabelPosition]: {
+			up: (record) => {
+				return {
+					...record,
+					props: {
+						...record.props,
+						labelPosition: 0.5,
+					},
+				}
+			},
+			down: (record) => {
+				const { labelPosition: _, ...props } = record.props
+				return {
+					...record,
+					props,
 				}
 			},
 		},

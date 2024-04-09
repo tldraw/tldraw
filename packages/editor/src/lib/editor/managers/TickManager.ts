@@ -1,5 +1,16 @@
-import { Vec2d } from '../../primitives/Vec2d'
+import { throttleToNextFrame as _throttleToNextFrame } from '@tldraw/utils'
+import { Vec } from '../../primitives/Vec'
 import { Editor } from '../Editor'
+
+const throttleToNextFrame =
+	typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+		? // At test time we should use actual raf and not throttle, because throttle was set up to evaluate immediately during tests, which causes stack overflow
+			// for the tick manager since it sets up a raf loop.
+			function mockThrottle(cb: any) {
+				const frame = requestAnimationFrame(cb)
+				return () => cancelAnimationFrame(frame)
+			}
+		: _throttleToNextFrame
 
 export class TickManager {
 	constructor(public editor: Editor) {
@@ -7,15 +18,14 @@ export class TickManager {
 		this.start()
 	}
 
-	raf: any
+	cancelRaf?: null | (() => void)
 	isPaused = true
 	last = 0
-	t = 0
 
 	start = () => {
 		this.isPaused = false
-		cancelAnimationFrame(this.raf)
-		this.raf = requestAnimationFrame(this.tick)
+		this.cancelRaf?.()
+		this.cancelRaf = throttleToNextFrame(this.tick)
 		this.last = Date.now()
 	}
 
@@ -27,28 +37,21 @@ export class TickManager {
 		const now = Date.now()
 		const elapsed = now - this.last
 		this.last = now
-		this.t += elapsed
 
-		this.editor.emit('frame', elapsed)
-
-		if (this.t < 16) {
-			this.raf = requestAnimationFrame(this.tick)
-			return
-		}
-
-		this.t -= 16
 		this.updatePointerVelocity(elapsed)
+		this.editor.emit('frame', elapsed)
 		this.editor.emit('tick', elapsed)
-		this.raf = requestAnimationFrame(this.tick)
+		this.cancelRaf = throttleToNextFrame(this.tick)
 	}
 
 	// Clear the listener
 	dispose = () => {
 		this.isPaused = true
-		cancelAnimationFrame(this.raf)
+
+		this.cancelRaf?.()
 	}
 
-	private prevPoint = new Vec2d()
+	private prevPoint = new Vec()
 
 	private updatePointerVelocity = (elapsed: number) => {
 		const {
@@ -60,11 +63,11 @@ export class TickManager {
 
 		if (elapsed === 0) return
 
-		const delta = Vec2d.Sub(currentScreenPoint, prevPoint)
+		const delta = Vec.Sub(currentScreenPoint, prevPoint)
 		this.prevPoint = currentScreenPoint.clone()
 
 		const length = delta.len()
-		const direction = length ? delta.div(length) : new Vec2d(0, 0)
+		const direction = length ? delta.div(length) : new Vec(0, 0)
 
 		// consider adjusting this with an easing rather than a linear interpolation
 		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), 0.5)

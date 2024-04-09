@@ -27,14 +27,14 @@ export const assetIdValidator = idValidator<TLAssetId>('asset')
 export function createAssetValidator<Type extends string, Props extends JsonObject>(
 	type: Type,
 	props: T.Validator<Props>
-): T.ObjectValidator<{
-	id: TLAssetId
-	typeName: 'asset'
-	type: Type
-	props: Props
-	meta: JsonObject
-}> {
-	return T.object({
+) {
+	return T.object<{
+		id: TLAssetId
+		typeName: 'asset'
+		type: Type
+		props: Props
+		meta: JsonObject
+	}>({
 		id: assetIdValidator,
 		typeName: T.literal('asset'),
 		type: T.literal(type),

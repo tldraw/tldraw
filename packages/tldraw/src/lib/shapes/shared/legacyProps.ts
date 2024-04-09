@@ -1,13 +1,13 @@
-import { Box2d, Box2dModel, TLDefaultHorizontalAlignStyle } from '@tldraw/editor'
+import { Box, BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/editor'
 
 export function getLegacyOffsetX(
 	align: TLDefaultHorizontalAlignStyle | string,
 	padding: number,
-	spans: { text: string; box: Box2dModel }[],
+	spans: { text: string; box: BoxModel }[],
 	totalWidth: number
 ): number | undefined {
 	if ((align === 'start-legacy' || align === 'end-legacy') && spans.length !== 0) {
-		const spansBounds = Box2d.From(spans[0].box)
+		const spansBounds = Box.From(spans[0].box)
 		for (const { box } of spans) {
 			spansBounds.union(box)
 		}

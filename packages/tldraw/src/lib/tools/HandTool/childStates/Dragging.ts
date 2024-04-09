@@ -1,4 +1,4 @@
-import { CAMERA_SLIDE_FRICTION, StateNode, TLEventHandlers, Vec2d } from '@tldraw/editor'
+import { CAMERA_SLIDE_FRICTION, StateNode, TLEventHandlers, Vec } from '@tldraw/editor'
 
 export class Dragging extends StateNode {
 	static override id = 'dragging'
@@ -26,7 +26,7 @@ export class Dragging extends StateNode {
 	private update() {
 		const { currentScreenPoint, previousScreenPoint } = this.editor.inputs
 
-		const delta = Vec2d.Sub(currentScreenPoint, previousScreenPoint)
+		const delta = Vec.Sub(currentScreenPoint, previousScreenPoint)
 
 		if (Math.abs(delta.x) > 0 || Math.abs(delta.y) > 0) {
 			this.editor.pan(delta)

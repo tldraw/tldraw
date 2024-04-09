@@ -35,7 +35,10 @@ export class PointingResizeHandle extends StateNode {
 		const selected = this.editor.getSelectedShapes()
 		const cursorType = CursorTypeMap[this.info.handle!]
 		this.editor.updateInstanceState({
-			cursor: { type: cursorType, rotation: selected.length === 1 ? selected[0].rotation : 0 },
+			cursor: {
+				type: cursorType,
+				rotation: selected.length === 1 ? this.editor.getSelectionRotation() : 0,
+			},
 		})
 	}
 
@@ -45,11 +48,18 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		const isDragging = this.editor.inputs.isDragging
-
-		if (isDragging) {
-			this.parent.transition('resizing', this.info)
+		if (this.editor.inputs.isDragging) {
+			this.startResizing()
 		}
+	}
+
+	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+		this.startResizing()
+	}
+
+	private startResizing() {
+		if (this.editor.getInstanceState().isReadonly) return
+		this.parent.transition('resizing', this.info)
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

@@ -95,7 +95,7 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 
 	historyBuffer?: HistoryBuffer<Diff>
 
-	__unsafe__getWithoutCapture(): Value {
+	__unsafe__getWithoutCapture(_ignoreErrors?: boolean): Value {
 		return this.current
 	}
 

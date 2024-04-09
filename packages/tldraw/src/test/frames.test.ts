@@ -150,7 +150,7 @@ describe('creating frames', () => {
 
 		// x should snap
 		editor.keyDown('Control')
-		expect(editor.snaps.getLines()).toHaveLength(1)
+		expect(editor.snaps.getIndicators()).toHaveLength(1)
 		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 50,
 			y: 100,
@@ -424,7 +424,7 @@ describe('frame shapes', () => {
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ y: 49 })
 		editor.keyDown('Control')
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ y: 50 })
-		expect(editor.snaps.getLines()).toHaveLength(1)
+		expect(editor.snaps.getIndicators()).toHaveLength(1)
 	})
 
 	it("does not allow outside shapes to snap to the frame's children", () => {
@@ -460,12 +460,12 @@ describe('frame shapes', () => {
 			w: 5,
 			h: 5,
 		})
-		expect(editor.snaps.getLines()).toHaveLength(0)
+		expect(editor.snaps.getIndicators()).toHaveLength(0)
 		// and if we unparent the box it should snap
 		editor.reparentShapes([innerBoxId], editor.getCurrentPageId())
 
 		editor.pointerMove(287.5, 126.5).pointerMove(277.5, 126.5)
-		expect(editor.snaps.getLines()).toHaveLength(1)
+		expect(editor.snaps.getIndicators()).toHaveLength(1)
 		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 275,
 			y: 125,
@@ -492,12 +492,18 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('select')
 		editor.pointerDown(150, 150, innerBoxId).pointerMove(150, 50).pointerMove(150, 148)
 		editor.keyDown('Control')
-		expect(editor.snaps.getLines()).toHaveLength(0)
+		let shapes = editor.snaps.getSnappableShapes()
+		// We can snap to the parent frame
+		expect(shapes.size).toBe(1)
+		expect(shapes).toContain(frameId)
 
 		// move shape inside the frame to make sure it snaps in there
 		editor.reparentShapes([outerBoxId], frameId).pointerMove(150, 149, { ctrlKey: true })
 
-		expect(editor.snaps.getLines()).toHaveLength(1)
+		shapes = editor.snaps.getSnappableShapes()
+		expect(shapes.size).toBe(2)
+		expect(shapes).toContain(frameId)
+		expect(shapes).toContain(outerBoxId)
 	})
 
 	it('masks its children', () => {
@@ -777,6 +783,44 @@ describe('frame shapes', () => {
 		expect(newRectA.y).toBe(100)
 		expect(newRectB.x).toBe(300)
 		expect(newRectB.y).toBe(300)
+	})
+
+	it('preserves the order of shapes when enclosing over them', () => {
+		const rectAId = createRect({ pos: [100, 100], size: [100, 100] })
+		const rectBId = createRect({ pos: [300, 300], size: [100, 100] })
+		const pageId = editor.getCurrentPageId()
+		expect(editor.getSortedChildIdsForParent(pageId)).toStrictEqual([rectAId, rectBId])
+
+		// Create the frame that encloses both rects
+		let frameId = dragCreateFrame({ down: [0, 0], move: [700, 700], up: [700, 700] })
+
+		// The order should be the same as before
+		expect(editor.getSortedChildIdsForParent(frameId)).toStrictEqual([rectAId, rectBId])
+
+		removeFrame(editor, [frameId])
+		expect(editor.getSortedChildIdsForParent(pageId)).toStrictEqual([rectAId, rectBId])
+
+		// Now let's push the second rect to the back
+		editor.sendToBack([rectBId])
+		expect(editor.getSortedChildIdsForParent(pageId)).toStrictEqual([rectBId, rectAId])
+
+		frameId = dragCreateFrame({ down: [0, 0], move: [700, 700], up: [700, 700] })
+		expect(editor.getSortedChildIdsForParent(frameId)).toStrictEqual([rectBId, rectAId])
+	})
+
+	it('allows us to frame inside of frames', () => {
+		const rectAId = createRect({ pos: [100, 100], size: [100, 100] })
+		const rectBId = createRect({ pos: [300, 300], size: [100, 100] })
+		const pageId = editor.getCurrentPageId()
+		expect(editor.getSortedChildIdsForParent(pageId)).toStrictEqual([rectAId, rectBId])
+
+		const outsideFrameId = dragCreateFrame({ down: [0, 0], move: [700, 700], up: [700, 700] })
+		expect(editor.getSortedChildIdsForParent(outsideFrameId)).toStrictEqual([rectAId, rectBId])
+
+		// Create a frame inside the frame
+		const insideFrameId = dragCreateFrame({ down: [50, 50], move: [600, 600], up: [600, 600] })
+		expect(editor.getSortedChildIdsForParent(insideFrameId)).toStrictEqual([rectAId, rectBId])
+		expect(editor.getSortedChildIdsForParent(outsideFrameId)).toStrictEqual([insideFrameId])
 	})
 })
 

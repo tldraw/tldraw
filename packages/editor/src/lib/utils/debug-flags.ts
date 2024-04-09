@@ -1,4 +1,5 @@
 import { Atom, atom, react } from '@tldraw/state'
+import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } from '@tldraw/utils'
 
 // --- 1. DEFINE ---
 //
@@ -8,41 +9,41 @@ import { Atom, atom, react } from '@tldraw/state'
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
 export const featureFlags: Record<string, DebugFlag<boolean>> = {
-	// todo: remove this. it's not used, but we only have one feature flag and i
-	// wanted an example :(
+	// canMoveArrowLabel: createFeatureFlag('canMoveArrowLabel'),
 }
 
 /** @internal */
-export const debugFlags = {
+export const pointerCaptureTrackingObject = createDebugValue(
+	'pointerCaptureTrackingObject',
+	// ideally we wouldn't store this mutable value in an atom but it's not
+	// a big deal for debug values
+	{
+		defaults: { all: new Map<Element, number>() },
+		shouldStoreForSession: false,
+	}
+)
+
+/** @internal */
+export const debugFlags: Record<string, DebugFlag<boolean>> = {
 	// --- DEBUG VALUES ---
 	preventDefaultLogging: createDebugValue('preventDefaultLogging', {
-		defaults: { all: false },
-	}),
-	pointerCaptureLogging: createDebugValue('pointerCaptureLogging', {
 		defaults: { all: false },
 	}),
 	pointerCaptureTracking: createDebugValue('pointerCaptureTracking', {
 		defaults: { all: false },
 	}),
-	pointerCaptureTrackingObject: createDebugValue(
-		'pointerCaptureTrackingObject',
-		// ideally we wouldn't store this mutable value in an atom but it's not
-		// a big deal for debug values
-		{
-			defaults: { all: new Map<Element, number>() },
-			shouldStoreForSession: false,
-		}
-	),
 	elementRemovalLogging: createDebugValue('elementRemovalLogging', {
 		defaults: { all: false },
 	}),
 	debugSvg: createDebugValue('debugSvg', {
 		defaults: { all: false },
 	}),
+	showFps: createDebugValue('showFps', {
+		defaults: { all: false },
+	}),
 	throwToBlob: createDebugValue('throwToBlob', {
 		defaults: { all: false },
 	}),
-	logMessages: createDebugValue('uiLog', { defaults: { all: [] as any[] } }),
 	resetConnectionEveryPing: createDebugValue('resetConnectionEveryPing', {
 		defaults: { all: false },
 	}),
@@ -57,12 +58,6 @@ export const debugFlags = {
 declare global {
 	interface Window {
 		tldrawLog: (message: any) => void
-	}
-}
-
-if (typeof window !== 'undefined') {
-	window.tldrawLog = (message: any) => {
-		debugFlags.logMessages.set(debugFlags.logMessages.get().concat(message))
 	}
 }
 
@@ -131,14 +126,10 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 		if (def.shouldStoreForSession) {
 			react(`debug:${def.name}`, () => {
 				const currentValue = valueAtom.get()
-				try {
-					if (currentValue === defaultValue) {
-						window.sessionStorage.removeItem(`tldraw_debug:${def.name}`)
-					} else {
-						window.sessionStorage.setItem(`tldraw_debug:${def.name}`, JSON.stringify(currentValue))
-					}
-				} catch {
-					// not a big deal
+				if (currentValue === defaultValue) {
+					deleteFromSessionStorage(`tldraw_debug:${def.name}`)
+				} else {
+					setInSessionStorage(`tldraw_debug:${def.name}`, JSON.stringify(currentValue))
 				}
 			})
 		}
@@ -159,7 +150,7 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 
 function getStoredInitialValue(name: string) {
 	try {
-		return JSON.parse(window?.sessionStorage.getItem(`tldraw_debug:${name}`) ?? 'null')
+		return JSON.parse(getFromSessionStorage(`tldraw_debug:${name}`) ?? 'null')
 	} catch (err) {
 		return null
 	}
@@ -202,8 +193,7 @@ interface Defaults<T> {
 	all: T
 }
 
-/** @internal */
-export interface DebugFlagDef<T> {
+interface DebugFlagDef<T> {
 	name: string
 	defaults: Defaults<T>
 	shouldStoreForSession: boolean

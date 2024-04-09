@@ -17,7 +17,7 @@ const emptyChild = (props: Partial<Child> = {}) =>
 		isActivelyListening: false,
 		lastTraversedEpoch: 0,
 		...props,
-	} as Child)
+	}) as Child
 
 describe('capturing parents', () => {
 	it('can be started and stopped', () => {

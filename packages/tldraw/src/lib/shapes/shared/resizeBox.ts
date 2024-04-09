@@ -1,11 +1,4 @@
-import {
-	Box2d,
-	TLBaseBoxShape,
-	TLResizeHandle,
-	TLResizeMode,
-	Vec2d,
-	Vec2dModel,
-} from '@tldraw/editor'
+import { Box, TLBaseBoxShape, TLResizeHandle, TLResizeMode, Vec, VecModel } from '@tldraw/editor'
 
 /** @public */
 export type ResizeBoxOptions = Partial<{
@@ -19,12 +12,12 @@ export type ResizeBoxOptions = Partial<{
 export function resizeBox(
 	shape: TLBaseBoxShape,
 	info: {
-		newPoint: Vec2dModel
+		newPoint: VecModel
 		handle: TLResizeHandle
 		mode: TLResizeMode
 		scaleX: number
 		scaleY: number
-		initialBounds: Box2d
+		initialBounds: Box
 		initialShape: TLBaseBoxShape
 	},
 	opts = {} as ResizeBoxOptions
@@ -35,7 +28,7 @@ export function resizeBox(
 	let w = shape.props.w * scaleX
 	let h = shape.props.h * scaleY
 
-	const offset = new Vec2d(0, 0)
+	const offset = new Vec(0, 0)
 
 	if (w > 0) {
 		if (w < minWidth) {

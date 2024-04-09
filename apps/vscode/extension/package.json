@@ -1,9 +1,8 @@
 {
 	"name": "tldraw-vscode",
 	"description": "The tldraw extension for VS Code.",
-	"version": "2.0.19",
+	"version": "2.0.26",
 	"private": true,
-	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -131,26 +130,33 @@
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
-		"@tldraw/tldraw": "workspace:*",
 		"@types/fs-extra": "^11.0.1",
 		"@types/node-fetch": "^2.6.2",
 		"@types/vscode": "^1.75.1",
-		"@typescript-eslint/eslint-plugin": "^5.10.2",
-		"@typescript-eslint/parser": "^5.10.2",
+		"@typescript-eslint/eslint-plugin": "^5.57.0",
+		"@typescript-eslint/parser": "^5.57.0",
 		"assert": "^2.0.0",
 		"esbuild": "^0.18.4",
+		"eslint": "^8.37.0",
 		"fs-extra": "^11.1.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
 		"mocha": "^9.1.1",
 		"process": "^0.11.10",
+		"tldraw": "workspace:*",
 		"ts-loader": "^9.2.5",
-		"tslib": "^2.4.0",
-		"tsx": "^3.12.7",
-		"vsce": "^2.15.0"
+		"tslib": "^2.6.2",
+		"tsx": "^4.0.0",
+		"typescript": "^5.3.3",
+		"vsce": "^2.15.0",
+		"webpack": "^5.0.0"
 	},
 	"gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",
 	"dependencies": {
 		"node-fetch": "^2.0.0"
+	},
+	"peerDependencies": {
+		"react": "^18",
+		"react-dom": "^18"
 	}
 }

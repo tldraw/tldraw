@@ -1,9 +1,9 @@
 import { useValue } from '@tldraw/state'
 import { useEditor } from '../../../hooks/useEditor'
-import { Box2d } from '../../../primitives/Box2d'
+import { Box } from '../../../primitives/Box'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 
-export function DashedOutlineBox({ bounds, className }: { bounds: Box2d; className: string }) {
+export function DashedOutlineBox({ bounds, className }: { bounds: Box; className: string }) {
 	const editor = useEditor()
 
 	const zoomLevel = useValue('zoom level', () => editor.getZoomLevel(), [editor])

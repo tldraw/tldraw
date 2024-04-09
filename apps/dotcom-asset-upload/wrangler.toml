@@ -1,0 +1,51 @@
+name = "tldraw-assets"
+main = "src/index.ts"
+compatibility_date = "2022-09-22"
+
+[dev]
+port = 8788
+
+[[r2_buckets]]
+binding = 'UPLOADS'
+bucket_name = 'uploads'
+preview_bucket_name = 'uploads-preview'
+
+[[analytics_engine_datasets]] 
+binding = "MEASURE"
+
+# staging settings
+[env.staging]
+name = "main-tldraw-assets"
+
+[[env.staging.r2_buckets]]
+binding = 'UPLOADS'
+bucket_name = 'uploads'
+preview_bucket_name = 'uploads-preview'
+
+[[env.staging.unsafe.bindings]]
+type = "analytics_engine"
+name = "MEASURE"
+
+
+# production settings
+[env.production]
+name = "tldraw-assets"
+
+[[env.production.routes]]
+pattern = 'assets.tldraw.xyz'
+custom_domain = true
+zone_name = 'tldraw.xyz'
+
+[[env.production.r2_buckets]]
+binding = 'UPLOADS'
+bucket_name = 'uploads'
+preview_bucket_name = 'uploads-preview'
+
+[[env.production.unsafe.bindings]]
+type = "analytics_engine"
+name = "MEASURE"
+
+[[env.preview.r2_buckets]]
+binding = 'UPLOADS'
+bucket_name = 'uploads'
+preview_bucket_name = 'uploads-preview'

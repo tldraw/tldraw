@@ -7,7 +7,10 @@ class CaptureStackFrame {
 
 	maybeRemoved?: Signal<any>[]
 
-	constructor(public readonly below: CaptureStackFrame | null, public readonly child: Child) {}
+	constructor(
+		public readonly below: CaptureStackFrame | null,
+		public readonly child: Child
+	) {}
 }
 
 const inst = singleton('capture', () => ({ stack: null as null | CaptureStackFrame }))
@@ -161,7 +164,7 @@ export function whyAmIRunning() {
 				'\t',
 				(changedParent as any).name,
 				'changed =>',
-				changedParent.__unsafe__getWithoutCapture()
+				changedParent.__unsafe__getWithoutCapture(true)
 			)
 		}
 	}

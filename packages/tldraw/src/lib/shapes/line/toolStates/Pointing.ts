@@ -1,12 +1,11 @@
 import {
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLEventHandlers,
-	TLHandle,
 	TLInterruptEvent,
 	TLLineShape,
 	TLShapeId,
-	Vec2d,
+	Vec,
 	createShapeId,
 	getIndexAbove,
 	last,
@@ -45,51 +44,42 @@ export class Pointing extends StateNode {
 			const endHandle = vertexHandles[vertexHandles.length - 1]
 			const prevEndHandle = vertexHandles[vertexHandles.length - 2]
 
-			const shapePagePoint = Matrix2d.applyToPoint(
+			const shapePagePoint = Mat.applyToPoint(
 				this.editor.getShapeParentTransform(this.shape)!,
-				new Vec2d(this.shape.x, this.shape.y)
+				new Vec(this.shape.x, this.shape.y)
 			)
 
-			let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
-
-			const nextPoint = Vec2d.Sub(currentPagePoint, shapePagePoint)
+			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint).addXY(0.1, 0.1)
+			const points = structuredClone(this.shape.props.points)
 
 			if (
-				Vec2d.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES ||
-				Vec2d.Dist(nextPoint, endHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES
+				Vec.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES ||
+				Vec.Dist(nextPoint, endHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES
 			) {
-				// If the end handle is too close to the previous end handle, we'll just extend the previous end handle
-				nextEndHandleIndex = endHandle.index
-				nextEndHandleId = endHandle.id
-				nextEndHandle = {
-					...endHandle,
-					x: nextPoint.x + 0.1,
-					y: nextPoint.y + 0.1,
+				// Don't add a new point if the distance between the last two points is too small
+				points[endHandle.id] = {
+					id: endHandle.id,
+					index: endHandle.index,
+					x: nextPoint.x,
+					y: nextPoint.y,
 				}
 			} else {
-				// Otherwise, we'll create a new end handle
-				nextEndHandleIndex = getIndexAbove(endHandle.index)
-				nextEndHandleId = 'handle:' + nextEndHandleIndex
-				nextEndHandle = {
-					id: nextEndHandleId,
-					type: 'vertex',
-					index: nextEndHandleIndex,
-					x: nextPoint.x + 0.1,
-					y: nextPoint.y + 0.1,
-					canBind: false,
+				// Add a new point
+				const nextIndex = getIndexAbove(endHandle.index)
+				points[nextIndex] = {
+					id: nextIndex,
+					index: nextIndex,
+					x: nextPoint.x,
+					y: nextPoint.y,
 				}
 			}
-
-			const nextHandles = structuredClone(this.shape.props.handles)
-
-			nextHandles[nextEndHandle.id] = nextEndHandle
 
 			this.editor.updateShapes([
 				{
 					id: this.shape.id,
 					type: this.shape.type,
 					props: {
-						handles: nextHandles,
+						points,
 					},
 				},
 			])
@@ -118,7 +108,6 @@ export class Pointing extends StateNode {
 
 		if (this.editor.inputs.isDragging) {
 			const handles = this.editor.getShapeHandles(this.shape)
-			console
 			if (!handles) {
 				if (this.markId) this.editor.bailToMark(this.markId)
 				throw Error('No handles found')
@@ -149,17 +138,17 @@ export class Pointing extends StateNode {
 	override onInterrupt: TLInterruptEvent = () => {
 		this.parent.transition('idle')
 		if (this.markId) this.editor.bailToMark(this.markId)
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 
 	complete() {
 		this.parent.transition('idle', { shapeId: this.shape.id })
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 
 	cancel() {
 		if (this.markId) this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', { shapeId: this.shape.id })
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 }

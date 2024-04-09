@@ -3,7 +3,7 @@ import {
 	CubicSpline2d,
 	Edge2d,
 	Polyline2d,
-	Vec2d,
+	Vec,
 	toDomPrecision,
 } from '@tldraw/editor'
 
@@ -20,7 +20,7 @@ export function getSvgPathForEdge(edge: Edge2d, first: boolean) {
 export function getSvgPathForBezierCurve(curve: CubicBezier2d, first: boolean) {
 	const { a, b, c, d } = curve
 
-	if (Vec2d.Equals(a, d)) return ''
+	if (Vec.Equals(a, d)) return ''
 
 	return `${first ? `M${toDomPrecision(a.x)},${toDomPrecision(a.y)}` : ``}C${toDomPrecision(
 		b.x
@@ -29,7 +29,7 @@ export function getSvgPathForBezierCurve(curve: CubicBezier2d, first: boolean) {
 	)},${toDomPrecision(d.y)}`
 }
 
-export function getSvgPathForCubicSpline(spline: CubicSpline2d, isClosed: boolean) {
+function getSvgPathForCubicSpline(spline: CubicSpline2d, isClosed: boolean) {
 	let d = spline.segments.reduce((d, segment, i) => {
 		return d + getSvgPathForBezierCurve(segment, i === 0)
 	}, '')
@@ -41,7 +41,7 @@ export function getSvgPathForCubicSpline(spline: CubicSpline2d, isClosed: boolea
 	return d
 }
 
-export function getSvgPathForPolylineSpline(spline: Polyline2d, isClosed: boolean) {
+function getSvgPathForPolylineSpline(spline: Polyline2d, isClosed: boolean) {
 	let d = spline.segments.reduce((d, segment, i) => {
 		return d + getSvgPathForEdge(segment, i === 0)
 	}, '')

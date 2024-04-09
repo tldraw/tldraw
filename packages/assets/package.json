@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/assets",
 	"description": "A tiny little drawing app (assets).",
-	"version": "2.0.0-beta.1",
+	"version": "2.0.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -31,6 +31,8 @@
 		"translations",
 		"imports.js",
 		"imports.d.ts",
+		"imports.vite.js",
+		"imports.vite.d.ts",
 		"selfHosted.js",
 		"selfHosted.d.ts",
 		"types.d.ts",
@@ -48,7 +50,8 @@
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
-		"ts-node-dev": "^1.1.8"
+		"ts-node-dev": "^1.1.8",
+		"typescript": "^5.3.3"
 	},
 	"jest": {
 		"preset": "config/jest/node",

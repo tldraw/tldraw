@@ -6,11 +6,9 @@ export function registerDefaultSideEffects(editor: Editor) {
 			if (prev.isFocused !== next.isFocused) {
 				if (next.isFocused) {
 					editor.getContainer().focus()
-					editor.updateViewportScreenBounds()
 				} else {
 					editor.complete() // stop any interaction
 					editor.getContainer().blur() // blur the container
-					editor.updateViewportScreenBounds()
 				}
 			}
 		}),

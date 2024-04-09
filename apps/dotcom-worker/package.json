@@ -1,0 +1,55 @@
+{
+	"name": "@tldraw/dotcom-worker",
+	"description": "A tiny little drawing app (merge server).",
+	"version": "2.0.0-alpha.11",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"main": "./src/lib/worker.ts",
+	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
+	"files": [],
+	"scripts": {
+		"dev": "concurrently --kill-others yarn:dev-cron yarn:dev-wrangler yarn:report-size",
+		"dev-cron": "yarn run -T tsx ./scripts/cron.ts",
+		"dev-wrangler": "yarn run -T tsx ./scripts/dev-wrap.ts",
+		"report-size": "node scripts/report-size.js",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
+		"test-coverage": "lazy inherit",
+		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+	},
+	"dependencies": {
+		"@supabase/auth-helpers-remix": "^0.2.2",
+		"@supabase/supabase-js": "^2.33.2",
+		"@tldraw/store": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/tlsync": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"esbuild": "^0.18.4",
+		"itty-router": "^4.0.13",
+		"nanoid": "4.0.2",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"strip-ansi": "^7.1.0",
+		"toucan-js": "^2.7.0"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20230821.0",
+		"concurrently": "^8.2.2",
+		"lazyrepo": "0.0.0-alpha.27",
+		"picocolors": "^1.0.0",
+		"typescript": "^5.3.3",
+		"wrangler": "3.19.0"
+	},
+	"jest": {
+		"preset": "config/jest/node",
+		"moduleNameMapper": {
+			"^~(.*)": "<rootDir>/src/$1"
+		},
+		"transformIgnorePatterns": [
+			"node_modules/(?!(nanoid|escape-string-regexp)/)"
+		]
+	}
+}

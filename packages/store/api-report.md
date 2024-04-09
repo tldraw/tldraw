@@ -163,9 +163,7 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     typeName: R['typeName'], config: {
         readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
         readonly migrations: Migrations;
-        readonly validator?: {
-            validate: (r: unknown) => R;
-        } | StoreValidator<R>;
+        readonly validator?: StoreValidator<R>;
         readonly scope?: RecordScope;
     });
     clone(record: R): R;
@@ -183,11 +181,9 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     // (undocumented)
     readonly scope: RecordScope;
     readonly typeName: R['typeName'];
-    validate(record: unknown): R;
+    validate(record: unknown, recordBefore?: R): R;
     // (undocumented)
-    readonly validator: {
-        validate: (r: unknown) => R;
-    } | StoreValidator<R>;
+    readonly validator: StoreValidator<R>;
     withDefaultProperties<DefaultProps extends Omit<Partial<R>, 'id' | 'typeName'>>(createDefaultProperties: () => DefaultProps): RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>>;
 }
 
@@ -344,6 +340,7 @@ export type StoreSnapshot<R extends UnknownRecord> = {
 // @public (undocumented)
 export type StoreValidator<R extends UnknownRecord> = {
     validate: (record: unknown) => R;
+    validateUsingKnownGoodVersion?: (knownGoodVersion: R, record: unknown) => R;
 };
 
 // @public (undocumented)

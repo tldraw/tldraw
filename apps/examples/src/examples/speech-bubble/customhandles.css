@@ -1,0 +1,10 @@
+/* Resize handles are normally on top, but We're going to give shape handles priority */
+.tl-user-handles {
+	z-index: 101;
+}
+
+/* The text label doesn't normally deal with text that goes sideways,
+ * so this accounts for that */
+.tl-shape[data-shape-type='speech-bubble'] .tl-text-label {
+	justify-content: flex-start !important;
+}

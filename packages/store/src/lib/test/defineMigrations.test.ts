@@ -15,7 +15,7 @@ describe('define migrations tests', () => {
 				// @ts-expect-error first version without current version
 				firstVersion: Versions.Initial,
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// no versions
@@ -23,7 +23,7 @@ describe('define migrations tests', () => {
 				// @ts-expect-error first version without current version
 				firstVersion: Versions.February,
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// empty migrators
@@ -31,7 +31,7 @@ describe('define migrations tests', () => {
 				// @ts-expect-error
 				migrators: {},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// no versions!
@@ -44,7 +44,7 @@ describe('define migrations tests', () => {
 					},
 				},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// wrong current version!
@@ -58,7 +58,7 @@ describe('define migrations tests', () => {
 					},
 				},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			defineMigrations({
@@ -76,7 +76,7 @@ describe('define migrations tests', () => {
 					},
 				},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// can't provide only first version
@@ -86,7 +86,7 @@ describe('define migrations tests', () => {
 				// @ts-expect-error migrators without current version
 				migrators: {},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// same version
@@ -95,7 +95,7 @@ describe('define migrations tests', () => {
 				currentVersion: Versions.Initial,
 				migrators: {},
 			})
-		}).toThrowError()
+		}).toThrow()
 
 		expect(() => {
 			// only first version
@@ -105,7 +105,7 @@ describe('define migrations tests', () => {
 				// @ts-expect-error
 				migrators: {},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// missing only version
@@ -115,7 +115,7 @@ describe('define migrations tests', () => {
 				// @ts-expect-error
 				migrators: {},
 			})
-		}).toThrowError()
+		}).toThrow()
 
 		expect(() => {
 			// only version, explicit start and current
@@ -129,7 +129,7 @@ describe('define migrations tests', () => {
 					},
 				},
 			})
-		}).toThrowError()
+		}).toThrow()
 
 		expect(() => {
 			// missing later versions
@@ -139,7 +139,7 @@ describe('define migrations tests', () => {
 				// @ts-expect-error
 				migrators: {},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// missing later versions
@@ -154,7 +154,7 @@ describe('define migrations tests', () => {
 					},
 				},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// missing earlier versions
@@ -169,7 +169,7 @@ describe('define migrations tests', () => {
 					},
 				},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// got em all
@@ -187,7 +187,7 @@ describe('define migrations tests', () => {
 					},
 				},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// got em all starting later
@@ -205,7 +205,7 @@ describe('define migrations tests', () => {
 					},
 				},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 
 		expect(() => {
 			// first migration should be first version + 1
@@ -224,6 +224,6 @@ describe('define migrations tests', () => {
 					},
 				},
 			})
-		}).not.toThrowError()
+		}).not.toThrow()
 	})
 })

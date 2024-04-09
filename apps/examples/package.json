@@ -1,9 +1,8 @@
 {
 	"name": "examples.tldraw.com",
-	"description": "A tiny little drawing app (development).",
-	"version": "2.0.0-alpha.11",
+	"description": "A tiny little drawing app (examples).",
+	"version": "2.0.0-beta.2",
 	"private": true,
-	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -34,19 +33,28 @@
 		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts"
 	},
 	"dependencies": {
-		"@babel/plugin-proposal-decorators": "^7.21.0",
 		"@playwright/test": "^1.38.1",
+		"@radix-ui/react-alert-dialog": "^1.0.5",
 		"@tldraw/assets": "workspace:*",
-		"@tldraw/tldraw": "workspace:*",
-		"@vercel/analytics": "^1.0.1",
+		"@vercel/analytics": "^1.1.1",
+		"classnames": "^2.3.2",
 		"lazyrepo": "0.0.0-alpha.27",
+		"lodash": "^4.17.21",
+		"pdf-lib": "^1.17.1",
+		"pdfjs-dist": "^4.0.379",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"react-router-dom": "^6.9.0",
-		"vite": "^4.3.4"
+		"react-router-dom": "^6.17.0",
+		"tldraw": "workspace:*",
+		"vite": "^5.0.0"
 	},
 	"devDependencies": {
+		"@types/lodash": "^4.14.188",
 		"@vitejs/plugin-react": "^4.2.0",
-		"dotenv": "^16.0.3"
+		"dotenv": "^16.3.1",
+		"remark": "^15.0.1",
+		"remark-frontmatter": "^5.0.0",
+		"remark-html": "^16.0.1",
+		"vfile-matter": "^5.0.0"
 	}
 }

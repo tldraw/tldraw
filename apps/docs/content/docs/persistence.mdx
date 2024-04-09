@@ -1,0 +1,172 @@
+---
+title: Persistence
+status: published
+author: steveruizok
+date: 3/22/2023
+order: 6
+keywords:
+  - data
+  - sync
+  - persistence
+  - database
+  - indexeddb
+  - localstorage
+---
+
+Persistence in tldraw means storing information about the editor's state to a database and then restoring it later. There are a few options that developers have for getting data into tldraw and out again.
+
+## The `"persistenceKey"` prop
+
+Both the `<Tldraw>` or `<TldrawEditor>` components support local persitence and cross-tab synchronization via the `persistenceKey` prop. Passing a value to this prop will persist the contents of the editor locally to the browser's IndexedDb.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw persistenceKey="my-persistence-key" />
+		</div>
+	)
+}
+```
+
+Using a `persistenceKey` will synchronize data automatically with any other tldraw component with the same `persistenceKey` prop, even if that component is in a different browser tab.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<div style={{ width: '50%', height: '100%' }}>
+				<Tldraw persistenceKey="my-persistence-key" />
+			</div>
+			<div style={{ width: '50%', height: '100%' }}>
+				<Tldraw persistenceKey="my-persistence-key" />
+			</div>
+		</div>
+	)
+}
+```
+
+In the example above, both editors would synchronize their document locally. They would still have two independent instance states (e.g. selections) but the document would be kept in sync and persisted under the same key.
+
+## Snapshots
+
+You can get a JSON snapshot of the editor's content using the [Editor#store](?)'s [Store#getSnapshot](?) method.
+
+```tsx
+function SaveButton() {
+	const editor = useEditor()
+	return (
+		<button
+			onClick={() => {
+				const snapshot = editor.store.getSnapshot()
+				const stringified = JSON.stringify(snapshot)
+				localStorage.setItem('my-editor-snapshot', stringified)
+			}}
+		>
+			Save
+		</button>
+	)
+}
+```
+
+You can load the snapshot into a new editor with [Store#loadSnapshot](?).
+
+```tsx
+function LoadButton() {
+	const editor = useEditor()
+	return (
+		<button
+			onClick={() => {
+				const stringified = localStorage.getItem('my-editor-snapshot')
+				const snapshot = JSON.parse(stringified)
+				editor.store.loadSnapshot(snapshot)
+			}}
+		>
+			Load
+		</button>
+	)
+}
+```
+
+A [snapshot](/reference/store/StoreSnapshot) includes both the store's [serialized records](/reference/store/SerializedStore) and its [serialized schema](/reference/store/SerializedSchema), which is used for migrations.
+
+> By default, the `getSnapshot` method returns only the editor's document data. If you want to get records from a different scope, You can pass in `session`, `document`, `presence`, or else `all` for all scopes.
+
+Note that loading a snapshot does not reset the editor's in memory state or UI state. For example, loading a snapshot during a resizing operation may lead to a crash. This is because the resizing state maintains its own cache of information about which shapes it is resizing, and its possible that those shapes may no longer exist!
+
+## The `"store"` prop
+
+While it's possible to load the editor and then load data into its store, we've found it best to create the store, set its data, and then pass the store into the editor.
+
+The `store` property of the `<Tldraw>` / `<TldrawEditor>` components accepts a store that you've defined outside of the component.
+
+```tsx
+export default function () {
+	const [store] = useState(() => {
+		// Create the store
+		const newStore = createTLStore({
+			shapeUtils: defaultShapeUtils,
+		})
+
+		// Get the snapshot
+		const stringified = localStorage.getItem('my-editor-snapshot')
+		const snapshot = JSON.parse(stringified)
+
+		// Load the snapshot
+		newStore.loadSnapshot(snapshot)
+
+		return newStore
+	})
+
+	return <Tldraw persistenceKey="my-persistence-key" store={store} />
+}
+```
+
+Sometimes you won't be able to access the store's data synchronously. To handle this case, the `store` property also accepts a [TLStoreWithStatus](?).
+
+```tsx
+export default function () {
+	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({
+		status: 'loading',
+	})
+
+	useEffect(() => {
+		let cancelled = false
+		async function loadRemoteSnapshot() {
+			// Get the snapshot
+			const snapshot = await getRemoteSnapshot()
+			if (cancelled) return
+
+			// Create the store
+			const newStore = createTLStore({
+				shapeUtils: defaultShapeUtils,
+			})
+
+			// Load the snapshot
+			newStore.loadSnapshot(snapshot)
+
+			// Update the store with status
+			setStoreWithStatus({
+				store: newStore,
+				status: 'ready',
+			})
+		}
+
+		loadRemoteSnapshot()
+
+		return () => {
+			cancelled = true
+		}
+	})
+
+	return <Tldraw persistenceKey="my-persistence-key" store={storeWithStatus} />
+}
+```
+
+For a good example of this pattern, see the [yjs-example](https://github.com/tldraw/tldraw-yjs-example).

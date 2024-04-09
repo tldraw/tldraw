@@ -1,13 +1,13 @@
 import { track, useEditor } from '@tldraw/editor'
 import * as React from 'react'
-import { useAssetUrls } from '../useAssetUrls'
+import { useAssetUrls } from '../../context/asset-urls'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
 import { TLUiTranslation, fetchTranslation } from './translations'
 
 /** @public */
 export interface TLUiTranslationProviderProps {
-	children: any
+	children: React.ReactNode
 	/**
 	 * A collection of overrides different locales.
 	 *
@@ -105,7 +105,7 @@ export const TranslationProvider = track(function TranslationProvider({
 export function useTranslation() {
 	const translation = useCurrentTranslation()
 	return React.useCallback(
-		function msg(id: Exclude<string, TLUiTranslationKey> | string) {
+		function msg(id?: Exclude<string, TLUiTranslationKey> | string) {
 			return translation.messages[id as TLUiTranslationKey] ?? id
 		},
 		[translation]

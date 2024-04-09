@@ -1,12 +1,12 @@
-import { Vec2d } from '../Vec2d'
+import { Vec } from '../Vec'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Polyline2d extends Geometry2d {
-	points: Vec2d[]
+	points: Vec[]
 
-	constructor(config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & { points: Vec2d[] }) {
+	constructor(config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & { points: Vec[] }) {
 		super({ isClosed: false, isFilled: false, ...config })
 		const { points } = config
 		this.points = points
@@ -47,26 +47,25 @@ export class Polyline2d extends Geometry2d {
 		return this.points
 	}
 
-	nearestPoint(A: Vec2d): Vec2d {
+	nearestPoint(A: Vec): Vec {
 		const { segments } = this
 		let nearest = this.points[0]
 		let dist = Infinity
-
-		let p: Vec2d // current point on segment
+		let p: Vec // current point on segment
 		let d: number // distance from A to p
 		for (let i = 0; i < segments.length; i++) {
 			p = segments[i].nearestPoint(A)
-			d = p.dist(A)
+			d = Vec.Dist2(p, A)
 			if (d < dist) {
 				nearest = p
 				dist = d
 			}
 		}
-
+		if (!nearest) throw Error('nearest point not found')
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
+	hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean {
 		return this.segments.some((edge) => edge.hitTestLineSegment(A, B, zoom))
 	}
 }

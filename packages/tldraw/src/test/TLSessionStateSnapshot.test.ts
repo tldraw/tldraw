@@ -124,23 +124,23 @@ describe(extractSessionStateFromLegacySnapshot, () => {
 		}
 
 		expect(extractSessionStateFromLegacySnapshot(oldSnapshot as any)).toMatchInlineSnapshot(`
-		Object {
+		{
 		  "currentPageId": "page:whatever",
 		  "exportBackground": false,
 		  "isDebugMode": false,
 		  "isFocusMode": false,
 		  "isGridMode": false,
 		  "isToolLocked": false,
-		  "pageStates": Array [
-		    Object {
-		      "camera": Object {
+		  "pageStates": [
+		    {
+		      "camera": {
 		        "x": 0,
 		        "y": 0,
 		        "z": 1,
 		      },
 		      "focusedGroupId": null,
 		      "pageId": "page:whatever",
-		      "selectedShapeIds": Array [
+		      "selectedShapeIds": [
 		        "shape:whatever",
 		      ],
 		    },

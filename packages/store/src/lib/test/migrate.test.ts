@@ -8,19 +8,19 @@ const serializedV1Schenma = testSchemaV1.serialize()
 
 test('serializedV0Schenma', () => {
 	expect(serializedV0Schenma).toMatchInlineSnapshot(`
-		Object {
-		  "recordVersions": Object {
-		    "org": Object {
+		{
+		  "recordVersions": {
+		    "org": {
 		      "version": 0,
 		    },
-		    "shape": Object {
+		    "shape": {
 		      "subTypeKey": "type",
-		      "subTypeVersions": Object {
+		      "subTypeVersions": {
 		        "rectangle": 0,
 		      },
 		      "version": 0,
 		    },
-		    "user": Object {
+		    "user": {
 		      "version": 0,
 		    },
 		  },
@@ -32,17 +32,17 @@ test('serializedV0Schenma', () => {
 
 test('serializedV1Schenma', () => {
 	expect(serializedV1Schenma).toMatchInlineSnapshot(`
-		Object {
-		  "recordVersions": Object {
-		    "shape": Object {
+		{
+		  "recordVersions": {
+		    "shape": {
 		      "subTypeKey": "type",
-		      "subTypeVersions": Object {
+		      "subTypeVersions": {
 		        "oval": 1,
 		        "rectangle": 1,
 		      },
 		      "version": 2,
 		    },
-		    "user": Object {
+		    "user": {
 		      "version": 2,
 		    },
 		  },

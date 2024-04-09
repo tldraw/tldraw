@@ -1,5 +1,5 @@
-import { parseAndLoadDocument, useDefaultHelpers, useEditor } from '@tldraw/tldraw'
 import React from 'react'
+import { parseAndLoadDocument, useDefaultHelpers, useEditor } from 'tldraw'
 import { vscode } from './utils/vscode'
 
 export function FileOpen({

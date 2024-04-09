@@ -1,0 +1,37 @@
+{
+	"name": "dotcom-asset-upload",
+	"description": "A Cloudflare Worker to upload and serve images",
+	"version": "2.0.0-alpha.8",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"main": "src/index.ts",
+	"scripts": {
+		"dev": "cross-env NODE_ENV=development wrangler dev --log-level info --persist-to tmp-assets",
+		"test-ci": "lazy inherit --passWithNoTests",
+		"test": "yarn run -T jest --passWithNoTests",
+		"test-coverage": "lazy inherit --passWithNoTests",
+		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+	},
+	"dependencies": {
+		"itty-cors": "^0.3.4",
+		"itty-router": "^4.0.13"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20230821.0",
+		"@types/ws": "^8.5.9",
+		"lazyrepo": "0.0.0-alpha.27",
+		"wrangler": "3.19.0"
+	},
+	"jest": {
+		"preset": "config/jest/node",
+		"moduleNameMapper": {
+			"^~(.*)": "<rootDir>/src/$1"
+		},
+		"transformIgnorePatterns": [
+			"node_modules/(?!(nanoid|escape-string-regexp)/)"
+		]
+	}
+}

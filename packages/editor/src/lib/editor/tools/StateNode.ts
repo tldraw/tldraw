@@ -7,7 +7,6 @@ import {
 	TLEventInfo,
 	TLExitEventHandler,
 	TLPinchEventInfo,
-	TLTickEventHandler,
 } from '../types/event-types'
 
 type TLStateNodeType = 'branch' | 'leaf' | 'root'
@@ -22,7 +21,10 @@ export interface TLStateNodeConstructor {
 
 /** @public */
 export abstract class StateNode implements Partial<TLEventHandlers> {
-	constructor(public editor: Editor, parent?: StateNode) {
+	constructor(
+		public editor: Editor,
+		parent?: StateNode
+	) {
 		const { id, children, initial } = this.constructor as TLStateNodeConstructor
 
 		this.id = id
@@ -155,7 +157,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	enter = (info: any, from: string) => {
 		this._isActive.set(true)
 		this.onEnter?.(info, from)
-		if (this.onTick) this.editor.on('tick', this.onTick)
+
 		if (this.children && this.initial && this.getIsActive()) {
 			const initial = this.children[this.initial]
 			this._current.set(initial)
@@ -166,8 +168,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	// todo: move this logic into transition
 	exit = (info: any, from: string) => {
 		this._isActive.set(false)
-		if (this.onTick) this.editor.off('tick', this.onTick)
 		this.onExit?.(info, from)
+
 		if (!this.getIsActive()) {
 			this.getCurrent()?.exit(info, from)
 		}
@@ -196,6 +198,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onWheel?: TLEventHandlers['onWheel']
 	onPointerDown?: TLEventHandlers['onPointerDown']
 	onPointerMove?: TLEventHandlers['onPointerMove']
+	onLongPress?: TLEventHandlers['onLongPress']
 	onPointerUp?: TLEventHandlers['onPointerUp']
 	onDoubleClick?: TLEventHandlers['onDoubleClick']
 	onTripleClick?: TLEventHandlers['onTripleClick']
@@ -208,8 +211,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onCancel?: TLEventHandlers['onCancel']
 	onComplete?: TLEventHandlers['onComplete']
 	onInterrupt?: TLEventHandlers['onInterrupt']
+	onTick?: TLEventHandlers['onTick']
 
 	onEnter?: TLEnterEventHandler
 	onExit?: TLExitEventHandler
-	onTick?: TLTickEventHandler
 }

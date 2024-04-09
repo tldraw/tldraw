@@ -1,4 +1,4 @@
-import { Vec2d, VecLike } from '@tldraw/editor'
+import { Vec, VecLike } from '@tldraw/editor'
 import type { StrokeOptions, StrokePoint } from './types'
 
 const MIN_START_PRESSURE = 0.025
@@ -28,7 +28,7 @@ export function getStrokePoints(
 	const t = 0.15 + (1 - streamline) * 0.85
 
 	// Whatever the input is, make sure that the points are in number[][].
-	let pts = rawInputPoints.map(Vec2d.From)
+	let pts = rawInputPoints.map(Vec.From)
 
 	let pointsRemovedFromNearEnd = 0
 
@@ -55,10 +55,10 @@ export function getStrokePoints(
 	if (pts.length === 0)
 		return [
 			{
-				point: Vec2d.From(rawInputPoints[0]),
-				input: Vec2d.From(rawInputPoints[0]),
+				point: Vec.From(rawInputPoints[0]),
+				input: Vec.From(rawInputPoints[0]),
 				pressure: simulatePressure ? 0.5 : 0.15,
-				vector: new Vec2d(1, 1),
+				vector: new Vec(1, 1),
 				distance: 0,
 				runningLength: 0,
 				radius: 1,
@@ -68,7 +68,7 @@ export function getStrokePoints(
 	// Strip points that are too close to the first point.
 	let pt = pts[1]
 	while (pt) {
-		if (Vec2d.Dist(pt, pts[0]) > size / 3) break
+		if (Vec.Dist(pt, pts[0]) > size / 3) break
 		pts[0].z = Math.max(pts[0].z, pt.z) // Use maximum pressure
 		pts.splice(1, 1)
 		pt = pts[1]
@@ -78,7 +78,7 @@ export function getStrokePoints(
 	const last = pts.pop()!
 	pt = pts[pts.length - 1]
 	while (pt) {
-		if (Vec2d.Dist(pt, last) > size / 3) break
+		if (Vec.Dist(pt, last) > size / 3) break
 		pts.pop()
 		pt = pts[pts.length - 1]
 		pointsRemovedFromNearEnd++
@@ -88,7 +88,7 @@ export function getStrokePoints(
 	const isComplete =
 		options.last ||
 		!options.simulatePressure ||
-		(pts.length > 1 && Vec2d.Dist(pts[pts.length - 1], pts[pts.length - 2]) < size) ||
+		(pts.length > 1 && Vec.Dist(pts[pts.length - 1], pts[pts.length - 2]) < size) ||
 		pointsRemovedFromNearEnd > 0
 
 	// Add extra points between the two, to help avoid "dash" lines
@@ -98,7 +98,7 @@ export function getStrokePoints(
 		const last = pts[1]
 		pts = pts.slice(0, -1)
 		for (let i = 1; i < 5; i++) {
-			const next = Vec2d.Lrp(pts[0], last, i / 4)
+			const next = Vec.Lrp(pts[0], last, i / 4)
 			next.z = ((pts[0].z + (last.z - pts[0].z)) * i) / 4
 			pts.push(next)
 		}
@@ -111,7 +111,7 @@ export function getStrokePoints(
 			point: pts[0],
 			input: pts[0],
 			pressure: simulatePressure ? 0.5 : pts[0].z,
-			vector: new Vec2d(1, 1),
+			vector: new Vec(1, 1),
 			distance: 0,
 			runningLength: 0,
 			radius: 1,
@@ -126,7 +126,7 @@ export function getStrokePoints(
 	let prev = strokePoints[0]
 
 	// Iterate through all of the points, creating StrokePoints.
-	let point: Vec2d, distance: number
+	let point: Vec, distance: number
 
 	if (isComplete && streamline > 0) {
 		pts.push(pts[pts.length - 1].clone())
@@ -140,7 +140,7 @@ export function getStrokePoints(
 		if (prev.point.equals(point)) continue
 
 		// How far is the new point from the previous point?
-		distance = Vec2d.Dist(point, prev.point)
+		distance = Vec.Dist(point, prev.point)
 
 		// Add this distance to the total "running length" of the line.
 		totalLength += distance
@@ -160,7 +160,7 @@ export function getStrokePoints(
 			// The input pressure (or .5 if not specified)
 			pressure: simulatePressure ? 0.5 : pts[i].z,
 			// The vector from the current point to the previous point
-			vector: Vec2d.Sub(prev.point, point).uni(),
+			vector: Vec.Sub(prev.point, point).uni(),
 			// The distance between the current point and the previous point
 			distance,
 			// The total distance so far

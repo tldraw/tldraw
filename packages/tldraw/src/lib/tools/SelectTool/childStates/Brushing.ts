@@ -1,7 +1,7 @@
 import {
-	Box2d,
+	Box,
 	HIT_TEST_MARGIN,
-	Matrix2d,
+	Mat,
 	StateNode,
 	TLCancelEvent,
 	TLEventHandlers,
@@ -13,8 +13,7 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
-	TLTickEventHandler,
-	Vec2d,
+	Vec,
 	moveCameraWhenCloseToEdge,
 	pointInPolygon,
 	polygonsIntersect,
@@ -25,15 +24,18 @@ export class Brushing extends StateNode {
 
 	info = {} as TLPointerEventInfo & { target: 'canvas' }
 
-	brush = new Box2d()
+	brush = new Box()
 	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
+	isWrapMode = false
 
 	// The shape that the brush started on
 	initialStartShape: TLShape | null = null
 
 	override onEnter = (info: TLPointerEventInfo & { target: 'canvas' }) => {
 		const { altKey, currentPagePoint } = this.editor.inputs
+
+		this.isWrapMode = this.editor.user.getIsWrapMode()
 
 		if (altKey) {
 			this.parent.transition('scribble_brushing', info)
@@ -54,7 +56,7 @@ export class Brushing extends StateNode {
 		this.info = info
 		this.initialSelectedShapeIds = this.editor.getSelectedShapeIds().slice()
 		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
-		this.onPointerMove()
+		this.hitTestShapes()
 	}
 
 	override onExit = () => {
@@ -62,7 +64,7 @@ export class Brushing extends StateNode {
 		this.editor.updateInstanceState({ brush: null })
 	}
 
-	override onTick: TLTickEventHandler = () => {
+	override onTick = () => {
 		moveCameraWhenCloseToEdge(this.editor)
 	}
 
@@ -96,6 +98,7 @@ export class Brushing extends StateNode {
 	}
 
 	private complete() {
+		this.hitTestShapes()
 		this.parent.transition('idle')
 	}
 
@@ -108,22 +111,24 @@ export class Brushing extends StateNode {
 		} = this.editor
 
 		// Set the brush to contain the current and origin points
-		this.brush.setTo(Box2d.FromPoints([originPagePoint, currentPagePoint]))
+		this.brush.setTo(Box.FromPoints([originPagePoint, currentPagePoint]))
 
 		// We'll be collecting shape ids
 		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
 
-		let A: Vec2d,
-			B: Vec2d,
+		let A: Vec,
+			B: Vec,
 			shape: TLShape,
-			pageBounds: Box2d | undefined,
-			pageTransform: Matrix2d | undefined,
-			localCorners: Vec2d[]
+			pageBounds: Box | undefined,
+			pageTransform: Mat | undefined,
+			localCorners: Vec[]
 
 		// We'll be testing the corners of the brush against the shapes
 		const { corners } = this.brush
 
-		const { excludedShapeIds } = this
+		const { excludedShapeIds, isWrapMode } = this
+
+		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
 
 		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
 			shape = currentPageShapes[i]
@@ -142,7 +147,7 @@ export class Brushing extends StateNode {
 			// Should we even test for a single segment intersections? Only if
 			// we're not holding the ctrl key for alternate selection mode
 			// (only wraps count!), or if the shape is a frame.
-			if (ctrlKey || this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+			if (isWrapping || this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
 				continue testAllShapes
 			}
 
@@ -184,10 +189,10 @@ export class Brushing extends StateNode {
 
 	private handleHit(
 		shape: TLShape,
-		currentPagePoint: Vec2d,
+		currentPagePoint: Vec,
 		currentPageId: TLPageId,
 		results: Set<TLShapeId>,
-		corners: Vec2d[]
+		corners: Vec[]
 	) {
 		if (shape.parentId === currentPageId) {
 			results.add(shape.id)

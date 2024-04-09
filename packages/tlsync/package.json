@@ -1,0 +1,72 @@
+{
+	"name": "@tldraw/tlsync",
+	"description": "A tiny little drawing app (multiplayer sync).",
+	"version": "2.0.0-alpha.11",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
+	"files": [],
+	"scripts": {
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
+		"test-coverage": "lazy inherit",
+		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+	},
+	"devDependencies": {
+		"tldraw": "workspace:*",
+		"typescript": "^5.3.3",
+		"uuid-by-string": "^4.0.0",
+		"uuid-readable": "^0.0.2"
+	},
+	"jest": {
+		"preset": "config/jest/node",
+		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
+		"moduleNameMapper": {
+			"^~(.*)": "<rootDir>/src/$1"
+		},
+		"transformIgnorePatterns": [
+			"ignore everything. swc is fast enough to transform everything"
+		],
+		"setupFiles": [
+			"./setupJest.js"
+		]
+	},
+	"dependencies": {
+		"@tldraw/state": "workspace:*",
+		"@tldraw/store": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"lodash.isequal": "^4.5.0",
+		"nanoevents": "^7.0.1",
+		"nanoid": "4.0.2",
+		"ws": "^8.16.0"
+	},
+	"peerDependencies": {
+		"react": "^18",
+		"react-dom": "^18"
+	}
+}

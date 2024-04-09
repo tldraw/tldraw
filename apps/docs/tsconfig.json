@@ -1,0 +1,33 @@
+{
+	"extends": "../../config/tsconfig.base.json",
+	"compilerOptions": {
+		"paths": {
+			"@/*": ["./*"]
+		},
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"plugins": [
+			{
+				"name": "next"
+			}
+		],
+		"allowJs": true,
+		"emitDeclarationOnly": false,
+		"noEmit": true,
+		"isolatedModules": true,
+		"jsx": "preserve"
+	},
+	"include": [
+		"next-env.d.ts",
+		"**/*.ts",
+		"**/*.tsx",
+		"content.d.ts",
+		".next/types/**/*.ts",
+		"watcher.ts"
+	],
+	"exclude": ["node_modules", ".next"],
+	"references": [
+		{
+			"path": "../../packages/utils"
+		}
+	]
+}

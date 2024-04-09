@@ -39,7 +39,10 @@ const EMPTY_STACK_ITEM = new EmptyStackItem()
 
 class StackItem<T> implements Iterable<T> {
 	length: number
-	constructor(public readonly head: T, public readonly tail: Stack<T>) {
+	constructor(
+		public readonly head: T,
+		public readonly tail: Stack<T>
+	) {
 		this.length = tail.length + 1
 	}
 

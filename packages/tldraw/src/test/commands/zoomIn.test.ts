@@ -25,6 +25,28 @@ it('zooms by increments', () => {
 	expect(editor.getZoomLevel()).toBe(ZOOMS[6])
 })
 
+it('preserves the screen center', () => {
+	const viewportCenter = editor.getViewportPageCenter().toJson()
+	const screenCenter = editor.getViewportScreenCenter().toJson()
+
+	editor.zoomIn()
+
+	expect(editor.getViewportPageCenter().toJson()).toCloselyMatchObject(viewportCenter)
+	expect(editor.getViewportScreenCenter().toJson()).toCloselyMatchObject(screenCenter)
+})
+
+it('preserves the screen center when offset', () => {
+	editor.setScreenBounds({ x: 100, y: 100, w: 1000, h: 1000 })
+
+	const viewportCenter = editor.getViewportPageCenter().toJson()
+	const screenCenter = editor.getViewportScreenCenter().toJson()
+
+	editor.zoomIn()
+
+	expect(editor.getViewportPageCenter().toJson()).toCloselyMatchObject(viewportCenter)
+	expect(editor.getViewportScreenCenter().toJson()).toCloselyMatchObject(screenCenter)
+})
+
 it('zooms to from B to D when B >= (C - A)/2, else zooms from B to C', () => {
 	editor.setCamera({ x: 0, y: 0, z: (ZOOMS[2] + ZOOMS[3]) / 2 })
 	editor.zoomIn()

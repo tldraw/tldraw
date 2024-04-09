@@ -1,8 +1,7 @@
 {
 	"name": "@tldraw/editor",
 	"description": "A tiny little drawing app (editor).",
-	"version": "2.0.0-beta.1",
-	"packageManager": "yarn@3.5.0",
+	"version": "2.0.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -34,7 +33,8 @@
 		"editor.css"
 	],
 	"scripts": {
-		"test": "lazy inherit",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
 		"benchmark": "yarn run -T tsx ./scripts/benchmark.ts",
 		"test-coverage": "lazy inherit",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",
@@ -76,7 +76,7 @@
 		"@types/wicg-file-system-access": "^2020.9.5",
 		"benchmark": "^2.1.4",
 		"fake-indexeddb": "^4.0.0",
-		"jest-canvas-mock": "^2.5.1",
+		"jest-canvas-mock": "^2.5.2",
 		"jest-environment-jsdom": "^29.4.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react-test-renderer": "^18.2.0",
@@ -84,7 +84,7 @@
 	},
 	"jest": {
 		"preset": "config/jest/node",
-		"testEnvironment": "jsdom",
+		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"fakeTimers": {
 			"enableGlobally": true
 		},

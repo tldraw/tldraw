@@ -60,7 +60,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 			type: T['type']
 			props?: Partial<T['props']>
 			meta?: Partial<T['meta']>
-	  } & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
+		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
 	: never
 
 /** @public */
@@ -87,11 +87,12 @@ export const rootShapeVersions = {
 	AddIsLocked: 1,
 	HoistOpacity: 2,
 	AddMeta: 3,
+	AddWhite: 4,
 } as const
 
 /** @internal */
 export const rootShapeMigrations = defineMigrations({
-	currentVersion: rootShapeVersions.AddMeta,
+	currentVersion: rootShapeVersions.AddWhite,
 	migrators: {
 		[rootShapeVersions.AddIsLocked]: {
 			up: (record) => {
@@ -124,12 +125,12 @@ export const rootShapeMigrations = defineMigrations({
 							opacity < 0.175
 								? '0.1'
 								: opacity < 0.375
-								? '0.25'
-								: opacity < 0.625
-								? '0.5'
-								: opacity < 0.875
-								? '0.75'
-								: '1',
+									? '0.25'
+									: opacity < 0.625
+										? '0.5'
+										: opacity < 0.875
+											? '0.75'
+											: '1',
 					},
 				}
 			},
@@ -144,6 +145,22 @@ export const rootShapeMigrations = defineMigrations({
 			down: ({ meta: _, ...record }) => {
 				return {
 					...record,
+				}
+			},
+		},
+		[rootShapeVersions.AddWhite]: {
+			up: (record) => {
+				return {
+					...record,
+				}
+			},
+			down: (record) => {
+				return {
+					...record,
+					props: {
+						...record.props,
+						color: record.props.color === 'white' ? 'black' : record.props.color,
+					},
 				}
 			},
 		},

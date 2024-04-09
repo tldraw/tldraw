@@ -1,10 +1,11 @@
-import { Box2d } from '../Box2d'
-import { Vec2d } from '../Vec2d'
+import { Box } from '../Box'
+import { Vec } from '../Vec'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Group2d extends Geometry2d {
-	children: Geometry2d[]
+	children: Geometry2d[] = []
+	ignoredChildren: Geometry2d[] = []
 
 	constructor(
 		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
@@ -12,20 +13,25 @@ export class Group2d extends Geometry2d {
 		}
 	) {
 		super({ ...config, isClosed: true, isFilled: false })
-		const { children } = config
 
-		if (children.length === 0) throw Error('Group2d must have at least one child')
+		for (const child of config.children) {
+			if (child.ignore) {
+				this.ignoredChildren.push(child)
+			} else {
+				this.children.push(child)
+			}
+		}
 
-		this.children = children
+		if (this.children.length === 0) throw Error('Group2d must have at least one child')
 	}
 
-	override getVertices(): Vec2d[] {
+	override getVertices(): Vec[] {
 		return this.children.filter((c) => !c.isLabel).flatMap((c) => c.vertices)
 	}
 
-	override nearestPoint(point: Vec2d): Vec2d {
-		let d = Infinity
-		let p: Vec2d | undefined
+	override nearestPoint(point: Vec): Vec {
+		let dist = Infinity
+		let nearest: Vec | undefined
 
 		const { children } = this
 
@@ -33,29 +39,31 @@ export class Group2d extends Geometry2d {
 			throw Error('no children')
 		}
 
+		let p: Vec
+		let d: number
 		for (const child of children) {
-			const nearest = child.nearestPoint(point)
-			const dist = nearest.dist(point)
-			if (dist < d) {
-				d = dist
-				p = nearest
+			p = child.nearestPoint(point)
+			d = Vec.Dist2(p, point)
+			if (d < dist) {
+				dist = d
+				nearest = p
 			}
 		}
-		if (!p) throw Error('nearest point not found')
-		return p
+		if (!nearest) throw Error('nearest point not found')
+		return nearest
 	}
 
-	override distanceToPoint(point: Vec2d, hitInside = false) {
+	override distanceToPoint(point: Vec, hitInside = false) {
 		return Math.min(...this.children.map((c, i) => c.distanceToPoint(point, hitInside || i > 0)))
 	}
 
-	override hitTestPoint(point: Vec2d, margin: number, hitInside: boolean): boolean {
+	override hitTestPoint(point: Vec, margin: number, hitInside: boolean): boolean {
 		return !!this.children
 			.filter((c) => !c.isLabel)
 			.find((c) => c.hitTestPoint(point, margin, hitInside))
 	}
 
-	override hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
+	override hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean {
 		return !!this.children.filter((c) => !c.isLabel).find((c) => c.hitTestLineSegment(A, B, zoom))
 	}
 
@@ -70,7 +78,7 @@ export class Group2d extends Geometry2d {
 			path += child.toSimpleSvgPath()
 		}
 
-		const corners = Box2d.FromPoints(this.vertices).corners
+		const corners = Box.FromPoints(this.vertices).corners
 		// draw just a few pixels around each corner, e.g. an L shape for the bottom left
 
 		for (let i = 0, n = corners.length; i < n; i++) {

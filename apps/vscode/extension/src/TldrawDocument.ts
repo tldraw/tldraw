@@ -1,4 +1,4 @@
-import { TldrawFile } from '@tldraw/tldraw'
+import { TldrawFile } from 'tldraw'
 import * as vscode from 'vscode'
 import { defaultFileContents, fileExists, loadFile } from './file'
 import { nicelog } from './utils'
@@ -115,7 +115,7 @@ export class TLDrawDocument implements vscode.CustomDocument {
 	}
 
 	private async writeToResource(targetResource: vscode.Uri) {
-		const fileContents = Buffer.from(JSON.stringify(this.documentData, null, 2), 'utf8')
+		const fileContents = Buffer.from(JSON.stringify(this.documentData, null, '\t'), 'utf8')
 		await vscode.workspace.fs.writeFile(targetResource, fileContents)
 	}
 

@@ -1,5 +1,5 @@
 import { createShapeId } from '@tldraw/tlschema'
-import { Vec2d } from '../../../../primitives/Vec2d'
+import { Vec } from '../../../../primitives/Vec'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
@@ -96,7 +96,7 @@ export class Pointing extends StateNode {
 
 		const shape = this.editor.getShape<TLBaseBoxShape>(id)!
 		const { w, h } = this.editor.getShapeUtil(shape).getDefaultProps() as TLBaseBoxShape['props']
-		const delta = new Vec2d(w / 2, h / 2)
+		const delta = new Vec(w / 2, h / 2)
 
 		const parentTransform = this.editor.getShapeParentTransform(shape)
 		if (parentTransform) delta.rot(-parentTransform.rotation())

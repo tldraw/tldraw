@@ -1,12 +1,16 @@
-import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { SharedStyle, StyleProp, preventDefault } from '@tldraw/editor'
+import { SharedStyle, StyleProp } from '@tldraw/editor'
 import * as React from 'react'
+import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TLUiIconType } from '../../icon-types'
-import { Button } from '../primitives/Button'
-import * as DropdownMenu from '../primitives/DropdownMenu'
-import { StyleValuesForUi } from './styles'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import {
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
 
 interface DoubleDropdownPickerProps<T extends string> {
 	uiTypeA: string
@@ -23,7 +27,7 @@ interface DoubleDropdownPickerProps<T extends string> {
 	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
-export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T extends string>({
+function _DoubleDropdownPicker<T extends string>({
 	label,
 	uiTypeA,
 	uiTypeB,
@@ -60,13 +64,9 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 				{msg(label)}
 			</div>
 			<div className="tlui-buttons__horizontal">
-				<DropdownMenu.Root id={`style panel ${uiTypeA} A`}>
-					<Trigger
-						asChild
-						// Firefox fix: Stop the dropdown immediately closing after touch
-						onTouchEnd={(e) => preventDefault(e)}
-					>
-						<Button
+				<TldrawUiDropdownMenuRoot id={`style panel ${uiTypeA} A`}>
+					<TldrawUiDropdownMenuTrigger>
+						<TldrawUiButton
 							type="icon"
 							data-testid={`style.${uiTypeA}`}
 							title={
@@ -76,40 +76,32 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 									? msg('style-panel.mixed')
 									: msg(`${uiTypeA}-style.${valueA.value}` as TLUiTranslationKey))
 							}
-							icon={iconA as any}
-							invertIcon
-							smallIcon
-						/>
-					</Trigger>
-					<DropdownMenu.Content side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+						>
+							<TldrawUiButtonIcon icon={iconA} small invertIcon />
+						</TldrawUiButton>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
-							{itemsA.map((item) => {
+							{itemsA.map((item, i) => {
 								return (
-									<DropdownMenu.Item
-										type="icon"
-										title={
-											msg(labelA) +
-											' — ' +
-											msg(`${uiTypeA}-style.${item.value}` as TLUiTranslationKey)
-										}
-										data-testid={`style.${uiTypeA}.${item.value}`}
-										key={item.value}
-										icon={item.icon as TLUiIconType}
-										onClick={() => onValueChange(styleA, item.value, false)}
-										invertIcon
-									/>
+									<TldrawUiDropdownMenuItem key={i} data-testid={`style.${uiTypeA}.${item.value}`}>
+										<TldrawUiButton
+											type="icon"
+											key={item.value}
+											onClick={() => onValueChange(styleA, item.value, false)}
+											title={`${msg(labelA)} — ${msg(`${uiTypeA}-style.${item.value}`)}`}
+										>
+											<TldrawUiButtonIcon icon={item.icon} invertIcon />
+										</TldrawUiButton>
+									</TldrawUiDropdownMenuItem>
 								)
 							})}
 						</div>
-					</DropdownMenu.Content>
-				</DropdownMenu.Root>
-				<DropdownMenu.Root id={`style panel ${uiTypeB}`}>
-					<Trigger
-						asChild
-						// Firefox fix: Stop the dropdown immediately closing after touch
-						onTouchEnd={(e) => preventDefault(e)}
-					>
-						<Button
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiDropdownMenuRoot>
+				<TldrawUiDropdownMenuRoot id={`style panel ${uiTypeB}`}>
+					<TldrawUiDropdownMenuTrigger>
+						<TldrawUiButton
 							type="icon"
 							data-testid={`style.${uiTypeB}`}
 							title={
@@ -119,32 +111,35 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 									? msg('style-panel.mixed')
 									: msg(`${uiTypeB}-style.${valueB.value}` as TLUiTranslationKey))
 							}
-							icon={iconB as any}
-							smallIcon
-						/>
-					</Trigger>
-					<DropdownMenu.Content side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+						>
+							<TldrawUiButtonIcon icon={iconB} small />
+						</TldrawUiButton>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
 						<div className="tlui-buttons__grid">
 							{itemsB.map((item) => {
 								return (
-									<DropdownMenu.Item
-										type="icon"
-										title={
-											msg(labelB) +
-											' — ' +
-											msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)
-										}
-										data-testid={`style.${uiTypeB}.${item.value}`}
-										key={item.value}
-										icon={item.icon as TLUiIconType}
-										onClick={() => onValueChange(styleB, item.value, false)}
-									/>
+									<TldrawUiDropdownMenuItem key={item.value}>
+										<TldrawUiButton
+											type="icon"
+											title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
+											data-testid={`style.${uiTypeB}.${item.value}`}
+											onClick={() => onValueChange(styleB, item.value, false)}
+										>
+											<TldrawUiButtonIcon icon={item.icon} />
+										</TldrawUiButton>
+									</TldrawUiDropdownMenuItem>
 								)
 							})}
 						</div>
-					</DropdownMenu.Content>
-				</DropdownMenu.Root>
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiDropdownMenuRoot>
 			</div>
 		</div>
 	)
-})
+}
+
+// need to memo like this to get generics
+export const DoubleDropdownPicker = React.memo(
+	_DoubleDropdownPicker
+) as typeof _DoubleDropdownPicker

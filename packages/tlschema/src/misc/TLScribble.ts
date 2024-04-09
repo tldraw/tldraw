@@ -1,7 +1,7 @@
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLCanvasUiColor, canvasUiColorTypeValidator } from './TLColor'
-import { Vec2dModel, vec2dModelValidator } from './geometry-types'
+import { VecModel, vecModelValidator } from './geometry-types'
 
 /**
  * The scribble states used by tldraw.
@@ -15,7 +15,7 @@ export const TL_SCRIBBLE_STATES = new Set(['starting', 'paused', 'active', 'stop
  * @public */
 export type TLScribble = {
 	id: string
-	points: Vec2dModel[]
+	points: VecModel[]
 	size: number
 	color: TLCanvasUiColor
 	opacity: number
@@ -28,7 +28,7 @@ export type TLScribble = {
 /** @internal */
 export const scribbleValidator: T.Validator<TLScribble> = T.object({
 	id: T.string,
-	points: T.arrayOf(vec2dModelValidator),
+	points: T.arrayOf(vecModelValidator),
 	size: T.positiveNumber,
 	color: canvasUiColorTypeValidator,
 	opacity: T.number,

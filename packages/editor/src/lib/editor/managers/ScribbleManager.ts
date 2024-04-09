@@ -1,16 +1,15 @@
-import { TLScribble, Vec2dModel } from '@tldraw/tlschema'
-import { Vec2d } from '../../primitives/Vec2d'
+import { TLScribble, VecModel } from '@tldraw/tlschema'
+import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import { Editor } from '../Editor'
-import { TLTickEvent } from '../types/event-types'
 
 type ScribbleItem = {
 	id: string
 	scribble: TLScribble
 	timeoutMs: number
 	delayRemaining: number
-	prev: null | Vec2dModel
-	next: null | Vec2dModel
+	prev: null | VecModel
+	next: null | VecModel
 }
 
 /** @public */
@@ -41,26 +40,12 @@ export class ScribbleManager {
 			next: null,
 		}
 		this.scribbleItems.set(id, item)
-		if (this.state === 'paused') {
-			this.resume()
-		}
 		return item
-	}
-
-	resume() {
-		this.state = 'running'
-		this.editor.addListener('tick', this.tick)
-	}
-
-	pause() {
-		this.editor.removeListener('tick', this.tick)
-		this.state = 'paused'
 	}
 
 	reset() {
 		this.editor.updateInstanceState({ scribbles: [] })
 		this.scribbleItems.clear()
-		this.pause()
 	}
 
 	/**
@@ -87,7 +72,7 @@ export class ScribbleManager {
 		if (!item) throw Error(`Scribble with id ${id} not found`)
 		const { prev } = item
 		const point = { x, y, z: 0.5 }
-		if (!prev || Vec2d.Dist(prev, point) >= 1) {
+		if (!prev || Vec.Dist(prev, point) >= 1) {
 			item.next = point
 		}
 		return item
@@ -99,7 +84,8 @@ export class ScribbleManager {
 	 * @param elapsed - The number of milliseconds since the last tick.
 	 * @public
 	 */
-	tick: TLTickEvent = (elapsed) => {
+	tick = (elapsed: number) => {
+		if (this.scribbleItems.size === 0) return
 		this.editor.batch(() => {
 			this.scribbleItems.forEach((item) => {
 				// let the item get at least eight points before
@@ -190,11 +176,6 @@ export class ScribbleManager {
 					}))
 					.slice(-5), // limit to three as a minor sanity check
 			})
-
-			// If we've removed all the scribbles, stop ticking
-			if (this.scribbleItems.size === 0) {
-				this.pause()
-			}
 		})
 	}
 }

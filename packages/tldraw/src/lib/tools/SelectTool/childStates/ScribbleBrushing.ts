@@ -7,7 +7,7 @@ import {
 	TLGroupShape,
 	TLShape,
 	TLShapeId,
-	Vec2d,
+	Vec,
 	intersectLineSegmentPolyline,
 	pointInPolygon,
 } from '@tldraw/editor'
@@ -42,9 +42,7 @@ export class ScribbleBrushing extends StateNode {
 
 		this.updateScribbleSelection(true)
 
-		requestAnimationFrame(() => {
-			this.editor.updateInstanceState({ brush: null })
-		})
+		this.editor.updateInstanceState({ brush: null })
 	}
 
 	override onExit = () => {
@@ -98,7 +96,7 @@ export class ScribbleBrushing extends StateNode {
 		}
 
 		const shapes = currentPageShapes
-		let shape: TLShape, geometry: Geometry2d, A: Vec2d, B: Vec2d
+		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
 
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
@@ -157,6 +155,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private complete() {
+		this.updateScribbleSelection(true)
 		this.parent.transition('idle')
 	}
 

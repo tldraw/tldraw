@@ -19,7 +19,7 @@ function isChild(x: any): x is Child {
 export function haveParentsChanged(child: Child) {
 	for (let i = 0, n = child.parents.length; i < n; i++) {
 		// Get the parent's value without capturing it.
-		child.parents[i].__unsafe__getWithoutCapture()
+		child.parents[i].__unsafe__getWithoutCapture(true)
 
 		// If the parent's epoch does not match the child's view of the parent's epoch, then the parent has changed.
 		if (child.parents[i].lastChangedEpoch !== child.parentEpochs[i]) {

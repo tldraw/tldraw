@@ -5,7 +5,7 @@ import {
 	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
-	throttledRaf,
+	throttleToNextFrame,
 } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
@@ -84,6 +84,7 @@ export type StoreSnapshot<R extends UnknownRecord> = {
 /** @public */
 export type StoreValidator<R extends UnknownRecord> = {
 	validate: (record: unknown) => R
+	validateUsingKnownGoodVersion?: (knownGoodVersion: R, record: unknown) => R
 }
 
 /** @public */
@@ -204,7 +205,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				// If we have accumulated history, flush it and update listeners
 				this._flushHistory()
 			},
-			{ scheduleEffect: (cb) => throttledRaf(cb) }
+			{ scheduleEffect: (cb) => throttleToNextFrame(cb) }
 		)
 		this.scopedTypes = {
 			document: new Set(
@@ -317,7 +318,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	onAfterCreate?: (record: R, source: 'remote' | 'user') => void
 
 	/**
-	 * A callback before after each record's change.
+	 * A callback fired before each record's change.
 	 *
 	 * @param prev - The previous value, if any.
 	 * @param next - The next value.
@@ -382,30 +383,26 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
 
 				if (recordAtom) {
-					if (beforeUpdate) record = beforeUpdate(recordAtom.get(), record, source)
-
 					// If we already have an atom for this record, update its value.
-
 					const initialValue = recordAtom.__unsafe__getWithoutCapture()
 
+					// If we have a beforeUpdate callback, run it against the initial and next records
+					if (beforeUpdate) record = beforeUpdate(initialValue, record, source)
+
 					// Validate the record
-					record = this.schema.validateRecord(
+					const validated = this.schema.validateRecord(
 						this,
 						record,
 						phaseOverride ?? 'updateRecord',
 						initialValue
 					)
 
+					if (validated === initialValue) continue
+
 					recordAtom.set(devFreeze(record))
 
-					// need to deref atom in case nextValue is not identical but is .equals?
-					const finalValue = recordAtom.__unsafe__getWithoutCapture()
-
-					// If the value has changed, assign it to updates.
-					if (initialValue !== finalValue) {
-						didChange = true
-						updates[record.id] = [initialValue, finalValue]
-					}
+					didChange = true
+					updates[record.id] = [initialValue, recordAtom.__unsafe__getWithoutCapture()]
 				} else {
 					if (beforeCreate) record = beforeCreate(record, source)
 
@@ -910,7 +907,9 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 }
 
 /**
- * Collect all history entries by their sources.
+ * Collect all history entries by their adjacent sources.
+ * For example, [user, user, remote, remote, user] would result in [user, remote, user],
+ * with adjacent entries of the same source squashed into a single entry.
  *
  * @param entries - The array of history entries.
  * @returns A map of history entries by their sources.
@@ -919,28 +918,29 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 function squashHistoryEntries<T extends UnknownRecord>(
 	entries: HistoryEntry<T>[]
 ): HistoryEntry<T>[] {
-	const result: HistoryEntry<T>[] = []
+	if (entries.length === 0) return []
 
-	let current = entries[0]
+	const chunked: HistoryEntry<T>[][] = []
+	let chunk: HistoryEntry<T>[] = [entries[0]]
 	let entry: HistoryEntry<T>
 
 	for (let i = 1, n = entries.length; i < n; i++) {
 		entry = entries[i]
-
-		if (current.source !== entry.source) {
-			result.push(current)
-			current = entry
-		} else {
-			current = {
-				source: current.source,
-				changes: squashRecordDiffs([current.changes, entry.changes]),
-			}
+		if (chunk[0].source !== entry.source) {
+			chunked.push(chunk)
+			chunk = []
 		}
+		chunk.push(entry)
 	}
+	// Push the last chunk
+	chunked.push(chunk)
 
-	result.push(current)
-
-	return devFreeze(result)
+	return devFreeze(
+		chunked.map((chunk) => ({
+			source: chunk[0].source,
+			changes: squashRecordDiffs(chunk.map((e) => e.changes)),
+		}))
+	)
 }
 
 /** @public */

@@ -19,7 +19,7 @@ import {
 	partition,
 	transact,
 } from '@tldraw/editor'
-import { TLUiToastsContextType } from '../../ui/hooks/useToastsProvider'
+import { TLUiToastsContextType } from '../../ui/context/toasts'
 import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
 import { buildFromV1Document } from '../tldr/buildFromV1Document'
 
@@ -56,7 +56,7 @@ const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 	}),
 	records: T.arrayOf(
 		T.object({
-			id: T.string as T.Validator<RecordId<any>>,
+			id: T.string as any as T.Validator<RecordId<any>>,
 			typeName: T.string,
 		}).allowUnknownProperties()
 	),
@@ -168,7 +168,7 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 					let assetSrcToSave
 					try {
 						// try to save the asset as a base64 string
-						assetSrcToSave = await FileHelpers.fileToBase64(
+						assetSrcToSave = await FileHelpers.blobToDataUrl(
 							await (await fetch(record.props.src)).blob()
 						)
 					} catch {
@@ -267,6 +267,7 @@ export async function parseAndLoadDocument(
 		addToast({
 			title: msg('file-system.file-open-error.title'),
 			description,
+			severity: 'error',
 		})
 
 		return
@@ -279,6 +280,7 @@ export async function parseAndLoadDocument(
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
 	transact(() => {
+		const initialBounds = editor.getViewportScreenBounds().clone()
 		const isFocused = editor.getInstanceState().isFocused
 		editor.store.clear()
 		const [shapes, nonShapes] = partition(
@@ -289,12 +291,13 @@ export async function parseAndLoadDocument(
 		editor.store.ensureStoreIsUsable()
 		editor.store.put(shapes, 'initialize')
 		editor.history.clear()
-		editor.updateViewportScreenBounds()
+		// Put the old bounds back in place
+		editor.updateViewportScreenBounds(initialBounds)
 		editor.updateRenderingBounds()
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {
-			editor.zoomToBounds(bounds, 1)
+			editor.zoomToBounds(bounds, { targetZoom: 1 })
 		}
 		editor.updateInstanceState({ isFocused })
 	})

@@ -1,4 +1,4 @@
-import { Vec2d } from '@tldraw/editor'
+import { Vec } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -15,7 +15,7 @@ it('ignores touch events while in pen mode', async () => {
 		name: 'pointer_down',
 		isPen: false,
 		pointerId: 1,
-		point: new Vec2d(100, 100),
+		point: new Vec(100, 100),
 		shiftKey: false,
 		altKey: false,
 		ctrlKey: false,

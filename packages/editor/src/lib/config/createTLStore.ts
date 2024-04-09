@@ -32,13 +32,13 @@ export function createTLStore({ initialData, defaultName = '', ...rest }: TLStor
 	const schema =
 		'schema' in rest && rest.schema
 			? // we have a schema
-			  rest.schema
+				rest.schema
 			: // we need a schema
-			  createTLSchema({
+				createTLSchema({
 					shapes: currentPageShapesToShapeMap(
 						checkShapesAndAddCore('shapeUtils' in rest && rest.shapeUtils ? rest.shapeUtils : [])
 					),
-			  })
+				})
 
 	return new Store({
 		schema,

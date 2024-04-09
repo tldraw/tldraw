@@ -1,13 +1,15 @@
 import {
-	Box2dModel,
+	Box,
+	BoxModel,
 	Editor,
-	Matrix2d,
+	HALF_PI,
+	IdOf,
+	Mat,
 	PageRecordType,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RequiredKeys,
 	RotateCorner,
 	SelectionHandle,
-	TAU,
 	TLContent,
 	TLEditorOptions,
 	TLEventInfo,
@@ -18,7 +20,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLWheelEventInfo,
-	Vec2d,
+	Vec,
 	VecLike,
 	createShapeId,
 	createTLStore,
@@ -83,7 +85,7 @@ export class TestEditor extends Editor {
 				lineHeight: number
 				maxWidth: null | number
 			}
-		): Box2dModel => {
+		): BoxModel => {
 			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
 				return curr.length > acc.length ? curr : acc
@@ -117,7 +119,7 @@ export class TestEditor extends Editor {
 	elm: HTMLDivElement
 	bounds = { x: 0, y: 0, top: 0, left: 0, width: 1080, height: 720, bottom: 720, right: 1080 }
 
-	setScreenBounds(bounds: Box2dModel, center = false) {
+	setScreenBounds(bounds: BoxModel, center = false) {
 		this.bounds.x = bounds.x
 		this.bounds.y = bounds.y
 		this.bounds.top = bounds.y
@@ -127,7 +129,7 @@ export class TestEditor extends Editor {
 		this.bounds.right = bounds.x + bounds.w
 		this.bounds.bottom = bounds.y + bounds.h
 
-		this.updateViewportScreenBounds(center)
+		this.updateViewportScreenBounds(Box.From(bounds), center)
 		this.updateRenderingBounds()
 		return this
 	}
@@ -204,14 +206,37 @@ export class TestEditor extends Editor {
 			y: +camera.y.toFixed(2),
 			z: +camera.z.toFixed(2),
 		}).toCloselyMatchObject({ x, y, z })
+
+		return this
 	}
 
-	expectShapeToMatch = (...model: RequiredKeys<TLShapePartial, 'id'>[]) => {
+	expectShapeToMatch = <T extends TLShape = TLShape>(
+		...model: RequiredKeys<TLShapePartial<T>, 'id'>[]
+	) => {
 		model.forEach((model) => {
 			const shape = this.getShape(model.id)!
 			const next = { ...shape, ...model }
 			expect(shape).toCloselyMatchObject(next)
 		})
+		return this
+	}
+
+	expectPageBoundsToBe = <T extends TLShape = TLShape>(id: IdOf<T>, bounds: Partial<BoxModel>) => {
+		const observedBounds = this.getShapePageBounds(id)!
+		expect(observedBounds).toCloselyMatchObject(bounds)
+		return this
+	}
+
+	expectScreenBoundsToBe = <T extends TLShape = TLShape>(
+		id: IdOf<T>,
+		bounds: Partial<BoxModel>
+	) => {
+		const pageBounds = this.getShapePageBounds(id)!
+		const screenPoint = this.pageToScreen(pageBounds.point)
+		const observedBounds = pageBounds.clone()
+		observedBounds.x = screenPoint.x
+		observedBounds.y = screenPoint.y
+		expect(observedBounds).toCloselyMatchObject(bounds)
 		return this
 	}
 
@@ -222,7 +247,7 @@ export class TestEditor extends Editor {
 			? ({
 					target: 'shape',
 					shape: this.getShape(info as any),
-			  } as T)
+				} as T)
 			: info
 	}
 
@@ -267,24 +292,35 @@ export class TestEditor extends Editor {
 				key === 'Shift'
 					? 'ShiftLeft'
 					: key === 'Alt'
-					? 'AltLeft'
-					: key === 'Control' || key === 'Meta'
-					? 'CtrlLeft'
-					: key === ' '
-					? 'Space'
-					: key === 'Enter' ||
-					  key === 'ArrowRight' ||
-					  key === 'ArrowLeft' ||
-					  key === 'ArrowUp' ||
-					  key === 'ArrowDown'
-					? key
-					: 'Key' + key[0].toUpperCase() + key.slice(1),
+						? 'AltLeft'
+						: key === 'Control' || key === 'Meta'
+							? 'CtrlLeft'
+							: key === ' '
+								? 'Space'
+								: key === 'Enter' ||
+									  key === 'ArrowRight' ||
+									  key === 'ArrowLeft' ||
+									  key === 'ArrowUp' ||
+									  key === 'ArrowDown'
+									? key
+									: 'Key' + key[0].toUpperCase() + key.slice(1),
 			type: 'keyboard',
 			key,
 		}
 	}
 
 	/* ------------------ Input Events ------------------ */
+
+	/**
+	Some of our updates are not synchronous any longer. For example, drawing happens on tick instead of on pointer move.
+	You can use this helper to force the tick, which will then process all the updates.
+	*/
+	forceTick = (count = 1) => {
+		for (let i = 0; i < count; i++) {
+			this.emit('tick', 16)
+		}
+		return this
+	}
 
 	pointerMove = (
 		x = this.inputs.currentScreenPoint.x,
@@ -295,7 +331,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_move',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -308,7 +344,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_down',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -321,7 +357,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_up',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -355,17 +391,17 @@ export class TestEditor extends Editor {
 			type: 'click',
 			name: 'double_click',
 			phase: 'up',
-		})
+		}).forceTick()
 		return this
 	}
 
 	keyDown = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) })
+		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
 	}
 
 	keyRepeat = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) })
+		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) }).forceTick()
 		return this
 	}
 
@@ -377,7 +413,7 @@ export class TestEditor extends Editor {
 				altKey: this.inputs.altKey && key !== 'Alt',
 				...options,
 			}),
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -385,13 +421,13 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			type: 'wheel',
 			name: 'wheel',
-			point: new Vec2d(this.inputs.currentScreenPoint.x, this.inputs.currentScreenPoint.y),
+			point: new Vec(this.inputs.currentScreenPoint.x, this.inputs.currentScreenPoint.y),
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			...options,
 			delta: { x: dx, y: dy },
-		})
+		}).forceTick(2)
 		return this
 	}
 
@@ -413,7 +449,7 @@ export class TestEditor extends Editor {
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -457,7 +493,7 @@ export class TestEditor extends Editor {
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
-		})
+		}).forceTick()
 		return this
 	}
 	/* ------ Interaction Helpers ------ */
@@ -480,11 +516,7 @@ export class TestEditor extends Editor {
 			.clone()
 			.rotWith(this.getSelectionRotatedPageBounds()!.point, this.getSelectionRotation())
 
-		const targetHandlePoint = Vec2d.RotWith(
-			handlePoint,
-			this.getSelectionPageCenter()!,
-			angleRadians
-		)
+		const targetHandlePoint = Vec.RotWith(handlePoint, this.getSelectionPageCenter()!, angleRadians)
 
 		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle })
 		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, { shiftKey })
@@ -502,7 +534,7 @@ export class TestEditor extends Editor {
 		const selectionRotation = this.getSelectionRotation()
 		const selectionBounds = this.getSelectionRotatedPageBounds()
 		if (!selectionBounds) return null
-		return Vec2d.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
+		return Vec.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
 	}
 
 	translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>) {
@@ -538,17 +570,17 @@ export class TestEditor extends Editor {
 			? bounds.center
 			: bounds.getHandlePoint(rotateSelectionHandle(handle, Math.PI))
 
-		const preRotationTargetHandlePoint = Vec2d.Add(
-			Vec2d.Sub(preRotationHandlePoint, preRotationScaleOriginPoint).mulV({ x: scaleX, y: scaleY }),
+		const preRotationTargetHandlePoint = Vec.Add(
+			Vec.Sub(preRotationHandlePoint, preRotationScaleOriginPoint).mulV({ x: scaleX, y: scaleY }),
 			preRotationScaleOriginPoint
 		)
 
-		const handlePoint = Vec2d.RotWith(
+		const handlePoint = Vec.RotWith(
 			preRotationHandlePoint,
 			bounds.point,
 			this.getSelectionRotation()
 		)
-		const targetHandlePoint = Vec2d.RotWith(
+		const targetHandlePoint = Vec.RotWith(
 			preRotationTargetHandlePoint,
 			bounds.point,
 			this.getSelectionRotation()
@@ -560,7 +592,9 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	createShapesFromJsx(shapesJsx: JSX.Element | JSX.Element[]): Record<string, TLShapeId> {
+	createShapesFromJsx(
+		shapesJsx: React.JSX.Element | React.JSX.Element[]
+	): Record<string, TLShapeId> {
 		const { shapes, ids } = shapesFromJsx(shapesJsx)
 		this.createShapes(shapes)
 		return ids
@@ -582,7 +616,7 @@ export class TestEditor extends Editor {
 		const pageTransform = this.getShapePageTransform(shape.id)
 		if (!pageTransform) return null
 		const center = this.getShapeGeometry(shape).bounds.center
-		return Matrix2d.applyToPoint(pageTransform, center)
+		return Mat.applyToPoint(pageTransform, center)
 	}
 
 	/**
@@ -598,7 +632,7 @@ export class TestEditor extends Editor {
 	getPageRotationById(id: TLShapeId): number {
 		const pageTransform = this.getShapePageTransform(id)
 		if (pageTransform) {
-			return Matrix2d.Decompose(pageTransform).rotation
+			return Mat.Decompose(pageTransform).rotation
 		}
 		return 0
 	}
@@ -631,7 +665,7 @@ export const createDefaultShapes = (): TLShapePartial[] => [
 		type: 'geo',
 		x: 200,
 		y: 200,
-		rotation: TAU / 2,
+		rotation: HALF_PI / 2,
 		props: {
 			w: 100,
 			h: 100,

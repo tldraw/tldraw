@@ -22,7 +22,7 @@ test("tracked components are memo'd", async () => {
 	})
 
 	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "a",
 		  "b",
 		  "c",
@@ -44,7 +44,7 @@ test("tracked components are memo'd", async () => {
 	expect(numRenders).toBe(2)
 
 	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "a",
 		  "b",
 		  "d",
@@ -73,7 +73,7 @@ test("it's fine to call track on components that are already memo'd", async () =
 	})
 
 	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "a",
 		  "b",
 		  "c",
@@ -95,7 +95,7 @@ test("it's fine to call track on components that are already memo'd", async () =
 	expect(numRenders).toBe(2)
 
 	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "a",
 		  "b",
 		  "d",
@@ -206,7 +206,7 @@ test("tracked zombie-children don't throw", async () => {
 	})
 
 	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "1",
 		  "2",
 		  "3",
@@ -219,7 +219,7 @@ test("tracked zombie-children don't throw", async () => {
 	})
 
 	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		Array [
+		[
 		  "1",
 		  "3",
 		]

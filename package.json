@@ -25,6 +25,7 @@
 		"infinite"
 	],
 	"workspaces": [
+		"docs",
 		"apps/*",
 		"packages/*",
 		"apps/vscode/*",
@@ -36,42 +37,52 @@
 		"clean": "scripts/clean.sh",
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
+		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw'",
+		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
+		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker}' --filter='packages/tldraw'",
+		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
+		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'apps/huppy'",
 		"build": "lazy build",
-		"dev": "lazy run dev --filter='{,bublic/}apps/examples' --filter='{,bublic/}packages/tldraw'",
-		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='{,bublic/}apps/vscode/{extension,editor}'",
+		"build-app": "lazy run build --filter 'apps/dotcom'",
+		"build-docs": "lazy run build --filter 'apps/docs'",
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",
 		"build-package": "lazy build-package",
+		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
 		"lint": "lazy lint",
-		"format": "prettier --write --cache \"**/*.{ts,tsx,js,jsx,json}\"",
+		"format": "prettier --write --cache '**/*.{yml,yaml,json,md,mdx,html,css,js,jsx,ts,tsx,cjs,mjs}'",
 		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
 		"check-scripts": "tsx scripts/check-scripts.ts",
+		"check-tsconfigs": "tsx scripts/check-tsconfigs.ts",
+		"update-pr-template": "tsx scripts/update-pr-template.ts",
 		"api-check": "lazy api-check",
+		"test-ci": "lazy test-ci",
 		"test": "lazy test",
-		"e2e": "lazy e2e --filter='{,bublic/}apps/examples'"
+		"test-coverage": "lazy test-coverage && node scripts/offer-coverage.mjs",
+		"e2e": "lazy e2e --filter='apps/examples'"
 	},
 	"engines": {
 		"npm": ">=7.0.0"
 	},
-	"packageManager": "yarn@3.5.0",
+	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
 			"prettier --write --cache"
 		]
 	},
 	"devDependencies": {
-		"@microsoft/api-extractor": "^7.35.4",
+		"@microsoft/api-extractor": "^7.41.0",
 		"@next/eslint-plugin-next": "^13.3.0",
 		"@swc/core": "^1.3.55",
-		"@swc/jest": "^0.2.26",
+		"@swc/jest": "^0.2.34",
 		"@types/glob": "^8.1.0",
-		"@types/jest": "^28.1.2",
-		"@types/node": "18.7.3",
-		"@types/react": "^18.0.24",
-		"@types/react-dom": "^18.0.6",
+		"@types/jest": "^29.5.12",
+		"@types/node": "~20.11",
+		"@types/react": "^18.2.47",
+		"@types/react-dom": "^18.2.18",
 		"@typescript-eslint/eslint-plugin": "^5.57.0",
 		"@typescript-eslint/parser": "^5.57.0",
-		"auto": "^10.46.0",
+		"auto": "^11.1.1",
 		"eslint": "^8.37.0",
 		"eslint-config-prettier": "^8.8.0",
 		"eslint-plugin-deprecation": "^2.0.0",
@@ -82,21 +93,33 @@
 		"eslint-plugin-react-hooks": "^4.6.0",
 		"fs-extra": "^11.1.0",
 		"husky": "^8.0.0",
-		"jest": "^28.1.1",
+		"jest": "30.0.0-alpha.2",
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
+		"license-report": "^6.5.0",
 		"lint-staged": ">=10",
-		"prettier": "^2.8.6",
-		"prettier-plugin-organize-imports": "^3.2.2",
+		"prettier": "^3.0.3",
+		"prettier-plugin-organize-imports": "^3.2.3",
 		"rimraf": "^4.4.0",
-		"tsx": "^3.12.7",
-		"typescript": "^5.0.2",
+		"tsx": "^4.0.0",
+		"typescript": "^5.3.3",
 		"vercel": "^28.16.15"
 	},
+	"// resolutions.canvas": [
+		"our examples app depenends on pdf.js which pulls in canvas as an optional dependency.",
+		"it slows down installs quite a bit though, so we replace it with an empty package."
+	],
 	"resolutions": {
-		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch"
+		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch",
+		"vectra@^0.4.4": "patch:vectra@npm%3A0.4.4#./.yarn/patches/vectra-npm-0.4.4-6aac3f6c29.patch",
+		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
+		"canvas": "npm:empty-npm-package@1.0.0"
 	},
 	"dependencies": {
+		"@sentry/cli": "^2.25.0",
+		"@yarnpkg/types": "^4.0.0",
+		"cross-env": "^7.0.3",
+		"purgecss": "^5.0.0",
 		"svgo": "^3.0.2"
 	}
 }

@@ -8,7 +8,7 @@ export const bookmarkShapeProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	assetId: assetIdValidator.nullable(),
-	url: T.string,
+	url: T.linkUrl,
 }
 
 /** @public */
@@ -19,11 +19,12 @@ export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>
 
 const Versions = {
 	NullAssetId: 1,
+	MakeUrlsValid: 2,
 } as const
 
 /** @internal */
 export const bookmarkShapeMigrations = defineMigrations({
-	currentVersion: Versions.NullAssetId,
+	currentVersion: Versions.MakeUrlsValid,
 	migrators: {
 		[Versions.NullAssetId]: {
 			up: (shape: TLBookmarkShape) => {
@@ -39,6 +40,16 @@ export const bookmarkShapeMigrations = defineMigrations({
 				}
 				return shape
 			},
+		},
+		[Versions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
+				}
+				return shape
+			},
+			down: (shape) => shape,
 		},
 	},
 })

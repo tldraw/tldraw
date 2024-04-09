@@ -1,18 +1,25 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { MAX_PAGES, PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { Button } from '../primitives/Button'
-import * as M from '../primitives/DropdownMenu'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import {
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '../primitives/TldrawUiDropdownMenu'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
+import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { onMovePage } from './edit-pages-shared'
-
+/** @public */
 export interface PageItemSubmenuProps {
 	index: number
 	item: { id: string; name: string }
 	listSize: number
 	onRename?: () => void
 }
-
+/** @public */
 export const PageItemSubmenu = track(function PageItemSubmenu({
 	index,
 	listSize,
@@ -43,44 +50,46 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	}, [editor, item])
 
 	return (
-		<M.Root id={`page item submenu ${index}`}>
-			<M.Trigger>
-				<Button type="icon" title={msg('page-menu.submenu.title')} icon="dots-vertical" />
-			</M.Trigger>
-			<M.Content alignOffset={0}>
-				<M.Group>
-					{onRename && (
-						<DropdownMenu.Item dir="ltr" onSelect={onRename} asChild>
-							<Button type="menu" label="page-menu.submenu.rename" />
-						</DropdownMenu.Item>
+		<TldrawUiDropdownMenuRoot id={`page item submenu ${index}`}>
+			<TldrawUiDropdownMenuTrigger>
+				<TldrawUiButton type="icon" title={msg('page-menu.submenu.title')}>
+					<TldrawUiButtonIcon icon="dots-vertical" />
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent alignOffset={0} side="right" sideOffset={-4}>
+				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
+					<TldrawUiMenuGroup id="modify">
+						{onRename && (
+							<TldrawUiMenuItem id="rename" label="page-menu.submenu.rename" onSelect={onRename} />
+						)}
+						<TldrawUiMenuItem
+							id="duplicate"
+							label="page-menu.submenu.duplicate-page"
+							onSelect={onDuplicate}
+							disabled={pages.length >= MAX_PAGES}
+						/>
+						{index > 0 && (
+							<TldrawUiMenuItem
+								id="move-up"
+								onSelect={onMoveUp}
+								label="page-menu.submenu.move-up"
+							/>
+						)}
+						{index < listSize - 1 && (
+							<TldrawUiMenuItem
+								id="move-down"
+								label="page-menu.submenu.move-down"
+								onSelect={onMoveDown}
+							/>
+						)}
+					</TldrawUiMenuGroup>
+					{listSize > 1 && (
+						<TldrawUiMenuGroup id="delete">
+							<TldrawUiMenuItem id="delete" onSelect={onDelete} label="page-menu.submenu.delete" />
+						</TldrawUiMenuGroup>
 					)}
-					<DropdownMenu.Item
-						dir="ltr"
-						onSelect={onDuplicate}
-						disabled={pages.length >= MAX_PAGES}
-						asChild
-					>
-						<Button type="menu" label="page-menu.submenu.duplicate-page" />
-					</DropdownMenu.Item>
-					{index > 0 && (
-						<DropdownMenu.Item dir="ltr" onSelect={onMoveUp} asChild>
-							<Button type="menu" label="page-menu.submenu.move-up" />
-						</DropdownMenu.Item>
-					)}
-					{index < listSize - 1 && (
-						<DropdownMenu.Item dir="ltr" onSelect={onMoveDown} asChild>
-							<Button type="menu" label="page-menu.submenu.move-down" />
-						</DropdownMenu.Item>
-					)}
-				</M.Group>
-				{listSize > 1 && (
-					<M.Group>
-						<DropdownMenu.Item dir="ltr" onSelect={onDelete} asChild>
-							<Button type="menu" label="page-menu.submenu.delete" />
-						</DropdownMenu.Item>
-					</M.Group>
-				)}
-			</M.Content>
-		</M.Root>
+				</TldrawUiMenuContextProvider>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 })

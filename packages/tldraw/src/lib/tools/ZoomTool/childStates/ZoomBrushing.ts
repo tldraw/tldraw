@@ -1,11 +1,11 @@
-import { Box2d, StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { Box, StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
 
 export class ZoomBrushing extends StateNode {
 	static override id = 'zoom_brushing'
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
-	zoomBrush = new Box2d()
+	zoomBrush = new Box()
 
 	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
@@ -33,7 +33,7 @@ export class ZoomBrushing extends StateNode {
 			inputs: { originPagePoint, currentPagePoint },
 		} = this.editor
 
-		this.zoomBrush.setTo(Box2d.FromPoints([originPagePoint, currentPagePoint]))
+		this.zoomBrush.setTo(Box.FromPoints([originPagePoint, currentPagePoint]))
 		this.editor.updateInstanceState({ zoomBrush: this.zoomBrush.toJson() })
 	}
 
@@ -53,8 +53,8 @@ export class ZoomBrushing extends StateNode {
 				this.editor.zoomIn(point, { duration: 220 })
 			}
 		} else {
-			const zoomLevel = this.editor.inputs.altKey ? this.editor.getZoomLevel() / 2 : undefined
-			this.editor.zoomToBounds(zoomBrush, zoomLevel, { duration: 220 })
+			const targetZoom = this.editor.inputs.altKey ? this.editor.getZoomLevel() / 2 : undefined
+			this.editor.zoomToBounds(zoomBrush, { targetZoom, duration: 220 })
 		}
 
 		this.parent.transition('idle', this.info)

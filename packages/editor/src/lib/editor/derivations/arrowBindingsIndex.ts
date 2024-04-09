@@ -2,7 +2,7 @@ import { Computed, RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
 import { TLArrowShape, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
-export type TLArrowBindingsIndex = Record<
+type TLArrowBindingsIndex = Record<
 	TLShapeId,
 	undefined | { arrowId: TLShapeId; handleId: 'start' | 'end' }[]
 >

@@ -7,7 +7,10 @@ import {
 import { TLUser } from '../../config/createTLUser'
 
 export class UserPreferencesManager {
-	constructor(private readonly user: TLUser, private readonly inferDarkMode: boolean) {}
+	constructor(
+		private readonly user: TLUser,
+		private readonly inferDarkMode: boolean
+	) {}
 
 	updateUserPreferences = (userPreferences: Partial<TLUserPreferences>) => {
 		this.user.setUserPreferences({
@@ -21,9 +24,10 @@ export class UserPreferencesManager {
 			name: this.getName(),
 			locale: this.getLocale(),
 			color: this.getColor(),
-			isDarkMode: this.getIsDarkMode(),
 			animationSpeed: this.getAnimationSpeed(),
 			isSnapMode: this.getIsSnapMode(),
+			isDarkMode: this.getIsDarkMode(),
+			isWrapMode: this.getIsWrapMode(),
 		}
 	}
 	@computed getIsDarkMode() {
@@ -62,5 +66,9 @@ export class UserPreferencesManager {
 
 	@computed getIsSnapMode() {
 		return this.user.userPreferences.get().isSnapMode ?? defaultUserPreferences.isSnapMode
+	}
+
+	@computed getIsWrapMode() {
+		return this.user.userPreferences.get().isWrapMode ?? defaultUserPreferences.isWrapMode
 	}
 }

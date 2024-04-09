@@ -17,17 +17,17 @@ import { CollectionDiff, RecordsDiff } from './Store'
 
 export type RSIndexDiff<
 	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R
+	Property extends string & keyof R = string & keyof R,
 > = Map<R[Property], CollectionDiff<IdOf<R>>>
 
 export type RSIndexMap<
 	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R
+	Property extends string & keyof R = string & keyof R,
 > = Map<R[Property], Set<IdOf<R>>>
 
 export type RSIndex<
 	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R
+	Property extends string & keyof R = string & keyof R,
 > = Computed<Map<R[Property], Set<IdOf<R>>>, RSIndexDiff<R, Property>>
 
 /**
@@ -55,7 +55,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	private historyCache = new Map<string, Computed<number, RecordsDiff<R>>>()
 
 	/**
-	 * Create a derivation that contains the hisotry for a given type
+	 * Create a derivation that contains the history for a given type
 	 *
 	 * @param typeName - The name of the type to filter by.
 	 * @returns A derivation that returns the ids of all records of the given type.
@@ -159,7 +159,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	 */
 	public index<
 		TypeName extends R['typeName'],
-		Property extends string & keyof Extract<R, { typeName: TypeName }>
+		Property extends string & keyof Extract<R, { typeName: TypeName }>,
 	>(typeName: TypeName, property: Property): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
 		const cacheKey = typeName + ':' + property
 
@@ -183,7 +183,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	 */
 	__uncached_createIndex<
 		TypeName extends R['typeName'],
-		Property extends string & keyof Extract<R, { typeName: TypeName }>
+		Property extends string & keyof Extract<R, { typeName: TypeName }>,
 	>(typeName: TypeName, property: Property): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
 		type S = Extract<R, { typeName: TypeName }>
 

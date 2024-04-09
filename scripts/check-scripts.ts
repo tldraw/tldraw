@@ -20,7 +20,7 @@ const expectedScripts = {
 // packages (in packages/) should have these scripts
 const expectedPackageScripts = {
 	...expectedScripts,
-	test: () => 'lazy inherit',
+	'test-ci': () => 'lazy inherit',
 }
 
 // published packages should have these scripts
@@ -45,7 +45,7 @@ const perPackageExceptions: Record<string, Record<string, () => string | undefin
 		lint: () => 'lazy lint',
 	},
 	'@tldraw/assets': {
-		test: () => undefined,
+		'test-ci': () => undefined,
 		build: () => undefined,
 		'build-api': () => undefined,
 		prepack: () => undefined,
@@ -65,8 +65,7 @@ async function main({ fix }: { fix?: boolean }) {
 		const packageScripts = packageJson.scripts
 
 		let expected =
-			name.startsWith('@tldraw/') &&
-			(relativePath.startsWith('bublic/packages/') || relativePath.startsWith('packages/'))
+			(name.startsWith('@tldraw/') || name === 'tldraw') && relativePath.startsWith('packages/')
 				? packageJson.private
 					? expectedPackageScripts
 					: expectedPublishedPackageScripts

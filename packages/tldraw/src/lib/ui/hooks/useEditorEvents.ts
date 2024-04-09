@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
 import { useEffect } from 'react'
-import { useToasts } from './useToastsProvider'
+import { useToasts } from '../context/toasts'
 
 /** @internal */
 export function useEditorEvents() {
@@ -12,6 +12,7 @@ export function useEditorEvents() {
 			addToast({
 				title: 'Maximum Shapes Reached',
 				description: `You've reached the maximum number of shapes allowed on ${name} (${count}). Please delete some shapes or move to a different page to continue.`,
+				severity: 'warning',
 			})
 		}
 

@@ -25,11 +25,11 @@ export type RecordScope = 'session' | 'document' | 'presence'
  */
 export class RecordType<
 	R extends UnknownRecord,
-	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>
+	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>,
 > {
 	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
 	readonly migrations: Migrations
-	readonly validator: StoreValidator<R> | { validate: (r: unknown) => R }
+	readonly validator: StoreValidator<R>
 
 	readonly scope: RecordScope
 
@@ -44,7 +44,7 @@ export class RecordType<
 		config: {
 			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
 			readonly migrations: Migrations
-			readonly validator?: StoreValidator<R> | { validate: (r: unknown) => R }
+			readonly validator?: StoreValidator<R>
 			readonly scope?: RecordScope
 		}
 	) {
@@ -198,7 +198,10 @@ export class RecordType<
 	 * Check that the passed in record passes the validations for this type. Returns its input
 	 * correctly typed if it does, but throws an error otherwise.
 	 */
-	validate(record: unknown): R {
+	validate(record: unknown, recordBefore?: R): R {
+		if (recordBefore && this.validator.validateUsingKnownGoodVersion) {
+			return this.validator.validateUsingKnownGoodVersion(recordBefore, record)
+		}
 		return this.validator.validate(record)
 	}
 }
@@ -224,7 +227,7 @@ export function createRecordType<R extends UnknownRecord>(
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
 	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {
-		createDefaultProperties: () => ({} as any),
+		createDefaultProperties: () => ({}) as any,
 		migrations: config.migrations ?? { currentVersion: 0, firstVersion: 0, migrators: {} },
 		validator: config.validator,
 		scope: config.scope,

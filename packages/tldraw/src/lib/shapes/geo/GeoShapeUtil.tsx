@@ -1,11 +1,12 @@
 import {
 	BaseBoxShapeUtil,
-	DefaultFontFamilies,
 	Editor,
 	Ellipse2d,
 	Geometry2d,
 	Group2d,
+	HALF_PI,
 	HTMLContainer,
+	HandleSnapGeometry,
 	PI2,
 	Polygon2d,
 	Polyline2d,
@@ -13,24 +14,24 @@ import {
 	SVGContainer,
 	Stadium2d,
 	SvgExportContext,
-	TAU,
-	TLDefaultDashStyle,
 	TLGeoShape,
 	TLOnEditEndHandler,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
-	Vec2d,
+	Vec,
+	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
-	getDefaultColorTheme,
 	getPolygonVertices,
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
+	LABEL_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
@@ -39,26 +40,13 @@ import {
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
-import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../shared/polygon-helpers'
 import { cloudOutline, cloudSvgPath } from './cloudOutline'
-import { DashStyleCloud, DashStyleCloudSvg } from './components/DashStyleCloud'
-import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
-import { DashStyleOval, DashStyleOvalSvg } from './components/DashStyleOval'
-import { DashStylePolygon, DashStylePolygonSvg } from './components/DashStylePolygon'
-import { DrawStyleCloud, DrawStyleCloudSvg } from './components/DrawStyleCloud'
-import { DrawStyleEllipseSvg, getEllipseIndicatorPath } from './components/DrawStyleEllipse'
-import { DrawStylePolygon, DrawStylePolygonSvg } from './components/DrawStylePolygon'
-import { SolidStyleCloud, SolidStyleCloudSvg } from './components/SolidStyleCloud'
-import { SolidStyleEllipse, SolidStyleEllipseSvg } from './components/SolidStyleEllipse'
-import {
-	SolidStyleOval,
-	SolidStyleOvalSvg,
-	getOvalIndicatorPath,
-} from './components/SolidStyleOval'
-import { SolidStylePolygon, SolidStylePolygonSvg } from './components/SolidStylePolygon'
+import { getEllipseIndicatorPath } from './components/DrawStyleEllipse'
+import { GeoShapeBody } from './components/GeoShapeBody'
+import { getOvalIndicatorPath } from './components/SolidStyleOval'
+import { getLines } from './getLines'
 
-const LABEL_PADDING = 16
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
@@ -88,7 +76,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	override getGeometry(shape: TLGeoShape): Geometry2d {
+	override getGeometry(shape: TLGeoShape) {
 		const w = Math.max(1, shape.props.w)
 		const h = Math.max(1, shape.props.h + shape.props.growY)
 		const cx = w / 2
@@ -109,14 +97,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 			case 'triangle': {
 				body = new Polygon2d({
-					points: [new Vec2d(cx, 0), new Vec2d(w, h), new Vec2d(0, h)],
+					points: [new Vec(cx, 0), new Vec(w, h), new Vec(0, h)],
 					isFilled,
 				})
 				break
 			}
 			case 'diamond': {
 				body = new Polygon2d({
-					points: [new Vec2d(cx, 0), new Vec2d(w, cy), new Vec2d(cx, h), new Vec2d(0, cy)],
+					points: [new Vec(cx, 0), new Vec(w, cy), new Vec(cx, h), new Vec(0, cy)],
 					isFilled,
 				})
 				break
@@ -169,11 +157,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const leftMostIndex = sides * 2 - rightMostIndex
 				const topMostIndex = 0
 				const bottomMostIndex = Math.floor(sides / 2) * 2
-				const maxX = (Math.cos(-TAU + rightMostIndex * step) * w) / 2
-				const minX = (Math.cos(-TAU + leftMostIndex * step) * w) / 2
+				const maxX = (Math.cos(-HALF_PI + rightMostIndex * step) * w) / 2
+				const minX = (Math.cos(-HALF_PI + leftMostIndex * step) * w) / 2
 
-				const minY = (Math.sin(-TAU + topMostIndex * step) * h) / 2
-				const maxY = (Math.sin(-TAU + bottomMostIndex * step) * h) / 2
+				const minY = (Math.sin(-HALF_PI + topMostIndex * step) * h) / 2
+				const maxY = (Math.sin(-HALF_PI + bottomMostIndex * step) * h) / 2
 				const diffX = w - Math.abs(maxX - minX)
 				const diffY = h - Math.abs(maxY - minY)
 				const offsetX = w / 2 + minX - (w / 2 - maxX)
@@ -189,8 +177,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 				body = new Polygon2d({
 					points: Array.from(Array(sides * 2)).map((_, i) => {
-						const theta = -TAU + i * step
-						return new Vec2d(
+						const theta = -HALF_PI + i * step
+						return new Vec(
 							cx + (i % 2 ? ix : ox) * Math.cos(theta),
 							cy + (i % 2 ? iy : oy) * Math.sin(theta)
 						)
@@ -202,12 +190,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			case 'rhombus': {
 				const offset = Math.min(w * 0.38, h * 0.38)
 				body = new Polygon2d({
-					points: [
-						new Vec2d(offset, 0),
-						new Vec2d(w, 0),
-						new Vec2d(w - offset, h),
-						new Vec2d(0, h),
-					],
+					points: [new Vec(offset, 0), new Vec(w, 0), new Vec(w - offset, h), new Vec(0, h)],
 					isFilled,
 				})
 				break
@@ -215,12 +198,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			case 'rhombus-2': {
 				const offset = Math.min(w * 0.38, h * 0.38)
 				body = new Polygon2d({
-					points: [
-						new Vec2d(0, 0),
-						new Vec2d(w - offset, 0),
-						new Vec2d(w, h),
-						new Vec2d(offset, h),
-					],
+					points: [new Vec(0, 0), new Vec(w - offset, 0), new Vec(w, h), new Vec(offset, h)],
 					isFilled,
 				})
 				break
@@ -228,12 +206,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			case 'trapezoid': {
 				const offset = Math.min(w * 0.38, h * 0.38)
 				body = new Polygon2d({
-					points: [
-						new Vec2d(offset, 0),
-						new Vec2d(w - offset, 0),
-						new Vec2d(w, h),
-						new Vec2d(0, h),
-					],
+					points: [new Vec(offset, 0), new Vec(w - offset, 0), new Vec(w, h), new Vec(0, h)],
 					isFilled,
 				})
 				break
@@ -243,13 +216,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const oy = h * 0.16
 				body = new Polygon2d({
 					points: [
-						new Vec2d(0, oy),
-						new Vec2d(w - ox, oy),
-						new Vec2d(w - ox, 0),
-						new Vec2d(w, h / 2),
-						new Vec2d(w - ox, h),
-						new Vec2d(w - ox, h - oy),
-						new Vec2d(0, h - oy),
+						new Vec(0, oy),
+						new Vec(w - ox, oy),
+						new Vec(w - ox, 0),
+						new Vec(w, h / 2),
+						new Vec(w - ox, h),
+						new Vec(w - ox, h - oy),
+						new Vec(0, h - oy),
 					],
 					isFilled,
 				})
@@ -260,13 +233,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const oy = h * 0.16
 				body = new Polygon2d({
 					points: [
-						new Vec2d(ox, 0),
-						new Vec2d(ox, oy),
-						new Vec2d(w, oy),
-						new Vec2d(w, h - oy),
-						new Vec2d(ox, h - oy),
-						new Vec2d(ox, h),
-						new Vec2d(0, h / 2),
+						new Vec(ox, 0),
+						new Vec(ox, oy),
+						new Vec(w, oy),
+						new Vec(w, h - oy),
+						new Vec(ox, h - oy),
+						new Vec(ox, h),
+						new Vec(0, h / 2),
 					],
 					isFilled,
 				})
@@ -277,13 +250,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const oy = Math.min(w, h) * 0.38
 				body = new Polygon2d({
 					points: [
-						new Vec2d(w / 2, 0),
-						new Vec2d(w, oy),
-						new Vec2d(w - ox, oy),
-						new Vec2d(w - ox, h),
-						new Vec2d(ox, h),
-						new Vec2d(ox, oy),
-						new Vec2d(0, oy),
+						new Vec(w / 2, 0),
+						new Vec(w, oy),
+						new Vec(w - ox, oy),
+						new Vec(w - ox, h),
+						new Vec(ox, h),
+						new Vec(ox, oy),
+						new Vec(0, oy),
 					],
 					isFilled,
 				})
@@ -294,13 +267,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const oy = Math.min(w, h) * 0.38
 				body = new Polygon2d({
 					points: [
-						new Vec2d(ox, 0),
-						new Vec2d(w - ox, 0),
-						new Vec2d(w - ox, h - oy),
-						new Vec2d(w, h - oy),
-						new Vec2d(w / 2, h),
-						new Vec2d(0, h - oy),
-						new Vec2d(ox, h - oy),
+						new Vec(ox, 0),
+						new Vec(w - ox, 0),
+						new Vec(w - ox, h - oy),
+						new Vec(w, h - oy),
+						new Vec(w / 2, h),
+						new Vec(0, h - oy),
+						new Vec(ox, h - oy),
 					],
 					isFilled,
 				})
@@ -313,7 +286,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					width: w,
 					height: h,
 					isFilled,
-					isSnappable: true,
 				})
 				break
 			}
@@ -321,10 +293,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const labelSize = getLabelSize(this.editor, shape)
 		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
+		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8)))) // not sure if bug
 
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
+
+		// todo: use centroid for label position
 
 		return new Group2d({
 			children: [
@@ -334,24 +308,55 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						shape.props.align === 'start'
 							? 0
 							: shape.props.align === 'end'
-							? w - labelWidth
-							: (w - labelWidth) / 2,
+								? w - labelWidth
+								: (w - labelWidth) / 2,
 					y:
 						shape.props.verticalAlign === 'start'
 							? 0
 							: shape.props.verticalAlign === 'end'
-							? h - labelHeight
-							: (h - labelHeight) / 2,
+								? h - labelHeight
+								: (h - labelHeight) / 2,
 					width: labelWidth,
 					height: labelHeight,
 					isFilled: true,
-					isSnappable: false,
 					isLabel: true,
 				}),
 				...edges,
 			],
-			isSnappable: false,
 		})
+	}
+
+	override getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry {
+		const geometry = this.getGeometry(shape)
+		// we only want to snap handles to the outline of the shape - not to its label etc.
+		const outline = geometry.children[0]
+		switch (shape.props.geo) {
+			case 'arrow-down':
+			case 'arrow-left':
+			case 'arrow-right':
+			case 'arrow-up':
+			case 'check-box':
+			case 'diamond':
+			case 'hexagon':
+			case 'octagon':
+			case 'pentagon':
+			case 'rectangle':
+			case 'rhombus':
+			case 'rhombus-2':
+			case 'star':
+			case 'trapezoid':
+			case 'triangle':
+			case 'x-box':
+				// poly-line type shapes hand snap points for each vertex & the center
+				return { outline: outline, points: [...outline.getVertices(), geometry.bounds.center] }
+			case 'cloud':
+			case 'ellipse':
+			case 'oval':
+				// blobby shapes only have a snap point in their center
+				return { outline: outline, points: [geometry.bounds.center] }
+			default:
+				exhaustiveSwitchError(shape.props.geo)
+		}
 	}
 
 	override onEditEnd: TLOnEditEndHandler<TLGeoShape> = (shape) => {
@@ -376,173 +381,44 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
+		const { labelColor, fill, font, align, verticalAlign, size, text } = props
 
-		const strokeWidth = STROKE_SIZES[props.size]
-
-		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
-			props
-
-		const getShape = () => {
-			const h = props.h + growY
-
-			switch (props.geo) {
-				case 'cloud': {
-					if (dash === 'solid') {
-						return (
-							<SolidStyleCloud
-								color={color}
-								fill={fill}
-								strokeWidth={strokeWidth}
-								w={w}
-								h={h}
-								id={id}
-								size={size}
-							/>
-						)
-					} else if (dash === 'dashed' || dash === 'dotted') {
-						return (
-							<DashStyleCloud
-								color={color}
-								fill={fill}
-								strokeWidth={strokeWidth}
-								w={w}
-								h={h}
-								id={id}
-								size={size}
-								dash={dash}
-							/>
-						)
-					} else if (dash === 'draw') {
-						return (
-							<DrawStyleCloud
-								color={color}
-								fill={fill}
-								strokeWidth={strokeWidth}
-								w={w}
-								h={h}
-								id={id}
-								size={size}
-							/>
-						)
-					}
-
-					break
-				}
-				case 'ellipse': {
-					if (dash === 'solid') {
-						return (
-							<SolidStyleEllipse strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
-						)
-					} else if (dash === 'dashed' || dash === 'dotted') {
-						return (
-							<DashStyleEllipse
-								id={id}
-								strokeWidth={strokeWidth}
-								w={w}
-								h={h}
-								dash={dash}
-								color={color}
-								fill={fill}
-							/>
-						)
-					} else if (dash === 'draw') {
-						return (
-							<SolidStyleEllipse strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
-						)
-					}
-					break
-				}
-				case 'oval': {
-					if (dash === 'solid') {
-						return (
-							<SolidStyleOval strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
-						)
-					} else if (dash === 'dashed' || dash === 'dotted') {
-						return (
-							<DashStyleOval
-								id={id}
-								strokeWidth={strokeWidth}
-								w={w}
-								h={h}
-								dash={dash}
-								color={color}
-								fill={fill}
-							/>
-						)
-					} else if (dash === 'draw') {
-						return (
-							<SolidStyleOval strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
-						)
-					}
-					break
-				}
-				default: {
-					const geometry = this.editor.getShapeGeometry(shape)
-					const outline =
-						geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
-					const lines = getLines(shape.props, strokeWidth)
-
-					if (dash === 'solid') {
-						return (
-							<SolidStylePolygon
-								fill={fill}
-								color={color}
-								strokeWidth={strokeWidth}
-								outline={outline}
-								lines={lines}
-							/>
-						)
-					} else if (dash === 'dashed' || dash === 'dotted') {
-						return (
-							<DashStylePolygon
-								dash={dash}
-								fill={fill}
-								color={color}
-								strokeWidth={strokeWidth}
-								outline={outline}
-								lines={lines}
-							/>
-						)
-					} else if (dash === 'draw') {
-						return (
-							<DrawStylePolygon
-								id={id}
-								fill={fill}
-								color={color}
-								strokeWidth={strokeWidth}
-								outline={outline}
-								lines={lines}
-							/>
-						)
-					}
-				}
-			}
-		}
+		const isEditing = this.editor.getEditingShapeId() === id
+		const showHtmlContainer = isEditing || shape.props.url || shape.props.text
 
 		return (
 			<>
-				<SVGContainer id={id}>{getShape()}</SVGContainer>
-				<HTMLContainer
-					id={shape.id}
-					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h + props.growY }}
-				>
-					<TextLabel
-						id={id}
-						type={type}
-						font={font}
-						fill={fill}
-						size={size}
-						align={align}
-						verticalAlign={verticalAlign}
-						text={text}
-						labelColor={labelColor}
-						wrap
-						bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
-					/>
-					{shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-					)}
-				</HTMLContainer>
+				<SVGContainer id={id}>
+					<GeoShapeBody shape={shape} />
+				</SVGContainer>
+				{showHtmlContainer && (
+					<HTMLContainer
+						id={shape.id}
+						style={{
+							overflow: 'hidden',
+							width: shape.props.w,
+							height: shape.props.h + props.growY,
+						}}
+					>
+						<TextLabel
+							id={id}
+							type={type}
+							font={font}
+							fontSize={LABEL_FONT_SIZES[size]}
+							lineHeight={TEXT_PROPS.lineHeight}
+							fill={fill}
+							align={align}
+							verticalAlign={verticalAlign}
+							text={text}
+							labelColor={labelColor}
+							wrap
+							bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
+						/>
+						{shape.props.url && (
+							<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+						)}
+					</HTMLContainer>
+				)}
 			</>
 		)
 	}
@@ -596,222 +472,33 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
-		const { id, props } = shape
-		const strokeWidth = STROKE_SIZES[props.size]
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
-		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
+		const { props } = shape
+		ctx.addExportDef(getFillDefForExport(shape.props.fill))
 
-		let svgElm: SVGElement
-
-		switch (props.geo) {
-			case 'ellipse': {
-				switch (props.dash) {
-					case 'draw':
-						svgElm = DrawStyleEllipseSvg({
-							id,
-							w: props.w,
-							h: props.h,
-							color: props.color,
-							fill: props.fill,
-							strokeWidth,
-							theme,
-						})
-						break
-
-					case 'solid':
-						svgElm = SolidStyleEllipseSvg({
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							color: props.color,
-							fill: props.fill,
-							theme,
-						})
-						break
-
-					default:
-						svgElm = DashStyleEllipseSvg({
-							id,
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							dash: props.dash,
-							color: props.color,
-							fill: props.fill,
-							theme,
-						})
-						break
-				}
-				break
-			}
-
-			case 'oval': {
-				switch (props.dash) {
-					case 'draw':
-						svgElm = DashStyleOvalSvg({
-							id,
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							dash: props.dash,
-							color: props.color,
-							fill: props.fill,
-							theme,
-						})
-						break
-
-					case 'solid':
-						svgElm = SolidStyleOvalSvg({
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							color: props.color,
-							fill: props.fill,
-							theme,
-						})
-						break
-
-					default:
-						svgElm = DashStyleOvalSvg({
-							id,
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							dash: props.dash,
-							color: props.color,
-							fill: props.fill,
-							theme,
-						})
-				}
-				break
-			}
-
-			case 'cloud': {
-				switch (props.dash) {
-					case 'draw':
-						svgElm = DrawStyleCloudSvg({
-							id,
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							color: props.color,
-							fill: props.fill,
-							size: props.size,
-							theme,
-						})
-						break
-
-					case 'solid':
-						svgElm = SolidStyleCloudSvg({
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							color: props.color,
-							fill: props.fill,
-							size: props.size,
-							id,
-							theme,
-						})
-						break
-
-					default:
-						svgElm = DashStyleCloudSvg({
-							id,
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							dash: props.dash,
-							color: props.color,
-							fill: props.fill,
-							theme,
-							size: props.size,
-						})
-				}
-				break
-			}
-			default: {
-				const geometry = this.editor.getShapeGeometry(shape)
-				const outline =
-					geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
-				const lines = getLines(shape.props, strokeWidth)
-
-				switch (props.dash) {
-					case 'draw':
-						svgElm = DrawStylePolygonSvg({
-							id,
-							fill: props.fill,
-							color: props.color,
-							strokeWidth,
-							outline,
-							lines,
-							theme,
-						})
-						break
-
-					case 'solid':
-						svgElm = SolidStylePolygonSvg({
-							fill: props.fill,
-							color: props.color,
-							strokeWidth,
-							outline,
-							lines,
-							theme,
-						})
-						break
-
-					default:
-						svgElm = DashStylePolygonSvg({
-							dash: props.dash,
-							fill: props.fill,
-							color: props.color,
-							strokeWidth,
-							outline,
-							lines,
-							theme,
-						})
-						break
-				}
-				break
-			}
-		}
-
+		let textEl
 		if (props.text) {
-			const bounds = this.editor.getShapeGeometry(shape).bounds
-
 			ctx.addExportDef(getFontDefForExport(shape.props.font))
 
-			const rootTextElm = getTextLabelSvgElement({
-				editor: this.editor,
-				shape,
-				font: DefaultFontFamilies[shape.props.font],
-				bounds,
-			})
-
-			const textElm = rootTextElm.cloneNode(true) as SVGTextElement
-			textElm.setAttribute('fill', theme[shape.props.labelColor].solid)
-			textElm.setAttribute('stroke', 'none')
-
-			const textBgEl = rootTextElm.cloneNode(true) as SVGTextElement
-			textBgEl.setAttribute('stroke-width', '2')
-			textBgEl.setAttribute('fill', theme.background)
-			textBgEl.setAttribute('stroke', theme.background)
-
-			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-			groupEl.append(textBgEl)
-			groupEl.append(textElm)
-
-			if (svgElm.nodeName === 'g') {
-				svgElm.appendChild(groupEl)
-				return svgElm
-			} else {
-				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-				g.appendChild(svgElm)
-				g.appendChild(groupEl)
-				return g
-			}
+			const bounds = this.editor.getShapeGeometry(shape).bounds
+			textEl = (
+				<SvgTextLabel
+					fontSize={LABEL_FONT_SIZES[props.size]}
+					font={props.font}
+					align={props.align}
+					verticalAlign={props.verticalAlign}
+					text={props.text}
+					labelColor={props.labelColor}
+					bounds={bounds}
+				/>
+			)
 		}
 
-		return svgElm
+		return (
+			<>
+				<GeoShapeBody shape={shape} />
+				{textEl}
+			</>
+		)
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
@@ -859,7 +546,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			h = nextH
 		}
 
-		const offset = new Vec2d(0, 0)
+		const offset = new Vec(0, 0)
 
 		// x offsets
 
@@ -1089,65 +776,4 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		w: size.w + LABEL_PADDING * 2,
 		h: size.h + LABEL_PADDING * 2,
 	}
-}
-
-function getLines(props: TLGeoShape['props'], sw: number) {
-	switch (props.geo) {
-		case 'x-box': {
-			return getXBoxLines(props.w, props.h, sw, props.dash)
-		}
-		case 'check-box': {
-			return getCheckBoxLines(props.w, props.h)
-		}
-		default: {
-			return undefined
-		}
-	}
-}
-
-function getXBoxLines(w: number, h: number, sw: number, dash: TLDefaultDashStyle) {
-	const inset = dash === 'draw' ? 0.62 : 0
-
-	if (dash === 'dashed') {
-		return [
-			[new Vec2d(0, 0), new Vec2d(w / 2, h / 2)],
-			[new Vec2d(w, h), new Vec2d(w / 2, h / 2)],
-			[new Vec2d(0, h), new Vec2d(w / 2, h / 2)],
-			[new Vec2d(w, 0), new Vec2d(w / 2, h / 2)],
-		]
-	}
-
-	const clampX = (x: number) => Math.max(0, Math.min(w, x))
-	const clampY = (y: number) => Math.max(0, Math.min(h, y))
-
-	return [
-		[
-			new Vec2d(clampX(sw * inset), clampY(sw * inset)),
-			new Vec2d(clampX(w - sw * inset), clampY(h - sw * inset)),
-		],
-		[
-			new Vec2d(clampX(sw * inset), clampY(h - sw * inset)),
-			new Vec2d(clampX(w - sw * inset), clampY(sw * inset)),
-		],
-	]
-}
-
-function getCheckBoxLines(w: number, h: number) {
-	const size = Math.min(w, h) * 0.82
-	const ox = (w - size) / 2
-	const oy = (h - size) / 2
-
-	const clampX = (x: number) => Math.max(0, Math.min(w, x))
-	const clampY = (y: number) => Math.max(0, Math.min(h, y))
-
-	return [
-		[
-			new Vec2d(clampX(ox + size * 0.25), clampY(oy + size * 0.52)),
-			new Vec2d(clampX(ox + size * 0.45), clampY(oy + size * 0.82)),
-		],
-		[
-			new Vec2d(clampX(ox + size * 0.45), clampY(oy + size * 0.82)),
-			new Vec2d(clampX(ox + size * 0.82), clampY(oy + size * 0.22)),
-		],
-	]
 }

@@ -4,10 +4,11 @@ import * as vscode from 'vscode'
 import { TLDrawDocument } from './TldrawDocument'
 import { loadFile } from './file'
 
-import { UnknownRecord } from '@tldraw/tldraw'
+import { UnknownRecord } from 'tldraw'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
 import { nicelog } from './utils'
+const BOOKMARK_ENDPOINT = 'https://bookmark-extractor.tldraw.com/api/bookmark'
 
 export const GlobalStateKeys = {
 	ShowV1FileOpenWarning: 'showV1fileOpenWarning',
@@ -73,7 +74,7 @@ export class WebViewMessageHandler {
 			}
 			case 'vscode:bookmark/request': {
 				const url = e.data.url
-				fetch('https://www.tldraw.com/api/bookmark', {
+				fetch(BOOKMARK_ENDPOINT, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',

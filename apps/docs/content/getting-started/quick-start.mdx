@@ -1,0 +1,75 @@
+---
+title: Quick Start
+status: published
+author: steveruizok
+date: 3/22/2023
+order: 0
+---
+
+<h2>Add a tldraw canvas to your React app in just 5 minutes.</h2>
+
+You can use the tldraw SDK to craft infinite canvas experiences for the web. It's perfect for collaborative whiteboards but you can use it for lots of other things, too.
+
+By the end of this guide you will have made something that looks like this:
+
+<Embed className="article__embed--quickstart" src="https://examples.tldraw.com/develop" />
+
+### 1. Installation
+
+- Set up a React project however you normally do. [We recommend Vite](https://vitejs.dev/guide/#scaffolding-your-first-vite-project).
+- Install the tldraw library using this command:
+
+```bash
+npm install tldraw
+```
+
+### 2. Import Styles
+
+To import fonts and CSS for tldraw:
+
+- Create or edit a css file called `index.css`
+- Copy and paste this into the file:
+
+```CSS
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@500;700;&display=swap");
+@import url("tldraw/tldraw.css");
+
+body {
+  font-family: "Inter";
+}
+```
+
+### 3. Render Tldraw Component
+
+To render the Tldraw component
+
+- Import the `<Tldraw />` component from the tldraw` package
+- Import the `index.css` CSS file from earlier
+- Wrap the Tldraw component in a `<div>` element with the style attribute set to: `{ position: 'fixed', inset: 0 }`
+
+This will render a full screen canvas:
+
+```javascript
+import { Tldraw } from 'tldraw'
+import './index.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw />
+		</div>
+	)
+}
+```
+
+## Next Steps
+
+Now that you have your canvas working, you may be wondering: what next?
+
+You can try:
+
+- Giving the editor a makeover by [customizing the UI](/docs/user-interface)
+- Adding your own [shapes](/docs/shapes) and [tools](/docs/tools)
+- Providing collaboration using [multiplayer](https://github.com/tldraw/tldraw-yjs-example)
+
+We provide the above examples and more in our [examples section](/examples). Go build something creative and please do share it with us in our [#show-and-tell](https://discord.com/invite/SBBEVCA4PG) channel on Discord!

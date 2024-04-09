@@ -1,4 +1,4 @@
-import { Vec2d, VecLike } from '@tldraw/editor'
+import { Vec, VecLike } from '@tldraw/editor'
 import { getStrokeOutlinePoints } from './getStrokeOutlinePoints'
 import { getStrokePoints } from './getStrokePoints'
 import { setStrokePointRadii } from './setStrokePointRadii'
@@ -15,7 +15,7 @@ import type { StrokeOptions } from './types'
  * @public
  */
 
-export function getStroke(points: VecLike[], options: StrokeOptions = {}): Vec2d[] {
+export function getStroke(points: VecLike[], options: StrokeOptions = {}): Vec[] {
 	return getStrokeOutlinePoints(
 		setStrokePointRadii(getStrokePoints(points, options), options),
 		options

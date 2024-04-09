@@ -47,7 +47,10 @@ export const WithDiff = singleton(
 	'WithDiff',
 	() =>
 		class WithDiff<Value, Diff> {
-			constructor(public value: Value, public diff: Diff) {}
+			constructor(
+				public value: Value,
+				public diff: Diff
+			) {}
 		}
 )
 export type WithDiff<Value, Diff> = { value: Value; diff: Diff }
@@ -152,6 +155,8 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 	// The last-computed value of this signal.
 	private state: Value = UNINITIALIZED as unknown as Value
+	// If the signal throws an error we stash it so we can rethrow it on the next get()
+	private error: null | { thrownValue: any } = null
 
 	private computeDiff?: ComputeDiff<Value, Diff>
 
@@ -178,20 +183,29 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 		this.isEqual = options?.isEqual ?? equals
 	}
 
-	__unsafe__getWithoutCapture(): Value {
+	__unsafe__getWithoutCapture(ignoreErrors?: boolean): Value {
 		const isNew = this.lastChangedEpoch === GLOBAL_START_EPOCH
 
 		if (!isNew && (this.lastCheckedEpoch === getGlobalEpoch() || !haveParentsChanged(this))) {
 			this.lastCheckedEpoch = getGlobalEpoch()
-			return this.state
+			if (this.error) {
+				if (!ignoreErrors) {
+					throw this.error.thrownValue
+				} else {
+					return this.state // will be UNINITIALIZED
+				}
+			} else {
+				return this.state
+			}
 		}
 
 		try {
 			startCapturingParents(this)
 			const result = this.derive(this.state, this.lastCheckedEpoch)
 			const newState = result instanceof WithDiff ? result.value : result
-			if (this.state === UNINITIALIZED || !this.isEqual(newState, this.state)) {
-				if (this.historyBuffer && !isNew) {
+			const isUninitialized = this.state === UNINITIALIZED
+			if (isUninitialized || !this.isEqual(newState, this.state)) {
+				if (this.historyBuffer && !isUninitialized) {
 					const diff = result instanceof WithDiff ? result.diff : undefined
 					this.historyBuffer.pushEntry(
 						this.lastChangedEpoch,
@@ -204,8 +218,24 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 				this.lastChangedEpoch = getGlobalEpoch()
 				this.state = newState
 			}
+			this.error = null
 			this.lastCheckedEpoch = getGlobalEpoch()
 
+			return this.state
+		} catch (e) {
+			// if a derived value throws an error, we reset the state to UNINITIALIZED
+			if (this.state !== UNINITIALIZED) {
+				this.state = UNINITIALIZED as unknown as Value
+				this.lastChangedEpoch = getGlobalEpoch()
+			}
+			this.lastCheckedEpoch = getGlobalEpoch()
+			// we also clear the history buffer if an error was thrown
+			if (this.historyBuffer) {
+				this.historyBuffer.clear()
+			}
+			this.error = { thrownValue: e }
+			// we don't wish to propagate errors when derefed via haveParentsChanged()
+			if (!ignoreErrors) throw e
 			return this.state
 		} finally {
 			stopCapturingParents()
@@ -213,15 +243,19 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 	}
 
 	get(): Value {
-		const value = this.__unsafe__getWithoutCapture()
-		maybeCaptureParent(this)
-		return value
+		try {
+			return this.__unsafe__getWithoutCapture()
+		} finally {
+			// if the deriver throws an error we still need to capture
+			maybeCaptureParent(this)
+		}
 	}
 
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {
-		// need to call .get() to ensure both that this derivation is up to date
-		// and that tracking happens correctly
-		this.get()
+		// we can ignore any errors thrown during derive
+		this.__unsafe__getWithoutCapture(true)
+		// and we still need to capture this signal as a parent
+		maybeCaptureParent(this)
 
 		if (epoch >= this.lastChangedEpoch) {
 			return EMPTY_ARRAY

@@ -90,6 +90,14 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 	validate(value: unknown) {
 		return this.type.validate(value)
 	}
+
+	validateUsingKnownGoodVersion(prevValue: Type, newValue: unknown) {
+		if (this.type.validateUsingKnownGoodVersion) {
+			return this.type.validateUsingKnownGoodVersion(prevValue, newValue)
+		} else {
+			return this.validate(newValue)
+		}
+	}
 }
 
 /**
@@ -99,7 +107,16 @@ export class StyleProp<Type> implements T.Validatable<Type> {
  */
 export class EnumStyleProp<T> extends StyleProp<T> {
 	/** @internal */
-	constructor(id: string, defaultValue: T, readonly values: readonly T[]) {
+	constructor(
+		id: string,
+		defaultValue: T,
+		readonly values: readonly T[]
+	) {
 		super(id, defaultValue, T.literalEnum(...values))
 	}
 }
+
+/**
+ * @public
+ */
+export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never

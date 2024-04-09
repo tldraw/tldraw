@@ -369,7 +369,6 @@ describe('isFocused', () => {
 
 			if (wasFocused !== isFocused) {
 				editor.updateInstanceState({ isFocused })
-				editor.updateViewportScreenBounds()
 
 				if (!isFocused) {
 					// When losing focus, run complete() to ensure that any interacts end
@@ -511,13 +510,13 @@ describe('getShapeUtil', () => {
 	it('throws if that shape type isnt registered', () => {
 		const myMissingShape = { type: 'missing' } as TLShape
 		expect(() => editor.getShapeUtil(myMissingShape)).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type \\"missing\\""`
+			`"No shape util found for type "missing""`
 		)
 	})
 
 	it('throws if that type isnt registered', () => {
 		expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type \\"missing\\""`
+			`"No shape util found for type "missing""`
 		)
 	})
 })

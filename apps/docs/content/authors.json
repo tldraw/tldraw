@@ -1,0 +1,23 @@
+[
+	{
+		"id": "steveruizok",
+		"name": "Steve Ruiz",
+		"email": "steve@tldraw.com",
+		"twitter": "steveruizok",
+		"image": "steve_ruiz.jpg"
+	},
+	{
+		"id": "tldraw",
+		"name": "tldraw",
+		"email": "sales@tldraw.com",
+		"twitter": "tldraw",
+		"image": "tldraw.jpg"
+	},
+	{
+		"id": "api",
+		"name": "API",
+		"email": "sales@tldraw.com",
+		"twitter": "tldraw",
+		"image": "api.jpg"
+	}
+]

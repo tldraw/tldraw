@@ -95,7 +95,7 @@ export type RESET_VALUE = typeof RESET_VALUE;
 
 // @public
 export interface Signal<Value, Diff = unknown> {
-    __unsafe__getWithoutCapture(): Value;
+    __unsafe__getWithoutCapture(ignoreErrors?: boolean): Value;
     // @internal (undocumented)
     children: ArraySet<Child>;
     get(): Value;

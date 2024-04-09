@@ -5,7 +5,7 @@ import {
 	StoreSchemaOptions,
 	StoreSnapshot,
 } from '@tldraw/store'
-import { annotateError, structuredClone } from '@tldraw/utils'
+import { IndexKey, annotateError, structuredClone } from '@tldraw/utils'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
 import { TLINSTANCE_ID } from './records/TLInstance'
@@ -81,7 +81,12 @@ export const onValidationFailure: StoreSchemaOptions<
 
 function getDefaultPages() {
 	return [
-		PageRecordType.create({ id: 'page:page' as TLPageId, name: 'Page 1', index: 'a1', meta: {} }),
+		PageRecordType.create({
+			id: 'page:page' as TLPageId,
+			name: 'Page 1',
+			index: 'a1' as IndexKey,
+			meta: {},
+		}),
 	]
 }
 

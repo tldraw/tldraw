@@ -1,5 +1,5 @@
 import { PageRecordType } from '@tldraw/tlschema'
-import { promiseWithResolve } from '@tldraw/utils'
+import { IndexKey, promiseWithResolve } from '@tldraw/utils'
 import { createTLStore } from '../../config/createTLStore'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
 import * as idb from './indexedDb'
@@ -111,12 +111,12 @@ test('when a client receives an announce with a newer schema version shortly aft
 test('the first db write after a client connects is a full db overwrite', async () => {
 	const { client } = testClient()
 	await tick()
-	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' })])
+	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
 	await tick()
 	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
 	expect(idb.storeChangesInIndexedDb).not.toHaveBeenCalled()
 
-	client.store.put([PageRecordType.create({ name: 'test2', index: 'a1' })])
+	client.store.put([PageRecordType.create({ name: 'test2', index: 'a1' as IndexKey })])
 	await tick()
 	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
 	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(1)
@@ -125,12 +125,12 @@ test('the first db write after a client connects is a full db overwrite', async 
 test('it clears the diff queue after every write', async () => {
 	const { client } = testClient()
 	await tick()
-	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' })])
+	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
 	await tick()
 	// @ts-expect-error
 	expect(client.diffQueue.length).toBe(0)
 
-	client.store.put([PageRecordType.create({ name: 'test2', index: 'a1' })])
+	client.store.put([PageRecordType.create({ name: 'test2', index: 'a1' as IndexKey })])
 	await tick()
 	// @ts-expect-error
 	expect(client.diffQueue.length).toBe(0)
@@ -142,7 +142,7 @@ test('writes that come in during a persist operation will get persisted afterwar
 
 	const { client } = testClient()
 	await tick()
-	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' })])
+	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
 	await tick()
 
 	// we should have called into idb but not resolved the promise yet
@@ -150,7 +150,7 @@ test('writes that come in during a persist operation will get persisted afterwar
 	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(0)
 
 	// if another change comes in, loads of time can pass, but nothing else should get called
-	client.store.put([PageRecordType.create({ name: 'test', index: 'a2' })])
+	client.store.put([PageRecordType.create({ name: 'test', index: 'a2' as IndexKey })])
 	await tick()
 	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
 	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(0)

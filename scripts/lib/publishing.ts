@@ -4,8 +4,9 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { compare, parse } from 'semver'
 import { exec } from './exec'
-import { BUBLIC_ROOT } from './file'
+import { REPO_ROOT } from './file'
 import { nicelog } from './nicelog'
+import { getAllWorkspacePackages } from './workspace'
 
 export type PackageDetails = {
 	name: string
@@ -14,7 +15,7 @@ export type PackageDetails = {
 	version: string
 }
 
-function getPackageDetails(dir: string): PackageDetails | null {
+async function getPackageDetails(dir: string): Promise<PackageDetails | null> {
 	const packageJsonPath = path.join(dir, 'package.json')
 	if (!existsSync(packageJsonPath)) {
 		return null
@@ -23,27 +24,30 @@ function getPackageDetails(dir: string): PackageDetails | null {
 	if (packageJson.private) {
 		return null
 	}
+
+	const workspacePackages = await getAllWorkspacePackages()
 	return {
 		name: packageJson.name,
 		dir,
 		version: packageJson.version,
 		localDeps: Object.keys(packageJson.dependencies ?? {}).filter((dep) =>
-			dep.startsWith('@tldraw')
+			workspacePackages.some((p) => p.name === dep)
 		),
 	}
 }
 
-export function getAllPackageDetails(): Record<string, PackageDetails> {
-	const dirs = readdirSync(join(BUBLIC_ROOT, 'packages'))
-	const results = dirs
-		.map((dir) => getPackageDetails(path.join(BUBLIC_ROOT, 'packages', dir)))
-		.filter((x): x is PackageDetails => Boolean(x))
+export async function getAllPackageDetails(): Promise<Record<string, PackageDetails>> {
+	const dirs = readdirSync(join(REPO_ROOT, 'packages'))
+	const details = await Promise.all(
+		dirs.map((dir) => getPackageDetails(path.join(REPO_ROOT, 'packages', dir)))
+	)
+	const results = details.filter((x): x is PackageDetails => Boolean(x))
 
 	return Object.fromEntries(results.map((result) => [result.name, result]))
 }
 
-export function setAllVersions(version: string) {
-	const packages = getAllPackageDetails()
+export async function setAllVersions(version: string) {
+	const packages = await getAllPackageDetails()
 	for (const packageDetails of Object.values(packages)) {
 		const manifest = JSON.parse(readFileSync(path.join(packageDetails.dir, 'package.json'), 'utf8'))
 		manifest.version = version
@@ -51,18 +55,9 @@ export function setAllVersions(version: string) {
 			path.join(packageDetails.dir, 'package.json'),
 			JSON.stringify(manifest, null, '\t') + '\n'
 		)
-		if (manifest.name === '@tldraw/editor') {
-			const versionFileContents = `export const version = '${version}'\n`
-			writeFileSync(path.join(packageDetails.dir, 'src', 'version.ts'), versionFileContents)
-		}
-		if (manifest.name === '@tldraw/tldraw') {
-			const versionFileContents = `export const version = '${version}'\n`
-			writeFileSync(
-				path.join(packageDetails.dir, 'src', 'lib', 'ui', 'version.ts'),
-				versionFileContents
-			)
-		}
 	}
+
+	await exec('yarn', ['refresh-assets', '--force'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
 
 	const lernaJson = JSON.parse(readFileSync('lerna.json', 'utf8'))
 	lernaJson.version = version
@@ -71,8 +66,8 @@ export function setAllVersions(version: string) {
 	execSync('yarn')
 }
 
-export function getLatestVersion() {
-	const packages = getAllPackageDetails()
+export async function getLatestVersion() {
+	const packages = await getAllPackageDetails()
 
 	const allVersions = Object.values(packages).map((p) => parse(p.version)!)
 	allVersions.sort(compare)
@@ -108,7 +103,7 @@ function topologicalSortPackages(packages: Record<string, PackageDetails>) {
 	return sorted
 }
 
-export async function publish() {
+export async function publish(distTag?: string) {
 	const npmToken = process.env.NPM_TOKEN
 	if (!npmToken) {
 		throw new Error('NPM_TOKEN not set')
@@ -117,14 +112,14 @@ export async function publish() {
 	execSync(`yarn config set npmAuthToken ${npmToken}`, { stdio: 'inherit' })
 	execSync(`yarn config set npmRegistryServer https://registry.npmjs.org`, { stdio: 'inherit' })
 
-	const packages = getAllPackageDetails()
+	const packages = await getAllPackageDetails()
 
 	const publishOrder = topologicalSortPackages(packages)
 
 	for (const packageDetails of publishOrder) {
-		const prereleaseTag = parse(packageDetails.version)?.prerelease[0] ?? 'latest'
+		const tag = distTag ?? parse(packageDetails.version)?.prerelease[0] ?? 'latest'
 		nicelog(
-			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${prereleaseTag}`
+			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${tag}`
 		)
 
 		await retry(
@@ -133,15 +128,7 @@ export async function publish() {
 				try {
 					await exec(
 						`yarn`,
-						[
-							'npm',
-							'publish',
-							'--tag',
-							String(prereleaseTag),
-							'--tolerate-republish',
-							'--access',
-							'public',
-						],
+						['npm', 'publish', '--tag', String(tag), '--tolerate-republish', '--access', 'public'],
 						{
 							pwd: packageDetails.dir,
 							processStdoutLine: (line) => {
@@ -175,7 +162,7 @@ export async function publish() {
 				const newVersion = packageDetails.version
 				const unscopedName = packageDetails.name.replace('@tldraw/', '')
 
-				const url = `https://registry.npmjs.org/@tldraw/${unscopedName}/-/${unscopedName}-${newVersion}.tgz`
+				const url = `https://registry.npmjs.org/${packageDetails.name}/-/${unscopedName}-${newVersion}.tgz`
 				nicelog('looking for package at url: ', url)
 				const res = await fetch(url, {
 					method: 'HEAD',
@@ -185,8 +172,8 @@ export async function publish() {
 				}
 			},
 			{
-				delay: 3000,
-				numAttempts: 10,
+				delay: 4000,
+				numAttempts: 20,
 			}
 		)
 	}

@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`converts correctly: Zoom to Fit Camera 1`] = `
-Object {
+{
   "id": "static",
-  "meta": Object {},
+  "meta": {},
   "typeName": "camera",
   "x": 330.435496777593,
   "y": 22.261531457640388,

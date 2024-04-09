@@ -1,7 +1,7 @@
 import * as _Dialog from '@radix-ui/react-dialog'
 import { useContainer } from '@tldraw/editor'
 import React, { useCallback } from 'react'
-import { TLUiDialog, useDialogs } from '../hooks/useDialogsProvider'
+import { TLUiDialog, useDialogs } from '../context/dialogs'
 
 const Dialog = ({ id, component: ModalContent, onClose }: TLUiDialog) => {
 	const { removeDialog } = useDialogs()
@@ -27,7 +27,14 @@ const Dialog = ({ id, component: ModalContent, onClose }: TLUiDialog) => {
 	return (
 		<_Dialog.Root onOpenChange={handleOpenChange} defaultOpen>
 			<_Dialog.Portal container={container}>
-				<_Dialog.Overlay dir="ltr" className="tlui-dialog__overlay">
+				<_Dialog.Overlay
+					dir="ltr"
+					className="tlui-dialog__overlay"
+					onClick={(e) => {
+						// only close if the click is on the overlay itself, ignore bubbling clicks
+						if (e.target === e.currentTarget) handleOpenChange(false)
+					}}
+				>
 					<_Dialog.Content dir="ltr" className="tlui-dialog__content">
 						<ModalContent onClose={() => handleOpenChange(false)} />
 					</_Dialog.Content>

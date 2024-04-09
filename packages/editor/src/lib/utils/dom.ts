@@ -14,7 +14,7 @@ whatever reason.
 */
 
 import React from 'react'
-import { debugFlags } from './debug-flags'
+import { debugFlags, pointerCaptureTrackingObject } from './debug-flags'
 
 /** @public */
 export function loopToHtmlElement(elm: Element): HTMLElement {
@@ -49,10 +49,8 @@ export function setPointerCapture(
 ) {
 	element.setPointerCapture(event.pointerId)
 	if (debugFlags.pointerCaptureTracking.get()) {
-		const trackingObj = debugFlags.pointerCaptureTrackingObject.get()
+		const trackingObj = pointerCaptureTrackingObject.get()
 		trackingObj.set(element, (trackingObj.get(element) ?? 0) + 1)
-	}
-	if (debugFlags.pointerCaptureLogging.get()) {
 		console.warn('setPointerCapture called on element:', element, event)
 	}
 }
@@ -68,7 +66,7 @@ export function releasePointerCapture(
 
 	element.releasePointerCapture(event.pointerId)
 	if (debugFlags.pointerCaptureTracking.get()) {
-		const trackingObj = debugFlags.pointerCaptureTrackingObject.get()
+		const trackingObj = pointerCaptureTrackingObject.get()
 		if (trackingObj.get(element) === 1) {
 			trackingObj.delete(element)
 		} else if (trackingObj.has(element)) {
@@ -76,11 +74,19 @@ export function releasePointerCapture(
 		} else {
 			console.warn('Release without capture')
 		}
-	}
-	if (debugFlags.pointerCaptureLogging.get()) {
 		console.warn('releasePointerCapture called on element:', element, event)
 	}
 }
 
 /** @public */
 export const stopEventPropagation = (e: any) => e.stopPropagation()
+
+/** @internal */
+export const setStyleProperty = (
+	elm: HTMLElement | null,
+	property: string,
+	value: string | number
+) => {
+	if (!elm) return
+	elm.style.setProperty(property, value as string)
+}

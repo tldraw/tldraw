@@ -1,0 +1,21 @@
+{
+	"name": "health-worker",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+	},
+	"dependencies": {
+		"@tldraw/utils": "workspace:*"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20230821.0",
+		"@types/node": "~20.11",
+		"discord-api-types": "^0.37.67",
+		"typescript": "^5.3.3",
+		"wrangler": "3.19.0"
+	}
+}

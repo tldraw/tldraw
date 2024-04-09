@@ -1,10 +1,5 @@
-import { ComponentType } from 'react'
-
 /** @public */
-export type TLSpinnerComponent = ComponentType<object>
-
-/** @public */
-export const DefaultSpinner: TLSpinnerComponent = () => {
+export function DefaultSpinner() {
 	return (
 		<svg width={16} height={16} viewBox="0 0 16 16">
 			<g strokeWidth={2} fill="none" fillRule="evenodd">

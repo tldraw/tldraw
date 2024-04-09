@@ -1,11 +1,11 @@
 import {
-	Matrix2d,
+	HALF_PI,
+	Mat,
 	PI,
 	PI2,
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
-	TAU,
 	TLEnterEventHandler,
 	TLEventHandlers,
 	TLFrameShape,
@@ -13,8 +13,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLTickEventHandler,
-	Vec2d,
+	Vec,
 	VecLike,
 	areAnglesCompatible,
 	compact,
@@ -74,7 +73,7 @@ export class Resizing extends StateNode {
 		this.updateShapes()
 	}
 
-	override onTick: TLTickEventHandler = () => {
+	override onTick = () => {
 		moveCameraWhenCloseToEdge(this.editor)
 	}
 
@@ -227,13 +226,13 @@ export class Resizing extends StateNode {
 		const dragHandle = this.info.handle as SelectionCorner | SelectionEdge
 		const scaleOriginHandle = rotateSelectionHandle(dragHandle, Math.PI)
 
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 
 		const shouldSnap = this.editor.user.getIsSnapMode() ? !ctrlKey : ctrlKey
 
-		if (shouldSnap && selectionRotation % TAU === 0) {
-			const { nudge } = this.editor.snaps.snapResize({
-				dragDelta: Vec2d.Sub(currentPagePoint, originPagePoint),
+		if (shouldSnap && selectionRotation % HALF_PI === 0) {
+			const { nudge } = this.editor.snaps.shapeBounds.snapResizeShapes({
+				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds: this.snapshot.initialSelectionPageBounds,
 				handle: rotateSelectionHandle(dragHandle, selectionRotation),
 				isAspectRatioLocked,
@@ -245,7 +244,7 @@ export class Resizing extends StateNode {
 
 		// get the page point of the selection handle opposite to the drag handle
 		// or the center of the selection box if altKey is pressed
-		const scaleOriginPage = Vec2d.RotWith(
+		const scaleOriginPage = Vec.RotWith(
 			altKey ? selectionBounds.center : selectionBounds.getHandlePoint(scaleOriginHandle),
 			selectionBounds.point,
 			selectionRotation
@@ -254,15 +253,15 @@ export class Resizing extends StateNode {
 		// calculate the scale by measuring the current distance between the drag handle and the scale origin
 		// and dividing by the original distance between the drag handle and the scale origin
 
-		const distanceFromScaleOriginNow = Vec2d.Sub(currentPagePoint, scaleOriginPage).rot(
+		const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
 			-selectionRotation
 		)
 
-		const distanceFromScaleOriginAtStart = Vec2d.Sub(originPagePoint, scaleOriginPage).rot(
+		const distanceFromScaleOriginAtStart = Vec.Sub(originPagePoint, scaleOriginPage).rot(
 			-selectionRotation
 		)
 
-		const scale = Vec2d.DivV(distanceFromScaleOriginNow, distanceFromScaleOriginAtStart)
+		const scale = Vec.DivV(distanceFromScaleOriginNow, distanceFromScaleOriginAtStart)
 
 		if (!Number.isFinite(scale.x)) scale.x = 1
 		if (!Number.isFinite(scale.y)) scale.y = 1
@@ -334,7 +333,7 @@ export class Resizing extends StateNode {
 				const dx = current.x - initial.x
 				const dy = current.y - initial.y
 
-				const delta = new Vec2d(dx, dy).rot(-initial.rotation)
+				const delta = new Vec(dx, dy).rot(-initial.rotation)
 
 				if (delta.x !== 0 || delta.y !== 0) {
 					for (const child of children) {
@@ -409,7 +408,7 @@ export class Resizing extends StateNode {
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
 		)
-		this.editor.snaps.clear()
+		this.editor.snaps.clearIndicators()
 	}
 
 	_createSnapshot = () => {
@@ -421,13 +420,13 @@ export class Resizing extends StateNode {
 
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
 
-		const dragHandlePoint = Vec2d.RotWith(
+		const dragHandlePoint = Vec.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),
 			selectionBounds.point,
 			selectionRotation
 		)
 
-		const cursorHandleOffset = Vec2d.Sub(originPagePoint, dragHandlePoint)
+		const cursorHandleOffset = Vec.Sub(originPagePoint, dragHandlePoint)
 
 		const shapeSnapshots = new Map<TLShapeId, ShapeSnapshot>()
 
@@ -487,7 +486,7 @@ export class Resizing extends StateNode {
 			shape,
 			bounds: this.editor.getShapeGeometry(shape).bounds,
 			pageTransform,
-			pageRotation: Matrix2d.Decompose(pageTransform!).rotation,
+			pageRotation: Mat.Decompose(pageTransform!).rotation,
 			isAspectRatioLocked: util.isAspectRatioLocked(shape),
 		}
 	}

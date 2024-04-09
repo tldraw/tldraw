@@ -1,8 +1,8 @@
 import {
 	PI,
 	TLDefaultSizeStyle,
-	Vec2d,
-	Vec2dModel,
+	Vec,
+	VecModel,
 	clockwiseAngleDist,
 	getPointOnCircle,
 	rng,
@@ -19,16 +19,16 @@ function getPillCircumference(width: number, height: number) {
 type PillSection =
 	| {
 			type: 'straight'
-			start: Vec2dModel
-			delta: Vec2dModel
+			start: VecModel
+			delta: VecModel
 	  }
 	| {
 			type: 'arc'
-			center: Vec2dModel
+			center: VecModel
 			startAngle: number
 	  }
 
-export function getPillPoints(width: number, height: number, numPoints: number) {
+function getPillPoints(width: number, height: number, numPoints: number) {
 	const radius = Math.min(width, height) / 2
 	const longSide = Math.max(width, height) - radius * 2
 
@@ -41,63 +41,58 @@ export function getPillPoints(width: number, height: number, numPoints: number) 
 			? [
 					{
 						type: 'straight',
-						start: new Vec2d(radius, 0),
-						delta: new Vec2d(1, 0),
+						start: new Vec(radius, 0),
+						delta: new Vec(1, 0),
 					},
 					{
 						type: 'arc',
-						center: new Vec2d(width - radius, radius),
+						center: new Vec(width - radius, radius),
 						startAngle: -PI / 2,
 					},
 					{
 						type: 'straight',
-						start: new Vec2d(width - radius, height),
-						delta: new Vec2d(-1, 0),
+						start: new Vec(width - radius, height),
+						delta: new Vec(-1, 0),
 					},
 					{
 						type: 'arc',
-						center: new Vec2d(radius, radius),
+						center: new Vec(radius, radius),
 						startAngle: PI / 2,
 					},
-			  ]
+				]
 			: [
 					{
 						type: 'straight',
-						start: new Vec2d(width, radius),
-						delta: new Vec2d(0, 1),
+						start: new Vec(width, radius),
+						delta: new Vec(0, 1),
 					},
 					{
 						type: 'arc',
-						center: new Vec2d(radius, height - radius),
+						center: new Vec(radius, height - radius),
 						startAngle: 0,
 					},
 					{
 						type: 'straight',
-						start: new Vec2d(0, height - radius),
-						delta: new Vec2d(0, -1),
+						start: new Vec(0, height - radius),
+						delta: new Vec(0, -1),
 					},
 					{
 						type: 'arc',
-						center: new Vec2d(radius, radius),
+						center: new Vec(radius, radius),
 						startAngle: PI,
 					},
-			  ]
+				]
 
 	let sectionOffset = 0
 
-	const points: Vec2d[] = []
+	const points: Vec[] = []
 	for (let i = 0; i < numPoints; i++) {
 		const section = sections[0]
 		if (section.type === 'straight') {
-			points.push(Vec2d.Add(section.start, Vec2d.Mul(section.delta, sectionOffset)))
+			points.push(Vec.Add(section.start, Vec.Mul(section.delta, sectionOffset)))
 		} else {
 			points.push(
-				getPointOnCircle(
-					section.center.x,
-					section.center.y,
-					radius,
-					section.startAngle + sectionOffset / radius
-				)
+				getPointOnCircle(section.center, radius, section.startAngle + sectionOffset / radius)
 			)
 		}
 		sectionOffset += spacing
@@ -159,12 +154,12 @@ export function getCloudArcs(
 	// in at the bottom-right and the top-left looks relatively stable
 	const wiggledPoints = bumpPoints.slice(0)
 	for (let i = 0; i < Math.floor(numBumps / 2); i++) {
-		wiggledPoints[i] = Vec2d.AddXY(
+		wiggledPoints[i] = Vec.AddXY(
 			wiggledPoints[i],
 			getRandom() * maxWiggleX,
 			getRandom() * maxWiggleY
 		)
-		wiggledPoints[numBumps - i - 1] = Vec2d.AddXY(
+		wiggledPoints[numBumps - i - 1] = Vec.AddXY(
 			wiggledPoints[numBumps - i - 1],
 			getRandom() * maxWiggleX,
 			getRandom() * maxWiggleY
@@ -180,17 +175,17 @@ export function getCloudArcs(
 		const leftPoint = bumpPoints[i]
 		const rightPoint = bumpPoints[j]
 
-		const midPoint = Vec2d.Average([leftPoint, rightPoint])
-		const offsetAngle = Vec2d.Angle(leftPoint, rightPoint) - Math.PI / 2
+		const midPoint = Vec.Average([leftPoint, rightPoint])
+		const offsetAngle = Vec.Angle(leftPoint, rightPoint) - Math.PI / 2
 		// when the points are on the curvy part of a pill, there is a natural arc that we need to extends past
 		// otherwise it looks like the bumps get less bumpy on the curvy parts
-		const distanceBetweenOriginalPoints = Vec2d.Dist(leftPoint, rightPoint)
+		const distanceBetweenOriginalPoints = Vec.Dist(leftPoint, rightPoint)
 		const curvatureOffset = distanceBetweenPointsOnPerimeter - distanceBetweenOriginalPoints
-		const distanceBetweenWigglePoints = Vec2d.Dist(leftWigglePoint, rightWigglePoint)
+		const distanceBetweenWigglePoints = Vec.Dist(leftWigglePoint, rightWigglePoint)
 		const relativeSize = distanceBetweenWigglePoints / distanceBetweenOriginalPoints
 		const finalDistance = (Math.max(paddingX, paddingY) + curvatureOffset) * relativeSize
 
-		const arcPoint = Vec2d.Add(midPoint, Vec2d.FromAngle(offsetAngle, finalDistance))
+		const arcPoint = Vec.Add(midPoint, Vec.FromAngle(offsetAngle, finalDistance))
 		if (arcPoint.x < 0) {
 			arcPoint.x = 0
 		} else if (arcPoint.x > width) {
@@ -203,8 +198,8 @@ export function getCloudArcs(
 		}
 
 		const center = getCenterOfCircleGivenThreePoints(leftWigglePoint, rightWigglePoint, arcPoint)
-		const radius = Vec2d.Dist(
-			center ? center : Vec2d.Average([leftWigglePoint, rightWigglePoint]),
+		const radius = Vec.Dist(
+			center ? center : Vec.Average([leftWigglePoint, rightWigglePoint]),
 			leftWigglePoint
 		)
 
@@ -221,14 +216,14 @@ export function getCloudArcs(
 }
 
 type Arc = {
-	leftPoint: Vec2d
-	rightPoint: Vec2d
-	arcPoint: Vec2d
-	center: Vec2d | null
+	leftPoint: Vec
+	rightPoint: Vec
+	arcPoint: Vec
+	center: Vec | null
 	radius: number
 }
 
-function getCenterOfCircleGivenThreePoints(a: Vec2d, b: Vec2d, c: Vec2d) {
+function getCenterOfCircleGivenThreePoints(a: Vec, b: Vec, c: Vec) {
 	const A = a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y
 	const B =
 		(a.x * a.x + a.y * a.y) * (c.y - b.y) +
@@ -247,7 +242,7 @@ function getCenterOfCircleGivenThreePoints(a: Vec2d, b: Vec2d, c: Vec2d) {
 		return null
 	}
 
-	return new Vec2d(x, y)
+	return new Vec(x, y)
 }
 
 export function cloudOutline(
@@ -256,7 +251,7 @@ export function cloudOutline(
 	seed: string,
 	size: TLDefaultSizeStyle
 ) {
-	const path: Vec2d[] = []
+	const path: Vec[] = []
 
 	const arcs = getCloudArcs(width, height, seed, size)
 
@@ -316,12 +311,10 @@ export function inkyCloudSvgPath(
 	}
 	const arcs = getCloudArcs(width, height, seed, size)
 	const avgArcLength =
-		arcs.reduce((sum, arc) => sum + Vec2d.Dist(arc.leftPoint, arc.rightPoint), 0) / arcs.length
+		arcs.reduce((sum, arc) => sum + Vec.Dist(arc.leftPoint, arc.rightPoint), 0) / arcs.length
 	const shouldMutatePoints = avgArcLength > mutMultiplier * 15
 
-	const mutPoint = shouldMutatePoints
-		? (p: Vec2d) => new Vec2d(mut(p.x), mut(p.y))
-		: (p: Vec2d) => p
+	const mutPoint = shouldMutatePoints ? (p: Vec) => new Vec(mut(p.x), mut(p.y)) : (p: Vec) => p
 	let pathA = `M${toDomPrecision(arcs[0].leftPoint.x)},${toDomPrecision(arcs[0].leftPoint.y)}`
 	let leftMutPoint = mutPoint(arcs[0].leftPoint)
 	let pathB = `M${toDomPrecision(leftMutPoint.x)},${toDomPrecision(leftMutPoint.y)}`
@@ -348,7 +341,7 @@ export function inkyCloudSvgPath(
 			leftMutPoint = rightMutPoint
 			continue
 		}
-		const mutRadius = Math.abs(Vec2d.Dist(mutCenter, leftMutPoint))
+		const mutRadius = Math.abs(Vec.Dist(mutCenter, leftMutPoint))
 
 		pathB += ` A${toDomPrecision(mutRadius)},${toDomPrecision(
 			mutRadius
@@ -359,33 +352,33 @@ export function inkyCloudSvgPath(
 	return pathA + pathB + ' Z'
 }
 
-export function pointsOnArc(
-	startPoint: Vec2dModel,
-	endPoint: Vec2dModel,
-	center: Vec2dModel | null,
+function pointsOnArc(
+	startPoint: VecModel,
+	endPoint: VecModel,
+	center: VecModel | null,
 	radius: number,
 	numPoints: number
-): Vec2d[] {
+): Vec[] {
 	if (center === null) {
-		return [Vec2d.From(startPoint), Vec2d.From(endPoint)]
+		return [Vec.From(startPoint), Vec.From(endPoint)]
 	}
-	const results: Vec2d[] = []
+	const results: Vec[] = []
 
-	const startAngle = Vec2d.Angle(center, startPoint)
-	const endAngle = Vec2d.Angle(center, endPoint)
+	const startAngle = Vec.Angle(center, startPoint)
+	const endAngle = Vec.Angle(center, endPoint)
 
 	const l = clockwiseAngleDist(startAngle, endAngle)
 
 	for (let i = 0; i < numPoints; i++) {
 		const t = i / (numPoints - 1)
 		const angle = startAngle + l * t
-		const point = getPointOnCircle(center.x, center.y, radius, angle)
+		const point = getPointOnCircle(center, radius, angle)
 		results.push(point)
 	}
 
 	return results
 }
 
-function isLeft(a: Vec2d, b: Vec2d, c: Vec2d) {
+function isLeft(a: Vec, b: Vec, c: Vec) {
 	return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0
 }

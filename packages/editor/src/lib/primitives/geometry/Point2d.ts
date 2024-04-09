@@ -1,12 +1,12 @@
-import { Vec2d } from '../Vec2d'
+import { Vec } from '../Vec'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Point2d extends Geometry2d {
-	point: Vec2d
+	point: Vec
 
 	constructor(
-		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { margin: number; point: Vec2d }
+		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { margin: number; point: Vec }
 	) {
 		super({ ...config, isClosed: true, isFilled: true })
 		const { point } = config
@@ -18,11 +18,11 @@ export class Point2d extends Geometry2d {
 		return [this.point]
 	}
 
-	nearestPoint(): Vec2d {
+	nearestPoint(): Vec {
 		return this.point
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d, margin: number): boolean {
-		return Vec2d.DistanceToLineSegment(A, B, this.point) < margin
+	hitTestLineSegment(A: Vec, B: Vec, margin: number): boolean {
+		return Vec.DistanceToLineSegment(A, B, this.point) < margin
 	}
 }

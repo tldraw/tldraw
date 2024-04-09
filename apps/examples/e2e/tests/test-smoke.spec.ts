@@ -1,6 +1,7 @@
-import test, { expect } from '@playwright/test'
-import { Editor, TLGeoShape } from '@tldraw/tldraw'
+import { expect } from '@playwright/test'
+import { Editor, TLGeoShape } from 'tldraw'
 import { getAllShapeTypes, setup } from '../shared-e2e'
+import test from './fixtures/fixtures'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -26,8 +27,8 @@ test.describe('smoke tests', () => {
 
 	test('undo and redo', async ({ page }) => {
 		// buttons should be disabled when there is no history
-		expect(page.getByTestId('main.undo')).toBeDisabled()
-		expect(page.getByTestId('main.redo')).toBeDisabled()
+		expect(page.getByTestId('quick-actions.undo')).toBeDisabled()
+		expect(page.getByTestId('quick-actions.redo')).toBeDisabled()
 
 		// create a shape
 		await page.keyboard.press('r')
@@ -39,25 +40,25 @@ test.describe('smoke tests', () => {
 		expect(await getAllShapeTypes(page)).toEqual(['geo'])
 
 		// We should have an undoable shape
-		expect(page.getByTestId('main.undo')).not.toBeDisabled()
-		expect(page.getByTestId('main.redo')).toBeDisabled()
+		expect(page.getByTestId('quick-actions.undo')).not.toBeDisabled()
+		expect(page.getByTestId('quick-actions.redo')).toBeDisabled()
 
 		// Click the undo button to undo the shape
-		await page.getByTestId('main.undo').click()
+		await page.getByTestId('quick-actions.undo').click()
 
 		expect(await getAllShapeTypes(page)).toEqual([])
-		expect(page.getByTestId('main.undo')).toBeDisabled()
-		expect(page.getByTestId('main.redo')).not.toBeDisabled()
+		expect(page.getByTestId('quick-actions.undo')).toBeDisabled()
+		expect(page.getByTestId('quick-actions.redo')).not.toBeDisabled()
 
 		// Click the redo button to redo the shape
-		await page.getByTestId('main.redo').click()
+		await page.getByTestId('quick-actions.redo').click()
 
 		expect(await getAllShapeTypes(page)).toEqual(['geo'])
-		expect(await page.getByTestId('main.undo').isDisabled()).not.toBe(true)
-		expect(await page.getByTestId('main.redo').isDisabled()).toBe(true)
+		expect(await page.getByTestId('quick-actions.undo').isDisabled()).not.toBe(true)
+		expect(await page.getByTestId('quick-actions.redo').isDisabled()).toBe(true)
 	})
 
-	test('style panel + undo and redo squashing', async ({ page }) => {
+	test('style panel + undo and redo squashing', async ({ page, toolbar }) => {
 		await page.keyboard.press('r')
 		await page.mouse.move(100, 100)
 		await page.mouse.down()
@@ -71,12 +72,11 @@ test.describe('smoke tests', () => {
 		expect(await getSelectedShapeColor()).toBe('black')
 
 		// when on a mobile device...
-		const mobileStylesButton = page.getByTestId('mobile.styles')
-		const hasMobileMenu = await mobileStylesButton.isVisible()
+		const hasMobileMenu = await toolbar.mobileStylesButton.isVisible()
 
 		if (hasMobileMenu) {
 			// open the style menu
-			await page.getByTestId('mobile.styles').click()
+			await toolbar.mobileStylesButton.click()
 		}
 
 		// Click the light-blue color
@@ -108,8 +108,8 @@ test.describe('smoke tests', () => {
 		await page.mouse.up()
 
 		// Now undo and redo
-		const undo = page.getByTestId('main.undo')
-		const redo = page.getByTestId('main.redo')
+		const undo = page.getByTestId('quick-actions.undo')
+		const redo = page.getByTestId('quick-actions.redo')
 
 		await undo.click() // orange -> light blue
 		expect(await getSelectedShapeColor()).toBe('light-blue') // skipping squashed colors!
@@ -124,7 +124,7 @@ test.describe('smoke tests', () => {
 		await redo.click() // black -> light blue
 		await redo.click() // light-blue -> orange
 
-		expect(await page.getByTestId('main.undo').isDisabled()).not.toBe(true)
-		expect(await page.getByTestId('main.redo').isDisabled()).toBe(true)
+		expect(await page.getByTestId('quick-actions.undo').isDisabled()).not.toBe(true)
+		expect(await page.getByTestId('quick-actions.redo').isDisabled()).toBe(true)
 	})
 })

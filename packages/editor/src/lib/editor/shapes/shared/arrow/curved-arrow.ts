@@ -1,7 +1,6 @@
 import { TLArrowShape } from '@tldraw/tlschema'
-import { Box2d } from '../../../../primitives/Box2d'
-import { Matrix2d } from '../../../../primitives/Matrix2d'
-import { Vec2d, VecLike } from '../../../../primitives/Vec2d'
+import { Mat } from '../../../../primitives/Mat'
+import { Vec, VecLike } from '../../../../primitives/Vec'
 import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
 import {
 	PI,
@@ -37,9 +36,11 @@ export function getCurvedArrowInfo(
 
 	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape)
 
-	const med = Vec2d.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end) // point between start and end
-	const u = Vec2d.Sub(terminalsInArrowSpace.end, terminalsInArrowSpace.start).uni() // unit vector between start and end
-	const middle = Vec2d.Add(med, u.per().mul(-bend)) // middle handle
+	const med = Vec.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end) // point between start and end
+	const distance = Vec.Sub(terminalsInArrowSpace.end, terminalsInArrowSpace.start)
+	// Check for divide-by-zero before we call uni()
+	const u = Vec.Len(distance) ? distance.uni() : Vec.From(distance) // unit vector between start and end
+	const middle = Vec.Add(med, u.per().mul(-bend)) // middle handle
 
 	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.start)
 	const endShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.end)
@@ -50,7 +51,7 @@ export function getCurvedArrowInfo(
 	const b = terminalsInArrowSpace.end.clone()
 	const c = middle.clone()
 
-	if (Vec2d.Equals(a, b)) {
+	if (Vec.Equals(a, b)) {
 		return {
 			isStraight: true,
 			start: {
@@ -73,8 +74,8 @@ export function getCurvedArrowInfo(
 	const distFn = isClockwise ? clockwiseAngleDist : counterClockwiseAngleDist
 
 	const handleArc = getArcInfo(a, b, c)
-	const handle_aCA = Vec2d.Angle(handleArc.center, a)
-	const handle_aCB = Vec2d.Angle(handleArc.center, b)
+	const handle_aCA = Vec.Angle(handleArc.center, a)
+	const handle_aCB = Vec.Angle(handleArc.center, b)
 	const handle_dAB = distFn(handle_aCA, handle_aCB)
 
 	if (
@@ -98,15 +99,15 @@ export function getCurvedArrowInfo(
 	let minLength = MIN_ARROW_LENGTH
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
-		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
-		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
-		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
+		const startInPageSpace = Mat.applyToPoint(arrowPageTransform, tempA)
+		const centerInPageSpace = Mat.applyToPoint(arrowPageTransform, handleArc.center)
+		const endInPageSpace = Mat.applyToPoint(arrowPageTransform, tempB)
 
-		const inverseTransform = Matrix2d.Inverse(startShapeInfo.transform)
+		const inverseTransform = Mat.Inverse(startShapeInfo.transform)
 
-		const startInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
-		const centerInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
-		const endInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
+		const startInStartShapeLocalSpace = Mat.applyToPoint(inverseTransform, startInPageSpace)
+		const centerInStartShapeLocalSpace = Mat.applyToPoint(inverseTransform, centerInPageSpace)
+		const endInStartShapeLocalSpace = Mat.applyToPoint(inverseTransform, endInPageSpace)
 
 		const { isClosed } = startShapeInfo
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
@@ -148,7 +149,7 @@ export function getCurvedArrowInfo(
 
 		if (point) {
 			tempA.setTo(
-				editor.getPointInShapeSpace(shape, Matrix2d.applyToPoint(startShapeInfo.transform, point))
+				editor.getPointInShapeSpace(shape, Mat.applyToPoint(startShapeInfo.transform, point))
 			)
 
 			startShapeInfo.didIntersect = true
@@ -167,15 +168,15 @@ export function getCurvedArrowInfo(
 
 	if (endShapeInfo && !endShapeInfo.isExact) {
 		// get points in shape's coordinates?
-		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
-		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
-		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
+		const startInPageSpace = Mat.applyToPoint(arrowPageTransform, tempA)
+		const endInPageSpace = Mat.applyToPoint(arrowPageTransform, tempB)
+		const centerInPageSpace = Mat.applyToPoint(arrowPageTransform, handleArc.center)
 
-		const inverseTransform = Matrix2d.Inverse(endShapeInfo.transform)
+		const inverseTransform = Mat.Inverse(endShapeInfo.transform)
 
-		const startInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
-		const centerInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
-		const endInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
+		const startInEndShapeLocalSpace = Mat.applyToPoint(inverseTransform, startInPageSpace)
+		const centerInEndShapeLocalSpace = Mat.applyToPoint(inverseTransform, centerInPageSpace)
+		const endInEndShapeLocalSpace = Mat.applyToPoint(inverseTransform, endInPageSpace)
 
 		const isClosed = endShapeInfo.isClosed
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
@@ -222,7 +223,7 @@ export function getCurvedArrowInfo(
 		if (point) {
 			// Set b to target local point -> page point -> shape local point
 			tempB.setTo(
-				editor.getPointInShapeSpace(shape, Matrix2d.applyToPoint(endShapeInfo.transform, point))
+				editor.getPointInShapeSpace(shape, Mat.applyToPoint(endShapeInfo.transform, point))
 			)
 
 			endShapeInfo.didIntersect = true
@@ -239,8 +240,8 @@ export function getCurvedArrowInfo(
 
 	// Apply arrowhead offsets
 
-	let aCA = Vec2d.Angle(handleArc.center, tempA) // angle center -> a
-	let aCB = Vec2d.Angle(handleArc.center, tempB) // angle center -> b
+	let aCA = Vec.Angle(handleArc.center, tempA) // angle center -> a
+	let aCB = Vec.Angle(handleArc.center, tempB) // angle center -> b
 	let dAB = distFn(aCA, aCB) // angle distance between a and b
 	let lAB = dAB * handleArc.radius // length of arc between a and b
 
@@ -252,17 +253,17 @@ export function getCurvedArrowInfo(
 
 	if (offsetA !== 0) {
 		const n = (offsetA / lAB) * (isClockwise ? 1 : -1)
-		const u = Vec2d.FromAngle(aCA + dAB * n)
+		const u = Vec.FromAngle(aCA + dAB * n)
 		tA.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
 	if (offsetB !== 0) {
 		const n = (offsetB / lAB) * (isClockwise ? -1 : 1)
-		const u = Vec2d.FromAngle(aCB + dAB * n)
+		const u = Vec.FromAngle(aCB + dAB * n)
 		tB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
-	const distAB = Vec2d.Dist(tA, tB)
+	const distAB = Vec.Dist(tA, tB)
 	if (distAB < minLength) {
 		if (offsetA !== 0 && offsetB !== 0) {
 			offsetA *= -1.5
@@ -278,20 +279,20 @@ export function getCurvedArrowInfo(
 
 	if (offsetA !== 0) {
 		const n = (offsetA / lAB) * (isClockwise ? 1 : -1)
-		const u = Vec2d.FromAngle(aCA + dAB * n)
+		const u = Vec.FromAngle(aCA + dAB * n)
 		tempA.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
 	if (offsetB !== 0) {
 		const n = (offsetB / lAB) * (isClockwise ? -1 : 1)
-		const u = Vec2d.FromAngle(aCB + dAB * n)
+		const u = Vec.FromAngle(aCB + dAB * n)
 		tempB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
 	// Did we miss intersections? This happens when we have overlapping shapes.
 	if (startShapeInfo && endShapeInfo && !startShapeInfo.isExact && !endShapeInfo.isExact) {
-		aCA = Vec2d.Angle(handleArc.center, tempA) // angle center -> a
-		aCB = Vec2d.Angle(handleArc.center, tempB) // angle center -> b
+		aCA = Vec.Angle(handleArc.center, tempA) // angle center -> a
+		aCB = Vec.Angle(handleArc.center, tempB) // angle center -> b
 		dAB = distFn(aCA, aCB) // angle distance between a and b
 		lAB = dAB * handleArc.radius // length of arc between a and b
 		const relationship = getBoundShapeRelationships(
@@ -314,7 +315,7 @@ export function getCurvedArrowInfo(
 				distFn(handle_aCA, aCA) > distFn(handle_aCA, aCB)
 			) {
 				const n = Math.min(0.9, MIN_ARROW_LENGTH / lAB) * (isClockwise ? 1 : -1)
-				const u = Vec2d.FromAngle(aCA + dAB * n)
+				const u = Vec.FromAngle(aCA + dAB * n)
 				tempB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 			}
 		}
@@ -360,94 +361,13 @@ export function getCurvedArrowInfo(
 }
 
 /**
- * Get a solid path for a curved arrow's handles.
- *
- * @param info - The arrow info.
- * @public
- */
-export function getCurvedArrowHandlePath(info: TLArrowInfo & { isStraight: false }) {
-	const {
-		start,
-		end,
-		handleArc: { radius, largeArcFlag, sweepFlag },
-	} = info
-	return `M${start.handle.x},${start.handle.y} A${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.handle.x},${end.handle.y}`
-}
-
-/**
- * Get a solid path for a curved arrow's body.
- *
- * @param info - The arrow info.
- * @public
- */
-export function getSolidCurvedArrowPath(info: TLArrowInfo & { isStraight: false }) {
-	const {
-		start,
-		end,
-		bodyArc: { radius, largeArcFlag, sweepFlag },
-	} = info
-	return `M${start.point.x},${start.point.y} A${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${end.point.x},${end.point.y}`
-}
-
-/**
- * Get a point along an arc.
- *
- * @param center - The arc's center.
- * @param radius - The arc's radius.
- * @param startAngle - The start point of the arc.
- * @param size - The size of the arc.
- * @param t - The point along the arc to get.
- */
-export function getPointOnArc(
-	center: VecLike,
-	radius: number,
-	startAngle: number,
-	size: number,
-	t: number
-) {
-	const angle = startAngle + size * t
-	return new Vec2d(center.x + radius * Math.cos(angle), center.y + radius * Math.sin(angle))
-}
-
-/**
- * Get a bounding box for an arc.
- *
- * @param center - The arc's center.
- * @param radius - The arc's radius.
- * @param start - The start point of the arc.
- * @param size - The size of the arc.
- */
-export function getArcBoundingBox(center: VecLike, radius: number, start: VecLike, size: number) {
-	let minX = Infinity
-	let minY = Infinity
-	let maxX = -Infinity
-	let maxY = -Infinity
-
-	const startAngle = Vec2d.Angle(center, start)
-
-	// Test 20 points along the arc
-	for (let i = 0; i < 20; i++) {
-		const angle = startAngle + size * (i / 19)
-		const x = center.x + radius * Math.cos(angle)
-		const y = center.y + radius * Math.sin(angle)
-
-		minX = Math.min(x, minX)
-		minY = Math.min(y, minY)
-		maxX = Math.max(x, maxX)
-		maxY = Math.max(y, maxY)
-	}
-
-	return new Box2d(minX, minY, maxX - minX, maxY - minY)
-}
-
-/**
  * Get info about an arc formed by three points.
  *
  * @param a - The start of the arc
  * @param b - The end of the arc
  * @param c - A point on the arc
  */
-export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
+function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 	// find a circle from the three points
 	const u = -2 * (a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y)
 
@@ -464,10 +384,10 @@ export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 			u,
 	}
 
-	const radius = Vec2d.Dist(center, a)
+	const radius = Vec.Dist(center, a)
 
 	// Whether to draw the arc clockwise or counter-clockwise (are the points clockwise?)
-	const sweepFlag = +Vec2d.Clockwise(a, c, b)
+	const sweepFlag = +Vec.Clockwise(a, c, b)
 
 	// The base angle of the arc in radians
 	const ab = Math.hypot(a.y - b.y, a.x - b.x)
@@ -498,19 +418,19 @@ export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 function placeCenterHandle(
 	center: VecLike,
 	radius: number,
-	tempA: Vec2d,
-	tempB: Vec2d,
-	tempC: Vec2d,
+	tempA: Vec,
+	tempB: Vec,
+	tempC: Vec,
 	originalArcLength: number,
 	isClockwise: boolean
 ) {
-	const aCA = Vec2d.Angle(center, tempA) // angle center -> a
-	const aCB = Vec2d.Angle(center, tempB) // angle center -> b
+	const aCA = Vec.Angle(center, tempA) // angle center -> a
+	const aCB = Vec.Angle(center, tempB) // angle center -> b
 	let dAB = clockwiseAngleDist(aCA, aCB) // angle distance between a and b
 	if (!isClockwise) dAB = PI2 - dAB
 
 	const n = 0.5 * (isClockwise ? 1 : -1)
-	const u = Vec2d.FromAngle(aCA + dAB * n)
+	const u = Vec.FromAngle(aCA + dAB * n)
 	tempC.setTo(center).add(u.mul(radius))
 
 	if (dAB > originalArcLength) {

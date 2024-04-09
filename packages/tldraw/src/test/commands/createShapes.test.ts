@@ -79,7 +79,7 @@ it('Uses typescript generics', () => {
 				type: 'arrow',
 			},
 		])
-	}).toThrowError()
+	}).toThrow()
 })
 
 it('Parents shapes to the current page if the parent is not found', () => {

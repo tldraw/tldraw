@@ -1,6 +1,6 @@
 import {
 	AssetRecordType,
-	Box2d,
+	Box,
 	Editor,
 	TLArrowShapeArrowheadStyle,
 	TLAssetId,
@@ -13,8 +13,9 @@ import {
 	TLDefaultSizeStyle,
 	TLOpacityType,
 	TLShapeId,
-	Vec2d,
+	Vec,
 	VecLike,
+	ZERO_INDEX_KEY,
 	compact,
 	createShapeId,
 	getIndexAbove,
@@ -63,7 +64,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 		}
 	})
 
-	let index = 'a1'
+	let index = ZERO_INDEX_KEY
 
 	for (const element of elements) {
 		if (skipIds.has(element.id)) {
@@ -244,12 +245,12 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 									normalizedAnchor: { x: 0.5, y: 0.5 },
 									isPrecise: false,
 									isExact: false,
-							  }
+								}
 							: {
 									type: 'point',
 									x: start[0],
 									y: start[1],
-							  },
+								},
 						end: endTargetId
 							? {
 									type: 'binding',
@@ -257,12 +258,12 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 									normalizedAnchor: { x: 0.5, y: 0.5 },
 									isPrecise: false,
 									isExact: false,
-							  }
+								}
 							: {
 									type: 'point',
 									x: end[0],
 									y: end[1],
-							  },
+								},
 						arrowheadEnd: arrowheadsToArrowheadTypes[element.endArrowhead] ?? 'none',
 						arrowheadStart: arrowheadsToArrowheadTypes[element.startArrowhead] ?? 'none',
 					},
@@ -346,7 +347,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 	}
 
 	const rootShapes = compact(rootShapeIds.map((id) => editor.getShape(id)))
-	const bounds = Box2d.Common(rootShapes.map((s) => editor.getShapePageBounds(s)!))
+	const bounds = Box.Common(rootShapes.map((s) => editor.getShapePageBounds(s)!))
 	const viewPortCenter = editor.getViewportPageBounds().center
 	editor.updateShapes(
 		rootShapes.map((s) => {
@@ -481,19 +482,19 @@ const arrowheadsToArrowheadTypes: Record<string, TLArrowShapeArrowheadStyle> = {
 function getBend(element: any, startPoint: any, endPoint: any) {
 	let bend = 0
 	if (element.points.length > 2) {
-		const start = new Vec2d(startPoint[0], startPoint[1])
-		const end = new Vec2d(endPoint[0], endPoint[1])
-		const handle = new Vec2d(element.points[1][0], element.points[1][1])
-		const delta = Vec2d.Sub(end, start)
-		const v = Vec2d.Per(delta)
+		const start = new Vec(startPoint[0], startPoint[1])
+		const end = new Vec(endPoint[0], endPoint[1])
+		const handle = new Vec(element.points[1][0], element.points[1][1])
+		const delta = Vec.Sub(end, start)
+		const v = Vec.Per(delta)
 
-		const med = Vec2d.Med(end, start)
-		const A = Vec2d.Sub(med, v)
-		const B = Vec2d.Add(med, v)
+		const med = Vec.Med(end, start)
+		const A = Vec.Sub(med, v)
+		const B = Vec.Add(med, v)
 
-		const point = Vec2d.NearestPointOnLineSegment(A, B, handle, false)
-		bend = Vec2d.Dist(point, med)
-		if (Vec2d.Clockwise(point, end, med)) bend *= -1
+		const point = Vec.NearestPointOnLineSegment(A, B, handle, false)
+		bend = Vec.Dist(point, med)
+		if (Vec.Clockwise(point, end, med)) bend *= -1
 	}
 	return bend
 }

@@ -1,4 +1,4 @@
-import { PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
+import { IndexKey, PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -122,7 +122,7 @@ describe('Editor.moveShapesToPage', () => {
 		editor.expectShapeToMatch({
 			id: ids.box1,
 			parentId: page2Id,
-			index: 'a1',
+			index: 'a1' as IndexKey,
 		})
 
 		const page3Id = PageRecordType.createId('newPage3')
@@ -134,7 +134,7 @@ describe('Editor.moveShapesToPage', () => {
 		editor.expectShapeToMatch({
 			id: ids.box2,
 			parentId: page3Id,
-			index: 'a1',
+			index: 'a1' as IndexKey,
 		})
 
 		editor.setCurrentPage(page2Id)
@@ -147,12 +147,12 @@ describe('Editor.moveShapesToPage', () => {
 			{
 				id: ids.box2,
 				parentId: page3Id,
-				index: 'a1',
+				index: 'a1' as IndexKey,
 			},
 			{
 				id: ids.box1,
 				parentId: page3Id,
-				index: 'a2', // should be a2 now
+				index: 'a2' as IndexKey, // should be a2 now
 			}
 		)
 	})

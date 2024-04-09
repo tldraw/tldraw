@@ -1,0 +1,78 @@
+name: Deploy
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - production
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    name: Deploy to ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+    environment: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || 'deploy-staging' }}
+    concurrency: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || github.ref }}
+
+    steps:
+      - name: Notify initial start
+        uses: MineBartekSA/discord-webhook@v2
+        if: github.ref == 'refs/heads/production'
+        with:
+          webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          content: 'Preparing ${{ env.TLDRAW_ENV }} deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
+          component: |
+            {
+              "type": 2,
+              "style": 5,
+              "label": "Open in GitHub",
+              "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/setup
+
+      - name: Build types
+        run: yarn build-types
+
+      - name: Deploy
+        run: yarn tsx scripts/deploy.ts
+        env:
+          RELEASE_COMMIT_HASH: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+
+          ASSET_UPLOAD: ${{ vars.ASSET_UPLOAD }}
+          MULTIPLAYER_SERVER: ${{ vars.MULTIPLAYER_SERVER }}
+          SUPABASE_LITE_URL: ${{ vars.SUPABASE_LITE_URL }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_DOTCOM_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          DISCORD_HEALTH_WEBHOOK_URL: ${{ secrets.DISCORD_HEALTH_WEBHOOK_URL }}
+          HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: ${{ secrets.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH }}
+          GC_MAPS_API_KEY: ${{ secrets.GC_MAPS_API_KEY }}
+          WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SUPABASE_LITE_ANON_KEY: ${{ secrets.SUPABASE_LITE_ANON_KEY }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+
+          APP_ORIGIN: ${{ vars.APP_ORIGIN }}

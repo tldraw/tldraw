@@ -38,7 +38,7 @@ describe('When resizing', () => {
 		})
 	})
 
-	it('clamps bounds to minimim 0,0,1,1', () => {
+	it('clamps bounds to minimim h/w of 1,1', () => {
 		editor.setScreenBounds({ x: -100, y: -200, w: -700, h: 0 })
 		expect(editor.getViewportScreenBounds()).toMatchObject({
 			x: -100,

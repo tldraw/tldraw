@@ -1,16 +1,16 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import { BaseBoxShapeUtil, Editor } from '@tldraw/editor'
 import { useState } from 'react'
+import { renderTldrawComponent } from '../test/testutils/renderTldrawComponent'
 import { Tldraw } from './Tldraw'
 
 describe('<Tldraw />', () => {
 	it('Renders without crashing', async () => {
-		await act(async () =>
-			render(
-				<Tldraw>
-					<div data-testid="canvas-1" />
-				</Tldraw>
-			)
+		await renderTldrawComponent(
+			<Tldraw>
+				<div data-testid="canvas-1" />
+			</Tldraw>,
+			{ waitForPatterns: true }
 		)
 
 		await screen.findByTestId('canvas-1')
@@ -27,7 +27,7 @@ describe('<Tldraw />', () => {
 			)
 		}
 
-		await act(async () => render(<TestComponent />))
+		await renderTldrawComponent(<TestComponent />, { waitForPatterns: true })
 		await screen.findByTestId('canvas-1')
 	})
 
@@ -57,13 +57,13 @@ describe('<Tldraw />', () => {
 			}
 		}
 
-		const rendered = await act(async () =>
-			render(
-				<Tldraw shapeUtils={[FakeShapeUtil1]}>
-					<div data-testid="canvas-1" />
-				</Tldraw>
-			)
+		const rendered = await renderTldrawComponent(
+			<Tldraw shapeUtils={[FakeShapeUtil1]}>
+				<div data-testid="canvas-1" />
+			</Tldraw>,
+			{ waitForPatterns: false }
 		)
+
 		await screen.findByTestId('canvas-1')
 
 		await act(async () => {

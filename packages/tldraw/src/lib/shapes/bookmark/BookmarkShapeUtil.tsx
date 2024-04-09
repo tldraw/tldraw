@@ -3,6 +3,7 @@ import {
 	BaseBoxShapeUtil,
 	Editor,
 	HTMLContainer,
+	T,
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
@@ -12,7 +13,6 @@ import {
 	bookmarkShapeProps,
 	debounce,
 	getHashForString,
-	isValidUrl,
 	stopEventPropagation,
 	toDomPrecision,
 } from '@tldraw/editor'
@@ -114,7 +114,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 	override onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape> = (prev, shape) => {
 		if (prev.props.url !== shape.props.url) {
-			if (!isValidUrl(shape.props.url)) {
+			if (!T.linkUrl.isValid(shape.props.url)) {
 				return { ...shape, props: { ...shape.props, url: prev.props.url } }
 			} else {
 				updateBookmarkAssetOnUrlChange(this.editor, shape)

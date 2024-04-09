@@ -4,9 +4,12 @@
 	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*", "./scripts/legacy-translations"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
-		// TODO: Enable noImplicitReturns
 		"noImplicitReturns": false,
 		"rootDir": "src"
 	},
-	"references": [{ "path": "../editor" }]
+	"references": [
+		{
+			"path": "../editor"
+		}
+	]
 }

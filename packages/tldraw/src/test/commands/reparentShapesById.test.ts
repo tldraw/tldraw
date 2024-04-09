@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/editor'
+import { IndexKey, createShapeId } from '@tldraw/editor'
 import { TestEditor, createDefaultShapes, defaultShapesIds } from '../TestEditor'
 
 let editor: TestEditor
@@ -105,7 +105,7 @@ it('adds children at a given index', () => {
 	expect(editor.getShape(ids.ellipse1)!.index).toBe('a1')
 
 	// Handles collisions (trying to move box3 to a0, but box2 is there already)
-	editor.reparentShapes([ids.box3], ids.box1, 'a1')
+	editor.reparentShapes([ids.box3], ids.box1, 'a1' as IndexKey)
 
 	// Page
 	// - box1 a1
@@ -124,7 +124,7 @@ it('adds children at a given index', () => {
 
 	// Handles collisions (trying to move box5 to a0, but box2 is there already)
 	// should end up between box 2 and box 3 (a0 and a1)
-	editor.reparentShapes([ids.box5], ids.box1, 'a1')
+	editor.reparentShapes([ids.box5], ids.box1, 'a1' as IndexKey)
 
 	// Page
 	// - box1 a1
@@ -143,7 +143,7 @@ it('adds children at a given index', () => {
 
 	// Handles collisions (trying to move boxes 2, 3, and 5 to a0, but box1 is there already)
 	// Should order them between box1 and box4
-	editor.reparentShapes([ids.box2, ids.box3, ids.box5], editor.getCurrentPageId(), 'a1')
+	editor.reparentShapes([ids.box2, ids.box3, ids.box5], editor.getCurrentPageId(), 'a1' as IndexKey)
 
 	// Page
 	// - box1 a1

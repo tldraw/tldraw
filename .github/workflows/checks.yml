@@ -15,8 +15,8 @@ defaults:
     shell: bash
 
 jobs:
-  build:
-    name: 'Build and run checks'
+  test:
+    name: 'Tests & checks'
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-open # TODO: this should probably run on multiple OSes
 
@@ -24,18 +24,22 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.18.2
-          cache: 'yarn'
-          cache-dependency-path: 'public-yarn.lock'
+      - uses: ./.github/actions/setup
 
-      - name: Enable corepack
-        run: corepack enable
+      - name: Check version constraints
+        run: yarn constraints
 
-      - name: Install dependencies
-        run: yarn
+      - name: Check for duplicate dependencies
+        run: yarn dedupe --check
+
+      # Not the most sophisticated way to check for warnings, but I don't think
+      # Yarn can be convinced to exit with a non-zero exit code on warnings
+      # see also https://unix.stackexchange.com/a/433713 for the explanation of the parameters
+      - name: Check for installation warnings
+        run: 'yarn | grep -vzq "with warnings"'
+
+      - name: Check tsconfigs
+        run: yarn check-tsconfigs
 
       - name: Typecheck
         run: yarn build-types
@@ -43,19 +47,33 @@ jobs:
       - name: Check scripts
         run: yarn check-scripts
 
+      - name: Check PR template
+        run: yarn update-pr-template --check
+
       - name: Lint
         run: yarn lint
 
       - name: Check API declarations and docs work as intended
         run: yarn api-check
 
+      - name: Test
+        run: yarn test-ci
+
+  build:
+    name: 'Build all projects'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - uses: ./.github/actions/setup
+
       - name: Build all projects
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
         run: "yarn build | sed -E 's/^.*? ::/::/'"
-
-      - name: Test
-        run: yarn test
 
       - name: Pack public packages
         run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"

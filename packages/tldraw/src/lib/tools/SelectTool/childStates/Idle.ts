@@ -1,14 +1,16 @@
 import {
 	Editor,
+	Group2d,
 	HIT_TEST_MARGIN,
 	StateNode,
+	TLArrowShape,
 	TLClickEventInfo,
 	TLEventHandlers,
 	TLGroupShape,
 	TLKeyboardEventInfo,
 	TLShape,
 	TLTextShape,
-	Vec2d,
+	Vec,
 	VecLike,
 	createShapeId,
 	pointInPolygon,
@@ -90,7 +92,14 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				if (this.editor.isShapeOrAncestorLocked(info.shape)) {
+				const { shape } = info
+				if (this.isOverArrowLabelTest(shape)) {
+					// We're moving the label on a shape.
+					this.parent.transition('pointing_arrow_label', info)
+					break
+				}
+
+				if (this.editor.isShapeOrAncestorLocked(shape)) {
 					this.parent.transition('pointing_canvas', info)
 					break
 				}
@@ -179,10 +188,10 @@ export class Idle extends StateNode {
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
 						: this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
-						  this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
 								hitInside: false,
-						  })
+							})
 
 				const focusedGroupId = this.editor.getFocusedGroupId()
 
@@ -338,7 +347,7 @@ export class Idle extends StateNode {
 								hitLabels: true,
 								hitFrameInside: false,
 								renderingOnly: true,
-						  })
+							})
 
 				if (hitShape) {
 					this.onRightClick({
@@ -479,6 +488,28 @@ export class Idle extends StateNode {
 
 	isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
 
+	isOverArrowLabelTest(shape: TLShape | undefined) {
+		if (!shape) return false
+
+		const pointInShapeSpace = this.editor.getPointInShapeSpace(
+			shape,
+			this.editor.inputs.currentPagePoint
+		)
+
+		// todo: Extract into general hit test for arrows
+		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			// How should we handle multiple labels? Do shapes ever have multiple labels?
+			const labelGeometry = this.editor.getShapeGeometry<Group2d>(shape).children[1]
+			// Knowing what we know about arrows... if the shape has no text in its label,
+			// then the label geometry should not be there.
+			if (labelGeometry && pointInPolygon(pointInShapeSpace, labelGeometry.vertices)) {
+				return true
+			}
+		}
+
+		return false
+	}
+
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
 		if (this.editor.getInstanceState().isReadonly) return
@@ -529,14 +560,14 @@ export class Idle extends StateNode {
 		// because that one uses a short timeout on release
 		const shiftKey = keys.has('ShiftLeft')
 
-		const delta = new Vec2d(0, 0)
+		const delta = new Vec(0, 0)
 
 		if (keys.has('ArrowLeft')) delta.x -= 1
 		if (keys.has('ArrowRight')) delta.x += 1
 		if (keys.has('ArrowUp')) delta.y -= 1
 		if (keys.has('ArrowDown')) delta.y += 1
 
-		if (delta.equals(new Vec2d(0, 0))) return
+		if (delta.equals(new Vec(0, 0))) return
 
 		if (!ephemeral) this.editor.mark('nudge shapes')
 
@@ -547,8 +578,8 @@ export class Idle extends StateNode {
 				? gridSize * GRID_INCREMENT
 				: gridSize
 			: shiftKey
-			? MAJOR_NUDGE_FACTOR
-			: MINOR_NUDGE_FACTOR
+				? MAJOR_NUDGE_FACTOR
+				: MINOR_NUDGE_FACTOR
 
 		this.editor.nudgeShapes(this.editor.getSelectedShapeIds(), delta.mul(step))
 	}
@@ -574,6 +605,6 @@ function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
 
 	return pointInPolygon(
 		point,
-		selectionBounds.corners.map((c) => Vec2d.RotWith(c, selectionBounds.point, selectionRotation))
+		selectionBounds.corners.map((c) => Vec.RotWith(c, selectionBounds.point, selectionRotation))
 	)
 }

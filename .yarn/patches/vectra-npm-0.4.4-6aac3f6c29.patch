@@ -1,0 +1,30 @@
+diff --git a/lib/index.js b/lib/index.js
+index 2229f15f097650cf726e2a153b70ca5546696224..08d966f9546acb8caed69e73e06c12ed55e45832 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -14,15 +14,15 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
+     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+-__exportStar(require("./FileFetcher"), exports);
+-__exportStar(require("./GPT3Tokenizer"), exports);
+-__exportStar(require("./ItemSelector"), exports);
++// __exportStar(require("./FileFetcher"), exports);
++// __exportStar(require("./GPT3Tokenizer"), exports);
++// __exportStar(require("./ItemSelector"), exports);
+ __exportStar(require("./LocalIndex"), exports);
+-__exportStar(require("./LocalDocument"), exports);
+-__exportStar(require("./LocalDocumentIndex"), exports);
+-__exportStar(require("./LocalDocumentResult"), exports);
+-__exportStar(require("./OpenAIEmbeddings"), exports);
+-__exportStar(require("./TextSplitter"), exports);
++// __exportStar(require("./LocalDocument"), exports);
++// __exportStar(require("./LocalDocumentIndex"), exports);
++// __exportStar(require("./LocalDocumentResult"), exports);
++// __exportStar(require("./OpenAIEmbeddings"), exports);
++// __exportStar(require("./TextSplitter"), exports);
+ __exportStar(require("./types"), exports);
+-__exportStar(require("./WebFetcher"), exports);
++// __exportStar(require("./WebFetcher"), exports);
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file

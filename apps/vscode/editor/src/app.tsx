@@ -1,15 +1,24 @@
-import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
-import '@tldraw/tldraw/tldraw.css'
+import 'tldraw/tldraw.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
-import { Editor, ErrorBoundary, TLUiMenuSchema, Tldraw, setRuntimeOverrides } from '@tldraw/tldraw'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+	DefaultHelpMenu,
+	DefaultHelpMenuContent,
+	Editor,
+	ErrorBoundary,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuGroup,
+	setRuntimeOverrides,
+} from 'tldraw'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
 import { ChangeResponder } from './ChangeResponder'
 import { FileOpen } from './FileOpen'
 import { FullPageMessage } from './FullPageMessage'
+import { Links } from './Links'
 import { onCreateAssetFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
 
@@ -51,24 +60,6 @@ export function WrappedTldrawEditor() {
 			</ErrorBoundary>
 		</div>
 	)
-}
-
-const menuOverrides = {
-	menu: (_editor: Editor, schema: TLUiMenuSchema, _helpers: any) => {
-		schema.forEach((item) => {
-			if (item.id === 'menu' && item.type === 'group') {
-				item.children = item.children.filter((menuItem) => {
-					if (!menuItem) return false
-					if (menuItem.id === 'file' && menuItem.type === 'submenu') {
-						return false
-					}
-					return true
-				})
-			}
-		})
-
-		return schema
-	},
 }
 
 export const TldrawWrapper = () => {
@@ -114,6 +105,16 @@ export type TLDrawInnerProps = {
 	isDarkMode: boolean
 }
 
+const components: TLComponents = {
+	HelpMenu: () => (
+		<DefaultHelpMenu>
+			<TldrawUiMenuGroup id="help">
+				<DefaultHelpMenuContent />
+			</TldrawUiMenuGroup>
+			<Links />
+		</DefaultHelpMenu>
+	),
+}
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
@@ -126,10 +127,11 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 			assetUrls={assetUrls}
 			persistenceKey={uri}
 			onMount={handleMount}
-			overrides={[menuOverrides, linksUiOverrides]}
+			components={components}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
+
 			<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />
 			<ChangeResponder />
 		</Tldraw>

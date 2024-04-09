@@ -6,6 +6,7 @@
 
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
+import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { Migrations } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
@@ -29,8 +30,8 @@ export const arrowShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const arrowShapeProps: {
-    labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
@@ -41,32 +42,33 @@ export const arrowShapeProps: {
         binding: T.ObjectValidator<{
             type: "binding";
             boundShapeId: TLShapeId;
-            normalizedAnchor: Vec2dModel;
+            normalizedAnchor: VecModel;
             isExact: boolean;
             isPrecise: boolean;
-        }>;
+        } & {}>;
         point: T.ObjectValidator<{
-            type: "point";
             x: number;
             y: number;
-        }>;
+            type: "point";
+        } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
         binding: T.ObjectValidator<{
             type: "binding";
             boundShapeId: TLShapeId;
-            normalizedAnchor: Vec2dModel;
+            normalizedAnchor: VecModel;
             isExact: boolean;
             isPrecise: boolean;
-        }>;
+        } & {}>;
         point: T.ObjectValidator<{
-            type: "point";
             x: number;
             y: number;
-        }>;
+            type: "point";
+        } & {}>;
     }, never>;
     bend: T.Validator<number>;
     text: T.Validator<string>;
+    labelPosition: T.Validator<number>;
 };
 
 // @public
@@ -93,7 +95,7 @@ export const bookmarkShapeProps: {
 };
 
 // @public
-export interface Box2dModel {
+export interface BoxModel {
     // (undocumented)
     h: number;
     // (undocumented)
@@ -105,7 +107,7 @@ export interface Box2dModel {
 }
 
 // @public (undocumented)
-export const box2dModelValidator: T.Validator<Box2dModel>;
+export const boxModelValidator: T.Validator<BoxModel>;
 
 // @public (undocumented)
 export const CameraRecordType: RecordType<TLCamera, never>;
@@ -114,13 +116,19 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
-    id: TLAssetId;
-    typeName: 'asset';
-    type: Type;
-    props: Props;
-    meta: JsonObject;
-}>;
+export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{ [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
+        id: TLAssetId;
+        typeName: 'asset';
+        type: Type;
+        props: Props;
+        meta: JsonObject;
+    }[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
+        id: TLAssetId;
+        typeName: 'asset';
+        type: Type;
+        props: Props;
+        meta: JsonObject;
+    }[P_1] | undefined; }>;
 
 // @public (undocumented)
 export const createPresenceStateDerivation: ($user: Signal<{
@@ -137,15 +145,15 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<TLBaseShape<Type, Props>>;
+}): T.ObjectValidator<{ [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>;
 
 // @public
-export function createTLSchema({ shapes }: {
-    shapes: Record<string, SchemaShapeInfo>;
+export function createTLSchema({ shapes, }?: {
+    shapes?: Record<string, SchemaShapeInfo>;
 }): TLSchema;
 
 // @public (undocumented)
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public (undocumented)
 export const DefaultColorThemePalette: {
@@ -187,14 +195,14 @@ export const drawShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const drawShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     segments: T.ArrayOfValidator<{
         type: "free" | "straight";
-        points: Vec2dModel[];
-    }>;
+        points: VecModel[];
+    } & {}>;
     isComplete: T.Validator<boolean>;
     isClosed: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
@@ -204,13 +212,15 @@ export const drawShapeProps: {
 export const EMBED_DEFINITIONS: readonly [{
     readonly type: "tldraw";
     readonly title: "tldraw";
-    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com"];
+    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com", "localhost:3000"];
     readonly minWidth: 300;
     readonly minHeight: 300;
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: true;
+    readonly overridePermissions: {
+        readonly 'allow-top-navigation': true;
+    };
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -220,7 +230,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -230,7 +239,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -242,7 +250,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -254,7 +261,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -266,7 +272,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 520;
     readonly height: 400;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -276,7 +281,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 520;
     readonly height: 400;
     readonly doesResize: false;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -286,7 +290,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 800;
     readonly height: 450;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly overridePermissions: {
         readonly 'allow-presentation': true;
     };
@@ -302,7 +305,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly minWidth: 460;
     readonly minHeight: 360;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -315,7 +317,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly minWidth: 460;
     readonly minHeight: 360;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -325,7 +326,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -335,7 +335,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -345,7 +344,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -357,7 +355,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly minHeight: 500;
     readonly overrideOutlineRadius: 12;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -367,7 +364,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 640;
     readonly height: 360;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly isAspectRatioLocked: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -378,7 +374,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly isAspectRatioLocked: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -389,7 +384,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly isAspectRatioLocked: false;
     readonly backgroundColor: "#fff";
     readonly toEmbedUrl: (url: string) => string | undefined;
@@ -406,7 +400,6 @@ export type EmbedDefinition = {
     readonly width: number;
     readonly height: number;
     readonly doesResize: boolean;
-    readonly canUnmount: boolean;
     readonly isAspectRatioLocked?: boolean;
     readonly overridePermissions?: TLEmbedShapePermissions;
     readonly instructionLink?: string;
@@ -471,8 +464,8 @@ export const geoShapeMigrations: Migrations;
 // @public (undocumented)
 export const geoShapeProps: {
     geo: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
-    labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
@@ -508,12 +501,12 @@ export const highlightShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const highlightShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     segments: T.ArrayOfValidator<{
         type: "free" | "straight";
-        points: Vec2dModel[];
-    }>;
+        points: VecModel[];
+    } & {}>;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
 };
@@ -531,10 +524,10 @@ export const imageShapeProps: {
     playing: T.Validator<boolean>;
     url: T.Validator<string>;
     assetId: T.Validator<TLAssetId | null>;
-    crop: T.Validator<{
-        topLeft: Vec2dModel;
-        bottomRight: Vec2dModel;
-    } | null>;
+    crop: T.Validator<({
+        topLeft: VecModel;
+        bottomRight: VecModel;
+    } & {}) | null>;
 };
 
 // @public (undocumented)
@@ -554,9 +547,6 @@ export function isShapeId(id?: string): id is TLShapeId;
 
 // @public (undocumented)
 export const LANGUAGES: readonly [{
-    readonly locale: "ar";
-    readonly label: "عربي";
-}, {
     readonly locale: "ca";
     readonly label: "Català";
 }, {
@@ -575,44 +565,20 @@ export const LANGUAGES: readonly [{
     readonly locale: "es";
     readonly label: "Español";
 }, {
-    readonly locale: "fa";
-    readonly label: "فارسی";
-}, {
-    readonly locale: "fi";
-    readonly label: "Suomi";
-}, {
     readonly locale: "fr";
     readonly label: "Français";
 }, {
     readonly locale: "gl";
     readonly label: "Galego";
 }, {
-    readonly locale: "he";
-    readonly label: "עברית";
+    readonly locale: "hr";
+    readonly label: "Hrvatski";
 }, {
     readonly locale: "it";
     readonly label: "Italiano";
 }, {
-    readonly locale: "ja";
-    readonly label: "日本語";
-}, {
-    readonly locale: "ko-kr";
-    readonly label: "한국어";
-}, {
-    readonly locale: "ku";
-    readonly label: "کوردی";
-}, {
-    readonly locale: "hi-in";
-    readonly label: "हिन्दी";
-}, {
     readonly locale: "hu";
     readonly label: "Magyar";
-}, {
-    readonly locale: "my";
-    readonly label: "မြန်မာစာ";
-}, {
-    readonly locale: "ne";
-    readonly label: "नेपाली";
 }, {
     readonly locale: "no";
     readonly label: "Norwegian";
@@ -632,14 +598,17 @@ export const LANGUAGES: readonly [{
     readonly locale: "ru";
     readonly label: "Russian";
 }, {
+    readonly locale: "sl";
+    readonly label: "Slovenščina";
+}, {
+    readonly locale: "fi";
+    readonly label: "Suomi";
+}, {
     readonly locale: "sv";
     readonly label: "Svenska";
 }, {
-    readonly locale: "te";
-    readonly label: "తెలుగు";
-}, {
-    readonly locale: "th";
-    readonly label: "ภาษาไทย";
+    readonly locale: "vi";
+    readonly label: "Tiếng Việt";
 }, {
     readonly locale: "tr";
     readonly label: "Türkçe";
@@ -647,11 +616,41 @@ export const LANGUAGES: readonly [{
     readonly locale: "uk";
     readonly label: "Ukrainian";
 }, {
-    readonly locale: "vi";
-    readonly label: "Tiếng Việt";
+    readonly locale: "he";
+    readonly label: "עברית";
+}, {
+    readonly locale: "ar";
+    readonly label: "عربي";
+}, {
+    readonly locale: "fa";
+    readonly label: "فارسی";
+}, {
+    readonly locale: "ku";
+    readonly label: "کوردی";
+}, {
+    readonly locale: "ne";
+    readonly label: "नेपाली";
+}, {
+    readonly locale: "hi-in";
+    readonly label: "हिन्दी";
+}, {
+    readonly locale: "te";
+    readonly label: "తెలుగు";
+}, {
+    readonly locale: "th";
+    readonly label: "ภาษาไทย";
+}, {
+    readonly locale: "my";
+    readonly label: "မြန်မာစာ";
+}, {
+    readonly locale: "ko-kr";
+    readonly label: "한국어";
+}, {
+    readonly locale: "ja";
+    readonly label: "日本語";
 }, {
     readonly locale: "zh-cn";
-    readonly label: "Chinese - Simplified";
+    readonly label: "简体中文";
 }, {
     readonly locale: "zh-tw";
     readonly label: "繁體中文 (台灣)";
@@ -662,11 +661,16 @@ export const lineShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const lineShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
-    handles: T.DictValidator<string, TLHandle>;
+    points: T.DictValidator<string, {
+        id: string;
+        x: number;
+        y: number;
+        index: IndexKey;
+    } & {}>;
 };
 
 // @public (undocumented)
@@ -677,7 +681,7 @@ export const noteShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const noteShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
@@ -708,12 +712,8 @@ export const rootShapeMigrations: Migrations;
 // @public (undocumented)
 export type SchemaShapeInfo = {
     migrations?: Migrations;
-    props?: Record<string, {
-        validate: (prop: any) => any;
-    }>;
-    meta?: Record<string, {
-        validate: (prop: any) => any;
-    }>;
+    props?: Record<string, AnyValidator>;
+    meta?: Record<string, AnyValidator>;
 };
 
 // @internal (undocumented)
@@ -747,14 +747,19 @@ export class StyleProp<Type> implements T.Validatable<Type> {
     readonly type: T.Validatable<Type>;
     // (undocumented)
     validate(value: unknown): Type;
+    // (undocumented)
+    validateUsingKnownGoodVersion(prevValue: Type, newValue: unknown): Type;
 }
+
+// @public (undocumented)
+export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never;
 
 // @internal (undocumented)
 export const textShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const textShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
@@ -813,7 +818,7 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 // @public (undocumented)
 export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     isLocked: boolean;
     // (undocumented)
@@ -961,7 +966,7 @@ export interface TLHandle {
     canSnap?: boolean;
     id: string;
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     type: TLHandleType;
     // (undocumented)
@@ -998,7 +1003,7 @@ export type TLImageShapeProps = ShapePropsType<typeof imageShapeProps>;
 // @public
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
-    brush: Box2dModel | null;
+    brush: BoxModel | null;
     // (undocumented)
     canMoveCamera: boolean;
     // (undocumented)
@@ -1010,16 +1015,25 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     devicePixelRatio: number;
     // (undocumented)
+    duplicateProps: {
+        shapeIds: TLShapeId[];
+        offset: {
+            x: number;
+            y: number;
+        };
+    } | null;
+    // (undocumented)
     exportBackground: boolean;
     // (undocumented)
     followingUserId: null | string;
     // (undocumented)
     highlightedUserIds: string[];
     // (undocumented)
+    insets: boolean[];
+    // (undocumented)
     isChangingStyle: boolean;
     // (undocumented)
     isChatting: boolean;
-    // (undocumented)
     isCoarsePointer: boolean;
     // (undocumented)
     isDebugMode: boolean;
@@ -1043,13 +1057,13 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     openMenus: string[];
     // (undocumented)
-    screenBounds: Box2dModel;
+    screenBounds: BoxModel;
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)
     stylesForNextShape: Record<string, unknown>;
     // (undocumented)
-    zoomBrush: Box2dModel | null;
+    zoomBrush: BoxModel | null;
 }
 
 // @public (undocumented)
@@ -1083,7 +1097,7 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state', T
 // @public (undocumented)
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
     // (undocumented)
-    brush: Box2dModel | null;
+    brush: BoxModel | null;
     // (undocumented)
     camera: {
         x: number;
@@ -1110,7 +1124,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
-    screenBounds: Box2dModel;
+    screenBounds: BoxModel;
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)
@@ -1136,7 +1150,7 @@ export type TLOpacityType = number;
 // @public
 export interface TLPage extends BaseRecord<'page', TLPageId> {
     // (undocumented)
-    index: string;
+    index: IndexKey;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
@@ -1161,7 +1175,7 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
 // @public
 export type TLScribble = {
     id: string;
-    points: Vec2dModel[];
+    points: VecModel[];
     size: number;
     color: TLCanvasUiColor;
     opacity: number;
@@ -1231,7 +1245,7 @@ export type TLVideoAsset = TLBaseAsset<'video', {
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 
 // @public
-export interface Vec2dModel {
+export interface VecModel {
     // (undocumented)
     x: number;
     // (undocumented)
@@ -1241,7 +1255,7 @@ export interface Vec2dModel {
 }
 
 // @public (undocumented)
-export const vec2dModelValidator: T.Validator<Vec2dModel>;
+export const vecModelValidator: T.Validator<VecModel>;
 
 // @internal (undocumented)
 export const videoShapeMigrations: Migrations;

@@ -1,12 +1,4 @@
-import {
-	Box2d,
-	Editor,
-	TLFrameShape,
-	TLShapeId,
-	TLShapePartial,
-	Vec2d,
-	compact,
-} from '@tldraw/editor'
+import { Box, Editor, TLFrameShape, TLShapeId, TLShapePartial, Vec, compact } from '@tldraw/editor'
 
 /**
  * Remove a frame.
@@ -58,7 +50,7 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts = {} as { 
 	const children = compact(childIds.map((id) => editor.getShape(id)))
 	if (!children.length) return
 
-	const bounds = Box2d.FromPoints(
+	const bounds = Box.FromPoints(
 		children.flatMap((shape) => {
 			const geometry = editor.getShapeGeometry(shape.id)
 			return editor.getShapeLocalTransform(shape)!.applyToPoints(geometry.vertices)
@@ -73,7 +65,7 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts = {} as { 
 	// The shapes already perfectly fit the frame.
 	if (dx === 0 && dy === 0 && frame.props.w === w && frame.props.h === h) return
 
-	const diff = new Vec2d(dx, dy).rot(frame.rotation)
+	const diff = new Vec(dx, dy).rot(frame.rotation)
 	editor.batch(() => {
 		const changes: TLShapePartial[] = childIds.map((child) => {
 			const shape = editor.getShape(child)!

@@ -1,5 +1,5 @@
 import test, { expect } from '@playwright/test'
-import { Editor } from '@tldraw/tldraw'
+import { Editor } from 'tldraw'
 import { setup } from '../shared-e2e'
 
 export function sleep(ms: number) {
@@ -45,13 +45,13 @@ test.describe.skip('clipboard tests', () => {
 		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(1)
 		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)
 
-		await page.getByTestId('main.menu').click()
-		await page.getByTestId('menu-item.edit').click()
-		await page.getByTestId('menu-item.copy').click()
+		await page.getByTestId('main-menu.button').click()
+		await page.getByTestId('main-menu-sub-trigger.edit').click()
+		await page.getByTestId('main-menu.copy').click()
 		await sleep(100)
-		await page.getByTestId('main.menu').click()
-		await page.getByTestId('menu-item.edit').click()
-		await page.getByTestId('menu-item.paste').click()
+		await page.getByTestId('main-menu.button').click()
+		await page.getByTestId('main-menu-sub-trigger.edit').click()
+		await page.getByTestId('main-menu.paste').click()
 
 		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(2)
 		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)
@@ -67,11 +67,11 @@ test.describe.skip('clipboard tests', () => {
 		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)
 
 		await page.mouse.click(100, 100, { button: 'right' })
-		await page.getByTestId('menu-item.copy').click()
+		await page.getByTestId('main-menu.copy').click()
 		await sleep(100)
 		await page.mouse.move(200, 200)
 		await page.mouse.click(100, 100, { button: 'right' })
-		await page.getByTestId('menu-item.paste').click()
+		await page.getByTestId('main-menu.paste').click()
 
 		expect(await page.evaluate(() => editor.getCurrentPageShapes().length)).toBe(2)
 		expect(await page.evaluate(() => editor.getSelectedShapes().length)).toBe(1)

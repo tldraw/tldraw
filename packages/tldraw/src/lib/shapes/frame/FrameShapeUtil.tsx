@@ -4,6 +4,7 @@ import {
 	Rectangle2d,
 	SVGContainer,
 	SelectionEdge,
+	SvgExportContext,
 	TLFrameShape,
 	TLGroupShape,
 	TLOnResizeEndHandler,
@@ -11,6 +12,7 @@ import {
 	TLShape,
 	TLShapeId,
 	canonicalizeRotation,
+	exhaustiveSwitchError,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
@@ -21,7 +23,7 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
 import { FrameHeading } from './components/FrameHeading'
 
 export function defaultEmptyAs(str: string, dflt: string) {
@@ -96,19 +98,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 	}
 
-	override toSvg(shape: TLFrameShape): SVGElement | Promise<SVGElement> {
-		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.getIsDarkMode() })
-		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
-		const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		rect.setAttribute('width', shape.props.w.toString())
-		rect.setAttribute('height', shape.props.h.toString())
-		rect.setAttribute('fill', theme.solid)
-		rect.setAttribute('stroke', theme.black.solid)
-		rect.setAttribute('stroke-width', '1')
-		rect.setAttribute('rx', '1')
-		rect.setAttribute('ry', '1')
-		g.appendChild(rect)
+	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
+		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 
 		// Text label
 		const pageRotation = canonicalizeRotation(
@@ -127,18 +118,18 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				labelTranslate = ``
 				break
 			case 'right':
-				labelTranslate = `translate(${toDomPrecision(shape.props.w)}px, 0px) rotate(90deg)`
+				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, 0) rotate(90)`
 				break
 			case 'bottom':
-				labelTranslate = `translate(${toDomPrecision(shape.props.w)}px, ${toDomPrecision(
+				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, ${toDomPrecision(
 					shape.props.h
-				)}px) rotate(180deg)`
+				)}) rotate(180)`
 				break
 			case 'left':
-				labelTranslate = `translate(0px, ${toDomPrecision(shape.props.h)}px) rotate(270deg)`
+				labelTranslate = `translate(0, ${toDomPrecision(shape.props.h)}) rotate(270)`
 				break
 			default:
-				labelTranslate = ``
+				exhaustiveSwitchError(labelSide)
 		}
 
 		// Truncate with ellipsis
@@ -164,25 +155,36 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const firstSpan = spans[0]
 		const lastSpan = last(spans)!
 		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-		const text = createTextSvgElementFromSpans(this.editor, spans, {
+		const text = createTextJsxFromSpans(this.editor, spans, {
 			offsetY: -opts.height - 2,
 			...opts,
 		})
-		text.style.setProperty('transform', labelTranslate)
 
-		const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		textBg.setAttribute('x', '-8px')
-		textBg.setAttribute('y', -opts.height - 4 + 'px')
-		textBg.setAttribute('width', labelTextWidth + 16 + 'px')
-		textBg.setAttribute('height', `${opts.height}px`)
-		textBg.setAttribute('rx', 4 + 'px')
-		textBg.setAttribute('ry', 4 + 'px')
-		textBg.setAttribute('fill', theme.background)
-
-		g.appendChild(textBg)
-		g.appendChild(text)
-
-		return g
+		return (
+			<>
+				<rect
+					width={shape.props.w}
+					height={shape.props.h}
+					fill={theme.solid}
+					stroke={theme.black.solid}
+					strokeWidth={1}
+					rx={1}
+					ry={1}
+				/>
+				<g transform={labelTranslate}>
+					<rect
+						x={-8}
+						y={-opts.height - 4}
+						width={labelTextWidth + 16}
+						height={opts.height}
+						fill={theme.background}
+						rx={4}
+						ry={4}
+					/>
+					{text}
+				</g>
+			</>
+		)
 	}
 
 	indicator(shape: TLFrameShape) {

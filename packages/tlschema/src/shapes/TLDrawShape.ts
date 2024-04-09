@@ -1,6 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { vec2dModelValidator } from '../misc/geometry-types'
+import { vecModelValidator } from '../misc/geometry-types'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultFillStyle } from '../styles/TLFillStyle'
@@ -9,7 +9,7 @@ import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 export const DrawShapeSegment = T.object({
 	type: T.literalEnum('free', 'straight'),
-	points: T.arrayOf(vec2dModelValidator),
+	points: T.arrayOf(vecModelValidator),
 })
 
 /** @public */

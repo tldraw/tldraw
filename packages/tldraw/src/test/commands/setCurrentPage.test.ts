@@ -1,4 +1,4 @@
-import { PageRecordType, TLPageId, createShapeId } from '@tldraw/editor'
+import { IndexKey, PageRecordType, TLPageId, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -39,7 +39,7 @@ describe('setCurrentPage', () => {
 	})
 
 	it("adding a page to the store by any means adds tab state for the page if it doesn't already exist", () => {
-		const page = PageRecordType.create({ name: 'test', index: 'a4' })
+		const page = PageRecordType.create({ name: 'test', index: 'a4' as IndexKey })
 		expect(editor.getPageStates().find((p) => p.pageId === page.id)).toBeUndefined()
 		editor.store.put([page])
 		expect(editor.getPageStates().find((p) => p.pageId === page.id)).not.toBeUndefined()
@@ -47,7 +47,7 @@ describe('setCurrentPage', () => {
 
 	it('squashes', () => {
 		const page2Id = PageRecordType.createId('page2')
-		editor.createPage({ name: 'New Page 2', index: page2Id })
+		editor.createPage({ name: 'New Page 2', id: page2Id })
 
 		editor.history.clear()
 		editor.setCurrentPage(editor.getPages()[1].id)

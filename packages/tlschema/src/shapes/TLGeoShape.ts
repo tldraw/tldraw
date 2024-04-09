@@ -53,7 +53,7 @@ export const geoShapeProps = {
 	font: DefaultFontStyle,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
-	url: T.string,
+	url: T.linkUrl,
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
@@ -74,13 +74,14 @@ const Versions = {
 	AddVerticalAlign: 5,
 	MigrateLegacyAlign: 6,
 	AddCloud: 7,
+	MakeUrlsValid: 8,
 } as const
 
 export { Versions as GeoShapeVersions }
 
 /** @internal */
 export const geoShapeMigrations = defineMigrations({
-	currentVersion: Versions.AddCloud,
+	currentVersion: Versions.MakeUrlsValid,
 	migrators: {
 		[Versions.AddUrlProp]: {
 			up: (shape) => {
@@ -221,6 +222,16 @@ export const geoShapeMigrations = defineMigrations({
 					}
 				}
 			},
+		},
+		[Versions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
+				}
+				return shape
+			},
+			down: (shape) => shape,
 		},
 	},
 })

@@ -1,0 +1,5 @@
+.next/*
+.lazy/*
+content.db
+node_modules
+utils/vector-db/index.json

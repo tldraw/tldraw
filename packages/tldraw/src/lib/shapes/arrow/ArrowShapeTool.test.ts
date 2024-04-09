@@ -1,4 +1,4 @@
-import { TLArrowShape, Vec2d, createShapeId } from '@tldraw/editor'
+import { IndexKey, TLArrowShape, Vec, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -132,7 +132,7 @@ describe('When pointing a start shape', () => {
 		expect(editor.getHintingShapeIds().length).toBe(1)
 
 		// Fake some velocity
-		editor.inputs.pointerVelocity = new Vec2d(1, 1)
+		editor.inputs.pointerVelocity = new Vec(1, 1)
 
 		editor.pointerMove(375, 500)
 
@@ -172,7 +172,7 @@ describe('When pointing an end shape', () => {
 		expect(editor.getHintingShapeIds().length).toBe(0)
 
 		// Fake some velocity
-		editor.inputs.pointerVelocity = new Vec2d(1, 1)
+		editor.inputs.pointerVelocity = new Vec(1, 1)
 
 		// Move onto shape
 		editor.pointerMove(375, 375)
@@ -206,7 +206,7 @@ describe('When pointing an end shape', () => {
 	it('unbinds and rebinds', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
 
-		editor.inputs.pointerVelocity = new Vec2d(1, 1)
+		editor.inputs.pointerVelocity = new Vec(1, 1)
 
 		editor.pointerMove(375, 375)
 
@@ -268,7 +268,7 @@ describe('When pointing an end shape', () => {
 		})
 
 		// Build up some velocity
-		editor.inputs.pointerVelocity = new Vec2d(1, 1)
+		editor.inputs.pointerVelocity = new Vec(1, 1)
 		editor.pointerMove(325, 325)
 		expect(editor.getHintingShapeIds().length).toBe(1)
 
@@ -318,7 +318,7 @@ describe('When pointing an end shape', () => {
 
 	it('begins imprecise when moving quickly', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0)
-		editor.inputs.pointerVelocity = new Vec2d(1, 1)
+		editor.inputs.pointerVelocity = new Vec(1, 1)
 		editor.pointerMove(370, 370)
 
 		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
@@ -361,7 +361,7 @@ describe('When pointing an end shape', () => {
 
 		expect(editor.getHintingShapeIds().length).toBe(0)
 
-		editor.inputs.pointerVelocity = new Vec2d(0.001, 0.001)
+		editor.inputs.pointerVelocity = new Vec(0.001, 0.001)
 		editor.pointerMove(375, 375)
 
 		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
@@ -406,14 +406,14 @@ describe('reparenting issue', () => {
 			{ id: ids.box3, type: 'geo', x: 350, y: 350, props: { w: 90, h: 90 } }, // overlapping box2
 		])
 
-		editor.expectShapeToMatch({ id: ids.box1, index: 'a2' })
-		editor.expectShapeToMatch({ id: ids.box2, index: 'a3' })
-		editor.expectShapeToMatch({ id: ids.box3, index: 'a4' })
+		editor.expectShapeToMatch({ id: ids.box1, index: 'a2' as IndexKey })
+		editor.expectShapeToMatch({ id: ids.box2, index: 'a3' as IndexKey })
+		editor.expectShapeToMatch({ id: ids.box3, index: 'a4' as IndexKey })
 
 		editor.select(arrowId)
 		editor.pointerDown(100, 100, {
 			target: 'handle',
-			handle: { id: 'end', type: 'vertex', index: 'a0', x: 100, y: 100 },
+			handle: { id: 'end', type: 'vertex', index: 'a0' as IndexKey, x: 100, y: 100 },
 			shape: editor.getShape(arrowId)!,
 		})
 		editor.expectToBeIn('select.pointing_handle')
@@ -422,7 +422,7 @@ describe('reparenting issue', () => {
 		editor.expectToBeIn('select.dragging_handle')
 		editor.expectShapeToMatch({
 			id: arrowId,
-			index: 'a3V',
+			index: 'a3V' as IndexKey,
 			props: { end: { boundShapeId: ids.box2 } },
 		}) // between box 2 (a3) and 3 (a4)
 
@@ -433,15 +433,15 @@ describe('reparenting issue', () => {
 		editor.pointerMove(350, 350) // over box 3 and box 2, but box 3 is smaller
 		editor.expectShapeToMatch({
 			id: arrowId,
-			index: 'a5',
+			index: 'a5' as IndexKey,
 			props: { end: { boundShapeId: ids.box3 } },
 		}) // above box 3 (a4)
 
 		editor.pointerMove(150, 150) // over box 1
-		editor.expectShapeToMatch({ id: arrowId, index: 'a2V' }) // between box 1 (a2) and box 3 (a3)
+		editor.expectShapeToMatch({ id: arrowId, index: 'a2V' as IndexKey }) // between box 1 (a2) and box 3 (a3)
 
 		editor.pointerMove(-100, -100) // over the page
-		editor.expectShapeToMatch({ id: arrowId, index: 'a2V' }) // no change needed, keep whatever we had before
+		editor.expectShapeToMatch({ id: arrowId, index: 'a2V' as IndexKey }) // no change needed, keep whatever we had before
 
 		// todo: should the arrow go back to where it was before?
 	})
@@ -481,7 +481,7 @@ describe('reparenting issue', () => {
 			.select(arrow1Id)
 			.pointerDown(100, 100, {
 				target: 'handle',
-				handle: { id: 'end', type: 'vertex', index: 'a0', x: 100, y: 100 },
+				handle: { id: 'end', type: 'vertex', index: 'a0' as IndexKey, x: 100, y: 100 },
 				shape: editor.getShape(arrow1Id)!,
 			})
 			.pointerMove(120, 120)
@@ -490,7 +490,7 @@ describe('reparenting issue', () => {
 			.select(arrow2Id)
 			.pointerDown(100, 100, {
 				target: 'handle',
-				handle: { id: 'end', type: 'vertex', index: 'a0', x: 100, y: 100 },
+				handle: { id: 'end', type: 'vertex', index: 'a0' as IndexKey, x: 100, y: 100 },
 				shape: editor.getShape(arrow2Id)!,
 			})
 			.pointerMove(150, 150)
