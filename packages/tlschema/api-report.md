@@ -132,7 +132,7 @@ export function createAssetValidator<Type extends string, Props extends JsonObje
         meta: JsonObject;
     }[P_1] | undefined; }>;
 
-// @public (undocumented)
+// @public
 export const createPresenceStateDerivation: ($user: Signal<{
     id: string;
     color: string;
