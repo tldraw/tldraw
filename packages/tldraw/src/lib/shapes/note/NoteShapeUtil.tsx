@@ -201,6 +201,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						isNote
 						isSelected={isSelected}
 						labelColor={theme[color].note.text}
+						disableTab
 						wrap
 						onKeyDown={handleKeyDown}
 					/>

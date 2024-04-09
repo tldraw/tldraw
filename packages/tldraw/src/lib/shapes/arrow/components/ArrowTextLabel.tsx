@@ -35,6 +35,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 			labelColor={theme[labelColor].solid}
 			textWidth={width}
 			isSelected={isSelected}
+			disableTab
 			style={{
 				transform: `translate(${position.x}px, ${position.y}px)`,
 			}}

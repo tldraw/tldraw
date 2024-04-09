@@ -4,6 +4,7 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
+	preventDefault,
 	setPointerCapture,
 	stopEventPropagation,
 	useEditor,
@@ -13,7 +14,12 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditableText(id: TLShapeId, type: string, text: string) {
+export function useEditableText(
+	id: TLShapeId,
+	type: string,
+	text: string,
+	opts = { disableTab: false } as { disableTab: boolean }
+) {
 	const editor = useEditor()
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
@@ -96,6 +102,17 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				case 'Enter': {
 					if (e.ctrlKey || e.metaKey) {
 						editor.complete()
+					}
+					break
+				}
+				case 'Tab': {
+					if (opts.disableTab) {
+						preventDefault(e)
+						if (e.shiftKey) {
+							TextHelpers.unindent(e.currentTarget)
+						} else {
+							TextHelpers.indent(e.currentTarget)
+						}
 					}
 					break
 				}
