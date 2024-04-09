@@ -27,6 +27,7 @@ type TextLabelProps = {
 	bounds?: Box
 	isNote?: boolean
 	isSelected: boolean
+	disableTab?: boolean
 	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 	classNamePrefix?: string
 	style?: React.CSSProperties
@@ -50,13 +51,15 @@ export const TextLabel = React.memo(function TextLabel({
 	onKeyDown: handleKeyDownCustom,
 	classNamePrefix,
 	style,
+	disableTab = false,
 	textWidth,
 	textHeight,
 }: TextLabelProps) {
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
 		id,
 		type,
-		text
+		text,
+		{ disableTab }
 	)
 
 	const [initialText, setInitialText] = useState(text)
@@ -110,7 +113,6 @@ export const TextLabel = React.memo(function TextLabel({
 				</div>
 				{(isEditingAnything || isSelected) && (
 					<TextArea
-						id={`text-input-${id}`}
 						ref={rInput}
 						// We need to add the initial value as the key here because we need this component to
 						// 'reset' when this state changes and grab the latest defaultValue.

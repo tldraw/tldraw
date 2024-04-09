@@ -33,6 +33,7 @@ import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { Migrations } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
+import { noop } from '@tldraw/editor';
 import { ObjectValidator } from '@tldraw/editor';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
@@ -833,6 +834,9 @@ export function GeoStylePickerSet({ styles }: {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
+export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
+
+// @public (undocumented)
 export function getSvgAsImage(svgString: string, isSafari: boolean, options: {
     type: 'jpeg' | 'png' | 'webp';
     quality: number;
@@ -965,9 +969,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 // @public (undocumented)
 export function isGifAnimated(file: Blob): Promise<boolean>;
-
-// @internal (undocumented)
-export function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId): boolean;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
@@ -2509,7 +2510,9 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditableText(id: TLShapeId, type: string, text: string): {
+export function useEditableText(id: TLShapeId, type: string, text: string, opts?: {
+    disableTab: boolean;
+}): {
     rInput: React_2.RefObject<HTMLTextAreaElement>;
     isEditing: boolean;
     handleFocus: typeof noop;

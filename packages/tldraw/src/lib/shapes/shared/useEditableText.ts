@@ -4,6 +4,7 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
+	preventDefault,
 	setPointerCapture,
 	stopEventPropagation,
 	useEditor,
@@ -13,11 +14,31 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditableText(id: TLShapeId, type: string, text: string) {
+export function useEditableText(
+	id: TLShapeId,
+	type: string,
+	text: string,
+	opts = { disableTab: false } as { disableTab: boolean }
+) {
 	const editor = useEditor()
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
 	const rSelectionRanges = useRef<Range[] | null>()
+
+	useEffect(() => {
+		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
+			if (shapeId === id) {
+				const elm = rInput.current
+				if (elm) {
+					elm.select()
+				}
+			}
+		}
+		editor.on('select-all-text', selectAllIfEditing)
+		return () => {
+			editor.off('select-all-text', selectAllIfEditing)
+		}
+	}, [editor, id])
 
 	const isEditingAnything = useValue(
 		'isEditingAnything',
@@ -81,7 +102,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	}, [editor, id])
 
 	// When the user presses ctrl / meta enter, complete the editing state.
-	// When the user presses tab, indent or unindent the text.
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 			if (!isEditing) return
@@ -93,9 +113,20 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 					}
 					break
 				}
+				case 'Tab': {
+					if (opts.disableTab) {
+						preventDefault(e)
+						if (e.shiftKey) {
+							TextHelpers.unindent(e.currentTarget)
+						} else {
+							TextHelpers.indent(e.currentTarget)
+						}
+					}
+					break
+				}
 			}
 		},
-		[editor, isEditing]
+		[editor, isEditing, opts.disableTab]
 	)
 
 	// When the text changes, update the text value.
