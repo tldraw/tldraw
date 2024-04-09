@@ -675,7 +675,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getCrashingError(): unknown;
     getCroppingShapeId(): null | TLShapeId;
-    // (undocumented)
     getCulledShapes(): Map<TLShapeId, Box | undefined>;
     getCurrentPage(): TLPage;
     getCurrentPageBounds(): Box | undefined;
@@ -755,8 +754,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         margin?: number | undefined;
         hitInside?: boolean | undefined;
     }): TLShape[];
-    // (undocumented)
-    getShapesOutsideViewport(): Computed<Map<TLShapeId, Box | undefined>, unknown>;
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;

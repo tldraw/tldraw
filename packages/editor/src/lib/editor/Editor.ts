@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY, RESET_VALUE, atom, computed, isUninitialized, transact } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -102,6 +102,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
+import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { getSvgJsx } from './getSvgJsx'
@@ -4247,130 +4248,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.isShapeOrAncestorLocked(this.getShapeParent(shape))
 	}
 
-	private _getShapeCullingInfo(
-		id: TLShapeId,
-		selectedShapeIds: TLShapeId[],
-		editingId: TLShapeId | null,
-		renderingBoundsExpanded: Box
-	): { isCulled: false } | { isCulled: true; maskedPageBounds: Box | undefined } {
-		if (editingId === id) return { isCulled: false }
-
-		const maskedPageBounds = this.getShapeMaskedPageBounds(id)
-		// if the shape is fully outside of its parent's clipping bounds...
-		if (maskedPageBounds === undefined) return { isCulled: true, maskedPageBounds: undefined }
-
-		// We don't cull selected shapes
-		if (selectedShapeIds.includes(id)) return { isCulled: false }
-		// the shape is outside of the expanded viewport bounds...
-
-		const isCulled = !renderingBoundsExpanded.includes(maskedPageBounds)
-		return isCulled ? { isCulled, maskedPageBounds } : { isCulled }
-	}
-
-	private _getShapeCullingInfo2(
-		id: TLShapeId,
-		renderingBoundsExpanded: Box
-	): { isCulled: false } | { isCulled: true; maskedPageBounds: Box | undefined } {
-		const maskedPageBounds = this.getShapeMaskedPageBounds(id)
-		if (maskedPageBounds === undefined) return { isCulled: true, maskedPageBounds: undefined }
-
-		const isCulled = !renderingBoundsExpanded.includes(maskedPageBounds)
-		return isCulled ? { isCulled, maskedPageBounds } : { isCulled }
-	}
-
 	@computed
-	getShapesOutsideViewport() {
-		return this._getShapesOutsideViewport()
+	private _notVisibleShapes() {
+		return notVisibleShapes(this)
 	}
 
-	private _getShapesOutsideViewport() {
-		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
-		const shapeHistory = this.store.query.filterHistory('shape')
-		let lastPageId: TLPageId | null = null
-		let prevViewportPageBounds: Box
-		function fromScratch(editor: Editor): Map<TLShapeId, Box | undefined> {
-			const shapes = editor.getCurrentPageShapeIds()
-			lastPageId = editor.getCurrentPageId()
-			const viewportPage = editor.getViewportPageBounds()
-			prevViewportPageBounds = viewportPage.clone()
-			const culledShapes = new Map<TLShapeId, Box | undefined>()
-			shapes.forEach((id) => {
-				const ci = editor._getShapeCullingInfo2(id, viewportPage)
-				if (ci.isCulled) {
-					culledShapes.set(id, ci.maskedPageBounds)
-				}
-			})
-			return culledShapes
-		}
-		return computed<Map<TLShapeId, Box | undefined>>(
-			'getCulledShapes',
-			(prevValue, lastComputedEpoch) => {
-				if (!isCullingOffScreenShapes) return new Map<TLShapeId, Box | undefined>()
-
-				if (isUninitialized(prevValue)) {
-					return fromScratch(this)
-				}
-				const diff = shapeHistory.getDiffSince(lastComputedEpoch)
-
-				if (diff === RESET_VALUE) {
-					return fromScratch(this)
-				}
-
-				const currentPageId = this.getCurrentPageId()
-				if (lastPageId !== currentPageId) {
-					return fromScratch(this)
-				}
-				const viewportPageBounds = this.getViewportPageBounds()
-				if (!prevViewportPageBounds || !viewportPageBounds.equals(prevViewportPageBounds)) {
-					return fromScratch(this)
-				}
-				const nextValue = new Map(prevValue)
-				let isDirty = false
-				const checkShapeCullingInfo = (id: TLShapeId) => {
-					const ci = this._getShapeCullingInfo2(id, viewportPageBounds)
-					if (ci.isCulled && !prevValue.has(id)) {
-						nextValue.set(id, ci.maskedPageBounds)
-						isDirty = true
-					}
-				}
-				for (const changes of diff) {
-					for (const record of Object.values(changes.added)) {
-						if (isShape(record)) {
-							checkShapeCullingInfo(record.id)
-						}
-					}
-
-					for (const [_from, to] of Object.values(changes.updated)) {
-						if (isShape(to)) {
-							checkShapeCullingInfo(to.id)
-						}
-					}
-					for (const id of Object.keys(changes.removed)) {
-						if (isShapeId(id)) {
-							const hasBeenDeleted = nextValue.delete(id)
-							if (hasBeenDeleted) {
-								isDirty = true
-							}
-						}
-					}
-				}
-
-				return isDirty ? nextValue : prevValue
-			}
-		)
-	}
-
+	/**
+	 * Get the shapes that are not visible.
+	 *
+	 * @public
+	 */
 	@computed
 	getCulledShapes() {
-		const shapesOutsideRenderingBoundsExpanded = this.getShapesOutsideViewport().get()
+		const notVisibleShapes = this._notVisibleShapes().get()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
-		const culled = new Map<TLShapeId, Box | undefined>(shapesOutsideRenderingBoundsExpanded)
+		const culledShapes = new Map<TLShapeId, Box | undefined>(notVisibleShapes)
+		// we don't cull the shape we are editing
 		if (editingId) {
-			culled.delete(editingId)
+			culledShapes.delete(editingId)
 		}
-		selectedShapeIds.forEach((id) => culled.delete(id))
-		return culled
+		// we also don't cull selected shapes
+		selectedShapeIds.forEach((id) => {
+			culledShapes.delete(id)
+		})
+		return culledShapes
 	}
 
 	/**

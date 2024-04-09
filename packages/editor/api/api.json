@@ -10287,7 +10287,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCulledShapes:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Get the shapes that are not visible.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13328,73 +13328,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getShapesAtPoint"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#getShapesOutsideViewport:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getShapesOutsideViewport(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/state\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Computed",
-                  "canonicalReference": "@tldraw/state!Computed:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Map",
-                  "canonicalReference": "!Map:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Box",
-                  "canonicalReference": "@tldraw/editor!Box:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | undefined>, unknown>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 10
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getShapesOutsideViewport"
             },
             {
               "kind": "Method",
