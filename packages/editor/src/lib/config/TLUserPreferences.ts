@@ -1,6 +1,6 @@
 import { atom } from '@tldraw/state'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
-import { getFromLocalStorage, setInLocalStorage } from '@tldraw/utils'
+import { getFromLocalStorage, setInLocalStorage, structuredClone } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { uniqueId } from '../utils/uniqueId'
 
@@ -141,10 +141,12 @@ function migrateUserPreferences(userData: unknown): TLUserPreferences {
 		return getFreshUserPreferences()
 	}
 
-	migrateSnapshot(userData as any)
+	const snapshot = structuredClone(userData) as any
+
+	migrateSnapshot(snapshot)
 
 	try {
-		return userTypeValidator.validate(userData.user)
+		return userTypeValidator.validate(snapshot.user)
 	} catch (e) {
 		return getFreshUserPreferences()
 	}
