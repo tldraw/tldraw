@@ -10386,42 +10386,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#getCurrentPageRenderingShapesSorted:member(1)",
-              "docComment": "/**\n * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting for nested shapes): e.g. A, B, BA, BB, C.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getCurrentPageRenderingShapesSorted(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getCurrentPageRenderingShapesSorted"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCurrentPageShapeIds:member(1)",
               "docComment": "/**\n * An array of all of the shapes on the current page.\n *\n * @public\n */\n",
               "excerptTokens": [

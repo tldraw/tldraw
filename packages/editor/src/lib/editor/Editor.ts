@@ -4358,31 +4358,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
-		const shapesToCheck = (
-			opts.renderingOnly
-				? this.getCurrentPageRenderingShapesSorted()
-				: this.getCurrentPageShapesSorted()
-		).filter((shape) => {
-			if (this.isShapeOfType(shape, 'group')) return false
+		const shapesToCheck = this.getCurrentPageShapesSorted().filter((shape) => {
+			if (this.isShapeOfType<TLGroupShape>(shape, 'group')) return false
+			if (opts.renderingOnly && this.isShapeCulled(shape.id)) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
 			if (filter) return filter(shape)
 			return true
 		})
 
-		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
-			const shape = shapesToCheck[i]
-			const geometry = this.getShapeGeometry(shape)
-			const isGroup = geometry instanceof Group2d
+		let shape: TLShape
+		let geometry: Geometry2d
+		let isGroup: boolean
+		let pointInShapeSpace: Vec
 
-			const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
+		const minHitTestDistance = HIT_TEST_MARGIN / zoomLevel
+
+		loopOverShapes: for (let i = shapesToCheck.length - 1; i >= 0; i--) {
+			shape = shapesToCheck[i]
+			geometry = this.getShapeGeometry(shape)
+			pointInShapeSpace = this.getPointInShapeSpace(shape, point)
+
+			if (!geometry.isPointInBounds(pointInShapeSpace, margin)) {
+				continue loopOverShapes
+			}
 
 			// Check labels first
 			if (
 				this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
 				(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')
 			) {
-				if (shape.props.text.trim()) {
+				if (shape.props.text) {
 					// let's check whether the shape has a label and check that
 					for (const childGeometry of (geometry as Group2d).children) {
 						if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
@@ -4392,7 +4398,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			if (this.isShapeOfType(shape, 'frame')) {
+			if (this.isShapeOfType<TLFrameShape>(shape, 'frame')) {
 				// On the rare case that we've hit a frame, test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behhind it.
 
@@ -4415,15 +4421,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 						(hitFrameInside ? shape : undefined)
 					)
 				}
-				continue
+				continue loopOverShapes
 			}
+
+			isGroup = geometry instanceof Group2d
 
 			let distance: number
 
 			if (isGroup) {
 				let minDistance = Infinity
-				for (const childGeometry of geometry.children) {
-					if (childGeometry.isLabel && !hitLabels) continue
+				loopOverGroupChildren: for (const childGeometry of (geometry as Group2d).children) {
+					if (childGeometry.isLabel && !hitLabels) continue loopOverGroupChildren
 
 					// hit test the all of the child geometries that aren't labels
 					const tDistance = childGeometry.distanceToPoint(pointInShapeSpace, hitInside)
@@ -4457,22 +4465,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// is greater than the margin, then it's a miss. Otherwise...
 
 				if (distance <= margin) {
-					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
+					if (geometry.isFilled || (isGroup && (geometry as Group2d).children[0].isFilled)) {
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
 						// other hits would be occluded by the shape.
 						return inMarginClosestToEdgeHit || shape
 					} else {
 						// If the shape is bigger than the viewport, then skip it.
-						if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
+						if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) {
+							continue loopOverShapes
+						}
 
 						// For hollow shapes...
-						if (Math.abs(distance) < margin) {
+						const absDistance = Math.abs(distance)
+						if (absDistance < margin) {
 							// We want to preference shapes where we're inside of the
 							// shape margin; and we would want to hit the shape with the
 							// edge closest to the point.
-							if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
-								inMarginClosestToEdgeDistance = Math.abs(distance)
+							if (absDistance < inMarginClosestToEdgeDistance) {
+								inMarginClosestToEdgeDistance = absDistance
 								inMarginClosestToEdgeHit = shape
 							}
 						} else if (!inMarginClosestToEdgeHit) {
@@ -4492,7 +4503,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			} else {
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
-				if (distance < HIT_TEST_MARGIN / zoomLevel) {
+				if (distance < minHitTestDistance) {
 					return shape
 				}
 			}
@@ -4649,19 +4660,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		return results
-	}
-
-	/**
-	 * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting
-	 * for nested shapes): e.g. A, B, BA, BB, C.
-	 *
-	 * @public
-	 */
-	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
-		return this.getUnorderedRenderingShapes(true)
-			.filter(({ id }) => !this.isShapeCulled(id))
-			.sort((a, b) => a.index - b.index)
-			.map(({ shape }) => shape)
 	}
 
 	/**
