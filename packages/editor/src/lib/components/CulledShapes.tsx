@@ -1,5 +1,4 @@
 import { computed, react } from '@tldraw/state'
-import { measureCbDuration } from '@tldraw/utils'
 import { useEffect, useRef } from 'react'
 import { useEditor } from '../hooks/useEditor'
 import { useIsDarkMode } from '../hooks/useIsDarkMode'
@@ -111,32 +110,32 @@ export function CulledShapes() {
 		} = webGl
 
 		const shapeVertices = computed('shape vertices', function calculateCulledShapeVertices() {
-			const results: number[] = []
+			return []
+			// const results: number[] = []
+			// return measureCbDuration('vertices', () => {
+			// 	editor.getCulledShapes().forEach((maskedPageBounds) => {
+			// 		if (maskedPageBounds) {
+			// 			results.push(
+			// 				// triangle 1
+			// 				maskedPageBounds.minX,
+			// 				maskedPageBounds.minY,
+			// 				maskedPageBounds.minX,
+			// 				maskedPageBounds.maxY,
+			// 				maskedPageBounds.maxX,
+			// 				maskedPageBounds.maxY,
+			// 				// triangle 2
+			// 				maskedPageBounds.minX,
+			// 				maskedPageBounds.minY,
+			// 				maskedPageBounds.maxX,
+			// 				maskedPageBounds.minY,
+			// 				maskedPageBounds.maxX,
+			// 				maskedPageBounds.maxY
+			// 			)
+			// 		}
+			// 	})
 
-			return measureCbDuration('vertices', () => {
-				editor.getCulledShapes().forEach((maskedPageBounds) => {
-					if (maskedPageBounds) {
-						results.push(
-							// triangle 1
-							maskedPageBounds.minX,
-							maskedPageBounds.minY,
-							maskedPageBounds.minX,
-							maskedPageBounds.maxY,
-							maskedPageBounds.maxX,
-							maskedPageBounds.maxY,
-							// triangle 2
-							maskedPageBounds.minX,
-							maskedPageBounds.minY,
-							maskedPageBounds.maxX,
-							maskedPageBounds.minY,
-							maskedPageBounds.maxX,
-							maskedPageBounds.maxY
-						)
-					}
-				})
-
-				return results
-			})
+			// 	return results
+			// })
 		})
 
 		return react('render culled shapes ', function renderCulledShapes() {

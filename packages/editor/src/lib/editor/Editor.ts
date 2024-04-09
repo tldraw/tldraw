@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY, RESET_VALUE, atom, computed, isUninitialized, transact } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -102,6 +102,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
+import { culledShapes } from './derivations/culledShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { getSvgJsx } from './getSvgJsx'
@@ -612,6 +613,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.getCurrentPageId()
 		)
 		this._parentIdsToChildIds = parentsToChildren(this.store)
+		this._culledShapes = culledShapes(this)
 
 		this.disposables.add(
 			this.store.listen((changes) => {
@@ -4247,126 +4249,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.isShapeOrAncestorLocked(this.getShapeParent(shape))
 	}
 
-	private _getShapeCullingInfo(
-		id: TLShapeId,
-		selectedShapeIds: TLShapeId[],
-		editingId: TLShapeId | null,
-		renderingBoundsExpanded: Box
-	): { isCulled: false } | { isCulled: true; maskedPageBounds: Box | undefined } {
-		if (editingId === id) return { isCulled: false }
-
-		const maskedPageBounds = this.getShapeMaskedPageBounds(id)
-		// if the shape is fully outside of its parent's clipping bounds...
-		if (maskedPageBounds === undefined) return { isCulled: true, maskedPageBounds: undefined }
-
-		// We don't cull selected shapes
-		if (selectedShapeIds.includes(id)) return { isCulled: false }
-		// the shape is outside of the expanded viewport bounds...
-
-		const isCulled = !renderingBoundsExpanded.includes(maskedPageBounds)
-		return isCulled ? { isCulled, maskedPageBounds } : { isCulled }
-	}
-
-	getCulledShapes(): Map<TLShapeId, Box | undefined> {
-		return this._getCulledShapes().get()
-	}
-
 	@computed
-	private _getCulledShapes() {
-		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
-
-		const shapeHistory = this.store.query.filterHistory('shape')
-		let lastPageId: TLPageId | null = null
-		let prevRenderingBoundsExpanded: Box
-
-		function fromScratch(editor: Editor): Map<TLShapeId, Box | undefined> {
-			const renderingBoundsExpanded = editor.getRenderingBoundsExpanded()
-			prevRenderingBoundsExpanded = renderingBoundsExpanded.clone()
-			lastPageId = editor.getCurrentPageId()
-			const shapes = editor.getCurrentPageShapeIds()
-			const culledShapes = new Map<TLShapeId, Box | undefined>()
-			const selectedShapeIds = editor.getSelectedShapeIds()
-			const editingId = editor.getEditingShapeId()
-			shapes.forEach((id) => {
-				const ci = editor._getShapeCullingInfo(
-					id,
-					selectedShapeIds,
-					editingId,
-					renderingBoundsExpanded
-				)
-				if (ci.isCulled) {
-					culledShapes.set(id, ci.maskedPageBounds)
-				}
-			})
-			return culledShapes
-		}
-		return computed<Map<TLShapeId, Box | undefined>>(
-			'getCulledShapes',
-			(prevValue, lastComputedEpoch) => {
-				if (!isCullingOffScreenShapes) return new Map<TLShapeId, Box | undefined>()
-
-				if (isUninitialized(prevValue)) {
-					return fromScratch(this)
-				}
-				const diff = shapeHistory.getDiffSince(lastComputedEpoch)
-
-				if (diff === RESET_VALUE) {
-					return fromScratch(this)
-				}
-
-				const currentPageId = this.getCurrentPageId()
-				if (lastPageId !== currentPageId) {
-					return fromScratch(this)
-				}
-				const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
-				if (
-					!prevRenderingBoundsExpanded ||
-					!renderingBoundsExpanded.equals(prevRenderingBoundsExpanded)
-				) {
-					return fromScratch(this)
-				}
-				const selectedShapeIds = this.getSelectedShapeIds()
-				const editingId = this.getEditingShapeId()
-				const nextValue = new Map(prevValue)
-				let isDirty = false
-				const checkShapeCullingInfo = (id: TLShapeId) => {
-					const ci = this._getShapeCullingInfo(
-						id,
-						selectedShapeIds,
-						editingId,
-						renderingBoundsExpanded
-					)
-					if (ci.isCulled && !prevValue.has(id)) {
-						nextValue.set(id, ci.maskedPageBounds)
-						isDirty = true
-					}
-				}
-				for (const changes of diff) {
-					for (const record of Object.values(changes.added)) {
-						if (isShape(record)) {
-							checkShapeCullingInfo(record.id)
-						}
-					}
-
-					for (const [_from, to] of Object.values(changes.updated)) {
-						if (isShape(to)) {
-							checkShapeCullingInfo(to.id)
-						}
-					}
-					for (const id of Object.keys(changes.removed)) {
-						if (isShapeId(id)) {
-							const hasBeenDeleted = nextValue.delete(id)
-							if (hasBeenDeleted) {
-								isDirty = true
-							}
-						}
-					}
-				}
-
-				return isDirty ? nextValue : prevValue
-			}
-		)
+	getCulledShapes(): Set<TLShapeId> {
+		return this._culledShapes.get()
 	}
+
+	/**
+	 * A cache of parents to children.
+	 *
+	 * @internal
+	 */
+	private readonly _culledShapes: ReturnType<typeof culledShapes>
 
 	/**
 	 * The bounds of the current page (the common bounds of all of the shapes on the page).
