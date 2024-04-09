@@ -1,9 +1,69 @@
 ---
 title: Collaboration
 status: published
-author: steveruizok
+author: ds300
 date: 3/22/2023
 order: 8
 ---
 
-See the [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) for an example of how to use yjs with the `tldraw` library.
+## Presence
+
+Tldraw has support for displaying the 'presence' of other users. Presence information consists of things like
+
+- The user's pointer position
+- The user's set of selected shapes
+- The user's viewport bounds (the part of the canvas they are currently viewing)
+- The user's name, id, and a color to represent them
+
+This information will usually come from two sources
+
+- The tldraw editor state (e.g. pointer position, selected shapes)
+- The data layer of whichever app tldraw has been embedded in (e.g. user name, user id)
+
+Tldraw is agnostic about how this data is shared among users. However, in order for tldraw to use the presence data it needs to be
+put into the editor's store as `instance_presence` records.
+
+We provide a helper for constructing a reactive signal for an `instance_presence` record locally, which can then be sent to other clients somehow. It is called [`createPresenceStateDerivation`](?)
+
+```ts
+import { createPresenceStateDerivation, react, atom } from 'tldraw'
+
+// First you need to create a Signal containing the basic user details: id, name, and color
+const user = atom<{ id: string; color: string; name: string }>('user', {
+	id: myUser.id,
+	color: myUser.color,
+	name: myUser.name,
+})
+
+// if you don't have your own user data backend, you can use our localStorage-only user preferences store
+// import { getUserPreferences, computed } from 'tldraw'
+// const user = computed('user', getUserPreferences)
+
+// Then, with access to your store instance, you can create a presence signal
+const userPresence = createPresenceStateDerivation(user)(store)
+
+// Then you can listen for changes to the presence signal and send them to other clients
+const unsub = react('update presence', () => {
+	const presence = userPresence.get()
+	broadcastPresence(presence)
+})
+```
+
+The other clients would then simply call `store.put([presence])` to add the presence information to their store.
+
+Any such `instance_presence` records tldraw finds in the store that have a different user `id` than the editor's configured user id will cause the presence information to be rendered on the canvas.
+
+## Examples
+
+### Tldraw.com sync engine
+
+[tldraw.com/r](https://tldraw.com/r) currently uses a simple custom sync engine based on a push/pull/rebase-style algorithm.
+It can be found [here](https://github.com/tldraw/tldraw/tree/main/packages/tlsync).
+It was optimized for Cloudflare workers with [DurableObjects](https://developers.cloudflare.com/durable-objects/)
+
+We don't suggest using our code directly yet, but it may serve as a good reference for your own sync engine.
+
+### Yjs sync example
+
+We created a [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) to illustrate a way of using yjs with the `@tldraw/tldraw` library.
+import ts from "typescript"

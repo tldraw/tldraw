@@ -50,7 +50,7 @@ editor.getSelectedShapeIds() // [myShapeId, myOtherShapeId]
 
 Each change to the state happens within a transaction. You can batch changes into a single transaction using the [Editor#batch](?) method. It's a good idea to batch wherever possible, as this reduces the overhead for persisting or distributing those changes.
 
-### Listening for changes, and synchronizing the store with remote processes
+### Listening for changes, and merging changes from other sources 
 
 For information about how to synchronize the store with other processes, i.e. how to get data out and put data in, see the (Persistence)[/docs/persistence] page.
 
