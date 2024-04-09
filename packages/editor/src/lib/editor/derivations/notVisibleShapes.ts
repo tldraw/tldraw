@@ -70,7 +70,7 @@ export const notVisibleShapes = (editor: Editor) => {
 			// No need to delete since it's not there
 			if (!prevValue.has(id)) return
 			if (!nextValue) nextValue = new Set(prevValue)
-			return nextValue.delete(id)
+			nextValue.delete(id)
 		}
 
 		for (const changes of diff) {
