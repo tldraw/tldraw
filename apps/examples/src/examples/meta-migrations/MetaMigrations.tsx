@@ -51,6 +51,7 @@ const migrations = createMigrationSequence({
 			up(page: any) {
 				if (page.meta.backgroundTheme === 'purple') {
 					page.meta.backgroundTheme = 'blue'
+					page.name += ' (was purple)'
 				}
 			},
 		},
@@ -63,7 +64,9 @@ export default function MetaMigrationsExample() {
 			<Tldraw
 				// Pass in the custom migrations
 				migrations={[migrations]}
+				// When you load a snapshot from a previous version, the migrations will be applied automatically
 				snapshot={snapshot}
+				// This adds a dropdown to the canvas for changing the backgroundTheme property
 				components={components}
 			/>
 		</div>
