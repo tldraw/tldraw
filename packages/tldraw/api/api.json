@@ -27528,6 +27528,14 @@
             },
             {
               "kind": "Content",
+              "text": ", opts?: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    disableTab: boolean;\n}"
+            },
+            {
+              "kind": "Content",
               "text": "): "
             },
             {
@@ -27613,8 +27621,8 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/useEditableText.ts",
           "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 24
+            "startIndex": 9,
+            "endIndex": 26
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -27642,6 +27650,14 @@
                 "endIndex": 6
               },
               "isOptional": false
+            },
+            {
+              "parameterName": "opts",
+              "parameterTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "isOptional": true
             }
           ],
           "name": "useEditableText"

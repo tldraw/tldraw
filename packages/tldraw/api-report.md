@@ -2509,7 +2509,9 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditableText(id: TLShapeId, type: string, text: string): {
+export function useEditableText(id: TLShapeId, type: string, text: string, opts?: {
+    disableTab: boolean;
+}): {
     rInput: React_2.RefObject<HTMLTextAreaElement>;
     isEditing: boolean;
     handleFocus: typeof noop;
