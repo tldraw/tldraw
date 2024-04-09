@@ -17,7 +17,7 @@ import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
 import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
-import { debugFlags } from '../../utils/debug-flags'
+import { debugFlags, featureFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
 import { nearestMultiple } from '../../utils/nearestMultiple'
 import { CulledShapes } from '../CulledShapes'
@@ -137,6 +137,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					</div>
 					<InFrontOfTheCanvasWrapper />
 				</div>
+				<MovingCameraHitTestBlocker />
 			</div>
 		</>
 	)
@@ -589,4 +590,24 @@ function InFrontOfTheCanvasWrapper() {
 	const { InFrontOfTheCanvas } = useEditorComponents()
 	if (!InFrontOfTheCanvas) return null
 	return <InFrontOfTheCanvas />
+}
+
+function MovingCameraHitTestBlocker() {
+	const editor = useEditor()
+	const shouldDisplay = useValue(
+		'should display',
+		() => featureFlags.blockHitTestsWhileMovingCamera.get(),
+		[editor]
+	)
+	const cameraState = useValue('camera state', () => editor.getCameraState(), [editor])
+
+	if (!shouldDisplay) return null
+
+	return (
+		<div
+			className={classNames('tl-hit-test-blocker', {
+				'tl-hit-test-blocker__hidden': cameraState === 'idle',
+			})}
+		/>
+	)
 }

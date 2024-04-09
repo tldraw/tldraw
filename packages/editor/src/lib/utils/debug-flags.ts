@@ -9,7 +9,7 @@ import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } 
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
 export const featureFlags: Record<string, DebugFlag<boolean>> = {
-	// canMoveArrowLabel: createFeatureFlag('canMoveArrowLabel'),
+	blockHitTestsWhileMovingCamera: createFeatureFlag('moving camera blocker'),
 }
 
 /** @internal */
@@ -104,16 +104,16 @@ function createDebugValue<T>(
 	})
 }
 
-// function createFeatureFlag(
-// 	name: string,
-// 	defaults: Defaults<boolean> = { all: true, production: false }
-// ) {
-// 	return createDebugValueBase({
-// 		name,
-// 		defaults,
-// 		shouldStoreForSession: true,
-// 	})
-// }
+function createFeatureFlag(
+	name: string,
+	defaults: Defaults<boolean> = { all: true, production: false }
+) {
+	return createDebugValueBase({
+		name,
+		defaults,
+		shouldStoreForSession: true,
+	})
+}
 
 function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)
