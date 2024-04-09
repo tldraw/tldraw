@@ -833,6 +833,9 @@ export function GeoStylePickerSet({ styles }: {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
+export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
+
+// @public (undocumented)
 export function getSvgAsImage(svgString: string, isSafari: boolean, options: {
     type: 'jpeg' | 'png' | 'webp';
     quality: number;
@@ -965,9 +968,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 // @public (undocumented)
 export function isGifAnimated(file: Blob): Promise<boolean>;
-
-// @internal (undocumented)
-export function isShapeOccluded(editor: Editor, occluder: TLShape, shape: TLShapeId): boolean;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
