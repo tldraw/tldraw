@@ -7147,7 +7147,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.deleteShapes(['box1', 'box2'])
+	 * editor.deleteShape(shape.id)
 	 * ```
 	 *
 	 * @param id - The id of the shape to delete.

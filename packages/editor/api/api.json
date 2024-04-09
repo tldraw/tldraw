@@ -8760,7 +8760,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#deleteShape:member(1)",
-              "docComment": "/**\n * Delete a shape.\n *\n * @param id - The id of the shape to delete.\n *\n * @example\n * ```ts\n * editor.deleteShapes(['box1', 'box2'])\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Delete a shape.\n *\n * @param id - The id of the shape to delete.\n *\n * @example\n * ```ts\n * editor.deleteShape(shape.id)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

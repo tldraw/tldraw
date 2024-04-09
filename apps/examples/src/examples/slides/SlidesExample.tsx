@@ -1,43 +1,176 @@
-import { useEffect, useState } from 'react'
 import {
-	Atom,
+	BaseBoxShapeTool,
 	EASINGS,
 	Editor,
-	TLEditorComponents,
+	Geometry2d,
+	Rectangle2d,
+	SVGContainer,
+	ShapeProps,
+	ShapeUtil,
+	T,
+	TLBaseShape,
+	TLOnResizeHandler,
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	Vec,
-	atom,
+	resizeBox,
 	stopEventPropagation,
 	track,
 	useEditor,
+	useValue,
 } from 'tldraw'
+import { getPerfectDashProps } from 'tldraw/src/lib/shapes/shared/getPerfectDashProps'
 import 'tldraw/tldraw.css'
 
-const cameraMoveKeys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F10', 'F11', 'F12']
-type CameraLocation = {
-	key: string
-	position: Vec
+type SlideShape = TLBaseShape<
+	'slide',
+	{
+		w: number
+		h: number
+		name: string
+	}
+>
+
+export class SlideShapeUtil extends ShapeUtil<SlideShape> {
+	static override type = 'slide' as const
+	static override props: ShapeProps<SlideShape> = {
+		w: T.number,
+		h: T.number,
+		name: T.string,
+	}
+
+	override canBind = () => false
+	override hideRotateHandle = () => true
+
+	getDefaultProps(): SlideShape['props'] {
+		return {
+			w: 720,
+			h: 480,
+			name: 'Slide',
+		}
+	}
+
+	getGeometry(shape: SlideShape): Geometry2d {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: false,
+		})
+	}
+
+	override onRotate = (initial: SlideShape) => {
+		return initial
+	}
+
+	override onResize: TLOnResizeHandler<any> = (shape, info) => {
+		return resizeBox(shape, info)
+	}
+
+	component(shape: SlideShape) {
+		const bounds = this.editor.getShapeGeometry(shape).bounds
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const zoomLevel = useValue('zoom level', () => this.editor.getZoomLevel(), [this.editor])
+		if (!bounds) return null
+
+		return (
+			<SVGContainer>
+				<g
+					style={{
+						stroke: 'var(--color-text)',
+						strokeWidth: 'calc(1px * var(--tl-scale))',
+						opacity: 0.25,
+					}}
+					pointerEvents="none"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+				>
+					{bounds.sides.map((side, i) => {
+						const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+							side[0].dist(side[1]),
+							1 / zoomLevel,
+							{
+								style: 'dashed',
+								lengthRatio: 2,
+							}
+						)
+
+						return (
+							<line
+								key={i}
+								x1={side[0].x}
+								y1={side[0].y}
+								x2={side[1].x}
+								y2={side[1].y}
+								strokeDasharray={strokeDasharray}
+								strokeDashoffset={strokeDashoffset}
+							/>
+						)
+					})}
+				</g>
+			</SVGContainer>
+		)
+		// return (
+		// 	<HTMLContainer
+		// 		style={{ border: 'calc(var(--tl-scale) * 2px) solid var(--color-brush-stroke)' }}
+		// 	/>
+		// )
+	}
+
+	indicator(shape: SlideShape) {
+		return <rect width={shape.props.w} height={shape.props.h} />
+	}
 }
 
-const getLocationIndex = (locations: CameraLocation[], position: Vec) => {
-	return locations.findIndex((location) => position.equals(location.position))
+class SlideTool extends BaseBoxShapeTool {
+	static override id = 'slide'
+	static override initial = 'idle'
+	override shapeType = 'slide'
 }
 
-const getLocationByKey = (locations: CameraLocation[], key: string) => {
-	return locations.find((location) => location.key === key)
+function useSlides() {
+	const editor = useEditor()
+	return useValue<SlideShape[]>(
+		'slide shapes',
+		() => editor.getCurrentPageShapes().filter((s) => s.type === 'slide') as SlideShape[],
+		[editor]
+	)
 }
-const getCurrentPosition = (editor: Editor) => {
-	const camera = editor.getCamera()
-	return new Vec(camera.x, camera.y, camera.z)
+
+function useCurrentSlide() {
+	const editor = useEditor()
+	const slides = useSlides()
+	const nearest = useValue(
+		'nearest slide',
+		() => {
+			const cameraBounds = editor.getViewportPageBounds()
+			const nearest: { slide: SlideShape | null; distance: number } = {
+				slide: null,
+				distance: Infinity,
+			}
+			for (const slide of slides) {
+				const bounds = editor.getShapePageBounds(slide.id)
+				if (!bounds) continue
+				const distance = Vec.Dist2(cameraBounds.center, bounds.center)
+				if (distance < nearest.distance) {
+					nearest.slide = slide
+					nearest.distance = distance
+				}
+			}
+			return nearest
+		},
+		[editor]
+	)
+
+	return nearest.slide
 }
 
 const SlideList = track(() => {
 	const editor = useEditor()
-	const locations = cameraLocations.get()
-	if (locations.length === 0) return null
-	const index = getLocationIndex(locations, getCurrentPosition(editor))
+	const slides = useSlides()
+	const currentSlide = useCurrentSlide()
+
+	if (slides.length === 0) return null
 	return (
 		<div
 			style={{
@@ -54,10 +187,10 @@ const SlideList = track(() => {
 			}}
 			onPointerDown={(e) => stopEventPropagation(e)}
 		>
-			{locations.map((location, i) => {
+			{slides.map((slide, i) => {
 				return (
 					<div
-						key={location.key + location.position.x + location.position.y}
+						key={slide.id + 'button'}
 						style={{
 							display: 'flex',
 							gap: '4px',
@@ -68,20 +201,16 @@ const SlideList = track(() => {
 						<TldrawUiButton
 							type="normal"
 							style={{
-								background: index === i ? '#f9fafb' : 'transparent',
+								background: currentSlide?.id === slide.id ? '#f9fafb' : 'transparent',
 								borderRadius: 6,
 							}}
-							key={location.key}
 							onClick={() => {
-								moveCamera(editor, location.position)
+								moveToSlide(editor, slide)
 							}}
 						>
 							{`Slide ${i + 1}`}
 						</TldrawUiButton>
-						<TldrawUiButton
-							type="normal"
-							onClick={() => cameraLocations.set(locations.filter((l) => l !== location))}
-						>
+						<TldrawUiButton type="normal" onClick={() => editor.deleteShape(slide.id)}>
 							<TldrawUiButtonIcon icon="trash" />
 						</TldrawUiButton>
 					</div>
@@ -91,69 +220,41 @@ const SlideList = track(() => {
 	)
 })
 
-const components: TLEditorComponents = {
-	InFrontOfTheCanvas: SlideList,
+const moveToSlide = (editor: Editor, slide: SlideShape) => {
+	const bounds = editor.getShapePageBounds(slide.id)
+	if (!bounds) return
+	editor.zoomToBounds(bounds, { duration: 500, easing: EASINGS.easeInOutCubic, inset: 40 })
+	// editor.setCamera(position, { duration: 200, easing: EASINGS.easeInOutQuad })
 }
 
-const cameraLocations: Atom<CameraLocation[]> = atom('cameraLocations', [] as CameraLocation[])
-
-const moveCamera = (editor: Editor, location: Vec) => {
-	editor.setCamera(location, { duration: 200, easing: EASINGS.easeInOutQuad })
-}
-
-const CameraLocationsExample = track(() => {
-	const [editor, setEditor] = useState<Editor | null>(null)
-
-	useEffect(() => {
-		function handleKeyDown(e: KeyboardEvent) {
-			if (!editor) return
-
-			const locations = cameraLocations.get()
-			const position = getCurrentPosition(editor)
-			const locationIndex = getLocationIndex(locations, position)
-
-			if (cameraMoveKeys.includes(e.key)) {
-				const location = getLocationByKey(locations, e.key)
-				if (e.shiftKey) {
-					if (location) {
-						const newLocations = locations.map((l) => {
-							if (l.key === e.key) {
-								return { ...l, position }
-							}
-							return l
-						})
-						cameraLocations.set(newLocations)
-					} else {
-						cameraLocations.set([...locations, { key: e.key, position: position }])
-					}
-				} else {
-					if (!location) return
-					moveCamera(editor, location.position)
-				}
-			}
-			if (e.key === 'ArrowRight' && e.shiftKey && locationIndex !== -1) {
-				const nextIndex = (locationIndex + 1) % locations.length
-				moveCamera(editor, locations[nextIndex].position)
-			}
-
-			if (e.key === 'ArrowLeft' && e.shiftKey && locationIndex !== -1) {
-				const nextIndex = (locationIndex - 1 + locations.length) % locations.length
-				moveCamera(editor, locations[nextIndex].position)
-			}
-		}
-
-		document.addEventListener('keydown', handleKeyDown)
-
-		return () => {
-			document.removeEventListener('keydown', handleKeyDown)
-		}
-	}, [editor])
-
+const SlidesExample = track(() => {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="slideshow_example" onMount={setEditor} components={components} />
+			<Tldraw
+				persistenceKey="slideshow_example"
+				shapeUtils={[SlideShapeUtil]}
+				tools={[SlideTool]}
+				components={{
+					InFrontOfTheCanvas: SlideList,
+				}}
+				overrides={{
+					tools(editor, tools) {
+						// Create a tool item in the ui's context.
+						tools.slide = {
+							id: 'slide',
+							icon: 'color',
+							label: 'Slide',
+							kbd: 's',
+							onSelect: () => {
+								editor.setCurrentTool('slide')
+							},
+						}
+						return tools
+					},
+				}}
+			/>
 		</div>
 	)
 })
 
-export default CameraLocationsExample
+export default SlidesExample
