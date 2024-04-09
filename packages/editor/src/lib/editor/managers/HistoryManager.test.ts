@@ -299,7 +299,7 @@ describe('history options', () => {
 		}
 	})
 
-	it('sets, undoes, redoes', () => {
+	it('undos, redoes, separate marks', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
@@ -318,7 +318,7 @@ describe('history options', () => {
 		expect(getState()).toMatchObject({ a: 1, b: 2 })
 	})
 
-	it('sets, undoes, redoes', () => {
+	it('undos, redos, squashing', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
@@ -339,7 +339,7 @@ describe('history options', () => {
 		expect(getState()).toMatchObject({ a: 1, b: 4 })
 	})
 
-	it('sets ephemeral, undoes, redos', () => {
+	it('undos, redos, ephemeral', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
@@ -358,7 +358,7 @@ describe('history options', () => {
 		expect(getState()).toMatchObject({ a: 1, b: 1 }) // no change, b 1->2 was ephemeral
 	})
 
-	it('sets squashing, undoes, redos', () => {
+	it('squashing, undos, redos', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
@@ -377,7 +377,7 @@ describe('history options', () => {
 		expect(getState()).toMatchObject({ a: 1, b: 3 })
 	})
 
-	it('sets squashing and ephemeral, undoes, redos', () => {
+	it('squashing, undos, redos, ephemeral', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
@@ -394,5 +394,43 @@ describe('history options', () => {
 		manager.redo()
 
 		expect(getState()).toMatchObject({ a: 1, b: 2 }) // B2->3 was ephemeral
+	})
+
+	it('nested ephemeral', () => {
+		manager.mark()
+		manager.batch(
+			() => {
+				setA(1)
+				manager.batch(() => setB(1), { history: 'record' })
+				setA(2)
+			},
+			{ history: 'ephemeral' }
+		)
+		expect(getState()).toMatchObject({ a: 2, b: 1 })
+
+		// changes to A were ephemeral, but changes to B were recorded:
+		manager.undo()
+		expect(getState()).toMatchObject({ a: 2, b: 0 })
+
+		manager.mark()
+		manager.batch(
+			() => {
+				setA(3)
+				manager.batch(() => setB(2), { history: 'ephemeral' })
+			},
+			{ history: 'preserveRedoStack' }
+		)
+		expect(getState()).toMatchObject({ a: 3, b: 2 })
+
+		// changes to A were recorded, but changes to B were ephemeral:
+		manager.undo()
+		expect(getState()).toMatchObject({ a: 2, b: 2 })
+
+		// We can still redo because we preserved the redo stack:
+		manager.redo()
+		expect(getState()).toMatchObject({ a: 3, b: 2 })
+
+		manager.redo()
+		expect(getState()).toMatchObject({ a: 3, b: 1 })
 	})
 })

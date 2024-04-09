@@ -1,6 +1,6 @@
 import { Computed, react, RESET_VALUE, transact } from '@tldraw/state'
 import { BaseRecord, RecordId } from '../BaseRecord'
-import { RecordsDiff } from '../RecordsDiff'
+import { RecordsDiff, reverseRecordsDiff } from '../RecordsDiff'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
@@ -914,5 +914,247 @@ describe('snapshots', () => {
 		expect(() => {
 			store2.loadSnapshot(snapshot1)
 		}).not.toThrow()
+	})
+})
+
+describe('diffs', () => {
+	let store: Store<LibraryType>
+	const authorId = Author.createId('tolkein')
+	const bookId = Book.createId('hobbit')
+
+	beforeEach(() => {
+		store = new Store({
+			props: {},
+			schema: StoreSchema.create<LibraryType>({
+				book: Book,
+				author: Author,
+				visit: Visit,
+			}),
+		})
+	})
+
+	it('produces diffs from `extractingChanges`', () => {
+		expect(
+			store.extractingChanges(() => {
+				store.put([Author.create({ name: 'J.R.R Tolkein', id: authorId })])
+				store.put([
+					Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
+				])
+			})
+		).toMatchInlineSnapshot(`
+		{
+		  "added": {
+		    "author:tolkein": {
+		      "id": "author:tolkein",
+		      "isPseudonym": false,
+		      "name": "J.R.R Tolkein",
+		      "typeName": "author",
+		    },
+		    "book:hobbit": {
+		      "author": "author:tolkein",
+		      "id": "book:hobbit",
+		      "numPages": 300,
+		      "title": "The Hobbit",
+		      "typeName": "book",
+		    },
+		  },
+		  "removed": {},
+		  "updated": {},
+		}
+	`)
+
+		expect(
+			store.extractingChanges(() => {
+				store.remove([authorId])
+				store.update(bookId, (book) => ({ ...book, title: 'The Hobbit: There and Back Again' }))
+			})
+		).toMatchInlineSnapshot(`
+		{
+		  "added": {},
+		  "removed": {
+		    "author:tolkein": {
+		      "id": "author:tolkein",
+		      "isPseudonym": false,
+		      "name": "J.R.R Tolkein",
+		      "typeName": "author",
+		    },
+		  },
+		  "updated": {
+		    "book:hobbit": [
+		      {
+		        "author": "author:tolkein",
+		        "id": "book:hobbit",
+		        "numPages": 300,
+		        "title": "The Hobbit",
+		        "typeName": "book",
+		      },
+		      {
+		        "author": "author:tolkein",
+		        "id": "book:hobbit",
+		        "numPages": 300,
+		        "title": "The Hobbit: There and Back Again",
+		        "typeName": "book",
+		      },
+		    ],
+		  },
+		}
+	`)
+	})
+	it('produces diffs from `addHistoryInterceptor`', () => {
+		const diffs: any[] = []
+		const interceptor = jest.fn((diff) => diffs.push(diff))
+		store.addHistoryInterceptor(interceptor)
+
+		store.put([
+			Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') }),
+			Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
+		])
+		expect(interceptor).toHaveBeenCalledTimes(1)
+
+		store.extractingChanges(() => {
+			store.remove([authorId])
+
+			store.update(bookId, (book) => ({ ...book, title: 'The Hobbit: There and Back Again' }))
+		})
+		expect(interceptor).toHaveBeenCalledTimes(3)
+
+		expect(diffs).toMatchInlineSnapshot(`
+		[
+		  {
+		    "changes": {
+		      "added": {
+		        "author:tolkein": {
+		          "id": "author:tolkein",
+		          "isPseudonym": false,
+		          "name": "J.R.R Tolkein",
+		          "typeName": "author",
+		        },
+		        "book:hobbit": {
+		          "author": "author:tolkein",
+		          "id": "book:hobbit",
+		          "numPages": 300,
+		          "title": "The Hobbit",
+		          "typeName": "book",
+		        },
+		      },
+		      "removed": {},
+		      "updated": {},
+		    },
+		    "source": "user",
+		  },
+		  {
+		    "changes": {
+		      "added": {},
+		      "removed": {
+		        "author:tolkein": {
+		          "id": "author:tolkein",
+		          "isPseudonym": false,
+		          "name": "J.R.R Tolkein",
+		          "typeName": "author",
+		        },
+		      },
+		      "updated": {},
+		    },
+		    "source": "user",
+		  },
+		  {
+		    "changes": {
+		      "added": {},
+		      "removed": {},
+		      "updated": {
+		        "book:hobbit": [
+		          {
+		            "author": "author:tolkein",
+		            "id": "book:hobbit",
+		            "numPages": 300,
+		            "title": "The Hobbit",
+		            "typeName": "book",
+		          },
+		          {
+		            "author": "author:tolkein",
+		            "id": "book:hobbit",
+		            "numPages": 300,
+		            "title": "The Hobbit: There and Back Again",
+		            "typeName": "book",
+		          },
+		        ],
+		      },
+		    },
+		    "source": "user",
+		  },
+		]
+	`)
+	})
+
+	it('can apply and invert diffs', () => {
+		store.put([
+			Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') }),
+			Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
+		])
+
+		const checkpoint1 = store.getSnapshot()
+
+		const forwardsDiff = store.extractingChanges(() => {
+			store.remove([authorId])
+			store.update(bookId, (book) => ({ ...book, title: 'The Hobbit: There and Back Again' }))
+		})
+
+		const checkpoint2 = store.getSnapshot()
+
+		store.applyDiff(reverseRecordsDiff(forwardsDiff))
+		expect(store.getSnapshot()).toEqual(checkpoint1)
+
+		store.applyDiff(forwardsDiff)
+		expect(store.getSnapshot()).toEqual(checkpoint2)
+	})
+})
+
+describe('after callbacks', () => {
+	let store: Store<LibraryType>
+	let callbacks: any[] = []
+
+	const authorId = Author.createId('tolkein')
+	const bookId = Book.createId('hobbit')
+
+	beforeEach(() => {
+		store = new Store({
+			props: {},
+			schema: StoreSchema.create<LibraryType>({
+				book: Book,
+				author: Author,
+				visit: Visit,
+			}),
+		})
+
+		store.onAfterCreate = jest.fn((record) => callbacks.push({ type: 'create', record }))
+		store.onAfterChange = jest.fn((from, to) => callbacks.push({ type: 'change', from, to }))
+		store.onAfterDelete = jest.fn((record) => callbacks.push({ type: 'delete', record }))
+		callbacks = []
+	})
+
+	it('fires callbacks at the end of an `atomic` op', () => {
+		store.atomic(() => {
+			expect(callbacks).toHaveLength(0)
+
+			store.put([
+				Author.create({ name: 'J.R.R Tolkein', id: authorId }),
+				Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
+			])
+
+			expect(callbacks).toHaveLength(0)
+		})
+
+		expect(callbacks).toMatchObject([
+			{ type: 'create', record: { id: authorId } },
+			{ type: 'create', record: { id: bookId } },
+		])
+	})
+
+	it('doesnt fire callback for a record created then deleted', () => {
+		store.atomic(() => {
+			store.put([Author.create({ name: 'J.R.R Tolkein', id: authorId })])
+			store.remove([authorId])
+		})
+		expect(callbacks).toHaveLength(0)
 	})
 })
