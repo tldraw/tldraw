@@ -294,9 +294,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		const labelSize = getLabelSize(this.editor, shape)
-		const minWidth = 100
+		const minWidth = Math.min(100, w / 2)
 		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(minWidth, Math.max(1, w - 8))))
-		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
+		const minHeight = Math.min(
+			LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
+			h / 2
+		)
 		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(minHeight, Math.max(1, w - 8)))) // not sure if bug
 
 		const lines = getLines(shape.props, strokeWidth)
