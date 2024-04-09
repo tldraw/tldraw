@@ -152,14 +152,15 @@ export class HistoryManager<
 			// start by collecting the pending diff (everything since the last mark).
 			// we'll accumulate the diff to undo in this variable so we can apply it atomically.
 			const pendingDiff = this.pendingDiff.clear()
+			const isPendingDiffEmpty = isRecordsDiffEmpty(pendingDiff)
 			const diffToUndo = reverseRecordsDiff(pendingDiff)
 
-			if (pushToRedoStack) {
+			if (pushToRedoStack && !isPendingDiffEmpty) {
 				redos = redos.push({ type: 'diff', diff: pendingDiff })
 			}
 
 			let didFindMark = false
-			if (isRecordsDiffEmpty(diffToUndo)) {
+			if (isPendingDiffEmpty) {
 				// if nothing has happened since the last mark, pop any intermediate marks off the stack
 				while (undos.head?.type === 'stop') {
 					const mark = undos.head
@@ -287,6 +288,17 @@ export class HistoryManager<
 		this.stacks.set({ undos: stack(), redos: stack() })
 		this.pendingDiff.clear()
 	}
+
+	/** @internal */
+	debug() {
+		const { undos, redos } = this.stacks.get()
+		return {
+			undos: undos.toArray(),
+			redos: redos.toArray(),
+			pendingDiff: this.pendingDiff.debug(),
+			state: this.state,
+		}
+	}
 }
 
 const modeToState = {
@@ -313,5 +325,9 @@ class PendingDiff<R extends UnknownRecord> {
 	apply(diff: RecordsDiff<R>) {
 		squashRecordDiffsMutable(this.diff, [diff])
 		this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
+	}
+
+	debug() {
+		return { diff: this.diff, isEmpty: this.isEmpty() }
 	}
 }

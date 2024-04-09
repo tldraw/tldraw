@@ -57,6 +57,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/utils'
+import { setTimeout } from 'core-js'
 import { EventEmitter } from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
@@ -552,9 +553,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 							])
 						}
 					},
-					beforeDelete: (record) => {
+					afterDelete: (record) => {
 						// page was deleted, need to check whether it's the current page and select another one if so
-						if (this.getInstanceState().currentPageId === record.id) {
+						if (this.getInstanceState()?.currentPageId === record.id) {
 							const backupPageId = this.getPages().find((p) => p.id !== record.id)?.id
 							if (backupPageId) {
 								this.store.put([{ ...this.getInstanceState(), currentPageId: backupPageId }])
@@ -570,7 +571,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					},
 				},
 				instance: {
-					beforeChange: (prev, next) => {
+					afterChange: (prev, next) => {
 						// instance should never be updated to a page that no longer exists (this can
 						// happen when undoing a change that involves switching to a page that has since
 						// been deleted by another user)
@@ -579,14 +580,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 								? prev.currentPageId
 								: this.getPages()[0]?.id
 							if (backupPageId) {
-								return { ...next, currentPageId: backupPageId }
+								this.store.update(next.id, (instance) => ({
+									...instance,
+									currentPageId: backupPageId,
+								}))
 							} else {
 								// if there are no pages, bail out to `ensureStoreIsUsable`
 								this.store.ensureStoreIsUsable()
-								return this.getInstanceState()
 							}
 						}
-						return next
 					},
 				},
 				instance_page_state: {
@@ -651,17 +653,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 		this.disposables.add(this.history.dispose)
 
-		this.store.ensureStoreIsUsable()
+		this.history.ephemeral(() => {
+			this.store.ensureStoreIsUsable()
 
-		// clear ephemeral state
-		this._updateCurrentPageState(
-			{
+			// clear ephemeral state
+			this._updateCurrentPageState({
 				editingShapeId: null,
 				hoveredShapeId: null,
 				erasingShapeIds: [],
-			},
-			{ history: 'ephemeral' }
-		)
+			})
+		})
 
 		if (initialState && this.root.children[initialState] === undefined) {
 			throw Error(`No state found for initialState "${initialState}".`)
@@ -1240,7 +1241,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		historyOptions?: TLHistoryBatchOptions
 	): this {
-		this._updateInstanceState(partial, historyOptions)
+		this._updateInstanceState(partial, { history: 'ephemeral', ...historyOptions })
 
 		if (partial.isChangingStyle !== undefined) {
 			clearTimeout(this._isChangingStyleTimeout)
@@ -2895,7 +2896,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		transact(() => {
 			this.stopFollowingUser()
 
-			this.updateInstanceState({ followingUserId: userId }, { history: 'ephemeral' })
+			this.updateInstanceState({ followingUserId: userId })
 		})
 
 		const cancel = () => {
@@ -3000,7 +3001,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopFollowingUser(): this {
-		this.updateInstanceState({ followingUserId: null }, { history: 'ephemeral' })
+		this.updateInstanceState({ followingUserId: null })
 		this.emit('stop-following')
 		return this
 	}
@@ -6298,7 +6299,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// find last parent id
 			const currentPageShapesSorted = this.getCurrentPageShapesSorted()
 
-			let partials = shapes.map((partial) => {
+			const partials = shapes.map((partial) => {
 				if (!partial.id) {
 					partial = { id: createShapeId(), ...partial }
 				}
@@ -6310,7 +6311,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// children of the creating shape's type, or else the page itself.
 				if (
 					!partial.parentId ||
-					!(this.store.has(partial.parentId) || partials.some((p) => p.id === partial.parentId))
+					!(this.store.has(partial.parentId) || shapes.some((p) => p.id === partial.parentId))
 				) {
 					let parentId: TLParentId = this.getFocusedGroupId()
 
@@ -8058,12 +8059,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				if (this.inputs.isPanning) {
 					this.inputs.isPanning = false
-					this.updateInstanceState({
-						cursor: {
-							type: this._prevCursor,
-							rotation: 0,
-						},
-					})
+					this.setCursor({ type: this._prevCursor, rotation: 0 })
 				}
 			}
 

@@ -183,10 +183,7 @@ describe('<TldrawEditor />', () => {
 
 		expect(editor).toBeTruthy()
 		await act(async () => {
-			editor.updateInstanceState(
-				{ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } },
-				{ history: 'ephemeral' }
-			)
+			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } })
 		})
 
 		const id = createShapeId()
@@ -304,10 +301,7 @@ describe('Custom shapes', () => {
 
 		expect(editor).toBeTruthy()
 		await act(async () => {
-			editor.updateInstanceState(
-				{ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } },
-				{ history: 'ephemeral' }
-			)
+			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } })
 		})
 
 		expect(editor.shapeUtils.card).toBeTruthy()

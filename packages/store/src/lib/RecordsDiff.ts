@@ -12,6 +12,11 @@ export type RecordsDiff<R extends UnknownRecord> = {
 	removed: Record<IdOf<R>, R>
 }
 
+/** @internal */
+export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R> {
+	return { added: {}, updated: {}, removed: {} } as RecordsDiff<R>
+}
+
 /** @public */
 export function reverseRecordsDiff(diff: RecordsDiff<any>) {
 	const result: RecordsDiff<any> = { added: diff.removed, removed: diff.added, updated: {} }

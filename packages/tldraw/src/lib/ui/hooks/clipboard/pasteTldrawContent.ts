@@ -24,9 +24,9 @@ export function pasteTldrawContent(editor: Editor, clipboard: TLContent, point?:
 		seletionBoundsBefore?.collides(selectedBoundsAfter)
 	) {
 		// Creates a 'puff' to show a paste has happened.
-		editor.updateInstanceState({ isChangingStyle: true }, { history: 'ephemeral' })
+		editor.updateInstanceState({ isChangingStyle: true })
 		setTimeout(() => {
-			editor.updateInstanceState({ isChangingStyle: false }, { history: 'ephemeral' })
+			editor.updateInstanceState({ isChangingStyle: false })
 		}, 150)
 	}
 }

@@ -38,6 +38,9 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
     get(id: IdOf<R>): Data | undefined;
 };
 
+// @internal (undocumented)
+export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R>;
+
 // @public
 export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
     migrations?: Migrations;
@@ -229,13 +232,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
         schema: StoreSchema<R, Props>;
         props: Props;
     });
-    // @internal
-    accumulatingChanges(accumulator: RecordsDiff<R>, fn: () => void): void;
     // @internal (undocumented)
     addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
     allRecords: () => R[];
     // (undocumented)
     applyDiff(diff: RecordsDiff<R>, runCallbacks?: boolean): void;
+    // @internal (undocumented)
+    atomic<T>(fn: () => T, runCallbacks?: boolean): T;
     clear: () => void;
     createComputedCache: <T, V extends R = R>(name: string, derive: (record: V) => T | undefined, isEqual?: ((a: V, b: V) => boolean) | undefined) => ComputedCache<T, V>;
     createSelectedComputedCache: <T, J, V extends R = R>(name: string, selector: (record: V) => T | undefined, derive: (input: T) => J | undefined) => ComputedCache<J, V>;

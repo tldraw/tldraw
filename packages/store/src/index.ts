@@ -2,6 +2,7 @@ export type { BaseRecord, IdOf, RecordId, UnknownRecord } from './lib/BaseRecord
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
 export { RecordType, assertIdType, createRecordType } from './lib/RecordType'
 export {
+	createEmptyRecordsDiff,
 	isRecordsDiffEmpty,
 	reverseRecordsDiff,
 	squashRecordDiffs,

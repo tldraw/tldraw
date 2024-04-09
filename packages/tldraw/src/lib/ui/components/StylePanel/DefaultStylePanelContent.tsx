@@ -83,7 +83,7 @@ function useStyleChangeCallback() {
 						editor.setStyleForSelectedShapes(style, value)
 					}
 					editor.setStyleForNextShapes(style, value)
-					editor.updateInstanceState({ isChangingStyle: true }, { history: 'ephemeral' })
+					editor.updateInstanceState({ isChangingStyle: true })
 				})
 
 				trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
@@ -332,7 +332,7 @@ export function OpacitySlider() {
 					editor.setOpacityForSelectedShapes(item)
 				}
 				editor.setOpacityForNextShapes(item)
-				editor.updateInstanceState({ isChangingStyle: true }, { history: 'ephemeral' })
+				editor.updateInstanceState({ isChangingStyle: true })
 			})
 
 			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })

@@ -12,7 +12,7 @@ import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { Cache } from './Cache'
 import { RecordScope } from './RecordType'
-import { RecordsDiff, squashRecordDiffs, squashRecordDiffsMutable } from './RecordsDiff'
+import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { devFreeze } from './devFreeze'
@@ -350,7 +350,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	put = (records: R[], phaseOverride?: 'initialize'): void => {
-		this.transactWithAfterEvents(() => {
+		this.atomic(() => {
 			const updates: Record<IdOf<UnknownRecord>, [from: R, to: R]> = {}
 			const additions: Record<IdOf<UnknownRecord>, R> = {}
 
@@ -447,7 +447,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	remove = (ids: IdOf<R>[]): void => {
-		this.transactWithAfterEvents(() => {
+		this.atomic(() => {
 			const cancelled = [] as IdOf<R>[]
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
@@ -586,7 +586,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			throw new Error(`Failed to migrate snapshot: ${migrationResult.reason}`)
 		}
 
-		transact(() => {
+		this.atomic(() => {
 			this.clear()
 			this.put(Object.values(migrationResult.value))
 			this.ensureStoreIsUsable()
@@ -708,24 +708,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 	}
 
-	/**
-	 * Like {@link extractingChanges}, but accumulates the changes into the provided accumulator
-	 * diff instead of returning a fresh diff.
-	 * @internal
-	 */
-	accumulatingChanges(accumulator: RecordsDiff<R>, fn: () => void) {
-		const changes: Array<RecordsDiff<R>> = []
-		const dispose = this.historyAccumulator.addInterceptor((entry) => changes.push(entry.changes))
-		try {
-			transact(fn)
-			squashRecordDiffsMutable(accumulator, changes)
-		} finally {
-			dispose()
-		}
-	}
-
 	applyDiff(diff: RecordsDiff<R>, runCallbacks = true) {
-		this.transactWithAfterEvents(() => {
+		this.atomic(() => {
 			const toPut = objectMapValues(diff.added).concat(
 				objectMapValues(diff.updated).map(([_from, to]) => to)
 			)
@@ -847,7 +831,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			this.pendingAfterEvents.set(id, { before, after, source })
 		}
 	}
-	private transactWithAfterEvents<T>(fn: () => T, runCallbacks = true): T {
+	/** @internal */
+	atomic<T>(fn: () => T, runCallbacks = true): T {
 		return transact(() => {
 			if (this.pendingAfterEvents) return fn()
 

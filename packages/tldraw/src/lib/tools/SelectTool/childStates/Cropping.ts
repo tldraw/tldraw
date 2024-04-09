@@ -64,12 +64,7 @@ export class Cropping extends StateNode {
 		if (!selectedShape) return
 
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.updateInstanceState({
-			cursor: {
-				type: cursorType,
-				rotation: this.editor.getSelectionRotation(),
-			},
-		})
+		this.editor.setCursor({ type: cursorType, rotation: this.editor.getSelectionRotation() })
 	}
 
 	private getDefaultCrop = (): TLImageShapeCrop => ({
