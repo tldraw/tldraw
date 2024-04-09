@@ -137,6 +137,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					</div>
 					<InFrontOfTheCanvasWrapper />
 				</div>
+				<MovingCameraHitTestBlocker />
 			</div>
 		</>
 	)
@@ -589,4 +590,17 @@ function InFrontOfTheCanvasWrapper() {
 	const { InFrontOfTheCanvas } = useEditorComponents()
 	if (!InFrontOfTheCanvas) return null
 	return <InFrontOfTheCanvas />
+}
+
+function MovingCameraHitTestBlocker() {
+	const editor = useEditor()
+	const cameraState = useValue('camera state', () => editor.getCameraState(), [editor])
+
+	return (
+		<div
+			className={classNames('tl-hit-test-blocker', {
+				'tl-hit-test-blocker__hidden': cameraState === 'idle',
+			})}
+		/>
+	)
 }
