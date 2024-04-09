@@ -8,7 +8,9 @@ import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } 
 // development. Use `createFeatureFlag` to create a boolean flag which will be
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
-export const featureFlags: Record<string, DebugFlag<boolean>> = {}
+export const featureFlags: Record<string, DebugFlag<boolean>> = {
+	// canMoveArrowLabel: createFeatureFlag('canMoveArrowLabel'),
+}
 
 /** @internal */
 export const pointerCaptureTrackingObject = createDebugValue(
@@ -102,17 +104,16 @@ function createDebugValue<T>(
 	})
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function createFeatureFlag(
-	name: string,
-	defaults: Defaults<boolean> = { all: true, production: false }
-) {
-	return createDebugValueBase({
-		name,
-		defaults,
-		shouldStoreForSession: true,
-	})
-}
+// function createFeatureFlag(
+// 	name: string,
+// 	defaults: Defaults<boolean> = { all: true, production: false }
+// ) {
+// 	return createDebugValueBase({
+// 		name,
+// 		defaults,
+// 		shouldStoreForSession: true,
+// 	})
+// }
 
 function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)
