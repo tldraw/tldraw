@@ -4404,20 +4404,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
 
-	private _shouldCheck(
-		shape: TLShape,
-		point: VecLike,
-		culledShapes: Map<TLShapeId, Box | undefined>,
-		filter?: (shape: TLShape) => boolean
-	): boolean {
-		if (culledShapes.has(shape.id)) return false
-		if (this.isShapeOfType(shape, 'group')) return false
-		const pageMask = this.getShapeMask(shape)
-		if (pageMask && !pointInPolygon(point, pageMask)) return false
-		if (filter) return filter(shape)
-		return true
-	}
-
 	/**
 	 * Get the shape at the current point.
 	 *
@@ -4452,14 +4438,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
-		const culledShapes = this.getCulledShapes()
 
-		const shapesToCheck = opts.renderingOnly
-			? this.getCurrentPageRenderingShapesSorted()
-			: this.getCurrentPageShapesSorted()
+		const shapesToCheck = (
+			opts.renderingOnly
+				? this.getCurrentPageRenderingShapesSorted()
+				: this.getCurrentPageShapesSorted()
+		).filter((shape) => {
+			if (this.isShapeOfType(shape, 'group')) return false
+			const pageMask = this.getShapeMask(shape)
+			if (pageMask && !pointInPolygon(point, pageMask)) return false
+			if (filter) return filter(shape)
+			return true
+		})
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
-			if (!this._shouldCheck(shape, point, culledShapes, filter)) continue
 			const geometry = this.getShapeGeometry(shape)
 			const isGroup = geometry instanceof Group2d
 
