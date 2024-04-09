@@ -1,5 +1,7 @@
 import { RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
 import { TLPageId, TLShapeId, isShape, isShapeId } from '@tldraw/tlschema'
+import { measureCbDuration } from '@tldraw/utils'
+import RBush from 'rbush'
 import { Box } from '../../primitives/Box'
 import { Editor } from '../Editor'
 
@@ -11,6 +13,28 @@ function isShapeNotVisible(editor: Editor, id: TLShapeId, viewportPageBounds: Bo
 	// if the shape is fully outside of the viewport page bounds...
 	return !viewportPageBounds.includes(maskedPageBounds)
 }
+
+type Element = {
+	minX: number
+	minY: number
+	maxX: number
+	maxY: number
+	id: TLShapeId
+}
+
+function getElement(editor: Editor, id: TLShapeId): Element | null {
+	const bounds = editor.getShapeMaskedPageBounds(id)
+	if (!bounds) return null
+	return {
+		minX: bounds.minX,
+		minY: bounds.minY,
+		maxX: bounds.maxX,
+		maxY: bounds.maxY,
+		id,
+	}
+}
+
+class TldrawRBush extends RBush<Element> {}
 
 /**
  * Incremental derivation of not visible shapes.
@@ -26,17 +50,24 @@ export const notVisibleShapes = (editor: Editor) => {
 	let prevViewportPageBounds: Box
 
 	function fromScratch(editor: Editor): Set<TLShapeId> {
-		const shapes = editor.getCurrentPageShapeIds()
-		lastPageId = editor.getCurrentPageId()
-		const viewportPageBounds = editor.getViewportPageBounds()
-		prevViewportPageBounds = viewportPageBounds.clone()
-		const notVisibleShapes = new Set<TLShapeId>()
-		shapes.forEach((id) => {
-			if (isShapeNotVisible(editor, id, viewportPageBounds)) {
-				notVisibleShapes.add(id)
-			}
+		return measureCbDuration('fromScratch rbush', () => {
+			const viewportPageBounds = editor.getViewportPageBounds()
+			prevViewportPageBounds = viewportPageBounds.clone()
+			const elementsToAdd: Element[] = []
+			const shapes = editor.getCurrentPageShapeIds()
+			lastPageId = editor.getCurrentPageId()
+
+			shapes.forEach((id) => {
+				const e = getElement(editor, id)
+				if (!e) return
+				elementsToAdd.push(e)
+			})
+			const culled = new Set(shapes)
+			const rbush = new TldrawRBush().load(elementsToAdd)
+			rbush.search(viewportPageBounds).forEach((e) => culled.delete(e.id))
+			console.log('culled', culled.size)
+			return culled
 		})
-		return notVisibleShapes
 	}
 	return computed<Set<TLShapeId>>('getCulledShapes', (prevValue, lastComputedEpoch) => {
 		if (!isCullingOffScreenShapes) return new Set<TLShapeId>()
