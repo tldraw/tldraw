@@ -19,9 +19,10 @@ export function BackToContent() {
 
 			// Rendering shapes includes all the shapes in the current page.
 			// We have to filter them down to just the shapes that are inside the renderingBounds.
-			const visibleShapes = renderingShapes.filter(
-				(s) => s.maskedPageBounds && renderingBounds.includes(s.maskedPageBounds)
-			)
+			const visibleShapes = renderingShapes.filter((s) => {
+				const maskedPageBounds = editor.getShapeMaskedPageBounds(s.id)
+				return maskedPageBounds && renderingBounds.includes(maskedPageBounds)
+			})
 			const showBackToContentNow =
 				visibleShapes.length === 0 && editor.getCurrentPageShapes().length > 0
 
