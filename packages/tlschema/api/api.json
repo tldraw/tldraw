@@ -977,7 +977,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/tlschema!createPresenceStateDerivation:function(1)",
-          "docComment": "/**\n * @public\n */\n",
+          "docComment": "/**\n * Creates a derivation that represents the current presence state of the current user.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
