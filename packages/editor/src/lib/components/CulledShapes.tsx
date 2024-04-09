@@ -1,4 +1,5 @@
 import { computed, react } from '@tldraw/state'
+import { measureCbDuration } from '@tldraw/utils'
 import { useEffect, useRef } from 'react'
 import { useEditor } from '../hooks/useEditor'
 import { useIsDarkMode } from '../hooks/useIsDarkMode'
@@ -112,29 +113,30 @@ export function CulledShapes() {
 		const shapeVertices = computed('shape vertices', function calculateCulledShapeVertices() {
 			const results: number[] = []
 
-			for (const { id } of editor.getUnorderedRenderingShapes(true)) {
-				const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
-				if (editor.isShapeCulled(id) && maskedPageBounds) {
-					results.push(
-						// triangle 1
-						maskedPageBounds.minX,
-						maskedPageBounds.minY,
-						maskedPageBounds.minX,
-						maskedPageBounds.maxY,
-						maskedPageBounds.maxX,
-						maskedPageBounds.maxY,
-						// triangle 2
-						maskedPageBounds.minX,
-						maskedPageBounds.minY,
-						maskedPageBounds.maxX,
-						maskedPageBounds.minY,
-						maskedPageBounds.maxX,
-						maskedPageBounds.maxY
-					)
-				}
-			}
+			return measureCbDuration('vertices', () => {
+				editor.getCulledShapes().forEach((maskedPageBounds) => {
+					if (maskedPageBounds) {
+						results.push(
+							// triangle 1
+							maskedPageBounds.minX,
+							maskedPageBounds.minY,
+							maskedPageBounds.minX,
+							maskedPageBounds.maxY,
+							maskedPageBounds.maxX,
+							maskedPageBounds.maxY,
+							// triangle 2
+							maskedPageBounds.minX,
+							maskedPageBounds.minY,
+							maskedPageBounds.maxX,
+							maskedPageBounds.minY,
+							maskedPageBounds.maxX,
+							maskedPageBounds.maxY
+						)
+					}
+				})
 
-			return results
+				return results
+			})
 		})
 
 		return react('render culled shapes ', function renderCulledShapes() {
@@ -150,9 +152,7 @@ export function CulledShapes() {
 			}
 
 			const verticesArray = shapeVertices.get()
-
 			context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT)
-
 			if (verticesArray.length > 0) {
 				const viewport = editor.getViewportPageBounds() // when the viewport changes...
 				context.uniform2f(viewportStartUniformLocation, viewport.minX, viewport.minY)
