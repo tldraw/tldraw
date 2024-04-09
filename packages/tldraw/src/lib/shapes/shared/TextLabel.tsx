@@ -110,7 +110,6 @@ export const TextLabel = React.memo(function TextLabel({
 				</div>
 				{(isEditingAnything || isSelected) && (
 					<TextArea
-						id={`text-input-${id}`}
 						ref={rInput}
 						// We need to add the initial value as the key here because we need this component to
 						// 'reset' when this state changes and grab the latest defaultValue.
