@@ -2512,7 +2512,7 @@ export function useDialogs(): TLUiDialogsContextType;
 export function useEditableText(id: TLShapeId, type: string, text: string): {
     rInput: React_2.RefObject<HTMLTextAreaElement>;
     isEditing: boolean;
-    handleFocus: () => void;
+    handleFocus: typeof noop;
     handleBlur: () => void;
     handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
     handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
