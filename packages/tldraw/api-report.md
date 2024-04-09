@@ -534,8 +534,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canResize: (shape: TLEmbedShape) => boolean;
     // (undocumented)
-    canUnmount: TLShapeUtilFlag<TLEmbedShape>;
-    // (undocumented)
     component(shape: TLEmbedShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
@@ -1097,15 +1095,9 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
-    canDropShapes: (shape: TLNoteShape, _shapes: TLShape[]) => boolean;
-    // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    canReceiveNewChildrenOfType: (shape: TLNoteShape, type: string) => boolean;
-    // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
-    // (undocumented)
-    doesAutoEditOnKeyStroke: () => boolean;
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
@@ -1171,13 +1163,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         typeName: "shape";
     } | undefined;
     // (undocumented)
-    onDragShapesOut: (note: TLNoteShape, shapes: TLShape[]) => void;
-    // (undocumented)
-    onDragShapesOver: (note: TLNoteShape, shapes: TLShape[]) => void;
-    // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
-    // (undocumented)
-    onTranslateStart: (shape: TLNoteShape) => void;
     // (undocumented)
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;

@@ -38,7 +38,8 @@ export async function getSvgJsx(
 	if (opts.bounds) {
 		bbox = opts.bounds
 	} else {
-		for (const { maskedPageBounds } of renderingShapes) {
+		for (const { id } of renderingShapes) {
+			const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
 			if (!maskedPageBounds) continue
 			if (bbox) {
 				bbox.union(maskedPageBounds)

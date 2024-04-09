@@ -46,7 +46,10 @@ describe('TLSelectTool.Idle', () => {
 		expect(nudgedShape).toBeDefined()
 		expect(nudgedShape?.x).toBe(101)
 	})
+})
 
+// todo: turn on feature flag for these tests or remove them
+describe.skip('Edit on type', () => {
 	it('Starts editing shape on key down if shape does auto-edit on key stroke', () => {
 		const id = createShapeId()
 		editor.createShapes([{ id, type: 'note', x: 100, y: 100, props: { text: 'hello' } }])!

@@ -272,6 +272,22 @@ export function registerDefaultExternalContentHandlers(
 
 		const textToPaste = cleanupText(text)
 
+		// If we're pasting into a text shape, update the text.
+		const onlySelectedShape = editor.getOnlySelectedShape()
+		if (onlySelectedShape && 'text' in onlySelectedShape.props) {
+			editor.updateShapes([
+				{
+					id: onlySelectedShape.id,
+					type: onlySelectedShape.type,
+					props: {
+						text: textToPaste,
+					},
+				},
+			])
+
+			return
+		}
+
 		// Measure the text with default values
 		let w: number
 		let h: number

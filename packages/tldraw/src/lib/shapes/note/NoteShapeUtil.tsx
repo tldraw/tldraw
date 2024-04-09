@@ -5,7 +5,6 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLGroupShape,
 	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
@@ -53,39 +52,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override migrations = noteShapeMigrations
 
 	override canEdit = () => true
-	override doesAutoEditOnKeyStroke = () => true
 	override hideResizeHandles = () => true
 	override hideSelectionBoundsFg = () => false
-
-	override canReceiveNewChildrenOfType = (shape: TLNoteShape, type: string) => {
-		return !shape.isLocked && type !== 'frame'
-	}
-
-	override canDropShapes = (shape: TLNoteShape, _shapes: TLShape[]): boolean => {
-		return !shape.isLocked
-	}
-
-	override onDragShapesOver = (note: TLNoteShape, shapes: TLShape[]) => {
-		if (!shapes.every((child) => child.parentId === note.id)) {
-			const shapesWithoutFrames = shapes.filter(
-				(shape) => !this.editor.isShapeOfType(shape, 'frame')
-			)
-			this.editor.reparentShapes(shapesWithoutFrames, note.id)
-		}
-	}
-
-	override onDragShapesOut = (note: TLNoteShape, shapes: TLShape[]) => {
-		const parent = this.editor.getShape(note.parentId)
-		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
-
-		// If sticky is in a group, keep the shape in that group
-
-		if (isInGroup) {
-			this.editor.reparentShapes(shapes, parent.id)
-		} else {
-			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
-		}
-	}
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -213,7 +181,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						width: NOTE_SIZE,
 						height: noteHeight,
 						backgroundColor: theme[color].note.fill,
-						opacity: hideShadows ? 1 : 0.99,
 						borderBottom: hideShadows ? `3px solid rgb(15, 23, 31, .2)` : 'none',
 						boxShadow: hideShadows
 							? 'none'
@@ -303,10 +270,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return getSizeAdjustments(this.editor, next)
 	}
 
-	override onTranslateStart = (shape: TLNoteShape) => {
-		this.editor.bringToFront([shape])
-	}
-
 	override onEditEnd: TLOnEditEndHandler<TLNoteShape> = (shape) => {
 		const {
 			id,
@@ -355,7 +318,8 @@ function _getLabelSize(editor: Editor, shape: TLNoteShape) {
 	const text = shape.props.text
 
 	if (!text) {
-		return { labelHeight: 0, labelWidth: 0, fontSizeAdjustment: 0 }
+		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
+		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
 	}
 
 	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
@@ -451,6 +415,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
+					editor.mark('editing adjacent shape')
 					startEditingShapeWithLabel(editor, newNote, true /* selectAll */)
 				}
 			}

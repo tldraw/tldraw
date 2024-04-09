@@ -15,7 +15,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
 			if (!parent) return shape
 			return parent
 		})
-		.filter((shape) => shape.type === 'frame' || shape.type === 'note')
+		.filter((shape) => shape.type === 'frame')
 
 	const kickedOutChildren: TLShapeId[] = []
 	for (const parent of effectedParents) {

@@ -1,6 +1,5 @@
 import {
 	GapsSnapIndicator,
-	IndexKey,
 	PointsSnapIndicator,
 	SnapIndicator,
 	TLArrowShape,
@@ -2065,7 +2064,7 @@ describe('Note shape grid helper positions / pits', () => {
 
 		// B snaps the selection to the pit
 		// (index is manually set because the sticky gets brought to front)
-		editor.expectShapeToMatch({ ...shapeB, x: 220, y: 0, index: 'a4' as IndexKey })
+		editor.expectShapeToMatch({ ...shapeB, x: 220, y: 0 })
 		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 220, y: 0, w: 400, h: 200 })
 
 		editor.cancel()
@@ -2086,7 +2085,7 @@ describe('Note shape grid helper positions / pits', () => {
 		// Even though B is in the same place as it was when it snapped (while dragging over B),
 		// because our cursor is over C it won't fall into the pit—because it's not hovered
 		// (index is manually set because the sticky gets brought to front)
-		editor.expectShapeToMatch({ ...shapeB, x: 216, y: -4, index: 'a4' as IndexKey })
+		editor.expectShapeToMatch({ ...shapeB, x: 216, y: -4 })
 		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 216, y: -4, w: 400, h: 200 })
 	})
 

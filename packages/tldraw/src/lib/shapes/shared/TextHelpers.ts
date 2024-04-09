@@ -301,7 +301,6 @@ export function startEditingShapeWithLabel(
 ) {
 	// Finish this shape and start editing the next one
 	editor.select(shape)
-	editor.mark('editing shape')
 	editor.setEditingShape(shape)
 	editor.setCurrentTool('select.editing_shape', {
 		target: 'shape',

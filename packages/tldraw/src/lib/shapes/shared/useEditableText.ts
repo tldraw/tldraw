@@ -160,9 +160,11 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 			// This is important so that when dragging a shape using the text label,
 			// the shape continues to be dragged, even if the cursor is over the UI.
-			setPointerCapture(e.currentTarget, e)
+			if (!isEditing) {
+				setPointerCapture(e.currentTarget, e)
+			}
 		},
-		[editor, id]
+		[editor, id, isEditing]
 	)
 
 	const handleFocus = useCallback(() => {
