@@ -313,16 +313,38 @@ function panningTest(editor: Editor) {
 	const newPageId = setupPage(editor)
 
 	createNShapes(editor, 1000)
-	createNShapes(editor, 1000, 4100)
+	createNShapes(editor, 1000, 8200)
 	editor.selectNone()
-	performance.mark('panning-start')
-	editor.setCamera({ x: -4000, y: -1000 })
-	requestAnimationFrame(() => {
-		performance.mark('panning-end')
-		const measure = performance.measure('panning', 'panning-start', 'panning-end')
-		console.log(measure)
-		removePage(editor, newPageId)
-	})
+	editor.setCamera({ x: 0, y: 0, z: 0.25 })
+	setTimeout(() => {
+		performance.mark('panning-start')
+		editor.setCamera({ x: -8200, y: 0 })
+		requestAnimationFrame(() => {
+			performance.mark('panning-end')
+			// the rendering frame was sometimes 1 frame later, sometimes 2 frames later, not sure why, don't know how to test this
+			measureFrameTime((deltaTime) => {
+				console.log(`Time elapsed since last frame: ${deltaTime} ms`)
+			})
+			const measure = performance.measure('panning', 'panning-start', 'panning-end')
+			console.log(measure)
+			removePage(editor, newPageId)
+		})
+	}, 1000)
+}
+
+function measureFrameTime(callback: (deltaTime: number) => void) {
+	let lastTimestamp: number | null = null
+
+	function frame(timestamp: number) {
+		if (lastTimestamp !== null) {
+			const deltaTime = timestamp - lastTimestamp
+			callback(deltaTime)
+		}
+		lastTimestamp = timestamp
+		requestAnimationFrame(frame)
+	}
+
+	requestAnimationFrame(frame)
 }
 
 const setupPage = (editor: Editor) => {
