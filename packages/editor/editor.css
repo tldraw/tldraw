@@ -29,6 +29,7 @@
 	--layer-shapes: 300;
 	--layer-overlays: 400;
 	--layer-following-indicator: 1000;
+	--layer-blocker: 10000;
 	/* Misc */
 	--tl-zoom: 1;
 
@@ -1500,4 +1501,19 @@ it from receiving any pointer events or affecting the cursor. */
 	color: #555;
 	font-size: 12px;
 	font-family: monospace;
+}
+
+/* ---------------- Hit test blocker ---------------- */
+
+.tl-hit-test-blocker {
+	position: absolute;
+	z-index: var(--layer-blocker);
+	inset: 0px;
+	width: 100%;
+	height: 100%;
+	pointer-events: all;
+}
+
+.tl-hit-test-blocker__hidden {
+	display: none;
 }
