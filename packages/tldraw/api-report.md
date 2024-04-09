@@ -33,7 +33,6 @@ import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { Migrations } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
-import { noop } from '@tldraw/editor';
 import { ObjectValidator } from '@tldraw/editor';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
