@@ -177,9 +177,6 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 };
 
 // @internal (undocumented)
-export function measureAverageDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
-
-// @internal (undocumented)
 export function measureCbDuration(name: string, cb: () => any): any;
 
 // @internal (undocumented)
