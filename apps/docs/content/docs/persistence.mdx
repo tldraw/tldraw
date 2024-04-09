@@ -130,7 +130,7 @@ export default function () {
 
 Sometimes you won't be able to access the store's data synchronously. To handle this case, the `store` property also accepts a [TLStoreWithStatus](?).
 
-````tsx
+```tsx
 export default function () {
 	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({
 		status: 'loading',
@@ -167,6 +167,7 @@ export default function () {
 
 	return <Tldraw persistenceKey="my-persistence-key" store={storeWithStatus} />
 }
+```
 
 For a good example of this pattern, see the [yjs-example](https://github.com/tldraw/tldraw-yjs-example).
 
@@ -178,7 +179,7 @@ You can listen for incremental updates to the document state by calling `editor.
 const unlisten = editor.store.listen((update) => {
   console.log('update', update)
 }, { scope: 'document', source: 'user' })
-````
+```
 
 These updates contain information about which records were added, removed, and updated. See [HistoryEntry](?)
 
