@@ -20,14 +20,12 @@ function isShapeNotVisible(editor: Editor, id: TLShapeId, viewportPageBounds: Bo
  * @returns Incremental derivation of non visible shapes.
  */
 export const notVisibleShapes = (editor: Editor) => {
-	console.log('shapes outside viewport derivation')
 	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
 	const shapeHistory = editor.store.query.filterHistory('shape')
 	let lastPageId: TLPageId | null = null
 	let prevViewportPageBounds: Box
 
 	function fromScratch(editor: Editor): Set<TLShapeId> {
-		console.log('from scratch')
 		const shapes = editor.getCurrentPageShapeIds()
 		lastPageId = editor.getCurrentPageId()
 		const viewportPageBounds = editor.getViewportPageBounds()
@@ -60,7 +58,6 @@ export const notVisibleShapes = (editor: Editor) => {
 		if (!prevViewportPageBounds || !viewportPageBounds.equals(prevViewportPageBounds)) {
 			return fromScratch(editor)
 		}
-		console.log('incremental')
 		const nextValue = new Set(prevValue)
 		let isDirty = false
 
