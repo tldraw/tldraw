@@ -183,43 +183,37 @@ class SlideTool extends BaseBoxShapeTool {
 
 function useSlides() {
 	const editor = useEditor()
-	return useValue<SlideShape[]>(
-		'slide shapes',
-		() => {
-			return editor
-				.getSortedChildIdsForParent(editor.getCurrentPageId())
-				.map((id) => editor.getShape(id))
-				.filter((s) => s?.type === 'slide') as SlideShape[]
-		},
-		[editor]
-	)
+	return useValue<SlideShape[]>('slide shapes', () => getSlides(editor), [editor])
+}
+
+function getSlides(editor: Editor) {
+	return editor
+		.getSortedChildIdsForParent(editor.getCurrentPageId())
+		.map((id) => editor.getShape(id))
+		.filter((s) => s?.type === 'slide') as SlideShape[]
 }
 
 function useCurrentSlide() {
 	const editor = useEditor()
 	const slides = useSlides()
-	const nearest = useValue(
-		'nearest slide',
-		() => {
-			const cameraBounds = editor.getViewportPageBounds()
-			const nearest: { slide: SlideShape | null; distance: number } = {
-				slide: null,
-				distance: Infinity,
-			}
-			for (const slide of slides) {
-				const bounds = editor.getShapePageBounds(slide.id)
-				if (!bounds) continue
-				const distance = Vec.Dist2(cameraBounds.center, bounds.center)
-				if (distance < nearest.distance) {
-					nearest.slide = slide
-					nearest.distance = distance
-				}
-			}
-			return nearest
-		},
-		[editor, slides]
-	)
+	return useValue('nearest slide', () => getNearestSlide(editor, slides), [editor, slides])
+}
 
+function getNearestSlide(editor: Editor, slides: SlideShape[]) {
+	const cameraBounds = editor.getViewportPageBounds()
+	const nearest: { slide: SlideShape | null; distance: number } = {
+		slide: null,
+		distance: Infinity,
+	}
+	for (const slide of slides) {
+		const bounds = editor.getShapePageBounds(slide.id)
+		if (!bounds) continue
+		const distance = Vec.Dist2(cameraBounds.center, bounds.center)
+		if (distance < nearest.distance) {
+			nearest.slide = slide
+			nearest.distance = distance
+		}
+	}
 	return nearest.slide
 }
 
@@ -251,6 +245,7 @@ const SlideList = track(() => {
 			onPointerDown={(e) => stopEventPropagation(e)}
 		>
 			{slides.map((slide, i) => {
+				const isSelected = editor.getSelectedShapes().includes(slide)
 				return (
 					<div
 						key={slide.id + 'button'}
@@ -265,7 +260,9 @@ const SlideList = track(() => {
 							type="normal"
 							style={{
 								background: currentSlide?.id === slide.id ? '#f9fafb' : 'transparent',
-								borderRadius: 6,
+								borderRadius: 'var(--radius-4)',
+								outline: isSelected ? 'var(--color-selection-stroke) solid 1.5px' : 'none',
+								outlineOffset: '-1px',
 							}}
 							onClick={() => {
 								moveToSlide(editor, slide)
@@ -319,8 +316,46 @@ const SlidesExample = track(() => {
 				tools={[SlideTool]}
 				components={components}
 				overrides={{
+					actions(editor, actions) {
+						return {
+							...actions,
+							'next-slide': {
+								id: 'next-slide',
+								label: 'Next slide',
+								kbd: 'right',
+								onSelect() {
+									const slides = getSlides(editor)
+									const nearest = getNearestSlide(editor, slides)
+									const index = slides.findIndex((s) => s.id === nearest?.id)
+									const nextSlide = slides[index + 1]
+									editor.stopCameraAnimation()
+									if (nextSlide) {
+										moveToSlide(editor, nextSlide)
+									} else if (nearest) {
+										moveToSlide(editor, nearest)
+									}
+								},
+							},
+							'previous-slide': {
+								id: 'previous-slide',
+								label: 'Previous slide',
+								kbd: 'left',
+								onSelect() {
+									const slides = getSlides(editor)
+									const nearest = getNearestSlide(editor, slides)
+									const index = slides.findIndex((s) => s.id === nearest?.id)
+									const previousSlide = slides[index - 1]
+									editor.stopCameraAnimation()
+									if (previousSlide) {
+										moveToSlide(editor, previousSlide)
+									} else if (nearest) {
+										moveToSlide(editor, nearest)
+									}
+								},
+							},
+						}
+					},
 					tools(editor, tools) {
-						// Create a tool item in the ui's context.
 						tools.slide = {
 							id: 'slide',
 							icon: 'group',
