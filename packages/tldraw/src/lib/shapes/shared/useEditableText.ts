@@ -70,21 +70,12 @@ export function useEditableText(
 				// important! these ^v are two different things
 				// is that shape OUR shape?
 				if (elm && editingShapeId === id) {
-					if (ranges) {
-						if (!ranges.length) {
-							// If we don't have any ranges, restore selection
-							// and select all of the text
-							elm.focus()
-						} else {
-							// Restore the selection
-							elm.focus()
-							const selection = window.getSelection()
-							if (selection) {
-								ranges.forEach((range) => selection.addRange(range))
-							}
+					elm.focus()
+					if (ranges && ranges.length) {
+						const selection = window.getSelection()
+						if (selection) {
+							ranges.forEach((range) => selection.addRange(range))
 						}
-					} else {
-						elm.focus()
 					}
 				}
 			} else {

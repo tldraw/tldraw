@@ -27563,7 +27563,7 @@
             {
               "kind": "Reference",
               "text": "noop",
-              "canonicalReference": "@tldraw/utils!noop:function"
+              "canonicalReference": "tldraw!~noop:function"
             },
             {
               "kind": "Content",
