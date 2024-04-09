@@ -62,7 +62,7 @@ export const notVisibleShapes = (editor: Editor) => {
 		let isDirty = false
 
 		const checkShapeCullingInfo = (id: TLShapeId) => {
-			if (isShapeNotVisible(editor, id, viewportPageBounds) && !prevValue.has(id)) {
+			if (!prevValue.has(id) && isShapeNotVisible(editor, id, viewportPageBounds)) {
 				nextValue.add(id)
 				isDirty = true
 			}
