@@ -1,5 +1,4 @@
 import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
-import { noop } from '@tldraw/utils'
 import { TLHistoryBatchOptions } from '../types/history-types'
 import { HistoryManager } from './HistoryManager'
 import { stack } from './Stack'
@@ -28,10 +27,7 @@ function createCounterHistoryManager() {
 		testSchema.types.test.create({ id: ids.age, value: 35 }),
 	])
 
-	const ctx = { store, emit: noop }
-	const manager = new HistoryManager<TestRecord, typeof ctx>(ctx, () => {
-		return
-	})
+	const manager = new HistoryManager<TestRecord>({ store })
 
 	function getCount() {
 		return store.get(ids.count)!.value as number
@@ -65,7 +61,7 @@ function createCounterHistoryManager() {
 	}
 
 	const setAge = (age = 35) => {
-		manager.preserveRedoStack(() => _setAge(age))
+		manager.batch(() => _setAge(age), { history: 'preserveRedoStack' })
 	}
 
 	const incrementTwice = () => {
@@ -275,7 +271,7 @@ describe(HistoryManager, () => {
 })
 
 describe('history options', () => {
-	let manager: HistoryManager<TestRecord, any>
+	let manager: HistoryManager<TestRecord>
 
 	let getState: () => { a: number; b: number }
 	let setA: (n: number, historyOptions?: TLHistoryBatchOptions) => any
@@ -288,8 +284,7 @@ describe('history options', () => {
 			testSchema.types.test.create({ id: ids.b, value: 0 }),
 		])
 
-		const ctx = { store, emit: noop }
-		manager = new HistoryManager<TestRecord, typeof ctx>(ctx, noop)
+		manager = new HistoryManager<TestRecord>({ store })
 
 		getState = () => {
 			return { a: store.get(ids.a)!.value as number, b: store.get(ids.b)!.value as number }

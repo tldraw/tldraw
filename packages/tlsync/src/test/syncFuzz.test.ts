@@ -292,7 +292,7 @@ const MAX_PEERS = 4
 test('seed 8360926944486245 - undo/redo page integrity regression', () => {
 	runTest(8360926944486245)
 })
-test.only('seed 3467175630814895 - undo/redo page integrity regression', () => {
+test('seed 3467175630814895 - undo/redo page integrity regression', () => {
 	runTest(3467175630814895)
 })
 

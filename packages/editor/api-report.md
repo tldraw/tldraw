@@ -794,7 +794,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getZoomLevel(): number;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
-    readonly history: HistoryManager<TLRecord, this>;
+    readonly history: HistoryManager<TLRecord>;
     inputs: {
         originPagePoint: Vec;
         originScreenPoint: Vec;
@@ -2160,17 +2160,6 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 
 // @public (undocumented)
 export interface TLEventMap {
-    // (undocumented)
-    'change-history': [{
-        reason: 'bail';
-        markId?: string;
-    } | {
-        reason: 'push' | 'redo' | 'undo';
-    }];
-    // (undocumented)
-    'mark-history': [{
-        id: string;
-    }];
     // (undocumented)
     'max-shapes': [{
         name: string;

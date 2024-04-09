@@ -13,7 +13,7 @@ export class Idle extends StateNode {
 		// well this fucking sucks. what the fuck.
 		// it's possible for a user to enter cropping, then undo
 		// (which clears the cropping id) but still remain in this state.
-		this.editor.on('change-history', this.cleanupCroppingState)
+		this.editor.on('tick', this.cleanupCroppingState)
 
 		if (onlySelectedShape) {
 			this.editor.mark('crop')
@@ -24,7 +24,7 @@ export class Idle extends StateNode {
 	override onExit: TLExitEventHandler = () => {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 
-		this.editor.off('change-history', this.cleanupCroppingState)
+		this.editor.off('tick', this.cleanupCroppingState)
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

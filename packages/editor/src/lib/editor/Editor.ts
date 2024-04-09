@@ -198,9 +198,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		super()
 
 		this.store = store
-		this.history = new HistoryManager<TLRecord, this>(this, (error) => {
-			this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
-			this.crash(error)
+		this.history = new HistoryManager<TLRecord>({
+			store,
+			annotateError: (error) => {
+				this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
+				this.crash(error)
+			},
 		})
 
 		this.snaps = new SnapManager(this)
@@ -814,7 +817,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @readonly
 	 */
-	readonly history: HistoryManager<TLRecord, this>
+	readonly history: HistoryManager<TLRecord>
 
 	/**
 	 * Undo to the last mark.
@@ -1477,16 +1480,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setSelectedShapes(shapes: TLShapeId[] | TLShape[]): this {
-		this.history.preserveRedoStack(() => {
-			const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
-			const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
-			const prevSet = new Set(prevSelectedShapeIds)
+		return this.batch(
+			() => {
+				const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
+				const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
+				const prevSet = new Set(prevSelectedShapeIds)
 
-			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return
+				if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return
 
-			this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
-		})
-		return this
+				this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
+			},
+			{ history: 'preserveRedoStack' }
+		)
 	}
 
 	/**
@@ -1743,11 +1748,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (id === this.getFocusedGroupId()) return this
 
-		this.history.preserveRedoStack(() => {
-			this.store.update(this.getCurrentPageState().id, (s) => ({ ...s, focusedGroupId: id }))
-		})
-
-		return this
+		return this.batch(
+			() => {
+				this.store.update(this.getCurrentPageState().id, (s) => ({ ...s, focusedGroupId: id }))
+			},
+			{ history: 'preserveRedoStack' }
+		)
 	}
 
 	/**
@@ -3362,11 +3368,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.stopFollowingUser()
 
-		this.history.preserveRedoStack(() =>
-			this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }])
+		return this.batch(
+			() => this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }]),
+			{ history: 'preserveRedoStack' }
 		)
-
-		return this
 	}
 
 	/**

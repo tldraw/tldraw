@@ -8,7 +8,7 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
-import { exhaustiveSwitchError } from '@tldraw/utils'
+import { exhaustiveSwitchError, noop } from '@tldraw/utils'
 import { uniqueId } from '../../utils/uniqueId'
 import { TLHistoryBatchOptions, TLHistoryEntry } from '../types/history-types'
 import { stack } from './Stack'
@@ -19,13 +19,13 @@ enum HistoryRecorderState {
 	Paused = 'paused',
 }
 
-export class HistoryManager<
-	R extends UnknownRecord,
-	CTX extends {
-		store: Store<R>
-		emit: (name: 'change-history' | 'mark-history', ...args: any) => void
-	},
-> {
+export class HistoryManager<R extends UnknownRecord> {
+	private readonly store: Store<R>
+
+	readonly dispose: () => void
+
+	private state: HistoryRecorderState = HistoryRecorderState.Recording
+	private readonly pendingDiff = new PendingDiff<R>()
 	/** @internal */
 	stacks = atom(
 		'HistoryManager.stacks',
@@ -38,15 +38,12 @@ export class HistoryManager<
 		}
 	)
 
-	private state: HistoryRecorderState = HistoryRecorderState.Recording
-	private readonly pendingDiff = new PendingDiff<R>()
-	readonly dispose: () => void
+	private readonly annotateError: (error: unknown) => void
 
-	constructor(
-		private readonly ctx: CTX,
-		private readonly annotateError: (error: unknown) => void
-	) {
-		this.dispose = this.ctx.store.addHistoryInterceptor((entry, source) => {
+	constructor(opts: { store: Store<R>; annotateError?: (error: unknown) => void }) {
+		this.store = opts.store
+		this.annotateError = opts.annotateError ?? noop
+		this.dispose = this.store.addHistoryInterceptor((entry, source) => {
 			if (source !== 'user') return
 
 			switch (this.state) {
@@ -65,19 +62,6 @@ export class HistoryManager<
 		})
 	}
 
-	// private hasPendingDiff = atom('HistoryManager.hasPendingDiff', false)
-	// private _pendingDiff = createEmptyDiff<R>()
-	// private getPendingDiff() {
-	// 	return this._pendingDiff
-	// }
-	// private setPendingDiff(diff: RecordsDiff<R>) {
-	// 	this._pendingDiff = diff
-	// 	this.didUpdatePendingDiff()
-	// }
-	// private didUpdatePendingDiff() {
-	// 	this.hasPendingDiff.set(isRecordsDiffEmpty(this._pendingDiff))
-	// }
-	// private appendToPending
 	flushPendingDiff() {
 		if (this.pendingDiff.isEmpty()) return
 
@@ -114,7 +98,6 @@ export class HistoryManager<
 				transact(() => {
 					fn()
 					this.onBatchComplete()
-					this.ctx.emit('change-history', { reason: 'push' })
 				})
 			} catch (error) {
 				this.annotateError(error)
@@ -131,9 +114,6 @@ export class HistoryManager<
 
 	ephemeral(fn: () => void) {
 		return this.batch(fn, { history: 'ephemeral' })
-	}
-	preserveRedoStack(fn: () => void) {
-		return this.batch(fn, { history: 'preserveRedoStack' })
 	}
 
 	// History
@@ -198,13 +178,8 @@ export class HistoryManager<
 				}
 			}
 
-			this.ctx.store.applyDiff(diffToUndo)
+			this.store.applyDiff(diffToUndo)
 			this.stacks.set({ undos, redos })
-
-			this.ctx.emit(
-				'change-history',
-				pushToRedoStack ? { reason: 'undo' } : { reason: 'bail', markId: toMark }
-			)
 		} finally {
 			this.state = previousState
 		}
@@ -250,10 +225,8 @@ export class HistoryManager<
 				}
 			}
 
-			this.ctx.store.applyDiff(diffToRedo)
+			this.store.applyDiff(diffToRedo)
 			this.stacks.set({ undos, redos })
-
-			this.ctx.emit('change-history', { reason: 'redo' })
 		} finally {
 			this.state = previousState
 		}
@@ -278,8 +251,6 @@ export class HistoryManager<
 			this.flushPendingDiff()
 			this.stacks.update(({ undos, redos }) => ({ undos: undos.push({ type: 'stop', id }), redos }))
 		})
-
-		this.ctx.emit('mark-history', { id })
 
 		return id
 	}

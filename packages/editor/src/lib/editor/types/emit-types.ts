@@ -15,8 +15,6 @@ export interface TLEventMap {
 	event: [TLEventInfo]
 	tick: [number]
 	frame: [number]
-	'change-history': [{ reason: 'undo' | 'redo' | 'push' } | { reason: 'bail'; markId?: string }]
-	'mark-history': [{ id: string }]
 }
 
 /** @public */

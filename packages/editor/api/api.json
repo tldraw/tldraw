@@ -14509,7 +14509,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", this>"
+                  "text": ">"
                 },
                 {
                   "kind": "Content",
@@ -38487,60 +38487,6 @@
           "name": "TLEventMap",
           "preserveMemberOrder": false,
           "members": [
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!TLEventMap#\"change-history\":member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "'change-history': "
-                },
-                {
-                  "kind": "Content",
-                  "text": "[{\n        reason: 'bail';\n        markId?: string;\n    } | {\n        reason: 'push' | 'redo' | 'undo';\n    }]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "\"change-history\"",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!TLEventMap#\"mark-history\":member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "'mark-history': "
-                },
-                {
-                  "kind": "Content",
-                  "text": "[{\n        id: string;\n    }]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "\"mark-history\"",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEventMap#\"max-shapes\":member",
