@@ -298,8 +298,12 @@ function createNShapes(editor: Editor, n: number, offset = 0) {
 		shapesToCreate[i] = {
 			id: createShapeId('box' + t),
 			type: 'geo',
-			x: (i % cols) * 132 + offset,
+			x: (i % cols) * 50 + offset,
 			y: Math.floor(i / cols) * 132,
+			props: {
+				w: 200,
+				h: 200,
+			},
 		}
 	}
 
@@ -308,28 +312,41 @@ function createNShapes(editor: Editor, n: number, offset = 0) {
 	})
 }
 
-function panningTest(editor: Editor) {
+function sleep(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function panningTest(editor: Editor) {
 	// hey run this 10 times
 	const newPageId = setupPage(editor)
 
 	createNShapes(editor, 1000)
-	createNShapes(editor, 1000, 8200)
+	createNShapes(editor, 1000, 10)
 	editor.selectNone()
-	editor.setCamera({ x: 0, y: 0, z: 0.25 })
-	setTimeout(() => {
-		performance.mark('panning-start')
-		editor.setCamera({ x: -8200, y: 0 })
-		requestAnimationFrame(() => {
-			performance.mark('panning-end')
-			// the rendering frame was sometimes 1 frame later, sometimes 2 frames later, not sure why, don't know how to test this
-			measureFrameTime((deltaTime) => {
-				console.log(`Time elapsed since last frame: ${deltaTime} ms`)
-			})
-			const measure = performance.measure('panning', 'panning-start', 'panning-end')
-			console.log(measure)
-			removePage(editor, newPageId)
-		})
-	}, 1000)
+	editor.setCamera({ x: 18000, y: 200, z: 0.1 })
+
+	for (let i = 0; i < 100; i++) {
+		const pingPong = i % 2 === 0
+		editor.setCamera({ x: pingPong ? 6000 : 18000, y: 200 })
+		await sleep(100)
+	}
+
+	// removePage(editor, newPageId)
+
+	// setTimeout(() => {
+	// 	performance.mark('panning-start')
+	// 	editor.setCamera({ x: -8200, y: 0 })
+	// 	requestAnimationFrame(() => {
+	// 		performance.mark('panning-end')
+	// 		// the rendering frame was sometimes 1 frame later, sometimes 2 frames later, not sure why, don't know how to test this
+	// 		measureFrameTime((deltaTime) => {
+	// 			console.log(`Time elapsed since last frame: ${deltaTime} ms`)
+	// 		})
+	// 		const measure = performance.measure('panning', 'panning-start', 'panning-end')
+	// 		// console.log(measure)
+	// 		removePage(editor, newPageId)
+	// 	})
+	// }, 1000)
 }
 
 function measureFrameTime(callback: (deltaTime: number) => void) {
