@@ -4,36 +4,23 @@ import {
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
-	TLDefaultSizeStyle,
 	TLDefaultVerticalAlignStyle,
-	TLShape,
-	stopEventPropagation,
+	TLShapeId,
+	getDefaultColorTheme,
+	useIsDarkMode,
 } from '@tldraw/editor'
 import React from 'react'
-import { useDefaultColorTheme } from './ShapeFill'
+import { TextArea } from '../text/TextArea'
 import { TextHelpers } from './TextHelpers'
-import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableText } from './useEditableText'
 
-export const TextLabel = React.memo(function TextLabel<
-	T extends Extract<TLShape, { props: { text: string } }>,
->({
-	id,
-	type,
-	text,
-	size,
-	labelColor,
-	font,
-	align,
-	verticalAlign,
-	wrap,
-	bounds,
-}: {
-	id: T['id']
-	type: T['type']
-	size: TLDefaultSizeStyle
+type TextLabelProps = {
+	id: TLShapeId
+	type: string
 	font: TLDefaultFontStyle
+	fontSize: number
+	lineHeight: number
 	fill?: TLDefaultFillStyle
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
@@ -41,32 +28,47 @@ export const TextLabel = React.memo(function TextLabel<
 	text: string
 	labelColor: TLDefaultColorStyle
 	bounds?: Box
-}) {
-	const {
-		rInput,
-		isEmpty,
-		isEditing,
-		handleFocus,
-		handleChange,
-		handleKeyDown,
-		handleBlur,
-		handleInputPointerDown,
-		handleDoubleClick,
-	} = useEditableText(id, type, text)
+	classNamePrefix?: string
+	style?: React.CSSProperties
+	textWidth?: number
+	textHeight?: number
+}
+
+/** @public */
+export const TextLabel = React.memo(function TextLabel({
+	id,
+	type,
+	text,
+	labelColor,
+	font,
+	fontSize,
+	lineHeight,
+	align,
+	verticalAlign,
+	wrap,
+	bounds,
+	classNamePrefix,
+	style,
+	textWidth,
+	textHeight,
+}: TextLabelProps) {
+	const { rInput, isEmpty, isEditing, ...editableTextRest } = useEditableText(id, type, text)
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.length > 0
 
 	const legacyAlign = isLegacyAlign(align)
-	const theme = useDefaultColorTheme()
+	const theme = getDefaultColorTheme({ isDarkMode: useIsDarkMode() })
 
 	if (!isEditing && !hasText) {
 		return null
 	}
 
+	// TODO: probably combine tl-text and tl-arrow eventually
+	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
-			className="tl-text-label"
+			className={`${cssPrefix}-label tl-text-wrapper`}
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
@@ -84,48 +86,25 @@ export const TextLabel = React.memo(function TextLabel<
 							position: 'absolute',
 						}
 					: {}),
+				...style,
 			}}
 		>
 			<div
-				className="tl-text-label__inner"
+				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
-					fontSize: LABEL_FONT_SIZES[size],
-					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
-					minHeight: TEXT_PROPS.lineHeight + 32,
-					minWidth: 0,
+					fontSize,
+					lineHeight: fontSize * lineHeight + 'px',
+					minHeight: lineHeight + 32,
+					minWidth: textWidth || 0,
 					color: theme[labelColor].solid,
+					width: textWidth,
+					height: textHeight,
 				}}
 			>
-				<div className="tl-text tl-text-content" dir="ltr">
+				<div className={`${cssPrefix} tl-text tl-text-content`} dir="ltr">
 					{finalText}
 				</div>
-				{isEditing && (
-					<textarea
-						ref={rInput}
-						className="tl-text tl-text-input"
-						name="text"
-						tabIndex={-1}
-						autoComplete="off"
-						autoCapitalize="off"
-						autoCorrect="off"
-						autoSave="off"
-						autoFocus
-						placeholder=""
-						spellCheck="true"
-						wrap="off"
-						dir="auto"
-						datatype="wysiwyg"
-						defaultValue={text}
-						onFocus={handleFocus}
-						onChange={handleChange}
-						onKeyDown={handleKeyDown}
-						onBlur={handleBlur}
-						onTouchEnd={stopEventPropagation}
-						onContextMenu={stopEventPropagation}
-						onPointerDown={handleInputPointerDown}
-						onDoubleClick={handleDoubleClick}
-					/>
-				)}
+				{isEditing && <TextArea ref={rInput} text={text} {...editableTextRest} />}
 			</div>
 		</div>
 	)

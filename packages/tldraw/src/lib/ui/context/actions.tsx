@@ -1,6 +1,7 @@
 import {
 	ANIMATION_MEDIUM_MS,
 	Box,
+	DefaultColorStyle,
 	Editor,
 	HALF_PI,
 	PageRecordType,
@@ -43,7 +44,6 @@ export interface TLUiActionItem<
 	icon?: IconType
 	id: string
 	kbd?: string
-	title?: string
 	label?: TransationKey | { [key: string]: TransationKey }
 	readonlyOk?: boolean
 	checkbox?: boolean
@@ -1280,6 +1280,23 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.moveShapesToPage(ids, newPageId)
 					})
 					trackEvent('new-page', { source })
+				},
+			},
+			{
+				id: 'select-white-color',
+				label: 'color-style.white',
+				kbd: '?t',
+				onSelect(source) {
+					const style = DefaultColorStyle
+					editor.batch(() => {
+						editor.mark('change-color')
+						if (editor.isIn('select')) {
+							editor.setStyleForSelectedShapes(style, 'white', { squashing: false })
+						}
+						editor.setStyleForNextShapes(style, 'white', { squashing: false })
+						editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
+					})
+					trackEvent('set-style', { source, id: style.id, value: 'white' })
 				},
 			},
 		]

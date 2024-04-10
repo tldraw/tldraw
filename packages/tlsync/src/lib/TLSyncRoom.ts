@@ -13,10 +13,12 @@ import { DocumentRecordType, PageRecordType, TLDOCUMENT_ID } from '@tldraw/tlsch
 import {
 	IndexKey,
 	Result,
+	assert,
 	assertExists,
 	exhaustiveSwitchError,
 	getOwnProperty,
 	hasOwnProperty,
+	isNativeStructuredClone,
 	objectMapEntries,
 	objectMapKeys,
 } from '@tldraw/utils'
@@ -140,14 +142,14 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	pruneSessions = () => {
 		for (const client of this.sessions.values()) {
 			switch (client.state) {
-				case RoomSessionState.CONNECTED: {
+				case RoomSessionState.Connected: {
 					const hasTimedOut = timeSince(client.lastInteractionTime) > SESSION_IDLE_TIMEOUT
 					if (hasTimedOut || !client.socket.isOpen) {
 						this.cancelSession(client.sessionKey)
 					}
 					break
 				}
-				case RoomSessionState.AWAITING_CONNECT_MESSAGE: {
+				case RoomSessionState.AwaitingConnectMessage: {
 					const hasTimedOut = timeSince(client.sessionStartTime) > SESSION_START_WAIT_TIME
 					if (hasTimedOut || !client.socket.isOpen) {
 						// remove immediately
@@ -155,7 +157,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					}
 					break
 				}
-				case RoomSessionState.AWAITING_REMOVAL: {
+				case RoomSessionState.AwaitingRemoval: {
 					const hasTimedOut = timeSince(client.cancellationTime) > SESSION_REMOVAL_WAIT_TIME
 					if (hasTimedOut) {
 						this.removeSession(client.sessionKey)
@@ -208,6 +210,12 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		public readonly schema: StoreSchema<R, any>,
 		snapshot?: RoomSnapshot
 	) {
+		assert(
+			isNativeStructuredClone,
+			'TLSyncRoom is supposed to run either on Cloudflare Workers' +
+				'or on a 18+ version of Node.js, which both support the native structuredClone API'
+		)
+
 		// do a json serialization cycle to make sure the schema has no 'undefined' values
 		this.serializedSchema = JSON.parse(JSON.stringify(schema.serialize()))
 
@@ -397,7 +405,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			console.warn('Tried to send message to unknown session', message.type)
 			return
 		}
-		if (session.state !== RoomSessionState.CONNECTED) {
+		if (session.state !== RoomSessionState.Connected) {
 			console.warn('Tried to send message to disconnected client', message.type)
 			return
 		}
@@ -435,7 +443,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	_flushDataMessages(sessionKey: string) {
 		const session = this.sessions.get(sessionKey)
 
-		if (!session || session.state !== RoomSessionState.CONNECTED) {
+		if (!session || session.state !== RoomSessionState.Connected) {
 			return
 		}
 
@@ -498,13 +506,13 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			return
 		}
 
-		if (session.state === RoomSessionState.AWAITING_REMOVAL) {
+		if (session.state === RoomSessionState.AwaitingRemoval) {
 			console.warn('Tried to cancel session that is already awaiting removal')
 			return
 		}
 
 		this.sessions.set(sessionKey, {
-			state: RoomSessionState.AWAITING_REMOVAL,
+			state: RoomSessionState.AwaitingRemoval,
 			sessionKey,
 			presenceId: session.presenceId,
 			socket: session.socket,
@@ -526,7 +534,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		sourceSessionKey: string
 	}) {
 		this.sessions.forEach((session) => {
-			if (session.state !== RoomSessionState.CONNECTED) return
+			if (session.state !== RoomSessionState.Connected) return
 			if (sourceSessionKey === session.sessionKey) return
 			if (!session.socket.isOpen) {
 				this.cancelSession(session.sessionKey)
@@ -565,7 +573,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	handleNewSession = (sessionKey: string, socket: TLRoomSocket<R>) => {
 		const existing = this.sessions.get(sessionKey)
 		this.sessions.set(sessionKey, {
-			state: RoomSessionState.AWAITING_CONNECT_MESSAGE,
+			state: RoomSessionState.AwaitingConnectMessage,
 			sessionKey,
 			socket,
 			presenceId: existing?.presenceId ?? this.presenceType.createId(),
@@ -637,7 +645,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				return this.handlePushRequest(session, message)
 			}
 			case 'ping': {
-				if (session.state === RoomSessionState.CONNECTED) {
+				if (session.state === RoomSessionState.Connected) {
 					session.lastInteractionTime = Date.now()
 				}
 				return this.sendMessage(session.sessionKey, { type: 'pong' })
@@ -698,7 +706,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 		const connect = (msg: TLSocketServerSentEvent<R>) => {
 			this.sessions.set(session.sessionKey, {
-				state: RoomSessionState.CONNECTED,
+				state: RoomSessionState.Connected,
 				sessionKey: session.sessionKey,
 				presenceId: session.presenceId,
 				isV4Client,
@@ -800,7 +808,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		message: Extract<TLSocketClientSentEvent<R>, { type: 'push' }>
 	) {
 		// We must be connected to handle push requests
-		if (session.state !== RoomSessionState.CONNECTED) {
+		if (session.state !== RoomSessionState.Connected) {
 			return
 		}
 

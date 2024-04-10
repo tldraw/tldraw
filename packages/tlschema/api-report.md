@@ -30,8 +30,8 @@ export const arrowShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const arrowShapeProps: {
-    labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
@@ -153,7 +153,7 @@ export function createTLSchema({ shapes, }?: {
 }): TLSchema;
 
 // @public (undocumented)
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public (undocumented)
 export const DefaultColorThemePalette: {
@@ -195,7 +195,7 @@ export const drawShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const drawShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
@@ -218,7 +218,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: true;
     readonly overridePermissions: {
         readonly 'allow-top-navigation': true;
     };
@@ -231,7 +230,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -241,7 +239,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -253,7 +250,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -265,7 +261,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -277,7 +272,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 520;
     readonly height: 400;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -287,7 +281,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 520;
     readonly height: 400;
     readonly doesResize: false;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -297,7 +290,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 800;
     readonly height: 450;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly overridePermissions: {
         readonly 'allow-presentation': true;
     };
@@ -313,7 +305,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly minWidth: 460;
     readonly minHeight: 360;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -326,7 +317,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly minWidth: 460;
     readonly minHeight: 360;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -336,7 +326,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -346,7 +335,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -356,7 +344,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -368,7 +355,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly minHeight: 500;
     readonly overrideOutlineRadius: 12;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -378,7 +364,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 640;
     readonly height: 360;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly isAspectRatioLocked: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -389,7 +374,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly isAspectRatioLocked: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -400,7 +384,6 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
-    readonly canUnmount: false;
     readonly isAspectRatioLocked: false;
     readonly backgroundColor: "#fff";
     readonly toEmbedUrl: (url: string) => string | undefined;
@@ -417,7 +400,6 @@ export type EmbedDefinition = {
     readonly width: number;
     readonly height: number;
     readonly doesResize: boolean;
-    readonly canUnmount: boolean;
     readonly isAspectRatioLocked?: boolean;
     readonly overridePermissions?: TLEmbedShapePermissions;
     readonly instructionLink?: string;
@@ -482,8 +464,8 @@ export const geoShapeMigrations: Migrations;
 // @public (undocumented)
 export const geoShapeProps: {
     geo: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
-    labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
@@ -519,7 +501,7 @@ export const highlightShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const highlightShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     segments: T.ArrayOfValidator<{
         type: "free" | "straight";
@@ -679,7 +661,7 @@ export const lineShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const lineShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
@@ -699,7 +681,7 @@ export const noteShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const noteShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
@@ -777,7 +759,7 @@ export const textShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const textShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;

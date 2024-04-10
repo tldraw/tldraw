@@ -28,7 +28,7 @@ type PillSection =
 			startAngle: number
 	  }
 
-export function getPillPoints(width: number, height: number, numPoints: number) {
+function getPillPoints(width: number, height: number, numPoints: number) {
 	const radius = Math.min(width, height) / 2
 	const longSide = Math.max(width, height) - radius * 2
 
@@ -352,7 +352,7 @@ export function inkyCloudSvgPath(
 	return pathA + pathB + ' Z'
 }
 
-export function pointsOnArc(
+function pointsOnArc(
 	startPoint: VecModel,
 	endPoint: VecModel,
 	center: VecModel | null,

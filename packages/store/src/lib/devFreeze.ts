@@ -1,3 +1,5 @@
+import { STRUCTURED_CLONE_OBJECT_PROTOTYPE } from '@tldraw/utils'
+
 /**
  * Freeze an object when in development mode. Copied from
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
@@ -13,11 +15,21 @@
  * @public
  */
 export function devFreeze<T>(object: T): T {
+	return object
+
 	if (process.env.NODE_ENV === 'production') {
 		return object
 	}
 	const proto = Object.getPrototypeOf(object)
-	if (proto && !(proto === Array.prototype || proto === Object.prototype)) {
+	if (
+		proto &&
+		!(
+			Array.isArray(object) ||
+			proto === Object.prototype ||
+			proto === null ||
+			proto === STRUCTURED_CLONE_OBJECT_PROTOTYPE
+		)
+	) {
 		console.error('cannot include non-js data in a record', object)
 		throw new Error('cannot include non-js data in a record')
 	}

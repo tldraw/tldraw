@@ -5,12 +5,16 @@ import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 export const TLSYNC_PROTOCOL_VERSION = 5
 
 /** @public */
-export enum TLIncompatibilityReason {
-	ClientTooOld = 'clientTooOld',
-	ServerTooOld = 'serverTooOld',
-	InvalidRecord = 'invalidRecord',
-	InvalidOperation = 'invalidOperation',
-}
+export const TLIncompatibilityReason = {
+	ClientTooOld: 'clientTooOld',
+	ServerTooOld: 'serverTooOld',
+	InvalidRecord: 'invalidRecord',
+	InvalidOperation: 'invalidOperation',
+} as const
+
+/** @public */
+export type TLIncompatibilityReason =
+	(typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason]
 
 /** @public */
 export type TLSocketServerSentEvent<R extends UnknownRecord> =
@@ -56,7 +60,7 @@ export type TLPushRequest<R extends UnknownRecord> =
 	| {
 			type: 'push'
 			clientClock: number
-			presence: [RecordOpType.Patch, ObjectDiff] | [RecordOpType.Put, R]
+			presence: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
 	  }
 	| {
 			type: 'push'

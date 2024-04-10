@@ -308,17 +308,18 @@ export class Vec {
 	static Per(A: VecLike): Vec {
 		return new Vec(A.y, -A.x)
 	}
-
-	static Dist2(A: VecLike, B: VecLike): number {
-		return Vec.Sub(A, B).len2()
-	}
-
 	static Abs(A: VecLike): Vec {
 		return new Vec(Math.abs(A.x), Math.abs(A.y))
 	}
 
+	// Get the distance between two points.
 	static Dist(A: VecLike, B: VecLike): number {
 		return Math.hypot(A.y - B.y, A.x - B.x)
+	}
+
+	// Get the squared distance between two points. This is faster to calculate (no square root) so useful for "minimum distance" checks where the actual measurement does not matter.
+	static Dist2(A: VecLike, B: VecLike): number {
+		return (A.x - B.x) * (A.x - B.x) + (A.y - B.y) * (A.y - B.y)
 	}
 
 	/**

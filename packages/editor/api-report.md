@@ -26,6 +26,7 @@ import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
@@ -513,7 +514,7 @@ export function degreesToRadians(d: number): number;
 export const DOUBLE_CLICK_DURATION = 450;
 
 // @internal (undocumented)
-export const DRAG_DISTANCE = 4;
+export const DRAG_DISTANCE = 16;
 
 // @public (undocumented)
 export const EASINGS: {
@@ -674,6 +675,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getCrashingError(): unknown;
     getCroppingShapeId(): null | TLShapeId;
+    getCulledShapes(): Set<TLShapeId>;
     getCurrentPage(): TLPage;
     getCurrentPageBounds(): Box | undefined;
     getCurrentPageId(): TLPageId;
@@ -711,7 +713,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getRenderingBounds(): Box;
-    getRenderingBoundsExpanded(): Box;
     getRenderingShapes(): {
         id: TLShapeId;
         shape: TLShape;
@@ -719,8 +720,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         index: number;
         backgroundIndex: number;
         opacity: number;
-        isCulled: boolean;
-        maskedPageBounds: Box | undefined;
     }[];
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
@@ -766,7 +765,22 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
+    // @deprecated (undocumented)
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<{
+        svg: string;
+        width: number;
+        height: number;
+    } | undefined>;
+    // @internal (undocumented)
+    getUnorderedRenderingShapes(useEditorState: boolean): {
+        id: TLShapeId;
+        shape: TLShape;
+        util: ShapeUtil;
+        index: number;
+        backgroundIndex: number;
+        opacity: number;
+    }[];
     getViewportPageBounds(): Box;
     getViewportPageCenter(): Vec;
     getViewportScreenBounds(): Box;
@@ -815,6 +829,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     pageToScreen(point: VecLike): {
+        x: number;
+        y: number;
+        z: number;
+    };
+    pageToViewport(point: VecLike): {
         x: number;
         y: number;
         z: number;
@@ -914,7 +933,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         targetZoom?: number;
         inset?: number;
     } & TLAnimationOptions): this;
-    zoomToContent(): this;
+    zoomToContent(opts?: TLAnimationOptions): this;
     zoomToFit(animation?: TLAnimationOptions): this;
     zoomToSelection(animation?: TLAnimationOptions): this;
 }
@@ -1600,7 +1619,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canResize: TLShapeUtilFlag<Shape>;
     canScroll: TLShapeUtilFlag<Shape>;
     canSnap: TLShapeUtilFlag<Shape>;
-    canUnmount: TLShapeUtilFlag<Shape>;
     abstract component(shape: Shape): any;
     // (undocumented)
     editor: Editor;
@@ -1649,8 +1667,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     static props?: ShapeProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
-    toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<SVGElement> | SVGElement;
-    toSvg?(shape: Shape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
+    toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
+    toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
 }
 
@@ -1672,6 +1690,37 @@ export class SharedStyleMap extends ReadonlySharedStyleMap {
 
 // @public
 export function shortAngleDist(a0: number, a1: number): number;
+
+// @public
+export class SideEffectManager<CTX extends {
+    store: TLStore;
+    history: {
+        onBatchComplete: () => void;
+    };
+}> {
+    constructor(editor: CTX);
+    // (undocumented)
+    editor: CTX;
+    registerAfterChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterChangeHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerAfterCreateHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterCreateHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerAfterDeleteHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterDeleteHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerBatchCompleteHandler(handler: TLBatchCompleteHandler): () => void;
+    registerBeforeChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeChangeHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerBeforeCreateHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeCreateHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+    registerBeforeDeleteHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeDeleteHandler<TLRecord & {
+        typeName: T;
+    }>): () => void;
+}
 
 export { Signal }
 
@@ -1770,6 +1819,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onKeyUp?: TLEventHandlers['onKeyUp'];
     // (undocumented)
+    onLongPress?: TLEventHandlers['onLongPress'];
+    // (undocumented)
     onMiddleClick?: TLEventHandlers['onMiddleClick'];
     // (undocumented)
     onPointerDown?: TLEventHandlers['onPointerDown'];
@@ -1782,7 +1833,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onRightClick?: TLEventHandlers['onRightClick'];
     // (undocumented)
-    onTick?: TLTickEventHandler;
+    onTick?: TLEventHandlers['onTick'];
     // (undocumented)
     onTripleClick?: TLEventHandlers['onTripleClick'];
     // (undocumented)
@@ -1821,7 +1872,7 @@ export interface SvgExportContext {
 // @public (undocumented)
 export interface SvgExportDef {
     // (undocumented)
-    getElement: () => null | Promise<null | SVGElement | SVGElement[]> | SVGElement | SVGElement[];
+    getElement: () => null | Promise<null | ReactElement> | ReactElement;
     // (undocumented)
     key: string;
 }
@@ -1964,7 +2015,6 @@ export type TLCollaboratorHintProps = {
 // @public (undocumented)
 export type TLCommand<Name extends string = any, Data = any> = {
     type: 'command';
-    id: string;
     data: Data;
     name: Name;
     preservesRedoStack?: boolean;
@@ -2091,6 +2141,8 @@ export interface TLEventHandlers {
     // (undocumented)
     onKeyUp: TLKeyboardEvent;
     // (undocumented)
+    onLongPress: TLPointerEvent;
+    // (undocumented)
     onMiddleClick: TLPointerEvent;
     // (undocumented)
     onPointerDown: TLPointerEvent;
@@ -2103,13 +2155,15 @@ export interface TLEventHandlers {
     // (undocumented)
     onRightClick: TLPointerEvent;
     // (undocumented)
+    onTick: TLTickEvent;
+    // (undocumented)
     onTripleClick: TLClickEvent;
     // (undocumented)
     onWheel: TLWheelEvent;
 }
 
 // @public (undocumented)
-export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEventInfo | TLInterruptEventInfo | TLKeyboardEventInfo | TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo;
+export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEventInfo | TLInterruptEventInfo | TLKeyboardEventInfo | TLPinchEventInfo | TLPointerEventInfo | TLTickEventInfo | TLWheelEventInfo;
 
 // @public (undocumented)
 export interface TLEventMap {
@@ -2156,7 +2210,7 @@ export interface TLEventMap {
 export type TLEventMapHandler<T extends keyof TLEventMap> = (...args: TLEventMap[T]) => void;
 
 // @public (undocumented)
-export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
+export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'tick' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
 
 // @public (undocumented)
 export type TLExitEventHandler = (info: any, to: string) => void;
@@ -2363,7 +2417,7 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 } & TLPointerEventTarget;
 
 // @public (undocumented)
-export type TLPointerEventName = 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click';
+export type TLPointerEventName = 'long_press' | 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click';
 
 // @public (undocumented)
 export type TLPointerEventTarget = {
@@ -2572,10 +2626,7 @@ export type TLSvgOptions = {
 };
 
 // @public (undocumented)
-export type TLTickEvent = (elapsed: number) => void;
-
-// @public (undocumented)
-export type TLTickEventHandler = () => void;
+export type TLTickEvent = (info: TLTickEventInfo) => void;
 
 // @public
 export interface TLUserPreferences {
@@ -2723,6 +2774,11 @@ export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends Record<string, unknown>>(arr: T): T;
+
+// @public
+export function useSvgExportContext(): {
+    isDarkMode: boolean;
+} | null;
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions & {

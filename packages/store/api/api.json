@@ -4231,7 +4231,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/store!Store#onBeforeChange:member",
-              "docComment": "/**\n * A callback before after each record's change.\n *\n * @param prev - The previous value, if any.\n *\n * @param next - The next value.\n */\n",
+              "docComment": "/**\n * A callback fired before each record's change.\n *\n * @param prev - The previous value, if any.\n *\n * @param next - The next value.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

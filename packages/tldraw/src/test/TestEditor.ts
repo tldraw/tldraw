@@ -3,6 +3,7 @@ import {
 	BoxModel,
 	Editor,
 	HALF_PI,
+	IdOf,
 	Mat,
 	PageRecordType,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
@@ -205,6 +206,8 @@ export class TestEditor extends Editor {
 			y: +camera.y.toFixed(2),
 			z: +camera.z.toFixed(2),
 		}).toCloselyMatchObject({ x, y, z })
+
+		return this
 	}
 
 	expectShapeToMatch = <T extends TLShape = TLShape>(
@@ -215,6 +218,25 @@ export class TestEditor extends Editor {
 			const next = { ...shape, ...model }
 			expect(shape).toCloselyMatchObject(next)
 		})
+		return this
+	}
+
+	expectPageBoundsToBe = <T extends TLShape = TLShape>(id: IdOf<T>, bounds: Partial<BoxModel>) => {
+		const observedBounds = this.getShapePageBounds(id)!
+		expect(observedBounds).toCloselyMatchObject(bounds)
+		return this
+	}
+
+	expectScreenBoundsToBe = <T extends TLShape = TLShape>(
+		id: IdOf<T>,
+		bounds: Partial<BoxModel>
+	) => {
+		const pageBounds = this.getShapePageBounds(id)!
+		const screenPoint = this.pageToScreen(pageBounds.point)
+		const observedBounds = pageBounds.clone()
+		observedBounds.x = screenPoint.x
+		observedBounds.y = screenPoint.y
+		expect(observedBounds).toCloselyMatchObject(bounds)
 		return this
 	}
 
@@ -322,7 +344,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_down',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -335,7 +357,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_up',
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -369,17 +391,17 @@ export class TestEditor extends Editor {
 			type: 'click',
 			name: 'double_click',
 			phase: 'up',
-		})
+		}).forceTick()
 		return this
 	}
 
 	keyDown = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) })
+		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
 	}
 
 	keyRepeat = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
-		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) })
+		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) }).forceTick()
 		return this
 	}
 
@@ -391,7 +413,7 @@ export class TestEditor extends Editor {
 				altKey: this.inputs.altKey && key !== 'Alt',
 				...options,
 			}),
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -405,7 +427,7 @@ export class TestEditor extends Editor {
 			altKey: this.inputs.altKey,
 			...options,
 			delta: { x: dx, y: dy },
-		})
+		}).forceTick(2)
 		return this
 	}
 
@@ -427,7 +449,7 @@ export class TestEditor extends Editor {
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
-		})
+		}).forceTick()
 		return this
 	}
 
@@ -471,7 +493,7 @@ export class TestEditor extends Editor {
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
-		})
+		}).forceTick()
 		return this
 	}
 	/* ------ Interaction Helpers ------ */
