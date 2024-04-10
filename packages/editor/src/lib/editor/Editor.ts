@@ -4495,7 +4495,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		return this.getCurrentPageShapes().filter((shape) => this.isPointInShape(shape, point, opts))
+		const bound = Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN)
+		return this.getShapesInsideBounds(bound).filter((shape) =>
+			this.isPointInShape(shape, point, opts)
+		)
 	}
 
 	/**
