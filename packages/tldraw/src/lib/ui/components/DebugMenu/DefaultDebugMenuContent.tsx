@@ -1,4 +1,5 @@
 import {
+	Box,
 	DebugFlag,
 	Editor,
 	PageRecordType,
@@ -15,6 +16,7 @@ import React from 'react'
 import { useDialogs } from '../../context/dialogs'
 import { useToasts } from '../../context/toasts'
 import { untranslated } from '../../hooks/useTranslation/useTranslation'
+import { fpsTracker } from '../DefaultDebugPanel'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
@@ -147,8 +149,8 @@ export function DefaultDebugMenuContent() {
 				/>
 				<TldrawUiMenuItem
 					id="create-shapes"
-					label={'Create 100 shapes'}
-					onSelect={() => createNShapes(editor, 100)}
+					label={'Create 2000 shapes'}
+					onSelect={() => createNShapes(editor, { n: 2000 })}
 				/>
 				<TldrawUiMenuItem
 					id="count-nodes"
@@ -174,6 +176,16 @@ export function DefaultDebugMenuContent() {
 					id="unculling"
 					label={'Unculling benchmark'}
 					onSelect={() => uncullingTest(editor)}
+				/>
+				<TldrawUiMenuItem
+					id="zooming"
+					label={'Zooming benchmark'}
+					onSelect={() => zoomingTest(editor)}
+				/>
+				<TldrawUiMenuItem
+					id="panning"
+					label={'Panning benchmark'}
+					onSelect={() => panningTest(editor)}
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
@@ -286,26 +298,32 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 
 let t = 0
 
-function createNShapes(editor: Editor, n: number, offset = 0) {
-	const shapesToCreate: TLShapePartial[] = Array(n)
-	const cols = Math.floor(Math.sqrt(n))
+function createNShapes(
+	editor: Editor,
+	options: { n: number; type?: 'string'; rotation?: number; props?: any }
+) {
+	const shapesToCreate: TLShapePartial[] = Array(options.n)
+	const cols = Math.round(Math.sqrt(options.n))
 
-	for (let i = 0; i < n; i++) {
+	for (let i = 0; i < options.n; i++) {
 		t++
 		shapesToCreate[i] = {
 			id: createShapeId('box' + t),
-			type: 'geo',
-			x: (i % cols) * 50 + offset,
+			type: options.type ?? 'geo',
+			x: (i % cols) * 132,
 			y: Math.floor(i / cols) * 132,
+			rotation: options.rotation ?? 0,
 			props: {
-				w: 200,
-				h: 200,
+				...options.props,
 			},
 		}
 	}
 
 	editor.batch(() => {
 		editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))
+		const bounds = editor.getSelectionPageBounds() as Box
+		editor.zoomToBounds(bounds)
+		editor.selectNone()
 	})
 }
 
@@ -337,9 +355,10 @@ function createNShapesForUncullingTest(editor: Editor, n: number, offset = 0) {
 }
 
 async function uncullingTest(editor: Editor) {
+	fpsTracker.reset()
 	const newPageId = setupPage(editor)
-	createNShapesForUncullingTest(editor, 1000)
-	createNShapesForUncullingTest(editor, 1000, 10)
+	createNShapes(editor, { n: 1000, props: { w: 200, h: 200 } })
+	createNShapes(editor, { n: 1000, props: { w: 200, h: 200 } })
 	editor.selectNone()
 	editor.setCamera({ x: 18000, y: 200, z: 0.1 })
 
@@ -350,9 +369,9 @@ async function uncullingTest(editor: Editor) {
 		await sleep(100)
 	}
 	const timeEnd = performance.now()
-
+	const averageFps = fpsTracker.getAverageFps()
 	editor.deletePage(newPageId)
-	alert(`timeTaken ${timeEnd - timeStart}`)
+	alert(`timeTake: ${timeEnd - timeStart}, average fps: ${averageFps}`)
 }
 
 const setupPage = (editor: Editor) => {
@@ -366,4 +385,47 @@ const setupPage = (editor: Editor) => {
 	editor.createPage({ name: 'performance', id: newPageId })
 	editor.setCurrentPage(newPageId)
 	return newPageId
+}
+
+const zoomingTest = async (editor: Editor) => {
+	fpsTracker.reset()
+	const newPageId = setupPage(editor)
+	createNShapes(editor, { n: 1000, rotation: 0.3, props: { w: 600, h: 600, geo: 'cloud' } })
+
+	let inOrOut = 'in'
+	for (let i = 0; i < 100; i++) {
+		const zoomLevel = editor.getZoomLevel()
+
+		if (zoomLevel >= 8) {
+			inOrOut = 'out'
+		} else if (zoomLevel <= 0.1) {
+			inOrOut = 'in'
+		}
+		if (inOrOut === 'in') {
+			editor.zoomIn(editor.getViewportScreenCenter(), { duration: 100 })
+		} else {
+			editor.zoomOut(editor.getViewportScreenCenter(), { duration: 100 })
+		}
+		await sleep(100)
+	}
+
+	editor.deletePage(newPageId)
+	const averageFps = fpsTracker.getAverageFps()
+	alert(`average fps: ${averageFps}`)
+}
+
+export const panningTest = async (editor: Editor) => {
+	fpsTracker.reset()
+	const newPageId = setupPage(editor)
+	createNShapes(editor, { n: 2000, rotation: 0.3, props: { w: 600, h: 600, geo: 'cloud' } })
+
+	for (let i = 0; i < 50; i++) {
+		const pingPong = i % 2 === 0
+		editor.setCamera({ x: pingPong ? 1100 : 10000, y: 200 }, { duration: 300 })
+		await sleep(300)
+	}
+
+	editor.deletePage(newPageId)
+	const averageFps = fpsTracker.getAverageFps()
+	alert(`average fps: ${averageFps}`)
 }

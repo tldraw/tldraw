@@ -2,6 +2,29 @@ import { debugFlags, track, useEditor, useValue, Vec } from '@tldraw/editor'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 
+export class FpsTracker {
+	private fpsValues: number[]
+
+	constructor() {
+		this.fpsValues = []
+	}
+
+	reset() {
+		this.fpsValues = []
+	}
+
+	addFpsValue(value: number) {
+		this.fpsValues.push(value)
+	}
+
+	getAverageFps() {
+		return this.fpsValues.length > 0
+			? this.fpsValues.reduce((a, b) => a + b, 0) / this.fpsValues.length
+			: 0
+	}
+}
+export const fpsTracker = new FpsTracker()
+
 /** @internal */
 export const DefaultDebugPanel = memo(function DefaultDebugPanel() {
 	const { DebugMenu } = useTldrawUiComponents()
@@ -96,7 +119,7 @@ function FPS() {
 				if (fps > maxKnownFps) {
 					maxKnownFps = fps
 				}
-
+				fpsTracker.addFpsValue(fps)
 				const slowFps = maxKnownFps * 0.75
 				if ((fps < slowFps && !isSlow) || (fps >= slowFps && isSlow)) {
 					isSlow = !isSlow
