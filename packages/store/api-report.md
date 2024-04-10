@@ -245,6 +245,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     ensureStoreIsUsable(): void;
     extractingChanges(fn: () => void): RecordsDiff<R>;
+    filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope): {
+        added: { [K in IdOf<R>]: R; };
+        updated: { [K_1 in IdOf<R>]: [from: R, to: R]; };
+        removed: { [K in IdOf<R>]: R; };
+    } | null;
     // (undocumented)
     _flushHistory(): void;
     get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;

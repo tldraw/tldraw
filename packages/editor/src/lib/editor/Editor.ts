@@ -555,13 +555,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 							])
 						}
 					},
-					afterDelete: (record) => {
+					afterDelete: (record, source) => {
 						// page was deleted, need to check whether it's the current page and select another one if so
 						if (this.getInstanceState()?.currentPageId === record.id) {
 							const backupPageId = this.getPages().find((p) => p.id !== record.id)?.id
 							if (backupPageId) {
 								this.store.put([{ ...this.getInstanceState(), currentPageId: backupPageId }])
-							} else {
+							} else if (source === 'user') {
+								// fall back to ensureStoreIsUsable:
 								this.store.ensureStoreIsUsable()
 							}
 						}
@@ -573,7 +574,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					},
 				},
 				instance: {
-					afterChange: (prev, next) => {
+					afterChange: (prev, next, source) => {
 						// instance should never be updated to a page that no longer exists (this can
 						// happen when undoing a change that involves switching to a page that has since
 						// been deleted by another user)
@@ -586,8 +587,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 									...instance,
 									currentPageId: backupPageId,
 								}))
-							} else {
-								// if there are no pages, bail out to `ensureStoreIsUsable`
+							} else if (source === 'user') {
+								// fall back to ensureStoreIsUsable:
 								this.store.ensureStoreIsUsable()
 							}
 						}

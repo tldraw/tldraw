@@ -272,7 +272,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.lastServerClock = 0
 		}
 		// kill all presence state
-		this.store.remove(Object.keys(this.store.serialize('presence')) as any)
+		this.store.mergeRemoteChanges(() => {
+			this.store.remove(Object.keys(this.store.serialize('presence')) as any)
+		})
 		this.lastPushedPresenceState = null
 		this.isConnectedToRoom = false
 		this.pendingPushRequests = []
@@ -336,12 +338,22 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 				// then apply the upstream changes
 				this.applyNetworkDiff({ ...wipeDiff, ...event.diff }, true)
+
+				this.isConnectedToRoom = true
+
+				// now re-apply the speculative changes creating a new push request with the
+				// appropriate diff
+				const speculativeChanges = this.store.filterChangesByScope(
+					this.store.extractingChanges(() => {
+						this.store.applyDiff(stashedChanges)
+					}),
+					'document'
+				)
+				if (speculativeChanges) this.push(speculativeChanges)
 			})
 
-			// now re-apply the speculative changes as a 'user' to trigger
-			// creating a new push request with the appropriate diff
-			this.isConnectedToRoom = true
-			this.store.applyDiff(stashedChanges)
+			// this.isConnectedToRoom = true
+			// this.store.applyDiff(stashedChanges, false)
 
 			this.store.ensureStoreIsUsable()
 			// TODO: reinstate isNew

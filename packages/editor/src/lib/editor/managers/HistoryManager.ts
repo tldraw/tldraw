@@ -180,6 +180,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			}
 
 			this.store.applyDiff(diffToUndo)
+			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
 			this.state = previousState
@@ -227,6 +228,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			}
 
 			this.store.applyDiff(diffToRedo)
+			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
 			this.state = previousState

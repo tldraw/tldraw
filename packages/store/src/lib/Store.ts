@@ -258,7 +258,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param change - the records diff
 	 * @returns
 	 */
-	private filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope) {
+	filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope) {
 		const result = {
 			added: filterEntries(change.added, (_, r) => this.scopedTypes[scope].has(r.typeName)),
 			updated: filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName)),
@@ -791,8 +791,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	/** @internal */
 	ensureStoreIsUsable() {
-		this._integrityChecker ??= this.schema.createIntegrityChecker(this)
-		this._integrityChecker?.()
+		this.atomic(() => {
+			this._integrityChecker ??= this.schema.createIntegrityChecker(this)
+			this._integrityChecker?.()
+		})
 	}
 
 	private _isPossiblyCorrupted = false

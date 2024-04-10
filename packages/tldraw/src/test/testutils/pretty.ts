@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { Editor, RecordsDiff } from '@tldraw/editor'
+import { HistoryManager, RecordsDiff } from '@tldraw/editor'
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { DiffOptions, diff as jestDiff } from 'jest-diff'
 import { inspect } from 'util'
@@ -72,8 +72,8 @@ export function prettyPrintDiff(diff: RecordsDiff<any>, opts?: DiffOptions) {
 	return prettyDiff
 }
 
-export function logHistory(editor: Editor) {
-	const { undos, redos, pendingDiff } = editor.history.debug()
+export function logHistory(history: HistoryManager<any>) {
+	const { undos, redos, pendingDiff } = history.debug()
 	const p = new Printer()
 	p.log('=== History ===')
 	p.indent()
