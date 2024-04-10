@@ -118,52 +118,50 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	])
 
 	return (
-		<>
+		<div
+			ref={rCanvas}
+			draggable={false}
+			className={classNames('tl-canvas', className)}
+			data-testid="canvas"
+			{...events}
+		>
+			<svg className="tl-svg-context">
+				<defs>
+					{shapeSvgDefs}
+					<CursorDef />
+					<CollaboratorHintDef />
+					{SvgDefs && <SvgDefs />}
+				</defs>
+			</svg>
 			{Background && (
 				<div className="tl-background__wrapper">
 					<Background />
 				</div>
 			)}
-			<div
-				ref={rCanvas}
-				draggable={false}
-				className={classNames('tl-canvas', className)}
-				data-testid="canvas"
-				{...events}
-			>
-				<svg className="tl-svg-context">
-					<defs>
-						{shapeSvgDefs}
-						<CursorDef />
-						<CollaboratorHintDef />
-						{SvgDefs && <SvgDefs />}
-					</defs>
-				</svg>
-				<GridWrapper />
-				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
-					<OnTheCanvasWrapper />
-					<SelectionBackgroundWrapper />
-					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
-				</div>
-				<div className="tl-overlays">
-					<div ref={rHtmlLayer2} className="tl-html-layer">
-						{debugGeometry ? <GeometryDebuggingView /> : null}
-						<HandlesWrapper />
-						<BrushWrapper />
-						<ScribbleWrapper />
-						<ZoomBrushWrapper />
-						<SelectedIdIndicators />
-						<HoveredShapeIndicator />
-						<HintedShapeIndicator />
-						<SnapIndicatorWrapper />
-						<SelectionForegroundWrapper />
-						<LiveCollaborators />
-					</div>
-					<InFrontOfTheCanvasWrapper />
-				</div>
-				<MovingCameraHitTestBlocker />
+			<GridWrapper />
+			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
+				<OnTheCanvasWrapper />
+				<SelectionBackgroundWrapper />
+				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 			</div>
-		</>
+			<div className="tl-overlays">
+				<div ref={rHtmlLayer2} className="tl-html-layer">
+					{debugGeometry ? <GeometryDebuggingView /> : null}
+					<HandlesWrapper />
+					<BrushWrapper />
+					<ScribbleWrapper />
+					<ZoomBrushWrapper />
+					<SelectedIdIndicators />
+					<HoveredShapeIndicator />
+					<HintedShapeIndicator />
+					<SnapIndicatorWrapper />
+					<SelectionForegroundWrapper />
+					<LiveCollaborators />
+				</div>
+				<InFrontOfTheCanvasWrapper />
+			</div>
+			<MovingCameraHitTestBlocker />
+		</div>
 	)
 }
 
