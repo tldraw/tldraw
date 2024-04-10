@@ -36,7 +36,7 @@ export {
 	objectMapKeys,
 	objectMapValues,
 } from './lib/object'
-export { measureCbDuration, measureDuration } from './lib/perf'
+export { measureAverageDuration, measureCbDuration, measureDuration } from './lib/perf'
 export { PngHelpers } from './lib/png'
 export { type IndexKey } from './lib/reordering/IndexKey'
 export {
