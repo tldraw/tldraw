@@ -1,3 +1,7 @@
+## 2.0.27
+
+- Bug fixes and performance improvements.
+
 ## 2.0.26
 
 - Bug fixes and performance improvements.
