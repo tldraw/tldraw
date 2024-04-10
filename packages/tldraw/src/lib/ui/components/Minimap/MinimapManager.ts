@@ -6,6 +6,7 @@ import {
 	TLShapeId,
 	Vec,
 	clamp,
+	throttle,
 	uniqueId,
 } from '@tldraw/editor'
 
@@ -181,7 +182,7 @@ export class MinimapManager {
 		}
 	}
 
-	render = () => {
+	render = throttle(() => {
 		const { cvs, pageBounds } = this
 		this.updateCanvasPageBounds()
 
@@ -338,7 +339,7 @@ export class MinimapManager {
 				ctx.strokeRect(minX + 1 / sx, minY + 1 / sy, width - 2 / sx, height - 2 / sy)
 			}
 		}
-	}
+	}, 32)
 
 	static roundedRect(
 		ctx: CanvasRenderingContext2D | Path2D,
