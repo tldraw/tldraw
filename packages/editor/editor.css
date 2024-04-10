@@ -287,14 +287,16 @@ input,
 
 .tl-background__wrapper {
 	z-index: var(--layer-background);
-}
-
-.tl-background {
 	position: absolute;
-	background-color: var(--color-background);
 	inset: 0px;
 	height: 100%;
 	width: 100%;
+}
+
+.tl-background {
+	background-color: var(--color-background);
+	width: 100%;
+	height: 100%;
 }
 
 /* --------------------- Grid Layer --------------------- */
