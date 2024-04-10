@@ -1,6 +1,7 @@
 import { RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
-import { TLShape, TLShapeId, isShape, isShapeId } from '@tldraw/tlschema'
+import { TLPageId, TLShape, TLShapeId, isShape, isShapeId } from '@tldraw/tlschema'
 import RBush from 'rbush'
+import { Box } from '../../primitives/Box'
 import { Editor } from '../Editor'
 
 type Element = {
@@ -12,118 +13,166 @@ type Element = {
 }
 
 class TldrawRBush extends RBush<Element> {}
-function addElementToArray(editor: Editor, shape: TLShape, a: Element[]): Element | null {
-	const e = getElement(editor, shape)
-	if (!e) return null
-	a.push(e)
-	return e
-}
 
-function getElement(editor: Editor, shape: TLShape): Element | null {
-	const bounds = editor.getShapeMaskedPageBounds(shape)
-	if (!bounds) return null
-	return {
-		minX: bounds.minX,
-		minY: bounds.minY,
-		maxX: bounds.maxX,
-		maxY: bounds.maxY,
-		id: shape.id,
+export class SpatialIndex {
+	private readonly _spatialIndex: ReturnType<typeof this.createSpatialIndex>
+	private lastPageId: TLPageId
+	private shapesInTree: Map<TLShapeId, Element>
+	private rBush: TldrawRBush
+
+	constructor(private editor: Editor) {
+		this._spatialIndex = this.createSpatialIndex()
+		this.lastPageId = this.editor.getCurrentPageId()
+		this.shapesInTree = new Map<TLShapeId, Element>()
+		this.rBush = new TldrawRBush()
 	}
-}
 
-export function createSpatialIndex(editor: Editor) {
-	const shapeHistory = editor.store.query.filterHistory('shape')
-	let lastPageId = editor.getCurrentPageId()
-	let shapesInTree = new Map<TLShapeId, Element>()
-	let rBush = new TldrawRBush()
+	private addElementToArray(shape: TLShape, a: Element[]): Element | null {
+		const e = this.getElement(shape)
+		if (!e) return null
+		a.push(e)
+		return e
+	}
 
-	function fromScratch(shapes: TLShape[], lastComputedEpoch: number) {
-		console.log('fromScratch')
-		lastPageId = editor.getCurrentPageId()
-		shapesInTree = new Map<TLShapeId, Element>()
+	private getElement(shape: TLShape, existingBounds?: Box): Element | null {
+		const bounds = existingBounds ?? this.editor.getShapeMaskedPageBounds(shape)
+		if (!bounds) return null
+		return {
+			minX: bounds.minX,
+			minY: bounds.minY,
+			maxX: bounds.maxX,
+			maxY: bounds.maxY,
+			id: shape.id,
+		}
+	}
+
+	private fromScratch(shapes: TLShape[], lastComputedEpoch: number) {
+		console.log('from scratch')
+		this.lastPageId = this.editor.getCurrentPageId()
+		this.shapesInTree = new Map<TLShapeId, Element>()
 		const elementsToAdd: Element[] = []
 
 		for (let i = 0; i < shapes.length; i++) {
 			const shape = shapes[i]
-			const e = addElementToArray(editor, shape, elementsToAdd)
+			const e = this.addElementToArray(shape, elementsToAdd)
 			if (!e) continue
-			shapesInTree.set(shape.id, e)
-			elementsToAdd.push(e)
+			this.shapesInTree.set(shape.id, e)
 		}
-		rBush = new TldrawRBush().load(elementsToAdd)
-		return { rBush, lastComputedEpoch }
+		this.rBush = new TldrawRBush().load(elementsToAdd)
+		return lastComputedEpoch
 	}
 
-	return computed<{ rBush: TldrawRBush; lastComputedEpoch: number }>(
-		'spatialIndex',
-		(prevValue, lastComputedEpoch) => {
+	private createSpatialIndex() {
+		const shapeHistory = this.editor.store.query.filterHistory('shape')
+
+		return computed<number>('spatialIndex', (prevValue, lastComputedEpoch) => {
 			let isDirty = false
-			const currentPageId = editor.getCurrentPageId()
-			const shapes = editor.getCurrentPageShapes()
-			console.log(shapes.length)
+			const currentPageId = this.editor.getCurrentPageId()
+			const shapes = this.editor.getCurrentPageShapes()
 
 			if (isUninitialized(prevValue)) {
-				return fromScratch(shapes, lastComputedEpoch)
+				return this.fromScratch(shapes, lastComputedEpoch)
 			}
 			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
 
 			if (diff === RESET_VALUE) {
-				return fromScratch(shapes, lastComputedEpoch)
+				return this.fromScratch(shapes, lastComputedEpoch)
 			}
 
-			if (lastPageId !== currentPageId) {
-				return fromScratch(shapes, lastComputedEpoch)
+			if (this.lastPageId !== currentPageId) {
+				return this.fromScratch(shapes, lastComputedEpoch)
 			}
-			console.log('incremental')
+			console.log('incremental update')
 
 			const elementsToAdd: Element[] = []
 			for (const changes of diff) {
 				for (const record of Object.values(changes.added)) {
 					if (isShape(record)) {
-						const e = addElementToArray(editor, record, elementsToAdd)
+						const e = this.addElementToArray(record, elementsToAdd)
 						if (!e) continue
-						shapesInTree.set(record.id, e)
+						this.shapesInTree.set(record.id, e)
 					}
 				}
 
 				for (const [_from, to] of Object.values(changes.updated)) {
 					if (isShape(to)) {
-						const currentElement = shapesInTree.get(to.id)
+						const currentElement = this.shapesInTree.get(to.id)
+						const newBounds = this.editor.getShapeMaskedPageBounds(to.id)
 						if (currentElement) {
-							const newBounds = editor.getShapeMaskedPageBounds(to.id)
 							if (
 								newBounds?.minX === currentElement.minX &&
 								newBounds.minY === currentElement.minY &&
-								newBounds?.maxX === currentElement.maxX &&
+								newBounds.maxX === currentElement.maxX &&
 								newBounds.maxY === currentElement.maxY
 							) {
 								continue
 							}
-							shapesInTree.delete(to.id)
-							rBush.remove(currentElement)
+							this.shapesInTree.delete(to.id)
+							this.rBush.remove(currentElement)
 						}
-						const newE = getElement(editor, to)
+						const newE = this.getElement(to, newBounds)
 						if (!newE) continue
-						shapesInTree.set(to.id, newE)
+						this.shapesInTree.set(to.id, newE)
 						elementsToAdd.push(newE)
 					}
 				}
-				rBush.load(elementsToAdd)
+				this.rBush.load(elementsToAdd)
 				if (elementsToAdd.length) {
 					isDirty = true
 				}
 				for (const id of Object.keys(changes.removed)) {
 					if (isShapeId(id)) {
-						const currentElement = shapesInTree.get(id)
+						const currentElement = this.shapesInTree.get(id)
 						if (currentElement) {
-							shapesInTree.delete(id)
-							rBush.remove(currentElement)
+							this.shapesInTree.delete(id)
+							this.rBush.remove(currentElement)
 							isDirty = true
 						}
 					}
 				}
 			}
-			return isDirty ? { rBush, lastComputedEpoch } : prevValue
-		}
-	)
+			return isDirty ? lastComputedEpoch : prevValue
+		})
+	}
+
+	private _getVisibleShapes() {
+		return computed<Set<TLShapeId>>('visible shapes', (prevValue) => {
+			// Make sure the spatial index is up to date
+			const _index = this._spatialIndex.get()
+			const newValue = this.rBush.search(this.editor.getViewportPageBounds()).map((s) => s.id)
+			if (isUninitialized(prevValue)) {
+				return new Set(newValue)
+			}
+			const isSame =
+				prevValue && prevValue.size === newValue.length && newValue.every((id) => prevValue.has(id))
+			return isSame ? prevValue : new Set(newValue)
+		})
+	}
+
+	@computed
+	getVisibleShapes() {
+		return this._getVisibleShapes().get()
+	}
+
+	_getNotVisibleShapes() {
+		return computed<Set<TLShapeId>>('not visible shapes', (prevValue) => {
+			const visibleShapes = this._getVisibleShapes().get()
+			const pageShapes = this.editor.getCurrentPageShapeIds()
+			const nonVisibleShapes = [...pageShapes].filter((id) => !visibleShapes.has(id))
+			if (isUninitialized(prevValue)) return new Set(nonVisibleShapes)
+			const isSame =
+				nonVisibleShapes.length === prevValue.size &&
+				nonVisibleShapes.every((id) => prevValue.has(id))
+			return isSame ? prevValue : new Set(nonVisibleShapes)
+		})
+	}
+
+	@computed
+	getNotVisibleShapes() {
+		return this._getNotVisibleShapes().get()
+	}
+
+	getShapesInsideBounds(bounds: Box) {
+		return this.rBush.search(bounds)
+	}
 }
