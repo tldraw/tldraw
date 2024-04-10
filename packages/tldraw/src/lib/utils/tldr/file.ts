@@ -6,6 +6,8 @@ import {
 	RecordId,
 	Result,
 	SerializedSchema,
+	SerializedSchemaV1,
+	SerializedSchemaV2,
 	SerializedStore,
 	T,
 	TLAsset,
@@ -19,7 +21,6 @@ import {
 	partition,
 	transact,
 } from '@tldraw/editor'
-import { SerializedSchemaV1, SerializedSchemaV2 } from '@tldraw/store'
 import { TLUiToastsContextType } from '../../ui/context/toasts'
 import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
 import { buildFromV1Document } from '../tldr/buildFromV1Document'
