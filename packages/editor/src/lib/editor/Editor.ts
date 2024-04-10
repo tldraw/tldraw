@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed, isUninitialized, transact } from '@tldraw/state'
 import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -102,9 +102,9 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
-import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
+import { createSpatialIndex } from './derivations/spatialIndex'
 import { getSvgJsx } from './getSvgJsx'
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
@@ -608,6 +608,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.getCurrentPageId()
 		)
 		this._parentIdsToChildIds = parentsToChildren(this.store)
+
+		this._spatialIndex = createSpatialIndex(this)
 
 		this.disposables.add(
 			this.store.listen((changes) => {
@@ -4223,9 +4225,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.isShapeOrAncestorLocked(this.getShapeParent(shape))
 	}
 
-	@computed
+	/* @internal */
+	private readonly _spatialIndex: ReturnType<typeof createSpatialIndex>
+
+	private _visibleShapes() {
+		return computed<Set<TLShapeId>>('visible shapes', (prevValue) => {
+			const spatialIndex = this._spatialIndex.get()
+
+			const newValue = new Set(
+				spatialIndex.rBush.search(this.getViewportPageBounds()).map((s) => s.id)
+			)
+			if (isUninitialized(prevValue)) return newValue
+			const isSame =
+				prevValue &&
+				prevValue.size === newValue.size &&
+				Array.from(prevValue).every((id) => newValue.has(id))
+			// console.log('visible shapes', prevValue, newValue, isSame)
+			return isSame ? prevValue : newValue
+		})
+	}
+
 	private _notVisibleShapes() {
-		return notVisibleShapes(this)
+		return computed<Set<TLShapeId>>('visible shapes', (prevValue) => {
+			const visibleShapes = this._visibleShapes().get()
+			const pageShapes = this.getCurrentPageShapeIds()
+			const nonVisibleShapes = [...pageShapes].filter((id) => !visibleShapes.has(id))
+			if (isUninitialized(prevValue)) return new Set(nonVisibleShapes)
+			const isSame =
+				nonVisibleShapes.length === prevValue.size &&
+				nonVisibleShapes.every((id) => prevValue.has(id))
+			// console.log('not visible shapes', prevValue, nonVisibleShapes, isSame)
+			return isSame ? prevValue : new Set(nonVisibleShapes)
+		})
 	}
 
 	/**
@@ -4235,6 +4266,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed
 	getCulledShapes() {
+		console.log('get culled shapes')
 		const notVisibleShapes = this._notVisibleShapes().get()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
