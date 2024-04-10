@@ -6,6 +6,7 @@ import {
 	TLShapeId,
 	Vec,
 	clamp,
+	throttle,
 	uniqueId,
 } from '@tldraw/editor'
 
@@ -181,7 +182,7 @@ export class MinimapManager {
 		}
 	}
 
-	render = () => {
+	render = throttle(() => {
 		const { cvs, pageBounds } = this
 		this.updateCanvasPageBounds()
 
@@ -189,7 +190,7 @@ export class MinimapManager {
 			this
 		const { width: cw, height: ch } = canvasScreenBounds
 
-		const selectedShapeIds = editor.getSelectedShapeIds()
+		const selectedShapeIds = new Set(editor.getSelectedShapeIds())
 		const viewportPageBounds = editor.getViewportPageBounds()
 
 		if (!cvs || !pageBounds) {
@@ -215,16 +216,6 @@ export class MinimapManager {
 		ctx.scale(sx, sy)
 		ctx.translate(-contentPageBounds.minX, -contentPageBounds.minY)
 
-		// Default radius for rounded rects
-		const rx = 8 / sx
-		const ry = 8 / sx
-		// Min radius
-		const ax = 1 / sx
-		const ay = 1 / sx
-		// Max radius factor
-		const bx = rx / 4
-		const by = ry / 4
-
 		// shapes
 		const shapesPath = new Path2D()
 		const selectedPath = new Path2D()
@@ -237,14 +228,11 @@ export class MinimapManager {
 		let pb: Box & { id: TLShapeId }
 		for (let i = 0, n = pageBounds.length; i < n; i++) {
 			pb = pageBounds[i]
-			MinimapManager.roundedRect(
-				selectedShapeIds.includes(pb.id) ? selectedPath : shapesPath,
+			;(selectedShapeIds.has(pb.id) ? selectedPath : shapesPath).rect(
 				pb.minX,
 				pb.minY,
 				pb.width,
-				pb.height,
-				clamp(rx, ax, pb.width / bx),
-				clamp(ry, ay, pb.height / by)
+				pb.height
 			)
 		}
 
@@ -351,7 +339,7 @@ export class MinimapManager {
 				ctx.strokeRect(minX + 1 / sx, minY + 1 / sy, width - 2 / sx, height - 2 / sy)
 			}
 		}
-	}
+	}, 32)
 
 	static roundedRect(
 		ctx: CanvasRenderingContext2D | Path2D,
