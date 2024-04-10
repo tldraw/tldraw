@@ -4235,7 +4235,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed
 	getCulledShapes() {
-		console.log('getCulledShapes')
 		const notVisibleShapes = this._spatialIndex.getNotVisibleShapes()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()

@@ -47,7 +47,6 @@ export class SpatialIndex {
 	}
 
 	private fromScratch(shapes: TLShape[], lastComputedEpoch: number) {
-		console.log('from scratch')
 		this.lastPageId = this.editor.getCurrentPageId()
 		this.shapesInTree = new Map<TLShapeId, Element>()
 		const elementsToAdd: Element[] = []
@@ -82,7 +81,6 @@ export class SpatialIndex {
 			if (this.lastPageId !== currentPageId) {
 				return this.fromScratch(shapes, lastComputedEpoch)
 			}
-			console.log('incremental update')
 
 			const elementsToAdd: Element[] = []
 			for (const changes of diff) {
