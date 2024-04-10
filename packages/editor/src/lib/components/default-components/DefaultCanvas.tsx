@@ -3,7 +3,7 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
+import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, TEXT_SHADOW_LOD } from '../../constants'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 import { useContainer } from '../../hooks/useContainer'
@@ -64,17 +64,18 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			// If we're below the lod distance for text shadows, turn them off
 			if (
 				rMemoizedStuff.current.allowTextOutline &&
-				z < 0.35 !== rMemoizedStuff.current.lodDisableTextOutline
+				z < TEXT_SHADOW_LOD !== rMemoizedStuff.current.lodDisableTextOutline
 			) {
+				const lodDisableTextOutline = z < TEXT_SHADOW_LOD
 				container.style.setProperty(
 					'--tl-text-outline',
-					z < 0.35
-						? 'none' //'var(--b) var(--b) 0 var(--color-background), var(--a) var(--a) 0 var(--color-background)'
+					lodDisableTextOutline
+						? 'none'
 						: `0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
 				var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
 				var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background)`
 				)
-				rMemoizedStuff.current.lodDisableTextOutline = z < 0.35
+				rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
 			}
 
 			// Because the html container has a width/height of 1px, we
