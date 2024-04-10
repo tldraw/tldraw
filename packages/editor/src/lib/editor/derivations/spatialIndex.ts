@@ -171,6 +171,6 @@ export class SpatialIndex {
 	}
 
 	getShapesInsideBounds(bounds: Box) {
-		return this.rBush.search(bounds)
+		return this.rBush.search(bounds).map((s) => s.id)
 	}
 }

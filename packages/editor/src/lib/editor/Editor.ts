@@ -4250,6 +4250,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return culledShapes
 	}
 
+	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
+		return this._spatialIndex.getShapesInsideBounds(bounds)
+	}
+
+	getShapesInsideBounds(bounds: Box): TLShape[] {
+		return compact(this.getShapeIdsInsideBounds(bounds).map((id) => this.getShape(id))) as TLShape[]
+	}
+
 	/**
 	 * The bounds of the current page (the common bounds of all of the shapes on the page).
 	 *
@@ -4321,10 +4329,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
+		const shapesNearPoint = this.getShapesInsideBounds(
+			Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN)
+		)
 		const shapesToCheck = (
-			opts.renderingOnly
-				? this.getCurrentPageRenderingShapesSorted()
-				: this.getCurrentPageShapesSorted()
+			opts.renderingOnly ? shapesNearPoint : this.getCurrentPageShapesSorted()
 		).filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
