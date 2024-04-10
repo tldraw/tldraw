@@ -331,29 +331,6 @@ function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function createNShapesForUncullingTest(editor: Editor, n: number, offset = 0) {
-	const shapesToCreate: TLShapePartial[] = Array(n)
-	const cols = Math.floor(Math.sqrt(n))
-
-	for (let i = 0; i < n; i++) {
-		t++
-		shapesToCreate[i] = {
-			id: createShapeId('box' + t),
-			type: 'geo',
-			x: (i % cols) * 50 + offset,
-			y: Math.floor(i / cols) * 132,
-			props: {
-				w: 200,
-				h: 200,
-			},
-		}
-	}
-
-	editor.batch(() => {
-		editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))
-	})
-}
-
 async function uncullingTest(editor: Editor) {
 	fpsTracker.reset()
 	const newPageId = setupPage(editor)
