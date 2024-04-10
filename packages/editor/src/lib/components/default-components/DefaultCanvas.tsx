@@ -3,9 +3,10 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
+import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, TEXT_SHADOW_LOD } from '../../constants'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
+import { useContainer } from '../../hooks/useContainer'
 import { useDocumentEvents } from '../../hooks/useDocumentEvents'
 import { useEditor } from '../../hooks/useEditor'
 import { useEditorComponents } from '../../hooks/useEditorComponents'
@@ -37,6 +38,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
 	const rHtmlLayer2 = useRef<HTMLDivElement>(null)
+	const container = useContainer()
 
 	useScreenBounds(rCanvas)
 	useDocumentEvents()
@@ -45,10 +47,36 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	useGestureEvents(rCanvas)
 	useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 
+	const rMemoizedStuff = useRef({ lodDisableTextOutline: false, allowTextOutline: true })
+
 	useQuickReactor(
 		'position layers',
 		function positionLayersWhenCameraMoves() {
 			const { x, y, z } = editor.getCamera()
+
+			// This should only run once on first load
+			if (rMemoizedStuff.current.allowTextOutline && editor.environment.isSafari) {
+				container.style.setProperty('--tl-text-outline', 'none')
+				rMemoizedStuff.current.allowTextOutline = false
+			}
+
+			// And this should only run if we're not in Safari;
+			// If we're below the lod distance for text shadows, turn them off
+			if (
+				rMemoizedStuff.current.allowTextOutline &&
+				z < TEXT_SHADOW_LOD !== rMemoizedStuff.current.lodDisableTextOutline
+			) {
+				const lodDisableTextOutline = z < TEXT_SHADOW_LOD
+				container.style.setProperty(
+					'--tl-text-outline',
+					lodDisableTextOutline
+						? 'none'
+						: `0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
+				var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
+				var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background)`
+				)
+				rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
+			}
 
 			// Because the html container has a width/height of 1px, we
 			// need to create a small offset when zoomed to ensure that
@@ -62,7 +90,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			setStyleProperty(rHtmlLayer.current, 'transform', transform)
 			setStyleProperty(rHtmlLayer2.current, 'transform', transform)
 		},
-		[editor]
+		[editor, container]
 	)
 
 	const events = useCanvasEvents()
