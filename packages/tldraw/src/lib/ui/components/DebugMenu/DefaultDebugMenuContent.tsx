@@ -2,7 +2,6 @@ import {
 	DebugFlag,
 	Editor,
 	PageRecordType,
-	TLPageId,
 	TLShapePartial,
 	createShapeId,
 	debugFlags,
@@ -172,17 +171,15 @@ export function DefaultDebugMenuContent() {
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="performance">
 				<TldrawUiMenuItem
-					id="panning"
-					label={'Panning test'}
-					onSelect={() => panningTest(editor)}
+					id="unculling"
+					label={'Unculling benchmark'}
+					onSelect={() => uncullingTest(editor)}
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="flags">
 				<DebugFlags />
 				<FeatureFlags />
 			</TldrawUiMenuGroup>
-
-			{/* {...children} */}
 		</>
 	)
 }
@@ -316,58 +313,46 @@ function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function panningTest(editor: Editor) {
-	// hey run this 10 times
-	const newPageId = setupPage(editor)
+async function uncullingTest(editor: Editor) {
+	function createNShapesForUncullingTest(editor: Editor, n: number, offset = 0) {
+		const shapesToCreate: TLShapePartial[] = Array(n)
+		const cols = Math.floor(Math.sqrt(n))
 
-	createNShapes(editor, 1000)
-	createNShapes(editor, 1000, 10)
+		for (let i = 0; i < n; i++) {
+			t++
+			shapesToCreate[i] = {
+				id: createShapeId('box' + t),
+				type: 'geo',
+				x: (i % cols) * 50 + offset,
+				y: Math.floor(i / cols) * 132,
+				props: {
+					w: 200,
+					h: 200,
+				},
+			}
+		}
+
+		editor.batch(() => {
+			editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))
+		})
+	}
+
+	const newPageId = setupPage(editor)
+	createNShapesForUncullingTest(editor, 1000)
+	createNShapesForUncullingTest(editor, 1000, 10)
 	editor.selectNone()
 	editor.setCamera({ x: 18000, y: 200, z: 0.1 })
 
 	const timeStart = performance.now()
 	for (let i = 0; i < 100; i++) {
 		const pingPong = i % 2 === 0
-		editor.setCamera({ x: pingPong ? 6000 : 18000, y: 200 })
+		editor.setCamera({ x: pingPong ? 1100 : 18000, y: 200 })
 		await sleep(100)
 	}
 	const timeEnd = performance.now()
 
-	removePage(editor, newPageId)
-
+	editor.deletePage(newPageId)
 	alert(`timeTaken ${timeEnd - timeStart}`)
-
-	// removePage(editor, newPageId)
-
-	// setTimeout(() => {
-	// 	performance.mark('panning-start')
-	// 	editor.setCamera({ x: -8200, y: 0 })
-	// 	requestAnimationFrame(() => {
-	// 		performance.mark('panning-end')
-	// 		// the rendering frame was sometimes 1 frame later, sometimes 2 frames later, not sure why, don't know how to test this
-	// 		measureFrameTime((deltaTime) => {
-	// 			console.log(`Time elapsed since last frame: ${deltaTime} ms`)
-	// 		})
-	// 		const measure = performance.measure('panning', 'panning-start', 'panning-end')
-	// 		// console.log(measure)
-	// 		removePage(editor, newPageId)
-	// 	})
-	// }, 1000)
-}
-
-function measureFrameTime(callback: (deltaTime: number) => void) {
-	let lastTimestamp: number | null = null
-
-	function frame(timestamp: number) {
-		if (lastTimestamp !== null) {
-			const deltaTime = timestamp - lastTimestamp
-			callback(deltaTime)
-		}
-		lastTimestamp = timestamp
-		requestAnimationFrame(frame)
-	}
-
-	requestAnimationFrame(frame)
 }
 
 const setupPage = (editor: Editor) => {
@@ -381,11 +366,4 @@ const setupPage = (editor: Editor) => {
 	editor.createPage({ name: 'performance', id: newPageId })
 	editor.setCurrentPage(newPageId)
 	return newPageId
-}
-
-const removePage = (editor: Editor, id: TLPageId) => {
-	// a little delay to make it easier to see in the performance tab
-	setTimeout(() => {
-		editor.deletePage(id)
-	}, 2000)
 }
