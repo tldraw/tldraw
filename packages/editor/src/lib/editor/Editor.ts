@@ -4323,18 +4323,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
+		const culledShapes = this.getCulledShapes()
 		const shapesNearPoint = this.getShapesInsideBounds(
 			Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN)
 		)
-		const shapesToCheck = (
-			opts.renderingOnly ? shapesNearPoint : this.getCurrentPageShapesSorted()
-		).filter((shape) => {
+		const shapesToCheck = shapesNearPoint.filter((shape) => {
+			if (opts.renderingOnly && culledShapes.has(shape.id)) return false
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
 			if (filter) return filter(shape)
 			return true
 		})
+
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
 			const geometry = this.getShapeGeometry(shape)
