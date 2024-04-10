@@ -325,11 +325,17 @@ async function panningTest(editor: Editor) {
 	editor.selectNone()
 	editor.setCamera({ x: 18000, y: 200, z: 0.1 })
 
+	const timeStart = performance.now()
 	for (let i = 0; i < 100; i++) {
 		const pingPong = i % 2 === 0
 		editor.setCamera({ x: pingPong ? 6000 : 18000, y: 200 })
 		await sleep(100)
 	}
+	const timeEnd = performance.now()
+
+	removePage(editor, newPageId)
+
+	alert(`timeTaken ${timeEnd - timeStart}`)
 
 	// removePage(editor, newPageId)
 
