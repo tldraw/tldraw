@@ -3,9 +3,10 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS } from '../../constants'
+import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, TEXT_SHADOW_LOD } from '../../constants'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
+import { useContainer } from '../../hooks/useContainer'
 import { useDocumentEvents } from '../../hooks/useDocumentEvents'
 import { useEditor } from '../../hooks/useEditor'
 import { useEditorComponents } from '../../hooks/useEditorComponents'
@@ -36,6 +37,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
 	const rHtmlLayer2 = useRef<HTMLDivElement>(null)
+	const container = useContainer()
 
 	useScreenBounds(rCanvas)
 	useDocumentEvents()
@@ -44,10 +46,36 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	useGestureEvents(rCanvas)
 	useFixSafariDoubleTapZoomPencilEvents(rCanvas)
 
+	const rMemoizedStuff = useRef({ lodDisableTextOutline: false, allowTextOutline: true })
+
 	useQuickReactor(
 		'position layers',
 		function positionLayersWhenCameraMoves() {
 			const { x, y, z } = editor.getCamera()
+
+			// This should only run once on first load
+			if (rMemoizedStuff.current.allowTextOutline && editor.environment.isSafari) {
+				container.style.setProperty('--tl-text-outline', 'none')
+				rMemoizedStuff.current.allowTextOutline = false
+			}
+
+			// And this should only run if we're not in Safari;
+			// If we're below the lod distance for text shadows, turn them off
+			if (
+				rMemoizedStuff.current.allowTextOutline &&
+				z < TEXT_SHADOW_LOD !== rMemoizedStuff.current.lodDisableTextOutline
+			) {
+				const lodDisableTextOutline = z < TEXT_SHADOW_LOD
+				container.style.setProperty(
+					'--tl-text-outline',
+					lodDisableTextOutline
+						? 'none'
+						: `0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
+				var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
+				var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background)`
+				)
+				rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
+			}
 
 			// Because the html container has a width/height of 1px, we
 			// need to create a small offset when zoomed to ensure that
@@ -61,7 +89,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			setStyleProperty(rHtmlLayer.current, 'transform', transform)
 			setStyleProperty(rHtmlLayer2.current, 'transform', transform)
 		},
-		[editor]
+		[editor, container]
 	)
 
 	const events = useCanvasEvents()
@@ -88,54 +116,57 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const debugGeometry = useValue('debug_geometry', () => debugFlags.debugGeometry.get(), [
 		debugFlags,
 	])
+	const isEditingAnything = useValue(
+		'isEditingAnything',
+		() => editor.getEditingShapeId() !== null,
+		[editor]
+	)
 
 	return (
-		<>
+		<div
+			ref={rCanvas}
+			draggable={false}
+			data-iseditinganything={isEditingAnything}
+			className={classNames('tl-canvas', className)}
+			data-testid="canvas"
+			{...events}
+		>
+			<svg className="tl-svg-context">
+				<defs>
+					{shapeSvgDefs}
+					<CursorDef />
+					<CollaboratorHintDef />
+					{SvgDefs && <SvgDefs />}
+				</defs>
+			</svg>
 			{Background && (
 				<div className="tl-background__wrapper">
 					<Background />
 				</div>
 			)}
-			<div
-				ref={rCanvas}
-				draggable={false}
-				className={classNames('tl-canvas', className)}
-				data-testid="canvas"
-				{...events}
-			>
-				<svg className="tl-svg-context">
-					<defs>
-						{shapeSvgDefs}
-						<CursorDef />
-						<CollaboratorHintDef />
-						{SvgDefs && <SvgDefs />}
-					</defs>
-				</svg>
-				<GridWrapper />
-				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
-					<OnTheCanvasWrapper />
-					<SelectionBackgroundWrapper />
-					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
-				</div>
-				<div className="tl-overlays">
-					<div ref={rHtmlLayer2} className="tl-html-layer">
-						{debugGeometry ? <GeometryDebuggingView /> : null}
-						<HandlesWrapper />
-						<BrushWrapper />
-						<ScribbleWrapper />
-						<ZoomBrushWrapper />
-						<SelectedIdIndicators />
-						<HoveredShapeIndicator />
-						<HintedShapeIndicator />
-						<SnapIndicatorWrapper />
-						<SelectionForegroundWrapper />
-						<LiveCollaborators />
-					</div>
-					<InFrontOfTheCanvasWrapper />
-				</div>
-				<MovingCameraHitTestBlocker />
+			<GridWrapper />
+			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
+				<OnTheCanvasWrapper />
+				<SelectionBackgroundWrapper />
+				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 			</div>
-		</>
+			<div className="tl-overlays">
+				<div ref={rHtmlLayer2} className="tl-html-layer">
+					{debugGeometry ? <GeometryDebuggingView /> : null}
+					<HandlesWrapper />
+					<BrushWrapper />
+					<ScribbleWrapper />
+					<ZoomBrushWrapper />
+					<ShapeIndicators />
+					<HintedShapeIndicator />
+					<SnapIndicatorWrapper />
+					<SelectionForegroundWrapper />
+					<LiveCollaborators />
+				</div>
+				<InFrontOfTheCanvasWrapper />
+			</div>
+			<MovingCameraHitTestBlocker />
+		</div>
 	)
 }
 
@@ -405,16 +436,17 @@ function ShapesToDisplay() {
 	)
 }
 
-function SelectedIdIndicators() {
+function ShapeIndicators() {
 	const editor = useEditor()
-	const selectedShapeIds = useValue('selectedShapeIds', () => editor.getSelectedShapeIds(), [
-		editor,
-	])
-	const shouldDisplay = useValue(
+	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
+	const rPreviousSelectedShapeIds = useRef<Set<TLShapeId>>(new Set())
+	const idsToDisplay = useValue(
 		'should display selected ids',
 		() => {
-			// todo: move to tldraw selected ids wrapper
-			return (
+			// todo: move to tldraw selected ids wrappe
+			const prev = rPreviousSelectedShapeIds.current
+			const next = new Set<TLShapeId>()
+			if (
 				editor.isInAny(
 					'select.idle',
 					'select.brushing',
@@ -423,50 +455,49 @@ function SelectedIdIndicators() {
 					'select.pointing_shape',
 					'select.pointing_selection',
 					'select.pointing_handle'
-				) && !editor.getInstanceState().isChangingStyle
-			)
+				) &&
+				!editor.getInstanceState().isChangingStyle
+			) {
+				const selected = editor.getSelectedShapeIds()
+				for (const id of selected) {
+					next.add(id)
+				}
+				if (editor.isInAny('select.idle', 'select.editing_shape')) {
+					const instanceState = editor.getInstanceState()
+					if (instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
+						const hovered = editor.getHoveredShapeId()
+						if (hovered) next.add(hovered)
+					}
+				}
+			}
+
+			if (prev.size !== next.size) {
+				rPreviousSelectedShapeIds.current = next
+				return next
+			}
+
+			for (const id of next) {
+				if (!prev.has(id)) {
+					rPreviousSelectedShapeIds.current = next
+					return next
+				}
+			}
+
+			return prev
 		},
 		[editor]
 	)
 
 	const { ShapeIndicator } = useEditorComponents()
-
 	if (!ShapeIndicator) return null
-	if (!shouldDisplay) return null
 
 	return (
 		<>
-			{selectedShapeIds.map((id) => (
-				<ShapeIndicator
-					key={id + '_indicator'}
-					className="tl-user-indicator__selected"
-					shapeId={id}
-				/>
+			{renderingShapes.map(({ id }) => (
+				<ShapeIndicator key={id + '_indicator'} shapeId={id} hidden={!idsToDisplay.has(id)} />
 			))}
 		</>
 	)
-}
-
-const HoveredShapeIndicator = function HoveredShapeIndicator() {
-	const editor = useEditor()
-	const { HoveredShapeIndicator } = useEditorComponents()
-	const isCoarsePointer = useValue(
-		'coarse pointer',
-		() => editor.getInstanceState().isCoarsePointer,
-		[editor]
-	)
-	const isHoveringCanvas = useValue(
-		'hovering canvas',
-		() => editor.getInstanceState().isHoveringCanvas,
-		[editor]
-	)
-	const hoveredShapeId = useValue('hovered id', () => editor.getCurrentPageState().hoveredShapeId, [
-		editor,
-	])
-
-	if (isCoarsePointer || !isHoveringCanvas || !hoveredShapeId || !HoveredShapeIndicator) return null
-
-	return <HoveredShapeIndicator shapeId={hoveredShapeId} />
 }
 
 function HintedShapeIndicator() {
@@ -534,7 +565,10 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 
 			const isSingleFrame = editor.isShapeOfType(id, 'frame')
 			const padding = isSingleFrame ? 0 : 10
-			const bounds = editor.getShapePageBounds(id)!.clone().expandBy(padding)
+			let bounds = editor.getShapePageBounds(id)
+			if (!bounds) return
+			bounds = bounds.clone().expandBy(padding)
+
 			const result = await editor.getSvgString([id], {
 				padding,
 				background: editor.getInstanceState().exportBackground,

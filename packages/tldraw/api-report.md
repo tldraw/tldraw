@@ -62,7 +62,6 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLCancelEvent } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
-import { TLDefaultColorStyle } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
@@ -82,7 +81,6 @@ import { TLGeoShape } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
-import { TLHoveredShapeIndicatorProps } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
@@ -94,7 +92,6 @@ import { TLOnBeforeUpdateHandler } from '@tldraw/editor';
 import { TLOnDoubleClickHandler } from '@tldraw/editor';
 import { TLOnEditEndHandler } from '@tldraw/editor';
 import { TLOnHandleDragHandler } from '@tldraw/editor';
-import { TLOnResizeEndHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
 import { TLOnTranslateHandler } from '@tldraw/editor';
 import { TLOnTranslateStartHandler } from '@tldraw/editor';
@@ -657,13 +654,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
     // (undocumented)
-    onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => {
-        shouldHint: boolean;
-    };
+    onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => void;
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
-    // (undocumented)
-    onResizeEnd: TLOnResizeEndHandler<TLFrameShape>;
     // (undocumented)
     static props: {
         w: Validator<number>;
@@ -839,6 +832,9 @@ export function GeoStylePickerSet({ styles }: {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
+export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
+
+// @public (undocumented)
 export function getSvgAsImage(svgString: string, isSafari: boolean, options: {
     type: 'jpeg' | 'png' | 'webp';
     quality: number;
@@ -975,6 +971,9 @@ export function isGifAnimated(file: Blob): Promise<boolean>;
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
 
+// @internal (undocumented)
+export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): void;
+
 // @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
@@ -1101,9 +1100,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
-    getGeometry(shape: TLNoteShape): Rectangle2d;
+    getGeometry(shape: TLNoteShape): Group2d;
     // (undocumented)
-    getHeight(shape: TLNoteShape): number;
+    getHandles(shape: TLNoteShape): TLHandle[];
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
@@ -1116,6 +1115,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     onBeforeCreate: (next: TLNoteShape) => {
         props: {
             growY: number;
+            fontSizeAdjustment: number;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
@@ -1140,6 +1140,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     onBeforeUpdate: (prev: TLNoteShape, next: TLNoteShape) => {
         props: {
             growY: number;
+            fontSizeAdjustment: number;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
@@ -1166,6 +1167,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+        fontSizeAdjustment: Validator<number>;
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
         verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
@@ -1451,9 +1453,6 @@ export interface TldrawFile {
 
 // @public (undocumented)
 export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | null;
-
-// @public (undocumented)
-export function TldrawHoveredShapeIndicator({ shapeId }: TLHoveredShapeIndicatorProps): JSX_2.Element | null;
 
 // @public
 export const TldrawImage: NamedExoticComponent<    {
@@ -2390,6 +2389,7 @@ export type TLUiTranslation = {
     readonly locale: string;
     readonly label: string;
     readonly messages: Record<TLUiTranslationKey, string>;
+    readonly dir: 'ltr' | 'rtl';
 };
 
 // @public (undocumented)
@@ -2482,6 +2482,9 @@ export function useCanUndo(): boolean;
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
+export const useCurrentTranslation: () => TLUiTranslation;
+
+// @public (undocumented)
 export function useDefaultHelpers(): {
     addToast: (toast: Omit<TLUiToast, "id"> & {
         id?: string | undefined;
@@ -2502,16 +2505,19 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditableText(id: TLShapeId, type: string, text: string): {
+export function useEditableText(id: TLShapeId, type: string, text: string, opts?: {
+    disableTab: boolean;
+}): {
     rInput: React_2.RefObject<HTMLTextAreaElement>;
-    isEditing: boolean;
-    handleFocus: () => void;
+    handleFocus: typeof noop;
     handleBlur: () => void;
     handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
     handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
     handleInputPointerDown: (e: React_2.PointerEvent) => void;
     handleDoubleClick: (e: any) => any;
     isEmpty: boolean;
+    isEditing: boolean;
+    isEditingAnything: boolean;
 };
 
 // @public (undocumented)

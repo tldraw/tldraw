@@ -311,8 +311,8 @@ export function inkyCloudSvgPath(
 	}
 	const arcs = getCloudArcs(width, height, seed, size)
 	const avgArcLength =
-		arcs.reduce((sum, arc) => sum + Vec.Dist(arc.leftPoint, arc.rightPoint), 0) / arcs.length
-	const shouldMutatePoints = avgArcLength > mutMultiplier * 15
+		arcs.reduce((sum, arc) => sum + Vec.Dist2(arc.leftPoint, arc.rightPoint), 0) / arcs.length
+	const shouldMutatePoints = avgArcLength > (mutMultiplier * 15) ** 2
 
 	const mutPoint = shouldMutatePoints ? (p: Vec) => new Vec(mut(p.x), mut(p.y)) : (p: Vec) => p
 	let pathA = `M${toDomPrecision(arcs[0].leftPoint.x)},${toDomPrecision(arcs[0].leftPoint.y)}`

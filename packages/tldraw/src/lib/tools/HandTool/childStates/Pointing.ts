@@ -11,10 +11,18 @@ export class Pointing extends StateNode {
 		)
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+		this.startDragging()
+	}
+
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
-			this.parent.transition('dragging', info)
+			this.startDragging()
 		}
+	}
+
+	private startDragging() {
+		this.parent.transition('dragging')
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

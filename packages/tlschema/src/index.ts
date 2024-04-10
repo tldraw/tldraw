@@ -80,6 +80,7 @@ export {
 	parentIdValidator,
 	shapeIdValidator,
 	type ShapeProps,
+	type ShapePropsType,
 	type TLBaseShape,
 } from './shapes/TLBaseShape'
 export {

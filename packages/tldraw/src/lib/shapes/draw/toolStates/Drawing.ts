@@ -160,7 +160,7 @@ export class Drawing extends StateNode {
 		return (
 			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 &&
-			Vec.Dist(firstPoint, lastPoint) < strokeWidth * 2
+			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2)
 		)
 	}
 
@@ -224,7 +224,9 @@ export class Drawing extends StateNode {
 				this.pagePointWhereNextSegmentChanged = null
 				const segments = [...shape.props.segments, newSegment]
 
-				this.currentLineLength = this.getLineLength(segments)
+				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+					this.currentLineLength = this.getLineLength(segments)
+				}
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
 					id: shape.id,
@@ -411,7 +413,10 @@ export class Drawing extends StateNode {
 					}
 
 					const finalSegments = [...newSegments, newFreeSegment]
-					this.currentLineLength = this.getLineLength(finalSegments)
+
+					if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+						this.currentLineLength = this.getLineLength(finalSegments)
+					}
 
 					const shapePartial: TLShapePartial<DrawableShape> = {
 						id,
@@ -486,11 +491,10 @@ export class Drawing extends StateNode {
 								lastPoint,
 								newPoint
 							)
-							const distance = Vec.Dist(nearestPointOnSegment, newPoint)
 
-							if (distance < minDistance) {
+							if (Vec.DistMin(nearestPointOnSegment, newPoint, minDistance)) {
 								nearestPoint = nearestPointOnSegment.toFixed().toJson()
-								minDistance = distance
+								minDistance = Vec.Dist(nearestPointOnSegment, newPoint)
 								snapSegment = segment
 								break
 							}
@@ -598,7 +602,9 @@ export class Drawing extends StateNode {
 					points: newPoints,
 				}
 
-				this.currentLineLength = this.getLineLength(newSegments)
+				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+					this.currentLineLength = this.getLineLength(newSegments)
+				}
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
 					id,
@@ -659,7 +665,7 @@ export class Drawing extends StateNode {
 			for (let i = 0; i < segment.points.length - 1; i++) {
 				const A = segment.points[i]
 				const B = segment.points[i + 1]
-				length += Vec.Sub(B, A).len2()
+				length += Vec.Dist2(B, A)
 			}
 		}
 

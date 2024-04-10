@@ -2,7 +2,6 @@
 import {
 	Box,
 	Editor,
-	HTMLContainer,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
@@ -12,11 +11,13 @@ import {
 	TLTextShape,
 	Vec,
 	WeakMapCache,
+	getDefaultColorTheme,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
 	useEditor,
 } from '@tldraw/editor'
+import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
@@ -55,6 +56,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			width: width * scale,
 			height: height * scale,
 			isFilled: true,
+			isLabel: true,
 		})
 	}
 
@@ -69,29 +71,30 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const theme = useDefaultColorTheme()
 
 		return (
-			<HTMLContainer id={shape.id}>
-				<TextLabel
-					id={id}
-					classNamePrefix="tl-text-shape"
-					type="text"
-					font={font}
-					fontSize={FONT_SIZES[size]}
-					lineHeight={TEXT_PROPS.lineHeight}
-					align={align}
-					verticalAlign="middle"
-					text={text}
-					labelColor={color}
-					textWidth={width}
-					textHeight={height}
-					style={{
-						transform: `scale(${scale})`,
-						transformOrigin: 'top left',
-					}}
-					wrap
-				/>
-			</HTMLContainer>
+			<TextLabel
+				id={id}
+				classNamePrefix="tl-text-shape"
+				type="text"
+				font={font}
+				fontSize={FONT_SIZES[size]}
+				lineHeight={TEXT_PROPS.lineHeight}
+				align={align}
+				verticalAlign="middle"
+				text={text}
+				labelColor={theme[color].solid}
+				isSelected={isSelected}
+				textWidth={width}
+				textHeight={height}
+				style={{
+					transform: `scale(${scale})`,
+					transformOrigin: 'top left',
+				}}
+				wrap
+			/>
 		)
 	}
 
@@ -110,6 +113,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
+		const theme = getDefaultColorTheme(ctx)
+
 		return (
 			<SvgTextLabel
 				fontSize={FONT_SIZES[shape.props.size]}
@@ -117,7 +122,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				align={shape.props.align}
 				verticalAlign="middle"
 				text={shape.props.text}
-				labelColor={shape.props.color}
+				labelColor={theme[shape.props.color].solid}
 				bounds={new Box(0, 0, width, height)}
 				padding={0}
 			/>
