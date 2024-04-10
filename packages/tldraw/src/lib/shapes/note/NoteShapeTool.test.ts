@@ -11,7 +11,7 @@ afterEach(() => {
 })
 
 describe(NoteShapeTool, () => {
-	it.only('Creates note shapes on click-and-drag, supports undo and redo', () => {
+	it('Creates note shapes on click-and-drag, supports undo and redo', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 
 		editor.setCurrentTool('note')
