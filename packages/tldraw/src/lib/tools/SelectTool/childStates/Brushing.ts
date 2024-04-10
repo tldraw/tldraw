@@ -129,9 +129,7 @@ export class Brushing extends StateNode {
 
 		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
 
-		const candidateShapes = this.editor.getShapesInsideBounds(
-			Box.FromPoints([originPagePoint, currentPagePoint]).expandBy(HIT_TEST_MARGIN)
-		)
+		const candidateShapes = this.editor.getShapesInsideBounds(this.brush)
 
 		testAllShapes: for (let i = 0, n = candidateShapes.length; i < n; i++) {
 			shape = candidateShapes[i]
