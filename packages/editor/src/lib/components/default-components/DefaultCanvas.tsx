@@ -21,7 +21,6 @@ import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
 import { nearestMultiple } from '../../utils/nearestMultiple'
-import { CulledShapes } from '../CulledShapes'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
@@ -125,9 +124,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<Background />
 				</div>
 			)}
-			<div className="tl-culled-shapes">
-				<CulledShapes />
-			</div>
 			<div
 				ref={rCanvas}
 				draggable={false}
@@ -388,6 +384,30 @@ function ShapesWithSVGs() {
 		</>
 	)
 }
+function ReflowIfNeeded() {
+	const editor = useEditor()
+	const culledShapesRef = useRef<Set<TLShapeId>>(new Set())
+	useQuickReactor(
+		'reflow for culled shapes',
+		() => {
+			const culledShapes = editor.getCulledShapes()
+			if (
+				culledShapesRef.current.size === culledShapes.size &&
+				[...culledShapes].every((id) => culledShapesRef.current.has(id))
+			)
+				return
+
+			culledShapesRef.current = culledShapes
+			const canvas = document.getElementsByClassName('tl-canvas')
+			if (canvas.length === 0) return
+			// This causes a reflow
+			// https://gist.github.com/paulirish/5d52fb081b3570c81e3a
+			const _height = (canvas[0] as HTMLDivElement).offsetHeight
+		},
+		[editor]
+	)
+	return null
+}
 
 function ShapesToDisplay() {
 	const editor = useEditor()
@@ -408,6 +428,7 @@ function ShapesToDisplay() {
 			{renderingShapes.map((result) => (
 				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
 			))}
+			{editor.environment.isSafari && <ReflowIfNeeded />}
 		</>
 	)
 }

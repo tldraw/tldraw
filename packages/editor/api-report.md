@@ -675,6 +675,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getCrashingError(): unknown;
     getCroppingShapeId(): null | TLShapeId;
+    getCulledShapes(): Set<TLShapeId>;
     getCurrentPage(): TLPage;
     getCurrentPageBounds(): Box | undefined;
     getCurrentPageId(): TLPageId;
@@ -712,7 +713,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getRenderingBounds(): Box;
-    getRenderingBoundsExpanded(): Box;
     getRenderingShapes(): {
         id: TLShapeId;
         shape: TLShape;
@@ -817,7 +817,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         margin?: number | undefined;
         hitInside?: boolean | undefined;
     }): boolean;
-    isShapeCulled(shape: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     // (undocumented)
