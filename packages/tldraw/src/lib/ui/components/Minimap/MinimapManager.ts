@@ -237,14 +237,11 @@ export class MinimapManager {
 		let pb: Box & { id: TLShapeId }
 		for (let i = 0, n = pageBounds.length; i < n; i++) {
 			pb = pageBounds[i]
-			MinimapManager.roundedRect(
-				selectedShapeIds.includes(pb.id) ? selectedPath : shapesPath,
+			;(selectedShapeIds.includes(pb.id) ? selectedPath : shapesPath).rect(
 				pb.minX,
 				pb.minY,
 				pb.width,
-				pb.height,
-				clamp(rx, ax, pb.width / bx),
-				clamp(ry, ay, pb.height / by)
+				pb.height
 			)
 		}
 
