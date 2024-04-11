@@ -49,18 +49,9 @@ export const snapshot = {
 	schema: {
 		schemaVersion: 2,
 		sequences: {
-			'com.tldraw.store': {
-				version: 4,
-				retroactive: false,
-			},
-			'com.tldraw.document': {
-				version: 2,
-				retroactive: true,
-			},
-			'com.tldraw.page': {
-				version: 1,
-				retroactive: true,
-			},
+			'com.tldraw.store': 4,
+			'com.tldraw.document': 2,
+			'com.tldraw.page': 1,
 		},
 	},
 } as TLStoreSnapshot

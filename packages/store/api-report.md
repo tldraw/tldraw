@@ -234,10 +234,7 @@ export interface SerializedSchemaV2 {
     schemaVersion: 2;
     // (undocumented)
     sequences: {
-        [sequenceId: string]: {
-            version: number;
-            retroactive: boolean;
-        };
+        [sequenceId: string]: number;
     };
 }
 

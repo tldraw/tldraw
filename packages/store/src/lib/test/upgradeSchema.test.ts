@@ -42,107 +42,35 @@ describe('upgradeSchema', () => {
 
 		expect(upgradeSchema(v1)).toMatchInlineSnapshot(`
 		{
-		  "schemaVersion": 2,
-		  "sequences": {
-		    "com.tldraw.asset": {
-		      "retroactive": false,
-		      "version": 1,
-		    },
-		    "com.tldraw.asset.bookmark": {
-		      "retroactive": false,
-		      "version": 0,
-		    },
-		    "com.tldraw.asset.image": {
-		      "retroactive": false,
-		      "version": 2,
-		    },
-		    "com.tldraw.asset.video": {
-		      "retroactive": false,
-		      "version": 2,
-		    },
-		    "com.tldraw.camera": {
-		      "retroactive": false,
-		      "version": 1,
-		    },
-		    "com.tldraw.document": {
-		      "retroactive": false,
-		      "version": 2,
-		    },
-		    "com.tldraw.instance": {
-		      "retroactive": false,
-		      "version": 22,
-		    },
-		    "com.tldraw.instance_page_state": {
-		      "retroactive": false,
-		      "version": 5,
-		    },
-		    "com.tldraw.instance_presence": {
-		      "retroactive": false,
-		      "version": 5,
-		    },
-		    "com.tldraw.page": {
-		      "retroactive": false,
-		      "version": 1,
-		    },
-		    "com.tldraw.pointer": {
-		      "retroactive": false,
-		      "version": 1,
-		    },
-		    "com.tldraw.shape": {
-		      "retroactive": false,
-		      "version": 3,
-		    },
-		    "com.tldraw.shape.arrow": {
-		      "retroactive": false,
-		      "version": 1,
-		    },
-		    "com.tldraw.shape.bookmark": {
-		      "retroactive": false,
-		      "version": 1,
-		    },
-		    "com.tldraw.shape.draw": {
-		      "retroactive": false,
-		      "version": 1,
-		    },
-		    "com.tldraw.shape.embed": {
-		      "retroactive": false,
-		      "version": 4,
-		    },
-		    "com.tldraw.shape.frame": {
-		      "retroactive": false,
-		      "version": 0,
-		    },
-		    "com.tldraw.shape.geo": {
-		      "retroactive": false,
-		      "version": 7,
-		    },
-		    "com.tldraw.shape.group": {
-		      "retroactive": false,
-		      "version": 0,
-		    },
-		    "com.tldraw.shape.highlight": {
-		      "retroactive": false,
-		      "version": 0,
-		    },
-		    "com.tldraw.shape.image": {
-		      "retroactive": false,
-		      "version": 2,
-		    },
-		    "com.tldraw.shape.line": {
-		      "retroactive": false,
-		      "version": 1,
-		    },
-		    "com.tldraw.shape.note": {
-		      "retroactive": false,
-		      "version": 4,
-		    },
-		    "com.tldraw.shape.text": {
-		      "retroactive": false,
-		      "version": 1,
-		    },
-		    "com.tldraw.shape.video": {
-		      "retroactive": false,
-		      "version": 1,
+		  "ok": true,
+		  "value": {
+		    "schemaVersion": 2,
+		    "sequences": {
+		      "com.tldraw.asset": 1,
+		      "com.tldraw.asset.bookmark": 0,
+		      "com.tldraw.asset.image": 2,
+		      "com.tldraw.asset.video": 2,
+		      "com.tldraw.camera": 1,
+		      "com.tldraw.document": 2,
+		      "com.tldraw.instance": 22,
+		      "com.tldraw.instance_page_state": 5,
+		      "com.tldraw.instance_presence": 5,
+		      "com.tldraw.page": 1,
+		      "com.tldraw.pointer": 1,
+		      "com.tldraw.shape": 3,
+		      "com.tldraw.shape.arrow": 1,
+		      "com.tldraw.shape.bookmark": 1,
+		      "com.tldraw.shape.draw": 1,
+		      "com.tldraw.shape.embed": 4,
+		      "com.tldraw.shape.frame": 0,
+		      "com.tldraw.shape.geo": 7,
+		      "com.tldraw.shape.group": 0,
+		      "com.tldraw.shape.highlight": 0,
+		      "com.tldraw.shape.image": 2,
+		      "com.tldraw.shape.line": 1,
+		      "com.tldraw.shape.note": 4,
+		      "com.tldraw.shape.text": 1,
+		      "com.tldraw.shape.video": 1,
 		    },
 		  },
 		}

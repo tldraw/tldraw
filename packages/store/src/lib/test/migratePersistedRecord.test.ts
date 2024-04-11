@@ -48,25 +48,14 @@ const makeSchema = (migrations: MigrationSequence[]) => {
 const makePersistedSchema = (...args: Array<[migrations: MigrationSequence, version: number]>) => {
 	return {
 		schemaVersion: 2,
-		sequences: Object.fromEntries(
-			args.map(([m, v]) => [
-				m.sequenceId,
-				{
-					retroactive: m.retroactive,
-					version: v,
-				},
-			])
-		),
+		sequences: Object.fromEntries(args.map(([m, v]) => [m.sequenceId, v])),
 	} satisfies SerializedSchemaV2
 }
 
 const makeTestRecord = (persistedSchema: SerializedSchemaV2) => {
 	return TestRecordType.create({
 		versions: Object.fromEntries(
-			Object.keys(persistedSchema.sequences).map((id) => [
-				id,
-				persistedSchema.sequences[id].version,
-			])
+			Object.keys(persistedSchema.sequences).map((id) => [id, persistedSchema.sequences[id]])
 		),
 	})
 }

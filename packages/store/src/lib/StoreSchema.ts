@@ -47,10 +47,7 @@ export interface SerializedSchemaV1 {
 export interface SerializedSchemaV2 {
 	schemaVersion: 2
 	sequences: {
-		[sequenceId: string]: {
-			version: number
-			retroactive: boolean
-		}
+		[sequenceId: string]: number
 	}
 }
 
@@ -66,16 +63,10 @@ export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchema
 	}
 
 	for (const [typeName, recordVersion] of Object.entries(schema.recordVersions)) {
-		result.sequences[`com.tldraw.${typeName}`] = {
-			version: recordVersion.version,
-			retroactive: false,
-		}
+		result.sequences[`com.tldraw.${typeName}`] = recordVersion.version
 		if ('subTypeKey' in recordVersion) {
 			for (const [subType, version] of Object.entries(recordVersion.subTypeVersions)) {
-				result.sequences[`com.tldraw.${typeName}.${subType}`] = {
-					version,
-					retroactive: false,
-				}
+				result.sequences[`com.tldraw.${typeName}.${subType}`] = version
 			}
 		}
 	}
@@ -189,15 +180,15 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		for (const sequenceId of sequenceIdsToInclude) {
 			const theirVersion = schema.sequences[sequenceId]
 			if (
-				(!theirVersion && this.migrations[sequenceId].retroactive) ||
-				theirVersion?.version === 0
+				(typeof theirVersion !== 'number' && this.migrations[sequenceId].retroactive) ||
+				theirVersion === 0
 			) {
 				for (const migration of this.migrations[sequenceId].sequence) {
 					allMigrationsToInclude.add(migration.id)
 				}
 				continue
 			}
-			const theirVersionId = `${sequenceId}/${schema.sequences[sequenceId].version}`
+			const theirVersionId = `${sequenceId}/${theirVersion}`
 			const idx = this.migrations[sequenceId].sequence.findIndex((m) => m.id === theirVersionId)
 			// todo: better error handling
 			if (idx === -1) {
@@ -319,12 +310,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return {
 			schemaVersion: 2,
 			sequences: Object.fromEntries(
-				Object.values(this.migrations).map(({ sequenceId, sequence, retroactive }) => [
+				Object.values(this.migrations).map(({ sequenceId, sequence }) => [
 					sequenceId,
-					{
-						version: sequence.length ? parseMigrationId(sequence.at(-1)!.id).version : 0,
-						retroactive,
-					},
+					sequence.length ? parseMigrationId(sequence.at(-1)!.id).version : 0,
 				])
 			),
 		}
@@ -337,10 +325,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return {
 			schemaVersion: 2,
 			sequences: Object.fromEntries(
-				Object.values(this.migrations).map(({ sequenceId, retroactive }) => [
-					sequenceId,
-					{ version: 0, retroactive },
-				])
+				Object.values(this.migrations).map(({ sequenceId }) => [sequenceId, 0])
 			),
 		}
 	}

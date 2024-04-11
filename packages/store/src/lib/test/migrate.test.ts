@@ -19,26 +19,11 @@ test('serializedV1Schenma', () => {
 		{
 		  "schemaVersion": 2,
 		  "sequences": {
-		    "com.tldraw.shape": {
-		      "retroactive": true,
-		      "version": 2,
-		    },
-		    "com.tldraw.shape.oval": {
-		      "retroactive": true,
-		      "version": 1,
-		    },
-		    "com.tldraw.shape.rectangle": {
-		      "retroactive": true,
-		      "version": 1,
-		    },
-		    "com.tldraw.store": {
-		      "retroactive": true,
-		      "version": 1,
-		    },
-		    "com.tldraw.user": {
-		      "retroactive": true,
-		      "version": 2,
-		    },
+		    "com.tldraw.shape": 2,
+		    "com.tldraw.shape.oval": 1,
+		    "com.tldraw.shape.rectangle": 1,
+		    "com.tldraw.store": 1,
+		    "com.tldraw.user": 2,
 		  },
 		}
 	`)

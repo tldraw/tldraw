@@ -3053,7 +3053,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        [sequenceId: string]: {\n            version: number;\n            retroactive: boolean;\n        };\n    }"
+                  "text": "{\n        [sequenceId: string]: number;\n    }"
                 },
                 {
                   "kind": "Content",

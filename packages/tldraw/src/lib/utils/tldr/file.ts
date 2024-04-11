@@ -57,13 +57,7 @@ const schemaV1 = T.object<SerializedSchemaV1>({
 
 const schemaV2 = T.object<SerializedSchemaV2>({
 	schemaVersion: T.literal(2),
-	sequences: T.dict(
-		T.string,
-		T.object({
-			version: T.positiveInteger,
-			retroactive: T.boolean,
-		})
-	),
+	sequences: T.dict(T.string, T.positiveInteger),
 })
 
 const tldrawFileValidator: T.Validator<TldrawFile> = T.object({

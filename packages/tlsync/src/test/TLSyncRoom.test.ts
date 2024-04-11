@@ -102,11 +102,7 @@ describe('TLSyncRoom', () => {
 			schemaVersion: 2,
 			sequences: {
 				...serializedSchema.sequences,
-				'com.tldraw.shape.arrow': {
-					retroactive: false,
-					// in version 1 we add the label color
-					version: 0,
-				},
+				'com.tldraw.shape.arrow': 0,
 			},
 		}
 

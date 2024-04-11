@@ -70,10 +70,7 @@ describe('getMigrationsSince', () => {
 	it('if a sequence is present both before and now, unapplied migrations will be returned', () => {
 		const foo = mockSequence({ id: 'foo', retroactive: true, versions: 2 })
 		const bar = mockSequence({ id: 'bar', retroactive: false, versions: 3 })
-		const ids = getMigrationsBetween(
-			{ foo: { retroactive: true, version: 1 }, bar: { retroactive: false, version: 1 } },
-			[foo, bar]
-		)
+		const ids = getMigrationsBetween({ foo: 1, bar: 1 }, [foo, bar])
 
 		const foos = ids.filter((id) => id.startsWith('foo'))
 		const bars = ids.filter((id) => id.startsWith('bar'))
@@ -85,10 +82,7 @@ describe('getMigrationsSince', () => {
 	it('if a sequence has not changed the empty array will be returned', () => {
 		const foo = mockSequence({ id: 'foo', retroactive: true, versions: 2 })
 		const bar = mockSequence({ id: 'bar', retroactive: false, versions: 3 })
-		const ids = getMigrationsBetween(
-			{ foo: { retroactive: true, version: 2 }, bar: { retroactive: false, version: 3 } },
-			[foo, bar]
-		)
+		const ids = getMigrationsBetween({ foo: 2, bar: 3 }, [foo, bar])
 
 		expect(ids).toEqual([])
 	})
@@ -99,8 +93,8 @@ describe('getMigrationsSince', () => {
 
 		const ids = getMigrationsBetween(
 			{
-				foo: { retroactive: true, version: 0 },
-				bar: { retroactive: false, version: 0 },
+				foo: 0,
+				bar: 0,
 			},
 			[foo, bar]
 		)
@@ -117,8 +111,8 @@ describe('getMigrationsSince', () => {
 
 		const ids = getMigrationsBetween(
 			{
-				foo: { retroactive: true, version: 0 },
-				bar: { retroactive: false, version: 0 },
+				foo: 0,
+				bar: 0,
 			},
 			[foo, bar]
 		)
