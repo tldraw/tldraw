@@ -1466,7 +1466,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		historyOptions?: TLCommandHistoryOptions
 	): this {
 		const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
-		this._setSelectedShapes(ids.sort(), historyOptions)
+		this._setSelectedShapes(ids, historyOptions)
 		return this
 	}
 
