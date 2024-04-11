@@ -26,11 +26,11 @@ export class SpatialIndex {
 		this.rBush = new TldrawRBush()
 	}
 
-	private addElementToArray(id: TLShapeId, a: Element[]): Element | null {
+	private addElement(id: TLShapeId, a: Element[]) {
 		const e = this.getElement(id)
-		if (!e) return null
+		if (!e) return
 		a.push(e)
-		return e
+		this.shapesInTree.set(id, e)
 	}
 
 	private getElement(id: TLShapeId, existingBounds?: Box): Element | null {
@@ -51,9 +51,7 @@ export class SpatialIndex {
 		const elementsToAdd: Element[] = []
 
 		this.editor.getCurrentPageShapeIds().forEach((id) => {
-			const e = this.addElementToArray(id, elementsToAdd)
-			if (!e) return
-			this.shapesInTree.set(id, e)
+			this.addElement(id, elementsToAdd)
 		})
 
 		this.rBush = new TldrawRBush().load(elementsToAdd)
@@ -83,9 +81,7 @@ export class SpatialIndex {
 			for (const changes of diff) {
 				for (const record of Object.values(changes.added)) {
 					if (isShape(record)) {
-						const e = this.addElementToArray(record.id, elementsToAdd)
-						if (!e) continue
-						this.shapesInTree.set(record.id, e)
+						this.addElement(record.id, elementsToAdd)
 					}
 				}
 
@@ -105,10 +101,7 @@ export class SpatialIndex {
 							this.shapesInTree.delete(to.id)
 							this.rBush.remove(currentElement)
 						}
-						const newE = this.getElement(to.id, newBounds)
-						if (!newE) continue
-						this.shapesInTree.set(to.id, newE)
-						elementsToAdd.push(newE)
+						this.addElement(to.id, elementsToAdd)
 					}
 				}
 				if (elementsToAdd.length) {
