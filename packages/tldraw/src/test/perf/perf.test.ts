@@ -1,8 +1,9 @@
 import { TLShapePartial, createShapeId } from '@tldraw/editor'
-import { PerformanceMeasurer } from '../PerformanceMeasurer'
 import { TestEditor } from '../TestEditor'
+import { PerformanceMeasurer } from './PerformanceMeasurer'
 
 let editor = new TestEditor()
+
 jest.useRealTimers()
 
 describe('A simple perf test', () => {
