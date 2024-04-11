@@ -27558,7 +27558,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    isEditing: boolean;\n    handleFocus: typeof "
+              "text": ">;\n    handleFocus: typeof "
             },
             {
               "kind": "Reference",
@@ -27612,7 +27612,7 @@
             },
             {
               "kind": "Content",
-              "text": ") => void;\n    handleDoubleClick: (e: any) => any;\n    isEmpty: boolean;\n    isEditingAnything: boolean;\n}"
+              "text": ") => void;\n    handleDoubleClick: (e: any) => any;\n    isEmpty: boolean;\n    isEditing: boolean;\n    isEditingAnything: boolean;\n}"
             },
             {
               "kind": "Content",

@@ -63,10 +63,9 @@ export const TextLabel = React.memo(function TextLabel({
 	)
 
 	const [initialText, setInitialText] = useState(text)
+
 	useEffect(() => {
-		if (!isEditing) {
-			setInitialText(text)
-		}
+		if (!isEditing) setInitialText(text)
 	}, [isEditing, text])
 
 	const finalText = TextHelpers.normalizeTextForDom(text)

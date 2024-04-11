@@ -2513,7 +2513,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string, opts?
     disableTab: boolean;
 }): {
     rInput: React_2.RefObject<HTMLTextAreaElement>;
-    isEditing: boolean;
     handleFocus: typeof noop;
     handleBlur: () => void;
     handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
@@ -2521,6 +2520,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string, opts?
     handleInputPointerDown: (e: React_2.PointerEvent) => void;
     handleDoubleClick: (e: any) => any;
     isEmpty: boolean;
+    isEditing: boolean;
     isEditingAnything: boolean;
 };
 

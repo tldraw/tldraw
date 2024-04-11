@@ -134,25 +134,26 @@ export class EditingShape extends StateNode {
 	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
 		// If we're not dragging, and it's a hit to the label, begin editing the shape.
 		const hitShape = this.hitShapeForPointerUp
-		if (hitShape) {
-			this.hitShapeForPointerUp = null
+		if (!hitShape) return
+		this.hitShapeForPointerUp = null
 
-			// Stay in edit mode to maintain flow of editing.
-			this.editor.batch(() => {
-				if (!hitShape) return
+		// Stay in edit mode to maintain flow of editing.
+		const util = this.editor.getShapeUtil(hitShape)
+		if (this.editor.getInstanceState().isReadonly) {
+			if (!util.canEditInReadOnly(hitShape)) {
+				this.parent.transition('pointing_shape', info)
+				return
+			}
+		}
 
-				const util = this.editor.getShapeUtil(hitShape)
-				if (this.editor.getInstanceState().isReadonly) {
-					if (!util.canEditInReadOnly(hitShape)) {
-						this.parent.transition('pointing_shape', info)
-						return
-					}
-				}
+		this.editor.select(hitShape.id)
 
-				this.editor.setEditingShape(hitShape.id)
-				this.editor.setCurrentTool('select.editing_shape')
-			})
-			return
+		if (this.editor.getInstanceState().isCoarsePointer) {
+			this.editor.setEditingShape(null)
+			this.editor.setCurrentTool('select.idle')
+		} else {
+			this.editor.setEditingShape(hitShape.id)
+			updateHoveredId(this.editor)
 		}
 	}
 

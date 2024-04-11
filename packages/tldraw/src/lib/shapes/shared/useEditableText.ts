@@ -23,13 +23,31 @@ export function useEditableText(
 	const editor = useEditor()
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
-	const rSelectionRanges = useRef<Range[] | null>()
+
+	const isEditing = useValue(
+		'isEditing',
+		() => {
+			return editor.getEditingShapeId() === id
+		},
+		[editor]
+	)
+
+	const isEditingAnything = useValue(
+		'isEditingAnything',
+		() => {
+			return editor.getEditingShapeId() !== null
+		},
+		[editor]
+	)
 
 	useEffect(() => {
 		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
 			if (shapeId === id) {
 				const elm = rInput.current
 				if (elm) {
+					if (document.activeElement !== elm) {
+						elm.focus()
+					}
 					elm.select()
 				}
 			}
@@ -40,22 +58,42 @@ export function useEditableText(
 		}
 	}, [editor, id])
 
-	const isEditingAnything = useValue(
-		'isEditingAnything',
-		() => editor.getEditingShapeId() !== null,
-		[editor]
-	)
+	const rSelectionRanges = useRef<Range[] | null>()
 
-	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
-
-	// If the shape is editing but the input element not focused, focus the element
 	useEffect(() => {
-		const elm = rInput.current
-		if (elm && isEditing && document.activeElement !== elm) {
-			elm.focus()
-		}
-	}, [isEditing])
+		if (!isEditing) return
 
+		const elm = rInput.current
+		if (!elm) return
+
+		// Focus if we're not already focused
+		if (document.activeElement !== elm) {
+			elm.focus()
+			// On mobile etc, just select all the text when we start focusing
+			if (editor.getInstanceState().isCoarsePointer) {
+				elm.select()
+			}
+		}
+
+		// When the selection changes, save the selection ranges
+		function updateSelection() {
+			const selection = window.getSelection?.()
+			if (selection && selection.type !== 'None') {
+				const ranges: Range[] = []
+				for (let i = 0; i < selection.rangeCount; i++) {
+					ranges.push(selection.getRangeAt?.(i))
+				}
+				rSelectionRanges.current = ranges
+			}
+		}
+
+		document.addEventListener('selectionchange', updateSelection)
+		return () => {
+			document.removeEventListener('selectionchange', updateSelection)
+		}
+	}, [editor, isEditing])
+
+	// 2. Restore the selection changes (and focus) if the element blurs
 	// When the label blurs, deselect all of the text and complete.
 	// This makes it so that the canvas does not have to be focused
 	// in order to exit the editing state and complete the editing state
@@ -87,7 +125,7 @@ export function useEditableText(
 	// When the user presses ctrl / meta enter, complete the editing state.
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-			if (!isEditing) return
+			if (editor.getEditingShapeId() !== id) return
 
 			switch (e.key) {
 				case 'Enter': {
@@ -97,7 +135,7 @@ export function useEditableText(
 					break
 				}
 				case 'Tab': {
-					if (opts.disableTab) {
+					if (!opts.disableTab) {
 						preventDefault(e)
 						if (e.shiftKey) {
 							TextHelpers.unindent(e.currentTarget)
@@ -109,7 +147,7 @@ export function useEditableText(
 				}
 			}
 		},
-		[editor, isEditing, opts.disableTab]
+		[editor, id, opts.disableTab]
 	)
 
 	// When the text changes, update the text value.
@@ -140,34 +178,6 @@ export function useEditableText(
 		[editor, id, type]
 	)
 
-	useEffect(() => {
-		if (!isEditing) return
-
-		const elm = rInput.current
-		if (elm) {
-			function updateSelection() {
-				const selection = window.getSelection?.()
-				if (selection && selection.type !== 'None') {
-					const ranges: Range[] = []
-
-					if (selection) {
-						for (let i = 0; i < selection.rangeCount; i++) {
-							ranges.push(selection.getRangeAt?.(i))
-						}
-					}
-
-					rSelectionRanges.current = ranges
-				}
-			}
-
-			document.addEventListener('selectionchange', updateSelection)
-
-			return () => {
-				document.removeEventListener('selectionchange', updateSelection)
-			}
-		}
-	}, [isEditing])
-
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
 			editor.dispatch({
@@ -193,7 +203,6 @@ export function useEditableText(
 
 	return {
 		rInput,
-		isEditing,
 		handleFocus: noop,
 		handleBlur,
 		handleKeyDown,
@@ -201,6 +210,7 @@ export function useEditableText(
 		handleInputPointerDown,
 		handleDoubleClick,
 		isEmpty: text.trim().length === 0,
+		isEditing,
 		isEditingAnything,
 	}
 }

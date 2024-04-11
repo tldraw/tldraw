@@ -32,12 +32,11 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 			name="text"
 			tabIndex={-1}
 			readOnly={!isEditing}
-			disabled={!isEditing}
 			autoComplete="off"
 			autoCapitalize="off"
 			autoCorrect="off"
 			autoSave="off"
-			autoFocus
+			// autoFocus
 			placeholder=""
 			spellCheck="true"
 			wrap="off"
