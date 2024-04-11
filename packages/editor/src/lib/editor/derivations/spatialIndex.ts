@@ -111,10 +111,11 @@ export class SpatialIndex {
 						elementsToAdd.push(newE)
 					}
 				}
-				this.rBush.load(elementsToAdd)
 				if (elementsToAdd.length) {
+					this.rBush.load(elementsToAdd)
 					isDirty = true
 				}
+
 				for (const id of Object.keys(changes.removed)) {
 					if (isShapeId(id)) {
 						const currentElement = this.shapesInTree.get(id)
@@ -139,8 +140,7 @@ export class SpatialIndex {
 			if (isUninitialized(prevValue)) {
 				return new Set(newValue)
 			}
-			const isSame =
-				prevValue && prevValue.size === newValue.length && newValue.every((id) => prevValue.has(id))
+			const isSame = prevValue.size === newValue.length && newValue.every((id) => prevValue.has(id))
 			return isSame ? prevValue : new Set(newValue)
 		})
 	}
@@ -158,7 +158,7 @@ export class SpatialIndex {
 			const nonVisibleShapes = [...pageShapes].filter((id) => !visibleShapes.has(id))
 			if (isUninitialized(prevValue)) return new Set(nonVisibleShapes)
 			const isSame =
-				nonVisibleShapes.length === prevValue.size &&
+				prevValue.size === nonVisibleShapes.length &&
 				nonVisibleShapes.every((id) => prevValue.has(id))
 			return isSame ? prevValue : new Set(nonVisibleShapes)
 		})
