@@ -115,7 +115,7 @@ export function useEditableText(
 	// When the text changes, update the text value.
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			if (!isEditing) return
+			if (editor.getEditingShapeId() !== id) return
 
 			let text = TextHelpers.normalizeText(e.currentTarget.value)
 
@@ -131,14 +131,14 @@ export function useEditableText(
 			}
 			// ----------------------------
 
-			editor.updateShapes<TLUnknownShape & { props: { text: string } }>([
-				{ id, type, props: { text } },
-			])
+			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
+				id,
+				type,
+				props: { text },
+			})
 		},
-		[editor, id, type, isEditing]
+		[editor, id, type]
 	)
-
-	const isEmpty = text.trim().length === 0
 
 	useEffect(() => {
 		if (!isEditing) return
@@ -182,11 +182,11 @@ export function useEditableText(
 
 			// This is important so that when dragging a shape using the text label,
 			// the shape continues to be dragged, even if the cursor is over the UI.
-			if (!isEditing) {
+			if (editor.getEditingShapeId() !== id) {
 				setPointerCapture(e.currentTarget, e)
 			}
 		},
-		[editor, id, isEditing]
+		[editor, id]
 	)
 
 	const handleDoubleClick = stopEventPropagation
@@ -200,7 +200,7 @@ export function useEditableText(
 		handleChange,
 		handleInputPointerDown,
 		handleDoubleClick,
-		isEmpty,
+		isEmpty: text.trim().length === 0,
 		isEditingAnything,
 	}
 }
