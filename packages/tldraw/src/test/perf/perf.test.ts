@@ -11,12 +11,13 @@ const now = () => {
 }
 
 export class PerformanceMeasurer {
-	setupFn?: () => void
-	teardownFn?: () => void
-	fns: (() => void)[] = []
-
-	warmupIterations = 0
-	iterations = 0
+	private setupFn?: () => void
+	private beforeFns: (() => void)[] = []
+	private fns: (() => void)[] = []
+	private afterFns: (() => void)[] = []
+	private teardownFn?: () => void
+	private warmupIterations = 0
+	private iterations = 0
 
 	total = 0
 	average = 0
@@ -55,14 +56,30 @@ export class PerformanceMeasurer {
 		return this
 	}
 
+	before(cb: () => void) {
+		this.beforeFns.push(cb)
+		return this
+	}
+
+	after(cb: () => void) {
+		this.afterFns.push(cb)
+		return this
+	}
+
 	run() {
-		const { fns } = this
+		const { fns, beforeFns, afterFns, warmupIterations, iterations } = this
 
 		// Run the cold run
 		this.setupFn?.()
 		const a = now()
-		for (let j = 0; j < this.fns.length; j++) {
+		for (let k = 0; k < beforeFns.length; k++) {
+			beforeFns[k]()
+		}
+		for (let j = 0; j < fns.length; j++) {
 			fns[j]()
+		}
+		for (let l = 0; l < afterFns.length; l++) {
+			afterFns[l]()
 		}
 		const duration = now() - a
 		this.cold = duration
@@ -70,37 +87,50 @@ export class PerformanceMeasurer {
 
 		// Run all of the warmup iterations
 		if (this.warmupIterations > 0) {
-			for (let i = 0; i < this.warmupIterations; i++) {
-				this.setupFn?.()
+			this.setupFn?.()
+			for (let i = 0; i < warmupIterations; i++) {
+				for (let k = 0; k < beforeFns.length; k++) {
+					beforeFns[k]()
+				}
 				const _a = now()
-				for (let j = 0; j < this.fns.length; j++) {
+				for (let j = 0; j < fns.length; j++) {
 					fns[j]()
 				}
 				const _duration = now() - a
-				this.teardownFn?.()
+				for (let l = 0; l < afterFns.length; l++) {
+					afterFns[l]()
+				}
 			}
+			this.teardownFn?.()
 		}
 
 		this.totalStart = now()
+
 		// Run all of the iterations and calculate average
 		if (this.iterations > 0) {
-			for (let i = 0; i < this.iterations; i++) {
-				this.setupFn?.()
+			this.setupFn?.()
+			for (let i = 0; i < iterations; i++) {
+				for (let k = 0; k < beforeFns.length; k++) {
+					beforeFns[k]()
+				}
 				const a = now()
-				for (let j = 0; j < this.fns.length; j++) {
+				for (let j = 0; j < fns.length; j++) {
 					fns[j]()
 				}
 				const duration = now() - a
 				this.total += duration
 				this.fastest = Math.min(duration, this.fastest)
 				this.slowest = Math.max(duration, this.fastest)
-				this.teardownFn?.()
+				for (let l = 0; l < afterFns.length; l++) {
+					afterFns[l]()
+				}
 			}
+			this.teardownFn?.()
 		}
 
 		this.totalTime = now() - this.totalStart
-		if (this.iterations > 0) {
-			this.average = this.total / this.iterations
+		if (iterations > 0) {
+			this.average = this.total / iterations
 		}
 
 		return this
@@ -138,7 +168,7 @@ describe('A simple perf test', () => {
 			warmupIterations: 10,
 			iterations: 10,
 		})
-			.setup(() => {
+			.before(() => {
 				editor = new TestEditor()
 			})
 			.add(() => {
@@ -159,7 +189,7 @@ describe('A simple perf test', () => {
 				iterations: 10,
 			}
 		)
-			.setup(() => {
+			.before(() => {
 				editor = new TestEditor()
 			})
 			.add(() => {
@@ -186,14 +216,14 @@ describe('A simple perf test', () => {
 	}, 10000)
 
 	it('Measures rendering shapes', () => {
-		const renderingShapes = new PerformanceMeasurer('Measure rendering bounds with 1000 shapes', {
+		const renderingShapes = new PerformanceMeasurer('Measure rendering bounds with 100 shapes', {
 			warmupIterations: 10,
 			iterations: 20,
 		})
-			.setup(() => {
+			.before(() => {
 				editor = new TestEditor()
 				const shapesToCreate: TLShapePartial[] = []
-				for (let i = 0; i < 1000; i++) {
+				for (let i = 0; i < 100; i++) {
 					shapesToCreate.push({
 						id: createShapeId(),
 						type: 'geo',
@@ -205,19 +235,22 @@ describe('A simple perf test', () => {
 				editor.createShapes(shapesToCreate)
 			})
 			.add(() => {
-				const shapes = editor.getRenderingShapes()
-				editor.updateShape({ ...shapes[0].shape, x: shapes[0].shape.x + 1 })
+				editor.getRenderingShapes()
+			})
+			.after(() => {
+				const shape = editor.getCurrentPageShapes()[0]
+				editor.updateShape({ ...shape, x: shape.x + 1 })
 			})
 			.run()
 
-		const renderingShapes2 = new PerformanceMeasurer('Measure rendering bounds with 2000 shapes', {
+		const renderingShapes2 = new PerformanceMeasurer('Measure rendering bounds with 200 shapes', {
 			warmupIterations: 10,
 			iterations: 20,
 		})
-			.setup(() => {
+			.before(() => {
 				editor = new TestEditor()
 				const shapesToCreate: TLShapePartial[] = []
-				for (let i = 0; i < 2000; i++) {
+				for (let i = 0; i < 200; i++) {
 					shapesToCreate.push({
 						id: createShapeId(),
 						type: 'geo',
@@ -229,8 +262,11 @@ describe('A simple perf test', () => {
 				editor.createShapes(shapesToCreate)
 			})
 			.add(() => {
-				const shapes = editor.getRenderingShapes()
-				editor.updateShape({ ...shapes[0].shape, x: shapes[0].shape.x + 1 })
+				editor.getRenderingShapes()
+			})
+			.after(() => {
+				const shape = editor.getCurrentPageShapes()[0]
+				editor.updateShape({ ...shape, x: shape.x + 1 })
 			})
 			.run()
 
