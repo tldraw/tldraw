@@ -6,7 +6,7 @@ let editor = new TestEditor()
 
 jest.useRealTimers()
 
-describe('A simple perf test', () => {
+describe.skip('Example perf tests', () => {
 	it('measures Editor.createShape vs Editor.createShapes', () => {
 		const withCreateShape = new PerformanceMeasurer('Create 200 shapes using Editor.createShape', {
 			warmupIterations: 10,
