@@ -516,7 +516,7 @@ export function degreesToRadians(d: number): number;
 export const DOUBLE_CLICK_DURATION = 450;
 
 // @internal (undocumented)
-export const DRAG_DISTANCE = 4;
+export const DRAG_DISTANCE = 16;
 
 // @public (undocumented)
 export const EASINGS: {
@@ -677,6 +677,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     getCrashingError(): unknown;
     getCroppingShapeId(): null | TLShapeId;
+    getCulledShapes(): Set<TLShapeId>;
     getCurrentPage(): TLPage;
     getCurrentPageBounds(): Box | undefined;
     getCurrentPageId(): TLPageId;
@@ -714,7 +715,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getRenderingBounds(): Box;
-    getRenderingBoundsExpanded(): Box;
     getRenderingShapes(): {
         id: TLShapeId;
         shape: TLShape;
@@ -722,8 +722,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         index: number;
         backgroundIndex: number;
         opacity: number;
-        isCulled: boolean;
-        maskedPageBounds: Box | undefined;
     }[];
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
@@ -784,8 +782,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         index: number;
         backgroundIndex: number;
         opacity: number;
-        isCulled: boolean;
-        maskedPageBounds: Box | undefined;
     }[];
     getViewportPageBounds(): Box;
     getViewportPageCenter(): Vec;
@@ -1676,7 +1672,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canResize: TLShapeUtilFlag<Shape>;
     canScroll: TLShapeUtilFlag<Shape>;
     canSnap: TLShapeUtilFlag<Shape>;
-    canUnmount: TLShapeUtilFlag<Shape>;
     abstract component(shape: Shape): any;
     // (undocumented)
     editor: Editor;
@@ -1887,6 +1882,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     onKeyRepeat?: TLEventHandlers['onKeyRepeat'];
     // (undocumented)
     onKeyUp?: TLEventHandlers['onKeyUp'];
+    // (undocumented)
+    onLongPress?: TLEventHandlers['onLongPress'];
     // (undocumented)
     onMiddleClick?: TLEventHandlers['onMiddleClick'];
     // (undocumented)
@@ -2185,6 +2182,8 @@ export interface TLEventHandlers {
     // (undocumented)
     onKeyUp: TLKeyboardEvent;
     // (undocumented)
+    onLongPress: TLPointerEvent;
+    // (undocumented)
     onMiddleClick: TLPointerEvent;
     // (undocumented)
     onPointerDown: TLPointerEvent;
@@ -2437,7 +2436,7 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 } & TLPointerEventTarget;
 
 // @public (undocumented)
-export type TLPointerEventName = 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click';
+export type TLPointerEventName = 'long_press' | 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click';
 
 // @public (undocumented)
 export type TLPointerEventTarget = {

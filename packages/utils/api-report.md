@@ -176,6 +176,15 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
     [K in Key]: ValueAfter;
 };
 
+// @internal (undocumented)
+export function measureAverageDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
+
+// @internal (undocumented)
+export function measureCbDuration(name: string, cb: () => any): any;
+
+// @internal (undocumented)
+export function measureDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
+
 // @public
 export class MediaHelpers {
     static getImageSize(blob: Blob): Promise<{

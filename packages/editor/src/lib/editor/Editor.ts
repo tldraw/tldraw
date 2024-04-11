@@ -78,6 +78,7 @@ import {
 	FOLLOW_CHASE_ZOOM_UNSNAP,
 	HIT_TEST_MARGIN,
 	INTERNAL_POINTER_IDS,
+	LONG_PRESS_DURATION,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
@@ -100,6 +101,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
+import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { getSvgJsx } from './getSvgJsx'
@@ -3071,50 +3073,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 			index: number
 			backgroundIndex: number
 			opacity: number
-			isCulled: boolean
-			maskedPageBounds: Box | undefined
 		}[] = []
 
 		let nextIndex = MAX_SHAPES_PER_PAGE * 2
 		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE
 
-		// We only really need these if we're using editor state, but that's ok
-		const editingShapeId = this.getEditingShapeId()
-		const selectedShapeIds = this.getSelectedShapeIds()
 		const erasingShapeIds = this.getErasingShapeIds()
-		const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
-
-		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
-		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
 
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			const shape = this.getShape(id)
 			if (!shape) return
 
 			opacity *= shape.opacity
-			let isCulled = false
 			let isShapeErasing = false
 			const util = this.getShapeUtil(shape)
-			const maskedPageBounds = this.getShapeMaskedPageBounds(id)
 
 			if (useEditorState) {
 				isShapeErasing = !isAncestorErasing && erasingShapeIds.includes(id)
 				if (isShapeErasing) {
 					opacity *= 0.32
 				}
-
-				isCulled =
-					isCullingOffScreenShapes &&
-					// only cull shapes that allow unmounting, i.e. not stateful components
-					util.canUnmount(shape) &&
-					// never cull editingg shapes
-					editingShapeId !== id &&
-					// if the shape is fully outside of its parent's clipping bounds...
-					(maskedPageBounds === undefined ||
-						// ...or if the shape is outside of the expanded viewport bounds...
-						(!renderingBoundsExpanded.includes(maskedPageBounds) &&
-							// ...and if it's not selected... then cull it
-							!selectedShapeIds.includes(id)))
 			}
 
 			renderingShapes.push({
@@ -3124,8 +3102,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				index: nextIndex,
 				backgroundIndex: nextBackgroundIndex,
 				opacity,
-				isCulled,
-				maskedPageBounds,
 			})
 
 			nextIndex += 1
@@ -3196,19 +3172,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private readonly _renderingBounds = atom('rendering viewport', new Box())
 
 	/**
-	 * The current rendering bounds in the current page space, expanded slightly. Used for determining which shapes
-	 * to render and which to "cull".
-	 *
-	 * @public
-	 */
-	getRenderingBoundsExpanded() {
-		return this._renderingBoundsExpanded.get()
-	}
-
-	/** @internal */
-	private readonly _renderingBoundsExpanded = atom('rendering viewport expanded', new Box())
-
-	/**
 	 * Update the rendering bounds. This should be called when the viewport has stopped changing, such
 	 * as at the end of a pan, zoom, or animation.
 	 *
@@ -3225,13 +3188,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
 		this._renderingBounds.set(viewportPageBounds.clone())
 
-		if (Number.isFinite(this.renderingBoundsMargin)) {
-			this._renderingBoundsExpanded.set(
-				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.getZoomLevel())
-			)
-		} else {
-			this._renderingBoundsExpanded.set(viewportPageBounds)
-		}
 		return this
 	}
 
@@ -3272,7 +3228,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getCurrentPageId(): TLPageId {
+	@computed getCurrentPageId(): TLPageId {
 		return this.getInstanceState().currentPageId
 	}
 
@@ -4029,6 +3985,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.isShapeOrAncestorLocked(this.getShapeParent(shape))
 	}
 
+	@computed
+	private _notVisibleShapes() {
+		return notVisibleShapes(this)
+	}
+
+	/**
+	 * Get culled shapes.
+	 *
+	 * @public
+	 */
+	@computed
+	getCulledShapes() {
+		const notVisibleShapes = this._notVisibleShapes().get()
+		const selectedShapeIds = this.getSelectedShapeIds()
+		const editingId = this.getEditingShapeId()
+		const culledShapes = new Set<TLShapeId>(notVisibleShapes)
+		// we don't cull the shape we are editing
+		if (editingId) {
+			culledShapes.delete(editingId)
+		}
+		// we also don't cull selected shapes
+		selectedShapeIds.forEach((id) => {
+			culledShapes.delete(id)
+		})
+		return culledShapes
+	}
+
 	/**
 	 * The bounds of the current page (the common bounds of all of the shapes on the page).
 	 *
@@ -4111,7 +4094,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (filter) return filter(shape)
 			return true
 		})
-
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
 			const geometry = this.getShapeGeometry(shape)
@@ -4400,10 +4382,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
-		return this.getRenderingShapes()
-			.filter(({ isCulled }) => !isCulled)
-			.sort((a, b) => a.index - b.index)
-			.map(({ shape }) => shape)
+		const culledShapes = this.getCulledShapes()
+		return this.getCurrentPageShapesSorted().filter(({ id }) => !culledShapes.has(id))
 	}
 
 	/**
@@ -7988,6 +7968,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _selectedShapeIdsAtPointerDown: TLShapeId[] = []
 
 	/** @internal */
+	private _longPressTimeout = -1 as any
+
+	/** @internal */
 	capturedPointerId: number | null = null
 
 	/**
@@ -8004,7 +7987,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	dispatch = (info: TLEventInfo): this => {
 		this._pendingEventsForNextTick.push(info)
-		if (!(info.type === 'pointer' || info.type === 'wheel' || info.type === 'pinch')) {
+		if (
+			!(
+				(info.type === 'pointer' && info.name === 'pointer_move') ||
+				info.type === 'wheel' ||
+				info.type === 'pinch'
+			)
+		) {
 			this._flushEventsForTick(0)
 		}
 		return this
@@ -8023,8 +8012,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			if (elapsed > 0) {
 				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
-				this.scribbles.tick(elapsed)
 			}
+			this.scribbles.tick(elapsed)
 		})
 	}
 
@@ -8084,6 +8073,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		switch (type) {
 			case 'pinch': {
 				if (!this.getInstanceState().canMoveCamera) return
+				clearTimeout(this._longPressTimeout)
 				this._updateInputsFromEvent(info)
 
 				switch (info.name) {
@@ -8204,10 +8194,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (
 						!inputs.isDragging &&
 						inputs.isPointing &&
-						originPagePoint.dist(currentPagePoint) >
+						Vec.Dist2(originPagePoint, currentPagePoint) >
 							(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
 								this.getZoomLevel()
 					) {
+						clearTimeout(this._longPressTimeout)
 						inputs.isDragging = true
 					}
 				}
@@ -8224,6 +8215,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				switch (info.name) {
 					case 'pointer_down': {
 						this.clearOpenMenus()
+
+						this._longPressTimeout = setTimeout(() => {
+							this.dispatch({ ...info, name: 'long_press' })
+						}, LONG_PRESS_DURATION)
 
 						this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
 
@@ -8289,10 +8284,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (
 							!inputs.isDragging &&
 							inputs.isPointing &&
-							originPagePoint.dist(currentPagePoint) >
+							Vec.Dist2(originPagePoint, currentPagePoint) >
 								(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
 									this.getZoomLevel()
 						) {
+							clearTimeout(this._longPressTimeout)
 							inputs.isDragging = true
 						}
 						break
@@ -8435,6 +8431,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						break
 					}
 					case 'pointer_up': {
+						clearTimeout(this._longPressTimeout)
+
 						const otherEvent = this._clickManager.transformPointerUpEvent(info)
 						if (info.name !== otherEvent.name) {
 							this.root.handleEvent(info)

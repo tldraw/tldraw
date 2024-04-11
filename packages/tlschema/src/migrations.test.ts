@@ -2030,6 +2030,34 @@ describe('Fractional indexing for line points', () => {
 	})
 })
 
+describe('add white', () => {
+	const { up, down } = rootShapeMigrations.migrators[rootShapeVersions.AddWhite]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				props: {},
+			})
+		).toEqual({
+			props: {},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					color: 'white',
+				},
+			})
+		).toEqual({
+			props: {
+				color: 'black',
+			},
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

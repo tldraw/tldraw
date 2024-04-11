@@ -24,10 +24,12 @@
 	/* Z Index */
 	--layer-background: 100;
 	--layer-grid: 150;
+	--layer-culled-shapes: 175;
 	--layer-canvas: 200;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
 	--layer-following-indicator: 1000;
+	--layer-blocker: 10000;
 	/* Misc */
 	--tl-zoom: 1;
 
@@ -236,6 +238,20 @@ input,
 	contain: strict;
 }
 
+.tl-culled-shapes {
+	width: 100%;
+	height: 100%;
+	z-index: var(--layer-culled-shapes);
+	position: absolute;
+	pointer-events: none;
+	contain: size layout;
+}
+
+.tl-culled-shapes__canvas {
+	width: 100%;
+	height: 100%;
+}
+
 .tl-shapes {
 	position: relative;
 	z-index: var(--layer-shapes);
@@ -264,18 +280,25 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
+	width: 100%;
+	height: 100%;
 	pointer-events: none;
 }
 
 /* ------------------- Background ------------------- */
 
-.tl-background {
+.tl-background__wrapper {
+	z-index: var(--layer-background);
 	position: absolute;
-	background-color: var(--color-background);
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-background);
+}
+
+.tl-background {
+	background-color: var(--color-background);
+	width: 100%;
+	height: 100%;
 }
 
 /* --------------------- Grid Layer --------------------- */
@@ -338,10 +361,13 @@ input,
 }
 
 .tl-shape__culled {
-	position: relative;
+	position: absolute;
+	pointer-events: none;
+	overflow: visible;
+	transform-origin: top left;
+	contain: size layout;
 	background-color: var(--color-culled);
-	width: 100%;
-	height: 100%;
+	z-index: 0;
 }
 
 /* ---------------- Shape Containers ---------------- */
@@ -1479,4 +1505,19 @@ it from receiving any pointer events or affecting the cursor. */
 	color: #555;
 	font-size: 12px;
 	font-family: monospace;
+}
+
+/* ---------------- Hit test blocker ---------------- */
+
+.tl-hit-test-blocker {
+	position: absolute;
+	z-index: var(--layer-blocker);
+	inset: 0px;
+	width: 100%;
+	height: 100%;
+	pointer-events: all;
+}
+
+.tl-hit-test-blocker__hidden {
+	display: none;
 }
