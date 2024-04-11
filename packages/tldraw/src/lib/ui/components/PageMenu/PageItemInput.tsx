@@ -17,7 +17,7 @@ export const PageItemInput = function PageItemInput({
 
 	const handleChange = useCallback(
 		(value: string) => {
-			editor.history.ephemeral(() => {
+			editor.history.ignore(() => {
 				editor.renamePage(id, value ? value : 'New Page')
 			})
 		},

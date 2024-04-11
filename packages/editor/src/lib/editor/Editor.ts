@@ -658,7 +658,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 		this.disposables.add(this.history.dispose)
 
-		this.history.ephemeral(() => {
+		this.history.ignore(() => {
 			this.store.ensureStoreIsUsable()
 
 			// clear ephemeral state
@@ -1218,7 +1218,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 **/
 	updateDocumentSettings(settings: Partial<TLDocument>): this {
-		this.history.ephemeral(() => {
+		this.history.ignore(() => {
 			this.store.put([{ ...this.getDocumentSettings(), ...settings }])
 		})
 		return this
@@ -1246,14 +1246,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		historyOptions?: TLHistoryBatchOptions
 	): this {
-		this._updateInstanceState(partial, { history: 'ephemeral', ...historyOptions })
+		this._updateInstanceState(partial, { history: 'ignore', ...historyOptions })
 
 		if (partial.isChangingStyle !== undefined) {
 			clearTimeout(this._isChangingStyleTimeout)
 			if (partial.isChangingStyle === true) {
 				// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
 				this._isChangingStyleTimeout = setTimeout(() => {
-					this._updateInstanceState({ isChangingStyle: false }, { history: 'ephemeral' })
+					this._updateInstanceState({ isChangingStyle: false }, { history: 'ignore' })
 				}, 2000)
 			}
 		}
@@ -1489,7 +1489,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
 			},
-			{ history: 'preserveRedoStack' }
+			{ history: 'record-preserveRedoStack' }
 		)
 	}
 
@@ -1751,7 +1751,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			() => {
 				this.store.update(this.getCurrentPageState().id, (s) => ({ ...s, focusedGroupId: id }))
 			},
-			{ history: 'preserveRedoStack' }
+			{ history: 'record-preserveRedoStack' }
 		)
 	}
 
@@ -1909,7 +1909,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((shape) => shape.id)
 		// always ephemeral
-		this.updateCurrentPageState({ hintingShapeIds: dedupe(ids) }, { history: 'ephemeral' })
+		this.updateCurrentPageState({ hintingShapeIds: dedupe(ids) }, { history: 'ignore' })
 		return this
 	}
 
@@ -1954,7 +1954,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((shape) => shape.id)
 		ids.sort() // sort the incoming ids
 		const erasingShapeIds = this.getErasingShapeIds()
-		this.history.ephemeral(() => {
+		this.history.ignore(() => {
 			if (ids.length === erasingShapeIds.length) {
 				// if the new ids are the same length as the current ids, they might be the same.
 				// presuming the current ids are also sorted, check each item to see if it's the same;
@@ -3305,7 +3305,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		return this.batch(
 			() => this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }]),
-			{ history: 'preserveRedoStack' }
+			{ history: 'record-preserveRedoStack' }
 		)
 	}
 
@@ -7817,7 +7817,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// todo: We only have to do this if there are multiple users in the document
-		this.history.ephemeral(() => {
+		this.history.ignore(() => {
 			this.store.put([
 				{
 					id: TLPOINTER_ID,

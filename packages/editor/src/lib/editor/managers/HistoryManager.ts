@@ -113,8 +113,8 @@ export class HistoryManager<R extends UnknownRecord> {
 		}
 	}
 
-	ephemeral(fn: () => void) {
-		return this.batch(fn, { history: 'ephemeral' })
+	ignore(fn: () => void) {
+		return this.batch(fn, { history: 'ignore' })
 	}
 
 	// History
@@ -277,8 +277,8 @@ export class HistoryManager<R extends UnknownRecord> {
 
 const modeToState = {
 	record: HistoryRecorderState.Recording,
-	ephemeral: HistoryRecorderState.Paused,
-	preserveRedoStack: HistoryRecorderState.RecordingPreserveRedoStack,
+	'record-preserveRedoStack': HistoryRecorderState.RecordingPreserveRedoStack,
+	ignore: HistoryRecorderState.Paused,
 } as const
 
 class PendingDiff<R extends UnknownRecord> {

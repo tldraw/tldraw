@@ -1218,11 +1218,11 @@ export class HistoryManager<R extends UnknownRecord> {
     // (undocumented)
     readonly dispose: () => void;
     // (undocumented)
-    ephemeral(fn: () => void): this;
-    // (undocumented)
     getNumRedos(): number;
     // (undocumented)
     getNumUndos(): number;
+    // (undocumented)
+    ignore(fn: () => void): this;
     // @internal (undocumented)
     _isInBatch: boolean;
     // (undocumented)

@@ -57,11 +57,11 @@ function createCounterHistoryManager() {
 	}
 
 	const setName = (name = 'David') => {
-		manager.ephemeral(() => _setName(name))
+		manager.ignore(() => _setName(name))
 	}
 
 	const setAge = (age = 35) => {
-		manager.batch(() => _setAge(age), { history: 'preserveRedoStack' })
+		manager.batch(() => _setAge(age), { history: 'record-preserveRedoStack' })
 	}
 
 	const incrementTwice = () => {
@@ -192,7 +192,7 @@ describe(HistoryManager, () => {
 
 		expect(editor.history.getNumUndos()).toBe(3)
 	})
-	it('allows ephemeral commands that do not affect the stack', () => {
+	it('allows ignore commands that do not affect the stack', () => {
 		editor.increment()
 		editor.history.mark('stop at 1')
 		editor.increment()
@@ -339,13 +339,13 @@ describe('history options', () => {
 		expect(getState()).toMatchObject({ a: 1, b: 4 })
 	})
 
-	it('undos, redos, ephemeral', () => {
+	it('undos, redos, ignore', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
 		setB(1) // B 0->1
 		manager.mark()
-		setB(2, { history: 'ephemeral' }) // B 0->2, but ephemeral
+		setB(2, { history: 'ignore' }) // B 0->2, but ignore
 
 		expect(getState()).toMatchObject({ a: 1, b: 2 })
 
@@ -355,7 +355,7 @@ describe('history options', () => {
 
 		manager.redo() // redoes B 0->1, but not B 1-> 2
 
-		expect(getState()).toMatchObject({ a: 1, b: 1 }) // no change, b 1->2 was ephemeral
+		expect(getState()).toMatchObject({ a: 1, b: 1 }) // no change, b 1->2 was ignore
 	})
 
 	it('squashing, undos, redos', () => {
@@ -377,13 +377,13 @@ describe('history options', () => {
 		expect(getState()).toMatchObject({ a: 1, b: 3 })
 	})
 
-	it('squashing, undos, redos, ephemeral', () => {
+	it('squashing, undos, redos, ignore', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
 		setB(1)
 		setB(2) // squashes with the previous command
-		setB(3, { history: 'ephemeral' }) // squashes with the previous command
+		setB(3, { history: 'ignore' }) // squashes with the previous command
 
 		expect(getState()).toMatchObject({ a: 1, b: 3 })
 
@@ -393,10 +393,10 @@ describe('history options', () => {
 
 		manager.redo()
 
-		expect(getState()).toMatchObject({ a: 1, b: 2 }) // B2->3 was ephemeral
+		expect(getState()).toMatchObject({ a: 1, b: 2 }) // B2->3 was ignore
 	})
 
-	it('nested ephemeral', () => {
+	it('nested ignore', () => {
 		manager.mark()
 		manager.batch(
 			() => {
@@ -404,11 +404,11 @@ describe('history options', () => {
 				manager.batch(() => setB(1), { history: 'record' })
 				setA(2)
 			},
-			{ history: 'ephemeral' }
+			{ history: 'ignore' }
 		)
 		expect(getState()).toMatchObject({ a: 2, b: 1 })
 
-		// changes to A were ephemeral, but changes to B were recorded:
+		// changes to A were ignore, but changes to B were recorded:
 		manager.undo()
 		expect(getState()).toMatchObject({ a: 2, b: 0 })
 
@@ -416,13 +416,13 @@ describe('history options', () => {
 		manager.batch(
 			() => {
 				setA(3)
-				manager.batch(() => setB(2), { history: 'ephemeral' })
+				manager.batch(() => setB(2), { history: 'ignore' })
 			},
-			{ history: 'preserveRedoStack' }
+			{ history: 'record-preserveRedoStack' }
 		)
 		expect(getState()).toMatchObject({ a: 3, b: 2 })
 
-		// changes to A were recorded, but changes to B were ephemeral:
+		// changes to A were recorded, but changes to B were ignore:
 		manager.undo()
 		expect(getState()).toMatchObject({ a: 2, b: 2 })
 
