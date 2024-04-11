@@ -61,7 +61,6 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { renderToStaticMarkup } from 'react-dom/server'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -102,6 +101,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
+import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { getSvgJsx } from './getSvgJsx'
@@ -3223,19 +3223,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private readonly _renderingBounds = atom('rendering viewport', new Box())
 
 	/**
-	 * The current rendering bounds in the current page space, expanded slightly. Used for determining which shapes
-	 * to render and which to "cull".
-	 *
-	 * @public
-	 */
-	getRenderingBoundsExpanded() {
-		return this._renderingBoundsExpanded.get()
-	}
-
-	/** @internal */
-	private readonly _renderingBoundsExpanded = atom('rendering viewport expanded', new Box())
-
-	/**
 	 * Update the rendering bounds. This should be called when the viewport has stopped changing, such
 	 * as at the end of a pan, zoom, or animation.
 	 *
@@ -3252,13 +3239,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
 		this._renderingBounds.set(viewportPageBounds.clone())
 
-		if (Number.isFinite(this.renderingBoundsMargin)) {
-			this._renderingBoundsExpanded.set(
-				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.getZoomLevel())
-			)
-		} else {
-			this._renderingBoundsExpanded.set(viewportPageBounds)
-		}
 		return this
 	}
 
@@ -4247,48 +4227,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	@computed
-	private _getShapeCullingInfoCache(): ComputedCache<boolean, TLShape> {
-		return this.store.createComputedCache(
-			'shapeCullingInfo',
-			({ id }) => {
-				// We don't cull shapes that are being edited
-				if (this.getEditingShapeId() === id) return false
-
-				const maskedPageBounds = this.getShapeMaskedPageBounds(id)
-				// if the shape is fully outside of its parent's clipping bounds...
-				if (maskedPageBounds === undefined) return true
-
-				// We don't cull selected shapes
-				if (this.getSelectedShapeIds().includes(id)) return false
-				const renderingBoundsExpanded = this.getRenderingBoundsExpanded()
-				// the shape is outside of the expanded viewport bounds...
-				return !renderingBoundsExpanded.includes(maskedPageBounds)
-			},
-			(a, b) => this.getShapeMaskedPageBounds(a) === this.getShapeMaskedPageBounds(b)
-		)
+	private _notVisibleShapes() {
+		return notVisibleShapes(this)
 	}
 
 	/**
-	 * Get whether the shape is culled or not.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.isShapeCulled(myShape)
-	 * editor.isShapeCulled(myShapeId)
-	 * ```
-	 *
-	 * @param shape - The shape (or shape id) to get the culled info for.
+	 * Get culled shapes.
 	 *
 	 * @public
 	 */
-	isShapeCulled(shape: TLShape | TLShapeId): boolean {
-		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
-		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
-		if (!isCullingOffScreenShapes) return false
-
-		const id = typeof shape === 'string' ? shape : shape.id
-
-		return this._getShapeCullingInfoCache().get(id)! as boolean
+	@computed
+	getCulledShapes() {
+		const notVisibleShapes = this._notVisibleShapes().get()
+		const selectedShapeIds = this.getSelectedShapeIds()
+		const editingId = this.getEditingShapeId()
+		const culledShapes = new Set<TLShapeId>(notVisibleShapes)
+		// we don't cull the shape we are editing
+		if (editingId) {
+			culledShapes.delete(editingId)
+		}
+		// we also don't cull selected shapes
+		selectedShapeIds.forEach((id) => {
+			culledShapes.delete(id)
+		})
+		return culledShapes
 	}
 
 	/**
@@ -4373,7 +4335,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (filter) return filter(shape)
 			return true
 		})
-
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
 			const geometry = this.getShapeGeometry(shape)
@@ -4661,9 +4622,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed
-	getCurrentPageRenderingShapesSorted(): TLShape[] {
-		return this.getCurrentPageShapesSorted().filter((shape) => !this.isShapeCulled(shape))
+	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
+		const culledShapes = this.getCulledShapes()
+		return this.getCurrentPageShapesSorted().filter(({ id }) => !culledShapes.has(id))
 	}
 
 	/**
@@ -8115,6 +8076,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get an exported SVG element of the given shapes.
+	 *
+	 * @param ids - The shapes (or shape ids) to export.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns The SVG element.
+	 *
+	 * @public
+	 */
+	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
+		const result = await getSvgJsx(this, shapes, opts)
+		if (!result) return undefined
+
+		const fragment = document.createDocumentFragment()
+		const root = createRoot(fragment)
+		flushSync(() => {
+			root.render(result.jsx)
+		})
+
+		const svg = fragment.firstElementChild
+		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
+
+		root.unmount()
+		return { svg, width: result.width, height: result.height }
+	}
+
+	/**
 	 * Get an exported SVG string of the given shapes.
 	 *
 	 * @param ids - The shapes (or shape ids) to export.
@@ -8125,21 +8113,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	async getSvgString(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
-		const svg = await getSvgJsx(this, shapes, opts)
-		if (!svg) return undefined
-		return { svg: renderToStaticMarkup(svg.jsx), width: svg.width, height: svg.height }
+		const result = await this.getSvgElement(shapes, opts)
+		if (!result) return undefined
+
+		const serializer = new XMLSerializer()
+		return {
+			svg: serializer.serializeToString(result.svg),
+			width: result.width,
+			height: result.height,
+		}
 	}
 
-	/** @deprecated Use {@link Editor.getSvgString} instead */
+	/** @deprecated Use {@link Editor.getSvgString} or {@link Editor.getSvgElement} instead. */
 	async getSvg(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
-		const svg = await getSvgJsx(this, shapes, opts)
-		if (!svg) return undefined
-		const fragment = new DocumentFragment()
-		const root = createRoot(fragment)
-		flushSync(() => root.render(svg.jsx))
-		const rendered = fragment.firstElementChild
-		root.unmount()
-		return rendered as SVGSVGElement
+		const result = await this.getSvgElement(shapes, opts)
+		if (!result) return undefined
+		return result.svg
 	}
 
 	/* --------------------- Events --------------------- */
