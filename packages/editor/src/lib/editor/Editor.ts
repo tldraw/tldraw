@@ -4307,14 +4307,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.getShapeIdsInsideBounds(Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN))
 		)
 		const selectedShapeIds = this.getSelectedShapeIds()
-
-		return this.getCurrentPageShapesSorted()
-			.filter(
-				(shape) =>
-					shape.type !== 'group' &&
-					shapesCloseToPoint.has(shape.id) &&
-					selectedShapeIds.includes(shape.id)
+		const filter = (shape: TLShape) => {
+			return (
+				shape.type !== 'group' &&
+				shapesCloseToPoint.has(shape.id) &&
+				selectedShapeIds.includes(shape.id)
 			)
+		}
+
+		return this.getFilteredCurrentPageShapesSorted(filter)
 			.reverse() // findlast
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
@@ -4357,18 +4358,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapesCloseToPoint = new Set(
 			this.getShapeIdsInsideBounds(Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN))
 		)
-		const shapesToCheck = (
-			opts.renderingOnly
-				? this.getCurrentPageRenderingShapesSorted()
-				: this.getCurrentPageShapesSorted()
-		).filter((shape) => {
-			if (!shapesCloseToPoint.has(shape.id)) return
+		const culledShapes = this.getCulledShapes()
+		const f = (shape: TLShape) => {
+			if (opts.renderingOnly && culledShapes.has(shape.id)) return false
+			if (!shapesCloseToPoint.has(shape.id)) return false
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
 			if (filter) return filter(shape)
 			return true
-		})
+		}
+		const shapesToCheck = this.getFilteredCurrentPageShapesSorted(f)
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
 			const geometry = this.getShapeGeometry(shape)
@@ -4623,12 +4623,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
-		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
-		// todo: consider making a derivation or something, or merging with rendering shapes
 		const shapes = new Set(this.getCurrentPageShapes().sort(sortByIndex))
+		return this._getCurrentPageShapesSorted(shapes)
+	}
 
+	getFilteredCurrentPageShapesSorted(filter: (shape: TLShape) => boolean): TLShape[] {
+		const shapes = new Set(this.getCurrentPageShapes().filter(filter).sort(sortByIndex))
+		return this._getCurrentPageShapesSorted(shapes)
+	}
+
+	_getCurrentPageShapesSorted(shapes: Set<TLShape>) {
 		const results: TLShape[] = []
-
 		function pushShapeWithDescendants(shape: TLShape): void {
 			results.push(shape)
 			shapes.delete(shape)
@@ -4658,7 +4663,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
 		const culledShapes = this.getCulledShapes()
-		return this.getCurrentPageShapesSorted().filter(({ id }) => !culledShapes.has(id))
+		const filter = (shape: TLShape) => !culledShapes.has(shape.id)
+		return this.getFilteredCurrentPageShapesSorted(filter)
 	}
 
 	/**
@@ -5037,18 +5043,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getDroppingOverShape(point: VecLike, droppingShapes: TLShape[] = []) {
 		// starting from the top...
-		const currentPageShapesSorted = this.getCurrentPageShapesSorted()
-		for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
-			const shape = currentPageShapesSorted[i]
-
+		const filter = (shape: TLShape) => {
 			if (
 				// only allow shapes that can receive children
 				!this.getShapeUtil(shape).canDropShapes(shape, droppingShapes) ||
 				// don't allow dropping a shape on itself or one of it's children
 				droppingShapes.find((s) => s.id === shape.id || this.hasAncestor(shape, s.id))
 			) {
-				continue
+				return false
 			}
+			return true
+		}
+		const currentPageShapesSorted = this.getFilteredCurrentPageShapesSorted(filter)
+		for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
+			const shape = currentPageShapesSorted[i]
 
 			// Only allow dropping into the masked page bounds of the shape, e.g. when a frame is
 			// partially clipped by its own parent frame

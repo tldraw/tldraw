@@ -683,6 +683,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapeIds(): Set<TLShapeId>;
     getCurrentPageShapes(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
+    // (undocumented)
+    _getCurrentPageShapesSorted(shapes: Set<TLShape>): TLShape[];
     getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
@@ -692,6 +694,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getEditingShapeId(): null | TLShapeId;
     getErasingShapeIds(): TLShapeId[];
     getErasingShapes(): NonNullable<TLShape | undefined>[];
+    // (undocumented)
+    getFilteredCurrentPageShapesSorted(filter: (shape: TLShape) => boolean): TLShape[];
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): IndexKey;
