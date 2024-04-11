@@ -1612,16 +1612,16 @@ describe('shift brushes to add to the selection', () => {
 		editor.keyDown('Shift')
 		editor.pointerDown()
 		editor.pointerMove(1, 1)
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 		editor.keyUp('Shift')
 		// there's a timer here—we should keep the shift mode until the timer expires
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 		jest.advanceTimersByTime(500)
 		// once the timer expires, we should be back in regular mode
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Shift')
 		// there's no timer on key down, so go right into shift mode again
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 	})
 })
 
