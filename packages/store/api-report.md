@@ -28,9 +28,6 @@ export type CollectionDiff<T> = {
     removed?: Set<T>;
 };
 
-// @public (undocumented)
-export const compareSchemas: (_a: SerializedSchema, _b: SerializedSchema) => -1 | 0 | 1;
-
 // @public
 export type ComputedCache<Data, R extends UnknownRecord> = {
     get(id: IdOf<R>): Data | undefined;

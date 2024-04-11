@@ -1,11 +1,5 @@
 import { Signal, transact } from '@tldraw/state'
-import {
-	RecordsDiff,
-	SerializedSchema,
-	UnknownRecord,
-	compareSchemas,
-	squashRecordDiffs,
-} from '@tldraw/store'
+import { RecordsDiff, SerializedSchema, UnknownRecord, squashRecordDiffs } from '@tldraw/store'
 import { TLStore } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
 import {
@@ -212,12 +206,9 @@ export class TLLocalSyncClient {
 				const msg = data as Message
 				// if their schema is earlier than ours, we need to tell them so they can refresh
 				// if their schema is later than ours, we need to refresh
-				const comparison = compareSchemas(
-					this.serializedSchema,
-					// eslint-disable-next-line deprecation/deprecation
-					msg.schema ?? this.store.schema.serializeEarliestVersion()
-				)
-				if (comparison === -1) {
+				const res = this.store.schema.getMigrationsSince(msg.schema)
+
+				if (!res.ok) {
 					// we are older, refresh
 					// but add a safety check to make sure we don't get in an infinite loop
 					const timeSinceInit = Date.now() - this.initTime
@@ -234,7 +225,7 @@ export class TLLocalSyncClient {
 					this.isReloading = true
 					window?.location?.reload?.()
 					return
-				} else if (comparison === 1) {
+				} else if (res.value.length > 0) {
 					// they are older, tell them to refresh and not write any more data
 					this.debug('telling them to reload')
 					this.channel.postMessage({ type: 'announce', schema: this.serializedSchema })

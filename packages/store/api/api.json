@@ -528,65 +528,6 @@
           }
         },
         {
-          "kind": "Function",
-          "canonicalReference": "@tldraw/store!compareSchemas:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "compareSchemas: (_a: "
-            },
-            {
-              "kind": "Reference",
-              "text": "SerializedSchema",
-              "canonicalReference": "@tldraw/store!SerializedSchema:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", _b: "
-            },
-            {
-              "kind": "Reference",
-              "text": "SerializedSchema",
-              "canonicalReference": "@tldraw/store!SerializedSchema:type"
-            },
-            {
-              "kind": "Content",
-              "text": ") => "
-            },
-            {
-              "kind": "Content",
-              "text": "-1 | 0 | 1"
-            }
-          ],
-          "fileUrlPath": "packages/store/src/lib/compareSchemas.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 5,
-            "endIndex": 6
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "_a",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            },
-            {
-              "parameterName": "_b",
-              "parameterTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "compareSchemas"
-        },
-        {
           "kind": "TypeAlias",
           "canonicalReference": "@tldraw/store!ComputedCache:type",
           "docComment": "/**\n * A record store is a collection of records of different types.\n *\n * @public\n */\n",

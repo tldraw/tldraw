@@ -21,7 +21,6 @@ export type {
 	SerializedSchemaV2,
 	StoreSchemaOptions,
 } from './lib/StoreSchema'
-export { compareSchemas } from './lib/compareSchemas'
 export { devFreeze } from './lib/devFreeze'
 export {
 	MigrationFailureReason,

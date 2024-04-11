@@ -57,8 +57,9 @@ export interface SerializedSchemaV2 {
 /** @public */
 export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2
 
-export function upgradeSchema(schema: SerializedSchema): SerializedSchemaV2 {
-	if (schema.schemaVersion === 2) return schema
+export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchemaV2, string> {
+	if (schema.schemaVersion > 2 || schema.schemaVersion < 1) return Result.err('Bad schema version')
+	if (schema.schemaVersion === 2) return Result.ok(schema as SerializedSchemaV2)
 	const result: SerializedSchemaV2 = {
 		schemaVersion: 2,
 		sequences: {},
@@ -78,7 +79,7 @@ export function upgradeSchema(schema: SerializedSchema): SerializedSchemaV2 {
 			}
 		}
 	}
-	return result
+	return Result.ok(result)
 }
 
 /** @public */
@@ -163,7 +164,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 	// TODO: use a weakmap to store the result of this function
 	public getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string> {
-		const schema = upgradeSchema(persistedSchema)
+		const upgradeResult = upgradeSchema(persistedSchema)
+		if (!upgradeResult.ok) {
+			return upgradeResult
+		}
+		const schema = upgradeResult.value
 		const sequenceIdsToInclude = new Set(
 			// start with any shared sequences
 			Object.keys(schema.sequences).filter((sequenceId) => this.migrations[sequenceId])
