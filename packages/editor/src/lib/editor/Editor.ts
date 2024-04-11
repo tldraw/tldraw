@@ -4250,7 +4250,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the shapes that are are (at least partially) inside the bounds.
+	 * Get the shapes ids of shapes that are are (at least partially) inside the bounds.
 	 *
 	 * @param bounds - The bounds to check.
 	 * @returns The shape ids of shapes that are at least partially inside the bounds.
