@@ -12737,7 +12737,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getShapeIdsInsideBounds:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Get the shapes that are are (at least partially) inside the bounds.\n *\n * @param bounds - The bounds to check.\n *\n * @returns The shape ids of shapes that are at least partially inside the bounds.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13294,7 +13294,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getShapesInsideBounds:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Get the shapes that are are (at least partially) inside the bounds.\n *\n * @param bounds - The bounds to check.\n *\n * @returns The shapes that are at least partially inside the bounds.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

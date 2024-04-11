@@ -4242,10 +4242,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return culledShapes
 	}
 
+	/**
+	 * Get the shapes that are are (at least partially) inside the bounds.
+	 *
+	 * @param bounds - The bounds to check.
+	 * @returns The shape ids of shapes that are at least partially inside the bounds.
+	 *
+	 * @public
+	 */
 	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
 		return this._spatialIndex.getShapeIdsInsideBounds(bounds)
 	}
 
+	/**
+	 * Get the shapes that are are (at least partially) inside the bounds.
+	 *
+	 * @param bounds - The bounds to check.
+	 * @returns The shapes that are at least partially inside the bounds.
+	 *
+	 * @public
+	 */
 	getShapesInsideBounds(bounds: Box): TLShape[] {
 		const shapeIds = this.getShapeIdsInsideBounds(bounds)
 		return compact(shapeIds.map((id) => this.getShape(id)))
