@@ -102,7 +102,6 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
-import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { SpatialIndex } from './derivations/spatialIndex'
@@ -4250,13 +4249,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return culledShapes
 	}
 
-	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
-		return new Set(this._spatialIndex.getShapeIdsInsideBounds(bounds))
+	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
+		return this._spatialIndex.getShapeIdsInsideBounds(bounds)
 	}
 
-	getShapesInsideBounds(bounds: Box): Set<TLShape> {
-		const shapeIds = this._spatialIndex.getShapeIdsInsideBounds(bounds)
-		return new Set(compact(shapeIds.map((id) => this.getShape(id))))
+	getShapesInsideBounds(bounds: Box): TLShape[] {
+		const shapeIds = this.getShapeIdsInsideBounds(bounds)
+		return compact(shapeIds.map((id) => this.getShape(id)))
 	}
 
 	/**
@@ -4330,7 +4329,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
-		const shapesCloseToPoint = this.getShapeIdsInsideBounds(Box.FromPoints([point]).expandBy(10))
+		const shapesCloseToPoint = new Set(
+			this.getShapeIdsInsideBounds(Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN))
+		)
 		const shapesToCheck = (
 			opts.renderingOnly
 				? this.getCurrentPageRenderingShapesSorted()

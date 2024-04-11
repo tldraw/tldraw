@@ -95,11 +95,9 @@ export class ScribbleBrushing extends StateNode {
 			this.pushPointToScribble()
 		}
 
-		// const currentPageShapes = this.editor.getCurrentPageShapes()
-		const currentPageShapes = this.editor.getShapesInsideBounds(
+		const shapes = this.editor.getShapesInsideBounds(
 			Box.FromPoints([previousPagePoint, currentPagePoint])
 		)
-		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
 
 		for (let i = 0, n = shapes.length; i < n; i++) {
