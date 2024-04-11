@@ -16,13 +16,12 @@ class TldrawRBush extends RBush<Element> {}
 
 export class SpatialIndex {
 	private readonly _spatialIndex: ReturnType<typeof this.createSpatialIndex>
-	private lastPageId: TLPageId
+	lastPageId: TLPageId | null = null
 	private shapesInTree: Map<TLShapeId, Element>
 	private rBush: TldrawRBush
 
 	constructor(private editor: Editor) {
 		this._spatialIndex = this.createSpatialIndex()
-		this.lastPageId = this.editor.getCurrentPageId()
 		this.shapesInTree = new Map<TLShapeId, Element>()
 		this.rBush = new TldrawRBush()
 	}
@@ -78,7 +77,7 @@ export class SpatialIndex {
 				return this.fromScratch(shapes, lastComputedEpoch)
 			}
 
-			if (this.lastPageId !== currentPageId) {
+			if (!this.lastPageId || this.lastPageId !== currentPageId) {
 				return this.fromScratch(shapes, lastComputedEpoch)
 			}
 
