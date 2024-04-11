@@ -129,7 +129,7 @@ export class Brushing extends StateNode {
 		const currentPageShapes = editor.getCurrentPageShapes()
 		const currentPageId = editor.getCurrentPageId()
 
-		const shapesInsideBounds = this.editor.getShapesInsideBounds(this.brush)
+		const shapesInsideBounds = [...this.editor.getShapesInsideBounds(this.brush)]
 		testAllShapes: for (let i = 0, n = shapesInsideBounds.length; i < n; i++) {
 			shape = shapesInsideBounds[i]
 			if (excludedShapeIds.has(shape.id)) continue testAllShapes

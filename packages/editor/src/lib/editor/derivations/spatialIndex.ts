@@ -132,6 +132,7 @@ export class SpatialIndex {
 		})
 	}
 
+	@computed
 	private _getVisibleShapes() {
 		return computed<Set<TLShapeId>>('visible shapes', (prevValue) => {
 			// Make sure the spatial index is up to date
@@ -151,6 +152,7 @@ export class SpatialIndex {
 		return this._getVisibleShapes().get()
 	}
 
+	@computed
 	_getNotVisibleShapes() {
 		return computed<Set<TLShapeId>>('not visible shapes', (prevValue) => {
 			const visibleShapes = this._getVisibleShapes().get()
@@ -170,6 +172,7 @@ export class SpatialIndex {
 	}
 
 	getShapeIdsInsideBounds(bounds: Box) {
+		const _index = this._spatialIndex.get()
 		return this.rBush.search(bounds).map((s) => s.id)
 	}
 }
