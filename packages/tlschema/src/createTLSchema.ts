@@ -44,7 +44,7 @@ type AnyValidator = {
 
 /** @public */
 export type SchemaShapeInfo = {
-	migrations?: LegacyMigrations | TLShapePropsMigrations
+	migrations?: LegacyMigrations | TLShapePropsMigrations | MigrationSequence
 	props?: Record<string, AnyValidator>
 	meta?: Record<string, AnyValidator>
 }
@@ -77,7 +77,6 @@ const defaultShapes: { [T in TLDefaultShape['type']]: SchemaShapeInfo } = {
 export function createTLSchema({
 	shapes = defaultShapes,
 	migrations,
-	// TODO: allow passing in custom migration sequences
 }: {
 	shapes?: Record<string, SchemaShapeInfo>
 	migrations?: readonly MigrationSequence[]

@@ -2571,7 +2571,7 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
     // (undocumented)
     new (editor: Editor): U;
     // (undocumented)
-    migrations?: LegacyMigrations | TLShapePropsMigrations;
+    migrations?: LegacyMigrations | MigrationSequence | TLShapePropsMigrations;
     // (undocumented)
     props?: ShapeProps<T>;
     // (undocumented)

@@ -49,9 +49,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
@@ -63,9 +63,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     bend: T.Validator<number>;
@@ -672,9 +672,9 @@ export const lineShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
     points: T.DictValidator<string, {
-        id: string;
         x: number;
         y: number;
+        id: string;
         index: IndexKey;
     } & {}>;
 };
@@ -718,7 +718,7 @@ export const rootShapeMigrations: MigrationSequence;
 
 // @public (undocumented)
 export type SchemaShapeInfo = {
-    migrations?: LegacyMigrations | TLShapePropsMigrations;
+    migrations?: LegacyMigrations | MigrationSequence | TLShapePropsMigrations;
     props?: Record<string, AnyValidator>;
     meta?: Record<string, AnyValidator>;
 };

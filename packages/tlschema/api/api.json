@@ -364,7 +364,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    end: "
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        } & {}>;\n    }, never>;\n    end: "
             },
             {
               "kind": "Reference",
@@ -409,7 +409,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    bend: "
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        } & {}>;\n    }, never>;\n    bend: "
             },
             {
               "kind": "Reference",
@@ -2874,7 +2874,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        id: string;\n        x: number;\n        y: number;\n        index: "
+              "text": "<string, {\n        x: number;\n        y: number;\n        id: string;\n        index: "
             },
             {
               "kind": "Reference",
@@ -3174,6 +3174,15 @@
             },
             {
               "kind": "Reference",
+              "text": "MigrationSequence",
+              "canonicalReference": "@tldraw/store!MigrationSequence:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
               "text": "TLShapePropsMigrations",
               "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
             },
@@ -3227,7 +3236,7 @@
           "name": "SchemaShapeInfo",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 14
+            "endIndex": 16
           }
         },
         {

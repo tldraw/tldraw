@@ -42154,6 +42154,15 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "MigrationSequence",
+                  "canonicalReference": "@tldraw/store!MigrationSequence:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
                   "text": "TLShapePropsMigrations",
                   "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
@@ -42168,7 +42177,7 @@
               "name": "migrations",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 4
+                "endIndex": 6
               }
             },
             {

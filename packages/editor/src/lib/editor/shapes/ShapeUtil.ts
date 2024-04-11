@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { LegacyMigrations } from '@tldraw/store'
+import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	ShapeProps,
 	TLHandle,
@@ -26,7 +26,7 @@ export interface TLShapeUtilConstructor<
 	new (editor: Editor): U
 	type: T['type']
 	props?: ShapeProps<T>
-	migrations?: LegacyMigrations | TLShapePropsMigrations
+	migrations?: LegacyMigrations | TLShapePropsMigrations | MigrationSequence
 }
 
 /** @public */

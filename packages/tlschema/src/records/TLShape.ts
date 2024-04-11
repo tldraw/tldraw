@@ -9,7 +9,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { mapObjectMapValues } from '@tldraw/utils'
+import { assert, mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { nanoid } from 'nanoid'
 import { SchemaShapeInfo } from '../createTLSchema'
@@ -247,6 +247,12 @@ export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) 
 					sequence: [],
 				})
 			)
+		} else if ('sequenceId' in migrations) {
+			assert(
+				sequenceId === migrations.sequenceId,
+				`sequenceId mismatch for ${shapeType} shape migrations. Expected '${sequenceId}', got '${migrations.sequenceId}'`
+			)
+			result.push(migrations)
 		} else if ('sequence' in migrations) {
 			result.push(
 				createMigrationSequence({
