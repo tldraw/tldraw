@@ -142,12 +142,12 @@ export class PerformanceMeasurer {
 			(p) =>
 				(table[p.name] = {
 					['Runs']: p.warmupIterations + p.iterations,
-					['Cold']: +p.cold.toFixed(2),
-					['Slowest']: +p.slowest.toFixed(2),
-					['Fastest']: +p.fastest.toFixed(2),
-					['Average']: +p.average.toFixed(2),
-					['Slower (Avg)']: +(p.average / fastest).toFixed(2),
-					['Slower (All)']: +(p.totalTime / totalFastest).toFixed(2),
+					['Cold']: Number(p.cold.toFixed(2)),
+					['Slowest']: Number(p.slowest.toFixed(2)),
+					['Fastest']: Number(p.fastest.toFixed(2)),
+					['Average']: Number(p.average.toFixed(2)),
+					['Slower (Avg)']: Number((p.average / fastest).toFixed(2)),
+					['Slower (All)']: Number((p.totalTime / totalFastest).toFixed(2)),
 				})
 		)
 		// eslint-disable-next-line no-console
