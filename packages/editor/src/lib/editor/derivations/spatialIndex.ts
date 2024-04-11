@@ -15,13 +15,13 @@ type Element = {
 class TldrawRBush extends RBush<Element> {}
 
 export class SpatialIndex {
-	private readonly _spatialIndex: ReturnType<typeof this.createSpatialIndex>
-	lastPageId: TLPageId | null = null
+	private readonly spatialIndex: ReturnType<typeof this.createSpatialIndex>
+	private lastPageId: TLPageId | null = null
 	private shapesInTree: Map<TLShapeId, Element>
 	private rBush: TldrawRBush
 
 	constructor(private editor: Editor) {
-		this._spatialIndex = this.createSpatialIndex()
+		this.spatialIndex = this.createSpatialIndex()
 		this.shapesInTree = new Map<TLShapeId, Element>()
 		this.rBush = new TldrawRBush()
 	}
@@ -136,7 +136,7 @@ export class SpatialIndex {
 	private _getVisibleShapes() {
 		return computed<Set<TLShapeId>>('visible shapes', (prevValue) => {
 			// Make sure the spatial index is up to date
-			const _index = this._spatialIndex.get()
+			const _index = this.spatialIndex.get()
 			const newValue = this.rBush.search(this.editor.getViewportPageBounds()).map((s) => s.id)
 			if (isUninitialized(prevValue)) {
 				return new Set(newValue)
@@ -172,7 +172,8 @@ export class SpatialIndex {
 	}
 
 	getShapeIdsInsideBounds(bounds: Box) {
-		const _index = this._spatialIndex.get()
+		// Make sure the spatial index is up to date
+		const _index = this.spatialIndex.get()
 		return this.rBush.search(bounds).map((s) => s.id)
 	}
 }
