@@ -767,6 +767,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     // @deprecated (undocumented)
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
+    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<{
+        svg: SVGSVGElement;
+        width: number;
+        height: number;
+    } | undefined>;
     getSvgString(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<{
         svg: string;
         width: number;

@@ -13888,7 +13888,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getSvg:member(1)",
-              "docComment": "/**\n * @deprecated\n *\n * Use {@link Editor.getSvgString} instead\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use {@link Editor.getSvgString} or {@link Editor.getSvgElement} instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13990,6 +13990,112 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getSvg"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSvgElement:member(1)",
+              "docComment": "/**\n * Get an exported SVG element of the given shapes.\n *\n * @param ids - The shapes (or shape ids) to export.\n *\n * @param opts - Options for the export.\n *\n * @returns The SVG element.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSvgElement(shapes: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[] | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", opts?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLSvgOptions",
+                  "canonicalReference": "@tldraw/editor!TLSvgOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n        svg: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SVGSVGElement",
+                  "canonicalReference": "!SVGSVGElement:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        width: number;\n        height: number;\n    } | undefined>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 11,
+                "endIndex": 15
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "shapes",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "opts",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 6,
+                    "endIndex": 10
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSvgElement"
             },
             {
               "kind": "Method",
