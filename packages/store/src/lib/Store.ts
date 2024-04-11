@@ -825,38 +825,53 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			this.pendingAfterEvents.set(id, { before, after, source })
 		}
 	}
+	private flushAtomicCallbacks() {
+		let updateDepth = 0
+		while (this.pendingAfterEvents) {
+			const events = this.pendingAfterEvents
+			this.pendingAfterEvents = null
+
+			if (!this._runCallbacks) continue
+
+			updateDepth++
+			if (updateDepth > 100) {
+				throw new Error('Maximum store update depth exceeded, bailing out')
+			}
+
+			for (const { before, after, source } of events.values()) {
+				if (before && after) {
+					this.onAfterChange?.(before, after, source)
+				} else if (before && !after) {
+					this.onAfterDelete?.(before, source)
+				} else if (!before && after) {
+					this.onAfterCreate?.(after, source)
+				}
+			}
+		}
+	}
+	private _isInAtomicOp = false
 	/** @internal */
 	atomic<T>(fn: () => T, runCallbacks = true): T {
 		return transact(() => {
-			if (this.pendingAfterEvents) return fn()
+			if (this._isInAtomicOp) {
+				if (!this.pendingAfterEvents) this.pendingAfterEvents = new Map()
+				return fn()
+			}
 
 			this.pendingAfterEvents = new Map()
 			const prevRunCallbacks = this._runCallbacks
 			this._runCallbacks = runCallbacks ?? prevRunCallbacks
+			this._isInAtomicOp = true
 			try {
 				const result = fn()
 
-				while (this.pendingAfterEvents) {
-					const events = this.pendingAfterEvents
-					this.pendingAfterEvents = null
-
-					if (!runCallbacks) continue
-
-					for (const { before, after, source } of events.values()) {
-						if (before && after) {
-							this.onAfterChange?.(before, after, source)
-						} else if (before && !after) {
-							this.onAfterDelete?.(before, source)
-						} else if (!before && after) {
-							this.onAfterCreate?.(after, source)
-						}
-					}
-				}
+				this.flushAtomicCallbacks()
 
 				return result
 			} finally {
 				this.pendingAfterEvents = null
 				this._runCallbacks = prevRunCallbacks
+				this._isInAtomicOp = false
 			}
 		})
 	}

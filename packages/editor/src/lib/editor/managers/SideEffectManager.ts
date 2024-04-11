@@ -88,25 +88,13 @@ export class SideEffectManager<
 			return next
 		}
 
-		let updateDepth = 0
-
 		editor.store.onAfterChange = (prev, next, source) => {
-			updateDepth++
-
-			if (updateDepth > 1000) {
-				console.error('[CleanupManager.onAfterChange] Maximum update depth exceeded, bailing out.')
-			} else {
-				const handlers = this._afterChangeHandlers[
-					next.typeName
-				] as TLAfterChangeHandler<TLRecord>[]
-				if (handlers) {
-					for (const handler of handlers) {
-						handler(prev, next, source)
-					}
+			const handlers = this._afterChangeHandlers[next.typeName] as TLAfterChangeHandler<TLRecord>[]
+			if (handlers) {
+				for (const handler of handlers) {
+					handler(prev, next, source)
 				}
 			}
-
-			updateDepth--
 		}
 
 		editor.store.onBeforeDelete = (record, source) => {

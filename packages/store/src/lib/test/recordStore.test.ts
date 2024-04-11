@@ -1157,4 +1157,29 @@ describe('after callbacks', () => {
 		})
 		expect(callbacks).toHaveLength(0)
 	})
+
+	it('bails out if too many callbacks are fired', () => {
+		let limit = 10
+		store.onAfterCreate = (record) => {
+			if (record.typeName === 'book' && record.numPages < limit) {
+				store.put([{ ...record, numPages: record.numPages + 1 }])
+			}
+		}
+		store.onAfterChange = (from, to) => {
+			if (to.typeName === 'book' && to.numPages < limit) {
+				store.put([{ ...to, numPages: to.numPages + 1 }])
+			}
+		}
+
+		// this should be fine:
+		store.put([Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 0 })])
+		expect(store.get(bookId)!.numPages).toBe(limit)
+
+		// if we increase the limit thought, it should crash:
+		limit = 10000
+		store.clear()
+		expect(() => {
+			store.put([Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 0 })])
+		}).toThrowErrorMatchingInlineSnapshot(`"Maximum store update depth exceeded, bailing out"`)
+	})
 })
