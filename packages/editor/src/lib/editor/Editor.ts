@@ -61,7 +61,6 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { renderToStaticMarkup } from 'react-dom/server'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -8071,6 +8070,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get an exported SVG element of the given shapes.
+	 *
+	 * @param ids - The shapes (or shape ids) to export.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns The SVG element.
+	 *
+	 * @public
+	 */
+	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
+		const result = await getSvgJsx(this, shapes, opts)
+		if (!result) return undefined
+
+		const fragment = document.createDocumentFragment()
+		const root = createRoot(fragment)
+		flushSync(() => {
+			root.render(result.jsx)
+		})
+
+		const svg = fragment.firstElementChild
+		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
+
+		root.unmount()
+		return { svg, width: result.width, height: result.height }
+	}
+
+	/**
 	 * Get an exported SVG string of the given shapes.
 	 *
 	 * @param ids - The shapes (or shape ids) to export.
@@ -8081,21 +8107,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	async getSvgString(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
-		const svg = await getSvgJsx(this, shapes, opts)
-		if (!svg) return undefined
-		return { svg: renderToStaticMarkup(svg.jsx), width: svg.width, height: svg.height }
+		const result = await this.getSvgElement(shapes, opts)
+		if (!result) return undefined
+
+		const serializer = new XMLSerializer()
+		return {
+			svg: serializer.serializeToString(result.svg),
+			width: result.width,
+			height: result.height,
+		}
 	}
 
-	/** @deprecated Use {@link Editor.getSvgString} instead */
+	/** @deprecated Use {@link Editor.getSvgString} or {@link Editor.getSvgElement} instead. */
 	async getSvg(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
-		const svg = await getSvgJsx(this, shapes, opts)
-		if (!svg) return undefined
-		const fragment = new DocumentFragment()
-		const root = createRoot(fragment)
-		flushSync(() => root.render(svg.jsx))
-		const rendered = fragment.firstElementChild
-		root.unmount()
-		return rendered as SVGSVGElement
+		const result = await this.getSvgElement(shapes, opts)
+		if (!result) return undefined
+		return result.svg
 	}
 
 	/* --------------------- Events --------------------- */
