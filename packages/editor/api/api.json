@@ -7947,7 +7947,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#batch:member(1)",
-              "docComment": "/**\n * Run a function in a batch, which will be undone/redone as a single action.\n *\n * @example\n * ```ts\n * editor.batch(() => {\n * \teditor.selectAll()\n * \teditor.deleteShapes(editor.getSelectedShapeIds())\n * \teditor.createShapes(myShapes)\n * \teditor.selectNone()\n * })\n *\n * editor.undo() // will undo all of the above\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Run a function in a batch.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
