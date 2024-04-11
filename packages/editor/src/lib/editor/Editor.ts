@@ -4243,6 +4243,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return culledShapes
 	}
 
+	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
+		return this._spatialIndex.getShapeIdsInsideBounds(bounds)
+	}
+
+	getShapesInsideBounds(bounds: Box): TLShape[] {
+		const shapeIds = this.getShapeIdsInsideBounds(bounds)
+		return compact(shapeIds.map((id) => this.getShape(id))) as TLShape[]
+	}
+
 	/**
 	 * The bounds of the current page (the common bounds of all of the shapes on the page).
 	 *

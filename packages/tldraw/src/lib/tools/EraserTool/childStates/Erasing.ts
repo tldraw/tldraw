@@ -1,4 +1,5 @@
 import {
+	Box,
 	HIT_TEST_MARGIN,
 	StateNode,
 	TLEventHandlers,
@@ -81,7 +82,6 @@ export class Erasing extends StateNode {
 	update() {
 		const erasingShapeIds = this.editor.getErasingShapeIds()
 		const zoomLevel = this.editor.getZoomLevel()
-		const currentPageShapes = this.editor.getCurrentPageShapes()
 		const {
 			inputs: { currentPagePoint, previousPagePoint },
 		} = editor
@@ -91,7 +91,10 @@ export class Erasing extends StateNode {
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
 		const minDist = HIT_TEST_MARGIN / zoomLevel
 
-		for (const shape of currentPageShapes) {
+		const shapesNearPoint = this.editor.getShapesInsideBounds(
+			Box.FromPoints([currentPagePoint, previousPagePoint])
+		)
+		for (const shape of shapesNearPoint) {
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask

@@ -169,7 +169,7 @@ export class SpatialIndex {
 		return this._getNotVisibleShapes().get()
 	}
 
-	getShapesInsideBounds(bounds: Box) {
+	getShapeIdsInsideBounds(bounds: Box) {
 		return this.rBush.search(bounds).map((s) => s.id)
 	}
 }
