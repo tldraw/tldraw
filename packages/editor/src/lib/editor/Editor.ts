@@ -8641,6 +8641,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						if (this.inputs.isPanning && this.inputs.isPointing) {
+							clearTimeout(this._longPressTimeout)
 							// Handle panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
 							this.pan(Vec.Sub(currentScreenPoint, previousScreenPoint))
