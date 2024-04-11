@@ -4250,13 +4250,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return culledShapes
 	}
 
-	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
-		return this._spatialIndex.getShapeIdsInsideBounds(bounds)
+	getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId> {
+		return new Set(this._spatialIndex.getShapeIdsInsideBounds(bounds))
 	}
 
-	getShapesInsideBounds(bounds: Box): TLShape[] {
-		const shapeIds = this.getShapeIdsInsideBounds(bounds)
-		return compact(shapeIds.map((id) => this.getShape(id))) as TLShape[]
+	getShapesInsideBounds(bounds: Box): Set<TLShape> {
+		const shapeIds = this._spatialIndex.getShapeIdsInsideBounds(bounds)
+		return new Set(compact(shapeIds.map((id) => this.getShape(id))))
 	}
 
 	/**
@@ -4330,11 +4330,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
+		const shapesCloseToPoint = this.getShapeIdsInsideBounds(Box.FromPoints([point]).expandBy(10))
 		const shapesToCheck = (
 			opts.renderingOnly
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
+			if (!shapesCloseToPoint.has(shape.id)) return
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
