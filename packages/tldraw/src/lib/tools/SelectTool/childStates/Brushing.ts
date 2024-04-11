@@ -180,7 +180,7 @@ export class Brushing extends StateNode {
 		}
 
 		this.editor.updateInstanceState({ brush: { ...this.brush.toJson() } })
-		this.editor.setSelectedShapes(Array.from(results), { squashing: true })
+		this.editor.setSelectedShapes(Array.from(results).sort(), { squashing: true })
 	}
 
 	override onInterrupt: TLInterruptEvent = () => {
