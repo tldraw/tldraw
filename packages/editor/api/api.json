@@ -37583,42 +37583,6 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps#migrations:member",
-              "docComment": "/**\n * An array of migrations to apply to the editor's schema.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "migrations?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "readonly "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "MigrationSequence",
-                  "canonicalReference": "@tldraw/store!MigrationSequence:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "migrations",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 4
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TldrawEditorBaseProps#onMount:member",
               "docComment": "/**\n * Called when the editor has mounted.\n */\n",
               "excerptTokens": [
@@ -37791,7 +37755,16 @@
             },
             {
               "kind": "Content",
-              "text": ";\n} | {\n    store?: undefined;\n    snapshot?: "
+              "text": ";\n} | {\n    store?: undefined;\n    migrations?: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationSequence",
+              "canonicalReference": "@tldraw/store!MigrationSequence:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n    snapshot?: "
             },
             {
               "kind": "Reference",
@@ -37839,7 +37812,7 @@
           "name": "TldrawEditorProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 17
+            "endIndex": 19
           }
         },
         {

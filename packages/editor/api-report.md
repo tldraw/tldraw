@@ -2098,7 +2098,6 @@ export interface TldrawEditorBaseProps {
     components?: TLEditorComponents;
     inferDarkMode?: boolean;
     initialState?: string;
-    migrations?: readonly MigrationSequence[];
     onMount?: TLOnMountHandler;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
@@ -2110,6 +2109,7 @@ export type TldrawEditorProps = Expand<TldrawEditorBaseProps & ({
     store: TLStore | TLStoreWithStatus;
 } | {
     store?: undefined;
+    migrations?: readonly MigrationSequence[];
     snapshot?: StoreSnapshot<TLRecord>;
     initialData?: SerializedStore<TLRecord>;
     persistenceKey?: string;

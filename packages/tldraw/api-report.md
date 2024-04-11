@@ -31,6 +31,7 @@ import { Mat } from '@tldraw/editor';
 import { MatModel } from '@tldraw/editor';
 import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
+import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
 import { ObjectValidator } from '@tldraw/editor';
 import { Polygon2d } from '@tldraw/editor';
@@ -1483,6 +1484,7 @@ export type TldrawProps = Expand<(Omit<TldrawUiProps, 'components'> & Omit<Tldra
     store: TLStore | TLStoreWithStatus;
 } | {
     store?: undefined;
+    migrations?: readonly MigrationSequence[];
     persistenceKey?: string;
     sessionId?: string;
     defaultName?: string;
