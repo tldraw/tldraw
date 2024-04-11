@@ -80,6 +80,7 @@ export class Erasing extends StateNode {
 	}
 
 	update() {
+		const { editor, excludedShapeIds } = this
 		const erasingShapeIds = this.editor.getErasingShapeIds()
 		const zoomLevel = this.editor.getZoomLevel()
 		const {

@@ -100,6 +100,7 @@ export class SpatialIndex {
 							}
 							this.shapesInTree.delete(to.id)
 							this.rBush.remove(currentElement)
+							isDirty = true
 						}
 						this.addElement(to.id, elementsToAdd)
 					}
