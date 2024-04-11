@@ -4303,9 +4303,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns The top-most selected shape at the given point, or undefined if there is no shape at the point.
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
+		const shapesCloseToPoint = new Set(
+			this.getShapeIdsInsideBounds(Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN))
+		)
 		const selectedShapeIds = this.getSelectedShapeIds()
+
 		return this.getCurrentPageShapesSorted()
-			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
+			.filter(
+				(shape) =>
+					shape.type !== 'group' &&
+					shapesCloseToPoint.has(shape.id) &&
+					selectedShapeIds.includes(shape.id)
+			)
 			.reverse() // findlast
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
