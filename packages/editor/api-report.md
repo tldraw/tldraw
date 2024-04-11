@@ -186,6 +186,8 @@ export interface BoundsSnapPoint {
 export class Box {
     constructor(x?: number, y?: number, w?: number, h?: number);
     // (undocumented)
+    static AroundPoint(point: VecLike, n: number): Box;
+    // (undocumented)
     get aspectRatio(): number;
     // (undocumented)
     get center(): Vec;

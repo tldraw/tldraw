@@ -4297,7 +4297,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const shapesCloseToPoint = new Set(
-			this.getShapeIdsInsideBounds(Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN))
+			this.getShapeIdsInsideBounds(Box.AroundPoint(point, HIT_TEST_MARGIN))
 		)
 		const selectedShapeIds = this.getSelectedShapeIds()
 
@@ -4348,7 +4348,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		const shapesCloseToPoint = new Set(
-			this.getShapeIdsInsideBounds(Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN))
+			this.getShapeIdsInsideBounds(Box.AroundPoint(point, HIT_TEST_MARGIN))
 		)
 		const shapesToCheck = (
 			opts.renderingOnly

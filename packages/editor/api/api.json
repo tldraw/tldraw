@@ -1624,6 +1624,72 @@
               ]
             },
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Box.AroundPoint:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static AroundPoint(point: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", n: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box",
+                  "canonicalReference": "@tldraw/editor!Box:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "point",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "n",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "AroundPoint"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Box#aspectRatio:member",
               "docComment": "",
