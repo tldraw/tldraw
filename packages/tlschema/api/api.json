@@ -364,7 +364,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        } & {}>;\n    }, never>;\n    end: "
+              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    end: "
             },
             {
               "kind": "Reference",
@@ -409,7 +409,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        } & {}>;\n    }, never>;\n    bend: "
+              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    bend: "
             },
             {
               "kind": "Reference",
@@ -2874,7 +2874,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string, {\n        x: number;\n        y: number;\n        id: string;\n        index: "
+              "text": "<string, {\n        id: string;\n        x: number;\n        y: number;\n        index: "
             },
             {
               "kind": "Reference",
