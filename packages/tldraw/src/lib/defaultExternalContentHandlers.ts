@@ -377,21 +377,19 @@ export function registerDefaultExternalContentHandlers(
 			}
 		}
 
-		editor.batch(() => {
-			if (shouldAlsoCreateAsset) {
-				editor.createAssets([asset])
-			}
+		if (shouldAlsoCreateAsset) {
+			editor.createAssets([asset])
+		}
 
-			editor.updateShapes([
-				{
-					id: shape.id,
-					type: shape.type,
-					props: {
-						assetId: asset.id,
-					},
+		editor.updateShapes([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: {
+					assetId: asset.id,
 				},
-			])
-		})
+			},
+		])
 	})
 }
 
@@ -459,19 +457,17 @@ export async function createShapesForAssets(
 		}
 	}
 
-	editor.batch(() => {
-		// Create any assets
-		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
-		if (assetsToCreate.length) {
-			editor.createAssets(assetsToCreate)
-		}
+	// Create any assets
+	const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
+	if (assetsToCreate.length) {
+		editor.createAssets(assetsToCreate)
+	}
 
-		// Create the shapes
-		editor.createShapes(partials).select(...partials.map((p) => p.id))
+	// Create the shapes
+	editor.createShapes(partials).select(...partials.map((p) => p.id))
 
-		// Re-position shapes so that the center of the group is at the provided point
-		centerSelectionAroundPoint(editor, position)
-	})
+	// Re-position shapes so that the center of the group is at the provided point
+	centerSelectionAroundPoint(editor, position)
 
 	return partials.map((p) => p.id)
 }
@@ -522,10 +518,8 @@ export function createEmptyBookmarkShape(
 		},
 	}
 
-	editor.batch(() => {
-		editor.createShapes([partial]).select(partial.id)
-		centerSelectionAroundPoint(editor, position)
-	})
+	editor.createShapes([partial]).select(partial.id)
+	centerSelectionAroundPoint(editor, position)
 
 	return editor.getShape(partial.id) as TLBookmarkShape
 }

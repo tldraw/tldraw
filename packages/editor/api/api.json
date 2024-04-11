@@ -7478,7 +7478,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", 'selectedShapeIds'>>, historyOptions?: "
+                  "text": ", 'selectedShapeIds'>>, options?: "
                 },
                 {
                   "kind": "Reference",
@@ -8009,71 +8009,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "bailToMark"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#batch:member(1)",
-              "docComment": "/**\n * Run a function in a batch, which will be undone/redone as a single action.\n *\n * @example\n * ```ts\n * editor.batch(() => {\n * \teditor.selectAll()\n * \teditor.deleteShapes(editor.getSelectedShapeIds())\n * \teditor.createShapes(myShapes)\n * \teditor.selectNone()\n * })\n *\n * editor.undo() // will undo all of the above\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "batch(fn: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "() => void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", opts?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLHistoryBatchOptions",
-                  "canonicalReference": "@tldraw/editor!~TLHistoryBatchOptions:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "this"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "fn",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "opts",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": true
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "batch"
             },
             {
               "kind": "Method",
@@ -15410,7 +15345,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#nudgeShapes:member(1)",
-              "docComment": "/**\n * Move shapes by a delta.\n *\n * @param shapes - The shapes (or shape ids) to move.\n *\n * @param direction - The direction in which to move the shapes.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })\n * ```\n *\n */\n",
+              "docComment": "/**\n * Move shapes by a delta.\n *\n * @param shapes - The shapes (or shape ids) to move.\n *\n * @param direction - The direction in which to move the shapes.\n *\n * @example\n * ```ts\n * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })\n * ```\n *\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18058,7 +17993,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<this>"
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLRecord",
+                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
                 },
                 {
                   "kind": "Content",
@@ -18071,7 +18015,7 @@
               "name": "sideEffects",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 3
+                "endIndex": 5
               },
               "isStatic": false,
               "isProtected": false,
@@ -18997,7 +18941,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", historyOptions?: "
+                  "text": ", options?: "
                 },
                 {
                   "kind": "Reference",
@@ -19035,7 +18979,7 @@
                   "isOptional": false
                 },
                 {
-                  "parameterName": "historyOptions",
+                  "parameterName": "options",
                   "parameterTypeTokenRange": {
                     "startIndex": 8,
                     "endIndex": 9
@@ -23841,45 +23785,6 @@
               "isAbstract": false
             },
             {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!HistoryManager#batch:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "batch: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "(fn: () => void, opts?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLHistoryBatchOptions",
-                  "canonicalReference": "@tldraw/editor!~TLHistoryBatchOptions:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ") => this"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "batch",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 4
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!HistoryManager#clear:member(1)",
               "docComment": "",
@@ -24081,13 +23986,13 @@
               "isAbstract": false
             },
             {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!HistoryManager#onBatchComplete:member",
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!HistoryManager#record:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "onBatchComplete: "
+                  "text": "record(fn: "
                 },
                 {
                   "kind": "Content",
@@ -24095,20 +24000,86 @@
                 },
                 {
                   "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
                   "text": ";"
                 }
               ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onBatchComplete",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
               "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
               "isProtected": false,
-              "isAbstract": false
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "fn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "record"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!HistoryManager#recordPreservingRedoStack:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "recordPreservingRedoStack(fn: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "fn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "recordPreservingRedoStack"
             },
             {
               "kind": "Property",
@@ -24139,6 +24110,79 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!HistoryManager#runInMode:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "runInMode(mode: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "null | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLHistoryMode",
+                  "canonicalReference": "@tldraw/editor!~TLHistoryMode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", fn: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "this"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "mode",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "fn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "runInMode"
             },
             {
               "kind": "Property",
@@ -32838,20 +32882,12 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare class SideEffectManager<CTX extends "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    store: "
+              "text": "export declare class SideEffectManager<R extends "
             },
             {
               "kind": "Reference",
-              "text": "TLStore",
-              "canonicalReference": "@tldraw/tlschema!TLStore:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    history: {\n        onBatchComplete: () => void;\n    };\n}"
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
             },
             {
               "kind": "Content",
@@ -32862,10 +32898,10 @@
           "releaseTag": "Public",
           "typeParameters": [
             {
-              "typeParameterName": "CTX",
+              "typeParameterName": "R",
               "constraintTokenRange": {
                 "startIndex": 1,
-                "endIndex": 4
+                "endIndex": 2
               },
               "defaultTypeTokenRange": {
                 "startIndex": 0,
@@ -32884,11 +32920,16 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "constructor(editor: "
+                  "text": "constructor(store: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Store",
+                  "canonicalReference": "@tldraw/store!Store:class"
                 },
                 {
                   "kind": "Content",
-                  "text": "CTX"
+                  "text": "<R>"
                 },
                 {
                   "kind": "Content",
@@ -32900,71 +32941,14 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "editor",
+                  "parameterName": "store",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
-                    "endIndex": 2
+                    "endIndex": 3
                   },
                   "isOptional": false
                 }
               ]
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!SideEffectManager#editor:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "editor: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "CTX"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "editor",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!SideEffectManager#history:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "history: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n        onBatchComplete: () => void;\n    }"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "history",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
             },
             {
               "kind": "Method",
@@ -32976,13 +32960,8 @@
                   "text": "registerAfterChangeHandler<T extends "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
                   "kind": "Content",
-                  "text": "['typeName']"
+                  "text": "R['typeName']"
                 },
                 {
                   "kind": "Content",
@@ -33003,16 +32982,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " & {\n        typeName: T;\n    }>"
+                  "text": "<R & {\n        typeName: T;\n    }>"
                 },
                 {
                   "kind": "Content",
@@ -33032,7 +33002,7 @@
                   "typeParameterName": "T",
                   "constraintTokenRange": {
                     "startIndex": 1,
-                    "endIndex": 3
+                    "endIndex": 2
                   },
                   "defaultTypeTokenRange": {
                     "startIndex": 0,
@@ -33042,8 +33012,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 11,
-                "endIndex": 12
+                "startIndex": 8,
+                "endIndex": 9
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -33052,16 +33022,16 @@
                 {
                   "parameterName": "typeName",
                   "parameterTypeTokenRange": {
-                    "startIndex": 4,
-                    "endIndex": 5
+                    "startIndex": 3,
+                    "endIndex": 4
                   },
                   "isOptional": false
                 },
                 {
                   "parameterName": "handler",
                   "parameterTypeTokenRange": {
-                    "startIndex": 6,
-                    "endIndex": 10
+                    "startIndex": 5,
+                    "endIndex": 7
                   },
                   "isOptional": false
                 }
@@ -33080,13 +33050,8 @@
                   "text": "registerAfterCreateHandler<T extends "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
                   "kind": "Content",
-                  "text": "['typeName']"
+                  "text": "R['typeName']"
                 },
                 {
                   "kind": "Content",
@@ -33107,16 +33072,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " & {\n        typeName: T;\n    }>"
+                  "text": "<R & {\n        typeName: T;\n    }>"
                 },
                 {
                   "kind": "Content",
@@ -33136,7 +33092,7 @@
                   "typeParameterName": "T",
                   "constraintTokenRange": {
                     "startIndex": 1,
-                    "endIndex": 3
+                    "endIndex": 2
                   },
                   "defaultTypeTokenRange": {
                     "startIndex": 0,
@@ -33146,8 +33102,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 11,
-                "endIndex": 12
+                "startIndex": 8,
+                "endIndex": 9
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -33156,16 +33112,16 @@
                 {
                   "parameterName": "typeName",
                   "parameterTypeTokenRange": {
-                    "startIndex": 4,
-                    "endIndex": 5
+                    "startIndex": 3,
+                    "endIndex": 4
                   },
                   "isOptional": false
                 },
                 {
                   "parameterName": "handler",
                   "parameterTypeTokenRange": {
-                    "startIndex": 6,
-                    "endIndex": 10
+                    "startIndex": 5,
+                    "endIndex": 7
                   },
                   "isOptional": false
                 }
@@ -33184,13 +33140,8 @@
                   "text": "registerAfterDeleteHandler<T extends "
                 },
                 {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
                   "kind": "Content",
-                  "text": "['typeName']"
+                  "text": "R['typeName']"
                 },
                 {
                   "kind": "Content",
@@ -33211,16 +33162,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " & {\n        typeName: T;\n    }>"
+                  "text": "<R & {\n        typeName: T;\n    }>"
                 },
                 {
                   "kind": "Content",
@@ -33240,7 +33182,7 @@
                   "typeParameterName": "T",
                   "constraintTokenRange": {
                     "startIndex": 1,
-                    "endIndex": 3
+                    "endIndex": 2
                   },
                   "defaultTypeTokenRange": {
                     "startIndex": 0,
@@ -33250,8 +33192,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 11,
-                "endIndex": 12
+                "startIndex": 8,
+                "endIndex": 9
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -33260,16 +33202,16 @@
                 {
                   "parameterName": "typeName",
                   "parameterTypeTokenRange": {
-                    "startIndex": 4,
-                    "endIndex": 5
+                    "startIndex": 3,
+                    "endIndex": 4
                   },
                   "isOptional": false
                 },
                 {
                   "parameterName": "handler",
                   "parameterTypeTokenRange": {
-                    "startIndex": 6,
-                    "endIndex": 10
+                    "startIndex": 5,
+                    "endIndex": 7
                   },
                   "isOptional": false
                 }
@@ -33280,17 +33222,287 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SideEffectManager#registerBatchCompleteHandler:member(1)",
-              "docComment": "/**\n * Register a handler to be called when a store completes a batch.\n *\n * @param handler - The handler to call\n *\n * @example\n * ```ts\n * let count = 0\n *\n * editor.cleanup.registerBatchCompleteHandler(() => count++)\n *\n * editor.selectAll()\n * expect(count).toBe(1)\n *\n * editor.batch(() => {\n * \teditor.selectNone()\n * \teditor.selectAll()\n * })\n *\n * expect(count).toBe(2)\n * ```\n *\n * @public\n */\n",
+              "canonicalReference": "@tldraw/editor!SideEffectManager#registerBeforeChangeHandler:member(1)",
+              "docComment": "/**\n * Register a handler to be called before a record is changed. The handler is given the old and new record - you can return a modified record to apply a different update, or the old record to block the update entirely.\n *\n * Use this handler only for intercepting updates to the record itself. If you want to update other records in response to a change, use {@link SideEffectManager.registerAfterChangeHandler} instead.\n *\n * @param typeName - The type of record to listen for\n *\n * @param handler - The handler to call\n *\n * @example\n * ```ts\n * editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => {\n *     if (next.isLocked && !prev.isLocked) {\n *         // prevent shapes from ever being locked:\n *         return prev\n *     }\n *     // other types of change are allowed\n *     return next\n * })\n * ```\n *\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "registerBatchCompleteHandler(handler: "
+                  "text": "registerBeforeChangeHandler<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R['typeName']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(typeName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", handler: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLBatchCompleteHandler",
-                  "canonicalReference": "@tldraw/editor!TLBatchCompleteHandler:type"
+                  "text": "TLBeforeChangeHandler",
+                  "canonicalReference": "@tldraw/editor!TLBeforeChangeHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R & {\n        typeName: T;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "typeName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "handler",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "registerBeforeChangeHandler"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SideEffectManager#registerBeforeCreateHandler:member(1)",
+              "docComment": "/**\n * Register a handler to be called before a record of a certain type is created. Return a modified record from the handler to change the record that will be created.\n *\n * Use this handle only to modify the creation of the record itself. If you want to trigger a side-effect on a different record (for example, moving one shape when another is created), use {@link SideEffectManager.registerAfterCreateHandler} instead.\n *\n * @param typeName - The type of record to listen for\n *\n * @param handler - The handler to call\n *\n * @example\n * ```ts\n * editor.sideEffects.registerBeforeCreateHandler('shape', (shape, source) => {\n *     // only modify shapes created by the user\n *     if (source !== 'user') return shape\n *\n *     //by default, arrow shapes have no label. Let's make sure they always have a label.\n *     if (shape.type === 'arrow') {\n *         return {...shape, props: {...shape.props, text: 'an arrow'}}\n *     }\n *\n *     // other shapes get returned unmodified\n *     return shape\n * })\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "registerBeforeCreateHandler<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R['typeName']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(typeName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", handler: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLBeforeCreateHandler",
+                  "canonicalReference": "@tldraw/editor!TLBeforeCreateHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R & {\n        typeName: T;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "typeName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "handler",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "registerBeforeCreateHandler"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SideEffectManager#registerBeforeDeleteHandler:member(1)",
+              "docComment": "/**\n * Register a handler to be called before a record is deleted. The handler can return `false` to prevent the deletion.\n *\n * Use this handler only for intercepting deletions of the record itself. If you want to do something to other records in response to a deletion, use {@link SideEffectManager.registerAfterDeleteHandler} instead.\n *\n * @param typeName - The type of record to listen for\n *\n * @param handler - The handler to call\n *\n * @example\n * ```ts\n * editor.sideEffects.registerBeforeDeleteHandler('shape', (shape, source) => {\n *     if (shape.props.color === 'red') {\n *         // prevent red shapes from being deleted\n * \t       return false\n *     }\n * })\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "registerBeforeDeleteHandler<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "R['typeName']"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(typeName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", handler: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLBeforeDeleteHandler",
+                  "canonicalReference": "@tldraw/editor!TLBeforeDeleteHandler:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R & {\n        typeName: T;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "typeName",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "handler",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "registerBeforeDeleteHandler"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!SideEffectManager#registerCompleteHandler:member(1)",
+              "docComment": "/**\n * Register a handler to be called when the store completes an operation.\n *\n * @param handler - The handler to call\n *\n * @example\n * ```ts\n * let count = 0\n *\n * editor.cleanup.registerBatchCompleteHandler(() => count++)\n *\n * editor.selectAll()\n * expect(count).toBe(1)\n *\n * editor.store.atomic(() => {\n * \teditor.selectNone()\n * \teditor.selectAll()\n * })\n *\n * expect(count).toBe(2)\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "registerCompleteHandler(handler: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCompleteHandler",
+                  "canonicalReference": "@tldraw/editor!~TLCompleteHandler:type"
                 },
                 {
                   "kind": "Content",
@@ -33325,347 +33537,42 @@
               ],
               "isOptional": false,
               "isAbstract": false,
-              "name": "registerBatchCompleteHandler"
+              "name": "registerCompleteHandler"
             },
             {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SideEffectManager#registerBeforeChangeHandler:member(1)",
-              "docComment": "/**\n * Register a handler to be called before a record is changed. The handler is given the old and new record - you can return a modified record to apply a different update, or the old record to block the update entirely.\n *\n * Use this handler only for intercepting updates to the record itself. If you want to update other records in response to a change, use {@link SideEffectManager.registerAfterChangeHandler} instead.\n *\n * @param typeName - The type of record to listen for\n *\n * @param handler - The handler to call\n *\n * @example\n * ```ts\n * editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => {\n *     if (next.isLocked && !prev.isLocked) {\n *         // prevent shapes from ever being locked:\n *         return prev\n *     }\n *     // other types of change are allowed\n *     return next\n * })\n * ```\n *\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "registerBeforeChangeHandler<T extends "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['typeName']"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">(typeName: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "T"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", handler: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLBeforeChangeHandler",
-                  "canonicalReference": "@tldraw/editor!TLBeforeChangeHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " & {\n        typeName: T;\n    }>"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "() => void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "typeParameters": [
-                {
-                  "typeParameterName": "T",
-                  "constraintTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 3
-                  },
-                  "defaultTypeTokenRange": {
-                    "startIndex": 0,
-                    "endIndex": 0
-                  }
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 11,
-                "endIndex": 12
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "typeName",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 4,
-                    "endIndex": 5
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "handler",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 6,
-                    "endIndex": 10
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "registerBeforeChangeHandler"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SideEffectManager#registerBeforeCreateHandler:member(1)",
-              "docComment": "/**\n * Register a handler to be called before a record of a certain type is created. Return a modified record from the handler to change the record that will be created.\n *\n * Use this handle only to modify the creation of the record itself. If you want to trigger a side-effect on a different record (for example, moving one shape when another is created), use {@link SideEffectManager.registerAfterCreateHandler} instead.\n *\n * @param typeName - The type of record to listen for\n *\n * @param handler - The handler to call\n *\n * @example\n * ```ts\n * editor.sideEffects.registerBeforeCreateHandler('shape', (shape, source) => {\n *     // only modify shapes created by the user\n *     if (source !== 'user') return shape\n *\n *     //by default, arrow shapes have no label. Let's make sure they always have a label.\n *     if (shape.type === 'arrow') {\n *         return {...shape, props: {...shape.props, text: 'an arrow'}}\n *     }\n *\n *     // other shapes get returned unmodified\n *     return shape\n * })\n * ```\n *\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "registerBeforeCreateHandler<T extends "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['typeName']"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">(typeName: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "T"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", handler: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLBeforeCreateHandler",
-                  "canonicalReference": "@tldraw/editor!TLBeforeCreateHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " & {\n        typeName: T;\n    }>"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "() => void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "typeParameters": [
-                {
-                  "typeParameterName": "T",
-                  "constraintTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 3
-                  },
-                  "defaultTypeTokenRange": {
-                    "startIndex": 0,
-                    "endIndex": 0
-                  }
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 11,
-                "endIndex": 12
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "typeName",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 4,
-                    "endIndex": 5
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "handler",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 6,
-                    "endIndex": 10
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "registerBeforeCreateHandler"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!SideEffectManager#registerBeforeDeleteHandler:member(1)",
-              "docComment": "/**\n * Register a handler to be called before a record is deleted. The handler can return `false` to prevent the deletion.\n *\n * Use this handler only for intercepting deletions of the record itself. If you want to do something to other records in response to a deletion, use {@link SideEffectManager.registerAfterDeleteHandler} instead.\n *\n * @param typeName - The type of record to listen for\n *\n * @param handler - The handler to call\n *\n * @example\n * ```ts\n * editor.sideEffects.registerBeforeDeleteHandler('shape', (shape, source) => {\n *     if (shape.props.color === 'red') {\n *         // prevent red shapes from being deleted\n * \t       return false\n *     }\n * })\n * ```\n *\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "registerBeforeDeleteHandler<T extends "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "['typeName']"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">(typeName: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "T"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", handler: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLBeforeDeleteHandler",
-                  "canonicalReference": "@tldraw/editor!TLBeforeDeleteHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLRecord",
-                  "canonicalReference": "@tldraw/tlschema!TLRecord:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": " & {\n        typeName: T;\n    }>"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "() => void"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "typeParameters": [
-                {
-                  "typeParameterName": "T",
-                  "constraintTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 3
-                  },
-                  "defaultTypeTokenRange": {
-                    "startIndex": 0,
-                    "endIndex": 0
-                  }
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 11,
-                "endIndex": 12
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "typeName",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 4,
-                    "endIndex": 5
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "handler",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 6,
-                    "endIndex": 10
-                  },
-                  "isOptional": false
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "registerBeforeDeleteHandler"
-            },
-            {
-              "kind": "PropertySignature",
+              "kind": "Property",
               "canonicalReference": "@tldraw/editor!SideEffectManager#store:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "store: "
+                  "text": "readonly store: "
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLStore",
-                  "canonicalReference": "@tldraw/tlschema!TLStore:type"
+                  "text": "Store",
+                  "canonicalReference": "@tldraw/store!Store:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R>"
                 },
                 {
                   "kind": "Content",
                   "text": ";"
                 }
               ],
-              "isReadonly": false,
+              "isReadonly": true,
               "isOptional": false,
               "releaseTag": "Public",
               "name": "store",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 2
-              }
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             }
           ],
           "implementsTokenRanges": []
@@ -36168,8 +36075,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLRecord",
-              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
             },
             {
               "kind": "Content",
@@ -36216,8 +36123,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLRecord",
-              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
             },
             {
               "kind": "Content",
@@ -36264,8 +36171,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLRecord",
-              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
             },
             {
               "kind": "Content",
@@ -36855,32 +36762,6 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/editor!TLBatchCompleteHandler:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type TLBatchCompleteHandler = "
-            },
-            {
-              "kind": "Content",
-              "text": "() => void"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/editor/managers/SideEffectManager.ts",
-          "releaseTag": "Public",
-          "name": "TLBatchCompleteHandler",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
-        },
-        {
-          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TLBeforeChangeHandler:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -36890,8 +36771,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLRecord",
-              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
             },
             {
               "kind": "Content",
@@ -36938,8 +36819,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLRecord",
-              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
             },
             {
               "kind": "Content",
@@ -36986,8 +36867,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLRecord",
-              "canonicalReference": "@tldraw/tlschema!TLRecord:type"
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
             },
             {
               "kind": "Content",
@@ -39265,33 +39146,6 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "tick",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!TLEventMap#update:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "update: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "update",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

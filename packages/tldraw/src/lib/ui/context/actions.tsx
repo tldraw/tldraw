@@ -386,40 +386,38 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					editor.batch(() => {
-						trackEvent('convert-to-bookmark', { source })
-						const shapes = editor.getSelectedShapes()
+					trackEvent('convert-to-bookmark', { source })
+					const shapes = editor.getSelectedShapes()
 
-						const createList: TLShapePartial[] = []
-						const deleteList: TLShapeId[] = []
-						for (const shape of shapes) {
-							if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
-								continue
+					const createList: TLShapePartial[] = []
+					const deleteList: TLShapeId[] = []
+					for (const shape of shapes) {
+						if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
+							continue
 
-							const newPos = new Vec(shape.x, shape.y)
-							newPos.rot(-shape.rotation)
-							newPos.add(new Vec(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
-							newPos.rot(shape.rotation)
-							const partial: TLShapePartial<TLBookmarkShape> = {
-								id: createShapeId(),
-								type: 'bookmark',
-								rotation: shape.rotation,
-								x: newPos.x,
-								y: newPos.y,
-								opacity: 1,
-								props: {
-									url: shape.props.url,
-								},
-							}
-
-							createList.push(partial)
-							deleteList.push(shape.id)
+						const newPos = new Vec(shape.x, shape.y)
+						newPos.rot(-shape.rotation)
+						newPos.add(new Vec(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
+						newPos.rot(shape.rotation)
+						const partial: TLShapePartial<TLBookmarkShape> = {
+							id: createShapeId(),
+							type: 'bookmark',
+							rotation: shape.rotation,
+							x: newPos.x,
+							y: newPos.y,
+							opacity: 1,
+							props: {
+								url: shape.props.url,
+							},
 						}
 
-						editor.mark('convert shapes to bookmark')
-						editor.deleteShapes(deleteList)
-						editor.createShapes(createList)
-					})
+						createList.push(partial)
+						deleteList.push(shape.id)
+					}
+
+					editor.mark('convert shapes to bookmark')
+					editor.deleteShapes(deleteList)
+					editor.createShapes(createList)
 				},
 			},
 			{
@@ -431,50 +429,48 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('convert-to-embed', { source })
 
-					editor.batch(() => {
-						const ids = editor.getSelectedShapeIds()
-						const shapes = compact(ids.map((id) => editor.getShape(id)))
+					const ids = editor.getSelectedShapeIds()
+					const shapes = compact(ids.map((id) => editor.getShape(id)))
 
-						const createList: TLShapePartial[] = []
-						const deleteList: TLShapeId[] = []
-						for (const shape of shapes) {
-							if (!editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
+					const createList: TLShapePartial[] = []
+					const deleteList: TLShapeId[] = []
+					for (const shape of shapes) {
+						if (!editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
 
-							const { url } = shape.props
+						const { url } = shape.props
 
-							const embedInfo = getEmbedInfo(shape.props.url)
+						const embedInfo = getEmbedInfo(shape.props.url)
 
-							if (!embedInfo) continue
-							if (!embedInfo.definition) continue
+						if (!embedInfo) continue
+						if (!embedInfo.definition) continue
 
-							const { width, height } = embedInfo.definition
+						const { width, height } = embedInfo.definition
 
-							const newPos = new Vec(shape.x, shape.y)
-							newPos.rot(-shape.rotation)
-							newPos.add(new Vec(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
-							newPos.rot(shape.rotation)
+						const newPos = new Vec(shape.x, shape.y)
+						newPos.rot(-shape.rotation)
+						newPos.add(new Vec(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
+						newPos.rot(shape.rotation)
 
-							const shapeToCreate: TLShapePartial<TLEmbedShape> = {
-								id: createShapeId(),
-								type: 'embed',
-								x: newPos.x,
-								y: newPos.y,
-								rotation: shape.rotation,
-								props: {
-									url: url,
-									w: width,
-									h: height,
-								},
-							}
-
-							createList.push(shapeToCreate)
-							deleteList.push(shape.id)
+						const shapeToCreate: TLShapePartial<TLEmbedShape> = {
+							id: createShapeId(),
+							type: 'embed',
+							x: newPos.x,
+							y: newPos.y,
+							rotation: shape.rotation,
+							props: {
+								url: url,
+								w: width,
+								h: height,
+							},
 						}
 
-						editor.mark('convert shapes to embed')
-						editor.deleteShapes(deleteList)
-						editor.createShapes(createList)
-					})
+						createList.push(shapeToCreate)
+						deleteList.push(shape.id)
+					}
+
+					editor.mark('convert shapes to embed')
+					editor.deleteShapes(deleteList)
+					editor.createShapes(createList)
 				},
 			},
 			{
@@ -921,14 +917,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$a',
 				readonlyOk: true,
 				onSelect(source) {
-					editor.batch(() => {
-						if (mustGoBackToSelectToolFirst()) return
+					if (mustGoBackToSelectToolFirst()) return
 
-						trackEvent('select-all-shapes', { source })
+					trackEvent('select-all-shapes', { source })
 
-						editor.mark('select all kbd')
-						editor.selectAll()
-					})
+					editor.mark('select all kbd')
+					editor.selectAll()
 				},
 			},
 			{
@@ -1177,12 +1171,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					// this needs to be deferred because it causes the menu
 					// UI to unmount which puts us in a dodgy state
 					requestAnimationFrame(() => {
-						editor.batch(() => {
-							trackEvent('toggle-focus-mode', { source })
-							clearDialogs()
-							clearToasts()
-							editor.updateInstanceState({ isFocusMode: !editor.getInstanceState().isFocusMode })
-						})
+						trackEvent('toggle-focus-mode', { source })
+						clearDialogs()
+						clearToasts()
+						editor.updateInstanceState({ isFocusMode: !editor.getInstanceState().isFocusMode })
 					})
 				},
 			},
@@ -1271,11 +1263,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
 					const ids = editor.getSelectedShapeIds()
-					editor.batch(() => {
-						editor.mark('move_shapes_to_page')
-						editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
-						editor.moveShapesToPage(ids, newPageId)
-					})
+					editor.mark('move_shapes_to_page')
+					editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
+					editor.moveShapesToPage(ids, newPageId)
 					trackEvent('new-page', { source })
 				},
 			},
@@ -1285,14 +1275,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?t',
 				onSelect(source) {
 					const style = DefaultColorStyle
-					editor.batch(() => {
-						editor.mark('change-color')
-						if (editor.isIn('select')) {
-							editor.setStyleForSelectedShapes(style, 'white')
-						}
-						editor.setStyleForNextShapes(style, 'white')
-						editor.updateInstanceState({ isChangingStyle: true })
-					})
+					editor.mark('change-color')
+					if (editor.isIn('select')) {
+						editor.setStyleForSelectedShapes(style, 'white')
+					}
+					editor.setStyleForNextShapes(style, 'white')
+					editor.updateInstanceState({ isChangingStyle: true })
 					trackEvent('set-style', { source, id: style.id, value: 'white' })
 				},
 			},

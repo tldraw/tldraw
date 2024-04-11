@@ -4110,6 +4110,36 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "@tldraw/store!Store#onAfterAtomic:member",
+              "docComment": "/**\n * A callback fired after an atomic operation is completed.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onAfterAtomic?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(source: 'remote' | 'user') => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onAfterAtomic",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "@tldraw/store!Store#onAfterChange:member",
               "docComment": "/**\n * A callback fired after each record's change.\n *\n * @param prev - The previous value, if any.\n *\n * @param next - The next value.\n */\n",
               "excerptTokens": [

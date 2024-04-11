@@ -10,14 +10,8 @@ import {
 } from '@tldraw/store'
 import { exhaustiveSwitchError, noop } from '@tldraw/utils'
 import { uniqueId } from '../../utils/uniqueId'
-import { TLHistoryBatchOptions, TLHistoryEntry } from '../types/history-types'
+import { TLHistoryEntry, TLHistoryMode } from '../types/history-types'
 import { stack } from './Stack'
-
-enum HistoryRecorderState {
-	Recording = 'recording',
-	RecordingPreserveRedoStack = 'recordingPreserveRedoStack',
-	Paused = 'paused',
-}
 
 /** @public */
 export class HistoryManager<R extends UnknownRecord> {
@@ -25,7 +19,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	readonly dispose: () => void
 
-	private state: HistoryRecorderState = HistoryRecorderState.Recording
+	private mode: TLHistoryMode = 'record'
 	private readonly pendingDiff = new PendingDiff<R>()
 	/** @internal */
 	stacks = atom(
@@ -47,18 +41,18 @@ export class HistoryManager<R extends UnknownRecord> {
 		this.dispose = this.store.addHistoryInterceptor((entry, source) => {
 			if (source !== 'user') return
 
-			switch (this.state) {
-				case HistoryRecorderState.Recording:
+			switch (this.mode) {
+				case 'record':
 					this.pendingDiff.apply(entry.changes)
 					this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
 					break
-				case HistoryRecorderState.RecordingPreserveRedoStack:
+				case 'record-preserveRedoStack':
 					this.pendingDiff.apply(entry.changes)
 					break
-				case HistoryRecorderState.Paused:
+				case 'ignore':
 					break
 				default:
-					exhaustiveSwitchError(this.state)
+					exhaustiveSwitchError(this.mode)
 			}
 		})
 	}
@@ -73,8 +67,6 @@ export class HistoryManager<R extends UnknownRecord> {
 		}))
 	}
 
-	onBatchComplete: () => void = () => void null
-
 	getNumUndos() {
 		return this.stacks.get().undos.length + (this.pendingDiff.isEmpty() ? 0 : 1)
 	}
@@ -82,39 +74,34 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this.stacks.get().redos.length
 	}
 
-	/** @internal */
-	_isInBatch = false
-	batch = (fn: () => void, opts?: TLHistoryBatchOptions) => {
-		const previousState = this.state
-		this.state = opts?.history ? modeToState[opts.history] : this.state
+	runInMode(mode: TLHistoryMode | undefined | null, fn: () => void) {
+		if (!mode) {
+			fn()
+			return this
+		}
+
+		const previousMode = this.mode
+		this.mode = mode
 
 		try {
-			if (this._isInBatch) {
-				fn()
-				return this
-			}
-
-			this._isInBatch = true
-			try {
-				transact(() => {
-					fn()
-					this.onBatchComplete()
-				})
-			} catch (error) {
-				this.annotateError(error)
-				throw error
-			} finally {
-				this._isInBatch = false
-			}
+			transact(fn)
 
 			return this
 		} finally {
-			this.state = previousState
+			this.mode = previousMode
 		}
 	}
 
 	ignore(fn: () => void) {
-		return this.batch(fn, { history: 'ignore' })
+		return this.runInMode('ignore', fn)
+	}
+
+	record(fn: () => void) {
+		return this.runInMode('record', fn)
+	}
+
+	recordPreservingRedoStack(fn: () => void) {
+		return this.runInMode('record-preserveRedoStack', fn)
 	}
 
 	// History
@@ -125,8 +112,8 @@ export class HistoryManager<R extends UnknownRecord> {
 		pushToRedoStack: boolean
 		toMark?: string
 	}) => {
-		const previousState = this.state
-		this.state = HistoryRecorderState.Paused
+		const previousState = this.mode
+		this.mode = 'ignore'
 		try {
 			let { undos, redos } = this.stacks.get()
 
@@ -183,7 +170,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
-			this.state = previousState
+			this.mode = previousState
 		}
 
 		return this
@@ -196,8 +183,8 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	redo = () => {
-		const previousState = this.state
-		this.state = HistoryRecorderState.Paused
+		const previousState = this.mode
+		this.mode = 'ignore'
 		try {
 			this.flushPendingDiff()
 
@@ -231,7 +218,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
-			this.state = previousState
+			this.mode = previousState
 		}
 
 		return this
@@ -270,16 +257,10 @@ export class HistoryManager<R extends UnknownRecord> {
 			undos: undos.toArray(),
 			redos: redos.toArray(),
 			pendingDiff: this.pendingDiff.debug(),
-			state: this.state,
+			state: this.mode,
 		}
 	}
 }
-
-const modeToState = {
-	record: HistoryRecorderState.Recording,
-	'record-preserveRedoStack': HistoryRecorderState.RecordingPreserveRedoStack,
-	ignore: HistoryRecorderState.Paused,
-} as const
 
 class PendingDiff<R extends UnknownRecord> {
 	private diff = createEmptyRecordsDiff<R>()

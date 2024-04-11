@@ -101,11 +101,9 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: id === 'rectangle' ? 'r' : id === 'ellipse' ? 'o' : undefined,
 				icon: ('geo-' + id) as TLUiIconType,
 				onSelect(source: TLUiEventSource) {
-					editor.batch(() => {
-						editor.setStyleForNextShapes(GeoShapeGeoStyle, id)
-						editor.setCurrentTool('geo')
-						trackEvent('select-tool', { source, id: `geo-${id}` })
-					})
+					editor.setStyleForNextShapes(GeoShapeGeoStyle, id)
+					editor.setCurrentTool('geo')
+					trackEvent('select-tool', { source, id: `geo-${id}` })
 				},
 			})),
 			{

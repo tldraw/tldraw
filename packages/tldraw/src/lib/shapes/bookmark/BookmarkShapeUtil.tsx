@@ -180,17 +180,15 @@ const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 		return
 	}
 
-	editor.batch(() => {
-		// Create the new asset
-		editor.createAssets([asset])
+	// Create the new asset
+	editor.createAssets([asset])
 
-		// And update the shape
-		editor.updateShapes<TLBookmarkShape>([
-			{
-				id: shape.id,
-				type: shape.type,
-				props: { assetId: asset.id },
-			},
-		])
-	})
+	// And update the shape
+	editor.updateShapes<TLBookmarkShape>([
+		{
+			id: shape.id,
+			type: shape.type,
+			props: { assetId: asset.id },
+		},
+	])
 }, 500)

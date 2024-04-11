@@ -340,6 +340,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	onAfterDelete?: (prev: R, source: 'remote' | 'user') => void
 
+	/**
+	 * A callback fired after an atomic operation is completed.
+	 */
+	onAfterAtomic?: (source: 'remote' | 'user') => void
+
 	// used to avoid running callbacks when rolling back changes in sync client
 	private _runCallbacks = true
 
@@ -682,6 +687,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	mergeRemoteChanges = (fn: () => void) => {
+		if (this._isInAtomicOp) {
+			throw new Error('Cannot call `mergeRemoteChanges` from within an atomic operation')
+		}
+
 		if (this.isMergingRemoteChanges) {
 			return fn()
 		}
@@ -827,6 +836,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 	private flushAtomicCallbacks() {
 		let updateDepth = 0
+		let didAnythingHappen = false
+
+		// first, we fire any pending after events:
 		while (this.pendingAfterEvents) {
 			const events = this.pendingAfterEvents
 			this.pendingAfterEvents = null
@@ -840,15 +852,27 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			for (const { before, after, source } of events.values()) {
 				if (before && after) {
+					didAnythingHappen = true
 					this.onAfterChange?.(before, after, source)
 				} else if (before && !after) {
+					didAnythingHappen = true
 					this.onAfterDelete?.(before, source)
 				} else if (!before && after) {
+					didAnythingHappen = true
 					this.onAfterCreate?.(after, source)
 				}
 			}
 		}
+
+		// then we fire the atomic callback
+		if (didAnythingHappen) {
+			this.onAfterAtomic?.(this.isMergingRemoteChanges ? 'remote' : 'user')
+
+			// that might have caused more changes, so we need to flush again:
+			this.flushAtomicCallbacks()
+		}
 	}
+
 	private _isInAtomicOp = false
 	/** @internal */
 	atomic<T>(fn: () => T, runCallbacks = true): T {

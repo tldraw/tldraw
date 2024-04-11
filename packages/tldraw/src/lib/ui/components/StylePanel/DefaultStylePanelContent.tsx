@@ -78,13 +78,11 @@ function useStyleChangeCallback() {
 	return React.useMemo(
 		() =>
 			function handleStyleChange<T>(style: StyleProp<T>, value: T) {
-				editor.batch(() => {
-					if (editor.isIn('select')) {
-						editor.setStyleForSelectedShapes(style, value)
-					}
-					editor.setStyleForNextShapes(style, value)
-					editor.updateInstanceState({ isChangingStyle: true })
-				})
+				if (editor.isIn('select')) {
+					editor.setStyleForSelectedShapes(style, value)
+				}
+				editor.setStyleForNextShapes(style, value)
+				editor.updateInstanceState({ isChangingStyle: true })
 
 				trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
 			},
@@ -327,13 +325,11 @@ export function OpacitySlider() {
 	const handleOpacityValueChange = React.useCallback(
 		(value: number) => {
 			const item = tldrawSupportedOpacities[value]
-			editor.batch(() => {
-				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(item)
-				}
-				editor.setOpacityForNextShapes(item)
-				editor.updateInstanceState({ isChangingStyle: true })
-			})
+			if (editor.isIn('select')) {
+				editor.setOpacityForSelectedShapes(item)
+			}
+			editor.setOpacityForNextShapes(item)
+			editor.updateInstanceState({ isChangingStyle: true })
 
 			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })
 		},

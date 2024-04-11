@@ -294,7 +294,5 @@ function createNShapes(editor: Editor, n: number) {
 		}
 	}
 
-	editor.batch(() => {
-		editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))
-	})
+	editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))
 }

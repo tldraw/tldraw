@@ -8,7 +8,6 @@ export interface TLEventMap {
 	mount: []
 	'max-shapes': [{ name: string; pageId: TLPageId; count: number }]
 	change: [HistoryEntry<TLRecord>]
-	update: []
 	crash: [{ error: unknown }]
 	'stop-camera-animation': []
 	'stop-following': []

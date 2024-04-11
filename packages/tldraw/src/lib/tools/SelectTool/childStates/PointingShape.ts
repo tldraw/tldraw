@@ -146,20 +146,18 @@ export class PointingShape extends StateNode {
 									labelGeometry.bounds.containsPoint(pointInShapeSpace, 0) &&
 									labelGeometry.hitTestPoint(pointInShapeSpace)
 								) {
-									this.editor.batch(() => {
-										this.editor.mark('editing on pointer up')
-										this.editor.select(selectingShape.id)
+									this.editor.mark('editing on pointer up')
+									this.editor.select(selectingShape.id)
 
-										const util = this.editor.getShapeUtil(selectingShape)
-										if (this.editor.getInstanceState().isReadonly) {
-											if (!util.canEditInReadOnly(selectingShape)) {
-												return
-											}
+									const util = this.editor.getShapeUtil(selectingShape)
+									if (this.editor.getInstanceState().isReadonly) {
+										if (!util.canEditInReadOnly(selectingShape)) {
+											return
 										}
+									}
 
-										this.editor.setEditingShape(selectingShape.id)
-										this.editor.setCurrentTool('select.editing_shape')
-									})
+									this.editor.setEditingShape(selectingShape.id)
+									this.editor.setCurrentTool('select.editing_shape')
 									return
 								}
 							}

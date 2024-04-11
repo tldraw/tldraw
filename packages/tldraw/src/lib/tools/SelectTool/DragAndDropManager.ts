@@ -32,9 +32,7 @@ export class DragAndDropManager {
 
 	private setDragTimer(movingShapes: TLShape[], duration: number, cb: () => void) {
 		this.droppingNodeTimer = setTimeout(() => {
-			this.editor.batch(() => {
-				this.handleDrag(this.editor.inputs.currentPagePoint, movingShapes, cb)
-			})
+			this.handleDrag(this.editor.inputs.currentPagePoint, movingShapes, cb)
 			this.droppingNodeTimer = null
 		}, duration)
 	}

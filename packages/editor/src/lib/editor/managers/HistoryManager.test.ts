@@ -61,14 +61,12 @@ function createCounterHistoryManager() {
 	}
 
 	const setAge = (age = 35) => {
-		manager.batch(() => _setAge(age), { history: 'record-preserveRedoStack' })
+		manager.recordPreservingRedoStack(() => _setAge(age))
 	}
 
 	const incrementTwice = () => {
-		manager.batch(() => {
-			increment()
-			increment()
-		})
+		increment()
+		increment()
 	}
 
 	return {
@@ -290,12 +288,12 @@ describe('history options', () => {
 			return { a: store.get(ids.a)!.value as number, b: store.get(ids.b)!.value as number }
 		}
 
-		setA = (n: number, historyOptions?: TLHistoryBatchOptions) => {
-			manager.batch(() => store.update(ids.a, (s) => ({ ...s, value: n })), historyOptions)
+		setA = (n: number, opts?: TLHistoryBatchOptions) => {
+			manager.runInMode(opts?.history, () => store.update(ids.a, (s) => ({ ...s, value: n })))
 		}
 
-		setB = (n: number, historyOptions?: TLHistoryBatchOptions) => {
-			manager.batch(() => store.update(ids.b, (s) => ({ ...s, value: n })), historyOptions)
+		setB = (n: number, opts?: TLHistoryBatchOptions) => {
+			manager.runInMode(opts?.history, () => store.update(ids.b, (s) => ({ ...s, value: n })))
 		}
 	})
 
@@ -398,14 +396,11 @@ describe('history options', () => {
 
 	it('nested ignore', () => {
 		manager.mark()
-		manager.batch(
-			() => {
-				setA(1)
-				manager.batch(() => setB(1), { history: 'record' })
-				setA(2)
-			},
-			{ history: 'ignore' }
-		)
+		manager.ignore(() => {
+			setA(1)
+			manager.record(() => setB(1))
+			setA(2)
+		})
 		expect(getState()).toMatchObject({ a: 2, b: 1 })
 
 		// changes to A were ignore, but changes to B were recorded:
@@ -413,13 +408,10 @@ describe('history options', () => {
 		expect(getState()).toMatchObject({ a: 2, b: 0 })
 
 		manager.mark()
-		manager.batch(
-			() => {
-				setA(3)
-				manager.batch(() => setB(2), { history: 'ignore' })
-			},
-			{ history: 'record-preserveRedoStack' }
-		)
+		manager.recordPreservingRedoStack(() => {
+			setA(3)
+			manager.ignore(() => setB(2))
+		})
 		expect(getState()).toMatchObject({ a: 3, b: 2 })
 
 		// changes to A were recorded, but changes to B were ignore:

@@ -17,17 +17,15 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]) {
 	if (!frames.length) return
 
 	const allChildren: TLShapeId[] = []
-	editor.batch(() => {
-		frames.map((frame) => {
-			const children = editor.getSortedChildIdsForParent(frame.id)
-			if (children.length) {
-				editor.reparentShapes(children, frame.parentId, frame.index)
-				allChildren.push(...children)
-			}
-		})
-		editor.setSelectedShapes(allChildren)
-		editor.deleteShapes(ids)
+	frames.map((frame) => {
+		const children = editor.getSortedChildIdsForParent(frame.id)
+		if (children.length) {
+			editor.reparentShapes(children, frame.parentId, frame.index)
+			allChildren.push(...children)
+		}
 	})
+	editor.setSelectedShapes(allChildren)
+	editor.deleteShapes(ids)
 }
 
 /** @internal */
@@ -66,28 +64,26 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts = {} as { 
 	if (dx === 0 && dy === 0 && frame.props.w === w && frame.props.h === h) return
 
 	const diff = new Vec(dx, dy).rot(frame.rotation)
-	editor.batch(() => {
-		const changes: TLShapePartial[] = childIds.map((child) => {
-			const shape = editor.getShape(child)!
-			return {
-				id: shape.id,
-				type: shape.type,
-				x: shape.x + dx,
-				y: shape.y + dy,
-			}
-		})
-
-		changes.push({
-			id: frame.id,
-			type: frame.type,
-			x: frame.x - diff.x,
-			y: frame.y - diff.y,
-			props: {
-				w,
-				h,
-			},
-		})
-
-		editor.updateShapes(changes)
+	const changes: TLShapePartial[] = childIds.map((child) => {
+		const shape = editor.getShape(child)!
+		return {
+			id: shape.id,
+			type: shape.type,
+			x: shape.x + dx,
+			y: shape.y + dy,
+		}
 	})
+
+	changes.push({
+		id: frame.id,
+		type: frame.type,
+		x: frame.x - diff.x,
+		y: frame.y - diff.y,
+		props: {
+			w,
+			h,
+		},
+	})
+
+	editor.updateShapes(changes)
 }

@@ -592,7 +592,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     bail(): this;
     bailToMark(id: string): this;
-    batch(fn: () => void, opts?: TLHistoryBatchOptions): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
     cancel(): this;
@@ -893,7 +892,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
-    readonly sideEffects: SideEffectManager<this>;
+    readonly sideEffects: SideEffectManager<TLRecord>;
     slideCamera(opts?: {
         speed: number;
         direction: VecLike;
@@ -920,9 +919,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateAssets(assets: TLAssetPartial[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions): this;
     // (undocumented)
-    _updateCurrentPageState: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions) => void;
+    _updateCurrentPageState: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>, options?: TLHistoryBatchOptions) => void;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: TLHistoryBatchOptions): this;
+    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, options?: TLHistoryBatchOptions): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>): this;
     // @internal
     updateRenderingBounds(): this;
@@ -1202,8 +1201,6 @@ export class HistoryManager<R extends UnknownRecord> {
     // (undocumented)
     bailToMark: (id: string) => this;
     // (undocumented)
-    batch: (fn: () => void, opts?: TLHistoryBatchOptions) => this;
-    // (undocumented)
     clear(): void;
     // @internal (undocumented)
     debug(): {
@@ -1213,7 +1210,7 @@ export class HistoryManager<R extends UnknownRecord> {
             diff: RecordsDiff<R>;
             isEmpty: boolean;
         };
-        state: HistoryRecorderState;
+        state: TLHistoryMode;
     };
     // (undocumented)
     readonly dispose: () => void;
@@ -1223,14 +1220,16 @@ export class HistoryManager<R extends UnknownRecord> {
     getNumUndos(): number;
     // (undocumented)
     ignore(fn: () => void): this;
-    // @internal (undocumented)
-    _isInBatch: boolean;
     // (undocumented)
     mark: (id?: string) => string;
     // (undocumented)
-    onBatchComplete: () => void;
+    record(fn: () => void): this;
+    // (undocumented)
+    recordPreservingRedoStack(fn: () => void): this;
     // (undocumented)
     redo: () => this | undefined;
+    // (undocumented)
+    runInMode(mode: null | TLHistoryMode | undefined, fn: () => void): this;
     // @internal (undocumented)
     stacks: Atom<    {
     undos: Stack<TLHistoryEntry<R>>;
@@ -1745,45 +1744,42 @@ export class SharedStyleMap extends ReadonlySharedStyleMap {
 export function shortAngleDist(a0: number, a1: number): number;
 
 // @public
-export class SideEffectManager<CTX extends {
-    store: TLStore;
-    history: {
-        onBatchComplete: () => void;
-    };
-}> {
-    constructor(editor: CTX);
-    // (undocumented)
-    editor: CTX;
+export class SideEffectManager<R extends UnknownRecord> {
+    constructor(store: Store<R>);
     // @internal
     register(handlersByType: {
-        [R in TLRecord as R['typeName']]?: {
-            beforeCreate?: TLBeforeCreateHandler<R>;
-            afterCreate?: TLAfterCreateHandler<R>;
-            beforeChange?: TLBeforeChangeHandler<R>;
-            afterChange?: TLAfterChangeHandler<R>;
-            beforeDelete?: TLBeforeDeleteHandler<R>;
-            afterDelete?: TLAfterDeleteHandler<R>;
+        [T in R as T['typeName']]?: {
+            beforeCreate?: TLBeforeCreateHandler<T>;
+            afterCreate?: TLAfterCreateHandler<T>;
+            beforeChange?: TLBeforeChangeHandler<T>;
+            afterChange?: TLAfterChangeHandler<T>;
+            beforeDelete?: TLBeforeDeleteHandler<T>;
+            afterDelete?: TLAfterDeleteHandler<T>;
         };
+    } & {
+        complete?: TLCompleteHandler;
     }): () => void;
-    registerAfterChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterChangeHandler<TLRecord & {
+    registerAfterChangeHandler<T extends R['typeName']>(typeName: T, handler: TLAfterChangeHandler<R & {
         typeName: T;
     }>): () => void;
-    registerAfterCreateHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterCreateHandler<TLRecord & {
+    registerAfterCreateHandler<T extends R['typeName']>(typeName: T, handler: TLAfterCreateHandler<R & {
         typeName: T;
     }>): () => void;
-    registerAfterDeleteHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterDeleteHandler<TLRecord & {
+    registerAfterDeleteHandler<T extends R['typeName']>(typeName: T, handler: TLAfterDeleteHandler<R & {
         typeName: T;
     }>): () => void;
-    registerBatchCompleteHandler(handler: TLBatchCompleteHandler): () => void;
-    registerBeforeChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeChangeHandler<TLRecord & {
+    registerBeforeChangeHandler<T extends R['typeName']>(typeName: T, handler: TLBeforeChangeHandler<R & {
         typeName: T;
     }>): () => void;
-    registerBeforeCreateHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeCreateHandler<TLRecord & {
+    registerBeforeCreateHandler<T extends R['typeName']>(typeName: T, handler: TLBeforeCreateHandler<R & {
         typeName: T;
     }>): () => void;
-    registerBeforeDeleteHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeDeleteHandler<TLRecord & {
+    registerBeforeDeleteHandler<T extends R['typeName']>(typeName: T, handler: TLBeforeDeleteHandler<R & {
         typeName: T;
     }>): () => void;
+    registerCompleteHandler(handler: TLCompleteHandler): () => void;
+    // (undocumented)
+    readonly store: Store<R>;
 }
 
 export { Signal }
@@ -1945,13 +1941,13 @@ export interface SvgExportDef {
 export const TAB_ID: string;
 
 // @public (undocumented)
-export type TLAfterChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => void;
+export type TLAfterChangeHandler<R extends UnknownRecord> = (prev: R, next: R, source: 'remote' | 'user') => void;
 
 // @public (undocumented)
-export type TLAfterCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void;
+export type TLAfterCreateHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => void;
 
 // @public (undocumented)
-export type TLAfterDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void;
+export type TLAfterDeleteHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => void;
 
 // @public (undocumented)
 export type TLAnimationOptions = Partial<{
@@ -2022,16 +2018,13 @@ export interface TLBaseEventInfo {
 }
 
 // @public (undocumented)
-export type TLBatchCompleteHandler = () => void;
+export type TLBeforeChangeHandler<R extends UnknownRecord> = (prev: R, next: R, source: 'remote' | 'user') => R;
 
 // @public (undocumented)
-export type TLBeforeChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => R;
+export type TLBeforeCreateHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => R;
 
 // @public (undocumented)
-export type TLBeforeCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => R;
-
-// @public (undocumented)
-export type TLBeforeDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => false | void;
+export type TLBeforeDeleteHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => false | void;
 
 // @public (undocumented)
 export type TLBrushProps = {
@@ -2232,8 +2225,6 @@ export interface TLEventMap {
     mount: [];
     // (undocumented)
     tick: [number];
-    // (undocumented)
-    update: [];
 }
 
 // @public (undocumented)

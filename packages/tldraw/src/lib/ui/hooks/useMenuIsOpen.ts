@@ -12,18 +12,16 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		(isOpen: boolean) => {
 			rIsOpen.current = isOpen
 
-			editor.batch(() => {
-				if (isOpen) {
-					editor.complete()
-					editor.addOpenMenu(id)
-				} else {
-					editor.updateInstanceState({
-						openMenus: editor.getOpenMenus().filter((m) => !m.startsWith(id)),
-					})
-				}
+			if (isOpen) {
+				editor.complete()
+				editor.addOpenMenu(id)
+			} else {
+				editor.updateInstanceState({
+					openMenus: editor.getOpenMenus().filter((m) => !m.startsWith(id)),
+				})
+			}
 
-				cb?.(isOpen)
-			})
+			cb?.(isOpen)
 		},
 		[editor, id, cb]
 	)

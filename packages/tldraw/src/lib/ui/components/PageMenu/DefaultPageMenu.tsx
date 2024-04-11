@@ -251,13 +251,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const handleCreatePageClick = useCallback(() => {
 		if (isReadonlyMode) return
 
-		editor.batch(() => {
-			editor.mark('creating page')
-			const newPageId = PageRecordType.createId()
-			editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
-			editor.setCurrentPage(newPageId)
-			setIsEditing(true)
-		})
+		editor.mark('creating page')
+		const newPageId = PageRecordType.createId()
+		editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
+		editor.setCurrentPage(newPageId)
+		setIsEditing(true)
 	}, [editor, msg, isReadonlyMode])
 
 	return (
@@ -400,10 +398,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 															editor.renamePage(page.id, name)
 														}
 													} else {
-														editor.batch(() => {
-															setIsEditing(true)
-															editor.setCurrentPage(page.id)
-														})
+														setIsEditing(true)
+														editor.setCurrentPage(page.id)
 													}
 												}}
 											/>

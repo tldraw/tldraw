@@ -139,7 +139,6 @@ export type {
 	TLAfterChangeHandler,
 	TLAfterCreateHandler,
 	TLAfterDeleteHandler,
-	TLBatchCompleteHandler,
 	TLBeforeChangeHandler,
 	TLBeforeCreateHandler,
 	TLBeforeDeleteHandler,

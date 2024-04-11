@@ -1,36 +1,38 @@
-import { TLRecord, TLStore } from '@tldraw/tlschema'
+import { Store, UnknownRecord } from '@tldraw/store'
 
 /** @public */
-export type TLBeforeCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => R
+export type TLBeforeCreateHandler<R extends UnknownRecord> = (
+	record: R,
+	source: 'remote' | 'user'
+) => R
 /** @public */
-export type TLAfterCreateHandler<R extends TLRecord> = (
+export type TLAfterCreateHandler<R extends UnknownRecord> = (
 	record: R,
 	source: 'remote' | 'user'
 ) => void
 /** @public */
-export type TLBeforeChangeHandler<R extends TLRecord> = (
+export type TLBeforeChangeHandler<R extends UnknownRecord> = (
 	prev: R,
 	next: R,
 	source: 'remote' | 'user'
 ) => R
 /** @public */
-export type TLAfterChangeHandler<R extends TLRecord> = (
+export type TLAfterChangeHandler<R extends UnknownRecord> = (
 	prev: R,
 	next: R,
 	source: 'remote' | 'user'
 ) => void
 /** @public */
-export type TLBeforeDeleteHandler<R extends TLRecord> = (
+export type TLBeforeDeleteHandler<R extends UnknownRecord> = (
 	record: R,
 	source: 'remote' | 'user'
 ) => void | false
 /** @public */
-export type TLAfterDeleteHandler<R extends TLRecord> = (
+export type TLAfterDeleteHandler<R extends UnknownRecord> = (
 	record: R,
 	source: 'remote' | 'user'
 ) => void
-/** @public */
-export type TLBatchCompleteHandler = () => void
+export type TLCompleteHandler = (source: 'remote' | 'user') => void
 
 /**
  * The side effect manager (aka a "correct state enforcer") is responsible
@@ -40,17 +42,10 @@ export type TLBatchCompleteHandler = () => void
  *
  * @public
  */
-export class SideEffectManager<
-	CTX extends {
-		store: TLStore
-		history: { onBatchComplete: () => void }
-	},
-> {
-	constructor(public editor: CTX) {
-		editor.store.onBeforeCreate = (record, source) => {
-			const handlers = this._beforeCreateHandlers[
-				record.typeName
-			] as TLBeforeCreateHandler<TLRecord>[]
+export class SideEffectManager<R extends UnknownRecord> {
+	constructor(public readonly store: Store<R>) {
+		store.onBeforeCreate = (record, source) => {
+			const handlers = this._beforeCreateHandlers[record.typeName as R['typeName']]
 			if (handlers) {
 				let r = record
 				for (const handler of handlers) {
@@ -62,10 +57,8 @@ export class SideEffectManager<
 			return record
 		}
 
-		editor.store.onAfterCreate = (record, source) => {
-			const handlers = this._afterCreateHandlers[
-				record.typeName
-			] as TLAfterCreateHandler<TLRecord>[]
+		store.onAfterCreate = (record, source) => {
+			const handlers = this._afterCreateHandlers[record.typeName as R['typeName']]
 			if (handlers) {
 				for (const handler of handlers) {
 					handler(record, source)
@@ -73,10 +66,8 @@ export class SideEffectManager<
 			}
 		}
 
-		editor.store.onBeforeChange = (prev, next, source) => {
-			const handlers = this._beforeChangeHandlers[
-				next.typeName
-			] as TLBeforeChangeHandler<TLRecord>[]
+		store.onBeforeChange = (prev, next, source) => {
+			const handlers = this._beforeChangeHandlers[next.typeName as R['typeName']]
 			if (handlers) {
 				let r = next
 				for (const handler of handlers) {
@@ -88,8 +79,8 @@ export class SideEffectManager<
 			return next
 		}
 
-		editor.store.onAfterChange = (prev, next, source) => {
-			const handlers = this._afterChangeHandlers[next.typeName] as TLAfterChangeHandler<TLRecord>[]
+		store.onAfterChange = (prev, next, source) => {
+			const handlers = this._afterChangeHandlers[next.typeName as R['typeName']]
 			if (handlers) {
 				for (const handler of handlers) {
 					handler(prev, next, source)
@@ -97,10 +88,8 @@ export class SideEffectManager<
 			}
 		}
 
-		editor.store.onBeforeDelete = (record, source) => {
-			const handlers = this._beforeDeleteHandlers[
-				record.typeName
-			] as TLBeforeDeleteHandler<TLRecord>[]
+		store.onBeforeDelete = (record, source) => {
+			const handlers = this._beforeDeleteHandlers[record.typeName as R['typeName']]
 			if (handlers) {
 				for (const handler of handlers) {
 					if (handler(record, source) === false) {
@@ -110,10 +99,8 @@ export class SideEffectManager<
 			}
 		}
 
-		editor.store.onAfterDelete = (record, source) => {
-			const handlers = this._afterDeleteHandlers[
-				record.typeName
-			] as TLAfterDeleteHandler<TLRecord>[]
+		store.onAfterDelete = (record, source) => {
+			const handlers = this._afterDeleteHandlers[record.typeName as R['typeName']]
 			if (handlers) {
 				for (const handler of handlers) {
 					handler(record, source)
@@ -121,49 +108,56 @@ export class SideEffectManager<
 			}
 		}
 
-		editor.history.onBatchComplete = () => {
-			this._batchCompleteHandlers.forEach((fn) => fn())
+		store.onAfterAtomic = (source) => {
+			const handlers = this._completeHandlers
+			if (handlers) {
+				for (const handler of handlers) {
+					handler(source)
+				}
+			}
 		}
 	}
 
 	private _beforeCreateHandlers: Partial<{
-		[K in TLRecord['typeName']]: TLBeforeCreateHandler<TLRecord & { typeName: K }>[]
+		[K in R['typeName']]: TLBeforeCreateHandler<R & { typeName: K }>[]
 	}> = {}
 	private _afterCreateHandlers: Partial<{
-		[K in TLRecord['typeName']]: TLAfterCreateHandler<TLRecord & { typeName: K }>[]
+		[K in R['typeName']]: TLAfterCreateHandler<R & { typeName: K }>[]
 	}> = {}
 	private _beforeChangeHandlers: Partial<{
-		[K in TLRecord['typeName']]: TLBeforeChangeHandler<TLRecord & { typeName: K }>[]
+		[K in R['typeName']]: TLBeforeChangeHandler<R & { typeName: K }>[]
 	}> = {}
 	private _afterChangeHandlers: Partial<{
-		[K in TLRecord['typeName']]: TLAfterChangeHandler<TLRecord & { typeName: K }>[]
+		[K in R['typeName']]: TLAfterChangeHandler<R & { typeName: K }>[]
 	}> = {}
-
 	private _beforeDeleteHandlers: Partial<{
-		[K in TLRecord['typeName']]: TLBeforeDeleteHandler<TLRecord & { typeName: K }>[]
+		[K in R['typeName']]: TLBeforeDeleteHandler<R & { typeName: K }>[]
 	}> = {}
-
 	private _afterDeleteHandlers: Partial<{
-		[K in TLRecord['typeName']]: TLAfterDeleteHandler<TLRecord & { typeName: K }>[]
+		[K in R['typeName']]: TLAfterDeleteHandler<R & { typeName: K }>[]
 	}> = {}
-
-	private _batchCompleteHandlers: TLBatchCompleteHandler[] = []
+	private _completeHandlers: TLCompleteHandler[] = []
 
 	/**
 	 * Internal helper for registering a bunch of side effects at once and keeping them organized.
 	 * @internal
 	 */
-	register(handlersByType: {
-		[R in TLRecord as R['typeName']]?: {
-			beforeCreate?: TLBeforeCreateHandler<R>
-			afterCreate?: TLAfterCreateHandler<R>
-			beforeChange?: TLBeforeChangeHandler<R>
-			afterChange?: TLAfterChangeHandler<R>
-			beforeDelete?: TLBeforeDeleteHandler<R>
-			afterDelete?: TLAfterDeleteHandler<R>
-		}
-	}) {
+	register(
+		handlersByType: {
+			[T in R as T['typeName']]?: {
+				beforeCreate?: TLBeforeCreateHandler<T>
+				afterCreate?: TLAfterCreateHandler<T>
+				beforeChange?: TLBeforeChangeHandler<T>
+				afterChange?: TLAfterChangeHandler<T>
+				beforeDelete?: TLBeforeDeleteHandler<T>
+				afterDelete?: TLAfterDeleteHandler<T>
+			}
+		} & { complete?: TLCompleteHandler }
+	) {
 		const disposes: (() => void)[] = []
+		if (handlersByType.complete) {
+			this._completeHandlers.push(handlersByType.complete)
+		}
 		for (const [type, handlers] of Object.entries(handlersByType) as any) {
 			if (handlers?.beforeCreate) {
 				disposes.push(this.registerBeforeCreateHandler(type, handlers.beforeCreate))
@@ -216,9 +210,9 @@ export class SideEffectManager<
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
 	 */
-	registerBeforeCreateHandler<T extends TLRecord['typeName']>(
+	registerBeforeCreateHandler<T extends R['typeName']>(
 		typeName: T,
-		handler: TLBeforeCreateHandler<TLRecord & { typeName: T }>
+		handler: TLBeforeCreateHandler<R & { typeName: T }>
 	) {
 		const handlers = this._beforeCreateHandlers[typeName] as TLBeforeCreateHandler<any>[]
 		if (!handlers) this._beforeCreateHandlers[typeName] = []
@@ -246,9 +240,9 @@ export class SideEffectManager<
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
 	 */
-	registerAfterCreateHandler<T extends TLRecord['typeName']>(
+	registerAfterCreateHandler<T extends R['typeName']>(
 		typeName: T,
-		handler: TLAfterCreateHandler<TLRecord & { typeName: T }>
+		handler: TLAfterCreateHandler<R & { typeName: T }>
 	) {
 		const handlers = this._afterCreateHandlers[typeName] as TLAfterCreateHandler<any>[]
 		if (!handlers) this._afterCreateHandlers[typeName] = []
@@ -280,9 +274,9 @@ export class SideEffectManager<
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
 	 */
-	registerBeforeChangeHandler<T extends TLRecord['typeName']>(
+	registerBeforeChangeHandler<T extends R['typeName']>(
 		typeName: T,
-		handler: TLBeforeChangeHandler<TLRecord & { typeName: T }>
+		handler: TLBeforeChangeHandler<R & { typeName: T }>
 	) {
 		const handlers = this._beforeChangeHandlers[typeName] as TLBeforeChangeHandler<any>[]
 		if (!handlers) this._beforeChangeHandlers[typeName] = []
@@ -309,9 +303,9 @@ export class SideEffectManager<
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
 	 */
-	registerAfterChangeHandler<T extends TLRecord['typeName']>(
+	registerAfterChangeHandler<T extends R['typeName']>(
 		typeName: T,
-		handler: TLAfterChangeHandler<TLRecord & { typeName: T }>
+		handler: TLAfterChangeHandler<R & { typeName: T }>
 	) {
 		const handlers = this._afterChangeHandlers[typeName] as TLAfterChangeHandler<any>[]
 		if (!handlers) this._afterChangeHandlers[typeName] = []
@@ -340,9 +334,9 @@ export class SideEffectManager<
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
 	 */
-	registerBeforeDeleteHandler<T extends TLRecord['typeName']>(
+	registerBeforeDeleteHandler<T extends R['typeName']>(
 		typeName: T,
-		handler: TLBeforeDeleteHandler<TLRecord & { typeName: T }>
+		handler: TLBeforeDeleteHandler<R & { typeName: T }>
 	) {
 		const handlers = this._beforeDeleteHandlers[typeName] as TLBeforeDeleteHandler<any>[]
 		if (!handlers) this._beforeDeleteHandlers[typeName] = []
@@ -372,9 +366,9 @@ export class SideEffectManager<
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
 	 */
-	registerAfterDeleteHandler<T extends TLRecord['typeName']>(
+	registerAfterDeleteHandler<T extends R['typeName']>(
 		typeName: T,
-		handler: TLAfterDeleteHandler<TLRecord & { typeName: T }>
+		handler: TLAfterDeleteHandler<R & { typeName: T }>
 	) {
 		const handlers = this._afterDeleteHandlers[typeName] as TLAfterDeleteHandler<any>[]
 		if (!handlers) this._afterDeleteHandlers[typeName] = []
@@ -383,7 +377,7 @@ export class SideEffectManager<
 	}
 
 	/**
-	 * Register a handler to be called when a store completes a batch.
+	 * Register a handler to be called when the store completes an operation.
 	 *
 	 * @example
 	 * ```ts
@@ -394,7 +388,7 @@ export class SideEffectManager<
 	 * editor.selectAll()
 	 * expect(count).toBe(1)
 	 *
-	 * editor.batch(() => {
+	 * editor.store.atomic(() => {
 	 *	editor.selectNone()
 	 * 	editor.selectAll()
 	 * })
@@ -406,9 +400,9 @@ export class SideEffectManager<
 	 *
 	 * @public
 	 */
-	registerBatchCompleteHandler(handler: TLBatchCompleteHandler) {
-		this._batchCompleteHandlers.push(handler)
-		return () => remove(this._batchCompleteHandlers, handler)
+	registerCompleteHandler(handler: TLCompleteHandler) {
+		this._completeHandlers.push(handler)
+		return () => remove(this._completeHandlers, handler)
 	}
 }
 
