@@ -1,5 +1,5 @@
 import { RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
-import { TLPageId, TLShape, TLShapeId, isShape, isShapeId } from '@tldraw/tlschema'
+import { TLPageId, TLShapeId, isShape, isShapeId } from '@tldraw/tlschema'
 import RBush from 'rbush'
 import { Box } from '../../primitives/Box'
 import { Editor } from '../Editor'
@@ -26,22 +26,22 @@ export class SpatialIndex {
 		this.rBush = new TldrawRBush()
 	}
 
-	private addElementToArray(shape: TLShape, a: Element[]): Element | null {
-		const e = this.getElement(shape)
+	private addElementToArray(id: TLShapeId, a: Element[]): Element | null {
+		const e = this.getElement(id)
 		if (!e) return null
 		a.push(e)
 		return e
 	}
 
-	private getElement(shape: TLShape, existingBounds?: Box): Element | null {
-		const bounds = existingBounds ?? this.editor.getShapeMaskedPageBounds(shape)
+	private getElement(id: TLShapeId, existingBounds?: Box): Element | null {
+		const bounds = existingBounds ?? this.editor.getShapeMaskedPageBounds(id)
 		if (!bounds) return null
 		return {
 			minX: bounds.minX,
 			minY: bounds.minY,
 			maxX: bounds.maxX,
 			maxY: bounds.maxY,
-			id: shape.id,
+			id,
 		}
 	}
 
@@ -50,10 +50,10 @@ export class SpatialIndex {
 		this.shapesInTree = new Map<TLShapeId, Element>()
 		const elementsToAdd: Element[] = []
 
-		this.editor.getCurrentPageShapes().forEach((shape) => {
-			const e = this.addElementToArray(shape, elementsToAdd)
+		this.editor.getCurrentPageShapeIds().forEach((id) => {
+			const e = this.addElementToArray(id, elementsToAdd)
 			if (!e) return
-			this.shapesInTree.set(shape.id, e)
+			this.shapesInTree.set(id, e)
 		})
 
 		this.rBush = new TldrawRBush().load(elementsToAdd)
@@ -83,7 +83,7 @@ export class SpatialIndex {
 			for (const changes of diff) {
 				for (const record of Object.values(changes.added)) {
 					if (isShape(record)) {
-						const e = this.addElementToArray(record, elementsToAdd)
+						const e = this.addElementToArray(record.id, elementsToAdd)
 						if (!e) continue
 						this.shapesInTree.set(record.id, e)
 					}
@@ -105,7 +105,7 @@ export class SpatialIndex {
 							this.shapesInTree.delete(to.id)
 							this.rBush.remove(currentElement)
 						}
-						const newE = this.getElement(to, newBounds)
+						const newE = this.getElement(to.id, newBounds)
 						if (!newE) continue
 						this.shapesInTree.set(to.id, newE)
 						elementsToAdd.push(newE)
