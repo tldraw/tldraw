@@ -64,22 +64,21 @@ export class SpatialIndex {
 		const shapeHistory = this.editor.store.query.filterHistory('shape')
 
 		return computed<number>('spatialIndex', (prevValue, lastComputedEpoch) => {
-			let isDirty = false
-			const currentPageId = this.editor.getCurrentPageId()
-
 			if (isUninitialized(prevValue)) {
 				return this.fromScratch(lastComputedEpoch)
 			}
-			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
 
+			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
 			if (diff === RESET_VALUE) {
 				return this.fromScratch(lastComputedEpoch)
 			}
 
+			const currentPageId = this.editor.getCurrentPageId()
 			if (!this.lastPageId || this.lastPageId !== currentPageId) {
 				return this.fromScratch(lastComputedEpoch)
 			}
 
+			let isDirty = false
 			const elementsToAdd: Element[] = []
 			for (const changes of diff) {
 				for (const record of Object.values(changes.added)) {
