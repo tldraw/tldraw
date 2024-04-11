@@ -611,7 +611,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._parentIdsToChildIds = parentsToChildren(this.store)
 
 		this._spatialIndex = new SpatialIndex(this)
-
 		this.disposables.add(
 			this.store.listen((changes) => {
 				this.emit('change', changes)
@@ -4251,14 +4250,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return culledShapes
 	}
 
-	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
-		return this._spatialIndex.getShapesInsideBounds(bounds)
-	}
-
-	getShapesInsideBounds(bounds: Box): TLShape[] {
-		return compact(this.getShapeIdsInsideBounds(bounds).map((id) => this.getShape(id))) as TLShape[]
-	}
-
 	/**
 	 * The bounds of the current page (the common bounds of all of the shapes on the page).
 	 *
@@ -4330,19 +4321,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
-		const culledShapes = this.getCulledShapes()
-		const shapesNearPoint = this.getShapesInsideBounds(
-			Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN)
-		)
-		const shapesToCheck = shapesNearPoint.filter((shape) => {
-			if (opts.renderingOnly && culledShapes.has(shape.id)) return false
+		const shapesToCheck = (
+			opts.renderingOnly
+				? this.getCurrentPageRenderingShapesSorted()
+				: this.getCurrentPageShapesSorted()
+		).filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
 			if (filter) return filter(shape)
 			return true
 		})
-
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
 			const geometry = this.getShapeGeometry(shape)
@@ -4496,10 +4485,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		const bound = Box.FromPoints([point]).expandBy(HIT_TEST_MARGIN)
-		return this.getShapesInsideBounds(bound).filter((shape) =>
-			this.isPointInShape(shape, point, opts)
-		)
+		return this.getCurrentPageShapes().filter((shape) => this.isPointInShape(shape, point, opts))
 	}
 
 	/**

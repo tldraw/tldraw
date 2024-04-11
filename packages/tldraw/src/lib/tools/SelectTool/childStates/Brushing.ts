@@ -104,6 +104,7 @@ export class Brushing extends StateNode {
 
 	private hitTestShapes() {
 		const zoomLevel = this.editor.getZoomLevel()
+		const currentPageShapes = this.editor.getCurrentPageShapes()
 		const currentPageId = this.editor.getCurrentPageId()
 		const {
 			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
@@ -129,10 +130,8 @@ export class Brushing extends StateNode {
 
 		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
 
-		const candidateShapes = this.editor.getShapesInsideBounds(this.brush)
-
-		testAllShapes: for (let i = 0, n = candidateShapes.length; i < n; i++) {
-			shape = candidateShapes[i]
+		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
+			shape = currentPageShapes[i]
 			if (excludedShapeIds.has(shape.id)) continue testAllShapes
 			if (results.has(shape.id)) continue testAllShapes
 
