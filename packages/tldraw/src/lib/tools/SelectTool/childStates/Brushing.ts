@@ -129,7 +129,7 @@ export class Brushing extends StateNode {
 
 		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
 
-		const shapesInsideBounds = [...this.editor.getShapesInsideBounds(this.brush)]
+		const shapesInsideBounds = this.editor.getShapesInsideBounds(this.brush)
 		testAllShapes: for (let i = 0, n = shapesInsideBounds.length; i < n; i++) {
 			shape = shapesInsideBounds[i]
 			if (excludedShapeIds.has(shape.id)) continue testAllShapes
@@ -180,7 +180,7 @@ export class Brushing extends StateNode {
 		}
 
 		this.editor.updateInstanceState({ brush: { ...this.brush.toJson() } })
-		this.editor.setSelectedShapes(Array.from(results), { squashing: true })
+		this.editor.setSelectedShapes(Array.from(results).sort(), { squashing: true })
 	}
 
 	override onInterrupt: TLInterruptEvent = () => {
