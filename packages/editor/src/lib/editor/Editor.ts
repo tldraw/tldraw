@@ -887,19 +887,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Run a function in a batch, which will be undone/redone as a single action.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.batch(() => {
-	 * 	editor.selectAll()
-	 * 	editor.deleteShapes(editor.getSelectedShapeIds())
-	 * 	editor.createShapes(myShapes)
-	 * 	editor.selectNone()
-	 * })
-	 *
-	 * editor.undo() // will undo all of the above
-	 * ```
+	 * Run a function in a batch.
 	 *
 	 * @public
 	 */
@@ -8674,6 +8662,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						if (this.inputs.isPanning && this.inputs.isPointing) {
+							clearTimeout(this._longPressTimeout)
 							// Handle panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
 							this.pan(Vec.Sub(currentScreenPoint, previousScreenPoint))
