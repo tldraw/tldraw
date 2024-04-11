@@ -552,10 +552,6 @@ input,
 	opacity: 0;
 }
 
-.tl-handle__create:hover {
-	opacity: 1;
-}
-
 .tl-handle__clone > .tl-handle__fg {
 	fill: var(--color-selection-stroke);
 	stroke: none;
@@ -563,11 +559,6 @@ input,
 
 .tl-handle__bg:active {
 	fill: none;
-}
-
-.tl-handle__bg:hover {
-	cursor: var(--tl-cursor-grab);
-	fill: var(--color-selection-fill);
 }
 
 @media (pointer: coarse) {
@@ -980,10 +971,6 @@ input,
 	cursor: var(--tl-cursor-pointer);
 }
 
-.tl-bookmark__link:hover {
-	color: var(--color-selected);
-}
-
 /* ---------------- Hyperlink Button ---------------- */
 
 .tl-hyperlink-button {
@@ -1020,10 +1007,6 @@ input,
 	border-radius: var(--radius-1);
 	background-color: var(--color-background);
 	pointer-events: none;
-}
-
-.tl-hyperlink-button:hover {
-	color: var(--color-selected);
 }
 
 .tl-hyperlink-button:focus-visible {
@@ -1095,12 +1078,6 @@ input,
 	pointer-events: all;
 }
 
-/* These three rules help preserve clicking into specific points in text areas *while*
- * already in edit mode when jumping from shape to shape. */
-.tl-canvas[data-iseditinganything='true'] .tl-text-wrapper:hover .tl-text-input {
-	z-index: var(--layer-text-editor);
-	pointer-events: all;
-}
 /* This part of the rule helps preserve the occlusion rules for the shapes so we
  * don't click on shapes that are behind other shapes.
  * One extra nuance is we don't use this behavior for:
@@ -1471,17 +1448,11 @@ it from receiving any pointer events or affecting the cursor. */
 	color: inherit;
 	background-color: transparent;
 }
-.tl-error-boundary__content button:hover {
-	background-color: var(--color-low);
-}
 
 .tl-error-boundary__content a {
 	color: var(--color-text-1);
 	font-weight: 500;
 	text-decoration: none;
-}
-.tl-error-boundary__content a:hover {
-	color: var(--color-text-1);
 }
 
 .tl-error-boundary__content__error {
@@ -1517,11 +1488,6 @@ it from receiving any pointer events or affecting the cursor. */
 	background-color: var(--color-primary);
 	color: var(--color-selected-contrast);
 }
-.tl-error-boundary__content .tl-error-boundary__refresh:hover {
-	background-color: var(--color-primary);
-	opacity: 0.9;
-}
-
 /* --------------------- Coarse --------------------- */
 
 .tl-hidden {
@@ -1551,4 +1517,41 @@ it from receiving any pointer events or affecting the cursor. */
 
 .tl-hit-test-blocker__hidden {
 	display: none;
+}
+
+@media (hover: hover) {
+	.tl-handle__create:hover {
+		opacity: 1;
+	}
+
+	.tl-handle__bg:hover {
+		cursor: var(--tl-cursor-grab);
+		fill: var(--color-selection-fill);
+	}
+
+	.tl-bookmark__link:hover {
+		color: var(--color-selected);
+	}
+
+	.tl-hyperlink-button:hover {
+		color: var(--color-selected);
+	}
+
+	.tl-error-boundary__content button:hover {
+		background-color: var(--color-low);
+	}
+	.tl-error-boundary__content a:hover {
+		color: var(--color-text-1);
+	}
+	.tl-error-boundary__content .tl-error-boundary__refresh:hover {
+		background-color: var(--color-primary);
+		opacity: 0.9;
+	}
+
+	/* These three rules help preserve clicking into specific points in text areas *while*
+ * already in edit mode when jumping from shape to shape. */
+	.tl-canvas[data-iseditinganything='true'] .tl-text-wrapper:hover .tl-text-input {
+		z-index: var(--layer-text-editor);
+		pointer-events: all;
+	}
 }
