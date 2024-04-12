@@ -1,3 +1,11 @@
+## 2.0.28
+
+- Fix an issue with panning the canvas.
+
+## 2.0.27
+
+- Bug fixes and performance improvements.
+
 ## 2.0.26
 
 - Bug fixes and performance improvements.
