@@ -4573,31 +4573,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
-		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
-		// todo: consider making a derivation or something, or merging with rendering shapes
 		const shapes = new Set(this.getCurrentPageShapes().sort(sortByIndex))
-
-		const results: TLShape[] = []
-
-		function pushShapeWithDescendants(shape: TLShape): void {
-			results.push(shape)
-			shapes.delete(shape)
-
-			shapes.forEach((otherShape) => {
-				if (otherShape.parentId === shape.id) {
-					pushShapeWithDescendants(otherShape)
-				}
-			})
-		}
+		const parentChildMap = new Map<TLShapeId, TLShape[]>()
+		const result: TLShape[] = []
+		const topLevelShapes: TLShape[] = []
 
 		shapes.forEach((shape) => {
 			const parent = this.getShape(shape.parentId)
 			if (!isShape(parent)) {
-				pushShapeWithDescendants(shape)
+				topLevelShapes.push(shape)
+				return
+			}
+			if (parentChildMap.has(parent.id)) {
+				parentChildMap.get(parent.id)!.push(shape)
+			} else {
+				parentChildMap.set(parent.id, [shape])
 			}
 		})
 
-		return results
+		function pushShapeWithDescendants(shape: TLShape): void {
+			result.push(shape)
+			const children = parentChildMap.get(shape.id)
+			if (children) {
+				children.forEach((child) => {
+					pushShapeWithDescendants(child)
+				})
+			}
+		}
+
+		topLevelShapes.forEach((shape) => {
+			pushShapeWithDescendants(shape)
+		})
+		return result
 	}
 
 	/**
