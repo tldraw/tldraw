@@ -2850,8 +2850,6 @@ export class Vec {
     // (undocumented)
     static DistanceToLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): number;
     // (undocumented)
-    static DistMax(A: VecLike, B: VecLike, n: number): boolean;
-    // (undocumented)
     static DistMin(A: VecLike, B: VecLike, n: number): boolean;
     // (undocumented)
     static Div(A: VecLike, t: number): Vec;
