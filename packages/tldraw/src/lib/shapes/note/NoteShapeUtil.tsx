@@ -166,11 +166,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		// Shadow stuff
 		const oy = Math.cos(rotation)
-		const ox = Math.sin(rotation)
 		const random = rng(id)
 		const lift = 1 + random() * 0.5
-
-		const zoom = this.editor.getZoomLevel()
 
 		return (
 			<>
@@ -184,9 +181,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						borderBottom: hideShadows ? `3px solid rgb(15, 23, 31, .2)` : 'none',
 						boxShadow: hideShadows
 							? 'none'
-							: `${ox * 3}px ${4 - lift}px 5px -5px rgba(15, 23, 31,1),
-						${ox * 6}px ${(4 + lift * 7) * Math.max(0, oy)}px ${6 + lift * 8}px -${4 + lift * 6}px rgba(15, 23, 31,${0.3 + lift * 0.1}), 
-						0px 48px 10px -10px inset rgba(15, 23, 31,${0.02 + random() * 0.005})`,
+							: `0px ${4 - lift}px 5px -5px rgba(15, 23, 31,1),
+						0px ${(4 + lift * 7) * Math.max(0, oy)}px ${6 + lift * 8}px -${4 + lift * 6}px rgba(15, 23, 31,${0.3 + lift * 0.1}), 
+						0px 48px 10px -10px inset rgba(15, 23, 44,${(0.022 + random() * 0.005) * ((1 + oy) / 2)})`,
 					}}
 				>
 					<TextLabel
@@ -207,7 +204,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					/>
 				</div>
 				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={zoom} />
+					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 				)}
 			</>
 		)
