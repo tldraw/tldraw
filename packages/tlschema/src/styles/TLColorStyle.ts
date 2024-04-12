@@ -56,7 +56,7 @@ export const DefaultColorThemePalette: {
 		black: {
 			solid: '#1d1d1d',
 			note: {
-				fill: '#FCE8AE',
+				fill: '#FCE19C',
 				text: '#000000',
 			},
 			semi: '#e8e8e8',
@@ -69,7 +69,7 @@ export const DefaultColorThemePalette: {
 		blue: {
 			solid: '#4263eb',
 			note: {
-				fill: '#B3BFFF',
+				fill: '#8AA3FF',
 				text: '#000000',
 			},
 			semi: '#dce1f8',
@@ -82,7 +82,7 @@ export const DefaultColorThemePalette: {
 		green: {
 			solid: '#099268',
 			note: {
-				fill: '#8FDEB9',
+				fill: '#6FC896',
 				text: '#000000',
 			},
 			semi: '#d3e9e3',
@@ -95,7 +95,7 @@ export const DefaultColorThemePalette: {
 		grey: {
 			solid: '#adb5bd',
 			note: {
-				fill: '#E3E6E8',
+				fill: '#C0CAD3',
 				text: '#000000',
 			},
 			semi: '#eceef0',
@@ -108,7 +108,7 @@ export const DefaultColorThemePalette: {
 		'light-blue': {
 			solid: '#4dabf7',
 			note: {
-				fill: '#C1DFFF',
+				fill: '#9BC4FD',
 				text: '#000000',
 			},
 			semi: '#ddedfa',
@@ -121,7 +121,7 @@ export const DefaultColorThemePalette: {
 		'light-green': {
 			solid: '#40c057',
 			note: {
-				fill: '#BEEEC6',
+				fill: '#98D08A',
 				text: '#000000',
 			},
 			semi: '#dbf0e0',
@@ -134,7 +134,7 @@ export const DefaultColorThemePalette: {
 		'light-red': {
 			solid: '#ff8787',
 			note: {
-				fill: '#FFCAC2',
+				fill: '#F6AAA6',
 				text: '#000000',
 			},
 			semi: '#f4dadb',
@@ -147,7 +147,7 @@ export const DefaultColorThemePalette: {
 		'light-violet': {
 			solid: '#e599f7',
 			note: {
-				fill: '#F0CEFD',
+				fill: '#DFB0F9',
 				text: '#000000',
 			},
 			semi: '#f5eafa',
@@ -160,7 +160,7 @@ export const DefaultColorThemePalette: {
 		orange: {
 			solid: '#f76707',
 			note: {
-				fill: '#FFB185',
+				fill: '#FAA475',
 				text: '#000000',
 			},
 			semi: '#f8e2d4',
@@ -173,7 +173,7 @@ export const DefaultColorThemePalette: {
 		red: {
 			solid: '#e03131',
 			note: {
-				fill: '#FF9C96',
+				fill: '#FC8383',
 				text: '#000000',
 			},
 			semi: '#f4dadb',
@@ -186,7 +186,7 @@ export const DefaultColorThemePalette: {
 		violet: {
 			solid: '#ae3ec9',
 			note: {
-				fill: '#E6A6FD',
+				fill: '#DB91FD',
 				text: '#000000',
 			},
 			semi: '#ecdcf2',
@@ -199,7 +199,7 @@ export const DefaultColorThemePalette: {
 		yellow: {
 			solid: '#ffc078',
 			note: {
-				fill: '#FFDCAF',
+				fill: '#FED49A',
 				text: '#000000',
 			},
 			semi: '#f9f0e6',
@@ -336,7 +336,7 @@ export const DefaultColorThemePalette: {
 		orange: {
 			solid: '#f76707',
 			note: {
-				fill: '#FFB185',
+				fill: '#FAA070',
 				text: '#000000',
 			},
 			semi: '#3a2e2a',
