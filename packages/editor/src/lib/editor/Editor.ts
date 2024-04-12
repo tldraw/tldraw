@@ -8213,6 +8213,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get whether we have reached the maximum number of shapes per page.
+	 *
+	 * @public
+	 */
+	maxShapesReached() {
+		return this.getCurrentPageShapeIds().size >= MAX_SHAPES_PER_PAGE
+	}
+
+	/**
 	 * Dispatch a cancel event.
 	 *
 	 * @example
@@ -8843,7 +8852,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 }
 
-function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
+/** @public */
+export function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
 }

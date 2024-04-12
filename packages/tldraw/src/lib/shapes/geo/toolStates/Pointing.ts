@@ -4,6 +4,7 @@ import {
 	StateNode,
 	TLEventHandlers,
 	TLGeoShape,
+	alertMaxShapes,
 	createShapeId,
 } from '@tldraw/editor'
 
@@ -18,6 +19,11 @@ export class Pointing extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
+			if (this.editor.maxShapesReached()) {
+				alertMaxShapes(this.editor)
+				this.cancel()
+				return
+			}
 			const { originPagePoint } = this.editor.inputs
 
 			const id = createShapeId()

@@ -4,6 +4,7 @@ import {
 	TLInterruptEvent,
 	TLNoteShape,
 	TLPointerEventInfo,
+	alertMaxShapes,
 	createShapeId,
 } from '@tldraw/editor'
 
@@ -23,14 +24,24 @@ export class Pointing extends StateNode {
 	override onEnter = () => {
 		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
 		if (this.wasFocusedOnEnter) {
-			this.shape = this.createShape()
+			const createdShape = this.createShape()
+			if (!createdShape) {
+				this.cancel()
+				return
+			}
+			this.shape = createdShape
 		}
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			if (!this.wasFocusedOnEnter) {
-				this.shape = this.createShape()
+				const createdShape = this.createShape()
+				if (!createdShape) {
+					this.cancel()
+					return
+				}
+				this.shape = createdShape
 			}
 
 			this.editor.setCurrentTool('select.translating', {
@@ -84,6 +95,10 @@ export class Pointing extends StateNode {
 	}
 
 	private createShape() {
+		if (this.editor.maxShapesReached()) {
+			alertMaxShapes(this.editor)
+			return null
+		}
 		const {
 			inputs: { originPagePoint },
 		} = this.editor
@@ -92,16 +107,15 @@ export class Pointing extends StateNode {
 		this.markId = `creating:${id}`
 		this.editor.mark(this.markId)
 
-		this.editor
-			.createShapes([
-				{
-					id,
-					type: 'note',
-					x: originPagePoint.x,
-					y: originPagePoint.y,
-				},
-			])
-			.select(id)
+		this.editor.createShapes([
+			{
+				id,
+				type: 'note',
+				x: originPagePoint.x,
+				y: originPagePoint.y,
+			},
+		])
+		this.editor.select(id)
 
 		const shape = this.editor.getShape<TLNoteShape>(id)!
 		const bounds = this.editor.getShapeGeometry(shape).bounds

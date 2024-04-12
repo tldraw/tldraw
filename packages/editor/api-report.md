@@ -77,6 +77,9 @@ import { useValue } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
+// @public (undocumented)
+export function alertMaxShapes(editor: Editor, pageId?: TLPageId): void;
+
 // @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
@@ -830,6 +833,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
     mark(markId?: string, onUndo?: boolean, onRedo?: boolean): this;
+    maxShapesReached(): boolean;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;

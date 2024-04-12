@@ -1,5 +1,6 @@
 import { createShapeId } from '@tldraw/tlschema'
 import { Vec } from '../../../../primitives/Vec'
+import { alertMaxShapes } from '../../../Editor'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
@@ -18,6 +19,11 @@ export class Pointing extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
+			if (this.editor.maxShapesReached()) {
+				alertMaxShapes(this.editor)
+				this.cancel()
+				return
+			}
 			const { originPagePoint } = this.editor.inputs
 
 			const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType
@@ -28,20 +34,19 @@ export class Pointing extends StateNode {
 
 			this.editor.mark(this.markId)
 
-			this.editor
-				.createShapes<TLBaseBoxShape>([
-					{
-						id,
-						type: shapeType,
-						x: originPagePoint.x,
-						y: originPagePoint.y,
-						props: {
-							w: 1,
-							h: 1,
-						},
+			this.editor.createShapes<TLBaseBoxShape>([
+				{
+					id,
+					type: shapeType,
+					x: originPagePoint.x,
+					y: originPagePoint.y,
+					props: {
+						w: 1,
+						h: 1,
 					},
-				])
-				.select(id)
+				},
+			])
+			this.editor.select(id)
 			this.editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
@@ -74,6 +79,12 @@ export class Pointing extends StateNode {
 		const { originPagePoint } = this.editor.inputs
 
 		if (!this.wasFocusedOnEnter) {
+			return
+		}
+
+		if (this.editor.maxShapesReached()) {
+			alertMaxShapes(this.editor)
+			this.cancel()
 			return
 		}
 

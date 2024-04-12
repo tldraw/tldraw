@@ -6,6 +6,7 @@ import {
 	TLLineShape,
 	TLShapeId,
 	Vec,
+	alertMaxShapes,
 	createShapeId,
 	getIndexAbove,
 	last,
@@ -84,6 +85,12 @@ export class Pointing extends StateNode {
 				},
 			])
 		} else {
+			if (this.editor.maxShapesReached()) {
+				alertMaxShapes(this.editor)
+				this.cancel()
+				return
+			}
+
 			const id = createShapeId()
 
 			this.markId = `creating:${id}`

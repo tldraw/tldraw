@@ -130,6 +130,7 @@ export {
 } from './lib/constants'
 export {
 	Editor,
+	alertMaxShapes,
 	type TLAnimationOptions,
 	type TLEditorOptions,
 	type TLResizeShapeOptions,

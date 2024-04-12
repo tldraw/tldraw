@@ -1,4 +1,10 @@
-import { StateNode, TLEventHandlers, TLTextShape, createShapeId } from '@tldraw/editor'
+import {
+	StateNode,
+	TLEventHandlers,
+	TLTextShape,
+	alertMaxShapes,
+	createShapeId,
+} from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -13,6 +19,11 @@ export class Pointing extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
+			if (this.editor.maxShapesReached()) {
+				alertMaxShapes(this.editor)
+				this.cancel()
+				return
+			}
 			const {
 				inputs: { originPagePoint },
 			} = this.editor
@@ -75,6 +86,12 @@ export class Pointing extends StateNode {
 	}
 
 	private complete() {
+		if (this.editor.maxShapesReached()) {
+			alertMaxShapes(this.editor)
+			this.cancel()
+			return
+		}
+
 		this.editor.mark('creating text shape')
 		const id = createShapeId()
 		const { x, y } = this.editor.inputs.currentPagePoint

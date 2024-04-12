@@ -1,4 +1,10 @@
-import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
+import {
+	StateNode,
+	TLArrowShape,
+	TLEventHandlers,
+	alertMaxShapes,
+	createShapeId,
+} from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -79,6 +85,12 @@ export class Pointing extends StateNode {
 	}
 
 	createArrowShape() {
+		if (this.editor.maxShapesReached()) {
+			alertMaxShapes(this.editor)
+			this.cancel()
+			return
+		}
+
 		const { originPagePoint } = this.editor.inputs
 
 		const id = createShapeId()
