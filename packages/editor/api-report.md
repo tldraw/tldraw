@@ -1050,6 +1050,10 @@ export abstract class Geometry2d {
     // (undocumented)
     abstract getVertices(): Vec[];
     // (undocumented)
+    getWebGLGeometry(): WebGLGeometry;
+    // (undocumented)
+    _getWebGLGeometry(): WebGLGeometry;
+    // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
     // (undocumented)
     hitTestPoint(point: Vec, margin?: number, hitInside?: boolean): boolean;
@@ -1068,9 +1072,13 @@ export abstract class Geometry2d {
     // (undocumented)
     nearestPointOnLineSegment(A: Vec, B: Vec): Vec;
     // (undocumented)
+    stroke: any;
+    // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
     get vertices(): Vec[];
+    // (undocumented)
+    _webGlGeometry: undefined | WebGLGeometry;
 }
 
 // @public

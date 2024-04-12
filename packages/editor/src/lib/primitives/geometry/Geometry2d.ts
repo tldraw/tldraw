@@ -1,3 +1,6 @@
+import earcut from 'earcut'
+// @ts-expect-error
+import extrudePolyline from 'extrude-polyline'
 import { Box } from '../Box'
 import { Vec } from '../Vec'
 import { pointInPolygon } from '../utils'
@@ -177,5 +180,65 @@ export abstract class Geometry2d {
 		}
 
 		return path
+	}
+
+	stroke = extrudePolyline({
+		thickness: 8,
+		cap: 'square',
+		join: 'bevel',
+		miterLimit: 1,
+	})
+
+	_getWebGLGeometry(): WebGLGeometry {
+		const vertices = this.vertices
+		if (!this.isClosed) {
+			const triangels = this.stroke.build(vertices.map((v) => [v.x, v.y]))
+			const arr = new Float32Array(triangels.cells.length * 3 * 2)
+			let j = 0
+			for (const cell of triangels.cells) {
+				arr[j++] = triangels.positions[cell[0]][0]
+				arr[j++] = triangels.positions[cell[0]][1]
+
+				arr[j++] = triangels.positions[cell[1]][0]
+				arr[j++] = triangels.positions[cell[1]][1]
+
+				arr[j++] = triangels.positions[cell[2]][0]
+				arr[j++] = triangels.positions[cell[2]][1]
+			}
+			return new WebGLGeometry(new Float32Array(arr))
+		} else {
+			const points = vertices.map((v) => [v.x, v.y]).flat()
+			if (this.isClosed) points.push(vertices[0].x, vertices[0].y)
+			const triangles = earcut(points)
+			const arr = new Float32Array(triangles.length * 2)
+			let j = 0
+			for (const i of triangles) {
+				arr[j * 2] = points[i * 2]
+				arr[j * 2 + 1] = points[i * 2 + 1]
+				j++
+			}
+
+			return new WebGLGeometry(arr)
+		}
+	}
+
+	_webGlGeometry: WebGLGeometry | undefined
+	getWebGLGeometry() {
+		if (!this._webGlGeometry) {
+			this._webGlGeometry = this._getWebGLGeometry()
+		}
+		return this._webGlGeometry
+	}
+}
+
+export class WebGLGeometry {
+	constructor(public readonly values: Float32Array) {}
+
+	equals(other: any) {
+		if (this === other) return true
+		if (!(other instanceof WebGLGeometry)) return false
+		for (let i = 0; i < this.values.length; i++) {
+			if (this.values[i] !== other.values[i]) return false
+		}
 	}
 }

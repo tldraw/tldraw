@@ -20810,6 +20810,73 @@
           "preserveMemberOrder": false,
           "members": [
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Geometry2d#_getWebGLGeometry:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_getWebGLGeometry(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WebGLGeometry",
+                  "canonicalReference": "@tldraw/editor!~WebGLGeometry:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "_getWebGLGeometry"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Geometry2d#_webGlGeometry:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_webGlGeometry: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "undefined | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WebGLGeometry",
+                  "canonicalReference": "@tldraw/editor!~WebGLGeometry:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "_webGlGeometry",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Constructor",
               "canonicalReference": "@tldraw/editor!Geometry2d:constructor(1)",
               "docComment": "/**\n * Constructs a new instance of the `Geometry2d` class\n */\n",
@@ -21193,6 +21260,38 @@
               "isOptional": false,
               "isAbstract": true,
               "name": "getVertices"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Geometry2d#getWebGLGeometry:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getWebGLGeometry(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "WebGLGeometry",
+                  "canonicalReference": "@tldraw/editor!~WebGLGeometry:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getWebGLGeometry"
             },
             {
               "kind": "Method",
@@ -21658,6 +21757,36 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "nearestPointOnLineSegment"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Geometry2d#stroke:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "stroke: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "any"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "stroke",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Method",

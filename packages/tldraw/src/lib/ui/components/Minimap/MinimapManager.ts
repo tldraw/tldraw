@@ -1,35 +1,101 @@
 import {
 	Box,
 	Editor,
-	PI2,
-	TLInstancePresence,
-	TLShapeId,
+	Geometry2d,
+	Mat,
 	Vec,
+	atom,
 	clamp,
+	computed,
+	react,
 	uniqueId,
 } from '@tldraw/editor'
 
+type WebGLGeometry = ReturnType<Geometry2d['getWebGLGeometry']>
 export class MinimapManager {
-	constructor(public editor: Editor) {}
-
-	dpr = 1
-
-	colors = {
-		shapeFill: 'rgba(144, 144, 144, .1)',
-		selectFill: '#2f80ed',
-		viewportFill: 'rgba(144, 144, 144, .1)',
+	disposables = [] as (() => void)[]
+	close = () => this.disposables.forEach((d) => d())
+	gl: ReturnType<typeof setupWebGl>
+	constructor(
+		public editor: Editor,
+		public readonly elem: HTMLCanvasElement
+	) {
+		this.gl = setupWebGl(elem)
+		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render))
 	}
 
-	id = uniqueId()
-	cvs: HTMLCanvasElement | null = null
-	pageBounds: (Box & { id: TLShapeId })[] = []
-	collaborators: TLInstancePresence[] = []
+	@computed
+	getColors() {
+		// deref to force this to update when the user changes the theme
+		const _isDarkMode = this.editor.user.getIsDarkMode()
+		const style = getComputedStyle(this.editor.getContainer())
 
-	canvasScreenBounds = new Box()
-	canvasPageBounds = new Box()
+		return {
+			shapeFill: getRGBA(style.getPropertyValue('--color-text-3').trim()),
+			selectFill: getRGBA(style.getPropertyValue('--color-selected').trim()),
+			viewportFill: getRGBA(style.getPropertyValue('--color-muted-1').trim()),
+		}
+	}
 
-	contentPageBounds = new Box()
-	contentScreenBounds = new Box()
+	readonly id = uniqueId()
+	@computed
+	getDpr() {
+		return this.editor.getInstanceState().devicePixelRatio
+	}
+
+	@computed
+	getCollaboratorsQuery() {
+		return this.editor.store.query.records('instance_presence', () => ({
+			userId: { neq: this.editor.user.getId() },
+		}))
+	}
+
+	@computed
+	getContentPageBounds() {
+		const viewportPageBounds = this.editor.getViewportPageBounds()
+		const commonShapeBounds = this.editor.getCurrentPageBounds()
+		return commonShapeBounds
+			? Box.Expand(commonShapeBounds, viewportPageBounds)
+			: viewportPageBounds
+	}
+
+	@computed
+	getContentScreenBounds() {
+		const contentPageBounds = this.getContentPageBounds()
+		const topLeft = this.editor.pageToScreen(contentPageBounds.point)
+		const bottomRight = this.editor.pageToScreen(
+			new Vec(contentPageBounds.maxX, contentPageBounds.maxY)
+		)
+		return new Box(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y)
+	}
+
+	private getCanvasScreenBounds() {
+		const { x, y, width, height } = this.elem.getBoundingClientRect()
+		return new Box(x, y, width, height)
+	}
+
+	private readonly canvasBoundingClientRect = atom('canvasBoundingClientRect', new Box())
+
+	private _listenForCanvasResize() {
+		const observer = new ResizeObserver(() => {
+			const rect = this.getCanvasScreenBounds()
+			this.canvasBoundingClientRect.set(rect)
+		})
+		observer.observe(this.elem)
+		return () => observer.disconnect()
+	}
+
+	@computed
+	getCanvasSize() {
+		const rect = this.canvasBoundingClientRect.get()
+		const dpr = this.getDpr()
+		return new Vec(rect.width * dpr, rect.height * dpr)
+	}
+
+	@computed
+	getCanvasClientPosition() {
+		return this.canvasBoundingClientRect.get().point
+	}
 
 	originPagePoint = new Vec()
 	originPageCenter = new Vec()
@@ -38,77 +104,40 @@ export class MinimapManager {
 
 	debug = false
 
-	setDpr(dpr: number) {
-		this.dpr = +dpr.toFixed(2)
-	}
+	/** Get the canvas's true bounds converted to page bounds. */
+	@computed getCanvasPageBounds() {
+		const canvasScreenBounds = this.getCanvasScreenBounds()
+		const contentPageBounds = this.getContentPageBounds()
 
-	updateContentScreenBounds = () => {
-		const { contentScreenBounds, contentPageBounds: content, canvasScreenBounds: canvas } = this
-
-		let { x, y, w, h } = contentScreenBounds
-
-		if (content.w > content.h) {
-			const sh = canvas.w / (content.w / content.h)
-			if (sh > canvas.h) {
-				x = (canvas.w - canvas.w * (canvas.h / sh)) / 2
-				y = 0
-				w = canvas.w * (canvas.h / sh)
-				h = canvas.h
-			} else {
-				x = 0
-				y = (canvas.h - sh) / 2
-				w = canvas.w
-				h = sh
-			}
-		} else if (content.w < content.h) {
-			const sw = canvas.h / (content.h / content.w)
-			x = (canvas.w - sw) / 2
-			y = 0
-			w = sw
-			h = canvas.h
-		} else {
-			x = canvas.h / 2
-			y = 0
-			w = canvas.h
-			h = canvas.h
+		let targetWidth = contentPageBounds.width
+		let targetHeight = canvasScreenBounds.height * (targetWidth / canvasScreenBounds.width)
+		if (targetHeight > contentPageBounds.height) {
+			targetHeight = contentPageBounds.height
+			targetWidth = canvasScreenBounds.width * (targetHeight / canvasScreenBounds.height)
 		}
 
-		contentScreenBounds.set(x, y, w, h)
+		const box = new Box(0, 0, targetWidth, targetHeight)
+		box.center = contentPageBounds.center
+		return box
 	}
 
-	/** Get the canvas's true bounds converted to page bounds. */
-	updateCanvasPageBounds = () => {
-		const { canvasPageBounds, canvasScreenBounds, contentPageBounds, contentScreenBounds } = this
+	getPagePoint = (clientX: number, clientY: number) => {
+		const canvasPageBounds = this.getCanvasPageBounds()
+		const canvasScreenBounds = this.getCanvasScreenBounds()
 
-		canvasPageBounds.set(
-			0,
-			0,
-			contentPageBounds.width / (contentScreenBounds.width / canvasScreenBounds.width),
-			contentPageBounds.height / (contentScreenBounds.height / canvasScreenBounds.height)
-		)
+		// first offset the canvas position
+		let x = clientX - canvasScreenBounds.x
+		let y = clientY - canvasScreenBounds.y
 
-		canvasPageBounds.center = contentPageBounds.center
-	}
+		// then multiply by the ratio between the page and screen bounds
+		x *= canvasPageBounds.width / canvasScreenBounds.width
+		y *= canvasPageBounds.height / canvasScreenBounds.height
 
-	getScreenPoint = (x: number, y: number) => {
-		const { canvasScreenBounds } = this
+		// then add the canvas page bounds' offset
+		x += canvasPageBounds.minX
+		y += canvasPageBounds.minY
 
-		const screenX = (x - canvasScreenBounds.minX) * this.dpr
-		const screenY = (y - canvasScreenBounds.minY) * this.dpr
-
-		return { x: screenX, y: screenY }
-	}
-
-	getPagePoint = (x: number, y: number) => {
-		const { contentPageBounds, contentScreenBounds, canvasPageBounds } = this
-
-		const { x: screenX, y: screenY } = this.getScreenPoint(x, y)
-
-		return new Vec(
-			canvasPageBounds.minX + (screenX * contentPageBounds.width) / contentScreenBounds.width,
-			canvasPageBounds.minY + (screenY * contentPageBounds.height) / contentScreenBounds.height,
-			1
-		)
+		return new Vec(x, y, 1)
 	}
 
 	minimapScreenPointToPagePoint = (
@@ -171,209 +200,274 @@ export class MinimapManager {
 		return new Vec(px, py)
 	}
 
-	updateColors = () => {
-		const style = getComputedStyle(this.editor.getContainer())
+	lastRenderEpoch = 0
+	glData: Record<string, WebGlStuff> = {}
 
-		this.colors = {
-			shapeFill: style.getPropertyValue('--color-text-3').trim(),
-			selectFill: style.getPropertyValue('--color-selected').trim(),
-			viewportFill: style.getPropertyValue('--color-muted-1').trim(),
+	cullGlData() {
+		const context = this.gl?.context
+		if (!context) return
+		for (const [k, v] of Object.entries(this.glData)) {
+			if (v.lastCheckedEpoch < this.lastRenderEpoch) {
+				const data = this.glData[k]
+				delete this.glData[k]
+				context.deleteBuffer(data.shapeVertexPositionBuffer)
+			}
 		}
+	}
+
+	private createStuff(
+		context: WebGL2RenderingContext,
+		geometry: WebGLGeometry,
+		pageTransform: Mat
+	): WebGlStuff {
+		const shapeVertexPositionBuffer = context.createBuffer()
+		if (!shapeVertexPositionBuffer) throw new Error('Failed to create buffer')
+		context.bindBuffer(context.ARRAY_BUFFER, shapeVertexPositionBuffer)
+		context.bufferData(context.ARRAY_BUFFER, geometry.values, context.STATIC_DRAW)
+		return {
+			shapeVertexPositionBuffer,
+			geometry,
+			pageTransform,
+			pageTransformArray: new Float32Array([
+				pageTransform.a,
+				pageTransform.b,
+				0,
+				pageTransform.c,
+				pageTransform.d,
+				0,
+				pageTransform.e,
+				pageTransform.f,
+				1,
+			]),
+			lastCheckedEpoch: this.lastRenderEpoch,
+		}
+	}
+
+	private updateStuff(
+		stuff: WebGlStuff,
+		geometry: WebGLGeometry,
+		pageTransform: Mat,
+		epoch: number
+	) {
+		stuff.lastCheckedEpoch = epoch
+		const geometryChanged = !stuff.geometry.equals(geometry)
+		const pageTransformChanged = !stuff.pageTransform.equals(pageTransform)
+		if (!geometryChanged && !pageTransformChanged) return false
+
+		if (geometryChanged) {
+			const context = this.gl.context
+			context.bindBuffer(context.ARRAY_BUFFER, stuff.shapeVertexPositionBuffer)
+			context.bufferData(context.ARRAY_BUFFER, geometry.values, context.STATIC_DRAW)
+			stuff.geometry = geometry
+		}
+
+		if (pageTransformChanged) {
+			stuff.pageTransform = pageTransform
+			stuff.pageTransformArray.set([
+				pageTransform.a,
+				pageTransform.b,
+				0,
+				pageTransform.c,
+				pageTransform.d,
+				0,
+				pageTransform.e,
+				pageTransform.f,
+				1,
+			])
+		}
+
+		return true
+	}
+
+	private renderStuff(stuff: WebGlStuff) {
+		this.gl.context.bindBuffer(this.gl.context.ARRAY_BUFFER, stuff.shapeVertexPositionBuffer)
+		this.gl.context.enableVertexAttribArray(this.gl.shapeVertexPositionAttributeLocation)
+		this.gl.context.vertexAttribPointer(
+			this.gl.shapeVertexPositionAttributeLocation,
+			2,
+			this.gl.context.FLOAT,
+			false,
+			0,
+			0
+		)
+
+		this.gl.context.uniformMatrix3fv(
+			this.gl.shapePageTransformLocation,
+			false,
+			stuff.pageTransformArray
+		)
+
+		this.gl.context.drawArrays(this.gl.context.TRIANGLES, 0, stuff.geometry.values.length / 2)
+	}
+
+	stats = {
+		totalTimeInRender: 0,
+		numRenders: 0,
 	}
 
 	render = () => {
-		const { cvs, pageBounds } = this
-		this.updateCanvasPageBounds()
+		const start = performance.now()
+		this.stats.numRenders++
+		this.lastRenderEpoch++
+		const context = this.gl.context
+		const canvasSize = this.getCanvasSize()
+		const canvasPageBounds = this.getCanvasPageBounds()
 
-		const { editor, canvasScreenBounds, canvasPageBounds, contentPageBounds, contentScreenBounds } =
-			this
-		const { width: cw, height: ch } = canvasScreenBounds
+		this.gl.context.uniform2fv(this.gl.resolutionLocation, [
+			1 / canvasPageBounds.w,
+			1 / canvasPageBounds.h,
+		])
 
-		const selectedShapeIds = new Set(editor.getSelectedShapeIds())
-		const viewportPageBounds = editor.getViewportPageBounds()
+		this.elem.width = canvasSize.x
+		this.elem.height = canvasSize.y
+		context.viewport(0, 0, canvasSize.x, canvasSize.y)
 
-		if (!cvs || !pageBounds) {
-			return
-		}
+		context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT)
 
-		const ctx = cvs.getContext('2d')!
+		const selectedShapes = new Set(this.editor.getSelectedShapeIds())
 
-		if (!ctx) {
-			throw new Error('Minimap (shapes): Could not get context')
-		}
+		const colors = this.getColors()
 
-		ctx.resetTransform()
-		ctx.globalAlpha = 1
-		ctx.clearRect(0, 0, cw, ch)
+		for (const shape of this.editor.getCurrentPageShapes()) {
+			const pageTransform = this.editor.getShapePageTransform(shape)
+			const geometry = this.editor.getShapeGeometry(shape).getWebGLGeometry()
 
-		// Transform canvas
-
-		const sx = contentScreenBounds.width / contentPageBounds.width
-		const sy = contentScreenBounds.height / contentPageBounds.height
-
-		ctx.translate((cw - contentScreenBounds.width) / 2, (ch - contentScreenBounds.height) / 2)
-		ctx.scale(sx, sy)
-		ctx.translate(-contentPageBounds.minX, -contentPageBounds.minY)
-
-		// shapes
-		const shapesPath = new Path2D()
-		const selectedPath = new Path2D()
-
-		const { shapeFill, selectFill, viewportFill } = this.colors
-
-		// When there are many shapes, don't draw rounded rectangles;
-		// consider using the shape's size instead.
-
-		let pb: Box & { id: TLShapeId }
-		for (let i = 0, n = pageBounds.length; i < n; i++) {
-			pb = pageBounds[i]
-			;(selectedShapeIds.has(pb.id) ? selectedPath : shapesPath).rect(
-				pb.minX,
-				pb.minY,
-				pb.width,
-				pb.height
-			)
-		}
-
-		// Fill the shapes paths
-		ctx.fillStyle = shapeFill
-		ctx.fill(shapesPath)
-
-		// Fill the selected paths
-		ctx.fillStyle = selectFill
-		ctx.fill(selectedPath)
-
-		if (this.debug) {
-			// Page bounds
-			const commonBounds = Box.Common(pageBounds)
-			const { minX, minY, width, height } = commonBounds
-			ctx.strokeStyle = 'green'
-			ctx.lineWidth = 2 / sx
-			ctx.strokeRect(minX + 1 / sx, minY + 1 / sy, width - 2 / sx, height - 2 / sy)
-		}
-
-		// Brush
-		{
-			const { brush } = editor.getInstanceState()
-			if (brush) {
-				const { x, y, w, h } = brush
-				ctx.beginPath()
-				MinimapManager.sharpRect(ctx, x, y, w, h)
-				ctx.closePath()
-				ctx.fillStyle = viewportFill
-				ctx.fill()
-			}
-		}
-
-		// Viewport
-		{
-			const { minX, minY, width, height } = viewportPageBounds
-
-			ctx.beginPath()
-
-			const rx = 12 / sx
-			const ry = 12 / sx
-			MinimapManager.roundedRect(
-				ctx,
-				minX,
-				minY,
-				width,
-				height,
-				Math.min(width / 4, rx),
-				Math.min(height / 4, ry)
-			)
-			ctx.closePath()
-			ctx.fillStyle = viewportFill
-			ctx.fill()
-
-			if (this.debug) {
-				ctx.strokeStyle = 'orange'
-				ctx.strokeRect(minX + 1 / sx, minY + 1 / sy, width - 2 / sx, height - 2 / sy)
-			}
-		}
-
-		// Show collaborator cursors
-
-		// Padding for canvas bounds edges
-		const px = 2.5 / sx
-		const py = 2.5 / sy
-
-		const currentPageId = editor.getCurrentPageId()
-
-		let collaborator: TLInstancePresence
-		for (let i = 0; i < this.collaborators.length; i++) {
-			collaborator = this.collaborators[i]
-			if (collaborator.currentPageId !== currentPageId) {
-				continue
+			let stuff = this.glData[shape.id]
+			if (!stuff) {
+				stuff = this.glData[shape.id] = this.createStuff(context, geometry, pageTransform)
+			} else {
+				this.updateStuff(stuff, geometry, pageTransform, this.lastRenderEpoch)
 			}
 
-			ctx.beginPath()
-			ctx.ellipse(
-				clamp(collaborator.cursor.x, canvasPageBounds.minX + px, canvasPageBounds.maxX - px),
-				clamp(collaborator.cursor.y, canvasPageBounds.minY + py, canvasPageBounds.maxY - py),
-				5 / sx,
-				5 / sy,
-				0,
-				0,
-				PI2
-			)
-			ctx.fillStyle = collaborator.color
-			ctx.fill()
+			if (selectedShapes.has(shape.id)) {
+				this.gl.context.uniform4fv(this.gl.shapeFillLocation, colors.selectFill)
+			} else {
+				this.gl.context.uniform4fv(this.gl.shapeFillLocation, colors.shapeFill)
+			}
+			this.renderStuff(stuff)
 		}
-
-		if (this.debug) {
-			ctx.lineWidth = 2 / sx
-
-			{
-				// Minimap Bounds
-				const { minX, minY, width, height } = contentPageBounds
-				ctx.strokeStyle = 'red'
-				ctx.strokeRect(minX + 1 / sx, minY + 1 / sy, width - 2 / sx, height - 2 / sy)
-			}
-
-			{
-				// Canvas Bounds
-				const { minX, minY, width, height } = canvasPageBounds
-				ctx.strokeStyle = 'blue'
-				ctx.strokeRect(minX + 1 / sx, minY + 1 / sy, width - 2 / sx, height - 2 / sy)
-			}
+		this.stats.totalTimeInRender += performance.now() - start
+		if (this.stats.numRenders % 60 === 0) {
+			this.cullGlData()
+			// console.log('avg render time', this.stats.totalTimeInRender / this.stats.numRenders)
 		}
 	}
+}
 
-	static roundedRect(
-		ctx: CanvasRenderingContext2D | Path2D,
-		x: number,
-		y: number,
-		width: number,
-		height: number,
-		rx: number,
-		ry: number
-	) {
-		if (rx < 1 && ry < 1) {
-			ctx.rect(x, y, width, height)
-			return
-		}
+type WebGlStuff = {
+	shapeVertexPositionBuffer: WebGLBuffer
+	geometry: WebGLGeometry
+	pageTransform: Mat
+	pageTransformArray: Float32Array
+	lastCheckedEpoch: number
+}
 
-		ctx.moveTo(x + rx, y)
-		ctx.lineTo(x + width - rx, y)
-		ctx.quadraticCurveTo(x + width, y, x + width, y + ry)
-		ctx.lineTo(x + width, y + height - ry)
-		ctx.quadraticCurveTo(x + width, y + height, x + width - rx, y + height)
-		ctx.lineTo(x + rx, y + height)
-		ctx.quadraticCurveTo(x, y + height, x, y + height - ry)
-		ctx.lineTo(x, y + ry)
-		ctx.quadraticCurveTo(x, y, x + rx, y)
+function setupWebGl(canvas: HTMLCanvasElement | null) {
+	if (!canvas) throw new Error('Canvas element not found')
+
+	const context = canvas.getContext('webgl2')
+	if (!context) throw new Error('Failed to get webgl2 context')
+
+	const vertexShaderSourceCode = `#version 300 es
+  precision mediump float;
+  
+  in vec2 shapeVertexPosition;
+
+  uniform mat3 shapePageTransform; 
+	uniform vec2 resolution;
+
+	// taken (with thanks) from
+	// https://webglfundamentals.org/webgl/lessons/webgl-2d-matrices.html
+  void main() {
+		// Multiply the position by the matrix.
+		vec2 position = (shapePageTransform * vec3(shapeVertexPosition, 1)).xy;
+	
+		// convert the position from pixels to 0.0 to 1.0
+		vec2 zeroToOne = position * resolution;
+	
+		// convert from 0->1 to 0->2
+		vec2 zeroToTwo = zeroToOne * 2.0;
+	
+		// convert from 0->2 to -1->+1 (clipspace)
+		vec2 clipSpace = zeroToTwo - 1.0;
+	
+		gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+  }`
+
+	const vertexShader = context.createShader(context.VERTEX_SHADER)
+	if (!vertexShader) {
+		throw new Error('Failed to create vertex shader')
+	}
+	context.shaderSource(vertexShader, vertexShaderSourceCode)
+	context.compileShader(vertexShader)
+	if (!context.getShaderParameter(vertexShader, context.COMPILE_STATUS)) {
+		throw new Error('Failed to compile vertex shader')
+	}
+	// Dark = hsl(210, 11%, 19%)
+	// Light = hsl(204, 14%, 93%)
+
+	const fragmentShaderSourceCode = `#version 300 es
+  precision mediump float;
+  
+	uniform vec4 shapeFill;
+  out vec4 outputColor;
+
+  void main() {
+	outputColor = shapeFill;
+  }`
+
+	const fragmentShader = context.createShader(context.FRAGMENT_SHADER)
+	if (!fragmentShader) {
+		throw new Error('Failed to create fragment shader')
+	}
+	context.shaderSource(fragmentShader, fragmentShaderSourceCode)
+	context.compileShader(fragmentShader)
+	if (!context.getShaderParameter(fragmentShader, context.COMPILE_STATUS)) {
+		throw new Error('Failed to compile fragment shader')
 	}
 
-	static sharpRect(
-		ctx: CanvasRenderingContext2D | Path2D,
-		x: number,
-		y: number,
-		width: number,
-		height: number,
-		_rx?: number,
-		_ry?: number
-	) {
-		ctx.rect(x, y, width, height)
+	const program = context.createProgram()
+	if (!program) {
+		throw new Error('Failed to create program')
 	}
+	context.attachShader(program, vertexShader)
+	context.attachShader(program, fragmentShader)
+	context.linkProgram(program)
+	if (!context.getProgramParameter(program, context.LINK_STATUS)) {
+		throw new Error('Failed to link program')
+	}
+	context.useProgram(program)
+
+	const shapeVertexPositionAttributeLocation = context.getAttribLocation(
+		program,
+		'shapeVertexPosition'
+	)
+	if (shapeVertexPositionAttributeLocation < 0) {
+		throw new Error('Failed to get shapeVertexPosition attribute location')
+	}
+	context.enableVertexAttribArray(shapeVertexPositionAttributeLocation)
+
+	const shapePageTransformLocation = context.getUniformLocation(program, 'shapePageTransform')
+	const resolutionLocation = context.getUniformLocation(program, 'resolution')
+	const shapeFillLocation = context.getUniformLocation(program, 'shapeFill')
+	// if (!shapePageTransformLocation || !resolutionLocation) {
+	// 	throw new Error('Failed to get shapePageTransform or resolution uniform location')
+	// }
+	return {
+		context,
+		program,
+		shapeVertexPositionAttributeLocation,
+		shapePageTransformLocation,
+		resolutionLocation,
+		shapeFillLocation,
+	}
+}
+
+function getRGBA(colorString: string) {
+	const canvas = document.createElement('canvas')
+	const context = canvas.getContext('2d')
+	context!.fillStyle = colorString
+	context!.fillRect(0, 0, 1, 1)
+	const [r, g, b, a] = context!.getImageData(0, 0, 1, 1).data
+	return new Float32Array([r / 255, g / 255, b / 255, a / 255])
 }
