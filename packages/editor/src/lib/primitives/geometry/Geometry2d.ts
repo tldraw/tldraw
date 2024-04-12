@@ -30,9 +30,16 @@ export abstract class Geometry2d {
 
 	abstract nearestPoint(point: Vec): Vec
 
+	// hitTestPoint(point: Vec, margin = 0, hitInside = false) {
+	// 	// We've removed the broad phase here; that should be done outside of the call
+	// 	return this.distanceToPoint(point, hitInside) <= margin
+	// }
+
 	hitTestPoint(point: Vec, margin = 0, hitInside = false) {
-		// We've removed the broad phase here; that should be done outside of the call
-		return this.distanceToPoint(point, hitInside) <= margin
+		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
+			return true
+		}
+		return Vec.DistMin(point, this.nearestPoint(point), margin)
 	}
 
 	distanceToPoint(point: Vec, hitInside = false) {

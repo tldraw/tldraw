@@ -301,7 +301,7 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 									// only check against vertex handles
 									h.type === 'vertex' &&
 									// and check that their distance isn't below the minimum distance
-									Vec.Dist(handle, h) < minDistBetweenVirtualHandlesAndRegularHandles
+									Vec.DistMin(handle, h, minDistBetweenVirtualHandlesAndRegularHandles)
 							)
 					)
 					// We want vertex handles in front of all other handles

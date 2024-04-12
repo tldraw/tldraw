@@ -4490,7 +4490,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-
 	isPointInShape(
 		shape: TLShape | TLShapeId,
 		point: VecLike,

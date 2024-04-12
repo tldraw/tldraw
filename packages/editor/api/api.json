@@ -46053,6 +46053,170 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Vec.DistMax:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static DistMax(A: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", B: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", n: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "A",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "B",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "n",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "DistMax"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Vec.DistMin:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static DistMin(A: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", B: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecLike",
+                  "canonicalReference": "@tldraw/editor!VecLike:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", n: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "A",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "B",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "n",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "DistMin"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Vec#div:member(1)",
               "docComment": "",
               "excerptTokens": [
