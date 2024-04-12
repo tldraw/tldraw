@@ -12,6 +12,36 @@ import {
 } from '@tldraw/editor'
 
 type WebGLGeometry = ReturnType<Geometry2d['getWebGLGeometry']>
+
+class MeasureClock {
+	num = 0
+	measures: Set<Measure> = new Set()
+	inc() {
+		this.num++
+		if (this.num % 60 === 0) {
+			for (const measure of this.measures) {
+				console.log(measure.name, measure.total / this.num)
+			}
+		}
+	}
+}
+class Measure {
+	constructor(
+		public readonly name: string,
+		clock: MeasureClock
+	) {
+		clock.measures.add(this)
+	}
+	total = 0
+	_start = 0
+	start() {
+		this._start = performance.now()
+	}
+	end() {
+		this.total += performance.now() - this._start
+		return this
+	}
+}
 export class MinimapManager {
 	disposables = [] as (() => void)[]
 	close = () => this.disposables.forEach((d) => d())
@@ -249,38 +279,46 @@ export class MinimapManager {
 		pageTransform: Mat,
 		epoch: number
 	) {
-		stuff.lastCheckedEpoch = epoch
-		const geometryChanged = !stuff.geometry.equals(geometry)
-		const pageTransformChanged = !stuff.pageTransform.equals(pageTransform)
-		if (!geometryChanged && !pageTransformChanged) return false
+		try {
+			this.stats.shapeUpdate.start()
+			stuff.lastCheckedEpoch = epoch
+			const geometryChanged = !stuff.geometry.equals(geometry)
+			const pageTransformChanged = !stuff.pageTransform.equals(pageTransform)
+			if (!geometryChanged && !pageTransformChanged) return false
 
-		if (geometryChanged) {
-			const context = this.gl.context
-			context.bindBuffer(context.ARRAY_BUFFER, stuff.shapeVertexPositionBuffer)
-			context.bufferData(context.ARRAY_BUFFER, geometry.values, context.STATIC_DRAW)
-			stuff.geometry = geometry
+			if (geometryChanged) {
+				const context = this.gl.context
+				context.bindBuffer(context.ARRAY_BUFFER, stuff.shapeVertexPositionBuffer)
+				context.bufferData(context.ARRAY_BUFFER, geometry.values, context.STATIC_DRAW)
+				stuff.geometry = geometry
+			}
+
+			if (pageTransformChanged) {
+				stuff.pageTransform = pageTransform
+				stuff.pageTransformArray.set([
+					pageTransform.a,
+					pageTransform.b,
+					0,
+					pageTransform.c,
+					pageTransform.d,
+					0,
+					pageTransform.e,
+					pageTransform.f,
+					1,
+				])
+			}
+
+			return true
+		} finally {
+			this.stats.shapeUpdate.end()
 		}
-
-		if (pageTransformChanged) {
-			stuff.pageTransform = pageTransform
-			stuff.pageTransformArray.set([
-				pageTransform.a,
-				pageTransform.b,
-				0,
-				pageTransform.c,
-				pageTransform.d,
-				0,
-				pageTransform.e,
-				pageTransform.f,
-				1,
-			])
-		}
-
-		return true
 	}
 
 	private renderStuff(stuff: WebGlStuff) {
+		this.stats.shapeRender.start()
+		this.stats.bindBuffer.start()
 		this.gl.context.bindBuffer(this.gl.context.ARRAY_BUFFER, stuff.shapeVertexPositionBuffer)
+		this.stats.bindBuffer.end()
 		this.gl.context.enableVertexAttribArray(this.gl.shapeVertexPositionAttributeLocation)
 		this.gl.context.vertexAttribPointer(
 			this.gl.shapeVertexPositionAttributeLocation,
@@ -298,16 +336,21 @@ export class MinimapManager {
 		)
 
 		this.gl.context.drawArrays(this.gl.context.TRIANGLES, 0, stuff.geometry.values.length / 2)
+		this.stats.shapeRender.end()
 	}
 
+	clock = new MeasureClock()
+
 	stats = {
-		totalTimeInRender: 0,
-		numRenders: 0,
+		cullTime: new Measure('cull', this.clock),
+		totalRender: new Measure('total render', this.clock),
+		shapeRender: new Measure('shape render', this.clock),
+		bindBuffer: new Measure('bind buffer', this.clock),
+		shapeUpdate: new Measure('shape update', this.clock),
 	}
 
 	render = () => {
-		const start = performance.now()
-		this.stats.numRenders++
+		this.stats.totalRender.start()
 		this.lastRenderEpoch++
 		const context = this.gl.context
 		const canvasSize = this.getCanvasSize()
@@ -346,11 +389,11 @@ export class MinimapManager {
 			}
 			this.renderStuff(stuff)
 		}
-		this.stats.totalTimeInRender += performance.now() - start
-		if (this.stats.numRenders % 60 === 0) {
-			this.cullGlData()
-			// console.log('avg render time', this.stats.totalTimeInRender / this.stats.numRenders)
-		}
+		this.stats.cullTime.start()
+		this.cullGlData()
+		this.stats.cullTime.end()
+		this.stats.totalRender.end()
+		this.clock.inc()
 	}
 }
 
