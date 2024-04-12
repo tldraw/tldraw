@@ -1,5 +1,3 @@
-/* eslint-disable no-inner-declarations */
-
 import {
 	TLShapeId,
 	TLUnknownShape,
