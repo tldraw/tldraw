@@ -391,7 +391,7 @@ export const DefaultColorThemePalette: {
 			pattern: '#f9f9f9',
 			note: {
 				fill: '#FFFFFF',
-				text: '#ffffff',
+				text: '#000000',
 			},
 			highlight: {
 				srgb: '#ffffff',
