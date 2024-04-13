@@ -4057,22 +4057,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeMaskedPageBounds(shape: TLShapeId | TLShape): Box | undefined {
 		if (typeof shape !== 'string') shape = shape.id
-		const pageBounds = this._getShapePageBoundsCache().get(shape)
-		if (!pageBounds) return
-		const pageMask = this._getShapeMaskCache().get(shape)
-		if (pageMask) {
-			if (pageMask.length === 0) return undefined
+		return this._getShapeMaskedPageBoundsCache().get(shape)
+	}
 
-			const { corners } = pageBounds
-			if (corners.every((p, i) => p && Vec.Equals(p, pageMask[i]))) return pageBounds.clone()
-
-			// todo: find out why intersect polygon polygon for identical polygons produces zero w/h intersections
-			const intersection = intersectPolygonPolygon(pageMask, corners)
-			if (!intersection) return
-			return Box.FromPoints(intersection)
-		}
-
-		return pageBounds
+	/** @internal */
+	@computed private _getShapeMaskedPageBoundsCache(): ComputedCache<Box, TLShape> {
+		return this.store.createComputedCache('shapeMaskedPageBoundsCache', (shape) => {
+			const pageBounds = this._getShapePageBoundsCache().get(shape.id)
+			if (!pageBounds) return
+			const pageMask = this._getShapeMaskCache().get(shape.id)
+			if (pageMask) {
+				if (pageMask.length === 0) return undefined
+				const { corners } = pageBounds
+				if (corners.every((p, i) => p && Vec.Equals(p, pageMask[i]))) return pageBounds.clone()
+				const intersection = intersectPolygonPolygon(pageMask, corners)
+				if (!intersection) return
+				return Box.FromPoints(intersection)
+			}
+			return pageBounds
+		})
 	}
 
 	/**
