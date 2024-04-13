@@ -4573,8 +4573,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed
-	getCurrentPageShapesSorted(): TLShape[] {
+	@computed getCurrentPageShapesSorted(): TLShape[] {
 		const shapes = this.getCurrentPageShapes().sort(sortByIndex)
 		const parentChildMap = new Map<TLShapeId, TLShape[]>()
 		const result: TLShape[] = []
