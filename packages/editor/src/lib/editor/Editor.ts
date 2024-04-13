@@ -52,7 +52,6 @@ import {
 	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
-	measureAverageDuration,
 	objectMapValues,
 	sortById,
 	sortByIndex,
@@ -4572,7 +4571,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@measureAverageDuration
 	@computed
 	getCurrentPageShapesSorted(): TLShape[] {
 		const shapes = this.getCurrentPageShapes().sort(sortByIndex)
