@@ -98,6 +98,8 @@ export class ScribbleBrushing extends StateNode {
 		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
 
+		const minDist = HIT_TEST_MARGIN / zoomLevel
+
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
 			geometry = this.editor.getShapeGeometry(shape)
@@ -121,7 +123,7 @@ export class ScribbleBrushing extends StateNode {
 
 			A = this.editor.getPointInShapeSpace(shape, previousPagePoint)
 			B = this.editor.getPointInShapeSpace(shape, currentPagePoint)
-			if (geometry.hitTestLineSegment(A, B, HIT_TEST_MARGIN / zoomLevel)) {
+			if (geometry.hitTestLineSegment(A, B, minDist)) {
 				const outermostShape = this.editor.getOutermostSelectableShape(shape)
 
 				const pageMask = this.editor.getShapeMask(outermostShape.id)

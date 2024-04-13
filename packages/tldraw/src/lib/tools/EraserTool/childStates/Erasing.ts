@@ -103,8 +103,11 @@ export class Erasing extends StateNode {
 
 			// Hit test the shape using a line segment
 			const geometry = editor.getShapeGeometry(shape)
-			const A = editor.getPointInShapeSpace(shape, previousPagePoint)
-			const B = editor.getPointInShapeSpace(shape, currentPagePoint)
+			const pageTransform = editor.getShapePageTransform(shape)
+			if (!geometry || !pageTransform) continue
+			const pt = pageTransform.clone().invert()
+			const A = pt.applyToPoint(previousPagePoint)
+			const B = pt.applyToPoint(currentPagePoint)
 
 			// If the line segment is entirely above / below / left / right of the shape's bounding box, skip the hit test
 			const { bounds } = geometry

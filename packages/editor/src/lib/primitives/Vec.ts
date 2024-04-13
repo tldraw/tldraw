@@ -421,10 +421,11 @@ export class Vec {
 	}
 
 	static NearestPointOnLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp = true): Vec {
+		if (Vec.Equals(A, P)) return Vec.From(P)
+		if (Vec.Equals(B, P)) return Vec.From(P)
+
 		const u = Vec.Tan(B, A)
 		const C = Vec.Add(A, Vec.Mul(u, Vec.Sub(P, A).pry(u)))
-
-		// todo: fix error P is B or A, which leads to a NaN value
 
 		if (clamp) {
 			if (C.x < Math.min(A.x, B.x)) return Vec.Cast(A.x < B.x ? A : B)
