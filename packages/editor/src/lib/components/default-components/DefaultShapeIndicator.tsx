@@ -1,7 +1,7 @@
-import { useStateTracking, useValue } from '@tldraw/state'
+import { useQuickReactor, useStateTracking, useValue } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { memo } from 'react'
+import { memo, useLayoutEffect, useRef } from 'react'
 import type { Editor } from '../../editor/Editor'
 import { ShapeUtil } from '../../editor/shapes/ShapeUtil'
 import { useEditor } from '../../hooks/useEditor'
@@ -38,6 +38,7 @@ export type TLShapeIndicatorProps = {
 	color?: string | undefined
 	opacity?: number
 	className?: string
+	hidden?: boolean
 }
 
 /** @public */
@@ -45,28 +46,34 @@ export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
 	shapeId,
 	className,
 	color,
+	hidden,
 	opacity,
 }: TLShapeIndicatorProps) {
 	const editor = useEditor()
 
-	const transform = useValue(
+	const rIndicator = useRef<SVGSVGElement>(null)
+
+	useQuickReactor(
 		'indicator transform',
 		() => {
+			const elm = rIndicator.current
+			if (!elm) return
 			const pageTransform = editor.getShapePageTransform(shapeId)
-			if (!pageTransform) return ''
-			return pageTransform.toCssString()
+			if (!pageTransform) return
+			elm.style.setProperty('transform', pageTransform.toCssString())
 		},
 		[editor, shapeId]
 	)
 
+	useLayoutEffect(() => {
+		const elm = rIndicator.current
+		if (!elm) return
+		elm.style.setProperty('display', hidden ? 'none' : 'initial')
+	}, [hidden])
+
 	return (
-		<svg className={classNames('tl-overlays__item', className)}>
-			<g
-				className="tl-shape-indicator"
-				transform={transform}
-				stroke={color ?? 'var(--color-selected)'}
-				opacity={opacity}
-			>
+		<svg ref={rIndicator} className={classNames('tl-overlays__item', className)}>
+			<g className="tl-shape-indicator" stroke={color ?? 'var(--color-selected)'} opacity={opacity}>
 				<InnerIndicator editor={editor} id={shapeId} />
 			</g>
 		</svg>

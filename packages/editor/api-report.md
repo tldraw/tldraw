@@ -472,9 +472,6 @@ export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandlePro
 export const DefaultHandles: ({ children }: TLHandlesProps) => JSX_2.Element;
 
 // @public (undocumented)
-export function DefaultHoveredShapeIndicator({ shapeId }: TLHoveredShapeIndicatorProps): JSX_2.Element | null;
-
-// @public (undocumented)
 export function DefaultScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -2303,11 +2300,6 @@ export type TLHistoryMark = {
 };
 
 // @public (undocumented)
-export type TLHoveredShapeIndicatorProps = {
-    shapeId: TLShapeId;
-};
-
-// @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
 
 // @public (undocumented)
@@ -2539,6 +2531,7 @@ export type TLShapeIndicatorProps = {
     color?: string | undefined;
     opacity?: number;
     className?: string;
+    hidden?: boolean;
 };
 
 // @public (undocumented)
@@ -2726,7 +2719,6 @@ export function useEditorComponents(): Partial<{
     Spinner: ComponentType | null;
     SelectionForeground: ComponentType<TLSelectionForegroundProps> | null;
     SelectionBackground: ComponentType<TLSelectionBackgroundProps> | null;
-    HoveredShapeIndicator: ComponentType<TLHoveredShapeIndicatorProps> | null;
     OnTheCanvas: ComponentType | null;
     InFrontOfTheCanvas: ComponentType | null;
     LoadingScreen: ComponentType | null;

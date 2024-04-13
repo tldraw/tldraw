@@ -167,9 +167,17 @@ export class Brushing extends StateNode {
 				}
 			}
 		}
+		editor.getInstanceState().isCoarsePointer
 
-		editor.updateInstanceState({ brush: { ...brush.toJson() } })
-		editor.setSelectedShapes(Array.from(results), { squashing: true })
+		const currentBrush = editor.getInstanceState().brush
+		if (!currentBrush || !brush.equals(currentBrush)) {
+			editor.updateInstanceState({ brush: { ...brush.toJson() } })
+		}
+
+		const current = editor.getSelectedShapeIds()
+		if (current.length !== results.size || current.some((id) => !results.has(id))) {
+			editor.setSelectedShapes(Array.from(results), { squashing: true })
+		}
 	}
 
 	override onInterrupt: TLInterruptEvent = () => {

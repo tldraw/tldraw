@@ -7,7 +7,7 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
-	intersectLineSegmentPolyline,
+	intersectLineSegmentPolygon,
 	pointInPolygon,
 } from '@tldraw/editor'
 
@@ -142,11 +142,9 @@ export class ScribbleBrushing extends StateNode {
 
 			if (geometry.hitTestLineSegment(A, B, minDist)) {
 				const outermostShape = this.editor.getOutermostSelectableShape(shape)
-
 				const pageMask = this.editor.getShapeMask(outermostShape.id)
-
 				if (pageMask) {
-					const intersection = intersectLineSegmentPolyline(
+					const intersection = intersectLineSegmentPolygon(
 						previousPagePoint,
 						currentPagePoint,
 						pageMask
@@ -161,16 +159,13 @@ export class ScribbleBrushing extends StateNode {
 			}
 		}
 
-		this.editor.setSelectedShapes(
-			[
-				...new Set<TLShapeId>(
-					shiftKey
-						? [...newlySelectedShapeIds, ...initialSelectedShapeIds]
-						: [...newlySelectedShapeIds]
-				),
-			],
-			{ squashing: true }
+		const current = editor.getSelectedShapeIds()
+		const next = new Set<TLShapeId>(
+			shiftKey ? [...newlySelectedShapeIds, ...initialSelectedShapeIds] : [...newlySelectedShapeIds]
 		)
+		if (current.length !== next.size || current.some((id) => !next.has(id))) {
+			this.editor.setSelectedShapes(Array.from(next), { squashing: true })
+		}
 	}
 
 	private complete() {
