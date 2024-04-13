@@ -118,7 +118,7 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, _zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec): boolean;
     // (undocumented)
     length: number;
     // (undocumented)
@@ -332,7 +332,7 @@ export class Circle2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, _zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
     // (undocumented)
     nearestPoint(point: Vec): Vec;
     // (undocumented)
@@ -414,7 +414,7 @@ export class CubicSpline2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec): boolean;
     // (undocumented)
     get length(): number;
     // (undocumented)
@@ -552,7 +552,7 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, _zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
     // (undocumented)
     get length(): number;
     // (undocumented)
@@ -968,7 +968,7 @@ export class Ellipse2d extends Geometry2d {
     // (undocumented)
     h: number;
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec): boolean;
     // (undocumented)
     nearestPoint(A: Vec): Vec;
     // (undocumented)
@@ -1458,7 +1458,7 @@ export class Polyline2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean;
+    hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
     // (undocumented)
     get length(): number;
     // (undocumented)

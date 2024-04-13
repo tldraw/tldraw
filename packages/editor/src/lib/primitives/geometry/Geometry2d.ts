@@ -39,22 +39,36 @@ export abstract class Geometry2d {
 		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
 			return true
 		}
-		return Vec.DistMin(point, this.nearestPoint(point), margin)
+		return Vec.Dist2(point, this.nearestPoint(point)) <= margin * margin
 	}
 
 	distanceToPoint(point: Vec, hitInside = false) {
-		const dist = point.dist(this.nearestPoint(point))
-
-		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
-			return -dist
-		}
-		return dist
+		return (
+			point.dist(this.nearestPoint(point)) *
+			(this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)
+				? -1
+				: 1)
+		)
 	}
 
 	distanceToLineSegment(A: Vec, B: Vec) {
-		const point = this.nearestPointOnLineSegment(A, B)
-		const dist = Vec.DistanceToLineSegment(A, B, point) // repeated, bleh
-		return this.isClosed && this.isFilled && pointInPolygon(point, this.vertices) ? -dist : dist
+		const { vertices } = this
+		let nearest: Vec | undefined
+		let dist = Infinity
+		let d: number
+		let p: Vec
+		for (let i = 0; i < vertices.length; i++) {
+			p = vertices[i]
+			d = Vec.DistanceToLineSegment(A, B, p)
+			if (d < dist) {
+				dist = d
+				nearest = p
+			}
+		}
+		if (!nearest) throw Error('nearest point not found')
+		return (
+			dist * (this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -1 : 1)
+		)
 	}
 
 	hitTestLineSegment(A: Vec, B: Vec, distance = 0): boolean {

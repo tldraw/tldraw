@@ -65,7 +65,13 @@ export class Polyline2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean {
-		return this.segments.some((edge) => edge.hitTestLineSegment(A, B, zoom))
+	hitTestLineSegment(A: Vec, B: Vec, distance = 0): boolean {
+		const { segments } = this
+		for (let i = 0, n = segments.length; i < n; i++) {
+			if (segments[i].hitTestLineSegment(A, B, distance)) {
+				return true
+			}
+		}
+		return false
 	}
 }
