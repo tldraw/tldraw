@@ -1,6 +1,5 @@
 const now = () => {
-	const hrTime = process.hrtime()
-	return hrTime[0] * 1000 + hrTime[1] / 1000000
+	return Number(process.hrtime.bigint()) / 1e6
 }
 
 export class PerformanceMeasurer {
@@ -17,6 +16,7 @@ export class PerformanceMeasurer {
 	cold = 0
 	fastest = Infinity
 	slowest = -Infinity
+	didRun = false
 
 	totalStart = 0
 	totalEnd = 0
@@ -60,6 +60,12 @@ export class PerformanceMeasurer {
 	}
 
 	run() {
+		if (this.didRun) {
+			return this
+		}
+
+		this.didRun = true
+
 		const { fns, beforeFns, afterFns, warmupIterations, iterations } = this
 
 		// Run the cold run
@@ -134,20 +140,21 @@ export class PerformanceMeasurer {
 	}
 
 	static Table(...ps: PerformanceMeasurer[]) {
+		ps.forEach((p) => p.run())
 		const table: Record<string, Record<string, number | string>> = {}
-		const fastest = ps.map((p) => p.average).reduce((a, b) => Math.min(a, b))
-		const totalFastest = ps.map((p) => p.totalTime).reduce((a, b) => Math.min(a, b))
+		// const fastest = ps.map((p) => p.average).reduce((a, b) => Math.min(a, b))
+		// const totalFastest = ps.map((p) => p.totalTime).reduce((a, b) => Math.min(a, b))
 
 		ps.forEach(
 			(p) =>
 				(table[p.name] = {
-					['Runs']: p.warmupIterations + p.iterations,
 					['Cold']: Number(p.cold.toFixed(2)),
 					['Slowest']: Number(p.slowest.toFixed(2)),
 					['Fastest']: Number(p.fastest.toFixed(2)),
 					['Average']: Number(p.average.toFixed(2)),
-					['Slower (Avg)']: Number((p.average / fastest).toFixed(2)),
-					['Slower (All)']: Number((p.totalTime / totalFastest).toFixed(2)),
+					// ['Slower (Avg)']: Number((p.average / fastest).toFixed(2)),
+					// ['Slower (All)']: Number((p.totalTime / totalFastest).toFixed(2)),
+					['Total']: Number(p.totalTime.toFixed(2)),
 				})
 		)
 		// eslint-disable-next-line no-console

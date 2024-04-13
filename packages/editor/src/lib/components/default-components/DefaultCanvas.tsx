@@ -151,8 +151,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<BrushWrapper />
 					<ScribbleWrapper />
 					<ZoomBrushWrapper />
-					<SelectedIdIndicators />
-					<HoveredShapeIndicator />
+					<ShapeIndicators />
 					<HintedShapeIndicator />
 					<SnapIndicatorWrapper />
 					<SelectionForegroundWrapper />
@@ -431,16 +430,17 @@ function ShapesToDisplay() {
 	)
 }
 
-function SelectedIdIndicators() {
+function ShapeIndicators() {
 	const editor = useEditor()
-	const selectedShapeIds = useValue('selectedShapeIds', () => editor.getSelectedShapeIds(), [
-		editor,
-	])
-	const shouldDisplay = useValue(
+	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
+	const rPreviousSelectedShapeIds = useRef<Set<TLShapeId>>(new Set())
+	const idsToDisplay = useValue(
 		'should display selected ids',
 		() => {
-			// todo: move to tldraw selected ids wrapper
-			return (
+			// todo: move to tldraw selected ids wrappe
+			const prev = rPreviousSelectedShapeIds.current
+			const next = new Set<TLShapeId>()
+			if (
 				editor.isInAny(
 					'select.idle',
 					'select.brushing',
@@ -449,50 +449,49 @@ function SelectedIdIndicators() {
 					'select.pointing_shape',
 					'select.pointing_selection',
 					'select.pointing_handle'
-				) && !editor.getInstanceState().isChangingStyle
-			)
+				) &&
+				!editor.getInstanceState().isChangingStyle
+			) {
+				const selected = editor.getSelectedShapeIds()
+				for (const id of selected) {
+					next.add(id)
+				}
+				if (editor.isInAny('select.idle', 'select.editing_shape')) {
+					const instanceState = editor.getInstanceState()
+					if (instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
+						const hovered = editor.getHoveredShapeId()
+						if (hovered) next.add(hovered)
+					}
+				}
+			}
+
+			if (prev.size !== next.size) {
+				rPreviousSelectedShapeIds.current = next
+				return next
+			}
+
+			for (const id of next) {
+				if (!prev.has(id)) {
+					rPreviousSelectedShapeIds.current = next
+					return next
+				}
+			}
+
+			return prev
 		},
 		[editor]
 	)
 
 	const { ShapeIndicator } = useEditorComponents()
-
 	if (!ShapeIndicator) return null
-	if (!shouldDisplay) return null
 
 	return (
 		<>
-			{selectedShapeIds.map((id) => (
-				<ShapeIndicator
-					key={id + '_indicator'}
-					className="tl-user-indicator__selected"
-					shapeId={id}
-				/>
+			{renderingShapes.map(({ id }) => (
+				<ShapeIndicator key={id + '_indicator'} shapeId={id} hidden={!idsToDisplay.has(id)} />
 			))}
 		</>
 	)
-}
-
-const HoveredShapeIndicator = function HoveredShapeIndicator() {
-	const editor = useEditor()
-	const { HoveredShapeIndicator } = useEditorComponents()
-	const isCoarsePointer = useValue(
-		'coarse pointer',
-		() => editor.getInstanceState().isCoarsePointer,
-		[editor]
-	)
-	const isHoveringCanvas = useValue(
-		'hovering canvas',
-		() => editor.getInstanceState().isHoveringCanvas,
-		[editor]
-	)
-	const hoveredShapeId = useValue('hovered id', () => editor.getCurrentPageState().hoveredShapeId, [
-		editor,
-	])
-
-	if (isCoarsePointer || !isHoveringCanvas || !hoveredShapeId || !HoveredShapeIndicator) return null
-
-	return <HoveredShapeIndicator shapeId={hoveredShapeId} />
 }
 
 function HintedShapeIndicator() {
