@@ -465,7 +465,7 @@ input,
 	transform-origin: top left;
 	fill: none;
 	stroke-width: calc(1.5px * var(--tl-scale));
-	contain: size;
+	contain: size layout;
 }
 
 /* ------------------ SelectionBox ------------------ */

@@ -16580,61 +16580,6 @@
           "name": "TldrawHandles"
         },
         {
-          "kind": "Function",
-          "canonicalReference": "tldraw!TldrawHoveredShapeIndicator:function(1)",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function TldrawHoveredShapeIndicator({ shapeId }: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLHoveredShapeIndicatorProps",
-              "canonicalReference": "@tldraw/editor!TLHoveredShapeIndicatorProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "): "
-            },
-            {
-              "kind": "Content",
-              "text": "import(\"react/jsx-runtime\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "JSX.Element",
-              "canonicalReference": "@types/react!JSX.Element:interface"
-            },
-            {
-              "kind": "Content",
-              "text": " | null"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/canvas/TldrawHoveredShapeIndicator.tsx",
-          "returnTypeTokenRange": {
-            "startIndex": 3,
-            "endIndex": 6
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [
-            {
-              "parameterName": "{ shapeId }",
-              "parameterTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isOptional": false
-            }
-          ],
-          "name": "TldrawHoveredShapeIndicator"
-        },
-        {
           "kind": "Variable",
           "canonicalReference": "tldraw!TldrawImage:var",
           "docComment": "/**\n * A renderered SVG image of a Tldraw snapshot.\n *\n * @example\n * ```tsx\n * <TldrawImage\n * \tsnapshot={snapshot}\n * \tpageId={pageId}\n * \tbackground={false}\n *  darkMode={true}\n *  bounds={new Box(0,0,600,400)}\n *  scale={1}\n * />\n * ```\n *\n * @public\n */\n",

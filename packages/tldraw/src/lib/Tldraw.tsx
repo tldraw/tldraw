@@ -19,7 +19,6 @@ import {
 } from '@tldraw/editor'
 import { useLayoutEffect, useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
-import { TldrawHoveredShapeIndicator } from './canvas/TldrawHoveredShapeIndicator'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
@@ -90,7 +89,6 @@ export function Tldraw(props: TldrawProps) {
 			SelectionForeground: TldrawSelectionForeground,
 			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
-			HoveredShapeIndicator: TldrawHoveredShapeIndicator,
 			..._components,
 		}),
 		[_components]
