@@ -304,7 +304,10 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 			) : (
 				<div
 					className="tlui-document-name__text"
-					onDoubleClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
+					onDoubleClick={() => {
+						editor.setEditingShape(null)
+						setState((prev) => ({ ...prev, isEditing: true }))
+					}}
 				>
 					{addRealSpaceForWhitespace(name)}
 				</div>
