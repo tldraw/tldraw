@@ -13,7 +13,6 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
-	measureAverageDuration,
 	moveCameraWhenCloseToEdge,
 	pointInPolygon,
 	polygonsIntersect,
@@ -101,7 +100,6 @@ export class Brushing extends StateNode {
 		this.parent.transition('idle')
 	}
 
-	@measureAverageDuration
 	private hitTestShapes() {
 		const { editor, excludedShapeIds, isWrapMode } = this
 		const {
