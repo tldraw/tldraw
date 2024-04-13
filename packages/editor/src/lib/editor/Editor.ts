@@ -36,7 +36,6 @@ import {
 	createShapeId,
 	getShapePropKeysByStyle,
 	isPageId,
-	isShape,
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
@@ -53,6 +52,7 @@ import {
 	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
+	measureAverageDuration,
 	objectMapValues,
 	sortById,
 	sortByIndex,
@@ -4572,38 +4572,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCurrentPageShapesSorted(): TLShape[] {
-		const shapes = new Set(this.getCurrentPageShapes().sort(sortByIndex))
+	@measureAverageDuration
+	@computed
+	getCurrentPageShapesSorted(): TLShape[] {
+		const shapes = this.getCurrentPageShapes().sort(sortByIndex)
 		const parentChildMap = new Map<TLShapeId, TLShape[]>()
 		const result: TLShape[] = []
 		const topLevelShapes: TLShape[] = []
+		let shape: TLShape, parent: TLShape | undefined
 
-		shapes.forEach((shape) => {
-			const parent = this.getShape(shape.parentId)
-			if (!isShape(parent)) {
-				topLevelShapes.push(shape)
-				return
-			}
-			if (parentChildMap.has(parent.id)) {
+		for (let i = 0, n = shapes.length; i < n; i++) {
+			shape = shapes[i]
+			parent = this.getShape(shape.parentId)
+			if (parent) {
+				if (!parentChildMap.has(parent.id)) {
+					parentChildMap.set(parent.id, [])
+				}
 				parentChildMap.get(parent.id)!.push(shape)
 			} else {
-				parentChildMap.set(parent.id, [shape])
-			}
-		})
-
-		function pushShapeWithDescendants(shape: TLShape): void {
-			result.push(shape)
-			const children = parentChildMap.get(shape.id)
-			if (children) {
-				children.forEach((child) => {
-					pushShapeWithDescendants(child)
-				})
+				// undefined if parent is a shape
+				topLevelShapes.push(shape)
 			}
 		}
 
-		topLevelShapes.forEach((shape) => {
-			pushShapeWithDescendants(shape)
-		})
+		for (let i = 0, n = topLevelShapes.length; i < n; i++) {
+			pushShapeWithDescendants(topLevelShapes[i], parentChildMap, result)
+		}
+
 		return result
 	}
 
@@ -8888,4 +8883,18 @@ function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartia
 	}
 	if (!next) return prev
 	return next
+}
+
+function pushShapeWithDescendants(
+	shape: TLShape,
+	parentChildMap: Map<TLShapeId, TLShape[]>,
+	result: TLShape[]
+): void {
+	result.push(shape)
+	const children = parentChildMap.get(shape.id)
+	if (children) {
+		for (let i = 0, n = children.length; i < n; i++) {
+			pushShapeWithDescendants(children[i], parentChildMap, result)
+		}
+	}
 }
