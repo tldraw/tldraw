@@ -92,8 +92,8 @@ export class PointingArrowLabel extends StateNode {
 		let nextLabelPosition
 		if (info.isStraight) {
 			// straight arrows
-			const lineLength = Vec.Dist(info.start.point, info.end.point)
-			const segmentLength = Vec.Dist(info.end.point, nearestPoint)
+			const lineLength = Vec.Dist2(info.start.point, info.end.point)
+			const segmentLength = Vec.Dist2(info.end.point, nearestPoint)
 			nextLabelPosition = 1 - segmentLength / lineLength
 		} else {
 			const { _center, measure, angleEnd, angleStart } = groupGeometry.children[0] as Arc2d

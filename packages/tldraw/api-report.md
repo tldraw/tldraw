@@ -81,7 +81,6 @@ import { TLGeoShape } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
-import { TLHoveredShapeIndicatorProps } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
@@ -1454,9 +1453,6 @@ export interface TldrawFile {
 
 // @public (undocumented)
 export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | null;
-
-// @public (undocumented)
-export function TldrawHoveredShapeIndicator({ shapeId }: TLHoveredShapeIndicatorProps): JSX_2.Element | null;
 
 // @public
 export const TldrawImage: NamedExoticComponent<    {

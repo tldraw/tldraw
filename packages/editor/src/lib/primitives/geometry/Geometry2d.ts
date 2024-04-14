@@ -30,24 +30,46 @@ export abstract class Geometry2d {
 
 	abstract nearestPoint(point: Vec): Vec
 
+	// hitTestPoint(point: Vec, margin = 0, hitInside = false) {
+	// 	// We've removed the broad phase here; that should be done outside of the call
+	// 	return this.distanceToPoint(point, hitInside) <= margin
+	// }
+
 	hitTestPoint(point: Vec, margin = 0, hitInside = false) {
-		// We've removed the broad phase here; that should be done outside of the call
-		return this.distanceToPoint(point, hitInside) <= margin
+		// First check whether the point is inside
+		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
+			return true
+		}
+		// Then check whether the distance is within the margin
+		return Vec.Dist2(point, this.nearestPoint(point)) <= margin * margin
 	}
 
 	distanceToPoint(point: Vec, hitInside = false) {
-		const dist = point.dist(this.nearestPoint(point))
-
-		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
-			return -dist
-		}
-		return dist
+		return (
+			point.dist(this.nearestPoint(point)) *
+			(this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)
+				? -1
+				: 1)
+		)
 	}
 
 	distanceToLineSegment(A: Vec, B: Vec) {
-		const point = this.nearestPointOnLineSegment(A, B)
-		const dist = Vec.DistanceToLineSegment(A, B, point) // repeated, bleh
-		return this.isClosed && this.isFilled && pointInPolygon(point, this.vertices) ? -dist : dist
+		if (A.equals(B)) return this.distanceToPoint(A)
+		const { vertices } = this
+		let nearest: Vec | undefined
+		let dist = Infinity
+		let d: number, p: Vec, q: Vec
+		for (let i = 0; i < vertices.length; i++) {
+			p = vertices[i]
+			q = Vec.NearestPointOnLineSegment(A, B, p, true)
+			d = Vec.Dist2(p, q)
+			if (d < dist) {
+				dist = d
+				nearest = q
+			}
+		}
+		if (!nearest) throw Error('nearest point not found')
+		return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -dist : dist
 	}
 
 	hitTestLineSegment(A: Vec, B: Vec, distance = 0): boolean {
@@ -58,14 +80,14 @@ export abstract class Geometry2d {
 		const { vertices } = this
 		let nearest: Vec | undefined
 		let dist = Infinity
-		let d: number
-		let p: Vec
+		let d: number, p: Vec, q: Vec
 		for (let i = 0; i < vertices.length; i++) {
 			p = vertices[i]
-			d = Vec.DistanceToLineSegment(A, B, p)
+			q = Vec.NearestPointOnLineSegment(A, B, p, true)
+			d = Vec.Dist2(p, q)
 			if (d < dist) {
 				dist = d
-				nearest = p
+				nearest = q
 			}
 		}
 		if (!nearest) throw Error('nearest point not found')

@@ -63,10 +63,6 @@ export {
 	type TLHandlesProps,
 } from './lib/components/default-components/DefaultHandles'
 export {
-	DefaultHoveredShapeIndicator,
-	type TLHoveredShapeIndicatorProps,
-} from './lib/components/default-components/DefaultHoveredShapeIndicator'
-export {
 	DefaultScribble,
 	type TLScribbleProps,
 } from './lib/components/default-components/DefaultScribble'

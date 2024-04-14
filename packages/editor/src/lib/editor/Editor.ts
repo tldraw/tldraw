@@ -36,7 +36,6 @@ import {
 	createShapeId,
 	getShapePropKeysByStyle,
 	isPageId,
-	isShape,
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
@@ -4061,22 +4060,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getShapeMaskedPageBounds(shape: TLShapeId | TLShape): Box | undefined {
 		if (typeof shape !== 'string') shape = shape.id
-		const pageBounds = this._getShapePageBoundsCache().get(shape)
-		if (!pageBounds) return
-		const pageMask = this._getShapeMaskCache().get(shape)
-		if (pageMask) {
-			if (pageMask.length === 0) return undefined
+		return this._getShapeMaskedPageBoundsCache().get(shape)
+	}
 
-			const { corners } = pageBounds
-			if (corners.every((p, i) => p && Vec.Equals(p, pageMask[i]))) return pageBounds.clone()
-
-			// todo: find out why intersect polygon polygon for identical polygons produces zero w/h intersections
-			const intersection = intersectPolygonPolygon(pageMask, corners)
-			if (!intersection) return
-			return Box.FromPoints(intersection)
-		}
-
-		return pageBounds
+	/** @internal */
+	@computed private _getShapeMaskedPageBoundsCache(): ComputedCache<Box, TLShape> {
+		return this.store.createComputedCache('shapeMaskedPageBoundsCache', (shape) => {
+			const pageBounds = this._getShapePageBoundsCache().get(shape.id)
+			if (!pageBounds) return
+			const pageMask = this._getShapeMaskCache().get(shape.id)
+			if (pageMask) {
+				if (pageMask.length === 0) return undefined
+				const { corners } = pageBounds
+				if (corners.every((p, i) => p && Vec.Equals(p, pageMask[i]))) return pageBounds.clone()
+				const intersection = intersectPolygonPolygon(pageMask, corners)
+				if (!intersection) return
+				return Box.FromPoints(intersection)
+			}
+			return pageBounds
+		})
 	}
 
 	/**
@@ -4494,7 +4496,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-
 	isPointInShape(
 		shape: TLShape | TLShapeId,
 		point: VecLike,
@@ -4577,31 +4578,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
-		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
-		// todo: consider making a derivation or something, or merging with rendering shapes
-		const shapes = new Set(this.getCurrentPageShapes().sort(sortByIndex))
+		const shapes = this.getCurrentPageShapes().sort(sortByIndex)
+		const parentChildMap = new Map<TLShapeId, TLShape[]>()
+		const result: TLShape[] = []
+		const topLevelShapes: TLShape[] = []
+		let shape: TLShape, parent: TLShape | undefined
 
-		const results: TLShape[] = []
-
-		function pushShapeWithDescendants(shape: TLShape): void {
-			results.push(shape)
-			shapes.delete(shape)
-
-			shapes.forEach((otherShape) => {
-				if (otherShape.parentId === shape.id) {
-					pushShapeWithDescendants(otherShape)
+		for (let i = 0, n = shapes.length; i < n; i++) {
+			shape = shapes[i]
+			parent = this.getShape(shape.parentId)
+			if (parent) {
+				if (!parentChildMap.has(parent.id)) {
+					parentChildMap.set(parent.id, [])
 				}
-			})
+				parentChildMap.get(parent.id)!.push(shape)
+			} else {
+				// undefined if parent is a shape
+				topLevelShapes.push(shape)
+			}
 		}
 
-		shapes.forEach((shape) => {
-			const parent = this.getShape(shape.parentId)
-			if (!isShape(parent)) {
-				pushShapeWithDescendants(shape)
-			}
-		})
+		for (let i = 0, n = topLevelShapes.length; i < n; i++) {
+			pushShapeWithDescendants(topLevelShapes[i], parentChildMap, result)
+		}
 
-		return results
+		return result
 	}
 
 	/**
@@ -8383,7 +8384,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private _pendingEventsForNextTick: TLEventInfo[] = []
 
-	private _flushEventsForTick = (elapsed: number) => {
+	private _flushEventsForTick(elapsed: number) {
 		this.batch(() => {
 			if (this._pendingEventsForNextTick.length > 0) {
 				const events = [...this._pendingEventsForNextTick]
@@ -8887,4 +8888,18 @@ function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartia
 	}
 	if (!next) return prev
 	return next
+}
+
+function pushShapeWithDescendants(
+	shape: TLShape,
+	parentChildMap: Map<TLShapeId, TLShape[]>,
+	result: TLShape[]
+): void {
+	result.push(shape)
+	const children = parentChildMap.get(shape.id)
+	if (children) {
+		for (let i = 0, n = children.length; i < n; i++) {
+			pushShapeWithDescendants(children[i], parentChildMap, result)
+		}
+	}
 }

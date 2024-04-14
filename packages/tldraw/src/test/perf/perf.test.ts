@@ -1,4 +1,4 @@
-import { TLShapePartial, createShapeId } from '@tldraw/editor'
+import { TLShapePartial, Vec, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 import { PerformanceMeasurer } from './PerformanceMeasurer'
 
@@ -125,9 +125,6 @@ describe.skip('Example perf tests', () => {
 				editor.updateShapes(shapesToUpdate)
 			})
 
-		withUpdateShape.run()
-		withUpdateShapes.run()
-
 		PerformanceMeasurer.Table(withUpdateShape, withUpdateShapes)
 	}, 10000)
 
@@ -157,7 +154,6 @@ describe.skip('Example perf tests', () => {
 				const shape = editor.getCurrentPageShapes()[0]
 				editor.updateShape({ ...shape, x: shape.x + 1 })
 			})
-			.run()
 
 		const renderingShapes2 = new PerformanceMeasurer('Measure rendering bounds with 200 shapes', {
 			warmupIterations: 10,
@@ -184,8 +180,32 @@ describe.skip('Example perf tests', () => {
 				const shape = editor.getCurrentPageShapes()[0]
 				editor.updateShape({ ...shape, x: shape.x + 1 })
 			})
-			.run()
 
 		PerformanceMeasurer.Table(renderingShapes, renderingShapes2)
 	}, 10000)
+})
+
+it.skip('measures dist', () => {
+	const ITEMS = 100000
+	const MIN_DIST = 0.712311
+	const vecs = Array.from(Array(ITEMS)).map(
+		() => new Vec((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2)
+	)
+	const withDistA = new PerformanceMeasurer('old', {
+		warmupIterations: 10,
+		iterations: 100,
+	}).add(() => {
+		for (let i = 0; i < ITEMS - 1; i++) {
+			Vec.Dist(vecs[i], vecs[i + 1]) < MIN_DIST
+		}
+	})
+	const withDistB = new PerformanceMeasurer('new', {
+		warmupIterations: 10,
+		iterations: 100,
+	}).add(() => {
+		for (let i = 0; i < ITEMS - 1; i++) {
+			Vec.DistMin(vecs[i], vecs[i + 1], MIN_DIST)
+		}
+	})
+	PerformanceMeasurer.Table(withDistA, withDistB)
 })

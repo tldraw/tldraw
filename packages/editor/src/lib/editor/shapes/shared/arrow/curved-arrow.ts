@@ -263,8 +263,7 @@ export function getCurvedArrowInfo(
 		tB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
-	const distAB = Vec.Dist(tA, tB)
-	if (distAB < minLength) {
+	if (Vec.DistMin(tA, tB, minLength)) {
 		if (offsetA !== 0 && offsetB !== 0) {
 			offsetA *= -1.5
 			offsetB *= -1.5
