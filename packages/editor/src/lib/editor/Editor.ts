@@ -8168,11 +8168,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _updateInputsFromEvent(
 		info: TLPointerEventInfo | TLPinchEventInfo | TLWheelEventInfo
 	): void {
-		const { previousScreenPoint, previousPagePoint, currentScreenPoint, currentPagePoint } =
-			this.inputs
+		const {
+			pointerVelocity,
+			previousScreenPoint,
+			previousPagePoint,
+			currentScreenPoint,
+			currentPagePoint,
+		} = this.inputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz } = this.getCamera()
+		const { x: cx, y: cy, z: cz } = this.store.unsafeGetWithoutCapture(this.getCameraId())!
 
 		const sx = info.point.x - screenBounds.x
 		const sy = info.point.y - screenBounds.y
@@ -8190,9 +8195,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.inputs.isPen = info.type === 'pointer' && info.isPen
 
-		// Reset velocity on pointer down
-		if (info.name === 'pointer_down') {
-			this.inputs.pointerVelocity.set(0, 0)
+		// Reset velocity on pointer down, or when a pinch starts or ends
+		if (info.name === 'pointer_down' || this.inputs.isPinching) {
+			pointerVelocity.set(0, 0)
 		}
 
 		// todo: We only have to do this if there are multiple users in the document
@@ -8200,14 +8205,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			{
 				id: TLPOINTER_ID,
 				typeName: 'pointer',
-				x: currentPagePoint.x,
-				y: currentPagePoint.y,
+				x: sx,
+				y: sy,
 				lastActivityTimestamp:
 					// If our pointer moved only because we're following some other user, then don't
 					// update our last activity timestamp; otherwise, update it to the current timestamp.
 					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
-						? this.store.get(TLPOINTER_ID)?.lastActivityTimestamp ?? Date.now()
-						: Date.now(),
+						? this.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ??
+							this._tickManager.now
+						: this._tickManager.now,
 				meta: {},
 			},
 		])
