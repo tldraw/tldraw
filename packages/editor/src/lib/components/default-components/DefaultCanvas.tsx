@@ -387,25 +387,38 @@ function ShapesWithSVGs() {
 		</>
 	)
 }
+
 function ReflowIfNeeded() {
 	const editor = useEditor()
 	const culledShapesRef = useRef<Set<TLShapeId>>(new Set())
 	useQuickReactor(
 		'reflow for culled shapes',
 		() => {
+			if (!editor.environment.isSafari) return
 			const culledShapes = editor.getCulledShapes()
-			if (
-				culledShapesRef.current.size === culledShapes.size &&
-				[...culledShapes].every((id) => culledShapesRef.current.has(id))
-			)
-				return
+			const prev = culledShapesRef.current
+			let reflow = false
+			if (prev.size !== culledShapes.size) {
+				reflow = true
+			} else {
+				for (const id of culledShapes) {
+					if (!prev.has(id)) {
+						reflow = true
+						break
+					}
+				}
+			}
+			if (reflow) {
+				const canvas = document.getElementsByClassName('tl-canvas')
+				if (canvas.length === 0) {
+					return
+				} // This causes a reflow
+				// https://gist.github.com/paulirish/5d52fb081b3570c81e3a
+				;(canvas[0] as HTMLDivElement).offsetHeight
+			}
 
-			culledShapesRef.current = culledShapes
-			const canvas = document.getElementsByClassName('tl-canvas')
-			if (canvas.length === 0) return
 			// This causes a reflow
 			// https://gist.github.com/paulirish/5d52fb081b3570c81e3a
-			const _height = (canvas[0] as HTMLDivElement).offsetHeight
 		},
 		[editor]
 	)
