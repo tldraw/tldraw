@@ -34,15 +34,17 @@ export function measureAverageDuration(
 		const start = performance.now()
 		const result = originalMethod.apply(this, args)
 		const end = performance.now()
-		const value = averages.get(descriptor.value)!
 		const length = end - start
-		const total = value.total + length
-		const count = value.count + 1
-		averages.set(descriptor.value, { total, count })
-		// eslint-disable-next-line no-console
-		console.log(
-			`${propertyKey} took ${(end - start).toFixed(2)}ms | average ${(total / count).toFixed(2)}ms`
-		)
+		if (length !== 0) {
+			const value = averages.get(descriptor.value)!
+			const total = value.total + length
+			const count = value.count + 1
+			averages.set(descriptor.value, { total, count })
+			// eslint-disable-next-line no-console
+			console.log(
+				`${propertyKey} took ${(end - start).toFixed(2)}ms | average ${(total / count).toFixed(2)}ms`
+			)
+		}
 		return result
 	}
 	averages.set(descriptor.value, { total: 0, count: 0 })

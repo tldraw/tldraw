@@ -13,6 +13,7 @@ import {
 	VecModel,
 	createShapeId,
 	last,
+	measureAverageDuration,
 	snapAngle,
 	structuredClone,
 	toFixed,
@@ -97,7 +98,7 @@ export class Drawing extends StateNode {
 				this.mergeNextPoint = false
 			}
 
-			this.updateShapes()
+			this.updateDrawingShape()
 		}
 	}
 
@@ -115,7 +116,7 @@ export class Drawing extends StateNode {
 				}
 			}
 		}
-		this.updateShapes()
+		this.updateDrawingShape()
 	}
 
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
@@ -137,7 +138,7 @@ export class Drawing extends StateNode {
 			}
 		}
 
-		this.updateShapes()
+		this.updateDrawingShape()
 	}
 
 	override onExit? = () => {
@@ -281,7 +282,8 @@ export class Drawing extends StateNode {
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
-	private updateShapes() {
+	@measureAverageDuration
+	private updateDrawingShape() {
 		const { initialShape } = this
 		const { inputs } = this.editor
 
