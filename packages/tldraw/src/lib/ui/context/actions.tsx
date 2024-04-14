@@ -504,12 +504,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
 						offset = instanceState.canMoveCamera
 							? {
-									x: commonBounds.width + 10,
+									x: commonBounds.width + 20,
 									y: 0,
 								}
 							: {
-									x: 16 / editor.getZoomLevel(),
-									y: 16 / editor.getZoomLevel(),
+									// same as the adjacent note margin
+									x: 20,
+									y: 20,
 								}
 					}
 
