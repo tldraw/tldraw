@@ -23,6 +23,7 @@ import {
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
+	getDefaultColorTheme,
 	getPolygonVertices,
 } from '@tldraw/editor'
 
@@ -487,6 +488,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let textEl
 		if (props.text) {
 			ctx.addExportDef(getFontDefForExport(shape.props.font))
+			const theme = getDefaultColorTheme(ctx)
 
 			const bounds = this.editor.getShapeGeometry(shape).bounds
 			textEl = (
@@ -496,7 +498,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					align={props.align}
 					verticalAlign={props.verticalAlign}
 					text={props.text}
-					labelColor={props.labelColor}
+					labelColor={theme[props.labelColor].solid}
 					bounds={bounds}
 				/>
 			)

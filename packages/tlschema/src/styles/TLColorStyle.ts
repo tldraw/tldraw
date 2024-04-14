@@ -232,7 +232,7 @@ export const DefaultColorThemePalette: {
 		black: {
 			solid: '#e1e1e1',
 			note: {
-				fill: '#AB711E',
+				fill: '#2c2c2c',
 				text: '#ffffff',
 			},
 			semi: '#2c3036',

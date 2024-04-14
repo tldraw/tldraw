@@ -516,6 +516,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					editor.mark('duplicate shapes')
 					editor.duplicateShapes(ids, offset)
+
 					if (instanceState.duplicateProps) {
 						// If we are using duplicate props then we update the shape ids to the
 						// ids of the newly created shapes to keep the duplication going

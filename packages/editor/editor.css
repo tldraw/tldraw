@@ -1184,6 +1184,13 @@ input,
 	color: currentColor;
 }
 
+.tl-note-svg {
+	box-shadow:
+		0px 4px 5px -5px rgba(15, 23, 31, 0.6),
+		0px 11px 13px -10px rgba(15, 23, 31, 0.4),
+		0px 48px 10px -10px inset rgba(15, 23, 44, 0.03);
+}
+
 /* --------------------- Loading -------------------- */
 
 .tl-loading {

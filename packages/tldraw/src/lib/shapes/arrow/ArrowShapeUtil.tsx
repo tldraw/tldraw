@@ -24,6 +24,7 @@ import {
 	arrowShapeMigrations,
 	arrowShapeProps,
 	getArrowTerminalsInArrowSpace,
+	getDefaultColorTheme,
 	mapObjectMapValues,
 	objectMapEntries,
 	structuredClone,
@@ -699,6 +700,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
 		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
+		const theme = getDefaultColorTheme(ctx)
 
 		return (
 			<>
@@ -709,7 +711,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					align="middle"
 					verticalAlign="middle"
 					text={shape.props.text}
-					labelColor={shape.props.labelColor}
+					labelColor={theme[shape.props.labelColor].solid}
 					bounds={getArrowLabelPosition(this.editor, shape).box}
 					padding={4}
 				/>

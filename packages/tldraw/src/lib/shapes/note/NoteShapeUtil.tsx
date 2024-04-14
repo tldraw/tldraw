@@ -164,11 +164,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
-		// Shadow stuff
-		const oy = Math.cos(rotation)
-		const random = rng(id)
-		const lift = 1 + random() * 0.5
-
 		return (
 			<>
 				<div
@@ -179,11 +174,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						height: noteHeight,
 						backgroundColor: theme[color].note.fill,
 						borderBottom: hideShadows ? `3px solid rgb(15, 23, 31, .2)` : `none`,
-						boxShadow: hideShadows
-							? 'none'
-							: `0px ${5 - lift}px 5px -5px rgba(15, 23, 31,.6),
-						0px ${(4 + lift * 7) * Math.max(0, oy)}px ${6 + lift * 7}px -${4 + lift * 6}px rgba(15, 23, 31,${0.3 + lift * 0.1}), 
-						0px 48px 10px -10px inset rgba(15, 23, 44,${(0.022 + random() * 0.005) * ((1 + oy) / 2)})`,
+						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation),
 					}}
 				>
 					<TextLabel
@@ -225,26 +216,22 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const adjustedColor = shape.props.color === 'black' ? 'yellow' : shape.props.color
-
 		return (
 			<>
+				<rect x={5} y={5} rx={1} width={NOTE_SIZE - 10} height={bounds.h} fill="rgba(0,0,0,.1)" />
 				<rect
-					rx={10}
+					rx={1}
 					width={NOTE_SIZE}
 					height={bounds.h}
-					fill={theme[adjustedColor].solid}
-					stroke={theme[adjustedColor].solid}
-					strokeWidth={1}
+					fill={theme[shape.props.color].note.fill}
 				/>
-				<rect rx={10} width={NOTE_SIZE} height={bounds.h} fill={theme.background} opacity={0.28} />
 				<SvgTextLabel
 					fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}
 					font={shape.props.font}
 					align={shape.props.align}
 					verticalAlign={shape.props.verticalAlign}
 					text={shape.props.text}
-					labelColor="black"
+					labelColor={theme[shape.props.color].note.text}
 					bounds={bounds}
 					stroke={false}
 				/>
@@ -253,7 +240,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override onBeforeCreate = (next: TLNoteShape) => {
-		return getSizeAdjustments(this.editor, next)
+		return getNoteSizeAdjustments(this.editor, next)
 	}
 
 	override onBeforeUpdate = (prev: TLNoteShape, next: TLNoteShape) => {
@@ -265,7 +252,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			return
 		}
 
-		return getSizeAdjustments(this.editor, next)
+		return getNoteSizeAdjustments(this.editor, next)
 	}
 
 	override onEditEnd: TLOnEditEndHandler<TLNoteShape> = (shape) => {
@@ -292,7 +279,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 /**
  * Get the growY and fontSizeAdjustment for a shape.
  */
-function getSizeAdjustments(editor: Editor, shape: TLNoteShape) {
+function getNoteSizeAdjustments(editor: Editor, shape: TLNoteShape) {
 	const { labelHeight, fontSizeAdjustment } = getLabelSize(editor, shape)
 	// When the label height is more than the height of the shape, we add extra height to it
 	const growY = Math.max(0, labelHeight - NOTE_SIZE)
@@ -312,7 +299,7 @@ function getSizeAdjustments(editor: Editor, shape: TLNoteShape) {
 /**
  * Get the label size for a note.
  */
-function _getLabelSize(editor: Editor, shape: TLNoteShape) {
+function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	const text = shape.props.text
 
 	if (!text) {
@@ -367,10 +354,10 @@ function _getLabelSize(editor: Editor, shape: TLNoteShape) {
 	}
 }
 
-const labelSizesForNote = new WeakMapCache<TLShape, ReturnType<typeof _getLabelSize>>()
+const labelSizesForNote = new WeakMapCache<TLShape, ReturnType<typeof getNoteLabelSize>>()
 
 function getLabelSize(editor: Editor, shape: TLNoteShape) {
-	return labelSizesForNote.get(shape, () => _getLabelSize(editor, shape))
+	return labelSizesForNote.get(shape, () => getNoteLabelSize(editor, shape))
 }
 
 function useNoteKeydownHandler(id: TLShapeId) {
@@ -424,4 +411,13 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 function getNoteHeight(shape: TLNoteShape) {
 	return NOTE_SIZE + shape.props.growY
+}
+
+function getNoteShadow(id: string, rotation: number) {
+	const random = rng(id) // seeded based on id
+	const lift = Math.abs(random()) + 0.5 // 0 to 1.5
+	const oy = Math.cos(rotation)
+	return `0px ${5 - lift}px 5px -5px rgba(15, 23, 31, .6),
+	0px ${(4 + lift * 7) * Math.max(0, oy)}px ${6 + lift * 7}px -${4 + lift * 6}px rgba(15, 23, 31, ${(0.3 + lift * 0.1).toFixed(2)}), 
+	0px 48px 10px -10px inset rgba(15, 23, 44, ${((0.022 + random() * 0.005) * ((1 + oy) / 2)).toFixed(2)})`
 }

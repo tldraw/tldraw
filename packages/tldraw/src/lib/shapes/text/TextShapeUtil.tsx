@@ -11,6 +11,7 @@ import {
 	TLTextShape,
 	Vec,
 	WeakMapCache,
+	getDefaultColorTheme,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
@@ -112,6 +113,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
+		const theme = getDefaultColorTheme(ctx)
+
 		return (
 			<SvgTextLabel
 				fontSize={FONT_SIZES[shape.props.size]}
@@ -119,7 +122,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				align={shape.props.align}
 				verticalAlign="middle"
 				text={shape.props.text}
-				labelColor={shape.props.color}
+				labelColor={theme[shape.props.color].solid}
 				bounds={new Box(0, 0, width, height)}
 				padding={0}
 			/>

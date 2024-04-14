@@ -4638,7 +4638,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		arg: TLUnknownShape | TLUnknownShape['id'],
 		type: T['type']
 	) {
-		const shape = typeof arg === 'string' ? this.getShape(arg)! : arg
+		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
+		if (!shape) return false
 		return shape.type === type
 	}
 

@@ -17,7 +17,7 @@ export function DebugMenuItems() {
 			/>
 			<TldrawUiMenuItem
 				id="release-info"
-				label={`${RELEASE_INFO}`.slice(0, 40) + '...'}
+				label={'Release info'}
 				onSelect={() => {
 					window.alert(`${RELEASE_INFO}`)
 				}}

@@ -565,7 +565,10 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 
 			const isSingleFrame = editor.isShapeOfType(id, 'frame')
 			const padding = isSingleFrame ? 0 : 10
-			const bounds = editor.getShapePageBounds(id)!.clone().expandBy(padding)
+			let bounds = editor.getShapePageBounds(id)
+			if (!bounds) return
+			bounds = bounds.clone().expandBy(padding)
+
 			const result = await editor.getSvgString([id], {
 				padding,
 				background: editor.getInstanceState().exportBackground,
