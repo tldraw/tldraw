@@ -436,7 +436,20 @@ export function dataUrlToFile(url: string, filename: string, mimeType: string): 
 export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
 
 // @internal (undocumented)
-export const debugFlags: Record<string, DebugFlag<boolean>>;
+export const debugFlags: {
+    readonly logPreventDefaults: DebugFlag<boolean>;
+    readonly logPointerCaptures: DebugFlag<boolean>;
+    readonly logElementRemoves: DebugFlag<boolean>;
+    readonly debugSvg: DebugFlag<boolean>;
+    readonly showFps: DebugFlag<boolean>;
+    readonly throwToBlob: DebugFlag<boolean>;
+    readonly reconnectOnPing: DebugFlag<boolean>;
+    readonly debugCursors: DebugFlag<boolean>;
+    readonly forceSrgb: DebugFlag<boolean>;
+    readonly debugGeometry: DebugFlag<boolean>;
+    readonly hideShapes: DebugFlag<boolean>;
+    readonly editOnType: DebugFlag<boolean>;
+};
 
 // @internal (undocumented)
 export const DEFAULT_ANIMATION_OPTIONS: {
@@ -700,6 +713,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInstanceState(): TLInstance;
     getIsMenuOpen(): boolean;
     getOnlySelectedShape(): null | TLShape;
+    getOnlySelectedShapeId(): null | TLShapeId;
     getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
@@ -812,7 +826,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         pointerVelocity: Vec;
     };
     interrupt(): this;
-    isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
@@ -1445,6 +1458,9 @@ export class Polygon2d extends Polyline2d {
 }
 
 // @public (undocumented)
+export function polygonIntersectsPolyline(polygon: VecLike[], polyline: VecLike[]): boolean;
+
+// @public (undocumented)
 export function polygonsIntersect(a: VecLike[], b: VecLike[]): boolean;
 
 // @public (undocumented)
@@ -1650,9 +1666,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onDoubleClickEdge?: TLOnDoubleClickHandler<Shape>;
     onDoubleClickHandle?: TLOnDoubleClickHandleHandler<Shape>;
     onDragShapesOut?: TLOnDragHandler<Shape>;
-    onDragShapesOver?: TLOnDragHandler<Shape, {
-        shouldHint: boolean;
-    }>;
+    onDragShapesOver?: TLOnDragHandler<Shape>;
     onDropShapesOver?: TLOnDragHandler<Shape>;
     onEditEnd?: TLOnEditEndHandler<Shape>;
     onHandleDrag?: TLOnHandleDragHandler<Shape>;
@@ -1723,6 +1737,9 @@ export class SideEffectManager<CTX extends {
         typeName: T;
     }>): () => void;
 }
+
+// @public (undocumented)
+export const SIDES: readonly ["top", "right", "bottom", "left"];
 
 export { Signal }
 
@@ -2185,6 +2202,10 @@ export interface TLEventMap {
         name: string;
         pageId: TLPageId;
         count: number;
+    }];
+    // (undocumented)
+    'select-all-text': [{
+        shapeId: TLShapeId;
     }];
     // (undocumented)
     'stop-camera-animation': [];

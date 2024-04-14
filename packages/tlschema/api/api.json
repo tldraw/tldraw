@@ -2900,7 +2900,16 @@
             },
             {
               "kind": "Content",
-              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    font: import(\"..\")."
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    fontSizeAdjustment: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n    font: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2963,7 +2972,7 @@
           "name": "noteShapeProps",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 18
+            "endIndex": 20
           }
         },
         {
@@ -3252,6 +3261,81 @@
           "typeTokenRange": {
             "startIndex": 4,
             "endIndex": 7
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!ShapePropsType:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type ShapePropsType<Config extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validatable",
+              "canonicalReference": "@tldraw/validate!Validatable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<any>>"
+            },
+            {
+              "kind": "Content",
+              "text": "> = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Expand",
+              "canonicalReference": "@tldraw/utils!Expand:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n    [K in keyof Config]: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.TypeOf",
+              "canonicalReference": "@tldraw/validate!TypeOf:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<Config[K]>;\n}>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/shapes/TLBaseShape.ts",
+          "releaseTag": "Public",
+          "name": "ShapePropsType",
+          "typeParameters": [
+            {
+              "typeParameterName": "Config",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 6,
+            "endIndex": 10
           }
         },
         {
@@ -3968,7 +4052,7 @@
             {
               "kind": "Reference",
               "text": "ShapePropsType",
-              "canonicalReference": "@tldraw/tlschema!~ShapePropsType:type"
+              "canonicalReference": "@tldraw/tlschema!ShapePropsType:type"
             },
             {
               "kind": "Content",
@@ -5317,7 +5401,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    solid: string;\n    semi: string;\n    pattern: string;\n    highlight: {\n        srgb: string;\n        p3: string;\n    };\n}"
+              "text": "{\n    solid: string;\n    semi: string;\n    pattern: string;\n    note: {\n        fill: string;\n        text: string;\n    };\n    highlight: {\n        srgb: string;\n        p3: string;\n    };\n}"
             },
             {
               "kind": "Content",
@@ -6567,7 +6651,7 @@
             {
               "kind": "Reference",
               "text": "ShapePropsType",
-              "canonicalReference": "@tldraw/tlschema!~ShapePropsType:type"
+              "canonicalReference": "@tldraw/tlschema!ShapePropsType:type"
             },
             {
               "kind": "Content",
@@ -9402,7 +9486,7 @@
             {
               "kind": "Reference",
               "text": "ShapePropsType",
-              "canonicalReference": "@tldraw/tlschema!~ShapePropsType:type"
+              "canonicalReference": "@tldraw/tlschema!ShapePropsType:type"
             },
             {
               "kind": "Content",

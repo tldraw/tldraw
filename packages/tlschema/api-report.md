@@ -683,6 +683,7 @@ export const noteShapeMigrations: Migrations;
 export const noteShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+    fontSizeAdjustment: T.Validator<number>;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
     verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
@@ -726,6 +727,11 @@ export const shapeIdValidator: T.Validator<TLShapeId>;
 export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
     [K in keyof Shape['props']]: T.Validatable<Shape['props'][K]>;
 };
+
+// @public (undocumented)
+export type ShapePropsType<Config extends Record<string, T.Validatable<any>>> = Expand<{
+    [K in keyof Config]: T.TypeOf<Config[K]>;
+}>;
 
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
@@ -895,6 +901,10 @@ export type TLDefaultColorThemeColor = {
     solid: string;
     semi: string;
     pattern: string;
+    note: {
+        fill: string;
+        text: string;
+    };
     highlight: {
         srgb: string;
         p3: string;

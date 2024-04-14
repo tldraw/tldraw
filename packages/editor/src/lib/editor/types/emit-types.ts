@@ -1,5 +1,5 @@
 import { HistoryEntry } from '@tldraw/store'
-import { TLPageId, TLRecord } from '@tldraw/tlschema'
+import { TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
 import { TLEventInfo } from './event-types'
 
 /** @public */
@@ -17,6 +17,7 @@ export interface TLEventMap {
 	frame: [number]
 	'change-history': [{ reason: 'undo' | 'redo' | 'push' } | { reason: 'bail'; markId?: string }]
 	'mark-history': [{ id: string }]
+	'select-all-text': [{ shapeId: TLShapeId }]
 }
 
 /** @public */

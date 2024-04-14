@@ -308,6 +308,7 @@ export class Vec {
 	static Per(A: VecLike): Vec {
 		return new Vec(A.y, -A.x)
 	}
+
 	static Abs(A: VecLike): Vec {
 		return new Vec(Math.abs(A.x), Math.abs(A.y))
 	}
