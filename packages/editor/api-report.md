@@ -436,7 +436,20 @@ export function dataUrlToFile(url: string, filename: string, mimeType: string): 
 export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
 
 // @internal (undocumented)
-export const debugFlags: Record<string, DebugFlag<boolean>>;
+export const debugFlags: {
+    readonly logPreventDefaults: DebugFlag<boolean>;
+    readonly logPointerCaptures: DebugFlag<boolean>;
+    readonly logElementRemoves: DebugFlag<boolean>;
+    readonly debugSvg: DebugFlag<boolean>;
+    readonly showFps: DebugFlag<boolean>;
+    readonly throwToBlob: DebugFlag<boolean>;
+    readonly reconnectOnPing: DebugFlag<boolean>;
+    readonly debugCursors: DebugFlag<boolean>;
+    readonly forceSrgb: DebugFlag<boolean>;
+    readonly debugGeometry: DebugFlag<boolean>;
+    readonly hideShapes: DebugFlag<boolean>;
+    readonly editOnType: DebugFlag<boolean>;
+};
 
 // @internal (undocumented)
 export const DEFAULT_ANIMATION_OPTIONS: {
