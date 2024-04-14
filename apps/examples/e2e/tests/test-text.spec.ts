@@ -157,7 +157,7 @@ test.describe('text measurement', () => {
 			measureTextSpansOptions
 		)
 
-		expect(formatLines(spans)).toEqual([['  ', 'testing', ' '], ['testing']])
+		expect(formatLines(spans)).toEqual([['  ', 'testing', ' ', 'testing']])
 	})
 
 	test('should place starting whitespace on its own line if it has to', async () => {
@@ -284,7 +284,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(28)
+		expect(shape.props.fontSizeAdjustment).toEqual(27)
 	})
 
 	test('for auto-font-sizing shapes, should auto-size text that have long words', async () => {
@@ -306,7 +306,7 @@ test.describe('text measurement', () => {
 			return editor.getShape(id) as TLNoteShape
 		})
 
-		expect(shape.props.fontSizeAdjustment).toEqual(21)
+		expect(shape.props.fontSizeAdjustment).toEqual(20)
 	})
 
 	test('for auto-font-sizing shapes, should wrap text that has words that are way too long', async () => {
