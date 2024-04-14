@@ -1,5 +1,5 @@
 import { Editor, TLNoteShape, TLShape, Vec, compact, createShapeId } from '@tldraw/editor'
-import { zoomToShapeIfOffscreen } from '../shared/TextHelpers'
+import { zoomToShapeIfOffscreen } from '../../tools/SelectTool/selectHelpers'
 
 /** @internal */
 export const ADJACENT_NOTE_MARGIN = 20

@@ -16,12 +16,11 @@ import {
 	debugFlags,
 	pointInPolygon,
 } from '@tldraw/editor'
-import { startEditingShapeWithLabel } from '../../../shapes/shared/TextHelpers'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
-import { kickoutOccludedShapes } from '../selectHelpers'
+import { kickoutOccludedShapes, startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',

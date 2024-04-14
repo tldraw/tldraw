@@ -13,7 +13,7 @@ import {
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
 } from '../../../shapes/note/noteHelpers'
-import { startEditingShapeWithLabel } from '../../../shapes/shared/TextHelpers'
+import { startEditingShapeWithLabel } from '../selectHelpers'
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'

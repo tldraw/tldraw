@@ -35,7 +35,7 @@ import {
 } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
-import { startEditingShapeWithLabel } from '../shared/TextHelpers'
+import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 import { useForceSolid } from '../shared/useForceSolid'
 import {
 	ADJACENT_NOTE_MARGIN,
