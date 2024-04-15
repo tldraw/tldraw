@@ -19,7 +19,7 @@ export const SlidesPanel = track(() => {
 						className="slides-panel-button"
 						onClick={() => moveToSlide(editor, slide)}
 						style={{
-							background: currentSlide?.id === slide.id ? '#f9fafb' : 'transparent',
+							background: currentSlide?.id === slide.id ? 'var(--color-background)' : 'transparent',
 							outline: isSelected ? 'var(--color-selection-stroke) solid 1.5px' : 'none',
 						}}
 					>
