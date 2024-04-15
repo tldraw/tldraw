@@ -7,6 +7,7 @@ import {
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
+	computed,
 	track,
 	useIsToolSelected,
 	useTools,
@@ -14,9 +15,9 @@ import {
 import 'tldraw/tldraw.css'
 import { SlideShapeTool } from './SlideShapeTool'
 import { SlideShapeUtil } from './SlideShapeUtil'
-import { $currentSlide, getSlides, moveToSlide } from './SlidesContext'
 import { SlidesPanel } from './SlidesPanel'
 import './slides.css'
+import { $currentSlide, getSlides, moveToSlide } from './useSlides'
 
 const components: TLComponents = {
 	HelperButtons: SlidesPanel,
@@ -44,6 +45,7 @@ const components: TLComponents = {
 
 const overrides: TLUiOverrides = {
 	actions(editor, actions) {
+		const $slides = computed('slides', () => getSlides(editor))
 		return {
 			...actions,
 			'next-slide': {
@@ -51,10 +53,8 @@ const overrides: TLUiOverrides = {
 				label: 'Next slide',
 				kbd: 'right',
 				onSelect() {
-					if (editor.getSelectedShapeIds().length > 0) {
-						editor.selectNone()
-					}
-					const slides = getSlides(editor)
+					editor.selectNone()
+					const slides = $slides.get()
 					const currentSlide = $currentSlide.get()
 					const index = slides.findIndex((s) => s.id === currentSlide?.id)
 					const nextSlide = slides[index + 1] ?? currentSlide ?? slides[0]
@@ -69,10 +69,8 @@ const overrides: TLUiOverrides = {
 				label: 'Previous slide',
 				kbd: 'left',
 				onSelect() {
-					if (editor.getSelectedShapeIds().length > 0) {
-						editor.selectNone()
-					}
-					const slides = getSlides(editor)
+					editor.selectNone()
+					const slides = $slides.get()
 					const currentSlide = $currentSlide.get()
 					const index = slides.findIndex((s) => s.id === currentSlide?.id)
 					const previousSlide = slides[index - 1] ?? currentSlide ?? slides[slides.length - 1]

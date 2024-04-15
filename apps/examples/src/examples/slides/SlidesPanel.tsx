@@ -1,10 +1,10 @@
 import { TldrawUiButton, stopEventPropagation, track, useEditor, useValue } from 'tldraw'
-import { $currentSlide, moveToSlide, useSlides } from './SlidesContext'
+import { moveToSlide, useCurrentSlide, useSlides } from './useSlides'
 
 export const SlidesPanel = track(() => {
 	const editor = useEditor()
 	const slides = useSlides()
-	const currentSlide = useValue($currentSlide)
+	const currentSlide = useCurrentSlide()
 	const selectedShapes = useValue('selected shapes', () => editor.getSelectedShapes(), [editor])
 
 	if (slides.length === 0) return null

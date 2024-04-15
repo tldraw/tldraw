@@ -15,6 +15,10 @@ export function useSlides() {
 	return useValue<SlideShape[]>('slide shapes', () => getSlides(editor), [editor])
 }
 
+export function useCurrentSlide() {
+	return useValue($currentSlide)
+}
+
 export function getSlides(editor: Editor) {
 	return editor
 		.getSortedChildIdsForParent(editor.getCurrentPageId())
