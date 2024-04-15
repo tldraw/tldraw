@@ -389,9 +389,9 @@ function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 	const sweepFlag = +Vec.Clockwise(a, c, b)
 
 	// The base angle of the arc in radians
-	const ab = Math.sqrt((a.y - b.y) ** 2 + (a.x - b.x) ** 2)
-	const bc = Math.sqrt((b.y - c.y) ** 2 + (b.x - c.x) ** 2)
-	const ca = Math.sqrt((c.y - a.y) ** 2 + (c.x - a.x) ** 2)
+	const ab = ((a.y - b.y) ** 2 + (a.x - b.x) ** 2) ** 0.5
+	const bc = ((b.y - c.y) ** 2 + (b.x - c.x) ** 2) ** 0.5
+	const ca = ((c.y - a.y) ** 2 + (c.x - a.x) ** 2) ** 0.5
 
 	const theta = Math.acos((bc * bc + ca * ca - ab * ab) / (2 * bc * ca)) * 2
 
