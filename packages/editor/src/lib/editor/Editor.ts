@@ -1325,7 +1325,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.isMenuOpen()
+	 * editor.getIsMenuOpen()
 	 * ```
 	 *
 	 * @public

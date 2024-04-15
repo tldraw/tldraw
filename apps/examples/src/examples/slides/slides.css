@@ -1,0 +1,21 @@
+.slides-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-height: calc(100% - 110px);
+	margin: 50px 0px;
+	padding: 4px;
+	background-color: var(--color-low);
+	pointer-events: all;
+	border-top-right-radius: var(--radius-4);
+	border-bottom-right-radius: var(--radius-4);
+	overflow: auto;
+	border-right: 2px solid var(--color-background);
+	border-bottom: 2px solid var(--color-background);
+	border-top: 2px solid var(--color-background);
+}
+
+.slides-button {
+	border-radius: var(--radius-4);
+	outline-offset: -1px;
+}

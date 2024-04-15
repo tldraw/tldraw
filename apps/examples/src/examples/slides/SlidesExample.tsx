@@ -16,6 +16,7 @@ import {
 	TLBaseShape,
 	TLComponents,
 	TLOnResizeHandler,
+	TLUiOverrides,
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiMenuItem,
@@ -30,6 +31,7 @@ import {
 } from 'tldraw'
 import { getPerfectDashProps } from 'tldraw/src/lib/shapes/shared/getPerfectDashProps'
 import 'tldraw/tldraw.css'
+import './slides.css'
 
 type SlideShape = TLBaseShape<
 	'slide',
@@ -188,55 +190,25 @@ const SlideList = track(() => {
 	const editor = useEditor()
 	const slides = useSlides()
 	const currentSlide = useValue($currentSlide)
+	const selectedShapes = useValue('selected shapes', () => editor.getSelectedShapes(), [editor])
+
 	if (slides.length === 0) return null
 	return (
-		<div
-			className="scroll-light"
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				gap: 4,
-				maxHeight: 'calc(100% - 60px - 50px)',
-				margin: '50px 0px',
-				padding: 4,
-				backgroundColor: 'var(--color-low)',
-				pointerEvents: 'all',
-				borderTopRightRadius: 'var(--radius-4)',
-				borderBottomRightRadius: 'var(--radius-4)',
-				overflow: 'auto',
-				borderRight: '2px solid var(--color-background)',
-				borderBottom: '2px solid var(--color-background)',
-				borderTop: '2px solid var(--color-background)',
-			}}
-			onPointerDown={(e) => stopEventPropagation(e)}
-		>
+		<div className="slides-panel scroll-light" onPointerDown={(e) => stopEventPropagation(e)}>
 			{slides.map((slide, i) => {
-				const isSelected = editor.getSelectedShapes().includes(slide)
+				const isSelected = selectedShapes.includes(slide)
 				return (
-					<div
-						key={slide.id + 'button'}
+					<TldrawUiButton
+						type="normal"
+						className="slides-button"
+						onClick={() => moveToSlide(editor, slide)}
 						style={{
-							display: 'flex',
-							gap: '4px',
-							alignItems: 'center',
-							borderRadius: 6,
+							background: currentSlide?.id === slide.id ? '#f9fafb' : 'transparent',
+							outline: isSelected ? 'var(--color-selection-stroke) solid 1.5px' : 'none',
 						}}
 					>
-						<TldrawUiButton
-							type="normal"
-							style={{
-								background: currentSlide?.id === slide.id ? '#f9fafb' : 'transparent',
-								borderRadius: 'var(--radius-4)',
-								outline: isSelected ? 'var(--color-selection-stroke) solid 1.5px' : 'none',
-								outlineOffset: '-1px',
-							}}
-							onClick={() => {
-								moveToSlide(editor, slide)
-							}}
-						>
-							{`Slide ${i + 1}`}
-						</TldrawUiButton>
-					</div>
+						{`Slide ${i + 1}`}
+					</TldrawUiButton>
 				)
 			})}
 		</div>
@@ -274,6 +246,68 @@ const components: TLComponents = {
 	},
 }
 
+const overrides: TLUiOverrides = {
+	actions(editor, actions) {
+		return {
+			...actions,
+			'next-slide': {
+				id: 'next-slide',
+				label: 'Next slide',
+				kbd: 'right',
+				onSelect() {
+					if (editor.getSelectedShapeIds().length > 0) {
+						editor.selectNone()
+					}
+					const slides = getSlides(editor)
+					const currentSlide = $currentSlide.get()
+					const index = slides.findIndex((s) => s.id === currentSlide?.id)
+					const nextSlide = slides[index + 1]
+					editor.stopCameraAnimation()
+					if (nextSlide) {
+						moveToSlide(editor, nextSlide)
+					} else if (currentSlide) {
+						moveToSlide(editor, currentSlide)
+					} else if (slides.length > 0) {
+						moveToSlide(editor, slides[0])
+					}
+				},
+			},
+			'previous-slide': {
+				id: 'previous-slide',
+				label: 'Previous slide',
+				kbd: 'left',
+				onSelect() {
+					if (editor.getSelectedShapeIds().length > 0) {
+						editor.selectNone()
+					}
+					const slides = getSlides(editor)
+					const currentSlide = $currentSlide.get()
+					const index = slides.findIndex((s) => s.id === currentSlide?.id)
+					const previousSlide = slides[index - 1]
+					editor.stopCameraAnimation()
+					if (previousSlide) {
+						moveToSlide(editor, previousSlide)
+					} else if (currentSlide) {
+						moveToSlide(editor, currentSlide)
+					} else if (slides.length > 0) {
+						moveToSlide(editor, slides[slides.length - 1])
+					}
+				},
+			},
+		}
+	},
+	tools(editor, tools) {
+		tools.slide = {
+			id: 'slide',
+			icon: 'group',
+			label: 'Slide',
+			kbd: 's',
+			onSelect: () => editor.setCurrentTool('slide'),
+		}
+		return tools
+	},
+}
+
 const SlidesExample = track(() => {
 	return (
 		<div className="tldraw__editor">
@@ -282,69 +316,7 @@ const SlidesExample = track(() => {
 				shapeUtils={[SlideShapeUtil]}
 				tools={[SlideTool]}
 				components={components}
-				overrides={{
-					actions(editor, actions) {
-						return {
-							...actions,
-							'next-slide': {
-								id: 'next-slide',
-								label: 'Next slide',
-								kbd: 'right',
-								onSelect() {
-									if (editor.getSelectedShapeIds().length > 0) {
-										editor.selectNone()
-									}
-									const slides = getSlides(editor)
-									const currentSlide = $currentSlide.get()
-									const index = slides.findIndex((s) => s.id === currentSlide?.id)
-									const nextSlide = slides[index + 1]
-									editor.stopCameraAnimation()
-									if (nextSlide) {
-										moveToSlide(editor, nextSlide)
-									} else if (currentSlide) {
-										moveToSlide(editor, currentSlide)
-									} else if (slides.length > 0) {
-										moveToSlide(editor, slides[0])
-									}
-								},
-							},
-							'previous-slide': {
-								id: 'previous-slide',
-								label: 'Previous slide',
-								kbd: 'left',
-								onSelect() {
-									if (editor.getSelectedShapeIds().length > 0) {
-										editor.selectNone()
-									}
-									const slides = getSlides(editor)
-									const currentSlide = $currentSlide.get()
-									const index = slides.findIndex((s) => s.id === currentSlide?.id)
-									const previousSlide = slides[index - 1]
-									editor.stopCameraAnimation()
-									if (previousSlide) {
-										moveToSlide(editor, previousSlide)
-									} else if (currentSlide) {
-										moveToSlide(editor, currentSlide)
-									} else if (slides.length > 0) {
-										moveToSlide(editor, slides[slides.length - 1])
-									}
-								},
-							},
-						}
-					},
-					tools(editor, tools) {
-						tools.slide = {
-							id: 'slide',
-							icon: 'group',
-							label: 'Slide',
-							kbd: 's',
-							onSelect: () => {
-								editor.setCurrentTool('slide')
-							},
-						}
-						return tools
-					},
-				}}
+				overrides={overrides}
 			/>
 		</div>
 	)
