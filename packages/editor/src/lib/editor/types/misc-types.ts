@@ -1,5 +1,6 @@
 import { BoxModel } from '@tldraw/tlschema'
 import { Box } from '../../primitives/Box'
+import { VecLike } from '../../primitives/Vec'
 
 /** @public */
 export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>
@@ -30,19 +31,15 @@ export type TLCameraOptions = {
 	zoomMax: number
 	/** Whether the camera is locked */
 	isLocked: boolean
-} & (
-	| {
-			/** The type of behavior. */
-			type: 'infinite'
-	  }
-	| {
-			/** The type of behavior. */
-			type: 'contain' | 'cover' | 'limit'
-			/** The bounds of the content (in page space) */
-			bounds: BoxModel
-			/** The padding around the bounds (in screen space). Provide a number for x and y, or [x, y]. */
-			padding: number[]
-			/** The origin for placement when the bounds are smaller than the viewport. Provide a number for x and y, or [x, y].*/
-			origin: number[]
-	  }
-)
+	/** The camera constraints */
+	constraints?: {
+		/** The type of constraint behavior. */
+		type: 'contain' | 'cover' | 'limit'
+		/** The bounds of the content (in page space) */
+		bounds: BoxModel
+		/** The padding around the bounds (in screen space). Provide a number for x and y, or [x, y]. */
+		padding: VecLike
+		/** The origin for placement when the bounds are smaller than the viewport. Provide a number for x and y, or [x, y].*/
+		origin: VecLike
+	}
+}

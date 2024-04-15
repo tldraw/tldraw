@@ -8,7 +8,7 @@ beforeEach(() => {
 })
 
 it('zooms by increments', () => {
-	const cameraOptions = getDefaultCameraOptions({ type: 'infinite' })
+	const cameraOptions = getDefaultCameraOptions()
 
 	// Starts at 1
 	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
@@ -46,7 +46,7 @@ it('preserves the screen center when offset', () => {
 })
 
 it('zooms to from B to D when B >= (C - A)/2, else zooms from B to C', () => {
-	const cameraOptions = getDefaultCameraOptions({ type: 'infinite' })
+	const cameraOptions = getDefaultCameraOptions()
 
 	editor.setCamera({ x: 0, y: 0, z: (cameraOptions.zoomSteps[2] + cameraOptions.zoomSteps[3]) / 2 })
 	editor.zoomIn()

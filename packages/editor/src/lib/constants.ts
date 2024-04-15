@@ -20,32 +20,13 @@ const DEFAULT_COMMON_CAMERA_OPTIONS = {
 	isLocked: false,
 }
 
-const DEFAULT_FIT_CONTAIN_CAMERA_OPTIONS = {
-	bounds: { x: 0, y: 0, w: 1200, h: 800 },
-	padding: [0, 0],
-	origin: [0.5, 0.5],
-}
-
 /** @internal */
 export const getDefaultCameraOptions = (
-	cameraOptions: Partial<Exclude<TLCameraOptions, 'type'>> & { type: TLCameraOptions['type'] }
-): TLCameraOptions => {
-	switch (cameraOptions.type) {
-		case 'infinite': {
-			return {
-				...DEFAULT_COMMON_CAMERA_OPTIONS,
-				...cameraOptions,
-			}
-		}
-		default: {
-			return {
-				...DEFAULT_COMMON_CAMERA_OPTIONS,
-				...DEFAULT_FIT_CONTAIN_CAMERA_OPTIONS,
-				...cameraOptions,
-			}
-		}
-	}
-}
+	cameraOptions: Partial<TLCameraOptions> = {}
+): TLCameraOptions => ({
+	...DEFAULT_COMMON_CAMERA_OPTIONS,
+	...cameraOptions,
+})
 
 /** @internal */
 export const FOLLOW_CHASE_PROPORTION = 0.5

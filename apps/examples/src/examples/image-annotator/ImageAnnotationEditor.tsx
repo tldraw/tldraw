@@ -132,10 +132,12 @@ export function ImageAnnotationEditor({
 		let isInitial = true
 		editor.setCameraOptions(
 			{
-				type: 'contain',
-				bounds: { w: image.width, h: image.height, x: 0, y: 0 },
-				padding: [64, 32],
-				origin: [0.5, 0.5],
+				constraints: {
+					type: 'contain',
+					bounds: { w: image.width, h: image.height, x: 0, y: 0 },
+					padding: { x: 32, y: 64 },
+					origin: { x: 0.5, y: 0.5 },
+				},
 				zoomMax: 8,
 				zoomMin: 1, // prevent zoom from going below zero
 				zoomSteps: [1, 2, 4, 8],

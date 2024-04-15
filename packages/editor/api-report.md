@@ -1087,9 +1087,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
 
 // @internal (undocumented)
-export const getDefaultCameraOptions: (cameraOptions: Partial<Exclude<TLCameraOptions, 'type'>> & {
-    type: TLCameraOptions['type'];
-}) => TLCameraOptions;
+export const getDefaultCameraOptions: (cameraOptions?: Partial<TLCameraOptions>) => TLCameraOptions;
 
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
@@ -2001,14 +1999,13 @@ export type TLCameraOptions = {
     zoomMin: number;
     zoomMax: number;
     isLocked: boolean;
-} & ({
-    type: 'contain' | 'cover' | 'limit';
-    bounds: BoxModel;
-    padding: number[];
-    origin: number[];
-} | {
-    type: 'infinite';
-});
+    constraints?: {
+        type: 'contain' | 'cover' | 'limit';
+        bounds: BoxModel;
+        padding: VecLike;
+        origin: VecLike;
+    };
+};
 
 // @public (undocumented)
 export type TLCancelEvent = (info: TLCancelEventInfo) => void;
@@ -2105,8 +2102,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public
 export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
-    // (undocumented)
-    cameraOptions?: Partial<Exclude<TLCameraOptions, 'type'>> & Pick<TLCameraOptions, 'type'>;
+    cameraOptions?: Partial<TLCameraOptions>;
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
@@ -2137,7 +2133,7 @@ export type TLEditorComponents = Partial<{
 
 // @public (undocumented)
 export interface TLEditorOptions {
-    cameraOptions?: Partial<Exclude<TLCameraOptions, 'type'>> & Pick<TLCameraOptions, 'type'>;
+    cameraOptions?: Partial<TLCameraOptions>;
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;

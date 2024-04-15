@@ -185,7 +185,7 @@ export interface TLEditorOptions {
 	/**
 	 * Options for the editor's camera.
 	 */
-	cameraOptions?: Partial<Exclude<TLCameraOptions, 'type'>> & Pick<TLCameraOptions, 'type'>
+	cameraOptions?: Partial<TLCameraOptions>
 }
 
 /** @public */
@@ -206,9 +206,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.snaps = new SnapManager(this)
 
-		this._cameraOptions = cameraOptions?.type
-			? getDefaultCameraOptions(cameraOptions)
-			: getDefaultCameraOptions({ type: 'infinite' })
+		this._cameraOptions = getDefaultCameraOptions(cameraOptions)
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
@@ -2078,15 +2076,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	getNaturalZoom() {
 		const cameraOptions = this.getCameraOptions()
-		if (cameraOptions.type === 'infinite') return 1
-		const { padding } = cameraOptions
+		if (!cameraOptions.constraints) return 1
+		const { padding } = cameraOptions.constraints
 		const vsb = this.getViewportScreenBounds()
-		const py = Math.min(padding[0], vsb.w / 2)
-		const px = Math.min(padding[1], vsb.h / 2)
-		const bounds = Box.From(cameraOptions.bounds)
+		const py = Math.min(padding.y, vsb.w / 2)
+		const px = Math.min(padding.x, vsb.h / 2)
+		const bounds = Box.From(cameraOptions.constraints.bounds)
 		const zx = (vsb.w - px * 2) / bounds.w
 		const zy = (vsb.h - py * 2) / bounds.h
-		return cameraOptions.type === 'contain' ? Math.min(zx, zy) : Math.max(zx, zy)
+		return cameraOptions.constraints.type === 'contain' ? Math.min(zx, zy) : Math.max(zx, zy)
 	}
 
 	/** @public */
@@ -2141,22 +2139,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const cameraOptions = this.getCameraOptions()
 
 			// If bounds are provided, then we'll keep those bounds on screen
-			if (cameraOptions.type === 'infinite') {
-				// constrain the zoom
-				const { zoomMax, zoomMin } = cameraOptions
-				z = clamp(point.z, zoomMin, zoomMax)
-			} else {
-				const { zoomMax, zoomMin, padding, origin } = cameraOptions
+			if (cameraOptions.constraints) {
+				const { zoomMax, zoomMin, constraints: constriants } = cameraOptions
 
 				const vsb = this.getViewportScreenBounds()
 
 				// Get padding (it's either a number or an array of 2 numbers for t/b, l/r)
 				// Clamp padding to half the viewport size on either dimension
-				const py = Math.min(padding[0], vsb.w / 2)
-				const px = Math.min(padding[1], vsb.h / 2)
+				const py = Math.min(constriants.padding.y, vsb.w / 2)
+				const px = Math.min(constriants.padding.x, vsb.h / 2)
 
 				// Expand the bounds by the padding
-				const bounds = Box.From(cameraOptions.bounds)
+				const bounds = Box.From(cameraOptions.constraints.bounds)
 
 				// For each axis, the "natural zoom" is the zoom at
 				// which the expanded bounds (with padding) would fit
@@ -2166,10 +2160,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				const zx = (vsb.w - px * 2) / bounds.w
 				const zy = (vsb.h - py * 2) / bounds.h
+
 				const fitZoom =
-					cameraOptions.type === 'limit'
+					cameraOptions.constraints.type === 'limit'
 						? 1
-						: cameraOptions.type === 'contain'
+						: cameraOptions.constraints.type === 'contain'
 							? Math.min(zx, zy)
 							: Math.max(zx, zy)
 				const maxZ = zoomMax * fitZoom
@@ -2202,8 +2197,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const minY = py / z - bounds.y
 				const freeW = (vsb.w - px * 2) / z - bounds.w
 				const freeH = (vsb.h - py * 2) / z - bounds.h
-				x = clamp(x, minX + freeW * (z < zx || opts?.initial ? origin[1] : 1), minX)
-				y = clamp(y, minY + freeH * (z < zy || opts?.initial ? origin[0] : 1), minY)
+				x = clamp(x, minX + freeW * (z < zx || opts?.initial ? constriants.origin.x : 1), minX)
+				y = clamp(y, minY + freeH * (z < zy || opts?.initial ? constriants.origin.y : 1), minY)
+			} else {
+				// constrain the zoom
+				const { zoomMax, zoomMin } = cameraOptions
+				z = clamp(point.z, zoomMin, zoomMax)
 			}
 		}
 
@@ -2386,7 +2385,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resetZoom(point = this.getViewportScreenCenter(), animation?: TLAnimationOptions): this {
-		const { isLocked, type } = this.getCameraOptions()
+		const { isLocked, constraints: constriants } = this.getCameraOptions()
 		if (isLocked) return this
 
 		const currentCamera = this.getCamera()
@@ -2395,7 +2394,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let z = 1
 
-		if (type !== 'infinite') {
+		if (constriants) {
 			// For non-infinite fit, we'll set the camera to the natural zoom level...
 			// unless it's already there, in which case we'll set zoom to 100%
 			const naturalZoom = this.getNaturalZoom()

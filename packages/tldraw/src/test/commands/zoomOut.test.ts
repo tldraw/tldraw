@@ -8,7 +8,7 @@ beforeEach(() => {
 })
 
 it('zooms out and in by increments', () => {
-	const cameraOptions = getDefaultCameraOptions({ type: 'infinite' })
+	const cameraOptions = getDefaultCameraOptions()
 
 	// Starts at 1
 	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
