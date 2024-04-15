@@ -3,7 +3,6 @@ import type { Child, Signal } from './types'
 
 class CaptureStackFrame {
 	offset = 0
-	numNewParents = 0
 
 	maybeRemoved?: Signal<any>[]
 
@@ -50,33 +49,29 @@ export function unsafe__withoutCapture<T>(fn: () => T): T {
 
 export function startCapturingParents(child: Child) {
 	inst.stack = new CaptureStackFrame(inst.stack, child)
+	child.parentSet.clear()
 }
 
 export function stopCapturingParents() {
 	const frame = inst.stack!
 	inst.stack = frame.below
 
-	const didParentsChange = frame.numNewParents > 0 || frame.offset !== frame.child.parents.length
-
-	if (!didParentsChange) {
-		return
-	}
-
-	for (let i = frame.offset; i < frame.child.parents.length; i++) {
-		const p = frame.child.parents[i]
-		const parentWasRemoved = frame.child.parents.indexOf(p) >= frame.offset
-		if (parentWasRemoved) {
-			detach(p, frame.child)
+	if (frame.offset < frame.child.parents.length) {
+		for (let i = frame.offset; i < frame.child.parents.length; i++) {
+			const maybeRemovedParent = frame.child.parents[i]
+			if (!frame.child.parentSet.has(maybeRemovedParent)) {
+				detach(maybeRemovedParent, frame.child)
+			}
 		}
-	}
 
-	frame.child.parents.length = frame.offset
-	frame.child.parentEpochs.length = frame.offset
+		frame.child.parents.length = frame.offset
+		frame.child.parentEpochs.length = frame.offset
+	}
 
 	if (inst.stack?.maybeRemoved) {
 		for (let i = 0; i < inst.stack.maybeRemoved.length; i++) {
 			const maybeRemovedParent = inst.stack.maybeRemoved[i]
-			if (frame.child.parents.indexOf(maybeRemovedParent) === -1) {
+			if (!inst.stack.child.parentSet.has(maybeRemovedParent)) {
 				detach(maybeRemovedParent, frame.child)
 			}
 		}
@@ -86,34 +81,33 @@ export function stopCapturingParents() {
 // this must be called after the parent is up to date
 export function maybeCaptureParent(p: Signal<any, any>) {
 	if (inst.stack) {
-		const idx = inst.stack.child.parents.indexOf(p)
+		const wasCapturedAlready = inst.stack.child.parentSet.has(p)
 		// if the child didn't deref this parent last time it executed, then idx will be -1
 		// if the child did deref this parent last time but in a different order relative to other parents, then idx will be greater than stack.offset
 		// if the child did deref this parent last time in the same order, then idx will be the same as stack.offset
 		// if the child did deref this parent already during this capture session then 0 <= idx < stack.offset
 
-		if (idx < 0) {
-			inst.stack.numNewParents++
-			if (inst.stack.child.isActivelyListening) {
-				attach(p, inst.stack.child)
+		if (wasCapturedAlready) {
+			return
+		}
+
+		inst.stack.child.parentSet.add(p)
+		if (inst.stack.child.isActivelyListening) {
+			attach(p, inst.stack.child)
+		}
+
+		if (inst.stack.offset < inst.stack.child.parents.length) {
+			const maybeRemovedParent = inst.stack.child.parents[inst.stack.offset]
+			if (!inst.stack.maybeRemoved) {
+				inst.stack.maybeRemoved = [maybeRemovedParent]
+			} else {
+				inst.stack.maybeRemoved.push(maybeRemovedParent)
 			}
 		}
 
-		if (idx < 0 || idx >= inst.stack.offset) {
-			if (idx !== inst.stack.offset && idx > 0) {
-				const maybeRemovedParent = inst.stack.child.parents[inst.stack.offset]
-
-				if (!inst.stack.maybeRemoved) {
-					inst.stack.maybeRemoved = [maybeRemovedParent]
-				} else if (inst.stack.maybeRemoved.indexOf(maybeRemovedParent) === -1) {
-					inst.stack.maybeRemoved.push(maybeRemovedParent)
-				}
-			}
-
-			inst.stack.child.parents[inst.stack.offset] = p
-			inst.stack.child.parentEpochs[inst.stack.offset] = p.lastChangedEpoch
-			inst.stack.offset++
-		}
+		inst.stack.child.parents[inst.stack.offset] = p
+		inst.stack.child.parentEpochs[inst.stack.offset] = p.lastChangedEpoch
+		inst.stack.offset++
 	}
 }
 
