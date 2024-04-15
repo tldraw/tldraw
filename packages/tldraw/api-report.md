@@ -222,9 +222,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         end: UnionValidator<"type", {
@@ -236,9 +236,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         isPrecise: boolean;
         }>;
         point: ObjectValidator<    {
+        type: "point";
         x: number;
         y: number;
-        type: "point";
         }>;
         }, never>;
         bend: Validator<number>;
@@ -1168,8 +1168,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     static props: {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        fontSizeAdjustment: Validator<number>;
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
+        fontSizeAdjustment: Validator<number>;
         align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
         verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
         growY: Validator<number>;

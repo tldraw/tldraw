@@ -49,9 +49,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     end: T.UnionValidator<"type", {
@@ -63,9 +63,9 @@ export const arrowShapeProps: {
             isPrecise: boolean;
         } & {}>;
         point: T.ObjectValidator<{
+            type: "point";
             x: number;
             y: number;
-            type: "point";
         } & {}>;
     }, never>;
     bend: T.Validator<number>;
@@ -689,8 +689,8 @@ export const noteShapeMigrations: TLShapePropsMigrations;
 export const noteShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    fontSizeAdjustment: T.Validator<number>;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
+    fontSizeAdjustment: T.Validator<number>;
     align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
     verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
     growY: T.Validator<number>;

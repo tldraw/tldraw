@@ -1645,7 +1645,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1690,7 +1690,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                x: number;\n                y: number;\n                type: \"point\";\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13409,16 +13409,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        fontSizeAdjustment: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        font: import(\"@tldraw/editor\")."
+                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        font: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13427,7 +13418,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n        align: import(\"@tldraw/editor\")."
+                  "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n        fontSizeAdjustment: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n        align: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",

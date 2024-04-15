@@ -364,7 +364,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    end: "
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        } & {}>;\n    }, never>;\n    end: "
             },
             {
               "kind": "Reference",
@@ -409,7 +409,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    bend: "
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        } & {}>;\n    }, never>;\n    bend: "
             },
             {
               "kind": "Reference",
@@ -2956,16 +2956,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    fontSizeAdjustment: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    font: import(\"..\")."
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    font: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2974,7 +2965,16 @@
             },
             {
               "kind": "Content",
-              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    align: import(\"..\")."
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    fontSizeAdjustment: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n    align: import(\"..\")."
             },
             {
               "kind": "Reference",

@@ -16,6 +16,7 @@ export const noteShapeProps = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,
+	fontSizeAdjustment: T.positiveNumber,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
 	growY: T.positiveNumber,
