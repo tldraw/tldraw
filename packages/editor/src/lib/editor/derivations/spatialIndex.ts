@@ -26,8 +26,8 @@ export class SpatialIndex {
 		this.rBush = new TldrawRBush()
 	}
 
-	private addElement(id: TLShapeId, a: Element[]) {
-		const e = this.getElement(id)
+	private addElement(id: TLShapeId, a: Element[], existingBounds?: Box) {
+		const e = this.getElement(id, existingBounds)
 		if (!e) return
 		a.push(e)
 		this.shapesInTree.set(id, e)
@@ -102,7 +102,7 @@ export class SpatialIndex {
 							this.rBush.remove(currentElement)
 							isDirty = true
 						}
-						this.addElement(to.id, elementsToAdd)
+						this.addElement(to.id, elementsToAdd, newBounds)
 					}
 				}
 				if (elementsToAdd.length) {
