@@ -68,7 +68,7 @@ export function useUrlState(onChangeUrl: (params: UrlStateParams) => void) {
 					const viewport = viewportFromString(newViewportRaw)
 					const { x, y, w, h } = viewport
 					const { w: sw, h: sh } = editor.getViewportScreenBounds()
-					const naturalZoom = editor.getNaturalZoom()
+					const naturalZoom = editor.getCameraFitZoom()
 					const { zoomMin, zoomMax } = editor.getCameraOptions()
 
 					const zoom = Math.min(
