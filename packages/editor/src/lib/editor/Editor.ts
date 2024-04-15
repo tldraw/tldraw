@@ -3281,6 +3281,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._currentPageShapeIds.get()
 	}
 
+	@computed
+	getCurrentPageShapeIdsSorted() {
+		return Array.from(this.getCurrentPageShapeIds()).sort()
+	}
+
 	/**
 	 * Get the ids of shapes on a page.
 	 *
@@ -3893,7 +3898,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapePageTransform(shape: TLShape | TLShapeId): Mat {
-		const id = typeof shape === 'string' ? shape : this.getShape(shape)!.id
+		const id = typeof shape === 'string' ? shape : shape.id
 		return this._getShapePageTransformCache().get(id) ?? Mat.Identity()
 	}
 
@@ -4233,7 +4238,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getCurrentPageBounds(): Box | undefined {
 		let commonBounds: Box | undefined
 
-		this.getCurrentPageShapeIds().forEach((shapeId) => {
+		this.getCurrentPageShapeIdsSorted().forEach((shapeId) => {
 			const bounds = this.getShapeMaskedPageBounds(shapeId)
 			if (!bounds) return
 			if (!commonBounds) {

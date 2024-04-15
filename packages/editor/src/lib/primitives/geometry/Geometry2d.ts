@@ -236,9 +236,10 @@ export class WebGLGeometry {
 
 	equals(other: any) {
 		if (this === other) return true
-		if (!(other instanceof WebGLGeometry)) return false
+		if (this.values === other.values) return true
 		for (let i = 0; i < this.values.length; i++) {
 			if (this.values[i] !== other.values[i]) return false
 		}
+		return true
 	}
 }

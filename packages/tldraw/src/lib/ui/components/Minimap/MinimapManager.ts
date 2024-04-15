@@ -13,35 +13,34 @@ import {
 
 type WebGLGeometry = ReturnType<Geometry2d['getWebGLGeometry']>
 
-class MeasureClock {
-	num = 0
-	measures: Set<Measure> = new Set()
-	inc() {
-		this.num++
-		if (this.num % 60 === 0) {
-			for (const measure of this.measures) {
-				console.log(measure.name, measure.total / this.num)
+class Stats {
+	periods = 0
+	totals = {} as Record<string, number>
+	starts = {} as Record<string, number>
+	start(name: string) {
+		this.starts[name] = performance.now()
+	}
+	end(name: string) {
+		if (!this.starts[name]) throw new Error(`No start for ${name}`)
+		this.totals[name] = (this.totals[name] ?? 0) + (performance.now() - this.starts[name])
+		delete this.starts[name]
+	}
+	tick() {
+		this.periods++
+		if (this.periods === 60) {
+			console.log('Stats:')
+			for (const [name, total] of Object.entries(this.totals).sort((a, b) =>
+				a[0].localeCompare(b[0])
+			)) {
+				console.log(' ', name, total / this.periods)
 			}
+			this.totals = {}
+			this.starts = {}
+			this.periods = 0
 		}
 	}
 }
-class Measure {
-	constructor(
-		public readonly name: string,
-		clock: MeasureClock
-	) {
-		clock.measures.add(this)
-	}
-	total = 0
-	_start = 0
-	start() {
-		this._start = performance.now()
-	}
-	end() {
-		this.total += performance.now() - this._start
-		return this
-	}
-}
+
 export class MinimapManager {
 	disposables = [] as (() => void)[]
 	close = () => this.disposables.forEach((d) => d())
@@ -254,21 +253,19 @@ export class MinimapManager {
 		if (!shapeVertexPositionBuffer) throw new Error('Failed to create buffer')
 		context.bindBuffer(context.ARRAY_BUFFER, shapeVertexPositionBuffer)
 		context.bufferData(context.ARRAY_BUFFER, geometry.values, context.STATIC_DRAW)
+		const transformedGeometry = new Float32Array(geometry.values)
+		for (let i = 0; i < transformedGeometry.length; i += 2) {
+			;[transformedGeometry[i], transformedGeometry[i + 1]] = Mat.applyToXY(
+				pageTransform,
+				geometry.values[i],
+				geometry.values[i + 1]
+			)
+		}
 		return {
 			shapeVertexPositionBuffer,
 			geometry,
 			pageTransform,
-			pageTransformArray: new Float32Array([
-				pageTransform.a,
-				pageTransform.b,
-				0,
-				pageTransform.c,
-				pageTransform.d,
-				0,
-				pageTransform.e,
-				pageTransform.f,
-				1,
-			]),
+			transformedGeometry,
 			lastCheckedEpoch: this.lastRenderEpoch,
 		}
 	}
@@ -279,78 +276,46 @@ export class MinimapManager {
 		pageTransform: Mat,
 		epoch: number
 	) {
-		try {
-			this.stats.shapeUpdate.start()
-			stuff.lastCheckedEpoch = epoch
-			const geometryChanged = !stuff.geometry.equals(geometry)
-			const pageTransformChanged = !stuff.pageTransform.equals(pageTransform)
-			if (!geometryChanged && !pageTransformChanged) return false
+		this.stats.start('checking things')
+		stuff.lastCheckedEpoch = epoch
+		const geometryChanged = !stuff.geometry.equals(geometry)
+		const pageTransformChanged = !stuff.pageTransform.equals(pageTransform)
+		this.stats.end('checking things')
+		if (!geometryChanged && !pageTransformChanged) return false
 
-			if (geometryChanged) {
-				const context = this.gl.context
-				context.bindBuffer(context.ARRAY_BUFFER, stuff.shapeVertexPositionBuffer)
-				context.bufferData(context.ARRAY_BUFFER, geometry.values, context.STATIC_DRAW)
-				stuff.geometry = geometry
-			}
-
-			if (pageTransformChanged) {
-				stuff.pageTransform = pageTransform
-				stuff.pageTransformArray.set([
-					pageTransform.a,
-					pageTransform.b,
-					0,
-					pageTransform.c,
-					pageTransform.d,
-					0,
-					pageTransform.e,
-					pageTransform.f,
-					1,
-				])
-			}
-
-			return true
-		} finally {
-			this.stats.shapeUpdate.end()
+		this.stats.start('handling geometry change')
+		if (geometryChanged) {
+			const context = this.gl.context
+			context.bindBuffer(context.ARRAY_BUFFER, stuff.shapeVertexPositionBuffer)
+			context.bufferData(context.ARRAY_BUFFER, geometry.values, context.STATIC_DRAW)
+			stuff.geometry = geometry
 		}
+		this.stats.end('handling geometry change')
+
+		this.stats.start('handling page transform change')
+		if (geometryChanged || pageTransformChanged) {
+			stuff.pageTransform = pageTransform
+			if (stuff.transformedGeometry.length !== geometry.values.length) {
+				stuff.transformedGeometry = new Float32Array(geometry.values)
+			}
+			for (let i = 0; i < stuff.transformedGeometry.length; i += 2) {
+				;[stuff.transformedGeometry[i], stuff.transformedGeometry[i + 1]] = Mat.applyToXY(
+					pageTransform,
+					geometry.values[i],
+					geometry.values[i + 1]
+				)
+			}
+		}
+		this.stats.end('handling page transform change')
+
+		return true
 	}
 
-	private renderStuff(stuff: WebGlStuff) {
-		this.stats.shapeRender.start()
-		this.stats.bindBuffer.start()
-		this.gl.context.bindBuffer(this.gl.context.ARRAY_BUFFER, stuff.shapeVertexPositionBuffer)
-		this.stats.bindBuffer.end()
-		this.gl.context.enableVertexAttribArray(this.gl.shapeVertexPositionAttributeLocation)
-		this.gl.context.vertexAttribPointer(
-			this.gl.shapeVertexPositionAttributeLocation,
-			2,
-			this.gl.context.FLOAT,
-			false,
-			0,
-			0
-		)
-
-		this.gl.context.uniformMatrix3fv(
-			this.gl.shapePageTransformLocation,
-			false,
-			stuff.pageTransformArray
-		)
-
-		this.gl.context.drawArrays(this.gl.context.TRIANGLES, 0, stuff.geometry.values.length / 2)
-		this.stats.shapeRender.end()
-	}
-
-	clock = new MeasureClock()
-
-	stats = {
-		cullTime: new Measure('cull', this.clock),
-		totalRender: new Measure('total render', this.clock),
-		shapeRender: new Measure('shape render', this.clock),
-		bindBuffer: new Measure('bind buffer', this.clock),
-		shapeUpdate: new Measure('shape update', this.clock),
-	}
+	stats = new Stats()
 
 	render = () => {
-		this.stats.totalRender.start()
+		this.stats.start('render')
+		this.stats.start('setup')
 		this.lastRenderEpoch++
 		const context = this.gl.context
 		const canvasSize = this.getCanvasSize()
@@ -370,30 +335,104 @@ export class MinimapManager {
 		const selectedShapes = new Set(this.editor.getSelectedShapeIds())
 
 		const colors = this.getColors()
+		let selectedShapeOffset = 0
+		let unselectedShapeOffset = 0
 
-		for (const shape of this.editor.getCurrentPageShapes()) {
-			const pageTransform = this.editor.getShapePageTransform(shape)
-			const geometry = this.editor.getShapeGeometry(shape).getWebGLGeometry()
+		const ids = this.editor.getCurrentPageShapeIdsSorted()
 
-			let stuff = this.glData[shape.id]
+		this.stats.end('setup')
+		this.stats.start('loop')
+		for (const shapeId of ids) {
+			this.stats.start('getting transform')
+			const pageTransform = this.editor.getShapePageTransform(shapeId)
+			this.stats.end('getting transform')
+			this.stats.start('getting geom')
+			const geometry = this.editor.getShapeGeometry(shapeId).getWebGLGeometry()
+			this.stats.end('getting geom')
+
+			this.stats.start('making')
+			let stuff = this.glData[shapeId]
 			if (!stuff) {
-				stuff = this.glData[shape.id] = this.createStuff(context, geometry, pageTransform)
+				stuff = this.glData[shapeId] = this.createStuff(context, geometry, pageTransform)
 			} else {
 				this.updateStuff(stuff, geometry, pageTransform, this.lastRenderEpoch)
 			}
+			this.stats.end('making')
 
-			if (selectedShapes.has(shape.id)) {
-				this.gl.context.uniform4fv(this.gl.shapeFillLocation, colors.selectFill)
+			this.stats.start('blitting')
+			const len = stuff.transformedGeometry.length
+
+			if (selectedShapes.has(shapeId)) {
+				while (this.gl.selectedShapesVertices.length < selectedShapeOffset + len) {
+					const prev = this.gl.selectedShapesVertices
+					this.gl.selectedShapesVertices = new Float32Array(
+						this.gl.selectedShapesVertices.length * 2
+					)
+
+					this.gl.selectedShapesVertices.set(prev)
+				}
+				this.gl.selectedShapesVertices.set(stuff.transformedGeometry, selectedShapeOffset)
+				selectedShapeOffset += len
 			} else {
-				this.gl.context.uniform4fv(this.gl.shapeFillLocation, colors.shapeFill)
+				while (this.gl.unSelectedShapesVertices.length < unselectedShapeOffset + len) {
+					const prev = this.gl.unSelectedShapesVertices
+					this.gl.unSelectedShapesVertices = new Float32Array(
+						this.gl.unSelectedShapesVertices.length * 2
+					)
+
+					this.gl.unSelectedShapesVertices.set(prev)
+				}
+				this.gl.unSelectedShapesVertices.set(stuff.transformedGeometry, unselectedShapeOffset)
+				unselectedShapeOffset += len
 			}
-			this.renderStuff(stuff)
+
+			this.stats.end('blitting')
 		}
-		this.stats.cullTime.start()
+		this.stats.end('loop')
+		this.stats.start('drawing')
+		this.drawShapes(
+			this.gl.unselectedShapesBuffer,
+			this.gl.unSelectedShapesVertices,
+			unselectedShapeOffset,
+			colors.shapeFill
+		)
+
+		this.drawShapes(
+			this.gl.selectedShapesBuffer,
+			this.gl.selectedShapesVertices,
+			selectedShapeOffset,
+			colors.selectFill
+		)
+		this.stats.end('drawing')
+
+		this.stats.start('cull')
 		this.cullGlData()
-		this.stats.cullTime.end()
-		this.stats.totalRender.end()
-		this.clock.inc()
+		this.stats.end('cull')
+		this.stats.end('render')
+		this.stats.tick()
+	}
+
+	drawShapes(buffer: WebGLBuffer, vertices: Float32Array, len: number, color: Float32Array) {
+		this.gl.context.uniform4fv(this.gl.shapeFillLocation, color)
+		this.gl.context.bindBuffer(this.gl.context.ARRAY_BUFFER, buffer)
+		this.gl.context.bufferData(
+			this.gl.context.ARRAY_BUFFER,
+			vertices,
+			this.gl.context.STATIC_DRAW,
+			0,
+			len
+		)
+		this.gl.context.enableVertexAttribArray(this.gl.shapeVertexPositionAttributeLocation)
+		this.gl.context.vertexAttribPointer(
+			this.gl.shapeVertexPositionAttributeLocation,
+			2,
+			this.gl.context.FLOAT,
+			false,
+			0,
+			0
+		)
+
+		this.gl.context.drawArrays(this.gl.context.TRIANGLES, 0, len / 2)
 	}
 }
 
@@ -401,7 +440,7 @@ type WebGlStuff = {
 	shapeVertexPositionBuffer: WebGLBuffer
 	geometry: WebGLGeometry
 	pageTransform: Mat
-	pageTransformArray: Float32Array
+	transformedGeometry: Float32Array
 	lastCheckedEpoch: number
 }
 
@@ -416,17 +455,13 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
   
   in vec2 shapeVertexPosition;
 
-  uniform mat3 shapePageTransform; 
 	uniform vec2 resolution;
 
 	// taken (with thanks) from
 	// https://webglfundamentals.org/webgl/lessons/webgl-2d-matrices.html
   void main() {
-		// Multiply the position by the matrix.
-		vec2 position = (shapePageTransform * vec3(shapeVertexPosition, 1)).xy;
-	
 		// convert the position from pixels to 0.0 to 1.0
-		vec2 zeroToOne = position * resolution;
+		vec2 zeroToOne = shapeVertexPosition * resolution;
 	
 		// convert from 0->1 to 0->2
 		vec2 zeroToTwo = zeroToOne * 2.0;
@@ -496,9 +531,25 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
 	// if (!shapePageTransformLocation || !resolutionLocation) {
 	// 	throw new Error('Failed to get shapePageTransform or resolution uniform location')
 	// }
+
+	const selectedShapesBuffer = context.createBuffer()
+	if (!selectedShapesBuffer) throw new Error('Failed to create buffer')
+	const selectedShapesVertices = new Float32Array(1024)
+	const unselectedShapesBuffer = context.createBuffer()
+	if (!unselectedShapesBuffer) throw new Error('Failed to create buffer')
+	const unSelectedShapesVertices = new Float32Array(4096)
+	const viewportBuffer = context.createBuffer()
+	const viewportVertices = new Float32Array(12)
+
 	return {
 		context,
 		program,
+		selectedShapesBuffer,
+		selectedShapesVertices,
+		unselectedShapesBuffer,
+		unSelectedShapesVertices,
+		viewportBuffer,
+		viewportVertices,
 		shapeVertexPositionAttributeLocation,
 		shapePageTransformLocation,
 		resolutionLocation,
