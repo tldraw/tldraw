@@ -30449,7 +30449,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<K>(_shape: Shape, _otherShape?: K | undefined) => boolean"
+                  "text": "<K>(_shape: Shape, _otherShape?: K) => boolean"
                 },
                 {
                   "kind": "Content",
