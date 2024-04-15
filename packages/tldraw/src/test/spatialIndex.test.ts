@@ -88,7 +88,6 @@ describe('Spatial Index', () => {
 
 		const page1Shapes = generateShapes()
 		const page1Picks = pickShapes(page1Shapes)
-		// Make the bounds smaller, but not so small that shapes get outside
 		const page1CommonBounds = Box.Common(page1Picks.map((s) => s.bounds))
 		shapesInsideBounds = editor.getShapeIdsInsideBounds(page1CommonBounds)
 		expect(page1Picks.every((s) => shapesInsideBounds.includes(s.id))).toBe(true)
