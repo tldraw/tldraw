@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.41.0",
+    "toolVersion": "7.43.1",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -712,7 +712,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    sequenceId: string;\n    retroactive?: boolean;\n    sequence: "
+              "text": "{\n    retroactive?: boolean;\n    sequence: "
             },
             {
               "kind": "Reference",
@@ -739,7 +739,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n}"
+              "text": ">;\n    sequenceId: string;\n}"
             },
             {
               "kind": "Content",
@@ -802,16 +802,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    validator?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "StoreValidator",
-              "canonicalReference": "@tldraw/store!StoreValidator:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<R>;\n    scope: "
+              "text": "{\n    scope: "
             },
             {
               "kind": "Reference",
@@ -820,7 +811,16 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}"
+              "text": ";\n    validator?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "StoreValidator",
+              "canonicalReference": "@tldraw/store!StoreValidator:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<R>;\n}"
             },
             {
               "kind": "Content",
@@ -900,7 +900,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    firstVersion?: number;\n    currentVersion?: number;\n    migrators?: "
+              "text": "{\n    currentVersion?: number;\n    firstVersion?: number;\n    migrators?: "
             },
             {
               "kind": "Reference",
@@ -1179,7 +1179,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    up: (oldState: Before) => After;\n    down: (newState: After) => Before;\n}"
+              "text": "{\n    down: (newState: After) => Before;\n    up: (oldState: Before) => After;\n}"
             },
             {
               "kind": "Content",
@@ -1329,7 +1329,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    readonly id: "
+              "text": "{\n    readonly dependsOn?: readonly "
             },
             {
               "kind": "Reference",
@@ -1338,7 +1338,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    readonly dependsOn?: readonly "
+              "text": "[] | undefined;\n    readonly id: "
             },
             {
               "kind": "Reference",
@@ -1347,52 +1347,7 @@
             },
             {
               "kind": "Content",
-              "text": "[] | undefined;\n} & ({\n    readonly scope: 'record';\n    readonly filter?: (record: "
-            },
-            {
-              "kind": "Reference",
-              "text": "UnknownRecord",
-              "canonicalReference": "@tldraw/store!UnknownRecord:type"
-            },
-            {
-              "kind": "Content",
-              "text": ") => boolean;\n    readonly up: (oldState: "
-            },
-            {
-              "kind": "Reference",
-              "text": "UnknownRecord",
-              "canonicalReference": "@tldraw/store!UnknownRecord:type"
-            },
-            {
-              "kind": "Content",
-              "text": ") => "
-            },
-            {
-              "kind": "Reference",
-              "text": "UnknownRecord",
-              "canonicalReference": "@tldraw/store!UnknownRecord:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | void;\n    readonly down?: (newState: "
-            },
-            {
-              "kind": "Reference",
-              "text": "UnknownRecord",
-              "canonicalReference": "@tldraw/store!UnknownRecord:type"
-            },
-            {
-              "kind": "Content",
-              "text": ") => "
-            },
-            {
-              "kind": "Reference",
-              "text": "UnknownRecord",
-              "canonicalReference": "@tldraw/store!UnknownRecord:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | void;\n} | {\n    readonly scope: 'store';\n    readonly up: (oldState: "
+              "text": ";\n} & ({\n    readonly down?: (newState: "
             },
             {
               "kind": "Reference",
@@ -1428,7 +1383,7 @@
             },
             {
               "kind": "Content",
-              "text": "> | void;\n    readonly down?: (newState: "
+              "text": "> | void;\n    readonly scope: 'store';\n    readonly up: (oldState: "
             },
             {
               "kind": "Reference",
@@ -1464,7 +1419,52 @@
             },
             {
               "kind": "Content",
-              "text": "> | void;\n})"
+              "text": "> | void;\n} | {\n    readonly down?: (newState: "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | void;\n    readonly filter?: (record: "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => boolean;\n    readonly scope: 'record';\n    readonly up: (oldState: "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnknownRecord",
+              "canonicalReference": "@tldraw/store!UnknownRecord:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | void;\n})"
             },
             {
               "kind": "Content",
@@ -1659,7 +1659,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    type: 'error';\n    reason: "
+              "text": "{\n    reason: "
             },
             {
               "kind": "Reference",
@@ -1668,7 +1668,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n} | {\n    type: 'success';\n    value: T;\n}"
+              "text": ";\n    type: 'error';\n} | {\n    type: 'success';\n    value: T;\n}"
             },
             {
               "kind": "Content",
@@ -1886,6 +1886,24 @@
             },
             {
               "kind": "Content",
+              "text": "<R>, R>;\n    removed: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "IdOf",
+              "canonicalReference": "@tldraw/store!IdOf:type"
+            },
+            {
+              "kind": "Content",
               "text": "<R>, R>;\n    updated: "
             },
             {
@@ -1904,25 +1922,7 @@
             },
             {
               "kind": "Content",
-              "text": "<R>, [from: R, to: R]>;\n    removed: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Record",
-              "canonicalReference": "!Record:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "IdOf",
-              "canonicalReference": "@tldraw/store!IdOf:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<R>, R>;\n}"
+              "text": "<R>, [from: R, to: R]>;\n}"
             },
             {
               "kind": "Content",
@@ -2053,16 +2053,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<R>, RequiredProperties>;\n        readonly validator?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "StoreValidator",
-                  "canonicalReference": "@tldraw/store!StoreValidator:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<R>;\n        readonly scope?: "
+                  "text": "<R>, RequiredProperties>;\n        readonly scope?: "
                 },
                 {
                   "kind": "Reference",
@@ -2071,7 +2062,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n    }"
+                  "text": ";\n        readonly validator?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StoreValidator",
+                  "canonicalReference": "@tldraw/store!StoreValidator:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -2918,7 +2918,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, {\n        version: number;\n        subTypeVersions: "
+                  "text": "<string, {\n        subTypeKey: string;\n        subTypeVersions: "
                 },
                 {
                   "kind": "Reference",
@@ -2927,7 +2927,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string, number>;\n        subTypeKey: string;\n    } | {\n        version: number;\n    }>"
+                  "text": "<string, number>;\n        version: number;\n    } | {\n        version: number;\n    }>"
                 },
                 {
                   "kind": "Content",
@@ -3319,16 +3319,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        initialData?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "SerializedStore",
-                  "canonicalReference": "@tldraw/store!SerializedStore:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<R>;\n        schema: "
+                  "text": "{\n        schema: "
                 },
                 {
                   "kind": "Reference",
@@ -3337,7 +3328,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<R, Props>;\n        props: Props;\n    }"
+                  "text": "<R, Props>;\n        initialData?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedStore",
+                  "canonicalReference": "@tldraw/store!SerializedStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<R>;\n        props: Props;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -3660,6 +3660,15 @@
                 },
                 {
                   "kind": "Content",
+                  "text": "<R>]: R; };\n        removed: { [K in "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IdOf",
+                  "canonicalReference": "@tldraw/store!IdOf:type"
+                },
+                {
+                  "kind": "Content",
                   "text": "<R>]: R; };\n        updated: { [K_1 in "
                 },
                 {
@@ -3669,16 +3678,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<R>]: [from: R, to: R]; };\n        removed: { [K in "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IdOf",
-                  "canonicalReference": "@tldraw/store!IdOf:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<R>]: R; };\n    } | null"
+                  "text": "<R>]: [from: R, to: R]; };\n    } | null"
                 },
                 {
                   "kind": "Content",
@@ -4783,7 +4783,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';\n    recordBefore?: unknown;\n    recordAfter: unknown;\n    isExistingValidationIssue: boolean;\n}"
+              "text": ";\n    isExistingValidationIssue: boolean;\n    phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';\n    recordAfter: unknown;\n    recordBefore?: unknown;\n}"
             },
             {
               "kind": "Content",
@@ -5553,7 +5553,25 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    migrations?: "
+              "text": "{\n    createIntegrityChecker?: (store: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Store",
+              "canonicalReference": "@tldraw/store!Store:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<R, P>) => void;\n    onValidationFailure?: (data: {\n        error: unknown;\n        phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';\n        record: R;\n        recordBefore: null | R;\n        store: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Store",
+              "canonicalReference": "@tldraw/store!Store:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<R>;\n    }) => R;\n    migrations?: "
             },
             {
               "kind": "Reference",
@@ -5562,25 +5580,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n    onValidationFailure?: (data: {\n        error: unknown;\n        store: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Store",
-              "canonicalReference": "@tldraw/store!Store:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<R>;\n        record: R;\n        phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';\n        recordBefore: null | R;\n    }) => R;\n    createIntegrityChecker?: (store: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Store",
-              "canonicalReference": "@tldraw/store!Store:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<R, P>) => void;\n}"
+              "text": "[];\n}"
             },
             {
               "kind": "Content",
@@ -5639,16 +5639,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    store: "
-            },
-            {
-              "kind": "Reference",
-              "text": "SerializedStore",
-              "canonicalReference": "@tldraw/store!SerializedStore:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<R>;\n    schema: "
+              "text": "{\n    schema: "
             },
             {
               "kind": "Reference",
@@ -5657,7 +5648,16 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}"
+              "text": ";\n    store: "
+            },
+            {
+              "kind": "Reference",
+              "text": "SerializedStore",
+              "canonicalReference": "@tldraw/store!SerializedStore:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<R>;\n}"
             },
             {
               "kind": "Content",

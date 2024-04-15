@@ -40,32 +40,32 @@ export function createMigrationIds<ID extends string, Versions extends Record<st
 
 // @public
 export function createMigrationSequence({ sequence, sequenceId, retroactive, }: {
-    sequenceId: string;
     retroactive?: boolean;
     sequence: Array<Migration | StandaloneDependsOn>;
+    sequenceId: string;
 }): MigrationSequence;
 
 // @internal (undocumented)
 export function createRecordMigrationSequence(opts: {
-    recordType: string;
     filter?: (record: UnknownRecord) => boolean;
+    recordType: string;
     retroactive?: boolean;
-    sequenceId: string;
     sequence: Omit<Extract<Migration, {
         scope: 'record';
     }>, 'scope'>[];
+    sequenceId: string;
 }): MigrationSequence;
 
 // @public
 export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
-    validator?: StoreValidator<R>;
     scope: RecordScope;
+    validator?: StoreValidator<R>;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
 // @public @deprecated (undocumented)
 export function defineMigrations(opts: {
-    firstVersion?: number;
     currentVersion?: number;
+    firstVersion?: number;
     migrators?: Record<number, LegacyMigration>;
     subTypeKey?: string;
     subTypeMigrations?: Record<string, LegacyBaseMigrationsInfo>;
@@ -91,8 +91,8 @@ export class IncrementalSetConstructor<T> {
     add(item: T): void;
     // @public
     get(): {
-        value: Set<T>;
         diff: CollectionDiff<T>;
+        value: Set<T>;
     } | undefined;
     // @public
     remove(item: T): void;
@@ -100,8 +100,8 @@ export class IncrementalSetConstructor<T> {
 
 // @public (undocumented)
 export type LegacyMigration<Before = any, After = any> = {
-    up: (oldState: Before) => After;
     down: (newState: After) => Before;
+    up: (oldState: Before) => After;
 };
 
 // @public (undocumented)
@@ -114,17 +114,17 @@ export interface LegacyMigrations extends LegacyBaseMigrationsInfo {
 
 // @public (undocumented)
 export type Migration = {
-    readonly id: MigrationId;
     readonly dependsOn?: readonly MigrationId[] | undefined;
+    readonly id: MigrationId;
 } & ({
-    readonly scope: 'record';
-    readonly filter?: (record: UnknownRecord) => boolean;
-    readonly up: (oldState: UnknownRecord) => UnknownRecord | void;
-    readonly down?: (newState: UnknownRecord) => UnknownRecord | void;
-} | {
+    readonly down?: (newState: SerializedStore<UnknownRecord>) => SerializedStore<UnknownRecord> | void;
     readonly scope: 'store';
     readonly up: (oldState: SerializedStore<UnknownRecord>) => SerializedStore<UnknownRecord> | void;
-    readonly down?: (newState: SerializedStore<UnknownRecord>) => SerializedStore<UnknownRecord> | void;
+} | {
+    readonly down?: (newState: UnknownRecord) => UnknownRecord | void;
+    readonly filter?: (record: UnknownRecord) => boolean;
+    readonly scope: 'record';
+    readonly up: (oldState: UnknownRecord) => UnknownRecord | void;
 });
 
 // @public (undocumented)
@@ -148,8 +148,8 @@ export type MigrationId = `${string}/${number}`;
 
 // @public (undocumented)
 export type MigrationResult<T> = {
-    type: 'error';
     reason: MigrationFailureReason;
+    type: 'error';
 } | {
     type: 'success';
     value: T;
@@ -178,8 +178,8 @@ export type RecordId<R extends UnknownRecord> = string & {
 // @public
 export type RecordsDiff<R extends UnknownRecord> = {
     added: Record<IdOf<R>, R>;
-    updated: Record<IdOf<R>, [from: R, to: R]>;
     removed: Record<IdOf<R>, R>;
+    updated: Record<IdOf<R>, [from: R, to: R]>;
 };
 
 // @public
@@ -187,8 +187,8 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     constructor(
     typeName: R['typeName'], config: {
         readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
-        readonly validator?: StoreValidator<R>;
         readonly scope?: RecordScope;
+        readonly validator?: StoreValidator<R>;
     });
     clone(record: R): R;
     create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R;
@@ -218,9 +218,9 @@ export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2;
 // @public (undocumented)
 export interface SerializedSchemaV1 {
     recordVersions: Record<string, {
-        version: number;
-        subTypeVersions: Record<string, number>;
         subTypeKey: string;
+        subTypeVersions: Record<string, number>;
+        version: number;
     } | {
         version: number;
     }>;
@@ -247,8 +247,8 @@ export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>
 // @public
 export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     constructor(config: {
-        initialData?: SerializedStore<R>;
         schema: StoreSchema<R, Props>;
+        initialData?: SerializedStore<R>;
         props: Props;
     });
     allRecords: () => R[];
@@ -263,8 +263,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     extractingChanges(fn: () => void): RecordsDiff<R>;
     filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope): {
         added: { [K in IdOf<R>]: R; };
-        updated: { [K_1 in IdOf<R>]: [from: R, to: R]; };
         removed: { [K in IdOf<R>]: R; };
+        updated: { [K_1 in IdOf<R>]: [from: R, to: R]; };
     } | null;
     // (undocumented)
     _flushHistory(): void;
@@ -310,10 +310,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 // @public (undocumented)
 export type StoreError = {
     error: Error;
-    phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
-    recordBefore?: unknown;
-    recordAfter: unknown;
     isExistingValidationIssue: boolean;
+    phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
+    recordAfter: unknown;
+    recordBefore?: unknown;
 };
 
 // @public
@@ -353,21 +353,21 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 // @public (undocumented)
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
-    migrations?: MigrationSequence[];
+    createIntegrityChecker?: (store: Store<R, P>) => void;
     onValidationFailure?: (data: {
         error: unknown;
-        store: Store<R>;
-        record: R;
         phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
+        record: R;
         recordBefore: null | R;
+        store: Store<R>;
     }) => R;
-    createIntegrityChecker?: (store: Store<R, P>) => void;
+    migrations?: MigrationSequence[];
 };
 
 // @public (undocumented)
 export type StoreSnapshot<R extends UnknownRecord> = {
-    store: SerializedStore<R>;
     schema: SerializedSchema;
+    store: SerializedStore<R>;
 };
 
 // @public (undocumented)
