@@ -315,7 +315,7 @@ export class Vec {
 
 	// Get the distance between two points.
 	static Dist(A: VecLike, B: VecLike): number {
-		return Math.hypot(A.y - B.y, A.x - B.x)
+		return Math.sqrt((A.y - B.y) ** 2 + (A.x - B.x) ** 2)
 	}
 
 	// Get whether a distance between two points is less than a number. This is faster to calulate than using `Vec.Dist(a, b) < n`.
@@ -355,7 +355,7 @@ export class Vec {
 	}
 
 	static Len(A: VecLike): number {
-		return Math.hypot(A.x, A.y)
+		return Math.sqrt(A.x * A.x + A.y * A.y)
 	}
 
 	/**

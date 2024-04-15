@@ -218,10 +218,10 @@ export class Mat {
 		let rotation
 
 		if (m.a !== 0 || m.c !== 0) {
-			const hypotAc = Math.hypot(m.a, m.c)
+			const hypotAc = Math.sqrt(m.a * m.a + m.c * m.c)
 			rotation = Math.acos(m.a / hypotAc) * (m.c > 0 ? -1 : 1)
 		} else if (m.b !== 0 || m.d !== 0) {
-			const hypotBd = Math.hypot(m.b, m.d)
+			const hypotBd = Math.sqrt(m.b * m.b + m.d * m.d)
 			rotation = HALF_PI + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
 		} else {
 			rotation = 0
@@ -234,12 +234,12 @@ export class Mat {
 		let scaleX, scaleY, rotation
 
 		if (m.a !== 0 || m.c !== 0) {
-			const hypotAc = Math.hypot(m.a, m.c)
+			const hypotAc = Math.sqrt(m.a * m.a + m.c * m.c)
 			scaleX = hypotAc
 			scaleY = (m.a * m.d - m.b * m.c) / hypotAc
 			rotation = Math.acos(m.a / hypotAc) * (m.c > 0 ? -1 : 1)
 		} else if (m.b !== 0 || m.d !== 0) {
-			const hypotBd = Math.hypot(m.b, m.d)
+			const hypotBd = Math.sqrt(m.b * m.b + m.d * m.d)
 			scaleX = (m.a * m.d - m.b * m.c) / hypotBd
 			scaleY = hypotBd
 			rotation = HALF_PI + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
