@@ -177,7 +177,7 @@ export class Brushing extends StateNode {
 
 		const current = editor.getSelectedShapeIds()
 		if (current.length !== results.size || current.some((id) => !results.has(id))) {
-			editor.setSelectedShapes(Array.from(results), { squashing: true })
+			editor.setSelectedShapes(Array.from(results).sort(), { squashing: true })
 		}
 	}
 
