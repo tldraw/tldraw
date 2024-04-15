@@ -10055,6 +10055,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCameraFitZoom:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCameraFitZoom(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCameraFitZoom"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCameraOptions:member(1)",
               "docComment": "/**\n * @public\n */\n",
               "excerptTokens": [
@@ -11334,37 +11365,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getIsMenuOpen"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#getNaturalZoom:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getNaturalZoom(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getNaturalZoom"
             },
             {
               "kind": "Method",
@@ -36818,7 +36818,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    zoomMin: number;\n    zoomMax: number;\n    isLocked: boolean;\n    constraints?: {\n        type: 'contain' | 'cover' | 'limit';\n        bounds: "
+              "text": "{\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    zoomMin: number;\n    zoomMax: number;\n    isLocked: boolean;\n    constraints?: {\n        fit: 'max' | 'min' | 'none' | 'x' | 'y';\n        bounds: "
             },
             {
               "kind": "Reference",

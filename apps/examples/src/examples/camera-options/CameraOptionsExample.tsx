@@ -3,7 +3,7 @@ import 'tldraw/tldraw.css'
 
 const CAMERA_OPTIONS: TLCameraOptions = {
 	constraints: {
-		type: 'contain',
+		fit: 'max',
 		bounds: {
 			x: 0,
 			y: 0,
@@ -48,8 +48,15 @@ export default function CameraOptionsExample() {
 										left: x,
 										width: w,
 										height: h,
-										background: 'white',
-										border: '1px dashed black',
+										// grey and white stripes
+										border: '1px dashed var(--color-text)',
+										backgroundImage: `
+											linear-gradient(45deg, #AAAAAA22 25%, transparent 25%),
+											linear-gradient(-45deg, #AAAAAA22 25%, transparent 25%),
+											linear-gradient(45deg, transparent 75%, #AAAAAA22 75%),
+											linear-gradient(-45deg, transparent 75%, #AAAAAA22 75%)`,
+										backgroundSize: '200px 200px',
+										backgroundPosition: '0 0, 0 100px, 100px -100px, -100px 0px',
 									}}
 								/>
 							</>
@@ -76,7 +83,7 @@ export default function CameraOptionsExample() {
 										left: px,
 										width: `calc(100% - ${px * 2}px)`,
 										height: `calc(100% - ${py * 2}px)`,
-										border: '1px dotted black',
+										border: '1px dotted var(--color-text)',
 									}}
 								/>
 							</>

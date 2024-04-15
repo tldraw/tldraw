@@ -668,6 +668,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getCamera(): TLCamera;
     // (undocumented)
+    getCameraFitZoom(): number;
+    // (undocumented)
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
@@ -703,8 +705,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInstanceState(): TLInstance;
     getIsMenuOpen(): boolean;
-    // (undocumented)
-    getNaturalZoom(): number;
     getOnlySelectedShape(): null | TLShape;
     getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
@@ -2000,7 +2000,7 @@ export type TLCameraOptions = {
     zoomMax: number;
     isLocked: boolean;
     constraints?: {
-        type: 'contain' | 'cover' | 'limit';
+        fit: 'max' | 'min' | 'none' | 'x' | 'y';
         bounds: BoxModel;
         padding: VecLike;
         origin: VecLike;
