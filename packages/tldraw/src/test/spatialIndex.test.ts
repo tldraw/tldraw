@@ -104,9 +104,11 @@ describe('Spatial Index', () => {
 		const page2CommonBounds = Box.Common(page2Picks.map((s) => s.bounds))
 		shapesInsideBounds = editor.getShapeIdsInsideBounds(page2CommonBounds)
 		expect(page2Picks.every((s) => shapesInsideBounds.includes(s.id))).toBe(true)
+		expect(page1Shapes.every((s) => !shapesInsideBounds.includes(s.id))).toBe(true)
 
 		editor.setCurrentPage(currentPageId)
 		shapesInsideBounds = editor.getShapeIdsInsideBounds(page1CommonBounds)
 		expect(page1Picks.every((s) => shapesInsideBounds.includes(s.id))).toBe(true)
+		expect(page2Shapes.every((s) => !shapesInsideBounds.includes(s.id))).toBe(true)
 	})
 })
