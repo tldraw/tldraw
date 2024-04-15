@@ -55,6 +55,7 @@ export class SpatialIndex {
 		})
 
 		this.rBush = new TldrawRBush().load(elementsToAdd)
+
 		return lastComputedEpoch
 	}
 
@@ -77,8 +78,8 @@ export class SpatialIndex {
 			}
 
 			let isDirty = false
-			const elementsToAdd: Element[] = []
 			for (const changes of diff) {
+				const elementsToAdd: Element[] = []
 				for (const record of Object.values(changes.added)) {
 					if (isShape(record)) {
 						this.addElement(record.id, elementsToAdd)
@@ -109,7 +110,6 @@ export class SpatialIndex {
 					this.rBush.load(elementsToAdd)
 					isDirty = true
 				}
-
 				for (const id of Object.keys(changes.removed)) {
 					if (isShapeId(id)) {
 						const currentElement = this.shapesInTree.get(id)
@@ -121,6 +121,7 @@ export class SpatialIndex {
 					}
 				}
 			}
+
 			return isDirty ? lastComputedEpoch : prevValue
 		})
 	}
