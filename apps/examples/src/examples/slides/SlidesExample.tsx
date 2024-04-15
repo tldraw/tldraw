@@ -19,8 +19,7 @@ import {
 	Tldraw,
 	TldrawUiButton,
 	TldrawUiMenuItem,
-	Vec,
-	getPointerInfo,
+	atom,
 	resizeBox,
 	stopEventPropagation,
 	track,
@@ -37,16 +36,14 @@ type SlideShape = TLBaseShape<
 	{
 		w: number
 		h: number
-		name: string
 	}
 >
 
-export class SlideShapeUtil extends ShapeUtil<SlideShape> {
+class SlideShapeUtil extends ShapeUtil<SlideShape> {
 	static override type = 'slide' as const
 	static override props: ShapeProps<SlideShape> = {
 		w: T.number,
 		h: T.number,
-		name: T.string,
 	}
 
 	override canBind = () => false
@@ -56,7 +53,6 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 		return {
 			w: 720,
 			h: 480,
-			name: `Slide`,
 		}
 	}
 
@@ -82,6 +78,16 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 		return resizeBox(shape, info)
 	}
 
+	override onDoubleClick = (shape: SlideShape) => {
+		moveToSlide(this.editor, shape)
+		this.editor.selectNone()
+	}
+
+	override onDoubleClickEdge = (shape: SlideShape) => {
+		moveToSlide(this.editor, shape)
+		this.editor.selectNone()
+	}
+
 	component(shape: SlideShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -92,24 +98,7 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 		const index = slides.findIndex((s) => s.id === shape.id)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const handleLabelPointerDown = useCallback(
-			(e: React.PointerEvent) => {
-				const event = getPointerInfo(e)
-
-				// If we're editing the frame label, we shouldn't hijack the pointer event
-				if (this.editor.getEditingShapeId() === shape.id) return
-
-				this.editor.dispatch({
-					type: 'pointer',
-					name: 'pointer_down',
-					target: 'shape',
-					shape: this.editor.getShape(shape.id)!,
-					...event,
-				})
-				e.preventDefault()
-			},
-			[shape.id]
-		)
+		const handleLabelPointerDown = useCallback(() => this.editor.select(shape.id), [shape.id])
 
 		if (!bounds) return null
 
@@ -125,11 +114,11 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 						borderBottomRightRadius: 'calc(var(--radius-4) * var(--tl-scale))',
 						fontSize: 'calc(12px * var(--tl-scale))',
 						color: 'var(--color-text)',
-						zIndex: 1,
+						// zIndex: -1,
 						whiteSpace: 'nowrap',
 					}}
 				>
-					{`${shape.props.name} ${index + 1}`}
+					{`Slide ${index + 1}`}
 				</div>
 				<SVGContainer>
 					<g
@@ -193,35 +182,12 @@ function getSlides(editor: Editor) {
 		.filter((s) => s?.type === 'slide') as SlideShape[]
 }
 
-function useCurrentSlide() {
-	const editor = useEditor()
-	const slides = useSlides()
-	return useValue('nearest slide', () => getNearestSlide(editor, slides), [editor, slides])
-}
-
-function getNearestSlide(editor: Editor, slides: SlideShape[]) {
-	const cameraBounds = editor.getViewportPageBounds()
-	const nearest: { slide: SlideShape | null; distance: number } = {
-		slide: null,
-		distance: Infinity,
-	}
-	for (const slide of slides) {
-		const bounds = editor.getShapePageBounds(slide.id)
-		if (!bounds) continue
-		const distance = Vec.Dist2(cameraBounds.center, bounds.center)
-		if (distance < nearest.distance) {
-			nearest.slide = slide
-			nearest.distance = distance
-		}
-	}
-	return nearest.slide
-}
+const $currentSlide = atom<SlideShape | null>('current slide', null)
 
 const SlideList = track(() => {
 	const editor = useEditor()
 	const slides = useSlides()
-	const currentSlide = useCurrentSlide()
-
+	const currentSlide = useValue($currentSlide)
 	if (slides.length === 0) return null
 	return (
 		<div
@@ -268,7 +234,7 @@ const SlideList = track(() => {
 								moveToSlide(editor, slide)
 							}}
 						>
-							{`${slide.props.name} ${i + 1}`}
+							{`Slide ${i + 1}`}
 						</TldrawUiButton>
 					</div>
 				)
@@ -277,9 +243,10 @@ const SlideList = track(() => {
 	)
 })
 
-const moveToSlide = (editor: Editor, slide: SlideShape) => {
+function moveToSlide(editor: Editor, slide: SlideShape) {
 	const bounds = editor.getShapePageBounds(slide.id)
 	if (!bounds) return
+	$currentSlide.set(slide)
 	editor.zoomToBounds(bounds, { duration: 500, easing: EASINGS.easeInOutCubic, inset: 0 })
 }
 
@@ -324,15 +291,20 @@ const SlidesExample = track(() => {
 								label: 'Next slide',
 								kbd: 'right',
 								onSelect() {
+									if (editor.getSelectedShapeIds().length > 0) {
+										editor.selectNone()
+									}
 									const slides = getSlides(editor)
-									const nearest = getNearestSlide(editor, slides)
-									const index = slides.findIndex((s) => s.id === nearest?.id)
+									const currentSlide = $currentSlide.get()
+									const index = slides.findIndex((s) => s.id === currentSlide?.id)
 									const nextSlide = slides[index + 1]
 									editor.stopCameraAnimation()
 									if (nextSlide) {
 										moveToSlide(editor, nextSlide)
-									} else if (nearest) {
-										moveToSlide(editor, nearest)
+									} else if (currentSlide) {
+										moveToSlide(editor, currentSlide)
+									} else if (slides.length > 0) {
+										moveToSlide(editor, slides[0])
 									}
 								},
 							},
@@ -341,15 +313,20 @@ const SlidesExample = track(() => {
 								label: 'Previous slide',
 								kbd: 'left',
 								onSelect() {
+									if (editor.getSelectedShapeIds().length > 0) {
+										editor.selectNone()
+									}
 									const slides = getSlides(editor)
-									const nearest = getNearestSlide(editor, slides)
-									const index = slides.findIndex((s) => s.id === nearest?.id)
+									const currentSlide = $currentSlide.get()
+									const index = slides.findIndex((s) => s.id === currentSlide?.id)
 									const previousSlide = slides[index - 1]
 									editor.stopCameraAnimation()
 									if (previousSlide) {
 										moveToSlide(editor, previousSlide)
-									} else if (nearest) {
-										moveToSlide(editor, nearest)
+									} else if (currentSlide) {
+										moveToSlide(editor, currentSlide)
+									} else if (slides.length > 0) {
+										moveToSlide(editor, slides[slides.length - 1])
 									}
 								},
 							},
