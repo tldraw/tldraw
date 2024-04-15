@@ -53,7 +53,6 @@ const overrides: TLUiOverrides = {
 				label: 'Next slide',
 				kbd: 'right',
 				onSelect() {
-					editor.selectNone()
 					const slides = $slides.get()
 					const currentSlide = $currentSlide.get()
 					const index = slides.findIndex((s) => s.id === currentSlide?.id)
@@ -69,7 +68,6 @@ const overrides: TLUiOverrides = {
 				label: 'Previous slide',
 				kbd: 'left',
 				onSelect() {
-					editor.selectNone()
 					const slides = $slides.get()
 					const currentSlide = $currentSlide.get()
 					const index = slides.findIndex((s) => s.id === currentSlide?.id)
