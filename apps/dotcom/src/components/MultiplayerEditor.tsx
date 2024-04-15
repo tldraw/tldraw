@@ -33,6 +33,7 @@ import { useSharing } from '../utils/sharing'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import { usePerformance } from '../utils/usePerformance'
 import { CursorChatBubble } from './CursorChatBubble'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
@@ -127,6 +128,7 @@ export function MultiplayerEditor({
 
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
+	const performanceOverrides = usePerformance()
 	const cursorChatOverrides = useCursorChat()
 
 	const handleMount = useCallback(
@@ -150,7 +152,12 @@ export function MultiplayerEditor({
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides, cursorChatOverrides]}
+				overrides={[
+					sharingUiOverrides,
+					fileSystemUiOverrides,
+					cursorChatOverrides,
+					performanceOverrides,
+				]}
 				initialState={isReadOnly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}

@@ -27,6 +27,7 @@ import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import { usePerformance } from '../utils/usePerformance'
 import { LocalFileMenu } from './FileMenu'
 import { Links } from './Links'
 import { ShareMenu } from './ShareMenu'
@@ -89,6 +90,7 @@ export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
+	const performanceOverrides = usePerformance()
 
 	const handleMount = useCallback((editor: Editor) => {
 		;(window as any).app = editor
@@ -103,7 +105,7 @@ export function LocalEditor() {
 				persistenceKey={SCRATCH_PERSISTENCE_KEY}
 				onMount={handleMount}
 				autoFocus
-				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
+				overrides={[sharingUiOverrides, fileSystemUiOverrides, performanceOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
 				inferDarkMode
