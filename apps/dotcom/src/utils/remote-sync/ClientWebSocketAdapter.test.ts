@@ -140,7 +140,7 @@ describe(ClientWebSocketAdapter, () => {
 		const message: TLSocketClientSentEvent<TLRecord> = {
 			type: 'connect',
 			connectRequestId: 'test',
-			schema: { schemaVersion: 0, storeVersion: 0, recordVersions: {} },
+			schema: { schemaVersion: 1, storeVersion: 0, recordVersions: {} },
 			protocolVersion: TLSYNC_PROTOCOL_VERSION,
 			lastServerClock: 0,
 		}
