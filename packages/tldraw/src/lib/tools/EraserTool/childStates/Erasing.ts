@@ -93,7 +93,7 @@ export class Erasing extends StateNode {
 		const minDist = HIT_TEST_MARGIN / zoomLevel
 
 		const shapesNearPoint = this.editor.getShapesInsideBounds(
-			Box.FromPoints([currentPagePoint, previousPagePoint])
+			Box.FromPoints([currentPagePoint, previousPagePoint]).expandBy(minDist)
 		)
 		for (const shape of shapesNearPoint) {
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
