@@ -70,10 +70,11 @@ export class TextManager {
 			 * space are preserved.
 			 */
 			maxWidth: null | number
-			minWidth?: string
+			minWidth?: null | number
 			padding: string
+			disableOverflowWrapBreaking?: boolean
 		}
-	): BoxModel => {
+	): BoxModel & { scrollWidth: number } => {
 		// Duplicate our base element; we don't need to clone deep
 		const elm = this.baseElm?.cloneNode() as HTMLDivElement
 		this.baseElm.insertAdjacentElement('afterend', elm)
@@ -85,10 +86,15 @@ export class TextManager {
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
 		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
 		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
-		elm.style.setProperty('min-width', opts.minWidth ?? null)
+		elm.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
 		elm.style.setProperty('padding', opts.padding)
+		elm.style.setProperty(
+			'overflow-wrap',
+			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
+		)
 
 		elm.textContent = normalizeTextForDom(textToMeasure)
+		const scrollWidth = elm.scrollWidth
 		const rect = elm.getBoundingClientRect()
 		elm.remove()
 
@@ -97,6 +103,7 @@ export class TextManager {
 			y: 0,
 			w: rect.width,
 			h: rect.height,
+			scrollWidth,
 		}
 	}
 

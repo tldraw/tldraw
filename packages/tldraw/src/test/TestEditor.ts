@@ -85,7 +85,7 @@ export class TestEditor extends Editor {
 				lineHeight: number
 				maxWidth: null | number
 			}
-		): BoxModel => {
+		): BoxModel & { scrollWidth: number } => {
 			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
 				return curr.length > acc.length ? curr : acc
@@ -100,6 +100,7 @@ export class TestEditor extends Editor {
 				h:
 					(opts.maxWidth === null ? breaks.length : Math.ceil(w % opts.maxWidth) + breaks.length) *
 					opts.fontSize,
+				scrollWidth: opts.maxWidth === null ? w : Math.max(w, opts.maxWidth),
 			}
 		}
 
@@ -114,6 +115,29 @@ export class TestEditor extends Editor {
 
 		// Turn off edge scrolling for tests. Tests that require this can turn it back on.
 		this.user.updateUserPreferences({ edgeScrollSpeed: 0 })
+
+		this.sideEffects.registerAfterCreateHandler('shape', (record) => {
+			this._lastCreatedShapes.push(record)
+		})
+	}
+
+	private _lastCreatedShapes: TLShape[] = []
+
+	/**
+	 * Get the last created shapes.
+	 *
+	 * @param count - The number of shapes to get.
+	 */
+	getLastCreatedShapes(count = 1) {
+		return this._lastCreatedShapes.slice(-count).map((s) => this.getShape(s)!)
+	}
+
+	/**
+	 * Get the last created shape.
+	 */
+	getLastCreatedShape<T extends TLShape>() {
+		const lastShape = this._lastCreatedShapes[this._lastCreatedShapes.length - 1] as T
+		return this.getShape<T>(lastShape)!
 	}
 
 	elm: HTMLDivElement

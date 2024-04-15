@@ -50,6 +50,7 @@ export const Shape = memo(function Shape({
 		height: 0,
 		x: 0,
 		y: 0,
+		isCulled: false,
 	})
 
 	useQuickReactor(
@@ -124,9 +125,13 @@ export const Shape = memo(function Shape({
 			const shape = editor.getShape(id)
 			if (!shape) return // probably the shape was just deleted
 
-			const isCulled = editor.isShapeCulled(shape)
-			setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
-			setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+			const culledShapes = editor.getCulledShapes()
+			const isCulled = culledShapes.has(id)
+			if (isCulled !== memoizedStuffRef.current.isCulled) {
+				setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
+				setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
+				memoizedStuffRef.current.isCulled = isCulled
+			}
 		},
 		[editor]
 	)

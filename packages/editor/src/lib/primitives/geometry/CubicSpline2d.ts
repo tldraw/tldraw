@@ -81,7 +81,7 @@ export class CubicSpline2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean {
-		return this.segments.some((segment) => segment.hitTestLineSegment(A, B, zoom))
+	hitTestLineSegment(A: Vec, B: Vec): boolean {
+		return this.segments.some((segment) => segment.hitTestLineSegment(A, B))
 	}
 }

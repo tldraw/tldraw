@@ -213,15 +213,14 @@ describe('<TldrawEditor />', () => {
 
 		// Is the shape's component rendering?
 		expect(document.querySelectorAll('.tl-shape')).toHaveLength(1)
-
-		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(0)
+		// though indicator should be display none
+		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
 
 		// Select the shape
 		await act(async () => editor.select(id))
 
 		expect(editor.getSelectedShapeIds().length).toBe(1)
-
-		// Is the shape's component rendering?
+		// though indicator it should be visible
 		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
 
 		// Select the eraser tool...

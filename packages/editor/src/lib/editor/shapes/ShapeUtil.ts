@@ -320,16 +320,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * ```ts
 	 * onDragShapesOver = (shape, shapes) => {
-	 * 	return { shouldHint: true }
+	 * 	this.editor.reparentShapes(shapes, shape.id)
 	 * }
 	 * ```
 	 *
 	 * @param shape - The shape.
 	 * @param shapes - The shapes that are being dragged over this one.
-	 * @returns An object specifying whether the shape should hint that it can receive the dragged shapes.
 	 * @public
 	 */
-	onDragShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
+	onDragShapesOver?: TLOnDragHandler<Shape>
 
 	/**
 	 * A callback called when some other shapes are dragged out of this one.

@@ -1,4 +1,3 @@
-import { ShapePropsType } from '@tldraw/tlschema/src/shapes/TLBaseShape'
 import {
 	DefaultColorStyle,
 	DefaultFontStyle,
@@ -9,6 +8,7 @@ import {
 	Geometry2d,
 	LABEL_FONT_SIZES,
 	Polygon2d,
+	ShapePropsType,
 	ShapeUtil,
 	T,
 	TEXT_PROPS,
@@ -20,11 +20,11 @@ import {
 	TextLabel,
 	Vec,
 	ZERO_INDEX_KEY,
-	getDefaultColorTheme,
 	resizeBox,
 	structuredClone,
 	vecModelValidator,
 } from 'tldraw'
+import { useDefaultColorTheme } from 'tldraw/src/lib/shapes/shared/ShapeFill'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
 
 // Copied from tldraw/tldraw
@@ -176,11 +176,11 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			type,
 			props: { color, font, size, align, text },
 		} = shape
-		const theme = getDefaultColorTheme({
-			isDarkMode: this.editor.user.getIsDarkMode(),
-		})
 		const vertices = getSpeechBubbleVertices(shape)
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const theme = useDefaultColorTheme()
 
 		return (
 			<>
@@ -192,7 +192,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 						fill={'none'}
 					/>
 				</svg>
-
 				<TextLabel
 					id={id}
 					type={type}
@@ -202,7 +201,9 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					align={align}
 					verticalAlign="start"
 					text={text}
-					labelColor={color}
+					labelColor={theme[color].solid}
+					isSelected={isSelected}
+					disableTab
 					wrap
 				/>
 			</>

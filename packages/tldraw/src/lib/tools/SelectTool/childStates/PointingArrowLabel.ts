@@ -16,6 +16,8 @@ export class PointingArrowLabel extends StateNode {
 
 	shapeId = '' as TLShapeId
 	markId = ''
+	wasAlreadySelected = false
+	didDrag = false
 
 	private info = {} as TLPointerEventInfo & {
 		shape: TLArrowShape
@@ -38,6 +40,8 @@ export class PointingArrowLabel extends StateNode {
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.info = info
 		this.shapeId = shape.id
+		this.didDrag = false
+		this.wasAlreadySelected = this.editor.getOnlySelectedShapeId() === shape.id
 		this.updateCursor()
 
 		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
@@ -88,8 +92,8 @@ export class PointingArrowLabel extends StateNode {
 		let nextLabelPosition
 		if (info.isStraight) {
 			// straight arrows
-			const lineLength = Vec.Dist(info.start.point, info.end.point)
-			const segmentLength = Vec.Dist(info.end.point, nearestPoint)
+			const lineLength = Vec.Dist2(info.start.point, info.end.point)
+			const segmentLength = Vec.Dist2(info.end.point, nearestPoint)
 			nextLabelPosition = 1 - segmentLength / lineLength
 		} else {
 			const { _center, measure, angleEnd, angleStart } = groupGeometry.children[0] as Arc2d
@@ -100,6 +104,7 @@ export class PointingArrowLabel extends StateNode {
 			nextLabelPosition = 0.5
 		}
 
+		this.didDrag = true
 		this.editor.updateShape<TLArrowShape>(
 			{ id: shape.id, type: shape.type, props: { labelPosition: nextLabelPosition } },
 			{ squashing: true }
@@ -107,7 +112,16 @@ export class PointingArrowLabel extends StateNode {
 	}
 
 	override onPointerUp = () => {
-		this.complete()
+		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
+		if (!shape) return
+
+		if (this.didDrag || !this.wasAlreadySelected) {
+			this.complete()
+		} else {
+			// Go into edit mode.
+			this.editor.setEditingShape(shape.id)
+			this.editor.setCurrentTool('select.editing_shape')
+		}
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
