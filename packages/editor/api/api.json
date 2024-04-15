@@ -34381,6 +34381,37 @@
               "isAbstract": false
             },
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!StateNode#fpsTracker:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "fpsTracker: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "FpsTracker",
+                  "canonicalReference": "@tldraw/utils!FpsTracker:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "fpsTracker",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!StateNode#getCurrent:member(1)",
               "docComment": "/**\n * This node's current active child node, if any.\n *\n * @public\n */\n",

@@ -2545,6 +2545,9 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): reado
 // @public (undocumented)
 export function useNativeClipboardEvents(): void;
 
+// @internal (undocumented)
+export function usePerformance(): TLUiOverrides;
+
 // @public (undocumented)
 export function useReadonly(): boolean;
 

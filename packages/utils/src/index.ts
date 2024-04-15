@@ -1,3 +1,4 @@
+export { FpsTracker } from './lib/FpsTracker'
 export {
 	areArraysShallowEqual,
 	compact,

@@ -1,4 +1,6 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
+import { FpsTracker } from '@tldraw/utils'
+import { debugFlags } from '../../utils/debug-flags'
 import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,
@@ -10,6 +12,7 @@ import {
 } from '../types/event-types'
 
 type TLStateNodeType = 'branch' | 'leaf' | 'root'
+const eventsToTrack = ['resizing', 'erasing', 'translating', 'rotating', 'drawing']
 
 /** @public */
 export interface TLStateNodeConstructor {
@@ -21,6 +24,7 @@ export interface TLStateNodeConstructor {
 
 /** @public */
 export abstract class StateNode implements Partial<TLEventHandlers> {
+	fpsTracker: FpsTracker
 	constructor(
 		public editor: Editor,
 		parent?: StateNode
@@ -60,6 +64,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				this._current.set(this.children[this.initial])
 			}
 		}
+		this.fpsTracker = new FpsTracker()
 	}
 
 	static id: string
@@ -118,6 +123,13 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 * @public
 	 */
 	transition = (id: string, info: any = {}) => {
+		if (debugFlags.measurePerformance.get()) {
+			if (this.fpsTracker.isStarted()) {
+				this.fpsTracker.stop()
+			} else if (eventsToTrack.includes(id)) {
+				this.fpsTracker.start(id)
+			}
+		}
 		const path = id.split('.')
 
 		let currState = this as StateNode

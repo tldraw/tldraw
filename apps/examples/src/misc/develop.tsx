@@ -1,10 +1,12 @@
-import { Tldraw } from 'tldraw'
+import { Tldraw, usePerformance } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function Develop() {
+	const performanceOverrides = usePerformance()
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				overrides={[performanceOverrides]}
 				persistenceKey="tldraw_example"
 				onMount={(editor) => {
 					;(window as any).app = editor

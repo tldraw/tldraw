@@ -1,12 +1,15 @@
-import { TLUiEventSource, TLUiOverrides, debugFlags, measureCbDuration, useValue } from 'tldraw'
+import { debugFlags, measureCbDuration, useValue } from '@tldraw/editor'
+import { TLUiEventSource } from '../context/events'
+import { TLUiOverrides } from '../overrides'
 
+/** @internal */
 export function usePerformance(): TLUiOverrides {
-	const measureActionDurations = useValue(
-		'measureActionDurations',
-		() => debugFlags.measureActionDuration.get(),
+	const measurePerformance = useValue(
+		'measurePerformance',
+		() => debugFlags.measurePerformance.get(),
 		[debugFlags]
 	)
-	if (!measureActionDurations) return {}
+	if (!measurePerformance) return {}
 	return {
 		actions(_editor, actions) {
 			Object.keys(actions).forEach((key) => {

@@ -20,6 +20,7 @@ import {
 	atom,
 	lns,
 	useActions,
+	usePerformance,
 	useValue,
 } from 'tldraw'
 import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
@@ -33,7 +34,6 @@ import { useSharing } from '../utils/sharing'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
-import { usePerformance } from '../utils/usePerformance'
 import { CursorChatBubble } from './CursorChatBubble'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'

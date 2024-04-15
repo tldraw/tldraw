@@ -18,6 +18,7 @@ import {
 	TldrawUiMenuItem,
 	ViewSubmenu,
 	useActions,
+	usePerformance,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -27,7 +28,6 @@ import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
-import { usePerformance } from '../utils/usePerformance'
 import { LocalFileMenu } from './FileMenu'
 import { Links } from './Links'
 import { ShareMenu } from './ShareMenu'

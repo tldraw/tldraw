@@ -76,6 +76,18 @@ export function filterEntries<Key extends string, Value>(object: {
 export function fpsThrottle(fn: () => void): () => void;
 
 // @internal (undocumented)
+export class FpsTracker {
+    // (undocumented)
+    isStarted(): boolean;
+    // (undocumented)
+    recordFrame: () => void;
+    // (undocumented)
+    start(name: string): void;
+    // (undocumented)
+    stop(): void;
+}
+
+// @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
