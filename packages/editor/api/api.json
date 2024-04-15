@@ -36818,7 +36818,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    zoomMin: number;\n    zoomMax: number;\n    isLocked: boolean;\n    constraints?: {\n        fit: 'max' | 'min' | 'none' | 'x' | 'y';\n        bounds: "
+              "text": "{\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    zoomMin: number;\n    zoomMax: number;\n    isLocked: boolean;\n    constraints?: {\n        fit: 'max' | 'min' | 'none' | 'x' | 'y';\n        fitX: 'contain' | 'inside' | 'lock' | 'outside';\n        fitY: 'contain' | 'inside' | 'lock' | 'outside';\n        bounds: "
             },
             {
               "kind": "Reference",

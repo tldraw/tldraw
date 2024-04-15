@@ -35,6 +35,10 @@ export type TLCameraOptions = {
 	constraints?: {
 		/** The type of constraint behavior. */
 		fit: 'min' | 'max' | 'x' | 'y' | 'none'
+		/** The behavior for the constraints on the x axis. */
+		fitX: 'contain' | 'inside' | 'outside' | 'lock'
+		/** The behavior for the constraints on the y axis. */
+		fitY: 'contain' | 'inside' | 'outside' | 'lock'
 		/** The bounds of the content (in page space) */
 		bounds: BoxModel
 		/** The padding around the bounds (in screen space). Provide a number for x and y, or [x, y]. */

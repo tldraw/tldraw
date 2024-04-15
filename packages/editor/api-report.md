@@ -2001,6 +2001,8 @@ export type TLCameraOptions = {
     isLocked: boolean;
     constraints?: {
         fit: 'max' | 'min' | 'none' | 'x' | 'y';
+        fitX: 'contain' | 'inside' | 'lock' | 'outside';
+        fitY: 'contain' | 'inside' | 'lock' | 'outside';
         bounds: BoxModel;
         padding: VecLike;
         origin: VecLike;

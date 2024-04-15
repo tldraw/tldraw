@@ -137,6 +137,8 @@ export function ImageAnnotationEditor({
 					bounds: { w: image.width, h: image.height, x: 0, y: 0 },
 					padding: { x: 32, y: 64 },
 					origin: { x: 0.5, y: 0.5 },
+					fitX: 'inside',
+					fitY: 'inside',
 				},
 				zoomMax: 8,
 				zoomMin: 1, // prevent zoom from going below zero
