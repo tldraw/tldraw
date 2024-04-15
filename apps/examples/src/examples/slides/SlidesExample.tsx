@@ -1,229 +1,25 @@
-import { useCallback } from 'react'
 import {
-	BaseBoxShapeTool,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultToolbar,
 	DefaultToolbarContent,
-	EASINGS,
-	Editor,
-	Geometry2d,
-	Rectangle2d,
-	SVGContainer,
-	ShapeProps,
-	ShapeUtil,
-	T,
-	TLBaseShape,
 	TLComponents,
-	TLOnResizeHandler,
 	TLUiOverrides,
 	Tldraw,
-	TldrawUiButton,
 	TldrawUiMenuItem,
-	atom,
-	resizeBox,
-	stopEventPropagation,
 	track,
-	useEditor,
 	useIsToolSelected,
 	useTools,
-	useValue,
 } from 'tldraw'
-import { getPerfectDashProps } from 'tldraw/src/lib/shapes/shared/getPerfectDashProps'
 import 'tldraw/tldraw.css'
+import { SlideShapeTool } from './SlideShapeTool'
+import { SlideShapeUtil } from './SlideShapeUtil'
+import { $currentSlide, getSlides, moveToSlide } from './SlidesContext'
+import { SlidesPanel } from './SlidesPanel'
 import './slides.css'
 
-type SlideShape = TLBaseShape<
-	'slide',
-	{
-		w: number
-		h: number
-	}
->
-
-class SlideShapeUtil extends ShapeUtil<SlideShape> {
-	static override type = 'slide' as const
-	static override props: ShapeProps<SlideShape> = {
-		w: T.number,
-		h: T.number,
-	}
-
-	override canBind = () => false
-	override hideRotateHandle = () => true
-
-	getDefaultProps(): SlideShape['props'] {
-		return {
-			w: 720,
-			h: 480,
-		}
-	}
-
-	// override onBeforeCreate = (next: SlideShape) => {
-	// 	const slidesOnPage = this.editor.getCurrentPageShapes().filter((s) => s.type === 'slide')
-	// 	next.props.name = `Slide ${slidesOnPage.length + 1}`
-	// 	return next
-	// }
-
-	getGeometry(shape: SlideShape): Geometry2d {
-		return new Rectangle2d({
-			width: shape.props.w,
-			height: shape.props.h,
-			isFilled: false,
-		})
-	}
-
-	override onRotate = (initial: SlideShape) => {
-		return initial
-	}
-
-	override onResize: TLOnResizeHandler<any> = (shape, info) => {
-		return resizeBox(shape, info)
-	}
-
-	override onDoubleClick = (shape: SlideShape) => {
-		moveToSlide(this.editor, shape)
-		this.editor.selectNone()
-	}
-
-	override onDoubleClickEdge = (shape: SlideShape) => {
-		moveToSlide(this.editor, shape)
-		this.editor.selectNone()
-	}
-
-	component(shape: SlideShape) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const zoomLevel = useValue('zoom level', () => this.editor.getZoomLevel(), [this.editor])
-
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const slides = useSlides()
-		const index = slides.findIndex((s) => s.id === shape.id)
-
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const handleLabelPointerDown = useCallback(() => this.editor.select(shape.id), [shape.id])
-
-		if (!bounds) return null
-
-		return (
-			<>
-				<div
-					onPointerDown={handleLabelPointerDown}
-					style={{
-						pointerEvents: 'all',
-						position: 'absolute',
-						background: 'var(--color-low)',
-						padding: 'calc(12px * var(--tl-scale))',
-						borderBottomRightRadius: 'calc(var(--radius-4) * var(--tl-scale))',
-						fontSize: 'calc(12px * var(--tl-scale))',
-						color: 'var(--color-text)',
-						// zIndex: -1,
-						whiteSpace: 'nowrap',
-					}}
-				>
-					{`Slide ${index + 1}`}
-				</div>
-				<SVGContainer>
-					<g
-						style={{
-							stroke: 'var(--color-text)',
-							strokeWidth: 'calc(1px * var(--tl-scale))',
-							opacity: 0.25,
-						}}
-						pointerEvents="none"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					>
-						{bounds.sides.map((side, i) => {
-							const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-								side[0].dist(side[1]),
-								1 / zoomLevel,
-								{
-									style: 'dashed',
-									lengthRatio: 6,
-								}
-							)
-
-							return (
-								<line
-									key={i}
-									x1={side[0].x}
-									y1={side[0].y}
-									x2={side[1].x}
-									y2={side[1].y}
-									strokeDasharray={strokeDasharray}
-									strokeDashoffset={strokeDashoffset}
-								/>
-							)
-						})}
-					</g>
-				</SVGContainer>
-			</>
-		)
-	}
-
-	indicator(shape: SlideShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
-	}
-}
-
-class SlideTool extends BaseBoxShapeTool {
-	static override id = 'slide'
-	static override initial = 'idle'
-	override shapeType = 'slide'
-}
-
-function useSlides() {
-	const editor = useEditor()
-	return useValue<SlideShape[]>('slide shapes', () => getSlides(editor), [editor])
-}
-
-function getSlides(editor: Editor) {
-	return editor
-		.getSortedChildIdsForParent(editor.getCurrentPageId())
-		.map((id) => editor.getShape(id))
-		.filter((s) => s?.type === 'slide') as SlideShape[]
-}
-
-const $currentSlide = atom<SlideShape | null>('current slide', null)
-
-const SlideList = track(() => {
-	const editor = useEditor()
-	const slides = useSlides()
-	const currentSlide = useValue($currentSlide)
-	const selectedShapes = useValue('selected shapes', () => editor.getSelectedShapes(), [editor])
-
-	if (slides.length === 0) return null
-	return (
-		<div className="slides-panel scroll-light" onPointerDown={(e) => stopEventPropagation(e)}>
-			{slides.map((slide, i) => {
-				const isSelected = selectedShapes.includes(slide)
-				return (
-					<TldrawUiButton
-						type="normal"
-						className="slides-button"
-						onClick={() => moveToSlide(editor, slide)}
-						style={{
-							background: currentSlide?.id === slide.id ? '#f9fafb' : 'transparent',
-							outline: isSelected ? 'var(--color-selection-stroke) solid 1.5px' : 'none',
-						}}
-					>
-						{`Slide ${i + 1}`}
-					</TldrawUiButton>
-				)
-			})}
-		</div>
-	)
-})
-
-function moveToSlide(editor: Editor, slide: SlideShape) {
-	const bounds = editor.getShapePageBounds(slide.id)
-	if (!bounds) return
-	$currentSlide.set(slide)
-	editor.zoomToBounds(bounds, { duration: 500, easing: EASINGS.easeInOutCubic, inset: 0 })
-}
-
 const components: TLComponents = {
-	HelperButtons: SlideList,
+	HelperButtons: SlidesPanel,
 	Minimap: null,
 	Toolbar: (props) => {
 		const tools = useTools()
@@ -239,7 +35,7 @@ const components: TLComponents = {
 		const tools = useTools()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuItem {...tools['card']} />
+				<TldrawUiMenuItem {...tools['slide']} />
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
 		)
@@ -261,14 +57,10 @@ const overrides: TLUiOverrides = {
 					const slides = getSlides(editor)
 					const currentSlide = $currentSlide.get()
 					const index = slides.findIndex((s) => s.id === currentSlide?.id)
-					const nextSlide = slides[index + 1]
-					editor.stopCameraAnimation()
+					const nextSlide = slides[index + 1] ?? currentSlide ?? slides[0]
 					if (nextSlide) {
+						editor.stopCameraAnimation()
 						moveToSlide(editor, nextSlide)
-					} else if (currentSlide) {
-						moveToSlide(editor, currentSlide)
-					} else if (slides.length > 0) {
-						moveToSlide(editor, slides[0])
 					}
 				},
 			},
@@ -283,14 +75,10 @@ const overrides: TLUiOverrides = {
 					const slides = getSlides(editor)
 					const currentSlide = $currentSlide.get()
 					const index = slides.findIndex((s) => s.id === currentSlide?.id)
-					const previousSlide = slides[index - 1]
-					editor.stopCameraAnimation()
+					const previousSlide = slides[index - 1] ?? currentSlide ?? slides[slides.length - 1]
 					if (previousSlide) {
+						editor.stopCameraAnimation()
 						moveToSlide(editor, previousSlide)
-					} else if (currentSlide) {
-						moveToSlide(editor, currentSlide)
-					} else if (slides.length > 0) {
-						moveToSlide(editor, slides[slides.length - 1])
 					}
 				},
 			},
@@ -314,7 +102,7 @@ const SlidesExample = track(() => {
 			<Tldraw
 				persistenceKey="slideshow_example"
 				shapeUtils={[SlideShapeUtil]}
-				tools={[SlideTool]}
+				tools={[SlideShapeTool]}
 				components={components}
 				overrides={overrides}
 			/>
