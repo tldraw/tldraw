@@ -1,5 +1,9 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrationSequence,
+} from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
@@ -612,128 +616,65 @@ export type EmbedDefinition = {
 	readonly fromEmbedUrl: (url: string) => string | undefined
 }
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('embed', {
 	GenOriginalUrlInEmbed: 1,
 	RemoveDoesResize: 2,
 	RemoveTmpOldUrl: 3,
 	RemovePermissionOverrides: 4,
-} as const
+})
+
+export { Versions as embedShapeVersions }
 
 /** @internal */
-export const embedShapeMigrations = defineMigrations({
-	currentVersion: Versions.RemovePermissionOverrides,
-	migrators: {
-		[Versions.GenOriginalUrlInEmbed]: {
+export const embedShapeMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: Versions.GenOriginalUrlInEmbed,
 			// add tmpOldUrl property
-			up: (shape) => {
-				const url = shape.props.url
-				const host = new URL(url).host.replace('www.', '')
-				let originalUrl
-				for (const localEmbedDef of EMBED_DEFINITIONS) {
-					if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
-						try {
-							originalUrl = localEmbedDef.fromEmbedUrl(url)
-						} catch (err) {
-							console.warn(err)
-						}
-					}
-				}
-
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						tmpOldUrl: shape.props.url,
-						url: originalUrl ?? '',
-					},
-				}
-			},
-			// remove tmpOldUrl property
-			down: (shape) => {
-				let newUrl = shape.props.tmpOldUrl
-				if (!newUrl || newUrl === '') {
-					const url = shape.props.url
+			up: (props) => {
+				try {
+					const url = props.url
 					const host = new URL(url).host.replace('www.', '')
-
+					let originalUrl
 					for (const localEmbedDef of EMBED_DEFINITIONS) {
 						if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
 							try {
-								newUrl = localEmbedDef.toEmbedUrl(url)
+								originalUrl = localEmbedDef.fromEmbedUrl(url)
 							} catch (err) {
 								console.warn(err)
 							}
 						}
 					}
-				}
 
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { tmpOldUrl, ...props } = shape.props
-				return {
-					...shape,
-					props: {
-						...props,
-						url: newUrl ?? '',
-					},
+					props.tmpOldUrl = props.url
+					props.url = originalUrl ?? ''
+				} catch (e) {
+					props.url = ''
+					props.tmpOldUrl = props.url
 				}
 			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.RemoveDoesResize]: {
-			up: (shape) => {
-				const { doesResize: _, ...props } = shape.props
-				return {
-					...shape,
-					props: {
-						...props,
-					},
-				}
+		{
+			id: Versions.RemoveDoesResize,
+			up: (props) => {
+				delete props.doesResize
 			},
-			down: (shape) => {
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						doesResize: true,
-					},
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.RemoveTmpOldUrl]: {
-			up: (shape) => {
-				const { tmpOldUrl: _, ...props } = shape.props
-				return {
-					...shape,
-					props: {
-						...props,
-					},
-				}
+		{
+			id: Versions.RemoveTmpOldUrl,
+			up: (props) => {
+				delete props.tmpOldUrl
 			},
-			down: (shape) => {
-				return {
-					...shape,
-					props: {
-						...shape.props,
-					},
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.RemovePermissionOverrides]: {
-			up: (shape) => {
-				const { overridePermissions: _, ...props } = shape.props
-				return {
-					...shape,
-					props: {
-						...props,
-					},
-				}
+		{
+			id: Versions.RemovePermissionOverrides,
+			up: (props) => {
+				delete props.overridePermissions
 			},
-			down: (shape) => {
-				return {
-					...shape,
-					props: {
-						...shape.props,
-					},
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-	},
+	],
 })

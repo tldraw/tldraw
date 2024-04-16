@@ -10,6 +10,9 @@
 	"references": [
 		{
 			"path": "../editor"
+		},
+		{
+			"path": "../store"
 		}
 	]
 }
