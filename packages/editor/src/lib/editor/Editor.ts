@@ -2134,10 +2134,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public */
 	setCameraOptions(
-		options: TLCameraOptions,
+		options: Partial<TLCameraOptions>,
 		opts?: { immediate?: boolean; force?: boolean; initial?: boolean }
 	) {
-		this._cameraOptions.set(options)
+		this._cameraOptions.set({ ...this._cameraOptions.__unsafe__getWithoutCapture(), ...options })
 		this.setCamera(this.getCamera(), opts)
 		return this
 	}

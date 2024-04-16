@@ -17213,8 +17213,21 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
                   "text": "TLCameraOptions",
                   "canonicalReference": "@tldraw/editor!TLCameraOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
                 },
                 {
                   "kind": "Content",
@@ -17239,8 +17252,8 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
+                "startIndex": 8,
+                "endIndex": 9
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -17250,15 +17263,15 @@
                   "parameterName": "options",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
-                    "endIndex": 2
+                    "endIndex": 5
                   },
                   "isOptional": false
                 },
                 {
                   "parameterName": "opts",
                   "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
+                    "startIndex": 6,
+                    "endIndex": 7
                   },
                   "isOptional": true
                 }

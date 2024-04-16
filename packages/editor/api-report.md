@@ -896,7 +896,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
-    setCameraOptions(options: TLCameraOptions, opts?: {
+    setCameraOptions(options: Partial<TLCameraOptions>, opts?: {
         force?: boolean;
         immediate?: boolean;
         initial?: boolean;
