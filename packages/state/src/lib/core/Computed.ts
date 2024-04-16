@@ -124,8 +124,6 @@ export interface Computed<Value, Diff = unknown> extends Signal<Value, Diff> {
 	readonly isActivelyListening: boolean
 
 	/** @internal */
-	readonly parentSet: ArraySet<Signal<any, any>>
-	/** @internal */
 	readonly parents: Signal<any, any>[]
 	/** @internal */
 	readonly parentEpochs: number[]
@@ -143,7 +141,6 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 	 */
 	private lastCheckedEpoch = GLOBAL_START_EPOCH
 
-	parentSet = new ArraySet<Signal<any, any>>()
 	parents: Signal<any, any>[] = []
 	parentEpochs: number[] = []
 
