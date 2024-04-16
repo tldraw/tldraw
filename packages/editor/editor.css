@@ -151,11 +151,11 @@
 
 .tl-theme__dark {
 	--color-accent: hsl(0, 76%, 60%);
-	--color-background: hsl(240, 5%, 8%);
+	--color-background: hsl(240, 5%, 6.5%);
 	--color-brush-fill: hsl(0, 0%, 71%, 5.1%);
 	--color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
-	--color-grid: hsl(0, 0%, 56%);
-	--color-low: hsl(260, 5%, 12.5%);
+	--color-grid: hsl(0, 0%, 40%);
+	--color-low: hsl(260, 3.5%, 10.5%);
 	--color-low-border: hsl(207, 10%, 10%);
 	--color-culled: hsl(210, 11%, 19%);
 	--color-muted-none: hsl(0, 0%, 100%, 0%);
@@ -164,10 +164,10 @@
 	--color-muted-2: hsl(0, 0%, 100%, 5%);
 	--color-hint: hsl(0, 0%, 100%, 7%);
 	--color-overlay: hsl(0, 0%, 0%, 50%);
-	--color-divider: hsl(240, 9%, 25%);
-	--color-panel-contrast: hsl(240, 13%, 22%);
-	--color-panel: hsl(220, 8%, 15%);
-	--color-panel-overlay: hsl(210, 11%, 24%, 82%);
+	--color-divider: hsl(240, 9%, 22%);
+	--color-panel-contrast: hsl(240, 12%, 22%);
+	--color-panel: hsl(220, 6.5%, 13.5%);
+	--color-panel-overlay: hsl(210, 10%, 24%, 82%);
 	--color-focus: hsl(217, 76%, 80%);
 	--color-selected: hsl(217, 89%, 61%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
