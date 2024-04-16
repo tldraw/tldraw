@@ -6,9 +6,7 @@ export function CursorChatMenuItem() {
 	const actions = useActions()
 	const shouldShow = useValue(
 		'show cursor chat',
-		() => {
-			return !editor.getInstanceState().isCoarsePointer
-		},
+		() => editor.getCurrentToolId() === 'select' && !editor.getInstanceState().isCoarsePointer,
 		[editor]
 	)
 
