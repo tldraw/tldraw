@@ -26,7 +26,7 @@ it('zooms out and in by increments', () => {
 it('does not zoom out when camera is frozen', () => {
 	editor.setCamera({ x: 0, y: 0, z: 1 })
 	expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
-	editor.setCameraOptions({ ...editor.getCameraOptions(), isLocked: true })
+	editor.setCameraOptions({ isLocked: true })
 	editor.zoomOut()
 	expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 })
