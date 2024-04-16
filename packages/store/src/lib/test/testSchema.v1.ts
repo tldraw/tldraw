@@ -3,12 +3,12 @@ import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { SerializedStore } from '../Store'
 import { StoreSchema } from '../StoreSchema'
-import { createMigrationIds, createMigrationSequence } from '../migrate'
+import { defineMigrations } from '../migrate'
 
-const UserVersion = createMigrationIds('com.tldraw.user', {
+const UserVersion = {
 	AddLocale: 1,
 	AddPhoneNumber: 2,
-} as const)
+} as const
 
 /** A user of tldraw */
 interface User extends BaseRecord<'user', RecordId<User>> {
@@ -17,36 +17,36 @@ interface User extends BaseRecord<'user', RecordId<User>> {
 	phoneNumber: string | null
 }
 
-const userMigrations = createMigrationSequence({
-	sequenceId: 'com.tldraw.user',
-	retroactive: true,
-	sequence: [
-		{
-			id: UserVersion.AddLocale,
-			scope: 'record',
-			filter: (r) => r.typeName === 'user',
-			up: (record: any) => {
-				record.locale = 'en'
-			},
-			down: (record: any) => {
-				delete record.locale
-			},
-		},
-		{
-			id: UserVersion.AddPhoneNumber,
-			scope: 'record',
-			filter: (r) => r.typeName === 'user',
-			up: (record: any) => {
-				record.phoneNumber = null
-			},
-			down: (record: any) => {
-				delete record.phoneNumber
+const userMigrations = defineMigrations({
+	currentVersion: UserVersion.AddPhoneNumber,
+	migrators: {
+		[UserVersion.AddLocale]: {
+			up: (record) => ({
+				...record,
+				locale: 'en',
+			}),
+			down: (record) => {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { locale, ...rest } = record
+				return rest
 			},
 		},
-	],
+		[UserVersion.AddPhoneNumber]: {
+			up: (record) => ({
+				...record,
+				phoneNumber: null,
+			}),
+			down: (record) => {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { phoneNumber, ...rest } = record
+				return rest
+			},
+		},
+	},
 })
 
 const User = createRecordType<User>('user', {
+	migrations: userMigrations,
 	validator: {
 		validate: (record) => {
 			assert(record && typeof record === 'object')
@@ -66,18 +66,18 @@ const User = createRecordType<User>('user', {
 	name: 'New User',
 }))
 
-const ShapeVersion = createMigrationIds('com.tldraw.shape', {
+const ShapeVersion = {
 	AddRotation: 1,
 	AddParent: 2,
-} as const)
+} as const
 
-const RectangleVersion = createMigrationIds('com.tldraw.shape.rectangle', {
+const RectangleVersion = {
 	AddOpacity: 1,
-} as const)
+} as const
 
-const OvalVersion = createMigrationIds('com.tldraw.shape.oval', {
+const OvalVersion = {
 	AddBorderStyle: 1,
-} as const)
+} as const
 
 type ShapeId = RecordId<Shape<object>>
 
@@ -101,72 +101,81 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const rootShapeMigrations = createMigrationSequence({
-	sequenceId: 'com.tldraw.shape',
-	retroactive: true,
-	sequence: [
-		{
-			id: ShapeVersion.AddRotation,
-			scope: 'record',
-			filter: (r) => r.typeName === 'shape',
-			up: (record: any) => {
-				record.rotation = 0
-			},
-			down: (record: any) => {
-				delete record.rotation
-			},
-		},
-		{
-			id: ShapeVersion.AddParent,
-			scope: 'record',
-			filter: (r) => r.typeName === 'shape',
-			up: (record: any) => {
-				record.parentId = null
-			},
-			down: (record: any) => {
-				delete record.parentId
+const shapeTypeMigrations = defineMigrations({
+	currentVersion: ShapeVersion.AddParent,
+	migrators: {
+		[ShapeVersion.AddRotation]: {
+			up: (record) => ({
+				...record,
+				rotation: 0,
+			}),
+			down: (record) => {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { rotation, ...rest } = record
+				return rest
 			},
 		},
-	],
-})
-
-const rectangleMigrations = createMigrationSequence({
-	sequenceId: 'com.tldraw.shape.rectangle',
-	retroactive: true,
-	sequence: [
-		{
-			id: RectangleVersion.AddOpacity,
-			scope: 'record',
-			filter: (r) => r.typeName === 'shape' && (r as Shape<RectangleProps>).type === 'rectangle',
-			up: (record: any) => {
-				record.props.opacity = 1
-			},
-			down: (record: any) => {
-				delete record.props.opacity
+		[ShapeVersion.AddParent]: {
+			up: (record) => ({
+				...record,
+				parentId: null,
+			}),
+			down: (record) => {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { parentId, ...rest } = record
+				return rest
 			},
 		},
-	],
-})
-
-const ovalMigrations = createMigrationSequence({
-	sequenceId: 'com.tldraw.shape.oval',
-	retroactive: true,
-	sequence: [
-		{
-			id: OvalVersion.AddBorderStyle,
-			scope: 'record',
-			filter: (r) => r.typeName === 'shape' && (r as Shape<OvalProps>).type === 'oval',
-			up: (record: any) => {
-				record.props.borderStyle = 'solid'
+	},
+	subTypeKey: 'type',
+	subTypeMigrations: {
+		rectangle: defineMigrations({
+			currentVersion: RectangleVersion.AddOpacity,
+			migrators: {
+				[RectangleVersion.AddOpacity]: {
+					up: (record) => ({
+						...record,
+						props: {
+							...record.props,
+							opacity: 1,
+						},
+					}),
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					down: ({ props: { opacity, ...others }, ...record }) => ({
+						...record,
+						props: {
+							...others,
+						},
+					}),
+				},
 			},
-			down: (record: any) => {
-				delete record.props.borderStyle
+		}),
+		oval: defineMigrations({
+			currentVersion: OvalVersion.AddBorderStyle,
+			migrators: {
+				[OvalVersion.AddBorderStyle]: {
+					up: (record) => ({
+						...record,
+						props: {
+							...record.props,
+							borderStyle: 'solid',
+						},
+					}),
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					down: ({ props: { borderStyle, ...others }, ...record }) => ({
+						...record,
+						props: {
+							...others,
+						},
+					}),
+				},
 			},
-		},
-	],
+		}),
+	},
 })
 
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
+	migrations: shapeTypeMigrations,
 	validator: {
 		validate: (record) => {
 			assert(record && typeof record === 'object')
@@ -186,17 +195,14 @@ const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 	parentId: null,
 }))
 
-const StoreVersions = createMigrationIds('com.tldraw.store', {
+const StoreVersions = {
 	RemoveOrg: 1,
-})
+}
 
-const snapshotMigrations = createMigrationSequence({
-	sequenceId: 'com.tldraw.store',
-	retroactive: true,
-	sequence: [
-		{
-			id: StoreVersions.RemoveOrg,
-			scope: 'store',
+const snapshotMigrations = defineMigrations({
+	currentVersion: StoreVersions.RemoveOrg,
+	migrators: {
+		[StoreVersions.RemoveOrg]: {
 			up: (store: SerializedStore<any>) => {
 				return Object.fromEntries(Object.entries(store).filter(([_, r]) => r.typeName !== 'org'))
 			},
@@ -205,7 +211,7 @@ const snapshotMigrations = createMigrationSequence({
 				return store
 			},
 		},
-	],
+	},
 })
 
 export const testSchemaV1 = StoreSchema.create<User | Shape<any>>(
@@ -214,12 +220,6 @@ export const testSchemaV1 = StoreSchema.create<User | Shape<any>>(
 		shape: Shape,
 	},
 	{
-		migrations: [
-			snapshotMigrations,
-			rootShapeMigrations,
-			rectangleMigrations,
-			ovalMigrations,
-			userMigrations,
-		],
+		snapshotMigrations,
 	}
 )

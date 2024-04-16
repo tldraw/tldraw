@@ -1,4 +1,4 @@
-import { SerializedSchemaV2 } from '@tldraw/store'
+import { SerializedSchema } from '@tldraw/store'
 import {
 	CameraRecordType,
 	DocumentRecordType,
@@ -98,11 +98,20 @@ describe('TLSyncRoom', () => {
 
 	it('migrates the snapshot if it is dealing with old data', () => {
 		const serializedSchema = schema.serialize()
-		const oldSerializedSchema: SerializedSchemaV2 = {
-			schemaVersion: 2,
-			sequences: {
-				...serializedSchema.sequences,
-				'com.tldraw.shape.arrow': 0,
+		const oldSerializedSchema: SerializedSchema = {
+			...serializedSchema,
+			recordVersions: {
+				...serializedSchema.recordVersions,
+				shape: {
+					...serializedSchema.recordVersions.shape,
+					subTypeVersions: {
+						...('subTypeVersions' in serializedSchema.recordVersions.shape
+							? serializedSchema.recordVersions.shape.subTypeVersions
+							: {}),
+						// we add a labelColor to arrow in v1
+						arrow: 0,
+					},
+				},
 			},
 		}
 

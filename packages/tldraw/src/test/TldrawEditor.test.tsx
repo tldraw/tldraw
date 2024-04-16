@@ -15,6 +15,10 @@ import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 import { renderTldrawComponent } from './testutils/renderTldrawComponent'
 
 function checkAllShapes(editor: Editor, shapes: string[]) {
+	expect(Object.keys(editor!.store.schema.types.shape.migrations.subTypeMigrations!)).toStrictEqual(
+		shapes
+	)
+
 	expect(Object.keys(editor!.shapeUtils)).toStrictEqual(shapes)
 }
 

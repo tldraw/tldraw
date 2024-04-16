@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.43.1",
+    "toolVersion": "7.41.0",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -3211,7 +3211,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;\n    validate: (value: unknown) => T;\n}"
+                  "text": "{\n    validate: (value: unknown) => T;\n    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;\n}"
                 },
                 {
                   "kind": "Content",

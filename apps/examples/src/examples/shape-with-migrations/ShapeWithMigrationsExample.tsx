@@ -4,7 +4,6 @@ import {
 	T,
 	TLBaseShape,
 	TLOnResizeHandler,
-	TLStoreSnapshot,
 	Tldraw,
 	resizeBox,
 } from 'tldraw'
@@ -95,7 +94,7 @@ export default function ShapeWithMigrationsExample() {
 				// Pass in the array of custom shape classes
 				shapeUtils={customShapeUtils}
 				// Use a snapshot to load an old version of the shape
-				snapshot={snapshot as TLStoreSnapshot}
+				snapshot={snapshot}
 			/>
 		</div>
 	)

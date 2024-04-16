@@ -191,8 +191,8 @@ const unknownObject: Validator<Record<string, unknown>>;
 
 // @public (undocumented)
 type Validatable<T> = {
-    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;
     validate: (value: unknown) => T;
+    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;
 };
 
 // @public (undocumented)

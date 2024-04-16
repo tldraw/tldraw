@@ -1,14 +1,5 @@
 import { useState } from 'react'
-import {
-	Box,
-	Editor,
-	StoreSnapshot,
-	TLPageId,
-	TLRecord,
-	TLStoreSnapshot,
-	Tldraw,
-	TldrawImage,
-} from 'tldraw'
+import { Box, Editor, StoreSnapshot, TLPageId, TLRecord, Tldraw, TldrawImage } from 'tldraw'
 import 'tldraw/tldraw.css'
 import initialSnapshot from './snapshot.json'
 
@@ -16,9 +7,7 @@ import initialSnapshot from './snapshot.json'
 
 export default function TldrawImageExample() {
 	const [editor, setEditor] = useState<Editor>()
-	const [snapshot, setSnapshot] = useState<StoreSnapshot<TLRecord>>(
-		initialSnapshot as TLStoreSnapshot
-	)
+	const [snapshot, setSnapshot] = useState<StoreSnapshot<TLRecord>>(initialSnapshot)
 	const [currentPageId, setCurrentPageId] = useState<TLPageId | undefined>()
 	const [showBackground, setShowBackground] = useState(true)
 	const [isDarkMode, setIsDarkMode] = useState(false)

@@ -1,6 +1,5 @@
 import { Computed, react, RESET_VALUE, transact } from '@tldraw/state'
 import { BaseRecord, RecordId } from '../BaseRecord'
-import { createMigrationSequence } from '../migrate'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, RecordsDiff, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
@@ -48,11 +47,20 @@ describe('Store', () => {
 	beforeEach(() => {
 		store = new Store({
 			props: {},
-			schema: StoreSchema.create<LibraryType>({
-				book: Book,
-				author: Author,
-				visit: Visit,
-			}),
+			schema: StoreSchema.create<LibraryType>(
+				{
+					book: Book,
+					author: Author,
+					visit: Visit,
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: 0,
+						firstVersion: 0,
+						migrators: {},
+					},
+				}
+			),
 		})
 	})
 
@@ -754,10 +762,19 @@ describe('snapshots', () => {
 	beforeEach(() => {
 		store = new Store({
 			props: {},
-			schema: StoreSchema.create<Book | Author>({
-				book: Book,
-				author: Author,
-			}),
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: 0,
+						firstVersion: 0,
+						migrators: {},
+					},
+				}
+			),
 		})
 
 		transact(() => {
@@ -791,10 +808,19 @@ describe('snapshots', () => {
 
 		const store2 = new Store({
 			props: {},
-			schema: StoreSchema.create<Book | Author>({
-				book: Book,
-				author: Author,
-			}),
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: 0,
+						firstVersion: 0,
+						migrators: {},
+					},
+				}
+			),
 		})
 
 		store2.loadSnapshot(snapshot1)
@@ -813,40 +839,29 @@ describe('snapshots', () => {
 
 		const store2 = new Store({
 			props: {},
-			schema: StoreSchema.create<Book>({
-				book: Book,
-				// no author
-			}),
+			schema: StoreSchema.create<Book>(
+				{
+					book: Book,
+					// no author
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: 0,
+						firstVersion: 0,
+						migrators: {},
+					},
+				}
+			),
 		})
 
 		expect(() => {
 			// @ts-expect-error
 			store2.loadSnapshot(snapshot1)
-		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
+		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: unknown-type"`)
 	})
 
 	it('throws errors when loading a snapshot with a different schema', () => {
 		const snapshot1 = store.getSnapshot()
-
-		const store2 = new Store({
-			props: {},
-			schema: StoreSchema.create<Book>({
-				book: Book,
-			}),
-		})
-
-		expect(() => {
-			store2.loadSnapshot(snapshot1 as any)
-		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
-	})
-
-	it('migrates the snapshot', () => {
-		const snapshot1 = store.getSnapshot()
-		const up = jest.fn((s: any) => {
-			s['book:lotr'].numPages = 42
-		})
-
-		expect((snapshot1.store as any)['book:lotr'].numPages).toBe(1000)
 
 		const store2 = new Store({
 			props: {},
@@ -856,19 +871,41 @@ describe('snapshots', () => {
 					author: Author,
 				},
 				{
-					migrations: [
-						createMigrationSequence({
-							sequenceId: 'com.tldraw',
-							retroactive: true,
-							sequence: [
-								{
-									id: `com.tldraw/1`,
-									scope: 'store',
-									up,
-								},
-							],
-						}),
-					],
+					snapshotMigrations: {
+						currentVersion: -1,
+						firstVersion: 0,
+						migrators: {},
+					},
+				}
+			),
+		})
+
+		expect(() => {
+			store2.loadSnapshot(snapshot1)
+		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: target-version-too-old"`)
+	})
+
+	it('migrates the snapshot', () => {
+		const snapshot1 = store.getSnapshot()
+
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: 1,
+						firstVersion: 0,
+						migrators: {
+							1: {
+								up: (r) => r,
+								down: (r) => r,
+							},
+						},
+					},
 				}
 			),
 		})
@@ -876,8 +913,5 @@ describe('snapshots', () => {
 		expect(() => {
 			store2.loadSnapshot(snapshot1)
 		}).not.toThrow()
-
-		expect(up).toHaveBeenCalledTimes(1)
-		expect(store2.get(Book.createId('lotr'))!.numPages).toBe(42)
 	})
 })

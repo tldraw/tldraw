@@ -45,8 +45,8 @@ export function deleteFromSessionStorage(key: string): void;
 
 // @public (undocumented)
 export type ErrorResult<E> = {
-    readonly error: E;
     readonly ok: false;
+    readonly error: E;
 };
 
 // @internal (undocumented)
@@ -188,12 +188,12 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 // @public
 export class MediaHelpers {
     static getImageSize(blob: Blob): Promise<{
-        h: number;
         w: number;
+        h: number;
     }>;
     static getVideoSize(blob: Blob): Promise<{
-        h: number;
         w: number;
+        h: number;
     }>;
     static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
@@ -272,8 +272,8 @@ export class PngHelpers {
 
 // @internal (undocumented)
 export function promiseWithResolve<T>(): Promise<T> & {
-    reject: (reason?: any) => void;
     resolve: (value: T) => void;
+    reject: (reason?: any) => void;
 };
 
 // @public (undocumented)
@@ -290,8 +290,8 @@ export type Result<T, E> = ErrorResult<E> | OkResult<T>;
 
 // @public (undocumented)
 export const Result: {
-    err<E>(error: E): ErrorResult<E>;
     ok<T>(value: T): OkResult<T>;
+    err<E>(error: E): ErrorResult<E>;
 };
 
 // @public

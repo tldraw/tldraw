@@ -125,13 +125,12 @@ export class Brushing extends StateNode {
 			pageTransform: Mat | undefined,
 			localCorners: Vec[]
 
+		const currentPageShapes = editor.getCurrentPageShapes()
 		const currentPageId = editor.getCurrentPageId()
 
-		const shapesInsideBounds = this.editor.getShapesInsideBounds(brush)
-		testAllShapes: for (let i = 0, n = shapesInsideBounds.length; i < n; i++) {
-			shape = shapesInsideBounds[i]
-			if (excludedShapeIds.has(shape.id)) continue testAllShapes
-			if (results.has(shape.id)) continue testAllShapes
+		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
+			shape = currentPageShapes[i]
+			if (excludedShapeIds.has(shape.id) || results.has(shape.id)) continue testAllShapes
 
 			pageBounds = editor.getShapePageBounds(shape)
 			if (!pageBounds) continue testAllShapes
@@ -177,7 +176,7 @@ export class Brushing extends StateNode {
 
 		const current = editor.getSelectedShapeIds()
 		if (current.length !== results.size || current.some((id) => !results.has(id))) {
-			editor.setSelectedShapes(Array.from(results).sort(), { squashing: true })
+			editor.setSelectedShapes(Array.from(results), { squashing: true })
 		}
 	}
 

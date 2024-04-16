@@ -19,16 +19,6 @@ export function sortUnions(tsbuildDir: string) {
 				})
 				return false
 			},
-			visitTSTypeLiteral(path) {
-				this.traverse(path)
-				const val = path.value as namedTypes.TSTypeLiteral
-				val.members = val.members.sort((a, b) => {
-					const aText = print(a).code
-					const bText = print(b).code
-					return aText.localeCompare(bText)
-				})
-				return false
-			},
 		})
 
 		writeFileSync(file, print(code).code)

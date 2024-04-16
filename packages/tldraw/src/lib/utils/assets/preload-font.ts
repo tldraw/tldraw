@@ -32,7 +32,6 @@ export async function preloadFont(id: string, font: TLTypeFace) {
 		featureSettings,
 		stretch,
 		unicodeRange,
-		// @ts-expect-error why is this here
 		variant,
 	}
 

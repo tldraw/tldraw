@@ -1,9 +1,5 @@
+import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import {
-	RETIRED_DOWN_MIGRATION,
-	createShapePropsMigrationIds,
-	createShapePropsMigrationSequence,
-} from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
 import { DefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
@@ -28,23 +24,32 @@ export type TLTextShapeProps = ShapePropsType<typeof textShapeProps>
 /** @public */
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
-const Versions = createShapePropsMigrationIds('text', {
+const Versions = {
 	RemoveJustify: 1,
-})
-
-export { Versions as textShapeVersions }
+} as const
 
 /** @internal */
-export const textShapeMigrations = createShapePropsMigrationSequence({
-	sequence: [
-		{
-			id: Versions.RemoveJustify,
-			up: (props) => {
-				if (props.align === 'justify') {
-					props.align = 'start'
+export const textShapeMigrations = defineMigrations({
+	currentVersion: Versions.RemoveJustify,
+	migrators: {
+		[Versions.RemoveJustify]: {
+			up: (shape) => {
+				let newAlign = shape.props.align
+				if (newAlign === 'justify') {
+					newAlign = 'start'
+				}
+
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						align: newAlign,
+					},
 				}
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: (shape) => {
+				return { ...shape }
+			},
 		},
-	],
+	},
 })

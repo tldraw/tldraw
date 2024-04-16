@@ -1,28 +1,19 @@
-import {
-	Result,
-	assert,
-	exhaustiveSwitchError,
-	getOwnProperty,
-	structuredClone,
-} from '@tldraw/utils'
-import { UnknownRecord } from './BaseRecord'
+import { getOwnProperty, objectMapValues } from '@tldraw/utils'
+import { IdOf, UnknownRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
 import {
-	Migration,
 	MigrationFailureReason,
-	MigrationId,
 	MigrationResult,
-	MigrationSequence,
-	parseMigrationId,
-	sortMigrations,
-	validateMigrations,
+	Migrations,
+	migrate,
+	migrateRecord,
 } from './migrate'
 
 /** @public */
-export interface SerializedSchemaV1 {
+export interface SerializedSchema {
 	/** Schema version is the version for this type you're looking at right now */
-	schemaVersion: 1
+	schemaVersion: number
 	/**
 	 * Store version is the version for the structure of the store. e.g. higher level structure like
 	 * removing or renaming a record type.
@@ -44,38 +35,9 @@ export interface SerializedSchemaV1 {
 }
 
 /** @public */
-export interface SerializedSchemaV2 {
-	schemaVersion: 2
-	sequences: {
-		[sequenceId: string]: number
-	}
-}
-
-/** @public */
-export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2
-
-export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchemaV2, string> {
-	if (schema.schemaVersion > 2 || schema.schemaVersion < 1) return Result.err('Bad schema version')
-	if (schema.schemaVersion === 2) return Result.ok(schema as SerializedSchemaV2)
-	const result: SerializedSchemaV2 = {
-		schemaVersion: 2,
-		sequences: {},
-	}
-
-	for (const [typeName, recordVersion] of Object.entries(schema.recordVersions)) {
-		result.sequences[`com.tldraw.${typeName}`] = recordVersion.version
-		if ('subTypeKey' in recordVersion) {
-			for (const [subType, version] of Object.entries(recordVersion.subTypeVersions)) {
-				result.sequences[`com.tldraw.${typeName}.${subType}`] = version
-			}
-		}
-	}
-	return Result.ok(result)
-}
-
-/** @public */
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
-	migrations?: MigrationSequence[]
+	/** @public */
+	snapshotMigrations?: Migrations
 	/** @public */
 	onValidationFailure?: (data: {
 		error: unknown
@@ -100,30 +62,16 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return new StoreSchema<R, P>(types as any, options ?? {})
 	}
 
-	readonly migrations: Record<string, MigrationSequence> = {}
-	readonly sortedMigrations: readonly Migration[]
-
 	private constructor(
 		public readonly types: {
 			[Record in R as Record['typeName']]: RecordType<R, any>
 		},
 		private readonly options: StoreSchemaOptions<R, P>
-	) {
-		for (const m of options.migrations ?? []) {
-			assert(!this.migrations[m.sequenceId], `Duplicate migration sequenceId ${m.sequenceId}`)
-			validateMigrations(m)
-			this.migrations[m.sequenceId] = m
-		}
-		const allMigrations = Object.values(this.migrations).flatMap((m) => m.sequence)
-		this.sortedMigrations = sortMigrations(allMigrations)
+	) {}
 
-		for (const migration of this.sortedMigrations) {
-			if (!migration.dependsOn?.length) continue
-			for (const dep of migration.dependsOn) {
-				const depMigration = allMigrations.find((m) => m.id === dep)
-				assert(depMigration, `Migration '${migration.id}' depends on missing migration '${dep}'`)
-			}
-		}
+	// eslint-disable-next-line no-restricted-syntax
+	get currentStoreVersion(): number {
+		return this.options.snapshotMigrations?.currentVersion ?? 0
 	}
 
 	validateRecord(
@@ -153,151 +101,138 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 	}
 
-	// TODO: use a weakmap to store the result of this function
-	public getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string> {
-		const upgradeResult = upgradeSchema(persistedSchema)
-		if (!upgradeResult.ok) {
-			return upgradeResult
-		}
-		const schema = upgradeResult.value
-		const sequenceIdsToInclude = new Set(
-			// start with any shared sequences
-			Object.keys(schema.sequences).filter((sequenceId) => this.migrations[sequenceId])
-		)
-
-		// also include any sequences that are not in the persisted schema but are marked as postHoc
-		for (const sequenceId in this.migrations) {
-			if (schema.sequences[sequenceId] === undefined && this.migrations[sequenceId].retroactive) {
-				sequenceIdsToInclude.add(sequenceId)
-			}
-		}
-
-		if (sequenceIdsToInclude.size === 0) {
-			return Result.ok([])
-		}
-
-		const allMigrationsToInclude = new Set<MigrationId>()
-		for (const sequenceId of sequenceIdsToInclude) {
-			const theirVersion = schema.sequences[sequenceId]
-			if (
-				(typeof theirVersion !== 'number' && this.migrations[sequenceId].retroactive) ||
-				theirVersion === 0
-			) {
-				for (const migration of this.migrations[sequenceId].sequence) {
-					allMigrationsToInclude.add(migration.id)
-				}
-				continue
-			}
-			const theirVersionId = `${sequenceId}/${theirVersion}`
-			const idx = this.migrations[sequenceId].sequence.findIndex((m) => m.id === theirVersionId)
-			// todo: better error handling
-			if (idx === -1) {
-				return Result.err('Incompatible schema?')
-			}
-			for (const migration of this.migrations[sequenceId].sequence.slice(idx + 1)) {
-				allMigrationsToInclude.add(migration.id)
-			}
-		}
-
-		// collect any migrations
-		return Result.ok(this.sortedMigrations.filter(({ id }) => allMigrationsToInclude.has(id)))
-	}
-
 	migratePersistedRecord(
 		record: R,
 		persistedSchema: SerializedSchema,
 		direction: 'up' | 'down' = 'up'
 	): MigrationResult<R> {
-		const migrations = this.getMigrationsSince(persistedSchema)
-		if (!migrations.ok) {
-			// TODO: better error
-			console.error('Error migrating record', migrations.error)
-			return { type: 'error', reason: MigrationFailureReason.MigrationError }
+		const ourType = getOwnProperty(this.types, record.typeName)
+		const persistedType = persistedSchema.recordVersions[record.typeName]
+		if (!persistedType || !ourType) {
+			return { type: 'error', reason: MigrationFailureReason.UnknownType }
 		}
-		let migrationsToApply = migrations.value
-		if (migrationsToApply.length === 0) {
+		const ourVersion = ourType.migrations.currentVersion
+		const persistedVersion = persistedType.version
+		if (ourVersion !== persistedVersion) {
+			const result =
+				direction === 'up'
+					? migrateRecord<R>({
+							record,
+							migrations: ourType.migrations,
+							fromVersion: persistedVersion,
+							toVersion: ourVersion,
+						})
+					: migrateRecord<R>({
+							record,
+							migrations: ourType.migrations,
+							fromVersion: ourVersion,
+							toVersion: persistedVersion,
+						})
+			if (result.type === 'error') {
+				return result
+			}
+			record = result.value
+		}
+
+		if (!ourType.migrations.subTypeKey) {
 			return { type: 'success', value: record }
 		}
 
-		if (migrationsToApply.some((m) => m.scope === 'store')) {
-			return {
-				type: 'error',
-				reason:
-					direction === 'down'
-						? MigrationFailureReason.TargetVersionTooOld
-						: MigrationFailureReason.TargetVersionTooNew,
-			}
+		// we've handled the main version migration, now we need to handle subtypes
+		// subtypes are used by shape and asset types to migrate the props shape, which is configurable
+		// by library consumers.
+
+		const ourSubTypeMigrations =
+			ourType.migrations.subTypeMigrations?.[
+				record[ourType.migrations.subTypeKey as keyof R] as string
+			]
+
+		const persistedSubTypeVersion =
+			'subTypeVersions' in persistedType
+				? persistedType.subTypeVersions[record[ourType.migrations.subTypeKey as keyof R] as string]
+				: undefined
+
+		// if ourSubTypeMigrations is undefined then we don't have access to the migrations for this subtype
+		// that is almost certainly because we are running on the server and this type was supplied by a 3rd party.
+		// It could also be that we are running in a client that is outdated. Either way, we can't migrate this record
+		// and we need to let the consumer know so they can handle it.
+		if (ourSubTypeMigrations === undefined) {
+			return { type: 'error', reason: MigrationFailureReason.UnrecognizedSubtype }
 		}
 
-		if (direction === 'down') {
-			if (!migrationsToApply.every((m) => m.down)) {
-				return {
-					type: 'error',
-					reason: MigrationFailureReason.TargetVersionTooOld,
-				}
-			}
-			migrationsToApply = migrationsToApply.slice().reverse()
+		// if the persistedSubTypeVersion is undefined then the record was either created after the schema
+		// was persisted, or it was created in a different place to where the schema was persisted.
+		// either way we don't know what to do with it safely, so let's return failure.
+		if (persistedSubTypeVersion === undefined) {
+			return { type: 'error', reason: MigrationFailureReason.IncompatibleSubtype }
 		}
 
-		record = structuredClone(record)
-		try {
-			for (const migration of migrationsToApply) {
-				if (migration.scope === 'store') throw new Error(/* won't happen, just for TS */)
-				const shouldApply = migration.filter ? migration.filter(record) : true
-				if (!shouldApply) continue
-				const result = migration[direction]!(record)
-				if (result) {
-					record = structuredClone(result) as any
-				}
-			}
-		} catch (e) {
-			console.error('Error migrating record', e)
-			return { type: 'error', reason: MigrationFailureReason.MigrationError }
+		const result =
+			direction === 'up'
+				? migrateRecord<R>({
+						record,
+						migrations: ourSubTypeMigrations,
+						fromVersion: persistedSubTypeVersion,
+						toVersion: ourSubTypeMigrations.currentVersion,
+					})
+				: migrateRecord<R>({
+						record,
+						migrations: ourSubTypeMigrations,
+						fromVersion: ourSubTypeMigrations.currentVersion,
+						toVersion: persistedSubTypeVersion,
+					})
+
+		if (result.type === 'error') {
+			return result
 		}
 
-		return { type: 'success', value: record }
+		return { type: 'success', value: result.value }
 	}
 
 	migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>> {
 		let { store } = snapshot
-		const migrations = this.getMigrationsSince(snapshot.schema)
-		if (!migrations.ok) {
-			// TODO: better error
-			console.error('Error migrating store', migrations.error)
-			return { type: 'error', reason: MigrationFailureReason.MigrationError }
-		}
-		const migrationsToApply = migrations.value
-		if (migrationsToApply.length === 0) {
+
+		const migrations = this.options.snapshotMigrations
+		if (!migrations) {
 			return { type: 'success', value: store }
 		}
+		// apply store migrations first
+		const ourStoreVersion = migrations.currentVersion
+		const persistedStoreVersion = snapshot.schema.storeVersion ?? 0
 
-		store = structuredClone(store)
-
-		try {
-			for (const migration of migrationsToApply) {
-				if (migration.scope === 'record') {
-					for (const [id, record] of Object.entries(store)) {
-						const shouldApply = migration.filter ? migration.filter(record as UnknownRecord) : true
-						if (!shouldApply) continue
-						const result = migration.up!(record as any)
-						if (result) {
-							store[id as keyof typeof store] = structuredClone(result) as any
-						}
-					}
-				} else if (migration.scope === 'store') {
-					const result = migration.up!(store)
-					if (result) {
-						store = structuredClone(result) as any
-					}
-				} else {
-					exhaustiveSwitchError(migration)
-				}
-			}
-		} catch (e) {
-			console.error('Error migrating store', e)
-			return { type: 'error', reason: MigrationFailureReason.MigrationError }
+		if (ourStoreVersion < persistedStoreVersion) {
+			return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
 		}
 
+		if (ourStoreVersion > persistedStoreVersion) {
+			const result = migrate<SerializedStore<R>>({
+				value: store,
+				migrations,
+				fromVersion: persistedStoreVersion,
+				toVersion: ourStoreVersion,
+			})
+
+			if (result.type === 'error') {
+				return result
+			}
+			store = result.value
+		}
+
+		const updated: R[] = []
+		for (const r of objectMapValues(store)) {
+			const result = this.migratePersistedRecord(r, snapshot.schema)
+			if (result.type === 'error') {
+				return result
+			} else if (result.value && result.value !== r) {
+				updated.push(result.value)
+			}
+		}
+		if (updated.length) {
+			store = { ...store }
+			for (const r of updated) {
+				store[r.id as IdOf<R>] = r
+			}
+		}
 		return { type: 'success', value: store }
 	}
 
@@ -306,26 +241,58 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return this.options.createIntegrityChecker?.(store) ?? undefined
 	}
 
-	serialize(): SerializedSchemaV2 {
+	serialize(): SerializedSchema {
 		return {
-			schemaVersion: 2,
-			sequences: Object.fromEntries(
-				Object.values(this.migrations).map(({ sequenceId, sequence }) => [
-					sequenceId,
-					sequence.length ? parseMigrationId(sequence.at(-1)!.id).version : 0,
+			schemaVersion: 1,
+			storeVersion: this.options.snapshotMigrations?.currentVersion ?? 0,
+			recordVersions: Object.fromEntries(
+				objectMapValues(this.types).map((type) => [
+					type.typeName,
+					type.migrations.subTypeKey && type.migrations.subTypeMigrations
+						? {
+								version: type.migrations.currentVersion,
+								subTypeKey: type.migrations.subTypeKey,
+								subTypeVersions: type.migrations.subTypeMigrations
+									? Object.fromEntries(
+											Object.entries(type.migrations.subTypeMigrations).map(([k, v]) => [
+												k,
+												v.currentVersion,
+											])
+										)
+									: undefined,
+							}
+						: {
+								version: type.migrations.currentVersion,
+							},
 				])
 			),
 		}
 	}
 
-	/**
-	 * @deprecated This is only here for legacy reasons, don't use it unless you have david's blessing!
-	 */
 	serializeEarliestVersion(): SerializedSchema {
 		return {
-			schemaVersion: 2,
-			sequences: Object.fromEntries(
-				Object.values(this.migrations).map(({ sequenceId }) => [sequenceId, 0])
+			schemaVersion: 1,
+			storeVersion: this.options.snapshotMigrations?.firstVersion ?? 0,
+			recordVersions: Object.fromEntries(
+				objectMapValues(this.types).map((type) => [
+					type.typeName,
+					type.migrations.subTypeKey && type.migrations.subTypeMigrations
+						? {
+								version: type.migrations.firstVersion,
+								subTypeKey: type.migrations.subTypeKey,
+								subTypeVersions: type.migrations.subTypeMigrations
+									? Object.fromEntries(
+											Object.entries(type.migrations.subTypeMigrations).map(([k, v]) => [
+												k,
+												v.firstVersion,
+											])
+										)
+									: undefined,
+							}
+						: {
+								version: type.migrations.firstVersion,
+							},
+				])
 			),
 		}
 	}

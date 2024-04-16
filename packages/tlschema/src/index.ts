@@ -52,7 +52,6 @@ export { InstancePresenceRecordType, type TLInstancePresence } from './records/T
 export { type TLRecord } from './records/TLRecord'
 export {
 	createShapeId,
-	createShapePropsMigrationSequence,
 	getShapePropKeysByStyle,
 	isShape,
 	isShapeId,
@@ -64,7 +63,6 @@ export {
 	type TLShapePartial,
 	type TLShapeProp,
 	type TLShapeProps,
-	type TLShapePropsMigrations,
 	type TLUnknownShape,
 } from './records/TLShape'
 export {
