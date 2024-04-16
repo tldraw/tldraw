@@ -33,6 +33,8 @@ export interface Computed<Value, Diff = unknown> extends Signal<Value, Diff> {
     readonly parentEpochs: number[];
     // @internal (undocumented)
     readonly parents: Signal<any, any>[];
+    // @internal (undocumented)
+    readonly parentSet: ArraySet<Signal<any, any>>;
 }
 
 // @public

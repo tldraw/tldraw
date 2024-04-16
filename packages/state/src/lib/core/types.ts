@@ -51,8 +51,9 @@ export interface Signal<Value, Diff = unknown> {
 /** @internal */
 export type Child = {
 	lastTraversedEpoch: number
-	parents: Signal<any, any>[]
-	parentEpochs: number[]
+	readonly parentSet: ArraySet<Signal<any, any>>
+	readonly parents: Signal<any, any>[]
+	readonly parentEpochs: number[]
 	isActivelyListening: boolean
 }
 
