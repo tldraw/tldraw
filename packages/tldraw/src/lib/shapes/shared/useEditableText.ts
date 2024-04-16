@@ -39,15 +39,18 @@ export function useEditableText(
 
 	useEffect(() => {
 		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
-			if (shapeId === id) {
-				const elm = rInput.current
-				if (elm) {
-					if (document.activeElement !== elm) {
-						elm.focus()
+			// We wait a tick, because on iOS, the keyboard will not show if we focus immediately.
+			requestAnimationFrame(() => {
+				if (shapeId === id) {
+					const elm = rInput.current
+					if (elm) {
+						if (document.activeElement !== elm) {
+							elm.focus()
+						}
+						elm.select()
 					}
-					elm.select()
 				}
-			}
+			})
 		}
 		editor.on('select-all-text', selectAllIfEditing)
 		return () => {
