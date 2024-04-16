@@ -54,7 +54,7 @@ export const debugFlags = {
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
 	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
-	measurePerformance: createDebugValue('measureActionDuration', { defaults: { all: false } }),
+	measurePerformance: createDebugValue('measurePerformance', { defaults: { all: false } }),
 } as const
 
 declare global {
