@@ -2,7 +2,6 @@
 export class FpsTracker {
 	private startTime = 0
 	private name = ''
-	private shouldMeasure = true
 	private frames = 0
 	private started = false
 	private frame: number | null = null
@@ -14,7 +13,6 @@ export class FpsTracker {
 	}
 
 	start(name: string) {
-		if (!this.shouldMeasure) return
 		this.name = name
 		this.frames = 0
 		this.started = true
@@ -23,7 +21,6 @@ export class FpsTracker {
 	}
 
 	stop() {
-		if (!this.shouldMeasure) return
 		this.started = false
 		if (this.frame !== null) cancelAnimationFrame(this.frame)
 		// eslint-disable-next-line no-console
