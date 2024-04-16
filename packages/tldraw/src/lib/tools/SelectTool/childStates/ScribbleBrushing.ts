@@ -1,5 +1,4 @@
 import {
-	Box,
 	Geometry2d,
 	StateNode,
 	TLEventHandlers,
@@ -84,6 +83,8 @@ export class ScribbleBrushing extends StateNode {
 
 	private updateScribbleSelection(addPoint: boolean) {
 		const { editor } = this
+		// const zoomLevel = this.editor.getZoomLevel()
+		const currentPageShapes = this.editor.getCurrentPageShapes()
 		const {
 			inputs: { shiftKey, originPagePoint, previousPagePoint, currentPagePoint },
 		} = this.editor
@@ -94,9 +95,7 @@ export class ScribbleBrushing extends StateNode {
 			this.pushPointToScribble()
 		}
 
-		const shapes = this.editor.getShapesInsideBounds(
-			Box.FromPoints([previousPagePoint, currentPagePoint])
-		)
+		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
 
 		const minDist = 0 // HIT_TEST_MARGIN / zoomLevel

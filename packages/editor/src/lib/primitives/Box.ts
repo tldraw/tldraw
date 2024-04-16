@@ -376,10 +376,6 @@ export class Box {
 		return new Box(minX, minY, maxX - minX, maxY - minY)
 	}
 
-	static AroundPoint(point: VecLike, n: number) {
-		return new Box(point.x - n, point.y - n, 2 * n, 2 * n)
-	}
-
 	static Expand(A: Box, B: Box) {
 		const minX = Math.min(B.minX, A.minX)
 		const minY = Math.min(B.minY, A.minY)
