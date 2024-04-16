@@ -1,4 +1,4 @@
-/** @internal */
+/** @public */
 export class FpsTracker {
 	private startTime = 0
 	private name = ''

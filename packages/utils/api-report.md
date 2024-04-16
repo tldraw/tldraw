@@ -75,7 +75,7 @@ export function filterEntries<Key extends string, Value>(object: {
 // @internal
 export function fpsThrottle(fn: () => void): () => void;
 
-// @internal (undocumented)
+// @public (undocumented)
 export class FpsTracker {
     // (undocumented)
     isStarted(): boolean;
