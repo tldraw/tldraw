@@ -1,5 +1,6 @@
 import { COARSE_POINTER_WIDTH, EDGE_SCROLL_DISTANCE, EDGE_SCROLL_SPEED } from '../constants'
 import { Editor } from '../editor/Editor'
+import { Vec } from '../primitives/Vec'
 
 /**
  * Helper function to get the scroll proximity factor for a given position.
@@ -64,9 +65,5 @@ export function moveCameraWhenCloseToEdge(editor: Editor) {
 
 	const camera = editor.getCamera()
 
-	editor.setCamera({
-		x: camera.x + scrollDeltaX,
-		y: camera.y + scrollDeltaY,
-		z: camera.z,
-	})
+	editor.setCamera(new Vec(camera.x + scrollDeltaX, camera.y + scrollDeltaY, camera.z))
 }

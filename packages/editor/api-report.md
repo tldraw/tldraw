@@ -588,13 +588,24 @@ export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, shapeUtils, tools, getContainer, cameraOptions, initialState, inferDarkMode, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
-    animateShape(partial: null | TLShapePartial | undefined, animationOptions?: TLAnimationOptions): this;
-    animateShapes(partials: (null | TLShapePartial | undefined)[], animationOptions?: Partial<{
-        duration: number;
-        easing: (t: number) => number;
+    animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
+        animation: Partial<{
+            duration: number;
+            easing: (t: number) => number;
+        }>;
+        force: boolean;
+        immediate: boolean;
+        initial: boolean;
     }>): this;
-    animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
-    animateToUser(userId: string): this;
+    animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: Partial<{
+        animation: Partial<{
+            duration: number;
+            easing: (t: number) => number;
+        }>;
+        force: boolean;
+        immediate: boolean;
+        initial: boolean;
+    }>): this;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         extras?: Record<string, unknown>;
@@ -611,7 +622,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     cancelDoubleClick(): void;
     // @internal (undocumented)
     capturedPointerId: null | number;
-    centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this;
+    centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
     clearOpenMenus(): this;
     // @internal
     protected _clickManager: ClickManager;
@@ -681,9 +692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getCamera(): TLCamera;
-    // (undocumented)
     getCameraFitZoom(): number;
-    // (undocumented)
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
@@ -853,18 +862,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
-    pageToScreen(point: VecLike): {
-        x: number;
-        y: number;
-        z: number;
-    };
-    pageToViewport(point: VecLike): {
-        x: number;
-        y: number;
-        z: number;
-    };
-    pan(offset: VecLike, animation?: TLAnimationOptions): this;
-    panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
+    pageToScreen(point: VecLike): Vec;
+    pageToViewport(point: VecLike): Vec;
+    pan(offset: VecLike, opts?: TLCameraMoveOptions): this;
+    panZoomIntoView(ids: TLShapeId[], opts?: TLCameraMoveOptions): this;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, options?: {
         point?: VecLike;
@@ -883,27 +884,18 @@ export class Editor extends EventEmitter<TLEventMap> {
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
     renderingBoundsMargin: number;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
-    resetZoom(point?: Vec, animation?: TLAnimationOptions): this;
+    resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
-    screenToPage(point: VecLike): {
-        x: number;
-        y: number;
-        z: number;
-    };
+    screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
     selectNone(): this;
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
-    setCamera(point: VecLike, opts?: TLAnimationOptions & {
-        force?: boolean;
-        immediate?: boolean;
-        initial?: boolean;
-    }): this;
-    // (undocumented)
+    setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
     setCameraOptions(options: TLCameraOptions, opts?: {
         force?: boolean;
         immediate?: boolean;
@@ -962,15 +954,17 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
-    zoomIn(point?: Vec, animation?: TLAnimationOptions): this;
-    zoomOut(point?: Vec, animation?: TLAnimationOptions): this;
-    zoomToBounds(bounds: Box, opts?: {
+    zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
+    zoomOut(point?: Vec, opts?: TLCameraMoveOptions): this;
+    zoomToBounds(bounds: BoxLike, opts?: {
         inset?: number;
         targetZoom?: number;
-    } & TLAnimationOptions): this;
-    zoomToContent(opts?: TLAnimationOptions): this;
-    zoomToFit(animation?: TLAnimationOptions): this;
-    zoomToSelection(animation?: TLAnimationOptions): this;
+    } & TLCameraMoveOptions): this;
+    zoomToContent(opts?: TLCameraMoveOptions): this;
+    zoomToFit(opts?: TLCameraMoveOptions): this;
+    zoomToSelection(opts?: TLCameraMoveOptions): this;
+    zoomToShape(shapeId: TLShapeId, opts?: TLCameraMoveOptions): this;
+    zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
 }
 
 // @internal (undocumented)
@@ -1221,9 +1215,6 @@ export function hardReset({ shouldReload }?: {
 
 // @public (undocumented)
 export function hardResetEditor(): void;
-
-// @internal (undocumented)
-export const HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
 
 // @public (undocumented)
 export const HIT_TEST_MARGIN = 8;
@@ -1926,12 +1917,6 @@ export type TLAfterCreateHandler<R extends TLRecord> = (record: R, source: 'remo
 export type TLAfterDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void;
 
 // @public (undocumented)
-export type TLAnimationOptions = Partial<{
-    duration: number;
-    easing: (t: number) => number;
-}>;
-
-// @public (undocumented)
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
 // @public (undocumented)
@@ -2012,6 +1997,17 @@ export type TLBrushProps = {
     color?: string;
     opacity?: number;
 };
+
+// @public (undocumented)
+export type TLCameraMoveOptions = Partial<{
+    animation: Partial<{
+        duration: number;
+        easing: (t: number) => number;
+    }>;
+    force: boolean;
+    immediate: boolean;
+    initial: boolean;
+}>;
 
 // @public (undocumented)
 export type TLCameraOptions = {

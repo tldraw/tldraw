@@ -114,7 +114,6 @@ export {
 	DOUBLE_CLICK_DURATION,
 	DRAG_DISTANCE,
 	GRID_STEPS,
-	HASH_PATTERN_ZOOM_NAMES,
 	HIT_TEST_MARGIN,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
@@ -125,7 +124,7 @@ export {
 } from './lib/constants'
 export {
 	Editor,
-	type TLAnimationOptions,
+	type TLCameraMoveOptions,
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'

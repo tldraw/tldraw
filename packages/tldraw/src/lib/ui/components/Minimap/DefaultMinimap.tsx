@@ -54,7 +54,7 @@ export function DefaultMinimap() {
 			minimap.originPagePoint.setTo(clampedPoint)
 			minimap.originPageCenter.setTo(editor.getViewportPageBounds().center)
 
-			editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
+			editor.centerOnPoint(point, { animation: { duration: ANIMATION_MEDIUM_MS } })
 		},
 		[editor, minimap]
 	)
@@ -85,7 +85,7 @@ export function DefaultMinimap() {
 				const pagePoint = Vec.Add(point, delta)
 				minimap.originPagePoint.setTo(pagePoint)
 				minimap.originPageCenter.setTo(point)
-				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
+				editor.centerOnPoint(point, { animation: { duration: ANIMATION_MEDIUM_MS } })
 			}
 
 			function release(e: PointerEvent) {

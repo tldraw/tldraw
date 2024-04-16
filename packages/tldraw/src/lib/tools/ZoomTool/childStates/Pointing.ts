@@ -26,9 +26,9 @@ export class Pointing extends StateNode {
 	private complete() {
 		const { currentScreenPoint } = this.editor.inputs
 		if (this.editor.inputs.altKey) {
-			this.editor.zoomOut(currentScreenPoint, { duration: 220 })
+			this.editor.zoomOut(currentScreenPoint, { animation: { duration: 220 } })
 		} else {
-			this.editor.zoomIn(currentScreenPoint, { duration: 220 })
+			this.editor.zoomIn(currentScreenPoint, { animation: { duration: 220 } })
 		}
 		this.parent.transition('idle', this.info)
 	}

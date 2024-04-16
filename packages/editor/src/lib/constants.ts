@@ -54,16 +54,6 @@ export const DRAG_DISTANCE = 16 // 4 squared
 export const SVG_PADDING = 32
 
 /** @internal */
-export const HASH_PATTERN_ZOOM_NAMES: Record<string, string> = {}
-
-export const HASH_PATTERN_COUNT = 6
-
-for (let zoom = 1; zoom <= HASH_PATTERN_COUNT; zoom++) {
-	HASH_PATTERN_ZOOM_NAMES[zoom + '_dark'] = `hash_pattern_zoom_${zoom}_dark`
-	HASH_PATTERN_ZOOM_NAMES[zoom + '_light'] = `hash_pattern_zoom_${zoom}_light`
-}
-
-/** @internal */
 export const DEFAULT_ANIMATION_OPTIONS = {
 	duration: 0,
 	easing: EASINGS.easeInOutCubic,

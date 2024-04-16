@@ -3,7 +3,6 @@ import {
 	DefaultFontFamilies,
 	DefaultFontStyle,
 	FileHelpers,
-	HASH_PATTERN_ZOOM_NAMES,
 	SvgExportDef,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
@@ -11,9 +10,18 @@ import {
 	debugFlags,
 	useEditor,
 } from '@tldraw/editor'
-import { HASH_PATTERN_COUNT } from '@tldraw/editor/src/lib/constants'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDefaultColorTheme } from './ShapeFill'
+
+/** @internal */
+export const HASH_PATTERN_ZOOM_NAMES: Record<string, string> = {}
+
+const HASH_PATTERN_COUNT = 6
+
+for (let zoom = 1; zoom <= HASH_PATTERN_COUNT; zoom++) {
+	HASH_PATTERN_ZOOM_NAMES[zoom + '_dark'] = `hash_pattern_zoom_${zoom}_dark`
+	HASH_PATTERN_ZOOM_NAMES[zoom + '_light'] = `hash_pattern_zoom_${zoom}_light`
+}
 
 /** @public */
 export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {
