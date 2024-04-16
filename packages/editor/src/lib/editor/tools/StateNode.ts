@@ -12,7 +12,7 @@ import {
 } from '../types/event-types'
 
 type TLStateNodeType = 'branch' | 'leaf' | 'root'
-const eventsToTrack = [
+const STATE_NODES_TO_MEASURE = [
 	'resizing',
 	'erasing',
 	'translating',
@@ -135,7 +135,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 			if (this.fpsTracker.isStarted()) {
 				this.fpsTracker.stop()
 			}
-			if (eventsToTrack.includes(id)) {
+			if (STATE_NODES_TO_MEASURE.includes(id)) {
 				this.fpsTracker.start(id)
 			}
 		}
