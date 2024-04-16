@@ -1,8 +1,5 @@
-import { debugFlags, measureCbDuration, useValue } from '@tldraw/editor'
-import { TLUiEventSource } from '../context/events'
-import { TLUiOverrides } from '../overrides'
+import { TLUiEventSource, TLUiOverrides, debugFlags, measureCbDuration, useValue } from 'tldraw'
 
-/** @internal */
 export function usePerformance(): TLUiOverrides {
 	const measurePerformance = useValue(
 		'measurePerformance',

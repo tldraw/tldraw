@@ -20,7 +20,6 @@ import {
 	atom,
 	lns,
 	useActions,
-	usePerformance,
 	useValue,
 } from 'tldraw'
 import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
@@ -128,7 +127,6 @@ export function MultiplayerEditor({
 
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
-	const performanceOverrides = usePerformance()
 	const cursorChatOverrides = useCursorChat()
 
 	const handleMount = useCallback(
@@ -152,12 +150,7 @@ export function MultiplayerEditor({
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}
-				overrides={[
-					sharingUiOverrides,
-					fileSystemUiOverrides,
-					cursorChatOverrides,
-					performanceOverrides,
-				]}
+				overrides={[sharingUiOverrides, fileSystemUiOverrides, cursorChatOverrides]}
 				initialState={isReadOnly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}

@@ -1,5 +1,6 @@
-import { Tldraw, usePerformance } from 'tldraw'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { usePerformance } from '../hooks/usePerformance'
 
 export default function Develop() {
 	const performanceOverrides = usePerformance()

@@ -18,7 +18,6 @@ import {
 	TldrawUiMenuItem,
 	ViewSubmenu,
 	useActions,
-	usePerformance,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -90,7 +89,6 @@ export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
-	const performanceOverrides = usePerformance()
 
 	const handleMount = useCallback((editor: Editor) => {
 		;(window as any).app = editor
@@ -105,7 +103,7 @@ export function LocalEditor() {
 				persistenceKey={SCRATCH_PERSISTENCE_KEY}
 				onMount={handleMount}
 				autoFocus
-				overrides={[sharingUiOverrides, fileSystemUiOverrides, performanceOverrides]}
+				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
 				inferDarkMode
