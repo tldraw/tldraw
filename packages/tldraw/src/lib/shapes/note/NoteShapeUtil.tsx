@@ -102,8 +102,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const zoom = this.editor.getZoomLevel()
 		const offset = CLONE_HANDLE_MARGIN / zoom
 		const noteHeight = getNoteHeight(shape)
+		const isCoarsePointer = this.editor.getInstanceState().isCoarsePointer
 
-		if (zoom < 0.25) return []
+		if (zoom < 0.25 || isCoarsePointer) return []
 
 		return [
 			{
