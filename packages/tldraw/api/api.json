@@ -13382,6 +13382,36 @@
             },
             {
               "kind": "Property",
+              "canonicalReference": "tldraw!NoteShapeUtil#onTranslateStart:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onTranslateStart: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onTranslateStart",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
               "canonicalReference": "tldraw!NoteShapeUtil.props:member",
               "docComment": "",
               "excerptTokens": [

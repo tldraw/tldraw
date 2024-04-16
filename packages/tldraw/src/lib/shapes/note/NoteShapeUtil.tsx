@@ -138,6 +138,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		]
 	}
 
+	override onTranslateStart = () => {
+		const container = this.editor.getContainer()
+		container.focus()
+	}
+
 	component(shape: TLNoteShape) {
 		const {
 			id,
