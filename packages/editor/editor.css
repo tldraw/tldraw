@@ -1089,7 +1089,12 @@ input,
  *  - draw/line shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
  */
 .tl-canvas[data-iseditinganything='true']
-	.tl-shape:not([data-shape-type='arrow'], [data-shape-type='draw'], [data-shape-type='line'], [data-shape-type='highlight']) {
+	.tl-shape:not(
+		[data-shape-type='arrow'],
+		[data-shape-type='draw'],
+		[data-shape-type='line'],
+		[data-shape-type='highlight']
+	) {
 	pointer-events: all;
 }
 
