@@ -144,13 +144,8 @@ export class EditingShape extends StateNode {
 
 		this.editor.select(hitShape.id)
 
-		if (this.editor.getInstanceState().isCoarsePointer) {
-			this.editor.setEditingShape(null)
-			this.editor.setCurrentTool('select.idle')
-		} else {
-			this.editor.setEditingShape(hitShape.id)
-			updateHoveredId(this.editor)
-		}
+		this.editor.setEditingShape(hitShape.id)
+		updateHoveredId(this.editor)
 	}
 
 	override onComplete: TLEventHandlers['onComplete'] = (info) => {
