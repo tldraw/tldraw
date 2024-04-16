@@ -8231,8 +8231,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			{
 				id: TLPOINTER_ID,
 				typeName: 'pointer',
-				x: sx,
-				y: sy,
+				x: currentPagePoint.x,
+				y: currentPagePoint.y,
 				lastActivityTimestamp:
 					// If our pointer moved only because we're following some other user, then don't
 					// update our last activity timestamp; otherwise, update it to the current timestamp.
