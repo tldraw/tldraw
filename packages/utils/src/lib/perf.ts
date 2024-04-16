@@ -3,7 +3,7 @@ export function measureCbDuration(name: string, cb: () => any) {
 	const now = performance.now()
 	const result = cb()
 	// eslint-disable-next-line no-console
-	console.log(`${name} took`, performance.now() - now, 'ms')
+	console.log(`${name} took:`, performance.now() - now, 'ms')
 	return result
 }
 

@@ -13,7 +13,7 @@ export function usePerformance(): TLUiOverrides {
 				const action = actions[key]
 				const cb = action.onSelect
 				action.onSelect = (source: TLUiEventSource) => {
-					return measureCbDuration(key, () => cb(source))
+					return measureCbDuration(`Action ${key}`, () => cb(source))
 				}
 			})
 
