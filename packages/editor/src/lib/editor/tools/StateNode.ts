@@ -20,6 +20,7 @@ const STATE_NODES_TO_MEASURE = [
 	'drawing',
 	'brushing',
 	'scribble_brushing',
+	'dragging_handle',
 ]
 
 /** @public */
@@ -131,14 +132,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 * @public
 	 */
 	transition = (id: string, info: any = {}) => {
-		if (debugFlags.measurePerformance.get()) {
-			if (this.fpsTracker.isStarted()) {
-				this.fpsTracker.stop()
-			}
-			if (STATE_NODES_TO_MEASURE.includes(id)) {
-				this.fpsTracker.start(id)
-			}
-		}
 		const path = id.split('.')
 
 		let currState = this as StateNode
@@ -180,6 +173,10 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	// todo: move this logic into transition
 	enter = (info: any, from: string) => {
+		if (debugFlags.measurePerformance.get() && STATE_NODES_TO_MEASURE.includes(this.id)) {
+			this.fpsTracker.start(this.id)
+		}
+
 		this._isActive.set(true)
 		this.onEnter?.(info, from)
 
@@ -192,6 +189,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	// todo: move this logic into transition
 	exit = (info: any, from: string) => {
+		if (debugFlags.measurePerformance.get() && this.fpsTracker.isStarted()) {
+			this.fpsTracker.stop()
+		}
 		this._isActive.set(false)
 		this.onExit?.(info, from)
 
