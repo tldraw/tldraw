@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react'
-import { Vec } from '../primitives/Vec'
 import {
 	preventDefault,
 	releasePointerCapture,
@@ -58,18 +57,10 @@ export function useCanvasEvents() {
 				lastX = e.clientX
 				lastY = e.clientY
 
-				const { screenBounds } = editor.getInstanceState()
-				const { x: cx, y: cy, z: cz } = editor.getCamera()
-				const sx = lastX - screenBounds.x
-				const sy = lastY - screenBounds.y
-				const sz = e.pressure
-
 				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_move',
-					pagePoint: new Vec(sx / cz - cx, sy / cz - cy, sz ?? 0.5),
-					coalescedInfo: [],
 					...getPointerInfo(e),
 				})
 			}

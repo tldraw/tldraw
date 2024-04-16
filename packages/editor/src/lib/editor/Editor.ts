@@ -126,7 +126,6 @@ import {
 	TLEventInfo,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
-	TLPointerMoveEventInfo,
 	TLWheelEventInfo,
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
@@ -8637,21 +8636,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	capturedPointerId: number | null = null
-
-	private _shouldCoalesce = (info: TLEventInfo) => {
-		if (!this._isCoalesableEvent(info)) return false
-		return (
-			this._pendingEventsForNextTick.length === 1 &&
-			this._pendingEventsForNextTick[0].name === info.name
-		)
-	}
-
-	private _isCoalesableEvent = (info: TLEventInfo): info is TLPointerMoveEventInfo => {
-		if ((info as any).coalescedInfo) {
-			return true
-		}
-		return false
-	}
 
 	/**
 	 * Dispatch an event to the editor.
