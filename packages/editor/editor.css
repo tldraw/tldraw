@@ -1086,15 +1086,11 @@ input,
  * don't click on shapes that are behind other shapes.
  * One extra nuance is we don't use this behavior for:
  *  - arrows which have weird geometry and just gets in the way.
- *  - draw shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
+ *  - draw/line shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
  */
 .tl-canvas[data-iseditinganything='true']
-	.tl-shape:not([data-shape-type='arrow']):not([data-shape-type='draw']) {
+	.tl-shape:not([data-shape-type='arrow'], [data-shape-type='draw'], [data-shape-type='line'], [data-shape-type='highlight']) {
 	pointer-events: all;
-}
-/* But, re-disable the pointer-events rule for the svg container. */
-.tl-canvas[data-iseditinganything='true'] .tl-shape .tl-svg-container {
-	pointer-events: none;
 }
 
 .tl-text-label[data-textwrap='true'] > .tl-text-label__inner {
