@@ -139,6 +139,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override onTranslateStart = () => {
+		// Re-focus, just in case the text label of the note has stolen focus
 		const container = this.editor.getContainer()
 		container.focus()
 	}
