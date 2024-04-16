@@ -148,6 +148,14 @@ describe('Spatial Index', () => {
 		// We only updated the group's position, but spatial index should have also updated
 		// the bounds of the shapes inside the group
 		expect(editor.getShapeIdsInsideBounds(groupBounds!)).toEqual([box1, box2, groupId])
+
+		editor.updateShape({ id: box1, type: 'geo', x: -1000 })
+		const box1Bounds = editor.getShapePageBounds(box1)
+		expect(box1Bounds).toEqual({ x: 0, y: 0, w: 100, h: 100 })
+
+		// We only updated box1's position, but spatial index should have also updated
+		// the bounds of the parent group
+		expect(editor.getShapeIdsInsideBounds(box1Bounds!)).toEqual([box1, groupId])
 	})
 
 	it('works for frames', () => {
