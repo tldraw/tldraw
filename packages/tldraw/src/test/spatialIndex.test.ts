@@ -145,7 +145,8 @@ describe('Spatial Index', () => {
 		// Make sure the group bounds are updated
 		expect(groupBounds).toEqual({ x: 1000, y: 0, w: 300, h: 300 })
 
-		// Spatial index should see shapes inside these bounds
+		// We only updated the group's position, but spatial index should have also updated
+		// the bounds of the shapes inside the group
 		expect(editor.getShapeIdsInsideBounds(groupBounds!)).toEqual([box1, box2, groupId])
 	})
 
@@ -178,7 +179,8 @@ describe('Spatial Index', () => {
 		frameBounds = editor.getShapePageBounds(frameId)
 		expect(frameBounds).toEqual({ x: 1000, y: 0, w: 300, h: 300 })
 
-		// Spatial index should see shapes inside these bounds
+		// We only updated the frame's position, but spatial index should have also updated
+		// the bounds of the shapes inside the frame
 		expect(editor.getShapeIdsInsideBounds(frameBounds!)).toEqual([box1, frameId])
 	})
 
@@ -238,7 +240,8 @@ describe('Spatial Index', () => {
 		boxBounds = editor.getShapePageBounds(boxId)
 		expect(boxBounds).toEqual({ x: -200, y: 200, w: 100, h: 100 })
 
-		// Arrow should be inside the new box bounds
+		// We only updated the box's position, but spatial index should have also updated
+		// the bounds of the arrow bound to it
 		expect(editor.getShapeIdsInsideBounds(boxBounds!)).toEqual([arrowId, boxId])
 	})
 })
