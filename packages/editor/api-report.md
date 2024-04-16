@@ -188,8 +188,6 @@ export interface BoundsSnapPoint {
 export class Box {
     constructor(x?: number, y?: number, w?: number, h?: number);
     // (undocumented)
-    static AroundPoint(point: VecLike, n: number): Box;
-    // (undocumented)
     get aspectRatio(): number;
     // (undocumented)
     get center(): Vec;
@@ -757,7 +755,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeClipPath(shape: TLShape | TLShapeId): string | undefined;
     getShapeGeometry<T extends Geometry2d>(shape: TLShape | TLShapeId): T;
     getShapeHandles<T extends TLShape>(shape: T | T['id']): TLHandle[] | undefined;
-    getShapeIdsInsideBounds(bounds: Box): TLShapeId[];
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
@@ -769,7 +766,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): TLShape[];
-    getShapesInsideBounds(bounds: Box): TLShape[];
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
