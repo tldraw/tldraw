@@ -4275,6 +4275,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			renderingOnly?: boolean
 			margin?: number
 			hitInside?: boolean
+			// TODO: we probably need to rename this, we don't quite _always_
+			// respect this esp. in the part below that does "Check labels first"
 			hitLabels?: boolean
 			hitFrameInside?: boolean
 			filter?: (shape: TLShape) => boolean
