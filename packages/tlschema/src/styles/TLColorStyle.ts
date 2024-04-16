@@ -67,7 +67,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		blue: {
-			solid: '#4263eb',
+			solid: '#4465e9',
 			note: {
 				fill: '#8AA3FF',
 				text: '#000000',
@@ -106,7 +106,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		'light-blue': {
-			solid: '#49a1f3',
+			solid: '#4ba1f1',
 			note: {
 				fill: '#9BC4FD',
 				text: '#000000',
@@ -119,7 +119,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		'light-green': {
-			solid: '#4db360',
+			solid: '#4cb05e',
 			note: {
 				fill: '#98D08A',
 				text: '#000000',
@@ -158,7 +158,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		orange: {
-			solid: '#ea6d1a',
+			solid: '#e16919',
 			note: {
 				fill: '#FAA475',
 				text: '#000000',
