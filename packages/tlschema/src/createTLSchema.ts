@@ -1,16 +1,26 @@
-import { Migrations, StoreSchema } from '@tldraw/store'
+import { LegacyMigrations, MigrationSequence, StoreSchema } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
-import { AssetRecordType } from './records/TLAsset'
-import { CameraRecordType } from './records/TLCamera'
-import { DocumentRecordType } from './records/TLDocument'
-import { createInstanceRecordType } from './records/TLInstance'
-import { PageRecordType } from './records/TLPage'
-import { InstancePageStateRecordType } from './records/TLPageState'
-import { PointerRecordType } from './records/TLPointer'
-import { InstancePresenceRecordType } from './records/TLPresence'
+import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
+import { imageAssetMigrations } from './assets/TLImageAsset'
+import { videoAssetMigrations } from './assets/TLVideoAsset'
+import { AssetRecordType, assetMigrations } from './records/TLAsset'
+import { CameraRecordType, cameraMigrations } from './records/TLCamera'
+import { DocumentRecordType, documentMigrations } from './records/TLDocument'
+import { createInstanceRecordType, instanceMigrations } from './records/TLInstance'
+import { PageRecordType, pageMigrations } from './records/TLPage'
+import { InstancePageStateRecordType, instancePageStateMigrations } from './records/TLPageState'
+import { PointerRecordType, pointerMigrations } from './records/TLPointer'
+import { InstancePresenceRecordType, instancePresenceMigrations } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
-import { TLDefaultShape, createShapeRecordType, getShapePropKeysByStyle } from './records/TLShape'
+import {
+	TLDefaultShape,
+	TLShapePropsMigrations,
+	createShapeRecordType,
+	getShapePropKeysByStyle,
+	processShapeMigrations,
+	rootShapeMigrations,
+} from './records/TLShape'
 import { arrowShapeMigrations, arrowShapeProps } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations, bookmarkShapeProps } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations, drawShapeProps } from './shapes/TLDrawShape'
@@ -34,7 +44,7 @@ type AnyValidator = {
 
 /** @public */
 export type SchemaShapeInfo = {
-	migrations?: Migrations
+	migrations?: LegacyMigrations | TLShapePropsMigrations | MigrationSequence
 	props?: Record<string, AnyValidator>
 	meta?: Record<string, AnyValidator>
 }
@@ -66,8 +76,10 @@ const defaultShapes: { [T in TLDefaultShape['type']]: SchemaShapeInfo } = {
  * @public */
 export function createTLSchema({
 	shapes = defaultShapes,
+	migrations,
 }: {
 	shapes?: Record<string, SchemaShapeInfo>
+	migrations?: readonly MigrationSequence[]
 } = {}): TLSchema {
 	const stylesById = new Map<string, StyleProp<unknown>>()
 	for (const shape of objectMapValues(shapes)) {
@@ -90,14 +102,33 @@ export function createTLSchema({
 			instance: InstanceRecordType,
 			instance_page_state: InstancePageStateRecordType,
 			page: PageRecordType,
-			shape: ShapeRecordType,
 			instance_presence: InstancePresenceRecordType,
 			pointer: PointerRecordType,
+			shape: ShapeRecordType,
 		},
 		{
-			snapshotMigrations: storeMigrations,
+			migrations: [
+				storeMigrations,
+				assetMigrations,
+				cameraMigrations,
+				documentMigrations,
+				instanceMigrations,
+				instancePageStateMigrations,
+				pageMigrations,
+				instancePresenceMigrations,
+				pointerMigrations,
+				rootShapeMigrations,
+
+				bookmarkAssetMigrations,
+				imageAssetMigrations,
+				videoAssetMigrations,
+
+				...processShapeMigrations(shapes),
+
+				...(migrations ?? []),
+			],
 			onValidationFailure,
-			createIntegrityChecker: createIntegrityChecker,
+			createIntegrityChecker,
 		}
 	)
 }

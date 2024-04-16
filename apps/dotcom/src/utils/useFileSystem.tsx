@@ -108,34 +108,33 @@ export function getSaveFileCopyAction(
 		readonlyOk: true,
 		kbd: '$s',
 		async onSelect(source) {
+			handleUiEvent('save-project-to-file', { source })
+			const documentName =
+				editor.getDocumentSettings().name === ''
+					? defaultDocumentName
+					: editor.getDocumentSettings().name
+			const defaultName =
+				saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
+
+			const blobToSave = serializeTldrawJsonBlob(editor.store)
+			let handle
 			try {
-				handleUiEvent('save-project-to-file', { source })
-				const documentName =
-					editor.getDocumentSettings().name === ''
-						? defaultDocumentName
-						: editor.getDocumentSettings().name
-				const defaultName =
-					saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
-
-				const blobToSave = serializeTldrawJsonBlob(editor.store)
-
-				const handle = await fileSave(blobToSave, {
+				handle = await fileSave(blobToSave, {
 					fileName: defaultName,
 					extensions: [TLDRAW_FILE_EXTENSION],
 					description: 'tldraw project',
 				})
-
-				if (handle) {
-					// we deliberately don't store the handle for re-use
-					// next time. we always want to save a copy, but to
-					// help the user out we'll remember the last name
-					// they used
-					saveFileNames.set(editor.store, handle.name)
-				} else {
-					throw Error('Could not save file.')
-				}
 			} catch (e) {
-				console.error(e)
+				// user cancelled
+				return
+			}
+
+			if (handle) {
+				// we deliberately don't store the handle for re-use
+				// next time. we always want to save a copy, but to
+				// help the user out we'll remember the last name
+				// they used
+				saveFileNames.set(editor.store, handle.name)
 			}
 		},
 	}

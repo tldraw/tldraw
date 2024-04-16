@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.41.0",
+    "toolVersion": "7.43.1",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -368,7 +368,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    readonly ok: false;\n    readonly error: E;\n}"
+              "text": "{\n    readonly error: E;\n    readonly ok: false;\n}"
             },
             {
               "kind": "Content",
@@ -1919,7 +1919,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n        w: number;\n        h: number;\n    }>"
+                  "text": "<{\n        h: number;\n        w: number;\n    }>"
                 },
                 {
                   "kind": "Content",
@@ -1973,7 +1973,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n        w: number;\n        h: number;\n    }>"
+                  "text": "<{\n        h: number;\n        w: number;\n    }>"
                 },
                 {
                   "kind": "Content",
@@ -2908,16 +2908,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    ok<T>(value: T): "
-            },
-            {
-              "kind": "Reference",
-              "text": "OkResult",
-              "canonicalReference": "@tldraw/utils!OkResult:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<T>;\n    err<E>(error: E): "
+              "text": "{\n    err<E>(error: E): "
             },
             {
               "kind": "Reference",
@@ -2926,7 +2917,16 @@
             },
             {
               "kind": "Content",
-              "text": "<E>;\n}"
+              "text": "<E>;\n    ok<T>(value: T): "
+            },
+            {
+              "kind": "Reference",
+              "text": "OkResult",
+              "canonicalReference": "@tldraw/utils!OkResult:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<T>;\n}"
             }
           ],
           "fileUrlPath": "packages/utils/src/lib/control.ts",

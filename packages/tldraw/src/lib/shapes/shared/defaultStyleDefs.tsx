@@ -179,6 +179,11 @@ function usePattern() {
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(defaultPatterns)
 
 	useEffect(() => {
+		if (process.env.NODE_ENV === 'test') {
+			setIsReady(true)
+			return
+		}
+
 		const promises: Promise<{ zoom: number; url: string; darkMode: boolean }>[] = []
 
 		for (let i = 1; i <= HASH_PATTERN_COUNT; i++) {

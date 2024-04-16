@@ -318,7 +318,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	onAfterCreate?: (record: R, source: 'remote' | 'user') => void
 
 	/**
-	 * A callback before after each record's change.
+	 * A callback fired before each record's change.
 	 *
 	 * @param prev - The previous value, if any.
 	 * @param next - The next value.
@@ -617,11 +617,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			throw new Error(`Failed to migrate snapshot: ${migrationResult.reason}`)
 		}
 
-		transact(() => {
-			this.clear()
-			this.put(Object.values(migrationResult.value))
-			this.ensureStoreIsUsable()
-		})
+		const prevRunCallbacks = this._runCallbacks
+		try {
+			this._runCallbacks = false
+			transact(() => {
+				this.clear()
+				this.put(Object.values(migrationResult.value))
+				this.ensureStoreIsUsable()
+			})
+		} finally {
+			this._runCallbacks = prevRunCallbacks
+		}
 	}
 
 	/**

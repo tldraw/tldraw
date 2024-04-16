@@ -253,7 +253,7 @@ describe('when shape is hollow', () => {
 	})
 
 	it('misses on pointer down over shape, misses on pointer up', () => {
-		editor.pointerMove(75, 75)
+		editor.pointerMove(10, 10)
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		expect(editor.getSelectedShapeIds()).toEqual([])
@@ -548,7 +548,7 @@ describe('when shape is inside of a frame', () => {
 	})
 
 	it('misses on pointer down over shape, misses on pointer up', () => {
-		editor.pointerMove(50, 50)
+		editor.pointerMove(35, 35)
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown() // inside of box1 (which is empty)
 		expect(editor.getSelectedShapeIds()).toEqual([])
@@ -1235,7 +1235,7 @@ describe('when shift+selecting', () => {
 	it('does not add hollow shape to selection on pointer up when in empty space', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Shift')
-		editor.pointerMove(275, 75) // above box 2
+		editor.pointerMove(215, 75) // above box 2
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
@@ -1256,7 +1256,7 @@ describe('when shift+selecting', () => {
 
 	it('does not add and remove hollow shape from selection on pointer up (without causing an edit by double clicks)', () => {
 		editor.keyDown('Shift')
-		editor.pointerMove(275, 75) // above box 2, empty space
+		editor.pointerMove(215, 75) // above box 2, empty space
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
@@ -1270,7 +1270,7 @@ describe('when shift+selecting', () => {
 
 	it('does not add and remove hollow shape from selection on double clicks (without causing an edit by double clicks)', () => {
 		editor.keyDown('Shift')
-		editor.pointerMove(275, 75) // above box 2, empty space
+		editor.pointerMove(215, 75) // above box 2, empty space
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
@@ -1304,7 +1304,7 @@ describe('when shift+selecting a group', () => {
 
 	it('does not add to selection on shift + on pointer up when clicking in hollow shape', () => {
 		editor.keyDown('Shift')
-		editor.pointerMove(275, 75)
+		editor.pointerMove(215, 75)
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown() // inside of box 2, inside of group 1
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
@@ -1333,7 +1333,7 @@ describe('when shift+selecting a group', () => {
 	})
 
 	it('does not select when shift+clicking into hollow shape inside of a group', () => {
-		editor.pointerMove(275, 75)
+		editor.pointerMove(215, 75)
 		editor.keyDown('Shift')
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown() // inside of box 2, empty space, inside of group 1
@@ -1344,7 +1344,7 @@ describe('when shift+selecting a group', () => {
 
 	it('does not deselect on pointer up when clicking into empty space in hollow shape', () => {
 		editor.keyDown('Shift')
-		editor.pointerMove(275, 75)
+		editor.pointerMove(215, 75)
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown() // inside of box 2, empty space, inside of group 1
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
@@ -1612,16 +1612,16 @@ describe('shift brushes to add to the selection', () => {
 		editor.keyDown('Shift')
 		editor.pointerDown()
 		editor.pointerMove(1, 1)
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 		editor.keyUp('Shift')
 		// there's a timer here—we should keep the shift mode until the timer expires
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 		jest.advanceTimersByTime(500)
 		// once the timer expires, we should be back in regular mode
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Shift')
 		// there's no timer on key down, so go right into shift mode again
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 	})
 })
 

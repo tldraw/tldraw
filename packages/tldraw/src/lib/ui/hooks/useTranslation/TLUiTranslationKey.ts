@@ -115,6 +115,7 @@ export type TLUiTranslationKey =
 	| 'action.zoom-to-selection'
 	| 'assets.files.upload-failed'
 	| 'assets.url.failed'
+	| 'color-style.white'
 	| 'color-style.black'
 	| 'color-style.blue'
 	| 'color-style.green'

@@ -7,6 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.rooms
+
 node_modules
 dist
 dist-cjs
@@ -93,3 +95,5 @@ apps/docs/content/gen
 
 .wrangler
 /vercel.json
+license-report-prod.html
+license-report.html

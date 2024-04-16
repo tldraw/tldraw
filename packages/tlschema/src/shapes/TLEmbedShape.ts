@@ -1,5 +1,9 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrationSequence,
+} from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
@@ -24,7 +28,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: true,
 		overridePermissions: {
 			'allow-top-navigation': true,
 		},
@@ -50,7 +53,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: true,
 		toEmbedUrl: (url) => {
 			if (
 				!!url.match(
@@ -81,7 +83,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			if (url.includes('/maps/')) {
 				const match = url.match(/@(.*),(.*),(.*)z/)
@@ -120,7 +121,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			// e.g. extract "steveruizok.mathFact" from https://www.val.town/v/steveruizok.mathFact
@@ -149,7 +149,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			const matches = urlObj && urlObj.pathname.match(/\/s\/([^/]+)\/?/)
@@ -176,7 +175,6 @@ export const EMBED_DEFINITIONS = [
 		width: 520,
 		height: 400,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const CODEPEN_URL_REGEXP = /https:\/\/codepen.io\/([^/]+)\/pen\/([^/]+)/
 			const matches = url.match(CODEPEN_URL_REGEXP)
@@ -203,7 +201,6 @@ export const EMBED_DEFINITIONS = [
 		width: 520,
 		height: 400,
 		doesResize: false,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const SCRATCH_URL_REGEXP = /https?:\/\/scratch.mit.edu\/projects\/([^/]+)/
 			const matches = url.match(SCRATCH_URL_REGEXP)
@@ -230,7 +227,6 @@ export const EMBED_DEFINITIONS = [
 		width: 800,
 		height: 450,
 		doesResize: true,
-		canUnmount: false,
 		overridePermissions: {
 			'allow-presentation': true,
 		},
@@ -275,7 +271,6 @@ export const EMBED_DEFINITIONS = [
 		minWidth: 460,
 		minHeight: 360,
 		doesResize: true,
-		canUnmount: false,
 		instructionLink: 'https://support.google.com/calendar/answer/41207?hl=en',
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
@@ -318,7 +313,6 @@ export const EMBED_DEFINITIONS = [
 		minWidth: 460,
 		minHeight: 360,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 
@@ -353,7 +347,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/\/([^/]+)\/([^/]+)/)) {
@@ -378,7 +371,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/\/@([^/]+)\/([^/]+)/)) {
@@ -406,7 +398,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/map\//)) {
@@ -432,7 +423,6 @@ export const EMBED_DEFINITIONS = [
 		minHeight: 500,
 		overrideOutlineRadius: 12,
 		doesResize: true,
-		canUnmount: false,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/(artist|album)\//)) {
@@ -455,7 +445,6 @@ export const EMBED_DEFINITIONS = [
 		width: 640,
 		height: 360,
 		doesResize: true,
-		canUnmount: false,
 		isAspectRatioLocked: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
@@ -486,7 +475,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		isAspectRatioLocked: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
@@ -510,7 +498,6 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
-		canUnmount: false,
 		isAspectRatioLocked: false,
 		backgroundColor: '#fff',
 		toEmbedUrl: (url) => {
@@ -619,7 +606,6 @@ export type EmbedDefinition = {
 	readonly width: number
 	readonly height: number
 	readonly doesResize: boolean
-	readonly canUnmount: boolean
 	readonly isAspectRatioLocked?: boolean
 	readonly overridePermissions?: TLEmbedShapePermissions
 	readonly instructionLink?: string
@@ -630,128 +616,65 @@ export type EmbedDefinition = {
 	readonly fromEmbedUrl: (url: string) => string | undefined
 }
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('embed', {
 	GenOriginalUrlInEmbed: 1,
 	RemoveDoesResize: 2,
 	RemoveTmpOldUrl: 3,
 	RemovePermissionOverrides: 4,
-} as const
+})
+
+export { Versions as embedShapeVersions }
 
 /** @internal */
-export const embedShapeMigrations = defineMigrations({
-	currentVersion: Versions.RemovePermissionOverrides,
-	migrators: {
-		[Versions.GenOriginalUrlInEmbed]: {
+export const embedShapeMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: Versions.GenOriginalUrlInEmbed,
 			// add tmpOldUrl property
-			up: (shape) => {
-				const url = shape.props.url
-				const host = new URL(url).host.replace('www.', '')
-				let originalUrl
-				for (const localEmbedDef of EMBED_DEFINITIONS) {
-					if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
-						try {
-							originalUrl = localEmbedDef.fromEmbedUrl(url)
-						} catch (err) {
-							console.warn(err)
-						}
-					}
-				}
-
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						tmpOldUrl: shape.props.url,
-						url: originalUrl ?? '',
-					},
-				}
-			},
-			// remove tmpOldUrl property
-			down: (shape) => {
-				let newUrl = shape.props.tmpOldUrl
-				if (!newUrl || newUrl === '') {
-					const url = shape.props.url
+			up: (props) => {
+				try {
+					const url = props.url
 					const host = new URL(url).host.replace('www.', '')
-
+					let originalUrl
 					for (const localEmbedDef of EMBED_DEFINITIONS) {
 						if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
 							try {
-								newUrl = localEmbedDef.toEmbedUrl(url)
+								originalUrl = localEmbedDef.fromEmbedUrl(url)
 							} catch (err) {
 								console.warn(err)
 							}
 						}
 					}
-				}
 
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { tmpOldUrl, ...props } = shape.props
-				return {
-					...shape,
-					props: {
-						...props,
-						url: newUrl ?? '',
-					},
+					props.tmpOldUrl = props.url
+					props.url = originalUrl ?? ''
+				} catch (e) {
+					props.url = ''
+					props.tmpOldUrl = props.url
 				}
 			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.RemoveDoesResize]: {
-			up: (shape) => {
-				const { doesResize: _, ...props } = shape.props
-				return {
-					...shape,
-					props: {
-						...props,
-					},
-				}
+		{
+			id: Versions.RemoveDoesResize,
+			up: (props) => {
+				delete props.doesResize
 			},
-			down: (shape) => {
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						doesResize: true,
-					},
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.RemoveTmpOldUrl]: {
-			up: (shape) => {
-				const { tmpOldUrl: _, ...props } = shape.props
-				return {
-					...shape,
-					props: {
-						...props,
-					},
-				}
+		{
+			id: Versions.RemoveTmpOldUrl,
+			up: (props) => {
+				delete props.tmpOldUrl
 			},
-			down: (shape) => {
-				return {
-					...shape,
-					props: {
-						...shape.props,
-					},
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.RemovePermissionOverrides]: {
-			up: (shape) => {
-				const { overridePermissions: _, ...props } = shape.props
-				return {
-					...shape,
-					props: {
-						...props,
-					},
-				}
+		{
+			id: Versions.RemovePermissionOverrides,
+			up: (props) => {
+				delete props.overridePermissions
 			},
-			down: (shape) => {
-				return {
-					...shape,
-					props: {
-						...shape.props,
-					},
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-	},
+	],
 })

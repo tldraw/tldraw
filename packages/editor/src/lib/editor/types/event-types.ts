@@ -1,5 +1,5 @@
 import { TLHandle, TLShape, VecModel } from '@tldraw/tlschema'
-import { Vec, VecLike } from '../../primitives/Vec'
+import { VecLike } from '../../primitives/Vec'
 import { TLSelectionHandle } from './selection-types'
 
 /** @public */
@@ -16,6 +16,7 @@ export type TLPointerEventTarget =
 export type TLPointerEventName =
 	| 'pointer_down'
 	| 'pointer_move'
+	| 'long_press'
 	| 'pointer_up'
 	| 'right_click'
 	| 'middle_click'
@@ -50,7 +51,7 @@ export interface TLBaseEventInfo {
 }
 
 /** @public */
-export type TLBasePointerEventInfo = TLBaseEventInfo & {
+export type TLPointerEventInfo = TLBaseEventInfo & {
 	type: 'pointer'
 	name: TLPointerEventName
 	// The pointer position in client space, i.e. clientX / clientY
@@ -59,15 +60,6 @@ export type TLBasePointerEventInfo = TLBaseEventInfo & {
 	button: number
 	isPen: boolean
 } & TLPointerEventTarget
-
-/** @public */
-export type TLPointerMoveEventInfo = TLBasePointerEventInfo & {
-	coalescedInfo: TLPointerMoveEventInfo[]
-	pagePoint: Vec
-}
-
-/** @public */
-export type TLPointerEventInfo = TLBasePointerEventInfo | TLPointerMoveEventInfo
 
 /** @public */
 export type TLClickEventInfo = TLBaseEventInfo & {
@@ -127,8 +119,6 @@ export type TLEventInfo =
 /** @public */
 export type TLPointerEvent = (info: TLPointerEventInfo) => void
 /** @public */
-export type TLPointerMoveEvent = (info: TLPointerMoveEventInfo) => void
-/** @public */
 export type TLClickEvent = (info: TLClickEventInfo) => void
 /** @public */
 export type TLKeyboardEvent = (info: TLKeyboardEventInfo) => void
@@ -162,7 +152,8 @@ export type TLExitEventHandler = (info: any, to: string) => void
 /** @public */
 export interface TLEventHandlers {
 	onPointerDown: TLPointerEvent
-	onPointerMove: TLPointerMoveEvent
+	onPointerMove: TLPointerEvent
+	onLongPress: TLPointerEvent
 	onRightClick: TLPointerEvent
 	onDoubleClick: TLClickEvent
 	onTripleClick: TLClickEvent
@@ -187,6 +178,7 @@ export const EVENT_NAME_MAP: Record<
 	wheel: 'onWheel',
 	pointer_down: 'onPointerDown',
 	pointer_move: 'onPointerMove',
+	long_press: 'onLongPress',
 	pointer_up: 'onPointerUp',
 	right_click: 'onRightClick',
 	middle_click: 'onMiddleClick',

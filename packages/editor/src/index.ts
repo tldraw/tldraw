@@ -63,10 +63,6 @@ export {
 	type TLHandlesProps,
 } from './lib/components/default-components/DefaultHandles'
 export {
-	DefaultHoveredShapeIndicator,
-	type TLHoveredShapeIndicatorProps,
-} from './lib/components/default-components/DefaultHoveredShapeIndicator'
-export {
 	DefaultScribble,
 	type TLScribbleProps,
 } from './lib/components/default-components/DefaultScribble'
@@ -123,6 +119,7 @@ export {
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
 	MULTI_CLICK_DURATION,
+	SIDES,
 	SVG_PADDING,
 	getDefaultCameraOptions,
 } from './lib/constants'
@@ -303,6 +300,7 @@ export {
 	intersectPolygonBounds,
 	intersectPolygonPolygon,
 	linesIntersect,
+	polygonIntersectsPolyline,
 	polygonsIntersect,
 } from './lib/primitives/intersect'
 export {
