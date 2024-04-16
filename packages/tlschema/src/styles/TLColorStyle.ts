@@ -226,7 +226,7 @@ export const DefaultColorThemePalette: {
 	darkMode: {
 		id: 'dark',
 		text: 'hsl(210, 17%, 98%)',
-		background: 'hsl(240, 5%, 8%)',
+		background: 'hsl(240, 5%, 6.5%)',
 		solid: '#010403',
 
 		black: {
