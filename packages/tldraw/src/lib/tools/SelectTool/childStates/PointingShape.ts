@@ -215,6 +215,9 @@ export class PointingShape extends StateNode {
 
 	private startTranslating(info: TLPointerEventInfo) {
 		if (this.editor.getInstanceState().isReadonly) return
+
+		// Re-focus the editor, just in case the text label of the shape has stolen focus
+		this.editor.getContainer().focus()
 		this.parent.transition('translating', info)
 	}
 
