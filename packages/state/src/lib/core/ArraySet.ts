@@ -144,4 +144,29 @@ export class ArraySet<T> {
 
 		throw new Error('no set or array')
 	}
+
+	has(elem: T) {
+		if (this.array) {
+			return this.array.indexOf(elem) !== -1
+		} else {
+			return this.set!.has(elem)
+		}
+	}
+
+	clear() {
+		if (this.set) {
+			this.set.clear()
+		} else {
+			this.arraySize = 0
+			this.array = []
+		}
+	}
+
+	size() {
+		if (this.set) {
+			return this.set.size
+		} else {
+			return this.arraySize
+		}
+	}
 }
