@@ -1,8 +1,10 @@
 import {
 	Box,
+	ComputedCache,
 	Editor,
 	Geometry2d,
 	Mat,
+	TLShape,
 	Vec,
 	atom,
 	clamp,
@@ -13,43 +15,21 @@ import {
 
 type WebGLGeometry = ReturnType<Geometry2d['getWebGLGeometry']>
 
-class Stats {
-	periods = 0
-	totals = {} as Record<string, number>
-	starts = {} as Record<string, number>
-	start(name: string) {
-		this.starts[name] = performance.now()
-	}
-	end(name: string) {
-		if (!this.starts[name]) throw new Error(`No start for ${name}`)
-		this.totals[name] = (this.totals[name] ?? 0) + (performance.now() - this.starts[name])
-		delete this.starts[name]
-	}
-	tick() {
-		this.periods++
-		if (this.periods === 60) {
-			console.log('Stats:')
-			for (const [name, total] of Object.entries(this.totals).sort((a, b) =>
-				a[0].localeCompare(b[0])
-			)) {
-				console.log(' ', name, total / this.periods)
-			}
-			this.totals = {}
-			this.starts = {}
-			this.periods = 0
-		}
-	}
-}
-
 export class MinimapManager {
 	disposables = [] as (() => void)[]
 	close = () => this.disposables.forEach((d) => d())
 	gl: ReturnType<typeof setupWebGl>
+	stuff: ComputedCache<WebGlStuff, TLShape>
 	constructor(
 		public editor: Editor,
 		public readonly elem: HTMLCanvasElement
 	) {
 		this.gl = setupWebGl(elem)
+		this.stuff = editor.store.createComputedCache('stuff', (r: TLShape) => {
+			const pageTransform = editor.getShapePageTransform(r.id)
+			const geometry = editor.getShapeGeometry(r.id).getWebGLGeometry()
+			return this.createStuff(this.gl.context, geometry, pageTransform)
+		})
 		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render))
 	}
 
@@ -229,21 +209,6 @@ export class MinimapManager {
 		return new Vec(px, py)
 	}
 
-	lastRenderEpoch = 0
-	glData: Record<string, WebGlStuff> = {}
-
-	cullGlData() {
-		const context = this.gl?.context
-		if (!context) return
-		for (const [k, v] of Object.entries(this.glData)) {
-			if (v.lastCheckedEpoch < this.lastRenderEpoch) {
-				const data = this.glData[k]
-				delete this.glData[k]
-				context.deleteBuffer(data.shapeVertexPositionBuffer)
-			}
-		}
-	}
-
 	private createStuff(
 		context: WebGL2RenderingContext,
 		geometry: WebGLGeometry,
@@ -266,57 +231,10 @@ export class MinimapManager {
 			geometry,
 			pageTransform,
 			transformedGeometry,
-			lastCheckedEpoch: this.lastRenderEpoch,
 		}
 	}
-
-	private updateStuff(
-		stuff: WebGlStuff,
-		geometry: WebGLGeometry,
-		pageTransform: Mat,
-		epoch: number
-	) {
-		this.stats.start('checking things')
-		stuff.lastCheckedEpoch = epoch
-		const geometryChanged = !stuff.geometry.equals(geometry)
-		const pageTransformChanged = !stuff.pageTransform.equals(pageTransform)
-		this.stats.end('checking things')
-		if (!geometryChanged && !pageTransformChanged) return false
-
-		this.stats.start('handling geometry change')
-		if (geometryChanged) {
-			const context = this.gl.context
-			context.bindBuffer(context.ARRAY_BUFFER, stuff.shapeVertexPositionBuffer)
-			context.bufferData(context.ARRAY_BUFFER, geometry.values, context.STATIC_DRAW)
-			stuff.geometry = geometry
-		}
-		this.stats.end('handling geometry change')
-
-		this.stats.start('handling page transform change')
-		if (geometryChanged || pageTransformChanged) {
-			stuff.pageTransform = pageTransform
-			if (stuff.transformedGeometry.length !== geometry.values.length) {
-				stuff.transformedGeometry = new Float32Array(geometry.values)
-			}
-			for (let i = 0; i < stuff.transformedGeometry.length; i += 2) {
-				;[stuff.transformedGeometry[i], stuff.transformedGeometry[i + 1]] = Mat.applyToXY(
-					pageTransform,
-					geometry.values[i],
-					geometry.values[i + 1]
-				)
-			}
-		}
-		this.stats.end('handling page transform change')
-
-		return true
-	}
-
-	stats = new Stats()
 
 	render = () => {
-		this.stats.start('render')
-		this.stats.start('setup')
-		this.lastRenderEpoch++
 		const context = this.gl.context
 		const canvasSize = this.getCanvasSize()
 		const canvasPageBounds = this.getCanvasPageBounds()
@@ -340,26 +258,10 @@ export class MinimapManager {
 
 		const ids = this.editor.getCurrentPageShapeIdsSorted()
 
-		this.stats.end('setup')
-		this.stats.start('loop')
 		for (const shapeId of ids) {
-			this.stats.start('getting transform')
-			const pageTransform = this.editor.getShapePageTransform(shapeId)
-			this.stats.end('getting transform')
-			this.stats.start('getting geom')
-			const geometry = this.editor.getShapeGeometry(shapeId).getWebGLGeometry()
-			this.stats.end('getting geom')
+			const stuff = this.stuff.get(shapeId)
+			if (!stuff) continue
 
-			this.stats.start('making')
-			let stuff = this.glData[shapeId]
-			if (!stuff) {
-				stuff = this.glData[shapeId] = this.createStuff(context, geometry, pageTransform)
-			} else {
-				this.updateStuff(stuff, geometry, pageTransform, this.lastRenderEpoch)
-			}
-			this.stats.end('making')
-
-			this.stats.start('blitting')
 			const len = stuff.transformedGeometry.length
 
 			if (selectedShapes.has(shapeId)) {
@@ -385,11 +287,7 @@ export class MinimapManager {
 				this.gl.unSelectedShapesVertices.set(stuff.transformedGeometry, unselectedShapeOffset)
 				unselectedShapeOffset += len
 			}
-
-			this.stats.end('blitting')
 		}
-		this.stats.end('loop')
-		this.stats.start('drawing')
 		this.drawShapes(
 			this.gl.unselectedShapesBuffer,
 			this.gl.unSelectedShapesVertices,
@@ -403,13 +301,6 @@ export class MinimapManager {
 			selectedShapeOffset,
 			colors.selectFill
 		)
-		this.stats.end('drawing')
-
-		this.stats.start('cull')
-		this.cullGlData()
-		this.stats.end('cull')
-		this.stats.end('render')
-		this.stats.tick()
 	}
 
 	drawShapes(buffer: WebGLBuffer, vertices: Float32Array, len: number, color: Float32Array) {
@@ -441,7 +332,6 @@ type WebGlStuff = {
 	geometry: WebGLGeometry
 	pageTransform: Mat
 	transformedGeometry: Float32Array
-	lastCheckedEpoch: number
 }
 
 function setupWebGl(canvas: HTMLCanvasElement | null) {
