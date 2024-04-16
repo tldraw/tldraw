@@ -80,36 +80,6 @@ export class SpatialIndex {
 			let isDirty = false
 			for (const changes of diff) {
 				const elementsToAdd: Element[] = []
-				for (const record of Object.values(changes.added)) {
-					if (isShape(record)) {
-						this.addElement(record.id, elementsToAdd)
-					}
-				}
-
-				for (const [_from, to] of Object.values(changes.updated)) {
-					if (isShape(to)) {
-						const currentElement = this.shapesInTree.get(to.id)
-						const newBounds = this.editor.getShapeMaskedPageBounds(to.id)
-						if (currentElement) {
-							if (
-								newBounds?.minX === currentElement.minX &&
-								newBounds.minY === currentElement.minY &&
-								newBounds.maxX === currentElement.maxX &&
-								newBounds.maxY === currentElement.maxY
-							) {
-								continue
-							}
-							this.shapesInTree.delete(to.id)
-							this.rBush.remove(currentElement)
-							isDirty = true
-						}
-						this.addElement(to.id, elementsToAdd, newBounds)
-					}
-				}
-				if (elementsToAdd.length) {
-					this.rBush.load(elementsToAdd)
-					isDirty = true
-				}
 				for (const id of Object.keys(changes.removed)) {
 					if (isShapeId(id)) {
 						const currentElement = this.shapesInTree.get(id)
@@ -120,8 +90,31 @@ export class SpatialIndex {
 						}
 					}
 				}
+				this.shapesInTree.forEach((element, id) => {
+					const newBounds = this.editor.getShapeMaskedPageBounds(id)
+					if (!newBounds) return
+					if (
+						element.minX !== newBounds.minX ||
+						element.minY !== newBounds.minY ||
+						element.maxX !== newBounds.maxX ||
+						element.maxY !== newBounds.maxY
+					) {
+						this.shapesInTree.delete(id)
+						this.rBush.remove(element)
+						this.addElement(id, elementsToAdd, newBounds)
+						isDirty = true
+					}
+				})
+				for (const record of Object.values(changes.added)) {
+					if (isShape(record)) {
+						this.addElement(record.id, elementsToAdd)
+					}
+				}
+				if (elementsToAdd.length) {
+					this.rBush.load(elementsToAdd)
+					isDirty = true
+				}
 			}
-
 			return isDirty ? lastComputedEpoch : prevValue
 		})
 	}
