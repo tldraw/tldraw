@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.41.0",
+    "toolVersion": "7.43.1",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -247,7 +247,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    labelColor: import(\"../styles/StyleProp\")."
+              "text": "{\n    arrowheadEnd: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -256,7 +256,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    color: import(\"../styles/StyleProp\")."
+              "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">;\n    arrowheadStart: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -265,7 +265,16 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    fill: import(\"../styles/StyleProp\")."
+              "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">;\n    bend: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n    color: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -274,7 +283,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n    dash: import(\"../styles/StyleProp\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    dash: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -283,43 +292,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    size: import(\"../styles/StyleProp\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    arrowheadStart: import(\"../styles/StyleProp\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">;\n    arrowheadEnd: import(\"../styles/StyleProp\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">;\n    font: import(\"../styles/StyleProp\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    start: "
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    end: "
             },
             {
               "kind": "Reference",
@@ -337,7 +310,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"..\")."
+              "text": "<{\n            boundShapeId: import(\"../records/TLShape\")."
             },
             {
               "kind": "Reference",
@@ -346,7 +319,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n            normalizedAnchor: import(\"../misc/geometry-types\")."
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n            normalizedAnchor: import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
@@ -355,7 +328,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        } & {}>;\n        point: "
+              "text": ";\n            type: \"binding\";\n        } & {}>;\n        point: "
             },
             {
               "kind": "Reference",
@@ -364,7 +337,52 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    end: "
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        } & {}>;\n    }, never>;\n    fill: import(\"../styles/StyleProp\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n    font: import(\"../styles/StyleProp\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    labelColor: import(\"../styles/StyleProp\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    labelPosition: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n    size: import(\"../styles/StyleProp\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    start: "
             },
             {
               "kind": "Reference",
@@ -382,7 +400,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            type: \"binding\";\n            boundShapeId: import(\"..\")."
+              "text": "<{\n            boundShapeId: import(\"../records/TLShape\")."
             },
             {
               "kind": "Reference",
@@ -391,7 +409,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n            normalizedAnchor: import(\"../misc/geometry-types\")."
+              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n            normalizedAnchor: import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
@@ -400,7 +418,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n            isExact: boolean;\n            isPrecise: boolean;\n        } & {}>;\n        point: "
+              "text": ";\n            type: \"binding\";\n        } & {}>;\n        point: "
             },
             {
               "kind": "Reference",
@@ -409,7 +427,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n            x: number;\n            y: number;\n            type: \"point\";\n        } & {}>;\n    }, never>;\n    bend: "
+              "text": "<{\n            type: \"point\";\n            x: number;\n            y: number;\n        } & {}>;\n    }, never>;\n    text: "
             },
             {
               "kind": "Reference",
@@ -418,25 +436,7 @@
             },
             {
               "kind": "Content",
-              "text": "<number>;\n    text: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<string>;\n    labelPosition: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n}"
+              "text": "<string>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLArrowShape.ts",
@@ -537,25 +537,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    w: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    h: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    assetId: "
+              "text": "{\n    assetId: "
             },
             {
               "kind": "Reference",
@@ -573,7 +555,7 @@
             },
             {
               "kind": "Content",
-              "text": " | null>;\n    url: "
+              "text": " | null>;\n    h: "
             },
             {
               "kind": "Reference",
@@ -582,7 +564,25 @@
             },
             {
               "kind": "Content",
-              "text": "<string>;\n}"
+              "text": "<number>;\n    url: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>;\n    w: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLBookmarkShape.ts",
@@ -889,7 +889,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    typeName: 'asset';\n    type: Type;\n    props: Props;\n    meta: "
+              "text": ";\n    meta: "
             },
             {
               "kind": "Reference",
@@ -898,7 +898,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}[P]; } & { [P_1 in (undefined extends Props ? \"props\" : never) | (undefined extends Type ? \"type\" : never)]?: {\n    id: "
+              "text": ";\n    props: Props;\n    type: Type;\n    typeName: 'asset';\n}[P]; } & { [P_1 in (undefined extends Props ? \"props\" : never) | (undefined extends Type ? \"type\" : never)]?: {\n    id: "
             },
             {
               "kind": "Reference",
@@ -907,7 +907,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    typeName: 'asset';\n    type: Type;\n    props: Props;\n    meta: "
+              "text": ";\n    meta: "
             },
             {
               "kind": "Reference",
@@ -916,7 +916,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}[P_1] | undefined; }>"
+              "text": ";\n    props: Props;\n    type: Type;\n    typeName: 'asset';\n}[P_1] | undefined; }>"
             },
             {
               "kind": "Content",
@@ -977,7 +977,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/tlschema!createPresenceStateDerivation:function(1)",
-          "docComment": "/**\n * @public\n */\n",
+          "docComment": "/**\n * Creates a derivation that represents the current presence state of the current user.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -990,7 +990,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    id: string;\n    color: string;\n    name: string;\n}>"
+              "text": "<{\n    color: string;\n    id: string;\n    name: string;\n}>"
             },
             {
               "kind": "Content",
@@ -1113,6 +1113,53 @@
             }
           ],
           "name": "createShapeId"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/tlschema!createShapePropsMigrationSequence:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function createShapePropsMigrationSequence(migrations: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapePropsMigrations",
+              "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapePropsMigrations",
+              "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLShape.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "migrations",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "createShapePropsMigrationSequence"
         },
         {
           "kind": "Function",
@@ -1300,11 +1347,20 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function createTLSchema({ shapes, }?: "
+              "text": "export declare function createTLSchema({ shapes, migrations, }?: "
             },
             {
               "kind": "Content",
-              "text": "{\n    shapes?: "
+              "text": "{\n    migrations?: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationSequence",
+              "canonicalReference": "@tldraw/store!MigrationSequence:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n    shapes?: "
             },
             {
               "kind": "Reference",
@@ -1340,17 +1396,17 @@
           ],
           "fileUrlPath": "packages/tlschema/src/createTLSchema.ts",
           "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 8
+            "startIndex": 9,
+            "endIndex": 10
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ shapes, }",
+              "parameterName": "{ shapes, migrations, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 6
+                "endIndex": 8
               },
               "isOptional": true
             }
@@ -1400,7 +1456,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    lightMode: "
+              "text": "{\n    darkMode: "
             },
             {
               "kind": "Reference",
@@ -1409,7 +1465,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    darkMode: "
+              "text": ";\n    lightMode: "
             },
             {
               "kind": "Reference",
@@ -1505,7 +1561,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    draw: string;\n    sans: string;\n    serif: string;\n    mono: string;\n}"
+              "text": "{\n    draw: string;\n    mono: string;\n    sans: string;\n    serif: string;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/styles/TLFontStyle.ts",
@@ -1706,7 +1762,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    fill: import(\"..\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    dash: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -1715,7 +1771,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n    dash: import(\"..\")."
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    fill: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -1724,34 +1780,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    size: import(\"..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    segments: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.ArrayOfValidator",
-              "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"../misc/geometry-types\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "VecModel",
-              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "[];\n    } & {}>;\n    isComplete: "
+              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n    isClosed: "
             },
             {
               "kind": "Reference",
@@ -1760,7 +1789,7 @@
             },
             {
               "kind": "Content",
-              "text": "<boolean>;\n    isClosed: "
+              "text": "<boolean>;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -1778,7 +1807,34 @@
             },
             {
               "kind": "Content",
-              "text": "<boolean>;\n}"
+              "text": "<boolean>;\n    segments: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.ArrayOfValidator",
+              "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        points: import(\"../misc/geometry-types\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n        type: \"free\" | \"straight\";\n    } & {}>;\n    size: import(\"..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLDrawShape.ts",
@@ -1801,7 +1857,7 @@
             },
             {
               "kind": "Content",
-              "text": "readonly [{\n    readonly type: \"tldraw\";\n    readonly title: \"tldraw\";\n    readonly hostnames: readonly [\"beta.tldraw.com\", \"tldraw.com\", \"localhost:3000\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly overridePermissions: {\n        readonly 'allow-top-navigation': true;\n    };\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"figma\";\n    readonly title: \"Figma\";\n    readonly hostnames: readonly [\"figma.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_maps\";\n    readonly title: \"Google Maps\";\n    readonly hostnames: readonly [\"google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"val_town\";\n    readonly title: \"Val Town\";\n    readonly hostnames: readonly [\"val.town\"];\n    readonly minWidth: 260;\n    readonly minHeight: 100;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"codesandbox\";\n    readonly title: \"CodeSandbox\";\n    readonly hostnames: readonly [\"codesandbox.io\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"codepen\";\n    readonly title: \"Codepen\";\n    readonly hostnames: readonly [\"codepen.io\"];\n    readonly minWidth: 300;\n    readonly minHeight: 300;\n    readonly width: 520;\n    readonly height: 400;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"scratch\";\n    readonly title: \"Scratch\";\n    readonly hostnames: readonly [\"scratch.mit.edu\"];\n    readonly width: 520;\n    readonly height: 400;\n    readonly doesResize: false;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"youtube\";\n    readonly title: \"YouTube\";\n    readonly hostnames: readonly [\"*.youtube.com\", \"youtube.com\", \"youtu.be\"];\n    readonly width: 800;\n    readonly height: 450;\n    readonly doesResize: true;\n    readonly overridePermissions: {\n        readonly 'allow-presentation': true;\n    };\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_calendar\";\n    readonly title: \"Google Calendar\";\n    readonly hostnames: readonly [\"calendar.google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minWidth: 460;\n    readonly minHeight: 360;\n    readonly doesResize: true;\n    readonly instructionLink: \"https://support.google.com/calendar/answer/41207?hl=en\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"google_slides\";\n    readonly title: \"Google Slides\";\n    readonly hostnames: readonly [\"docs.google.*\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minWidth: 460;\n    readonly minHeight: 360;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"github_gist\";\n    readonly title: \"GitHub Gist\";\n    readonly hostnames: readonly [\"gist.github.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"replit\";\n    readonly title: \"Replit\";\n    readonly hostnames: readonly [\"replit.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"felt\";\n    readonly title: \"Felt\";\n    readonly hostnames: readonly [\"felt.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"spotify\";\n    readonly title: \"Spotify\";\n    readonly hostnames: readonly [\"open.spotify.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly minHeight: 500;\n    readonly overrideOutlineRadius: 12;\n    readonly doesResize: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"vimeo\";\n    readonly title: \"Vimeo\";\n    readonly hostnames: readonly [\"vimeo.com\", \"player.vimeo.com\"];\n    readonly width: 640;\n    readonly height: 360;\n    readonly doesResize: true;\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"excalidraw\";\n    readonly title: \"Excalidraw\";\n    readonly hostnames: readonly [\"excalidraw.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly isAspectRatioLocked: true;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}, {\n    readonly type: \"observable\";\n    readonly title: \"Observable\";\n    readonly hostnames: readonly [\"observablehq.com\"];\n    readonly width: 720;\n    readonly height: 500;\n    readonly doesResize: true;\n    readonly isAspectRatioLocked: false;\n    readonly backgroundColor: \"#fff\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}]"
+              "text": "readonly [{\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"beta.tldraw.com\", \"tldraw.com\", \"localhost:3000\"];\n    readonly minHeight: 300;\n    readonly minWidth: 300;\n    readonly overridePermissions: {\n        readonly 'allow-top-navigation': true;\n    };\n    readonly title: \"tldraw\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"tldraw\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"figma.com\"];\n    readonly title: \"Figma\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"figma\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"google.*\"];\n    readonly title: \"Google Maps\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"google_maps\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"val.town\"];\n    readonly minHeight: 100;\n    readonly minWidth: 260;\n    readonly title: \"Val Town\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"val_town\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"codesandbox.io\"];\n    readonly minHeight: 300;\n    readonly minWidth: 300;\n    readonly title: \"CodeSandbox\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"codesandbox\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 400;\n    readonly hostnames: readonly [\"codepen.io\"];\n    readonly minHeight: 300;\n    readonly minWidth: 300;\n    readonly title: \"Codepen\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"codepen\";\n    readonly width: 520;\n}, {\n    readonly doesResize: false;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 400;\n    readonly hostnames: readonly [\"scratch.mit.edu\"];\n    readonly title: \"Scratch\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"scratch\";\n    readonly width: 520;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 450;\n    readonly hostnames: readonly [\"*.youtube.com\", \"youtube.com\", \"youtu.be\"];\n    readonly isAspectRatioLocked: true;\n    readonly overridePermissions: {\n        readonly 'allow-presentation': true;\n    };\n    readonly title: \"YouTube\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"youtube\";\n    readonly width: 800;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"calendar.google.*\"];\n    readonly instructionLink: \"https://support.google.com/calendar/answer/41207?hl=en\";\n    readonly minHeight: 360;\n    readonly minWidth: 460;\n    readonly title: \"Google Calendar\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"google_calendar\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"docs.google.*\"];\n    readonly minHeight: 360;\n    readonly minWidth: 460;\n    readonly title: \"Google Slides\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"google_slides\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"gist.github.com\"];\n    readonly title: \"GitHub Gist\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"github_gist\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"replit.com\"];\n    readonly title: \"Replit\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"replit\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"felt.com\"];\n    readonly title: \"Felt\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"felt\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"open.spotify.com\"];\n    readonly minHeight: 500;\n    readonly overrideOutlineRadius: 12;\n    readonly title: \"Spotify\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"spotify\";\n    readonly width: 720;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 360;\n    readonly hostnames: readonly [\"vimeo.com\", \"player.vimeo.com\"];\n    readonly isAspectRatioLocked: true;\n    readonly title: \"Vimeo\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"vimeo\";\n    readonly width: 640;\n}, {\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"excalidraw.com\"];\n    readonly isAspectRatioLocked: true;\n    readonly title: \"Excalidraw\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"excalidraw\";\n    readonly width: 720;\n}, {\n    readonly backgroundColor: \"#fff\";\n    readonly doesResize: true;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: 500;\n    readonly hostnames: readonly [\"observablehq.com\"];\n    readonly isAspectRatioLocked: false;\n    readonly title: \"Observable\";\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: \"observable\";\n    readonly width: 720;\n}]"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLEmbedShape.ts",
@@ -1824,7 +1880,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    readonly type: string;\n    readonly title: string;\n    readonly hostnames: readonly string[];\n    readonly minWidth?: number;\n    readonly minHeight?: number;\n    readonly width: number;\n    readonly height: number;\n    readonly doesResize: boolean;\n    readonly isAspectRatioLocked?: boolean;\n    readonly overridePermissions?: "
+              "text": "{\n    readonly backgroundColor?: string;\n    readonly doesResize: boolean;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n    readonly height: number;\n    readonly hostnames: readonly string[];\n    readonly instructionLink?: string;\n    readonly isAspectRatioLocked?: boolean;\n    readonly minHeight?: number;\n    readonly minWidth?: number;\n    readonly overrideOutlineRadius?: number;\n    readonly overridePermissions?: "
             },
             {
               "kind": "Reference",
@@ -1833,7 +1889,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    readonly instructionLink?: string;\n    readonly backgroundColor?: string;\n    readonly overrideOutlineRadius?: number;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly fromEmbedUrl: (url: string) => string | undefined;\n}"
+              "text": ";\n    readonly title: string;\n    readonly toEmbedUrl: (url: string) => string | undefined;\n    readonly type: string;\n    readonly width: number;\n}"
             },
             {
               "kind": "Content",
@@ -1859,7 +1915,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    readonly 'allow-downloads-without-user-activation': false;\n    readonly 'allow-downloads': false;\n    readonly 'allow-modals': false;\n    readonly 'allow-orientation-lock': false;\n    readonly 'allow-pointer-lock': false;\n    readonly 'allow-popups': true;\n    readonly 'allow-popups-to-escape-sandbox': false;\n    readonly 'allow-presentation': false;\n    readonly 'allow-storage-access-by-user-activation': false;\n    readonly 'allow-top-navigation': false;\n    readonly 'allow-top-navigation-by-user-activation': false;\n    readonly 'allow-scripts': true;\n    readonly 'allow-same-origin': true;\n    readonly 'allow-forms': true;\n}"
+              "text": "{\n    readonly 'allow-downloads-without-user-activation': false;\n    readonly 'allow-downloads': false;\n    readonly 'allow-forms': true;\n    readonly 'allow-modals': false;\n    readonly 'allow-orientation-lock': false;\n    readonly 'allow-pointer-lock': false;\n    readonly 'allow-popups-to-escape-sandbox': false;\n    readonly 'allow-popups': true;\n    readonly 'allow-presentation': false;\n    readonly 'allow-same-origin': true;\n    readonly 'allow-scripts': true;\n    readonly 'allow-storage-access-by-user-activation': false;\n    readonly 'allow-top-navigation-by-user-activation': false;\n    readonly 'allow-top-navigation': false;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLEmbedShape.ts",
@@ -1882,16 +1938,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    w: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    h: "
+              "text": "{\n    h: "
             },
             {
               "kind": "Reference",
@@ -1909,7 +1956,16 @@
             },
             {
               "kind": "Content",
-              "text": "<string>;\n}"
+              "text": "<string>;\n    w: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLEmbedShape.ts",
@@ -2011,16 +2067,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    w: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    h: "
+              "text": "{\n    h: "
             },
             {
               "kind": "Reference",
@@ -2038,7 +2085,16 @@
             },
             {
               "kind": "Content",
-              "text": "<string>;\n}"
+              "text": "<string>;\n    w: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLFrameShape.ts",
@@ -2093,7 +2149,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    geo: import(\"../styles/StyleProp\")."
+              "text": "{\n    align: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2102,7 +2158,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\">;\n    labelColor: import(\"../styles/StyleProp\")."
+              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n    color: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2111,7 +2167,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    color: import(\"../styles/StyleProp\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    dash: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2120,7 +2176,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    fill: import(\"../styles/StyleProp\")."
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    fill: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2129,7 +2185,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n    dash: import(\"../styles/StyleProp\")."
+              "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n    font: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2138,7 +2194,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    size: import(\"../styles/StyleProp\")."
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    geo: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2147,43 +2203,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    font: import(\"../styles/StyleProp\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    align: import(\"../styles/StyleProp\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n    verticalAlign: import(\"../styles/StyleProp\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"end\" | \"middle\" | \"start\">;\n    url: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<string>;\n    w: "
+              "text": "<\"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\">;\n    growY: "
             },
             {
               "kind": "Reference",
@@ -2201,7 +2221,25 @@
             },
             {
               "kind": "Content",
-              "text": "<number>;\n    growY: "
+              "text": "<number>;\n    labelColor: import(\"../styles/StyleProp\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    size: import(\"../styles/StyleProp\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    text: "
             },
             {
               "kind": "Reference",
@@ -2210,7 +2248,7 @@
             },
             {
               "kind": "Content",
-              "text": "<number>;\n    text: "
+              "text": "<string>;\n    url: "
             },
             {
               "kind": "Reference",
@@ -2219,7 +2257,25 @@
             },
             {
               "kind": "Content",
-              "text": "<string>;\n}"
+              "text": "<string>;\n    verticalAlign: import(\"../styles/StyleProp\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"end\" | \"middle\" | \"start\">;\n    w: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLGeoShape.ts",
@@ -2330,34 +2386,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    size: import(\"..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    segments: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.ArrayOfValidator",
-              "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<{\n        type: \"free\" | \"straight\";\n        points: import(\"..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "VecModel",
-              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "[];\n    } & {}>;\n    isComplete: "
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    isComplete: "
             },
             {
               "kind": "Reference",
@@ -2375,7 +2404,34 @@
             },
             {
               "kind": "Content",
-              "text": "<boolean>;\n}"
+              "text": "<boolean>;\n    segments: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.ArrayOfValidator",
+              "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        points: import(\"..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n        type: \"free\" | \"straight\";\n    } & {}>;\n    size: import(\"..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLHighlightShape.ts",
@@ -2398,43 +2454,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    w: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    h: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    playing: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<boolean>;\n    url: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<string>;\n    assetId: "
+              "text": "{\n    assetId: "
             },
             {
               "kind": "Reference",
@@ -2461,7 +2481,7 @@
             },
             {
               "kind": "Content",
-              "text": "<({\n        topLeft: import(\"../misc/geometry-types\")."
+              "text": "<({\n        bottomRight: import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
@@ -2470,7 +2490,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n        bottomRight: import(\"../misc/geometry-types\")."
+              "text": ";\n        topLeft: import(\"../misc/geometry-types\")."
             },
             {
               "kind": "Reference",
@@ -2479,7 +2499,43 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    } & {}) | null>;\n}"
+              "text": ";\n    } & {}) | null>;\n    h: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n    playing: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<boolean>;\n    url: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>;\n    w: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLImageShape.ts",
@@ -2750,7 +2806,7 @@
             },
             {
               "kind": "Content",
-              "text": "readonly [{\n    readonly locale: \"ca\";\n    readonly label: \"Català\";\n}, {\n    readonly locale: \"cs\";\n    readonly label: \"Čeština\";\n}, {\n    readonly locale: \"da\";\n    readonly label: \"Danish\";\n}, {\n    readonly locale: \"de\";\n    readonly label: \"Deutsch\";\n}, {\n    readonly locale: \"en\";\n    readonly label: \"English\";\n}, {\n    readonly locale: \"es\";\n    readonly label: \"Español\";\n}, {\n    readonly locale: \"fr\";\n    readonly label: \"Français\";\n}, {\n    readonly locale: \"gl\";\n    readonly label: \"Galego\";\n}, {\n    readonly locale: \"hr\";\n    readonly label: \"Hrvatski\";\n}, {\n    readonly locale: \"it\";\n    readonly label: \"Italiano\";\n}, {\n    readonly locale: \"hu\";\n    readonly label: \"Magyar\";\n}, {\n    readonly locale: \"no\";\n    readonly label: \"Norwegian\";\n}, {\n    readonly locale: \"pl\";\n    readonly label: \"Polski\";\n}, {\n    readonly locale: \"pt-br\";\n    readonly label: \"Português - Brasil\";\n}, {\n    readonly locale: \"pt-pt\";\n    readonly label: \"Português - Europeu\";\n}, {\n    readonly locale: \"ro\";\n    readonly label: \"Română\";\n}, {\n    readonly locale: \"ru\";\n    readonly label: \"Russian\";\n}, {\n    readonly locale: \"sl\";\n    readonly label: \"Slovenščina\";\n}, {\n    readonly locale: \"fi\";\n    readonly label: \"Suomi\";\n}, {\n    readonly locale: \"sv\";\n    readonly label: \"Svenska\";\n}, {\n    readonly locale: \"vi\";\n    readonly label: \"Tiếng Việt\";\n}, {\n    readonly locale: \"tr\";\n    readonly label: \"Türkçe\";\n}, {\n    readonly locale: \"uk\";\n    readonly label: \"Ukrainian\";\n}, {\n    readonly locale: \"he\";\n    readonly label: \"עברית\";\n}, {\n    readonly locale: \"ar\";\n    readonly label: \"عربي\";\n}, {\n    readonly locale: \"fa\";\n    readonly label: \"فارسی\";\n}, {\n    readonly locale: \"ku\";\n    readonly label: \"کوردی\";\n}, {\n    readonly locale: \"ne\";\n    readonly label: \"नेपाली\";\n}, {\n    readonly locale: \"hi-in\";\n    readonly label: \"हिन्दी\";\n}, {\n    readonly locale: \"te\";\n    readonly label: \"తెలుగు\";\n}, {\n    readonly locale: \"th\";\n    readonly label: \"ภาษาไทย\";\n}, {\n    readonly locale: \"my\";\n    readonly label: \"မြန်မာစာ\";\n}, {\n    readonly locale: \"ko-kr\";\n    readonly label: \"한국어\";\n}, {\n    readonly locale: \"ja\";\n    readonly label: \"日本語\";\n}, {\n    readonly locale: \"zh-cn\";\n    readonly label: \"简体中文\";\n}, {\n    readonly locale: \"zh-tw\";\n    readonly label: \"繁體中文 (台灣)\";\n}]"
+              "text": "readonly [{\n    readonly label: \"Català\";\n    readonly locale: \"ca\";\n}, {\n    readonly label: \"Čeština\";\n    readonly locale: \"cs\";\n}, {\n    readonly label: \"Danish\";\n    readonly locale: \"da\";\n}, {\n    readonly label: \"Deutsch\";\n    readonly locale: \"de\";\n}, {\n    readonly label: \"English\";\n    readonly locale: \"en\";\n}, {\n    readonly label: \"Español\";\n    readonly locale: \"es\";\n}, {\n    readonly label: \"Français\";\n    readonly locale: \"fr\";\n}, {\n    readonly label: \"Galego\";\n    readonly locale: \"gl\";\n}, {\n    readonly label: \"Hrvatski\";\n    readonly locale: \"hr\";\n}, {\n    readonly label: \"Italiano\";\n    readonly locale: \"it\";\n}, {\n    readonly label: \"Magyar\";\n    readonly locale: \"hu\";\n}, {\n    readonly label: \"Norwegian\";\n    readonly locale: \"no\";\n}, {\n    readonly label: \"Polski\";\n    readonly locale: \"pl\";\n}, {\n    readonly label: \"Português - Brasil\";\n    readonly locale: \"pt-br\";\n}, {\n    readonly label: \"Português - Europeu\";\n    readonly locale: \"pt-pt\";\n}, {\n    readonly label: \"Română\";\n    readonly locale: \"ro\";\n}, {\n    readonly label: \"Russian\";\n    readonly locale: \"ru\";\n}, {\n    readonly label: \"Slovenščina\";\n    readonly locale: \"sl\";\n}, {\n    readonly label: \"Suomi\";\n    readonly locale: \"fi\";\n}, {\n    readonly label: \"Svenska\";\n    readonly locale: \"sv\";\n}, {\n    readonly label: \"Tiếng Việt\";\n    readonly locale: \"vi\";\n}, {\n    readonly label: \"Türkçe\";\n    readonly locale: \"tr\";\n}, {\n    readonly label: \"Ukrainian\";\n    readonly locale: \"uk\";\n}, {\n    readonly label: \"עברית\";\n    readonly locale: \"he\";\n}, {\n    readonly label: \"عربي\";\n    readonly locale: \"ar\";\n}, {\n    readonly label: \"فارسی\";\n    readonly locale: \"fa\";\n}, {\n    readonly label: \"کوردی\";\n    readonly locale: \"ku\";\n}, {\n    readonly label: \"नेपाली\";\n    readonly locale: \"ne\";\n}, {\n    readonly label: \"हिन्दी\";\n    readonly locale: \"hi-in\";\n}, {\n    readonly label: \"తెలుగు\";\n    readonly locale: \"te\";\n}, {\n    readonly label: \"ภาษาไทย\";\n    readonly locale: \"th\";\n}, {\n    readonly label: \"မြန်မာစာ\";\n    readonly locale: \"my\";\n}, {\n    readonly label: \"한국어\";\n    readonly locale: \"ko-kr\";\n}, {\n    readonly label: \"日本語\";\n    readonly locale: \"ja\";\n}, {\n    readonly label: \"简体中文\";\n    readonly locale: \"zh-cn\";\n}, {\n    readonly label: \"繁體中文 (台灣)\";\n    readonly locale: \"zh-tw\";\n}]"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/translations/languages.ts",
@@ -2791,7 +2847,25 @@
             },
             {
               "kind": "Content",
-              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    size: import(\"../styles/StyleProp\")."
+              "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n    points: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.DictValidator",
+              "canonicalReference": "@tldraw/validate!DictValidator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, {\n        id: string;\n        index: "
+            },
+            {
+              "kind": "Reference",
+              "text": "IndexKey",
+              "canonicalReference": "@tldraw/utils!IndexKey:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        x: number;\n        y: number;\n    } & {}>;\n    size: import(\"../styles/StyleProp\")."
             },
             {
               "kind": "Reference",
@@ -2809,25 +2883,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"cubic\" | \"line\">;\n    points: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.DictValidator",
-              "canonicalReference": "@tldraw/validate!DictValidator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<string, {\n        id: string;\n        x: number;\n        y: number;\n        index: "
-            },
-            {
-              "kind": "Reference",
-              "text": "IndexKey",
-              "canonicalReference": "@tldraw/utils!IndexKey:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    } & {}>;\n}"
+              "text": "<\"cubic\" | \"line\">;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLLineShape.ts",
@@ -2882,7 +2938,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    color: import(\"..\")."
+              "text": "{\n    align: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2891,7 +2947,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    size: import(\"..\")."
+              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n    color: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -2900,7 +2956,16 @@
             },
             {
               "kind": "Content",
-              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    fontSizeAdjustment: "
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    font: import(\"..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    fontSizeAdjustment: "
             },
             {
               "kind": "Reference",
@@ -2909,34 +2974,7 @@
             },
             {
               "kind": "Content",
-              "text": "<number>;\n    font: import(\"..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    align: import(\"..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n    verticalAlign: import(\"..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "EnumStyleProp",
-              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<\"end\" | \"middle\" | \"start\">;\n    growY: "
+              "text": "<number>;\n    growY: "
             },
             {
               "kind": "Reference",
@@ -2945,7 +2983,16 @@
             },
             {
               "kind": "Content",
-              "text": "<number>;\n    url: "
+              "text": "<number>;\n    size: import(\"..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    text: "
             },
             {
               "kind": "Reference",
@@ -2954,7 +3001,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string>;\n    text: "
+              "text": "<string>;\n    url: "
             },
             {
               "kind": "Reference",
@@ -2963,7 +3010,16 @@
             },
             {
               "kind": "Content",
-              "text": "<string>;\n}"
+              "text": "<string>;\n    verticalAlign: import(\"..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "EnumStyleProp",
+              "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<\"end\" | \"middle\" | \"start\">;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLNoteShape.ts",
@@ -3105,16 +3161,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    migrations?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Migrations",
-              "canonicalReference": "@tldraw/store!Migrations:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    props?: "
+              "text": "{\n    meta?: "
             },
             {
               "kind": "Reference",
@@ -3132,7 +3179,34 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    meta?: "
+              "text": ">;\n    migrations?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "LegacyMigrations",
+              "canonicalReference": "@tldraw/store!LegacyMigrations:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationSequence",
+              "canonicalReference": "@tldraw/store!MigrationSequence:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapePropsMigrations",
+              "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    props?: "
             },
             {
               "kind": "Reference",
@@ -3162,7 +3236,7 @@
           "name": "SchemaShapeInfo",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 12
+            "endIndex": 16
           }
         },
         {
@@ -3848,7 +3922,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    color: import(\"..\")."
+              "text": "{\n    align: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -3857,7 +3931,16 @@
             },
             {
               "kind": "Content",
-              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    size: import(\"..\")."
+              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n    autoSize: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<boolean>;\n    color: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -3866,7 +3949,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    font: import(\"..\")."
+              "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n    font: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -3875,7 +3958,16 @@
             },
             {
               "kind": "Content",
-              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    align: import(\"..\")."
+              "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n    scale: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n    size: import(\"..\")."
             },
             {
               "kind": "Reference",
@@ -3884,7 +3976,7 @@
             },
             {
               "kind": "Content",
-              "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n    w: "
+              "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    text: "
             },
             {
               "kind": "Reference",
@@ -3893,7 +3985,7 @@
             },
             {
               "kind": "Content",
-              "text": "<number>;\n    text: "
+              "text": "<string>;\n    w: "
             },
             {
               "kind": "Reference",
@@ -3902,25 +3994,7 @@
             },
             {
               "kind": "Content",
-              "text": "<string>;\n    scale: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    autoSize: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<boolean>;\n}"
+              "text": "<number>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLTextShape.ts",
@@ -4243,7 +4317,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    type: T['type'];\n    props?: "
+              "text": ";\n    meta?: "
             },
             {
               "kind": "Reference",
@@ -4252,7 +4326,7 @@
             },
             {
               "kind": "Content",
-              "text": "<T['props']>;\n    meta?: "
+              "text": "<T['meta']>;\n    props?: "
             },
             {
               "kind": "Reference",
@@ -4261,7 +4335,7 @@
             },
             {
               "kind": "Content",
-              "text": "<T['meta']>;\n} & "
+              "text": "<T['props']>;\n    type: T['type'];\n} & "
             },
             {
               "kind": "Reference",
@@ -4890,7 +4964,7 @@
             },
             {
               "kind": "Content",
-              "text": "<'bookmark', {\n    title: string;\n    description: string;\n    image: string;\n    src: null | string;\n}>"
+              "text": "<'bookmark', {\n    description: string;\n    image: string;\n    src: null | string;\n    title: string;\n}>"
             },
             {
               "kind": "Content",
@@ -5348,7 +5422,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    id: 'dark' | 'light';\n    text: string;\n    background: string;\n    solid: string;\n} & "
+              "text": "<{\n    background: string;\n    id: 'dark' | 'light';\n    solid: string;\n    text: string;\n} & "
             },
             {
               "kind": "Reference",
@@ -5401,7 +5475,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    solid: string;\n    semi: string;\n    pattern: string;\n    note: {\n        fill: string;\n        text: string;\n    };\n    highlight: {\n        srgb: string;\n        p3: string;\n    };\n}"
+              "text": "{\n    highlight: {\n        p3: string;\n        srgb: string;\n    };\n    note: {\n        fill: string;\n        text: string;\n    };\n    pattern: string;\n    semi: string;\n    solid: string;\n}"
             },
             {
               "kind": "Content",
@@ -6544,7 +6618,7 @@
             },
             {
               "kind": "Content",
-              "text": "<'image', {\n    w: number;\n    h: number;\n    name: string;\n    isAnimated: boolean;\n    mimeType: null | string;\n    src: null | string;\n}>"
+              "text": "<'image', {\n    h: number;\n    isAnimated: boolean;\n    mimeType: null | string;\n    name: string;\n    src: null | string;\n    w: number;\n}>"
             },
             {
               "kind": "Content",
@@ -6920,7 +6994,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        shapeIds: "
+                  "text": "{\n        offset: {\n            x: number;\n            y: number;\n        };\n        shapeIds: "
                 },
                 {
                   "kind": "Reference",
@@ -6929,7 +7003,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[];\n        offset: {\n            x: number;\n            y: number;\n        };\n    } | null"
+                  "text": "[];\n    } | null"
                 },
                 {
                   "kind": "Content",
@@ -8132,7 +8206,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        x: number;\n        y: number;\n        type: "
+                  "text": "{\n        rotation: number;\n        type: "
                 },
                 {
                   "kind": "Reference",
@@ -8141,7 +8215,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "['type'];\n        rotation: number;\n    }"
+                  "text": "['type'];\n        x: number;\n        y: number;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -8921,16 +8995,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    points: "
-            },
-            {
-              "kind": "Reference",
-              "text": "VecModel",
-              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "[];\n    size: number;\n    color: "
+              "text": "{\n    color: "
             },
             {
               "kind": "Reference",
@@ -8939,7 +9004,16 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    opacity: number;\n    state: "
+              "text": ";\n    delay: number;\n    id: string;\n    opacity: number;\n    points: "
+            },
+            {
+              "kind": "Reference",
+              "text": "VecModel",
+              "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n    shrink: number;\n    size: number;\n    state: "
             },
             {
               "kind": "Reference",
@@ -8957,7 +9031,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    delay: number;\n    shrink: number;\n    taper: boolean;\n}"
+              "text": ">;\n    taper: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -9126,7 +9200,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    type: T['type'];\n    props?: "
+              "text": ";\n    meta?: "
             },
             {
               "kind": "Reference",
@@ -9135,7 +9209,7 @@
             },
             {
               "kind": "Content",
-              "text": "<T['props']>;\n    meta?: "
+              "text": "<T['meta']>;\n    props?: "
             },
             {
               "kind": "Reference",
@@ -9144,7 +9218,7 @@
             },
             {
               "kind": "Content",
-              "text": "<T['meta']>;\n} & "
+              "text": "<T['props']>;\n    type: T['type'];\n} & "
             },
             {
               "kind": "Reference",
@@ -9268,6 +9342,86 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 7
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLShapePropsMigrations = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    sequence: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        readonly dependsOn: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationId",
+              "canonicalReference": "@tldraw/store!MigrationId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n    } | {\n        readonly dependsOn?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationId",
+              "canonicalReference": "@tldraw/store!MigrationId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n        readonly down?: ((props: any) => any) | typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "NO_DOWN_MIGRATION",
+              "canonicalReference": "@tldraw/tlschema!~NO_DOWN_MIGRATION:var"
+            },
+            {
+              "kind": "Content",
+              "text": " | typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "RETIRED_DOWN_MIGRATION",
+              "canonicalReference": "@tldraw/tlschema!~RETIRED_DOWN_MIGRATION:var"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        readonly id: "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationId",
+              "canonicalReference": "@tldraw/store!MigrationId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        readonly up: (props: any) => any;\n    }>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tlschema/src/records/TLShape.ts",
+          "releaseTag": "Public",
+          "name": "TLShapePropsMigrations",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 14
           }
         },
         {
@@ -9561,7 +9715,7 @@
             },
             {
               "kind": "Content",
-              "text": "<'video', {\n    w: number;\n    h: number;\n    name: string;\n    isAnimated: boolean;\n    mimeType: null | string;\n    src: null | string;\n}>"
+              "text": "<'video', {\n    h: number;\n    isAnimated: boolean;\n    mimeType: null | string;\n    name: string;\n    src: null | string;\n    w: number;\n}>"
             },
             {
               "kind": "Content",
@@ -9763,52 +9917,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    w: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    h: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    time: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<number>;\n    playing: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<boolean>;\n    url: "
-            },
-            {
-              "kind": "Reference",
-              "text": "T.Validator",
-              "canonicalReference": "@tldraw/validate!Validator:class"
-            },
-            {
-              "kind": "Content",
-              "text": "<string>;\n    assetId: "
+              "text": "{\n    assetId: "
             },
             {
               "kind": "Reference",
@@ -9826,7 +9935,52 @@
             },
             {
               "kind": "Content",
-              "text": " | null>;\n}"
+              "text": " | null>;\n    h: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n    playing: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<boolean>;\n    time: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n    url: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>;\n    w: "
+            },
+            {
+              "kind": "Reference",
+              "text": "T.Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<number>;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLVideoShape.ts",

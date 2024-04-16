@@ -15,8 +15,6 @@ import { STRUCTURED_CLONE_OBJECT_PROTOTYPE } from '@tldraw/utils'
  * @public
  */
 export function devFreeze<T>(object: T): T {
-	return object
-
 	if (process.env.NODE_ENV === 'production') {
 		return object
 	}
