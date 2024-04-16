@@ -16,6 +16,7 @@ import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
 import { Expand } from '@tldraw/utils';
+import { FpsTracker } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -448,7 +449,7 @@ export const debugFlags: {
     readonly logElementRemoves: DebugFlag<boolean>;
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
-    readonly measureActionDuration: DebugFlag<boolean>;
+    readonly measurePerformance: DebugFlag<boolean>;
     readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
@@ -1807,6 +1808,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     enter: (info: any, from: string) => void;
     // (undocumented)
     exit: (info: any, from: string) => void;
+    // (undocumented)
+    fpsTracker: FpsTracker;
     getCurrent(): StateNode | undefined;
     // (undocumented)
     getCurrentToolIdMask(): string | undefined;
