@@ -16,6 +16,7 @@ export class FpsTracker {
 		this.name = name
 		this.frames = 0
 		this.started = true
+		if (this.frame !== null) cancelAnimationFrame(this.frame)
 		this.frame = requestAnimationFrame(this.recordFrame)
 		this.startTime = performance.now()
 	}
@@ -23,8 +24,10 @@ export class FpsTracker {
 	stop() {
 		this.started = false
 		if (this.frame !== null) cancelAnimationFrame(this.frame)
+		const duration = (performance.now() - this.startTime) / 1000
+		const fps = duration === 0 ? 0 : this.frames / duration
 		// eslint-disable-next-line no-console
-		console.log(`${this.name} FPS:`, this.frames / ((performance.now() - this.startTime) / 1000))
+		console.log(`${this.name} FPS:`, fps)
 	}
 
 	isStarted() {
