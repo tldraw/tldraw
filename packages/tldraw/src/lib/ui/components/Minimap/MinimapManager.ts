@@ -12,6 +12,7 @@ import {
 	react,
 	uniqueId,
 } from '@tldraw/editor'
+import { roundedRectangle, roundedRectangleDataSize } from './minimapShapes'
 
 type WebGLGeometry = ReturnType<Geometry2d['getWebGLGeometry']>
 
@@ -234,7 +235,14 @@ export class MinimapManager {
 		}
 	}
 
+	updateViewportData() {
+		const viewport = this.editor.getViewportPageBounds()
+		const zoom = this.getCanvasPageBounds().width / this.getCanvasScreenBounds().width
+		return roundedRectangle(this.gl.viewportVertices, viewport, 4 * zoom)
+	}
+
 	render = () => {
+		stats.start('minimap render')
 		const context = this.gl.context
 		const canvasSize = this.getCanvasSize()
 		const canvasPageBounds = this.getCanvasPageBounds()
@@ -288,6 +296,7 @@ export class MinimapManager {
 				unselectedShapeOffset += len
 			}
 		}
+		this.drawViewport()
 		this.drawShapes(
 			this.gl.unselectedShapesBuffer,
 			this.gl.unSelectedShapesVertices,
@@ -301,6 +310,8 @@ export class MinimapManager {
 			selectedShapeOffset,
 			colors.selectFill
 		)
+		stats.end('minimap render')
+		stats.tick()
 	}
 
 	drawShapes(buffer: WebGLBuffer, vertices: Float32Array, len: number, color: Float32Array) {
@@ -325,7 +336,62 @@ export class MinimapManager {
 
 		this.gl.context.drawArrays(this.gl.context.TRIANGLES, 0, len / 2)
 	}
+
+	drawViewport() {
+		const color = this.getColors().viewportFill
+		const len = this.updateViewportData()
+
+		this.gl.context.bindBuffer(this.gl.context.ARRAY_BUFFER, this.gl.viewportBuffer)
+		this.gl.context.bufferData(
+			this.gl.context.ARRAY_BUFFER,
+			this.gl.viewportVertices,
+			this.gl.context.STATIC_DRAW,
+			0,
+			len
+		)
+		this.gl.context.uniform4fv(this.gl.shapeFillLocation, color)
+		this.gl.context.enableVertexAttribArray(this.gl.shapeVertexPositionAttributeLocation)
+		this.gl.context.vertexAttribPointer(
+			this.gl.shapeVertexPositionAttributeLocation,
+			2,
+			this.gl.context.FLOAT,
+			false,
+			0,
+			0
+		)
+
+		this.gl.context.drawArrays(this.gl.context.TRIANGLES, 0, len / 2)
+	}
 }
+
+class Stats {
+	periods = 0
+	totals = {} as Record<string, number>
+	starts = {} as Record<string, number>
+	start(name: string) {
+		this.starts[name] = performance.now()
+	}
+	end(name: string) {
+		if (!this.starts[name]) throw new Error(`No start for ${name}`)
+		this.totals[name] = (this.totals[name] ?? 0) + (performance.now() - this.starts[name])
+		delete this.starts[name]
+	}
+	tick() {
+		this.periods++
+		if (this.periods === 60) {
+			console.log('Stats:')
+			for (const [name, total] of Object.entries(this.totals).sort((a, b) =>
+				a[0].localeCompare(b[0])
+			)) {
+				console.log(' ', name, total / this.periods)
+			}
+			this.totals = {}
+			this.starts = {}
+			this.periods = 0
+		}
+	}
+}
+const stats = new Stats()
 
 type WebGlStuff = {
 	shapeVertexPositionBuffer: WebGLBuffer
@@ -429,7 +495,7 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
 	if (!unselectedShapesBuffer) throw new Error('Failed to create buffer')
 	const unSelectedShapesVertices = new Float32Array(4096)
 	const viewportBuffer = context.createBuffer()
-	const viewportVertices = new Float32Array(12)
+	const viewportVertices = new Float32Array(roundedRectangleDataSize)
 
 	return {
 		context,
