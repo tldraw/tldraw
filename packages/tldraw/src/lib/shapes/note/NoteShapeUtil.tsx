@@ -315,6 +315,12 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	let labelHeight = NOTE_SIZE
 	let labelWidth = NOTE_SIZE
 
+	// N.B. For some note shapes with text like 'hjhjhjhjhjhjhjhj', you'll run into
+	// some text measurement fuzziness where the browser swears there's no overflow (scrollWidth === width)
+	// but really there is when you enable overflow-wrap again. This helps account for that little bit
+	// of give.
+	const FUZZ = 1
+
 	// We slightly make the font smaller if the text is too big for the note, width-wise.
 	do {
 		fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
@@ -322,7 +328,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize: fontSizeAdjustment,
-			maxWidth: NOTE_SIZE - LABEL_PADDING * 2,
+			maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
 			disableOverflowWrapBreaking: true,
 		})
 
@@ -336,7 +342,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize: fontSizeAdjustment,
-				maxWidth: NOTE_SIZE - LABEL_PADDING * 2,
+				maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
 			})
 			labelHeight = nextTextSizeWithOverflowBreak.h + LABEL_PADDING * 2
 			labelWidth = nextTextSizeWithOverflowBreak.w + LABEL_PADDING * 2
