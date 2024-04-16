@@ -111,4 +111,134 @@ describe('Spatial Index', () => {
 		expect(page1Picks.every((s) => shapesInsideBounds.includes(s.id))).toBe(true)
 		expect(page2Shapes.every((s) => !shapesInsideBounds.includes(s.id))).toBe(true)
 	})
+
+	it('works for groups', () => {
+		const box1 = createShapeId()
+		const box2 = createShapeId()
+		editor.createShapes([
+			{
+				id: box1,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+				type: 'geo',
+				x: 0,
+				y: 0,
+			},
+			{
+				id: box2,
+				type: 'geo',
+				x: 200,
+				y: 200,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+			},
+		])
+
+		const groupId = createShapeId()
+		editor.groupShapes([box1, box2], groupId)
+		let groupBounds = editor.getShapePageBounds(groupId)
+		expect(groupBounds).toEqual({ x: 0, y: 0, w: 300, h: 300 })
+
+		expect(editor.getShapeIdsInsideBounds(groupBounds!)).toEqual([box1, box2, groupId])
+
+		// Move the group to the right by 1000
+		editor.updateShape({ id: groupId, type: 'group', x: 1000 })
+		groupBounds = editor.getShapePageBounds(groupId)
+		// Make sure the group bounds are updated
+		expect(groupBounds).toEqual({ x: 1000, y: 0, w: 300, h: 300 })
+
+		// Spatial index should see shapes inside these bounds
+		expect(editor.getShapeIdsInsideBounds(groupBounds!)).toEqual([box1, box2, groupId])
+	})
+
+	it('works for frames', () => {
+		const box1 = createShapeId()
+		const frameId = createShapeId()
+		editor.createShapes([
+			{
+				id: box1,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+				type: 'geo',
+				x: 100,
+				y: 100,
+			},
+			{
+				id: frameId,
+				type: 'frame',
+				x: 0,
+				y: 0,
+				props: { w: 300, h: 300 },
+			},
+		])
+
+		editor.reparentShapes([box1], frameId)
+		let frameBounds = editor.getShapePageBounds(frameId)
+		expect(frameBounds).toEqual({ x: 0, y: 0, w: 300, h: 300 })
+
+		// move the frame to the right by 1000
+		editor.updateShape({ id: frameId, type: 'group', x: 1000 })
+		frameBounds = editor.getShapePageBounds(frameId)
+		expect(frameBounds).toEqual({ x: 1000, y: 0, w: 300, h: 300 })
+
+		// Spatial index should see shapes inside these bounds
+		expect(editor.getShapeIdsInsideBounds(frameBounds!)).toEqual([box1, frameId])
+	})
+
+	it('works for arrows', () => {
+		const arrowId = createShapeId()
+		const boxId = createShapeId()
+		editor.createShapes([
+			{
+				id: arrowId,
+				type: 'arrow',
+				props: {
+					start: { type: 'point', x: 0, y: 0 },
+					end: { type: 'point', x: 100, y: 100 },
+				},
+			},
+			{
+				id: boxId,
+				type: 'geo',
+				x: 200,
+				y: 200,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+			},
+		])
+		let arrowBounds = editor.getShapePageBounds(arrowId)
+		expect(arrowBounds).toEqual({ x: 0, y: 0, w: 100, h: 100 })
+		let boxBounds = editor.getShapePageBounds(boxId)
+		expect(boxBounds).toEqual({ x: 200, y: 200, w: 100, h: 100 })
+
+		// bind the arrow to the box
+		editor.updateShape({
+			id: arrowId,
+			type: 'arrow',
+			props: {
+				end: {
+					type: 'binding',
+					isExact: true,
+					boundShapeId: boxId,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
+				},
+			},
+		})
+		arrowBounds = editor.getShapePageBounds(arrowId)
+		// Arrow extends to the middle of the box now
+		expect(arrowBounds).toEqual({ x: 0, y: 0, w: 250, h: 250 })
+		// Arrow should be inside the box bounds
+		expect(editor.getShapeIdsInsideBounds(boxBounds!)).toEqual([arrowId, boxId])
+
+		// Move the box to the left
+		editor.updateShape({
+			id: boxId,
+			type: 'geo',
+			x: -200,
+		})
+		// We should not see any shapes inside the old bounds any longer
+		expect(editor.getShapeIdsInsideBounds(boxBounds!)).toEqual([])
+		boxBounds = editor.getShapePageBounds(boxId)
+		expect(boxBounds).toEqual({ x: -200, y: 200, w: 100, h: 100 })
+
+		// Arrow should be inside the new box bounds
+		expect(editor.getShapeIdsInsideBounds(boxBounds!)).toEqual([arrowId, boxId])
+	})
 })
