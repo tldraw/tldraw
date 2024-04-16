@@ -9,7 +9,7 @@ export const roundedRectangleDataSize =
 	// num triangles in outer rects
 	4 * 12
 
-function pie(
+export function pie(
 	array: Float32Array,
 	{
 		center,

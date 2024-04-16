@@ -12,7 +12,8 @@ import {
 	react,
 	uniqueId,
 } from '@tldraw/editor'
-import { roundedRectangle, roundedRectangleDataSize } from './minimapShapes'
+import { getRgba } from './getRgba'
+import { pie, roundedRectangle, roundedRectangleDataSize } from './minimapShapes'
 
 type WebGLGeometry = ReturnType<Geometry2d['getWebGLGeometry']>
 
@@ -41,9 +42,9 @@ export class MinimapManager {
 		const style = getComputedStyle(this.editor.getContainer())
 
 		return {
-			shapeFill: getRGBA(style.getPropertyValue('--color-text-3').trim()),
-			selectFill: getRGBA(style.getPropertyValue('--color-selected').trim()),
-			viewportFill: getRGBA(style.getPropertyValue('--color-muted-1').trim()),
+			shapeFill: getRgba(style.getPropertyValue('--color-text-3').trim()),
+			selectFill: getRgba(style.getPropertyValue('--color-selected').trim()),
+			viewportFill: getRgba(style.getPropertyValue('--color-muted-1').trim()),
 		}
 	}
 
@@ -310,6 +311,7 @@ export class MinimapManager {
 			selectedShapeOffset,
 			colors.selectFill
 		)
+		this.drawCollaborators()
 		stats.end('minimap render')
 		stats.tick()
 	}
@@ -349,7 +351,6 @@ export class MinimapManager {
 			0,
 			len
 		)
-		this.gl.context.uniform4fv(this.gl.shapeFillLocation, color)
 		this.gl.context.enableVertexAttribArray(this.gl.shapeVertexPositionAttributeLocation)
 		this.gl.context.vertexAttribPointer(
 			this.gl.shapeVertexPositionAttributeLocation,
@@ -360,7 +361,60 @@ export class MinimapManager {
 			0
 		)
 
+		this.gl.context.uniform4fv(this.gl.shapeFillLocation, color)
 		this.gl.context.drawArrays(this.gl.context.TRIANGLES, 0, len / 2)
+	}
+
+	drawCollaborators() {
+		const zoom = this.getCanvasPageBounds().width / this.getCanvasScreenBounds().width
+		const allPresenceRecords = this.getCollaboratorsQuery().get()
+		if (!allPresenceRecords.length) return
+		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
+		const collaborators = userIds.map((id) => {
+			const latestPresence = allPresenceRecords
+				.filter((c) => c.userId === id)
+				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
+			return latestPresence
+		})
+
+		// just draw a little rectangle for each collaborator
+		const numSegmentsPerCircle = 20
+		const dataSizePerCircle = numSegmentsPerCircle * 6
+		const totalSize = dataSizePerCircle * collaborators.length
+		if (this.gl.collaboratorVertices.length < totalSize) {
+			this.gl.collaboratorVertices = new Float32Array(totalSize)
+		}
+		let offset = 0
+		for (const { cursor } of collaborators) {
+			pie(this.gl.collaboratorVertices, { center: Vec.From(cursor), radius: 2 * zoom, offset })
+			offset += dataSizePerCircle
+		}
+
+		this.gl.context.bindBuffer(this.gl.context.ARRAY_BUFFER, this.gl.collaboratorBuffer)
+		this.gl.context.bufferData(
+			this.gl.context.ARRAY_BUFFER,
+			this.gl.collaboratorVertices,
+			this.gl.context.STATIC_DRAW,
+			0,
+			totalSize
+		)
+		this.gl.context.enableVertexAttribArray(this.gl.shapeVertexPositionAttributeLocation)
+		this.gl.context.vertexAttribPointer(
+			this.gl.shapeVertexPositionAttributeLocation,
+			2,
+			this.gl.context.FLOAT,
+			false,
+			0,
+			0
+		)
+
+		offset = 0
+		for (const { color } of collaborators) {
+			const rgba = getRgba(color)
+			this.gl.context.uniform4fv(this.gl.shapeFillLocation, rgba)
+			this.gl.context.drawArrays(this.gl.context.TRIANGLES, offset / 2, dataSizePerCircle / 2)
+			offset += dataSizePerCircle
+		}
 	}
 }
 
@@ -497,6 +551,9 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
 	const viewportBuffer = context.createBuffer()
 	const viewportVertices = new Float32Array(roundedRectangleDataSize)
 
+	const collaboratorBuffer = context.createBuffer()
+	const collaboratorVertices = new Float32Array(1024)
+
 	return {
 		context,
 		program,
@@ -506,18 +563,11 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
 		unSelectedShapesVertices,
 		viewportBuffer,
 		viewportVertices,
+		collaboratorBuffer,
+		collaboratorVertices,
 		shapeVertexPositionAttributeLocation,
 		shapePageTransformLocation,
 		resolutionLocation,
 		shapeFillLocation,
 	}
-}
-
-function getRGBA(colorString: string) {
-	const canvas = document.createElement('canvas')
-	const context = canvas.getContext('2d')
-	context!.fillStyle = colorString
-	context!.fillRect(0, 0, 1, 1)
-	const [r, g, b, a] = context!.getImageData(0, 0, 1, 1).data
-	return new Float32Array([r / 255, g / 255, b / 255, a / 255])
 }
