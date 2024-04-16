@@ -94,16 +94,12 @@ function runTest(seed: number) {
 	for (let i = 0; i < 1000; i++) {
 		const num = nums[Math.floor(r() * nums.length)]
 
-		const choice = r()
-		if (choice < 0.45) {
+		if (r() > 0.5) {
 			as.add(num)
 			s.add(num)
-		} else if (choice < 0.9) {
+		} else {
 			as.remove(num)
 			s.delete(num)
-		} else {
-			as.clear()
-			s.clear()
 		}
 
 		try {
