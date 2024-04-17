@@ -25,7 +25,7 @@ export class FpsTracker {
 		this.started = false
 		if (this.frame !== null) cancelAnimationFrame(this.frame)
 		const duration = (performance.now() - this.startTime) / 1000
-		const fps = duration === 0 ? 0 : this.frames / duration
+		const fps = duration === 0 ? 0 : Math.floor(this.frames / duration)
 		// eslint-disable-next-line no-console
 		console.debug(
 			`%c${this.name} FPS%c: ${fps}`,
