@@ -113,18 +113,18 @@ describe('Spatial Index', () => {
 	})
 
 	it('works for groups', () => {
-		const box1 = createShapeId()
-		const box2 = createShapeId()
+		const box1Id = createShapeId()
+		const box2Id = createShapeId()
 		editor.createShapes([
 			{
-				id: box1,
+				id: box1Id,
 				props: { w: 100, h: 100, geo: 'rectangle' },
 				type: 'geo',
 				x: 0,
 				y: 0,
 			},
 			{
-				id: box2,
+				id: box2Id,
 				type: 'geo',
 				x: 200,
 				y: 200,
@@ -133,11 +133,11 @@ describe('Spatial Index', () => {
 		])
 
 		const groupId = createShapeId()
-		editor.groupShapes([box1, box2], groupId)
+		editor.groupShapes([box1Id, box2Id], groupId)
 		let groupBounds = editor.getShapePageBounds(groupId)
 		expect(groupBounds).toEqual({ x: 0, y: 0, w: 300, h: 300 })
 
-		expect(editor.getShapeIdsInsideBounds(groupBounds!)).toEqual([box1, box2, groupId])
+		expect(editor.getShapeIdsInsideBounds(groupBounds!)).toEqual([box1Id, box2Id, groupId])
 
 		// Move the group to the right by 1000
 		editor.updateShape({ id: groupId, type: 'group', x: 1000 })
@@ -147,23 +147,23 @@ describe('Spatial Index', () => {
 
 		// We only updated the group's position, but spatial index should have also updated
 		// the bounds of the shapes inside the group
-		expect(editor.getShapeIdsInsideBounds(groupBounds!)).toEqual([box1, box2, groupId])
+		expect(editor.getShapeIdsInsideBounds(groupBounds!)).toEqual([box1Id, box2Id, groupId])
 
-		editor.updateShape({ id: box1, type: 'geo', x: -1000 })
-		const box1Bounds = editor.getShapePageBounds(box1)
+		editor.updateShape({ id: box1Id, type: 'geo', x: -1000 })
+		const box1Bounds = editor.getShapePageBounds(box1Id)
 		expect(box1Bounds).toEqual({ x: 0, y: 0, w: 100, h: 100 })
 
 		// We only updated box1's position, but spatial index should have also updated
 		// the bounds of the parent group
-		expect(editor.getShapeIdsInsideBounds(box1Bounds!)).toEqual([box1, groupId])
+		expect(editor.getShapeIdsInsideBounds(box1Bounds!)).toEqual([box1Id, groupId])
 	})
 
 	it('works for frames', () => {
-		const box1 = createShapeId()
+		const boxId = createShapeId()
 		const frameId = createShapeId()
 		editor.createShapes([
 			{
-				id: box1,
+				id: boxId,
 				props: { w: 100, h: 100, geo: 'rectangle' },
 				type: 'geo',
 				x: 100,
@@ -178,7 +178,7 @@ describe('Spatial Index', () => {
 			},
 		])
 
-		editor.reparentShapes([box1], frameId)
+		editor.reparentShapes([boxId], frameId)
 		let frameBounds = editor.getShapePageBounds(frameId)
 		expect(frameBounds).toEqual({ x: 0, y: 0, w: 300, h: 300 })
 
@@ -189,7 +189,7 @@ describe('Spatial Index', () => {
 
 		// We only updated the frame's position, but spatial index should have also updated
 		// the bounds of the shapes inside the frame
-		expect(editor.getShapeIdsInsideBounds(frameBounds!)).toEqual([box1, frameId])
+		expect(editor.getShapeIdsInsideBounds(frameBounds!)).toEqual([boxId, frameId])
 	})
 
 	it('works for arrows', () => {
@@ -251,5 +251,60 @@ describe('Spatial Index', () => {
 		// We only updated the box's position, but spatial index should have also updated
 		// the bounds of the arrow bound to it
 		expect(editor.getShapeIdsInsideBounds(boxBounds!)).toEqual([arrowId, boxId])
+	})
+
+	it('works for shapes that are outside of the viewport, but are then moved inside it', () => {
+		const box1Id = createShapeId()
+		const box2Id = createShapeId()
+		const arrowId = createShapeId()
+
+		editor.createShapes([
+			{
+				id: box1Id,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+				type: 'geo',
+				x: -500,
+				y: 0,
+			},
+			{
+				id: box2Id,
+				type: 'geo',
+				x: -1000,
+				y: 200,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+			},
+			{
+				id: arrowId,
+				type: 'arrow',
+				props: {
+					start: {
+						type: 'binding',
+						isExact: true,
+						boundShapeId: box1Id,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
+					},
+					end: {
+						type: 'binding',
+						isExact: true,
+						boundShapeId: box2Id,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
+					},
+				},
+			},
+		])
+
+		const viewportBounds = editor.getViewportPageBounds()
+		expect(viewportBounds).toEqual({ x: -0, y: -0, w: 1080, h: 720 })
+		expect(editor.getShapeIdsInsideBounds(viewportBounds)).toEqual([])
+
+		// Move box1 and box2 inside the viewport
+		editor.updateShapes([
+			{ id: box1Id, type: 'geo', x: 100 },
+			{ id: box2Id, type: 'geo', x: 200 },
+		])
+		// Spatial index should also see the arrow
+		expect(editor.getShapeIdsInsideBounds(viewportBounds)).toEqual([box1Id, box2Id, arrowId])
 	})
 })
