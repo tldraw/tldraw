@@ -100,6 +100,8 @@ export class SpatialIndex {
 					isDirty = true
 				}
 			}
+			// We'll recheck all the shapes to see if their bounds have changed. We cannot rely on the diff for this.
+			// Cases where changes not visible in the diff: moving a group, moving a shape that has an arrow attached to it (the arrow's bounds change too).
 			const elementsToAdd: Element[] = []
 			this.shapesInTree.forEach((element, id) => {
 				const newBounds = this.editor.getShapeMaskedPageBounds(id)
