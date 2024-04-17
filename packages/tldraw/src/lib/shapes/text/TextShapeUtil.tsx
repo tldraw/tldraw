@@ -77,7 +77,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const { width, height } = this.getMinDimensions(shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const theme = useDefaultColorTheme()
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const handleKeyDown = useTextShapeKeydownHandler(id)
 
 		return (
