@@ -69,7 +69,9 @@ export function useUrlState(onChangeUrl: (params: UrlStateParams) => void) {
 					const { x, y, w, h } = viewport
 					const { w: sw, h: sh } = editor.getViewportScreenBounds()
 					const fitZoom = editor.getCameraFitZoom()
-					const { zoomMin, zoomMax } = editor.getCameraOptions()
+					const { zoomSteps } = editor.getCameraOptions()
+					const zoomMin = zoomSteps[0]
+					const zoomMax = zoomSteps[zoomSteps.length - 1]
 
 					const zoom = clamp(Math.min(sw / w, sh / h), zoomMin * fitZoom, zoomMax * fitZoom)
 
