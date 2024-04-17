@@ -4560,8 +4560,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
-		const topLevelShapes = this.getSortedChildIdsForParent(this.getCurrentPageId())
 		const result: TLShape[] = []
+		const topLevelShapes = this.getSortedChildIdsForParent(this.getCurrentPageId())
 
 		for (let i = 0, n = topLevelShapes.length; i < n; i++) {
 			pushShapeWithDescendants(this, topLevelShapes[i], result)
@@ -8867,9 +8867,7 @@ function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape
 	if (!shape) return
 	result.push(shape)
 	const childIds = editor.getSortedChildIdsForParent(id)
-	if (childIds) {
-		for (let i = 0, n = childIds.length; i < n; i++) {
-			pushShapeWithDescendants(editor, childIds[i], result)
-		}
+	for (let i = 0, n = childIds.length; i < n; i++) {
+		pushShapeWithDescendants(editor, childIds[i], result)
 	}
 }
