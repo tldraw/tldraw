@@ -170,6 +170,7 @@ export function DefaultMinimap() {
 		// need to wait a tick for next theme css to be applied
 		// otherwise the minimap will render with the wrong colors
 		setTimeout(() => {
+			minimapRef.current?.updateColors()
 			minimapRef.current?.render()
 		})
 	}, [isDarkMode])
