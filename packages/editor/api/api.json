@@ -36966,7 +36966,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    zoomMax: number;\n    zoomMin: number;\n    constraints?: {\n        fitX: 'contain' | 'inside' | 'lock' | 'outside';\n        fitY: 'contain' | 'inside' | 'lock' | 'outside';\n        bounds: "
+              "text": "{\n    constraints?: {\n        fitX: 'contain' | 'inside' | 'lock' | 'outside';\n        fitY: 'contain' | 'inside' | 'lock' | 'outside';\n        bounds: "
             },
             {
               "kind": "Reference",

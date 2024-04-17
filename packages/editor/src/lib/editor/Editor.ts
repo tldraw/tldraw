@@ -53,6 +53,7 @@ import {
 	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
+	last,
 	objectMapValues,
 	sortById,
 	sortByIndex,
@@ -2136,7 +2137,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		options: Partial<TLCameraOptions>,
 		opts?: { immediate?: boolean; force?: boolean; initial?: boolean }
 	) {
-		this._cameraOptions.set({ ...this._cameraOptions.__unsafe__getWithoutCapture(), ...options })
+		const next = { ...this._cameraOptions.__unsafe__getWithoutCapture(), ...options }
+		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
+		this._cameraOptions.set(next)
 		this.setCamera(this.getCamera(), opts)
 		return this
 	}
@@ -2158,9 +2161,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const cameraOptions = this.getCameraOptions()
 
+			const zoomMin = cameraOptions.zoomSteps[0]
+			const zoomMax = last(cameraOptions.zoomSteps)!
+
 			// If bounds are provided, then we'll keep those bounds on screen
 			if (cameraOptions.constraints) {
-				const { zoomMax, zoomMin, constraints } = cameraOptions
+				const { constraints } = cameraOptions
 
 				const vsb = this.getViewportScreenBounds()
 
@@ -2293,7 +2299,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			} else {
 				// constrain the zoom, preserving the center
-				const { zoomMax, zoomMin } = cameraOptions
+
 				if (z > zoomMax || z < zoomMin) {
 					const vsb = this.getViewportScreenBounds()
 					const { x: cx, y: cy, z: cz } = currentCamera
@@ -2523,10 +2529,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 
-		const { zoomMax, zoomSteps } = this.getCameraOptions()
+		const { zoomSteps } = this.getCameraOptions()
 		if (zoomSteps !== null && zoomSteps.length > 1) {
 			const fitZoom = this.getCameraFitZoom()
-			let zoom = zoomMax * fitZoom
+			let zoom = last(zoomSteps)! * fitZoom
 			for (let i = 1; i < zoomSteps.length; i++) {
 				const z1 = zoomSteps[i - 1] * fitZoom
 				const z2 = zoomSteps[i] * fitZoom
@@ -2565,12 +2571,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomOut(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
 		if (this.getCameraOptions().isLocked) return this
 
-		const { zoomMin, zoomSteps } = this.getCameraOptions()
+		const { zoomSteps } = this.getCameraOptions()
 		if (zoomSteps !== null && zoomSteps.length > 1) {
 			const fitZoom = this.getCameraFitZoom()
 			const { x: cx, y: cy, z: cz } = this.getCamera()
-			let zoom = zoomMin * fitZoom
-			for (let i = zoomSteps.length - 1; i > 0; i--) {
+			let zoom = zoomSteps[0] * fitZoom
+			for (let i = zoomSteps.length - 2; i > 0; i--) {
 				const z1 = zoomSteps[i - 1] * fitZoom
 				const z2 = zoomSteps[i] * fitZoom
 				if (z2 - cz >= (z2 - z1) / 2) continue
@@ -2701,7 +2707,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const inset = opts?.inset ?? Math.min(256, viewportScreenBounds.width * 0.28)
 
 		const fitZoom = this.getCameraFitZoom()
-		const { zoomMin, zoomMax } = this.getCameraOptions()
+		const { zoomSteps } = this.getCameraOptions()
+		const zoomMin = zoomSteps[0]
+		const zoomMax = last(zoomSteps)!
 
 		let zoom = clamp(
 			Math.min(
@@ -3279,7 +3287,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					: height / desiredHeight
 
 				const fitZoom = this.getCameraFitZoom()
-				const { zoomMin, zoomMax } = this.getCameraOptions()
+				const { zoomSteps } = this.getCameraOptions()
+				const zoomMin = zoomSteps[0]
+				const zoomMax = last(zoomSteps)!
 				const targetZoom = clamp(this.getCamera().z * ratio, zoomMin * fitZoom, zoomMax * fitZoom)
 				const targetWidth = this.getViewportScreenBounds().w / targetZoom
 				const targetHeight = this.getViewportScreenBounds().h / targetZoom

@@ -140,8 +140,6 @@ export function ImageAnnotationEditor({
 					fitX: 'inside',
 					fitY: 'inside',
 				},
-				zoomMax: 8,
-				zoomMin: 1, // prevent zoom from going below zero
 				zoomSteps: [1, 2, 4, 8],
 				zoomSpeed: 1,
 				panSpeed: 1,

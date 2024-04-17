@@ -2007,8 +2007,6 @@ export type TLCameraMoveOptions = Partial<{
 
 // @public (undocumented)
 export type TLCameraOptions = {
-    zoomMax: number;
-    zoomMin: number;
     constraints?: {
         fitX: 'contain' | 'inside' | 'lock' | 'outside';
         fitY: 'contain' | 'inside' | 'lock' | 'outside';

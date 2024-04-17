@@ -12,6 +12,10 @@ import {
 import 'tldraw/tldraw.css'
 
 const CAMERA_OPTIONS: TLCameraOptions = {
+	isLocked: false,
+	panSpeed: 1,
+	zoomSpeed: 1,
+	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
 	constraints: {
 		fit: 'max',
 		bounds: {
@@ -25,12 +29,6 @@ const CAMERA_OPTIONS: TLCameraOptions = {
 		padding: { x: 100, y: 100 },
 		origin: { x: 0.5, y: 0.5 },
 	},
-	panSpeed: 1,
-	zoomSteps: [0.1, 0.5, 0.75, 1, 1.5, 2, 4, 8],
-	zoomMax: 8,
-	zoomMin: 0.1,
-	zoomSpeed: 1,
-	isLocked: false,
 }
 
 const BOUNDS_SIZES: Record<string, BoxModel> = {
@@ -195,6 +193,32 @@ const CameraOptionsControlPanel = track(() => {
 					justifyContent: 'center',
 				}}
 			>
+				<label htmlFor="lock">Lock</label>
+				<select
+					name="lock"
+					value={cameraOptions.isLocked ? 'true' : 'false'}
+					onChange={(e) => {
+						const value = e.target.value
+						updateOptions({
+							...CAMERA_OPTIONS,
+							isLocked: value === 'true',
+						})
+					}}
+				>
+					<option value="true">true</option>
+					<option value="false">false</option>
+				</select>
+				<label htmlFor="panspeed">Pan Speed</label>
+				<input
+					name="panspeed"
+					type="number"
+					step={0.1}
+					value={cameraOptions.panSpeed}
+					onChange={(e) => {
+						const val = clamp(Number(e.target.value), 0, 2)
+						updateOptions({ panSpeed: val })
+					}}
+				/>
 				<label htmlFor="zoomspeed">Zoom Speed</label>
 				<input
 					name="zoomspeed"
@@ -206,15 +230,14 @@ const CameraOptionsControlPanel = track(() => {
 						updateOptions({ zoomSpeed: val })
 					}}
 				/>
-				<label htmlFor="panspeed">Pan Speed</label>
+				<label htmlFor="zoomsteps">Zoom Steps</label>
 				<input
-					name="panspeed"
-					type="number"
-					step={0.1}
-					value={cameraOptions.panSpeed}
+					name="zoomsteps"
+					type="text"
+					value={cameraOptions.zoomSteps.join(', ')}
 					onChange={(e) => {
-						const val = clamp(Number(e.target.value), 0, 2)
-						updateOptions({ panSpeed: val })
+						const val = e.target.value.split(', ').map((v) => Number(v))
+						updateOptions({ zoomSteps: val })
 					}}
 				/>
 				<label htmlFor="bounds">Bounds</label>

@@ -25,10 +25,6 @@ export type TLCameraOptions = {
 	zoomSpeed: number
 	/** The steps that a user can zoom between with zoom in / zoom out (zoom factors) */
 	zoomSteps: number[]
-	/** A minimum zoom factor (e.g. .5x of the zoom at which the shape is fully on screen) */
-	zoomMin: number
-	/** A maximum zoom factor (e.g. 2x of the zoom at which the shape is fully on screen) */
-	zoomMax: number
 	/** Whether the camera is locked */
 	isLocked: boolean
 	/** The camera constraints */
