@@ -20,7 +20,7 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 		const end = performance.now()
 		// eslint-disable-next-line no-console
 		console.debug(
-			`%c${propertyKey} took:%c ${start - end}ms`,
+			`%c${propertyKey} took:%c ${end - start}ms`,
 			'font-weight: bold; color: orange',
 			'font-weight: normal'
 		)
