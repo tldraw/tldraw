@@ -158,7 +158,7 @@ export class ArraySet<T> {
 			this.set.clear()
 		} else {
 			this.arraySize = 0
-			this.array?.fill(undefined)
+			this.array = []
 		}
 	}
 

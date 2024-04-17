@@ -100,9 +100,9 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
+import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
-import { SpatialIndex } from './derivations/spatialIndex'
 import { getSvgJsx } from './getSvgJsx'
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
@@ -589,7 +589,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 		this._parentIdsToChildIds = parentsToChildren(this.store)
 
-		this._spatialIndex = new SpatialIndex(this)
 		this.disposables.add(
 			this.store.listen((changes) => {
 				this.emit('change', changes)
@@ -4199,8 +4198,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.isShapeOrAncestorLocked(this.getShapeParent(shape))
 	}
 
-	/* @internal */
-	private readonly _spatialIndex: SpatialIndex
+	@computed
+	private _notVisibleShapes() {
+		return notVisibleShapes(this)
+	}
 
 	/**
 	 * Get culled shapes.
@@ -4209,7 +4210,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed
 	getCulledShapes() {
-		const notVisibleShapes = this._spatialIndex.getNotVisibleShapes()
+		const notVisibleShapes = this._notVisibleShapes().get()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const editingId = this.getEditingShapeId()
 		const culledShapes = new Set<TLShapeId>(notVisibleShapes)
@@ -4222,31 +4223,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			culledShapes.delete(id)
 		})
 		return culledShapes
-	}
-
-	/**
-	 * Get the shapes ids of shapes that are are (at least partially) inside the bounds.
-	 *
-	 * @param bounds - The bounds to check.
-	 * @returns The shape ids of shapes that are at least partially inside the bounds.
-	 *
-	 * @public
-	 */
-	getShapeIdsInsideBounds(bounds: Box): TLShapeId[] {
-		return this._spatialIndex.getShapeIdsInsideBounds(bounds)
-	}
-
-	/**
-	 * Get the shapes that are are (at least partially) inside the bounds.
-	 *
-	 * @param bounds - The bounds to check.
-	 * @returns The shapes that are at least partially inside the bounds.
-	 *
-	 * @public
-	 */
-	getShapesInsideBounds(bounds: Box): TLShape[] {
-		const shapeIds = this.getShapeIdsInsideBounds(bounds)
-		return compact(shapeIds.map((id) => this.getShape(id)))
 	}
 
 	/**
@@ -4278,18 +4254,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns The top-most selected shape at the given point, or undefined if there is no shape at the point.
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
-		const shapesCloseToPoint = new Set(
-			this.getShapeIdsInsideBounds(Box.AroundPoint(point, HIT_TEST_MARGIN))
-		)
 		const selectedShapeIds = this.getSelectedShapeIds()
-
 		return this.getCurrentPageShapesSorted()
-			.filter(
-				(shape) =>
-					shape.type !== 'group' &&
-					shapesCloseToPoint.has(shape.id) &&
-					selectedShapeIds.includes(shape.id)
-			)
+			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
 			.reverse() // findlast
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
@@ -4329,15 +4296,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
-		const shapesCloseToPoint = new Set(
-			this.getShapeIdsInsideBounds(Box.AroundPoint(point, HIT_TEST_MARGIN))
-		)
 		const shapesToCheck = (
 			opts.renderingOnly
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
-			if (!shapesCloseToPoint.has(shape.id)) return
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
@@ -8231,8 +8194,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			{
 				id: TLPOINTER_ID,
 				typeName: 'pointer',
-				x: sx,
-				y: sy,
+				x: currentPagePoint.x,
+				y: currentPagePoint.y,
 				lastActivityTimestamp:
 					// If our pointer moved only because we're following some other user, then don't
 					// update our last activity timestamp; otherwise, update it to the current timestamp.

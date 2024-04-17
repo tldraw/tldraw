@@ -68,10 +68,10 @@ export function stopCapturingParents() {
 		frame.child.parentEpochs.length = frame.offset
 	}
 
-	if (inst.stack?.maybeRemoved) {
-		for (let i = 0; i < inst.stack.maybeRemoved.length; i++) {
-			const maybeRemovedParent = inst.stack.maybeRemoved[i]
-			if (!inst.stack.child.parentSet.has(maybeRemovedParent)) {
+	if (frame.maybeRemoved) {
+		for (let i = 0; i < frame.maybeRemoved.length; i++) {
+			const maybeRemovedParent = frame.maybeRemoved[i]
+			if (!frame.child.parentSet.has(maybeRemovedParent)) {
 				detach(maybeRemovedParent, frame.child)
 			}
 		}
@@ -98,10 +98,12 @@ export function maybeCaptureParent(p: Signal<any, any>) {
 
 		if (inst.stack.offset < inst.stack.child.parents.length) {
 			const maybeRemovedParent = inst.stack.child.parents[inst.stack.offset]
-			if (!inst.stack.maybeRemoved) {
-				inst.stack.maybeRemoved = [maybeRemovedParent]
-			} else {
-				inst.stack.maybeRemoved.push(maybeRemovedParent)
+			if (maybeRemovedParent !== p) {
+				if (!inst.stack.maybeRemoved) {
+					inst.stack.maybeRemoved = [maybeRemovedParent]
+				} else {
+					inst.stack.maybeRemoved.push(maybeRemovedParent)
+				}
 			}
 		}
 

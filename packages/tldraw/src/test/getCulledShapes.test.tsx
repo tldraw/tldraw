@@ -1,4 +1,4 @@
-import { Box, PageRecordType, TLShapeId, createShapeId } from '@tldraw/editor'
+import { Box, TLShapeId, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -130,14 +130,8 @@ it('correctly calculates the culled shapes when adding and deleting shapes', () 
 	const culledShapesIncremental = editor.getCulledShapes()
 
 	// force full refresh
-	const currentPage = editor.getCurrentPageId()
-	const id = PageRecordType.createId('page2')
-	editor.createPage({ id, name: 'Page 2' })
-	editor.setCurrentPage(id)
-	// Make sure we access the culled shapes so that the editor knows to update them
-	// In prod this happens automatically since rendering of shapes depends on the culled shapes
-	const _culledOnOtherPage = editor.getCulledShapes()
-	editor.setCurrentPage(currentPage)
+	editor.pan({ x: -1, y: 0 })
+	editor.pan({ x: 1, y: 0 })
 
 	const culledShapeFromScratch = editor.getCulledShapes()
 	expect(culledShapesIncremental).toEqual(culledShapeFromScratch)
