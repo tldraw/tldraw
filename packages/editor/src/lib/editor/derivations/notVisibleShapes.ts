@@ -42,8 +42,12 @@ export const notVisibleShapes = (editor: Editor) => {
 
 		const nextValue = fromScratch(editor)
 
-		const isSame =
-			prevValue.size === nextValue.size && [...prevValue].every((id) => nextValue.has(id))
-		return isSame ? prevValue : nextValue
+		if (prevValue.size !== nextValue.size) return nextValue
+		for (const prev of prevValue) {
+			if (!nextValue.has(prev)) {
+				return nextValue
+			}
+		}
+		return prevValue
 	})
 }
