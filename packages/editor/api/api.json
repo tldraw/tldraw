@@ -10462,7 +10462,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCurrentPageShapesSorted:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * An array containing all of the shapes in the current page, sorted in z-index order (accounting for nested shapes): e.g. A, B, BA, BB, C.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

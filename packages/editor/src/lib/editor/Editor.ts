@@ -4553,6 +4553,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return Array.from(this.getCurrentPageShapeIds(), (id) => this.store.get(id)! as TLShape)
 	}
 
+	/**
+	 * An array containing all of the shapes in the current page, sorted in z-index order (accounting
+	 * for nested shapes): e.g. A, B, BA, BB, C.
+	 *
+	 * @public
+	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
 		const topLevelShapes = this.getSortedChildIdsForParent(this.getCurrentPageId())
 		const result: TLShape[] = []
