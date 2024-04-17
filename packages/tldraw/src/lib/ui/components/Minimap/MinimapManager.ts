@@ -229,7 +229,6 @@ export class MinimapManager {
 	}
 
 	render = () => {
-		stats.start('minimap render')
 		// make sure we update when dark mode switches
 		const context = this.gl.context
 		const canvasSize = this.getCanvasSize()
@@ -279,8 +278,6 @@ export class MinimapManager {
 		this.drawShapes(this.gl.unselectedShapes, unselectedShapeOffset, colors.shapeFill)
 		this.drawShapes(this.gl.selectedShapes, selectedShapeOffset, colors.selectFill)
 		this.drawCollaborators()
-		stats.end('minimap render')
-		stats.tick()
 	}
 
 	private drawShapes(stuff: BufferStuff, len: number, color: Float32Array) {
@@ -354,32 +351,3 @@ export class MinimapManager {
 		}
 	}
 }
-
-class Stats {
-	periods = 0
-	totals = {} as Record<string, number>
-	starts = {} as Record<string, number>
-	start(name: string) {
-		this.starts[name] = performance.now()
-	}
-	end(name: string) {
-		if (!this.starts[name]) throw new Error(`No start for ${name}`)
-		this.totals[name] = (this.totals[name] ?? 0) + (performance.now() - this.starts[name])
-		delete this.starts[name]
-	}
-	tick() {
-		this.periods++
-		if (this.periods === 60) {
-			console.log('Stats:')
-			for (const [name, total] of Object.entries(this.totals).sort((a, b) =>
-				a[0].localeCompare(b[0])
-			)) {
-				console.log(' ', name, total / this.periods)
-			}
-			this.totals = {}
-			this.starts = {}
-			this.periods = 0
-		}
-	}
-}
-const stats = new Stats()
