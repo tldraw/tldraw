@@ -20,8 +20,8 @@ function isShapeNotVisible(editor: Editor, id: TLShapeId, viewportPageBounds: Bo
  * @returns Incremental derivation of non visible shapes.
  */
 export const notVisibleShapes = (editor: Editor) => {
-	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
 	const shapeHistory = editor.store.query.filterHistory('shape')
+	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
 	let lastPageId: TLPageId | null = null
 	let prevViewportPageBounds: Box
 
@@ -38,18 +38,16 @@ export const notVisibleShapes = (editor: Editor) => {
 		})
 		return notVisibleShapes
 	}
-	return computed<Set<TLShapeId>>('getCulledShapes', (prevValue, lastComputedEpoch) => {
+	return computed<Set<TLShapeId>>('getCulledShapes', (prevValue, lastEpoch) => {
 		if (!isCullingOffScreenShapes) return new Set<TLShapeId>()
 
 		if (isUninitialized(prevValue)) {
 			return fromScratch(editor)
 		}
-		const diff = shapeHistory.getDiffSince(lastComputedEpoch)
-
+		const diff = shapeHistory.getDiffSince(lastEpoch)
 		if (diff === RESET_VALUE) {
 			return fromScratch(editor)
 		}
-
 		const currentPageId = editor.getCurrentPageId()
 		if (lastPageId !== currentPageId) {
 			return fromScratch(editor)
@@ -72,7 +70,6 @@ export const notVisibleShapes = (editor: Editor) => {
 			if (!nextValue) nextValue = new Set(prevValue)
 			nextValue.delete(id)
 		}
-
 		for (const changes of diff) {
 			for (const record of Object.values(changes.added)) {
 				if (isShape(record)) {
@@ -82,21 +79,20 @@ export const notVisibleShapes = (editor: Editor) => {
 					}
 				}
 			}
-
-			for (const [_from, to] of Object.values(changes.updated)) {
-				if (isShape(to)) {
-					const isCulled = isShapeNotVisible(editor, to.id, viewportPageBounds)
-					if (isCulled) {
-						addId(to.id)
-					} else {
-						deleteId(to.id)
-					}
-				}
-			}
 			for (const id of Object.keys(changes.removed)) {
 				if (isShapeId(id)) {
 					deleteId(id)
 				}
+			}
+		}
+
+		const shapes = editor.getCurrentPageShapeIds()
+		for (const id of shapes) {
+			const isCulled = isShapeNotVisible(editor, id, viewportPageBounds)
+			if (isCulled) {
+				addId(id)
+			} else {
+				deleteId(id)
 			}
 		}
 
