@@ -8,8 +8,6 @@
 
 - Fix an issue with panning the canvas.
 
-- Fix an issue with panning the canvas.
-
 ## 2.0.27
 
 - Bug fixes and performance improvements.
