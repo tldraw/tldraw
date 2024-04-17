@@ -2143,16 +2143,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _setCamera(
-		point: Vec,
+		point: VecLike,
 		opts?: { immediate?: boolean; force?: boolean; initial?: boolean }
 	): this {
 		const currentCamera = this.getCamera()
 
-		let { x, y, z } = point
+		let { x, y, z = currentCamera.z } = point
 
 		// If force is true, then we'll set the camera to the point regardless of
 		// the camera options, so that we can handle gestures that permit elasticity
-		// or decay.
+		// or decay, or animations that occur while the camera is locked.
 		if (!opts?.force) {
 			// Apply any adjustments based on the camera options
 
@@ -2299,7 +2299,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const { x: cx, y: cy, z: cz } = currentCamera
 					const cxA = -cx + vsb.w / cz / 2
 					const cyA = -cy + vsb.h / cz / 2
-					z = clamp(point.z, zoomMin, zoomMax)
+					z = clamp(z, zoomMin, zoomMax)
 					const cxB = -cx + vsb.w / z / 2
 					const cyB = -cy + vsb.h / z / 2
 					x = cx + cxB - cxA
@@ -2313,7 +2313,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.batch(() => {
-			const camera = { ...currentCamera, ...point }
+			const camera = { ...currentCamera, x, y, z }
 			this.store.put([camera]) // include id and meta here
 
 			// Dispatch a new pointer move because the pointer's page will have changed
@@ -2370,6 +2370,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
+		const { isLocked } = this._cameraOptions.__unsafe__getWithoutCapture()
+		if (isLocked && !opts?.force) return this
+
 		// Stop any camera animations
 		this.stopCameraAnimation()
 
@@ -2378,7 +2381,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
-		const _point = Vec.From(point)
+		const _point = Vec.Cast(point)
 
 		if (!Number.isFinite(_point.x)) _point.x = 0
 		if (!Number.isFinite(_point.y)) _point.y = 0
@@ -8917,10 +8920,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// Update the camera here, which will dispatch a pointer move...
 					// this will also update the pointer position, etc
-					const { x: cx, y: cy, z: cz } = this.getCamera()
-					this._setCamera(new Vec(cx + info.delta.x / cz, cy + info.delta.y / cz, cz), {
-						immediate: true,
-					})
+					this.pan(info.delta, { immediate: true })
 
 					if (
 						!inputs.isDragging &&

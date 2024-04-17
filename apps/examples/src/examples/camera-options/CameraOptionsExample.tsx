@@ -1,5 +1,14 @@
 import { useEffect } from 'react'
-import { TLCameraOptions, Tldraw, clamp, track, useEditor, useLocalStorageState } from 'tldraw'
+import {
+	BoxModel,
+	TLCameraOptions,
+	Tldraw,
+	Vec,
+	clamp,
+	track,
+	useEditor,
+	useLocalStorageState,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const CAMERA_OPTIONS: TLCameraOptions = {
@@ -22,6 +31,13 @@ const CAMERA_OPTIONS: TLCameraOptions = {
 	zoomMin: 0.1,
 	zoomSpeed: 1,
 	isLocked: false,
+}
+
+const BOUNDS_SIZES: Record<string, BoxModel> = {
+	a4: { x: 0, y: 0, w: 1050, h: 1485 },
+	landscape: { x: 0, y: 0, w: 1600, h: 900 },
+	portrait: { x: 0, y: 0, w: 900, h: 1600 },
+	square: { x: 0, y: 0, w: 900, h: 900 },
 }
 
 export default function CameraOptionsExample() {
@@ -75,6 +91,10 @@ const BoundsDisplay = track(() => {
 		},
 	} = cameraOptions
 
+	const d = Vec.ToAngle({ x: w, y: h }) * (180 / Math.PI)
+	const colB = '#00000002'
+	const colA = '#0000001F'
+
 	return (
 		<>
 			<div
@@ -87,14 +107,27 @@ const BoundsDisplay = track(() => {
 					// grey and white stripes
 					border: '1px dashed var(--color-text)',
 					backgroundImage: `
-				linear-gradient(45deg, #AAAAAA44 25%, transparent 25%),
-				linear-gradient(-45deg, #AAAAAA44 25%, transparent 25%),
-				linear-gradient(45deg, transparent 75%, #AAAAAA44 75%),
-				linear-gradient(-45deg, transparent 75%, #AAAAAA44 75%)`,
+			
+				`,
 					backgroundSize: '200px 200px',
 					backgroundPosition: '0 0, 0 100px, 100px -100px, -100px 0px',
 				}}
-			/>
+			>
+				<div
+					style={{
+						position: 'absolute',
+						top: 0,
+						left: 0,
+						width: '100%',
+						height: '100%',
+						backgroundImage: `
+						linear-gradient(0deg, ${colB} 0%, ${colA} 50%, ${colB} 50%, ${colA} 100%),
+						linear-gradient(90deg, ${colB} 0%, ${colA} 50%, ${colB} 50%, ${colA} 100%),
+						linear-gradient(${d}deg, ${colB} 0%, ${colA} 50%, ${colB} 50%, ${colA} 100%),
+						linear-gradient(-${d}deg, ${colB} 0%, ${colA} 50%, ${colB} 50%, ${colA} 100%)`,
+					}}
+				></div>
+			</div>
 		</>
 	)
 })
@@ -124,16 +157,18 @@ const CameraOptionsControlPanel = track(() => {
 			}
 		>
 	) => {
+		const { constraints } = options
 		const cameraOptions = editor.getCameraOptions()
 		setCameraOptions({
 			...cameraOptions,
 			...options,
-			constraints: options.constraints
-				? {
-						...cameraOptions.constraints!,
-						...options.constraints,
-					}
-				: undefined,
+			constraints:
+				constraints === undefined
+					? cameraOptions.constraints
+					: {
+							...(cameraOptions.constraints! ?? CAMERA_OPTIONS.constraints),
+							...constraints,
+						},
 		})
 	}
 
@@ -149,19 +184,74 @@ const CameraOptionsControlPanel = track(() => {
 				zIndex: 1000000,
 			}}
 		>
-			{constraints ? (
-				<>
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns: 'auto 1fr',
-							columnGap: 12,
-							rowGap: 4,
-							marginBottom: 12,
-							alignItems: 'center',
-							justifyContent: 'center',
-						}}
-					>
+			<div
+				style={{
+					display: 'grid',
+					gridTemplateColumns: 'auto 1fr',
+					columnGap: 12,
+					rowGap: 4,
+					marginBottom: 12,
+					alignItems: 'center',
+					justifyContent: 'center',
+				}}
+			>
+				<label htmlFor="zoomspeed">Zoom Speed</label>
+				<input
+					name="zoomspeed"
+					type="number"
+					step={0.1}
+					value={cameraOptions.zoomSpeed}
+					onChange={(e) => {
+						const val = clamp(Number(e.target.value), 0, 2)
+						updateOptions({ zoomSpeed: val })
+					}}
+				/>
+				<label htmlFor="panspeed">Pan Speed</label>
+				<input
+					name="panspeed"
+					type="number"
+					step={0.1}
+					value={cameraOptions.panSpeed}
+					onChange={(e) => {
+						const val = clamp(Number(e.target.value), 0, 2)
+						updateOptions({ panSpeed: val })
+					}}
+				/>
+				<label htmlFor="bounds">Bounds</label>
+				<select
+					name="bounds"
+					value={
+						Object.entries(BOUNDS_SIZES).find(([_, b]) => b.w === constraints?.bounds.w)?.[0] ??
+						'none'
+					}
+					onChange={(e) => {
+						const currentConstraints = constraints ?? CAMERA_OPTIONS.constraints
+						const value = e.target.value
+						if (value === 'none') {
+							updateOptions({
+								...CAMERA_OPTIONS,
+								constraints: undefined,
+							})
+							return
+						}
+
+						updateOptions({
+							...CAMERA_OPTIONS,
+							constraints: {
+								...currentConstraints,
+								bounds: BOUNDS_SIZES[value] ?? BOUNDS_SIZES.a4,
+							},
+						})
+					}}
+				>
+					<option value="none">none</option>
+					<option value="a4">A4 Page</option>
+					<option value="portrait">Portait</option>
+					<option value="landscape">Landscape</option>
+					<option value="square">Square</option>
+				</select>
+				{constraints ? (
+					<>
 						<label htmlFor="fit">Fit</label>
 						<select
 							name="fit"
@@ -293,16 +383,25 @@ const CameraOptionsControlPanel = track(() => {
 							<option>outside</option>
 							<option>lock</option>
 						</select>
-					</div>
-				</>
-			) : null}
-			<button
-				onClick={() => {
-					setCameraOptions(CAMERA_OPTIONS)
-				}}
-			>
-				Reset Camera Options
-			</button>
+					</>
+				) : null}
+			</div>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+				<button
+					onClick={() => {
+						editor.setCamera(editor.getCamera(), { initial: true })
+					}}
+				>
+					Reset Camera
+				</button>
+				<button
+					onClick={() => {
+						updateOptions(CAMERA_OPTIONS)
+					}}
+				>
+					Reset Camera Options
+				</button>
+			</div>
 		</div>
 	)
 })
