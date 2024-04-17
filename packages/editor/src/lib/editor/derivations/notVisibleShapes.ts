@@ -1,5 +1,5 @@
-import { RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
-import { TLPageId, TLShapeId, isShape, isShapeId } from '@tldraw/tlschema'
+import { computed, isUninitialized } from '@tldraw/state'
+import { TLShapeId } from '@tldraw/tlschema'
 import { Box } from '../../primitives/Box'
 import { Editor } from '../Editor'
 
@@ -21,15 +21,10 @@ function isShapeNotVisible(editor: Editor, id: TLShapeId, viewportPageBounds: Bo
  */
 export const notVisibleShapes = (editor: Editor) => {
 	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
-	const shapeHistory = editor.store.query.filterHistory('shape')
-	let lastPageId: TLPageId | null = null
-	let prevViewportPageBounds: Box
 
 	function fromScratch(editor: Editor): Set<TLShapeId> {
 		const shapes = editor.getCurrentPageShapeIds()
-		lastPageId = editor.getCurrentPageId()
 		const viewportPageBounds = editor.getViewportPageBounds()
-		prevViewportPageBounds = viewportPageBounds.clone()
 		const notVisibleShapes = new Set<TLShapeId>()
 		shapes.forEach((id) => {
 			if (isShapeNotVisible(editor, id, viewportPageBounds)) {
@@ -38,68 +33,21 @@ export const notVisibleShapes = (editor: Editor) => {
 		})
 		return notVisibleShapes
 	}
-	return computed<Set<TLShapeId>>('getCulledShapes', (prevValue, lastComputedEpoch) => {
+	return computed<Set<TLShapeId>>('getCulledShapes', (prevValue) => {
 		if (!isCullingOffScreenShapes) return new Set<TLShapeId>()
 
 		if (isUninitialized(prevValue)) {
 			return fromScratch(editor)
 		}
-		const diff = shapeHistory.getDiffSince(lastComputedEpoch)
 
-		if (diff === RESET_VALUE) {
-			return fromScratch(editor)
-		}
+		const nextValue = fromScratch(editor)
 
-		const currentPageId = editor.getCurrentPageId()
-		if (lastPageId !== currentPageId) {
-			return fromScratch(editor)
-		}
-		const viewportPageBounds = editor.getViewportPageBounds()
-		if (!prevViewportPageBounds || !viewportPageBounds.equals(prevViewportPageBounds)) {
-			return fromScratch(editor)
-		}
-
-		let nextValue = null as null | Set<TLShapeId>
-		const addId = (id: TLShapeId) => {
-			// Already added
-			if (prevValue.has(id)) return
-			if (!nextValue) nextValue = new Set(prevValue)
-			nextValue.add(id)
-		}
-		const deleteId = (id: TLShapeId) => {
-			// No need to delete since it's not there
-			if (!prevValue.has(id)) return
-			if (!nextValue) nextValue = new Set(prevValue)
-			nextValue.delete(id)
-		}
-
-		for (const changes of diff) {
-			for (const record of Object.values(changes.added)) {
-				if (isShape(record)) {
-					const isCulled = isShapeNotVisible(editor, record.id, viewportPageBounds)
-					if (isCulled) {
-						addId(record.id)
-					}
-				}
-			}
-
-			for (const [_from, to] of Object.values(changes.updated)) {
-				if (isShape(to)) {
-					const isCulled = isShapeNotVisible(editor, to.id, viewportPageBounds)
-					if (isCulled) {
-						addId(to.id)
-					} else {
-						deleteId(to.id)
-					}
-				}
-			}
-			for (const id of Object.keys(changes.removed)) {
-				if (isShapeId(id)) {
-					deleteId(id)
-				}
+		if (prevValue.size !== nextValue.size) return nextValue
+		for (const prev of prevValue) {
+			if (!nextValue.has(prev)) {
+				return nextValue
 			}
 		}
-
-		return nextValue ?? prevValue
+		return prevValue
 	})
 }
