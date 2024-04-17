@@ -28,7 +28,7 @@ export class PerformanceTracker {
 		const fps = duration === 0 ? 0 : Math.floor(this.frames / duration)
 		// eslint-disable-next-line no-console
 		console.debug(
-			`%c${this.name} FPS%c: ${fps} (took ${duration}ms rendered ${this.frames} frames)`,
+			`%c${this.name} FPS%c: ${fps}`,
 			'font-weight: bold; color: blue',
 			'font-weight: normal'
 		)
