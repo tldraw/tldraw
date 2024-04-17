@@ -90,21 +90,6 @@ export class SpatialIndex {
 						}
 					}
 				}
-				this.shapesInTree.forEach((element, id) => {
-					const newBounds = this.editor.getShapeMaskedPageBounds(id)
-					if (!newBounds) return
-					if (
-						element.minX !== newBounds.minX ||
-						element.minY !== newBounds.minY ||
-						element.maxX !== newBounds.maxX ||
-						element.maxY !== newBounds.maxY
-					) {
-						this.shapesInTree.delete(id)
-						this.rBush.remove(element)
-						this.addElement(id, elementsToAdd, newBounds)
-						isDirty = true
-					}
-				})
 				for (const record of Object.values(changes.added)) {
 					if (isShape(record)) {
 						this.addElement(record.id, elementsToAdd)
@@ -115,6 +100,27 @@ export class SpatialIndex {
 					isDirty = true
 				}
 			}
+			const elementsToAdd: Element[] = []
+			this.shapesInTree.forEach((element, id) => {
+				const newBounds = this.editor.getShapeMaskedPageBounds(id)
+				if (!newBounds) return
+				if (
+					element.minX !== newBounds.minX ||
+					element.minY !== newBounds.minY ||
+					element.maxX !== newBounds.maxX ||
+					element.maxY !== newBounds.maxY
+				) {
+					this.shapesInTree.delete(id)
+					this.rBush.remove(element)
+					this.addElement(id, elementsToAdd, newBounds)
+					isDirty = true
+				}
+			})
+			if (elementsToAdd.length) {
+				this.rBush.load(elementsToAdd)
+				isDirty = true
+			}
+
 			return isDirty ? lastComputedEpoch : prevValue
 		})
 	}
