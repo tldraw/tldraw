@@ -203,7 +203,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					text={text}
 					labelColor={theme[color].solid}
 					isSelected={isSelected}
-					disableTab
 					wrap
 				/>
 			</>

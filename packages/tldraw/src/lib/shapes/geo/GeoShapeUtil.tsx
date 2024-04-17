@@ -421,7 +421,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							text={text}
 							isSelected={isSelected}
 							labelColor={theme[props.labelColor].solid}
-							disableTab
 							wrap
 						/>
 					</HTMLContainer>

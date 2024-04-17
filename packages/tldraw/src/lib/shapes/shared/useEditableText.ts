@@ -2,7 +2,6 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
-	preventDefault,
 	stopEventPropagation,
 	useEditor,
 	useValue,
@@ -11,12 +10,7 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditableText(
-	id: TLShapeId,
-	type: string,
-	text: string,
-	opts = { disableTab: false } as { disableTab: boolean }
-) {
+export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const editor = useEditor()
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
@@ -134,20 +128,9 @@ export function useEditableText(
 					}
 					break
 				}
-				case 'Tab': {
-					if (!opts.disableTab) {
-						preventDefault(e)
-						if (e.shiftKey) {
-							TextHelpers.unindent(e.currentTarget)
-						} else {
-							TextHelpers.indent(e.currentTarget)
-						}
-					}
-					break
-				}
 			}
 		},
-		[editor, id, opts.disableTab]
+		[editor, id]
 	)
 
 	// When the text changes, update the text value.
