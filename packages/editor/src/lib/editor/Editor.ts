@@ -1319,7 +1319,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.isMenuOpen()
+	 * editor.getIsMenuOpen()
 	 * ```
 	 *
 	 * @public
@@ -4340,13 +4340,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed private _getShapeMaskCache(): ComputedCache<Vec[], TLShape> {
 		return this.store.createComputedCache('pageMaskCache', (shape) => {
-			// todo: Consider adding a flag for this hardcoded behaviour
-			if (
-				isPageId(shape.parentId) ||
-				shape.type === 'note' ||
-				this.findShapeAncestor(shape, (v) => v.type === 'note')
-			)
-				return undefined
+			if (isPageId(shape.parentId)) return undefined
 
 			const frameAncestors = this.getShapeAncestors(shape.id).filter((shape) =>
 				this.isShapeOfType<TLFrameShape>(shape, 'frame')
@@ -4642,6 +4636,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			renderingOnly?: boolean
 			margin?: number
 			hitInside?: boolean
+			// TODO: we probably need to rename this, we don't quite _always_
+			// respect this esp. in the part below that does "Check labels first"
 			hitLabels?: boolean
 			hitFrameInside?: boolean
 			filter?: (shape: TLShape) => boolean
@@ -7452,7 +7448,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.deleteShapes(['box1', 'box2'])
+	 * editor.deleteShape(shape.id)
 	 * ```
 	 *
 	 * @param id - The id of the shape to delete.
