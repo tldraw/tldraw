@@ -26,10 +26,11 @@ export class PerformanceTracker {
 		if (this.frame !== null) cancelAnimationFrame(this.frame)
 		const duration = (performance.now() - this.startTime) / 1000
 		const fps = duration === 0 ? 0 : Math.floor(this.frames / duration)
+		const color = fps > 55 ? 'green' : fps > 30 ? 'orange' : 'red'
 		// eslint-disable-next-line no-console
 		console.debug(
 			`%c${this.name} FPS%c: ${fps}`,
-			'font-weight: bold; color: blue',
+			`font-weight: bold; color: ${color}`,
 			'font-weight: normal'
 		)
 	}
