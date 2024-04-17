@@ -40,6 +40,11 @@ export async function createRoom(request: IRequest, env: Environment): Promise<R
 	// Bang that snapshot into the database
 	await env.ROOMS.put(getR2KeyForRoom(slug), JSON.stringify(snapshot))
 
+	// Create a readonly slug and store it
+	const readonlySlug = nanoid()
+	await env.SLUG_TO_READONLY_SLUG.put(slug, readonlySlug)
+	await env.READONLY_SLUG_TO_SLUG.put(readonlySlug, slug)
+
 	// Send back the slug so that the client can redirect to the new room
 	return new Response(JSON.stringify({ error: false, slug }))
 }
