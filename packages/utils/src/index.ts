@@ -1,4 +1,4 @@
-export { FpsTracker } from './lib/FpsTracker'
+export { PerformanceTracker } from './lib/PerformanceTracker'
 export {
 	areArraysShallowEqual,
 	compact,

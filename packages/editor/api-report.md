@@ -16,7 +16,6 @@ import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
 import { Expand } from '@tldraw/utils';
-import { FpsTracker } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -24,6 +23,7 @@ import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
+import { PerformanceTracker } from '@tldraw/utils';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
@@ -1808,8 +1808,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     enter: (info: any, from: string) => void;
     // (undocumented)
     exit: (info: any, from: string) => void;
-    // (undocumented)
-    fpsTracker: FpsTracker;
     getCurrent(): StateNode | undefined;
     // (undocumented)
     getCurrentToolIdMask(): string | undefined;
@@ -1867,6 +1865,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     parent: StateNode;
     // (undocumented)
     _path: Computed<string>;
+    // (undocumented)
+    performanceTracker: PerformanceTracker;
     // (undocumented)
     setCurrentToolIdMask(id: string | undefined): void;
     // (undocumented)

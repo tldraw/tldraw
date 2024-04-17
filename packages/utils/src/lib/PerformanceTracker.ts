@@ -1,5 +1,5 @@
 /** @public */
-export class FpsTracker {
+export class PerformanceTracker {
 	private startTime = 0
 	private name = ''
 	private frames = 0
@@ -28,7 +28,7 @@ export class FpsTracker {
 		const fps = duration === 0 ? 0 : Math.floor(this.frames / duration)
 		// eslint-disable-next-line no-console
 		console.debug(
-			`%c${this.name} FPS%c: ${fps}`,
+			`%c${this.name} FPS%c: ${fps} (took ${duration}ms rendered ${this.frames} frames)`,
 			'font-weight: bold; color: blue',
 			'font-weight: normal'
 		)

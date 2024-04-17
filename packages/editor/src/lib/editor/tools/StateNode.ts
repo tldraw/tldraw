@@ -1,5 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
-import { FpsTracker } from '@tldraw/utils'
+import { PerformanceTracker } from '@tldraw/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import type { Editor } from '../Editor'
 import {
@@ -34,7 +34,7 @@ export interface TLStateNodeConstructor {
 
 /** @public */
 export abstract class StateNode implements Partial<TLEventHandlers> {
-	fpsTracker: FpsTracker
+	performanceTracker: PerformanceTracker
 	constructor(
 		public editor: Editor,
 		parent?: StateNode
@@ -74,7 +74,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				this._current.set(this.children[this.initial])
 			}
 		}
-		this.fpsTracker = new FpsTracker()
+		this.performanceTracker = new PerformanceTracker()
 	}
 
 	static id: string
@@ -175,7 +175,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	// todo: move this logic into transition
 	enter = (info: any, from: string) => {
 		if (debugFlags.measurePerformance.get() && STATE_NODES_TO_MEASURE.includes(this.id)) {
-			this.fpsTracker.start(this.id)
+			this.performanceTracker.start(this.id)
 		}
 
 		this._isActive.set(true)
@@ -190,8 +190,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	// todo: move this logic into transition
 	exit = (info: any, from: string) => {
-		if (debugFlags.measurePerformance.get() && this.fpsTracker.isStarted()) {
-			this.fpsTracker.stop()
+		if (debugFlags.measurePerformance.get() && this.performanceTracker.isStarted()) {
+			this.performanceTracker.stop()
 		}
 		this._isActive.set(false)
 		this.onExit?.(info, from)
