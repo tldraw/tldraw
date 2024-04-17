@@ -35,7 +35,6 @@ import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
-import { useSoftPreloadIcons } from './ui/hooks/useSoftPreloadIcons'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
@@ -108,9 +107,6 @@ export function Tldraw(props: TldrawProps) {
 		() => [...defaultTools, ...defaultShapeTools, ..._tools],
 		[_tools]
 	)
-
-	// trigger all icons to load, but don't block the canvas from appearing while they load
-	useSoftPreloadIcons()
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
