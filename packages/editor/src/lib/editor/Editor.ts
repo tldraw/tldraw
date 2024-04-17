@@ -41,6 +41,7 @@ import {
 import {
 	IndexKey,
 	JsonObject,
+	PerformanceTracker,
 	annotateError,
 	assert,
 	compact,
@@ -95,6 +96,7 @@ import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
+import { debugFlags } from '../utils/debug-flags'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
@@ -624,6 +626,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
+
+		this.performanceTracker = new PerformanceTracker()
 	}
 
 	/**
@@ -8341,6 +8345,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	capturedPointerId: number | null = null
 
+	/** @internal */
+	private readonly performanceTracker: PerformanceTracker
+
+	/** @internal */
+	private performanceTrackerTimeout = -1 as any
+
 	/**
 	 * Dispatch an event to the editor.
 	 *
@@ -8532,6 +8542,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.stopFollowingUser()
 					}
 					if (inputs.ctrlKey) {
+						if (debugFlags.measurePerformance.get()) {
+							if (this.performanceTracker.isStarted()) {
+								clearTimeout(this.performanceTrackerTimeout)
+							} else {
+								this.performanceTracker.start('Zooming')
+							}
+							this.performanceTrackerTimeout = setTimeout(() => {
+								this.performanceTracker.stop()
+							}, 50)
+						}
 						// todo: Start or update the zoom end interval
 
 						// If the alt or ctrl keys are pressed,
@@ -8558,7 +8578,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// statechart should respond to this event (a camera zoom)
 						return
 					}
-
 					// Update the camera here, which will dispatch a pointer move...
 					// this will also update the pointer position, etc
 					const { x: cx, y: cy, z: cz } = this.getCamera()
@@ -8648,6 +8667,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						if (this.inputs.isPanning && this.inputs.isPointing) {
+							if (debugFlags.measurePerformance.get()) {
+								if (this.performanceTracker.isStarted()) {
+									clearTimeout(this.performanceTrackerTimeout)
+								} else {
+									this.performanceTracker.start('Panning')
+								}
+								this.performanceTrackerTimeout = setTimeout(() => {
+									this.performanceTracker.stop()
+								}, 50)
+							}
 							clearTimeout(this._longPressTimeout)
 							// Handle panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
