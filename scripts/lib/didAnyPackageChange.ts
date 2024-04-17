@@ -18,12 +18,12 @@ async function hasPackageChanged(pkg: PackageDetails) {
 		}
 		const publishedTarballPath = `${dirPath}/published-package.tgz`
 		writeFileSync(publishedTarballPath, Buffer.from(await res.arrayBuffer()))
-		const publishedManifest = await getTarballManifest(publishedTarballPath)
+		const publishedManifest = getTarballManifestSync(publishedTarballPath)
 
 		const localTarballPath = `${dirPath}/local-package.tgz`
 		await exec('yarn', ['pack', '--out', localTarballPath], { pwd: pkg.dir })
 
-		const localManifest = await getTarballManifest(localTarballPath)
+		const localManifest = getTarballManifestSync(localTarballPath)
 
 		return !manifestsAreEqual(publishedManifest, localManifest)
 	} finally {
@@ -48,34 +48,25 @@ function manifestsAreEqual(a: Record<string, Buffer>, b: Record<string, Buffer>)
 	return true
 }
 
-function getTarballManifest(tarballPath: string): Promise<Record<string, Buffer>> {
+function getTarballManifestSync(tarballPath: string) {
 	const manifest: Record<string, Buffer> = {}
-	return new Promise((resolve, reject) =>
-		tar.list(
-			{
-				// @ts-expect-error bad typings
-				file: tarballPath,
-				onentry: (entry) => {
-					entry.on('data', (data) => {
-						// we could hash these to reduce memory but it's probably fine
-						const existing = manifest[entry.path]
-						if (existing) {
-							manifest[entry.path] = Buffer.concat([existing, data])
-						} else {
-							manifest[entry.path] = data
-						}
-					})
-				},
-			},
-			(err: any) => {
-				if (err) {
-					reject(err)
+	tar.list({
+		file: tarballPath,
+		onentry: (entry) => {
+			entry.on('data', (data) => {
+				// we could hash these to reduce memory but it's probably fine
+				const existing = manifest[entry.path]
+				if (existing) {
+					manifest[entry.path] = Buffer.concat([existing, data])
 				} else {
-					resolve(manifest)
+					manifest[entry.path] = data
 				}
-			}
-		)
-	)
+			})
+		},
+		sync: true,
+	})
+
+	return manifest
 }
 
 export async function didAnyPackageChange() {
