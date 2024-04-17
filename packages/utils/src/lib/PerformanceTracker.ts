@@ -26,11 +26,15 @@ export class PerformanceTracker {
 		if (this.frame !== null) cancelAnimationFrame(this.frame)
 		const duration = (performance.now() - this.startTime) / 1000
 		const fps = duration === 0 ? 0 : Math.floor(this.frames / duration)
-		const color = fps > 55 ? 'green' : fps > 30 ? 'orange' : 'red'
+		const background = fps > 55 ? '#40C057' : fps > 30 ? '#FFC078' : '#E03131'
+		const color = background === '#FFC078' ? 'black' : 'white'
+		const capitalized = this.name[0].toUpperCase() + this.name.slice(1)
 		// eslint-disable-next-line no-console
 		console.debug(
-			`%c${this.name} FPS%c: ${fps}`,
-			`font-weight: bold; color: ${color}`,
+			`%cPerf%c ${capitalized} %c${fps}%c fps`,
+			`color: white; background: #40C057;padding: 2px;border-radius: 3px;`,
+			'font-weight: normal',
+			`font-weight: bold; padding: 2px; background: ${background};color: ${color};`,
 			'font-weight: normal'
 		)
 	}

@@ -4,8 +4,8 @@ export function measureCbDuration(name: string, cb: () => any) {
 	const result = cb()
 	// eslint-disable-next-line no-console
 	console.debug(
-		`%c${name} took:%c ${performance.now() - start}ms`,
-		'font-weight: bold; color: orange',
+		`%cPerf%c ${name} took ${performance.now() - start}ms`,
+		`color: white; background: #40C057;padding: 2px;border-radius: 3px;`,
 		'font-weight: normal'
 	)
 	return result
@@ -19,8 +19,8 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 		const result = originalMethod.apply(this, args)
 		// eslint-disable-next-line no-console
 		console.debug(
-			`%c${propertyKey} took:%c ${performance.now() - start}ms`,
-			'font-weight: bold; color: orange',
+			`%cPerf%c ${propertyKey} took: ${performance.now() - start}ms`,
+			`color: white; background: #40C057;padding: 2px;border-radius: 3px;`,
 			'font-weight: normal'
 		)
 		return result
@@ -47,8 +47,10 @@ export function measureAverageDuration(
 		const count = value.count + 1
 		averages.set(descriptor.value, { total, count })
 		// eslint-disable-next-line no-console
-		console.log(
-			`${propertyKey} took ${(end - start).toFixed(2)}ms | average ${(total / count).toFixed(2)}ms`
+		console.debug(
+			`%cPerf%c ${propertyKey} took ${(end - start).toFixed(2)}ms | average ${(total / count).toFixed(2)}ms`,
+			`color: white; background: #40C057;padding: 2px;border-radius: 3px;`,
+			'font-weight: normal'
 		)
 		return result
 	}
