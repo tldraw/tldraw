@@ -3,7 +3,6 @@ import {
 	ComputedCache,
 	EMPTY_ARRAY,
 	Editor,
-	Mat,
 	TLShape,
 	Vec,
 	atom,
@@ -15,6 +14,7 @@ import {
 import { getRgba } from './getRgba'
 import { BufferStuff, appendVertices, setupWebGl } from './minimap-webgl-setup'
 import { pie, roundedRectangle } from './minimap-webgl-shapes'
+import { applyTransformToGeometry, triangulateGeometry } from './triangulateGeometry'
 
 export class MinimapManager {
 	disposables = [] as (() => void)[]
@@ -28,16 +28,8 @@ export class MinimapManager {
 		this.gl = setupWebGl(elem)
 		this.geometryCache = editor.store.createComputedCache('webgl-geometry', (r: TLShape) => {
 			const pageTransform = editor.getShapePageTransform(r.id)
-			const geometry = editor.getShapeGeometry(r.id).getWebGLGeometry()
-			const transformedGeometry = new Float32Array(geometry.values.length)
-			for (let i = 0; i < transformedGeometry.length; i += 2) {
-				;[transformedGeometry[i], transformedGeometry[i + 1]] = Mat.applyToXY(
-					pageTransform,
-					geometry.values[i],
-					geometry.values[i + 1]
-				)
-			}
-			return transformedGeometry
+			const triangles = triangulateGeometry(editor.getShapeGeometry(r.id))
+			return applyTransformToGeometry(triangles, pageTransform)
 		})
 
 		this.colors = this._getColors()
