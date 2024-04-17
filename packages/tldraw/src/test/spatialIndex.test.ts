@@ -7,7 +7,6 @@ beforeEach(() => {
 	editor = new TestEditor()
 })
 
-const NUM_SHAPES = 1000
 const SHAPE_SIZE = { min: 100, max: 300 }
 const NUM_QUERIES = 100
 
@@ -15,7 +14,8 @@ type IdAndBounds = { id: TLShapeId; bounds: Box }
 
 function generateShapes() {
 	const result: IdAndBounds[] = []
-	for (let i = 0; i < NUM_SHAPES; i++) {
+	const numOfShapes = Math.floor(500 + Math.random() * 500)
+	for (let i = 0; i < numOfShapes; i++) {
 		const xNegative = Math.random() > 0.5
 		const yNegative = Math.random() > 0.5
 		const x = Math.random() * 10000 * (xNegative ? -1 : 1)
@@ -42,7 +42,7 @@ function generateShapes() {
 
 function pickShapes(shapes: IdAndBounds[]) {
 	// We pick at max 1/40 of the shapes, so that the common bounds have more chance not to cover the whole area
-	const numOfShapes = Math.floor((Math.random() * NUM_SHAPES) / 40)
+	const numOfShapes = Math.floor((Math.random() * shapes.length) / 40)
 	const pickedShapes: IdAndBounds[] = []
 	for (let i = 0; i < numOfShapes; i++) {
 		const index = Math.floor(Math.random() * shapes.length)
@@ -78,7 +78,7 @@ describe('Spatial Index', () => {
 				})
 			// It should not contain any shapes outside the bounds
 			expect(shapeIdsOutsideBounds.every((id) => !shapeIdsInsideBounds.includes(id))).toBe(true)
-			expect(shapeIdsInsideBounds.length + shapeIdsOutsideBounds.length).toBe(NUM_SHAPES)
+			expect(shapeIdsInsideBounds.length + shapeIdsOutsideBounds.length).toBe(shapes.length)
 		}
 	})
 
