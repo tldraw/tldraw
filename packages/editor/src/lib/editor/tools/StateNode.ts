@@ -13,14 +13,15 @@ import {
 
 type TLStateNodeType = 'branch' | 'leaf' | 'root'
 const STATE_NODES_TO_MEASURE = [
-	'resizing',
-	'erasing',
-	'translating',
-	'rotating',
-	'drawing',
 	'brushing',
-	'scribble_brushing',
+	'dragging',
 	'dragging_handle',
+	'drawing',
+	'erasing',
+	'resizing',
+	'rotating',
+	'scribble_brushing',
+	'translating',
 ]
 
 /** @public */
