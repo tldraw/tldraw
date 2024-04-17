@@ -1,26 +1,27 @@
-import { UnknownRecord, isRecord } from './BaseRecord'
-import { SerializedSchema } from './StoreSchema'
+import { assert, objectMapEntries } from '@tldraw/utils'
+import { UnknownRecord } from './BaseRecord'
+import { SerializedStore } from './Store'
 
-type EMPTY_SYMBOL = symbol
+let didWarn = false
 
-/** @public */
-export function defineMigrations<
-	FirstVersion extends number | EMPTY_SYMBOL = EMPTY_SYMBOL,
-	CurrentVersion extends Exclude<number, 0> | EMPTY_SYMBOL = EMPTY_SYMBOL,
->(opts: {
-	firstVersion?: CurrentVersion extends number ? FirstVersion : never
-	currentVersion?: CurrentVersion
-	migrators?: CurrentVersion extends number
-		? FirstVersion extends number
-			? CurrentVersion extends FirstVersion
-				? { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
-				: { [version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: Migration }
-			: { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
-		: never
+/**
+ * @public
+ * @deprecated use `createShapePropsMigrationSequence` instead. See [the docs](https://tldraw.dev/docs/persistence#Updating-legacy-shape-migrations-defineMigrations) for how to migrate.
+ */
+export function defineMigrations(opts: {
+	firstVersion?: number
+	currentVersion?: number
+	migrators?: Record<number, LegacyMigration>
 	subTypeKey?: string
-	subTypeMigrations?: Record<string, BaseMigrationsInfo>
-}): Migrations {
+	subTypeMigrations?: Record<string, LegacyBaseMigrationsInfo>
+}): LegacyMigrations {
 	const { currentVersion, firstVersion, migrators = {}, subTypeKey, subTypeMigrations } = opts
+	if (!didWarn) {
+		console.warn(
+			`The 'defineMigrations' function is deprecated and will be removed in a future release. Use the new migrations API instead. See the migration guide for more info: https://tldraw.dev/docs/persistence#Updating-legacy-shape-migrations-defineMigrations`
+		)
+		didWarn = true
+	}
 
 	// Some basic guards against impossible version combinations, some of which will be caught by TypeScript
 	if (typeof currentVersion === 'number' && typeof firstVersion === 'number') {
@@ -40,22 +41,236 @@ export function defineMigrations<
 	}
 }
 
+function squashDependsOn(sequence: Array<Migration | StandaloneDependsOn>): Migration[] {
+	const result: Migration[] = []
+	for (let i = sequence.length - 1; i >= 0; i--) {
+		const elem = sequence[i]
+		if (!('id' in elem)) {
+			const dependsOn = elem.dependsOn
+			const prev = result[0]
+			if (prev) {
+				result[0] = {
+					...prev,
+					dependsOn: dependsOn.concat(prev.dependsOn ?? []),
+				}
+			}
+		} else {
+			result.unshift(elem)
+		}
+	}
+	return result
+}
+
+/**
+ * Creates a migration sequence.
+ * See the [migration guide](https://tldraw.dev/docs/persistence#Migrations) for more info on how to use this API.
+ * @public
+ */
+export function createMigrationSequence({
+	sequence,
+	sequenceId,
+	retroactive = true,
+}: {
+	sequenceId: string
+	retroactive?: boolean
+	sequence: Array<Migration | StandaloneDependsOn>
+}): MigrationSequence {
+	const migrations: MigrationSequence = {
+		sequenceId,
+		retroactive,
+		sequence: squashDependsOn(sequence),
+	}
+	validateMigrations(migrations)
+	return migrations
+}
+
+/**
+ * Creates a named set of migration ids given a named set of version numbers and a sequence id.
+ *
+ * See the [migration guide](https://tldraw.dev/docs/persistence#Migrations) for more info on how to use this API.
+ * @public
+ * @public
+ */
+export function createMigrationIds<ID extends string, Versions extends Record<string, number>>(
+	sequenceId: ID,
+	versions: Versions
+): { [K in keyof Versions]: `${ID}/${Versions[K]}` } {
+	return Object.fromEntries(
+		objectMapEntries(versions).map(([key, version]) => [key, `${sequenceId}/${version}`] as const)
+	) as any
+}
+
+/** @internal */
+export function createRecordMigrationSequence(opts: {
+	recordType: string
+	filter?: (record: UnknownRecord) => boolean
+	retroactive?: boolean
+	sequenceId: string
+	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]
+}): MigrationSequence {
+	const sequenceId = opts.sequenceId
+	return createMigrationSequence({
+		sequenceId,
+		retroactive: opts.retroactive ?? true,
+		sequence: opts.sequence.map((m) =>
+			'id' in m
+				? {
+						...m,
+						scope: 'record',
+						filter: (r: UnknownRecord) =>
+							r.typeName === opts.recordType &&
+							(m.filter?.(r) ?? true) &&
+							(opts.filter?.(r) ?? true),
+					}
+				: m
+		),
+	})
+}
+
 /** @public */
-export type Migration<Before = any, After = any> = {
+export type LegacyMigration<Before = any, After = any> = {
 	up: (oldState: Before) => After
 	down: (newState: After) => Before
 }
 
-interface BaseMigrationsInfo {
-	firstVersion: number
-	currentVersion: number
-	migrators: { [version: number]: Migration }
+/** @public */
+export type MigrationId = `${string}/${number}`
+
+export type StandaloneDependsOn = {
+	readonly dependsOn: readonly MigrationId[]
 }
 
 /** @public */
-export interface Migrations extends BaseMigrationsInfo {
+export type Migration = {
+	readonly id: MigrationId
+	readonly dependsOn?: readonly MigrationId[] | undefined
+} & (
+	| {
+			readonly scope: 'record'
+			readonly filter?: (record: UnknownRecord) => boolean
+			readonly up: (oldState: UnknownRecord) => void | UnknownRecord
+			readonly down?: (newState: UnknownRecord) => void | UnknownRecord
+	  }
+	| {
+			readonly scope: 'store'
+			readonly up: (
+				oldState: SerializedStore<UnknownRecord>
+			) => void | SerializedStore<UnknownRecord>
+			readonly down?: (
+				newState: SerializedStore<UnknownRecord>
+			) => void | SerializedStore<UnknownRecord>
+	  }
+)
+
+interface LegacyBaseMigrationsInfo {
+	firstVersion: number
+	currentVersion: number
+	migrators: { [version: number]: LegacyMigration }
+}
+
+/** @public */
+export interface LegacyMigrations extends LegacyBaseMigrationsInfo {
 	subTypeKey?: string
-	subTypeMigrations?: Record<string, BaseMigrationsInfo>
+	subTypeMigrations?: Record<string, LegacyBaseMigrationsInfo>
+}
+
+/** @public */
+export interface MigrationSequence {
+	sequenceId: string
+	/**
+	 * retroactive should be true if the migrations should be applied to snapshots that were created before
+	 * this migration sequence was added to the schema.
+	 *
+	 * In general:
+	 *
+	 * - retroactive should be true when app developers create their own new migration sequences.
+	 * - retroactive should be false when library developers ship a migration sequence. When you install a library for the first time, any migrations that were added in the library before that point should generally _not_ be applied to your existing data.
+	 */
+	retroactive: boolean
+	sequence: Migration[]
+}
+
+export function sortMigrations(migrations: Migration[]): Migration[] {
+	// we do a topological sort using dependsOn and implicit dependencies between migrations in the same sequence
+	const byId = new Map(migrations.map((m) => [m.id, m]))
+	const isProcessing = new Set<MigrationId>()
+
+	const result: Migration[] = []
+
+	function process(m: Migration) {
+		assert(!isProcessing.has(m.id), `Circular dependency in migrations: ${m.id}`)
+		isProcessing.add(m.id)
+
+		const { version, sequenceId } = parseMigrationId(m.id)
+		const parent = byId.get(`${sequenceId}/${version - 1}`)
+		if (parent) {
+			process(parent)
+		}
+
+		if (m.dependsOn) {
+			for (const dep of m.dependsOn) {
+				const depMigration = byId.get(dep)
+				if (depMigration) {
+					process(depMigration)
+				}
+			}
+		}
+
+		byId.delete(m.id)
+		result.push(m)
+	}
+
+	for (const m of byId.values()) {
+		process(m)
+	}
+
+	return result
+}
+
+/** @internal */
+export function parseMigrationId(id: MigrationId): { sequenceId: string; version: number } {
+	const [sequenceId, version] = id.split('/')
+	return { sequenceId, version: parseInt(version) }
+}
+
+function validateMigrationId(id: string, expectedSequenceId?: string) {
+	if (expectedSequenceId) {
+		assert(
+			id.startsWith(expectedSequenceId + '/'),
+			`Every migration in sequence '${expectedSequenceId}' must have an id starting with '${expectedSequenceId}/'. Got invalid id: '${id}'`
+		)
+	}
+
+	assert(id.match(/^(.*?)\/(0|[1-9]\d*)$/), `Invalid migration id: '${id}'`)
+}
+
+export function validateMigrations(migrations: MigrationSequence) {
+	assert(
+		!migrations.sequenceId.includes('/'),
+		`sequenceId cannot contain a '/', got ${migrations.sequenceId}`
+	)
+	assert(migrations.sequenceId.length, 'sequenceId must be a non-empty string')
+
+	if (migrations.sequence.length === 0) {
+		return
+	}
+
+	validateMigrationId(migrations.sequence[0].id, migrations.sequenceId)
+	let n = parseMigrationId(migrations.sequence[0].id).version
+	assert(
+		n === 1,
+		`Expected the first migrationId to be '${migrations.sequenceId}/1' but got '${migrations.sequence[0].id}'`
+	)
+	for (let i = 1; i < migrations.sequence.length; i++) {
+		const id = migrations.sequence[i].id
+		validateMigrationId(id, migrations.sequenceId)
+		const m = parseMigrationId(id).version
+		assert(
+			m === n + 1,
+			`Migration id numbers must increase in increments of 1, expected ${migrations.sequenceId}/${n + 1} but got '${migrations.sequence[i].id}'`
+		)
+		n = m
+	}
 }
 
 /** @public */
@@ -72,246 +287,3 @@ export enum MigrationFailureReason {
 	MigrationError = 'migration-error',
 	UnrecognizedSubtype = 'unrecognized-subtype',
 }
-
-/** @public */
-export type RecordVersion = { rootVersion: number; subTypeVersion?: number }
-/** @public */
-export function getRecordVersion(
-	record: UnknownRecord,
-	serializedSchema: SerializedSchema
-): RecordVersion {
-	const persistedType = serializedSchema.recordVersions[record.typeName]
-	if (!persistedType) {
-		return { rootVersion: 0 }
-	}
-	if ('subTypeKey' in persistedType) {
-		const subType = record[persistedType.subTypeKey as keyof typeof record]
-		const subTypeVersion = persistedType.subTypeVersions[subType]
-		return { rootVersion: persistedType.version, subTypeVersion }
-	}
-	return { rootVersion: persistedType.version }
-}
-
-/** @public */
-export function compareRecordVersions(a: RecordVersion, b: RecordVersion) {
-	if (a.rootVersion > b.rootVersion) {
-		return 1
-	}
-	if (a.rootVersion < b.rootVersion) {
-		return -1
-	}
-	if (a.subTypeVersion != null && b.subTypeVersion != null) {
-		if (a.subTypeVersion > b.subTypeVersion) {
-			return 1
-		}
-		if (a.subTypeVersion < b.subTypeVersion) {
-			return -1
-		}
-	}
-	return 0
-}
-
-/** @public */
-export function migrateRecord<R extends UnknownRecord>({
-	record,
-	migrations,
-	fromVersion,
-	toVersion,
-}: {
-	record: unknown
-	migrations: Migrations
-	fromVersion: number
-	toVersion: number
-}): MigrationResult<R> {
-	let currentVersion = fromVersion
-	if (!isRecord(record)) throw new Error('[migrateRecord] object is not a record')
-	const { typeName, id, ...others } = record
-	let recordWithoutMeta = others
-
-	while (currentVersion < toVersion) {
-		const nextVersion = currentVersion + 1
-		const migrator = migrations.migrators[nextVersion]
-		if (!migrator) {
-			return {
-				type: 'error',
-				reason: MigrationFailureReason.TargetVersionTooNew,
-			}
-		}
-		recordWithoutMeta = migrator.up(recordWithoutMeta) as any
-		currentVersion = nextVersion
-	}
-
-	while (currentVersion > toVersion) {
-		const nextVersion = currentVersion - 1
-		const migrator = migrations.migrators[currentVersion]
-		if (!migrator) {
-			return {
-				type: 'error',
-				reason: MigrationFailureReason.TargetVersionTooOld,
-			}
-		}
-		recordWithoutMeta = migrator.down(recordWithoutMeta) as any
-		currentVersion = nextVersion
-	}
-
-	return {
-		type: 'success',
-		value: { ...recordWithoutMeta, id, typeName } as any,
-	}
-}
-
-/** @public */
-export function migrate<T>({
-	value,
-	migrations,
-	fromVersion,
-	toVersion,
-}: {
-	value: unknown
-	migrations: Migrations
-	fromVersion: number
-	toVersion: number
-}): MigrationResult<T> {
-	let currentVersion = fromVersion
-
-	while (currentVersion < toVersion) {
-		const nextVersion = currentVersion + 1
-		const migrator = migrations.migrators[nextVersion]
-		if (!migrator) {
-			return {
-				type: 'error',
-				reason: MigrationFailureReason.TargetVersionTooNew,
-			}
-		}
-		value = migrator.up(value)
-		currentVersion = nextVersion
-	}
-
-	while (currentVersion > toVersion) {
-		const nextVersion = currentVersion - 1
-		const migrator = migrations.migrators[currentVersion]
-		if (!migrator) {
-			return {
-				type: 'error',
-				reason: MigrationFailureReason.TargetVersionTooOld,
-			}
-		}
-		value = migrator.down(value)
-		currentVersion = nextVersion
-	}
-
-	return {
-		type: 'success',
-		value: value as T,
-	}
-}
-
-type Range<From extends number, To extends number> = To extends From
-	? From
-	: To | Range<From, Decrement<To>>
-
-type Decrement<n extends number> = n extends 0
-	? never
-	: n extends 1
-		? 0
-		: n extends 2
-			? 1
-			: n extends 3
-				? 2
-				: n extends 4
-					? 3
-					: n extends 5
-						? 4
-						: n extends 6
-							? 5
-							: n extends 7
-								? 6
-								: n extends 8
-									? 7
-									: n extends 9
-										? 8
-										: n extends 10
-											? 9
-											: n extends 11
-												? 10
-												: n extends 12
-													? 11
-													: n extends 13
-														? 12
-														: n extends 14
-															? 13
-															: n extends 15
-																? 14
-																: n extends 16
-																	? 15
-																	: n extends 17
-																		? 16
-																		: n extends 18
-																			? 17
-																			: n extends 19
-																				? 18
-																				: n extends 20
-																					? 19
-																					: n extends 21
-																						? 20
-																						: n extends 22
-																							? 21
-																							: n extends 23
-																								? 22
-																								: n extends 24
-																									? 23
-																									: n extends 25
-																										? 24
-																										: n extends 26
-																											? 25
-																											: n extends 27
-																												? 26
-																												: n extends 28
-																													? 27
-																													: n extends 29
-																														? 28
-																														: n extends 30
-																															? 29
-																															: n extends 31
-																																? 30
-																																: n extends 32
-																																	? 31
-																																	: n extends 33
-																																		? 32
-																																		: n extends 34
-																																			? 33
-																																			: n extends 35
-																																				? 34
-																																				: n extends 36
-																																					? 35
-																																					: n extends 37
-																																						? 36
-																																						: n extends 38
-																																							? 37
-																																							: n extends 39
-																																								? 38
-																																								: n extends 40
-																																									? 39
-																																									: n extends 41
-																																										? 40
-																																										: n extends 42
-																																											? 41
-																																											: n extends 43
-																																												? 42
-																																												: n extends 44
-																																													? 43
-																																													: n extends 45
-																																														? 44
-																																														: n extends 46
-																																															? 45
-																																															: n extends 47
-																																																? 46
-																																																: n extends 48
-																																																	? 47
-																																																	: n extends 49
-																																																		? 48
-																																																		: n extends 50
-																																																			? 49
-																																																			: n extends 51
-																																																				? 50
-																																																				: never

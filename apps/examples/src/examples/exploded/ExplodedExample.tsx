@@ -3,7 +3,6 @@ import {
 	DefaultContextMenuContent,
 	TldrawEditor,
 	TldrawHandles,
-	TldrawHoveredShapeIndicator,
 	TldrawScribble,
 	TldrawSelectionBackground,
 	TldrawSelectionForeground,
@@ -23,7 +22,6 @@ const defaultComponents = {
 	SelectionForeground: TldrawSelectionForeground,
 	SelectionBackground: TldrawSelectionBackground,
 	Handles: TldrawHandles,
-	HoveredShapeIndicator: TldrawHoveredShapeIndicator,
 }
 
 //[2]
