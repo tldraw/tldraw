@@ -7,6 +7,7 @@ import {
 	releasePointerCapture,
 	setPointerCapture,
 	useEditor,
+	useIsDarkMode,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { MinimapManager } from './MinimapManager'
@@ -162,6 +163,16 @@ export function DefaultMinimap() {
 		},
 		[editor]
 	)
+
+	const isDarkMode = useIsDarkMode()
+
+	React.useEffect(() => {
+		// need to wait a tick for next theme css to be applied
+		// otherwise the minimap will render with the wrong colors
+		setTimeout(() => {
+			minimapRef.current?.render()
+		})
+	}, [isDarkMode])
 
 	return (
 		<div className="tlui-minimap">

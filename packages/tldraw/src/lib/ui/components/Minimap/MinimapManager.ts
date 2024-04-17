@@ -244,6 +244,7 @@ export class MinimapManager {
 
 	render = () => {
 		stats.start('minimap render')
+		// make sure we update when dark mode switches
 		const context = this.gl.context
 		const canvasSize = this.getCanvasSize()
 		const canvasPageBounds = this.getCanvasPageBounds()
@@ -257,7 +258,7 @@ export class MinimapManager {
 		this.elem.height = canvasSize.y
 		context.viewport(0, 0, canvasSize.x, canvasSize.y)
 
-		context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT)
+		context.clear(context.COLOR_BUFFER_BIT)
 
 		const selectedShapes = new Set(this.editor.getSelectedShapeIds())
 
@@ -377,7 +378,7 @@ export class MinimapManager {
 			return latestPresence
 		})
 
-		// just draw a little rectangle for each collaborator
+		// just draw a little circle for each collaborator
 		const numSegmentsPerCircle = 20
 		const dataSizePerCircle = numSegmentsPerCircle * 6
 		const totalSize = dataSizePerCircle * collaborators.length
@@ -457,7 +458,9 @@ type WebGlStuff = {
 function setupWebGl(canvas: HTMLCanvasElement | null) {
 	if (!canvas) throw new Error('Canvas element not found')
 
-	const context = canvas.getContext('webgl2')
+	const context = canvas.getContext('webgl2', {
+		premultipliedAlpha: false,
+	})
 	if (!context) throw new Error('Failed to get webgl2 context')
 
 	const vertexShaderSourceCode = `#version 300 es
