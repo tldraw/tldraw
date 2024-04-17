@@ -28087,34 +28087,6 @@
         },
         {
           "kind": "Function",
-          "canonicalReference": "tldraw!useSoftPreloadIcons:function(1)",
-          "docComment": "/**\n * Trigger icons to load but don't block the editor from appearing while they load.\n *\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export declare function useSoftPreloadIcons(): "
-            },
-            {
-              "kind": "Content",
-              "text": "void"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/usePreloadIcons.ts",
-          "returnTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          },
-          "releaseTag": "Public",
-          "overloadIndex": 1,
-          "parameters": [],
-          "name": "useSoftPreloadIcons"
-        },
-        {
-          "kind": "Function",
           "canonicalReference": "tldraw!useTldrawUiComponents:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [

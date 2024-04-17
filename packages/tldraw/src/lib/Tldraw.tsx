@@ -35,7 +35,7 @@ import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
-import { useSoftPreloadIcons } from './ui/hooks/usePreloadIcons'
+import { useSoftPreloadIcons } from './ui/hooks/useSoftPreloadIcons'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 

@@ -4,7 +4,7 @@ import { useAssetUrls } from '../context/asset-urls'
 /**
  * Trigger icons to load but don't block the editor from appearing while they load.
  *
- * @public */
+ * @internal */
 export function useSoftPreloadIcons() {
 	const assetUrls = useAssetUrls()
 

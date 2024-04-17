@@ -2553,9 +2553,6 @@ export function useReadonly(): boolean;
 // @public (undocumented)
 export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
 
-// @public
-export function useSoftPreloadIcons(): void;
-
 // @public (undocumented)
 export function useTldrawUiComponents(): Partial<{
     ActionsMenu: ComponentType<TLUiActionsMenuProps> | null;
