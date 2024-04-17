@@ -58,8 +58,10 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		} else {
 			// This fixes iOS not showing the cursor sometimes. This "shakes" the cursor
 			// awake.
-			elm.blur()
-			elm.focus()
+			if (editor.environment.isSafari) {
+				elm.blur()
+				elm.focus()
+			}
 		}
 
 		// When the selection changes, save the selection ranges
