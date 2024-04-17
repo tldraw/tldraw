@@ -12,24 +12,12 @@ import { INDENT, TextHelpers } from './TextHelpers'
 /** @public */
 export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const editor = useEditor()
-
 	const rInput = useRef<HTMLTextAreaElement>(null)
-
-	const isEditing = useValue(
-		'isEditing',
-		() => {
-			return editor.getEditingShapeId() === id
-		},
-		[editor]
-	)
-
-	const isEditingAnything = useValue(
-		'isEditingAnything',
-		() => {
-			return editor.getEditingShapeId() !== null
-		},
-		[editor]
-	)
+	const rSelectionRanges = useRef<Range[] | null>()
+	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor])
+	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
+		editor,
+	])
 
 	useEffect(() => {
 		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
@@ -46,13 +34,12 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				}
 			})
 		}
+
 		editor.on('select-all-text', selectAllIfEditing)
 		return () => {
 			editor.off('select-all-text', selectAllIfEditing)
 		}
 	}, [editor, id])
-
-	const rSelectionRanges = useRef<Range[] | null>()
 
 	useEffect(() => {
 		if (!isEditing) return
@@ -63,10 +50,16 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		// Focus if we're not already focused
 		if (document.activeElement !== elm) {
 			elm.focus()
+
 			// On mobile etc, just select all the text when we start focusing
 			if (editor.getInstanceState().isCoarsePointer) {
 				elm.select()
 			}
+		} else {
+			// This fixes iOS not showing the cursor sometimes. This "shakes" the cursor
+			// awake.
+			elm.blur()
+			elm.focus()
 		}
 
 		// When the selection changes, save the selection ranges
@@ -97,12 +90,14 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		requestAnimationFrame(() => {
 			const elm = rInput.current
 			const editingShapeId = editor.getEditingShapeId()
+
 			// Did we move to a different shape?
 			if (editingShapeId) {
 				// important! these ^v are two different things
 				// is that shape OUR shape?
 				if (elm && editingShapeId === id) {
 					elm.focus()
+
 					if (ranges && ranges.length) {
 						const selection = window.getSelection()
 						if (selection) {
@@ -181,8 +176,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		[editor, id, isEditing]
 	)
 
-	const handleDoubleClick = stopEventPropagation
-
 	return {
 		rInput,
 		handleFocus: noop,
@@ -190,7 +183,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		handleKeyDown,
 		handleChange,
 		handleInputPointerDown,
-		handleDoubleClick,
+		handleDoubleClick: stopEventPropagation,
 		isEmpty: text.trim().length === 0,
 		isEditing,
 		isEditingAnything,
