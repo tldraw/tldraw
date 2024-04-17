@@ -1,3 +1,7 @@
+## 2.0.30
+
+- Fixes a bug that prevented opening some files.
+
 ## 2.0.29
 
 - Improved note shapes.
