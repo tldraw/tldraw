@@ -8,7 +8,10 @@ export function moveToSlide(editor: Editor, slide: SlideShape) {
 	if (!bounds) return
 	$currentSlide.set(slide)
 	editor.selectNone()
-	editor.zoomToBounds(bounds, { duration: 500, easing: EASINGS.easeInOutCubic, inset: 0 })
+	editor.zoomToBounds(bounds, {
+		inset: 0,
+		animation: { duration: 500, easing: EASINGS.easeInOutCubic },
+	})
 }
 
 export function useSlides() {
