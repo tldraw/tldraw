@@ -67,7 +67,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		blue: {
-			solid: '#4263eb',
+			solid: '#4465e9',
 			note: {
 				fill: '#8AA3FF',
 				text: '#000000',
@@ -93,7 +93,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		grey: {
-			solid: '#adb5bd',
+			solid: '#9fa8b2',
 			note: {
 				fill: '#C0CAD3',
 				text: '#000000',
@@ -106,7 +106,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		'light-blue': {
-			solid: '#4dabf7',
+			solid: '#4ba1f1',
 			note: {
 				fill: '#9BC4FD',
 				text: '#000000',
@@ -119,7 +119,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		'light-green': {
-			solid: '#40c057',
+			solid: '#4cb05e',
 			note: {
 				fill: '#98D08A',
 				text: '#000000',
@@ -132,7 +132,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		'light-red': {
-			solid: '#ff8787',
+			solid: '#f87777',
 			note: {
 				fill: '#F7A5A1',
 				text: '#000000',
@@ -145,7 +145,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		'light-violet': {
-			solid: '#e599f7',
+			solid: '#e085f4',
 			note: {
 				fill: '#DFB0F9',
 				text: '#000000',
@@ -158,7 +158,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		orange: {
-			solid: '#f76707',
+			solid: '#e16919',
 			note: {
 				fill: '#FAA475',
 				text: '#000000',
@@ -197,7 +197,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		yellow: {
-			solid: '#ffc078',
+			solid: '#f1ac4b',
 			note: {
 				fill: '#FED49A',
 				text: '#000000',
@@ -226,7 +226,7 @@ export const DefaultColorThemePalette: {
 	darkMode: {
 		id: 'dark',
 		text: 'hsl(210, 17%, 98%)',
-		background: 'hsl(240, 5%, 8%)',
+		background: 'hsl(240, 5%, 6.5%)',
 		solid: '#010403',
 
 		black: {
@@ -243,7 +243,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		blue: {
-			solid: '#4263eb',
+			solid: '#4f72fc', // 3c60f0
 			note: {
 				fill: '#2A3F98',
 				text: '#f2f2f2',
