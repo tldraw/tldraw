@@ -402,7 +402,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				</SVGContainer>
 				{showHtmlContainer && (
 					<HTMLContainer
-						id={shape.id}
 						style={{
 							overflow: 'hidden',
 							width: shape.props.w,
