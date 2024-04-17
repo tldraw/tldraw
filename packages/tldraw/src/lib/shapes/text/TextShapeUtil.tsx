@@ -7,18 +7,22 @@ import {
 	SvgExportContext,
 	TLOnEditEndHandler,
 	TLOnResizeHandler,
+	TLShapeId,
 	TLShapeUtilFlag,
 	TLTextShape,
 	Vec,
 	WeakMapCache,
 	getDefaultColorTheme,
+	preventDefault,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
 	useEditor,
 } from '@tldraw/editor'
+import { useCallback } from 'react'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
+import { TextHelpers } from '../shared/TextHelpers'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
@@ -73,6 +77,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const { width, height } = this.getMinDimensions(shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const theme = useDefaultColorTheme()
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const handleKeyDown = useTextShapeKeydownHandler(id)
 
 		return (
 			<TextLabel
@@ -94,6 +100,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					transformOrigin: 'top left',
 				}}
 				wrap
+				onKeyDown={handleKeyDown}
 			/>
 		)
 	}
@@ -331,4 +338,33 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 		width: Math.max(minWidth, result.w),
 		height: Math.max(fontSize, result.h),
 	}
+}
+
+function useTextShapeKeydownHandler(id: TLShapeId) {
+	const editor = useEditor()
+
+	return useCallback(
+		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+			if (editor.getEditingShapeId() !== id) return
+
+			switch (e.key) {
+				case 'Enter': {
+					if (e.ctrlKey || e.metaKey) {
+						editor.complete()
+					}
+					break
+				}
+				case 'Tab': {
+					preventDefault(e)
+					if (e.shiftKey) {
+						TextHelpers.unindent(e.currentTarget)
+					} else {
+						TextHelpers.indent(e.currentTarget)
+					}
+					break
+				}
+			}
+		},
+		[editor, id]
+	)
 }
