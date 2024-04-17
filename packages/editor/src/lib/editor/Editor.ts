@@ -8866,10 +8866,10 @@ function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape
 	const shape = editor.getShape(id)
 	if (!shape) return
 	result.push(shape)
-	const children = editor.getSortedChildIdsForParent(id)
-	if (children) {
-		for (let i = 0, n = children.length; i < n; i++) {
-			pushShapeWithDescendants(editor, children[i], result)
+	const childIds = editor.getSortedChildIdsForParent(id)
+	if (childIds) {
+		for (let i = 0, n = childIds.length; i < n; i++) {
+			pushShapeWithDescendants(editor, childIds[i], result)
 		}
 	}
 }
