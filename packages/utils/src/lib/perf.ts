@@ -3,7 +3,11 @@ export function measureCbDuration(name: string, cb: () => any) {
 	const now = performance.now()
 	const result = cb()
 	// eslint-disable-next-line no-console
-	console.log(`${name} took:`, performance.now() - now, 'ms')
+	console.debug(
+		`%c${name} took:%c ${performance.now() - now}ms`,
+		'font-weight: bold; color: orange',
+		'font-weight: normal'
+	)
 	return result
 }
 
@@ -15,7 +19,11 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 		const result = originalMethod.apply(this, args)
 		const end = performance.now()
 		// eslint-disable-next-line no-console
-		console.log(`${propertyKey} took ${end - start}ms `)
+		console.debug(
+			`%c${propertyKey} took:%c ${start - end}ms`,
+			'font-weight: bold; color: orange',
+			'font-weight: normal'
+		)
 		return result
 	}
 	return descriptor
