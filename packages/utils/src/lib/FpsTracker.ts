@@ -27,7 +27,11 @@ export class FpsTracker {
 		const duration = (performance.now() - this.startTime) / 1000
 		const fps = duration === 0 ? 0 : this.frames / duration
 		// eslint-disable-next-line no-console
-		console.debug('%c${this.name} FPS%c: ${fps}', 'font-weight: bold; color: lightblue', 'font-weight: normal');
+		console.debug(
+			`%c${this.name} FPS%c: ${fps}`,
+			'font-weight: bold; color: blue',
+			'font-weight: normal'
+		)
 	}
 
 	isStarted() {
