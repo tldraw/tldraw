@@ -1,3 +1,11 @@
+export const PERFORMANCE_COLORS = {
+	Good: '#40C057',
+	Mid: '#FFC078',
+	Poor: '#E03131',
+}
+
+export const PERFORMANCE_PREFIX_COLOR = PERFORMANCE_COLORS.Good
+
 /** @internal */
 export function measureCbDuration(name: string, cb: () => any) {
 	const start = performance.now()
@@ -5,7 +13,7 @@ export function measureCbDuration(name: string, cb: () => any) {
 	// eslint-disable-next-line no-console
 	console.debug(
 		`%cPerf%c ${name} took ${performance.now() - start}ms`,
-		`color: white; background: #40C057;padding: 2px;border-radius: 3px;`,
+		`color: white; background: ${PERFORMANCE_PREFIX_COLOR};padding: 2px;border-radius: 3px;`,
 		'font-weight: normal'
 	)
 	return result
@@ -20,7 +28,7 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 		// eslint-disable-next-line no-console
 		console.debug(
 			`%cPerf%c ${propertyKey} took: ${performance.now() - start}ms`,
-			`color: white; background: #40C057;padding: 2px;border-radius: 3px;`,
+			`color: white; background: ${PERFORMANCE_PREFIX_COLOR};padding: 2px;border-radius: 3px;`,
 			'font-weight: normal'
 		)
 		return result
@@ -49,7 +57,7 @@ export function measureAverageDuration(
 		// eslint-disable-next-line no-console
 		console.debug(
 			`%cPerf%c ${propertyKey} took ${(end - start).toFixed(2)}ms | average ${(total / count).toFixed(2)}ms`,
-			`color: white; background: #40C057;padding: 2px;border-radius: 3px;`,
+			`color: white; background: ${PERFORMANCE_PREFIX_COLOR};padding: 2px;border-radius: 3px;`,
 			'font-weight: normal'
 		)
 		return result

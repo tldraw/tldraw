@@ -1,3 +1,5 @@
+import { PERFORMANCE_COLORS, PERFORMANCE_PREFIX_COLOR } from './perf'
+
 /** @public */
 export class PerformanceTracker {
 	private startTime = 0
@@ -26,13 +28,18 @@ export class PerformanceTracker {
 		if (this.frame !== null) cancelAnimationFrame(this.frame)
 		const duration = (performance.now() - this.startTime) / 1000
 		const fps = duration === 0 ? 0 : Math.floor(this.frames / duration)
-		const background = fps > 55 ? '#40C057' : fps > 30 ? '#FFC078' : '#E03131'
-		const color = background === '#FFC078' ? 'black' : 'white'
+		const background =
+			fps > 55
+				? PERFORMANCE_COLORS.Good
+				: fps > 30
+					? PERFORMANCE_COLORS.Mid
+					: PERFORMANCE_COLORS.Poor
+		const color = background === PERFORMANCE_COLORS.Mid ? 'black' : 'white'
 		const capitalized = this.name[0].toUpperCase() + this.name.slice(1)
 		// eslint-disable-next-line no-console
 		console.debug(
 			`%cPerf%c ${capitalized} %c${fps}%c fps`,
-			`color: white; background: #40C057;padding: 2px;border-radius: 3px;`,
+			`color: white; background: ${PERFORMANCE_PREFIX_COLOR};padding: 2px;border-radius: 3px;`,
 			'font-weight: normal',
 			`font-weight: bold; padding: 2px; background: ${background};color: ${color};`,
 			'font-weight: normal'
