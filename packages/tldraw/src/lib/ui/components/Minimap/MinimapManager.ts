@@ -120,11 +120,13 @@ export class MinimapManager {
 		const canvasScreenBounds = this.getCanvasScreenBounds()
 		const contentPageBounds = this.getContentPageBounds()
 
+		const aspectRatio = canvasScreenBounds.width / canvasScreenBounds.height
+
 		let targetWidth = contentPageBounds.width
-		let targetHeight = canvasScreenBounds.height * (targetWidth / canvasScreenBounds.width)
-		if (targetHeight > contentPageBounds.height) {
+		let targetHeight = targetWidth / aspectRatio
+		if (targetHeight < contentPageBounds.height) {
 			targetHeight = contentPageBounds.height
-			targetWidth = canvasScreenBounds.width * (targetHeight / canvasScreenBounds.height)
+			targetWidth = targetHeight * aspectRatio
 		}
 
 		const box = new Box(0, 0, targetWidth, targetHeight)
@@ -249,9 +251,11 @@ export class MinimapManager {
 		const canvasSize = this.getCanvasSize()
 		const canvasPageBounds = this.getCanvasPageBounds()
 
-		this.gl.context.uniform2fv(this.gl.resolutionLocation, [
-			1 / canvasPageBounds.w,
-			1 / canvasPageBounds.h,
+		this.gl.context.uniform4fv(this.gl.canvasPageBoundsLocation, [
+			canvasPageBounds.x,
+			canvasPageBounds.y,
+			canvasPageBounds.w,
+			canvasPageBounds.h,
 		])
 
 		this.elem.width = canvasSize.x
@@ -367,16 +371,19 @@ export class MinimapManager {
 	}
 
 	drawCollaborators() {
+		const currentPageId = this.editor.getCurrentPageId()
 		const zoom = this.getCanvasPageBounds().width / this.getCanvasScreenBounds().width
 		const allPresenceRecords = this.getCollaboratorsQuery().get()
 		if (!allPresenceRecords.length) return
 		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
-		const collaborators = userIds.map((id) => {
-			const latestPresence = allPresenceRecords
-				.filter((c) => c.userId === id)
-				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
-			return latestPresence
-		})
+		const collaborators = userIds
+			.map((id) => {
+				const latestPresence = allPresenceRecords
+					.filter((c) => c.userId === id)
+					.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
+				return latestPresence
+			})
+			.filter((c) => c.currentPageId === currentPageId)
 
 		// just draw a little circle for each collaborator
 		const numSegmentsPerCircle = 20
@@ -468,13 +475,13 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
   
   in vec2 shapeVertexPosition;
 
-	uniform vec2 resolution;
+	uniform vec4 canvasPageBounds;
 
 	// taken (with thanks) from
 	// https://webglfundamentals.org/webgl/lessons/webgl-2d-matrices.html
   void main() {
 		// convert the position from pixels to 0.0 to 1.0
-		vec2 zeroToOne = shapeVertexPosition * resolution;
+		vec2 zeroToOne = (shapeVertexPosition - canvasPageBounds.xy) / canvasPageBounds.zw;
 	
 		// convert from 0->1 to 0->2
 		vec2 zeroToTwo = zeroToOne * 2.0;
@@ -539,9 +546,9 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
 	context.enableVertexAttribArray(shapeVertexPositionAttributeLocation)
 
 	const shapePageTransformLocation = context.getUniformLocation(program, 'shapePageTransform')
-	const resolutionLocation = context.getUniformLocation(program, 'resolution')
+	const canvasPageBoundsLocation = context.getUniformLocation(program, 'canvasPageBounds')
 	const shapeFillLocation = context.getUniformLocation(program, 'shapeFill')
-	// if (!shapePageTransformLocation || !resolutionLocation) {
+	// if (!shapePageTransformLocation || !canvasPageBoundsLocation) {
 	// 	throw new Error('Failed to get shapePageTransform or resolution uniform location')
 	// }
 
@@ -570,7 +577,7 @@ function setupWebGl(canvas: HTMLCanvasElement | null) {
 		collaboratorVertices,
 		shapeVertexPositionAttributeLocation,
 		shapePageTransformLocation,
-		resolutionLocation,
+		canvasPageBoundsLocation,
 		shapeFillLocation,
 	}
 }
