@@ -20,8 +20,8 @@ function isShapeNotVisible(editor: Editor, id: TLShapeId, viewportPageBounds: Bo
  * @returns Incremental derivation of non visible shapes.
  */
 export const notVisibleShapes = (editor: Editor) => {
-	const shapeHistory = editor.store.query.filterHistory('shape')
 	const isCullingOffScreenShapes = Number.isFinite(editor.renderingBoundsMargin)
+	const shapeHistory = editor.store.query.filterHistory('shape')
 	let lastPageId: TLPageId | null = null
 	let prevViewportPageBounds: Box
 
@@ -38,16 +38,18 @@ export const notVisibleShapes = (editor: Editor) => {
 		})
 		return notVisibleShapes
 	}
-	return computed<Set<TLShapeId>>('getCulledShapes', (prevValue, lastEpoch) => {
+	return computed<Set<TLShapeId>>('getCulledShapes', (prevValue, lastComputedEpoch) => {
 		if (!isCullingOffScreenShapes) return new Set<TLShapeId>()
 
 		if (isUninitialized(prevValue)) {
 			return fromScratch(editor)
 		}
-		const diff = shapeHistory.getDiffSince(lastEpoch)
+		const diff = shapeHistory.getDiffSince(lastComputedEpoch)
+
 		if (diff === RESET_VALUE) {
 			return fromScratch(editor)
 		}
+
 		const currentPageId = editor.getCurrentPageId()
 		if (lastPageId !== currentPageId) {
 			return fromScratch(editor)
@@ -70,6 +72,7 @@ export const notVisibleShapes = (editor: Editor) => {
 			if (!nextValue) nextValue = new Set(prevValue)
 			nextValue.delete(id)
 		}
+
 		for (const changes of diff) {
 			for (const record of Object.values(changes.added)) {
 				if (isShape(record)) {
