@@ -1,38 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useAssetUrls } from '../context/asset-urls'
-import { iconTypes } from '../icon-types'
 
-/** @internal */
-export function usePreloadIcons(): boolean {
-	const [isLoaded, setIsLoaded] = useState<boolean>(false)
+/**
+ * Trigger icons to load but don't block the editor from appearing while they load.
+ *
+ * @public */
+export function useSoftPreloadIcons() {
 	const assetUrls = useAssetUrls()
 
 	useEffect(() => {
-		let cancelled = false
-		async function loadImages() {
-			// Run through all of the icons and load them. It doesn't matter
-			// if any of the images don't load; though we expect that they would.
-			// Instead, we just want to make sure that the browser has cached
-			// all of the icons it can so that they're available when we need them.
-
-			await Promise.allSettled(
-				iconTypes.map((icon) => {
-					const image = new Image()
-					image.src = assetUrls.icons[icon]
-					return image.decode()
-				})
-			)
-
-			if (cancelled) return
-			setIsLoaded(true)
+		for (const src of Object.values(assetUrls.icons)) {
+			const image = new Image()
+			image.src = src
+			image.decode()
 		}
-
-		loadImages()
-
-		return () => {
-			cancelled = true
+		for (const src of Object.values(assetUrls.embedIcons)) {
+			const image = new Image()
+			image.src = src
+			image.decode()
 		}
-	}, [isLoaded, assetUrls])
-
-	return isLoaded
+	}, [assetUrls])
 }

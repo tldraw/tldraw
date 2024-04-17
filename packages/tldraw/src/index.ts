@@ -1,5 +1,7 @@
 /// <reference types="react" />
 
+export { useSoftPreloadIcons } from './lib/ui/hooks/usePreloadIcons'
+
 export { preloadFont } from './lib/utils/assets/preload-font'
 
 export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
