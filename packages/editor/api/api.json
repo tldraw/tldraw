@@ -10505,42 +10505,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#getCurrentPageShapeIdsSorted:member(1)",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getCurrentPageShapeIdsSorted(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getCurrentPageShapeIdsSorted"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCurrentPageShapes:member(1)",
               "docComment": "/**\n * An array containing all of the shapes in the current page.\n *\n * @public\n */\n",
               "excerptTokens": [

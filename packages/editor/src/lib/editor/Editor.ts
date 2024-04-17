@@ -3312,6 +3312,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._currentPageShapeIds.get()
 	}
 
+	/**
+	 * @internal
+	 */
 	@computed
 	getCurrentPageShapeIdsSorted() {
 		return Array.from(this.getCurrentPageShapeIds()).sort()
