@@ -694,6 +694,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageRenderingShapesSorted(): TLShape[];
     getCurrentPageShapeIds(): Set<TLShapeId>;
     getCurrentPageShapes(): TLShape[];
+    // (undocumented)
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode;
