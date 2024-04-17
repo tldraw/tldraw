@@ -1,10 +1,10 @@
 /** @internal */
 export function measureCbDuration(name: string, cb: () => any) {
-	const now = performance.now()
+	const start = performance.now()
 	const result = cb()
 	// eslint-disable-next-line no-console
 	console.debug(
-		`%c${name} took:%c ${performance.now() - now}ms`,
+		`%c${name} took:%c ${performance.now() - start}ms`,
 		'font-weight: bold; color: orange',
 		'font-weight: normal'
 	)
@@ -17,10 +17,9 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 	descriptor.value = function (...args: any[]) {
 		const start = performance.now()
 		const result = originalMethod.apply(this, args)
-		const end = performance.now()
 		// eslint-disable-next-line no-console
 		console.debug(
-			`%c${propertyKey} took:%c ${end - start}ms`,
+			`%c${propertyKey} took:%c ${performance.now() - start}ms`,
 			'font-weight: bold; color: orange',
 			'font-weight: normal'
 		)
