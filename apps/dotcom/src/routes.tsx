@@ -37,13 +37,6 @@ export const router = createRoutesFromElements(
 					return redirect(`/r/${id}`)
 				}}
 			/>
-			<Route
-				path="/new"
-				loader={() => {
-					const id = 'v2' + nanoid()
-					return redirect(`/r/${id}`)
-				}}
-			/>
 			<Route path="/r/:roomId" lazy={() => import('./pages/public-multiplayer')} />
 			<Route path="/r/:boardId/history" lazy={() => import('./pages/history')} />
 			<Route
