@@ -1,7 +1,6 @@
 import {
 	Box,
 	ComputedCache,
-	EMPTY_ARRAY,
 	Editor,
 	TLShape,
 	Vec,
@@ -56,13 +55,6 @@ export class MinimapManager {
 	@computed
 	getDpr() {
 		return this.editor.getInstanceState().devicePixelRatio
-	}
-
-	@computed
-	getCollaboratorsQuery() {
-		return this.editor.store.query.records('instance_presence', () => ({
-			userId: { neq: this.editor.user.getId() },
-		}))
 	}
 
 	@computed
@@ -292,25 +284,8 @@ export class MinimapManager {
 		this.gl.drawTriangles(len)
 	}
 
-	@computed
-	private getCollaborators() {
-		// returns one instance record per collaborator on the same page as this one
-		const currentPageId = this.editor.getCurrentPageId()
-		const allPresenceRecords = this.getCollaboratorsQuery().get()
-		if (!allPresenceRecords.length) return EMPTY_ARRAY
-		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
-		return userIds
-			.map((id) => {
-				const latestPresence = allPresenceRecords
-					.filter((c) => c.userId === id)
-					.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
-				return latestPresence
-			})
-			.filter((c) => c.currentPageId === currentPageId)
-	}
-
 	drawCollaborators() {
-		const collaborators = this.getCollaborators()
+		const collaborators = this.editor.getCollaboratorsOnCurrentPage()
 		if (!collaborators.length) return
 
 		const zoom = this.getCanvasPageBounds().width / this.getCanvasScreenBounds().width
