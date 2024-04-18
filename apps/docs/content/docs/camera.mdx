@@ -1,1 +1,34 @@
+---
+title: Camera
+status: published
+author: steveruizok
+date: 4/18/2023
+---
 
+This article covers the space and coordinate systems used in the tldraw editor.
+
+# Viewport
+
+The viewport is the rectangular area of the editor.
+
+The camera determines which part of the current page is displayed inside of the viewport.
+
+The [Editor#viewportScreenBounds](?) is a [Box](?) that describes the size and position of the component's canvas in actual screen pixels.
+
+The [Editor.viewportPageBounds](?) is a [Box](?) that describes the size and position of the part of the current page that is displayed in the viewport.
+
+## Screen vs. page coordinates
+
+In tldraw, coordinates are either be in page or screen space.
+
+A "screen point" refers to the point's distance from the top left corner of the component.
+
+A "page point" refers to the point's distance from the "zero point" of the canvas.
+
+When the camera is at `{x: 0, y: 0, z: 0}`, the screen point and page point will be identical. As the camera moves, however, the viewport will display a different part of the page; and so a screen point will correspond to a different page point.
+
+You can convert between coordinate spaces using [Editor#screenToPage](?) and [Editor#pageToScreen](?).
+
+## Camera options
+
+You can use the editor's camera options to configure the behavior of the editor's camera.
