@@ -1,5 +1,6 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
+import { RoomOpenMode } from '@tldraw/utils'
 import { Router, createCors } from 'itty-router'
 import { env } from 'process'
 import Toucan from 'toucan-js'
@@ -25,9 +26,9 @@ const router = Router()
 	.post('/new-room', createRoom)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
-	.get('/r/:roomId', (req, env) => joinExistingRoom(req, env, 'read-write'))
-	.get('/v/:roomId', (req, env) => joinExistingRoom(req, env, 'readonly-legacy'))
-	.get('/ro/:roomId', (req, env) => joinExistingRoom(req, env, 'readonly'))
+	.get('/r/:roomId', (req, env) => joinExistingRoom(req, env, RoomOpenMode.READ_WRITE))
+	.get('/v/:roomId', (req, env) => joinExistingRoom(req, env, RoomOpenMode.READ_ONLY_LEGACY))
+	.get('/ro/:roomId', (req, env) => joinExistingRoom(req, env, RoomOpenMode.READ_ONLY))
 	.get('/r/:roomId/history', getRoomHistory)
 	.get('/r/:roomId/history/:timestamp', getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)

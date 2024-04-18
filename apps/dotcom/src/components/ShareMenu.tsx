@@ -1,6 +1,7 @@
 import * as Popover from '@radix-ui/react-popover'
 import React, { useEffect, useState } from 'react'
 import {
+	RoomOpenMode,
 	RoomOpenModeToPath,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
@@ -26,8 +27,8 @@ type ShareState = {
 
 function isReadonlyUrl(url: string) {
 	return (
-		url.includes(`/${RoomOpenModeToPath['readonly']}/`) ||
-		url.includes(`/${RoomOpenModeToPath['readonly-legacy']}/`)
+		url.includes(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY]}/`) ||
+		url.includes(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY_LEGACY]}/`)
 	)
 }
 
@@ -41,7 +42,7 @@ function getFreshShareState(): ShareState {
 	const isReadOnly = isReadonlyUrl(href)
 
 	return {
-		state: isShared ? 'shared' : isReadOnly ? 'readonly' : 'offline',
+		state: isShared ? 'shared' : isReadOnly ? RoomOpenMode.READ_ONLY : 'offline',
 		url: window.location.href,
 		readonlyUrl: isReadOnly ? window.location.href : null,
 		qrCodeDataUrl: '',
@@ -55,7 +56,7 @@ async function getReadonlyUrl() {
 	if (isReadOnly) return href
 
 	const segs = href.split('/')
-	segs[segs.length - 2] = RoomOpenModeToPath['readonly']
+	segs[segs.length - 2] = RoomOpenModeToPath[RoomOpenMode.READ_ONLY]
 
 	const [roomId, params] = segs[segs.length - 1].split('?')
 	const result = await fetch(`/api/readonly-slug/${roomId}`)

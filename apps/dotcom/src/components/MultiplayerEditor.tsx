@@ -127,7 +127,8 @@ export function MultiplayerEditor({
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const cursorChatOverrides = useCursorChat()
-	const isReadonly = roomOpenMode === 'readonly' || roomOpenMode === 'readonly-legacy'
+	const isReadonly =
+		roomOpenMode === RoomOpenMode.READ_ONLY || roomOpenMode === RoomOpenMode.READ_ONLY_LEGACY
 
 	const handleMount = useCallback(
 		(editor: Editor) => {

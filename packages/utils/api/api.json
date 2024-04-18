@@ -2984,30 +2984,84 @@
           "name": "rng"
         },
         {
-          "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/utils!RoomOpenMode:type",
+          "kind": "Enum",
+          "canonicalReference": "@tldraw/utils!RoomOpenMode:enum",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export type RoomOpenMode = "
-            },
-            {
-              "kind": "Content",
-              "text": "'read-write' | 'readonly-legacy' | 'readonly'"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
+              "text": "export declare enum RoomOpenMode "
             }
           ],
           "fileUrlPath": "packages/utils/src/lib/routes.ts",
           "releaseTag": "Public",
           "name": "RoomOpenMode",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "@tldraw/utils!RoomOpenMode.READ_ONLY:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "READ_ONLY = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"readonly\""
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "READ_ONLY"
+            },
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "@tldraw/utils!RoomOpenMode.READ_ONLY_LEGACY:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "READ_ONLY_LEGACY = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"readonly-legacy\""
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "READ_ONLY_LEGACY"
+            },
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "@tldraw/utils!RoomOpenMode.READ_WRITE:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "READ_WRITE = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"read-write\""
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "READ_WRITE"
+            }
+          ]
         },
         {
           "kind": "Variable",
@@ -3030,7 +3084,7 @@
             {
               "kind": "Reference",
               "text": "RoomOpenMode",
-              "canonicalReference": "@tldraw/utils!RoomOpenMode:type"
+              "canonicalReference": "@tldraw/utils!RoomOpenMode:enum"
             },
             {
               "kind": "Content",

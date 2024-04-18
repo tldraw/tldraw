@@ -298,7 +298,14 @@ export const Result: {
 export function rng(seed?: string): () => number;
 
 // @public (undocumented)
-export type RoomOpenMode = 'read-write' | 'readonly-legacy' | 'readonly';
+export enum RoomOpenMode {
+    // (undocumented)
+    READ_ONLY = "readonly",
+    // (undocumented)
+    READ_ONLY_LEGACY = "readonly-legacy",
+    // (undocumented)
+    READ_WRITE = "read-write"
+}
 
 // @public (undocumented)
 export const RoomOpenModeToPath: Record<RoomOpenMode, string>;
