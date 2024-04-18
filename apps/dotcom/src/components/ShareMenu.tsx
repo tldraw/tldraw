@@ -33,13 +33,13 @@ type ShareState = {
 
 function isSharedReadonlyUrl(url: string) {
 	return (
-		url.includes(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY]}/`) ||
-		url.includes(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY_LEGACY]}/`)
+		url.startsWith(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY]}/`) ||
+		url.startsWith(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY_LEGACY]}/`)
 	)
 }
 
 function isSharedReadWriteUrl(url: string) {
-	return url.includes('/r/')
+	return url.startsWith('/r/')
 }
 
 function getFreshShareState(): ShareState {
