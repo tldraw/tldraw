@@ -18,12 +18,12 @@ const CAMERA_OPTIONS: TLCameraOptions = {
 	zoomSpeed: 1,
 	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
 	constraints: {
-		fit: 'max',
+		resetDimension: 'max',
 		bounds: {
 			x: 0,
 			y: 0,
-			w: 1200,
-			h: 800,
+			w: 1600,
+			h: 900,
 		},
 		fitX: 'contain',
 		fitY: 'contain',
@@ -281,12 +281,12 @@ const CameraOptionsControlPanel = track(() => {
 						<label htmlFor="fit">Fit</label>
 						<select
 							name="fit"
-							value={constraints.fit}
+							value={constraints.resetDimension}
 							onChange={(e) => {
 								updateOptions({
 									constraints: {
 										...constraints,
-										fit: e.target.value as any,
+										resetDimension: e.target.value as any,
 									},
 								})
 							}}

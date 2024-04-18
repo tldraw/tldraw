@@ -122,12 +122,7 @@ export {
 	SIDES,
 	SVG_PADDING,
 } from './lib/constants'
-export {
-	Editor,
-	type TLCameraMoveOptions,
-	type TLEditorOptions,
-	type TLResizeShapeOptions,
-} from './lib/editor/Editor'
+export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
 export type {
 	SideEffectManager,
 	TLAfterChangeHandler,
@@ -240,6 +235,7 @@ export {
 } from './lib/editor/types/history-types'
 export {
 	type RequiredKeys,
+	type TLCameraMoveOptions,
 	type TLCameraOptions,
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'

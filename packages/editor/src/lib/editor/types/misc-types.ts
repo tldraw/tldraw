@@ -18,6 +18,23 @@ export type TLSvgOptions = {
 }
 
 /** @public */
+export type TLCameraMoveOptions = Partial<{
+	/** Whether to move the camera immediately, rather than on the next tick. */
+	immediate: boolean
+	/** Whether to force the camera to move, even if the user's camera options have locked the camera. */
+	force: boolean
+	/** Whether to reset the camera to its default position and zoom. */
+	reset: boolean
+	/** An (optional) animation to use. */
+	animation: Partial<{
+		/** The time the animation should take to arrive at the specified camera coordinates. */
+		duration: number
+		/** An easing function to apply to the animation's progress from start to end. */
+		easing: (t: number) => number
+	}>
+}>
+
+/** @public */
 export type TLCameraOptions = {
 	wheelBehavior: 'zoom' | 'pan' | 'none'
 	/** The speed of a scroll wheel / trackpad pan */
@@ -30,8 +47,8 @@ export type TLCameraOptions = {
 	isLocked: boolean
 	/** The camera constraints */
 	constraints?: {
-		/** The type of constraint behavior. */
-		fit: 'min' | 'max' | 'x' | 'y' | 'none'
+		/** Which dimension to fit when the camera is reset. */
+		resetDimension: 'min' | 'max' | 'x' | 'y' | 'none'
 		/** The behavior for the constraints on the x axis. */
 		fitX: 'contain' | 'inside' | 'outside' | 'lock'
 		/** The behavior for the constraints on the y axis. */

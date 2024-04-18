@@ -17060,8 +17060,9 @@
                   "text": ", opts?: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "{\n        force?: boolean;\n        immediate?: boolean;\n        initial?: boolean;\n    }"
+                  "kind": "Reference",
+                  "text": "TLCameraMoveOptions",
+                  "canonicalReference": "@tldraw/editor!TLCameraMoveOptions:type"
                 },
                 {
                   "kind": "Content",
@@ -36940,14 +36941,14 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n        duration: number;\n        easing: (t: number) => number;\n    }>;\n    force: boolean;\n    immediate: boolean;\n    reset: boolean;\n}>"
+              "text": "<{\n        easing: (t: number) => number;\n        duration: number;\n    }>;\n    force: boolean;\n    immediate: boolean;\n    reset: boolean;\n}>"
             },
             {
               "kind": "Content",
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/editor/src/lib/editor/Editor.ts",
+          "fileUrlPath": "packages/editor/src/lib/editor/types/misc-types.ts",
           "releaseTag": "Public",
           "name": "TLCameraMoveOptions",
           "typeTokenRange": {
@@ -36993,7 +36994,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n        fit: 'max' | 'min' | 'none' | 'x' | 'y';\n    };\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    isLocked: boolean;\n    wheelBehavior: 'none' | 'pan' | 'zoom';\n}"
+              "text": ";\n        resetDimension: 'max' | 'min' | 'none' | 'x' | 'y';\n    };\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    isLocked: boolean;\n    wheelBehavior: 'none' | 'pan' | 'zoom';\n}"
             },
             {
               "kind": "Content",

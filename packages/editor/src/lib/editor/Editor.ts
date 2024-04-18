@@ -134,19 +134,14 @@ import {
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLCommandHistoryOptions } from './types/history-types'
-import { OptionalKeys, RequiredKeys, TLCameraOptions, TLSvgOptions } from './types/misc-types'
+import {
+	OptionalKeys,
+	RequiredKeys,
+	TLCameraMoveOptions,
+	TLCameraOptions,
+	TLSvgOptions,
+} from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
-
-/** @public */
-export type TLCameraMoveOptions = Partial<{
-	animation: Partial<{
-		duration: number
-		easing: (t: number) => number
-	}>
-	immediate: boolean
-	force: boolean
-	reset: boolean
-}>
 
 /** @public */
 export type TLResizeShapeOptions = Partial<{
@@ -2079,7 +2074,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public */
 	getCameraFitZoom() {
 		const cameraOptions = this.getCameraOptions()
-		if (!cameraOptions.constraints || cameraOptions.constraints.fit === 'none') {
+		if (!cameraOptions.constraints || cameraOptions.constraints.resetDimension === 'none') {
 			return 1
 		}
 		const { padding } = cameraOptions.constraints
@@ -2090,7 +2085,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const zx = (vsb.w - px * 2) / bounds.w
 		const zy = (vsb.h - py * 2) / bounds.h
 
-		switch (cameraOptions.constraints.fit) {
+		switch (cameraOptions.constraints.resetDimension) {
 			case 'min': {
 				return Math.max(zx, zy)
 			}
@@ -2104,7 +2099,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return zy
 			}
 			default: {
-				throw exhaustiveSwitchError(cameraOptions.constraints.fit)
+				throw exhaustiveSwitchError(cameraOptions.constraints.resetDimension)
 			}
 		}
 	}
@@ -2137,10 +2132,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - The options for the change.
 	 *
 	 * @public */
-	setCameraOptions(
-		options: Partial<TLCameraOptions>,
-		opts?: { immediate?: boolean; force?: boolean; initial?: boolean }
-	) {
+	setCameraOptions(options: Partial<TLCameraOptions>, opts?: TLCameraMoveOptions) {
 		const next = { ...this._cameraOptions.__unsafe__getWithoutCapture(), ...options }
 		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
@@ -2149,10 +2141,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _setCamera(
-		point: VecLike,
-		opts?: { immediate?: boolean; force?: boolean; initial?: boolean }
-	): this {
+	private _setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
 		const currentCamera = this.getCamera()
 
 		let { x, y, z = currentCamera.z } = point
@@ -2168,11 +2157,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const zoomMin = cameraOptions.zoomSteps[0]
 			const zoomMax = last(cameraOptions.zoomSteps)!
 
+			const vsb = this.getViewportScreenBounds()
+
 			// If bounds are provided, then we'll keep those bounds on screen
 			if (cameraOptions.constraints) {
 				const { constraints } = cameraOptions
-
-				const vsb = this.getViewportScreenBounds()
 
 				// Get padding (it's either a number or an array of 2 numbers for t/b, l/r)
 				// Clamp padding to half the viewport size on either dimension
@@ -2193,7 +2182,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				let fitZoom = 1
 
-				switch (cameraOptions.constraints.fit) {
+				switch (cameraOptions.constraints.resetDimension) {
 					case 'min': {
 						fitZoom = Math.max(zx, zy)
 						break
@@ -2215,7 +2204,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const maxZ = zoomMax * fitZoom
 				const minZ = zoomMin * fitZoom
 
-				if (opts?.initial) {
+				if (opts?.reset) {
 					z = fitZoom
 				}
 
@@ -2233,16 +2222,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 					y = cy + cyB - cyA
 				}
 
+				// Calculate available space
+				const minX = px / z - bounds.x
+				const minY = py / z - bounds.y
+				const freeW = (vsb.w - px * 2) / z - bounds.w
+				const freeH = (vsb.h - py * 2) / z - bounds.h
+				const originX = minX + freeW * constraints.origin.x
+				const originY = minY + freeH * constraints.origin.y
+
 				// x axis
 
-				const minX = px / z - bounds.x
-				const freeW = (vsb.w - px * 2) / z - bounds.w
-				const originX = minX + freeW * constraints.origin.x
-
-				if (opts?.initial) {
-					// Center according to the origin
+				if (opts?.reset) {
+					// Reset the camera according to the origin
 					x = originX
+					y = originY
 				} else {
+					// Apply constraints to the camera
 					switch (constraints.fitX) {
 						case 'lock': {
 							// Center according to the origin
@@ -2269,17 +2264,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 							break
 						}
 					}
-				}
 
-				// y axis
+					// y axis
 
-				const minY = py / z - bounds.y
-				const freeH = (vsb.h - py * 2) / z - bounds.h
-				const originY = minY + freeH * constraints.origin.y
-
-				if (opts?.initial) {
-					y = originY
-				} else {
 					switch (constraints.fitY) {
 						case 'lock': {
 							y = originY
@@ -2303,9 +2290,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			} else {
 				// constrain the zoom, preserving the center
-
 				if (z > zoomMax || z < zoomMin) {
-					const vsb = this.getViewportScreenBounds()
 					const { x: cx, y: cy, z: cz } = currentCamera
 					const cxA = -cx + vsb.w / cz / 2
 					const cyA = -cy + vsb.h / cz / 2
@@ -2756,11 +2741,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { isLocked, panSpeed } = this.getCameraOptions()
 		if (isLocked) return this
 		const { x: cx, y: cy, z: cz } = this.getCamera()
-		this.setCamera(
-			new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz),
-			opts
-		)
-		this._flushEventsForTick(0)
+		this.setCamera(new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz), {
+			...opts,
+			immediate: true,
+		})
 		return this
 	}
 

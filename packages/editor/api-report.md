@@ -895,11 +895,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
-    setCameraOptions(options: Partial<TLCameraOptions>, opts?: {
-        force?: boolean;
-        immediate?: boolean;
-        initial?: boolean;
-    }): this;
+    setCameraOptions(options: Partial<TLCameraOptions>, opts?: TLCameraMoveOptions): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     setCurrentPage(page: TLPage | TLPageId, historyOptions?: TLCommandHistoryOptions): this;
     setCurrentTool(id: string, info?: {}): this;
@@ -1997,8 +1993,8 @@ export type TLBrushProps = {
 // @public (undocumented)
 export type TLCameraMoveOptions = Partial<{
     animation: Partial<{
-        duration: number;
         easing: (t: number) => number;
+        duration: number;
     }>;
     force: boolean;
     immediate: boolean;
@@ -2013,7 +2009,7 @@ export type TLCameraOptions = {
         bounds: BoxModel;
         origin: VecLike;
         padding: VecLike;
-        fit: 'max' | 'min' | 'none' | 'x' | 'y';
+        resetDimension: 'max' | 'min' | 'none' | 'x' | 'y';
     };
     panSpeed: number;
     zoomSpeed: number;
