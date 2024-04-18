@@ -25,7 +25,10 @@ type ShareState = {
 }
 
 function isReadonlyUrl(url: string) {
-	return url.includes('/v/')
+	return (
+		url.includes(`/${ReadonlyStatusToPath['readonly']}/`) ||
+		url.includes(`/${ReadonlyStatusToPath['readonly-legacy']}/`)
+	)
 }
 
 function isSharedUrl(url: string) {
