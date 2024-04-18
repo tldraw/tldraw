@@ -9143,7 +9143,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						// If we've lifted the space key,
 						if (info.code === 'Space') {
-							if (this.inputs.buttons.has(1)) {
+							if (this.inputs.buttons.has(MIDDLE_MOUSE_BUTTON)) {
 								// If we're still middle dragging, continue panning
 							} else {
 								// otherwise, stop panning
@@ -9151,7 +9151,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 								this.setCursor({ type: this._prevCursor, rotation: 0 })
 							}
 						}
-
 						break
 					}
 					case 'key_repeat': {
@@ -9165,7 +9164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Correct the info name for right / middle clicks
 		if (info.type === 'pointer') {
-			if (info.button === LEFT_MOUSE_BUTTON) {
+			if (info.button === MIDDLE_MOUSE_BUTTON) {
 				info.name = 'middle_click'
 			} else if (info.button === RIGHT_MOUSE_BUTTON) {
 				info.name = 'right_click'

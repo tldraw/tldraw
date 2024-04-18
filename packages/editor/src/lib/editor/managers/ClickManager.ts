@@ -99,12 +99,11 @@ export class ClickManager {
 		switch (info.name) {
 			case 'pointer_down': {
 				if (!this._clickState) return info
-
 				this._clickScreenPoint = Vec.From(info.point)
 
 				if (
 					this._previousScreenPoint &&
-					this._previousScreenPoint.dist(this._clickScreenPoint) > MAX_CLICK_DISTANCE
+					Vec.Dist2(this._previousScreenPoint, this._clickScreenPoint) > MAX_CLICK_DISTANCE ** 2
 				) {
 					this._clickState = 'idle'
 				}
@@ -114,11 +113,6 @@ export class ClickManager {
 				this.lastPointerInfo = info
 
 				switch (this._clickState) {
-					case 'idle': {
-						this._clickState = 'pendingDouble'
-						this._clickTimeout = this._getClickTimeout(this._clickState)
-						return info // returns the pointer event
-					}
 					case 'pendingDouble': {
 						this._clickState = 'pendingTriple'
 						this._clickTimeout = this._getClickTimeout(this._clickState)
@@ -149,21 +143,23 @@ export class ClickManager {
 							phase: 'down',
 						}
 					}
+					case 'idle': {
+						this._clickState = 'pendingDouble'
+						break
+					}
 					case 'pendingOverflow': {
 						this._clickState = 'overflow'
-						this._clickTimeout = this._getClickTimeout(this._clickState)
-						return info
+						break
 					}
 					default: {
 						// overflow
-						this._clickTimeout = this._getClickTimeout(this._clickState)
-						return info
 					}
 				}
+				this._clickTimeout = this._getClickTimeout(this._clickState)
+				return info
 			}
 			case 'pointer_up': {
 				if (!this._clickState) return info
-
 				this._clickScreenPoint = Vec.From(info.point)
 
 				switch (this._clickState) {
@@ -193,9 +189,10 @@ export class ClickManager {
 					}
 					default: {
 						// idle, pendingDouble, overflow
-						return info
 					}
 				}
+
+				return info
 			}
 			case 'pointer_move': {
 				if (
