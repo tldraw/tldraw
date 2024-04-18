@@ -415,6 +415,12 @@ async function copyVersionToDotCom() {
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',
+		join(REPO_ROOT, 'apps', 'dotcom-worker', 'src', 'lib', 'version.ts'),
+		file
+	)
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
 		join(REPO_ROOT, 'packages', 'editor', 'src', 'version.ts'),
 		file
 	)

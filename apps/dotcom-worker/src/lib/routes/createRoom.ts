@@ -6,19 +6,34 @@ import { nanoid } from 'nanoid'
 import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { validateSnapshot } from '../utils/validateSnapshot'
+import { version } from '../version'
+import { isAllowedOrigin } from '../worker'
 
-type SnapshotRequestBody = {
+type Snapshot = {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>
+}
+
+type CreateRoomRequestBody = {
+	version: string
+	origin: string
+	snapshot: Snapshot
+}
+
+function isAllowed(origin: string, requestVersion: string) {
+	return isAllowedOrigin(origin) && requestVersion === version
 }
 
 // Sets up a new room based on a provided snapshot, e.g. when a user clicks the "Share" buttons or the "Fork project" buttons.
 export async function createRoom(request: IRequest, env: Environment): Promise<Response> {
 	// The data sent from the client will include the data for the new room
-	const data = (await request.json()) as SnapshotRequestBody
+	const data = (await request.json()) as CreateRoomRequestBody
+	if (!isAllowed(data.origin, data.version)) {
+		return Response.json({ error: true, message: 'Not allowed' }, { status: 400 })
+	}
 
 	// There's a chance the data will be invalid, so we check it first
-	const snapshotResult = validateSnapshot(data)
+	const snapshotResult = validateSnapshot(data.snapshot)
 	if (!snapshotResult.ok) {
 		return Response.json({ error: true, message: snapshotResult.error }, { status: 400 })
 	}

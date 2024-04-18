@@ -16,6 +16,7 @@ import {
 	TLUiTranslationKey,
 	isShape,
 } from 'tldraw'
+import { version } from '../../version'
 import { useMultiplayerAssets } from '../hooks/useMultiplayerAssets'
 import { getViewportUrlQuery } from '../hooks/useUrlState'
 import { cloneAssetForShare } from './cloneAssetForShare'
@@ -33,7 +34,7 @@ export const FORK_PROJECT_ACTION = 'fork-project' as const
 const CREATE_SNAPSHOT_ENDPOINT = `/api/snapshots`
 const SNAPSHOT_UPLOAD_URL = `/api/new-room`
 
-type SnapshotRequestBody = {
+type Snapshot = {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>
 }
@@ -130,9 +131,13 @@ export function useSharing(): TLUiOverrides {
 									'Content-Type': 'application/json',
 								},
 								body: JSON.stringify({
-									schema: editor.store.schema.serialize(),
-									snapshot: data,
-								} satisfies SnapshotRequestBody),
+									version,
+									origin: window.top?.origin ?? window.origin,
+									snapshot: {
+										schema: editor.store.schema.serialize(),
+										snapshot: data,
+									} satisfies Snapshot,
+								}),
 							})
 
 							const response = (await res.json()) as { error: boolean; slug?: string }

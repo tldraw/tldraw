@@ -75,7 +75,7 @@ const Worker = {
 	},
 }
 
-function isAllowedOrigin(origin: string) {
+export function isAllowedOrigin(origin: string) {
 	if (origin === 'http://localhost:3000') return true
 	if (origin === 'http://localhost:5420') return true
 	if (origin.endsWith('.tldraw.com')) return true
