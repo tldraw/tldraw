@@ -4556,28 +4556,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
-		const shapes = this.getCurrentPageShapes().sort(sortByIndex)
-		const parentChildMap = new Map<TLShapeId, TLShape[]>()
 		const result: TLShape[] = []
-		const topLevelShapes: TLShape[] = []
-		let shape: TLShape, parent: TLShape | undefined
-
-		for (let i = 0, n = shapes.length; i < n; i++) {
-			shape = shapes[i]
-			parent = this.getShape(shape.parentId)
-			if (parent) {
-				if (!parentChildMap.has(parent.id)) {
-					parentChildMap.set(parent.id, [])
-				}
-				parentChildMap.get(parent.id)!.push(shape)
-			} else {
-				// undefined if parent is a shape
-				topLevelShapes.push(shape)
-			}
-		}
+		const topLevelShapes = this.getSortedChildIdsForParent(this.getCurrentPageId())
 
 		for (let i = 0, n = topLevelShapes.length; i < n; i++) {
-			pushShapeWithDescendants(topLevelShapes[i], parentChildMap, result)
+			pushShapeWithDescendants(this, topLevelShapes[i], result)
 		}
 
 		return result
@@ -8875,16 +8858,12 @@ function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartia
 	return next
 }
 
-function pushShapeWithDescendants(
-	shape: TLShape,
-	parentChildMap: Map<TLShapeId, TLShape[]>,
-	result: TLShape[]
-): void {
+function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape[]): void {
+	const shape = editor.getShape(id)
+	if (!shape) return
 	result.push(shape)
-	const children = parentChildMap.get(shape.id)
-	if (children) {
-		for (let i = 0, n = children.length; i < n; i++) {
-			pushShapeWithDescendants(children[i], parentChildMap, result)
-		}
+	const childIds = editor.getSortedChildIdsForParent(id)
+	for (let i = 0, n = childIds.length; i < n; i++) {
+		pushShapeWithDescendants(editor, childIds[i], result)
 	}
 }
