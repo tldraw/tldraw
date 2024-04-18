@@ -19,22 +19,19 @@ export class MinimapManager {
 	disposables = [] as (() => void)[]
 	close = () => this.disposables.forEach((d) => d())
 	gl: ReturnType<typeof setupWebGl>
-	shapeGeometryCache: ComputedCache<Float32Array, TLShape>
+	shapeGeometryCache: ComputedCache<Float32Array | null, TLShape>
 	constructor(
 		public editor: Editor,
 		public readonly elem: HTMLCanvasElement
 	) {
 		this.gl = setupWebGl(elem)
-
 		this.shapeGeometryCache = editor.store.createComputedCache('webgl-geometry', (r: TLShape) => {
-			const arr = new Float32Array([])
 			const bounds = editor.getShapeMaskedPageBounds(r.id)
-			if (bounds) {
-				rectangle(arr, 0, bounds.x, bounds.y, bounds.w, bounds.h)
-			}
+			if (!bounds) return null
+			const arr = new Float32Array(12)
+			rectangle(arr, 0, bounds.x, bounds.y, bounds.w, bounds.h)
 			return arr
 		})
-
 		this.colors = this._getColors()
 		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render))
 	}
