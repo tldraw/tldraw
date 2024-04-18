@@ -8883,7 +8883,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Stop pinching
 						inputs.isPinching = false
 
-						// Stash and clear the
+						// Stash and clear the shapes that were selected when the pinch started
 						const { _selectedShapeIdsAtPointerDown: shapesToReselect } = this
 						this._selectedShapeIdsAtPointerDown = []
 
