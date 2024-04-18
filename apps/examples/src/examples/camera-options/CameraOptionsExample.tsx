@@ -235,10 +235,12 @@ const CameraOptionsControlPanel = track(() => {
 				<input
 					name="zoomsteps"
 					type="text"
-					value={cameraOptions.zoomSteps.join(', ')}
+					defaultValue={cameraOptions.zoomSteps.join(', ')}
 					onChange={(e) => {
 						const val = e.target.value.split(', ').map((v) => Number(v))
-						updateOptions({ zoomSteps: val })
+						if (val.every((v) => typeof v === 'number' && Number.isFinite(v))) {
+							updateOptions({ zoomSteps: val })
+						}
 					}}
 				/>
 				<label htmlFor="bounds">Bounds</label>
