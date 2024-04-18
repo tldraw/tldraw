@@ -11,7 +11,7 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 	type RoomState,
 } from '@tldraw/tlsync'
-import { ReadonlyStatus, assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+import { RoomOpenMode, assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest, Router } from 'itty-router'
 import Toucan from 'toucan-js'
 import { AlarmScheduler } from './AlarmScheduler'
@@ -19,7 +19,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, Environment } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
-import { getSlug } from './utils/readonly'
+import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 
 const MAX_CONNECTIONS = 50
@@ -89,7 +89,7 @@ export class TLDrawDurableObject extends TLServer {
 	readonly router = Router()
 		.get(
 			'/r/:roomId',
-			(req) => this.extractDocumentInfoFromRequest(req, 'non-readonly'),
+			(req) => this.extractDocumentInfoFromRequest(req, 'read-write'),
 			(req) => this.onRequest(req)
 		)
 		.get(
@@ -98,13 +98,13 @@ export class TLDrawDurableObject extends TLServer {
 			(req) => this.onRequest(req)
 		)
 		.get(
-			'/o/:roomId',
+			'/ro/:roomId',
 			(req) => this.extractDocumentInfoFromRequest(req, 'readonly'),
 			(req) => this.onRequest(req)
 		)
 		.post(
 			'/r/:roomId/restore',
-			(req) => this.extractDocumentInfoFromRequest(req, 'non-readonly'),
+			(req) => this.extractDocumentInfoFromRequest(req, 'read-write'),
 			(req) => this.onRestore(req)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
@@ -124,9 +124,9 @@ export class TLDrawDurableObject extends TLServer {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	extractDocumentInfoFromRequest = async (req: IRequest, readonlyStatus: ReadonlyStatus) => {
+	extractDocumentInfoFromRequest = async (req: IRequest, roomOpenMode: RoomOpenMode) => {
 		const slug = assertExists(
-			await getSlug(this.env, req.params.roomId, readonlyStatus),
+			await getSlug(this.env, req.params.roomId, roomOpenMode),
 			'roomId must be present'
 		)
 		if (this._documentInfo) {

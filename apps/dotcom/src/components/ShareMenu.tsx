@@ -1,7 +1,7 @@
 import * as Popover from '@radix-ui/react-popover'
 import React, { useEffect, useState } from 'react'
 import {
-	ReadonlyStatusToPath,
+	RoomOpenModeToPath,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -26,8 +26,8 @@ type ShareState = {
 
 function isReadonlyUrl(url: string) {
 	return (
-		url.includes(`/${ReadonlyStatusToPath['readonly']}/`) ||
-		url.includes(`/${ReadonlyStatusToPath['readonly-legacy']}/`)
+		url.includes(`/${RoomOpenModeToPath['readonly']}/`) ||
+		url.includes(`/${RoomOpenModeToPath['readonly-legacy']}/`)
 	)
 }
 
@@ -55,7 +55,7 @@ async function getReadonlyUrl() {
 	if (isReadOnly) return href
 
 	const segs = href.split('/')
-	segs[segs.length - 2] = ReadonlyStatusToPath['readonly']
+	segs[segs.length - 2] = RoomOpenModeToPath['readonly']
 
 	const [roomId, params] = segs[segs.length - 1].split('?')
 	const result = await fetch(`/api/readonly-slug/${roomId}`)

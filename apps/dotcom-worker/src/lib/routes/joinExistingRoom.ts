@@ -1,16 +1,16 @@
-import { ReadonlyStatus } from '@tldraw/utils'
+import { RoomOpenMode } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { fourOhFour } from '../utils/fourOhFour'
-import { getSlug } from '../utils/readonly'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
+import { getSlug } from '../utils/roomOpenMode'
 
 export async function joinExistingRoom(
 	request: IRequest,
 	env: Environment,
-	readonlyStatus: ReadonlyStatus
+	roomOpenMode: RoomOpenMode
 ): Promise<Response> {
-	const roomId = await getSlug(env, request.params.roomId, readonlyStatus)
+	const roomId = await getSlug(env, request.params.roomId, roomOpenMode)
 	if (!roomId) return fourOhFour()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 

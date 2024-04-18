@@ -7,7 +7,7 @@ export function Component() {
 	const id = useParams()['roomId'] as string
 	return (
 		<IFrameProtector slug={id} context="public-readonly">
-			<MultiplayerEditor readonlyStatus="readonly" roomSlug={id} />
+			<MultiplayerEditor roomOpenMode="readonly" roomSlug={id} />
 		</IFrameProtector>
 	)
 }

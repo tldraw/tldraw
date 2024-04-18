@@ -51,7 +51,7 @@ export {
 	sortByIndex,
 	validateIndexKey,
 } from './lib/reordering/reordering'
-export { ReadonlyStatusToPath, type ReadonlyStatus } from './lib/routes'
+export { RoomOpenModeToPath, type RoomOpenMode } from './lib/routes'
 export { sortById } from './lib/sort'
 export {
 	clearLocalStorage,

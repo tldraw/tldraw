@@ -2787,69 +2787,6 @@
         },
         {
           "kind": "TypeAlias",
-          "canonicalReference": "@tldraw/utils!ReadonlyStatus:type",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "export type ReadonlyStatus = "
-            },
-            {
-              "kind": "Content",
-              "text": "'non-readonly' | 'readonly-legacy' | 'readonly'"
-            },
-            {
-              "kind": "Content",
-              "text": ";"
-            }
-          ],
-          "fileUrlPath": "packages/utils/src/lib/routes.ts",
-          "releaseTag": "Public",
-          "name": "ReadonlyStatus",
-          "typeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
-        },
-        {
-          "kind": "Variable",
-          "canonicalReference": "@tldraw/utils!ReadonlyStatusToPath:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "ReadonlyStatusToPath: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Record",
-              "canonicalReference": "!Record:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "ReadonlyStatus",
-              "canonicalReference": "@tldraw/utils!ReadonlyStatus:type"
-            },
-            {
-              "kind": "Content",
-              "text": ", string>"
-            }
-          ],
-          "fileUrlPath": "packages/utils/src/lib/routes.ts",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "ReadonlyStatusToPath",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 5
-          }
-        },
-        {
-          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/utils!RecursivePartial:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -3045,6 +2982,69 @@
             }
           ],
           "name": "rng"
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/utils!RoomOpenMode:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type RoomOpenMode = "
+            },
+            {
+              "kind": "Content",
+              "text": "'read-write' | 'readonly-legacy' | 'readonly'"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/routes.ts",
+          "releaseTag": "Public",
+          "name": "RoomOpenMode",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/utils!RoomOpenModeToPath:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "RoomOpenModeToPath: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "RoomOpenMode",
+              "canonicalReference": "@tldraw/utils!RoomOpenMode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", string>"
+            }
+          ],
+          "fileUrlPath": "packages/utils/src/lib/routes.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "RoomOpenModeToPath",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
         },
         {
           "kind": "Function",

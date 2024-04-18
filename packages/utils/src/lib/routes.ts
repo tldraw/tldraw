@@ -1,8 +1,8 @@
 /** @public */
-export type ReadonlyStatus = 'readonly' | 'readonly-legacy' | 'non-readonly'
+export type RoomOpenMode = 'readonly' | 'readonly-legacy' | 'read-write'
 /** @public */
-export const ReadonlyStatusToPath: Record<ReadonlyStatus, string> = {
-	readonly: 'o',
+export const RoomOpenModeToPath: Record<RoomOpenMode, string> = {
+	readonly: 'ro',
 	'readonly-legacy': 'v',
-	'non-readonly': 'r',
+	'read-write': 'r',
 }

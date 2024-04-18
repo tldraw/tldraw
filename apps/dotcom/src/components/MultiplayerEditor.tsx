@@ -12,8 +12,8 @@ import {
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	PreferencesGroup,
-	ReadonlyStatus,
-	ReadonlyStatusToPath,
+	RoomOpenMode,
+	RoomOpenModeToPath,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -105,16 +105,16 @@ const components: TLComponents = {
 }
 
 export function MultiplayerEditor({
-	readonlyStatus,
+	roomOpenMode,
 	roomSlug,
 }: {
-	readonlyStatus: ReadonlyStatus
+	roomOpenMode: RoomOpenMode
 	roomSlug: string
 }) {
 	const handleUiEvent = useHandleUiEvents()
 
 	const storeWithStatus = useRemoteSyncClient({
-		uri: `${MULTIPLAYER_SERVER}/${ReadonlyStatusToPath[readonlyStatus]}/${roomSlug}`,
+		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
 	})
 
@@ -127,7 +127,7 @@ export function MultiplayerEditor({
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const cursorChatOverrides = useCursorChat()
-	const isReadonly = readonlyStatus === 'readonly' || readonlyStatus === 'readonly-legacy'
+	const isReadonly = roomOpenMode === 'readonly' || roomOpenMode === 'readonly-legacy'
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
