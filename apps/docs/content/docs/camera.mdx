@@ -9,7 +9,7 @@ This article covers the space and coordinate systems used in the tldraw editor.
 
 # Viewport
 
-The viewport is the rectangular area of the editor.
+The viewport is the rectangular area contained by the editor.
 
 The camera determines which part of the current page is displayed inside of the viewport.
 
@@ -29,6 +29,26 @@ When the camera is at `{x: 0, y: 0, z: 0}`, the screen point and page point will
 
 You can convert between coordinate spaces using [Editor#screenToPage](?) and [Editor#pageToScreen](?).
 
+You can get the user's pointer position in both screen and page space.
+
+```ts
+const {
+	// The current page / screen points
+	currentPagePoint,
+	currentScreenPoint,
+	// The previously reported page / screen points
+	previousPagePoint,
+	previousScreenPoint,
+	// The last place where a pointer down occurred
+	originPagePoint,
+	originScreenPoint,
+} = editor.inputs
+```
+
 ## Camera options
 
 You can use the editor's camera options to configure the behavior of the editor's camera.
+
+```ts
+
+```
