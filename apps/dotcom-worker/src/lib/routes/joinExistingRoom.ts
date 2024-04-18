@@ -1,3 +1,4 @@
+import { lns } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { fourOhFour } from '../utils/fourOhFour'
@@ -8,7 +9,16 @@ export async function joinExistingRegularRoom(
 	request: IRequest,
 	env: Environment
 ): Promise<Response> {
-	return joinExistingRoom(request, env, false)
+	return joinExistingRoom(request, env, request.params.roomId)
+}
+
+// This is the entry point for joining an existing readonly room
+export async function joinExistingLegacyReadonlyRoom(
+	request: IRequest,
+	env: Environment
+): Promise<Response> {
+	const roomId = request.params.roomId && lns(request.params.roomId)
+	return joinExistingRoom(request, env, roomId)
 }
 
 // This is the entry point for joining an existing readonly room
@@ -16,19 +26,17 @@ export async function joinExistingReadonlyRoom(
 	request: IRequest,
 	env: Environment
 ): Promise<Response> {
-	return joinExistingRoom(request, env, true)
+	const roomId =
+		request.params.roomId && (await env.READONLY_SLUG_TO_SLUG.get(request.params.roomId))
+	return joinExistingRoom(request, env, roomId)
 }
 
 async function joinExistingRoom(
 	request: IRequest,
 	env: Environment,
-	isReadonly: boolean
+	roomId: string | null
 ): Promise<Response> {
-	const roomId = isReadonly
-		? await env.READONLY_SLUG_TO_SLUG.get(request.params.roomId)
-		: request.params.roomId
 	if (!roomId) return fourOhFour()
-
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
 	// This needs to be a websocket request!

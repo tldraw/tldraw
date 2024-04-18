@@ -10,7 +10,11 @@ import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
-import { joinExistingReadonlyRoom, joinExistingRegularRoom } from './routes/joinExistingRoom'
+import {
+	joinExistingLegacyReadonlyRoom,
+	joinExistingReadonlyRoom,
+	joinExistingRegularRoom,
+} from './routes/joinExistingRoom'
 import { Environment } from './types'
 import { fourOhFour } from './utils/fourOhFour'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
@@ -26,7 +30,8 @@ const router = Router()
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
 	.get('/r/:roomId', joinExistingRegularRoom)
-	.get('/v/:roomId', joinExistingReadonlyRoom)
+	.get('/v/:roomId', joinExistingLegacyReadonlyRoom)
+	.get('/o/:roomId', joinExistingReadonlyRoom)
 	.get('/r/:roomId/history', getRoomHistory)
 	.get('/r/:roomId/history/:timestamp', getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)

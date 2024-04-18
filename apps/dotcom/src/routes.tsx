@@ -44,7 +44,8 @@ export const router = createRoutesFromElements(
 				lazy={() => import('./pages/history-snapshot')}
 			/>
 			<Route path="/s/:roomId" lazy={() => import('./pages/public-snapshot')} />
-			<Route path="/v/:roomId" lazy={() => import('./pages/public-readonly')} />
+			<Route path="/v/:roomId" lazy={() => import('./pages/public-readonly-legacy')} />
+			<Route path="/o/:roomId" lazy={() => import('./pages/public-readonly')} />
 		</Route>
 		<Route path="*" lazy={() => import('./pages/not-found')} />
 	</Route>

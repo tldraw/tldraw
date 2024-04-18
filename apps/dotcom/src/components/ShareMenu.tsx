@@ -51,7 +51,7 @@ async function getReadonlyUrl() {
 	if (isReadOnly) return href
 
 	const segs = href.split('/')
-	segs[segs.length - 2] = 'v'
+	segs[segs.length - 2] = 'o'
 
 	const [roomId, params] = segs[segs.length - 1].split('?')
 	const result = await fetch(`/api/readonly-slug/${roomId}`)

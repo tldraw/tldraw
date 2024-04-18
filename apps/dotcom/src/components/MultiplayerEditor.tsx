@@ -43,6 +43,7 @@ import { StoreErrorScreen } from './StoreErrorScreen'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
 const shittyOfflineAtom = atom('shitty offline atom', false)
+type ReadonlyStatus = 'non-readonly' | 'readonly' | 'readonly-legacy'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -102,17 +103,28 @@ const components: TLComponents = {
 	},
 }
 
+function getRoutePrefix(status: ReadonlyStatus) {
+	switch (status) {
+		case 'non-readonly':
+			return 'r'
+		case 'readonly':
+			return 'o'
+		case 'readonly-legacy':
+			return 'v'
+	}
+}
+
 export function MultiplayerEditor({
-	isReadOnly,
+	readonlyStatus,
 	roomSlug,
 }: {
-	isReadOnly: boolean
+	readonlyStatus: ReadonlyStatus
 	roomSlug: string
 }) {
 	const handleUiEvent = useHandleUiEvents()
 
 	const storeWithStatus = useRemoteSyncClient({
-		uri: `${MULTIPLAYER_SERVER}/${isReadOnly ? 'v' : 'r'}/${roomSlug}`,
+		uri: `${MULTIPLAYER_SERVER}/${getRoutePrefix(readonlyStatus)}/${roomSlug}`,
 		roomId: roomSlug,
 	})
 
@@ -125,16 +137,19 @@ export function MultiplayerEditor({
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const cursorChatOverrides = useCursorChat()
+	const isReadonly = readonlyStatus === 'readonly' || readonlyStatus === 'readonly-legacy'
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			;(window as any).app = editor
 			;(window as any).editor = editor
-			editor.updateInstanceState({ isReadonly: isReadOnly })
+			editor.updateInstanceState({
+				isReadonly,
+			})
 			editor.registerExternalAssetHandler('file', createAssetFromFile)
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 		},
-		[isReadOnly]
+		[isReadonly]
 	)
 
 	if (storeWithStatus.error) {
@@ -148,7 +163,7 @@ export function MultiplayerEditor({
 				assetUrls={assetUrls}
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides, cursorChatOverrides]}
-				initialState={isReadOnly ? 'hand' : 'select'}
+				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
 				autoFocus
