@@ -277,6 +277,12 @@ export function promiseWithResolve<T>(): Promise<T> & {
 };
 
 // @public (undocumented)
+export type ReadonlyStatus = 'non-readonly' | 'readonly-legacy' | 'readonly';
+
+// @public (undocumented)
+export const ReadonlyStatusToPath: Record<ReadonlyStatus, string>;
+
+// @public (undocumented)
 export type RecursivePartial<T> = {
     [P in keyof T]?: RecursivePartial<T[P]>;
 };

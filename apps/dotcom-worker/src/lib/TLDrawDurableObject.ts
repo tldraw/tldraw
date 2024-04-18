@@ -19,6 +19,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, Environment } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { getSlug } from './utils/readonly'
 import { throttle } from './utils/throttle'
 
 const MAX_CONNECTIONS = 50
@@ -88,17 +89,22 @@ export class TLDrawDurableObject extends TLServer {
 	readonly router = Router()
 		.get(
 			'/r/:roomId',
-			(req) => this.extractDocumentInfoFromRequest(req, false),
+			(req) => this.extractDocumentInfoFromRequest(req, 'non-readonly'),
 			(req) => this.onRequest(req)
 		)
 		.get(
 			'/v/:roomId',
-			(req) => this.extractDocumentInfoFromRequest(req, true),
+			(req) => this.extractDocumentInfoFromRequest(req, 'readonly-legacy'),
+			(req) => this.onRequest(req)
+		)
+		.get(
+			'/o/:roomId',
+			(req) => this.extractDocumentInfoFromRequest(req, 'readonly'),
 			(req) => this.onRequest(req)
 		)
 		.post(
 			'/r/:roomId/restore',
-			(req) => this.extractDocumentInfoFromRequest(req, false),
+			(req) => this.extractDocumentInfoFromRequest(req, 'non-readonly'),
 			(req) => this.onRestore(req)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
@@ -118,9 +124,12 @@ export class TLDrawDurableObject extends TLServer {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	extractDocumentInfoFromRequest = async (req: IRequest, isReadonly: boolean) => {
+	extractDocumentInfoFromRequest = async (
+		req: IRequest,
+		readonlyStatus: 'non-readonly' | 'readonly' | 'readonly-legacy'
+	) => {
 		const slug = assertExists(
-			isReadonly ? await this.env.READONLY_SLUG_TO_SLUG.get(req.params.roomId) : req.params.roomId,
+			await getSlug(this.env, req.params.roomId, readonlyStatus),
 			'roomId must be present'
 		)
 		if (this._documentInfo) {

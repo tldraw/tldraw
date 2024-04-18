@@ -1,6 +1,7 @@
 import * as Popover from '@radix-ui/react-popover'
 import React, { useEffect, useState } from 'react'
 import {
+	ReadonlyStatusToPath,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -51,7 +52,7 @@ async function getReadonlyUrl() {
 	if (isReadOnly) return href
 
 	const segs = href.split('/')
-	segs[segs.length - 2] = 'o'
+	segs[segs.length - 2] = ReadonlyStatusToPath['readonly']
 
 	const [roomId, params] = segs[segs.length - 1].split('?')
 	const result = await fetch(`/api/readonly-slug/${roomId}`)

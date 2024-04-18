@@ -12,6 +12,8 @@ import {
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	PreferencesGroup,
+	ReadonlyStatus,
+	ReadonlyStatusToPath,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -43,7 +45,6 @@ import { StoreErrorScreen } from './StoreErrorScreen'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
 const shittyOfflineAtom = atom('shitty offline atom', false)
-type ReadonlyStatus = 'non-readonly' | 'readonly' | 'readonly-legacy'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -103,17 +104,6 @@ const components: TLComponents = {
 	},
 }
 
-function getRoutePrefix(status: ReadonlyStatus) {
-	switch (status) {
-		case 'non-readonly':
-			return 'r'
-		case 'readonly':
-			return 'o'
-		case 'readonly-legacy':
-			return 'v'
-	}
-}
-
 export function MultiplayerEditor({
 	readonlyStatus,
 	roomSlug,
@@ -124,7 +114,7 @@ export function MultiplayerEditor({
 	const handleUiEvent = useHandleUiEvents()
 
 	const storeWithStatus = useRemoteSyncClient({
-		uri: `${MULTIPLAYER_SERVER}/${getRoutePrefix(readonlyStatus)}/${roomSlug}`,
+		uri: `${MULTIPLAYER_SERVER}/${ReadonlyStatusToPath[readonlyStatus]}/${roomSlug}`,
 		roomId: roomSlug,
 	})
 
