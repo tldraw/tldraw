@@ -17,34 +17,44 @@ import { createQRCodeImageDataString } from '../utils/qrcode'
 import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
 import { ShareButton } from './ShareButton'
 
+enum ShareCurrentState {
+	OFFLINE = 'offline',
+	SHARED = 'shared',
+	SHARED_READ_ONLY = 'shared-readonly',
+}
+
 type ShareState = {
-	state: 'offline' | 'shared' | 'readonly'
+	state: ShareCurrentState
 	qrCodeDataUrl: string
 	url: string
 	readonlyUrl: string | null
 	readonlyQrCodeDataUrl: string
 }
 
-function isReadonlyUrl(url: string) {
+function isSharedReadonlyUrl(url: string) {
 	return (
 		url.includes(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY]}/`) ||
 		url.includes(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY_LEGACY]}/`)
 	)
 }
 
-function isSharedUrl(url: string) {
+function isSharedReadWriteUrl(url: string) {
 	return url.includes('/r/')
 }
 
 function getFreshShareState(): ShareState {
 	const href = window.location.href
-	const isShared = isSharedUrl(href)
-	const isReadOnly = isReadonlyUrl(href)
+	const isSharedReadWrite = isSharedReadWriteUrl(href)
+	const isSharedReadOnly = isSharedReadonlyUrl(href)
 
 	return {
-		state: isShared ? 'shared' : isReadOnly ? RoomOpenMode.READ_ONLY : 'offline',
+		state: isSharedReadWrite
+			? ShareCurrentState.SHARED
+			: isSharedReadOnly
+				? ShareCurrentState.SHARED_READ_ONLY
+				: ShareCurrentState.OFFLINE,
 		url: window.location.href,
-		readonlyUrl: isReadOnly ? window.location.href : null,
+		readonlyUrl: isSharedReadOnly ? window.location.href : null,
 		qrCodeDataUrl: '',
 		readonlyQrCodeDataUrl: '',
 	}
@@ -52,7 +62,7 @@ function getFreshShareState(): ShareState {
 
 async function getReadonlyUrl() {
 	const href = window.location.href
-	const isReadOnly = isReadonlyUrl(href)
+	const isReadOnly = isSharedReadonlyUrl(href)
 	if (isReadOnly) return href
 
 	const segs = href.split('/')
@@ -83,7 +93,9 @@ export const ShareMenu = React.memo(function ShareMenu() {
 
 	const [isUploading, setIsUploading] = useState(false)
 	const [isUploadingSnapshot, setIsUploadingSnapshot] = useState(false)
-	const [isReadOnlyLink, setIsReadOnlyLink] = useState(shareState.state === 'readonly')
+	const [isReadOnlyLink, setIsReadOnlyLink] = useState(
+		shareState.state === ShareCurrentState.SHARED_READ_ONLY
+	)
 	const currentShareLinkUrl = isReadOnlyLink ? shareState.readonlyUrl : shareState.url
 	const currentQrCodeUrl = isReadOnlyLink
 		? shareState.readonlyQrCodeDataUrl
@@ -92,14 +104,14 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	const [didCopySnapshotLink, setDidCopySnapshotLink] = useState(false)
 
 	useEffect(() => {
-		if (shareState.state === 'offline') {
+		if (shareState.state === ShareCurrentState.OFFLINE) {
 			return
 		}
 
 		let cancelled = false
 
 		const shareUrl = getShareUrl(window.location.href, false)
-		if (!shareState.qrCodeDataUrl && shareState.state === 'shared') {
+		if (!shareState.qrCodeDataUrl && shareState.state === ShareCurrentState.SHARED) {
 			// Fetch the QR code data URL
 			createQRCodeImageDataString(shareUrl).then((dataUrl) => {
 				if (!cancelled) {
@@ -148,7 +160,8 @@ export const ShareMenu = React.memo(function ShareMenu() {
 					alignOffset={4}
 				>
 					<TldrawUiMenuContextProvider type="panel" sourceId="share-menu">
-						{shareState.state === 'shared' || shareState.state === 'readonly' ? (
+						{shareState.state === ShareCurrentState.SHARED ||
+						shareState.state === ShareCurrentState.SHARED_READ_ONLY ? (
 							<>
 								<button
 									className="tlui-share-zone__qr-code"
@@ -178,7 +191,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 											navigator.clipboard.writeText(currentShareLinkUrl)
 										}}
 									/>
-									{shareState.state === 'shared' && (
+									{shareState.state === ShareCurrentState.SHARED && (
 										<TldrawUiMenuItem
 											id="toggle-read-only"
 											label="share-menu.readonly-link"
@@ -232,7 +245,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									/>
 									<p className="tlui-menu__group tlui-share-zone__details">
 										{msg(
-											shareState.state === 'offline'
+											shareState.state === ShareCurrentState.OFFLINE
 												? 'share-menu.offline-note'
 												: isReadOnlyLink
 													? 'share-menu.copy-readonly-link-note'
