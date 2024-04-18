@@ -8929,7 +8929,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// If the camera behavior is "zoom" and the ctrl key is presssed, then pan;
 					// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
 					const behavior =
-						wheelBehavior === 'zoom' ? (inputs.ctrlKey ? 'pan' : 'zoom') : wheelBehavior
+						wheelBehavior === 'pan' ? (inputs.ctrlKey ? 'zoom' : 'pan') : wheelBehavior
 
 					switch (behavior) {
 						case 'zoom': {
