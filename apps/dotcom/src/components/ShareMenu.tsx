@@ -31,21 +31,20 @@ type ShareState = {
 	readonlyQrCodeDataUrl: string
 }
 
-function isSharedReadonlyUrl(url: string) {
+function isSharedReadonlyUrl(pathname: string) {
 	return (
-		url.startsWith(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY]}/`) ||
-		url.startsWith(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY_LEGACY]}/`)
+		pathname.startsWith(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY]}/`) ||
+		pathname.startsWith(`/${RoomOpenModeToPath[RoomOpenMode.READ_ONLY_LEGACY]}/`)
 	)
 }
 
-function isSharedReadWriteUrl(url: string) {
-	return url.startsWith('/r/')
+function isSharedReadWriteUrl(pathname: string) {
+	return pathname.startsWith('/r/')
 }
 
 function getFreshShareState(): ShareState {
-	const href = window.location.href
-	const isSharedReadWrite = isSharedReadWriteUrl(href)
-	const isSharedReadOnly = isSharedReadonlyUrl(href)
+	const isSharedReadWrite = isSharedReadWriteUrl(window.location.pathname)
+	const isSharedReadOnly = isSharedReadonlyUrl(window.location.pathname)
 
 	return {
 		state: isSharedReadWrite
@@ -61,24 +60,24 @@ function getFreshShareState(): ShareState {
 }
 
 async function getReadonlyUrl() {
-	const href = window.location.href
-	const isReadOnly = isSharedReadonlyUrl(href)
-	if (isReadOnly) return href
+	const pathname = window.location.pathname
+	const isReadOnly = isSharedReadonlyUrl(pathname)
+	if (isReadOnly) return window.location.href
 
-	const segs = href.split('/')
-	segs[segs.length - 2] = RoomOpenModeToPath[RoomOpenMode.READ_ONLY]
+	const segments = pathname.split('/')
+	segments[1] = RoomOpenModeToPath[RoomOpenMode.READ_ONLY]
 
-	const [roomId, params] = segs[segs.length - 1].split('?')
+	const roomId = segments[2]
 	const result = await fetch(`/api/readonly-slug/${roomId}`)
 	if (!result.ok) return
 
 	const slug = (await result.json()).slug
 	if (!slug) return
 
-	segs[segs.length - 1] = slug
-	if (params) segs[segs.length - 1] += '?' + params
+	segments[2] = slug
+	const newPathname = segments.join('/')
 
-	return segs.join('/')
+	return `${window.location.origin}${newPathname}${window.location.search}`
 }
 
 /** @public */
