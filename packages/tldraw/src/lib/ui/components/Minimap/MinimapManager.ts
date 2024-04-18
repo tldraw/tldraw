@@ -169,26 +169,23 @@ export class MinimapManager {
 		let { x: px, y: py } = this.getPagePoint(x, y)
 
 		if (clampToBounds) {
-			// Get the bounds of all of the shapes on the page
-			const spb = this.editor.getCurrentPageBounds() ?? new Box()
-			// Get the bounds of the viewport
-			const vpb = viewportPageBounds
+			const shapesPageBounds = this.editor.getCurrentPageBounds() ?? new Box()
+			const vpPageBounds = viewportPageBounds
 
-			const minX = spb.minX - vpb.width / 2
-			const maxX = spb.maxX + vpb.width / 2
-			const minY = spb.minY - vpb.height / 2
-			const maxY = spb.maxY + vpb.height / 2
+			const minX = shapesPageBounds.minX - vpPageBounds.width / 2
+			const maxX = shapesPageBounds.maxX + vpPageBounds.width / 2
+			const minY = shapesPageBounds.minY - vpPageBounds.height / 2
+			const maxY = shapesPageBounds.maxY + vpPageBounds.height / 2
 
-			const lx = Math.max(0, minX + vpb.width - px)
-			const ly = Math.max(0, minY + vpb.height - py)
+			const lx = Math.max(0, minX + vpPageBounds.width - px)
+			const rx = Math.max(0, -(maxX - vpPageBounds.width - px))
+			const ly = Math.max(0, minY + vpPageBounds.height - py)
+			const ry = Math.max(0, -(maxY - vpPageBounds.height - py))
 
-			const rx = Math.max(0, -(maxX - vpb.width - px))
-			const ry = Math.max(0, -(maxY - vpb.height - py))
-
-			const qt = Math.max(0, ly - ry)
-			const qr = Math.max(0, rx - lx)
-			const qb = Math.max(0, ry - ly)
 			const ql = Math.max(0, lx - rx)
+			const qr = Math.max(0, rx - lx)
+			const qt = Math.max(0, ly - ry)
+			const qb = Math.max(0, ry - ly)
 
 			if (ql && ql > qr) {
 				px += ql / 2
