@@ -459,6 +459,9 @@ export const DEFAULT_ANIMATION_OPTIONS: {
     easing: (t: number) => number;
 };
 
+// @internal (undocumented)
+export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
+
 // @public (undocumented)
 export function DefaultBackground(): JSX_2.Element;
 
@@ -1092,9 +1095,6 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
-
-// @internal (undocumented)
-export const getDefaultCameraOptions: (cameraOptions?: Partial<TLCameraOptions>) => TLCameraOptions;
 
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
@@ -2019,6 +2019,7 @@ export type TLCameraOptions = {
     zoomSpeed: number;
     zoomSteps: number[];
     isLocked: boolean;
+    wheelBehavior: 'none' | 'pan' | 'zoom';
 };
 
 // @public (undocumented)

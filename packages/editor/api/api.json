@@ -36993,7 +36993,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n        fit: 'max' | 'min' | 'none' | 'x' | 'y';\n    };\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    isLocked: boolean;\n}"
+              "text": ";\n        fit: 'max' | 'min' | 'none' | 'x' | 'y';\n    };\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    isLocked: boolean;\n    wheelBehavior: 'none' | 'pan' | 'zoom';\n}"
             },
             {
               "kind": "Content",

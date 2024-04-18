@@ -71,6 +71,7 @@ import {
 	COARSE_DRAG_DISTANCE,
 	COLLABORATOR_IDLE_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
+	DEFAULT_CAMERA_OPTIONS,
 	DRAG_DISTANCE,
 	FOLLOW_CHASE_PAN_SNAP,
 	FOLLOW_CHASE_PAN_UNSNAP,
@@ -82,7 +83,6 @@ import {
 	LONG_PRESS_DURATION,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
-	getDefaultCameraOptions,
 } from '../constants'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike, MatModel } from '../primitives/Mat'
@@ -211,7 +211,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.snaps = new SnapManager(this)
 
-		this._cameraOptions.set(getDefaultCameraOptions(cameraOptions))
+		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
@@ -2105,7 +2105,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	private _cameraOptions = atom('camera options', getDefaultCameraOptions({}))
+	private _cameraOptions = atom('camera options', DEFAULT_CAMERA_OPTIONS)
 
 	/**
 	 * Get the current camera options.
@@ -8551,6 +8551,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Reset velocity on pointer down, or when a pinch starts or ends
 		if (info.name === 'pointer_down' || this.inputs.isPinching) {
 			pointerVelocity.set(0, 0)
+			this.inputs.originScreenPoint.setTo(currentScreenPoint)
+			this.inputs.originPagePoint.setTo(currentPagePoint)
 		}
 
 		// todo: We only have to do this if there are multiple users in the document
@@ -8805,15 +8807,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._ctrlKeyTimeout = setTimeout(this._setCtrlKeyTimeout, 150)
 		}
 
-		const { originPagePoint, originScreenPoint, currentPagePoint, currentScreenPoint } = inputs
+		const { originPagePoint, currentPagePoint } = inputs
 
 		if (!inputs.isPointing) {
 			inputs.isDragging = false
 		}
 
+		const instanceState = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+		const pageState = this.store.get(this._getCurrentPageStateId())!
+		const cameraOptions = this._cameraOptions.__unsafe__getWithoutCapture()!
+		const camera = this.store.unsafeGetWithoutCapture(this.getCameraId())!
+
 		switch (type) {
 			case 'pinch': {
-				if (this.getCameraOptions().isLocked) return
+				if (cameraOptions.isLocked) return
 				clearTimeout(this._longPressTimeout)
 				this._updateInputsFromEvent(info)
 
@@ -8824,7 +8831,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (!inputs.isEditing) {
 							this._pinchStart = this.getCamera().z
 							if (!this._selectedShapeIdsAtPointerDown.length) {
-								this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
+								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
 							}
 
 							this._didPinch = true
@@ -8844,17 +8851,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 							delta: { x: dx, y: dy },
 						} = info
 
-						const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-						const { x, y } = Vec.SubXY(info.point, screenBounds.x, screenBounds.y)
+						// The center of the pinch in screen space
+						const { x, y } = Vec.SubXY(
+							info.point,
+							instanceState.screenBounds.x,
+							instanceState.screenBounds.y
+						)
 
-						const { x: cx, y: cy, z: cz } = this.getCamera()
+						const { x: cx, y: cy, z: cz } = camera
 
 						this.stopCameraAnimation()
-						if (this.getInstanceState().followingUserId) {
+						if (instanceState.followingUserId) {
 							this.stopFollowingUser()
 						}
 
-						const { panSpeed, zoomSpeed } = this.getCameraOptions()
+						const { panSpeed, zoomSpeed } = cameraOptions
 						this._setCamera(
 							new Vec(
 								cx + (dx * panSpeed) / cz - x / cz + x / (z * zoomSpeed),
@@ -8869,18 +8880,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 					case 'pinch_end': {
 						if (!inputs.isPinching) return this
 
+						// Stop pinching
 						inputs.isPinching = false
-						const { _selectedShapeIdsAtPointerDown } = this
-						this.setSelectedShapes(this._selectedShapeIdsAtPointerDown, { squashing: true })
+
+						// Stash and clear the
+						const { _selectedShapeIdsAtPointerDown: shapesToReselect } = this
 						this._selectedShapeIdsAtPointerDown = []
 
 						if (this._didPinch) {
 							this._didPinch = false
-							this.once('tick', () => {
-								if (!this._didPinch) {
-									this.setSelectedShapes(_selectedShapeIdsAtPointerDown, { squashing: true })
-								}
-							})
+							if (shapesToReselect.length > 0) {
+								this.once('tick', () => {
+									if (!this._didPinch) {
+										// Unless we've started pinching again...
+										// Reselect the shapes that were selected when the pinch started
+										this.setSelectedShapes(shapesToReselect, { squashing: true })
+									}
+								})
+							}
 						}
 
 						return // Stop here!
@@ -8888,164 +8905,164 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 			case 'wheel': {
-				if (this.getCameraOptions().isLocked) return
+				if (cameraOptions.isLocked) return
 
 				this._updateInputsFromEvent(info)
 
 				if (this.getIsMenuOpen()) {
 					// noop
 				} else {
+					const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
+
+					if (wheelBehavior === 'none') return
+
+					// Stop any camera animation
 					this.stopCameraAnimation()
-					if (this.getInstanceState().followingUserId) {
+					// Stop following any following user
+					if (instanceState.followingUserId) {
 						this.stopFollowingUser()
 					}
-					if (inputs.ctrlKey) {
-						// todo: Start or update the zoom end interval
 
-						// If the alt or ctrl keys are pressed,
-						// zoom or pan the camera and then return.
+					const { x: cx, y: cy, z: cz } = camera
+					const { x: dx, y: dy, z: dz = 0 } = info.delta
 
-						// Subtract the top left offset from the user's point
+					// If the camera behavior is "zoom" and the ctrl key is presssed, then pan;
+					// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
+					const behavior =
+						wheelBehavior === 'zoom' ? (inputs.ctrlKey ? 'pan' : 'zoom') : wheelBehavior
 
-						const { x, y } = this.inputs.currentScreenPoint
-
-						const { x: cx, y: cy, z: cz } = this.getCamera()
-
-						const { zoomSpeed } = this.getCameraOptions()
-						const zoom = cz + (info.delta.z ?? 0) * zoomSpeed * cz
-
-						this._setCamera(
-							new Vec(cx + (x / zoom - x) - (x / cz - x), cy + (y / zoom - y) - (y / cz - y), zoom),
-							{ immediate: true }
-						)
-
-						// We want to return here because none of the states in our
-						// statechart should respond to this event (a camera zoom)
-						return
-					}
-
-					// Update the camera here, which will dispatch a pointer move...
-					// this will also update the pointer position, etc
-					this.pan(info.delta, { immediate: true })
-
-					if (
-						!inputs.isDragging &&
-						inputs.isPointing &&
-						Vec.Dist2(originPagePoint, currentPagePoint) >
-							(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-								this.getZoomLevel()
-					) {
-						clearTimeout(this._longPressTimeout)
-						inputs.isDragging = true
+					switch (behavior) {
+						case 'zoom': {
+							// Zoom in on current screen point using the wheel delta
+							const { x, y } = this.inputs.currentScreenPoint
+							const zoom = cz + (dz ?? 0) * zoomSpeed * cz
+							this._setCamera(
+								new Vec(
+									cx + (x / zoom - x) - (x / cz - x),
+									cy + (y / zoom - y) - (y / cz - y),
+									zoom
+								),
+								{ immediate: true }
+							)
+							return
+						}
+						case 'pan': {
+							// Pan the camera based on the wheel delta
+							this._setCamera(new Vec(cx + (dx * panSpeed) / cz, cy + (dy * panSpeed) / cz, cz), {
+								immediate: true,
+							})
+							return
+						}
 					}
 				}
 				break
 			}
 			case 'pointer': {
-				// If we're pinching, return
+				// Ignore pointer events while we're pinching
 				if (inputs.isPinching) return
 
 				this._updateInputsFromEvent(info)
-
 				const { isPen } = info
+				const { isPenMode } = instanceState
 
 				switch (info.name) {
 					case 'pointer_down': {
+						// If we're in pen mode and the input is not a pen type, then stop here
+						if (isPenMode && !isPen) return
+
+						// Close any open menus
 						this.clearOpenMenus()
 
+						// Start a long press timeout
 						this._longPressTimeout = setTimeout(() => {
 							this.dispatch({ ...info, name: 'long_press' })
 						}, LONG_PRESS_DURATION)
 
+						// Save the selected ids at pointer down
 						this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
 
 						// Firefox bug fix...
 						// If it's a left-mouse-click, we store the pointer id for later user
-						if (info.button === 0) {
-							this.capturedPointerId = info.pointerId
-						}
+						if (info.button === 0) this.capturedPointerId = info.pointerId
 
 						// Add the button from the buttons set
 						inputs.buttons.add(info.button)
 
+						// Start pointing and stop dragging
 						inputs.isPointing = true
 						inputs.isDragging = false
 
-						if (this.getInstanceState().isPenMode) {
-							if (!isPen) {
-								return
-							}
-						} else {
-							if (isPen) {
-								this.updateInstanceState({ isPenMode: true })
-							}
-						}
+						// If pen mode is off but we're not already in pen mode, turn that on
+						if (!isPenMode && isPen) this.updateInstanceState({ isPenMode: true })
 
+						// On devices with erasers (like the Surface Pen or Wacom Pen), button 5 is the eraser
 						if (info.button === 5) {
-							// Eraser button activates eraser
 							this._restoreToolId = this.getCurrentToolId()
 							this.complete()
 							this.setCurrentTool('eraser')
 						} else if (info.button === 1) {
-							// Middle mouse pan activates panning
+							// Middle mouse pan activates panning unless we're already panning (with spacebar)
 							if (!this.inputs.isPanning) {
 								this._prevCursor = this.getInstanceState().cursor.type
 							}
-
 							this.inputs.isPanning = true
+							clearTimeout(this._longPressTimeout)
 						}
 
+						// We might be panning because we did a middle mouse click, or because we're holding spacebar and started a regular click
+						// Also stop here, we don't want the state chart to receive the event
 						if (this.inputs.isPanning) {
 							this.stopCameraAnimation()
 							this.setCursor({ type: 'grabbing', rotation: 0 })
 							return this
 						}
 
-						originScreenPoint.setTo(currentScreenPoint)
-						originPagePoint.setTo(currentPagePoint)
 						break
 					}
 					case 'pointer_move': {
 						// If the user is in pen mode, but the pointer is not a pen, stop here.
-						if (!isPen && this.getInstanceState().isPenMode) {
-							return
-						}
+						if (!isPen && isPenMode) return
 
+						// If we've started panning, then clear any long press timeout
 						if (this.inputs.isPanning && this.inputs.isPointing) {
-							clearTimeout(this._longPressTimeout)
-							// Handle panning
+							// Handle spacebar / middle mouse button panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
-							this.pan(Vec.Sub(currentScreenPoint, previousScreenPoint))
+							const { x: cx, y: cy, z: cz } = camera
+							const { panSpeed } = cameraOptions
+							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
+							this.setCamera(
+								new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz),
+								{ immediate: true }
+							)
 							return
 						}
 
 						if (
-							!inputs.isDragging &&
 							inputs.isPointing &&
+							!inputs.isDragging &&
 							Vec.Dist2(originPagePoint, currentPagePoint) >
-								(this.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
-									this.getZoomLevel()
+								(instanceState.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) / camera.z
 						) {
-							clearTimeout(this._longPressTimeout)
+							// Start dragging
 							inputs.isDragging = true
+							clearTimeout(this._longPressTimeout)
 						}
 						break
 					}
 					case 'pointer_up': {
+						// Stop dragging / pointing
+						inputs.isDragging = false
+						inputs.isPointing = false
+						clearTimeout(this._longPressTimeout)
+
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
 
-						inputs.isPointing = false
-						inputs.isDragging = false
+						// Suppressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
+						if (this.getIsMenuOpen()) return
 
-						if (this.getIsMenuOpen()) {
-							// Suppressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
-							return
-						}
-
-						if (!isPen && this.getInstanceState().isPenMode) {
-							return
-						}
+						// If we're in pen mode and we're not using a pen, stop here
+						if (instanceState.isPenMode && !isPen) return
 
 						// Firefox bug fix...
 						// If it's the same pointer that we stored earlier...
@@ -9056,50 +9073,40 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						if (inputs.isPanning) {
-							if (info.button === 1) {
-								if (!this.inputs.keys.has(' ')) {
-									inputs.isPanning = false
+							const slideDirection = this.inputs.pointerVelocity
+							const slideSpeed = Math.min(2, slideDirection.len())
 
-									this.slideCamera({
-										speed: Math.min(2, this.inputs.pointerVelocity.len()),
-										direction: this.inputs.pointerVelocity,
-										friction: CAMERA_SLIDE_FRICTION,
-									})
-									this.setCursor({ type: this._prevCursor, rotation: 0 })
-								} else {
-									this.slideCamera({
-										speed: Math.min(2, this.inputs.pointerVelocity.len()),
-										direction: this.inputs.pointerVelocity,
-										friction: CAMERA_SLIDE_FRICTION,
-									})
-									this.setCursor({
-										type: 'grab',
-										rotation: 0,
-									})
+							switch (info.button) {
+								case 0: {
+									this.setCursor({ type: 'grab', rotation: 0 })
+									break
 								}
-							} else if (info.button === 0) {
+								case 1: {
+									if (this.inputs.keys.has(' ')) {
+										this.setCursor({ type: 'grab', rotation: 0 })
+									} else {
+										this.setCursor({ type: this._prevCursor, rotation: 0 })
+									}
+								}
+							}
+
+							if (slideSpeed > 0) {
 								this.slideCamera({
-									speed: Math.min(2, this.inputs.pointerVelocity.len()),
-									direction: this.inputs.pointerVelocity,
+									speed: slideSpeed,
+									direction: slideDirection,
 									friction: CAMERA_SLIDE_FRICTION,
-								})
-								this.setCursor({
-									type: 'grab',
-									rotation: 0,
 								})
 							}
 						} else {
 							if (info.button === 5) {
-								// Eraser button activates eraser
+								// If we were erasing with a stylus button, restore the tool we were using before we started erasing
 								this.complete()
 								this.setCurrentTool(this._restoreToolId)
 							}
 						}
-
 						break
 					}
 				}
-
 				break
 			}
 			case 'keyboard': {
@@ -9114,12 +9121,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.keys.add(info.code)
 
 						// If the space key is pressed (but meta / control isn't!) activate panning
-						if (!info.ctrlKey && info.code === 'Space') {
+						if (info.code === 'Space' && !info.ctrlKey) {
 							if (!this.inputs.isPanning) {
-								this._prevCursor = this.getInstanceState().cursor.type
+								this._prevCursor = instanceState.cursor.type
 							}
 
 							this.inputs.isPanning = true
+							clearTimeout(this._longPressTimeout)
 							this.setCursor({ type: this.inputs.isPointing ? 'grabbing' : 'grab', rotation: 0 })
 						}
 
@@ -9129,9 +9137,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Remove the key from the keys set
 						inputs.keys.delete(info.code)
 
-						if (info.code === 'Space' && !this.inputs.buttons.has(1)) {
-							this.inputs.isPanning = false
-							this.setCursor({ type: this._prevCursor, rotation: 0 })
+						// If we've lifted the space key,
+						if (info.code === 'Space') {
+							if (this.inputs.buttons.has(1)) {
+								// If we're still middle dragging, continue panning
+							} else {
+								// otherwise, stop panning
+								this.inputs.isPanning = false
+								this.setCursor({ type: this._prevCursor, rotation: 0 })
+							}
 						}
 
 						break
@@ -9153,39 +9167,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 				info.name = 'right_click'
 			}
 
-			// If a pointer event, send the event to the click manager.
-			if (info.isPen === this.getInstanceState().isPenMode) {
-				switch (info.name) {
-					case 'pointer_down': {
-						const otherEvent = this._clickManager.transformPointerDownEvent(info)
-						if (info.name !== otherEvent.name) {
-							this.root.handleEvent(info)
-							this.emit('event', info)
-							this.root.handleEvent(otherEvent)
-							this.emit('event', otherEvent)
-							return
-						}
-
-						break
-					}
-					case 'pointer_up': {
-						clearTimeout(this._longPressTimeout)
-
-						const otherEvent = this._clickManager.transformPointerUpEvent(info)
-						if (info.name !== otherEvent.name) {
-							this.root.handleEvent(info)
-							this.emit('event', info)
-							this.root.handleEvent(otherEvent)
-							this.emit('event', otherEvent)
-							return
-						}
-
-						break
-					}
-					case 'pointer_move': {
-						this._clickManager.handleMove()
-						break
-					}
+			// If a left click pointer event, send the event to the click manager.
+			const { isPenMode } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+			if (info.isPen === isPenMode) {
+				// The click manager may return a new event, i.e. a double click event
+				// depending on the event coming in and its own state. If the event has
+				// changed then hand both events to the statechart
+				const clickInfo = this._clickManager.handlePointerEvent(info)
+				if (info.name !== clickInfo.name) {
+					this.root.handleEvent(info)
+					this.emit('event', info)
+					this.root.handleEvent(clickInfo)
+					this.emit('event', clickInfo)
+					return
 				}
 			}
 		}

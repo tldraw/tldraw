@@ -1,4 +1,4 @@
-import { getDefaultCameraOptions } from '@tldraw/editor'
+import { DEFAULT_CAMERA_OPTIONS } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -8,7 +8,7 @@ beforeEach(() => {
 })
 
 it('zooms out and in by increments', () => {
-	const cameraOptions = getDefaultCameraOptions()
+	const cameraOptions = DEFAULT_CAMERA_OPTIONS
 
 	// Starts at 1
 	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])

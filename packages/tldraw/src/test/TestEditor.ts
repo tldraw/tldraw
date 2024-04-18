@@ -200,12 +200,12 @@ export class TestEditor extends Editor {
 	 * _transformPointerDownSpy.mockRestore())
 	 */
 	_transformPointerDownSpy = jest
-		.spyOn(this._clickManager, 'transformPointerDownEvent')
+		.spyOn(this._clickManager, 'handlePointerEvent')
 		.mockImplementation((info) => {
 			return info
 		})
 	_transformPointerUpSpy = jest
-		.spyOn(this._clickManager, 'transformPointerDownEvent')
+		.spyOn(this._clickManager, 'handlePointerEvent')
 		.mockImplementation((info) => {
 			return info
 		})

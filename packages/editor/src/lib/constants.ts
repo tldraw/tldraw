@@ -11,24 +11,15 @@ export const ANIMATION_SHORT_MS = 80
 /** @internal */
 export const ANIMATION_MEDIUM_MS = 320
 
-const DEFAULT_COMMON_CAMERA_OPTIONS = {
-	zoomMax: 8,
-	zoomMin: 0.1,
+/** @internal */
+export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions = {
 	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
 	zoomSpeed: 1,
 	panSpeed: 1,
 	isLocked: false,
+	wheelBehavior: 'pan',
 }
 
-/** @internal */
-export const getDefaultCameraOptions = (
-	cameraOptions: Partial<TLCameraOptions> = {}
-): TLCameraOptions => ({
-	...DEFAULT_COMMON_CAMERA_OPTIONS,
-	...cameraOptions,
-})
-
-/** @internal */
 export const FOLLOW_CHASE_PROPORTION = 0.5
 /** @internal */
 export const FOLLOW_CHASE_PAN_SNAP = 0.1

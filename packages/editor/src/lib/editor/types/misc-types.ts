@@ -19,6 +19,7 @@ export type TLSvgOptions = {
 
 /** @public */
 export type TLCameraOptions = {
+	wheelBehavior: 'zoom' | 'pan' | 'none'
 	/** The speed of a scroll wheel / trackpad pan */
 	panSpeed: number
 	/** The speed of a scroll wheel / trackpad zoom */
