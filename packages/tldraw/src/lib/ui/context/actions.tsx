@@ -20,6 +20,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { ADJACENT_NOTE_MARGIN } from '../../shapes/note/noteHelpers'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
@@ -818,7 +819,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('pack-shapes', { source })
 					editor.mark('pack')
 					const selectedShapeIds = editor.getSelectedShapeIds()
-					editor.packShapes(selectedShapeIds, 16)
+					editor.packShapes(selectedShapeIds, ADJACENT_NOTE_MARGIN)
 					kickoutOccludedShapes(editor, selectedShapeIds)
 				},
 			},
