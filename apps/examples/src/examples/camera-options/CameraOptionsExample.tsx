@@ -415,7 +415,7 @@ const CameraOptionsControlPanel = track(() => {
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 				<button
 					onClick={() => {
-						editor.setCamera(editor.getCamera(), { initial: true })
+						editor.setCamera(editor.getCamera(), { reset: true })
 					}}
 				>
 					Reset Camera

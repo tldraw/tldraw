@@ -596,7 +596,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         }>;
         force: boolean;
         immediate: boolean;
-        initial: boolean;
+        reset: boolean;
     }>): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: Partial<{
         animation: Partial<{
@@ -605,7 +605,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         }>;
         force: boolean;
         immediate: boolean;
-        initial: boolean;
+        reset: boolean;
     }>): this;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
@@ -2002,7 +2002,7 @@ export type TLCameraMoveOptions = Partial<{
     }>;
     force: boolean;
     immediate: boolean;
-    initial: boolean;
+    reset: boolean;
 }>;
 
 // @public (undocumented)

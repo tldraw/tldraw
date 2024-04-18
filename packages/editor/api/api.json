@@ -7554,7 +7554,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n            duration: number;\n            easing: (t: number) => number;\n        }>;\n        force: boolean;\n        immediate: boolean;\n        initial: boolean;\n    }>"
+                  "text": "<{\n            duration: number;\n            easing: (t: number) => number;\n        }>;\n        force: boolean;\n        immediate: boolean;\n        reset: boolean;\n    }>"
                 },
                 {
                   "kind": "Content",
@@ -7641,7 +7641,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n            duration: number;\n            easing: (t: number) => number;\n        }>;\n        force: boolean;\n        immediate: boolean;\n        initial: boolean;\n    }>"
+                  "text": "<{\n            duration: number;\n            easing: (t: number) => number;\n        }>;\n        force: boolean;\n        immediate: boolean;\n        reset: boolean;\n    }>"
                 },
                 {
                   "kind": "Content",
@@ -36940,7 +36940,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n        duration: number;\n        easing: (t: number) => number;\n    }>;\n    force: boolean;\n    immediate: boolean;\n    initial: boolean;\n}>"
+              "text": "<{\n        duration: number;\n        easing: (t: number) => number;\n    }>;\n    force: boolean;\n    immediate: boolean;\n    reset: boolean;\n}>"
             },
             {
               "kind": "Content",

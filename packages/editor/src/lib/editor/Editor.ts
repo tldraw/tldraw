@@ -145,7 +145,7 @@ export type TLCameraMoveOptions = Partial<{
 	}>
 	immediate: boolean
 	force: boolean
-	initial: boolean
+	reset: boolean
 }>
 
 /** @public */
