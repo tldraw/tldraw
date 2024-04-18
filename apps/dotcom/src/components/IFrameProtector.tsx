@@ -1,5 +1,6 @@
-import { ReactNode, useEffect, useState, version } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { LoadingScreen } from 'tldraw'
+import { version } from '../../version'
 import { useUrl } from '../hooks/useUrl'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 
