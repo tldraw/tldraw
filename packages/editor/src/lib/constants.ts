@@ -107,3 +107,8 @@ export const LONG_PRESS_DURATION = 500
 
 /** @internal */
 export const TEXT_SHADOW_LOD = 0.35
+
+export const LEFT_MOUSE_BUTTON = 0
+export const RIGHT_MOUSE_BUTTON = 2
+export const MIDDLE_MOUSE_BUTTON = 1
+export const STYLUS_ERASER_BUTTON = 5

@@ -80,9 +80,13 @@ import {
 	FOLLOW_CHASE_ZOOM_UNSNAP,
 	HIT_TEST_MARGIN,
 	INTERNAL_POINTER_IDS,
+	LEFT_MOUSE_BUTTON,
 	LONG_PRESS_DURATION,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
+	MIDDLE_MOUSE_BUTTON,
+	RIGHT_MOUSE_BUTTON,
+	STYLUS_ERASER_BUTTON,
 } from '../constants'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike, MatModel } from '../primitives/Mat'
@@ -8983,7 +8987,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						// Firefox bug fix...
 						// If it's a left-mouse-click, we store the pointer id for later user
-						if (info.button === 0) this.capturedPointerId = info.pointerId
+						if (info.button === LEFT_MOUSE_BUTTON) this.capturedPointerId = info.pointerId
 
 						// Add the button from the buttons set
 						inputs.buttons.add(info.button)
@@ -8996,11 +9000,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (!isPenMode && isPen) this.updateInstanceState({ isPenMode: true })
 
 						// On devices with erasers (like the Surface Pen or Wacom Pen), button 5 is the eraser
-						if (info.button === 5) {
+						if (info.button === STYLUS_ERASER_BUTTON) {
 							this._restoreToolId = this.getCurrentToolId()
 							this.complete()
 							this.setCurrentTool('eraser')
-						} else if (info.button === 1) {
+						} else if (info.button === MIDDLE_MOUSE_BUTTON) {
 							// Middle mouse pan activates panning unless we're already panning (with spacebar)
 							if (!this.inputs.isPanning) {
 								this._prevCursor = this.getInstanceState().cursor.type
@@ -9077,11 +9081,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 							const slideSpeed = Math.min(2, slideDirection.len())
 
 							switch (info.button) {
-								case 0: {
+								case LEFT_MOUSE_BUTTON: {
 									this.setCursor({ type: 'grab', rotation: 0 })
 									break
 								}
-								case 1: {
+								case MIDDLE_MOUSE_BUTTON: {
 									if (this.inputs.keys.has(' ')) {
 										this.setCursor({ type: 'grab', rotation: 0 })
 									} else {
@@ -9098,7 +9102,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								})
 							}
 						} else {
-							if (info.button === 5) {
+							if (info.button === STYLUS_ERASER_BUTTON) {
 								// If we were erasing with a stylus button, restore the tool we were using before we started erasing
 								this.complete()
 								this.setCurrentTool(this._restoreToolId)
@@ -9161,9 +9165,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Correct the info name for right / middle clicks
 		if (info.type === 'pointer') {
-			if (info.button === 1) {
+			if (info.button === LEFT_MOUSE_BUTTON) {
 				info.name = 'middle_click'
-			} else if (info.button === 2) {
+			} else if (info.button === RIGHT_MOUSE_BUTTON) {
 				info.name = 'right_click'
 			}
 
