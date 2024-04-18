@@ -40,7 +40,7 @@ export function pie(
 	return array
 }
 
-function rectangle(
+export function rectangle(
 	array: Float32Array,
 	offset: number,
 	x: number,

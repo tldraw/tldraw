@@ -3,6 +3,7 @@ import {
 	ComputedCache,
 	Editor,
 	TLShape,
+	TLShapeId,
 	Vec,
 	atom,
 	clamp,
@@ -12,23 +13,26 @@ import {
 } from '@tldraw/editor'
 import { getRgba } from './getRgba'
 import { BufferStuff, appendVertices, setupWebGl } from './minimap-webgl-setup'
-import { pie, roundedRectangle } from './minimap-webgl-shapes'
-import { applyTransformToGeometry, triangulateGeometry } from './triangulateGeometry'
+import { pie, rectangle, roundedRectangle } from './minimap-webgl-shapes'
 
 export class MinimapManager {
 	disposables = [] as (() => void)[]
 	close = () => this.disposables.forEach((d) => d())
 	gl: ReturnType<typeof setupWebGl>
-	geometryCache: ComputedCache<Float32Array, TLShape>
+	shapeGeometryCache: ComputedCache<Float32Array, TLShape>
 	constructor(
 		public editor: Editor,
 		public readonly elem: HTMLCanvasElement
 	) {
 		this.gl = setupWebGl(elem)
-		this.geometryCache = editor.store.createComputedCache('webgl-geometry', (r: TLShape) => {
-			const pageTransform = editor.getShapePageTransform(r.id)
-			const triangles = triangulateGeometry(editor.getShapeGeometry(r.id))
-			return applyTransformToGeometry(triangles, pageTransform)
+
+		this.shapeGeometryCache = editor.store.createComputedCache('webgl-geometry', (r: TLShape) => {
+			const arr = new Float32Array([])
+			const bounds = editor.getShapeMaskedPageBounds(r.id)
+			if (bounds) {
+				rectangle(arr, 0, bounds.x, bounds.y, bounds.w, bounds.h)
+			}
+			return arr
 		})
 
 		this.colors = this._getColors()
@@ -168,23 +172,26 @@ export class MinimapManager {
 		let { x: px, y: py } = this.getPagePoint(x, y)
 
 		if (clampToBounds) {
-			const shapesPageBounds = this.editor.getCurrentPageBounds()
-			const vpPageBounds = viewportPageBounds
+			// Get the bounds of all of the shapes on the page
+			const spb = this.editor.getCurrentPageBounds() ?? new Box()
+			// Get the bounds of the viewport
+			const vpb = viewportPageBounds
 
-			const minX = (shapesPageBounds?.minX ?? 0) - vpPageBounds.width / 2
-			const maxX = (shapesPageBounds?.maxX ?? 0) + vpPageBounds.width / 2
-			const minY = (shapesPageBounds?.minY ?? 0) - vpPageBounds.height / 2
-			const maxY = (shapesPageBounds?.maxY ?? 0) + vpPageBounds.height / 2
+			const minX = spb.minX - vpb.width / 2
+			const maxX = spb.maxX + vpb.width / 2
+			const minY = spb.minY - vpb.height / 2
+			const maxY = spb.maxY + vpb.height / 2
 
-			const lx = Math.max(0, minX + vpPageBounds.width - px)
-			const rx = Math.max(0, -(maxX - vpPageBounds.width - px))
-			const ly = Math.max(0, minY + vpPageBounds.height - py)
-			const ry = Math.max(0, -(maxY - vpPageBounds.height - py))
+			const lx = Math.max(0, minX + vpb.width - px)
+			const ly = Math.max(0, minY + vpb.height - py)
 
-			const ql = Math.max(0, lx - rx)
-			const qr = Math.max(0, rx - lx)
+			const rx = Math.max(0, -(maxX - vpb.width - px))
+			const ry = Math.max(0, -(maxY - vpb.height - py))
+
 			const qt = Math.max(0, ly - ry)
+			const qr = Math.max(0, rx - lx)
 			const qb = Math.max(0, ry - ly)
+			const ql = Math.max(0, lx - rx)
 
 			if (ql && ql > qr) {
 				px += ql / 2
@@ -247,18 +254,19 @@ export class MinimapManager {
 
 		const ids = this.editor.getCurrentPageShapeIdsSorted()
 
-		for (const shapeId of ids) {
-			const geometry = this.geometryCache.get(shapeId)
-			if (!geometry) continue
+		let shapeId: TLShapeId
+		for (let i = 0; i < ids.length; i++) {
+			shapeId = ids[i]
+			const shapeGeometry = this.shapeGeometryCache.get(shapeId)
+			if (!shapeGeometry) continue
 
-			const len = geometry.length
-
+			// const len = shapeGeometry.length
 			if (selectedShapes.has(shapeId)) {
-				appendVertices(this.gl.selectedShapes, selectedShapeOffset, geometry)
-				selectedShapeOffset += len
+				appendVertices(this.gl.selectedShapes, selectedShapeOffset, shapeGeometry)
+				selectedShapeOffset += 12 // len
 			} else {
-				appendVertices(this.gl.unselectedShapes, unselectedShapeOffset, geometry)
-				unselectedShapeOffset += len
+				appendVertices(this.gl.unselectedShapes, unselectedShapeOffset, shapeGeometry)
+				unselectedShapeOffset += 12 // len
 			}
 		}
 
