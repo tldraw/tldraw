@@ -6,5 +6,9 @@
 		"outDir": "./.tsbuild",
 		"rootDir": "src"
 	},
-	"references": []
+	"references": [
+		{
+			"path": "../tldraw"
+		}
+	]
 }

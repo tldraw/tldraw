@@ -7450,6 +7450,11 @@ __metadata:
 "@tldraw/dotcom-shared@workspace:*, @tldraw/dotcom-shared@workspace:packages/dotcom-shared":
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
+  dependencies:
+    tldraw: "workspace:*"
+  peerDependencies:
+    react: ^18
+    react-dom: ^18
   languageName: unknown
   linkType: soft
 
