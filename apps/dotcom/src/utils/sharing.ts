@@ -131,6 +131,12 @@ export function useSharing(): TLUiOverrides {
 							const data = await getRoomData(editor, addToast, msg, uploadFileToAsset)
 							if (!data) return
 
+							const topLevelUrl = new URL(
+								window.location != window.parent.location
+									? document.referrer
+									: document.location.href
+							)
+
 							const res = await fetch(SNAPSHOT_UPLOAD_URL, {
 								method: 'POST',
 								headers: {
@@ -138,7 +144,7 @@ export function useSharing(): TLUiOverrides {
 								},
 								body: JSON.stringify({
 									version,
-									origin: window.top?.origin ?? window.origin,
+									origin: topLevelUrl.origin,
 									snapshot: {
 										schema: editor.store.schema.serialize(),
 										snapshot: data,
