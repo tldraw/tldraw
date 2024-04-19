@@ -20,6 +20,7 @@ import { useMultiplayerAssets } from '../hooks/useMultiplayerAssets'
 import { getViewportUrlQuery } from '../hooks/useUrlState'
 import { cloneAssetForShare } from './cloneAssetForShare'
 import { ASSET_UPLOADER_URL } from './config'
+import { isInIframe } from './iFrame'
 import { shouldLeaveSharedProject } from './shouldLeaveSharedProject'
 import { trackAnalyticsEvent } from './trackAnalyticsEvent'
 import { UI_OVERRIDE_TODO_EVENT, useHandleUiEvents } from './useHandleUiEvent'
@@ -95,6 +96,7 @@ export function useSharing(): TLUiOverrides {
 	const id = useSearchParams()[0].get('id') ?? undefined
 	const uploadFileToAsset = useMultiplayerAssets(ASSET_UPLOADER_URL)
 	const handleUiEvent = useHandleUiEvents()
+	const runningInIFrame = isInIframe()
 
 	return useMemo(
 		(): TLUiOverrides => ({
@@ -140,8 +142,13 @@ export function useSharing(): TLUiOverrides {
 							}
 
 							const query = getViewportUrlQuery(editor)
-
-							navigate(`/r/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`)
+							const origin = window.location.origin
+							const pathname = `/r/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`
+							if (runningInIFrame) {
+								window.open(`${origin}${pathname}`)
+							} else {
+								navigate(pathname)
+							}
 						} catch (error) {
 							console.error(error)
 							addToast({
@@ -182,12 +189,12 @@ export function useSharing(): TLUiOverrides {
 				actions[FORK_PROJECT_ACTION] = {
 					...actions[SHARE_PROJECT_ACTION],
 					id: FORK_PROJECT_ACTION,
-					label: 'action.fork-project',
+					label: runningInIFrame ? 'action.fork-project-on-tldraw' : 'action.fork-project',
 				}
 				return actions
 			},
 		}),
-		[handleUiEvent, navigate, uploadFileToAsset, id]
+		[handleUiEvent, navigate, uploadFileToAsset, id, runningInIFrame]
 	)
 }
 

@@ -52,6 +52,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.flip-horizontal.short': 'Flip H',
 	'action.flip-vertical.short': 'Flip V',
 	'action.fork-project': 'Fork this project',
+	'action.fork-project-on-tldraw': 'Fork project on tldraw',
 	'action.group': 'Group',
 	'action.insert-embed': 'Insert embed',
 	'action.insert-media': 'Upload media',
