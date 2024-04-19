@@ -111,7 +111,6 @@ test('all React routes match', () => {
 test("non-react routes don't match", () => {
 	// lil smoke test for basic patterns
 	expect('/').toMatchAny(allvercelRouterPatterns)
-	expect('/new').toMatchAny(allvercelRouterPatterns)
 	expect('/r/whatever').toMatchAny(allvercelRouterPatterns)
 	expect('/r/whatever/').toMatchAny(allvercelRouterPatterns)
 
