@@ -39,6 +39,12 @@ type Snapshot = {
 	snapshot: SerializedStore<TLRecord>
 }
 
+type CreateRoomRequestBody = {
+	version: string
+	origin: string
+	snapshot: Snapshot
+}
+
 type CreateSnapshotRequestBody = {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>
@@ -137,7 +143,7 @@ export function useSharing(): TLUiOverrides {
 										schema: editor.store.schema.serialize(),
 										snapshot: data,
 									} satisfies Snapshot,
-								}),
+								} satisfies CreateRoomRequestBody),
 							})
 
 							const response = (await res.json()) as { error: boolean; slug?: string }
