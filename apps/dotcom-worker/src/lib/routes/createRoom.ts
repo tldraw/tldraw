@@ -12,7 +12,7 @@ export async function createRoom(request: IRequest, env: Environment): Promise<R
 	// The data sent from the client will include the data for the new room
 	const data = (await request.json()) as CreateRoomRequestBody
 	if (!isAllowedOrigin(data.origin)) {
-		return Response.json({ error: true, message: 'Not allowed' }, { status: 400 })
+		return Response.json({ error: true, message: 'Not allowed' }, { status: 406 })
 	}
 
 	// There's a chance the data will be invalid, so we check it first
