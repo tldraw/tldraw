@@ -1,6 +1,7 @@
-import { Box, Vec } from '@tldraw/editor'
+import { Box, HALF_PI, PI, PI2, Vec } from '@tldraw/editor'
 
 export const numArcSegmentsPerCorner = 10
+
 export const roundedRectangleDataSize =
 	// num triangles in corners
 	4 * 6 * numArcSegmentsPerCorner +
@@ -16,7 +17,7 @@ export function pie(
 		radius,
 		numArcSegments = 20,
 		startAngle = 0,
-		endAngle = Math.PI * 2,
+		endAngle = PI2,
 		offset = 0,
 	}: {
 		center: Vec
@@ -40,7 +41,8 @@ export function pie(
 	return array
 }
 
-function rectangle(
+/** @internal **/
+export function rectangle(
 	array: Float32Array,
 	offset: number,
 	x: number,
@@ -98,8 +100,8 @@ export function roundedRectangle(data: Float32Array, box: Box, radius: number): 
 		offset,
 		center: innerBox.point,
 		radius,
-		startAngle: Math.PI,
-		endAngle: Math.PI * 1.5,
+		startAngle: PI,
+		endAngle: PI * 1.5,
 	})
 
 	offset += numArcSegments * 6
@@ -110,8 +112,8 @@ export function roundedRectangle(data: Float32Array, box: Box, radius: number): 
 		offset,
 		center: Vec.Add(innerBox.point, new Vec(innerBox.w, 0)),
 		radius,
-		startAngle: Math.PI * 1.5,
-		endAngle: Math.PI * 2,
+		startAngle: PI * 1.5,
+		endAngle: PI2,
 	})
 
 	offset += numArcSegments * 6
@@ -123,7 +125,7 @@ export function roundedRectangle(data: Float32Array, box: Box, radius: number): 
 		center: Vec.Add(innerBox.point, innerBox.size),
 		radius,
 		startAngle: 0,
-		endAngle: Math.PI / 2,
+		endAngle: HALF_PI,
 	})
 
 	offset += numArcSegments * 6
@@ -134,8 +136,8 @@ export function roundedRectangle(data: Float32Array, box: Box, radius: number): 
 		offset,
 		center: Vec.Add(innerBox.point, new Vec(0, innerBox.h)),
 		radius,
-		startAngle: Math.PI / 2,
-		endAngle: Math.PI,
+		startAngle: HALF_PI,
+		endAngle: PI,
 	})
 
 	return roundedRectangleDataSize

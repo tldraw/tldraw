@@ -7953,13 +7953,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/earcut@npm:^2.1.4":
-  version: 2.1.4
-  resolution: "@types/earcut@npm:2.1.4"
-  checksum: 167e1c6d60e9d964d0f496c11b5065b9d155b4c1df04fb9abcec88af2c16213999ea8ed7cddeec9475620152e7e9e99a0f118e1c8070e1396cf0f299642beb6b
-  languageName: node
-  linkType: hard
-
 "@types/eslint-scope@npm:^3.7.3":
   version: 3.7.7
   resolution: "@types/eslint-scope@npm:3.7.7"
@@ -9725,13 +9718,6 @@ __metadata:
     is-array-buffer: "npm:^3.0.2"
     is-shared-array-buffer: "npm:^1.0.2"
   checksum: c200faf437786f5b2c80d4564ff5481c886a16dee642ef02abdc7306c7edd523d1f01d1dd12b769c7eb42ac9bc53874510db19a92a2c035c0f6696172aafa5d3
-  languageName: node
-  linkType: hard
-
-"as-number@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "as-number@npm:1.0.0"
-  checksum: 672e0593d170e00e0f2c4c62438be8dac9d01fb60b73dc7d1df82446704b77b6d02bf61c87e061ec0050408cb4157aa6b46021578fe0ff67d7a8085e9d673305
   languageName: node
   linkType: hard
 
@@ -11985,13 +11971,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"earcut@npm:^2.2.4":
-  version: 2.2.4
-  resolution: "earcut@npm:2.2.4"
-  checksum: ca8b24714cc2fa67f98fbca6ddcf64bb42ee8d75d0b4f1a81486b3282b0f7f1bf9ec49ad4d02149985886a0c8a03a173463f2acb1f51fa0bb7ba2e1d4aa1254d
-  languageName: node
-  linkType: hard
-
 "eastasianwidth@npm:^0.2.0":
   version: 0.2.0
   resolution: "eastasianwidth@npm:0.2.0"
@@ -13813,17 +13792,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"extrude-polyline@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "extrude-polyline@npm:1.0.6"
-  dependencies:
-    as-number: "npm:^1.0.0"
-    gl-vec2: "npm:^1.0.0"
-    polyline-miter-util: "npm:^1.0.1"
-  checksum: b44652bc25fe37979813b03e58f36c6ceb7661916d2e6f861f3652909c934d49e919e73ce8fabed7798432c3c61603f796f2ff9c030b49ae43cd072f104bbc45
-  languageName: node
-  linkType: hard
-
 "extsprintf@npm:1.3.0":
   version: 1.3.0
   resolution: "extsprintf@npm:1.3.0"
@@ -14621,13 +14589,6 @@ __metadata:
     debug: "npm:^4.1.1"
     tslib: "npm:^2.5.0"
   checksum: 945eb799fca08d93ff49454fd5560248633cd93b6a628811423a7acf296440ec53b3144182547c469e3d3d3a5c9d278f53212926d9529caa9101ddf8d9a8903c
-  languageName: node
-  linkType: hard
-
-"gl-vec2@npm:^1.0.0":
-  version: 1.3.0
-  resolution: "gl-vec2@npm:1.3.0"
-  checksum: 6d5210d6c4288e1ea470c429d27967bec48a4305be2fa6a09db9f76d995b38eb78b71a27507d2703f97dad2376b317d7d2d970fdcc16feee6d463e592fe783fd
   languageName: node
   linkType: hard
 
@@ -20609,15 +20570,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"polyline-miter-util@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "polyline-miter-util@npm:1.0.1"
-  dependencies:
-    gl-vec2: "npm:^1.0.0"
-  checksum: 50fef7e78575f31fd281fe8f9a7683de1e36672e5ba84bddc338c3cfcf6fd0270742ae68e33350fd3a47eb3befa457ef31eefc408778ad178532a626d45e8aaf
-  languageName: node
-  linkType: hard
-
 "postcss-discard-duplicates@npm:^5.1.0":
   version: 5.1.0
   resolution: "postcss-discard-duplicates@npm:5.1.0"
@@ -23588,13 +23540,10 @@ __metadata:
     "@tldraw/store": "workspace:*"
     "@types/canvas-size": "npm:^1.2.0"
     "@types/classnames": "npm:^2.3.1"
-    "@types/earcut": "npm:^2.1.4"
     "@types/lz-string": "npm:^1.3.34"
     canvas-size: "npm:^1.2.6"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.3.2"
-    earcut: "npm:^2.2.4"
-    extrude-polyline: "npm:^1.0.6"
     hotkeys-js: "npm:^3.11.2"
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"

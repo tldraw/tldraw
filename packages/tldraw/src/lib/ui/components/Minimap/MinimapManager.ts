@@ -12,25 +12,25 @@ import {
 } from '@tldraw/editor'
 import { getRgba } from './getRgba'
 import { BufferStuff, appendVertices, setupWebGl } from './minimap-webgl-setup'
-import { pie, roundedRectangle } from './minimap-webgl-shapes'
-import { applyTransformToGeometry, triangulateGeometry } from './triangulateGeometry'
+import { pie, rectangle, roundedRectangle } from './minimap-webgl-shapes'
 
 export class MinimapManager {
 	disposables = [] as (() => void)[]
 	close = () => this.disposables.forEach((d) => d())
 	gl: ReturnType<typeof setupWebGl>
-	geometryCache: ComputedCache<Float32Array, TLShape>
+	shapeGeometryCache: ComputedCache<Float32Array | null, TLShape>
 	constructor(
 		public editor: Editor,
 		public readonly elem: HTMLCanvasElement
 	) {
 		this.gl = setupWebGl(elem)
-		this.geometryCache = editor.store.createComputedCache('webgl-geometry', (r: TLShape) => {
-			const pageTransform = editor.getShapePageTransform(r.id)
-			const triangles = triangulateGeometry(editor.getShapeGeometry(r.id))
-			return applyTransformToGeometry(triangles, pageTransform)
+		this.shapeGeometryCache = editor.store.createComputedCache('webgl-geometry', (r: TLShape) => {
+			const bounds = editor.getShapeMaskedPageBounds(r.id)
+			if (!bounds) return null
+			const arr = new Float32Array(12)
+			rectangle(arr, 0, bounds.x, bounds.y, bounds.w, bounds.h)
+			return arr
 		})
-
 		this.colors = this._getColors()
 		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render))
 	}
@@ -168,13 +168,13 @@ export class MinimapManager {
 		let { x: px, y: py } = this.getPagePoint(x, y)
 
 		if (clampToBounds) {
-			const shapesPageBounds = this.editor.getCurrentPageBounds()
+			const shapesPageBounds = this.editor.getCurrentPageBounds() ?? new Box()
 			const vpPageBounds = viewportPageBounds
 
-			const minX = (shapesPageBounds?.minX ?? 0) - vpPageBounds.width / 2
-			const maxX = (shapesPageBounds?.maxX ?? 0) + vpPageBounds.width / 2
-			const minY = (shapesPageBounds?.minY ?? 0) - vpPageBounds.height / 2
-			const maxY = (shapesPageBounds?.maxY ?? 0) + vpPageBounds.height / 2
+			const minX = shapesPageBounds.minX - vpPageBounds.width / 2
+			const maxX = shapesPageBounds.maxX + vpPageBounds.width / 2
+			const minY = shapesPageBounds.minY - vpPageBounds.height / 2
+			const maxY = shapesPageBounds.maxY + vpPageBounds.height / 2
 
 			const lx = Math.max(0, minX + vpPageBounds.width - px)
 			const rx = Math.max(0, -(maxX - vpPageBounds.width - px))
@@ -247,8 +247,9 @@ export class MinimapManager {
 
 		const ids = this.editor.getCurrentPageShapeIdsSorted()
 
-		for (const shapeId of ids) {
-			const geometry = this.geometryCache.get(shapeId)
+		for (let i = 0, len = ids.length; i < len; i++) {
+			const shapeId = ids[i]
+			const geometry = this.shapeGeometryCache.get(shapeId)
 			if (!geometry) continue
 
 			const len = geometry.length

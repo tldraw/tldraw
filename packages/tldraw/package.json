@@ -57,8 +57,6 @@
 		"@tldraw/store": "workspace:*",
 		"canvas-size": "^1.2.6",
 		"classnames": "^2.3.2",
-		"earcut": "^2.2.4",
-		"extrude-polyline": "^1.0.6",
 		"hotkeys-js": "^3.11.2",
 		"lz-string": "^1.4.4"
 	},
@@ -72,7 +70,6 @@
 		"@testing-library/react": "^14.0.0",
 		"@types/canvas-size": "^1.2.0",
 		"@types/classnames": "^2.3.1",
-		"@types/earcut": "^2.1.4",
 		"@types/lz-string": "^1.3.34",
 		"chokidar-cli": "^3.0.0",
 		"jest-canvas-mock": "^2.5.2",
