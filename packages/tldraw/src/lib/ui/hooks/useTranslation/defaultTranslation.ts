@@ -266,8 +266,7 @@ export const DEFAULT_TRANSLATION = {
 	'share-menu.copy-readonly-link': 'Copy read-only link',
 	'share-menu.offline-note': 'Create a new shared project based on your current project.',
 	'share-menu.copy-link-note': 'Anyone with the link will be able to view and edit this project.',
-	'share-menu.copy-readonly-link-note':
-		'Anyone with the link will be able to view (but not edit) this project.',
+	'share-menu.copy-readonly-link-note': 'Anyone with the link will be able to access this project.',
 	'share-menu.project-too-large':
 		"Sorry, this project can't be shared because it's too large. We're working on it!",
 	'share-menu.upload-failed':

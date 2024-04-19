@@ -19,8 +19,8 @@ import { ShareButton } from './ShareButton'
 
 enum ShareCurrentState {
 	OFFLINE = 'offline',
-	SHARED = 'shared',
-	SHARED_READ_ONLY = 'shared-readonly',
+	SHARED_READ_WRITE = 'shared-read-write',
+	SHARED_READ_ONLY = 'shared-read-only',
 }
 
 type ShareState = {
@@ -48,7 +48,7 @@ function getFreshShareState(): ShareState {
 
 	return {
 		state: isSharedReadWrite
-			? ShareCurrentState.SHARED
+			? ShareCurrentState.SHARED_READ_WRITE
 			: isSharedReadOnly
 				? ShareCurrentState.SHARED_READ_ONLY
 				: ShareCurrentState.OFFLINE,
@@ -92,14 +92,13 @@ export const ShareMenu = React.memo(function ShareMenu() {
 
 	const [isUploading, setIsUploading] = useState(false)
 	const [isUploadingSnapshot, setIsUploadingSnapshot] = useState(false)
-	const [isReadOnlyLink, setIsReadOnlyLink] = useState(
-		shareState.state === ShareCurrentState.SHARED_READ_ONLY
-	)
+	const isReadOnlyLink = shareState.state === ShareCurrentState.SHARED_READ_ONLY
 	const currentShareLinkUrl = isReadOnlyLink ? shareState.readonlyUrl : shareState.url
 	const currentQrCodeUrl = isReadOnlyLink
 		? shareState.readonlyQrCodeDataUrl
 		: shareState.qrCodeDataUrl
 	const [didCopy, setDidCopy] = useState(false)
+	const [didCopyReadonlyLink, setDidCopyReadonlyLink] = useState(false)
 	const [didCopySnapshotLink, setDidCopySnapshotLink] = useState(false)
 
 	useEffect(() => {
@@ -110,7 +109,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 		let cancelled = false
 
 		const shareUrl = getShareUrl(window.location.href, false)
-		if (!shareState.qrCodeDataUrl && shareState.state === ShareCurrentState.SHARED) {
+		if (!shareState.qrCodeDataUrl && shareState.state === ShareCurrentState.SHARED_READ_WRITE) {
 			// Fetch the QR code data URL
 			createQRCodeImageDataString(shareUrl).then((dataUrl) => {
 				if (!cancelled) {
@@ -159,7 +158,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 					alignOffset={4}
 				>
 					<TldrawUiMenuContextProvider type="panel" sourceId="share-menu">
-						{shareState.state === ShareCurrentState.SHARED ||
+						{shareState.state === ShareCurrentState.SHARED_READ_WRITE ||
 						shareState.state === ShareCurrentState.SHARED_READ_ONLY ? (
 							<>
 								<button
@@ -175,37 +174,36 @@ export const ShareMenu = React.memo(function ShareMenu() {
 										navigator.clipboard.writeText(currentShareLinkUrl)
 									}}
 								/>
+
 								<TldrawUiMenuGroup id="copy">
-									<TldrawUiMenuItem
-										id="copy-to-clipboard"
-										readonlyOk
-										icon={didCopy ? 'clipboard-copied' : 'clipboard-copy'}
-										label={
-											isReadOnlyLink ? 'share-menu.copy-readonly-link' : 'share-menu.copy-link'
-										}
-										onSelect={() => {
-											if (!currentShareLinkUrl) return
-											setDidCopy(true)
-											setTimeout(() => setDidCopy(false), 750)
-											navigator.clipboard.writeText(currentShareLinkUrl)
-										}}
-									/>
-									{shareState.state === ShareCurrentState.SHARED && (
+									{shareState.state === ShareCurrentState.SHARED_READ_WRITE && (
 										<TldrawUiMenuItem
-											id="toggle-read-only"
-											label="share-menu.readonly-link"
-											icon={isReadOnlyLink ? 'check' : 'checkbox-empty'}
-											onSelect={async () => {
-												setIsReadOnlyLink(() => !isReadOnlyLink)
+											id="copy-to-clipboard"
+											readonlyOk
+											icon={didCopy ? 'clipboard-copied' : 'clipboard-copy'}
+											label="share-menu.copy-link"
+											onSelect={() => {
+												if (!currentShareLinkUrl) return
+												setDidCopy(true)
+												setTimeout(() => setDidCopy(false), 750)
+												navigator.clipboard.writeText(currentShareLinkUrl)
 											}}
 										/>
 									)}
+									<TldrawUiMenuItem
+										id="copy-readonly-to-clipboard"
+										readonlyOk
+										icon={didCopyReadonlyLink ? 'clipboard-copied' : 'clipboard-copy'}
+										label="share-menu.copy-readonly-link"
+										onSelect={() => {
+											if (!currentShareLinkUrl) return
+											setDidCopyReadonlyLink(true)
+											setTimeout(() => setDidCopyReadonlyLink(false), 750)
+											navigator.clipboard.writeText(currentShareLinkUrl)
+										}}
+									/>
 									<p className="tlui-menu__group tlui-share-zone__details">
-										{msg(
-											isReadOnlyLink
-												? 'share-menu.copy-readonly-link-note'
-												: 'share-menu.copy-link-note'
-										)}
+										{msg('share-menu.copy-readonly-link-note')}
 									</p>
 								</TldrawUiMenuGroup>
 
@@ -232,6 +230,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 								<TldrawUiMenuGroup id="share">
 									<TldrawUiMenuItem
 										id="share-project"
+										readonlyOk
 										label="share-menu.share-project"
 										icon="share-1"
 										onSelect={async () => {
@@ -255,6 +254,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 								<TldrawUiMenuGroup id="copy-snapshot-link">
 									<TldrawUiMenuItem
 										id="copy-snapshot-link"
+										readonlyOk
 										icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
 										label={unwrapLabel(shareSnapshot.label)}
 										onSelect={async () => {
