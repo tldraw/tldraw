@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState, version } from 'react'
 import { LoadingScreen } from 'tldraw'
 import { useUrl } from '../hooks/useUrl'
+import { isInIframe } from '../utils/iFrame'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 
 /*
@@ -49,10 +50,6 @@ const WHITELIST_CONTEXT = [
 ]
 const EXPECTED_QUESTION = 'are we cool?'
 const EXPECTED_RESPONSE = 'yes' + version
-
-const isInIframe = () => {
-	return typeof window !== 'undefined' && (window !== window.top || window.self !== window.parent)
-}
 
 export function IFrameProtector({
 	slug,
