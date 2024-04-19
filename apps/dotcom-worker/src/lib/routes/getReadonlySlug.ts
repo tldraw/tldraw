@@ -11,6 +11,10 @@ export async function getReadonlySlug(request: IRequest, env: Environment): Prom
 		})
 	}
 
+	// TODO: We will also request readonly slugs from existing rooms
+	// I guess the best way to solve this is to always create a readonly slug when creating a room
+	// then if we can't get it from KV it means we are dealing with a legacy room.
+	// In which cakes we should use the legacy logic for generating a readonly slug.
 	let slug = await env.SLUG_TO_READONLY_SLUG.get(roomId)
 
 	if (!slug) {
