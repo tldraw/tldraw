@@ -245,20 +245,23 @@ export class MinimapManager {
 		let selectedShapeOffset = 0
 		let unselectedShapeOffset = 0
 
-		const ids = this.editor.getCurrentPageShapeIds()
+		const ids = this.editor.getCurrentPageShapeIdsSorted()
 
-		ids.forEach((shapeId) => {
-			const verticesForShape = this.shapeGeometryCache.get(shapeId)
-			if (verticesForShape) {
-				if (selectedShapes.has(shapeId)) {
-					appendVertices(this.gl.selectedShapes, selectedShapeOffset, verticesForShape)
-					selectedShapeOffset += 12
-				} else {
-					appendVertices(this.gl.unselectedShapes, unselectedShapeOffset, verticesForShape)
-					unselectedShapeOffset += 12
-				}
+		for (let i = 0, len = ids.length; i < len; i++) {
+			const shapeId = ids[i]
+			const geometry = this.shapeGeometryCache.get(shapeId)
+			if (!geometry) continue
+
+			const len = geometry.length
+
+			if (selectedShapes.has(shapeId)) {
+				appendVertices(this.gl.selectedShapes, selectedShapeOffset, geometry)
+				selectedShapeOffset += len
+			} else {
+				appendVertices(this.gl.unselectedShapes, unselectedShapeOffset, geometry)
+				unselectedShapeOffset += len
 			}
-		})
+		}
 
 		this.drawViewport()
 		this.drawShapes(this.gl.unselectedShapes, unselectedShapeOffset, colors.shapeFill)
