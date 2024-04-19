@@ -3,7 +3,6 @@ import {
 	ComputedCache,
 	Editor,
 	TLShape,
-	TLShapeId,
 	Vec,
 	atom,
 	clamp,
@@ -246,23 +245,20 @@ export class MinimapManager {
 		let selectedShapeOffset = 0
 		let unselectedShapeOffset = 0
 
-		const ids = this.editor.getCurrentPageShapeIdsSorted()
+		const ids = this.editor.getCurrentPageShapeIds()
 
-		let shapeId: TLShapeId
-		for (let i = 0; i < ids.length; i++) {
-			shapeId = ids[i]
-			const shapeGeometry = this.shapeGeometryCache.get(shapeId)
-			if (!shapeGeometry) continue
-
-			// const len = shapeGeometry.length
-			if (selectedShapes.has(shapeId)) {
-				appendVertices(this.gl.selectedShapes, selectedShapeOffset, shapeGeometry)
-				selectedShapeOffset += 12 // len
-			} else {
-				appendVertices(this.gl.unselectedShapes, unselectedShapeOffset, shapeGeometry)
-				unselectedShapeOffset += 12 // len
+		ids.forEach((shapeId) => {
+			const verticesForShape = this.shapeGeometryCache.get(shapeId)
+			if (verticesForShape) {
+				if (selectedShapes.has(shapeId)) {
+					appendVertices(this.gl.selectedShapes, selectedShapeOffset, verticesForShape)
+					selectedShapeOffset += 12
+				} else {
+					appendVertices(this.gl.unselectedShapes, unselectedShapeOffset, verticesForShape)
+					unselectedShapeOffset += 12
+				}
 			}
-		}
+		})
 
 		this.drawViewport()
 		this.drawShapes(this.gl.unselectedShapes, unselectedShapeOffset, colors.shapeFill)
