@@ -2233,6 +2233,8 @@ export interface TLEventMap {
         shapeId: TLShapeId;
     }];
     // (undocumented)
+    'stop-camera': [];
+    // (undocumented)
     'stop-camera-animation': [];
     // (undocumented)
     'stop-following': [];
