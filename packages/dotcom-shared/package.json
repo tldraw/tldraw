@@ -7,6 +7,13 @@
 	"types": "./.tsbuild/index.d.ts",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
+	"dependencies": {
+		"tldraw": "workspace:*"
+	},
+	"peerDependencies": {
+		"react": "^18",
+		"react-dom": "^18"
+	},
 	"scripts": {
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",

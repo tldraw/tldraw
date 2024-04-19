@@ -1,10 +1,14 @@
+import {
+	CreateRoomRequestBody,
+	CreateSnapshotRequestBody,
+	CreateSnapshotResponseBody,
+	Snapshot,
+} from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
 	AssetRecordType,
 	Editor,
-	SerializedSchema,
-	SerializedStore,
 	TLAsset,
 	TLAssetId,
 	TLRecord,
@@ -33,33 +37,6 @@ export const FORK_PROJECT_ACTION = 'fork-project' as const
 
 const CREATE_SNAPSHOT_ENDPOINT = `/api/snapshots`
 const SNAPSHOT_UPLOAD_URL = `/api/new-room`
-
-type Snapshot = {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-}
-
-type CreateRoomRequestBody = {
-	version: string
-	origin: string
-	snapshot: Snapshot
-}
-
-type CreateSnapshotRequestBody = {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | string[] | undefined
-}
-
-type CreateSnapshotResponseBody =
-	| {
-			error: false
-			roomId: string
-	  }
-	| {
-			error: true
-			message: string
-	  }
 
 async function getSnapshotLink(
 	source: string,
