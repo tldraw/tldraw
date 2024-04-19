@@ -1,3 +1,4 @@
+import { RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
@@ -12,8 +13,6 @@ import {
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	PreferencesGroup,
-	RoomOpenMode,
-	RoomOpenModeToPath,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,

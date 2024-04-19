@@ -1,4 +1,5 @@
-import { RoomOpenMode, exhaustiveSwitchError, lns } from '@tldraw/utils'
+import { RoomOpenMode } from '@tldraw/dotcom-shared'
+import { exhaustiveSwitchError, lns } from '@tldraw/utils'
 import { Environment } from '../types'
 
 export async function getSlug(env: Environment, slug: string | null, roomOpenMode: RoomOpenMode) {

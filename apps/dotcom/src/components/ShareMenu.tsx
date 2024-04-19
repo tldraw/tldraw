@@ -1,8 +1,7 @@
 import * as Popover from '@radix-ui/react-popover'
+import { RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
 import React, { useEffect, useState } from 'react'
 import {
-	RoomOpenMode,
-	RoomOpenModeToPath,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,

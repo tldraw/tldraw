@@ -297,19 +297,6 @@ export const Result: {
 // @public
 export function rng(seed?: string): () => number;
 
-// @public (undocumented)
-export enum RoomOpenMode {
-    // (undocumented)
-    READ_ONLY = "readonly",
-    // (undocumented)
-    READ_ONLY_LEGACY = "readonly-legacy",
-    // (undocumented)
-    READ_WRITE = "read-write"
-}
-
-// @public (undocumented)
-export const RoomOpenModeToPath: Record<RoomOpenMode, string>;
-
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
 

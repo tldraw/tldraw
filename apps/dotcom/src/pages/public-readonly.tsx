@@ -1,5 +1,5 @@
+import { RoomOpenMode } from '@tldraw/dotcom-shared'
 import { useParams } from 'react-router-dom'
-import { RoomOpenMode } from 'tldraw'
 import '../../styles/globals.css'
 import { IFrameProtector } from '../components/IFrameProtector'
 import { MultiplayerEditor } from '../components/MultiplayerEditor'

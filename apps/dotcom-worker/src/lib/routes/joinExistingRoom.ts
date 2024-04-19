@@ -1,4 +1,4 @@
-import { RoomOpenMode } from '@tldraw/utils'
+import { RoomOpenMode } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { fourOhFour } from '../utils/fourOhFour'

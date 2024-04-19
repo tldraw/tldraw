@@ -1,6 +1,6 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
-import { RoomOpenMode } from '@tldraw/utils'
+import { RoomOpenMode } from '@tldraw/dotcom-shared'
 import { Router, createCors } from 'itty-router'
 import { env } from 'process'
 import Toucan from 'toucan-js'

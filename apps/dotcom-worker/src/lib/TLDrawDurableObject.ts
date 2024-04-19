@@ -2,6 +2,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { SupabaseClient } from '@supabase/supabase-js'
+import { RoomOpenMode } from '@tldraw/dotcom-shared'
 import {
 	RoomSnapshot,
 	TLServer,
@@ -11,7 +12,7 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 	type RoomState,
 } from '@tldraw/tlsync'
-import { RoomOpenMode, assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest, Router } from 'itty-router'
 import Toucan from 'toucan-js'
 import { AlarmScheduler } from './AlarmScheduler'
