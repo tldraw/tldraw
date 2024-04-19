@@ -182,10 +182,10 @@ export const ShareMenu = React.memo(function ShareMenu() {
 											icon={didCopy ? 'clipboard-copied' : 'clipboard-copy'}
 											label="share-menu.copy-link"
 											onSelect={() => {
-												if (!currentShareLinkUrl) return
+												if (!shareState.url) return
 												setDidCopy(true)
 												setTimeout(() => setDidCopy(false), 750)
-												navigator.clipboard.writeText(currentShareLinkUrl)
+												navigator.clipboard.writeText(shareState.url)
 											}}
 										/>
 									)}
@@ -195,10 +195,10 @@ export const ShareMenu = React.memo(function ShareMenu() {
 										icon={didCopyReadonlyLink ? 'clipboard-copied' : 'clipboard-copy'}
 										label="share-menu.copy-readonly-link"
 										onSelect={() => {
-											if (!currentShareLinkUrl) return
+											if (!shareState.readonlyUrl) return
 											setDidCopyReadonlyLink(true)
 											setTimeout(() => setDidCopyReadonlyLink(false), 750)
-											navigator.clipboard.writeText(currentShareLinkUrl)
+											navigator.clipboard.writeText(shareState.readonlyUrl)
 										}}
 									/>
 									<p className="tlui-menu__group tlui-share-zone__details">
