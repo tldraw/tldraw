@@ -10,7 +10,6 @@ export interface TLEventMap {
 	change: [HistoryEntry<TLRecord>]
 	update: []
 	crash: [{ error: unknown }]
-	'stop-camera': []
 	'stop-camera-animation': []
 	'stop-following': []
 	event: [TLEventInfo]

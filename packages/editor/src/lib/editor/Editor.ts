@@ -3050,7 +3050,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (this._cameraStateTimeoutRemaining <= 0) {
 			this.off('tick', this._decayCameraStateTimeout)
-			this.emit('stop-camera')
 			this._cameraState.set('idle')
 			this.updateRenderingBounds()
 		}
