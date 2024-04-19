@@ -20,7 +20,6 @@ import {
 	TLUiTranslationKey,
 	isShape,
 } from 'tldraw'
-import { version } from '../../version'
 import { useMultiplayerAssets } from '../hooks/useMultiplayerAssets'
 import { getViewportUrlQuery } from '../hooks/useUrlState'
 import { cloneAssetForShare } from './cloneAssetForShare'
@@ -120,7 +119,6 @@ export function useSharing(): TLUiOverrides {
 									'Content-Type': 'application/json',
 								},
 								body: JSON.stringify({
-									version,
 									origin: topLevelUrl.origin,
 									snapshot: {
 										schema: editor.store.schema.serialize(),

@@ -1,34 +1,17 @@
-import { SerializedSchema, SerializedStore } from '@tldraw/store'
-import { TLRecord } from '@tldraw/tlschema'
+import { CreateRoomRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot, schema } from '@tldraw/tlsync'
 import { IRequest } from 'itty-router'
 import { nanoid } from 'nanoid'
 import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { validateSnapshot } from '../utils/validateSnapshot'
-import { version } from '../version'
 import { isAllowedOrigin } from '../worker'
-
-type Snapshot = {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-}
-
-type CreateRoomRequestBody = {
-	version: string
-	origin: string
-	snapshot: Snapshot
-}
-
-function isAllowed(origin: string, requestVersion: string) {
-	return isAllowedOrigin(origin) && requestVersion === version
-}
 
 // Sets up a new room based on a provided snapshot, e.g. when a user clicks the "Share" buttons or the "Fork project" buttons.
 export async function createRoom(request: IRequest, env: Environment): Promise<Response> {
 	// The data sent from the client will include the data for the new room
 	const data = (await request.json()) as CreateRoomRequestBody
-	if (!isAllowed(data.origin, data.version)) {
+	if (!isAllowedOrigin(data.origin)) {
 		return Response.json({ error: true, message: 'Not allowed' }, { status: 400 })
 	}
 

@@ -6,7 +6,6 @@ export type Snapshot = {
 }
 
 export type CreateRoomRequestBody = {
-	version: string
 	origin: string
 	snapshot: Snapshot
 }
