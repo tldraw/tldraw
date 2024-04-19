@@ -13,7 +13,7 @@ export function BackToContent() {
 	useEffect(() => {
 		let showBackToContentPrev = false
 
-		const interval = setInterval(() => {
+		function checkIfCanvasIsEmpty() {
 			const renderingShapes = editor.getRenderingShapes()
 			const renderingBounds = editor.getRenderingBounds()
 
@@ -30,10 +30,12 @@ export function BackToContent() {
 				setShowBackToContent(showBackToContentNow)
 				showBackToContentPrev = showBackToContentNow
 			}
-		}, 1000)
+		}
+
+		editor.on('stop-camera', checkIfCanvasIsEmpty)
 
 		return () => {
-			clearInterval(interval)
+			editor.off('stop-camera', checkIfCanvasIsEmpty)
 		}
 	}, [editor])
 
