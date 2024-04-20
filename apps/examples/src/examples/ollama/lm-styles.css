@@ -1,0 +1,44 @@
+.chat {
+	position: absolute;
+	inset: 0px;
+	padding: 16px;
+	overflow: auto;
+	padding-bottom: 40px;
+}
+
+.message {
+	display: flex;
+	flex-direction: column;
+	gap: 0px;
+}
+
+.message__from {
+	font-size: 12px;
+	margin: 4px 0px;
+}
+
+.message__date {
+	font-size: 12px;
+	margin: 4px 0px;
+}
+
+.message__content {
+	margin: 8px 0px 24px 0px;
+	line-height: 1.5;
+}
+
+.chat__input {
+	position: fixed;
+	bottom: 0px;
+	left: 0px;
+	width: 100%;
+	padding: 16px;
+	display: flex;
+	gap: 4px;
+	background-color: white;
+}
+
+.chat__input input {
+	flex: 1;
+	padding: 8px;
+}

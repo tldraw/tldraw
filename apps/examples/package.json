@@ -33,11 +33,14 @@
 		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts"
 	},
 	"dependencies": {
+		"@langchain/community": "^0.0.50",
+		"@langchain/core": "^0.1.58",
 		"@playwright/test": "^1.38.1",
 		"@radix-ui/react-alert-dialog": "^1.0.5",
 		"@tldraw/assets": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"classnames": "^2.3.2",
+		"langchain": "^0.1.34",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
 		"pdf-lib": "^1.17.1",
@@ -45,6 +48,7 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.17.0",
+		"speak-tts": "^2.0.8",
 		"tldraw": "workspace:*",
 		"vite": "^5.0.0"
 	},
