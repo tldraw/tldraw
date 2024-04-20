@@ -25,6 +25,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.copy-as-svg': 'Copy as SVG',
 	'action.copy': 'Copy',
 	'action.cut': 'Cut',
+	'action.comma-as-pointer': 'Comma as Pointer',
 	'action.delete': 'Delete',
 	'action.unlock-all': 'Unlock all',
 	'action.distribute-horizontal': 'Distribute horizontally',

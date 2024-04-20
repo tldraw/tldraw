@@ -314,6 +314,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'comma-as-pointer',
+				kbd: ',',
+				label: 'action.comma-as-pointer',
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				onSelect(source) {
+					// ignore it since it is processed separately in useKeyboardShortcuts
+				},
+			},
+			{
 				id: 'toggle-auto-size',
 				label: 'action.toggle-auto-size',
 				onSelect(source) {

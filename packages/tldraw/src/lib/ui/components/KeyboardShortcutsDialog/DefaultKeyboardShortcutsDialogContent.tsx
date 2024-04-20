@@ -39,6 +39,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem {...actions['select-all']} />
 				<TldrawUiMenuItem {...actions['delete']} />
 				<TldrawUiMenuItem {...actions['duplicate']} />
+				<TldrawUiMenuItem {...actions['comma-as-pointer']} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.view" id="view">
 				<TldrawUiMenuItem {...actions['zoom-in']} />
