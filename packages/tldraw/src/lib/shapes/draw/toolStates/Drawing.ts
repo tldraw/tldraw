@@ -13,7 +13,6 @@ import {
 	VecModel,
 	createShapeId,
 	last,
-	measureAverageDuration,
 	snapAngle,
 	structuredClone,
 	toFixed,
