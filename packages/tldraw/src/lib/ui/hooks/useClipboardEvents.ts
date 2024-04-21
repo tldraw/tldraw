@@ -9,6 +9,8 @@ import {
 	TLTextShape,
 	VecLike,
 	isNonNull,
+	preventDefault,
+	stopEventPropagation,
 	uniq,
 	useEditor,
 	useValue,
@@ -615,24 +617,29 @@ export function useNativeClipboardEvents() {
 
 	useEffect(() => {
 		if (!appIsFocused) return
-		const copy = () => {
+		const copy = (e: ClipboardEvent) => {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
 				editor.getEditingShapeId() !== null ||
 				disallowClipboardEvents(editor)
-			)
+			) {
 				return
+			}
+
+			preventDefault(e)
 			handleNativeOrMenuCopy(editor)
 			trackEvent('copy', { source: 'kbd' })
 		}
 
-		function cut() {
+		function cut(e: ClipboardEvent) {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
 				editor.getEditingShapeId() !== null ||
 				disallowClipboardEvents(editor)
-			)
+			) {
 				return
+			}
+			preventDefault(e)
 			handleNativeOrMenuCopy(editor)
 			editor.deleteShapes(editor.getSelectedShapeIds())
 			trackEvent('cut', { source: 'kbd' })
@@ -648,11 +655,13 @@ export function useNativeClipboardEvents() {
 			}
 		}
 
-		const paste = (event: ClipboardEvent) => {
+		const paste = (e: ClipboardEvent) => {
 			if (disablingMiddleClickPaste) {
-				event.stopPropagation()
+				stopEventPropagation(e)
 				return
 			}
+
+			preventDefault(e)
 
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
@@ -660,8 +669,8 @@ export function useNativeClipboardEvents() {
 			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
 
 			// First try to use the clipboard data on the event
-			if (event.clipboardData && !editor.inputs.shiftKey) {
-				handlePasteFromEventClipboardData(editor, event.clipboardData)
+			if (e.clipboardData && !editor.inputs.shiftKey) {
+				handlePasteFromEventClipboardData(editor, e.clipboardData)
 			} else {
 				// Or else use the clipboard API
 				navigator.clipboard.read().then((clipboardItems) => {
