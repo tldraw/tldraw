@@ -1,5 +1,6 @@
 import { TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
+import { TEST_DRAW_SHAPE_SCREEN_POINTS } from './drawing.data'
 
 jest.useFakeTimers()
 
@@ -260,3 +261,22 @@ for (const toolType of ['draw', 'highlight'] as const) {
 		})
 	})
 }
+
+it('Draws a bunch', () => {
+	editor.setCurrentTool('draw').setCamera({ x: 0, y: 0, z: 1 })
+
+	const [first, ...rest] = TEST_DRAW_SHAPE_SCREEN_POINTS
+	editor.pointerMove(first.x, first.y).pointerDown()
+
+	for (const point of rest) {
+		editor.pointerMove(point.x, point.y)
+	}
+
+	editor.pointerUp()
+	editor.selectAll()
+
+	const shape = { ...editor.getLastCreatedShape() }
+	// @ts-expect-error
+	delete shape.id
+	expect(shape).toMatchSnapshot('draw shape')
+})
