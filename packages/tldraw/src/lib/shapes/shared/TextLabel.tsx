@@ -27,7 +27,6 @@ type TextLabelProps = {
 	bounds?: Box
 	isNote?: boolean
 	isSelected: boolean
-	disableTab?: boolean
 	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 	classNamePrefix?: string
 	style?: React.CSSProperties
@@ -51,15 +50,13 @@ export const TextLabel = React.memo(function TextLabel({
 	onKeyDown: handleKeyDownCustom,
 	classNamePrefix,
 	style,
-	disableTab = false,
 	textWidth,
 	textHeight,
 }: TextLabelProps) {
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
 		id,
 		type,
-		text,
-		{ disableTab }
+		text
 	)
 
 	const [initialText, setInitialText] = useState(text)

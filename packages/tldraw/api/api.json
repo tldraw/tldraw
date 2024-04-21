@@ -15735,7 +15735,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -15819,7 +15819,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -15894,7 +15894,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -15903,7 +15903,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        props: {\n            autoSize: boolean;\n            scale?: undefined;\n        };\n        type: \"text\";\n    } | {\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        props: {\n            autoSize: boolean;\n            scale?: undefined;\n        };\n        type: \"text\";\n    } | {\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -27482,14 +27482,6 @@
             },
             {
               "kind": "Content",
-              "text": ", opts?: "
-            },
-            {
-              "kind": "Content",
-              "text": "{\n    disableTab: boolean;\n}"
-            },
-            {
-              "kind": "Content",
               "text": "): "
             },
             {
@@ -27575,8 +27567,8 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/useEditableText.ts",
           "returnTypeTokenRange": {
-            "startIndex": 9,
-            "endIndex": 26
+            "startIndex": 7,
+            "endIndex": 24
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -27604,14 +27596,6 @@
                 "endIndex": 6
               },
               "isOptional": false
-            },
-            {
-              "parameterName": "opts",
-              "parameterTypeTokenRange": {
-                "startIndex": 7,
-                "endIndex": 8
-              },
-              "isOptional": true
             }
           ],
           "name": "useEditableText"

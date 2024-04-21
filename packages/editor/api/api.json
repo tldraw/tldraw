@@ -10031,6 +10031,86 @@
               "name": "getCanUndo"
             },
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCollaborators:member(1)",
+              "docComment": "/**\n * Returns a list of presence records for all peer collaborators. This will return the latest presence record for each connected user.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCollaborators(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstancePresence",
+                  "canonicalReference": "@tldraw/tlschema!TLInstancePresence:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCollaborators"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCollaboratorsOnCurrentPage:member(1)",
+              "docComment": "/**\n * Returns a list of presence records for all peer collaborators on the current page. This will return the latest presence record for each connected user.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCollaboratorsOnCurrentPage(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstancePresence",
+                  "canonicalReference": "@tldraw/tlschema!TLInstancePresence:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCollaboratorsOnCurrentPage"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#getContainer:member",
               "docComment": "/**\n * The current HTML element containing the editor.\n *\n * @example\n * ```ts\n * const container = editor.getContainer()\n * ```\n *\n * @public\n */\n",

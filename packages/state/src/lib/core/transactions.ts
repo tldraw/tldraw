@@ -70,6 +70,10 @@ export function getGlobalEpoch() {
 	return inst.globalEpoch
 }
 
+export function getIsReacting() {
+	return inst.globalIsReacting
+}
+
 /**
  * Collect all of the reactors that need to run for an atom and run them.
  *
