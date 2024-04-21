@@ -693,7 +693,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getCamera(): TLCamera;
-    getCameraFitZoom(): number;
+    getCameraFitZoom(opts?: {
+        reset: boolean;
+    }): number;
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;

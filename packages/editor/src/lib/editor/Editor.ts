@@ -2072,7 +2072,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @public */
-	getCameraFitZoom() {
+	getCameraFitZoom(opts = {} as { reset: boolean }) {
 		const cameraOptions = this.getCameraOptions()
 		if (
 			// If no camera constraints are provided, the default zoom is 100%
@@ -2080,7 +2080,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// When defaultZoom is default, the default zoom is 100%
 			cameraOptions.constraints.defaultZoom === 'default' ||
 			// When zoomBehavior is default, we ignore the default zoom and use 100% as the fit zoom
-			cameraOptions.constraints.zoomBehavior === 'default'
+			(!opts.reset && cameraOptions.constraints.zoomBehavior === 'default')
 		) {
 			return 1
 		}
@@ -2499,7 +2499,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (constraints) {
 			// For non-infinite fit, we'll set the camera to the natural zoom level...
 			// unless it's already there, in which case we'll set zoom to 100%
-			const fitZoom = this.getCameraFitZoom()
+			const fitZoom = this.getCameraFitZoom({ reset: true })
 			if (cz !== fitZoom) {
 				z = fitZoom
 			}

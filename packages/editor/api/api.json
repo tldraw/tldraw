@@ -9881,7 +9881,15 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "getCameraFitZoom(): "
+                  "text": "getCameraFitZoom(opts?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        reset: boolean;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
                 },
                 {
                   "kind": "Content",
@@ -9894,13 +9902,22 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
+                "startIndex": 3,
+                "endIndex": 4
               },
               "releaseTag": "Public",
               "isProtected": false,
               "overloadIndex": 1,
-              "parameters": [],
+              "parameters": [
+                {
+                  "parameterName": "opts",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": true
+                }
+              ],
               "isOptional": false,
               "isAbstract": false,
               "name": "getCameraFitZoom"
