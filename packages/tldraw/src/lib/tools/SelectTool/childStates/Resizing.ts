@@ -19,6 +19,7 @@ import {
 	compact,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
+import { kickoutOccludedShapes } from '../selectHelpers'
 
 type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -111,6 +112,8 @@ export class Resizing extends StateNode {
 	}
 
 	private complete() {
+		kickoutOccludedShapes(this.editor, this.snapshot.selectedShapeIds)
+
 		this.handleResizeEnd()
 
 		if (this.info.isCreating && this.info.onCreate) {

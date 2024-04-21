@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.41.0",
+    "toolVersion": "7.43.1",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -1211,8 +1211,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -1528,7 +1528,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        labelColor: import(\"@tldraw/editor\")."
+                  "text": "{\n        arrowheadEnd: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1537,7 +1537,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        color: import(\"@tldraw/editor\")."
+                  "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">;\n        arrowheadStart: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1546,7 +1546,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        fill: import(\"@tldraw/editor\")."
+                  "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">;\n        bend: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n        color: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1555,7 +1564,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n        dash: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        dash: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1564,43 +1573,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n        size: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        arrowheadStart: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">;\n        arrowheadEnd: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"arrow\" | \"bar\" | \"diamond\" | \"dot\" | \"inverted\" | \"none\" | \"pipe\" | \"square\" | \"triangle\">;\n        font: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n        start: import(\"@tldraw/editor\")."
+                  "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n        end: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1618,7 +1591,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                type: \"binding\";\n                boundShapeId: import(\"@tldraw/editor\")."
+                  "text": "<{\n                boundShapeId: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1627,7 +1600,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n                normalizedAnchor: import(\"@tldraw/editor\")."
+                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n                normalizedAnchor: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1636,7 +1609,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n            }>;\n            point: import(\"@tldraw/editor\")."
+                  "text": ";\n                type: \"binding\";\n            }>;\n            point: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1645,7 +1618,52 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        end: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        fill: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n        font: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n        labelColor: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        labelPosition: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n        size: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        start: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1663,7 +1681,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                type: \"binding\";\n                boundShapeId: import(\"@tldraw/editor\")."
+                  "text": "<{\n                boundShapeId: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1672,7 +1690,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n                normalizedAnchor: import(\"@tldraw/editor\")."
+                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n                normalizedAnchor: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1681,7 +1699,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n                isExact: boolean;\n                isPrecise: boolean;\n            }>;\n            point: import(\"@tldraw/editor\")."
+                  "text": ";\n                type: \"binding\";\n            }>;\n            point: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1690,7 +1708,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        bend: import(\"@tldraw/editor\")."
+                  "text": "<{\n                type: \"point\";\n                x: number;\n                y: number;\n            }>;\n        }, never>;\n        text: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -1699,25 +1717,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<number>;\n        text: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string>;\n        labelPosition: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n    }"
+                  "text": "<string>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -2200,8 +2200,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -2319,25 +2319,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        w: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "T.Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        h: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "T.Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        assetId: "
+                  "text": "{\n        assetId: "
                 },
                 {
                   "kind": "Reference",
@@ -2355,7 +2337,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ">;\n        url: "
+                  "text": ">;\n        h: "
                 },
                 {
                   "kind": "Reference",
@@ -2364,7 +2346,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string>;\n    }"
+                  "text": "<number>;\n        url: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "T.Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>;\n        w: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "T.Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -2431,7 +2431,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    forceMobile?: boolean;\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
@@ -2440,7 +2440,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}"
+              "text": ";\n    forceMobile?: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -4368,7 +4368,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    type?: string | undefined;\n    quality?: number | undefined;\n}"
+              "text": "{\n    quality?: number | undefined;\n    type?: string | undefined;\n}"
             },
             {
               "kind": "Content",
@@ -5098,8 +5098,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -5182,7 +5182,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        fill: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        dash: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -5191,7 +5191,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n        dash: import(\"@tldraw/editor\")."
+                  "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n        fill: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -5200,34 +5200,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n        size: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        segments: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "ArrayOfValidator",
-                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "VecModel",
-                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[];\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
+                  "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n        isClosed: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -5236,7 +5209,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<boolean>;\n        isClosed: import(\"@tldraw/editor\")."
+                  "text": "<boolean>;\n        isComplete: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -5254,7 +5227,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<boolean>;\n    }"
+                  "text": "<boolean>;\n        segments: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ArrayOfValidator",
+                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n            points: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n            type: \"free\" | \"straight\";\n        }>;\n        size: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -5952,8 +5952,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -6027,16 +6027,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        w: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        h: import(\"@tldraw/editor\")."
+                  "text": "{\n        h: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -6054,7 +6045,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string>;\n    }"
+                  "text": "<string>;\n        w: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -6333,21 +6333,21 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    onEvent?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiEventHandler",
-              "canonicalReference": "tldraw!TLUiEventHandler:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
               "text": "React.ReactNode",
               "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    onEvent?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiEventHandler",
+              "canonicalReference": "tldraw!TLUiEventHandler:type"
             },
             {
               "kind": "Content",
@@ -6377,7 +6377,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    title?: string;\n    body?: string;\n    cancel?: string;\n    confirm?: string;\n    displayDontShowAgain?: boolean;\n    onCancel: () => void;\n    onContinue: () => void;\n}"
+              "text": "{\n    body?: string;\n    cancel?: string;\n    confirm?: string;\n    displayDontShowAgain?: boolean;\n    onCancel: () => void;\n    onContinue: () => void;\n    title?: string;\n}"
             },
             {
               "kind": "Content",
@@ -6608,7 +6608,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    ids: "
+              "text": ";\n    format: 'jpeg' | 'json' | 'png' | 'svg' | 'webp';\n    ids: "
             },
             {
               "kind": "Reference",
@@ -6617,7 +6617,7 @@
             },
             {
               "kind": "Content",
-              "text": "[];\n    format: 'jpeg' | 'json' | 'png' | 'svg' | 'webp';\n    opts?: "
+              "text": "[];\n    opts?: "
             },
             {
               "kind": "Reference",
@@ -7470,8 +7470,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -7567,7 +7567,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "[]) => {\n        shouldHint: boolean;\n    }"
+                  "text": "[]) => void"
                 },
                 {
                   "kind": "Content",
@@ -7623,50 +7623,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "tldraw!FrameShapeUtil#onResizeEnd:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "onResizeEnd: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLOnResizeEndHandler",
-                  "canonicalReference": "@tldraw/editor!TLOnResizeEndHandler:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<"
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLFrameShape",
-                  "canonicalReference": "@tldraw/tlschema!TLFrameShape:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ">"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "onResizeEnd",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 5
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "tldraw!FrameShapeUtil.props:member",
               "docComment": "",
               "excerptTokens": [
@@ -7676,16 +7632,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        w: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        h: import(\"@tldraw/editor\")."
+                  "text": "{\n        h: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -7703,7 +7650,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string>;\n    }"
+                  "text": "<string>;\n        w: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -8427,8 +8383,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -8467,34 +8423,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            geo: \"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\";\n            labelColor: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            fill: \"none\" | \"pattern\" | \"semi\" | \"solid\";\n            dash: \"dashed\" | \"dotted\" | \"draw\" | \"solid\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            w: number;\n            h: number;\n            text: string;\n        };\n        type: \"geo\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        parentId: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLParentId",
-                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        isLocked: boolean;\n        opacity: number;\n        meta: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JsonObject",
-                  "canonicalReference": "@tldraw/utils!JsonObject:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8503,7 +8432,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        typeName: \"shape\";\n    } | undefined"
+                  "text": ";\n        index: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        isLocked: boolean;\n        meta: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonObject",
+                  "canonicalReference": "@tldraw/utils!JsonObject:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        opacity: number;\n        parentId: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLParentId",
+                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        props: {\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            dash: \"dashed\" | \"dotted\" | \"draw\" | \"solid\";\n            fill: \"none\" | \"pattern\" | \"semi\" | \"solid\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            geo: \"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\";\n            growY: number;\n            h: number;\n            labelColor: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            text: string;\n            url: string;\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            w: number;\n        };\n        rotation: number;\n        type: \"geo\";\n        typeName: \"shape\";\n        x: number;\n        y: number;\n    } | undefined"
                 },
                 {
                   "kind": "Content",
@@ -8551,34 +8507,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            geo: \"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\";\n            labelColor: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            fill: \"none\" | \"pattern\" | \"semi\" | \"solid\";\n            dash: \"dashed\" | \"dotted\" | \"draw\" | \"solid\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            w: number;\n            h: number;\n            text: string;\n        };\n        type: \"geo\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        parentId: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLParentId",
-                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        isLocked: boolean;\n        opacity: number;\n        meta: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JsonObject",
-                  "canonicalReference": "@tldraw/utils!JsonObject:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8587,7 +8516,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        typeName: \"shape\";\n    } | undefined"
+                  "text": ";\n        index: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        isLocked: boolean;\n        meta: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonObject",
+                  "canonicalReference": "@tldraw/utils!JsonObject:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        opacity: number;\n        parentId: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLParentId",
+                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        props: {\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            dash: \"dashed\" | \"dotted\" | \"draw\" | \"solid\";\n            fill: \"none\" | \"pattern\" | \"semi\" | \"solid\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            geo: \"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\";\n            growY: number;\n            h: number;\n            labelColor: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            text: string;\n            url: string;\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            w: number;\n        };\n        rotation: number;\n        type: \"geo\";\n        typeName: \"shape\";\n        x: number;\n        y: number;\n    } | undefined"
                 },
                 {
                   "kind": "Content",
@@ -8626,34 +8582,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            geo: \"check-box\";\n        };\n        type: \"geo\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        parentId: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLParentId",
-                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        isLocked: boolean;\n        opacity: number;\n        meta: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JsonObject",
-                  "canonicalReference": "@tldraw/utils!JsonObject:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8662,7 +8591,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        typeName: \"shape\";\n    } | {\n        props: {\n            geo: \"rectangle\";\n        };\n        type: \"geo\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
+                  "text": ";\n        index: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8671,16 +8600,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        parentId: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLParentId",
-                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        isLocked: boolean;\n        opacity: number;\n        meta: import(\"@tldraw/editor\")."
+                  "text": ";\n        isLocked: boolean;\n        meta: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8689,7 +8609,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        opacity: number;\n        parentId: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLParentId",
+                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        props: {\n            geo: \"check-box\";\n        };\n        rotation: number;\n        type: \"geo\";\n        typeName: \"shape\";\n        x: number;\n        y: number;\n    } | {\n        id: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8698,7 +8627,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        typeName: \"shape\";\n    } | undefined"
+                  "text": ";\n        index: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        isLocked: boolean;\n        meta: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonObject",
+                  "canonicalReference": "@tldraw/utils!JsonObject:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        opacity: number;\n        parentId: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLParentId",
+                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        props: {\n            geo: \"rectangle\";\n        };\n        rotation: number;\n        type: \"geo\";\n        typeName: \"shape\";\n        x: number;\n        y: number;\n    } | undefined"
                 },
                 {
                   "kind": "Content",
@@ -8816,7 +8772,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        geo: import(\"@tldraw/editor\")."
+                  "text": "{\n        align: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8825,7 +8781,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\">;\n        labelColor: import(\"@tldraw/editor\")."
+                  "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n        color: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8834,7 +8790,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        color: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        dash: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8843,7 +8799,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        fill: import(\"@tldraw/editor\")."
+                  "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n        fill: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8852,7 +8808,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n        dash: import(\"@tldraw/editor\")."
+                  "text": "<\"none\" | \"pattern\" | \"semi\" | \"solid\">;\n        font: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8861,7 +8817,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n        size: import(\"@tldraw/editor\")."
+                  "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n        geo: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8870,43 +8826,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        font: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n        align: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n        verticalAlign: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"end\" | \"middle\" | \"start\">;\n        url: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string>;\n        w: import(\"@tldraw/editor\")."
+                  "text": "<\"arrow-down\" | \"arrow-left\" | \"arrow-right\" | \"arrow-up\" | \"check-box\" | \"cloud\" | \"diamond\" | \"ellipse\" | \"hexagon\" | \"octagon\" | \"oval\" | \"pentagon\" | \"rectangle\" | \"rhombus-2\" | \"rhombus\" | \"star\" | \"trapezoid\" | \"triangle\" | \"x-box\">;\n        growY: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8924,7 +8844,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<number>;\n        growY: import(\"@tldraw/editor\")."
+                  "text": "<number>;\n        labelColor: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        size: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        text: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8933,7 +8871,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<number>;\n        text: import(\"@tldraw/editor\")."
+                  "text": "<string>;\n        url: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -8942,7 +8880,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string>;\n    }"
+                  "text": "<string>;\n        verticalAlign: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"end\" | \"middle\" | \"start\">;\n        w: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -9180,6 +9136,74 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!getOccludedChildren:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function getOccludedChildren(editor: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Editor",
+              "canonicalReference": "@tldraw/editor!Editor:class"
+            },
+            {
+              "kind": "Content",
+              "text": ", parent: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShape",
+              "canonicalReference": "@tldraw/tlschema!TLShape:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLShapeId",
+              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/tools/SelectTool/selectHelpers.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 7
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "editor",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "parent",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "getOccludedChildren"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!getSvgAsImage:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -9205,7 +9229,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    type: 'jpeg' | 'png' | 'webp';\n    quality: number;\n    scale: number;\n    width: number;\n    height: number;\n}"
+              "text": "{\n    height: number;\n    quality: number;\n    scale: number;\n    type: 'jpeg' | 'png' | 'webp';\n    width: number;\n}"
             },
             {
               "kind": "Content",
@@ -10274,8 +10298,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -10358,34 +10382,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        size: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        segments: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "ArrayOfValidator",
-                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<{\n            type: \"free\" | \"straight\";\n            points: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "VecModel",
-                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[];\n        }>;\n        isComplete: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        isComplete: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -10403,7 +10400,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<boolean>;\n    }"
+                  "text": "<boolean>;\n        segments: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ArrayOfValidator",
+                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n            points: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "VecModel",
+                  "canonicalReference": "@tldraw/tlschema!VecModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n            type: \"free\" | \"straight\";\n        }>;\n        size: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -10861,8 +10885,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -10975,43 +10999,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        w: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        h: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        playing: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<boolean>;\n        url: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string>;\n        assetId: import(\"@tldraw/editor\")."
+                  "text": "{\n        assetId: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -11038,7 +11026,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<{\n            topLeft: import(\"@tldraw/editor\")."
+                  "text": "<{\n            bottomRight: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -11047,7 +11035,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n            bottomRight: import(\"@tldraw/editor\")."
+                  "text": ";\n            topLeft: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -11056,7 +11044,43 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        } | null>;\n    }"
+                  "text": ";\n        } | null>;\n        h: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n        playing: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<boolean>;\n        url: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>;\n        w: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -12186,8 +12210,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -12323,7 +12347,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n        size: import(\"@tldraw/editor\")."
+                  "text": "<\"dashed\" | \"dotted\" | \"draw\" | \"solid\">;\n        points: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "DictValidator",
+                  "canonicalReference": "@tldraw/validate!DictValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, {\n            id: string;\n            index: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n            x: number;\n            y: number;\n        }>;\n        size: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -12341,25 +12383,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"cubic\" | \"line\">;\n        points: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "DictValidator",
-                  "canonicalReference": "@tldraw/validate!DictValidator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string, {\n            x: number;\n            y: number;\n            index: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n            id: string;\n        }>;\n    }"
+                  "text": "<\"cubic\" | \"line\">;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -12920,8 +12944,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Rectangle2d",
-                  "canonicalReference": "@tldraw/editor!Rectangle2d:class"
+                  "text": "Group2d",
+                  "canonicalReference": "@tldraw/editor!Group2d:class"
                 },
                 {
                   "kind": "Content",
@@ -12952,12 +12976,12 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "tldraw!NoteShapeUtil#getHeight:member(1)",
+              "canonicalReference": "tldraw!NoteShapeUtil#getHandles:member(1)",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "getHeight(shape: "
+                  "text": "getHandles(shape: "
                 },
                 {
                   "kind": "Reference",
@@ -12969,8 +12993,13 @@
                   "text": "): "
                 },
                 {
+                  "kind": "Reference",
+                  "text": "TLHandle",
+                  "canonicalReference": "@tldraw/tlschema!TLHandle:interface"
+                },
+                {
                   "kind": "Content",
-                  "text": "number"
+                  "text": "[]"
                 },
                 {
                   "kind": "Content",
@@ -12980,7 +13009,7 @@
               "isStatic": false,
               "returnTypeTokenRange": {
                 "startIndex": 3,
-                "endIndex": 4
+                "endIndex": 5
               },
               "releaseTag": "Public",
               "isProtected": false,
@@ -12997,7 +13026,7 @@
               ],
               "isOptional": false,
               "isAbstract": false,
-              "name": "getHeight"
+              "name": "getHandles"
             },
             {
               "kind": "Property",
@@ -13128,8 +13157,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -13168,34 +13197,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        parentId: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLParentId",
-                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        isLocked: boolean;\n        opacity: number;\n        meta: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JsonObject",
-                  "canonicalReference": "@tldraw/utils!JsonObject:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -13204,7 +13206,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        typeName: \"shape\";\n    } | undefined"
+                  "text": ";\n        index: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        isLocked: boolean;\n        meta: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonObject",
+                  "canonicalReference": "@tldraw/utils!JsonObject:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        opacity: number;\n        parentId: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLParentId",
+                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        props: {\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            fontSizeAdjustment: number;\n            growY: number;\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            text: string;\n            url: string;\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n        };\n        rotation: number;\n        type: \"note\";\n        typeName: \"shape\";\n        x: number;\n        y: number;\n    } | undefined"
                 },
                 {
                   "kind": "Content",
@@ -13252,34 +13281,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        props: {\n            growY: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n            url: string;\n            text: string;\n        };\n        type: \"note\";\n        x: number;\n        y: number;\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        parentId: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLParentId",
-                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        isLocked: boolean;\n        opacity: number;\n        meta: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JsonObject",
-                  "canonicalReference": "@tldraw/utils!JsonObject:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -13288,7 +13290,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        typeName: \"shape\";\n    } | undefined"
+                  "text": ";\n        index: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        isLocked: boolean;\n        meta: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonObject",
+                  "canonicalReference": "@tldraw/utils!JsonObject:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        opacity: number;\n        parentId: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLParentId",
+                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        props: {\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            fontSizeAdjustment: number;\n            growY: number;\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            text: string;\n            url: string;\n            verticalAlign: \"end\" | \"middle\" | \"start\";\n        };\n        rotation: number;\n        type: \"note\";\n        typeName: \"shape\";\n        x: number;\n        y: number;\n    } | undefined"
                 },
                 {
                   "kind": "Content",
@@ -13362,7 +13391,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        color: import(\"@tldraw/editor\")."
+                  "text": "{\n        align: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13371,7 +13400,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        size: import(\"@tldraw/editor\")."
+                  "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n        color: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13380,7 +13409,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        font: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        font: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13389,25 +13418,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n        align: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n        verticalAlign: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "EnumStyleProp",
-                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<\"end\" | \"middle\" | \"start\">;\n        growY: import(\"@tldraw/editor\")."
+                  "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n        fontSizeAdjustment: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13416,7 +13427,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<number>;\n        url: import(\"@tldraw/editor\")."
+                  "text": "<number>;\n        growY: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13425,7 +13436,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string>;\n        text: import(\"@tldraw/editor\")."
+                  "text": "<number>;\n        size: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        text: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -13434,7 +13454,25 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string>;\n    }"
+                  "text": "<string>;\n        url: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>;\n        verticalAlign: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "EnumStyleProp",
+                  "canonicalReference": "@tldraw/tlschema!EnumStyleProp:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<\"end\" | \"middle\" | \"start\">;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -13447,7 +13485,7 @@
               "name": "props",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 18
+                "endIndex": 20
               },
               "isStatic": true,
               "isProtected": false,
@@ -13708,7 +13746,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    name: string;\n    id: "
+              "text": "{\n    id: "
             },
             {
               "kind": "Reference",
@@ -13717,7 +13755,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    isCurrentPage: boolean;\n}"
+              "text": ";\n    isCurrentPage: boolean;\n    name: string;\n}"
             },
             {
               "kind": "Content",
@@ -13813,7 +13851,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    schema: "
+              "text": "{\n    json: string;\n    schema: "
             },
             {
               "kind": "Reference",
@@ -13822,7 +13860,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    json: string;\n}"
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -14090,7 +14128,7 @@
         {
           "kind": "Function",
           "canonicalReference": "tldraw!removeFrame:function(1)",
-          "docComment": "/**\n * Remove a frame.\n *\n * @param editor - tlraw editor instance.\n *\n * @param ids - Ids of the frames you wish to remove.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Remove a frame.\n *\n * @param editor - tldraw editor instance.\n *\n * @param ids - Ids of the frames you wish to remove.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -15064,7 +15102,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    lineHeight: number;\n    fontWeight: string;\n    fontVariant: string;\n    fontStyle: string;\n    padding: string;\n}"
+              "text": "{\n    fontStyle: string;\n    fontVariant: string;\n    fontWeight: string;\n    lineHeight: number;\n    padding: string;\n}"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/default-shape-constants.ts",
@@ -15657,8 +15695,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -15697,34 +15735,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        x: number;\n        y: number;\n        type: \"text\";\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        parentId: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLParentId",
-                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        isLocked: boolean;\n        opacity: number;\n        props: {\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            w: number;\n            text: string;\n            scale: number;\n            autoSize: boolean;\n        };\n        meta: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JsonObject",
-                  "canonicalReference": "@tldraw/utils!JsonObject:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -15733,7 +15744,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        typeName: \"shape\";\n    } | undefined"
+                  "text": ";\n        index: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        isLocked: boolean;\n        meta: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonObject",
+                  "canonicalReference": "@tldraw/utils!JsonObject:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        opacity: number;\n        parentId: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLParentId",
+                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        props: {\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            autoSize: boolean;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            scale: number;\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            text: string;\n            w: number;\n        };\n        rotation: number;\n        type: \"text\";\n        typeName: \"shape\";\n        x: number;\n        y: number;\n    } | undefined"
                 },
                 {
                   "kind": "Content",
@@ -15781,34 +15819,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        x: number;\n        y: number;\n        props: {\n            w: number;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            text: string;\n            scale: number;\n            autoSize: boolean;\n        };\n        type: \"text\";\n        rotation: number;\n        index: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "IndexKey",
-                  "canonicalReference": "@tldraw/utils!IndexKey:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        parentId: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLParentId",
-                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        isLocked: boolean;\n        opacity: number;\n        meta: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "JsonObject",
-                  "canonicalReference": "@tldraw/utils!JsonObject:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -15817,7 +15828,34 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        typeName: \"shape\";\n    } | undefined"
+                  "text": ";\n        index: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IndexKey",
+                  "canonicalReference": "@tldraw/utils!IndexKey:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        isLocked: boolean;\n        meta: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonObject",
+                  "canonicalReference": "@tldraw/utils!JsonObject:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        opacity: number;\n        parentId: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLParentId",
+                  "canonicalReference": "@tldraw/tlschema!TLParentId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";\n        props: {\n            align: \"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\";\n            autoSize: boolean;\n            color: \"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\";\n            font: \"draw\" | \"mono\" | \"sans\" | \"serif\";\n            scale: number;\n            size: \"l\" | \"m\" | \"s\" | \"xl\";\n            text: string;\n            w: number;\n        };\n        rotation: number;\n        type: \"text\";\n        typeName: \"shape\";\n        x: number;\n        y: number;\n    } | undefined"
                 },
                 {
                   "kind": "Content",
@@ -15856,7 +15894,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => {\n        id: import(\"@tldraw/editor\")."
+                  "text": ") => {\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -15865,7 +15903,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        type: \"text\";\n        props: {\n            autoSize: boolean;\n            scale?: undefined;\n        };\n    } | {\n        id: import(\"@tldraw/editor\")."
+                  "text": ";\n        props: {\n            autoSize: boolean;\n            scale?: undefined;\n        };\n        type: \"text\";\n    } | {\n        id: "
                 },
                 {
                   "kind": "Reference",
@@ -15874,7 +15912,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ";\n        type: \"text\";\n        props: {\n            scale: number;\n            autoSize?: undefined;\n        };\n    } | undefined"
+                  "text": ";\n        props: {\n            autoSize?: undefined;\n            scale: number;\n        };\n        type: \"text\";\n    } | undefined"
                 },
                 {
                   "kind": "Content",
@@ -15992,7 +16030,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        color: import(\"@tldraw/editor\")."
+                  "text": "{\n        align: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -16001,7 +16039,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        size: import(\"@tldraw/editor\")."
+                  "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n        autoSize: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<boolean>;\n        color: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -16010,7 +16057,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        font: import(\"@tldraw/editor\")."
+                  "text": "<\"black\" | \"blue\" | \"green\" | \"grey\" | \"light-blue\" | \"light-green\" | \"light-red\" | \"light-violet\" | \"orange\" | \"red\" | \"violet\" | \"white\" | \"yellow\">;\n        font: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -16019,7 +16066,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n        align: import(\"@tldraw/editor\")."
+                  "text": "<\"draw\" | \"mono\" | \"sans\" | \"serif\">;\n        scale: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n        size: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -16028,7 +16084,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<\"end-legacy\" | \"end\" | \"middle-legacy\" | \"middle\" | \"start-legacy\" | \"start\">;\n        w: import(\"@tldraw/editor\")."
+                  "text": "<\"l\" | \"m\" | \"s\" | \"xl\">;\n        text: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -16037,7 +16093,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<number>;\n        text: import(\"@tldraw/editor\")."
+                  "text": "<string>;\n        w: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -16046,25 +16102,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<string>;\n        scale: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        autoSize: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<boolean>;\n    }"
+                  "text": "<number>;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -16202,21 +16240,21 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    theme: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLDefaultColorTheme",
-              "canonicalReference": "@tldraw/tlschema!TLDefaultColorTheme:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    styles: "
+              "text": "{\n    styles: "
             },
             {
               "kind": "Reference",
               "text": "ReadonlySharedStyleMap",
               "canonicalReference": "@tldraw/editor!ReadonlySharedStyleMap:class"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    theme: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorTheme",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorTheme:type"
             },
             {
               "kind": "Content",
@@ -16478,7 +16516,7 @@
                 {
                   "kind": "Reference",
                   "text": "SerializedSchema",
-                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                  "canonicalReference": "@tldraw/store!SerializedSchema:type"
                 },
                 {
                   "kind": "Content",
@@ -16599,7 +16637,34 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    snapshot: "
+              "text": "<{\n    background?: boolean | undefined;\n    bounds?: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "Box",
+              "canonicalReference": "@tldraw/editor!Box:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | undefined;\n    darkMode?: boolean | undefined;\n    format?: \"png\" | \"svg\" | undefined;\n    padding?: number | undefined;\n    pageId?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLPageId",
+              "canonicalReference": "@tldraw/tlschema!TLPageId:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | undefined;\n    preserveAspectRatio?: string | undefined;\n    scale?: number | undefined;\n    shapeUtils?: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLAnyShapeUtilConstructor",
+              "canonicalReference": "@tldraw/editor!TLAnyShapeUtilConstructor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[] | undefined;\n    snapshot: "
             },
             {
               "kind": "Reference",
@@ -16617,34 +16682,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    format?: \"png\" | \"svg\" | undefined;\n    pageId?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLPageId",
-              "canonicalReference": "@tldraw/tlschema!TLPageId:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | undefined;\n    shapeUtils?: readonly "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLAnyShapeUtilConstructor",
-              "canonicalReference": "@tldraw/editor!TLAnyShapeUtilConstructor:type"
-            },
-            {
-              "kind": "Content",
-              "text": "[] | undefined;\n    bounds?: import(\"@tldraw/editor\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "Box",
-              "canonicalReference": "@tldraw/editor!Box:class"
-            },
-            {
-              "kind": "Content",
-              "text": " | undefined;\n    scale?: number | undefined;\n    background?: boolean | undefined;\n    padding?: number | undefined;\n    darkMode?: boolean | undefined;\n    preserveAspectRatio?: string | undefined;\n}>"
+              "text": ">;\n}>"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/TldrawImage.tsx",
@@ -16672,7 +16710,25 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    snapshot: "
+              "text": "<{\n    shapeUtils?: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLAnyShapeUtilConstructor",
+              "canonicalReference": "@tldraw/editor!TLAnyShapeUtilConstructor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n    format?: 'png' | 'svg';\n    pageId?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLPageId",
+              "canonicalReference": "@tldraw/tlschema!TLPageId:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    snapshot: "
             },
             {
               "kind": "Reference",
@@ -16690,25 +16746,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    format?: 'png' | 'svg';\n    pageId?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLPageId",
-              "canonicalReference": "@tldraw/tlschema!TLPageId:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    shapeUtils?: readonly "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLAnyShapeUtilConstructor",
-              "canonicalReference": "@tldraw/editor!TLAnyShapeUtilConstructor:type"
-            },
-            {
-              "kind": "Content",
-              "text": "[];\n} & "
+              "text": ">;\n} & "
             },
             {
               "kind": "Reference",
@@ -16820,25 +16858,7 @@
             },
             {
               "kind": "Content",
-              "text": "> & ({\n    store: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLStore",
-              "canonicalReference": "@tldraw/tlschema!TLStore:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLStoreWithStatus",
-              "canonicalReference": "@tldraw/editor!TLStoreWithStatus:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n} | {\n    store?: undefined;\n    persistenceKey?: string;\n    sessionId?: string;\n    defaultName?: string;\n    snapshot?: "
+              "text": "> & ({\n    snapshot?: "
             },
             {
               "kind": "Reference",
@@ -16856,7 +16876,34 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n})>"
+              "text": ">;\n    defaultName?: string;\n    migrations?: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationSequence",
+              "canonicalReference": "@tldraw/store!MigrationSequence:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n    persistenceKey?: string;\n    sessionId?: string;\n    store?: undefined;\n} | {\n    store: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLStore",
+              "canonicalReference": "@tldraw/tlschema!TLStore:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLStoreWithStatus",
+              "canonicalReference": "@tldraw/editor!TLStoreWithStatus:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n})>"
             },
             {
               "kind": "Content",
@@ -16868,7 +16915,7 @@
           "name": "TldrawProps",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 25
+            "endIndex": 27
           }
         },
         {
@@ -17043,277 +17090,7 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    children?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ReactNode",
-              "canonicalReference": "@types/react!React.ReactNode:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    hideUi?: boolean | undefined;\n    components?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Partial",
-              "canonicalReference": "!Partial:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<{\n        ContextMenu: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"../..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiContextMenuProps",
-              "canonicalReference": "tldraw!TLUiContextMenuProps:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n        ActionsMenu: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"../..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiActionsMenuProps",
-              "canonicalReference": "tldraw!TLUiActionsMenuProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n        HelpMenu: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"../..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiHelpMenuProps",
-              "canonicalReference": "tldraw!TLUiHelpMenuProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n        ZoomMenu: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"../..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiZoomMenuProps",
-              "canonicalReference": "tldraw!TLUiZoomMenuProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n        MainMenu: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"../..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiMainMenuProps",
-              "canonicalReference": "tldraw!TLUiMainMenuProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n        Minimap: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        StylePanel: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"../..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiStylePanelProps",
-              "canonicalReference": "tldraw!TLUiStylePanelProps:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n        PageMenu: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        NavigationPanel: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        Toolbar: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        KeyboardShortcutsDialog: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"../..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiKeyboardShortcutsDialogProps",
-              "canonicalReference": "tldraw!TLUiKeyboardShortcutsDialogProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n        QuickActions: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"../..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiQuickActionsProps",
-              "canonicalReference": "tldraw!TLUiQuickActionsProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n        HelperButtons: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"../..\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiHelperButtonsProps",
-              "canonicalReference": "tldraw!TLUiHelperButtonsProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n        DebugPanel: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        DebugMenu: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        MenuPanel: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        TopPanel: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n        SharePanel: null | "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    }> | undefined;\n    renderDebugMenuItems?: (() => "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ReactNode",
-              "canonicalReference": "@types/react!React.ReactNode:type"
-            },
-            {
-              "kind": "Content",
-              "text": ") | undefined;\n    assetUrls?: (import(\"@tldraw/editor\")."
+              "text": "<{\n    assetUrls?: (import(\"@tldraw/editor\")."
             },
             {
               "kind": "Reference",
@@ -17349,7 +17126,277 @@
             },
             {
               "kind": "Content",
-              "text": ">) | undefined;\n    overrides?: "
+              "text": ">) | undefined;\n    children?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    components?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n        ActionsMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiActionsMenuProps",
+              "canonicalReference": "tldraw!TLUiActionsMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        ContextMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiContextMenuProps",
+              "canonicalReference": "tldraw!TLUiContextMenuProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        DebugMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        DebugPanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        HelperButtons: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiHelperButtonsProps",
+              "canonicalReference": "tldraw!TLUiHelperButtonsProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        HelpMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiHelpMenuProps",
+              "canonicalReference": "tldraw!TLUiHelpMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        KeyboardShortcutsDialog: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiKeyboardShortcutsDialogProps",
+              "canonicalReference": "tldraw!TLUiKeyboardShortcutsDialogProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        MainMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiMainMenuProps",
+              "canonicalReference": "tldraw!TLUiMainMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        MenuPanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        Minimap: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        NavigationPanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        PageMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        QuickActions: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiQuickActionsProps",
+              "canonicalReference": "tldraw!TLUiQuickActionsProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        SharePanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        StylePanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiStylePanelProps",
+              "canonicalReference": "tldraw!TLUiStylePanelProps:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n        Toolbar: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        TopPanel: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n        ZoomMenu: null | "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"../..\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiZoomMenuProps",
+              "canonicalReference": "tldraw!TLUiZoomMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n    }> | undefined;\n    forceMobile?: boolean | undefined;\n    hideUi?: boolean | undefined;\n    onUiEvent?: import(\"./context/events\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiEventHandler",
+              "canonicalReference": "tldraw!TLUiEventHandler:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | undefined;\n    overrides?: "
             },
             {
               "kind": "Reference",
@@ -17376,7 +17423,25 @@
             },
             {
               "kind": "Content",
-              "text": ", {\n            addToast: (toast: "
+              "text": ", {\n            addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            addToast: (toast: "
             },
             {
               "kind": "Reference",
@@ -17394,25 +17459,7 @@
             },
             {
               "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            clearToasts: () => void;\n            isMobile: boolean;\n            msg: (id?: string | undefined) => string;\n            removeDialog: (id: string) => string;\n            removeToast: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
             },
             {
               "kind": "Reference",
@@ -17430,7 +17477,7 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        tools: import(\"./overrides\")."
+              "text": ">) => string;\n        }>;\n        tools: import(\"./overrides\")."
             },
             {
               "kind": "Reference",
@@ -17448,7 +17495,25 @@
             },
             {
               "kind": "Content",
-              "text": ", {\n            insertMedia: () => void;\n        } & {\n            addToast: (toast: "
+              "text": ", {\n            insertMedia: () => void;\n        } & {\n            addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            addToast: (toast: "
             },
             {
               "kind": "Reference",
@@ -17466,25 +17531,7 @@
             },
             {
               "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            clearToasts: () => void;\n            isMobile: boolean;\n            msg: (id?: string | undefined) => string;\n            removeDialog: (id: string) => string;\n            removeToast: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
             },
             {
               "kind": "Reference",
@@ -17502,7 +17549,7 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        translations: "
+              "text": ">) => string;\n        }>;\n        translations: "
             },
             {
               "kind": "Reference",
@@ -17547,7 +17594,25 @@
             },
             {
               "kind": "Content",
-              "text": ", {\n            addToast: (toast: "
+              "text": ", {\n            addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            addToast: (toast: "
             },
             {
               "kind": "Reference",
@@ -17565,25 +17630,7 @@
             },
             {
               "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            clearToasts: () => void;\n            isMobile: boolean;\n            msg: (id?: string | undefined) => string;\n            removeDialog: (id: string) => string;\n            removeToast: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
             },
             {
               "kind": "Reference",
@@ -17601,7 +17648,7 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        tools: import(\"./overrides\")."
+              "text": ">) => string;\n        }>;\n        tools: import(\"./overrides\")."
             },
             {
               "kind": "Reference",
@@ -17619,7 +17666,25 @@
             },
             {
               "kind": "Content",
-              "text": ", {\n            insertMedia: () => void;\n        } & {\n            addToast: (toast: "
+              "text": ", {\n            insertMedia: () => void;\n        } & {\n            addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            addToast: (toast: "
             },
             {
               "kind": "Reference",
@@ -17637,25 +17702,7 @@
             },
             {
               "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            removeToast: (id: string) => string;\n            clearToasts: () => void;\n            addDialog: (dialog: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            removeDialog: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
+              "text": ", \"id\"> & {\n                id?: string | undefined;\n            }) => string;\n            clearDialogs: () => void;\n            clearToasts: () => void;\n            isMobile: boolean;\n            msg: (id?: string | undefined) => string;\n            removeDialog: (id: string) => string;\n            removeToast: (id: string) => string;\n            updateDialog: (id: string, newDialogData: "
             },
             {
               "kind": "Reference",
@@ -17673,7 +17720,7 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n            msg: (id?: string | undefined) => string;\n            isMobile: boolean;\n        }>;\n        translations: "
+              "text": ">) => string;\n        }>;\n        translations: "
             },
             {
               "kind": "Reference",
@@ -17691,16 +17738,16 @@
             },
             {
               "kind": "Content",
-              "text": "<string, string>> | undefined;\n    }>[] | undefined;\n    onUiEvent?: import(\"./context/events\")."
+              "text": "<string, string>> | undefined;\n    }>[] | undefined;\n    renderDebugMenuItems?: (() => "
             },
             {
               "kind": "Reference",
-              "text": "TLUiEventHandler",
-              "canonicalReference": "tldraw!TLUiEventHandler:type"
+              "text": "React.ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
             },
             {
               "kind": "Content",
-              "text": " | undefined;\n    forceMobile?: boolean | undefined;\n}>"
+              "text": ") | undefined;\n}>"
             }
           ],
           "fileUrlPath": "packages/tldraw/src/lib/ui/TldrawUi.tsx",
@@ -20346,7 +20393,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    icon: string;\n    small?: boolean;\n    invertIcon?: boolean;\n}"
+              "text": "{\n    icon: string;\n    invertIcon?: boolean;\n    small?: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -20808,21 +20855,21 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    overrides?: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiComponents",
-              "canonicalReference": "tldraw!TLUiComponents:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
               "text": "ReactNode",
               "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    overrides?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiComponents",
+              "canonicalReference": "tldraw!TLUiComponents:type"
             },
             {
               "kind": "Content",
@@ -21046,7 +21093,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    className?: string;\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
@@ -21055,7 +21102,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    style?: "
+              "text": ";\n    className?: string;\n    style?: "
             },
             {
               "kind": "Reference",
@@ -21090,7 +21137,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    className?: string;\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
@@ -21099,7 +21146,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}"
+              "text": ";\n    className?: string;\n}"
             },
             {
               "kind": "Content",
@@ -21125,7 +21172,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    className?: string;\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
@@ -21134,7 +21181,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}"
+              "text": ";\n    className?: string;\n}"
             },
             {
               "kind": "Content",
@@ -21223,7 +21270,16 @@
             },
             {
               "kind": "Content",
-              "text": ", 'id'> & {\n        id?: string;\n    }) => string;\n    removeDialog: (id: string) => string;\n    updateDialog: (id: string, newDialogData: "
+              "text": ", 'id'> & {\n        id?: string;\n    }) => string;\n    clearDialogs: () => void;\n    dialogs: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "[];\n    removeDialog: (id: string) => string;\n    updateDialog: (id: string, newDialogData: "
             },
             {
               "kind": "Reference",
@@ -21241,16 +21297,7 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n    clearDialogs: () => void;\n    dialogs: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "[];\n}"
+              "text": ">) => string;\n}"
             },
             {
               "kind": "Content",
@@ -21276,7 +21323,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    className?: string;\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
@@ -21285,7 +21332,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}"
+              "text": ";\n    className?: string;\n}"
             },
             {
               "kind": "Content",
@@ -21474,7 +21521,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id?: string;\n    children: "
+              "text": "{\n    align?: 'center' | 'end' | 'start';\n    alignOffset?: number;\n    children: "
             },
             {
               "kind": "Reference",
@@ -21483,7 +21530,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    alignOffset?: number;\n    sideOffset?: number;\n    align?: 'center' | 'end' | 'start';\n    side?: 'bottom' | 'left' | 'right' | 'top';\n}"
+              "text": ";\n    id?: string;\n    side?: 'bottom' | 'left' | 'right' | 'top';\n    sideOffset?: number;\n}"
             },
             {
               "kind": "Content",
@@ -21617,7 +21664,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
@@ -21626,7 +21673,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    modal?: boolean;\n    debugOpen?: boolean;\n}"
+              "text": ";\n    debugOpen?: boolean;\n    id: string;\n    modal?: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -21652,7 +21699,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
@@ -21661,7 +21708,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}"
+              "text": ";\n    id: string;\n}"
             },
             {
               "kind": "Content",
@@ -21687,7 +21734,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    label: string;\n    id?: string;\n    title?: string;\n    disabled?: boolean;\n}"
+              "text": "{\n    disabled?: boolean;\n    id?: string;\n    label: string;\n    title?: string;\n}"
             },
             {
               "kind": "Content",
@@ -24726,7 +24773,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    icon?: IconType;\n    id: string;\n    kbd?: string;\n    title?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk?: boolean;\n    onSelect: (source: "
+              "text": "{\n    checked?: boolean;\n    disabled?: boolean;\n    icon?: IconType;\n    id: string;\n    kbd?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    onSelect: (source: "
             },
             {
               "kind": "Reference",
@@ -24744,7 +24791,7 @@
             },
             {
               "kind": "Content",
-              "text": "<void> | void;\n    checked?: boolean;\n    disabled?: boolean;\n}"
+              "text": "<void> | void;\n    readonlyOk?: boolean;\n    title?: string;\n}"
             },
             {
               "kind": "Content",
@@ -24794,12 +24841,12 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    type: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
-              "text": "TldrawUiMenuContextType",
-              "canonicalReference": "tldraw!~TldrawUiMenuContextType:type"
+              "text": "React.ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
             },
             {
               "kind": "Content",
@@ -24812,12 +24859,12 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    children: "
+              "text": ";\n    type: "
             },
             {
               "kind": "Reference",
-              "text": "React.ReactNode",
-              "canonicalReference": "@types/react!React.ReactNode:type"
+              "text": "TldrawUiMenuContextType",
+              "canonicalReference": "tldraw!~TldrawUiMenuContextType:type"
             },
             {
               "kind": "Content",
@@ -24863,7 +24910,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    children?: "
+              "text": "{\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    children?: "
             },
             {
               "kind": "Reference",
@@ -24872,7 +24919,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n}"
+              "text": ";\n    id: string;\n}"
             },
             {
               "kind": "Content",
@@ -24943,7 +24990,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    icon?: IconType;\n    kbd?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    readonlyOk?: boolean;\n    onSelect: (source: "
+              "text": "{\n    readonlyOk?: boolean;\n    noClose?: boolean;\n    onSelect: (source: "
             },
             {
               "kind": "Reference",
@@ -24961,7 +25008,7 @@
             },
             {
               "kind": "Content",
-              "text": "<void> | void;\n    disabled?: boolean;\n    noClose?: boolean;\n    spinner?: boolean;\n    isSelected?: boolean;\n}"
+              "text": "<void> | void;\n    icon?: IconType;\n    kbd?: string;\n    label?: {\n        [key: string]: TranslationKey;\n    } | TranslationKey;\n    isSelected?: boolean;\n    disabled?: boolean;\n    spinner?: boolean;\n    id: string;\n}"
             },
             {
               "kind": "Content",
@@ -25027,7 +25074,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    label?: {\n        [key: string]: Translation;\n    } | Translation;\n    disabled?: boolean;\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
@@ -25036,7 +25083,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    size?: 'medium' | 'small' | 'tiny' | 'wide';\n}"
+              "text": ";\n    disabled?: boolean;\n    id: string;\n    label?: {\n        [key: string]: Translation;\n    } | Translation;\n    size?: 'medium' | 'small' | 'tiny' | 'wide';\n}"
             },
             {
               "kind": "Content",
@@ -25169,7 +25216,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    children: "
+              "text": "{\n    align?: 'center' | 'end' | 'start';\n    alignOffset?: number;\n    children: "
             },
             {
               "kind": "Reference",
@@ -25178,7 +25225,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    side: 'bottom' | 'left' | 'right' | 'top';\n    align?: 'center' | 'end' | 'start';\n    alignOffset?: number;\n    sideOffset?: number;\n}"
+              "text": ";\n    side: 'bottom' | 'left' | 'right' | 'top';\n    sideOffset?: number;\n}"
             },
             {
               "kind": "Content",
@@ -25204,7 +25251,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    id: string;\n    open?: boolean;\n    children: "
+              "text": "{\n    children: "
             },
             {
               "kind": "Reference",
@@ -25213,7 +25260,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n    onOpenChange?: (isOpen: boolean) => void;\n}"
+              "text": ";\n    id: string;\n    onOpenChange?: (isOpen: boolean) => void;\n    open?: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -25795,7 +25842,7 @@
             },
             {
               "kind": "Content",
-              "text": ", 'id'> & {\n        id?: string;\n    }) => string;\n    removeToast: (id: "
+              "text": ", 'id'> & {\n        id?: string;\n    }) => string;\n    clearToasts: () => void;\n    removeToast: (id: "
             },
             {
               "kind": "Reference",
@@ -25804,7 +25851,7 @@
             },
             {
               "kind": "Content",
-              "text": "['id']) => string;\n    clearToasts: () => void;\n    toasts: "
+              "text": "['id']) => string;\n    toasts: "
             },
             {
               "kind": "Reference",
@@ -26178,7 +26225,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    overrides?: (editor: "
+              "text": "{\n    children: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    overrides?: (editor: "
             },
             {
               "kind": "Reference",
@@ -26202,15 +26258,6 @@
               "kind": "Reference",
               "text": "TLUiToolsContextType",
               "canonicalReference": "tldraw!TLUiToolsContextType:type"
-            },
-            {
-              "kind": "Content",
-              "text": ";\n    children: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.ReactNode",
-              "canonicalReference": "@types/react!React.ReactNode:type"
             },
             {
               "kind": "Content",
@@ -26240,7 +26287,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    readonly locale: string;\n    readonly label: string;\n    readonly messages: "
+              "text": "{\n    readonly dir: 'ltr' | 'rtl';\n    readonly label: string;\n    readonly locale: string;\n    readonly messages: "
             },
             {
               "kind": "Reference",
@@ -27269,6 +27316,31 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!useCurrentTranslation:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "useCurrentTranslation: () => "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiTranslation",
+              "canonicalReference": "tldraw!TLUiTranslation:type"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/useTranslation/useTranslation.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useCurrentTranslation"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!useDefaultHelpers:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -27278,7 +27350,25 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    addToast: (toast: "
+              "text": "{\n    addDialog: (dialog: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<import(\"./context/dialogs\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiDialog",
+              "canonicalReference": "tldraw!TLUiDialog:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"id\"> & {\n        id?: string | undefined;\n    }) => string;\n    addToast: (toast: "
             },
             {
               "kind": "Reference",
@@ -27296,25 +27386,7 @@
             },
             {
               "kind": "Content",
-              "text": ", \"id\"> & {\n        id?: string | undefined;\n    }) => string;\n    removeToast: (id: string) => string;\n    clearToasts: () => void;\n    addDialog: (dialog: "
-            },
-            {
-              "kind": "Reference",
-              "text": "Omit",
-              "canonicalReference": "!Omit:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<import(\"./context/dialogs\")."
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiDialog",
-              "canonicalReference": "tldraw!TLUiDialog:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ", \"id\"> & {\n        id?: string | undefined;\n    }) => string;\n    clearDialogs: () => void;\n    removeDialog: (id: string) => string;\n    updateDialog: (id: string, newDialogData: "
+              "text": ", \"id\"> & {\n        id?: string | undefined;\n    }) => string;\n    clearDialogs: () => void;\n    clearToasts: () => void;\n    isMobile: boolean;\n    msg: (id?: string | undefined) => string;\n    removeDialog: (id: string) => string;\n    removeToast: (id: string) => string;\n    updateDialog: (id: string, newDialogData: "
             },
             {
               "kind": "Reference",
@@ -27332,7 +27404,7 @@
             },
             {
               "kind": "Content",
-              "text": ">) => string;\n    msg: (id?: string | undefined) => string;\n    isMobile: boolean;\n}"
+              "text": ">) => string;\n}"
             },
             {
               "kind": "Content",
@@ -27414,43 +27486,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    rInput: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.RefObject",
-              "canonicalReference": "@types/react!React.RefObject:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">;\n    isEditing: boolean;\n    handleFocus: () => void;\n    handleBlur: () => void;\n    handleKeyDown: (e: "
-            },
-            {
-              "kind": "Reference",
-              "text": "React.KeyboardEvent",
-              "canonicalReference": "@types/react!React.KeyboardEvent:interface"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "HTMLTextAreaElement",
-              "canonicalReference": "!HTMLTextAreaElement:interface"
-            },
-            {
-              "kind": "Content",
-              "text": ">) => void;\n    handleChange: (e: "
+              "text": "{\n    handleBlur: () => void;\n    handleChange: (e: "
             },
             {
               "kind": "Reference",
@@ -27468,7 +27504,16 @@
             },
             {
               "kind": "Content",
-              "text": ">) => void;\n    handleInputPointerDown: (e: "
+              "text": ">) => void;\n    handleDoubleClick: (e: any) => any;\n    handleFocus: typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "noop",
+              "canonicalReference": "tldraw!~noop:function"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    handleInputPointerDown: (e: "
             },
             {
               "kind": "Reference",
@@ -27477,7 +27522,43 @@
             },
             {
               "kind": "Content",
-              "text": ") => void;\n    handleDoubleClick: (e: any) => any;\n    isEmpty: boolean;\n}"
+              "text": ") => void;\n    handleKeyDown: (e: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.KeyboardEvent",
+              "canonicalReference": "@types/react!React.KeyboardEvent:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "HTMLTextAreaElement",
+              "canonicalReference": "!HTMLTextAreaElement:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">) => void;\n    isEditing: boolean;\n    isEditingAnything: boolean;\n    isEmpty: boolean;\n    rInput: "
+            },
+            {
+              "kind": "Reference",
+              "text": "React.RefObject",
+              "canonicalReference": "@types/react!React.RefObject:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "HTMLTextAreaElement",
+              "canonicalReference": "!HTMLTextAreaElement:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n}"
             },
             {
               "kind": "Content",
@@ -27487,7 +27568,7 @@
           "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/useEditableText.ts",
           "returnTypeTokenRange": {
             "startIndex": 7,
-            "endIndex": 22
+            "endIndex": 24
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -28004,7 +28085,25 @@
             },
             {
               "kind": "Content",
-              "text": "<{\n    ContextMenu: "
+              "text": "<{\n    ActionsMenu: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiActionsMenuProps",
+              "canonicalReference": "tldraw!TLUiActionsMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    ContextMenu: "
             },
             {
               "kind": "Reference",
@@ -28022,7 +28121,25 @@
             },
             {
               "kind": "Content",
-              "text": "> | null;\n    ActionsMenu: "
+              "text": "> | null;\n    DebugMenu: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    DebugPanel: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    HelperButtons: "
             },
             {
               "kind": "Reference",
@@ -28035,8 +28152,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLUiActionsMenuProps",
-              "canonicalReference": "tldraw!TLUiActionsMenuProps:type"
+              "text": "TLUiHelperButtonsProps",
+              "canonicalReference": "tldraw!TLUiHelperButtonsProps:type"
             },
             {
               "kind": "Content",
@@ -28058,7 +28175,7 @@
             },
             {
               "kind": "Content",
-              "text": "> | null;\n    ZoomMenu: "
+              "text": "> | null;\n    KeyboardShortcutsDialog: "
             },
             {
               "kind": "Reference",
@@ -28071,8 +28188,8 @@
             },
             {
               "kind": "Reference",
-              "text": "TLUiZoomMenuProps",
-              "canonicalReference": "tldraw!TLUiZoomMenuProps:type"
+              "text": "TLUiKeyboardShortcutsDialogProps",
+              "canonicalReference": "tldraw!TLUiKeyboardShortcutsDialogProps:type"
             },
             {
               "kind": "Content",
@@ -28094,7 +28211,61 @@
             },
             {
               "kind": "Content",
-              "text": "> | null;\n    Minimap: "
+              "text": "> | null;\n    MenuPanel: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    Minimap: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    NavigationPanel: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    PageMenu: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n    QuickActions: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiQuickActionsProps",
+              "canonicalReference": "tldraw!TLUiQuickActionsProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n    SharePanel: "
             },
             {
               "kind": "Reference",
@@ -28121,106 +28292,7 @@
             },
             {
               "kind": "Content",
-              "text": "> | null;\n    PageMenu: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | null;\n    NavigationPanel: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | null;\n    Toolbar: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | null;\n    KeyboardShortcutsDialog: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiKeyboardShortcutsDialogProps",
-              "canonicalReference": "tldraw!TLUiKeyboardShortcutsDialogProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "> | null;\n    QuickActions: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiQuickActionsProps",
-              "canonicalReference": "tldraw!TLUiQuickActionsProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "> | null;\n    HelperButtons: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": "<"
-            },
-            {
-              "kind": "Reference",
-              "text": "TLUiHelperButtonsProps",
-              "canonicalReference": "tldraw!TLUiHelperButtonsProps:type"
-            },
-            {
-              "kind": "Content",
-              "text": "> | null;\n    DebugPanel: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | null;\n    DebugMenu: "
-            },
-            {
-              "kind": "Reference",
-              "text": "ComponentType",
-              "canonicalReference": "@types/react!React.ComponentType:type"
-            },
-            {
-              "kind": "Content",
-              "text": " | null;\n    MenuPanel: "
+              "text": "> | null;\n    Toolbar: "
             },
             {
               "kind": "Reference",
@@ -28238,7 +28310,7 @@
             },
             {
               "kind": "Content",
-              "text": " | null;\n    SharePanel: "
+              "text": " | null;\n    ZoomMenu: "
             },
             {
               "kind": "Reference",
@@ -28247,7 +28319,16 @@
             },
             {
               "kind": "Content",
-              "text": " | null;\n}>"
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLUiZoomMenuProps",
+              "canonicalReference": "tldraw!TLUiZoomMenuProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "> | null;\n}>"
             },
             {
               "kind": "Content",
@@ -28654,8 +28735,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "Migrations",
-                  "canonicalReference": "@tldraw/store!Migrations:interface"
+                  "text": "TLShapePropsMigrations",
+                  "canonicalReference": "@tldraw/tlschema!TLShapePropsMigrations:type"
                 },
                 {
                   "kind": "Content",
@@ -28685,52 +28766,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        w: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        h: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        time: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<number>;\n        playing: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<boolean>;\n        url: import(\"@tldraw/editor\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Validator",
-                  "canonicalReference": "@tldraw/validate!Validator:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string>;\n        assetId: import(\"@tldraw/editor\")."
+                  "text": "{\n        assetId: import(\"@tldraw/editor\")."
                 },
                 {
                   "kind": "Reference",
@@ -28748,7 +28784,52 @@
                 },
                 {
                   "kind": "Content",
-                  "text": " | null>;\n    }"
+                  "text": " | null>;\n        h: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n        playing: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<boolean>;\n        time: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n        url: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>;\n        w: import(\"@tldraw/editor\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>;\n    }"
                 },
                 {
                   "kind": "Content",

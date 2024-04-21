@@ -11,6 +11,10 @@ import { TextDecoder, TextEncoder } from 'util'
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
 
+Image.prototype.decode = async function () {
+	return true
+}
+
 function convertNumbersInObject(obj: any, roundToNearest: number) {
 	if (!obj) return obj
 	if (Array.isArray(obj)) {

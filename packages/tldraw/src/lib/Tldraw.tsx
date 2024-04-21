@@ -3,6 +3,7 @@ import {
 	ErrorScreen,
 	Expand,
 	LoadingScreen,
+	MigrationSequence,
 	StoreSnapshot,
 	TLEditorComponents,
 	TLOnMountHandler,
@@ -55,6 +56,7 @@ export type TldrawProps = Expand<
 			  }
 			| {
 					store?: undefined
+					migrations?: readonly MigrationSequence[]
 					persistenceKey?: string
 					sessionId?: string
 					defaultName?: string
@@ -107,13 +109,10 @@ export function Tldraw(props: TldrawProps) {
 	)
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
-
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
-
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
-
 	if (!preloadingComplete) {
 		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}

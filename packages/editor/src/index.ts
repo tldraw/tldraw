@@ -121,6 +121,7 @@ export {
 	MAX_ZOOM,
 	MIN_ZOOM,
 	MULTI_CLICK_DURATION,
+	SIDES,
 	SVG_PADDING,
 	ZOOMS,
 } from './lib/constants'
@@ -296,6 +297,7 @@ export {
 	intersectPolygonBounds,
 	intersectPolygonPolygon,
 	linesIntersect,
+	polygonIntersectsPolyline,
 	polygonsIntersect,
 } from './lib/primitives/intersect'
 export {

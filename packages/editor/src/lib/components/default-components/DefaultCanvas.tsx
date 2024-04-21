@@ -116,11 +116,17 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const debugGeometry = useValue('debug_geometry', () => debugFlags.debugGeometry.get(), [
 		debugFlags,
 	])
+	const isEditingAnything = useValue(
+		'isEditingAnything',
+		() => editor.getEditingShapeId() !== null,
+		[editor]
+	)
 
 	return (
 		<div
 			ref={rCanvas}
 			draggable={false}
+			data-iseditinganything={isEditingAnything}
 			className={classNames('tl-canvas', className)}
 			data-testid="canvas"
 			{...events}
@@ -559,7 +565,10 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 
 			const isSingleFrame = editor.isShapeOfType(id, 'frame')
 			const padding = isSingleFrame ? 0 : 10
-			const bounds = editor.getShapePageBounds(id)!.clone().expandBy(padding)
+			let bounds = editor.getShapePageBounds(id)
+			if (!bounds) return
+			bounds = bounds.clone().expandBy(padding)
+
 			const result = await editor.getSvgString([id], {
 				padding,
 				background: editor.getInstanceState().exportBackground,

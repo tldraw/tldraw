@@ -1,3 +1,13 @@
+## 2.0.30
+
+- Fixes a bug that prevented opening some files.
+
+## 2.0.29
+
+- Improved note shapes.
+- Color improvements for both light and dark mode.
+- Bug fixes and performance improvements.
+
 ## 2.0.28
 
 - Fix an issue with panning the canvas.

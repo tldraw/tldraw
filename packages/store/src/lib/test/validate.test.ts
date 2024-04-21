@@ -45,19 +45,10 @@ const Author = createRecordType<Author>('author', {
 	isPseudonym: false,
 }))
 
-const schema = StoreSchema.create<Book | Author>(
-	{
-		book: Book,
-		author: Author,
-	},
-	{
-		snapshotMigrations: {
-			currentVersion: 0,
-			firstVersion: 0,
-			migrators: {},
-		},
-	}
-)
+const schema = StoreSchema.create<Book | Author>({
+	book: Book,
+	author: Author,
+})
 
 describe('Store with validation', () => {
 	let store: Store<Book | Author>

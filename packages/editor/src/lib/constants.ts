@@ -105,6 +105,9 @@ export const COARSE_HANDLE_RADIUS = 20
 /** @internal */
 export const HANDLE_RADIUS = 12
 
+/** @public */
+export const SIDES = ['top', 'right', 'bottom', 'left'] as const
+
 /** @internal */
 export const LONG_PRESS_DURATION = 500
 

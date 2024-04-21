@@ -217,24 +217,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
 
-		const shapeTypesInSchema = new Set(
-			Object.keys(store.schema.types.shape.migrations.subTypeMigrations!)
-		)
-		for (const shapeUtil of allShapeUtils) {
-			if (!shapeTypesInSchema.has(shapeUtil.type)) {
-				throw Error(
-					`Editor and store have different shapes: "${shapeUtil.type}" was passed into the editor but not the schema`
-				)
-			}
-			shapeTypesInSchema.delete(shapeUtil.type)
-		}
-		if (shapeTypesInSchema.size > 0) {
-			throw Error(
-				`Editor and store have different shapes: "${
-					[...shapeTypesInSchema][0]
-				}" is present in the store schema but not provided to the editor`
-			)
-		}
 		const _shapeUtils = {} as Record<string, ShapeUtil<any>>
 		const _styleProps = {} as Record<string, Map<StyleProp<unknown>, string>>
 		const allStylesById = new Map<string, StyleProp<unknown>>()
@@ -795,6 +777,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	undo(): this {
+		this._flushEventsForTick(0)
 		this.history.undo()
 		return this
 	}
@@ -819,6 +802,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	redo(): this {
+		this._flushEventsForTick(0)
 		this.history.redo()
 		return this
 	}
@@ -1323,7 +1307,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.isMenuOpen()
+	 * editor.getIsMenuOpen()
 	 * ```
 	 *
 	 * @public
@@ -1504,21 +1488,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	)
 
 	/**
-	 * Determine whether or not any of a shape's ancestors are selected.
-	 *
-	 * @param id - The id of the shape to check.
-	 *
-	 * @public
-	 */
-	isAncestorSelected(shape: TLShape | TLShapeId): boolean {
-		const id = typeof shape === 'string' ? shape : shape?.id ?? null
-		const _shape = this.getShape(id)
-		if (!_shape) return false
-		const selectedShapeIds = this.getSelectedShapeIds()
-		return !!this.findShapeAncestor(_shape, (parent) => selectedShapeIds.includes(parent.id))
-	}
-
-	/**
 	 * Select one or more shapes.
 	 *
 	 * @example
@@ -1600,10 +1569,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * The id of the app's only selected shape.
+	 *
+	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape's id.
+	 *
+	 * @public
+	 * @readonly
+	 */
+	@computed getOnlySelectedShapeId(): TLShapeId | null {
+		return this.getOnlySelectedShape()?.id ?? null
+	}
+
+	/**
 	 * The app's only selected shape.
 	 *
-	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected
-	 *   shape.
+	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected shape.
 	 *
 	 * @public
 	 * @readonly
@@ -2639,15 +2619,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	animateToUser(userId: string): this {
-		const presences = this.store.query.records('instance_presence', () => ({
-			userId: { eq: userId },
-		}))
-
-		const presence = [...presences.get()]
-			.sort((a, b) => {
-				return a.lastActivityTimestamp - b.lastActivityTimestamp
-			})
-			.pop()
+		const presence = this.getCollaborators().find((c) => c.userId === userId)
 
 		if (!presence) return this
 
@@ -2903,6 +2875,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 			z: point.z ?? 0.5,
 		}
 	}
+	// Collaborators
+
+	@computed
+	private _getCollaboratorsQuery() {
+		return this.store.query.records('instance_presence', () => ({
+			userId: { neq: this.user.getId() },
+		}))
+	}
+
+	/**
+	 * Returns a list of presence records for all peer collaborators.
+	 * This will return the latest presence record for each connected user.
+	 *
+	 * @public
+	 */
+	@computed
+	getCollaborators() {
+		const allPresenceRecords = this._getCollaboratorsQuery().get()
+		if (!allPresenceRecords.length) return EMPTY_ARRAY
+		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
+		return userIds.map((id) => {
+			const latestPresence = allPresenceRecords
+				.filter((c) => c.userId === id)
+				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
+			return latestPresence
+		})
+	}
+
+	/**
+	 * Returns a list of presence records for all peer collaborators on the current page.
+	 * This will return the latest presence record for each connected user.
+	 *
+	 * @public
+	 */
+	@computed
+	getCollaboratorsOnCurrentPage() {
+		const currentPageId = this.getCurrentPageId()
+		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+	}
 
 	// Following
 
@@ -2914,9 +2925,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	startFollowingUser(userId: string): this {
-		const leaderPresences = this.store.query.records('instance_presence', () => ({
-			userId: { eq: userId },
-		}))
+		const leaderPresences = this._getCollaboratorsQuery()
+			.get()
+			.filter((p) => p.userId === userId)
 
 		const thisUserId = this.user.getId()
 
@@ -2925,7 +2936,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// If the leader is following us, then we can't follow them
-		if (leaderPresences.get().some((p) => p.followingUserId === thisUserId)) {
+		if (leaderPresences.some((p) => p.followingUserId === thisUserId)) {
 			return this
 		}
 
@@ -2944,7 +2955,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const moveTowardsUser = () => {
 			// Stop following if we can't find the user
-			const leaderPresence = [...leaderPresences.get()]
+			const leaderPresence = [...leaderPresences]
 				.sort((a, b) => {
 					return a.lastActivityTimestamp - b.lastActivityTimestamp
 				})
@@ -3299,6 +3310,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getCurrentPageShapeIds() {
 		return this._currentPageShapeIds.get()
+	}
+
+	/**
+	 * @internal
+	 */
+	@computed
+	getCurrentPageShapeIdsSorted() {
+		return Array.from(this.getCurrentPageShapeIds()).sort()
 	}
 
 	/**
@@ -3913,7 +3932,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapePageTransform(shape: TLShape | TLShapeId): Mat {
-		const id = typeof shape === 'string' ? shape : this.getShape(shape)!.id
+		const id = typeof shape === 'string' ? shape : shape.id
 		return this._getShapePageTransformCache().get(id) ?? Mat.Identity()
 	}
 
@@ -4247,7 +4266,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getCurrentPageBounds(): Box | undefined {
 		let commonBounds: Box | undefined
 
-		this.getCurrentPageShapeIds().forEach((shapeId) => {
+		this.getCurrentPageShapeIdsSorted().forEach((shapeId) => {
 			const bounds = this.getShapeMaskedPageBounds(shapeId)
 			if (!bounds) return
 			if (!commonBounds) {
@@ -4289,6 +4308,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			renderingOnly?: boolean
 			margin?: number
 			hitInside?: boolean
+			// TODO: we probably need to rename this, we don't quite _always_
+			// respect this esp. in the part below that does "Check labels first"
 			hitLabels?: boolean
 			hitFrameInside?: boolean
 			filter?: (shape: TLShape) => boolean
@@ -4574,28 +4595,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
-		const shapes = this.getCurrentPageShapes().sort(sortByIndex)
-		const parentChildMap = new Map<TLShapeId, TLShape[]>()
 		const result: TLShape[] = []
-		const topLevelShapes: TLShape[] = []
-		let shape: TLShape, parent: TLShape | undefined
-
-		for (let i = 0, n = shapes.length; i < n; i++) {
-			shape = shapes[i]
-			parent = this.getShape(shape.parentId)
-			if (parent) {
-				if (!parentChildMap.has(parent.id)) {
-					parentChildMap.set(parent.id, [])
-				}
-				parentChildMap.get(parent.id)!.push(shape)
-			} else {
-				// undefined if parent is a shape
-				topLevelShapes.push(shape)
-			}
-		}
+		const topLevelShapes = this.getSortedChildIdsForParent(this.getCurrentPageId())
 
 		for (let i = 0, n = topLevelShapes.length; i < n; i++) {
-			pushShapeWithDescendants(topLevelShapes[i], parentChildMap, result)
+			pushShapeWithDescendants(this, topLevelShapes[i], result)
 		}
 
 		return result
@@ -4634,7 +4638,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		arg: TLUnknownShape | TLUnknownShape['id'],
 		type: T['type']
 	) {
-		const shape = typeof arg === 'string' ? this.getShape(arg)! : arg
+		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
+		if (!shape) return false
 		return shape.type === type
 	}
 
@@ -4993,6 +4998,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shape = currentPageShapesSorted[i]
 
 			if (
+				// don't allow dropping on selected shapes
+				this.getSelectedShapeIds().includes(shape.id) ||
 				// only allow shapes that can receive children
 				!this.getShapeUtil(shape).canDropShapes(shape, droppingShapes) ||
 				// don't allow dropping a shape on itself or one of it's children
@@ -7095,7 +7102,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.deleteShapes(['box1', 'box2'])
+	 * editor.deleteShape(shape.id)
 	 * ```
 	 *
 	 * @param id - The id of the shape to delete.
@@ -8168,15 +8175,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _updateInputsFromEvent(
 		info: TLPointerEventInfo | TLPinchEventInfo | TLWheelEventInfo
 	): void {
-		const { previousScreenPoint, previousPagePoint, currentScreenPoint, currentPagePoint } =
-			this.inputs
+		const {
+			pointerVelocity,
+			previousScreenPoint,
+			previousPagePoint,
+			currentScreenPoint,
+			currentPagePoint,
+		} = this.inputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz } = this.getCamera()
+		const { x: cx, y: cy, z: cz } = this.store.unsafeGetWithoutCapture(this.getCameraId())!
 
 		const sx = info.point.x - screenBounds.x
 		const sy = info.point.y - screenBounds.y
-		const sz = info.point.z
+		const sz = info.point.z ?? 0.5
 
 		previousScreenPoint.setTo(currentScreenPoint)
 		previousPagePoint.setTo(currentPagePoint)
@@ -8186,13 +8198,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// it will be 0,0 when its actual screen position is equal
 		// to screenBounds.point. This is confusing!
 		currentScreenPoint.set(sx, sy)
-		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz ?? 0.5)
+		const nx = sx / cz - cx
+		const ny = sy / cz - cy
+		if (isFinite(nx) && isFinite(ny)) {
+			currentPagePoint.set(nx, ny, sz)
+		}
 
 		this.inputs.isPen = info.type === 'pointer' && info.isPen
 
-		// Reset velocity on pointer down
-		if (info.name === 'pointer_down') {
-			this.inputs.pointerVelocity.set(0, 0)
+		// Reset velocity on pointer down, or when a pinch starts or ends
+		if (info.name === 'pointer_down' || this.inputs.isPinching) {
+			pointerVelocity.set(0, 0)
 		}
 
 		// todo: We only have to do this if there are multiple users in the document
@@ -8206,8 +8222,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// If our pointer moved only because we're following some other user, then don't
 					// update our last activity timestamp; otherwise, update it to the current timestamp.
 					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
-						? this.store.get(TLPOINTER_ID)?.lastActivityTimestamp ?? Date.now()
-						: Date.now(),
+						? this.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ??
+							this._tickManager.now
+						: this._tickManager.now,
 				meta: {},
 			},
 		])
@@ -8884,16 +8901,12 @@ function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartia
 	return next
 }
 
-function pushShapeWithDescendants(
-	shape: TLShape,
-	parentChildMap: Map<TLShapeId, TLShape[]>,
-	result: TLShape[]
-): void {
+function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape[]): void {
+	const shape = editor.getShape(id)
+	if (!shape) return
 	result.push(shape)
-	const children = parentChildMap.get(shape.id)
-	if (children) {
-		for (let i = 0, n = children.length; i < n; i++) {
-			pushShapeWithDescendants(children[i], parentChildMap, result)
-		}
+	const childIds = editor.getSortedChildIdsForParent(id)
+	for (let i = 0, n = childIds.length; i < n; i++) {
+		pushShapeWithDescendants(editor, childIds[i], result)
 	}
 }

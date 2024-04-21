@@ -41,9 +41,9 @@ export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {
 	await page.mouse.click(200, 250)
 	await page.keyboard.press('r')
 	await page.mouse.click(250, 300)
-
 	// deselect everything
-	await page.evaluate(() => editor.selectNone())
+	await page.keyboard.press('Escape')
+	await page.keyboard.press('Escape')
 }
 
 export async function cleanupPage(page: PlaywrightTestArgs['page']) {
