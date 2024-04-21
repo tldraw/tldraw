@@ -282,7 +282,6 @@ export class Drawing extends StateNode {
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
-	@measureAverageDuration
 	private updateDrawingShape() {
 		const { initialShape } = this
 		const { inputs } = this.editor
