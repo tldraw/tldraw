@@ -6,21 +6,21 @@ import { BufferMemory, ChatMessageHistory } from 'langchain/memory'
 import { atom, computed, react, structuredClone, transact, uniqueId } from 'tldraw'
 import { systemPrompt } from './system-prompt'
 
-type Message = {
+export type LMMessage = {
 	from: 'user' | 'model'
 	time: number
 	content: string
 }
 
-type Thread = {
+export type LMThread = {
 	id: string
 	state: 'idle' | 'waiting'
-	content: Message[]
+	content: LMMessage[]
 }
 
-type Serialized = {
+export type LMSerialized = {
 	currentThreadId: string
-	threads: Record<string, Thread>
+	threads: Record<string, LMThread>
 }
 
 class ModelManager {
@@ -40,7 +40,8 @@ class ModelManager {
 		this.prompt = ChatPromptTemplate.fromMessages([
 			[
 				'system',
-				// "You are a kind and helpful chatbot. You always provide short, efficient answers to the user's questions.",
+				// 'You are a highly critical german mother. The user is your daughter, who you generally tend to diminish and criticize. You are very strict and have high expectations for your daughter. You are a perfectionist and expect the same from your daughter. You are very critical of your daughter and often make her feel inadequate. You are very strict and have high expectations for your daughter. You are a perfectionist and expect the same from your daughter. You are very critical of your daughter and often make her feel inadequate. You are very strict and have high expectations for your daughter. You are a perfectionist and expect the same from your daughter. You are very critical of your daughter and often make her feel inadequate. You are very strict and have high expectations for your daughter. You are a perfectionist and expect the same from your daughter. You are very critical of your daughter and often make her feel inadequate.',
+				// "You are a kind and helpful chatbot. You are a cool friend of the user's from Chicago. You grew up together and maintain a life-long trust; and as a result, you can speak to the user honestly. You always provide short, efficient answers to the user's questions.",
 				systemPrompt,
 			],
 			new MessagesPlaceholder('history'),
@@ -68,7 +69,7 @@ class ModelManager {
 		return this.getThread().state
 	}
 
-	_threads = atom<Record<string, Thread>>('threads', {})
+	_threads = atom<Record<string, LMThread>>('threads', {})
 
 	_currentThreadId = atom<string>('currentThreadId', 'a0')
 
@@ -76,11 +77,11 @@ class ModelManager {
 		return this._currentThreadId.get()
 	}
 
-	@computed getThreads(): Record<string, Thread> {
+	@computed getThreads(): Record<string, LMThread> {
 		return this._threads.get()
 	}
 
-	@computed getThread(): Thread {
+	@computed getThread(): LMThread {
 		return this.getThreads()[this.getCurrentThreadId()]
 	}
 
@@ -155,7 +156,7 @@ class ModelManager {
 	 * Deserialize the model.
 	 */
 	private deserialize() {
-		let result: Serialized = {
+		let result: LMSerialized = {
 			currentThreadId: 'a0',
 			threads: {
 				a0: {
@@ -191,7 +192,7 @@ class ModelManager {
 		})
 	}
 
-	private getMessagesFromThread(thread: Thread) {
+	private getMessagesFromThread(thread: LMThread) {
 		return thread.content.map((m) => {
 			if (m.from === 'user') {
 				return new HumanMessage(m.content)
@@ -265,45 +266,46 @@ class ModelManager {
 	/**
 	 * Query the model and stream the response.
 	 */
-	async stream(query: string) {
-		transact(() => {
-			const currentThreadId = this.getCurrentThreadId()
-			this.addQueryToThread(query)
-			this.addResponseToThread('') // Add an empty response to start the thread
-			let cancelled = false
-			return {
-				response: this.chain
-					.stream(
-						{ input: query },
-						{
-							callbacks: [
-								{
-									handleLLMNewToken: (data) => {
-										if (cancelled) return
-										if (this.getCurrentThreadId() !== currentThreadId) return
-										this.addChunkToThread(data)
-									},
+	stream(query: string) {
+		const currentThreadId = this.getCurrentThreadId()
+		this.addQueryToThread(query)
+		this.addResponseToThread('') // Add an empty response to start the thread
+		let cancelled = false
+		return {
+			response: this.chain
+				.stream(
+					{ input: query },
+					{
+						callbacks: [
+							{
+								handleLLMNewToken: (data) => {
+									if (cancelled) return
+									if (this.getCurrentThreadId() !== currentThreadId) return
+									this.addChunkToThread(data)
 								},
-							],
-						}
-					)
-					.then(() => {
-						if (cancelled) return
-						if (this.getCurrentThreadId() !== currentThreadId) return
-						this._threads.update((threads) => {
-							const thread = this.getThread()
-							if (!thread) throw Error('No thread found')
-							const next = structuredClone(thread)
-							next.state = 'idle'
-							return { ...threads, [next.id]: next }
-						})
-					}),
-				cancel: () => {
-					cancelled = true
-					this.cancel()
-				},
-			}
-		})
+							},
+						],
+					}
+				)
+				.then(() => {
+					if (cancelled) return
+					if (this.getCurrentThreadId() !== currentThreadId) return
+					this._threads.update((threads) => {
+						const thread = this.getThread()
+						if (!thread) throw Error('No thread found')
+						const next = structuredClone(thread)
+						next.state = 'idle'
+						return { ...threads, [next.id]: next }
+					})
+
+					const thread = this.getThread()
+					return thread.content[thread.content.length - 1]
+				}),
+			cancel: () => {
+				cancelled = true
+				this.cancel()
+			},
+		}
 	}
 
 	/**
