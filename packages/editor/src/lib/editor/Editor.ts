@@ -2074,9 +2074,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public */
 	getCameraFitZoom() {
 		const cameraOptions = this.getCameraOptions()
-		if (!cameraOptions.constraints || cameraOptions.constraints.resetDimension === 'none') {
+		if (
+			// If no camera constraints are provided, the default zoom is 100%
+			!cameraOptions.constraints ||
+			// When defaultZoom is default, the default zoom is 100%
+			cameraOptions.constraints.defaultZoom === 'default' ||
+			// When zoomBehavior is default, we ignore the default zoom and use 100% as the fit zoom
+			cameraOptions.constraints.zoomBehavior === 'default'
+		) {
 			return 1
 		}
+
 		const { padding } = cameraOptions.constraints
 		const vsb = this.getViewportScreenBounds()
 		const py = Math.min(padding.y, vsb.w / 2)
@@ -2085,21 +2093,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const zx = (vsb.w - px * 2) / bounds.w
 		const zy = (vsb.h - py * 2) / bounds.h
 
-		switch (cameraOptions.constraints.resetDimension) {
-			case 'min': {
+		switch (cameraOptions.constraints.defaultZoom) {
+			case 'fit-min': {
 				return Math.max(zx, zy)
 			}
-			case 'max': {
+			case 'fit-max': {
 				return Math.min(zx, zy)
 			}
-			case 'x': {
+			case 'fit-x': {
 				return zx
 			}
-			case 'y': {
+			case 'fit-y': {
 				return zy
 			}
+			// none is accounted-for above
 			default: {
-				throw exhaustiveSwitchError(cameraOptions.constraints.resetDimension)
+				throw exhaustiveSwitchError(cameraOptions.constraints.defaultZoom)
 			}
 		}
 	}
@@ -2182,20 +2191,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				let fitZoom = 1
 
-				switch (cameraOptions.constraints.resetDimension) {
-					case 'min': {
+				switch (cameraOptions.constraints.defaultZoom) {
+					case 'fit-min': {
 						fitZoom = Math.max(zx, zy)
 						break
 					}
-					case 'max': {
+					case 'fit-max': {
 						fitZoom = Math.min(zx, zy)
 						break
 					}
-					case 'x': {
+					case 'fit-x': {
 						fitZoom = zx
 						break
 					}
-					case 'y': {
+					case 'fit-y': {
 						fitZoom = zy
 						break
 					}
@@ -2230,6 +2239,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const originX = minX + freeW * constraints.origin.x
 				const originY = minY + freeH * constraints.origin.y
 
+				const behaviorX =
+					typeof constraints.behavior === 'string' ? constraints.behavior : constraints.behavior.x
+				const behaviorY =
+					typeof constraints.behavior === 'string' ? constraints.behavior : constraints.behavior.y
+
 				// x axis
 
 				if (opts?.reset) {
@@ -2238,8 +2252,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					y = originY
 				} else {
 					// Apply constraints to the camera
-					switch (constraints.fitX) {
-						case 'lock': {
+					switch (behaviorX) {
+						case 'fixed': {
 							// Center according to the origin
 							x = originX
 							break
@@ -2267,8 +2281,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// y axis
 
-					switch (constraints.fitY) {
-						case 'lock': {
+					switch (behaviorY) {
+						case 'fixed': {
 							y = originY
 							break
 						}

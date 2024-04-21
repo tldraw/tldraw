@@ -2008,12 +2008,15 @@ export type TLCameraMoveOptions = Partial<{
 // @public (undocumented)
 export type TLCameraOptions = {
     constraints?: {
-        fitX: 'contain' | 'inside' | 'lock' | 'outside';
-        fitY: 'contain' | 'inside' | 'lock' | 'outside';
+        behavior: 'contain' | 'fixed' | 'inside' | 'outside' | {
+            x: 'contain' | 'fixed' | 'inside' | 'outside';
+            y: 'contain' | 'fixed' | 'inside' | 'outside';
+        };
+        zoomBehavior: 'default' | 'fit';
         bounds: BoxModel;
         origin: VecLike;
         padding: VecLike;
-        resetDimension: 'max' | 'min' | 'none' | 'x' | 'y';
+        defaultZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';
     };
     panSpeed: number;
     zoomSpeed: number;

@@ -18,15 +18,15 @@ const CAMERA_OPTIONS: TLCameraOptions = {
 	zoomSpeed: 1,
 	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
 	constraints: {
-		resetDimension: 'max',
+		defaultZoom: 'fit-max',
+		zoomBehavior: 'fit',
 		bounds: {
 			x: 0,
 			y: 0,
 			w: 1600,
 			h: 900,
 		},
-		fitX: 'contain',
-		fitY: 'contain',
+		behavior: { x: 'contain', y: 'contain' },
 		padding: { x: 100, y: 100 },
 		origin: { x: 0.5, y: 0.5 },
 	},
@@ -140,11 +140,16 @@ const components = {
 const CameraOptionsControlPanel = track(() => {
 	const editor = useEditor()
 
-	const [cameraOptions, setCameraOptions] = useLocalStorageState('camera ex', CAMERA_OPTIONS)
+	const [cameraOptions, setCameraOptions] = useLocalStorageState('camera ex1', CAMERA_OPTIONS)
 
 	useEffect(() => {
 		if (!editor) return
-		editor.setCameraOptions(cameraOptions, { immediate: true })
+		editor.batch(() => {
+			editor.setCameraOptions(cameraOptions, { immediate: true })
+			editor.setCamera(editor.getCamera(), {
+				immediate: true,
+			})
+		})
 	}, [editor, cameraOptions])
 
 	const { constraints } = cameraOptions
@@ -278,24 +283,40 @@ const CameraOptionsControlPanel = track(() => {
 				</select>
 				{constraints ? (
 					<>
-						<label htmlFor="fit">Fit</label>
+						<label htmlFor="defaultzoom">Default Zoom</label>
 						<select
-							name="fit"
-							value={constraints.resetDimension}
+							name="defaultzoom"
+							value={constraints.defaultZoom}
 							onChange={(e) => {
 								updateOptions({
 									constraints: {
 										...constraints,
-										resetDimension: e.target.value as any,
+										defaultZoom: e.target.value as any,
 									},
 								})
 							}}
 						>
-							<option>min</option>
-							<option>max</option>
-							<option> x</option>
-							<option> y</option>
-							<option>none</option>
+							<option>fit-min</option>
+							<option>fit-max</option>
+							<option>fit-x</option>
+							<option>fit-y</option>
+							<option>default</option>
+						</select>
+						<label htmlFor="fit">Zoom Behavior</label>
+						<select
+							name="zoomBehavior"
+							value={constraints.zoomBehavior}
+							onChange={(e) => {
+								updateOptions({
+									constraints: {
+										...constraints,
+										zoomBehavior: e.target.value as any,
+									},
+								})
+							}}
+						>
+							<option>fit</option>
+							<option>default</option>
 						</select>
 						<label htmlFor="originX">Origin X</label>
 						<input
@@ -374,13 +395,16 @@ const CameraOptionsControlPanel = track(() => {
 						<label htmlFor="fitx">Fit X</label>
 						<select
 							name="fitx"
-							value={constraints.fitX}
+							value={(constraints.behavior as { x: any; y: any }).x}
 							onChange={(e) => {
 								setCameraOptions({
 									...cameraOptions,
 									constraints: {
 										...constraints,
-										fitX: e.target.value as any,
+										behavior: {
+											...(constraints.behavior as { x: any; y: any }),
+											x: e.target.value as any,
+										},
 									},
 								})
 							}}
@@ -393,13 +417,16 @@ const CameraOptionsControlPanel = track(() => {
 						<label htmlFor="fity">Fit Y</label>
 						<select
 							name="fity"
-							value={constraints.fitY}
+							value={(constraints.behavior as { x: any; y: any }).y}
 							onChange={(e) => {
 								setCameraOptions({
 									...cameraOptions,
 									constraints: {
 										...constraints,
-										fitY: e.target.value as any,
+										behavior: {
+											...(constraints.behavior as { x: any; y: any }),
+											y: e.target.value as any,
+										},
 									},
 								})
 							}}
