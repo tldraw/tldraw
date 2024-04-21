@@ -2,7 +2,6 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
-	preventDefault,
 	stopEventPropagation,
 	useEditor,
 	useValue,
@@ -11,31 +10,14 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditableText(
-	id: TLShapeId,
-	type: string,
-	text: string,
-	opts = { disableTab: false } as { disableTab: boolean }
-) {
+export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const editor = useEditor()
-
 	const rInput = useRef<HTMLTextAreaElement>(null)
-
-	const isEditing = useValue(
-		'isEditing',
-		() => {
-			return editor.getEditingShapeId() === id
-		},
-		[editor]
-	)
-
-	const isEditingAnything = useValue(
-		'isEditingAnything',
-		() => {
-			return editor.getEditingShapeId() !== null
-		},
-		[editor]
-	)
+	const rSelectionRanges = useRef<Range[] | null>()
+	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor])
+	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
+		editor,
+	])
 
 	useEffect(() => {
 		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
@@ -52,13 +34,12 @@ export function useEditableText(
 				}
 			})
 		}
+
 		editor.on('select-all-text', selectAllIfEditing)
 		return () => {
 			editor.off('select-all-text', selectAllIfEditing)
 		}
 	}, [editor, id])
-
-	const rSelectionRanges = useRef<Range[] | null>()
 
 	useEffect(() => {
 		if (!isEditing) return
@@ -69,9 +50,17 @@ export function useEditableText(
 		// Focus if we're not already focused
 		if (document.activeElement !== elm) {
 			elm.focus()
+
 			// On mobile etc, just select all the text when we start focusing
 			if (editor.getInstanceState().isCoarsePointer) {
 				elm.select()
+			}
+		} else {
+			// This fixes iOS not showing the cursor sometimes. This "shakes" the cursor
+			// awake.
+			if (editor.environment.isSafari) {
+				elm.blur()
+				elm.focus()
 			}
 		}
 
@@ -103,12 +92,14 @@ export function useEditableText(
 		requestAnimationFrame(() => {
 			const elm = rInput.current
 			const editingShapeId = editor.getEditingShapeId()
+
 			// Did we move to a different shape?
 			if (editingShapeId) {
 				// important! these ^v are two different things
 				// is that shape OUR shape?
 				if (elm && editingShapeId === id) {
 					elm.focus()
+
 					if (ranges && ranges.length) {
 						const selection = window.getSelection()
 						if (selection) {
@@ -134,20 +125,9 @@ export function useEditableText(
 					}
 					break
 				}
-				case 'Tab': {
-					if (!opts.disableTab) {
-						preventDefault(e)
-						if (e.shiftKey) {
-							TextHelpers.unindent(e.currentTarget)
-						} else {
-							TextHelpers.indent(e.currentTarget)
-						}
-					}
-					break
-				}
 			}
 		},
-		[editor, id, opts.disableTab]
+		[editor, id]
 	)
 
 	// When the text changes, update the text value.
@@ -198,8 +178,6 @@ export function useEditableText(
 		[editor, id, isEditing]
 	)
 
-	const handleDoubleClick = stopEventPropagation
-
 	return {
 		rInput,
 		handleFocus: noop,
@@ -207,7 +185,7 @@ export function useEditableText(
 		handleKeyDown,
 		handleChange,
 		handleInputPointerDown,
-		handleDoubleClick,
+		handleDoubleClick: stopEventPropagation,
 		isEmpty: text.trim().length === 0,
 		isEditing,
 		isEditingAnything,

@@ -3029,6 +3029,14 @@
                     },
                     {
                       "kind": "Content",
+                      "text": ", useNumberKeys: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "boolean"
+                    },
+                    {
+                      "kind": "Content",
                       "text": ");"
                     }
                   ],
@@ -3057,6 +3065,14 @@
                       "parameterTypeTokenRange": {
                         "startIndex": 5,
                         "endIndex": 6
+                      },
+                      "isOptional": false
+                    },
+                    {
+                      "parameterName": "useNumberKeys",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 7,
+                        "endIndex": 8
                       },
                       "isOptional": false
                     }
@@ -4262,6 +4278,14 @@
                 },
                 {
                   "kind": "Content",
+                  "text": ", useNumberKeys: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
                   "text": ");"
                 }
               ],
@@ -4290,6 +4314,14 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 5,
                     "endIndex": 6
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "useNumberKeys",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 7,
+                    "endIndex": 8
                   },
                   "isOptional": false
                 }
