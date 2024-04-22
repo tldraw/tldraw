@@ -1297,7 +1297,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-content', { source })
-					editor.zoomToContent()
+					const bounds = editor.getSelectionPageBounds() ?? editor.getCurrentPageBounds()
+					if (!bounds) return
+					editor.zoomToBounds(bounds, {
+						targetZoom: Math.min(1, editor.getZoomLevel()),
+						animation: { duration: 220 },
+					})
 				},
 			},
 			{

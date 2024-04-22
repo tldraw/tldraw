@@ -619,6 +619,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    // (undocumented)
+    readonly cameraState: CameraStateManager;
     cancel(): this;
     cancelDoubleClick(): void;
     // @internal (undocumented)
@@ -695,7 +697,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getBaseZoom(): number;
     getCamera(): TLCamera;
     getCameraOptions(): TLCameraOptions;
-    getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     getCollaborators(): TLInstancePresence[];
@@ -869,7 +870,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
     pan(offset: VecLike, opts?: TLCameraMoveOptions): this;
-    panZoomIntoView(ids: TLShapeId[], opts?: TLCameraMoveOptions): this;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, options?: {
         point?: VecLike;
@@ -960,10 +960,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         inset?: number;
         targetZoom?: number;
     } & TLCameraMoveOptions): this;
-    zoomToContent(opts?: TLCameraMoveOptions): this;
     zoomToFit(opts?: TLCameraMoveOptions): this;
     zoomToSelection(opts?: TLCameraMoveOptions): this;
-    zoomToShape(shapeId: TLShapeId, opts?: TLCameraMoveOptions): this;
     zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
 }
 

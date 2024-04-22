@@ -66,7 +66,6 @@ import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	ANIMATION_MEDIUM_MS,
-	CAMERA_MOVING_TIMEOUT,
 	CAMERA_SLIDE_FRICTION,
 	COARSE_DRAG_DISTANCE,
 	COLLABORATOR_IDLE_TIMEOUT,
@@ -108,6 +107,7 @@ import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { getSvgJsx } from './getSvgJsx'
+import { CameraStateManager } from './managers/CameraStateManager'
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
@@ -218,6 +218,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.textMeasure = new TextManager(this)
 		this._tickManager = new TickManager(this)
+		this.cameraState = new CameraStateManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -675,6 +676,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly user: UserPreferencesManager
 
+	readonly cameraState: CameraStateManager
+
 	/**
 	 * A helper for measuring text.
 	 *
@@ -697,6 +700,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly scribbles: ScribbleManager
 
 	/**
+	 * A manager for side effects and correct state enforcement. See {@link SideEffectManager} for details.
+	 *
+	 * @public
+	 */
+	readonly sideEffects: SideEffectManager<this>
+
+	/**
 	 * The current HTML element containing the editor.
 	 *
 	 * @example
@@ -707,13 +717,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getContainer: () => HTMLElement
-
-	/**
-	 * A manager for side effects and correct state enforcement. See {@link SideEffectManager} for details.
-	 *
-	 * @public
-	 */
-	readonly sideEffects: SideEffectManager<this>
 
 	/**
 	 * Dispose the editor.
@@ -2373,7 +2376,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			this._tickCameraState()
+			this.cameraState.tick()
 		})
 
 		return this
@@ -2443,26 +2446,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getCameraOptions().isLocked) return this
 		const { width: pw, height: ph } = this.getViewportPageBounds()
 		this.setCamera(new Vec(-(point.x - pw / 2), -(point.y - ph / 2), this.getCamera().z), opts)
-		return this
-	}
-
-	/**
-	 * Move the camera to the nearest content.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.zoomToContent()
-	 * editor.zoomToContent({ animation: { duration: 200 } })
-	 * ```
-	 *
-	 * @param opts - The camera move options.
-	 *
-	 * @public
-	 */
-	zoomToContent(opts: TLCameraMoveOptions = { animation: { duration: 220 } }): this {
-		const bounds = this.getSelectionPageBounds() ?? this.getCurrentPageBounds()
-		if (!bounds) return this
-		this.zoomToBounds(bounds, { targetZoom: Math.min(1, this.getZoomLevel()), ...opts })
 		return this
 	}
 
@@ -2637,66 +2620,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				...opts,
 			})
 		}
-		return this
-	}
-
-	/**
-	 * Pan or pan/zoom the selected ids into view. This method tries to not change the zoom if possible.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.panZoomIntoView([myShape.id])
-	 * editor.panZoomIntoView([myShape.id], { animation: { duration: 200 } })
-	 * ```
-	 *
-	 * @param ids - The ids of the shapes to pan and zoom into view.
-	 * @param opts - The camera move options.
-	 *
-	 * @public
-	 */
-	panZoomIntoView(ids: TLShapeId[], opts?: TLCameraMoveOptions): this {
-		if (this.getCameraOptions().isLocked) return this
-
-		if (ids.length <= 0) return this
-		const selectionBounds = Box.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
-
-		const viewportPageBounds = this.getViewportPageBounds()
-
-		if (viewportPageBounds.h < selectionBounds.h || viewportPageBounds.w < selectionBounds.w) {
-			this.zoomToBounds(selectionBounds, { targetZoom: this.getCamera().z, ...opts })
-
-			return this
-		} else {
-			const insetViewport = this.getViewportPageBounds()
-				.clone()
-				.expandBy(-32 / this.getZoomLevel())
-
-			let offsetX = 0
-			let offsetY = 0
-			if (insetViewport.maxY < selectionBounds.maxY) {
-				// off bottom
-				offsetY = insetViewport.maxY - selectionBounds.maxY
-			} else if (insetViewport.minY > selectionBounds.minY) {
-				// off top
-				offsetY = insetViewport.minY - selectionBounds.minY
-			} else {
-				// inside y-bounds
-			}
-
-			if (insetViewport.maxX < selectionBounds.maxX) {
-				// off right
-				offsetX = insetViewport.maxX - selectionBounds.maxX
-			} else if (insetViewport.minX > selectionBounds.minX) {
-				// off left
-				offsetX = insetViewport.minX - selectionBounds.minX
-			} else {
-				// inside x-bounds
-			}
-
-			const { x: cx, y: cy, z: cz } = this.getCamera()
-			this.setCamera(new Vec(cx + offsetX, cy + offsetY, cz), opts)
-		}
-
 		return this
 	}
 
@@ -2985,53 +2908,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/**
-	 * Animate the camera to a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.zoomToShape(myShape.id)
-	 * editor.zoomToShape(myShape.id, { animation: { duration: 200 } })
-	 * ```
-	 *
-	 * @param shapeId - The id of the shape to animate to.
-	 * @param opts - The camera move options.
-	 *
-	 * @public
-	 */
-	zoomToShape(shapeId: TLShapeId, opts?: TLCameraMoveOptions): this {
-		if (this.getCameraOptions().isLocked) return this
-
-		const activeArea = this.getViewportScreenBounds().clone().expandBy(-32)
-		const viewportAspectRatio = activeArea.width / activeArea.height
-
-		const shapePageBounds = this.getShapePageBounds(shapeId)
-
-		if (!shapePageBounds) return this
-
-		const shapeAspectRatio = shapePageBounds.width / shapePageBounds.height
-
-		const targetViewportPage = shapePageBounds.clone()
-
-		const z = shapePageBounds.width / activeArea.width
-		targetViewportPage.width += (activeArea.minX + activeArea.maxX) * z
-		targetViewportPage.height += (activeArea.minY + activeArea.maxY) * z
-		targetViewportPage.x -= activeArea.minX * z
-		targetViewportPage.y -= activeArea.minY * z
-
-		if (shapeAspectRatio > viewportAspectRatio) {
-			targetViewportPage.height = shapePageBounds.width / viewportAspectRatio
-			targetViewportPage.y -= (targetViewportPage.height - shapePageBounds.height) / 2
-		} else {
-			targetViewportPage.width = shapePageBounds.height * viewportAspectRatio
-			targetViewportPage.x -= (targetViewportPage.width - shapePageBounds.width) / 2
-		}
-
-		this._animateToViewport(targetViewportPage, opts)
-
-		return this
-	}
-
 	// Viewport
 
 	/** @internal */
@@ -3101,7 +2977,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this._tickCameraState()
+		this.cameraState.tick()
 		this.updateRenderingBounds()
 
 		return this
@@ -3401,58 +3277,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.emit('stop-following')
 		})
 		return this
-	}
-
-	// Camera state
-
-	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
-
-	/**
-	 * Whether the camera is moving or idle.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getCameraState()
-	 * ```
-	 *
-	 * @public
-	 */
-	getCameraState() {
-		return this._cameraState.get()
-	}
-
-	// Camera state does two things: first, it allows us to subscribe to whether
-	// the camera is moving or not; and second, it allows us to update the rendering
-	// shapes on the canvas. Changing the rendering shapes may cause shapes to
-	// unmount / remount in the DOM, which is expensive; and computing visibility is
-	// also expensive in large projects. For this reason, we use a second bounding
-	// box just for rendering, and we only update after the camera stops moving.
-
-	private _cameraStateTimeoutRemaining = 0
-	private _lastUpdateRenderingBoundsTimestamp = Date.now()
-
-	private _decayCameraStateTimeout = (elapsed: number) => {
-		this._cameraStateTimeoutRemaining -= elapsed
-
-		if (this._cameraStateTimeoutRemaining <= 0) {
-			this.off('tick', this._decayCameraStateTimeout)
-			this._cameraState.set('idle')
-			this.updateRenderingBounds()
-		}
-	}
-
-	private _tickCameraState = () => {
-		// always reset the timeout
-		this._cameraStateTimeoutRemaining = CAMERA_MOVING_TIMEOUT
-
-		const now = Date.now()
-
-		// If the state is idle, then start the tick
-		if (this._cameraState.__unsafe__getWithoutCapture() === 'idle') {
-			this._lastUpdateRenderingBoundsTimestamp = now // don't render right away
-			this._cameraState.set('moving')
-			this.on('tick', this._decayCameraStateTimeout)
-		}
 	}
 
 	/** @internal */

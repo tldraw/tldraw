@@ -649,7 +649,7 @@ function InFrontOfTheCanvasWrapper() {
 
 function MovingCameraHitTestBlocker() {
 	const editor = useEditor()
-	const cameraState = useValue('camera state', () => editor.getCameraState(), [editor])
+	const cameraState = useValue('camera state', () => editor.cameraState.getCameraState(), [editor])
 
 	return (
 		<div

@@ -7938,6 +7938,37 @@
               "name": "bringToFront"
             },
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#cameraState:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly cameraState: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "CameraStateManager",
+                  "canonicalReference": "@tldraw/editor!~CameraStateManager:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "cameraState",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#cancel:member(1)",
               "docComment": "/**\n * Dispatch a cancel event.\n *\n * @example\n * ```ts\n * editor.cancel()\n * ```\n *\n * @public\n */\n",
@@ -9936,37 +9967,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getCameraOptions"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#getCameraState:member(1)",
-              "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @example\n * ```ts\n * editor.getCameraState()\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getCameraState(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "\"idle\" | \"moving\""
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getCameraState"
             },
             {
               "kind": "Method",
@@ -15768,76 +15768,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#panZoomIntoView:member(1)",
-              "docComment": "/**\n * Pan or pan/zoom the selected ids into view. This method tries to not change the zoom if possible.\n *\n * @param ids - The ids of the shapes to pan and zoom into view.\n *\n * @param opts - The camera move options.\n *\n * @example\n * ```ts\n * editor.panZoomIntoView([myShape.id])\n * editor.panZoomIntoView([myShape.id], { animation: { duration: 200 } })\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "panZoomIntoView(ids: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", opts?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLCameraMoveOptions",
-                  "canonicalReference": "@tldraw/editor!TLCameraMoveOptions:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "this"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 6,
-                "endIndex": 7
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "ids",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 3
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "opts",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 4,
-                    "endIndex": 5
-                  },
-                  "isOptional": true
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "panZoomIntoView"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#popFocusedGroupId:member(1)",
               "docComment": "/**\n * Exit the current focused group, moving up to the next parent group if there is one.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -19913,55 +19843,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#zoomToContent:member(1)",
-              "docComment": "/**\n * Move the camera to the nearest content.\n *\n * @param opts - The camera move options.\n *\n * @example\n * ```ts\n * editor.zoomToContent()\n * editor.zoomToContent({ animation: { duration: 200 } })\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "zoomToContent(opts?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLCameraMoveOptions",
-                  "canonicalReference": "@tldraw/editor!TLCameraMoveOptions:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "this"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "opts",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": true
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "zoomToContent"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToFit:member(1)",
               "docComment": "/**\n * Zoom the camera to fit the current page's content in the viewport.\n *\n * @param opts - The camera move options.\n *\n * @example\n * ```ts\n * editor.zoomToFit()\n * editor.zoomToFit({ animation: { duration: 200 } })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -20057,72 +19938,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "zoomToSelection"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#zoomToShape:member(1)",
-              "docComment": "/**\n * Animate the camera to a shape.\n *\n * @param shapeId - The id of the shape to animate to.\n *\n * @param opts - The camera move options.\n *\n * @example\n * ```ts\n * editor.zoomToShape(myShape.id)\n * editor.zoomToShape(myShape.id, { animation: { duration: 200 } })\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "zoomToShape(shapeId: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLShapeId",
-                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", opts?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLCameraMoveOptions",
-                  "canonicalReference": "@tldraw/editor!TLCameraMoveOptions:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "this"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "shapeId",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "opts",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": true
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "zoomToShape"
             },
             {
               "kind": "Method",
