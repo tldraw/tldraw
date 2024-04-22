@@ -62,7 +62,7 @@ const schemaV2 = T.object<SerializedSchemaV2>({
 
 const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 	tldrawFileFormatVersion: T.nonZeroInteger,
-	schema: T.union('schemaVersion', {
+	schema: T.numberUnion('schemaVersion', {
 		1: schemaV1,
 		2: schemaV2,
 	}),

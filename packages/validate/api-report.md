@@ -83,6 +83,9 @@ function nullable<T>(validator: Validatable<T>): Validator<null | T>;
 // @public
 const number: Validator<number>;
 
+// @internal (undocumented)
+function numberUnion<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(key: Key, config: Config): UnionValidator<Key, Config>;
+
 // @public
 function object<Shape extends object>(config: {
     readonly [K in keyof Shape]: Validatable<Shape[K]>;
@@ -134,6 +137,7 @@ declare namespace T {
         jsonDict,
         dict,
         union,
+        numberUnion,
         model,
         setEnum,
         optional,
@@ -178,7 +182,7 @@ function union<Key extends string, Config extends UnionValidatorConfig<Key, Conf
 
 // @public (undocumented)
 export class UnionValidator<Key extends string, Config extends UnionValidatorConfig<Key, Config>, UnknownValue = never> extends Validator<TypeOf<Config[keyof Config]> | UnknownValue> {
-    constructor(key: Key, config: Config, unknownValueValidation: (value: object, variant: string) => UnknownValue);
+    constructor(key: Key, config: Config, unknownValueValidation: (value: object, variant: string) => UnknownValue, useNumberKeys: boolean);
     // (undocumented)
     validateUnknownVariants<Unknown>(unknownValueValidation: (value: object, variant: string) => Unknown): UnionValidator<Key, Config, Unknown>;
 }
