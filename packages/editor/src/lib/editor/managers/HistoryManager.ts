@@ -3,11 +3,10 @@ import {
 	RecordsDiff,
 	Store,
 	UnknownRecord,
-	createEmptyPatchedRecordsDiff,
-	createPatchedRecordsDiffFromRecordsDiff,
-	isPatchedRecordsDiffEmpty,
-	reversePatchedRecordsDiff,
-	squashPatchedRecordsDiffMutable,
+	createEmptyRecordsDiff,
+	isRecordsDiffEmpty,
+	reverseRecordsDiff,
+	squashRecordDiffsMutable,
 } from '@tldraw/store'
 import { exhaustiveSwitchError, noop } from '@tldraw/utils'
 import { uniqueId } from '../../utils/uniqueId'
@@ -87,9 +86,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	_isInBatch = false
 	batch = (fn: () => void, opts?: TLHistoryBatchOptions) => {
 		const previousState = this.state
-		const nextState = opts?.history ? modeToState[opts.history] : this.state
-		// if (this.state !== nextState) this.flushPendingDiff()
-		this.state = nextState
+		this.state = opts?.history ? modeToState[opts.history] : this.state
 
 		try {
 			if (this._isInBatch) {
@@ -136,8 +133,8 @@ export class HistoryManager<R extends UnknownRecord> {
 			// start by collecting the pending diff (everything since the last mark).
 			// we'll accumulate the diff to undo in this variable so we can apply it atomically.
 			const pendingDiff = this.pendingDiff.clear()
-			const isPendingDiffEmpty = isPatchedRecordsDiffEmpty(pendingDiff)
-			const diffToUndo = reversePatchedRecordsDiff(pendingDiff)
+			const isPendingDiffEmpty = isRecordsDiffEmpty(pendingDiff)
+			const diffToUndo = reverseRecordsDiff(pendingDiff)
 
 			if (pushToRedoStack && !isPendingDiffEmpty) {
 				redos = redos.push({ type: 'diff', diff: pendingDiff })
@@ -170,8 +167,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 					switch (undo.type) {
 						case 'diff':
-							squashPatchedRecordsDiffMutable(diffToUndo, reversePatchedRecordsDiff(undo.diff))
-							// squashRecordDiffsMutable(diffToUndo, [reverseRecordsDiff(undo.diff)])
+							squashRecordDiffsMutable(diffToUndo, [reverseRecordsDiff(undo.diff)])
 							break
 						case 'stop':
 							if (!toMark) break loop
@@ -183,7 +179,7 @@ export class HistoryManager<R extends UnknownRecord> {
 				}
 			}
 
-			this.store.applyPatchDiff(diffToUndo)
+			this.store.applyDiff(diffToUndo)
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
@@ -217,7 +213,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			}
 
 			// accumulate diffs to be redone so they can be applied atomically
-			const diffToRedo = createEmptyPatchedRecordsDiff<R>()
+			const diffToRedo = createEmptyRecordsDiff<R>()
 
 			while (redos.head) {
 				const redo = redos.head
@@ -225,13 +221,13 @@ export class HistoryManager<R extends UnknownRecord> {
 				redos = redos.tail
 
 				if (redo.type === 'diff') {
-					squashPatchedRecordsDiffMutable(diffToRedo, redo.diff)
+					squashRecordDiffsMutable(diffToRedo, [redo.diff])
 				} else {
 					break
 				}
 			}
 
-			this.store.applyPatchDiff(diffToRedo)
+			this.store.applyDiff(diffToRedo)
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
@@ -286,12 +282,12 @@ const modeToState = {
 } as const
 
 class PendingDiff<R extends UnknownRecord> {
-	private diff = createEmptyPatchedRecordsDiff<R>()
+	private diff = createEmptyRecordsDiff<R>()
 	private isEmptyAtom = atom('PendingDiff.isEmpty', true)
 
 	clear() {
 		const diff = this.diff
-		this.diff = createEmptyPatchedRecordsDiff<R>()
+		this.diff = createEmptyRecordsDiff<R>()
 		this.isEmptyAtom.set(true)
 		return diff
 	}
@@ -301,8 +297,8 @@ class PendingDiff<R extends UnknownRecord> {
 	}
 
 	apply(diff: RecordsDiff<R>) {
-		squashPatchedRecordsDiffMutable(this.diff, createPatchedRecordsDiffFromRecordsDiff(diff))
-		this.isEmptyAtom.set(isPatchedRecordsDiffEmpty(this.diff))
+		squashRecordDiffsMutable(this.diff, [diff])
+		this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
 	}
 
 	debug() {

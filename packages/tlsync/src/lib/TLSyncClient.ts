@@ -323,7 +323,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				const wipeAll = event.hydrationType === 'wipe_all'
 				if (!wipeAll) {
 					// if we're only wiping presence data, undo the speculative changes first
-					this.store.applyDiff(reverseRecordsDiff(stashedChanges), { runCallbacks: false })
+					this.store.applyDiff(reverseRecordsDiff(stashedChanges), false)
 				}
 
 				// now wipe all presence data and, if needed, all document data
@@ -537,7 +537,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			}
 		}
 		if (hasChanges) {
-			this.store.applyDiff(changes, { runCallbacks })
+			this.store.applyDiff(changes, runCallbacks)
 		}
 	}
 
@@ -553,7 +553,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		try {
 			this.store.mergeRemoteChanges(() => {
 				// first undo speculative changes
-				this.store.applyDiff(reverseRecordsDiff(this.speculativeChanges), { runCallbacks: false })
+				this.store.applyDiff(reverseRecordsDiff(this.speculativeChanges), false)
 
 				// then apply network diffs on top of known-to-be-synced data
 				for (const diff of diffs) {

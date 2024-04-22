@@ -1,4 +1,4 @@
-import { PatchedRecordsDiff, UnknownRecord } from '@tldraw/store'
+import { RecordsDiff, UnknownRecord } from '@tldraw/store'
 
 /** @public */
 export interface TLHistoryMark {
@@ -9,7 +9,7 @@ export interface TLHistoryMark {
 /** @public */
 export interface TLHistoryDiff<R extends UnknownRecord> {
 	type: 'diff'
-	diff: PatchedRecordsDiff<R>
+	diff: RecordsDiff<R>
 }
 
 /** @public */
