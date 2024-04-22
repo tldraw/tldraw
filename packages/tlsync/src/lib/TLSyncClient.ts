@@ -24,7 +24,13 @@ import './requestAnimationFrame.polyfill'
 
 type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
-/** @public */
+/**
+ * These are our private codes to be sent from server->client.
+ * They are in the private range of the websocket code range.
+ * See: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
+ *
+ * @public
+ */
 export enum TLCloseEventCode {
 	NOT_FOUND = 4004,
 }
