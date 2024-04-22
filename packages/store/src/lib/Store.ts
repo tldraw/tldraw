@@ -586,11 +586,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			throw new Error(`Failed to migrate snapshot: ${migrationResult.reason}`)
 		}
 
-		this.atomic(() => {
-			this.clear()
-			this.put(Object.values(migrationResult.value))
-			this.ensureStoreIsUsable()
-		})
+		const prevRunCallbacks = this._runCallbacks
+		try {
+			this._runCallbacks = false
+			this.atomic(() => {
+				this.clear()
+				this.put(Object.values(migrationResult.value))
+				this.ensureStoreIsUsable()
+			})
+		} finally {
+			this._runCallbacks = prevRunCallbacks
+		}
 	}
 
 	/**

@@ -136,3 +136,56 @@ it('correctly calculates the culled shapes when adding and deleting shapes', () 
 	const culledShapeFromScratch = editor.getCulledShapes()
 	expect(culledShapesIncremental).toEqual(culledShapeFromScratch)
 })
+
+it('works for shapes that are outside of the viewport, but are then moved inside it', () => {
+	const box1Id = createShapeId()
+	const box2Id = createShapeId()
+	const arrowId = createShapeId()
+
+	editor.createShapes([
+		{
+			id: box1Id,
+			props: { w: 100, h: 100, geo: 'rectangle' },
+			type: 'geo',
+			x: -500,
+			y: 0,
+		},
+		{
+			id: box2Id,
+			type: 'geo',
+			x: -1000,
+			y: 200,
+			props: { w: 100, h: 100, geo: 'rectangle' },
+		},
+		{
+			id: arrowId,
+			type: 'arrow',
+			props: {
+				start: {
+					type: 'binding',
+					isExact: true,
+					boundShapeId: box1Id,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
+				},
+				end: {
+					type: 'binding',
+					isExact: true,
+					boundShapeId: box2Id,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
+				},
+			},
+		},
+	])
+
+	expect(editor.getCulledShapes()).toEqual(new Set([box1Id, box2Id, arrowId]))
+
+	// Move box1 and box2 inside the viewport
+	editor.updateShapes([
+		{ id: box1Id, type: 'geo', x: 100 },
+		{ id: box2Id, type: 'geo', x: 200 },
+	])
+	// Arrow should also not be culled
+	expect(editor.getCulledShapes()).toEqual(new Set())
+})

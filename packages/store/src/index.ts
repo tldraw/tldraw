@@ -22,19 +22,26 @@ export type {
 	StoreValidators,
 } from './lib/Store'
 export { StoreSchema } from './lib/StoreSchema'
-export type { SerializedSchema, StoreSchemaOptions } from './lib/StoreSchema'
-export { compareSchemas } from './lib/compareSchemas'
+export type {
+	SerializedSchema,
+	SerializedSchemaV1,
+	SerializedSchemaV2,
+	StoreSchemaOptions,
+} from './lib/StoreSchema'
 export { devFreeze } from './lib/devFreeze'
 export {
 	MigrationFailureReason,
-	compareRecordVersions,
+	createMigrationIds,
+	createMigrationSequence,
+	createRecordMigrationSequence,
+	// eslint-disable-next-line deprecation/deprecation
 	defineMigrations,
-	getRecordVersion,
-	migrate,
-	migrateRecord,
+	parseMigrationId,
+	type LegacyMigration,
+	type LegacyMigrations,
 	type Migration,
+	type MigrationId,
 	type MigrationResult,
-	type Migrations,
-	type RecordVersion,
+	type MigrationSequence,
 } from './lib/migrate'
 export type { AllRecords } from './lib/type-utils'

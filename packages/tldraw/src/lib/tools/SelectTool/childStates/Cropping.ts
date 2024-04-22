@@ -11,6 +11,7 @@ import {
 	Vec,
 	structuredClone,
 } from '@tldraw/editor'
+import { kickoutOccludedShapes } from '../selectHelpers'
 import { MIN_CROP_SIZE } from './Crop/crop-constants'
 import { CursorTypeMap } from './PointingResizeHandle'
 
@@ -201,6 +202,7 @@ export class Cropping extends StateNode {
 
 	private complete() {
 		this.updateShapes()
+		kickoutOccludedShapes(this.editor, [this.snapshot.shape.id])
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {

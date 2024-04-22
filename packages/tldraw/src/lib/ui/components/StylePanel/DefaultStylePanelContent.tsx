@@ -22,6 +22,7 @@ import {
 } from '@tldraw/editor'
 import React from 'react'
 import { STYLES } from '../../../styles'
+import { kickoutOccludedShapes } from '../../../tools/SelectTool/selectHelpers'
 import { useUiEvents } from '../../context/events'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -101,6 +102,7 @@ export function CommonStylePickerSet({
 	theme: TLDefaultColorTheme
 }) {
 	const msg = useTranslation()
+	const editor = useEditor()
 
 	const handleValueChange = useStyleChangeCallback()
 
@@ -163,7 +165,13 @@ export function CommonStylePickerSet({
 							style={DefaultSizeStyle}
 							items={STYLES.size}
 							value={size}
-							onValueChange={handleValueChange}
+							onValueChange={(style, value) => {
+								handleValueChange(style, value)
+								const selectedShapeIds = editor.getSelectedShapeIds()
+								if (selectedShapeIds.length > 0) {
+									kickoutOccludedShapes(editor, selectedShapeIds)
+								}
+							}}
 							theme={theme}
 						/>
 					)}

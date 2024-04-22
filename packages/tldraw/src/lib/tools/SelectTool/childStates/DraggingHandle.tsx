@@ -16,6 +16,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
+import { kickoutOccludedShapes } from '../selectHelpers'
 
 export class DraggingHandle extends StateNode {
 	static override id = 'dragging_handle'
@@ -197,6 +198,7 @@ export class DraggingHandle extends StateNode {
 
 	private complete() {
 		this.editor.snaps.clearIndicators()
+		kickoutOccludedShapes(this.editor, [this.shapeId])
 
 		const { onInteractionEnd } = this.info
 		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {

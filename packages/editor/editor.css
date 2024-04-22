@@ -30,6 +30,12 @@
 	--layer-overlays: 400;
 	--layer-following-indicator: 1000;
 	--layer-blocker: 10000;
+
+	/* z index for text editors */
+	--layer-text-container: 1;
+	--layer-text-content: 3;
+	--layer-text-editor: 4;
+
 	/* Misc */
 	--tl-zoom: 1;
 
@@ -145,11 +151,11 @@
 
 .tl-theme__dark {
 	--color-accent: hsl(0, 76%, 60%);
-	--color-background: hsl(240, 5%, 8%);
+	--color-background: hsl(240, 5%, 6.5%);
 	--color-brush-fill: hsl(0, 0%, 71%, 5.1%);
 	--color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
-	--color-grid: hsl(0, 0%, 56%);
-	--color-low: hsl(260, 5%, 12.5%);
+	--color-grid: hsl(0, 0%, 40%);
+	--color-low: hsl(260, 4.5%, 10.5%);
 	--color-low-border: hsl(207, 10%, 10%);
 	--color-culled: hsl(210, 11%, 19%);
 	--color-muted-none: hsl(0, 0%, 100%, 0%);
@@ -158,10 +164,10 @@
 	--color-muted-2: hsl(0, 0%, 100%, 5%);
 	--color-hint: hsl(0, 0%, 100%, 7%);
 	--color-overlay: hsl(0, 0%, 0%, 50%);
-	--color-divider: hsl(240, 9%, 25%);
-	--color-panel-contrast: hsl(240, 13%, 22%);
-	--color-panel: hsl(220, 8%, 15%);
-	--color-panel-overlay: hsl(210, 11%, 24%, 82%);
+	--color-divider: hsl(240, 9%, 22%);
+	--color-panel-contrast: hsl(245, 12%, 23%);
+	--color-panel: hsl(235, 6.8%, 13.5%);
+	--color-panel-overlay: hsl(210, 10%, 24%, 82%);
 	--color-focus: hsl(217, 76%, 80%);
 	--color-selected: hsl(217, 89%, 61%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
@@ -465,7 +471,7 @@ input,
 	transform-origin: top left;
 	fill: none;
 	stroke-width: calc(1.5px * var(--tl-scale));
-	contain: size;
+	contain: size layout;
 }
 
 /* ------------------ SelectionBox ------------------ */
@@ -549,17 +555,14 @@ input,
 .tl-handle__create {
 	opacity: 0;
 }
-.tl-handle__create:hover {
-	opacity: 1;
+
+.tl-handle__clone > .tl-handle__fg {
+	fill: var(--color-selection-stroke);
+	stroke: none;
 }
 
 .tl-handle__bg:active {
 	fill: none;
-}
-
-.tl-handle__bg:hover {
-	cursor: var(--tl-cursor-grab);
-	fill: var(--color-selection-fill);
 }
 
 @media (pointer: coarse) {
@@ -790,7 +793,6 @@ input,
 	white-space: pre-wrap;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
-	pointer-events: all;
 	text-rendering: auto;
 	text-transform: none;
 	text-indent: 0px;
@@ -854,6 +856,12 @@ input,
 	-webkit-user-select: text;
 	overflow: hidden;
 	cursor: var(--tl-cursor-text);
+}
+
+.tl-text-wrapper[data-isediting='false'] .tl-text-input,
+.tl-arrow-label[data-isediting='false'] .tl-text-input {
+	opacity: 0;
+	cursor: var(--tl-cursor-default);
 }
 
 .tl-text-input::selection {
@@ -967,10 +975,6 @@ input,
 	cursor: var(--tl-cursor-pointer);
 }
 
-.tl-bookmark__link:hover {
-	color: var(--color-selected);
-}
-
 /* ---------------- Hyperlink Button ---------------- */
 
 .tl-hyperlink-button {
@@ -1007,10 +1011,6 @@ input,
 	border-radius: var(--radius-1);
 	background-color: var(--color-background);
 	pointer-events: none;
-}
-
-.tl-hyperlink-button:hover {
-	color: var(--color-selected);
 }
 
 .tl-hyperlink-button:focus-visible {
@@ -1053,6 +1053,11 @@ input,
 	pointer-events: all;
 }
 
+.tl-text-wrapper .tl-text-content {
+	pointer-events: all;
+	z-index: var(--layer-text-content);
+}
+
 .tl-text-label__inner > .tl-text-content {
 	position: relative;
 	top: 0px;
@@ -1062,7 +1067,6 @@ input,
 	width: fit-content;
 	border-radius: var(--radius-1);
 	max-width: 100%;
-	z-index: 3;
 }
 
 .tl-text-label__inner > .tl-text-input {
@@ -1071,7 +1075,27 @@ input,
 	height: 100%;
 	width: 100%;
 	padding: 16px;
-	z-index: 4;
+}
+
+.tl-text-wrapper[data-isselected='true'] .tl-text-input {
+	z-index: var(--layer-text-editor);
+	pointer-events: all;
+}
+
+/* This part of the rule helps preserve the occlusion rules for the shapes so we
+ * don't click on shapes that are behind other shapes.
+ * One extra nuance is we don't use this behavior for:
+ *  - arrows which have weird geometry and just gets in the way.
+ *  - draw/line shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
+ */
+.tl-canvas[data-iseditinganything='true']
+	.tl-shape:not(
+		[data-shape-type='arrow'],
+		[data-shape-type='draw'],
+		[data-shape-type='line'],
+		[data-shape-type='highlight']
+	) {
+	pointer-events: all;
 }
 
 .tl-text-label[data-textwrap='true'] > .tl-text-label__inner {
@@ -1125,7 +1149,7 @@ input,
 	position: relative;
 	height: max-content;
 	width: max-content;
-	pointer-events: all;
+	pointer-events: none;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -1134,13 +1158,11 @@ input,
 .tl-arrow-label .tl-arrow {
 	position: relative;
 	height: max-content;
-	z-index: 2;
 	padding: 4px;
 	overflow: visible;
 }
 
 .tl-arrow-label textarea {
-	z-index: 3;
 	padding: 4px;
 	/* Don't allow textarea to be zero width */
 	min-width: 4px;
@@ -1152,27 +1174,18 @@ input,
 	position: relative;
 	width: 100%;
 	height: 100%;
-	border-radius: var(--radius-2);
-	box-shadow: var(--shadow-1);
-	overflow: hidden;
-	border-color: currentColor;
-	border-style: solid;
-	border-width: 1px;
+	pointer-events: all;
+	opacity: 1;
+	z-index: var(--layer-text-container);
+	border-radius: 1px;
 }
 
-.tl-note__container .tl-text-label {
+.tl-note__container > .tl-text-label {
 	text-shadow: none;
+	color: currentColor;
 }
 
-.tl-note__scrim {
-	position: absolute;
-	z-index: 1;
-	inset: 0px;
-	height: 100%;
-	width: 100%;
-	background-color: var(--color-background);
-	opacity: 0.28;
-}
+/* --------------------- Loading -------------------- */
 
 .tl-loading {
 	background-color: var(--color-background);
@@ -1440,17 +1453,11 @@ it from receiving any pointer events or affecting the cursor. */
 	color: inherit;
 	background-color: transparent;
 }
-.tl-error-boundary__content button:hover {
-	background-color: var(--color-low);
-}
 
 .tl-error-boundary__content a {
 	color: var(--color-text-1);
 	font-weight: 500;
 	text-decoration: none;
-}
-.tl-error-boundary__content a:hover {
-	color: var(--color-text-1);
 }
 
 .tl-error-boundary__content__error {
@@ -1486,11 +1493,6 @@ it from receiving any pointer events or affecting the cursor. */
 	background-color: var(--color-primary);
 	color: var(--color-selected-contrast);
 }
-.tl-error-boundary__content .tl-error-boundary__refresh:hover {
-	background-color: var(--color-primary);
-	opacity: 0.9;
-}
-
 /* --------------------- Coarse --------------------- */
 
 .tl-hidden {
@@ -1520,4 +1522,41 @@ it from receiving any pointer events or affecting the cursor. */
 
 .tl-hit-test-blocker__hidden {
 	display: none;
+}
+
+@media (hover: hover) {
+	.tl-handle__create:hover {
+		opacity: 1;
+	}
+
+	.tl-handle__bg:hover {
+		cursor: var(--tl-cursor-grab);
+		fill: var(--color-selection-fill);
+	}
+
+	.tl-bookmark__link:hover {
+		color: var(--color-selected);
+	}
+
+	.tl-hyperlink-button:hover {
+		color: var(--color-selected);
+	}
+
+	.tl-error-boundary__content button:hover {
+		background-color: var(--color-low);
+	}
+	.tl-error-boundary__content a:hover {
+		color: var(--color-text-1);
+	}
+	.tl-error-boundary__content .tl-error-boundary__refresh:hover {
+		background-color: var(--color-primary);
+		opacity: 0.9;
+	}
+
+	/* These three rules help preserve clicking into specific points in text areas *while*
+ * already in edit mode when jumping from shape to shape. */
+	.tl-canvas[data-iseditinganything='true'] .tl-text-wrapper:hover .tl-text-input {
+		z-index: var(--layer-text-editor);
+		pointer-events: all;
+	}
 }

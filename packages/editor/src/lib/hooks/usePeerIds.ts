@@ -1,5 +1,4 @@
 import { useComputed, useValue } from '@tldraw/state'
-import { useMemo } from 'react'
 import { uniq } from '../utils/uniq'
 import { useEditor } from './useEditor'
 
@@ -10,17 +9,12 @@ import { useEditor } from './useEditor'
  */
 export function usePeerIds() {
 	const editor = useEditor()
-	const $presences = useMemo(() => {
-		return editor.store.query.records('instance_presence', () => ({
-			userId: { neq: editor.user.getId() },
-		}))
-	}, [editor])
 
 	const $userIds = useComputed(
 		'userIds',
-		() => uniq($presences.get().map((p) => p.userId)).sort(),
+		() => uniq(editor.getCollaborators().map((p) => p.userId)).sort(),
 		{ isEqual: (a, b) => a.join(',') === b.join?.(',') },
-		[$presences]
+		[editor]
 	)
 
 	return useValue($userIds)

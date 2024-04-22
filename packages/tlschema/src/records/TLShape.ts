@@ -1,10 +1,20 @@
-import { createRecordType, defineMigrations, RecordId, UnknownRecord } from '@tldraw/store'
-import { mapObjectMapValues } from '@tldraw/utils'
+import {
+	Migration,
+	MigrationId,
+	MigrationSequence,
+	RecordId,
+	UnknownRecord,
+	createMigrationIds,
+	createMigrationSequence,
+	createRecordMigrationSequence,
+	createRecordType,
+} from '@tldraw/store'
+import { assert, mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { nanoid } from 'nanoid'
 import { SchemaShapeInfo } from '../createTLSchema'
 import { TLArrowShape } from '../shapes/TLArrowShape'
-import { createShapeValidator, TLBaseShape } from '../shapes/TLBaseShape'
+import { TLBaseShape, createShapeValidator } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
@@ -83,88 +93,66 @@ export type TLShapeProp = keyof TLShapeProps
 export type TLParentId = TLPageId | TLShapeId
 
 /** @internal */
-export const rootShapeVersions = {
+export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	AddIsLocked: 1,
 	HoistOpacity: 2,
 	AddMeta: 3,
 	AddWhite: 4,
-} as const
+} as const)
 
 /** @internal */
-export const rootShapeMigrations = defineMigrations({
-	currentVersion: rootShapeVersions.AddWhite,
-	migrators: {
-		[rootShapeVersions.AddIsLocked]: {
-			up: (record) => {
-				return {
-					...record,
-					isLocked: false,
-				}
+export const rootShapeMigrations = createRecordMigrationSequence({
+	sequenceId: 'com.tldraw.shape',
+	recordType: 'shape',
+	sequence: [
+		{
+			id: rootShapeVersions.AddIsLocked,
+			up: (record: any) => {
+				record.isLocked = false
 			},
-			down: (record) => {
-				const { isLocked: _, ...rest } = record
-				return {
-					...rest,
+			down: (record: any) => {
+				delete record.isLocked
+			},
+		},
+		{
+			id: rootShapeVersions.HoistOpacity,
+			up: (record: any) => {
+				record.opacity = Number(record.props.opacity ?? '1')
+				delete record.props.opacity
+			},
+			down: (record: any) => {
+				const opacity = record.opacity
+				delete record.opacity
+				record.props.opacity =
+					opacity < 0.175
+						? '0.1'
+						: opacity < 0.375
+							? '0.25'
+							: opacity < 0.625
+								? '0.5'
+								: opacity < 0.875
+									? '0.75'
+									: '1'
+			},
+		},
+		{
+			id: rootShapeVersions.AddMeta,
+			up: (record: any) => {
+				record.meta = {}
+			},
+		},
+		{
+			id: rootShapeVersions.AddWhite,
+			up: (_record) => {
+				// noop
+			},
+			down: (record: any) => {
+				if (record.props.color === 'white') {
+					record.props.color = 'black'
 				}
 			},
 		},
-		[rootShapeVersions.HoistOpacity]: {
-			up: ({ props: { opacity, ...props }, ...record }) => {
-				return {
-					...record,
-					opacity: Number(opacity ?? '1'),
-					props,
-				}
-			},
-			down: ({ opacity, ...record }) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						opacity:
-							opacity < 0.175
-								? '0.1'
-								: opacity < 0.375
-									? '0.25'
-									: opacity < 0.625
-										? '0.5'
-										: opacity < 0.875
-											? '0.75'
-											: '1',
-					},
-				}
-			},
-		},
-		[rootShapeVersions.AddMeta]: {
-			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
-			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
-			},
-		},
-		[rootShapeVersions.AddWhite]: {
-			up: (record) => {
-				return {
-					...record,
-				}
-			},
-			down: (record) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						color: record.props.color === 'white' ? 'black' : record.props.color,
-					},
-				}
-			},
-		},
-	},
+	],
 })
 
 /** @public */
@@ -200,16 +188,142 @@ export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>
 	return propKeysByStyle
 }
 
+export const NO_DOWN_MIGRATION = 'none' as const
+// If a down migration was deployed more than a couple of months ago it should be safe to retire it.
+// We only really need them to smooth over the transition between versions, and some folks do keep
+// browser tabs open for months without refreshing, but at a certain point that kind of behavior is
+// on them. Plus anyway recently chrome has started to actually kill tabs that are open for too long rather
+// than just suspending them, so if other browsers follow suit maybe it's less of a concern.
+export const RETIRED_DOWN_MIGRATION = 'retired' as const
+
+/**
+ * @public
+ */
+export type TLShapePropsMigrations = {
+	sequence: Array<
+		| { readonly dependsOn: readonly MigrationId[] }
+		| {
+				readonly id: MigrationId
+				readonly dependsOn?: MigrationId[]
+				readonly up: (props: any) => any
+				readonly down?:
+					| typeof NO_DOWN_MIGRATION
+					| typeof RETIRED_DOWN_MIGRATION
+					| ((props: any) => any)
+		  }
+	>
+}
+
+/**
+ * @public
+ */
+export function createShapePropsMigrationSequence(
+	migrations: TLShapePropsMigrations
+): TLShapePropsMigrations {
+	return migrations
+}
+
+/**
+ * @public
+ */
+export function createShapePropsMigrationIds<S extends string, T extends Record<string, number>>(
+	shapeType: S,
+	ids: T
+): { [k in keyof T]: `com.tldraw.shape.${S}/${T[k]}` } {
+	return mapObjectMapValues(ids, (_k, v) => `com.tldraw.shape.${shapeType}/${v}`) as any
+}
+
+export function processShapeMigrations(shapes: Record<string, SchemaShapeInfo>) {
+	const result: MigrationSequence[] = []
+
+	for (const [shapeType, { migrations }] of Object.entries(shapes)) {
+		const sequenceId = `com.tldraw.shape.${shapeType}`
+		if (!migrations) {
+			// provide empty migrations sequence to allow for future migrations
+			result.push(
+				createMigrationSequence({
+					sequenceId,
+					retroactive: false,
+					sequence: [],
+				})
+			)
+		} else if ('sequenceId' in migrations) {
+			assert(
+				sequenceId === migrations.sequenceId,
+				`sequenceId mismatch for ${shapeType} shape migrations. Expected '${sequenceId}', got '${migrations.sequenceId}'`
+			)
+			result.push(migrations)
+		} else if ('sequence' in migrations) {
+			result.push(
+				createMigrationSequence({
+					sequenceId,
+					retroactive: false,
+					sequence: migrations.sequence.map((m) =>
+						'id' in m
+							? {
+									id: m.id,
+									scope: 'record',
+									filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
+									dependsOn: m.dependsOn,
+									up: (record: any) => {
+										const result = m.up(record.props)
+										if (result) {
+											record.props = result
+										}
+									},
+									down:
+										typeof m.down === 'function'
+											? (record: any) => {
+													const result = (m.down as (props: any) => any)(record.props)
+													if (result) {
+														record.props = result
+													}
+												}
+											: undefined,
+								}
+							: m
+					),
+				})
+			)
+		} else {
+			// legacy migrations, will be removed in the future
+			result.push(
+				createMigrationSequence({
+					sequenceId,
+					retroactive: false,
+					sequence: Object.keys(migrations.migrators)
+						.map((k) => Number(k))
+						.sort((a: number, b: number) => a - b)
+						.map(
+							(version): Migration => ({
+								id: `${sequenceId}/${version}`,
+								scope: 'record',
+								filter: (r) => r.typeName === 'shape' && (r as TLShape).type === shapeType,
+								up: (record: any) => {
+									const result = migrations.migrators[version].up(record)
+									if (result) {
+										return result
+									}
+								},
+								down: (record: any) => {
+									const result = migrations.migrators[version].down(record)
+									if (result) {
+										return result
+									}
+								},
+							})
+						),
+				})
+			)
+		}
+	}
+
+	return result
+}
+
 /** @internal */
 export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 	return createRecordType<TLShape>('shape', {
-		migrations: defineMigrations({
-			currentVersion: rootShapeMigrations.currentVersion,
-			firstVersion: rootShapeMigrations.firstVersion,
-			migrators: rootShapeMigrations.migrators,
-			subTypeKey: 'type',
-			subTypeMigrations: mapObjectMapValues(shapes, (_, v) => v.migrations ?? defineMigrations({})),
-		}),
 		scope: 'document',
 		validator: T.model(
 			'shape',

@@ -1,5 +1,5 @@
 import { HistoryEntry } from '@tldraw/store'
-import { TLPageId, TLRecord } from '@tldraw/tlschema'
+import { TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
 import { TLEventInfo } from './event-types'
 
 /** @public */
@@ -15,6 +15,7 @@ export interface TLEventMap {
 	event: [TLEventInfo]
 	tick: [number]
 	frame: [number]
+	'select-all-text': [{ shapeId: TLShapeId }]
 }
 
 /** @public */

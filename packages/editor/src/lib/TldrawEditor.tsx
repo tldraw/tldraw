@@ -1,4 +1,4 @@
-import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
+import { MigrationSequence, SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
@@ -49,6 +49,7 @@ export type TldrawEditorProps = Expand<
 			  }
 			| {
 					store?: undefined
+					migrations?: readonly MigrationSequence[]
 					snapshot?: StoreSnapshot<TLRecord>
 					initialData?: SerializedStore<TLRecord>
 					persistenceKey?: string

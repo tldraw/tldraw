@@ -10,6 +10,7 @@ import {
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
+import { kickoutOccludedShapes } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180
@@ -124,6 +125,10 @@ export class Rotating extends StateNode {
 			snapshot: this.snapshot,
 			stage: 'end',
 		})
+		kickoutOccludedShapes(
+			this.editor,
+			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
+		)
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {

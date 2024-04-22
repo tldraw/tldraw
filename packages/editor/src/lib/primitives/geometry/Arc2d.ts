@@ -66,7 +66,7 @@ export class Arc2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec, _zoom: number): boolean {
+	hitTestLineSegment(A: Vec, B: Vec): boolean {
 		const { _center, radius, measure, angleStart, angleEnd } = this
 		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
 		if (intersection === null) return false

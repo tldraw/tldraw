@@ -6,6 +6,8 @@ import {
 	RecordId,
 	Result,
 	SerializedSchema,
+	SerializedSchemaV1,
+	SerializedSchemaV2,
 	SerializedStore,
 	T,
 	TLAsset,
@@ -40,19 +42,29 @@ export interface TldrawFile {
 	records: UnknownRecord[]
 }
 
+const schemaV1 = T.object<SerializedSchemaV1>({
+	schemaVersion: T.literal(1),
+	storeVersion: T.positiveInteger,
+	recordVersions: T.dict(
+		T.string,
+		T.object({
+			version: T.positiveInteger,
+			subTypeVersions: T.dict(T.string, T.positiveInteger).optional(),
+			subTypeKey: T.string.optional(),
+		})
+	),
+})
+
+const schemaV2 = T.object<SerializedSchemaV2>({
+	schemaVersion: T.literal(2),
+	sequences: T.dict(T.string, T.positiveInteger),
+})
+
 const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 	tldrawFileFormatVersion: T.nonZeroInteger,
-	schema: T.object({
-		schemaVersion: T.positiveInteger,
-		storeVersion: T.positiveInteger,
-		recordVersions: T.dict(
-			T.string,
-			T.object({
-				version: T.positiveInteger,
-				subTypeVersions: T.dict(T.string, T.positiveInteger).optional(),
-				subTypeKey: T.string.optional(),
-			})
-		),
+	schema: T.numberUnion('schemaVersion', {
+		1: schemaV1,
+		2: schemaV2,
 	}),
 	records: T.arrayOf(
 		T.object({
