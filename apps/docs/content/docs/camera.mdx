@@ -17,7 +17,7 @@ The [Editor#viewportScreenBounds](?) is a [Box](?) that describes the size and p
 
 The [Editor.viewportPageBounds](?) is a [Box](?) that describes the size and position of the part of the current page that is displayed in the viewport.
 
-## Screen vs. page coordinates
+# Screen vs. page coordinates
 
 In tldraw, coordinates are either be in page or screen space.
 
@@ -45,7 +45,7 @@ const {
 } = editor.inputs
 ```
 
-## Camera options
+# Camera options
 
 You can use the editor's camera options to configure the behavior of the editor's camera. There are many options available.
 
@@ -122,3 +122,16 @@ The `behavior` property defines which logic should be used when calculating the 
 | 'outside' | The bounds may partially leave the viewport but must never leave it completely.                                                             |
 | 'fixed'   | The bounds are placed in the viewport at a fixed location according to the `'origin'`.                                                      |
 | 'contain' | When the zoom is below the "fit zoom" for an axis, the bounds use the `'fixed'` behavior; when above, the bounds use the `inside` behavior. |
+
+# Controlling the camera
+
+There are several `Editor` methods available for controlling the camera.
+
+| Method | Description |
+| [Editor#zoomIn](?) | Zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information. |
+
+The [Editor#zoomOut](?) method zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information.
+
+The [Editor#zoomToContent](?) method moves the camera to fit the current page content.
+
+The [Editor#zoomToBounds](?) method moves the camera to fit the current page content.
