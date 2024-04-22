@@ -1,0 +1,20 @@
+{
+	"crons": [
+		{
+			"path": "/api/search?q=keep-warm-cron-job",
+			"schedule": "*/4 * * * *"
+		},
+		{
+			"path": "/api/search?q=keep-warm-cron-job",
+			"schedule": "*/4 * * * *"
+		},
+		{
+			"path": "/api/ai?q=keep-warm-cron-job",
+			"schedule": "*/4 * * * *"
+		},
+		{
+			"path": "/api/ai?q=keep-warm-cron-job",
+			"schedule": "*/4 * * * *"
+		}
+	]
+}
