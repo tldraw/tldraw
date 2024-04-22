@@ -6,7 +6,7 @@ import { JsonChunkAssembler } from './chunk'
 import { schema } from './schema'
 import { RoomState } from './server-types'
 
-type LoadKind = 'reopen' | 'open'
+type LoadKind = 'reopen' | 'open' | 'room_not_found'
 export type DBLoadResult =
 	| {
 			type: 'error'
@@ -55,7 +55,7 @@ export type TLServerEvent =
 export abstract class TLServer {
 	schema = schema
 
-	async getInitialRoomState(persistenceKey: string) {
+	async getInitialRoomState(persistenceKey: string): Promise<[RoomState | undefined, LoadKind]> {
 		let roomState = this.getRoomForPersistenceKey(persistenceKey)
 
 		let roomOpenKind: LoadKind = 'open'
@@ -82,8 +82,7 @@ export abstract class TLServer {
 			// If we still don't have a room, throw an error.
 			if (roomState === undefined) {
 				// This is how it bubbles down to the client:
-				// 1.) From here, it's caught in the catch block of handleConnection,
-				//   and we return `room_not_found` to TLDrawDurableObject.
+				// 1.) From here, we send back a `room_not_found` to TLDrawDurableObject.
 				// 2.) In TLDrawDurableObject, we return a 404 to the client, we accept and
 				//   and then immediately close the client. This lets us send a TLCloseEventCode.NOT_FOUND
 				//   closeCode down to the client.
@@ -96,7 +95,7 @@ export abstract class TLServer {
 				// 7.) Finally on the dotcom app we use StoreErrorScreen to display an appropriate msg.
 				//
 				// Phew!
-				throw new Error('room_not_found')
+				return [roomState, 'room_not_found']
 			}
 
 			const thisRoom = roomState.room
@@ -129,7 +128,7 @@ export abstract class TLServer {
 			this.persistToDatabase?.(persistenceKey)
 		}
 
-		return { roomState, roomOpenKind }
+		return [roomState, roomOpenKind]
 	}
 
 	/**
@@ -152,18 +151,9 @@ export abstract class TLServer {
 	}): Promise<DBLoadResultType> => {
 		const clientId = nanoid()
 
-		let roomState: RoomState, roomOpenKind: LoadKind
-		try {
-			const result = await this.getInitialRoomState(persistenceKey)
-			roomState = result.roomState
-			roomOpenKind = result.roomOpenKind
-		} catch (e: any) {
-			if (e.message === 'room_not_found') {
-				return 'room_not_found'
-			} else {
-				// Re-throw if it's a general error.
-				throw e
-			}
+		const [roomState, roomOpenKind] = await this.getInitialRoomState(persistenceKey)
+		if (roomOpenKind === 'room_not_found' || !roomState) {
+			return 'room_not_found'
 		}
 
 		roomState.room.handleNewSession(
