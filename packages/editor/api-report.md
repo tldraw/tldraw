@@ -682,6 +682,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
     getCanUndo(): boolean;
+    getCollaborators(): TLInstancePresence[];
+    getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     // @internal
@@ -693,6 +695,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageId(): TLPageId;
     getCurrentPageRenderingShapesSorted(): TLShape[];
     getCurrentPageShapeIds(): Set<TLShapeId>;
+    // @internal (undocumented)
+    getCurrentPageShapeIdsSorted(): TLShapeId[];
     getCurrentPageShapes(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;

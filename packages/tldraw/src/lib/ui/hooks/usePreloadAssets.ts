@@ -56,6 +56,7 @@ function getTypefaces(assetUrls: TLEditorAssetUrls) {
 	}
 }
 
+/** @public */
 export function usePreloadAssets(assetUrls: TLEditorAssetUrls) {
 	const typefaces = useMemo(() => getTypefaces(assetUrls), [assetUrls])
 
