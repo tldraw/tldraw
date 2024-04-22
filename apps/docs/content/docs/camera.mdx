@@ -33,13 +33,13 @@ You can get the user's pointer position in both screen and page space.
 
 ```ts
 const {
-	// The current page / screen points
+	// The user's most recent page / screen points
 	currentPagePoint,
 	currentScreenPoint,
-	// The previously reported page / screen points
+	// The user's previous page / screen points
 	previousPagePoint,
 	previousScreenPoint,
-	// The last place where a pointer down occurred
+	// The last place where the most recent pointer down occurred
 	originPagePoint,
 	originScreenPoint,
 } = editor.inputs
@@ -47,8 +47,18 @@ const {
 
 ## Camera options
 
-You can use the editor's camera options to configure the behavior of the editor's camera.
+You can use the editor's camera options to configure the behavior of the editor's camera. There are many options available.
 
-```ts
+You can set the camera options using the [Editor#setCameraOptions](?) method. You can get the current camera options using the [Editor#cameraOptions](?) property.
 
-```
+### `wheelBehavior`
+
+When set to `'pan'`, scrolling the mousewheel will pan the camera. When set to `'zoom'`, scrolling the mousewheel will zoom the camera.
+
+### `panSpeed`
+
+The speed at which the camera pans. A pan can occur when the user holds the spacebar and drags, holds the middle mouse button and drags, drags while using the hand tool, or scrolls the mousewheel. The default value is `1`. A value of `0.5` would be twice as slow as default. A value of `2` would be twice as fast.
+
+### `zoomSpeed`
+
+The speed at which the camera zooms. A zoom can occur when the user pinches or scrolls the mouse wheel. The default value is `1`. A value of `0.5` would be twice as slow as default. A value of `2` would be twice as fast.

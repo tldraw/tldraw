@@ -36,6 +36,7 @@ export type TLCameraMoveOptions = Partial<{
 
 /** @public */
 export type TLCameraOptions = {
+	/** Controls whether the wheel pans or zooms. */
 	wheelBehavior: 'zoom' | 'pan' | 'none'
 	/** The speed of a scroll wheel / trackpad pan */
 	panSpeed: number

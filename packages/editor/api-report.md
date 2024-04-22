@@ -2009,6 +2009,7 @@ export type TLCameraMoveOptions = Partial<{
 
 // @public (undocumented)
 export type TLCameraOptions = {
+    wheelBehavior: 'none' | 'pan' | 'zoom';
     constraints?: {
         behavior: 'contain' | 'fixed' | 'inside' | 'outside' | {
             x: 'contain' | 'fixed' | 'inside' | 'outside';
@@ -2024,7 +2025,6 @@ export type TLCameraOptions = {
     zoomSpeed: number;
     zoomSteps: number[];
     isLocked: boolean;
-    wheelBehavior: 'none' | 'pan' | 'zoom';
 };
 
 // @public (undocumented)

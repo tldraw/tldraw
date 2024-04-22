@@ -37064,7 +37064,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    constraints?: {\n        behavior: 'contain' | 'fixed' | 'inside' | 'outside' | {\n            x: 'contain' | 'fixed' | 'inside' | 'outside';\n            y: 'contain' | 'fixed' | 'inside' | 'outside';\n        };\n        zoomBehavior: 'default' | 'fit';\n        bounds: "
+              "text": "{\n    wheelBehavior: 'none' | 'pan' | 'zoom';\n    constraints?: {\n        behavior: 'contain' | 'fixed' | 'inside' | 'outside' | {\n            x: 'contain' | 'fixed' | 'inside' | 'outside';\n            y: 'contain' | 'fixed' | 'inside' | 'outside';\n        };\n        zoomBehavior: 'default' | 'fit';\n        bounds: "
             },
             {
               "kind": "Reference",
@@ -37091,7 +37091,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n        defaultZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';\n    };\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    isLocked: boolean;\n    wheelBehavior: 'none' | 'pan' | 'zoom';\n}"
+              "text": ";\n        defaultZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';\n    };\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    isLocked: boolean;\n}"
             },
             {
               "kind": "Content",
