@@ -91,7 +91,7 @@ export abstract class TLServer {
 				//   Again, we accept the connection, it's just that we immediately close right after.
 				// 4.) In ClientWebSocketAdapter, ws.onclose is called, and that calls _handleDisconnect.
 				// 5.) _handleDisconnect sets the status to 'error' and calls the onStatusChange callback.
-				// 6.) On the dotcom in useRemoteSyncClient, we have socket.onStatusChange callback
+				// 6.) On the dotcom app in useRemoteSyncClient, we have socket.onStatusChange callback
 				//   where we set TLIncompatibilityReason.RoomNotFound and close the client + socket.
 				// 7.) Finally on the dotcom app we use StoreErrorScreen to display an appropriate msg.
 				//

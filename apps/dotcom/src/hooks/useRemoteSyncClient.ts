@@ -67,6 +67,7 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 				setState({ error: new RemoteSyncError(TLIncompatibilityReason.RoomNotFound) })
 				client.close()
 				socket.close()
+				return
 			}
 		})
 
