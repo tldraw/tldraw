@@ -692,10 +692,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
+    getBaseZoom(): number;
     getCamera(): TLCamera;
-    getCameraFitZoom(opts?: {
-        reset: boolean;
-    }): number;
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
@@ -734,6 +732,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
+    getInitialZoom(): number;
     getInstanceState(): TLInstance;
     getIsMenuOpen(): boolean;
     getOnlySelectedShape(): null | TLShape;
@@ -2011,15 +2010,15 @@ export type TLCameraMoveOptions = Partial<{
 export type TLCameraOptions = {
     wheelBehavior: 'none' | 'pan' | 'zoom';
     constraints?: {
-        behavior: 'contain' | 'fixed' | 'inside' | 'outside' | {
-            x: 'contain' | 'fixed' | 'inside' | 'outside';
-            y: 'contain' | 'fixed' | 'inside' | 'outside';
+        behavior: 'contain' | 'fixed' | 'free' | 'inside' | 'outside' | {
+            x: 'contain' | 'fixed' | 'free' | 'inside' | 'outside';
+            y: 'contain' | 'fixed' | 'free' | 'inside' | 'outside';
         };
-        zoomBehavior: 'default' | 'fit';
         bounds: BoxModel;
+        baseZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';
+        initialZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';
         origin: VecLike;
         padding: VecLike;
-        defaultZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';
     };
     panSpeed: number;
     zoomSpeed: number;

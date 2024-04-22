@@ -18,8 +18,8 @@ const CAMERA_OPTIONS: TLCameraOptions = {
 	zoomSpeed: 1,
 	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
 	constraints: {
-		defaultZoom: 'fit-max',
-		zoomBehavior: 'fit',
+		initialZoom: 'fit-max',
+		baseZoom: 'fit-max',
 		bounds: {
 			x: 0,
 			y: 0,
@@ -283,15 +283,15 @@ const CameraOptionsControlPanel = track(() => {
 				</select>
 				{constraints ? (
 					<>
-						<label htmlFor="defaultzoom">Default Zoom</label>
+						<label htmlFor="initialZoom">Initial Zoom</label>
 						<select
-							name="defaultzoom"
-							value={constraints.defaultZoom}
+							name="initialZoom"
+							value={constraints.initialZoom}
 							onChange={(e) => {
 								updateOptions({
 									constraints: {
 										...constraints,
-										defaultZoom: e.target.value as any,
+										initialZoom: e.target.value as any,
 									},
 								})
 							}}
@@ -302,20 +302,23 @@ const CameraOptionsControlPanel = track(() => {
 							<option>fit-y</option>
 							<option>default</option>
 						</select>
-						<label htmlFor="fit">Zoom Behavior</label>
+						<label htmlFor="zoomBehavior">Base Zoom</label>
 						<select
 							name="zoomBehavior"
-							value={constraints.zoomBehavior}
+							value={constraints.baseZoom}
 							onChange={(e) => {
 								updateOptions({
 									constraints: {
 										...constraints,
-										zoomBehavior: e.target.value as any,
+										baseZoom: e.target.value as any,
 									},
 								})
 							}}
 						>
-							<option>fit</option>
+							<option>fit-min</option>
+							<option>fit-max</option>
+							<option>fit-x</option>
+							<option>fit-y</option>
 							<option>default</option>
 						</select>
 						<label htmlFor="originX">Origin X</label>
@@ -392,9 +395,9 @@ const CameraOptionsControlPanel = track(() => {
 								})
 							}}
 						/>
-						<label htmlFor="fitx">Fit X</label>
+						<label htmlFor="behaviorX">Behavior X</label>
 						<select
-							name="fitx"
+							name="behaviorX"
 							value={(constraints.behavior as { x: any; y: any }).x}
 							onChange={(e) => {
 								setCameraOptions({
@@ -414,9 +417,9 @@ const CameraOptionsControlPanel = track(() => {
 							<option>outside</option>
 							<option>lock</option>
 						</select>
-						<label htmlFor="fity">Fit Y</label>
+						<label htmlFor="behaviorY">Behavior Y</label>
 						<select
-							name="fity"
+							name="behaviorY"
 							value={(constraints.behavior as { x: any; y: any }).y}
 							onChange={(e) => {
 								setCameraOptions({

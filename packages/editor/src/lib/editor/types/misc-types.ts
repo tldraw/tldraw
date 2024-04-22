@@ -48,25 +48,26 @@ export type TLCameraOptions = {
 	isLocked: boolean
 	/** The camera constraints */
 	constraints?: {
-		/** Which dimension to fit when the camera is reset. */
-		defaultZoom: 'fit-min' | 'fit-max' | 'fit-x' | 'fit-y' | 'default'
-		/** The behavior for the zoom. When 'fit', the steps will be a multiplier of the default zoom. */
-		zoomBehavior: 'fit' | 'default'
-		/** The behavior for the constraints on the x axis. */
-		behavior:
-			| 'contain'
-			| 'inside'
-			| 'outside'
-			| 'fixed'
-			| {
-					x: 'contain' | 'inside' | 'outside' | 'fixed'
-					y: 'contain' | 'inside' | 'outside' | 'fixed'
-			  }
 		/** The bounds (in page space) of the constrained space */
 		bounds: BoxModel
 		/** The padding inside of the viewport (in screen space) */
 		padding: VecLike
 		/** The origin for placement. Used to position the bounds within the viewport when an axis is fixed or contained and zoom is below the axis fit. */
 		origin: VecLike
+		/** The camera's initial zoom, used also when the camera is reset. */
+		initialZoom: 'fit-min' | 'fit-max' | 'fit-x' | 'fit-y' | 'default'
+		/** The camera's base for its zoom steps. */
+		baseZoom: 'fit-min' | 'fit-max' | 'fit-x' | 'fit-y' | 'default'
+		/** The behavior for the constraints on the x axis. */
+		behavior:
+			| 'free'
+			| 'contain'
+			| 'inside'
+			| 'outside'
+			| 'fixed'
+			| {
+					x: 'contain' | 'inside' | 'outside' | 'fixed' | 'free'
+					y: 'contain' | 'inside' | 'outside' | 'fixed' | 'free'
+			  }
 	}
 }

@@ -9840,6 +9840,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getBaseZoom:member(1)",
+              "docComment": "/**\n * Get the camera's base level for calculating actual zoom levels based on the zoom steps.\n *\n * @example\n * ```ts\n * editor.getBaseZoom()\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getBaseZoom(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getBaseZoom"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCamera:member(1)",
               "docComment": "/**\n * The current camera.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -9873,54 +9904,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getCamera"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#getCameraFitZoom:member(1)",
-              "docComment": "/**\n * Get the zoom level that would fit the camera to the current constraints.\n *\n * @example\n * ```ts\n * editor.getCameraFitZoom()\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getCameraFitZoom(opts?: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "{\n        reset: boolean;\n    }"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 3,
-                "endIndex": 4
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "opts",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": true
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getCameraFitZoom"
             },
             {
               "kind": "Method",
@@ -11265,6 +11248,37 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getInitialMetaForShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getInitialZoom:member(1)",
+              "docComment": "/**\n * Get the camera's initial or reset zoom level.\n *\n * @example\n * ```ts\n * editor.getInitialZoom()\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getInitialZoom(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getInitialZoom"
             },
             {
               "kind": "Method",
@@ -37064,7 +37078,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    wheelBehavior: 'none' | 'pan' | 'zoom';\n    constraints?: {\n        behavior: 'contain' | 'fixed' | 'inside' | 'outside' | {\n            x: 'contain' | 'fixed' | 'inside' | 'outside';\n            y: 'contain' | 'fixed' | 'inside' | 'outside';\n        };\n        zoomBehavior: 'default' | 'fit';\n        bounds: "
+              "text": "{\n    wheelBehavior: 'none' | 'pan' | 'zoom';\n    constraints?: {\n        behavior: 'contain' | 'fixed' | 'free' | 'inside' | 'outside' | {\n            x: 'contain' | 'fixed' | 'free' | 'inside' | 'outside';\n            y: 'contain' | 'fixed' | 'free' | 'inside' | 'outside';\n        };\n        bounds: "
             },
             {
               "kind": "Reference",
@@ -37073,7 +37087,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n        origin: "
+              "text": ";\n        baseZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';\n        initialZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';\n        origin: "
             },
             {
               "kind": "Reference",
@@ -37091,7 +37105,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n        defaultZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';\n    };\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    isLocked: boolean;\n}"
+              "text": ";\n    };\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    isLocked: boolean;\n}"
             },
             {
               "kind": "Content",
