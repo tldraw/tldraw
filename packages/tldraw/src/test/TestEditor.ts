@@ -22,6 +22,7 @@ import {
 	TLWheelEventInfo,
 	Vec,
 	VecLike,
+	computed,
 	createShapeId,
 	createTLStore,
 	rotateSelectionHandle,
@@ -143,6 +144,15 @@ export class TestEditor extends Editor {
 	elm: HTMLDivElement
 	bounds = { x: 0, y: 0, top: 0, left: 0, width: 1080, height: 720, bottom: 720, right: 1080 }
 
+	/**
+	 * The center of the viewport in the current page space.
+	 *
+	 * @public
+	 */
+	@computed getViewportPageCenter() {
+		return this.getViewportPageBounds().center
+	}
+
 	setScreenBounds(bounds: BoxModel, center = false) {
 		this.bounds.x = bounds.x
 		this.bounds.y = bounds.y
@@ -154,7 +164,6 @@ export class TestEditor extends Editor {
 		this.bounds.bottom = bounds.y + bounds.h
 
 		this.updateViewportScreenBounds(Box.From(bounds), center)
-		this.updateRenderingBounds()
 		return this
 	}
 
@@ -452,6 +461,16 @@ export class TestEditor extends Editor {
 			...options,
 			delta: { x: dx, y: dy },
 		}).forceTick(2)
+		return this
+	}
+
+	pan(offset: VecLike): this {
+		const { isLocked, panSpeed } = this.getCameraOptions()
+		if (isLocked) return this
+		const { x: cx, y: cy, z: cz } = this.getCamera()
+		this.setCamera(new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz), {
+			immediate: true,
+		})
 		return this
 	}
 

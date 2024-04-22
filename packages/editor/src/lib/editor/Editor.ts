@@ -66,6 +66,7 @@ import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	ANIMATION_MEDIUM_MS,
+	CAMERA_MOVING_TIMEOUT,
 	CAMERA_SLIDE_FRICTION,
 	COARSE_DRAG_DISTANCE,
 	COLLABORATOR_IDLE_TIMEOUT,
@@ -107,7 +108,6 @@ import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { getSvgJsx } from './getSvgJsx'
-import { CameraStateManager } from './managers/CameraStateManager'
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
@@ -218,7 +218,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.textMeasure = new TextManager(this)
 		this._tickManager = new TickManager(this)
-		this.cameraState = new CameraStateManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -629,8 +628,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
-		this.updateRenderingBounds()
-
 		this.on('tick', this._flushEventsForTick)
 
 		requestAnimationFrame(() => {
@@ -675,8 +672,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
-
-	readonly cameraState: CameraStateManager
 
 	/**
 	 * A helper for measuring text.
@@ -2376,7 +2371,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			this.cameraState.tick()
+			this._tickCameraState()
 		})
 
 		return this
@@ -2679,29 +2674,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Pan the camera.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.pan({ x: 100, y: 100 })
-	 * editor.pan({ x: 100, y: 100 }, { animation: { duration: 1000 } })
-	 * ```
-	 *
-	 * @param offset - The offset in the current page space.
-	 * @param opts - The camera move options.
-	 */
-	pan(offset: VecLike, opts?: TLCameraMoveOptions): this {
-		const { isLocked, panSpeed } = this.getCameraOptions()
-		if (isLocked) return this
-		const { x: cx, y: cy, z: cz } = this.getCamera()
-		this.setCamera(new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz), {
-			...opts,
-			immediate: true,
-		})
-		return this
-	}
-
-	/**
 	 * Stop the current camera animation, if any.
 	 *
 	 * @example
@@ -2960,7 +2932,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			} else {
 				if (center && !this.getInstanceState().followingUserId) {
 					// Get the page center before the change, make the change, and restore it
-					const before = this.getViewportPageCenter()
+					const before = this.getViewportPageBounds().center
 					this.updateInstanceState(
 						{ screenBounds: screenBounds.toJson(), insets },
 						{ squashing: true, ephemeral: true }
@@ -2977,8 +2949,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this.cameraState.tick()
-		this.updateRenderingBounds()
+		this._tickCameraState()
 
 		return this
 	}
@@ -3018,14 +2989,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The center of the viewport in the current page space.
-	 *
-	 * @public
-	 */
-	@computed getViewportPageCenter() {
-		return this.getViewportPageBounds().center
-	}
-	/**
 	 * Convert a point in screen space to a point in the current page space.
 	 *
 	 * @example
@@ -3060,7 +3023,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	pageToScreen(point: VecLike) {
-		const screenBounds = this.getViewportScreenBounds()
+		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
 		return new Vec(
 			(point.x + cx) * cz + screenBounds.x,
@@ -3368,6 +3331,44 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return renderingShapes
 	}
 
+	// Camera state
+	// Camera state does two things: first, it allows us to subscribe to whether
+	// the camera is moving or not; and second, it allows us to update the rendering
+	// shapes on the canvas. Changing the rendering shapes may cause shapes to
+	// unmount / remount in the DOM, which is expensive; and computing visibility is
+	// also expensive in large projects. For this reason, we use a second bounding
+	// box just for rendering, and we only update after the camera stops moving.
+	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
+	private _cameraStateTimeoutRemaining = 0
+	private _decayCameraStateTimeout = (elapsed: number) => {
+		this._cameraStateTimeoutRemaining -= elapsed
+		if (this._cameraStateTimeoutRemaining > 0) return
+		this.off('tick', this._decayCameraStateTimeout)
+		this._cameraState.set('idle')
+	}
+	private _tickCameraState = () => {
+		// always reset the timeout
+		this._cameraStateTimeoutRemaining = CAMERA_MOVING_TIMEOUT
+		// If the state is idle, then start the tick
+		if (this._cameraState.__unsafe__getWithoutCapture() !== 'idle') return
+		this._cameraState.set('moving')
+		this.on('tick', this._decayCameraStateTimeout)
+	}
+
+	/**
+	 * Whether the camera is moving or idle.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getCameraState()
+	 * ```
+	 *
+	 * @public
+	 */
+	getCameraState() {
+		return this._cameraState.get()
+	}
+
 	/**
 	 * Get the shapes that should be displayed in the current viewport.
 	 *
@@ -3393,50 +3394,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// to change the "rendered" position in z-space.
 		return renderingShapes.sort(sortById)
 	}
-
-	/**
-	 * The current rendering bounds in the current page space, used for checking which shapes are "on screen".
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getRenderingBounds()
-	 * ```
-	 *
-	 * @public
-	 */
-	getRenderingBounds() {
-		return this._renderingBounds.get()
-	}
-
-	/** @internal */
-	private readonly _renderingBounds = atom('rendering viewport', new Box())
-
-	/**
-	 * Update the rendering bounds. This should be called when the viewport has stopped changing, such
-	 * as at the end of a pan, zoom, or animation.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.updateRenderingBounds()
-	 * ```
-	 *
-	 * @internal
-	 */
-	updateRenderingBounds(): this {
-		const viewportPageBounds = this.getViewportPageBounds()
-		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
-		this._renderingBounds.set(viewportPageBounds.clone())
-
-		return this
-	}
-
-	/**
-	 * The distance to expand the viewport when measuring culling. A larger distance will
-	 * mean that shapes near to the viewport (but still outside of it) will not be culled.
-	 *
-	 * @public
-	 */
-	renderingBoundsMargin = 100
 
 	/* --------------------- Pages ---------------------- */
 
@@ -3604,8 +3561,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 
 				this.store.put([{ ...this.getInstanceState(), currentPageId: toId }])
-
-				this.updateRenderingBounds()
 			},
 			undo: ({ fromId }) => {
 				if (!this.store.has(fromId)) {
@@ -3613,8 +3568,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return
 				}
 				this.store.put([{ ...this.getInstanceState(), currentPageId: fromId }])
-
-				this.updateRenderingBounds()
 			},
 			squash: ({ fromId }, { toId }) => {
 				return { toId, fromId }
@@ -3790,12 +3743,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
 				this.store.remove([deletedPage.id]) // remove the page
-				this.updateRenderingBounds()
 			},
 			undo: ({ deletedPage, deletedPageStates }) => {
 				this.store.put([deletedPage])
 				this.store.put(deletedPageStates)
-				this.updateRenderingBounds()
 			},
 		}
 	)

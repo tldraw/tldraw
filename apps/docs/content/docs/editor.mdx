@@ -201,7 +201,154 @@ The [Editor#getInstanceState](?) method returns settings that relate to each ind
 
 The editor's user preferences are shared between all instances. See the [TLUserPreferences](?) docs for more about the user preferences.
 
-## Common things to do with the editor
+# Camera and coordinates
+
+The editor offers many methods and properties relating to the part of the infinite canvas that is displayed in the component. This section includes key concepts and methods that you can use to change or control which parts of the canvas are visible.
+
+## Viewport
+
+The viewport is the rectangular area contained by the editor.
+
+| Method                            | Description                                                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [Editor#getViewportScreenBounds]  | A [Box](?) that describes the size and position of the component's canvas in actual screen pixels.                 |
+| [Editor#getViewportPageBounds](?) | A [Box](?) that describes the size and position of the part of the current page that is displayed in the viewport. |
+
+## Screen vs. page coordinates
+
+In tldraw, coordinates are either be in page or screen space.
+
+A "screen point" refers to the point's distance from the top left corner of the component.
+
+A "page point" refers to the point's distance from the "zero point" of the canvas.
+
+When the camera is at `{x: 0, y: 0, z: 0}`, the screen point and page point will be identical. As the camera moves, however, the viewport will display a different part of the page; and so a screen point will correspond to a different page point.
+
+| Method                   | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| [Editor#screenToPage](?) | Convert a point in screen space to page space. |
+| [Editor#pageToScreen](?) | Convert a point in page space to screen space. |
+
+You can get the user's pointer position in both screen and page space.
+
+```ts
+const {
+	// The user's most recent page / screen points
+	currentPagePoint,
+	currentScreenPoint,
+	// The user's previous page / screen points
+	previousPagePoint,
+	previousScreenPoint,
+	// The last place where the most recent pointer down occurred
+	originPagePoint,
+	originScreenPoint,
+} = editor.inputs
+```
+
+## Camera options
+
+You can use the editor's camera options to configure the behavior of the editor's camera. There are many options available.
+
+### `wheelBehavior`
+
+When set to `'pan'`, scrolling the mousewheel will pan the camera. When set to `'zoom'`, scrolling the mousewheel will zoom the camera. When set to `none`, it will have no effect.
+
+### `panSpeed`
+
+The speed at which the camera pans. A pan can occur when the user holds the spacebar and drags, holds the middle mouse button and drags, drags while using the hand tool, or scrolls the mousewheel. The default value is `1`. A value of `0.5` would be twice as slow as default. A value of `2` would be twice as fast. When set to `0`, the camera will not pan.
+
+### `zoomSpeed`
+
+The speed at which the camera zooms. A zoom can occur when the user pinches or scrolls the mouse wheel. The default value is `1`. A value of `0.5` would be twice as slow as default. A value of `2` would be twice as fast. When set to `0`, the camera will not zoom.
+
+### `zoomSteps`
+
+The camera's "zoom steps" are an array of discrete zoom levels that the camera will move between when using the "zoom in" or "zoom out" controls.
+
+The first number in the `zoomSteps` array defines the camera's minimum zoom level. The last number in the `zoomSteps` array defines the camera's maximum zoom level.
+
+If the `constraints` are provided, then the actual value for the camera's zoom will be be calculated by multiplying the value from the `zoomSteps` array with the value from the `baseZoom`. See the `baseZoom` property for more information.
+
+### `isLocked`
+
+Whether the camera is locked. When the camera is locked, the camera will not move.
+
+### `constraints`
+
+By default the camera is free to move anywhere on the infinite canvas. However, you may provide the camera with a `constraints` object that constrains the camera based on a relationship between a `bounds` (in page space) and the viewport (in screen space).
+
+### `constraints.bounds`
+
+A box model describing the bounds in page space.
+
+### `constraints.padding`
+
+An object with padding to apply to the `x` and `y` dimensions of the viewport. The padding is in screen space.
+
+### `constraints.origin`
+
+An object with an origin for the `x` and `y` dimensions. Depending on the `behavior`, the origin may be used to position the bounds within the viewport.
+
+For example, when the `behavior` is `fixed` and the `origin.x` is `0`, the bounds will be placed with its left side touching the left side of the viewport. When `origin.x` is `1` the bounds will be placed with its right side touching the right side of the viewport. By default the origin for each dimension is .5. This places the bounds in the center of the viewport.
+
+### `constraints.initialZoom`
+
+The `initialZoom` option defines the camera's initial zoom level and what the zoom should be when when the camera is reset. The zoom it produces is based on the value provided:
+
+| Value     | Description                                                                                                             |
+| --------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 'default' | 100%.                                                                                                                   |
+| 'fit-x'   | The zoom at which the constraint's `bounds.width` exactly fits within the viewport.                                     |
+| 'fit-y'   | The zoom at which the constraint's `bounds.height` exactly fits within the viewport.                                    |
+| 'fit-min' | The zoom at which the _smaller_ of the constraint's `bounds.width` or `bounds.height` exactly fits within the viewport. |
+| 'fit-max' | The zoom at which the _larger_ of the constraint's `bounds.width` or `bounds.height` exactly fits within the viewport.  |
+
+### `constraints.baseZoom`
+
+The `baseZoom` property defines the base property for the camera's zoom steps. It accepts the same values as `initialZoom`.
+
+When `constraints` are provided, then the actual value for the camera's zoom will be be calculated by multiplying the value from the `zoomSteps` array with the value from the `baseZoom`.
+
+For example, if the `baseZoom` is set to `default`, then a zoom step of 2 will be 200%. However, if the `baseZoom` is set to `fit-x`, then a zoom step value of 2 will be twice the zoom level at which the bounds width exactly fits within the viewport.
+
+### `constraints.behavior`
+
+The `behavior` property defines which logic should be used when calculating the bounds position.
+
+| Value     | Description                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 'free'    | The bounds may be placed anywhere relative to the viewport. This is the default "infinite canvas" experience.                               |
+| 'inside'  | The bounds must stay entirely within the viewport.                                                                                          |
+| 'outside' | The bounds may partially leave the viewport but must never leave it completely.                                                             |
+| 'fixed'   | The bounds are placed in the viewport at a fixed location according to the `'origin'`.                                                      |
+| 'contain' | When the zoom is below the "fit zoom" for an axis, the bounds use the `'fixed'` behavior; when above, the bounds use the `inside` behavior. |
+
+## Controlling the camera
+
+There are several `Editor` methods available for controlling the camera.
+
+| Method                          | Description                                                                                         |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [Editor#setCamera](?)           | Moves the camera to the provided coordinates.                                                       |
+| [Editor#zoomIn](?)              | Zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information. |
+| [Editor#zoomOut](?)             | Zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information. |
+| [Editor#zoomToFit](?)           | Zooms the camera in to the nearest zoom step. See the `constraints.zoomSteps` for more information. |
+| [Editor#zoomToBounds](?)        | Moves the camera to fit the given bounding box.                                                     |
+| [Editor#zoomToSelection](?)     | Moves the camera to fit the current selection.                                                      |
+| [Editor#zoomToUser](?)          | Moves the camera to center on a user's cursor.                                                      |
+| [Editor#resetZoom](?)           | Resets the zoom to 100% or to the `initialZoom` zoom level.                                         |
+| [Editor#centerOnPoint](?)       | Centers the camera on the given point.                                                              |
+| [Editor#pan](?)                 | Moves the camera's x and y position.                                                                |
+| [Editor#slideCamera](?)         | Slides the camera in a given direction with a certain velocity and friction.                        |
+| [Editor#stopCameraAnimation](?) | Stops any camera animation.                                                                         |
+
+## Camera state
+
+The camera may be in two states, `idle` or `moving`.
+
+You can get the current camera state with [Editor#getCameraState](?).
+
+# Common things to do with the editor
 
 ### Create a shape id
 

@@ -1037,7 +1037,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
-					editor.zoomIn(editor.getViewportScreenCenter(), {
+					editor.zoomIn(undefined, {
 						animation: { duration: ANIMATION_MEDIUM_MS },
 					})
 				},
@@ -1049,7 +1049,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source })
-					editor.zoomOut(editor.getViewportScreenCenter(), {
+					editor.zoomOut(undefined, {
 						animation: { duration: ANIMATION_MEDIUM_MS },
 					})
 				},
@@ -1062,7 +1062,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
-					editor.resetZoom(editor.getViewportScreenCenter(), {
+					editor.resetZoom(undefined, {
 						animation: { duration: ANIMATION_MEDIUM_MS },
 					})
 				},

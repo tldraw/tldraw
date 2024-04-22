@@ -7938,37 +7938,6 @@
               "name": "bringToFront"
             },
             {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#cameraState:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "readonly cameraState: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "CameraStateManager",
-                  "canonicalReference": "@tldraw/editor!~CameraStateManager:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "cameraState",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#cancel:member(1)",
               "docComment": "/**\n * Dispatch a cancel event.\n *\n * @example\n * ```ts\n * editor.cancel()\n * ```\n *\n * @public\n */\n",
@@ -9970,6 +9939,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCameraState:member(1)",
+              "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @example\n * ```ts\n * editor.getCameraState()\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCameraState(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "\"idle\" | \"moving\""
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCameraState"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getCanRedo:member(1)",
               "docComment": "/**\n * Whether the app can redo.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -11919,38 +11919,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getPointInShapeSpace"
-            },
-            {
-              "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#getRenderingBounds:member(1)",
-              "docComment": "/**\n * The current rendering bounds in the current page space, used for checking which shapes are \"on screen\".\n *\n * @example\n * ```ts\n * editor.getRenderingBounds()\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getRenderingBounds(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Box",
-                  "canonicalReference": "@tldraw/editor!Box:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getRenderingBounds"
             },
             {
               "kind": "Method",
@@ -14259,38 +14227,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#getViewportPageCenter:member(1)",
-              "docComment": "/**\n * The center of the viewport in the current page space.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "getViewportPageCenter(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Vec",
-                  "canonicalReference": "@tldraw/editor!Vec:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "getViewportPageCenter"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getViewportScreenBounds:member(1)",
               "docComment": "/**\n * The bounds of the editor's viewport in screen space.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -15702,72 +15638,6 @@
             },
             {
               "kind": "Method",
-              "canonicalReference": "@tldraw/editor!Editor#pan:member(1)",
-              "docComment": "/**\n * Pan the camera.\n *\n * @param offset - The offset in the current page space.\n *\n * @param opts - The camera move options.\n *\n * @example\n * ```ts\n * editor.pan({ x: 100, y: 100 })\n * editor.pan({ x: 100, y: 100 }, { animation: { duration: 1000 } })\n * ```\n *\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "pan(offset: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "VecLike",
-                  "canonicalReference": "@tldraw/editor!VecLike:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ", opts?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLCameraMoveOptions",
-                  "canonicalReference": "@tldraw/editor!TLCameraMoveOptions:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": "): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "this"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isStatic": false,
-              "returnTypeTokenRange": {
-                "startIndex": 5,
-                "endIndex": 6
-              },
-              "releaseTag": "Public",
-              "isProtected": false,
-              "overloadIndex": 1,
-              "parameters": [
-                {
-                  "parameterName": "offset",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 1,
-                    "endIndex": 2
-                  },
-                  "isOptional": false
-                },
-                {
-                  "parameterName": "opts",
-                  "parameterTypeTokenRange": {
-                    "startIndex": 3,
-                    "endIndex": 4
-                  },
-                  "isOptional": true
-                }
-              ],
-              "isOptional": false,
-              "isAbstract": false,
-              "name": "pan"
-            },
-            {
-              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#popFocusedGroupId:member(1)",
               "docComment": "/**\n * Exit the current focused group, moving up to the next parent group if there is one.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -16280,36 +16150,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "renamePage"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#renderingBoundsMargin:member",
-              "docComment": "/**\n * The distance to expand the viewport when measuring culling. A larger distance will mean that shapes near to the viewport (but still outside of it) will not be culled.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "renderingBoundsMargin: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "number"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "renderingBoundsMargin",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Method",

@@ -619,8 +619,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
-    // (undocumented)
-    readonly cameraState: CameraStateManager;
     cancel(): this;
     cancelDoubleClick(): void;
     // @internal (undocumented)
@@ -697,6 +695,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getBaseZoom(): number;
     getCamera(): TLCamera;
     getCameraOptions(): TLCameraOptions;
+    getCameraState(): "idle" | "moving";
     getCanRedo(): boolean;
     getCanUndo(): boolean;
     getCollaborators(): TLInstancePresence[];
@@ -747,7 +746,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPath(): string;
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
-    getRenderingBounds(): Box;
     getRenderingShapes(): {
         backgroundIndex: number;
         id: TLShapeId;
@@ -822,7 +820,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         util: ShapeUtil;
     }[];
     getViewportPageBounds(): Box;
-    getViewportPageCenter(): Vec;
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
     getZoomLevel(): number;
@@ -869,7 +866,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
-    pan(offset: VecLike, opts?: TLCameraMoveOptions): this;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, options?: {
         point?: VecLike;
@@ -886,7 +882,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         type: T;
     } : TLExternalContent) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
-    renderingBoundsMargin: number;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
@@ -947,8 +942,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: TLCommandHistoryOptions): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: TLCommandHistoryOptions): this;
-    // @internal
-    updateRenderingBounds(): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, historyOptions?: TLCommandHistoryOptions): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], historyOptions?: TLCommandHistoryOptions): this;
     updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
