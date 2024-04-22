@@ -26,6 +26,11 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 					'Your changes were rejected by the server. Please reload the page. If the problem persists contact the system administrator.'
 				break
 			}
+			case TLIncompatibilityReason.RoomNotFound: {
+				message =
+					'The room you are trying to connect to does not exist. Please check the URL and try again. If the problem persists contact the system administrator.'
+				break
+			}
 			default:
 				exhaustiveSwitchError(error.reason)
 		}

@@ -25,6 +25,11 @@ import './requestAnimationFrame.polyfill'
 type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
 /** @public */
+export enum TLCloseEventCode {
+	NOT_FOUND = 4004,
+}
+
+/** @public */
 export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
 /**
  * A socket that can be used to send and receive messages to the server. It should handle staying
@@ -236,6 +241,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				})
 			)
 		}
+
 		// if the socket is already online before this client was instantiated
 		// then we should send a connect message right away
 		if (this.socket.connectionStatus === 'online') {

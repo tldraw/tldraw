@@ -4,7 +4,9 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { RoomOpenMode } from '@tldraw/dotcom-shared'
 import {
+	DBLoadResultType,
 	RoomSnapshot,
+	TLCloseEventCode,
 	TLServer,
 	TLServerEvent,
 	TLSyncRoom,
@@ -241,9 +243,10 @@ export class TLDrawDurableObject extends TLServer {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 
 		// Handle the connection (see TLServer)
+		let connectionResult: DBLoadResultType
 		try {
 			// block concurrency while initializing the room if that needs to happen
-			await this.controller.blockConcurrencyWhile(() =>
+			connectionResult = await this.controller.blockConcurrencyWhile(() =>
 				this.handleConnection({
 					socket: serverWebSocket as any,
 					persistenceKey: this.documentInfo.slug!,
@@ -267,6 +270,12 @@ export class TLDrawDurableObject extends TLServer {
 		serverWebSocket.addEventListener('close', () => {
 			this.schedulePersist()
 		})
+
+		if (connectionResult === 'room_not_found') {
+			// If the room is not found, we need to accept and then immediately close the connection
+			// with our custom close code.
+			serverWebSocket.close(TLCloseEventCode.NOT_FOUND, 'Room not found')
+		}
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}

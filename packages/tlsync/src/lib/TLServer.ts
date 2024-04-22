@@ -6,7 +6,7 @@ import { JsonChunkAssembler } from './chunk'
 import { schema } from './schema'
 import { RoomState } from './server-types'
 
-type LoadKind = 'new' | 'reopen' | 'open'
+type LoadKind = 'reopen' | 'open'
 export type DBLoadResult =
 	| {
 			type: 'error'
@@ -19,6 +19,7 @@ export type DBLoadResult =
 	| {
 			type: 'room_not_found'
 	  }
+export type DBLoadResultType = DBLoadResult['type']
 
 export type TLServerEvent =
 	| {
@@ -54,10 +55,10 @@ export type TLServerEvent =
 export abstract class TLServer {
 	schema = schema
 
-	async getInitialRoomState(persistenceKey: string): Promise<[RoomState, LoadKind]> {
+	async getInitialRoomState(persistenceKey: string) {
 		let roomState = this.getRoomForPersistenceKey(persistenceKey)
 
-		let roomOpenKind = 'open' as 'open' | 'reopen' | 'new'
+		let roomOpenKind: LoadKind = 'open'
 
 		// If no room exists for the id, create one
 		if (roomState === undefined) {
@@ -78,14 +79,24 @@ export abstract class TLServer {
 				}
 			}
 
-			// If we still don't have a room, create a new one
+			// If we still don't have a room, throw an error.
 			if (roomState === undefined) {
-				roomOpenKind = 'new'
-
-				roomState = {
-					persistenceKey,
-					room: new TLSyncRoom(this.schema),
-				}
+				// This is how it bubbles down to the client:
+				// 1.) From here, it's caught in the catch block of handleConnection,
+				//   and we return `room_not_found` to TLDrawDurableObject.
+				// 2.) In TLDrawDurableObject, we return a 404 to the client, we accept and
+				//   and then immediately close the client. This lets us send a TLCloseEventCode.NOT_FOUND
+				//   closeCode down to the client.
+				// 3.) joinExistingRoom which handles the websocket upgrade is not affected.
+				//   Again, we accept the connection, it's just that we immediately close right after.
+				// 4.) In ClientWebSocketAdapter, ws.onclose is called, and that calls _handleDisconnect.
+				// 5.) _handleDisconnect sets the status to 'error' and calls the onStatusChange callback.
+				// 6.) On the dotcom in useRemoteSyncClient, we have socket.onStatusChange callback
+				//   where we set TLIncompatibilityReason.RoomNotFound and close the client + socket.
+				// 7.) Finally on the dotcom app we use StoreErrorScreen to display an appropriate msg.
+				//
+				// Phew!
+				throw new Error('room_not_found')
 			}
 
 			const thisRoom = roomState.room
@@ -118,7 +129,7 @@ export abstract class TLServer {
 			this.persistToDatabase?.(persistenceKey)
 		}
 
-		return [roomState, roomOpenKind]
+		return { roomState, roomOpenKind }
 	}
 
 	/**
@@ -138,9 +149,22 @@ export abstract class TLServer {
 		persistenceKey: string
 		sessionKey: string
 		storeId: string
-	}) => {
+	}): Promise<DBLoadResultType> => {
 		const clientId = nanoid()
-		const [roomState, roomOpenKind] = await this.getInitialRoomState(persistenceKey)
+
+		let roomState: RoomState, roomOpenKind: LoadKind
+		try {
+			const result = await this.getInitialRoomState(persistenceKey)
+			roomState = result.roomState
+			roomOpenKind = result.roomOpenKind
+		} catch (e: any) {
+			if (e.message === 'room_not_found') {
+				return 'room_not_found'
+			} else {
+				// Re-throw if it's a general error.
+				throw e
+			}
+		}
 
 		roomState.room.handleNewSession(
 			sessionKey,
@@ -156,7 +180,7 @@ export abstract class TLServer {
 			})
 		)
 
-		if (roomOpenKind === 'new' || roomOpenKind === 'reopen') {
+		if (roomOpenKind === 'reopen') {
 			// Record that the room is now active
 			this.logEvent({ type: 'room', roomId: persistenceKey, name: 'room_start' })
 
@@ -164,7 +188,7 @@ export abstract class TLServer {
 			this.logEvent({
 				type: 'client',
 				roomId: persistenceKey,
-				name: roomOpenKind === 'new' ? 'room_create' : 'room_reopen',
+				name: 'room_reopen',
 				clientId,
 				instanceId: sessionKey,
 				localClientId: storeId,
@@ -237,6 +261,8 @@ export abstract class TLServer {
 		socket.addEventListener('message', handleMessageFromClient)
 		socket.addEventListener('close', handleCloseOrErrorFromClient)
 		socket.addEventListener('error', handleCloseOrErrorFromClient)
+
+		return 'room_found'
 	}
 
 	/**
