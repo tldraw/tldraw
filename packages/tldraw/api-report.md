@@ -2507,9 +2507,7 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditableText(id: TLShapeId, type: string, text: string, opts?: {
-    disableTab: boolean;
-}): {
+export function useEditableText(id: TLShapeId, type: string, text: string): {
     handleBlur: () => void;
     handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
     handleDoubleClick: (e: any) => any;

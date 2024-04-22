@@ -9881,7 +9881,15 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "getCameraFitZoom(): "
+                  "text": "getCameraFitZoom(opts?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        reset: boolean;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
                 },
                 {
                   "kind": "Content",
@@ -9894,13 +9902,22 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
+                "startIndex": 3,
+                "endIndex": 4
               },
               "releaseTag": "Public",
               "isProtected": false,
               "overloadIndex": 1,
-              "parameters": [],
+              "parameters": [
+                {
+                  "parameterName": "opts",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": true
+                }
+              ],
               "isOptional": false,
               "isAbstract": false,
               "name": "getCameraFitZoom"
@@ -10029,6 +10046,86 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getCanUndo"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCollaborators:member(1)",
+              "docComment": "/**\n * Returns a list of presence records for all peer collaborators. This will return the latest presence record for each connected user.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCollaborators(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstancePresence",
+                  "canonicalReference": "@tldraw/tlschema!TLInstancePresence:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCollaborators"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCollaboratorsOnCurrentPage:member(1)",
+              "docComment": "/**\n * Returns a list of presence records for all peer collaborators on the current page. This will return the latest presence record for each connected user.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCollaboratorsOnCurrentPage(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstancePresence",
+                  "canonicalReference": "@tldraw/tlschema!TLInstancePresence:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCollaboratorsOnCurrentPage"
             },
             {
               "kind": "Property",
@@ -36967,7 +37064,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    constraints?: {\n        fitX: 'contain' | 'inside' | 'lock' | 'outside';\n        fitY: 'contain' | 'inside' | 'lock' | 'outside';\n        bounds: "
+              "text": "{\n    wheelBehavior: 'none' | 'pan' | 'zoom';\n    constraints?: {\n        behavior: 'contain' | 'fixed' | 'inside' | 'outside' | {\n            x: 'contain' | 'fixed' | 'inside' | 'outside';\n            y: 'contain' | 'fixed' | 'inside' | 'outside';\n        };\n        zoomBehavior: 'default' | 'fit';\n        bounds: "
             },
             {
               "kind": "Reference",
@@ -36994,7 +37091,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n        resetDimension: 'max' | 'min' | 'none' | 'x' | 'y';\n    };\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    isLocked: boolean;\n    wheelBehavior: 'none' | 'pan' | 'zoom';\n}"
+              "text": ";\n        defaultZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';\n    };\n    panSpeed: number;\n    zoomSpeed: number;\n    zoomSteps: number[];\n    isLocked: boolean;\n}"
             },
             {
               "kind": "Content",
@@ -39325,33 +39422,6 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "\"stop-camera-animation\"",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/editor!TLEventMap#\"stop-camera\":member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "'stop-camera': "
-                },
-                {
-                  "kind": "Content",
-                  "text": "[]"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "\"stop-camera\"",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

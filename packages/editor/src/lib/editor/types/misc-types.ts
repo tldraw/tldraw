@@ -36,6 +36,7 @@ export type TLCameraMoveOptions = Partial<{
 
 /** @public */
 export type TLCameraOptions = {
+	/** Controls whether the wheel pans or zooms. */
 	wheelBehavior: 'zoom' | 'pan' | 'none'
 	/** The speed of a scroll wheel / trackpad pan */
 	panSpeed: number
@@ -48,16 +49,24 @@ export type TLCameraOptions = {
 	/** The camera constraints */
 	constraints?: {
 		/** Which dimension to fit when the camera is reset. */
-		resetDimension: 'min' | 'max' | 'x' | 'y' | 'none'
+		defaultZoom: 'fit-min' | 'fit-max' | 'fit-x' | 'fit-y' | 'default'
+		/** The behavior for the zoom. When 'fit', the steps will be a multiplier of the default zoom. */
+		zoomBehavior: 'fit' | 'default'
 		/** The behavior for the constraints on the x axis. */
-		fitX: 'contain' | 'inside' | 'outside' | 'lock'
-		/** The behavior for the constraints on the y axis. */
-		fitY: 'contain' | 'inside' | 'outside' | 'lock'
-		/** The bounds of the content (in page space) */
+		behavior:
+			| 'contain'
+			| 'inside'
+			| 'outside'
+			| 'fixed'
+			| {
+					x: 'contain' | 'inside' | 'outside' | 'fixed'
+					y: 'contain' | 'inside' | 'outside' | 'fixed'
+			  }
+		/** The bounds (in page space) of the constrained space */
 		bounds: BoxModel
-		/** The padding around the bounds (in screen space). Provide a number for x and y, or [x, y]. */
+		/** The padding inside of the viewport (in screen space) */
 		padding: VecLike
-		/** The origin for placement when the bounds are smaller than the viewport. Provide a number for x and y, or [x, y].*/
+		/** The origin for placement. Used to position the bounds within the viewport when an axis is fixed or contained and zoom is below the axis fit. */
 		origin: VecLike
 	}
 }

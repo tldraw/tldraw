@@ -2072,11 +2072,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @public */
-	getCameraFitZoom() {
+	getCameraFitZoom(opts = {} as { reset: boolean }) {
 		const cameraOptions = this.getCameraOptions()
-		if (!cameraOptions.constraints || cameraOptions.constraints.resetDimension === 'none') {
+		if (
+			// If no camera constraints are provided, the default zoom is 100%
+			!cameraOptions.constraints ||
+			// When defaultZoom is default, the default zoom is 100%
+			cameraOptions.constraints.defaultZoom === 'default' ||
+			// When zoomBehavior is default, we ignore the default zoom and use 100% as the fit zoom
+			(!opts.reset && cameraOptions.constraints.zoomBehavior === 'default')
+		) {
 			return 1
 		}
+
 		const { padding } = cameraOptions.constraints
 		const vsb = this.getViewportScreenBounds()
 		const py = Math.min(padding.y, vsb.w / 2)
@@ -2085,21 +2093,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const zx = (vsb.w - px * 2) / bounds.w
 		const zy = (vsb.h - py * 2) / bounds.h
 
-		switch (cameraOptions.constraints.resetDimension) {
-			case 'min': {
+		switch (cameraOptions.constraints.defaultZoom) {
+			case 'fit-min': {
 				return Math.max(zx, zy)
 			}
-			case 'max': {
+			case 'fit-max': {
 				return Math.min(zx, zy)
 			}
-			case 'x': {
+			case 'fit-x': {
 				return zx
 			}
-			case 'y': {
+			case 'fit-y': {
 				return zy
 			}
+			// none is accounted-for above
 			default: {
-				throw exhaustiveSwitchError(cameraOptions.constraints.resetDimension)
+				throw exhaustiveSwitchError(cameraOptions.constraints.defaultZoom)
 			}
 		}
 	}
@@ -2182,20 +2191,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				let fitZoom = 1
 
-				switch (cameraOptions.constraints.resetDimension) {
-					case 'min': {
+				switch (cameraOptions.constraints.defaultZoom) {
+					case 'fit-min': {
 						fitZoom = Math.max(zx, zy)
 						break
 					}
-					case 'max': {
+					case 'fit-max': {
 						fitZoom = Math.min(zx, zy)
 						break
 					}
-					case 'x': {
+					case 'fit-x': {
 						fitZoom = zx
 						break
 					}
-					case 'y': {
+					case 'fit-y': {
 						fitZoom = zy
 						break
 					}
@@ -2230,6 +2239,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const originX = minX + freeW * constraints.origin.x
 				const originY = minY + freeH * constraints.origin.y
 
+				const behaviorX =
+					typeof constraints.behavior === 'string' ? constraints.behavior : constraints.behavior.x
+				const behaviorY =
+					typeof constraints.behavior === 'string' ? constraints.behavior : constraints.behavior.y
+
 				// x axis
 
 				if (opts?.reset) {
@@ -2238,8 +2252,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					y = originY
 				} else {
 					// Apply constraints to the camera
-					switch (constraints.fitX) {
-						case 'lock': {
+					switch (behaviorX) {
+						case 'fixed': {
 							// Center according to the origin
 							x = originX
 							break
@@ -2267,8 +2281,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// y axis
 
-					switch (constraints.fitY) {
-						case 'lock': {
+					switch (behaviorY) {
+						case 'fixed': {
 							y = originY
 							break
 						}
@@ -2485,7 +2499,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (constraints) {
 			// For non-infinite fit, we'll set the camera to the natural zoom level...
 			// unless it's already there, in which case we'll set zoom to 100%
-			const fitZoom = this.getCameraFitZoom()
+			const fitZoom = this.getCameraFitZoom({ reset: true })
 			if (cz !== fitZoom) {
 				z = fitZoom
 			}
@@ -2915,15 +2929,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToUser(userId: string, opts: TLCameraMoveOptions = { animation: { duration: 500 } }): this {
-		const presences = this.store.query.records('instance_presence', () => ({
-			userId: { eq: userId },
-		}))
-
-		const presence = [...presences.get()]
-			.sort((a, b) => {
-				return a.lastActivityTimestamp - b.lastActivityTimestamp
-			})
-			.pop()
+		const presence = this.getCollaborators().find((c) => c.userId === userId)
 
 		if (!presence) return this
 
@@ -3186,6 +3192,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { x: cx, y: cy, z: cz = 1 } = this.getCamera()
 		return new Vec((point.x + cx) * cz, (point.y + cy) * cz, point.z ?? 0.5)
 	}
+	// Collaborators
+
+	@computed
+	private _getCollaboratorsQuery() {
+		return this.store.query.records('instance_presence', () => ({
+			userId: { neq: this.user.getId() },
+		}))
+	}
+
+	/**
+	 * Returns a list of presence records for all peer collaborators.
+	 * This will return the latest presence record for each connected user.
+	 *
+	 * @public
+	 */
+	@computed
+	getCollaborators() {
+		const allPresenceRecords = this._getCollaboratorsQuery().get()
+		if (!allPresenceRecords.length) return EMPTY_ARRAY
+		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
+		return userIds.map((id) => {
+			const latestPresence = allPresenceRecords
+				.filter((c) => c.userId === id)
+				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
+			return latestPresence
+		})
+	}
+
+	/**
+	 * Returns a list of presence records for all peer collaborators on the current page.
+	 * This will return the latest presence record for each connected user.
+	 *
+	 * @public
+	 */
+	@computed
+	getCollaboratorsOnCurrentPage() {
+		const currentPageId = this.getCurrentPageId()
+		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+	}
 
 	// Following
 
@@ -3202,9 +3247,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	startFollowingUser(userId: string): this {
-		const leaderPresences = this.store.query.records('instance_presence', () => ({
-			userId: { eq: userId },
-		}))
+		const leaderPresences = this._getCollaboratorsQuery()
+			.get()
+			.filter((p) => p.userId === userId)
 
 		const thisUserId = this.user.getId()
 
@@ -3213,7 +3258,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// If the leader is following us, then we can't follow them
-		if (leaderPresences.get().some((p) => p.followingUserId === thisUserId)) {
+		if (leaderPresences.some((p) => p.followingUserId === thisUserId)) {
 			return this
 		}
 
@@ -3232,11 +3277,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const moveTowardsUser = () =>
 			transact(() => {
 				// Stop following if we can't find the user
-				const leaderPresence = [...leaderPresences.get()]
-					.sort((a, b) => {
-						return a.lastActivityTimestamp - b.lastActivityTimestamp
-					})
-					.pop()
+				const leaderPresence = [...leaderPresences].sort(
+					(a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp
+				)[0]
 				if (!leaderPresence) {
 					this.stopFollowingUser()
 					return
@@ -3634,6 +3677,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getCurrentPageShapeIds() {
 		return this._currentPageShapeIds.get()
+	}
+
+	/**
+	 * @internal
+	 */
+	@computed
+	getCurrentPageShapeIdsSorted() {
+		return Array.from(this.getCurrentPageShapeIds()).sort()
 	}
 
 	/**
@@ -4248,7 +4299,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapePageTransform(shape: TLShape | TLShapeId): Mat {
-		const id = typeof shape === 'string' ? shape : this.getShape(shape)!.id
+		const id = typeof shape === 'string' ? shape : shape.id
 		return this._getShapePageTransformCache().get(id) ?? Mat.Identity()
 	}
 
@@ -4582,7 +4633,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getCurrentPageBounds(): Box | undefined {
 		let commonBounds: Box | undefined
 
-		this.getCurrentPageShapeIds().forEach((shapeId) => {
+		this.getCurrentPageShapeIdsSorted().forEach((shapeId) => {
 			const bounds = this.getShapeMaskedPageBounds(shapeId)
 			if (!bounds) return
 			if (!commonBounds) {
@@ -4911,28 +4962,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageShapesSorted(): TLShape[] {
-		const shapes = this.getCurrentPageShapes().sort(sortByIndex)
-		const parentChildMap = new Map<TLShapeId, TLShape[]>()
 		const result: TLShape[] = []
-		const topLevelShapes: TLShape[] = []
-		let shape: TLShape, parent: TLShape | undefined
-
-		for (let i = 0, n = shapes.length; i < n; i++) {
-			shape = shapes[i]
-			parent = this.getShape(shape.parentId)
-			if (parent) {
-				if (!parentChildMap.has(parent.id)) {
-					parentChildMap.set(parent.id, [])
-				}
-				parentChildMap.get(parent.id)!.push(shape)
-			} else {
-				// undefined if parent is a shape
-				topLevelShapes.push(shape)
-			}
-		}
+		const topLevelShapes = this.getSortedChildIdsForParent(this.getCurrentPageId())
 
 		for (let i = 0, n = topLevelShapes.length; i < n; i++) {
-			pushShapeWithDescendants(topLevelShapes[i], parentChildMap, result)
+			pushShapeWithDescendants(this, topLevelShapes[i], result)
 		}
 
 		return result
@@ -8532,7 +8566,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// it will be 0,0 when its actual screen position is equal
 		// to screenBounds.point. This is confusing!
 		currentScreenPoint.set(sx, sy)
-		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz)
+		const nx = sx / cz - cx
+		const ny = sy / cz - cy
+		if (isFinite(nx) && isFinite(ny)) {
+			currentPagePoint.set(nx, ny, sz)
+		}
 
 		this.inputs.isPen = info.type === 'pointer' && info.isPen
 
@@ -9220,16 +9258,12 @@ function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartia
 	return next
 }
 
-function pushShapeWithDescendants(
-	shape: TLShape,
-	parentChildMap: Map<TLShapeId, TLShape[]>,
-	result: TLShape[]
-): void {
+function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape[]): void {
+	const shape = editor.getShape(id)
+	if (!shape) return
 	result.push(shape)
-	const children = parentChildMap.get(shape.id)
-	if (children) {
-		for (let i = 0, n = children.length; i < n; i++) {
-			pushShapeWithDescendants(children[i], parentChildMap, result)
-		}
+	const childIds = editor.getSortedChildIdsForParent(id)
+	for (let i = 0, n = childIds.length; i < n; i++) {
+		pushShapeWithDescendants(editor, childIds[i], result)
 	}
 }
