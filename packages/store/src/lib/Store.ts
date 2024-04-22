@@ -1,6 +1,7 @@
 import { Atom, Computed, Reactor, atom, computed, reactor, transact } from '@tldraw/state'
 import {
 	assert,
+	exhaustiveSwitchError,
 	filterEntries,
 	objectMapEntries,
 	objectMapFromEntries,
@@ -11,6 +12,7 @@ import {
 import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { Cache } from './Cache'
+import { PatchedRecordsDiff, applyRecordPatch } from './PatchedRecordsDiff'
 import { RecordScope } from './RecordType'
 import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { StoreQueries } from './StoreQueries'
@@ -714,19 +716,116 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 	}
 
-	applyDiff(diff: RecordsDiff<R>, runCallbacks = true) {
-		this.atomic(() => {
-			const toPut = objectMapValues(diff.added).concat(
-				objectMapValues(diff.updated).map(([_from, to]) => to)
-			)
-			const toRemove = objectMapKeys(diff.removed)
-			if (toPut.length) {
-				this.put(toPut)
-			}
-			if (toRemove.length) {
-				this.remove(toRemove)
-			}
-		}, runCallbacks)
+	/**
+	 * Apply a diff to the store.
+	 * @param diff - The diff to apply
+	 * @param options -
+	 * - `runCallbacks`: should we run before/after callbacks for these changes? Defaults to `true`
+	 * - `updateGranularity`: with what granularity should we apply updates?
+	 *   - `'record'`: replace the entire existing record with the new record from the diff. This is
+	 *     the default.
+	 *   - `'property'`: apply the changed properties of each updated record to the version that
+	 *     currently exists in the store.
+	 */
+	applyDiff(
+		diff: RecordsDiff<R>,
+		{
+			runCallbacks = true,
+			updateGranularity = 'record',
+		}: { runCallbacks?: boolean; updateGranularity?: 'record' | 'property' } = {}
+	) {
+		this.atomic(
+			() => {
+				console.log('diff', diff.updated)
+				const toPut = objectMapValues(diff.added)
+
+				switch (updateGranularity) {
+					case 'property':
+						for (const [before, after] of objectMapValues(diff.updated)) {
+							const existing = this.get(before.id)
+							if (!existing) {
+								toPut.push(after)
+							} else {
+								let changed: R | null = null
+
+								const r = {} as any
+								for (const key of Object.keys(before)) {
+									const beforeValue = (before as any)[key]
+									const afterValue = (after as any)[key]
+
+									if (Object.is(beforeValue, afterValue)) continue
+									if (!changed) changed = { ...existing } as R
+									;(changed as any)[key] = afterValue
+									;(r as any)[key] = afterValue
+								}
+
+								console.log(r)
+								if (changed) toPut.push(changed)
+							}
+						}
+						break
+					case 'record':
+						for (const [_before, after] of objectMapValues(diff.updated)) {
+							toPut.push(after)
+						}
+						break
+					default:
+						exhaustiveSwitchError(updateGranularity)
+				}
+
+				const toRemove = objectMapKeys(diff.removed)
+
+				if (toPut.length) {
+					this.put(toPut)
+				}
+
+				if (toRemove.length) {
+					this.remove(toRemove)
+				}
+			},
+			{ runCallbacks }
+		)
+	}
+
+	/**
+	 * Apply a diff to the store.
+	 * @param diff - The diff to apply
+	 * @param options -
+	 * - `runCallbacks`: should we run before/after callbacks for these changes? Defaults to `true`
+	 * - `updateGranularity`: with what granularity should we apply updates?
+	 *   - `'record'`: replace the entire existing record with the new record from the diff. This is
+	 *     the default.
+	 *   - `'property'`: apply the changed properties of each updated record to the version that
+	 *     currently exists in the store.
+	 */
+	applyPatchDiff(
+		diff: PatchedRecordsDiff<R>,
+		{ runCallbacks = true }: { runCallbacks?: boolean } = {}
+	) {
+		console.log('applyPatchDiff', diff)
+		this.atomic(
+			() => {
+				const toPut = objectMapValues(diff.added)
+
+				for (const [id, patch] of objectMapEntries(diff.patched)) {
+					const existing = this.get(id)
+					if (!existing) continue
+
+					toPut.push(applyRecordPatch<R>(existing as any, patch))
+				}
+
+				const toRemove = objectMapKeys(diff.removed)
+
+				if (toPut.length) {
+					this.put(toPut)
+				}
+
+				if (toRemove.length) {
+					this.remove(toRemove)
+				}
+			},
+			{ runCallbacks }
+		)
 	}
 
 	/**
@@ -856,8 +955,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 	}
 	private _isInAtomicOp = false
-	/** @internal */
-	atomic<T>(fn: () => T, runCallbacks = true): T {
+	/**
+	 * Run a callback, but wait to run after callbacks until all the changed have occured.
+	 *
+	 * @param options -
+	 * - `runCallbacks`: should we run before/after callbacks for these changes? Defaults to `true`
+	 *
+	 * @internal
+	 */
+	atomic<T>(fn: () => T, { runCallbacks = true }: { runCallbacks?: boolean } = {}): T {
 		return transact(() => {
 			if (this._isInAtomicOp) {
 				if (!this.pendingAfterEvents) this.pendingAfterEvents = new Map()

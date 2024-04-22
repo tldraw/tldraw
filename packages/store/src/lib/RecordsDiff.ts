@@ -6,7 +6,7 @@ import { IdOf, UnknownRecord } from './BaseRecord'
  *
  * @public
  */
-export type RecordsDiff<R extends UnknownRecord> = {
+export interface RecordsDiff<R extends UnknownRecord> {
 	added: Record<IdOf<R>, R>
 	updated: Record<IdOf<R>, [from: R, to: R]>
 	removed: Record<IdOf<R>, R>
@@ -45,12 +45,14 @@ export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>
  * @returns A single diff that represents the squashed diffs.
  * @public
  */
-export function squashRecordDiffs<T extends UnknownRecord>(
-	diffs: RecordsDiff<T>[]
-): RecordsDiff<T> {
-	const result = { added: {}, removed: {}, updated: {} } as RecordsDiff<T>
+export function squashRecordDiffs<R extends UnknownRecord>(
+	diffs: RecordsDiff<R>[]
+): RecordsDiff<R> {
+	const result = createEmptyRecordsDiff<R>()
 
-	squashRecordDiffsMutable(result, diffs)
+	for (const diff of diffs) {
+		squashRecordDiffsMutable(result, diff)
+	}
 	return result
 }
 
@@ -58,50 +60,48 @@ export function squashRecordDiffs<T extends UnknownRecord>(
  * Apply the array `diffs` to the `target` diff, mutating it in-place.
  * @internal
  */
-export function squashRecordDiffsMutable<T extends UnknownRecord>(
-	target: RecordsDiff<T>,
-	diffs: RecordsDiff<T>[]
+export function squashRecordDiffsMutable<R extends UnknownRecord>(
+	target: RecordsDiff<R>,
+	diff: RecordsDiff<R>
 ): void {
-	for (const diff of diffs) {
-		for (const [id, value] of objectMapEntries(diff.added)) {
-			if (target.removed[id]) {
-				const original = target.removed[id]
-				delete target.removed[id]
-				if (original !== value) {
-					target.updated[id] = [original, value]
-				}
-			} else {
-				target.added[id] = value
-			}
-		}
-
-		for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
-			if (target.added[id]) {
-				target.added[id] = to
-				delete target.updated[id]
-				delete target.removed[id]
-				continue
-			}
-			if (target.updated[id]) {
-				target.updated[id] = [target.updated[id][0], to]
-				delete target.removed[id]
-				continue
-			}
-
-			target.updated[id] = diff.updated[id]
+	for (const [id, value] of objectMapEntries(diff.added)) {
+		if (target.removed[id]) {
+			const original = target.removed[id]
 			delete target.removed[id]
+			if (original !== value) {
+				target.updated[id] = [original, value]
+			}
+		} else {
+			target.added[id] = value
+		}
+	}
+
+	for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
+		if (target.added[id]) {
+			target.added[id] = to
+			delete target.updated[id]
+			delete target.removed[id]
+			continue
+		}
+		if (target.updated[id]) {
+			target.updated[id] = [target.updated[id][0], to]
+			delete target.removed[id]
+			continue
 		}
 
-		for (const [id, value] of objectMapEntries(diff.removed)) {
-			// the same record was added in this diff sequence, just drop it
-			if (target.added[id]) {
-				delete target.added[id]
-			} else if (target.updated[id]) {
-				target.removed[id] = target.updated[id][0]
-				delete target.updated[id]
-			} else {
-				target.removed[id] = value
-			}
+		target.updated[id] = diff.updated[id]
+		delete target.removed[id]
+	}
+
+	for (const [id, value] of objectMapEntries(diff.removed)) {
+		// the same record was added in this diff sequence, just drop it
+		if (target.added[id]) {
+			delete target.added[id]
+		} else if (target.updated[id]) {
+			target.removed[id] = target.updated[id][0]
+			delete target.updated[id]
+		} else {
+			target.removed[id] = value
 		}
 	}
 }

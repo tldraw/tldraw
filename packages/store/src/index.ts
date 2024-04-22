@@ -1,5 +1,19 @@
 export type { BaseRecord, IdOf, RecordId, UnknownRecord } from './lib/BaseRecord'
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
+export {
+	applyRecordPatch,
+	createEmptyPatchedRecordsDiff,
+	createPatchedRecordsDiffFromRecordsDiff,
+	createRecordPatch,
+	isPatchedRecordsDiffEmpty,
+	reversePatchedRecordsDiff,
+	reverseRecordPatch,
+	squashPatchedRecordsDiff,
+	squashPatchedRecordsDiffMutable,
+	squashRecordPatches,
+	type PatchedRecordsDiff,
+	type RecordPatch,
+} from './lib/PatchedRecordsDiff'
 export { RecordType, assertIdType, createRecordType } from './lib/RecordType'
 export {
 	createEmptyRecordsDiff,

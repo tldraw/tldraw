@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { HistoryManager, RecordsDiff } from '@tldraw/editor'
+import { RecordsDiff } from '@tldraw/editor'
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { DiffOptions, diff as jestDiff } from 'jest-diff'
 import { inspect } from 'util'
@@ -72,58 +72,58 @@ export function prettyPrintDiff(diff: RecordsDiff<any>, opts?: DiffOptions) {
 	return prettyDiff
 }
 
-export function logHistory(history: HistoryManager<any>) {
-	const { undos, redos, pendingDiff } = history.debug()
-	const p = new Printer()
-	p.log('=== History ===')
-	p.indent()
+// export function logHistory(history: HistoryManager<any>) {
+// 	const { undos, redos, pendingDiff } = history.debug()
+// 	const p = new Printer()
+// 	p.log('=== History ===')
+// 	p.indent()
 
-	p.log('Pending diff:')
-	p.indent()
-	if (pendingDiff.isEmpty) {
-		p.log('(empty)')
-	} else {
-		p.log(prettyPrintDiff(pendingDiff.diff))
-	}
-	p.log('')
-	p.dedent()
+// 	p.log('Pending diff:')
+// 	p.indent()
+// 	if (pendingDiff.isEmpty) {
+// 		p.log('(empty)')
+// 	} else {
+// 		p.log(prettyPrintDiff(pendingDiff.diff))
+// 	}
+// 	p.log('')
+// 	p.dedent()
 
-	p.log('Undos:')
-	p.indent()
-	if (undos.length === 0) {
-		p.log('(empty)\n')
-	}
-	for (const undo of undos) {
-		if (!undo) continue
-		if (undo.type === 'stop') {
-			p.log('- Stop', undo.id)
-		} else {
-			p.log('- Diff')
-			p.indent()
-			p.log(prettyPrintDiff(undo.diff))
-			p.dedent()
-		}
-		p.log('')
-	}
-	p.dedent()
+// 	p.log('Undos:')
+// 	p.indent()
+// 	if (undos.length === 0) {
+// 		p.log('(empty)\n')
+// 	}
+// 	for (const undo of undos) {
+// 		if (!undo) continue
+// 		if (undo.type === 'stop') {
+// 			p.log('- Stop', undo.id)
+// 		} else {
+// 			p.log('- Diff')
+// 			p.indent()
+// 			p.log(prettyPrintDiff(undo.diff))
+// 			p.dedent()
+// 		}
+// 		p.log('')
+// 	}
+// 	p.dedent()
 
-	p.log('Redos:')
-	p.indent()
-	if (redos.length === 0) {
-		p.log('(empty)\n')
-	}
-	for (const redo of redos) {
-		if (!redo) continue
-		if (redo.type === 'stop') {
-			p.log('> Stop', redo.id)
-		} else {
-			p.log('- Diff')
-			p.indent()
-			p.log(prettyPrintDiff(redo.diff))
-			p.dedent()
-		}
-		p.log('')
-	}
+// 	p.log('Redos:')
+// 	p.indent()
+// 	if (redos.length === 0) {
+// 		p.log('(empty)\n')
+// 	}
+// 	for (const redo of redos) {
+// 		if (!redo) continue
+// 		if (redo.type === 'stop') {
+// 			p.log('> Stop', redo.id)
+// 		} else {
+// 			p.log('- Diff')
+// 			p.indent()
+// 			p.log(prettyPrintDiff(redo.diff))
+// 			p.dedent()
+// 		}
+// 		p.log('')
+// 	}
 
-	p.print()
-}
+// 	p.print()
+// }

@@ -5,10 +5,13 @@ import { stack } from './Stack'
 
 interface TestRecord extends BaseRecord<'test', TestRecordId> {
 	value: number | string
+	otherValue: number
 }
 type TestRecordId = RecordId<TestRecord>
 const testSchema = StoreSchema.create<TestRecord, null>({
-	test: createRecordType<TestRecord>('test', { scope: 'document' }),
+	test: createRecordType<TestRecord>('test', { scope: 'document' }).withDefaultProperties(() => ({
+		otherValue: 0,
+	})),
 })
 
 const ids = {
@@ -64,6 +67,12 @@ function createCounterHistoryManager() {
 		manager.batch(() => _setAge(age), { history: 'record-preserveRedoStack' })
 	}
 
+	const setOtherValue = (otherValue: number) => {
+		store.update(ids.count, (r) => ({ ...r, otherValue }))
+	}
+
+	const getOtherValue = () => store.get(ids.count)!.otherValue
+
 	const incrementTwice = () => {
 		manager.batch(() => {
 			increment()
@@ -77,10 +86,12 @@ function createCounterHistoryManager() {
 		decrement,
 		setName,
 		setAge,
+		setOtherValue,
 		history: manager,
 		getCount,
 		getName,
 		getAge,
+		getOtherValue,
 	}
 }
 
@@ -143,6 +154,24 @@ describe(HistoryManager, () => {
 		expect(editor.getCount()).toBe(4)
 		editor.history.redo()
 		expect(editor.getCount()).toBe(7)
+	})
+
+	it('undos/redos properties on the same record separately', () => {
+		editor.history.mark()
+		editor.increment()
+		editor.history.ignore(() => editor.setOtherValue(3))
+		editor.increment()
+
+		expect(editor.getCount()).toBe(2)
+		expect(editor.getOtherValue()).toBe(3)
+
+		editor.history.undo()
+
+		// this change is undone
+		expect(editor.getCount()).toBe(0)
+
+		// this is left as-is despite being a property on the same record
+		expect(editor.getOtherValue()).toBe(3)
 	})
 
 	it('clears the redo stack if you execute commands, but not if you mark stopping points', () => {
