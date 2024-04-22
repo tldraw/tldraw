@@ -83,9 +83,8 @@ export abstract class TLServer {
 			if (roomState === undefined) {
 				// This is how it bubbles down to the client:
 				// 1.) From here, we send back a `room_not_found` to TLDrawDurableObject.
-				// 2.) In TLDrawDurableObject, we return a 404 to the client, we accept and
-				//   and then immediately close the client. This lets us send a TLCloseEventCode.NOT_FOUND
-				//   closeCode down to the client.
+				// 2.) In TLDrawDurableObject, we accept and then immediately close the client.
+				//   This lets us send a TLCloseEventCode.NOT_FOUND closeCode down to the client.
 				// 3.) joinExistingRoom which handles the websocket upgrade is not affected.
 				//   Again, we accept the connection, it's just that we immediately close right after.
 				// 4.) In ClientWebSocketAdapter, ws.onclose is called, and that calls _handleDisconnect.
