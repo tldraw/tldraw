@@ -1182,7 +1182,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		historyOptions?: TLCommandHistoryOptions
 	): this {
-		this._updateInstanceState(partial, { ephemeral: true, squashing: true, ...historyOptions })
+		if (partial.isReadonly === false && this.getInstanceState().isReadonly) {
+			const { isReadonly: _isReadonly, ...rest } = partial
+			this._updateInstanceState(rest, { ephemeral: true, squashing: true, ...historyOptions })
+		} else {
+			this._updateInstanceState(partial, { ephemeral: true, squashing: true, ...historyOptions })
+		}
 
 		if (partial.isChangingStyle !== undefined) {
 			clearTimeout(this._isChangingStyleTimeout)
@@ -2619,15 +2624,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	animateToUser(userId: string): this {
-		const presences = this.store.query.records('instance_presence', () => ({
-			userId: { eq: userId },
-		}))
-
-		const presence = [...presences.get()]
-			.sort((a, b) => {
-				return a.lastActivityTimestamp - b.lastActivityTimestamp
-			})
-			.pop()
+		const presence = this.getCollaborators().find((c) => c.userId === userId)
 
 		if (!presence) return this
 
@@ -2883,6 +2880,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 			z: point.z ?? 0.5,
 		}
 	}
+	// Collaborators
+
+	@computed
+	private _getCollaboratorsQuery() {
+		return this.store.query.records('instance_presence', () => ({
+			userId: { neq: this.user.getId() },
+		}))
+	}
+
+	/**
+	 * Returns a list of presence records for all peer collaborators.
+	 * This will return the latest presence record for each connected user.
+	 *
+	 * @public
+	 */
+	@computed
+	getCollaborators() {
+		const allPresenceRecords = this._getCollaboratorsQuery().get()
+		if (!allPresenceRecords.length) return EMPTY_ARRAY
+		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
+		return userIds.map((id) => {
+			const latestPresence = allPresenceRecords
+				.filter((c) => c.userId === id)
+				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
+			return latestPresence
+		})
+	}
+
+	/**
+	 * Returns a list of presence records for all peer collaborators on the current page.
+	 * This will return the latest presence record for each connected user.
+	 *
+	 * @public
+	 */
+	@computed
+	getCollaboratorsOnCurrentPage() {
+		const currentPageId = this.getCurrentPageId()
+		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+	}
 
 	// Following
 
@@ -2894,9 +2930,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	startFollowingUser(userId: string): this {
-		const leaderPresences = this.store.query.records('instance_presence', () => ({
-			userId: { eq: userId },
-		}))
+		const leaderPresences = this._getCollaboratorsQuery()
+			.get()
+			.filter((p) => p.userId === userId)
 
 		const thisUserId = this.user.getId()
 
@@ -2905,7 +2941,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// If the leader is following us, then we can't follow them
-		if (leaderPresences.get().some((p) => p.followingUserId === thisUserId)) {
+		if (leaderPresences.some((p) => p.followingUserId === thisUserId)) {
 			return this
 		}
 
@@ -2924,7 +2960,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const moveTowardsUser = () => {
 			// Stop following if we can't find the user
-			const leaderPresence = [...leaderPresences.get()]
+			const leaderPresence = [...leaderPresences]
 				.sort((a, b) => {
 					return a.lastActivityTimestamp - b.lastActivityTimestamp
 				})
@@ -3279,6 +3315,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getCurrentPageShapeIds() {
 		return this._currentPageShapeIds.get()
+	}
+
+	/**
+	 * @internal
+	 */
+	@computed
+	getCurrentPageShapeIdsSorted() {
+		return Array.from(this.getCurrentPageShapeIds()).sort()
 	}
 
 	/**
@@ -3893,7 +3937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapePageTransform(shape: TLShape | TLShapeId): Mat {
-		const id = typeof shape === 'string' ? shape : this.getShape(shape)!.id
+		const id = typeof shape === 'string' ? shape : shape.id
 		return this._getShapePageTransformCache().get(id) ?? Mat.Identity()
 	}
 
@@ -4227,7 +4271,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getCurrentPageBounds(): Box | undefined {
 		let commonBounds: Box | undefined
 
-		this.getCurrentPageShapeIds().forEach((shapeId) => {
+		this.getCurrentPageShapeIdsSorted().forEach((shapeId) => {
 			const bounds = this.getShapeMaskedPageBounds(shapeId)
 			if (!bounds) return
 			if (!commonBounds) {
@@ -8159,7 +8203,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// it will be 0,0 when its actual screen position is equal
 		// to screenBounds.point. This is confusing!
 		currentScreenPoint.set(sx, sy)
-		currentPagePoint.set(sx / cz - cx, sy / cz - cy, sz)
+		const nx = sx / cz - cx
+		const ny = sy / cz - cy
+		if (isFinite(nx) && isFinite(ny)) {
+			currentPagePoint.set(nx, ny, sz)
+		}
 
 		this.inputs.isPen = info.type === 'pointer' && info.isPen
 

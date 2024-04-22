@@ -1,5 +1,9 @@
 import * as Popover from '@radix-ui/react-popover'
-import { RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
+import {
+	GetReadonlySlugResponseBody,
+	RoomOpenMode,
+	RoomOpenModeToPath,
+} from '@tldraw/dotcom-shared'
 import React, { useEffect, useState } from 'react'
 import {
 	TldrawUiMenuContextProvider,
@@ -64,16 +68,17 @@ async function getReadonlyUrl() {
 	if (isReadOnly) return window.location.href
 
 	const segments = pathname.split('/')
-	segments[1] = RoomOpenModeToPath[RoomOpenMode.READ_ONLY]
 
 	const roomId = segments[2]
 	const result = await fetch(`/api/readonly-slug/${roomId}`)
 	if (!result.ok) return
 
-	const slug = (await result.json()).slug
-	if (!slug) return
+	const data = (await result.json()) as GetReadonlySlugResponseBody
+	if (!data.slug) return
 
-	segments[2] = slug
+	segments[1] =
+		RoomOpenModeToPath[data.isLegacy ? RoomOpenMode.READ_ONLY_LEGACY : RoomOpenMode.READ_ONLY]
+	segments[2] = data.slug
 	const newPathname = segments.join('/')
 
 	return `${window.location.origin}${newPathname}${window.location.search}`

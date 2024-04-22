@@ -2546,6 +2546,12 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): reado
 export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
+export function usePreloadAssets(assetUrls: TLEditorAssetUrls): {
+    done: boolean;
+    error: boolean;
+};
+
+// @public (undocumented)
 export function useReadonly(): boolean;
 
 // @public (undocumented)
