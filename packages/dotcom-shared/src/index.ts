@@ -3,5 +3,6 @@ export type {
 	CreateRoomRequestBody,
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
+	GetReadonlySlugResponseBody,
 	Snapshot,
 } from './types'

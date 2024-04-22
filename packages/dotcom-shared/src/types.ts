@@ -25,3 +25,5 @@ export type CreateSnapshotResponseBody =
 			error: true
 			message: string
 	  }
+
+export type GetReadonlySlugResponseBody = { slug: string; isLegacy: boolean }
