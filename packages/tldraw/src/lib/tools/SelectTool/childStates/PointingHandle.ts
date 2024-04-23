@@ -130,9 +130,8 @@ function getNoteForPit(editor: Editor, shape: TLNoteShape, handle: TLHandle, for
 	const pagePoint = pageTransform.point()
 	const pageRotation = pageTransform.rotation()
 	const pits = getNoteAdjacentPositions(pagePoint, pageRotation, shape.props.growY, 0)
-	const index = editor.getShapeHandles(shape.id)!.findIndex((h) => h.id === handle.id)
-	if (pits[index]) {
-		const pit = pits[index]
+	const pit = pits[handle.index]
+	if (pit) {
 		return getNoteShapeForAdjacentPosition(editor, shape, pit, pageRotation, forceNew)
 	}
 }

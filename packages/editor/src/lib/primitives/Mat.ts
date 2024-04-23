@@ -39,12 +39,13 @@ export class Mat {
 
 	equals(m: Mat | MatModel) {
 		return (
-			this.a === m.a &&
-			this.b === m.b &&
-			this.c === m.c &&
-			this.d === m.d &&
-			this.e === m.e &&
-			this.f === m.f
+			this === m ||
+			(this.a === m.a &&
+				this.b === m.b &&
+				this.c === m.c &&
+				this.d === m.d &&
+				this.e === m.e &&
+				this.f === m.f)
 		)
 	}
 

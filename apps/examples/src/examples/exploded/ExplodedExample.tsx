@@ -1,6 +1,8 @@
 import {
 	ContextMenu,
 	DefaultContextMenuContent,
+	ErrorScreen,
+	LoadingScreen,
 	TldrawEditor,
 	TldrawHandles,
 	TldrawScribble,
@@ -10,7 +12,9 @@ import {
 	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
+	usePreloadAssets,
 } from 'tldraw'
+import { defaultEditorAssetUrls } from 'tldraw/src/lib/utils/static-assets/assetUrls'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -26,6 +30,16 @@ const defaultComponents = {
 
 //[2]
 export default function ExplodedExample() {
+	const assetLoading = usePreloadAssets(defaultEditorAssetUrls)
+
+	if (assetLoading.error) {
+		return <ErrorScreen>Could not load assets.</ErrorScreen>
+	}
+
+	if (!assetLoading.done) {
+		return <LoadingScreen>Loading assets...</LoadingScreen>
+	}
+
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
