@@ -1182,12 +1182,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		historyOptions?: TLCommandHistoryOptions
 	): this {
-		if (partial.isReadonly === false && this.getInstanceState().isReadonly) {
-			const { isReadonly: _isReadonly, ...rest } = partial
-			this._updateInstanceState(rest, { ephemeral: true, squashing: true, ...historyOptions })
-		} else {
-			this._updateInstanceState(partial, { ephemeral: true, squashing: true, ...historyOptions })
-		}
+		this._updateInstanceState(partial, { ephemeral: true, squashing: true, ...historyOptions })
 
 		if (partial.isChangingStyle !== undefined) {
 			clearTimeout(this._isChangingStyleTimeout)
