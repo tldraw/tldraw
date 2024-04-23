@@ -19,7 +19,7 @@ import {
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
-import { updateHoveredId } from '../../selection-logic/updateHoveredId'
+import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 import { kickoutOccludedShapes, startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
@@ -38,15 +38,12 @@ export class Idle extends StateNode {
 
 	override onEnter = () => {
 		this.parent.setCurrentToolIdMask(undefined)
-		updateHoveredId(this.editor)
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		updateHoveredShapeId(this.editor)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		updateHoveredId(this.editor)
+		updateHoveredShapeId(this.editor)
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
@@ -359,6 +356,7 @@ export class Idle extends StateNode {
 								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
 								hitInside: false,
 								hitLabels: true,
+								hitLocked: true,
 								hitFrameInside: false,
 								renderingOnly: true,
 							})

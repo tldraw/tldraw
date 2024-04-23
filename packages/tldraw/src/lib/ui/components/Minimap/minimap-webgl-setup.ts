@@ -111,6 +111,13 @@ export function setupWebGl(canvas: HTMLCanvasElement | null) {
 			)
 		},
 
+		drawTrianglesTransparently(len: number) {
+			context.enable(context.BLEND)
+			context.blendFunc(context.SRC_ALPHA, context.ONE_MINUS_SRC_ALPHA)
+			context.drawArrays(context.TRIANGLES, 0, len / 2)
+			context.disable(context.BLEND)
+		},
+
 		drawTriangles(len: number) {
 			context.drawArrays(context.TRIANGLES, 0, len / 2)
 		},

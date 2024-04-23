@@ -23,6 +23,7 @@
 		"@sentry/integrations": "^7.34.0",
 		"@sentry/react": "^7.77.0",
 		"@tldraw/assets": "workspace:*",
+		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/tlsync": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",

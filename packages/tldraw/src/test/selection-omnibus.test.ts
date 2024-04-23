@@ -1922,3 +1922,32 @@ describe('When a shape is locked', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box3])
 	})
 })
+
+it('Ignores locked shapes when hovering', () => {
+	editor.createShape({ x: 100, y: 100, type: 'geo', props: { fill: 'solid' } })
+	const a = editor.getLastCreatedShape()
+	editor.createShape({ x: 100, y: 100, type: 'geo', props: { fill: 'solid' } })
+	const b = editor.getLastCreatedShape()
+	expect(a).not.toBe(b)
+
+	// lock b
+	editor.toggleLock([b])
+
+	// Hover both shapes
+	editor.pointerMove(100, 100)
+
+	// Even though b is in front of A, A should be the hovered shape
+	expect(editor.getHoveredShapeId()).toBe(a.id)
+	// right click should select the hovered shape
+	editor.rightClick()
+	expect(editor.getSelectedShapeIds()).toEqual([a.id])
+
+	// Delete A
+	editor.cancel()
+	editor.deleteShape(a)
+	// now that A is gone, we should have no hovered shape
+	expect(editor.getHoveredShapeId()).toBe(null)
+	// Now that A is gone, right click should be b
+	editor.rightClick()
+	expect(editor.getSelectedShapeIds()).toEqual([b.id])
+})

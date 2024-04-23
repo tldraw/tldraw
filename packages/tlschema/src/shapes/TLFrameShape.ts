@@ -14,7 +14,7 @@ type TLFrameShapeProps = ShapePropsType<typeof frameShapeProps>
 /** @public */
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
 
-/** @internal */
+/** @public */
 export const frameShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [],
 })

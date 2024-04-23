@@ -25,7 +25,7 @@ export type TLScribble = {
 	taper: boolean
 }
 
-/** @internal */
+/** @public */
 export const scribbleValidator: T.Validator<TLScribble> = T.object({
 	id: T.string,
 	points: T.arrayOf(vecModelValidator),

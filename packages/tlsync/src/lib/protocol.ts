@@ -10,6 +10,7 @@ export const TLIncompatibilityReason = {
 	ServerTooOld: 'serverTooOld',
 	InvalidRecord: 'invalidRecord',
 	InvalidOperation: 'invalidOperation',
+	RoomNotFound: 'roomNotFound',
 } as const
 
 /** @public */

@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 
 export const assetUrls = getAssetUrlsByImport()

@@ -19,7 +19,7 @@ export type TLImageAsset = TLBaseAsset<
 	}
 >
 
-/** @internal */
+/** @public */
 export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidator(
 	'image',
 	T.object({
@@ -40,7 +40,7 @@ const Versions = createMigrationIds('com.tldraw.asset.image', {
 
 export { Versions as imageAssetVersions }
 
-/** @internal */
+/** @public */
 export const imageAssetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset.image',
 	recordType: 'asset',

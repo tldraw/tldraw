@@ -52,7 +52,7 @@ describe('distributeShapes command', () => {
 		it('does nothing', () => {
 			editor.setSelectedShapes([ids.boxA, ids.boxB])
 			const fn = jest.fn()
-			editor.on('change-history', fn)
+			editor.store.listen(fn)
 			editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal', 0)
 			jest.advanceTimersByTime(1000)
 			expect(fn).not.toHaveBeenCalled()

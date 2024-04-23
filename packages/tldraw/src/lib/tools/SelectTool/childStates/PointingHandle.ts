@@ -32,18 +32,12 @@ export class PointingHandle extends StateNode {
 			}
 		}
 
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'grabbing', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
 	override onExit = () => {
 		this.editor.setHintingShapes([])
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
@@ -130,9 +124,8 @@ function getNoteForPit(editor: Editor, shape: TLNoteShape, handle: TLHandle, for
 	const pagePoint = pageTransform.point()
 	const pageRotation = pageTransform.rotation()
 	const pits = getNoteAdjacentPositions(pagePoint, pageRotation, shape.props.growY, 0)
-	const index = editor.getShapeHandles(shape.id)!.findIndex((h) => h.id === handle.id)
-	if (pits[index]) {
-		const pit = pits[index]
+	const pit = pits[handle.index]
+	if (pit) {
 		return getNoteShapeForAdjacentPosition(editor, shape, pit, pageRotation, forceNew)
 	}
 }
