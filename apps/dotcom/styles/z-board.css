@@ -330,7 +330,7 @@
 	justify-content: center;
 	height: 36px;
 	margin-top: 4px;
-	padding-left: 2px;
+	padding-left: 4px;
 	max-width: 100%;
 	color: var(--color-text);
 	text-shadow: 1px 1px 0px var(--color-background);
@@ -383,5 +383,4 @@
 	width: 36px;
 	min-width: 36px;
 	height: 36px;
-	transform: translateX(2px);
 }
