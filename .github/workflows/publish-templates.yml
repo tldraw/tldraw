@@ -19,7 +19,7 @@ defaults:
 jobs:
   publish_vite:
     name: 'Vite'
-    timeout-minutes: 15
+    timeout-minutes: 60
     runs-on: ubuntu-latest-16-cores-open
 
     steps:
