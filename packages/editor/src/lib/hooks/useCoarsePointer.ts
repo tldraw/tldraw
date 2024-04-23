@@ -20,8 +20,7 @@ export function useCoarsePointer() {
 			const mql = window.matchMedia('(any-pointer: coarse)')
 
 			const handler = (coarse?: boolean) => {
-				editor.updateInstanceState({ isCoarsePointer: coarse ?? !!mql.matches })```
-
+				editor.updateInstanceState({ isCoarsePointer: coarse ?? !!mql.matches })
 			}
 
 			const touchStartHandler = () => handler(true)
