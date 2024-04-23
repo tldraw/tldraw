@@ -24,7 +24,7 @@ import { useMultiplayerAssets } from '../hooks/useMultiplayerAssets'
 import { getViewportUrlQuery } from '../hooks/useUrlState'
 import { cloneAssetForShare } from './cloneAssetForShare'
 import { ASSET_UPLOADER_URL } from './config'
-import { isInIframe } from './iFrame'
+import { getTopLevelOrigin, isInIframe } from './iFrame'
 import { shouldLeaveSharedProject } from './shouldLeaveSharedProject'
 import { trackAnalyticsEvent } from './trackAnalyticsEvent'
 import { UI_OVERRIDE_TODO_EVENT, useHandleUiEvents } from './useHandleUiEvent'
@@ -72,23 +72,6 @@ async function getSnapshotLink(
 	return new Blob([`${window.location.origin}/s/${response.roomId}${params}`], {
 		type: 'text/plain',
 	})
-}
-
-function getTopLevelOrigin() {
-	let url: string
-	if (isInIframe()) {
-		const ancestorOrigins = window.location.ancestorOrigins
-		// ancestorOrigins is not supported in Firefox
-		if (ancestorOrigins && ancestorOrigins.length > 0) {
-			url = ancestorOrigins[ancestorOrigins.length - 1]
-		} else {
-			url = document.referrer
-		}
-	} else {
-		url = document.location.href
-	}
-
-	return new URL(url).origin
 }
 
 export function useSharing(): TLUiOverrides {

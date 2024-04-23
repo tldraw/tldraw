@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from 'react'
 import { LoadingScreen } from 'tldraw'
 import { version } from '../../version'
 import { useUrl } from '../hooks/useUrl'
-import { isInIframe } from '../utils/iFrame'
+import { getTopLevelOrigin, isInIframe } from '../utils/iFrame'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 
 /*
@@ -102,15 +102,10 @@ export function IFrameProtector({
 				window.parent.postMessage(EXPECTED_QUESTION, '*') // todo: send to a specific origin?
 				timeout = setTimeout(() => {
 					setEmbeddedState(EMBEDDED_STATE.IFRAME_NOT_ALLOWED)
-					const referrer = document.referrer
-					const ancestorOrigins = JSON.stringify(
-						Object.values(window.location.ancestorOrigins || {})
-					)
 					trackAnalyticsEvent('connect_to_room_in_iframe', {
 						slug,
 						context,
-						referrer,
-						ancestorOrigins,
+						origin: getTopLevelOrigin(),
 					})
 				}, 1000)
 			} else {
