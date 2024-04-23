@@ -74,6 +74,23 @@ async function getSnapshotLink(
 	})
 }
 
+function getTopLevelOrigin() {
+	let url: string
+	if (isInIframe()) {
+		const ancestorOrigins = window.location.ancestorOrigins
+		// ancestorOrigins is not supported in Firefox
+		if (ancestorOrigins && ancestorOrigins.length > 0) {
+			url = ancestorOrigins[ancestorOrigins.length - 1]
+		} else {
+			url = document.referrer
+		}
+	} else {
+		url = document.location.href
+	}
+
+	return new URL(url).origin
+}
+
 export function useSharing(): TLUiOverrides {
 	const navigate = useNavigate()
 	const id = useSearchParams()[0].get('id') ?? undefined
@@ -107,19 +124,13 @@ export function useSharing(): TLUiOverrides {
 							const data = await getRoomData(editor, addToast, msg, uploadFileToAsset)
 							if (!data) return
 
-							const topLevelUrl = new URL(
-								window.location != window.parent.location
-									? document.referrer
-									: document.location.href
-							)
-
 							const res = await fetch(SNAPSHOT_UPLOAD_URL, {
 								method: 'POST',
 								headers: {
 									'Content-Type': 'application/json',
 								},
 								body: JSON.stringify({
-									origin: topLevelUrl.origin,
+									origin: getTopLevelOrigin(),
 									snapshot: {
 										schema: editor.store.schema.serialize(),
 										snapshot: data,
