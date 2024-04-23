@@ -134,9 +134,7 @@ export class MinimapManager {
 	}
 
 	@computed getZoom() {
-		const cpb = this.getCanvasPageBounds()
-		const vp = this.editor.getViewportPageBounds()
-		return cpb.width / vp.width
+		return this.getCanvasPageBounds().width / this.getCanvasScreenBounds().width
 	}
 
 	@computed getCanvasPageBoundsArray() {
