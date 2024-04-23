@@ -2,6 +2,7 @@ import { Atom, Computed, Reactor, atom, computed, reactor, transact } from '@tld
 import {
 	assert,
 	filterEntries,
+	getOwnProperty,
 	objectMapEntries,
 	objectMapFromEntries,
 	objectMapKeys,
@@ -714,11 +715,39 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 	}
 
-	applyDiff(diff: RecordsDiff<R>, runCallbacks = true) {
+	applyDiff(
+		diff: RecordsDiff<R>,
+		{
+			runCallbacks = true,
+			ignoreEphemeralKeys = false,
+		}: { runCallbacks?: boolean; ignoreEphemeralKeys?: boolean } = {}
+	) {
 		this.atomic(() => {
-			const toPut = objectMapValues(diff.added).concat(
-				objectMapValues(diff.updated).map(([_from, to]) => to)
-			)
+			const toPut = objectMapValues(diff.added)
+
+			for (const [_from, to] of objectMapValues(diff.updated)) {
+				const type = this.schema.getType(to.typeName)
+				if (ignoreEphemeralKeys && type.ephemeralKeySet.size) {
+					const existing = this.get(to.id)
+					if (!existing) {
+						toPut.push(to)
+						continue
+					}
+					let changed: R | null = null
+					for (const [key, value] of Object.entries(to)) {
+						if (type.ephemeralKeySet.has(key) || Object.is(value, getOwnProperty(existing, key))) {
+							continue
+						}
+
+						if (!changed) changed = { ...existing } as R
+						;(changed as any)[key] = value
+					}
+					if (changed) toPut.push(changed)
+				} else {
+					toPut.push(to)
+				}
+			}
+
 			const toRemove = objectMapKeys(diff.removed)
 			if (toPut.length) {
 				this.put(toPut)

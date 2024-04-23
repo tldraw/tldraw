@@ -179,7 +179,7 @@ export class HistoryManager<R extends UnknownRecord> {
 				}
 			}
 
-			this.store.applyDiff(diffToUndo)
+			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
@@ -227,7 +227,7 @@ export class HistoryManager<R extends UnknownRecord> {
 				}
 			}
 
-			this.store.applyDiff(diffToRedo)
+			this.store.applyDiff(diffToRedo, { ignoreEphemeralKeys: true })
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {

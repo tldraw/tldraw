@@ -138,6 +138,18 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 	{
 		validator: instancePageStateValidator,
 		scope: 'session',
+		ephemeralKeys: {
+			pageId: false,
+			selectedShapeIds: false,
+			editingShapeId: false,
+			meta: false,
+
+			hintingShapeIds: true,
+			erasingShapeIds: true,
+			hoveredShapeId: true,
+			croppingShapeId: true,
+			focusedGroupId: true,
+		},
 	}
 ).withDefaultProperties(
 	(): Omit<TLInstancePageState, 'id' | 'typeName' | 'pageId'> => ({
