@@ -1,7 +1,7 @@
 {
   "metadata": {
     "toolPackage": "@microsoft/api-extractor",
-    "toolVersion": "7.41.0",
+    "toolVersion": "7.43.1",
     "schemaVersion": 1011,
     "oldestForwardsCompatibleVersion": 1001,
     "tsdocConfig": {
@@ -3029,6 +3029,14 @@
                     },
                     {
                       "kind": "Content",
+                      "text": ", useNumberKeys: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "boolean"
+                    },
+                    {
+                      "kind": "Content",
                       "text": ");"
                     }
                   ],
@@ -3057,6 +3065,14 @@
                       "parameterTypeTokenRange": {
                         "startIndex": 5,
                         "endIndex": 6
+                      },
+                      "isOptional": false
+                    },
+                    {
+                      "parameterName": "useNumberKeys",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 7,
+                        "endIndex": 8
                       },
                       "isOptional": false
                     }
@@ -3211,7 +3227,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n    validate: (value: unknown) => T;\n    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;\n}"
+                  "text": "{\n    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;\n    validate: (value: unknown) => T;\n}"
                 },
                 {
                   "kind": "Content",
@@ -4262,6 +4278,14 @@
                 },
                 {
                   "kind": "Content",
+                  "text": ", useNumberKeys: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
                   "text": ");"
                 }
               ],
@@ -4290,6 +4314,14 @@
                   "parameterTypeTokenRange": {
                     "startIndex": 5,
                     "endIndex": 6
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "useNumberKeys",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 7,
+                    "endIndex": 8
                   },
                   "isOptional": false
                 }

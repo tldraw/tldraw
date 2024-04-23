@@ -53,7 +53,9 @@ export class Edge2d extends Geometry2d {
 		return new Vec(cx, cy)
 	}
 
-	override hitTestLineSegment(A: Vec, B: Vec, _zoom: number): boolean {
-		return linesIntersect(A, B, this.start, this.end)
+	override hitTestLineSegment(A: Vec, B: Vec, distance = 0): boolean {
+		return (
+			linesIntersect(A, B, this.start, this.end) || this.distanceToLineSegment(A, B) <= distance
+		)
 	}
 }

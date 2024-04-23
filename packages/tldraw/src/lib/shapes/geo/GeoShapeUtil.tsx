@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
 	Editor,
@@ -22,10 +23,12 @@ import {
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
+	getDefaultColorTheme,
 	getPolygonVertices,
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import {
@@ -292,8 +295,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		const labelSize = getLabelSize(this.editor, shape)
-		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8)))) // not sure if bug
+		const minWidth = Math.min(100, w / 2)
+		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(minWidth, Math.max(1, w - 8))))
+		const minHeight = Math.min(
+			LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
+			h / 2
+		)
+		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(minHeight, Math.max(1, w - 8)))) // not sure if bug
 
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
@@ -381,10 +389,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
-		const { labelColor, fill, font, align, verticalAlign, size, text } = props
-
-		const isEditing = this.editor.getEditingShapeId() === id
-		const showHtmlContainer = isEditing || shape.props.url || shape.props.text
+		const { fill, font, align, verticalAlign, size, text } = props
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const theme = useDefaultColorTheme()
+		const isEditingAnything = this.editor.getEditingShapeId() !== null
+		const showHtmlContainer = isEditingAnything || shape.props.text
 
 		return (
 			<>
@@ -393,7 +402,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				</SVGContainer>
 				{showHtmlContainer && (
 					<HTMLContainer
-						id={shape.id}
 						style={{
 							overflow: 'hidden',
 							width: shape.props.w,
@@ -410,14 +418,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							align={align}
 							verticalAlign={verticalAlign}
 							text={text}
-							labelColor={labelColor}
+							isSelected={isSelected}
+							labelColor={theme[props.labelColor].solid}
 							wrap
-							bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
 						/>
-						{shape.props.url && (
-							<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-						)}
 					</HTMLContainer>
+				)}
+				{shape.props.url && (
+					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 				)}
 			</>
 		)
@@ -478,6 +486,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let textEl
 		if (props.text) {
 			ctx.addExportDef(getFontDefForExport(shape.props.font))
+			const theme = getDefaultColorTheme(ctx)
 
 			const bounds = this.editor.getShapeGeometry(shape).bounds
 			textEl = (
@@ -487,7 +496,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					align={props.align}
 					verticalAlign={props.verticalAlign}
 					text={props.text}
-					labelColor={props.labelColor}
+					labelColor={theme[props.labelColor].solid}
 					bounds={bounds}
 				/>
 			)
@@ -761,7 +770,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		minWidth: minSize.w + 'px',
+		minWidth: minSize.w,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0
 			0,

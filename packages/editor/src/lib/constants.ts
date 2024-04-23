@@ -34,10 +34,10 @@ export const DOUBLE_CLICK_DURATION = 450
 export const MULTI_CLICK_DURATION = 200
 
 /** @internal */
-export const COARSE_DRAG_DISTANCE = 6
+export const COARSE_DRAG_DISTANCE = 36 // 6 squared
 
 /** @internal */
-export const DRAG_DISTANCE = 4
+export const DRAG_DISTANCE = 16 // 4 squared
 
 /** @internal */
 export const SVG_PADDING = 32
@@ -104,3 +104,12 @@ export const COARSE_HANDLE_RADIUS = 20
 
 /** @internal */
 export const HANDLE_RADIUS = 12
+
+/** @public */
+export const SIDES = ['top', 'right', 'bottom', 'left'] as const
+
+/** @internal */
+export const LONG_PRESS_DURATION = 500
+
+/** @internal */
+export const TEXT_SHADOW_LOD = 0.35

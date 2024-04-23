@@ -45,8 +45,8 @@ export function deleteFromSessionStorage(key: string): void;
 
 // @public (undocumented)
 export type ErrorResult<E> = {
-    readonly ok: false;
     readonly error: E;
+    readonly ok: false;
 };
 
 // @internal (undocumented)
@@ -176,15 +176,24 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
     [K in Key]: ValueAfter;
 };
 
+// @internal (undocumented)
+export function measureAverageDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
+
+// @internal (undocumented)
+export function measureCbDuration(name: string, cb: () => any): any;
+
+// @internal (undocumented)
+export function measureDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
+
 // @public
 export class MediaHelpers {
     static getImageSize(blob: Blob): Promise<{
-        w: number;
         h: number;
+        w: number;
     }>;
     static getVideoSize(blob: Blob): Promise<{
-        w: number;
         h: number;
+        w: number;
     }>;
     static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
@@ -263,8 +272,8 @@ export class PngHelpers {
 
 // @internal (undocumented)
 export function promiseWithResolve<T>(): Promise<T> & {
-    resolve: (value: T) => void;
     reject: (reason?: any) => void;
+    resolve: (value: T) => void;
 };
 
 // @public (undocumented)
@@ -281,8 +290,8 @@ export type Result<T, E> = ErrorResult<E> | OkResult<T>;
 
 // @public (undocumented)
 export const Result: {
-    ok<T>(value: T): OkResult<T>;
     err<E>(error: E): ErrorResult<E>;
+    ok<T>(value: T): OkResult<T>;
 };
 
 // @public

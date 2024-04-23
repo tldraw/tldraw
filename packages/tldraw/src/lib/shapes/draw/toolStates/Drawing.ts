@@ -62,9 +62,7 @@ export class Drawing extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		const {
-			editor: { inputs },
-		} = this
+		const { inputs } = this.editor
 
 		if (this.isPen !== inputs.isPen) {
 			// The user made a palm gesture before starting a pen gesture;
@@ -99,7 +97,7 @@ export class Drawing extends StateNode {
 				this.mergeNextPoint = false
 			}
 
-			this.updateShapes()
+			this.updateDrawingShape()
 		}
 	}
 
@@ -117,7 +115,7 @@ export class Drawing extends StateNode {
 				}
 			}
 		}
-		this.updateShapes()
+		this.updateDrawingShape()
 	}
 
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
@@ -139,7 +137,7 @@ export class Drawing extends StateNode {
 			}
 		}
 
-		this.updateShapes()
+		this.updateDrawingShape()
 	}
 
 	override onExit? = () => {
@@ -162,7 +160,7 @@ export class Drawing extends StateNode {
 		return (
 			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 &&
-			Vec.Dist(firstPoint, lastPoint) < strokeWidth * 2
+			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2)
 		)
 	}
 
@@ -226,7 +224,9 @@ export class Drawing extends StateNode {
 				this.pagePointWhereNextSegmentChanged = null
 				const segments = [...shape.props.segments, newSegment]
 
-				this.currentLineLength = this.getLineLength(segments)
+				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+					this.currentLineLength = this.getLineLength(segments)
+				}
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
 					id: shape.id,
@@ -281,9 +281,9 @@ export class Drawing extends StateNode {
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
-	private updateShapes() {
-		const { inputs } = this.editor
+	private updateDrawingShape() {
 		const { initialShape } = this
+		const { inputs } = this.editor
 
 		if (!initialShape) return
 
@@ -311,7 +311,7 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec.Dist(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
+					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
 
 				// Find the distance from where the pointer was when shift was released and
 				// where it is now; if it's far enough away, then update the page point where
@@ -384,7 +384,7 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec.Dist(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
+					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
 
 				// Find the distance from where the pointer was when shift was released and
 				// where it is now; if it's far enough away, then update the page point where
@@ -413,7 +413,10 @@ export class Drawing extends StateNode {
 					}
 
 					const finalSegments = [...newSegments, newFreeSegment]
-					this.currentLineLength = this.getLineLength(finalSegments)
+
+					if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+						this.currentLineLength = this.getLineLength(finalSegments)
+					}
 
 					const shapePartial: TLShapePartial<DrawableShape> = {
 						id,
@@ -440,7 +443,7 @@ export class Drawing extends StateNode {
 				const newSegment = newSegments[newSegments.length - 1]
 
 				const { pagePointWhereCurrentSegmentChanged } = this
-				const { currentPagePoint, ctrlKey } = this.editor.inputs
+				const { ctrlKey, currentPagePoint } = this.editor.inputs
 
 				if (!pagePointWhereCurrentSegmentChanged)
 					throw Error('We should have a point where the segment changed')
@@ -488,11 +491,10 @@ export class Drawing extends StateNode {
 								lastPoint,
 								newPoint
 							)
-							const distance = Vec.Dist(nearestPointOnSegment, newPoint)
 
-							if (distance < minDistance) {
+							if (Vec.DistMin(nearestPointOnSegment, newPoint, minDistance)) {
 								nearestPoint = nearestPointOnSegment.toFixed().toJson()
-								minDistance = distance
+								minDistance = Vec.Dist(nearestPointOnSegment, newPoint)
 								snapSegment = segment
 								break
 							}
@@ -600,7 +602,9 @@ export class Drawing extends StateNode {
 					points: newPoints,
 				}
 
-				this.currentLineLength = this.getLineLength(newSegments)
+				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+					this.currentLineLength = this.getLineLength(newSegments)
+				}
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
 					id,
@@ -623,16 +627,14 @@ export class Drawing extends StateNode {
 				if (newPoints.length > 500) {
 					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
-					const { currentPagePoint } = this.editor.inputs
-
 					const newShapeId = createShapeId()
 
 					this.editor.createShapes<DrawableShape>([
 						{
 							id: newShapeId,
 							type: this.shapeType,
-							x: toFixed(currentPagePoint.x),
-							y: toFixed(currentPagePoint.y),
+							x: toFixed(inputs.currentPagePoint.x),
+							y: toFixed(inputs.currentPagePoint.y),
 							props: {
 								isPen: this.isPen,
 								segments: [
@@ -647,7 +649,7 @@ export class Drawing extends StateNode {
 
 					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
 					this.mergeNextPoint = false
-					this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
+					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.currentLineLength = 0
 				}
 
@@ -663,7 +665,7 @@ export class Drawing extends StateNode {
 			for (let i = 0; i < segment.points.length - 1; i++) {
 				const A = segment.points[i]
 				const B = segment.points[i + 1]
-				length += Vec.Sub(B, A).len2()
+				length += Vec.Dist2(B, A)
 			}
 		}
 

@@ -146,10 +146,14 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
-		const x = this.getCurrent()
+		const currentActiveChild = this._current.__unsafe__getWithoutCapture()
 		this[cbName]?.(info as any)
-		if (this.getCurrent() === x && this.getIsActive()) {
-			x?.handleEvent(info)
+		if (
+			this._isActive.__unsafe__getWithoutCapture() &&
+			currentActiveChild &&
+			currentActiveChild === this._current.__unsafe__getWithoutCapture()
+		) {
+			currentActiveChild.handleEvent(info)
 		}
 	}
 
@@ -198,6 +202,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onWheel?: TLEventHandlers['onWheel']
 	onPointerDown?: TLEventHandlers['onPointerDown']
 	onPointerMove?: TLEventHandlers['onPointerMove']
+	onLongPress?: TLEventHandlers['onLongPress']
 	onPointerUp?: TLEventHandlers['onPointerUp']
 	onDoubleClick?: TLEventHandlers['onDoubleClick']
 	onTripleClick?: TLEventHandlers['onTripleClick']

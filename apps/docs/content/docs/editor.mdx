@@ -50,21 +50,9 @@ editor.getSelectedShapeIds() // [myShapeId, myOtherShapeId]
 
 Each change to the state happens within a transaction. You can batch changes into a single transaction using the [Editor#batch](?) method. It's a good idea to batch wherever possible, as this reduces the overhead for persisting or distributing those changes.
 
-### Listening for changes
+### Listening for changes, and merging changes from other sources
 
-You can subscribe to changes using the [Store#listen](?) method on [Editor#store](?). Each time a transaction completes, the editor will call the callback with a history entry. This entry contains information about the records that were added, changed, or deleted, as well as whether the change was caused by the user or from a remote change.
-
-```ts
-editor.store.listen((entry) => {
-	entry // { changes, source }
-})
-```
-
-### Remote changes
-
-By default, changes to the editor's store are assumed to have come from the editor itself. You can use the [Store#mergeRemoteChanges](?) method of the editor's [Editor#store](?) to make changes in the store that will be emitted via [Store#listen](?) with the `source` property as `'remote'`.
-
-If you're setting up some kind of multiplayer backend, you would want to send only the `'user'` changes to the server and merge the changes from the server using [Store#mergeRemoteChanges](?) (`editor.store.mergeRemoteChanges`).
+For information about how to synchronize the store with other processes, i.e. how to get data out and put data in, see the (Persistence)[/docs/persistence] page.
 
 ### Undo and redo
 

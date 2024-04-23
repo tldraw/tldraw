@@ -1,114 +1,159 @@
 import {
 	Box,
+	ComputedCache,
 	Editor,
-	PI2,
-	TLInstancePresence,
-	TLShapeId,
+	TLShape,
 	Vec,
+	atom,
 	clamp,
+	computed,
+	react,
 	uniqueId,
 } from '@tldraw/editor'
+import { getRgba } from './getRgba'
+import { BufferStuff, appendVertices, setupWebGl } from './minimap-webgl-setup'
+import { pie, rectangle, roundedRectangle } from './minimap-webgl-shapes'
 
 export class MinimapManager {
-	constructor(public editor: Editor) {}
-
-	dpr = 1
-
-	colors = {
-		shapeFill: 'rgba(144, 144, 144, .1)',
-		selectFill: '#2f80ed',
-		viewportFill: 'rgba(144, 144, 144, .1)',
+	disposables = [] as (() => void)[]
+	close = () => this.disposables.forEach((d) => d())
+	gl: ReturnType<typeof setupWebGl>
+	shapeGeometryCache: ComputedCache<Float32Array | null, TLShape>
+	constructor(
+		public editor: Editor,
+		public readonly elem: HTMLCanvasElement
+	) {
+		this.gl = setupWebGl(elem)
+		this.shapeGeometryCache = editor.store.createComputedCache('webgl-geometry', (r: TLShape) => {
+			const bounds = editor.getShapeMaskedPageBounds(r.id)
+			if (!bounds) return null
+			const arr = new Float32Array(12)
+			rectangle(arr, 0, bounds.x, bounds.y, bounds.w, bounds.h)
+			return arr
+		})
+		this.colors = this._getColors()
+		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render))
 	}
 
-	id = uniqueId()
-	cvs: HTMLCanvasElement | null = null
-	pageBounds: (Box & { id: TLShapeId })[] = []
-	collaborators: TLInstancePresence[] = []
+	private _getColors() {
+		const style = getComputedStyle(this.editor.getContainer())
 
-	canvasScreenBounds = new Box()
-	canvasPageBounds = new Box()
+		return {
+			shapeFill: getRgba(style.getPropertyValue('--color-text-3').trim()),
+			selectFill: getRgba(style.getPropertyValue('--color-selected').trim()),
+			viewportFill: getRgba(style.getPropertyValue('--color-muted-1').trim()),
+		}
+	}
 
-	contentPageBounds = new Box()
-	contentScreenBounds = new Box()
+	private colors: ReturnType<MinimapManager['_getColors']>
+	// this should be called after dark/light mode changes have propagated to the dom
+	updateColors() {
+		this.colors = this._getColors()
+	}
+
+	readonly id = uniqueId()
+	@computed
+	getDpr() {
+		return this.editor.getInstanceState().devicePixelRatio
+	}
+
+	@computed
+	getContentPageBounds() {
+		const viewportPageBounds = this.editor.getViewportPageBounds()
+		const commonShapeBounds = this.editor.getCurrentPageBounds()
+		return commonShapeBounds
+			? Box.Expand(commonShapeBounds, viewportPageBounds)
+			: viewportPageBounds
+	}
+
+	@computed
+	getContentScreenBounds() {
+		const contentPageBounds = this.getContentPageBounds()
+		const topLeft = this.editor.pageToScreen(contentPageBounds.point)
+		const bottomRight = this.editor.pageToScreen(
+			new Vec(contentPageBounds.maxX, contentPageBounds.maxY)
+		)
+		return new Box(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y)
+	}
+
+	private _getCanvasBoundingRect() {
+		const { x, y, width, height } = this.elem.getBoundingClientRect()
+		return new Box(x, y, width, height)
+	}
+
+	private readonly canvasBoundingClientRect = atom('canvasBoundingClientRect', new Box())
+
+	getCanvasScreenBounds() {
+		return this.canvasBoundingClientRect.get()
+	}
+
+	private _listenForCanvasResize() {
+		const observer = new ResizeObserver(() => {
+			const rect = this._getCanvasBoundingRect()
+			this.canvasBoundingClientRect.set(rect)
+		})
+		observer.observe(this.elem)
+		return () => observer.disconnect()
+	}
+
+	@computed
+	getCanvasSize() {
+		const rect = this.canvasBoundingClientRect.get()
+		const dpr = this.getDpr()
+		return new Vec(rect.width * dpr, rect.height * dpr)
+	}
+
+	@computed
+	getCanvasClientPosition() {
+		return this.canvasBoundingClientRect.get().point
+	}
 
 	originPagePoint = new Vec()
 	originPageCenter = new Vec()
 
 	isInViewport = false
 
-	debug = false
+	/** Get the canvas's true bounds converted to page bounds. */
+	@computed getCanvasPageBounds() {
+		const canvasScreenBounds = this.getCanvasScreenBounds()
+		const contentPageBounds = this.getContentPageBounds()
 
-	setDpr(dpr: number) {
-		this.dpr = +dpr.toFixed(2)
-	}
+		const aspectRatio = canvasScreenBounds.width / canvasScreenBounds.height
 
-	updateContentScreenBounds = () => {
-		const { contentScreenBounds, contentPageBounds: content, canvasScreenBounds: canvas } = this
-
-		let { x, y, w, h } = contentScreenBounds
-
-		if (content.w > content.h) {
-			const sh = canvas.w / (content.w / content.h)
-			if (sh > canvas.h) {
-				x = (canvas.w - canvas.w * (canvas.h / sh)) / 2
-				y = 0
-				w = canvas.w * (canvas.h / sh)
-				h = canvas.h
-			} else {
-				x = 0
-				y = (canvas.h - sh) / 2
-				w = canvas.w
-				h = sh
-			}
-		} else if (content.w < content.h) {
-			const sw = canvas.h / (content.h / content.w)
-			x = (canvas.w - sw) / 2
-			y = 0
-			w = sw
-			h = canvas.h
-		} else {
-			x = canvas.h / 2
-			y = 0
-			w = canvas.h
-			h = canvas.h
+		let targetWidth = contentPageBounds.width
+		let targetHeight = targetWidth / aspectRatio
+		if (targetHeight < contentPageBounds.height) {
+			targetHeight = contentPageBounds.height
+			targetWidth = targetHeight * aspectRatio
 		}
 
-		contentScreenBounds.set(x, y, w, h)
+		const box = new Box(0, 0, targetWidth, targetHeight)
+		box.center = contentPageBounds.center
+		return box
 	}
 
-	/** Get the canvas's true bounds converted to page bounds. */
-	updateCanvasPageBounds = () => {
-		const { canvasPageBounds, canvasScreenBounds, contentPageBounds, contentScreenBounds } = this
-
-		canvasPageBounds.set(
-			0,
-			0,
-			contentPageBounds.width / (contentScreenBounds.width / canvasScreenBounds.width),
-			contentPageBounds.height / (contentScreenBounds.height / canvasScreenBounds.height)
-		)
-
-		canvasPageBounds.center = contentPageBounds.center
+	@computed getCanvasPageBoundsArray() {
+		const { x, y, w, h } = this.getCanvasPageBounds()
+		return new Float32Array([x, y, w, h])
 	}
 
-	getScreenPoint = (x: number, y: number) => {
-		const { canvasScreenBounds } = this
+	getPagePoint = (clientX: number, clientY: number) => {
+		const canvasPageBounds = this.getCanvasPageBounds()
+		const canvasScreenBounds = this.getCanvasScreenBounds()
 
-		const screenX = (x - canvasScreenBounds.minX) * this.dpr
-		const screenY = (y - canvasScreenBounds.minY) * this.dpr
+		// first offset the canvas position
+		let x = clientX - canvasScreenBounds.x
+		let y = clientY - canvasScreenBounds.y
 
-		return { x: screenX, y: screenY }
-	}
+		// then multiply by the ratio between the page and screen bounds
+		x *= canvasPageBounds.width / canvasScreenBounds.width
+		y *= canvasPageBounds.height / canvasScreenBounds.height
 
-	getPagePoint = (x: number, y: number) => {
-		const { contentPageBounds, contentScreenBounds, canvasPageBounds } = this
+		// then add the canvas page bounds' offset
+		x += canvasPageBounds.minX
+		y += canvasPageBounds.minY
 
-		const { x: screenX, y: screenY } = this.getScreenPoint(x, y)
-
-		return new Vec(
-			canvasPageBounds.minX + (screenX * contentPageBounds.width) / contentScreenBounds.width,
-			canvasPageBounds.minY + (screenY * contentPageBounds.height) / contentScreenBounds.height,
-			1
-		)
+		return new Vec(x, y, 1)
 	}
 
 	minimapScreenPointToPagePoint = (
@@ -123,13 +168,13 @@ export class MinimapManager {
 		let { x: px, y: py } = this.getPagePoint(x, y)
 
 		if (clampToBounds) {
-			const shapesPageBounds = this.editor.getCurrentPageBounds()
+			const shapesPageBounds = this.editor.getCurrentPageBounds() ?? new Box()
 			const vpPageBounds = viewportPageBounds
 
-			const minX = (shapesPageBounds?.minX ?? 0) - vpPageBounds.width / 2
-			const maxX = (shapesPageBounds?.maxX ?? 0) + vpPageBounds.width / 2
-			const minY = (shapesPageBounds?.minY ?? 0) - vpPageBounds.height / 2
-			const maxY = (shapesPageBounds?.maxY ?? 0) + vpPageBounds.height / 2
+			const minX = shapesPageBounds.minX - vpPageBounds.width / 2
+			const maxX = shapesPageBounds.maxX + vpPageBounds.width / 2
+			const minY = shapesPageBounds.minY - vpPageBounds.height / 2
+			const maxY = shapesPageBounds.maxY + vpPageBounds.height / 2
 
 			const lx = Math.max(0, minX + vpPageBounds.width - px)
 			const rx = Math.max(0, -(maxX - vpPageBounds.width - px))
@@ -171,222 +216,110 @@ export class MinimapManager {
 		return new Vec(px, py)
 	}
 
-	updateColors = () => {
-		const style = getComputedStyle(this.editor.getContainer())
-
-		this.colors = {
-			shapeFill: style.getPropertyValue('--color-text-3').trim(),
-			selectFill: style.getPropertyValue('--color-selected').trim(),
-			viewportFill: style.getPropertyValue('--color-muted-1').trim(),
-		}
-	}
-
 	render = () => {
-		const { cvs, pageBounds } = this
-		this.updateCanvasPageBounds()
+		// make sure we update when dark mode switches
+		const context = this.gl.context
+		const canvasSize = this.getCanvasSize()
 
-		const { editor, canvasScreenBounds, canvasPageBounds, contentPageBounds, contentScreenBounds } =
-			this
-		const { width: cw, height: ch } = canvasScreenBounds
+		this.gl.setCanvasPageBounds(this.getCanvasPageBoundsArray())
 
-		const selectedShapeIds = editor.getSelectedShapeIds()
-		const viewportPageBounds = editor.getViewportPageBounds()
+		this.elem.width = canvasSize.x
+		this.elem.height = canvasSize.y
+		context.viewport(0, 0, canvasSize.x, canvasSize.y)
 
-		if (!cvs || !pageBounds) {
-			return
+		// this affects which color transparent shapes are blended with
+		// during rendering. If we were to invert this any shapes narrower
+		// than 1 px in screen space would have much lower contrast. e.g.
+		// draw shapes on a large canvas.
+		if (this.editor.user.getIsDarkMode()) {
+			context.clearColor(1, 1, 1, 0)
+		} else {
+			context.clearColor(0, 0, 0, 0)
 		}
 
-		const ctx = cvs.getContext('2d')!
+		context.clear(context.COLOR_BUFFER_BIT)
 
-		if (!ctx) {
-			throw new Error('Minimap (shapes): Could not get context')
-		}
+		const selectedShapes = new Set(this.editor.getSelectedShapeIds())
 
-		ctx.resetTransform()
-		ctx.globalAlpha = 1
-		ctx.clearRect(0, 0, cw, ch)
+		const colors = this.colors
+		let selectedShapeOffset = 0
+		let unselectedShapeOffset = 0
 
-		// Transform canvas
+		const ids = this.editor.getCurrentPageShapeIdsSorted()
 
-		const sx = contentScreenBounds.width / contentPageBounds.width
-		const sy = contentScreenBounds.height / contentPageBounds.height
+		for (let i = 0, len = ids.length; i < len; i++) {
+			const shapeId = ids[i]
+			const geometry = this.shapeGeometryCache.get(shapeId)
+			if (!geometry) continue
 
-		ctx.translate((cw - contentScreenBounds.width) / 2, (ch - contentScreenBounds.height) / 2)
-		ctx.scale(sx, sy)
-		ctx.translate(-contentPageBounds.minX, -contentPageBounds.minY)
+			const len = geometry.length
 
-		// Default radius for rounded rects
-		const rx = 8 / sx
-		const ry = 8 / sx
-		// Min radius
-		const ax = 1 / sx
-		const ay = 1 / sx
-		// Max radius factor
-		const bx = rx / 4
-		const by = ry / 4
-
-		// shapes
-		const shapesPath = new Path2D()
-		const selectedPath = new Path2D()
-
-		const { shapeFill, selectFill, viewportFill } = this.colors
-
-		// When there are many shapes, don't draw rounded rectangles;
-		// consider using the shape's size instead.
-
-		let pb: Box & { id: TLShapeId }
-		for (let i = 0, n = pageBounds.length; i < n; i++) {
-			pb = pageBounds[i]
-			MinimapManager.roundedRect(
-				selectedShapeIds.includes(pb.id) ? selectedPath : shapesPath,
-				pb.minX,
-				pb.minY,
-				pb.width,
-				pb.height,
-				clamp(rx, ax, pb.width / bx),
-				clamp(ry, ay, pb.height / by)
-			)
-		}
-
-		// Fill the shapes paths
-		ctx.fillStyle = shapeFill
-		ctx.fill(shapesPath)
-
-		// Fill the selected paths
-		ctx.fillStyle = selectFill
-		ctx.fill(selectedPath)
-
-		if (this.debug) {
-			// Page bounds
-			const commonBounds = Box.Common(pageBounds)
-			const { minX, minY, width, height } = commonBounds
-			ctx.strokeStyle = 'green'
-			ctx.lineWidth = 2 / sx
-			ctx.strokeRect(minX + 1 / sx, minY + 1 / sy, width - 2 / sx, height - 2 / sy)
-		}
-
-		// Brush
-		{
-			const { brush } = editor.getInstanceState()
-			if (brush) {
-				const { x, y, w, h } = brush
-				ctx.beginPath()
-				MinimapManager.sharpRect(ctx, x, y, w, h)
-				ctx.closePath()
-				ctx.fillStyle = viewportFill
-				ctx.fill()
+			if (selectedShapes.has(shapeId)) {
+				appendVertices(this.gl.selectedShapes, selectedShapeOffset, geometry)
+				selectedShapeOffset += len
+			} else {
+				appendVertices(this.gl.unselectedShapes, unselectedShapeOffset, geometry)
+				unselectedShapeOffset += len
 			}
 		}
 
-		// Viewport
-		{
-			const { minX, minY, width, height } = viewportPageBounds
-
-			ctx.beginPath()
-
-			const rx = 12 / sx
-			const ry = 12 / sx
-			MinimapManager.roundedRect(
-				ctx,
-				minX,
-				minY,
-				width,
-				height,
-				Math.min(width / 4, rx),
-				Math.min(height / 4, ry)
-			)
-			ctx.closePath()
-			ctx.fillStyle = viewportFill
-			ctx.fill()
-
-			if (this.debug) {
-				ctx.strokeStyle = 'orange'
-				ctx.strokeRect(minX + 1 / sx, minY + 1 / sy, width - 2 / sx, height - 2 / sy)
-			}
-		}
-
-		// Show collaborator cursors
-
-		// Padding for canvas bounds edges
-		const px = 2.5 / sx
-		const py = 2.5 / sy
-
-		const currentPageId = editor.getCurrentPageId()
-
-		let collaborator: TLInstancePresence
-		for (let i = 0; i < this.collaborators.length; i++) {
-			collaborator = this.collaborators[i]
-			if (collaborator.currentPageId !== currentPageId) {
-				continue
-			}
-
-			ctx.beginPath()
-			ctx.ellipse(
-				clamp(collaborator.cursor.x, canvasPageBounds.minX + px, canvasPageBounds.maxX - px),
-				clamp(collaborator.cursor.y, canvasPageBounds.minY + py, canvasPageBounds.maxY - py),
-				5 / sx,
-				5 / sy,
-				0,
-				0,
-				PI2
-			)
-			ctx.fillStyle = collaborator.color
-			ctx.fill()
-		}
-
-		if (this.debug) {
-			ctx.lineWidth = 2 / sx
-
-			{
-				// Minimap Bounds
-				const { minX, minY, width, height } = contentPageBounds
-				ctx.strokeStyle = 'red'
-				ctx.strokeRect(minX + 1 / sx, minY + 1 / sy, width - 2 / sx, height - 2 / sy)
-			}
-
-			{
-				// Canvas Bounds
-				const { minX, minY, width, height } = canvasPageBounds
-				ctx.strokeStyle = 'blue'
-				ctx.strokeRect(minX + 1 / sx, minY + 1 / sy, width - 2 / sx, height - 2 / sy)
-			}
-		}
+		this.drawViewport()
+		this.drawShapes(this.gl.unselectedShapes, unselectedShapeOffset, colors.shapeFill)
+		this.drawShapes(this.gl.selectedShapes, selectedShapeOffset, colors.selectFill)
+		this.drawCollaborators()
 	}
 
-	static roundedRect(
-		ctx: CanvasRenderingContext2D | Path2D,
-		x: number,
-		y: number,
-		width: number,
-		height: number,
-		rx: number,
-		ry: number
-	) {
-		if (rx < 1 && ry < 1) {
-			ctx.rect(x, y, width, height)
-			return
-		}
-
-		ctx.moveTo(x + rx, y)
-		ctx.lineTo(x + width - rx, y)
-		ctx.quadraticCurveTo(x + width, y, x + width, y + ry)
-		ctx.lineTo(x + width, y + height - ry)
-		ctx.quadraticCurveTo(x + width, y + height, x + width - rx, y + height)
-		ctx.lineTo(x + rx, y + height)
-		ctx.quadraticCurveTo(x, y + height, x, y + height - ry)
-		ctx.lineTo(x, y + ry)
-		ctx.quadraticCurveTo(x, y, x + rx, y)
+	private drawShapes(stuff: BufferStuff, len: number, color: Float32Array) {
+		this.gl.prepareTriangles(stuff, len)
+		this.gl.setFillColor(color)
+		this.gl.drawTriangles(len)
 	}
 
-	static sharpRect(
-		ctx: CanvasRenderingContext2D | Path2D,
-		x: number,
-		y: number,
-		width: number,
-		height: number,
-		_rx?: number,
-		_ry?: number
-	) {
-		ctx.rect(x, y, width, height)
+	private drawViewport() {
+		const viewport = this.editor.getViewportPageBounds()
+		const zoom = this.getCanvasPageBounds().width / this.getCanvasScreenBounds().width
+		const len = roundedRectangle(this.gl.viewport.vertices, viewport, 4 * zoom)
+
+		this.gl.prepareTriangles(this.gl.viewport, len)
+		this.gl.setFillColor(this.colors.viewportFill)
+		this.gl.drawTriangles(len)
+	}
+
+	drawCollaborators() {
+		const collaborators = this.editor.getCollaboratorsOnCurrentPage()
+		if (!collaborators.length) return
+
+		const zoom = this.getCanvasPageBounds().width / this.getCanvasScreenBounds().width
+
+		// just draw a little circle for each collaborator
+		const numSegmentsPerCircle = 20
+		const dataSizePerCircle = numSegmentsPerCircle * 6
+		const totalSize = dataSizePerCircle * collaborators.length
+
+		// expand vertex array if needed
+		if (this.gl.collaborators.vertices.length < totalSize) {
+			this.gl.collaborators.vertices = new Float32Array(totalSize)
+		}
+
+		const vertices = this.gl.collaborators.vertices
+		let offset = 0
+		for (const { cursor } of collaborators) {
+			pie(vertices, {
+				center: Vec.From(cursor),
+				radius: 2 * zoom,
+				offset,
+				numArcSegments: numSegmentsPerCircle,
+			})
+			offset += dataSizePerCircle
+		}
+
+		this.gl.prepareTriangles(this.gl.collaborators, totalSize)
+
+		offset = 0
+		for (const { color } of collaborators) {
+			this.gl.setFillColor(getRgba(color))
+			this.gl.context.drawArrays(this.gl.context.TRIANGLES, offset / 2, dataSizePerCircle / 2)
+			offset += dataSizePerCircle
+		}
 	}
 }

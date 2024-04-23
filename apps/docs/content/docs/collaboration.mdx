@@ -1,9 +1,75 @@
 ---
 title: Collaboration
 status: published
-author: steveruizok
+author: ds300
 date: 3/22/2023
 order: 8
 ---
 
-See the [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) for an example of how to use yjs with the `tldraw` library.
+We've designed the tldraw SDK to work with any collaboration backend. Depending on which backend you choose, you will need an interface that pipes changes coming from the editor to the backend and then merge changes from the backend back to the editor.
+
+The best way to get started is by adapting one of our examples.
+
+### Yjs sync example
+
+We created a [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) to illustrate a way of using the [yjs](https://yjs.dev) library with the tldraw SDK. If you need a "drop in solution" for prototyping multiplayer experiences with tldraw, start here.
+
+### Sockets example
+
+We have a [sockets example](https://github.com/tldraw/tldraw-sockets-example) that uses [PartyKit](https://www.partykit.io/) as a backend. Unlike the yjs example, this example does not use any special data structures to handle conflicts. It should be a good starting point if you needed to write your own conflict-resolution logic.
+
+### Our own sync engine
+
+We developed our own sync engine for use on tldraw.com based on a push/pull/rebase-style algorithm. It powers our "shared projects", such as [this one](https://tldraw.com/r). The engine's source code can be found [here](https://github.com/tldraw/tldraw/tree/main/packages/tlsync). It was designed to be hosted on Cloudflare workers with [DurableObjects](https://developers.cloudflare.com/durable-objects/).
+
+We don't suggest using this code directly. However, like our other examples, it may serve as a good reference for your own sync engine.
+
+## Store data
+
+For information about how to synchronize the store with other processes, i.e. how to get data out and put data in, including from remote sources, see the (Persistence)[/docs/persistence] page.
+
+## User presence
+
+Tldraw has support for displaying the 'presence' of other users. Presence information consists of:
+
+- The user's pointer position
+- The user's set of selected shapes
+- The user's viewport bounds (the part of the canvas they are currently viewing)
+- The user's name, id, and a color to represent them
+
+This information will usually come from two sources:
+
+- The tldraw editor state (e.g. pointer position, selected shapes)
+- The data layer of whichever app tldraw has been embedded in (e.g. user name, user id)
+
+Tldraw is agnostic about how this data is shared among users. However, in order for tldraw to use the presence data it needs to be put into the editor's store as `instance_presence` records.
+
+We provide a helper for constructing a reactive signal for an `instance_presence` record locally, which can then be sent to other clients somehow. It is called [createPresenceStateDerivation](?).
+
+```ts
+import { createPresenceStateDerivation, react, atom } from 'tldraw'
+
+// First you need to create a Signal containing the basic user details: id, name, and color
+const user = atom<{ id: string; color: string; name: string }>('user', {
+	id: myUser.id,
+	color: myUser.color,
+	name: myUser.name,
+})
+
+// if you don't have your own user data backend, you can use our localStorage-only user preferences store
+// import { getUserPreferences, computed } from 'tldraw'
+// const user = computed('user', getUserPreferences)
+
+// Then, with access to your store instance, you can create a presence signal
+const userPresence = createPresenceStateDerivation(user)(store)
+
+// Then you can listen for changes to the presence signal and send them to other clients
+const unsub = react('update presence', () => {
+	const presence = userPresence.get()
+	broadcastPresence(presence)
+})
+```
+
+The other clients would then call `store.put([presence])` to add the presence information to their store.
+
+Any such `instance_presence` records tldraw finds in the store that have a different user `id` than the editor's configured user id will cause the presence information to be rendered on the canvas.
