@@ -1,4 +1,4 @@
-import { Editor, TLNoteShape, TLShape, Vec, compact, createShapeId } from '@tldraw/editor'
+import { Editor, IndexKey, TLNoteShape, TLShape, Vec, compact, createShapeId } from '@tldraw/editor'
 import { zoomToShapeIfOffscreen } from '../../tools/SelectTool/selectHelpers'
 
 /** @internal */
@@ -12,12 +12,12 @@ export const NOTE_CENTER_OFFSET = { x: NOTE_SIZE / 2, y: NOTE_SIZE / 2 }
 /** @internal */
 export const NOTE_PIT_RADIUS = 10
 
-const DEFAULT_PITS = [
-	new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN), // t
-	new Vec(NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // r
-	new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN), // b
-	new Vec(NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // l
-]
+const DEFAULT_PITS = {
+	['a1' as IndexKey]: new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN), // t
+	['a2' as IndexKey]: new Vec(NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // r
+	['a3' as IndexKey]: new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN), // b
+	['a4' as IndexKey]: new Vec(NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // l
+}
 
 /**
  * Get the adjacent positions for a particular note shape.
@@ -33,18 +33,20 @@ export function getNoteAdjacentPositions(
 	pageRotation: number,
 	growY: number,
 	extraHeight: number
-) {
-	return DEFAULT_PITS.map((v, i) => {
-		const point = v.clone()
-		if (i === 0 && extraHeight) {
-			// apply top margin (the growY of the moving note shape)
-			point.y -= extraHeight
-		} else if (i === 2 && growY) {
-			// apply bottom margin (the growY of this note shape)
-			point.y += growY
-		}
-		return point.rot(pageRotation).add(pagePoint)
-	})
+): Record<IndexKey, Vec> {
+	return Object.fromEntries(
+		Object.entries(DEFAULT_PITS).map(([id, v], i) => {
+			const point = v.clone()
+			if (i === 0 && extraHeight) {
+				// apply top margin (the growY of the moving note shape)
+				point.y -= extraHeight
+			} else if (i === 2 && growY) {
+				// apply bottom margin (the growY of this note shape)
+				point.y += growY
+			}
+			return [id, point.rot(pageRotation).add(pagePoint)]
+		})
+	)
 }
 
 /**
@@ -81,7 +83,9 @@ export function getAvailableNoteAdjacentPositions(
 
 		// And push its position to the positions array
 		positions.push(
-			...getNoteAdjacentPositions(transform.point(), rotation, shape.props.growY, extraHeight)
+			...Object.values(
+				getNoteAdjacentPositions(transform.point(), rotation, shape.props.growY, extraHeight)
+			)
 		)
 	}
 
