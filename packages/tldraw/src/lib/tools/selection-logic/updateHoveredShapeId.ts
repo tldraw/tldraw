@@ -31,5 +31,6 @@ function _updateHoveredShapeId(editor: Editor) {
 	return editor.setHoveredShape(shapeToHover.id)
 }
 
+/** @internal */
 export const updateHoveredShapeId =
 	process.env.NODE_ENV === 'test' ? _updateHoveredShapeId : throttle(_updateHoveredShapeId, 32)

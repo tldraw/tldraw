@@ -19,7 +19,7 @@ import {
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
-import { updateHoveredShapeId } from '../../selection-logic/updateHoveredId'
+import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 import { kickoutOccludedShapes, startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [

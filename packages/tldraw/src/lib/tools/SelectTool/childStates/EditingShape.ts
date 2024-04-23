@@ -1,7 +1,7 @@
 import { StateNode, TLEventHandlers, TLFrameShape, TLShape, TLTextShape } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { updateHoveredShapeId } from '../../selection-logic/updateHoveredId'
+import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'

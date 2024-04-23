@@ -4344,6 +4344,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (filter) return filter(shape)
 			return true
 		})
+
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
 			const geometry = this.getShapeGeometry(shape)
