@@ -102,7 +102,15 @@ export function IFrameProtector({
 				timeout = setTimeout(() => {
 					setEmbeddedState(EMBEDDED_STATE.IFRAME_NOT_ALLOWED)
 					const referrer = document.referrer
-					trackAnalyticsEvent('connect_to_room_in_iframe', { slug, context, referrer })
+					const ancestorOrigins = JSON.stringify(
+						Object.values(window.location.ancestorOrigins || {})
+					)
+					trackAnalyticsEvent('connect_to_room_in_iframe', {
+						slug,
+						context,
+						referrer,
+						ancestorOrigins,
+					})
 				}, 1000)
 			} else {
 				// We don't allow iframe embeddings on other routes
