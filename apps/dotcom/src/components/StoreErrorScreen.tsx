@@ -1,9 +1,11 @@
 import { TLIncompatibilityReason } from '@tldraw/tlsync'
-import { ErrorScreen, exhaustiveSwitchError } from 'tldraw'
+import { exhaustiveSwitchError } from 'tldraw'
 import { RemoteSyncError } from '../utils/remote-sync/remote-sync'
+import { ErrorPage } from './ErrorPage/ErrorPage'
 
 export function StoreErrorScreen({ error }: { error: Error }) {
-	let message = 'Could not connect to server.'
+	let header = 'Could not connect to server.'
+	let message = ''
 
 	if (error instanceof RemoteSyncError) {
 		switch (error.reason) {
@@ -27,8 +29,8 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 				break
 			}
 			case TLIncompatibilityReason.RoomNotFound: {
-				message =
-					'The room you are trying to connect to does not exist. Please check the URL and try again. If the problem persists contact the system administrator.'
+				header = 'Room not found'
+				message = 'The room you are trying to connect to does not exist.'
 				break
 			}
 			default:
@@ -36,9 +38,5 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 		}
 	}
 
-	return (
-		<div className="tldraw__editor tl-container">
-			<ErrorScreen>{message}</ErrorScreen>
-		</div>
-	)
+	return <ErrorPage icon messages={{ header, para1: message }} />
 }
