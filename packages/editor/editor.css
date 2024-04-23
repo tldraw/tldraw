@@ -1089,7 +1089,7 @@ input,
  *  - draw/line shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
  *  - shapes that are not filled
  */
-.tl-canvas[data-iseditinganything='true']
+.tl-canvas:is([data-iseditinganything='true'], [data-isselectinganything='true'])
 	.tl-shape:not(
 		[data-shape-type='arrow'],
 		[data-shape-type='draw'],
