@@ -32,7 +32,7 @@ jobs:
           app-id: ${{ vars.HUPPY_APP_ID }}
           private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           token: ${{ steps.generate_token.outputs.token }}
           ref: refs/heads/production
