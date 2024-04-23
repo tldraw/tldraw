@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { isInIframe } from '../../utils/iFrame'
 
 export function ErrorPage({
 	icon,
@@ -19,9 +20,7 @@ export function ErrorPage({
 					<p>{messages.para1}</p>
 					{messages.para2 && <p>{messages.para2}</p>}
 				</div>
-				<Link to={'/'}>
-					<a>Take me home.</a>
-				</Link>
+				<Link to={'/'}>{isInIframe() ? 'Open tldraw.' : 'Back to tldraw.'}</Link>
 			</div>
 		</div>
 	)
