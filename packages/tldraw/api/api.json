@@ -3831,15 +3831,6 @@
             },
             {
               "kind": "Reference",
-              "text": "DrawShapeTool",
-              "canonicalReference": "tldraw!DrawShapeTool:class"
-            },
-            {
-              "kind": "Content",
-              "text": " | typeof "
-            },
-            {
-              "kind": "Reference",
               "text": "FrameShapeTool",
               "canonicalReference": "tldraw!FrameShapeTool:class"
             },
@@ -3851,6 +3842,15 @@
               "kind": "Reference",
               "text": "GeoShapeTool",
               "canonicalReference": "tldraw!GeoShapeTool:class"
+            },
+            {
+              "kind": "Content",
+              "text": " | typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "HighlightShapeTool",
+              "canonicalReference": "tldraw!HighlightShapeTool:class"
             },
             {
               "kind": "Content",
@@ -4490,7 +4490,7 @@
                 {
                   "kind": "Reference",
                   "text": "Idle",
-                  "canonicalReference": "tldraw!~Idle_2:class"
+                  "canonicalReference": "tldraw!~Idle_3:class"
                 },
                 {
                   "kind": "Content",
@@ -7891,7 +7891,7 @@
                 {
                   "kind": "Reference",
                   "text": "Idle",
-                  "canonicalReference": "tldraw!~Idle_3:class"
+                  "canonicalReference": "tldraw!~Idle_2:class"
                 },
                 {
                   "kind": "Content",
@@ -9721,7 +9721,7 @@
                 {
                   "kind": "Reference",
                   "text": "Idle",
-                  "canonicalReference": "tldraw!~Idle_2:class"
+                  "canonicalReference": "tldraw!~Idle_3:class"
                 },
                 {
                   "kind": "Content",
@@ -27981,6 +27981,52 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "useNativeClipboardEvents"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!usePreloadAssets:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function usePreloadAssets(assetUrls: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLEditorAssetUrls",
+              "canonicalReference": "tldraw!~TLEditorAssetUrls:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    done: boolean;\n    error: boolean;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/hooks/usePreloadAssets.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "assetUrls",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "usePreloadAssets"
         },
         {
           "kind": "Function",

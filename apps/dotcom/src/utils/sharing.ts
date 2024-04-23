@@ -1,10 +1,14 @@
+import {
+	CreateRoomRequestBody,
+	CreateSnapshotRequestBody,
+	CreateSnapshotResponseBody,
+	Snapshot,
+} from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
 	AssetRecordType,
 	Editor,
-	SerializedSchema,
-	SerializedStore,
 	TLAsset,
 	TLAssetId,
 	TLRecord,
@@ -32,27 +36,6 @@ export const FORK_PROJECT_ACTION = 'fork-project' as const
 
 const CREATE_SNAPSHOT_ENDPOINT = `/api/snapshots`
 const SNAPSHOT_UPLOAD_URL = `/api/new-room`
-
-type SnapshotRequestBody = {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-}
-
-type CreateSnapshotRequestBody = {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | string[] | undefined
-}
-
-type CreateSnapshotResponseBody =
-	| {
-			error: false
-			roomId: string
-	  }
-	| {
-			error: true
-			message: string
-	  }
 
 async function getSnapshotLink(
 	source: string,
@@ -124,15 +107,24 @@ export function useSharing(): TLUiOverrides {
 							const data = await getRoomData(editor, addToast, msg, uploadFileToAsset)
 							if (!data) return
 
+							const topLevelUrl = new URL(
+								window.location != window.parent.location
+									? document.referrer
+									: document.location.href
+							)
+
 							const res = await fetch(SNAPSHOT_UPLOAD_URL, {
 								method: 'POST',
 								headers: {
 									'Content-Type': 'application/json',
 								},
 								body: JSON.stringify({
-									schema: editor.store.schema.serialize(),
-									snapshot: data,
-								} satisfies SnapshotRequestBody),
+									origin: topLevelUrl.origin,
+									snapshot: {
+										schema: editor.store.schema.serialize(),
+										snapshot: data,
+									} satisfies Snapshot,
+								} satisfies CreateRoomRequestBody),
 							})
 
 							const response = (await res.json()) as { error: boolean; slug?: string }

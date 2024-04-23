@@ -1,7 +1,6 @@
 import { captureException } from '@sentry/react'
-import { nanoid } from 'nanoid'
 import { useEffect } from 'react'
-import { createRoutesFromElements, Outlet, redirect, Route, useRouteError } from 'react-router-dom'
+import { createRoutesFromElements, Navigate, Outlet, Route, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 
@@ -30,13 +29,8 @@ export const router = createRoutesFromElements(
 	>
 		<Route errorElement={<DefaultErrorFallback />}>
 			<Route path="/" lazy={() => import('./pages/root')} />
-			<Route
-				path="/r"
-				loader={() => {
-					const id = 'v2' + nanoid()
-					return redirect(`/r/${id}`)
-				}}
-			/>
+			<Route path="/r" element={<Navigate to="/" />} />
+			<Route path="/new" element={<Navigate to="/" />} />
 			<Route path="/r/:roomId" lazy={() => import('./pages/public-multiplayer')} />
 			<Route path="/r/:boardId/history" lazy={() => import('./pages/history')} />
 			<Route

@@ -1,5 +1,6 @@
-import { ReactNode, useEffect, useState, version } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { LoadingScreen } from 'tldraw'
+import { version } from '../../version'
 import { useUrl } from '../hooks/useUrl'
 import { isInIframe } from '../utils/iFrame'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
@@ -135,7 +136,7 @@ export function IFrameProtector({
 			<div className="tldraw__editor tl-container">
 				<div className="iframe-warning__container">
 					<a className="iframe-warning__link" href={url} target="_blank">
-						{'Visit this page on tldraw.com '}
+						{'Visit this page on tldraw.com'}
 						<svg
 							width="15"
 							height="15"
