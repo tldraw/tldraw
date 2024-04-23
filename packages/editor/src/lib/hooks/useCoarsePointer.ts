@@ -17,14 +17,28 @@ export function useCoarsePointer() {
 			return
 		}
 		if (window.matchMedia) {
-			const mql = window.matchMedia('(pointer: coarse)')
-			const handler = () => {
+			const mql = window.matchMedia('(any-pointer: coarse)')
+
+			const handler = (coarse?: boolean) => {
 				editor.updateInstanceState({ isCoarsePointer: !!mql.matches })
+				if (coarse !== undefined) {
+					editor.updateInstanceState({ isCoarsePointer: coarse })
+				}
 			}
+
+			const touchStartHandler = () => handler(true)
+			const mouseMoveHandler = () => handler(false)
+
 			handler()
 			if (mql) {
-				mql.addEventListener('change', handler)
-				return () => mql.removeEventListener('change', handler)
+				mql.addEventListener('change', () => handler())
+				window.addEventListener('touchstart', touchStartHandler)
+				window.addEventListener('mousemove', mouseMoveHandler)
+				return () => {
+					mql.removeEventListener('change', () => handler())
+					window.removeEventListener('touchstart', touchStartHandler)
+					window.removeEventListener('mousemove', mouseMoveHandler)
+				}
 			}
 		}
 	}, [editor])
