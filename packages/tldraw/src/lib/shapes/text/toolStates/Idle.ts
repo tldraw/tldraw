@@ -1,5 +1,5 @@
 import { StateNode, TLEventHandlers } from '@tldraw/editor'
-import { updateHoveredId } from '../../../tools/selection-logic/updateHoveredId'
+import { updateHoveredShapeId } from '../../../tools/selection-logic/updateHoveredId'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -8,7 +8,7 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				updateHoveredId(this.editor)
+				updateHoveredShapeId(this.editor)
 			}
 		}
 	}

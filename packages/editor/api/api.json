@@ -12551,7 +12551,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ") => boolean) | undefined;\n        hitFrameInside?: boolean | undefined;\n        hitInside?: boolean | undefined;\n        hitLabels?: boolean | undefined;\n        margin?: number | undefined;\n        renderingOnly?: boolean | undefined;\n    }"
+                  "text": ") => boolean) | undefined;\n        hitFrameInside?: boolean | undefined;\n        hitInside?: boolean | undefined;\n        hitLabels?: boolean | undefined;\n        hitLocked?: boolean | undefined;\n        margin?: number | undefined;\n        renderingOnly?: boolean | undefined;\n    }"
                 },
                 {
                   "kind": "Content",

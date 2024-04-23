@@ -1,7 +1,7 @@
 import { StateNode, TLEventHandlers, TLFrameShape, TLShape, TLTextShape } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { updateHoveredId } from '../../selection-logic/updateHoveredId'
+import { updateHoveredShapeId } from '../../selection-logic/updateHoveredId'
 
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
@@ -12,7 +12,7 @@ export class EditingShape extends StateNode {
 		const editingShape = this.editor.getEditingShape()
 		if (!editingShape) throw Error('Entered editing state without an editing shape')
 		this.hitShapeForPointerUp = null
-		updateHoveredId(this.editor)
+		updateHoveredShapeId(this.editor)
 		this.editor.select(editingShape)
 	}
 
@@ -44,7 +44,7 @@ export class EditingShape extends StateNode {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				updateHoveredId(this.editor)
+				updateHoveredShapeId(this.editor)
 				return
 			}
 		}
@@ -145,7 +145,7 @@ export class EditingShape extends StateNode {
 		this.editor.select(hitShape.id)
 
 		this.editor.setEditingShape(hitShape.id)
-		updateHoveredId(this.editor)
+		updateHoveredShapeId(this.editor)
 	}
 
 	override onComplete: TLEventHandlers['onComplete'] = (info) => {

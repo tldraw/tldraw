@@ -4308,6 +4308,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			renderingOnly?: boolean
 			margin?: number
 			hitInside?: boolean
+			hitLocked?: boolean
 			// TODO: we probably need to rename this, we don't quite _always_
 			// respect this esp. in the part below that does "Check labels first"
 			hitLabels?: boolean
@@ -4320,6 +4321,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const {
 			filter,
 			margin = 0,
+			hitLocked = false,
 			hitLabels = false,
 			hitInside = false,
 			hitFrameInside = false,
@@ -4336,7 +4338,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
-			if (this.isShapeOfType(shape, 'group')) return false
+			if ((shape.isLocked && !hitLocked) || this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
 			if (filter) return filter(shape)
