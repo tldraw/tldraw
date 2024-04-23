@@ -106,6 +106,18 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		if (zoom < 0.25 || isCoarsePointer) return []
 
+		if (zoom < 0.5) {
+			return [
+				{
+					id: 'bottom',
+					index: 'a3' as IndexKey,
+					type: 'clone',
+					x: NOTE_SIZE / 2,
+					y: noteHeight + offset,
+				},
+			]
+		}
+
 		return [
 			{
 				id: 'top',
