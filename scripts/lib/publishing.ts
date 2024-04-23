@@ -172,8 +172,8 @@ export async function publish(distTag?: string) {
 				}
 			},
 			{
-				delay: 4000,
-				numAttempts: 20,
+				delay: 10000,
+				numAttempts: 50,
 			}
 		)
 	}
