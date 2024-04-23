@@ -33,7 +33,7 @@ type SubscribingFn<T> = (cb: (val: T) => void) => () => void
  */
 export const TLCloseEventCode = {
 	NOT_FOUND: 4099,
-}
+} as const
 
 /** @public */
 export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
