@@ -2,7 +2,7 @@ import { RoomSnapshot } from '@tldraw/tlsync'
 import '../../styles/globals.css'
 import { BoardHistorySnapshot } from '../components/BoardHistorySnapshot/BoardHistorySnapshot'
 import { ErrorPage } from '../components/ErrorPage/ErrorPage'
-import { IFrameProtector } from '../components/IFrameProtector'
+import { IFrameProtector, ROOM_CONTEXT } from '../components/IFrameProtector'
 import { defineLoader } from '../utils/defineLoader'
 
 const { loader, useData } = defineLoader(async (args) => {
@@ -38,7 +38,7 @@ export function Component() {
 
 	const { data, roomId, timestamp } = result
 	return (
-		<IFrameProtector slug={roomId} context="history-snapshot">
+		<IFrameProtector slug={roomId} context={ROOM_CONTEXT.HISTORY_SNAPSHOT}>
 			<BoardHistorySnapshot data={data} roomId={roomId} timestamp={timestamp} />
 		</IFrameProtector>
 	)
