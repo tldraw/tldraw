@@ -174,6 +174,16 @@ describe(ClientWebSocketAdapter, () => {
 		expect(onStatusChange).toHaveBeenCalledWith('error', undefined)
 	})
 
+	it('signals the correct closeCode when a room is not found', async () => {
+		const onStatusChange = jest.fn()
+		adapter.onStatusChange(onStatusChange)
+		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+
+		adapter._ws!.onclose?.({ code: 4099 } as any)
+
+		expect(onStatusChange).toHaveBeenCalledWith('error', 4099)
+	})
+
 	it('signals status changes while restarting', async () => {
 		const onStatusChange = jest.fn()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
