@@ -42,6 +42,7 @@ export class MinimapManager {
 			shapeFill: getRgba(style.getPropertyValue('--color-text-3').trim()),
 			selectFill: getRgba(style.getPropertyValue('--color-selected').trim()),
 			viewportFill: getRgba(style.getPropertyValue('--color-muted-1').trim()),
+			background: getRgba(style.getPropertyValue('--color-low').trim()),
 		}
 	}
 
@@ -231,11 +232,12 @@ export class MinimapManager {
 		// during rendering. If we were to invert this any shapes narrower
 		// than 1 px in screen space would have much lower contrast. e.g.
 		// draw shapes on a large canvas.
-		if (this.editor.user.getIsDarkMode()) {
-			context.clearColor(1, 1, 1, 0)
-		} else {
-			context.clearColor(0, 0, 0, 0)
-		}
+		context.clearColor(
+			this.colors.background[0],
+			this.colors.background[1],
+			this.colors.background[2],
+			1
+		)
 
 		context.clear(context.COLOR_BUFFER_BIT)
 
@@ -263,9 +265,9 @@ export class MinimapManager {
 			}
 		}
 
-		this.drawViewport()
 		this.drawShapes(this.gl.unselectedShapes, unselectedShapeOffset, colors.shapeFill)
 		this.drawShapes(this.gl.selectedShapes, selectedShapeOffset, colors.selectFill)
+		this.drawViewport()
 		this.drawCollaborators()
 	}
 
@@ -282,7 +284,7 @@ export class MinimapManager {
 
 		this.gl.prepareTriangles(this.gl.viewport, len)
 		this.gl.setFillColor(this.colors.viewportFill)
-		this.gl.drawTriangles(len)
+		this.gl.drawTrianglesTransparently(len)
 	}
 
 	drawCollaborators() {
@@ -306,7 +308,7 @@ export class MinimapManager {
 		for (const { cursor } of collaborators) {
 			pie(vertices, {
 				center: Vec.From(cursor),
-				radius: 2 * zoom,
+				radius: 3 * zoom,
 				offset,
 				numArcSegments: numSegmentsPerCircle,
 			})
