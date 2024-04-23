@@ -31,8 +31,8 @@ type SubscribingFn<T> = (cb: (val: T) => void) => () => void
  *
  * @public
  */
-export enum TLCloseEventCode {
-	NOT_FOUND = 4099,
+export const TLCloseEventCode = {
+	NOT_FOUND: 4099,
 }
 
 /** @public */
