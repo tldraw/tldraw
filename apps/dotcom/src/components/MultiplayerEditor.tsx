@@ -1,4 +1,4 @@
-import { RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
+import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
@@ -127,7 +127,7 @@ export function MultiplayerEditor({
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const cursorChatOverrides = useCursorChat()
 	const isReadonly =
-		roomOpenMode === RoomOpenMode.READ_ONLY || roomOpenMode === RoomOpenMode.READ_ONLY_LEGACY
+		roomOpenMode === ROOM_OPEN_MODE.READ_ONLY || roomOpenMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY
 
 	const handleMount = useCallback(
 		(editor: Editor) => {

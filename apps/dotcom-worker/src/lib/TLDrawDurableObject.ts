@@ -2,7 +2,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { SupabaseClient } from '@supabase/supabase-js'
-import { RoomOpenMode } from '@tldraw/dotcom-shared'
+import { ROOM_OPEN_MODE, type RoomOpenMode } from '@tldraw/dotcom-shared'
 import {
 	RoomSnapshot,
 	TLServer,
@@ -90,22 +90,22 @@ export class TLDrawDurableObject extends TLServer {
 	readonly router = Router()
 		.get(
 			'/r/:roomId',
-			(req) => this.extractDocumentInfoFromRequest(req, RoomOpenMode.READ_WRITE),
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRequest(req)
 		)
 		.get(
 			'/v/:roomId',
-			(req) => this.extractDocumentInfoFromRequest(req, RoomOpenMode.READ_ONLY_LEGACY),
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY),
 			(req) => this.onRequest(req)
 		)
 		.get(
 			'/ro/:roomId',
-			(req) => this.extractDocumentInfoFromRequest(req, RoomOpenMode.READ_ONLY),
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY),
 			(req) => this.onRequest(req)
 		)
 		.post(
 			'/r/:roomId/restore',
-			(req) => this.extractDocumentInfoFromRequest(req, RoomOpenMode.READ_WRITE),
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))

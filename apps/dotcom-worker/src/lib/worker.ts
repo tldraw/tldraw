@@ -1,6 +1,6 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
-import { RoomOpenMode } from '@tldraw/dotcom-shared'
+import { ROOM_OPEN_MODE } from '@tldraw/dotcom-shared'
 import { Router, createCors } from 'itty-router'
 import { env } from 'process'
 import Toucan from 'toucan-js'
@@ -26,9 +26,9 @@ const router = Router()
 	.post('/new-room', createRoom)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
-	.get('/r/:roomId', (req, env) => joinExistingRoom(req, env, RoomOpenMode.READ_WRITE))
-	.get('/v/:roomId', (req, env) => joinExistingRoom(req, env, RoomOpenMode.READ_ONLY_LEGACY))
-	.get('/ro/:roomId', (req, env) => joinExistingRoom(req, env, RoomOpenMode.READ_ONLY))
+	.get('/r/:roomId', (req, env) => joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_WRITE))
+	.get('/v/:roomId', (req, env) => joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY_LEGACY))
+	.get('/ro/:roomId', (req, env) => joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY))
 	.get('/r/:roomId/history', getRoomHistory)
 	.get('/r/:roomId/history/:timestamp', getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)
