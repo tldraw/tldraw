@@ -131,8 +131,10 @@ export function MultiplayerEditor({
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
-			;(window as any).app = editor
-			;(window as any).editor = editor
+			if (!isReadonly) {
+				;(window as any).app = editor
+				;(window as any).editor = editor
+			}
 			editor.updateInstanceState({
 				isReadonly,
 			})
