@@ -42,6 +42,7 @@ export class MinimapManager {
 			shapeFill: getRgba(style.getPropertyValue('--color-text-3').trim()),
 			selectFill: getRgba(style.getPropertyValue('--color-selected').trim()),
 			viewportFill: getRgba(style.getPropertyValue('--color-muted-1').trim()),
+			background: getRgba(style.getPropertyValue('--color-low').trim()),
 		}
 	}
 
@@ -132,12 +133,18 @@ export class MinimapManager {
 		return box
 	}
 
+	@computed getZoom() {
+		const cpb = this.getCanvasPageBounds()
+		const vp = this.editor.getViewportPageBounds()
+		return cpb.width / vp.width
+	}
+
 	@computed getCanvasPageBoundsArray() {
 		const { x, y, w, h } = this.getCanvasPageBounds()
 		return new Float32Array([x, y, w, h])
 	}
 
-	getPagePoint = (clientX: number, clientY: number) => {
+	getMinimapPagePoint = (clientX: number, clientY: number) => {
 		const canvasPageBounds = this.getCanvasPageBounds()
 		const canvasScreenBounds = this.getCanvasScreenBounds()
 
@@ -165,7 +172,7 @@ export class MinimapManager {
 		const { editor } = this
 		const viewportPageBounds = editor.getViewportPageBounds()
 
-		let { x: px, y: py } = this.getPagePoint(x, y)
+		let { x: px, y: py } = this.getMinimapPagePoint(x, y)
 
 		if (clampToBounds) {
 			const shapesPageBounds = this.editor.getCurrentPageBounds() ?? new Box()
@@ -231,11 +238,12 @@ export class MinimapManager {
 		// during rendering. If we were to invert this any shapes narrower
 		// than 1 px in screen space would have much lower contrast. e.g.
 		// draw shapes on a large canvas.
-		if (this.editor.user.getIsDarkMode()) {
-			context.clearColor(1, 1, 1, 0)
-		} else {
-			context.clearColor(0, 0, 0, 0)
-		}
+		context.clearColor(
+			this.colors.background[0],
+			this.colors.background[1],
+			this.colors.background[2],
+			1
+		)
 
 		context.clear(context.COLOR_BUFFER_BIT)
 
@@ -263,9 +271,10 @@ export class MinimapManager {
 			}
 		}
 
-		this.drawViewport()
 		this.drawShapes(this.gl.unselectedShapes, unselectedShapeOffset, colors.shapeFill)
 		this.drawShapes(this.gl.selectedShapes, selectedShapeOffset, colors.selectFill)
+
+		this.drawViewport()
 		this.drawCollaborators()
 	}
 
@@ -277,19 +286,16 @@ export class MinimapManager {
 
 	private drawViewport() {
 		const viewport = this.editor.getViewportPageBounds()
-		const zoom = this.getCanvasPageBounds().width / this.getCanvasScreenBounds().width
-		const len = roundedRectangle(this.gl.viewport.vertices, viewport, 4 * zoom)
+		const len = roundedRectangle(this.gl.viewport.vertices, viewport, 4 * this.getZoom())
 
 		this.gl.prepareTriangles(this.gl.viewport, len)
 		this.gl.setFillColor(this.colors.viewportFill)
-		this.gl.drawTriangles(len)
+		this.gl.drawTrianglesTransparently(len)
 	}
 
 	drawCollaborators() {
 		const collaborators = this.editor.getCollaboratorsOnCurrentPage()
 		if (!collaborators.length) return
-
-		const zoom = this.getCanvasPageBounds().width / this.getCanvasScreenBounds().width
 
 		// just draw a little circle for each collaborator
 		const numSegmentsPerCircle = 20
@@ -303,10 +309,11 @@ export class MinimapManager {
 
 		const vertices = this.gl.collaborators.vertices
 		let offset = 0
+		const zoom = this.getZoom()
 		for (const { cursor } of collaborators) {
 			pie(vertices, {
 				center: Vec.From(cursor),
-				radius: 2 * zoom,
+				radius: 3 * zoom,
 				offset,
 				numArcSegments: numSegmentsPerCircle,
 			})
