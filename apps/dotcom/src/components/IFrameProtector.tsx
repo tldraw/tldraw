@@ -26,24 +26,26 @@ and we should show an annoying messsage.
 If we're not in an iframe, we don't need to do anything.
 */
 
-export enum ROOM_CONTEXT {
-	PUBLIC_MULTIPLAYER = 'public-multiplayer',
-	PUBLIC_READONLY = 'public-readonly',
-	PUBLIC_SNAPSHOT = 'public-snapshot',
-	HISTORY_SNAPSHOT = 'history-snapshot',
-	HISTORY = 'history',
-	LOCAL = 'local',
-}
+export const ROOM_CONTEXT = {
+	PUBLIC_MULTIPLAYER: 'public-multiplayer',
+	PUBLIC_READONLY: 'public-readonly',
+	PUBLIC_SNAPSHOT: 'public-snapshot',
+	HISTORY_SNAPSHOT: 'history-snapshot',
+	HISTORY: 'history',
+	LOCAL: 'local',
+} as const
+type $ROOM_CONTEXT = (typeof ROOM_CONTEXT)[keyof typeof ROOM_CONTEXT]
 
-enum EMBEDDED_STATE {
-	IFRAME_UNKNOWN = 'iframe-unknown',
-	IFRAME_NOT_ALLOWED = 'iframe-not-allowed',
-	NOT_IFRAME = 'not-iframe',
-	IFRAME_OK = 'iframe-ok',
-}
+const EMBEDDED_STATE = {
+	IFRAME_UNKNOWN: 'iframe-unknown',
+	IFRAME_NOT_ALLOWED: 'iframe-not-allowed',
+	NOT_IFRAME: 'not-iframe',
+	IFRAME_OK: 'iframe-ok',
+} as const
+type $EMBEDDED_STATE = (typeof EMBEDDED_STATE)[keyof typeof EMBEDDED_STATE]
 
 // Which routes do we allow to be embedded in tldraw.com itself?
-const WHITELIST_CONTEXT = [
+const WHITELIST_CONTEXT: $ROOM_CONTEXT[] = [
 	ROOM_CONTEXT.PUBLIC_MULTIPLAYER,
 	ROOM_CONTEXT.PUBLIC_READONLY,
 	ROOM_CONTEXT.PUBLIC_SNAPSHOT,
@@ -57,10 +59,10 @@ export function IFrameProtector({
 	children,
 }: {
 	slug: string
-	context: ROOM_CONTEXT
+	context: $ROOM_CONTEXT
 	children: ReactNode
 }) {
-	const [embeddedState, setEmbeddedState] = useState(
+	const [embeddedState, setEmbeddedState] = useState<$EMBEDDED_STATE>(
 		isInIframe() ? EMBEDDED_STATE.IFRAME_UNKNOWN : EMBEDDED_STATE.NOT_IFRAME
 	)
 
