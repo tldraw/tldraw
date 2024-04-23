@@ -88,6 +88,7 @@ apps/examples/e2e/test-results
 apps/examples/playwright-report
 
 apps/docs/content/gen
+apps/docs/content/releases
 apps/docs/api
 
 .dev.vars
