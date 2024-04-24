@@ -100,7 +100,6 @@ export default function ShapeWithMigrationsExample() {
 				shapeUtils={customShapeUtils}
 				// Use a snapshot to load an old version of the shape
 				snapshot={snapshot as TLStoreSnapshot}
-				onMount={(e) => console.log(e.store.getSnapshot())}
 			/>
 		</div>
 	)
