@@ -22,9 +22,9 @@ import {
 	ZERO_INDEX_KEY,
 	resizeBox,
 	structuredClone,
+	useDefaultColorTheme,
 	vecModelValidator,
 } from 'tldraw'
-import { useDefaultColorTheme } from 'tldraw/src/lib/shapes/shared/ShapeFill'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
 
 // Copied from tldraw/tldraw
