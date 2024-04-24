@@ -370,9 +370,7 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial], {
-						squashing: true,
-					})
+					this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial])
 				}
 				break
 			}
@@ -433,7 +431,7 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.editor.updateShapes([shapePartial], { squashing: true })
+					this.editor.updateShapes([shapePartial])
 				}
 
 				break
@@ -574,7 +572,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShapes([shapePartial], { squashing: true })
+				this.editor.updateShapes([shapePartial])
 
 				break
 			}
@@ -621,7 +619,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShapes([shapePartial], { squashing: true })
+				this.editor.updateShapes([shapePartial])
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (newPoints.length > 500) {

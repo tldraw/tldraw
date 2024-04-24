@@ -78,13 +78,13 @@ function useStyleChangeCallback() {
 
 	return React.useMemo(
 		() =>
-			function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
+			function handleStyleChange<T>(style: StyleProp<T>, value: T) {
 				editor.batch(() => {
 					if (editor.isIn('select')) {
-						editor.setStyleForSelectedShapes(style, value, { squashing })
+						editor.setStyleForSelectedShapes(style, value)
 					}
-					editor.setStyleForNextShapes(style, value, { squashing })
-					editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
+					editor.setStyleForNextShapes(style, value)
+					editor.updateInstanceState({ isChangingStyle: true })
 				})
 
 				trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
@@ -165,8 +165,8 @@ export function CommonStylePickerSet({
 							style={DefaultSizeStyle}
 							items={STYLES.size}
 							value={size}
-							onValueChange={(style, value, squashing) => {
-								handleValueChange(style, value, squashing)
+							onValueChange={(style, value) => {
+								handleValueChange(style, value)
 								const selectedShapeIds = editor.getSelectedShapeIds()
 								if (selectedShapeIds.length > 0) {
 									kickoutOccludedShapes(editor, selectedShapeIds)
@@ -333,14 +333,14 @@ export function OpacitySlider() {
 	const msg = useTranslation()
 
 	const handleOpacityValueChange = React.useCallback(
-		(value: number, squashing: boolean) => {
+		(value: number) => {
 			const item = tldrawSupportedOpacities[value]
 			editor.batch(() => {
 				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(item, { squashing })
+					editor.setOpacityForSelectedShapes(item)
 				}
-				editor.setOpacityForNextShapes(item, { squashing })
-				editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
+				editor.setOpacityForNextShapes(item)
+				editor.updateInstanceState({ isChangingStyle: true })
 			})
 
 			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })

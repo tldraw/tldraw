@@ -51,11 +51,9 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-			},
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle as RotateCorner],
+			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
 		})
 	}
 
@@ -105,11 +103,9 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-			},
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle as RotateCorner],
+			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
 		})
 	}
 

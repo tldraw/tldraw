@@ -33,6 +33,9 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
     get(id: IdOf<R>): Data | undefined;
 };
 
+// @internal (undocumented)
+export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R>;
+
 // @public
 export function createMigrationIds<ID extends string, Versions extends Record<string, number>>(sequenceId: ID, versions: Versions): {
     [K in keyof Versions]: `${ID}/${Versions[K]}`;
@@ -58,6 +61,9 @@ export function createRecordMigrationSequence(opts: {
 
 // @public
 export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
+    ephemeralKeys?: {
+        readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean;
+    };
     scope: RecordScope;
     validator?: StoreValidator<R>;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
@@ -97,6 +103,9 @@ export class IncrementalSetConstructor<T> {
     // @public
     remove(item: T): void;
 }
+
+// @internal
+export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>): boolean;
 
 // @public (undocumented)
 export type LegacyMigration<Before = any, After = any> = {
@@ -187,6 +196,9 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     constructor(
     typeName: R['typeName'], config: {
         readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
+        readonly ephemeralKeys?: {
+            readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean;
+        };
         readonly scope?: RecordScope;
         readonly validator?: StoreValidator<R>;
     });
@@ -197,6 +209,12 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     // (undocumented)
     readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
     createId(customUniquePart?: string): IdOf<R>;
+    // (undocumented)
+    readonly ephemeralKeys?: {
+        readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean;
+    };
+    // (undocumented)
+    readonly ephemeralKeySet: ReadonlySet<string>;
     isId(id?: string): id is IdOf<R>;
     isInstance: (record?: UnknownRecord) => record is R;
     parseId(id: IdOf<R>): string;
@@ -244,22 +262,32 @@ export type SerializedStore<R extends UnknownRecord> = Record<IdOf<R>, R>;
 // @public
 export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T>;
 
+// @internal
+export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[]): void;
+
 // @public
 export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     constructor(config: {
         schema: StoreSchema<R, Props>;
         initialData?: SerializedStore<R>;
+        id?: string;
         props: Props;
     });
+    // @internal (undocumented)
+    addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
     allRecords: () => R[];
     // (undocumented)
-    applyDiff(diff: RecordsDiff<R>, runCallbacks?: boolean): void;
+    applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys, }?: {
+        ignoreEphemeralKeys?: boolean;
+        runCallbacks?: boolean;
+    }): void;
+    // @internal (undocumented)
+    atomic<T>(fn: () => T, runCallbacks?: boolean): T;
     clear: () => void;
     createComputedCache: <T, V extends R = R>(name: string, derive: (record: V) => T | undefined, isEqual?: ((a: V, b: V) => boolean) | undefined) => ComputedCache<T, V>;
     createSelectedComputedCache: <T, J, V extends R = R>(name: string, selector: (record: V) => T | undefined, derive: (input: T) => J | undefined) => ComputedCache<J, V>;
     // @internal (undocumented)
     ensureStoreIsUsable(): void;
-    // (undocumented)
     extractingChanges(fn: () => void): RecordsDiff<R>;
     filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope): {
         added: { [K in IdOf<R>]: R; };
@@ -269,8 +297,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
-    // (undocumented)
-    getRecordType: <T extends R>(record: R) => T;
     getSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has: <K extends IdOf<R>>(id: K) => boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
@@ -331,6 +357,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     createIntegrityChecker(store: Store<R, P>): (() => void) | undefined;
     // (undocumented)
     getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string>;
+    // @internal (undocumented)
+    getType(typeName: string): RecordType<R, any>;
     // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
