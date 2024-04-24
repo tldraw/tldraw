@@ -24,7 +24,7 @@ import { useMultiplayerAssets } from '../hooks/useMultiplayerAssets'
 import { getViewportUrlQuery } from '../hooks/useUrlState'
 import { cloneAssetForShare } from './cloneAssetForShare'
 import { ASSET_UPLOADER_URL } from './config'
-import { getTopLevelOrigin, isInIframe } from './iFrame'
+import { getParentOrigin, isInIframe } from './iFrame'
 import { shouldLeaveSharedProject } from './shouldLeaveSharedProject'
 import { trackAnalyticsEvent } from './trackAnalyticsEvent'
 import { UI_OVERRIDE_TODO_EVENT, useHandleUiEvents } from './useHandleUiEvent'
@@ -113,7 +113,7 @@ export function useSharing(): TLUiOverrides {
 									'Content-Type': 'application/json',
 								},
 								body: JSON.stringify({
-									origin: getTopLevelOrigin(),
+									origin: getParentOrigin(),
 									snapshot: {
 										schema: editor.store.schema.serialize(),
 										snapshot: data,

@@ -2,19 +2,15 @@ export const isInIframe = () => {
 	return typeof window !== 'undefined' && (window !== window.top || window.self !== window.parent)
 }
 
-export function getTopLevelOrigin() {
-	let origin: string
+export function getParentOrigin() {
 	if (isInIframe()) {
 		const ancestorOrigins = window.location.ancestorOrigins
 		// ancestorOrigins is not supported in Firefox
 		if (ancestorOrigins && ancestorOrigins.length > 0) {
-			origin = ancestorOrigins[ancestorOrigins.length - 1]
+			return ancestorOrigins[0]
 		} else {
-			origin = document.referrer
+			return document.referrer
 		}
-	} else {
-		origin = document.location.origin
 	}
-
-	return origin
+	return document.location.origin
 }

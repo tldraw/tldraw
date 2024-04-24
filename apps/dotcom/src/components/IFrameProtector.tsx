@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState } from 'react'
 import { LoadingScreen } from 'tldraw'
 import { version } from '../../version'
 import { useUrl } from '../hooks/useUrl'
-import { getTopLevelOrigin, isInIframe } from '../utils/iFrame'
+import { getParentOrigin, isInIframe } from '../utils/iFrame'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 
 /*
@@ -105,7 +105,7 @@ export function IFrameProtector({
 					trackAnalyticsEvent('connect_to_room_in_iframe', {
 						slug,
 						context,
-						origin: getTopLevelOrigin(),
+						origin: getParentOrigin(),
 					})
 				}, 1000)
 			} else {
