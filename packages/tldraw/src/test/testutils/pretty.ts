@@ -96,7 +96,7 @@ export function logHistory(history: HistoryManager<any>) {
 	for (const undo of undos) {
 		if (!undo) continue
 		if (undo.type === 'stop') {
-			p.log('- Stop', undo.id)
+			p.log('Stop', undo.id)
 		} else {
 			p.log('- Diff')
 			p.indent()

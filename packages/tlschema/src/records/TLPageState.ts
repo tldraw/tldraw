@@ -142,12 +142,12 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 			pageId: false,
 			selectedShapeIds: false,
 			editingShapeId: false,
+			croppingShapeId: false,
 			meta: false,
 
 			hintingShapeIds: true,
 			erasingShapeIds: true,
 			hoveredShapeId: true,
-			croppingShapeId: true,
 			focusedGroupId: true,
 		},
 	}
