@@ -2,6 +2,7 @@
 export const PORTRAIT_BREAKPOINTS = [0, 390, 428, 468, 580, 640, 840, 1023]
 
 // Mapping for above array -- needs to be kept in sync!
+/** @public */
 export enum PORTRAIT_BREAKPOINT {
 	ZERO = 0,
 	MOBILE_XXS = 1,
