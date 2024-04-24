@@ -1,3 +1,28 @@
+# v2.1.1 (Wed Apr 24 2024)
+
+### Release Notes
+
+#### fix migration exports ([#3594](https://github.com/tldraw/tldraw/pull/3594))
+
+We were missing an export `createShapePropsMigrationIds`, part of the new migrations API introduced in [v2.1.0](https://tldraw.dev/releases/v2.1.0). This release fixes that, and also adds exports for a few extra APIs that we were using in our examples, but weren't exporting properly: `defaultEditorAssetUrls`, `PORTRAIT_BREAKPOINT`, `useDefaultColorTheme`, & `getPerfectDashProps`
+
+---
+
+#### 🐛 Bug Fix
+
+- `tldraw`, `@tldraw/tlschema`
+  - fix migration exports [#3594](https://github.com/tldraw/tldraw/pull/3594) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `v2.1.x`
+
+- v2.1.x: fix ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v2.1.0 (Tue Apr 23 2024)
 
 ### Release Notes
