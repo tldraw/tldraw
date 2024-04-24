@@ -3359,6 +3359,30 @@
           "name": "DefaultDebugMenuContent"
         },
         {
+          "kind": "Variable",
+          "canonicalReference": "tldraw!defaultEditorAssetUrls:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "defaultEditorAssetUrls: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLEditorAssetUrls",
+              "canonicalReference": "tldraw!~TLEditorAssetUrls:type"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/utils/static-assets/assetUrls.ts",
+          "isReadonly": false,
+          "releaseTag": "Public",
+          "name": "defaultEditorAssetUrls",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
           "kind": "Function",
           "canonicalReference": "tldraw!DefaultHelperButtons:function(1)",
           "docComment": "/**\n * @public\n */\n",
@@ -6450,7 +6474,7 @@
             {
               "kind": "Reference",
               "text": "TLExportType",
-              "canonicalReference": "tldraw!~TLExportType:type"
+              "canonicalReference": "tldraw!TLExportType:type"
             },
             {
               "kind": "Content",
@@ -9201,6 +9225,97 @@
             }
           ],
           "name": "getOccludedChildren"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tldraw!getPerfectDashProps:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function getPerfectDashProps(totalLength: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ", strokeWidth: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ", opts?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<{\n    closed: boolean;\n    end: 'none' | 'outset' | 'skip';\n    lengthRatio: number;\n    snap: number;\n    start: 'none' | 'outset' | 'skip';\n    style: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultDashStyle",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultDashStyle:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}>"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    strokeDasharray: string;\n    strokeDashoffset: string;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/getPerfectDashProps.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 10,
+            "endIndex": 11
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "totalLength",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "strokeWidth",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "opts",
+              "parameterTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 9
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "getPerfectDashProps"
         },
         {
           "kind": "Function",
@@ -13949,6 +14064,191 @@
           "overloadIndex": 1,
           "parameters": [],
           "name": "PasteMenuItem"
+        },
+        {
+          "kind": "Enum",
+          "canonicalReference": "tldraw!PORTRAIT_BREAKPOINT:enum",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare enum PORTRAIT_BREAKPOINT "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/ui/constants.ts",
+          "releaseTag": "Public",
+          "name": "PORTRAIT_BREAKPOINT",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "tldraw!PORTRAIT_BREAKPOINT.DESKTOP:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "DESKTOP = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "7"
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "DESKTOP"
+            },
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "tldraw!PORTRAIT_BREAKPOINT.MOBILE:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "MOBILE = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "4"
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "MOBILE"
+            },
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "tldraw!PORTRAIT_BREAKPOINT.MOBILE_SM:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "MOBILE_SM = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "3"
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "MOBILE_SM"
+            },
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "tldraw!PORTRAIT_BREAKPOINT.MOBILE_XS:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "MOBILE_XS = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "2"
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "MOBILE_XS"
+            },
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "tldraw!PORTRAIT_BREAKPOINT.MOBILE_XXS:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "MOBILE_XXS = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "1"
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "MOBILE_XXS"
+            },
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "tldraw!PORTRAIT_BREAKPOINT.TABLET:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "TABLET = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "6"
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "TABLET"
+            },
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "tldraw!PORTRAIT_BREAKPOINT.TABLET_SM:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "TABLET_SM = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "5"
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "TABLET_SM"
+            },
+            {
+              "kind": "EnumMember",
+              "canonicalReference": "tldraw!PORTRAIT_BREAKPOINT.ZERO:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "ZERO = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "0"
+                }
+              ],
+              "initializerTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "name": "ZERO"
+            }
+          ]
         },
         {
           "kind": "Function",
@@ -19958,6 +20258,32 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 7
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tldraw!TLExportType:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLExportType = "
+            },
+            {
+              "kind": "Content",
+              "text": "'jpeg' | 'json' | 'png' | 'svg' | 'webp'"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/utils/export/exportAs.ts",
+          "releaseTag": "Public",
+          "name": "TLExportType",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
           }
         },
         {
@@ -27368,6 +27694,151 @@
         },
         {
           "kind": "Function",
+          "canonicalReference": "tldraw!useDefaultColorTheme:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function useDefaultColorTheme(): "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    \"light-blue\": import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    \"light-green\": import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    \"light-red\": import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    \"light-violet\": import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    background: string;\n    black: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    blue: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    green: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    grey: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    id: \"dark\" | \"light\";\n    orange: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    red: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    solid: string;\n    text: string;\n    violet: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    white: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    yellow: import(\"@tldraw/editor\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "TLDefaultColorThemeColor",
+              "canonicalReference": "@tldraw/tlschema!TLDefaultColorThemeColor:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/shared/ShapeFill.tsx",
+          "returnTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 28
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [],
+          "name": "useDefaultColorTheme"
+        },
+        {
+          "kind": "Function",
           "canonicalReference": "tldraw!useDefaultHelpers:function(1)",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -27652,7 +28123,7 @@
             {
               "kind": "Reference",
               "text": "TLExportType",
-              "canonicalReference": "tldraw!~TLExportType:type"
+              "canonicalReference": "tldraw!TLExportType:type"
             },
             {
               "kind": "Content",

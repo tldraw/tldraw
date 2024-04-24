@@ -63,6 +63,8 @@ import { TLCancelEvent } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
+import { TLDefaultColorThemeColor } from '@tldraw/editor';
+import { TLDefaultDashStyle } from '@tldraw/editor';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
@@ -371,6 +373,9 @@ export function DefaultDebugMenu({ children }: TLUiDebugMenuProps): JSX_2.Elemen
 
 // @public (undocumented)
 export function DefaultDebugMenuContent(): JSX_2.Element;
+
+// @public (undocumented)
+export let defaultEditorAssetUrls: TLEditorAssetUrls;
 
 // @public (undocumented)
 export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps): JSX_2.Element;
@@ -836,6 +841,19 @@ export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
 
 // @public (undocumented)
+export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
+    closed: boolean;
+    end: 'none' | 'outset' | 'skip';
+    lengthRatio: number;
+    snap: number;
+    start: 'none' | 'outset' | 'skip';
+    style: TLDefaultDashStyle;
+}>): {
+    strokeDasharray: string;
+    strokeDashoffset: string;
+};
+
+// @public (undocumented)
 export function getSvgAsImage(svgString: string, isSafari: boolean, options: {
     height: number;
     quality: number;
@@ -1215,6 +1233,26 @@ export function parseTldrawJsonFile({ json, schema, }: {
 
 // @public (undocumented)
 export function PasteMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export enum PORTRAIT_BREAKPOINT {
+    // (undocumented)
+    DESKTOP = 7,
+    // (undocumented)
+    MOBILE = 4,
+    // (undocumented)
+    MOBILE_SM = 3,
+    // (undocumented)
+    MOBILE_XS = 2,
+    // (undocumented)
+    MOBILE_XXS = 1,
+    // (undocumented)
+    TABLET = 6,
+    // (undocumented)
+    TABLET_SM = 5,
+    // (undocumented)
+    ZERO = 0
+}
 
 // @public (undocumented)
 export function PreferencesGroup(): JSX_2.Element;
@@ -1719,6 +1757,9 @@ export type TldrawUiProps = Expand<TldrawUiBaseProps & TldrawUiContextProviderPr
 
 // @internal (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
+
+// @public (undocumented)
+export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
 
 // @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
@@ -2487,6 +2528,27 @@ export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
 export const useCurrentTranslation: () => TLUiTranslation;
+
+// @public (undocumented)
+export function useDefaultColorTheme(): {
+    "light-blue": TLDefaultColorThemeColor;
+    "light-green": TLDefaultColorThemeColor;
+    "light-red": TLDefaultColorThemeColor;
+    "light-violet": TLDefaultColorThemeColor;
+    background: string;
+    black: TLDefaultColorThemeColor;
+    blue: TLDefaultColorThemeColor;
+    green: TLDefaultColorThemeColor;
+    grey: TLDefaultColorThemeColor;
+    id: "dark" | "light";
+    orange: TLDefaultColorThemeColor;
+    red: TLDefaultColorThemeColor;
+    solid: string;
+    text: string;
+    violet: TLDefaultColorThemeColor;
+    white: TLDefaultColorThemeColor;
+    yellow: TLDefaultColorThemeColor;
+};
 
 // @public (undocumented)
 export function useDefaultHelpers(): {
