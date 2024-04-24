@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useEditor } from './useEditor'
 
 /** @internal */
 export function useCoarsePointer() {
+	const previousCursor = useRef<boolean | undefined>(undefined)
 	const editor = useEditor()
 	useEffect(() => {
 		// This is a workaround for a Firefox bug where we don't correctly
@@ -17,10 +18,16 @@ export function useCoarsePointer() {
 			return
 		}
 		if (window.matchMedia) {
+			// Some devices have a touch screen but also a fine pointer (e.g. a mouse).
+			// If any pointer is coarse, we consider the device to have a coarse pointer.
+			// This is dynamically updated as the user switches between input devices.
 			const mql = window.matchMedia('(any-pointer: coarse)')
 
 			const handler = (coarse?: boolean) => {
+				const isCoarsePointer = coarse ?? !!mql.matches
+				if (isCoarsePointer === previousCursor.current) return
 				editor.updateInstanceState({ isCoarsePointer: coarse ?? !!mql.matches })
+				previousCursor.current = isCoarsePointer
 			}
 
 			const touchStartHandler = () => handler(true)
