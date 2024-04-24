@@ -1,5 +1,5 @@
 import { writeFileSync } from 'fs'
-import tar from 'tar'
+import * as tar from 'tar'
 import tmp from 'tmp'
 import { exec } from './exec'
 import { PackageDetails, getAllPackageDetails } from './publishing'
