@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import {
 	Box,
+	PORTRAIT_BREAKPOINT,
 	SVGContainer,
 	TLImageShape,
 	TLShapeId,
@@ -15,7 +16,6 @@ import {
 	useBreakpoint,
 	useEditor,
 } from 'tldraw'
-import { PORTRAIT_BREAKPOINT } from 'tldraw/src/lib/ui/constants'
 import { ExportPdfButton } from './ExportPdfButton'
 import { Pdf } from './PdfPicker'
 

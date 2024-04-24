@@ -143,6 +143,11 @@ export const createPresenceStateDerivation: ($user: Signal<{
 export function createShapeId(id?: string): TLShapeId;
 
 // @public (undocumented)
+export function createShapePropsMigrationIds<S extends string, T extends Record<string, number>>(shapeType: S, ids: T): {
+    [k in keyof T]: `com.tldraw.shape.${S}/${T[k]}`;
+};
+
+// @public (undocumented)
 export function createShapePropsMigrationSequence(migrations: TLShapePropsMigrations): TLShapePropsMigrations;
 
 // @public (undocumented)
