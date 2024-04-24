@@ -9,15 +9,13 @@ import {
 	createTLStore,
 	isRecordsDiffEmpty,
 } from 'tldraw'
+import { prettyPrintDiff } from '../../../tldraw/src/test/testutils/pretty'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { schema } from '../lib/schema'
 import { FuzzEditor, Op } from './FuzzEditor'
 import { RandomSource } from './RandomSource'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
-
-// eslint-disable-next-line import/no-internal-modules
-import { prettyPrintDiff } from '../../../tldraw/src/test/testutils/pretty'
 
 jest.mock('@tldraw/editor/src/lib/editor/managers/TickManager.ts', () => {
 	return {
