@@ -9,6 +9,7 @@ export function ErrorPage({
 	messages: { header: string; para1: string; para2?: string }
 	redirectTo?: string
 }) {
+	const inIframe = isInIframe()
 	return (
 		<div className="error-page">
 			<div className="error-page__container">
@@ -20,7 +21,9 @@ export function ErrorPage({
 					<p>{messages.para1}</p>
 					{messages.para2 && <p>{messages.para2}</p>}
 				</div>
-				<Link to={'/'}>{isInIframe() ? 'Open tldraw.' : 'Back to tldraw.'}</Link>
+				<Link to={'/'} target={inIframe ? '_blank' : '_self'}>
+					{inIframe ? 'Open tldraw.' : 'Back to tldraw.'}
+				</Link>
 			</div>
 		</div>
 	)
