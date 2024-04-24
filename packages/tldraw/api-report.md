@@ -2165,6 +2165,8 @@ export interface TLUiInputProps {
     // (undocumented)
     onComplete?: (value: string) => void;
     // (undocumented)
+    onFocus?: () => void;
+    // (undocumented)
     onValueChange?: (value: string) => void;
     // (undocumented)
     placeholder?: string;

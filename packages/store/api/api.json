@@ -802,7 +802,16 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    scope: "
+              "text": "{\n    ephemeralKeys?: {\n        readonly [K in "
+            },
+            {
+              "kind": "Reference",
+              "text": "Exclude",
+              "canonicalReference": "!Exclude:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<keyof R, 'id' | 'typeName'>]: boolean;\n    };\n    scope: "
             },
             {
               "kind": "Reference",
@@ -851,8 +860,8 @@
           ],
           "fileUrlPath": "packages/store/src/lib/RecordType.ts",
           "returnTypeTokenRange": {
-            "startIndex": 11,
-            "endIndex": 15
+            "startIndex": 13,
+            "endIndex": 17
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -869,7 +878,7 @@
               "parameterName": "config",
               "parameterTypeTokenRange": {
                 "startIndex": 5,
-                "endIndex": 10
+                "endIndex": 12
               },
               "isOptional": false
             }
@@ -2053,7 +2062,16 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "<R>, RequiredProperties>;\n        readonly scope?: "
+                  "text": "<R>, RequiredProperties>;\n        readonly ephemeralKeys?: {\n            readonly [K in "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<keyof R, 'id' | 'typeName'>]: boolean;\n        };\n        readonly scope?: "
                 },
                 {
                   "kind": "Reference",
@@ -2094,7 +2112,7 @@
                   "parameterName": "config",
                   "parameterTypeTokenRange": {
                     "startIndex": 3,
-                    "endIndex": 12
+                    "endIndex": 14
                   },
                   "isOptional": false
                 }
@@ -2372,6 +2390,80 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "createId"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/store!RecordType#ephemeralKeys:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly ephemeralKeys?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        readonly [K in "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Exclude",
+                  "canonicalReference": "!Exclude:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<keyof R, 'id' | 'typeName'>]: boolean;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "ephemeralKeys",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/store!RecordType#ephemeralKeySet:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly ephemeralKeySet: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ReadonlySet",
+                  "canonicalReference": "!ReadonlySet:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "ephemeralKeySet",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
             },
             {
               "kind": "Method",
@@ -3408,11 +3500,11 @@
                 },
                 {
                   "kind": "Content",
-                  "text": ", runCallbacks?: "
+                  "text": ", { runCallbacks, ignoreEphemeralKeys, }?: "
                 },
                 {
                   "kind": "Content",
-                  "text": "boolean"
+                  "text": "{\n        ignoreEphemeralKeys?: boolean;\n        runCallbacks?: boolean;\n    }"
                 },
                 {
                   "kind": "Content",
@@ -3445,7 +3537,7 @@
                   "isOptional": false
                 },
                 {
-                  "parameterName": "runCallbacks",
+                  "parameterName": "{ runCallbacks, ignoreEphemeralKeys, }",
                   "parameterTypeTokenRange": {
                     "startIndex": 4,
                     "endIndex": 5

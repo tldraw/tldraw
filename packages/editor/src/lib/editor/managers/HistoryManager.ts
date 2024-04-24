@@ -86,7 +86,11 @@ export class HistoryManager<R extends UnknownRecord> {
 	_isInBatch = false
 	batch = (fn: () => void, opts?: TLHistoryBatchOptions) => {
 		const previousState = this.state
-		this.state = opts?.history ? modeToState[opts.history] : this.state
+
+		// we move to the new state only if we haven't explicitly paused
+		if (previousState !== HistoryRecorderState.Paused && opts?.history) {
+			this.state = modeToState[opts.history]
+		}
 
 		try {
 			if (this._isInBatch) {

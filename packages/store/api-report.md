@@ -61,6 +61,9 @@ export function createRecordMigrationSequence(opts: {
 
 // @public
 export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
+    ephemeralKeys?: {
+        readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean;
+    };
     scope: RecordScope;
     validator?: StoreValidator<R>;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
@@ -193,6 +196,9 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     constructor(
     typeName: R['typeName'], config: {
         readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
+        readonly ephemeralKeys?: {
+            readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean;
+        };
         readonly scope?: RecordScope;
         readonly validator?: StoreValidator<R>;
     });
@@ -203,6 +209,12 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     // (undocumented)
     readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
     createId(customUniquePart?: string): IdOf<R>;
+    // (undocumented)
+    readonly ephemeralKeys?: {
+        readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean;
+    };
+    // (undocumented)
+    readonly ephemeralKeySet: ReadonlySet<string>;
     isId(id?: string): id is IdOf<R>;
     isInstance: (record?: UnknownRecord) => record is R;
     parseId(id: IdOf<R>): string;
@@ -265,7 +277,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
     allRecords: () => R[];
     // (undocumented)
-    applyDiff(diff: RecordsDiff<R>, runCallbacks?: boolean): void;
+    applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys, }?: {
+        ignoreEphemeralKeys?: boolean;
+        runCallbacks?: boolean;
+    }): void;
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean): T;
     clear: () => void;
@@ -342,6 +357,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     createIntegrityChecker(store: Store<R, P>): (() => void) | undefined;
     // (undocumented)
     getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string>;
+    // @internal (undocumented)
+    getType(typeName: string): RecordType<R, any>;
     // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)

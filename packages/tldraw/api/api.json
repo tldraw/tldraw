@@ -24474,6 +24474,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tldraw!TLUiInputProps#onFocus:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onFocus?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "onFocus",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tldraw!TLUiInputProps#onValueChange:member",
               "docComment": "",
               "excerptTokens": [

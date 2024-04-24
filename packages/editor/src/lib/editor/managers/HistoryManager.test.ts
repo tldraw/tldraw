@@ -401,6 +401,7 @@ describe('history options', () => {
 		manager.batch(
 			() => {
 				setA(1)
+				// even though we set this to record, it will still be ignored
 				manager.batch(() => setB(1), { history: 'record' })
 				setA(2)
 			},
@@ -408,9 +409,9 @@ describe('history options', () => {
 		)
 		expect(getState()).toMatchObject({ a: 2, b: 1 })
 
-		// changes to A were ignore, but changes to B were recorded:
+		// changes were ignored:
 		manager.undo()
-		expect(getState()).toMatchObject({ a: 2, b: 0 })
+		expect(getState()).toMatchObject({ a: 2, b: 1 })
 
 		manager.mark()
 		manager.batch(
@@ -429,8 +430,5 @@ describe('history options', () => {
 		// We can still redo because we preserved the redo stack:
 		manager.redo()
 		expect(getState()).toMatchObject({ a: 3, b: 2 })
-
-		manager.redo()
-		expect(getState()).toMatchObject({ a: 3, b: 1 })
 	})
 })
