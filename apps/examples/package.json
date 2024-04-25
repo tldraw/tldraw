@@ -43,6 +43,7 @@
 		"langchain": "^0.1.34",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
+		"ollama": "^0.5.0",
 		"pdf-lib": "^1.17.1",
 		"pdfjs-dist": "^4.0.379",
 		"react": "^18.2.0",

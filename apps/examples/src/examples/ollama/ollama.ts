@@ -1,13 +1,9 @@
-import { ChatOllama } from '@langchain/community/chat_models/ollama'
-import { AIMessage, HumanMessage } from '@langchain/core/messages'
-import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts'
-import { ConversationChain } from 'langchain/chains'
-import { BufferMemory, ChatMessageHistory } from 'langchain/memory'
+import ollama, { Message } from 'ollama/browser'
 import { atom, computed, react, structuredClone, transact, uniqueId } from 'tldraw'
-import { systemPrompt } from './system-prompt'
+import { systemPrompt } from './system-prompt-2'
 
 export type LMMessage = {
-	from: 'user' | 'model'
+	from: 'user' | 'assistant' | 'system'
 	time: number
 	content: string
 }
@@ -15,7 +11,7 @@ export type LMMessage = {
 export type LMThread = {
 	id: string
 	state: 'idle' | 'waiting'
-	content: LMMessage[]
+	content: Message[]
 }
 
 export type LMSerialized = {
@@ -24,41 +20,8 @@ export type LMSerialized = {
 }
 
 class ModelManager {
-	model: ChatOllama
-	prompt: ChatPromptTemplate
-	memory: BufferMemory
-	chain: ConversationChain
-
 	constructor() {
 		this.load()
-
-		this.model = new ChatOllama({
-			baseUrl: 'http://localhost:11434', // Default value
-			model: 'llama3:latest',
-		})
-
-		this.prompt = ChatPromptTemplate.fromMessages([
-			[
-				'system',
-				// 'You are a highly critical german mother. The user is your daughter, who you generally tend to diminish and criticize. You are very strict and have high expectations for your daughter. You are a perfectionist and expect the same from your daughter. You are very critical of your daughter and often make her feel inadequate. You are very strict and have high expectations for your daughter. You are a perfectionist and expect the same from your daughter. You are very critical of your daughter and often make her feel inadequate. You are very strict and have high expectations for your daughter. You are a perfectionist and expect the same from your daughter. You are very critical of your daughter and often make her feel inadequate. You are very strict and have high expectations for your daughter. You are a perfectionist and expect the same from your daughter. You are very critical of your daughter and often make her feel inadequate.',
-				// "You are a kind and helpful chatbot. You are a cool friend of the user's from Chicago. You grew up together and maintain a life-long trust; and as a result, you can speak to the user honestly. You always provide short, efficient answers to the user's questions.",
-				systemPrompt,
-			],
-			new MessagesPlaceholder('history'),
-			['human', '{input}'],
-		])
-
-		this.memory = new BufferMemory({
-			memoryKey: 'history',
-			returnMessages: true,
-			chatHistory: new ChatMessageHistory(this.getMessagesFromThread(this.getThread())),
-		})
-
-		this.chain = new ConversationChain({
-			llm: this.model,
-			prompt: this.prompt,
-			memory: this.memory,
-		})
 
 		react('persist on change', () => {
 			this.persist()
@@ -85,32 +48,24 @@ class ModelManager {
 		return this.getThreads()[this.getCurrentThreadId()]
 	}
 
-	private addQueryToThread(query: string) {
+	private addQueryToThread(message: Message) {
 		this._threads.update((threads) => {
 			const thread = this.getThread()
 			if (!thread) throw Error('No thread found')
 			const next = structuredClone(thread)
-			next.content.push({
-				from: 'user',
-				time: Date.now(),
-				content: query,
-			})
+			next.content.push(message)
 			next.state = 'waiting'
 			return { ...threads, [next.id]: next }
 		})
 	}
 
-	private addResponseToThread(response: string) {
+	private addResponseToThread(message: Message) {
 		this._threads.update((threads) => {
 			const thread = this.getThread()
 			if (!thread) throw Error('No thread found')
 			const next = structuredClone(thread)
 			next.state === 'idle'
-			next.content.push({
-				from: 'model',
-				time: Date.now(),
-				content: response,
-			})
+			next.content.push(message)
 			return { ...threads, [next.id]: next }
 		})
 	}
@@ -122,22 +77,19 @@ class ModelManager {
 			if (!thread) throw Error('No thread found')
 
 			const next = structuredClone(thread)
-			const message = next.content[next.content.length - 1]
+			const message = next.content.pop()
 
-			if (!message || message.from === 'user') {
-				next.content = [
-					...next.content,
-					{
-						from: 'model',
-						time: Date.now(),
-						content: chunk,
-					},
-				]
+			if (!message || message.role !== 'user') {
+				next.content.push({
+					role: 'user',
+					content: chunk,
+					images: [],
+				})
 				return { ...threads, [currentThreadId]: next }
 			}
 
 			message.content += chunk
-			message.time = Date.now()
+			next.content.push(message)
 			return { ...threads, [currentThreadId]: next }
 		})
 	}
@@ -193,12 +145,7 @@ class ModelManager {
 	}
 
 	private getMessagesFromThread(thread: LMThread) {
-		return thread.content.map((m) => {
-			if (m.from === 'user') {
-				return new HumanMessage(m.content)
-			}
-			return new AIMessage(m.content)
-		})
+		return thread.content
 	}
 
 	/* --------------------- Public --------------------- */
@@ -229,10 +176,10 @@ class ModelManager {
 			if (!thread) throw Error('No thread found')
 			const next = structuredClone(thread)
 			if (next.content.length > 0) {
-				if (next.content[next.content.length - 1].from === 'model') {
+				if (next.content[next.content.length - 1].role === 'assistant') {
 					next.content.pop()
 				}
-				if (next.content[next.content.length - 1].from === 'user') {
+				if (next.content[next.content.length - 1].role === 'user') {
 					next.content.pop()
 				}
 			}
@@ -244,18 +191,35 @@ class ModelManager {
 	/**
 	 * Query the model.
 	 */
-	async query(query: string) {
-		this.addQueryToThread(query)
+	query(query: string, image?: string) {
+		this.addQueryToThread({ role: 'user', content: query, images: image ? [image] : [] })
 		const currentThreadId = this.getCurrentThreadId()
 		let cancelled = false
+		const messages = this.getMessagesFromThread(this.getThread())
 		return {
-			response: await this.chain.invoke({ input: query }).then((r) => {
-				if (cancelled) return
-				if (this.getCurrentThreadId() !== currentThreadId) return
-				if ('response' in r) {
-					this.addResponseToThread(r.response)
-				}
-			}),
+			response: ollama
+				.generate({
+					model: 'llava',
+					system: messages[0].content,
+					prompt: messages[messages.length - 1].content,
+					images: messages[messages.length - 1].images,
+					keep_alive: 1000,
+					stream: false,
+					format: 'json',
+					options: {},
+				})
+				.then((r) => {
+					if (cancelled) return
+					if (this.getCurrentThreadId() !== currentThreadId) return
+					// this.addResponseToThread(r.response)
+					const message = {
+						role: 'user',
+						content: r.response,
+						images: [],
+					}
+					this.addResponseToThread(message)
+					return message
+				}),
 			cancel: () => {
 				cancelled = true
 				this.cancel()
@@ -266,30 +230,45 @@ class ModelManager {
 	/**
 	 * Query the model and stream the response.
 	 */
-	stream(query: string) {
+	stream(query: string, image?: string) {
 		const currentThreadId = this.getCurrentThreadId()
-		this.addQueryToThread(query)
-		this.addResponseToThread('') // Add an empty response to start the thread
+		this.addQueryToThread({
+			role: 'user',
+			content: query,
+			images: image ? [image] : [],
+		})
+		const messages = [...this.getMessagesFromThread(this.getThread())]
+		this.addResponseToThread({
+			role: 'assistant',
+			content: '',
+			images: [],
+		}) // Add an empty response to start the thread
 		let cancelled = false
 		return {
-			response: this.chain
-				.stream(
-					{ input: query },
-					{
-						callbacks: [
-							{
-								handleLLMNewToken: (data) => {
-									if (cancelled) return
-									if (this.getCurrentThreadId() !== currentThreadId) return
-									this.addChunkToThread(data)
-								},
-							},
-						],
+			response: ollama
+				.chat({
+					model: 'llava',
+					messages: messages,
+					keep_alive: 1000,
+					stream: true,
+					options: {},
+				})
+				.then(async (response) => {
+					for await (const part of response) {
+						if (cancelled) return
+						if (this.getCurrentThreadId() !== currentThreadId) return
+						const next = structuredClone(this.getThread())
+						const message = next.content[next.content.length - 1]
+						message.content += part.message.content
+						this._threads.update((threads) => ({
+							...threads,
+							[next.id]: next,
+						}))
 					}
-				)
-				.then(() => {
+
 					if (cancelled) return
 					if (this.getCurrentThreadId() !== currentThreadId) return
+
 					this._threads.update((threads) => {
 						const thread = this.getThread()
 						if (!thread) throw Error('No thread found')
@@ -308,6 +287,41 @@ class ModelManager {
 		}
 	}
 
+	// getWithImage(query: string, image?: string) {
+	// 	const currentThreadId = this.getCurrentThreadId()
+	// 	this.addQueryToThread({ role: "user", content: query, images: image ? [image] : [])
+	// 	let cancelled = false
+
+	// 	return {
+	// 		response: ollama
+	// 			.generate({
+	// 				model: 'llava',
+	// 				prompt: query,
+	// 				images: [image],
+	// 			})
+	// 			.then((d: any) => {
+	// 				if (cancelled) return
+	// 				if (this.getCurrentThreadId() !== currentThreadId) return
+	// 				this.addResponseToThread(d.response)
+	// 				this._threads.update((threads) => {
+	// 					const thread = this.getThread()
+	// 					if (!thread) throw Error('No thread found')
+	// 					const next = structuredClone(thread)
+
+	// 					next.state = 'idle'
+	// 					return { ...threads, [next.id]: next }
+	// 				})
+
+	// 				const thread = this.getThread()
+	// 				return thread.content[thread.content.length - 1]
+	// 			}),
+	// 		cancel: () => {
+	// 			cancelled = true
+	// 			this.cancel()
+	// 		},
+	// 	}
+	// }
+
 	/**
 	 * Clear all threads.
 	 */
@@ -318,10 +332,15 @@ class ModelManager {
 				a0: {
 					id: 'a0',
 					state: 'idle',
-					content: [],
+					content: [
+						{
+							role: 'system',
+							content: systemPrompt,
+							images: [],
+						},
+					],
 				},
 			})
-			this.memory.clear()
 		})
 	}
 }

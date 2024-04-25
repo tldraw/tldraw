@@ -13994,6 +13994,7 @@ __metadata:
     langchain: "npm:^0.1.34"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash: "npm:^4.17.21"
+    ollama: "npm:^0.5.0"
     pdf-lib: "npm:^1.17.1"
     pdfjs-dist: "npm:^4.0.379"
     react: "npm:^18.2.0"
@@ -20502,6 +20503,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ollama@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "ollama@npm:0.5.0"
+  dependencies:
+    whatwg-fetch: "npm:^3.6.20"
+  checksum: cfe98f9da6da99eda65c1bb6e22b7b54e1c6132368249dd70ff238d22b529bb86014ba1325d8e822f67c561aa71df2c2fb189c6d6f7380031652cdd071be0641
+  languageName: node
+  linkType: hard
+
 "on-finished@npm:2.4.1":
   version: 2.4.1
   resolution: "on-finished@npm:2.4.1"
@@ -25954,6 +25964,13 @@ __metadata:
   dependencies:
     iconv-lite: "npm:0.6.3"
   checksum: 162d712d88fd134a4fe587e53302da812eb4215a1baa4c394dfd86eff31d0a079ff932c05233857997de07481093358d6e7587997358f49b8a580a777be22089
+  languageName: node
+  linkType: hard
+
+"whatwg-fetch@npm:^3.6.20":
+  version: 3.6.20
+  resolution: "whatwg-fetch@npm:3.6.20"
+  checksum: 2b4ed92acd6a7ad4f626a6cb18b14ec982bbcaf1093e6fe903b131a9c6decd14d7f9c9ca3532663c2759d1bdf01d004c77a0adfb2716a5105465c20755a8c57c
   languageName: node
   linkType: hard
 
