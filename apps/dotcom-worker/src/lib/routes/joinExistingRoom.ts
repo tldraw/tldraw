@@ -1,11 +1,16 @@
+import { RoomOpenMode } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { fourOhFour } from '../utils/fourOhFour'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
+import { getSlug } from '../utils/roomOpenMode'
 
-// This is the entry point for joining an existing room
-export async function joinExistingRoom(request: IRequest, env: Environment): Promise<Response> {
-	const roomId = request.params.roomId
+export async function joinExistingRoom(
+	request: IRequest,
+	env: Environment,
+	roomOpenMode: RoomOpenMode
+): Promise<Response> {
+	const roomId = await getSlug(env, request.params.roomId, roomOpenMode)
 	if (!roomId) return fourOhFour()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 

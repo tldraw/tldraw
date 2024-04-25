@@ -19,20 +19,12 @@ export class PointingCropHandle extends StateNode {
 		if (!selectedShape) return
 
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.updateInstanceState({
-			cursor: {
-				type: cursorType,
-				rotation: this.editor.getSelectionRotation(),
-			},
-		})
+		this.editor.setCursor({ type: cursorType, rotation: this.editor.getSelectionRotation() })
 		this.editor.setCroppingShape(selectedShape.id)
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.parent.setCurrentToolIdMask(undefined)
 	}
 

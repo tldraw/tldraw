@@ -18,6 +18,7 @@ export interface ShapeFillProps {
 	theme: TLDefaultColorTheme
 }
 
+/** @public */
 export function useDefaultColorTheme() {
 	return getDefaultColorTheme({ isDarkMode: useIsDarkMode() })
 }

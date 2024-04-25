@@ -1,11 +1,13 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
+import { ROOM_OPEN_MODE } from '@tldraw/dotcom-shared'
 import { Router, createCors } from 'itty-router'
 import { env } from 'process'
 import Toucan from 'toucan-js'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
+import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
@@ -24,9 +26,12 @@ const router = Router()
 	.post('/new-room', createRoom)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
-	.get('/r/:roomId', joinExistingRoom)
+	.get('/r/:roomId', (req, env) => joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_WRITE))
+	.get('/v/:roomId', (req, env) => joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY_LEGACY))
+	.get('/ro/:roomId', (req, env) => joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY))
 	.get('/r/:roomId/history', getRoomHistory)
 	.get('/r/:roomId/history/:timestamp', getRoomHistorySnapshot)
+	.get('/readonly-slug/:roomId', getReadonlySlug)
 	.post('/r/:roomId/restore', forwardRoomRequest)
 	.all('*', fourOhFour)
 
@@ -70,7 +75,7 @@ const Worker = {
 	},
 }
 
-function isAllowedOrigin(origin: string) {
+export function isAllowedOrigin(origin: string) {
 	if (origin === 'http://localhost:3000') return true
 	if (origin === 'http://localhost:5420') return true
 	if (origin.endsWith('.tldraw.com')) return true

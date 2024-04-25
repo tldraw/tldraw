@@ -1171,12 +1171,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-transparent', { source })
-					editor.updateInstanceState(
-						{
-							exportBackground: !editor.getInstanceState().exportBackground,
-						},
-						{ ephemeral: true }
-					)
+					editor.updateInstanceState({
+						exportBackground: !editor.getInstanceState().exportBackground,
+					})
 				},
 				checkbox: true,
 			},
@@ -1338,10 +1335,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.batch(() => {
 						editor.mark('change-color')
 						if (editor.isIn('select')) {
-							editor.setStyleForSelectedShapes(style, 'white', { squashing: false })
+							editor.setStyleForSelectedShapes(style, 'white')
 						}
-						editor.setStyleForNextShapes(style, 'white', { squashing: false })
-						editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
+						editor.setStyleForNextShapes(style, 'white')
+						editor.updateInstanceState({ isChangingStyle: true })
 					})
 					trackEvent('set-style', { source, id: style.id, value: 'white' })
 				},

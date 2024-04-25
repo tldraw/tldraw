@@ -129,7 +129,7 @@ export function DefaultMinimap() {
 				editor.centerOnPoint(point)
 			}
 
-			const pagePoint = minimapRef.current.getPagePoint(e.clientX, e.clientY)
+			const pagePoint = minimapRef.current.getMinimapPagePoint(e.clientX, e.clientY)
 
 			const screenPoint = editor.pageToScreen(pagePoint)
 

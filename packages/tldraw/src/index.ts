@@ -32,7 +32,9 @@ export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
+export { useDefaultColorTheme } from './lib/shapes/shared/ShapeFill'
 export { TextLabel } from './lib/shapes/shared/TextLabel'
+export { getPerfectDashProps } from './lib/shapes/shared/getPerfectDashProps'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -48,6 +50,7 @@ export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/T
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
+export { PORTRAIT_BREAKPOINT } from './lib/ui/constants'
 export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
@@ -87,6 +90,7 @@ export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
+export { usePreloadAssets } from './lib/ui/hooks/usePreloadAssets'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
@@ -114,9 +118,12 @@ export {
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
 export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'
-export { exportAs } from './lib/utils/export/exportAs'
+export { exportAs, type TLExportType } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
-export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
+export {
+	defaultEditorAssetUrls,
+	setDefaultEditorAssetUrls,
+} from './lib/utils/static-assets/assetUrls'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
 	buildFromV1Document,
