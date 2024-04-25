@@ -186,22 +186,8 @@ export class MinimapManager {
 			const ly = Math.max(0, minY + vpPageBounds.height - py)
 			const ry = Math.max(0, -(maxY - vpPageBounds.height - py))
 
-			const ql = Math.max(0, lx - rx)
-			const qr = Math.max(0, rx - lx)
-			const qt = Math.max(0, ly - ry)
-			const qb = Math.max(0, ry - ly)
-
-			if (ql && ql > qr) {
-				px += ql / 2
-			} else if (qr) {
-				px -= qr / 2
-			}
-
-			if (qt && qt > qb) {
-				py += qt / 2
-			} else if (qb) {
-				py -= qb / 2
-			}
+			px += (lx - rx) / 2
+			py += (ly - ry) / 2
 
 			px = clamp(px, minX, maxX)
 			py = clamp(py, minY, maxY)
