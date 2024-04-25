@@ -20,5 +20,5 @@ export type TLHighlightShapeProps = ShapePropsType<typeof highlightShapeProps>
 /** @public */
 export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
 
-/** @internal */
+/** @public */
 export const highlightShapeMigrations = createShapePropsMigrationSequence({ sequence: [] })

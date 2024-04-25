@@ -10,7 +10,12 @@ export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
-export { createTLSchema, type SchemaShapeInfo, type TLSchema } from './createTLSchema'
+export {
+	createTLSchema,
+	defaultShapeSchemas,
+	type SchemaShapeInfo,
+	type TLSchema,
+} from './createTLSchema'
 export {
 	TL_CANVAS_UI_COLOR_TYPES,
 	canvasUiColorTypeValidator,

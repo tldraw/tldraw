@@ -42,7 +42,7 @@ export type TLLineShapeProps = ShapePropsType<typeof lineShapeProps>
 /** @public */
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
-/** @internal */
+/** @public */
 export const lineShapeVersions = createShapePropsMigrationIds('line', {
 	AddSnapHandles: 1,
 	RemoveExtraHandleProps: 2,
@@ -50,7 +50,7 @@ export const lineShapeVersions = createShapePropsMigrationIds('line', {
 	PointIndexIds: 4,
 })
 
-/** @internal */
+/** @public */
 export const lineShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{

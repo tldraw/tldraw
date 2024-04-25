@@ -625,7 +625,7 @@ const Versions = createShapePropsMigrationIds('embed', {
 
 export { Versions as embedShapeVersions }
 
-/** @internal */
+/** @public */
 export const embedShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{

@@ -24,7 +24,7 @@ export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
 /** @public */
 export type TLPointerId = RecordId<TLPointer>
 
-/** @internal */
+/** @public */
 export const pointerValidator: T.Validator<TLPointer> = T.model(
 	'pointer',
 	T.object({
@@ -37,12 +37,12 @@ export const pointerValidator: T.Validator<TLPointer> = T.model(
 	})
 )
 
-/** @internal */
+/** @public */
 export const pointerVersions = createMigrationIds('com.tldraw.pointer', {
 	AddMeta: 1,
 })
 
-/** @internal */
+/** @public */
 export const pointerMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.pointer',
 	recordType: 'pointer',
