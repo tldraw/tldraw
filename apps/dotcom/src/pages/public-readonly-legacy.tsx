@@ -7,8 +7,8 @@ import { MultiplayerEditor } from '../components/MultiplayerEditor'
 export function Component() {
 	const id = useParams()['roomId'] as string
 	return (
-		<IFrameProtector slug={id} context={ROOM_CONTEXT.PUBLIC_MULTIPLAYER}>
-			<MultiplayerEditor roomOpenMode={ROOM_OPEN_MODE.READ_WRITE} roomSlug={id} />
+		<IFrameProtector slug={id} context={ROOM_CONTEXT.PUBLIC_READONLY}>
+			<MultiplayerEditor roomOpenMode={ROOM_OPEN_MODE.READ_ONLY_LEGACY} roomSlug={id} />
 		</IFrameProtector>
 	)
 }

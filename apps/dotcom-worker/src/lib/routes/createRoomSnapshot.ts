@@ -1,17 +1,10 @@
-import { SerializedSchema, SerializedStore } from '@tldraw/store'
-import { TLRecord } from '@tldraw/tlschema'
+import { CreateSnapshotRequestBody } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { nanoid } from 'nanoid'
 import { Environment } from '../types'
 import { createSupabaseClient, noSupabaseSorry } from '../utils/createSupabaseClient'
 import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { validateSnapshot } from '../utils/validateSnapshot'
-
-type CreateSnapshotRequestBody = {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | string[] | undefined
-}
 
 export async function createRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
 	const data = (await request.json()) as CreateSnapshotRequestBody

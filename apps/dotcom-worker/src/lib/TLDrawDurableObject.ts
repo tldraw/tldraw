@@ -2,8 +2,11 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { SupabaseClient } from '@supabase/supabase-js'
+import { ROOM_OPEN_MODE, type RoomOpenMode } from '@tldraw/dotcom-shared'
 import {
+	DBLoadResultType,
 	RoomSnapshot,
+	TLCloseEventCode,
 	TLServer,
 	TLServerEvent,
 	TLSyncRoom,
@@ -19,6 +22,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, Environment } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 
 const MAX_CONNECTIONS = 50
@@ -88,12 +92,22 @@ export class TLDrawDurableObject extends TLServer {
 	readonly router = Router()
 		.get(
 			'/r/:roomId',
-			(req) => this.extractDocumentInfoFromRequest(req),
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRequest(req)
+		)
+		.get(
+			'/v/:roomId',
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY),
+			(req) => this.onRequest(req)
+		)
+		.get(
+			'/ro/:roomId',
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY),
 			(req) => this.onRequest(req)
 		)
 		.post(
 			'/r/:roomId/restore',
-			(req) => this.extractDocumentInfoFromRequest(req),
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
@@ -113,8 +127,11 @@ export class TLDrawDurableObject extends TLServer {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	extractDocumentInfoFromRequest = async (req: IRequest) => {
-		const slug = assertExists(req.params.roomId, 'roomId must be present')
+	extractDocumentInfoFromRequest = async (req: IRequest, roomOpenMode: RoomOpenMode) => {
+		const slug = assertExists(
+			await getSlug(this.env, req.params.roomId, roomOpenMode),
+			'roomId must be present'
+		)
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
@@ -226,9 +243,10 @@ export class TLDrawDurableObject extends TLServer {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 
 		// Handle the connection (see TLServer)
+		let connectionResult: DBLoadResultType
 		try {
 			// block concurrency while initializing the room if that needs to happen
-			await this.controller.blockConcurrencyWhile(() =>
+			connectionResult = await this.controller.blockConcurrencyWhile(() =>
 				this.handleConnection({
 					socket: serverWebSocket as any,
 					persistenceKey: this.documentInfo.slug!,
@@ -252,6 +270,12 @@ export class TLDrawDurableObject extends TLServer {
 		serverWebSocket.addEventListener('close', () => {
 			this.schedulePersist()
 		})
+
+		if (connectionResult === 'room_not_found') {
+			// If the room is not found, we need to accept and then immediately close the connection
+			// with our custom close code.
+			serverWebSocket.close(TLCloseEventCode.NOT_FOUND, 'Room not found')
+		}
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}

@@ -1,7 +1,17 @@
-import { TLRecord, createTLStore, defaultShapeUtils } from 'tldraw'
+import {
+	DocumentRecordType,
+	PageRecordType,
+	RecordId,
+	TLDocument,
+	TLRecord,
+	ZERO_INDEX_KEY,
+	createTLStore,
+	defaultShapeUtils,
+} from 'tldraw'
 import { type WebSocket } from 'ws'
 import { RoomSessionState } from '../lib/RoomSession'
 import { DBLoadResult, TLServer } from '../lib/TLServer'
+import { RoomSnapshot } from '../lib/TLSyncRoom'
 import { chunk } from '../lib/chunk'
 import { RecordOpType } from '../lib/diff'
 import { TLSYNC_PROTOCOL_VERSION, TLSocketClientSentEvent } from '../lib/protocol'
@@ -16,6 +26,16 @@ const ws = require(wsPath) as typeof import('ws')
 const PORT = 23473
 
 const disposables: (() => void)[] = []
+
+const records = [
+	DocumentRecordType.create({ id: 'document:document' as RecordId<TLDocument> }),
+	PageRecordType.create({ index: ZERO_INDEX_KEY, name: 'page 2' }),
+]
+const makeSnapshot = (records: TLRecord[], others: Partial<RoomSnapshot> = {}) => ({
+	documents: records.map((r) => ({ state: r, lastChangedClock: 0 })),
+	clock: 0,
+	...others,
+})
 
 class TLServerTestImpl extends TLServer {
 	wsServer = new ws.Server({ port: PORT })
@@ -54,7 +74,7 @@ class TLServerTestImpl extends TLServer {
 		}
 	}
 	override async loadFromDatabase?(_roomId: string): Promise<DBLoadResult> {
-		return { type: 'room_not_found' }
+		return { type: 'room_found', snapshot: makeSnapshot(records) }
 	}
 	override async persistToDatabase?(_roomId: string): Promise<void> {
 		return
@@ -84,15 +104,20 @@ beforeEach(async () => {
 	sockets = await server.createSocketPair()
 	expect(sockets.client.readyState).toBe(ws.OPEN)
 	expect(sockets.server.readyState).toBe(ws.OPEN)
+	server.loadFromDatabase = async (_roomId: string): Promise<DBLoadResult> => {
+		return { type: 'room_found', snapshot: makeSnapshot(records) }
+	}
 })
 
 const openConnection = async () => {
-	await server.handleConnection({
+	const result = await server.handleConnection({
 		persistenceKey: 'test-persistence-key',
 		sessionKey: 'test-session-key',
 		socket: sockets.server,
 		storeId: 'test-store-id',
 	})
+
+	return result
 }
 
 afterEach(async () => {
@@ -161,5 +186,15 @@ describe('TLServer', () => {
 				],
 			},
 		})
+	})
+
+	it('sends a room_not_found when room is not found', async () => {
+		server.loadFromDatabase = async (_roomId: string): Promise<DBLoadResult> => {
+			return { type: 'room_not_found' }
+		}
+
+		const connectionResult = await openConnection()
+
+		expect(connectionResult).toBe('room_not_found')
 	})
 })
