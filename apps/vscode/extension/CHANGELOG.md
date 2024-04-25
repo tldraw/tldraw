@@ -1,3 +1,9 @@
+## 2.0.31
+
+- Improved minimap.
+- Improved "Back to content" button.
+- Improved handles on the note shape.
+
 ## 2.0.30
 
 - Fixes a bug that prevented opening some files.
