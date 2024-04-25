@@ -553,7 +553,7 @@ export const EMBED_DEFINITIONS = [
 				urlObj.search === '?embed' &&
 				urlObj.hash === ''
 			) {
-				return url
+				return url.replace('?embed', '')
 			}
 			return
 		},
