@@ -27,7 +27,7 @@ export const ArrowShapeArrowheadEndStyle: EnumStyleProp<"arrow" | "bar" | "diamo
 // @public (undocumented)
 export const ArrowShapeArrowheadStartStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const arrowShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -76,16 +76,16 @@ export const arrowShapeProps: {
 // @public
 export const assetIdValidator: T.Validator<TLAssetId>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const assetMigrations: MigrationSequence;
 
 // @public (undocumented)
 export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const assetValidator: T.Validator<TLAsset>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const bookmarkShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -193,6 +193,11 @@ export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">
 export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
 
 // @public (undocumented)
+export const defaultShapeSchemas: {
+    [T in TLDefaultShape['type']]: SchemaShapeInfo;
+};
+
+// @public (undocumented)
 export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
 
 // @public (undocumented)
@@ -201,7 +206,7 @@ export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start"
 // @public (undocumented)
 export const DocumentRecordType: RecordType<TLDocument, never>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const drawShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -429,7 +434,7 @@ export type EmbedDefinition = {
     readonly width: number;
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export const embedShapeMigrations: TLShapePropsMigrations;
 
 // @public
@@ -465,7 +470,7 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     readonly values: readonly T[];
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export const frameShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -478,7 +483,7 @@ export const frameShapeProps: {
 // @public (undocumented)
 export const GeoShapeGeoStyle: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const geoShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -510,13 +515,13 @@ export function getDefaultTranslationLocale(): TLLanguage['locale'];
 // @internal (undocumented)
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const groupShapeMigrations: TLShapePropsMigrations;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const groupShapeProps: ShapeProps<TLGroupShape>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const highlightShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -531,10 +536,10 @@ export const highlightShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const imageShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -676,7 +681,7 @@ export const LANGUAGES: readonly [{
     readonly locale: "zh-tw";
 }];
 
-// @internal (undocumented)
+// @public (undocumented)
 export const lineShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -696,7 +701,7 @@ export const lineShapeProps: {
 // @public (undocumented)
 export const LineShapeSplineStyle: EnumStyleProp<"cubic" | "line">;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const noteShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -712,10 +717,10 @@ export const noteShapeProps: {
     verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export const opacityValidator: T.Validator<number>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public (undocumented)
@@ -727,7 +732,7 @@ export const parentIdValidator: T.Validator<TLParentId>;
 // @public (undocumented)
 export const PointerRecordType: RecordType<TLPointer, never>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const rootShapeMigrations: MigrationSequence;
 
 // @public (undocumented)
@@ -737,7 +742,7 @@ export type SchemaShapeInfo = {
     props?: Record<string, AnyValidator>;
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export const scribbleValidator: T.Validator<TLScribble>;
 
 // @public (undocumented)
@@ -780,7 +785,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 // @public (undocumented)
 export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const textShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -1299,7 +1304,7 @@ export interface VecModel {
 // @public (undocumented)
 export const vecModelValidator: T.Validator<VecModel>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const videoShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)

@@ -24,6 +24,17 @@ import './requestAnimationFrame.polyfill'
 
 type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
+/**
+ * These are our private codes to be sent from server->client.
+ * They are in the private range of the websocket code range.
+ * See: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
+ *
+ * @public
+ */
+export const TLCloseEventCode = {
+	NOT_FOUND: 4099,
+} as const
+
 /** @public */
 export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
 /**
@@ -236,6 +247,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				})
 			)
 		}
+
 		// if the socket is already online before this client was instantiated
 		// then we should send a connect message right away
 		if (this.socket.connectionStatus === 'online') {

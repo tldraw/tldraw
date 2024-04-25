@@ -17,7 +17,7 @@ export type TLBookmarkAsset = TLBaseAsset<
 	}
 >
 
-/** @internal */
+/** @public */
 export const bookmarkAssetValidator: T.Validator<TLBookmarkAsset> = createAssetValidator(
 	'bookmark',
 	T.object({
@@ -34,7 +34,7 @@ const Versions = createMigrationIds('com.tldraw.asset.bookmark', {
 
 export { Versions as bookmarkAssetVersions }
 
-/** @internal */
+/** @public */
 export const bookmarkAssetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset.bookmark',
 	recordType: 'asset',

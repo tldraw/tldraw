@@ -92,7 +92,7 @@ export type TLShapeProp = keyof TLShapeProps
 /** @public */
 export type TLParentId = TLPageId | TLShapeId
 
-/** @internal */
+/** @public */
 export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	AddIsLocked: 1,
 	HoistOpacity: 2,
@@ -100,7 +100,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	AddWhite: 4,
 } as const)
 
-/** @internal */
+/** @public */
 export const rootShapeMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.shape',
 	recordType: 'shape',

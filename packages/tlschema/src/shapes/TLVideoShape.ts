@@ -30,7 +30,7 @@ const Versions = createShapePropsMigrationIds('video', {
 
 export { Versions as videoShapeVersions }
 
-/** @internal */
+/** @public */
 export const videoShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
