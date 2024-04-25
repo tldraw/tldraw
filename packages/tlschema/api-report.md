@@ -193,6 +193,11 @@ export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">
 export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
 
 // @public (undocumented)
+export const defaultShapeSchemas: {
+    [T in TLDefaultShape['type']]: SchemaShapeInfo;
+};
+
+// @public (undocumented)
 export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
 
 // @public (undocumented)
