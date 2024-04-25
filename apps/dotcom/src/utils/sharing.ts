@@ -34,7 +34,7 @@ export const LEAVE_SHARED_PROJECT_ACTION = 'leave-shared-project' as const
 export const FORK_PROJECT_ACTION = 'fork-project' as const
 
 const CREATE_SNAPSHOT_ENDPOINT = `/api/snapshots`
-const SNAPSHOT_UPLOAD_URLOAD_URL = `/api/new-room`
+const SNAPSHOT_UPLOAD_URL = `/api/new-room`
 
 async function getSnapshotLink(
 	source: string,
@@ -74,7 +74,7 @@ async function getSnapshotLink(
 }
 
 export async function getNewRoomResponse(snapshot: CreateRoomRequestBody['snapshot']) {
-	return await fetch(SNAPSHOT_UPLOAD_URLOAD_URL, {
+	return await fetch(SNAPSHOT_UPLOAD_URL, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
