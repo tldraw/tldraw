@@ -2,6 +2,7 @@ import {
 	CreateRoomRequestBody,
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
+	Snapshot,
 } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -73,7 +74,7 @@ async function getSnapshotLink(
 	})
 }
 
-export async function getNewRoomResponse(snapshot: CreateRoomRequestBody['snapshot']) {
+export async function getNewRoomResponse(snapshot: Snapshot) {
 	return await fetch(SNAPSHOT_UPLOAD_URL, {
 		method: 'POST',
 		headers: {
