@@ -1,5 +1,6 @@
 import {
 	ANIMATION_MEDIUM_MS,
+	Box,
 	TLPointerEventInfo,
 	Vec,
 	getPointerInfo,
@@ -81,17 +82,23 @@ export function DefaultMinimap() {
 
 			const _vpPageBounds = editor.getViewportPageBounds()
 
-			minimapRef.current.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
+			minimapRef.current.isInViewport = _vpPageBounds.containsPoint(point)
+			const commonBounds = Box.Common([editor.getCurrentPageBounds() ?? new Box(), _vpPageBounds])
 
-			if (minimapRef.current.isInViewport) {
-				minimapRef.current.originPagePoint.setTo(clampedPoint)
-				minimapRef.current.originPageCenter.setTo(_vpPageBounds.center)
-			} else {
+			if (
+				// If we clicked inside of the allowed area, but outside of the viewport, we wish to move the camera
+				(commonBounds.containsPoint(point) && !_vpPageBounds.containsPoint(point)) ||
+				// Or if we clicked slightly outside of the viewport
+				!minimapRef.current.isInViewport
+			) {
 				const delta = Vec.Sub(_vpPageBounds.center, _vpPageBounds.point)
 				const pagePoint = Vec.Add(point, delta)
 				minimapRef.current.originPagePoint.setTo(pagePoint)
 				minimapRef.current.originPageCenter.setTo(point)
 				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
+			} else {
+				minimapRef.current.originPagePoint.setTo(clampedPoint)
+				minimapRef.current.originPageCenter.setTo(_vpPageBounds.center)
 			}
 
 			function release(e: PointerEvent) {
