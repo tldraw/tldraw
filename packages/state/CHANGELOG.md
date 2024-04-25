@@ -1,3 +1,23 @@
+# v2.1.2 (Thu Apr 25 2024)
+
+### Release Notes
+
+#### Revert "[signia] Smart dirty checking of active computeds (#3516)" ([#3611](https://github.com/tldraw/tldraw/pull/3611))
+
+This performance optimisation introduced a regression where sometimes computed caches wouldn't get invalidated at the correct time, leading to stale data causing crashes. We're reverting the change for now.
+
+---
+
+#### 🐛 Bug Fix
+
+- Revert "[signia] Smart dirty checking of active computeds (#3516)" [#3611](https://github.com/tldraw/tldraw/pull/3611) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v2.1.0 (Tue Apr 23 2024)
 
 ### Release Notes
