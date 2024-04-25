@@ -73,13 +73,6 @@ export function DefaultMinimap() {
 				false
 			)
 
-			const clampedPoint = minimapRef.current.minimapScreenPointToPagePoint(
-				e.clientX,
-				e.clientY,
-				false,
-				true
-			)
-
 			const _vpPageBounds = editor.getViewportPageBounds()
 
 			minimapRef.current.isInViewport = _vpPageBounds.containsPoint(point)
@@ -97,6 +90,12 @@ export function DefaultMinimap() {
 				minimapRef.current.originPageCenter.setTo(point)
 				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
 			} else {
+				const clampedPoint = minimapRef.current.minimapScreenPointToPagePoint(
+					e.clientX,
+					e.clientY,
+					false,
+					true
+				)
 				minimapRef.current.originPagePoint.setTo(clampedPoint)
 				minimapRef.current.originPageCenter.setTo(_vpPageBounds.center)
 			}
