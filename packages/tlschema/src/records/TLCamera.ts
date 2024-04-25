@@ -27,7 +27,7 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
  * @public */
 export type TLCameraId = RecordId<TLCamera>
 
-/** @internal */
+/** @public */
 export const cameraValidator: T.Validator<TLCamera> = T.model(
 	'camera',
 	T.object({
@@ -40,12 +40,12 @@ export const cameraValidator: T.Validator<TLCamera> = T.model(
 	})
 )
 
-/** @internal */
+/** @public */
 export const cameraVersions = createMigrationIds('com.tldraw.camera', {
 	AddMeta: 1,
 })
 
-/** @internal */
+/** @public */
 export const cameraMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.camera',
 	recordType: 'camera',

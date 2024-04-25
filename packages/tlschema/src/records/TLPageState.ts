@@ -32,7 +32,7 @@ export interface TLInstancePageState
 	meta: JsonObject
 }
 
-/** @internal */
+/** @public */
 export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.model(
 	'instance_page_state',
 	T.object({
@@ -50,7 +50,7 @@ export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.mo
 	})
 )
 
-/** @internal */
+/** @public */
 export const instancePageStateVersions = createMigrationIds('com.tldraw.instance_page_state', {
 	AddCroppingId: 1,
 	RemoveInstanceIdAndCameraId: 2,

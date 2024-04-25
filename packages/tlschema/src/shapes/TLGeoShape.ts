@@ -83,7 +83,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 
 export { geoShapeVersions as geoShapeVersions }
 
-/** @internal */
+/** @public */
 export const geoShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
