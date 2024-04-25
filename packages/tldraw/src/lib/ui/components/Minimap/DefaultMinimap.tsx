@@ -78,12 +78,8 @@ export function DefaultMinimap() {
 			minimapRef.current.isInViewport = _vpPageBounds.containsPoint(point)
 			const commonBounds = Box.Common([editor.getCurrentPageBounds() ?? new Box(), _vpPageBounds])
 
-			if (
-				// If we clicked inside of the allowed area, but outside of the viewport, we wish to move the camera
-				(commonBounds.containsPoint(point) && !_vpPageBounds.containsPoint(point)) ||
-				// Or if we clicked slightly outside of the viewport
-				!minimapRef.current.isInViewport
-			) {
+			// If we clicked inside of the allowed area, but outside of the viewport, we wish to move the camera
+			if (commonBounds.containsPoint(point) && !minimapRef.current.isInViewport) {
 				const delta = Vec.Sub(_vpPageBounds.center, _vpPageBounds.point)
 				const pagePoint = Vec.Add(point, delta)
 				minimapRef.current.originPagePoint.setTo(pagePoint)
