@@ -61,7 +61,6 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { TLResizeShapeOptions } from '../..'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {

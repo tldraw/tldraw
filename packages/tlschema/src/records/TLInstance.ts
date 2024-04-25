@@ -148,7 +148,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			chatMessage: true,
 			isChatting: true,
 			highlightedUserIds: true,
-			canMoveCamera: true,
 			isFocused: true,
 			devicePixelRatio: true,
 			isCoarsePointer: true,
