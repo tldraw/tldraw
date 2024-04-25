@@ -2,7 +2,6 @@ import {
 	CreateRoomRequestBody,
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
-	Snapshot,
 } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -35,7 +34,7 @@ export const LEAVE_SHARED_PROJECT_ACTION = 'leave-shared-project' as const
 export const FORK_PROJECT_ACTION = 'fork-project' as const
 
 const CREATE_SNAPSHOT_ENDPOINT = `/api/snapshots`
-const SNAPSHOT_UPLOAD_URL = `/api/new-room`
+const SNAPSHOT_UPLOAD_URLOAD_URL = `/api/new-room`
 
 async function getSnapshotLink(
 	source: string,
@@ -74,6 +73,19 @@ async function getSnapshotLink(
 	})
 }
 
+export async function getNewRoomResponse(snapshot: CreateRoomRequestBody['snapshot']) {
+	return await fetch(SNAPSHOT_UPLOAD_URLOAD_URL, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({
+			origin: getParentOrigin(),
+			snapshot,
+		} satisfies CreateRoomRequestBody),
+	})
+}
+
 export function useSharing(): TLUiOverrides {
 	const navigate = useNavigate()
 	const id = useSearchParams()[0].get('id') ?? undefined
@@ -107,20 +119,10 @@ export function useSharing(): TLUiOverrides {
 							const data = await getRoomData(editor, addToast, msg, uploadFileToAsset)
 							if (!data) return
 
-							const res = await fetch(SNAPSHOT_UPLOAD_URL, {
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({
-									origin: getParentOrigin(),
-									snapshot: {
-										schema: editor.store.schema.serialize(),
-										snapshot: data,
-									} satisfies Snapshot,
-								} satisfies CreateRoomRequestBody),
+							const res = await getNewRoomResponse({
+								schema: editor.store.schema.serialize(),
+								snapshot: data,
 							})
-
 							const response = (await res.json()) as { error: boolean; slug?: string }
 							if (!res.ok || response.error) {
 								console.error(await res.text())
