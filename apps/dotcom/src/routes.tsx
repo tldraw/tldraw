@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/react'
 import { useEffect } from 'react'
-import { createRoutesFromElements, Navigate, Outlet, Route, useRouteError } from 'react-router-dom'
+import { createRoutesFromElements, Outlet, Route, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 
@@ -29,7 +29,7 @@ export const router = createRoutesFromElements(
 	>
 		<Route errorElement={<DefaultErrorFallback />}>
 			<Route path="/" lazy={() => import('./pages/root')} />
-			<Route path="/r" element={<Navigate to="/" />} />
+			<Route path="/r" lazy={() => import('./pages/new')} />
 			<Route path="/new" lazy={() => import('./pages/new')} />
 			<Route path="/r/:roomId" lazy={() => import('./pages/public-multiplayer')} />
 			<Route path="/r/:boardId/history" lazy={() => import('./pages/history')} />
