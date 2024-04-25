@@ -1,9 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useEditor } from './useEditor'
 
 /** @internal */
 export function useCoarsePointer() {
-	const previousCursor = useRef<boolean | undefined>(undefined)
 	const editor = useEditor()
 
 	useEffect(() => {
