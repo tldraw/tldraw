@@ -7,7 +7,6 @@ export function ErrorPage({
 }: {
 	icon?: boolean
 	messages: { header: string; para1: string; para2?: string }
-	redirectTo?: string
 }) {
 	const inIframe = isInIframe()
 	return (

@@ -30,7 +30,7 @@ export const router = createRoutesFromElements(
 		<Route errorElement={<DefaultErrorFallback />}>
 			<Route path="/" lazy={() => import('./pages/root')} />
 			<Route path="/r" element={<Navigate to="/" />} />
-			<Route path="/new" element={<Navigate to="/" />} />
+			<Route path="/new" lazy={() => import('./pages/new')} />
 			<Route path="/r/:roomId" lazy={() => import('./pages/public-multiplayer')} />
 			<Route path="/r/:boardId/history" lazy={() => import('./pages/history')} />
 			<Route

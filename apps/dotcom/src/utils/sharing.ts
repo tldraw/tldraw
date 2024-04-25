@@ -74,6 +74,19 @@ async function getSnapshotLink(
 	})
 }
 
+export async function getNewRoomResponse(snapshot: Snapshot) {
+	return await fetch(SNAPSHOT_UPLOAD_URL, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({
+			origin: getParentOrigin(),
+			snapshot,
+		} satisfies CreateRoomRequestBody),
+	})
+}
+
 export function useSharing(): TLUiOverrides {
 	const navigate = useNavigate()
 	const id = useSearchParams()[0].get('id') ?? undefined
@@ -107,20 +120,10 @@ export function useSharing(): TLUiOverrides {
 							const data = await getRoomData(editor, addToast, msg, uploadFileToAsset)
 							if (!data) return
 
-							const res = await fetch(SNAPSHOT_UPLOAD_URL, {
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({
-									origin: getParentOrigin(),
-									snapshot: {
-										schema: editor.store.schema.serialize(),
-										snapshot: data,
-									} satisfies Snapshot,
-								} satisfies CreateRoomRequestBody),
+							const res = await getNewRoomResponse({
+								schema: editor.store.schema.serialize(),
+								snapshot: data,
 							})
-
 							const response = (await res.json()) as { error: boolean; slug?: string }
 							if (!res.ok || response.error) {
 								console.error(await res.text())
