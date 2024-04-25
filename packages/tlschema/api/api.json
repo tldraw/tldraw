@@ -1915,7 +1915,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    readonly 'allow-downloads-without-user-activation': false;\n    readonly 'allow-downloads': false;\n    readonly 'allow-forms': true;\n    readonly 'allow-modals': false;\n    readonly 'allow-orientation-lock': false;\n    readonly 'allow-pointer-lock': false;\n    readonly 'allow-popups-to-escape-sandbox': false;\n    readonly 'allow-popups': true;\n    readonly 'allow-presentation': false;\n    readonly 'allow-same-origin': true;\n    readonly 'allow-scripts': true;\n    readonly 'allow-storage-access-by-user-activation': false;\n    readonly 'allow-top-navigation-by-user-activation': false;\n    readonly 'allow-top-navigation': false;\n}"
+              "text": "{\n    readonly 'allow-downloads-without-user-activation': false;\n    readonly 'allow-downloads': false;\n    readonly 'allow-forms': true;\n    readonly 'allow-modals': false;\n    readonly 'allow-orientation-lock': false;\n    readonly 'allow-pointer-lock': false;\n    readonly 'allow-popups-to-escape-sandbox': true;\n    readonly 'allow-popups': true;\n    readonly 'allow-presentation': false;\n    readonly 'allow-same-origin': true;\n    readonly 'allow-scripts': true;\n    readonly 'allow-storage-access-by-user-activation': false;\n    readonly 'allow-top-navigation-by-user-activation': false;\n    readonly 'allow-top-navigation': false;\n}"
             }
           ],
           "fileUrlPath": "packages/tlschema/src/shapes/TLEmbedShape.ts",

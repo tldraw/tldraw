@@ -426,7 +426,7 @@ export const embedShapePermissionDefaults: {
     readonly 'allow-modals': false;
     readonly 'allow-orientation-lock': false;
     readonly 'allow-pointer-lock': false;
-    readonly 'allow-popups-to-escape-sandbox': false;
+    readonly 'allow-popups-to-escape-sandbox': true;
     readonly 'allow-popups': true;
     readonly 'allow-presentation': false;
     readonly 'allow-same-origin': true;
