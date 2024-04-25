@@ -73,7 +73,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 /** @public */
 export type TLInstanceId = RecordId<TLInstance>
 
-/** @internal */
+/** @public */
 export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 
 export function createInstanceRecordType(stylesById: Map<string, StyleProp<unknown>>) {
@@ -197,7 +197,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 	)
 }
 
-/** @internal */
+/** @public */
 export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 	AddTransparentExportBgs: 1,
 	RemoveDialog: 2,

@@ -88,7 +88,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddLabelPosition: 3,
 })
 
-/** @internal */
+/** @public */
 export const arrowShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{

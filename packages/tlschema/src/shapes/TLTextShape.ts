@@ -34,7 +34,7 @@ const Versions = createShapePropsMigrationIds('text', {
 
 export { Versions as textShapeVersions }
 
-/** @internal */
+/** @public */
 export const textShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
