@@ -16,7 +16,7 @@ const { loader, useData } = defineLoader(async (_args) => {
 	} satisfies Snapshot)
 
 	const response = (await res.json()) as { error: boolean; slug?: string }
-	if (!res.ok || response.error) {
+	if (!res.ok || response.error || !response.slug) {
 		return null
 	}
 	return { slug: response.slug }
@@ -26,7 +26,7 @@ export { loader }
 
 export function Component() {
 	const data = useData()
-	if (!data || !data.slug)
+	if (!data)
 		return (
 			<ErrorPage
 				icon
