@@ -1,3 +1,23 @@
+# v2.1.3 (Thu Apr 25 2024)
+
+### Release Notes
+
+#### Expose migrations, validators, and versions from tlschema ([#3613](https://github.com/tldraw/tldraw/pull/3613))
+
+Previously, we weren't exporting migrations & validators for our default shapes. This meant that it wasn't possible to make your own tlschema with both our default shapes and some of your own (e.g. for custom multiplayer). This fixes that by exposing all the migrations, validators, and versions from tlschema, plus `defaultShapeSchemas` which can be passed directly to `createTLSchema`
+
+---
+
+#### 📚 SDK Changes
+
+- Expose migrations, validators, and versions from tlschema [#3613](https://github.com/tldraw/tldraw/pull/3613) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v2.1.1 (Wed Apr 24 2024)
 
 ### Release Notes
