@@ -78,21 +78,24 @@ export class Pointing extends StateNode {
 		this.editor.mark('creating text shape')
 		const id = createShapeId()
 		const { x, y } = this.editor.inputs.currentPagePoint
-		this.editor
-			.createShapes([
-				{
-					id,
-					type: 'text',
-					x,
-					y,
-					props: {
-						text: '',
-						autoSize: true,
-					},
+		const result = this.editor.createShapes([
+			{
+				id,
+				type: 'text',
+				x,
+				y,
+				props: {
+					text: '',
+					autoSize: true,
 				},
-			])
-			.select(id)
+			},
+		])
+		if (!result.ok) {
+			this.cancel()
+			return
+		}
 
+		this.editor.select(id)
 		this.editor.setEditingShape(id)
 		this.editor.setCurrentTool('select')
 		this.editor.root.getCurrent()?.transition('editing_shape')

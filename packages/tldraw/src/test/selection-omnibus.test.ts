@@ -1132,13 +1132,12 @@ describe('Selects inside of groups', () => {
 
 describe('when selecting behind selection', () => {
 	beforeEach(() => {
-		editor
-			.createShapes([
-				{ id: ids.box1, type: 'geo', x: 100, y: 0, props: { fill: 'solid' } },
-				{ id: ids.box2, type: 'geo', x: 0, y: 0 },
-				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
-			])
-			.select(ids.box2, ids.box3)
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 100, y: 0, props: { fill: 'solid' } },
+			{ id: ids.box2, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+		])
+		editor.select(ids.box2, ids.box3)
 	})
 
 	it('does not select on pointer down, only on pointer up', () => {
@@ -1165,13 +1164,12 @@ describe('when selecting behind selection', () => {
 
 describe('when shift+selecting', () => {
 	beforeEach(() => {
-		editor
-			.createShapes([
-				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
-				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
-				{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
-			])
-			.select(ids.box1)
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+			{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
+		])
+		editor.select(ids.box1)
 	})
 
 	it('adds solid shape to selection on pointer down', () => {
@@ -1281,15 +1279,13 @@ describe('when shift+selecting', () => {
 
 describe('when shift+selecting a group', () => {
 	beforeEach(() => {
-		editor
-			.createShapes([
-				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
-				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
-				{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
-				{ id: ids.box4, type: 'geo', x: 600, y: 0 },
-			])
-			.groupShapes([ids.box2, ids.box3], ids.group1)
-			.select(ids.box1)
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+			{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
+			{ id: ids.box4, type: 'geo', x: 600, y: 0 },
+		])
+		editor.groupShapes([ids.box2, ids.box3], ids.group1).select(ids.box1)
 	})
 
 	it('does not add group to selection when pointing empty space in the group', () => {
@@ -1362,14 +1358,14 @@ describe('when shift+selecting a group', () => {
 
 describe('When children / descendants of a group are selected', () => {
 	beforeEach(() => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+			{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
+			{ id: ids.box4, type: 'geo', x: 600, y: 0 },
+			{ id: ids.box5, type: 'geo', x: 800, y: 0 },
+		])
 		editor
-			.createShapes([
-				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
-				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
-				{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
-				{ id: ids.box4, type: 'geo', x: 600, y: 0 },
-				{ id: ids.box5, type: 'geo', x: 800, y: 0 },
-			])
 			.groupShapes([ids.box1, ids.box2], ids.group1)
 			.groupShapes([ids.box3, ids.box4], ids.group2)
 			.groupShapes([ids.group1, ids.group2], ids.group3)
@@ -1437,14 +1433,14 @@ describe('When children / descendants of a group are selected', () => {
 
 describe('When pressing the enter key with groups selected', () => {
 	beforeEach(() => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+			{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
+			{ id: ids.box4, type: 'geo', x: 600, y: 0 },
+			{ id: ids.box5, type: 'geo', x: 800, y: 0 },
+		])
 		editor
-			.createShapes([
-				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
-				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
-				{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
-				{ id: ids.box4, type: 'geo', x: 600, y: 0 },
-				{ id: ids.box5, type: 'geo', x: 800, y: 0 },
-			])
 			.groupShapes([ids.box1, ids.box2], ids.group1)
 			.groupShapes([ids.box3, ids.box4], ids.group2)
 	})
@@ -1545,14 +1541,13 @@ describe('When double clicking an editable shape', () => {
 describe('shift brushes to add to the selection', () => {
 	beforeEach(() => {
 		editor.user.updateUserPreferences({ isWrapMode: false })
-		editor
-			.createShapes([
-				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
-				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
-				{ id: ids.box3, type: 'geo', x: 400, y: 0 },
-				{ id: ids.box4, type: 'geo', x: 600, y: 200 },
-			])
-			.groupShapes([ids.box3, ids.box4], ids.group1)
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+			{ id: ids.box3, type: 'geo', x: 400, y: 0 },
+			{ id: ids.box4, type: 'geo', x: 600, y: 200 },
+		])
+		editor.groupShapes([ids.box3, ids.box4], ids.group1)
 	})
 
 	it('does not select when brushing into margin', () => {

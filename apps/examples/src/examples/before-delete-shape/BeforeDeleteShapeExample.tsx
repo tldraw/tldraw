@@ -24,25 +24,26 @@ export default function BeforeDeleteShapeExample() {
 
 // create some shapes to demonstrate the side-effect we added
 function createDemoShapes(editor: Editor) {
-	editor
-		.createShapes([
-			{
-				id: createShapeId(),
-				type: 'text',
-				props: {
-					text: "Red shapes can't be deleted",
-					color: 'red',
-				},
+	const result = editor.createShapes([
+		{
+			id: createShapeId(),
+			type: 'text',
+			props: {
+				text: "Red shapes can't be deleted",
+				color: 'red',
 			},
-			{
-				id: createShapeId(),
-				type: 'text',
-				y: 30,
-				props: {
-					text: 'but other shapes can',
-					color: 'black',
-				},
+		},
+		{
+			id: createShapeId(),
+			type: 'text',
+			y: 30,
+			props: {
+				text: 'but other shapes can',
+				color: 'black',
 			},
-		])
-		.zoomToContent({ duration: 0 })
+		},
+	])
+	if (result.ok) {
+		editor.zoomToContent({ duration: 0 })
+	}
 }

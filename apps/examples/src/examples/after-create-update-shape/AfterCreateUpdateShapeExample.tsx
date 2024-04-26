@@ -56,17 +56,18 @@ export default function AfterCreateUpdateShapeExample() {
 
 // create some shapes to demonstrate the side-effects we added
 function createDemoShapes(editor: Editor) {
-	editor
-		.createShapes(
-			'there can only be one red shape'.split(' ').map((word, i) => ({
-				id: createShapeId(),
-				type: 'text',
-				y: i * 30,
-				props: {
-					color: i === 5 ? 'red' : 'black',
-					text: word,
-				},
-			}))
-		)
-		.zoomToContent({ duration: 0 })
+	const result = editor.createShapes(
+		'there can only be one red shape'.split(' ').map((word, i) => ({
+			id: createShapeId(),
+			type: 'text',
+			y: i * 30,
+			props: {
+				color: i === 5 ? 'red' : 'black',
+				text: word,
+			},
+		}))
+	)
+	if (result.ok) {
+		editor.zoomToContent({ duration: 0 })
+	}
 }

@@ -26,29 +26,31 @@ export class Pointing extends StateNode {
 
 			this.editor.mark(this.markId)
 
-			this.editor
-				.createShapes<TLGeoShape>([
-					{
-						id,
-						type: 'geo',
-						x: originPagePoint.x,
-						y: originPagePoint.y,
-						props: {
-							w: 1,
-							h: 1,
-							geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
-						},
+			const result = this.editor.createShapes<TLGeoShape>([
+				{
+					id,
+					type: 'geo',
+					x: originPagePoint.x,
+					y: originPagePoint.y,
+					props: {
+						w: 1,
+						h: 1,
+						geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
 					},
-				])
-				.select(id)
-				.setCurrentTool('select.resizing', {
-					...info,
-					target: 'selection',
-					handle: 'bottom_right',
-					isCreating: true,
-					creationCursorOffset: { x: 1, y: 1 },
-					onInteractionEnd: 'geo',
-				})
+				},
+			])
+			if (!result.ok) {
+				this.cancel()
+				return
+			}
+			this.editor.select(id).setCurrentTool('select.resizing', {
+				...info,
+				target: 'selection',
+				handle: 'bottom_right',
+				isCreating: true,
+				creationCursorOffset: { x: 1, y: 1 },
+				onInteractionEnd: 'geo',
+			})
 		}
 	}
 

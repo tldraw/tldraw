@@ -294,8 +294,8 @@ describe('Other cases when arrow are moved', () => {
 				{ id: ids.box3, type: 'geo', x: 0, y: 300, props: { w: 100, h: 100 } },
 				{ id: ids.box4, type: 'geo', x: 0, y: 600, props: { w: 100, h: 100 } },
 			])
-			.selectAll()
-			.groupShapes(editor.getSelectedShapeIds())
+
+		editor.selectAll().groupShapes(editor.getSelectedShapeIds())
 
 		editor.setCurrentTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
 		let arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]

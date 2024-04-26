@@ -182,7 +182,8 @@ describe('When duplicating shapes that include arrows', () => {
 	})
 
 	it('Preserves the same selection bounds', () => {
-		editor.selectAll().deleteShapes(editor.getSelectedShapeIds()).createShapes(shapes).selectAll()
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds()).createShapes(shapes)
+		editor.selectAll()
 
 		const boundsBefore = editor.getSelectionRotatedPageBounds()!
 		editor.duplicateShapes(editor.getSelectedShapeIds())
@@ -190,16 +191,13 @@ describe('When duplicating shapes that include arrows', () => {
 	})
 
 	it('Preserves the same selection bounds when only duplicating the arrows', () => {
-		editor
-			.selectAll()
-			.deleteShapes(editor.getSelectedShapeIds())
-			.createShapes(shapes)
-			.select(
-				...editor
-					.getCurrentPageShapes()
-					.filter((s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow'))
-					.map((s) => s.id)
-			)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds()).createShapes(shapes)
+		editor.select(
+			...editor
+				.getCurrentPageShapes()
+				.filter((s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow'))
+				.map((s) => s.id)
+		)
 
 		const boundsBefore = editor.getSelectionRotatedPageBounds()!
 		editor.duplicateShapes(editor.getSelectedShapeIds())

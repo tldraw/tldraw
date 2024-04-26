@@ -28,20 +28,24 @@ export class Pointing extends StateNode {
 
 			this.editor.mark(this.markId)
 
-			this.editor
-				.createShapes<TLBaseBoxShape>([
-					{
-						id,
-						type: shapeType,
-						x: originPagePoint.x,
-						y: originPagePoint.y,
-						props: {
-							w: 1,
-							h: 1,
-						},
+			const result = this.editor.createShapes<TLBaseBoxShape>([
+				{
+					id,
+					type: shapeType,
+					x: originPagePoint.x,
+					y: originPagePoint.y,
+					props: {
+						w: 1,
+						h: 1,
 					},
-				])
-				.select(id)
+				},
+			])
+			if (!result.ok) {
+				this.cancel()
+				return
+			}
+
+			this.editor.select(id)
 			this.editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
@@ -85,7 +89,7 @@ export class Pointing extends StateNode {
 
 		this.editor.mark(this.markId)
 
-		this.editor.createShapes<TLBaseBoxShape>([
+		const result = this.editor.createShapes<TLBaseBoxShape>([
 			{
 				id,
 				type: shapeType,
@@ -93,6 +97,10 @@ export class Pointing extends StateNode {
 				y: originPagePoint.y,
 			},
 		])
+		if (!result.ok) {
+			this.cancel()
+			return
+		}
 
 		const shape = this.editor.getShape<TLBaseBoxShape>(id)!
 		const { w, h } = this.editor.getShapeUtil(shape).getDefaultProps() as TLBaseBoxShape['props']

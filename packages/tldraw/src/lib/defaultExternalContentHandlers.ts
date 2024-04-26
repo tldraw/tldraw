@@ -203,7 +203,10 @@ export function registerDefaultExternalContentHandlers(
 			},
 		}
 
-		editor.createShapes([shapePartial]).select(id)
+		const result = editor.createShapes([shapePartial])
+		if (result.ok) {
+			editor.select(id)
+		}
 	})
 
 	// files
@@ -483,7 +486,10 @@ export async function createShapesForAssets(
 		}
 
 		// Create the shapes
-		editor.createShapes(partials).select(...partials.map((p) => p.id))
+		const result = editor.createShapes(partials)
+		if (!result.ok) return
+
+		editor.select(...partials.map((p) => p.id))
 
 		// Re-position shapes so that the center of the group is at the provided point
 		centerSelectionAroundPoint(editor, position)
@@ -539,7 +545,9 @@ export function createEmptyBookmarkShape(
 	}
 
 	editor.batch(() => {
-		editor.createShapes([partial]).select(partial.id)
+		const result = editor.createShapes([partial])
+		if (!result.ok) return
+		editor.select(partial.id)
 		centerSelectionAroundPoint(editor, position)
 	})
 

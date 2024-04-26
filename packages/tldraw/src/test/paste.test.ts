@@ -395,7 +395,7 @@ describe('When pasting into frames...', () => {
 					y: 500,
 				},
 			])
-			.setScreenBounds({ x: 0, y: 0, w: 1000, h: 1000 })
+		editor.setScreenBounds({ x: 0, y: 0, w: 1000, h: 1000 })
 
 		// put frame2 inside frame1
 		editor.reparentShapes([ids.frame2], ids.frame1)
@@ -455,20 +455,19 @@ describe('When pasting into frames...', () => {
 		editor.deleteShapes(editor.getSelectedShapeIds())
 
 		// create a big frame away from the origin, the size of the viewport
-		editor
-			.createShapes([
-				{
-					id: ids.frame1,
-					type: 'frame',
-					x: editor.getViewportScreenBounds().w,
-					y: editor.getViewportScreenBounds().h,
-					props: {
-						w: editor.getViewportScreenBounds().w,
-						h: editor.getViewportScreenBounds().h,
-					},
+		editor.createShapes([
+			{
+				id: ids.frame1,
+				type: 'frame',
+				x: editor.getViewportScreenBounds().w,
+				y: editor.getViewportScreenBounds().h,
+				props: {
+					w: editor.getViewportScreenBounds().w,
+					h: editor.getViewportScreenBounds().h,
 				},
-			])
-			.selectAll()
+			},
+		])
+		editor.selectAll()
 		// rotate the frame for hard mode
 		editor.rotateSelection(45)
 		// center on the center of the frame

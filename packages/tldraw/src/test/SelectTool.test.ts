@@ -292,6 +292,7 @@ describe('When double clicking a shape', () => {
 			.deleteShapes(editor.getSelectedShapeIds())
 			.selectNone()
 			.createShapes([{ id: createShapeId(), type: 'geo' }])
+		editor
 			.doubleClick(50, 50, { target: 'shape', shape: editor.getCurrentPageShapes()[0] })
 			.expectToBeIn('select.editing_shape')
 	})
@@ -305,9 +306,7 @@ describe('When pressing enter on a selected shape', () => {
 			.deleteShapes(editor.getSelectedShapeIds())
 			.selectNone()
 			.createShapes([{ id, type: 'geo' }])
-			.select(id)
-			.keyUp('Enter')
-			.expectToBeIn('select.editing_shape')
+		editor.select(id).keyUp('Enter').expectToBeIn('select.editing_shape')
 	})
 })
 
@@ -336,8 +335,7 @@ describe('When double clicking the selection edge', () => {
 			.deleteShapes(editor.getSelectedShapeIds())
 			.selectNone()
 			.createShapes([{ id, type: 'text', x: 100, y: 100, props: { scale: 2, text: 'hello' } }])
-			.select(id)
-			.doubleClick(100, 100, { target: 'selection', handle: 'left' })
+		editor.select(id).doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
 		editor.expectShapeToMatch({ id, props: { scale: 1 } })
 	})
@@ -355,8 +353,7 @@ describe('When double clicking the selection edge', () => {
 					props: { scale: 2, autoSize: false, w: 200, text: 'hello' },
 				},
 			])
-			.select(id)
-			.doubleClick(100, 100, { target: 'selection', handle: 'left' })
+		editor.select(id).doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
 		editor.expectShapeToMatch({ id, props: { scale: 2, autoSize: true } })
 
@@ -378,6 +375,7 @@ describe('When double clicking the selection edge', () => {
 					props: { scale: 2, autoSize: false, w: 200, text: 'hello' },
 				},
 			])
+		editor
 			.select(id)
 			.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 			.doubleClick(100, 100, { target: 'selection', handle: 'left' })
@@ -402,7 +400,7 @@ describe('When double clicking the selection edge', () => {
 					type: 'geo',
 				},
 			])
-			.select(id)
+		editor.select(id)
 		expect(editor.getEditingShapeId()).toBe(null)
 
 		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })

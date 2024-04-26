@@ -129,7 +129,7 @@ import {
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLHistoryBatchOptions } from './types/history-types'
-import { OptionalKeys, RequiredKeys, TLSvgOptions } from './types/misc-types'
+import { EditorResult, OptionalKeys, RequiredKeys, TLSvgOptions } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
@@ -6242,12 +6242,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this {
+	createShapes<T extends TLUnknownShape>(
+		shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]
+	): EditorResult<void> {
 		if (!Array.isArray(shapes)) {
-			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
+			return EditorResult.error('not-an-array-of-shapes')
 		}
-		if (this.getInstanceState().isReadonly) return this
-		if (shapes.length <= 0) return this
+		if (this.getInstanceState().isReadonly) return EditorResult.error('readonly-room')
+		if (shapes.length <= 0) return EditorResult.error('no-shapes-provied')
 
 		const currentPageShapeIds = this.getCurrentPageShapeIds()
 
@@ -6256,12 +6258,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (maxShapesReached) {
 			// can't create more shapes than fit on the page
 			alertMaxShapes(this)
-			return this
+			return EditorResult.error('max-shapes-reached')
 		}
 
 		const focusedGroupId = this.getFocusedGroupId()
 
-		return this.batch(() => {
+		this.batch(() => {
 			// 1. Parents
 
 			// Make sure that each partial will become the child of either the
@@ -6419,6 +6421,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			this.store.put(shapeRecordsToCreate)
 		})
+		return EditorResult.ok()
 	}
 
 	private animatingShapes = new Map<TLShapeId, string>()
