@@ -113,7 +113,7 @@ export function MultiplayerEditor({
 	const handleUiEvent = useHandleUiEvents()
 
 	const storeWithStatus = useRemoteSyncClient({
-		uri: `${MULTIPLAYER_SERVER}${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
+		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
 	})
 
