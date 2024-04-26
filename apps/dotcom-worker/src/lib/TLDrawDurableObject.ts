@@ -2,7 +2,13 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { SupabaseClient } from '@supabase/supabase-js'
-import { ROOM_OPEN_MODE, type RoomOpenMode } from '@tldraw/dotcom-shared'
+import {
+	READ_ONLY_LEGACY_PREFIX,
+	READ_ONLY_PREFIX,
+	ROOM_OPEN_MODE,
+	ROOM_PREFIX,
+	type RoomOpenMode,
+} from '@tldraw/dotcom-shared'
 import {
 	DBLoadResultType,
 	RoomSnapshot,
@@ -91,22 +97,22 @@ export class TLDrawDurableObject extends TLServer {
 
 	readonly router = Router()
 		.get(
-			'/r/:roomId',
+			`${ROOM_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRequest(req)
 		)
 		.get(
-			'/v/:roomId',
+			`${READ_ONLY_LEGACY_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY),
 			(req) => this.onRequest(req)
 		)
 		.get(
-			'/ro/:roomId',
+			`${READ_ONLY_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY),
 			(req) => this.onRequest(req)
 		)
 		.post(
-			'/r/:roomId/restore',
+			`${ROOM_PREFIX}/:roomId/restore`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req)
 		)

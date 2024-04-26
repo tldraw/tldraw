@@ -1,3 +1,4 @@
+import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { BoardHistoryLog } from '../components/BoardHistoryLog/BoardHistoryLog'
 import { ErrorPage } from '../components/ErrorPage/ErrorPage'
 import { IFrameProtector, ROOM_CONTEXT } from '../components/IFrameProtector'
@@ -8,7 +9,7 @@ const { loader, useData } = defineLoader(async (args) => {
 
 	if (!boardId) return null
 
-	const result = await fetch(`/api/r/${boardId}/history`, {
+	const result = await fetch(`/api${ROOM_PREFIX}/${boardId}/history`, {
 		headers: {},
 	})
 	if (!result.ok) return null

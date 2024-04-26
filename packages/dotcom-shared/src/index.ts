@@ -1,4 +1,11 @@
-export { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from './routes'
+export {
+	READ_ONLY_LEGACY_PREFIX,
+	READ_ONLY_PREFIX,
+	ROOM_OPEN_MODE,
+	ROOM_PREFIX,
+	RoomOpenModeToPath,
+	type RoomOpenMode,
+} from './routes'
 export type {
 	CreateRoomRequestBody,
 	CreateSnapshotRequestBody,
