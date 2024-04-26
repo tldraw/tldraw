@@ -1,5 +1,6 @@
 import {
 	ANIMATION_MEDIUM_MS,
+	Box,
 	TLPointerEventInfo,
 	Vec,
 	getPointerInfo,
@@ -74,9 +75,15 @@ export function DefaultMinimap() {
 
 			const _vpPageBounds = editor.getViewportPageBounds()
 			const commonBounds = minimapRef.current.getContentPageBounds()
+			const allowedBounds = new Box(
+				commonBounds.x - _vpPageBounds.width / 2,
+				commonBounds.y - _vpPageBounds.height / 2,
+				commonBounds.width + _vpPageBounds.width,
+				commonBounds.height + _vpPageBounds.height
+			)
 
 			// If we clicked inside of the allowed area, but outside of the viewport
-			if (commonBounds.containsPoint(point) && !_vpPageBounds.containsPoint(point)) {
+			if (allowedBounds.containsPoint(point) && !_vpPageBounds.containsPoint(point)) {
 				minimapRef.current.isInViewport = _vpPageBounds.containsPoint(point)
 				const delta = Vec.Sub(_vpPageBounds.center, _vpPageBounds.point)
 				const pagePoint = Vec.Add(point, delta)
