@@ -38,8 +38,8 @@ type ShareState = {
 
 function isSharedReadonlyUrl(pathname: string) {
 	return (
-		pathname.startsWith(`/${RoomOpenModeToPath[ROOM_OPEN_MODE.READ_ONLY]}/`) ||
-		pathname.startsWith(`/${RoomOpenModeToPath[ROOM_OPEN_MODE.READ_ONLY_LEGACY]}/`)
+		pathname.startsWith(`${RoomOpenModeToPath[ROOM_OPEN_MODE.READ_ONLY]}/`) ||
+		pathname.startsWith(`${RoomOpenModeToPath[ROOM_OPEN_MODE.READ_ONLY_LEGACY]}/`)
 	)
 }
 
@@ -79,7 +79,9 @@ async function getReadonlyUrl() {
 	if (!data.slug) return
 
 	segments[1] =
-		RoomOpenModeToPath[data.isLegacy ? ROOM_OPEN_MODE.READ_ONLY_LEGACY : ROOM_OPEN_MODE.READ_ONLY]
+		RoomOpenModeToPath[
+			data.isLegacy ? ROOM_OPEN_MODE.READ_ONLY_LEGACY : ROOM_OPEN_MODE.READ_ONLY
+		].substring(1)
 	segments[2] = data.slug
 	const newPathname = segments.join('/')
 
