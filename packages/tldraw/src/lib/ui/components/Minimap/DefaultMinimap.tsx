@@ -6,6 +6,7 @@ import {
 	normalizeWheel,
 	releasePointerCapture,
 	setPointerCapture,
+	useContainer,
 	useEditor,
 	useIsDarkMode,
 } from '@tldraw/editor'
@@ -15,6 +16,7 @@ import { MinimapManager } from './MinimapManager'
 /** @public */
 export function DefaultMinimap() {
 	const editor = useEditor()
+	const container = useContainer()
 
 	const rCanvas = React.useRef<HTMLCanvasElement>(null!)
 	const rPointing = React.useRef(false)
@@ -22,10 +24,10 @@ export function DefaultMinimap() {
 	const minimapRef = React.useRef<MinimapManager>()
 
 	React.useEffect(() => {
-		const minimap = new MinimapManager(editor, rCanvas.current)
+		const minimap = new MinimapManager(editor, rCanvas.current, container)
 		minimapRef.current = minimap
 		return minimapRef.current.close
-	}, [editor])
+	}, [editor, container])
 
 	const onDoubleClick = React.useCallback(
 		(e: React.MouseEvent<HTMLCanvasElement>) => {
