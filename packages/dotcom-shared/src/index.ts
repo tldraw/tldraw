@@ -4,6 +4,7 @@ export {
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
 	RoomOpenModeToPath,
+	SNAPSHOT_PREFIX,
 	type RoomOpenMode,
 } from './routes'
 export type {

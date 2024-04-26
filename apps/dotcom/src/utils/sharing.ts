@@ -3,6 +3,7 @@ import {
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
 	ROOM_PREFIX,
+	SNAPSHOT_PREFIX,
 	Snapshot,
 } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
@@ -70,7 +71,7 @@ async function getSnapshotLink(
 	}
 	const paramsToUse = getViewportUrlQuery(editor)
 	const params = paramsToUse ? `?${new URLSearchParams(paramsToUse).toString()}` : ''
-	return new Blob([`${window.location.origin}/s/${response.roomId}${params}`], {
+	return new Blob([`${window.location.origin}/${SNAPSHOT_PREFIX}/${response.roomId}${params}`], {
 		type: 'text/plain',
 	})
 }

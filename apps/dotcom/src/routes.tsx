@@ -1,5 +1,10 @@
 import { captureException } from '@sentry/react'
-import { READ_ONLY_LEGACY_PREFIX, READ_ONLY_PREFIX, ROOM_PREFIX } from '@tldraw/dotcom-shared'
+import {
+	READ_ONLY_LEGACY_PREFIX,
+	READ_ONLY_PREFIX,
+	ROOM_PREFIX,
+	SNAPSHOT_PREFIX,
+} from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
@@ -38,7 +43,7 @@ export const router = createRoutesFromElements(
 				path={`/${ROOM_PREFIX}/:boardId/history/:timestamp`}
 				lazy={() => import('./pages/history-snapshot')}
 			/>
-			<Route path="/s/:roomId" lazy={() => import('./pages/public-snapshot')} />
+			<Route path={`/${SNAPSHOT_PREFIX}/:roomId`} lazy={() => import('./pages/public-snapshot')} />
 			<Route
 				path={`/${READ_ONLY_LEGACY_PREFIX}/:roomId`}
 				lazy={() => import('./pages/public-readonly-legacy')}
