@@ -209,6 +209,7 @@ class ModelManager {
 					options: {},
 				})
 				.then((r) => {
+					console.log(r)
 					if (cancelled) return
 					if (this.getCurrentThreadId() !== currentThreadId) return
 					// this.addResponseToThread(r.response)

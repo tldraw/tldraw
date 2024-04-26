@@ -1,7 +1,10 @@
 import { useCallback, useRef } from 'react'
 import {
+	Box,
 	Editor,
 	FileHelpers,
+	TLGeoShape,
+	TLLineShape,
 	Tldraw,
 	Vec,
 	getSvgAsImage,
@@ -26,37 +29,47 @@ const OllamaExample = track(() => {
 		[modelManager]
 	)
 
-	const drawMessage = useCallback((content: string) => {
+	const drawMessage = useCallback((content: string, bounds: Box | undefined) => {
 		const editor = rEditor.current
 		if (!editor) return
 
-		const { center } = editor.getCurrentPageBounds() ?? editor.getViewportPageBounds()
+		const tl = bounds?.point ?? new Vec()
 
-		function drawShape(shape: any, _center: Vec) {
+		function drawShape(shape: any) {
+			console.log('drawing shape', shape)
 			const editor = rEditor.current
 			if (!editor) return
 			switch (shape.type) {
-				case 'dot':
-				case 'circle': {
-					const { x, y, r = 8 } = shape
+				case 'rectangle':
+				case 'ellipse':
+				case 'circle':
+				case 'geo': {
+					let { type } = shape
+
+					if (type === 'circle') {
+						type = 'ellipse'
+					}
+
+					const { x, y, w, h } = shape
 					editor.createShape({
 						type: 'geo',
-						x: x - r,
-						y: y - r,
+						x: tl.x + Number(x),
+						y: tl.y + Number(y),
 						props: {
-							geo: 'ellipse',
-							w: r * 2,
-							h: r * 2,
+							geo: type,
+							w: Number(w),
+							h: Number(h),
 						},
 					})
+
 					break
 				}
 				case 'line': {
 					const { x1, y1, x2, y2 } = shape
 					editor.createShape({
 						type: 'line',
-						x: x1,
-						y: y1,
+						x: tl.x + Number(x1),
+						y: tl.y + Number(y1),
 						props: {
 							points: {
 								0: {
@@ -68,8 +81,8 @@ const OllamaExample = track(() => {
 								1: {
 									id: '1',
 									index: 'a1',
-									x: x2 - x1,
-									y: y2 - y1,
+									x: Number(x2) - Number(x1),
+									y: Number(y2) - Number(y1),
 								},
 							},
 						},
@@ -79,207 +92,15 @@ const OllamaExample = track(() => {
 			}
 		}
 
-		try {
-			const { shapes = [] } = JSON.parse(content)
-			for (const shape of shapes) {
-				drawShape(shape, center)
+		editor.mark()
+		const { shapes = [] } = JSON.parse(content)
+		for (const shape of shapes) {
+			try {
+				drawShape(shape)
+			} catch (e) {
+				// noop
 			}
-		} catch (e) {
-			// noop
 		}
-
-		// // Extract the command series from the message content. Each series begins and ends with a backtick.
-		// // For example: `circle(0, 0, 4); circle(10, 10, 4);`
-		// // We want to extract each command from the series
-		// // const seriesRegex = /```(?<commands>[^`]*)```/
-		// // const seriesResult = seriesRegex.exec(message.content)
-		// // if (!seriesResult) {
-		// // 	console.error('Invalid message: ' + message.content)
-		// // 	return
-		// // }
-		// // const [_, seriesContent] = seriesResult
-		// // Next, we want regex to extract each command's name and arguments
-		// // for example: circle(0, 0, 4) -> ['circle(0, 0, 4)', 'circle', '0, 0, 4']
-		// // for examople: undo() -> ['undo()', 'undo', '']
-		// const commandRegex = /(?<name>\w+)\((?<args>[^)]*)\)/
-
-		// const commands = content
-		// 	.split(';')
-		// 	.map((c) => c.trim())
-		// 	.filter((c) => c)
-
-		// editor.mark()
-
-		// for (const command of commands) {
-		// 	try {
-		// 		const result = commandRegex.exec(command)
-		// 		if (!result) throw new Error('Invalid command: ' + command)
-		// 		const [_, name, args] = result
-
-		// 		switch (name) {
-		// 			case 'undo': {
-		// 				editor.undo()
-		// 				break
-		// 			}
-		// 			case 'dot':
-		// 			case 'circle': {
-		// 				const [x, y, r] = args.split(', ').map((a) => Number(a))
-		// 				editor.createShape({
-		// 					type: 'geo',
-		// 					x: x - r,
-		// 					y: y - r,
-		// 					props: {
-		// 						geo: 'ellipse',
-		// 						w: r * 2,
-		// 						h: r * 2,
-		// 					},
-		// 				})
-		// 				break
-		// 			}
-		// 			case 'line': {
-		// 				const [x1, y1, x2, y2] = args.split(', ').map((a) => Number(a))
-		// 				editor.createShape({
-		// 					type: 'line',
-		// 					x: x1,
-		// 					y: y1,
-		// 					props: {
-		// 						points: {
-		// 							0: {
-		// 								id: '0',
-		// 								index: 'a0',
-		// 								x: 0,
-		// 								y: 0,
-		// 							},
-		// 							1: {
-		// 								id: '1',
-		// 								index: 'a1',
-		// 								x: x2 - x1,
-		// 								y: y2 - y1,
-		// 							},
-		// 						},
-		// 					},
-		// 				})
-		// 				break
-		// 			}
-		// 			case 'polygon': {
-		// 				const nums = args.split(', ').map((a) => Number(a))
-		// 				const points = []
-		// 				for (let i = 0; i < nums.length - 1; i += 2) {
-		// 					points.push({
-		// 						x: nums[i],
-		// 						y: nums[i + 1],
-		// 					})
-		// 				}
-		// 				points.push(points[0])
-		// 				const minX = Math.min(...points.map((p) => p.x))
-		// 				const minY = Math.min(...points.map((p) => p.y))
-		// 				const indices = getIndices(points.length)
-		// 				editor.createShape({
-		// 					type: 'line',
-		// 					x: minX,
-		// 					y: minY,
-		// 					props: {
-		// 						points: Object.fromEntries(
-		// 							points.map((p, i) => [
-		// 								i + '',
-		// 								{ id: i + '', index: indices[i], x: p.x - minX, y: p.y - minY },
-		// 							])
-		// 						),
-		// 					},
-		// 				})
-		// 				break
-		// 			}
-		// 			// case 'MOVE': {
-		// 			// 	const point = editor.pageToScreen({ x: Number(command[1]), y: Number(command[2]) })
-		// 			// 	const steps = 20
-		// 			// 	for (let i = 0; i < steps; i++) {
-		// 			// 		const t = i / (steps - 1)
-		// 			// 		const p = Vec.Lrp(prevPoint, point, t)
-		// 			// 		editor.dispatch({
-		// 			// 			type: 'pointer',
-		// 			// 			target: 'canvas',
-		// 			// 			name: 'pointer_move',
-		// 			// 			point: {
-		// 			// 				x: p.x,
-		// 			// 				y: p.y,
-		// 			// 				z: 0.5,
-		// 			// 			},
-		// 			// 			shiftKey: false,
-		// 			// 			altKey: false,
-		// 			// 			ctrlKey: false,
-		// 			// 			pointerId: 1,
-		// 			// 			button: 0,
-		// 			// 			isPen: false,
-		// 			// 		})
-		// 			// 		editor._flushEventsForTick(0)
-		// 			// 	}
-		// 			// 	prevPoint.setTo(point)
-		// 			// 	break
-		// 			// }
-		// 			// case 'DOWN': {
-		// 			// 	editor.dispatch({
-		// 			// 		type: 'pointer',
-		// 			// 		target: 'canvas',
-		// 			// 		name: 'pointer_down',
-		// 			// 		point: {
-		// 			// 			x: prevPoint.x,
-		// 			// 			y: prevPoint.y,
-		// 			// 			z: 0.5,
-		// 			// 		},
-		// 			// 		shiftKey: false,
-		// 			// 		altKey: false,
-		// 			// 		ctrlKey: false,
-		// 			// 		pointerId: 1,
-		// 			// 		button: 0,
-		// 			// 		isPen: false,
-		// 			// 	})
-		// 			// 	editor._flushEventsForTick(0)
-		// 			// 	break
-		// 			// }
-		// 			// case 'UP': {
-		// 			// 	editor.dispatch({
-		// 			// 		type: 'pointer',
-		// 			// 		target: 'canvas',
-		// 			// 		name: 'pointer_up',
-		// 			// 		point: {
-		// 			// 			x: prevPoint.x,
-		// 			// 			y: prevPoint.y,
-		// 			// 			z: 0.5,
-		// 			// 		},
-		// 			// 		shiftKey: false,
-		// 			// 		altKey: false,
-		// 			// 		ctrlKey: false,
-		// 			// 		pointerId: 1,
-		// 			// 		button: 0,
-		// 			// 		isPen: false,
-		// 			// 	})
-		// 			// 	editor._flushEventsForTick(0)
-		// 			// 	break
-		// 			// }
-		// 		}
-		// 	} catch (e: any) {
-		// 		console.error(e.message)
-		// 	}
-		// }
-
-		// // editor.dispatch({
-		// // 	type: 'pointer',
-		// // 	target: 'canvas',
-		// // 	name: 'pointer_up',
-		// // 	point: {
-		// // 		x: prevPoint.x,
-		// // 		y: prevPoint.y,
-		// // 		z: 0.5,
-		// // 	},
-		// // 	shiftKey: false,
-		// // 	altKey: false,
-		// // 	ctrlKey: false,
-		// // 	pointerId: 1,
-		// // 	button: 0,
-		// // 	isPen: false,
-		// // })
-		// // editor._flushEventsForTick(0)
-		// // // editor.zoomOut(editor.getViewportScreenCenter(), { duration: 0 })
 	}, [])
 
 	const rPreviousImage = useRef<string>('')
@@ -292,26 +113,8 @@ const OllamaExample = track(() => {
 						rEditor.current = e
 						;(window as any).editor = e
 						e.centerOnPoint(new Vec())
-						// for (const message of modelManager.getThread().content) {
-						// 	if (message.role === 'model') {
-						// 		drawMessage(message.content)
-						// 	}
-						// }
 					}}
-				>
-					{/* <div
-						style={{
-							position: 'absolute',
-							top: 0,
-							left: 0,
-							width: '100%',
-							height: '100%',
-							background: 'red',
-							opacity: 0,
-							zIndex: 99999,
-						}}
-					/> */}
-				</Tldraw>
+				></Tldraw>
 			</div>
 			<div ref={rChat} className="chat">
 				{modelManager.getThread().content.map((message, i) => (
@@ -325,44 +128,122 @@ const OllamaExample = track(() => {
 					onSubmit={async (e) => {
 						preventDefault(e)
 						const form = e.currentTarget
-						let query = `Query: "${form.query.value}"`
+
+						const query: any = {
+							// request: form.query.value,
+						}
+
 						form.query.value = ''
 
 						let imageString: string | undefined
+						let bounds: Box | undefined
 
 						const editor = rEditor.current!
 
-						const svg = await editor.getSvgString([...editor.getCurrentPageShapeIds()])
+						const shapes = editor.getCurrentPageShapes()
 
-						if (svg) {
-							const image = await getSvgAsImage(svg.svg, false, {
-								type: 'png',
-								quality: 1,
-								scale: 1,
-								width: svg.width,
-								height: svg.height,
+						if (shapes.length) {
+							bounds = editor.getCurrentPageBounds()!
+							const tl = bounds.point
+
+							const svg = await editor.getSvgString([...shapes], {
+								padding: 0,
 							})
 
-							if (image) {
-								const base64 = await FileHelpers.blobToDataUrl(image)
+							if (svg) {
+								const image = await getSvgAsImage(svg.svg, false, {
+									type: 'png',
+									quality: 1,
+									scale: 1,
+									width: svg.width,
+									height: svg.height,
+								})
 
-								const trimmed = base64.slice('data:image/png;base64,'.length)
+								if (image) {
+									const base64 = await FileHelpers.blobToDataUrl(image)
 
-								if (rPreviousImage.current !== trimmed) {
-									rPreviousImage.current = trimmed
-									imageString = trimmed
+									const trimmed = base64.slice('data:image/png;base64,'.length)
+
+									if (rPreviousImage.current !== trimmed) {
+										rPreviousImage.current = trimmed
+										imageString = trimmed
+									}
 								}
+							}
+
+							if (imageString) {
+								query.imageSize = {
+									width: Number(bounds.w.toFixed(0)),
+									height: Number(bounds.h.toFixed(0)),
+								}
+							}
+
+							const simpleShapes = editor
+								.getCurrentPageShapes()
+								.sort((a, b) => {
+									return editor.getShapePageBounds(a)!.x < editor.getShapePageBounds(b)!.x ? -1 : 1
+								})
+								.sort((a, b) => {
+									return editor.getShapePageBounds(a)!.y < editor.getShapePageBounds(b)!.y ? -1 : 1
+								})
+								.map((shape) => ({
+									...shape,
+									x: shape.x - tl.x,
+									y: shape.y - tl.y,
+								}))
+								.map((shape) => {
+									switch (shape.type) {
+										case 'geo': {
+											if (!editor.isShapeOfType<TLGeoShape>(shape, 'geo')) throw Error()
+											const {
+												x,
+												y,
+												props: { w, h },
+											} = shape
+											return {
+												type: shape.props.geo,
+												x: Number(x.toFixed(0)),
+												y: Number(y.toFixed(0)),
+												w: Number(w.toFixed(0)),
+												h: Number(h.toFixed(0)),
+											}
+										}
+										case 'line': {
+											if (!editor.isShapeOfType<TLLineShape>(shape, 'line')) throw Error()
+											const {
+												x,
+												y,
+												props: { points },
+											} = shape
+											const allPoints = Object.values(points)
+											const p0 = allPoints[0]
+											const p1 = allPoints[allPoints.length - 1]
+											return {
+												type: 'line',
+												x1: Number(x + p0.x).toFixed(0),
+												y1: Number(y + p0.y).toFixed(0),
+												x2: Number(x + p1.x).toFixed(0),
+												y2: Number(y + p1.y).toFixed(0),
+											}
+										}
+										default: {
+											// noop
+											break
+										}
+									}
+
+									return
+								})
+								.filter(Boolean)
+
+							if (simpleShapes.length) {
+								query.shapes = simpleShapes
 							}
 						}
 
-						if (imageString) {
-							const bounds = editor.getCurrentPageBounds()!
-							query += ` Image bounds: { "minX": ${bounds.x.toFixed(0)}, "minY": ${bounds.y.toFixed(0)}, "maxX": ${bounds.maxX.toFixed(0)}, "maxY": ${bounds.maxY.toFixed(0)} }`
-						}
-
-						modelManager.query(query, imageString).response.then((message) => {
+						modelManager.query(JSON.stringify(query), imageString).response.then((message) => {
 							if (!message) return
-							drawMessage(message.content)
+							drawMessage(message.content, bounds)
 						})
 					}}
 				>
@@ -379,10 +260,10 @@ const OllamaExample = track(() => {
 						onClick={(e) => {
 							preventDefault(e)
 							modelManager.clear()
-							const editor = rEditor.current
-							if (editor) {
-								editor.deleteShapes([...editor.getCurrentPageShapeIds()])
-							}
+							// const editor = rEditor.current
+							// if (editor) {
+							// 	editor.deleteShapes([...editor.getCurrentPageShapeIds()])
+							// }
 						}}
 					>
 						Clear
