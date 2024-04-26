@@ -1,11 +1,10 @@
 import { HistoryEntry } from '@tldraw/store'
 import { TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
-import { TLEditorErrorType } from './editor-result-types'
 import { TLEventInfo } from './event-types'
 
 /** @public */
 export type TLErrorEvent = {
-	type: TLEditorErrorType
+	type: 'max-shapes-reached'
 	value: [{ name: string; pageId: TLPageId; count: number }]
 }
 

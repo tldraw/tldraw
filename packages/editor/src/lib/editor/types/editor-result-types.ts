@@ -23,6 +23,7 @@ export const EditorResult = {
 }
 
 // All errors
+/** @public */
 export type TLEditorErrorType = CreateShapeErrorType | (typeof READONLY_ROOM_ERROR)['type']
 
 // General errors
