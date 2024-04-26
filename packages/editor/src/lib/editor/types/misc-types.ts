@@ -39,19 +39,19 @@ export type CreateShapeErrorType =
 	| (typeof MAX_SHAPES_REACHED_ERROR_ERROR)['type']
 export type CreateShapeError = { type: CreateShapeErrorType; message: string }
 
-export type OkResult = { readonly ok: true }
-export type OkResultWithValue<T> = { readonly ok: true; readonly value: T }
-export type ErrorResult<E> = { readonly ok: false; readonly error: E }
+export type Ok = { readonly ok: true }
+export type OkWithValue<T> = { readonly ok: true; readonly value: T }
+export type Error<E> = { readonly ok: false; readonly error: E }
 
-export type EditorResult<T, E> = ErrorResult<E> | OkResult | OkResultWithValue<T>
+export type EditorResult<T, E> = Error<E> | Ok | OkWithValue<T>
 export const EditorResult = {
-	ok(): OkResult {
+	ok(): Ok {
 		return { ok: true }
 	},
-	okWithValue<T>(value: T): OkResultWithValue<T> {
+	okWithValue<T>(value: T): OkWithValue<T> {
 		return { ok: true, value }
 	},
-	error<E>(error: E): ErrorResult<E> {
+	error<E>(error: E): Error<E> {
 		return { ok: false, error }
 	},
 }
