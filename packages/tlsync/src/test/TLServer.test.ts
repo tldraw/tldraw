@@ -11,7 +11,7 @@ import { RoomState } from '../lib/server-types'
 // which doesn't do anything except throw an error. So we need to sneakily load the node version of ws.
 const wsPath = require.resolve('ws').replace('/browser.js', '/index.js')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const ws = require(wsPath) as typeof import('ws')
+const ws = require(wsPath)
 
 const PORT = 23473
 
@@ -21,7 +21,7 @@ class TLServerTestImpl extends TLServer {
 	wsServer = new ws.Server({ port: PORT })
 	async close() {
 		await new Promise((resolve) => {
-			this.wsServer.close((err) => {
+			this.wsServer.close((err: any) => {
 				if (err) {
 					console.error(err)
 				}

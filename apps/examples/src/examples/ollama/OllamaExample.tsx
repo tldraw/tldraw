@@ -36,7 +36,6 @@ const OllamaExample = track(() => {
 		const tl = bounds?.point ?? new Vec()
 
 		function drawShape(shape: any) {
-			console.log('drawing shape', shape)
 			const editor = rEditor.current
 			if (!editor) return
 			switch (shape.type) {
