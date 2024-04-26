@@ -94,6 +94,34 @@ const Collaborator = track(function Collaborator({
 		cursor.y > viewportPageBounds.maxY - 16 / zoomLevel
 	)
 
+	let laserIndicatedShapeIndicator
+	// Highlight shapes that are being pointed at by the laser.
+	if (
+		CollaboratorScribble &&
+		CollaboratorShapeIndicator &&
+		scribbles.length === 1 &&
+		scribbles[0].color === 'laser'
+	) {
+		for (const shape of editor.getCurrentPageShapes()) {
+			const shapeId = shape.id
+
+			if (
+				editor.getShapeGeometry(shape).isPointInBounds(editor.getPointInShapeSpace(shape, cursor))
+			) {
+				laserIndicatedShapeIndicator = (
+					<CollaboratorShapeIndicator
+						className="tl-collaborator__shape-indicator"
+						key={userId + '_' + shapeId}
+						shapeId={shapeId}
+						color={color}
+						opacity={1}
+					/>
+				)
+				break
+			}
+		}
+	}
+
 	return (
 		<>
 			{brush && CollaboratorBrush ? (
@@ -137,6 +165,7 @@ const Collaborator = track(function Collaborator({
 							opacity={scribble.color === 'laser' ? 0.5 : 0.1}
 						/>
 					))}
+					{laserIndicatedShapeIndicator}
 				</>
 			) : null}
 			{CollaboratorShapeIndicator &&
