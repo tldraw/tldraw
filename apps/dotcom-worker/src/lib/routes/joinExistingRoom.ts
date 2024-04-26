@@ -17,7 +17,7 @@ export async function joinExistingRoom(
 	// This needs to be a websocket request!
 	if (request.headers.get('upgrade')?.toLowerCase() === 'websocket') {
 		// Set up the durable object for this room
-		const id = env.TLDR_DOC.idFromName(`${ROOM_PREFIX}/${roomId}`)
+		const id = env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${roomId}`)
 		return env.TLDR_DOC.get(id).fetch(request)
 	}
 

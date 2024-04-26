@@ -133,7 +133,7 @@ export function useSharing(): TLUiOverrides {
 
 							const query = getViewportUrlQuery(editor)
 							const origin = window.location.origin
-							const pathname = `${ROOM_PREFIX}/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`
+							const pathname = `/${ROOM_PREFIX}/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`
 							if (runningInIFrame) {
 								window.open(`${origin}${pathname}`)
 							} else {

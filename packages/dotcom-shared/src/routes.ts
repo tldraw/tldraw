@@ -7,11 +7,11 @@ export const ROOM_OPEN_MODE = {
 export type RoomOpenMode = (typeof ROOM_OPEN_MODE)[keyof typeof ROOM_OPEN_MODE]
 
 /** @public */
-export const READ_ONLY_PREFIX = '/ro'
+export const READ_ONLY_PREFIX = 'ro'
 /** @public */
-export const READ_ONLY_LEGACY_PREFIX = '/v'
+export const READ_ONLY_LEGACY_PREFIX = 'v'
 /** @public */
-export const ROOM_PREFIX = '/r'
+export const ROOM_PREFIX = 'r'
 
 /** @public */
 export const RoomOpenModeToPath: Record<RoomOpenMode, string> = {

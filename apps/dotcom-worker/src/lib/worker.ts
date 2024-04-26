@@ -31,19 +31,19 @@ const router = Router()
 	.post('/new-room', createRoom)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
-	.get(`${ROOM_PREFIX}/:roomId`, (req, env) =>
+	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_WRITE)
 	)
-	.get(`${READ_ONLY_LEGACY_PREFIX}/:roomId`, (req, env) =>
+	.get(`/${READ_ONLY_LEGACY_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
 	)
-	.get(`${READ_ONLY_PREFIX}/:roomId`, (req, env) =>
+	.get(`/${READ_ONLY_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
-	.get(`${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
-	.get(`${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
+	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
+	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)
-	.post(`${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
+	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.all('*', fourOhFour)
 
 const Worker = {

@@ -9,7 +9,7 @@ const { loader, useData } = defineLoader(async (args) => {
 
 	if (!boardId) return null
 
-	const result = await fetch(`/api${ROOM_PREFIX}/${boardId}/history`, {
+	const result = await fetch(`/api/${ROOM_PREFIX}/${boardId}/history`, {
 		headers: {},
 	})
 	if (!result.ok) return null

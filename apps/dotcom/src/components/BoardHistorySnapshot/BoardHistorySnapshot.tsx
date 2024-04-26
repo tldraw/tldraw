@@ -32,7 +32,7 @@ export function BoardHistorySnapshot({
 		const sure = window.confirm('Are you sure?')
 		if (!sure) return
 
-		const res = await fetch(`/api${ROOM_PREFIX}/${roomId}/restore`, {
+		const res = await fetch(`/api/${ROOM_PREFIX}/${roomId}/restore`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

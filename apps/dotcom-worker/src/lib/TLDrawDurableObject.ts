@@ -97,22 +97,22 @@ export class TLDrawDurableObject extends TLServer {
 
 	readonly router = Router()
 		.get(
-			`${ROOM_PREFIX}/:roomId`,
+			`/${ROOM_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRequest(req)
 		)
 		.get(
-			`${READ_ONLY_LEGACY_PREFIX}/:roomId`,
+			`/${READ_ONLY_LEGACY_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY),
 			(req) => this.onRequest(req)
 		)
 		.get(
-			`${READ_ONLY_PREFIX}/:roomId`,
+			`/${READ_ONLY_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY),
 			(req) => this.onRequest(req)
 		)
 		.post(
-			`${ROOM_PREFIX}/:roomId/restore`,
+			`/${ROOM_PREFIX}/:roomId/restore`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req)
 		)

@@ -44,7 +44,7 @@ function isSharedReadonlyUrl(pathname: string) {
 }
 
 function isSharedReadWriteUrl(pathname: string) {
-	return pathname.startsWith(`${ROOM_PREFIX}/`)
+	return pathname.startsWith(`/${ROOM_PREFIX}/`)
 }
 
 function getFreshShareState(): ShareState {
