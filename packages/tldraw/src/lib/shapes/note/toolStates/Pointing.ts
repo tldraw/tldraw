@@ -40,7 +40,12 @@ export class Pointing extends StateNode {
 			if (offset) {
 				center.sub(offset)
 			}
-			this.shape = createSticky(this.editor, id, center)
+			const result = createSticky(this.editor, id, center)
+			if (!result) {
+				this.cancel()
+				return
+			}
+			this.shape = result
 		}
 	}
 
@@ -53,7 +58,12 @@ export class Pointing extends StateNode {
 				if (offset) {
 					center.sub(offset)
 				}
-				this.shape = createSticky(this.editor, id, center)
+				const result = createSticky(this.editor, id, center)
+				if (!result) {
+					this.cancel()
+					return
+				}
+				this.shape = result
 			}
 
 			this.editor.setCurrentTool('select.translating', {
@@ -123,14 +133,17 @@ export function getNotePitOffset(editor: Editor, center: Vec) {
 }
 
 export function createSticky(editor: Editor, id: TLShapeId, center: Vec) {
-	editor
-		.createShape({
-			id,
-			type: 'note',
-			x: center.x,
-			y: center.y,
-		})
-		.select(id)
+	const result = editor.createShape({
+		id,
+		type: 'note',
+		x: center.x,
+		y: center.y,
+	})
+	if (!result.ok) {
+		return null
+	}
+
+	editor.select(id)
 
 	const shape = editor.getShape<TLNoteShape>(id)!
 	const bounds = editor.getShapeGeometry(shape).bounds

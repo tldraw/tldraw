@@ -190,8 +190,8 @@ describe('Grid placement helpers', () => {
 	})
 
 	it('Falls into a sticky pit when empty', () => {
+		editor.createShape({ type: 'note', x: 0, y: 0 })
 		editor
-			.createShape({ type: 'note', x: 0, y: 0 })
 			.setCurrentTool('note')
 			.pointerMove(324, 104)
 			.click()
@@ -204,9 +204,9 @@ describe('Grid placement helpers', () => {
 	})
 
 	it('Does not create a new sticky note in a sticky pit if a note is already there', () => {
+		editor.createShape({ type: 'note', x: 0, y: 0 })
+		editor.createShape({ type: 'note', x: 330, y: 8 }) // make a shape kinda there already!
 		editor
-			.createShape({ type: 'note', x: 0, y: 0 })
-			.createShape({ type: 'note', x: 330, y: 8 }) // make a shape kinda there already!
 			.setCurrentTool('note')
 			.pointerMove(300, 104)
 			.click()
@@ -241,7 +241,8 @@ describe('Grid placement helpers', () => {
 	})
 
 	it('Falls into correct pit below notes with growY', () => {
-		editor.createShape({ type: 'note', x: 0, y: 0 }).updateShape({
+		editor.createShape({ type: 'note', x: 0, y: 0 })
+		editor.updateShape({
 			...editor.getLastCreatedShape(),
 			props: { growY: 100 },
 		})

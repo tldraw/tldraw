@@ -75,7 +75,7 @@ export class Pointing extends StateNode {
 
 		this.editor.mark(this.markId)
 
-		this.editor.createShapes<TLGeoShape>([
+		const result = this.editor.createShapes<TLGeoShape>([
 			{
 				id,
 				type: 'geo',
@@ -88,6 +88,10 @@ export class Pointing extends StateNode {
 				},
 			},
 		])
+		if (!result.ok) {
+			this.cancel()
+			return
+		}
 
 		const shape = this.editor.getShape<TLGeoShape>(id)!
 		if (!shape) return

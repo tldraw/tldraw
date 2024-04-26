@@ -1954,9 +1954,9 @@ const defaultPitLocations = [
 
 describe('Note shape grid helper positions / pits', () => {
 	it('Snaps to pits', () => {
+		editor.createShape({ type: 'note' })
+		editor.createShape({ type: 'note', x: 500, y: 500 })
 		editor
-			.createShape({ type: 'note' })
-			.createShape({ type: 'note', x: 500, y: 500 })
 			.pointerMove(600, 600)
 			// start translating
 			.pointerDown()
@@ -1971,9 +1971,9 @@ describe('Note shape grid helper positions / pits', () => {
 	})
 
 	it('Does not snap to pit if shape has a different rotation', () => {
+		editor.createShape({ type: 'note', rotation: 0.001 })
+		editor.createShape({ type: 'note', x: 500, y: 500 })
 		editor
-			.createShape({ type: 'note', rotation: 0.001 })
-			.createShape({ type: 'note', x: 500, y: 500 })
 			.pointerMove(600, 600)
 			// start translating
 			.pointerDown()
@@ -1989,9 +1989,9 @@ describe('Note shape grid helper positions / pits', () => {
 	})
 
 	it('Snaps to pit if shape has the same rotation', () => {
+		editor.createShape({ type: 'note', rotation: 0.001 })
+		editor.createShape({ type: 'note', x: 500, y: 500, rotation: 0.001 })
 		editor
-			.createShape({ type: 'note', rotation: 0.001 })
-			.createShape({ type: 'note', x: 500, y: 500, rotation: 0.001 })
 			.pointerMove(600, 600)
 			// start translating
 			.pointerDown()
@@ -2008,9 +2008,9 @@ describe('Note shape grid helper positions / pits', () => {
 	})
 
 	it('Snaps correctly to the top when the translating shape has growY', () => {
+		editor.createShape({ type: 'note' })
+		editor.createShape({ type: 'note', x: 500, y: 500 })
 		editor
-			.createShape({ type: 'note' })
-			.createShape({ type: 'note', x: 500, y: 500 })
 			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
 			.pointerMove(600, 600)
 			// start translating
@@ -2028,10 +2028,10 @@ describe('Note shape grid helper positions / pits', () => {
 	})
 
 	it('Snaps correctly to the bottom when the not-translating shape has growY', () => {
+		editor.createShape({ type: 'note' })
+		editor.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+		editor.createShape({ type: 'note', x: 500, y: 500 })
 		editor
-			.createShape({ type: 'note' })
-			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
-			.createShape({ type: 'note', x: 500, y: 500 })
 			.pointerMove(600, 600)
 			// start translating
 			.pointerDown()

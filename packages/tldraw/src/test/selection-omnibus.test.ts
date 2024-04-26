@@ -680,26 +680,25 @@ describe('when a frame has multiple children', () => {
 	let box1: TLGeoShape
 	let box2: TLGeoShape
 	beforeEach(() => {
-		editor
-			.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
-			.createShape<TLGeoShape>({
-				id: ids.box1,
-				parentId: ids.frame1,
-				type: 'geo',
-				x: 25,
-				y: 25,
-			})
-			.createShape<TLGeoShape>({
-				id: ids.box2,
-				parentId: ids.frame1,
-				type: 'geo',
-				x: 50,
-				y: 50,
-				props: {
-					w: 80,
-					h: 80,
-				},
-			})
+		editor.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
+		editor.createShape<TLGeoShape>({
+			id: ids.box1,
+			parentId: ids.frame1,
+			type: 'geo',
+			x: 25,
+			y: 25,
+		})
+		editor.createShape<TLGeoShape>({
+			id: ids.box2,
+			parentId: ids.frame1,
+			type: 'geo',
+			x: 50,
+			y: 50,
+			props: {
+				w: 80,
+				h: 80,
+			},
+		})
 		box1 = editor.getShape<TLGeoShape>(ids.box1)!
 		box2 = editor.getShape<TLGeoShape>(ids.box2)!
 	})
