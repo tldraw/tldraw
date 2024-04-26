@@ -3,10 +3,15 @@ import { TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
 import { TLEventInfo } from './event-types'
 
 /** @public */
+export type TLErrorEvent = {
+	type: 'max-shapes'
+	value: [{ name: string; pageId: TLPageId; count: number }]
+}
+
+/** @public */
 export interface TLEventMap {
 	// Lifecycle / Internal
 	mount: []
-	'max-shapes': [{ name: string; pageId: TLPageId; count: number }]
 	change: [HistoryEntry<TLRecord>]
 	update: []
 	crash: [{ error: unknown }]
@@ -16,6 +21,7 @@ export interface TLEventMap {
 	tick: [number]
 	frame: [number]
 	'select-all-text': [{ shapeId: TLShapeId }]
+	error: [TLErrorEvent]
 }
 
 /** @public */

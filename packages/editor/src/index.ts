@@ -196,7 +196,11 @@ export {
 	type SvgExportDef,
 } from './lib/editor/types/SvgExportContext'
 export { type TLContent } from './lib/editor/types/clipboard-types'
-export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'
+export {
+	type TLErrorEvent,
+	type TLEventMap,
+	type TLEventMapHandler,
+} from './lib/editor/types/emit-types'
 export {
 	EVENT_NAME_MAP,
 	type TLBaseEventInfo,

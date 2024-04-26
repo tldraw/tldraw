@@ -2193,6 +2193,16 @@ export interface TLErrorBoundaryProps {
 }
 
 // @public (undocumented)
+export type TLErrorEvent = {
+    type: 'max-shapes';
+    value: [{
+        count: number;
+        name: string;
+        pageId: TLPageId;
+    }];
+};
+
+// @public (undocumented)
 export interface TLEventHandlers {
     // (undocumented)
     onCancel: TLCancelEvent;
@@ -2236,12 +2246,6 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 // @public (undocumented)
 export interface TLEventMap {
     // (undocumented)
-    'max-shapes': [{
-        count: number;
-        name: string;
-        pageId: TLPageId;
-    }];
-    // (undocumented)
     'select-all-text': [{
         shapeId: TLShapeId;
     }];
@@ -2255,6 +2259,8 @@ export interface TLEventMap {
     crash: [{
         error: unknown;
     }];
+    // (undocumented)
+    error: [TLErrorEvent];
     // (undocumented)
     event: [TLEventInfo];
     // (undocumented)

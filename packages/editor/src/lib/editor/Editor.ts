@@ -8519,7 +8519,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
-	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
+	editor.emit('error', {
+		type: 'max-shapes',
+		value: [{ name, pageId, count: MAX_SHAPES_PER_PAGE }],
+	})
 }
 
 function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T {
