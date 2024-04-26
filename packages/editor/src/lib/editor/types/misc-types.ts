@@ -15,34 +15,35 @@ export type TLSvgOptions = {
 	preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
 }
 
-export type TLEditorErrorType = keyof typeof TLEditorErrorTypeMap
+// General errors
+export const READONLY_ROOM_ERROR = { type: 'readonly-room' as const, message: 'Room is readonly' }
 
-export type TLEditorError = { message: string; type: TLEditorErrorType }
-
-const TLEditorErrorTypeMap = {
-	'not-an-array-of-shapes': {
-		message: 'createShapes requires an array of shapes',
-		type: 'not-an-array-of-shapes' as const,
-	},
-	'no-shapes-provied': {
-		message: 'No shapes provided',
-		type: 'no-shapes-provied' as const,
-	},
-	'readonly-room': {
-		message: 'Room is readonly',
-		type: 'readonly-room' as const,
-	},
-	'max-shapes-reached': {
-		message: 'Max shapes reached',
-		type: 'max-shapes-reached' as const,
-	},
+// Create shape errors
+export const NOT_ARRAY_OF_SHAPES_ERROR = {
+	type: 'not-array' as const,
+	message: 'Expected an array',
+}
+export const NO_SHAPES_PROVIDED_ERROR = {
+	type: 'no-shapes-provided' as const,
+	message: 'No shapes provided',
+}
+export const MAX_SHAPES_REACHED_ERROR_ERROR = {
+	type: 'max-shapes-reached' as const,
+	message: 'Max shapes reached',
 }
 
-export type ErrorResult = { ok: false; error: TLEditorError }
-export type OkResult = { ok: true }
-export type OkResultWithValue<T> = { ok: true; value: T }
+export type CreateShapeErrorType =
+	| (typeof READONLY_ROOM_ERROR)['type']
+	| (typeof NOT_ARRAY_OF_SHAPES_ERROR)['type']
+	| (typeof NO_SHAPES_PROVIDED_ERROR)['type']
+	| (typeof MAX_SHAPES_REACHED_ERROR_ERROR)['type']
+export type CreateShapeError = { type: CreateShapeErrorType; message: string }
 
-export type EditorResult<T> = ErrorResult | OkResult | OkResultWithValue<T>
+export type OkResult = { readonly ok: true }
+export type OkResultWithValue<T> = { readonly ok: true; readonly value: T }
+export type ErrorResult<E> = { readonly ok: false; readonly error: E }
+
+export type EditorResult<T, E> = ErrorResult<E> | OkResult | OkResultWithValue<T>
 export const EditorResult = {
 	ok(): OkResult {
 		return { ok: true }
@@ -50,7 +51,7 @@ export const EditorResult = {
 	okWithValue<T>(value: T): OkResultWithValue<T> {
 		return { ok: true, value }
 	},
-	error(errorType: TLEditorErrorType): ErrorResult {
-		return { ok: false, error: TLEditorErrorTypeMap[errorType] }
+	error<E>(error: E): ErrorResult<E> {
+		return { ok: false, error }
 	},
 }

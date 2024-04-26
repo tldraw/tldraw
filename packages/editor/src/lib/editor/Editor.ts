@@ -129,7 +129,17 @@ import {
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLHistoryBatchOptions } from './types/history-types'
-import { EditorResult, OptionalKeys, RequiredKeys, TLSvgOptions } from './types/misc-types'
+import {
+	CreateShapeError,
+	EditorResult,
+	MAX_SHAPES_REACHED_ERROR_ERROR,
+	NOT_ARRAY_OF_SHAPES_ERROR,
+	NO_SHAPES_PROVIDED_ERROR,
+	OptionalKeys,
+	READONLY_ROOM_ERROR,
+	RequiredKeys,
+	TLSvgOptions,
+} from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
@@ -6243,12 +6253,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	createShapes<T extends TLUnknownShape>(
 		shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]
-	): EditorResult<void> {
+	): EditorResult<void, CreateShapeError> {
 		if (!Array.isArray(shapes)) {
-			return EditorResult.error('not-an-array-of-shapes')
+			return EditorResult.error(NOT_ARRAY_OF_SHAPES_ERROR)
 		}
-		if (this.getInstanceState().isReadonly) return EditorResult.error('readonly-room')
-		if (shapes.length <= 0) return EditorResult.error('no-shapes-provied')
+		if (this.getInstanceState().isReadonly) return EditorResult.error(READONLY_ROOM_ERROR)
+		if (shapes.length <= 0) return EditorResult.error(NO_SHAPES_PROVIDED_ERROR)
 
 		const currentPageShapeIds = this.getCurrentPageShapeIds()
 
@@ -6257,7 +6267,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (maxShapesReached) {
 			// can't create more shapes than fit on the page
 			alertMaxShapes(this)
-			return EditorResult.error('max-shapes-reached')
+			return EditorResult.error(MAX_SHAPES_REACHED_ERROR_ERROR)
 		}
 
 		const focusedGroupId = this.getFocusedGroupId()
