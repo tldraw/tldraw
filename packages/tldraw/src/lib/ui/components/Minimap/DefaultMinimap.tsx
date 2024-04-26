@@ -27,7 +27,7 @@ export function DefaultMinimap() {
 		const minimap = new MinimapManager(editor, rCanvas.current, container)
 		minimapRef.current = minimap
 		return minimapRef.current.close
-	}, [editor])
+	}, [editor, container])
 
 	const onDoubleClick = React.useCallback(
 		(e: React.MouseEvent<HTMLCanvasElement>) => {
