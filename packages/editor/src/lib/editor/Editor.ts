@@ -120,6 +120,14 @@ import { getStraightArrowInfo } from './shapes/shared/arrow/straight-arrow'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
+import {
+	CreateShapeError,
+	EditorResult,
+	MAX_SHAPES_REACHED_ERROR_ERROR,
+	NOT_ARRAY_OF_SHAPES_ERROR,
+	NO_SHAPES_PROVIDED_ERROR,
+	READONLY_ROOM_ERROR,
+} from './types/editor-result-types'
 import { TLEventMap } from './types/emit-types'
 import {
 	TLEventInfo,
@@ -129,17 +137,7 @@ import {
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLHistoryBatchOptions } from './types/history-types'
-import {
-	CreateShapeError,
-	EditorResult,
-	MAX_SHAPES_REACHED_ERROR_ERROR,
-	NOT_ARRAY_OF_SHAPES_ERROR,
-	NO_SHAPES_PROVIDED_ERROR,
-	OptionalKeys,
-	READONLY_ROOM_ERROR,
-	RequiredKeys,
-	TLSvgOptions,
-} from './types/misc-types'
+import { OptionalKeys, RequiredKeys, TLSvgOptions } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
