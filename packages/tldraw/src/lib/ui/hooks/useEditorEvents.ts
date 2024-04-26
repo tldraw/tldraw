@@ -9,7 +9,7 @@ export function useEditorEvents() {
 
 	useEffect(() => {
 		function handleMaxShapes(error: TLErrorEvent) {
-			if (error.type !== 'max-shapes') return
+			if (error.type !== 'max-shapes-reached') return
 			const [{ name, count }] = error.value
 			addToast({
 				title: 'Maximum Shapes Reached',

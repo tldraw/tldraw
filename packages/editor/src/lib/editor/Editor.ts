@@ -8520,7 +8520,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('error', {
-		type: 'max-shapes',
+		type: 'max-shapes-reached',
 		value: [{ name, pageId, count: MAX_SHAPES_PER_PAGE }],
 	})
 }

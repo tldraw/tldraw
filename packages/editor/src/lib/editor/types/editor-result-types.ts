@@ -22,6 +22,9 @@ export const EditorResult = {
 	},
 }
 
+// All errors
+export type TLEditorErrorType = CreateShapeErrorType | (typeof READONLY_ROOM_ERROR)['type']
+
 // General errors
 /** @public */
 export const READONLY_ROOM_ERROR = { type: 'readonly-room' as const, message: 'Room is readonly' }

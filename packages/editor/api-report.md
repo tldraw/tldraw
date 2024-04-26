@@ -2194,7 +2194,7 @@ export interface TLErrorBoundaryProps {
 
 // @public (undocumented)
 export type TLErrorEvent = {
-    type: 'max-shapes';
+    type: TLEditorErrorType;
     value: [{
         count: number;
         name: string;
