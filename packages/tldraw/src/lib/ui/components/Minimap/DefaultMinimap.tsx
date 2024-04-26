@@ -73,14 +73,15 @@ export function DefaultMinimap() {
 				false
 			)
 
-			const _vpPageBounds = editor.getViewportPageBounds()
-
 			const clampedPoint = minimapRef.current.minimapScreenPointToPagePoint(
 				e.clientX,
 				e.clientY,
 				false,
 				true
 			)
+
+			const _vpPageBounds = editor.getViewportPageBounds()
+
 			minimapRef.current.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
 			const commonBounds = Box.Common([editor.getCurrentPageBounds() ?? new Box(), _vpPageBounds])
 
