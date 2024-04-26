@@ -21,7 +21,8 @@ export class MinimapManager {
 	shapeGeometryCache: ComputedCache<Float32Array | null, TLShape>
 	constructor(
 		public editor: Editor,
-		public readonly elem: HTMLCanvasElement
+		public readonly elem: HTMLCanvasElement,
+		public readonly container: HTMLElement
 	) {
 		this.gl = setupWebGl(elem)
 		this.shapeGeometryCache = editor.store.createComputedCache('webgl-geometry', (r: TLShape) => {
@@ -94,6 +95,7 @@ export class MinimapManager {
 			this.canvasBoundingClientRect.set(rect)
 		})
 		observer.observe(this.elem)
+		observer.observe(this.container)
 		return () => observer.disconnect()
 	}
 
