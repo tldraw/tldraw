@@ -17,6 +17,45 @@ order: 3
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
+### [v2.1.3](/releases/v2.1.3)
+
+#### Expose migrations, validators, and versions from tlschema ([#3613](https://github.com/tldraw/tldraw/pull/3613))
+
+Previously, we weren't exporting migrations & validators for our default shapes. This meant that it wasn't possible to make your own tlschema with both our default shapes and some of your own (e.g. for custom multiplayer). This fixes that by exposing all the migrations, validators, and versions from tlschema, plus `defaultShapeSchemas` which can be passed directly to `createTLSchema`
+
+---
+
+#### 📚 SDK Changes
+
+- `@tldraw/tlschema`
+  - Expose migrations, validators, and versions from tlschema [#3613](https://github.com/tldraw/tldraw/pull/3613) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+### [v2.1.2](/releases/v2.1.2)
+
+#### Revert "[signia] Smart dirty checking of active computeds (#3516)" ([#3611](https://github.com/tldraw/tldraw/pull/3611))
+
+This performance optimisation introduced a regression where sometimes computed caches wouldn't get invalidated at the correct time, leading to stale data causing crashes. We're reverting the change for now.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/state`
+  - Revert "[signia] Smart dirty checking of active computeds (#3516)" [#3611](https://github.com/tldraw/tldraw/pull/3611) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🏠 Internal
+
+- increase publish script timeouts [#3570](https://github.com/tldraw/tldraw/pull/3570) ([@SomeHats](https://github.com/SomeHats))
+- longer retries for package publishing [#3567](https://github.com/tldraw/tldraw/pull/3567) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
 ### [v2.1.1](/releases/v2.1.1)
 
 #### fix migration exports ([#3594](https://github.com/tldraw/tldraw/pull/3594))
