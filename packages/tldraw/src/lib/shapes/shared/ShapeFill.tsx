@@ -1,5 +1,4 @@
 import {
-	HASH_PATTERN_ZOOM_NAMES,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
@@ -10,6 +9,8 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
+import { tldrawConstants } from '../../tldraw-constants'
+const { HASH_PATTERN_ZOOM_NAMES } = tldrawConstants
 
 export interface ShapeFillProps {
 	d: string

@@ -1,4 +1,5 @@
 import { TLArrowShape } from '@tldraw/tlschema'
+import { editorConstants } from '../../../../editor-constants'
 import { Mat, MatModel } from '../../../../primitives/Mat'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import {
@@ -8,14 +9,12 @@ import {
 import { Editor } from '../../../Editor'
 import { TLArrowInfo } from './arrow-types'
 import {
-	BOUND_ARROW_OFFSET,
 	BoundShapeInfo,
-	MIN_ARROW_LENGTH,
-	STROKE_SIZES,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
 	getBoundShapeRelationships,
 } from './shared'
+const { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH, STROKE_SIZES } = editorConstants
 
 export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArrowInfo {
 	const { start, end, arrowheadStart, arrowheadEnd } = shape.props

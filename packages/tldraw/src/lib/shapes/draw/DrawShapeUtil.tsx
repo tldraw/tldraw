@@ -18,14 +18,15 @@ import {
 	rng,
 	toFixed,
 } from '@tldraw/editor'
+import { tldrawConstants } from '../../tldraw-constants'
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
-import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
+const { STROKE_SIZES } = tldrawConstants
 
 /** @public */
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {

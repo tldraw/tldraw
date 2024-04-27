@@ -105,25 +105,7 @@ export {
 } from './lib/config/createTLStore'
 export { createTLUser } from './lib/config/createTLUser'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
-export {
-	ANIMATION_MEDIUM_MS,
-	ANIMATION_SHORT_MS,
-	CAMERA_SLIDE_FRICTION,
-	DEFAULT_ANIMATION_OPTIONS,
-	DOUBLE_CLICK_DURATION,
-	DRAG_DISTANCE,
-	GRID_STEPS,
-	HASH_PATTERN_ZOOM_NAMES,
-	HIT_TEST_MARGIN,
-	MAX_PAGES,
-	MAX_SHAPES_PER_PAGE,
-	MAX_ZOOM,
-	MIN_ZOOM,
-	MULTI_CLICK_DURATION,
-	SIDES,
-	SVG_PADDING,
-	ZOOMS,
-} from './lib/constants'
+export { editorConstants } from './lib/editor-constants'
 export {
 	Editor,
 	type TLAnimationOptions,
@@ -256,7 +238,6 @@ export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export {
 	Box,
-	ROTATE_CORNER_TO_SELECTION_CORNER,
 	rotateSelectionHandle,
 	type BoxLike,
 	type RotateCorner,

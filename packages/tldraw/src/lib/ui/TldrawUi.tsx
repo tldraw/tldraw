@@ -2,13 +2,13 @@ import { ToastProvider } from '@radix-ui/react-toast'
 import { Expand, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
+import { tldrawConstants } from '../tldraw-constants'
 import { TLUiAssetUrlOverrides } from './assetUrls'
 import { Dialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { ToastViewport, Toasts } from './components/Toasts'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
-import { PORTRAIT_BREAKPOINT } from './constants'
 import {
 	TldrawUiContextProvider,
 	TldrawUiContextProviderProps,
@@ -21,6 +21,8 @@ import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useReadonly } from './hooks/useReadonly'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
+
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 /**
  * Base props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.

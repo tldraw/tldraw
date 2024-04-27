@@ -13,9 +13,9 @@ import {
 	last,
 	rng,
 } from '@tldraw/editor'
+import { tldrawConstants } from '../../tldraw-constants'
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
-import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
@@ -23,6 +23,7 @@ import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useForceSolid } from '../shared/useForceSolid'
 
+const { FONT_SIZES } = tldrawConstants
 const OVERLAY_OPACITY = 0.35
 const UNDERLAY_OPACITY = 0.82
 

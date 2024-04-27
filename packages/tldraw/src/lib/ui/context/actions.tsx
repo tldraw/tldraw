@@ -1,5 +1,4 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	Box,
 	DefaultColorStyle,
 	Editor,
@@ -20,12 +19,12 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { tldrawConstants } from '../../tldraw-constants'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
-import { ADJACENT_SHAPE_MARGIN } from '../constants'
 import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
 import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
@@ -37,6 +36,8 @@ import { TLUiIconType } from '../icon-types'
 import { useDialogs } from './dialogs'
 import { TLUiEventSource, useUiEvents } from './events'
 import { useToasts } from './toasts'
+
+const { ADJACENT_SHAPE_MARGIN, ANIMATION_MEDIUM_MS } = tldrawConstants
 
 /** @public */
 export interface TLUiActionItem<

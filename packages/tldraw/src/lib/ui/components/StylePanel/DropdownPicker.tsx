@@ -1,6 +1,6 @@
 import { SharedStyle, StyleProp, useEditor } from '@tldraw/editor'
 import * as React from 'react'
-import { StyleValuesForUi } from '../../../styles'
+import { StyleValuesForUi } from '../../../tldraw-types'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'

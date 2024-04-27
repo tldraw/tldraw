@@ -16,14 +16,15 @@ import {
 	intersectCirclePolygon,
 	intersectLineSegmentPolygon,
 } from '@tldraw/editor'
-import {
+import { tldrawConstants } from '../../tldraw-constants'
+const {
 	ARROW_LABEL_FONT_SIZES,
 	ARROW_LABEL_PADDING,
 	FONT_FAMILIES,
 	LABEL_TO_ARROW_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
-} from '../shared/default-shape-constants'
+} = tldrawConstants
 
 const labelSizeCache = new WeakMap<TLArrowShape, Vec>()
 

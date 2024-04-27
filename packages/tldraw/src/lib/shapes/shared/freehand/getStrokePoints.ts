@@ -1,9 +1,7 @@
 import { Vec, VecLike } from '@tldraw/editor'
+import { tldrawConstants } from '../../../tldraw-constants'
 import type { StrokeOptions, StrokePoint } from './types'
-
-const MIN_START_PRESSURE = 0.025
-const MIN_END_PRESSURE = 0.01
-
+const { MIN_START_PRESSURE = 0.15, MIN_END_PRESSURE = 0.15 } = tldrawConstants
 /**
  * ## getStrokePoints
  *

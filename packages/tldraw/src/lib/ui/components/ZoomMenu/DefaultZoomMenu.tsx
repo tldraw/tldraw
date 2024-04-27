@@ -1,13 +1,15 @@
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
-import { ANIMATION_MEDIUM_MS, useContainer, useEditor, useValue } from '@tldraw/editor'
+import { useContainer, useEditor, useValue } from '@tldraw/editor'
 import { ReactNode, forwardRef, memo, useCallback } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
+
+const { PORTRAIT_BREAKPOINT, ANIMATION_MEDIUM_MS } = tldrawConstants
 
 /** @public */
 export type TLUiZoomMenuProps = {

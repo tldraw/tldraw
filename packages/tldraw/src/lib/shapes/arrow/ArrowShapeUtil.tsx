@@ -34,9 +34,9 @@ import {
 	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
+import { tldrawConstants } from '../../tldraw-constants'
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES } from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
 	getFillDefForExport,
@@ -52,6 +52,7 @@ import {
 	getStraightArrowHandlePath,
 } from './arrowpaths'
 import { ArrowTextLabel } from './components/ArrowTextLabel'
+const { ARROW_LABEL_FONT_SIZES, STROKE_SIZES } = tldrawConstants
 
 let globalRenderIndex = 0
 

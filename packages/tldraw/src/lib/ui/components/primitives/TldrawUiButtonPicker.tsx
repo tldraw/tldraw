@@ -8,7 +8,7 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useMemo, useRef } from 'react'
-import { StyleValuesForUi } from '../../../styles'
+import { StyleValuesForUi } from '../../../tldraw-types'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './Button/TldrawUiButton'

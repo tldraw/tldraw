@@ -3,8 +3,6 @@ import {
 	DefaultFontFamilies,
 	DefaultFontStyle,
 	FileHelpers,
-	HASH_PATTERN_ZOOM_NAMES,
-	MAX_ZOOM,
 	SvgExportDef,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
@@ -13,7 +11,9 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { tldrawConstants } from '../../tldraw-constants'
 import { useDefaultColorTheme } from './ShapeFill'
+const { HASH_PATTERN_ZOOM_NAMES, MAX_ZOOM } = tldrawConstants
 
 /** @public */
 export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import {
 	Box,
-	PORTRAIT_BREAKPOINT,
 	SVGContainer,
 	TLImageShape,
 	TLShapeId,
@@ -12,12 +11,14 @@ import {
 	getIndicesBetween,
 	react,
 	sortByIndex,
+	tldrawConstants,
 	track,
 	useBreakpoint,
 	useEditor,
 } from 'tldraw'
 import { ExportPdfButton } from './ExportPdfButton'
 import { Pdf } from './PdfPicker'
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 // TODO:
 // - prevent changing pages (create page, change page, move shapes to new page)

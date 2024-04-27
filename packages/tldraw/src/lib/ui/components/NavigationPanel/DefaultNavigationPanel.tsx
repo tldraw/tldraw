@@ -1,5 +1,5 @@
 import { memo, useCallback } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { unwrapLabel, useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
@@ -8,7 +8,7 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../kbd-utils'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 /** @public */
 export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 	const actions = useActions()

@@ -1,6 +1,7 @@
 import { createShapeId, TLImageShape } from '@tldraw/editor'
-import { MIN_CROP_SIZE } from '../lib/tools/SelectTool/childStates/Crop/crop-constants'
+import { tldrawConstants } from '../lib/tldraw-constants'
 import { TestEditor } from './TestEditor'
+const { MIN_CROP_SIZE } = tldrawConstants
 
 jest.useFakeTimers()
 

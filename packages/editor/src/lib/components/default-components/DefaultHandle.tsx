@@ -1,6 +1,7 @@
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, SIDES } from '../../constants'
+import { editorConstants } from '../../editor-constants'
+const { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, SIDES } = editorConstants
 
 /** @public */
 export type TLHandleProps = {

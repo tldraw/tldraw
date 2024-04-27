@@ -1,5 +1,4 @@
 import {
-	DRAG_DISTANCE,
 	Mat,
 	StateNode,
 	TLDefaultSizeStyle,
@@ -18,7 +17,8 @@ import {
 	toFixed,
 	uniqueId,
 } from '@tldraw/editor'
-import { STROKE_SIZES } from '../../shared/default-shape-constants'
+import { tldrawConstants } from '../../../tldraw-constants'
+const { STROKE_SIZES, DRAG_DISTANCE } = tldrawConstants
 
 type DrawableShape = TLDrawShape | TLHighlightShape
 

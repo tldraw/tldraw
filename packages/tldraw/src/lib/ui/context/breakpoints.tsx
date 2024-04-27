@@ -1,6 +1,8 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import React, { ReactNode, useContext } from 'react'
-import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '../constants'
+import { tldrawConstants } from '../../tldraw-constants'
+
+const { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } = tldrawConstants
 
 const BreakpointContext = React.createContext(0)
 

@@ -61,28 +61,7 @@ import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
-import {
-	ANIMATION_MEDIUM_MS,
-	CAMERA_MOVING_TIMEOUT,
-	CAMERA_SLIDE_FRICTION,
-	COARSE_DRAG_DISTANCE,
-	COLLABORATOR_IDLE_TIMEOUT,
-	DEFAULT_ANIMATION_OPTIONS,
-	DRAG_DISTANCE,
-	FOLLOW_CHASE_PAN_SNAP,
-	FOLLOW_CHASE_PAN_UNSNAP,
-	FOLLOW_CHASE_PROPORTION,
-	FOLLOW_CHASE_ZOOM_SNAP,
-	FOLLOW_CHASE_ZOOM_UNSNAP,
-	HIT_TEST_MARGIN,
-	INTERNAL_POINTER_IDS,
-	LONG_PRESS_DURATION,
-	MAX_PAGES,
-	MAX_SHAPES_PER_PAGE,
-	MAX_ZOOM,
-	MIN_ZOOM,
-	ZOOMS,
-} from '../constants'
+import { editorConstants } from '../editor-constants'
 import { Box } from '../primitives/Box'
 import { Mat, MatLike, MatModel } from '../primitives/Mat'
 import { Vec, VecLike } from '../primitives/Vec'
@@ -131,6 +110,29 @@ import { TLExternalAssetContent, TLExternalContent } from './types/external-cont
 import { TLHistoryBatchOptions } from './types/history-types'
 import { OptionalKeys, RequiredKeys, TLSvgOptions } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
+
+const {
+	ANIMATION_MEDIUM_MS,
+	CAMERA_MOVING_TIMEOUT,
+	CAMERA_SLIDE_FRICTION,
+	COARSE_DRAG_DISTANCE,
+	COLLABORATOR_IDLE_TIMEOUT,
+	DEFAULT_ANIMATION_OPTIONS,
+	DRAG_DISTANCE,
+	FOLLOW_CHASE_PAN_SNAP,
+	FOLLOW_CHASE_PAN_UNSNAP,
+	FOLLOW_CHASE_PROPORTION,
+	FOLLOW_CHASE_ZOOM_SNAP,
+	FOLLOW_CHASE_ZOOM_UNSNAP,
+	HIT_TEST_MARGIN,
+	INTERNAL_POINTER_IDS,
+	LONG_PRESS_DURATION,
+	MAX_PAGES,
+	MAX_SHAPES_PER_PAGE,
+	MAX_ZOOM,
+	MIN_ZOOM,
+	ZOOMS,
+} = editorConstants
 
 /** @public */
 export type TLAnimationOptions = Partial<{
@@ -2226,7 +2228,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 
-		let zoom = MAX_ZOOM
+		let zoom = MAX_ZOOM as number
 
 		for (let i = 1; i < ZOOMS.length; i++) {
 			const z1 = ZOOMS[i - 1]
@@ -2264,7 +2266,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 
-		let zoom = MIN_ZOOM
+		let zoom = MIN_ZOOM as number
 
 		for (let i = ZOOMS.length - 1; i > 0; i--) {
 			const z1 = ZOOMS[i - 1]
@@ -3085,7 +3087,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}[] = []
 
 		let nextIndex = MAX_SHAPES_PER_PAGE * 2
-		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE
+		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE as number
 
 		const erasingShapeIds = this.getErasingShapeIds()
 

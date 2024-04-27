@@ -1,6 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { ReactNode, memo } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
 import { useReadonly } from '../../hooks/useReadonly'
@@ -8,6 +8,8 @@ import { MobileStylePanel } from '../MobileStylePanel'
 import { DefaultToolbarContent } from './DefaultToolbarContent'
 import { OverflowingToolbar } from './OverflowingToolbar'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
+
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 /** @public */
 export interface DefaultToolbarProps {

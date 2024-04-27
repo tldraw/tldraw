@@ -1,4 +1,5 @@
 import { TLArrowShape } from '@tldraw/tlschema'
+import { editorConstants } from '../../../../editor-constants'
 import { Mat } from '../../../../primitives/Mat'
 import { Vec, VecLike } from '../../../../primitives/Vec'
 import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
@@ -12,15 +13,14 @@ import {
 import type { Editor } from '../../../Editor'
 import { TLArcInfo, TLArrowInfo } from './arrow-types'
 import {
-	BOUND_ARROW_OFFSET,
-	MIN_ARROW_LENGTH,
-	STROKE_SIZES,
-	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
 	getBoundShapeRelationships,
 } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
+
+const { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH, STROKE_SIZES, WAY_TOO_BIG_ARROW_BEND_FACTOR } =
+	editorConstants
 
 export function getCurvedArrowInfo(
 	editor: Editor,

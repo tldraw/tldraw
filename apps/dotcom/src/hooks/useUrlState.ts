@@ -1,5 +1,6 @@
 import { default as React, useEffect } from 'react'
-import { Editor, MAX_ZOOM, MIN_ZOOM, TLPageId, debounce, react, useEditor } from 'tldraw'
+import { Editor, TLPageId, debounce, react, tldrawConstants, useEditor } from 'tldraw'
+const { MAX_ZOOM, MIN_ZOOM } = tldrawConstants
 
 const PARAMS = {
 	// deprecated

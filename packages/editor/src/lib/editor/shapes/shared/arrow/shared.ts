@@ -114,21 +114,6 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 	return { start, end }
 }
 
-/** @internal */
-export const MIN_ARROW_LENGTH = 10
-/** @internal */
-export const BOUND_ARROW_OFFSET = 10
-/** @internal */
-export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10
-
-/** @public */
-export const STROKE_SIZES: Record<string, number> = {
-	s: 2,
-	m: 3.5,
-	l: 5,
-	xl: 10,
-}
-
 /**
  * Get the relationships for an arrow that has two bound shape terminals.
  * If the arrow has only one bound shape, then it is always "safe" to apply

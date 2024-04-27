@@ -21,7 +21,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import { STYLES } from '../../../styles'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { kickoutOccludedShapes } from '../../../tools/SelectTool/selectHelpers'
 import { useUiEvents } from '../../context/events'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
@@ -32,6 +32,8 @@ import { TldrawUiButtonPicker } from '../primitives/TldrawUiButtonPicker'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
+
+const { STYLES } = tldrawConstants
 
 /** @public */
 export type TLUiStylePanelContentProps = {

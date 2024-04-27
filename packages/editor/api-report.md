@@ -85,12 +85,6 @@ import { whyAmIRunning } from '@tldraw/state';
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
 // @internal (undocumented)
-export const ANIMATION_MEDIUM_MS = 320;
-
-// @internal (undocumented)
-export const ANIMATION_SHORT_MS = 80;
-
-// @internal (undocumented)
 export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
     delta: number;
     editor: Editor;
@@ -308,9 +302,6 @@ export class Box {
 // @public (undocumented)
 export type BoxLike = Box | BoxModel;
 
-// @internal (undocumented)
-export const CAMERA_SLIDE_FRICTION = 0.09;
-
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
@@ -455,12 +446,6 @@ export const debugFlags: {
     readonly throwToBlob: DebugFlag<boolean>;
 };
 
-// @internal (undocumented)
-export const DEFAULT_ANIMATION_OPTIONS: {
-    duration: number;
-    easing: (t: number) => number;
-};
-
 // @public (undocumented)
 export function DefaultBackground(): JSX_2.Element;
 
@@ -523,12 +508,6 @@ export const defaultUserPreferences: Readonly<{
 
 // @public
 export function degreesToRadians(d: number): number;
-
-// @internal (undocumented)
-export const DOUBLE_CLICK_DURATION = 450;
-
-// @internal (undocumented)
-export const DRAG_DISTANCE = 16;
 
 // @public (undocumented)
 export const EASINGS: {
@@ -964,6 +943,83 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToSelection(animation?: TLAnimationOptions): this;
 }
 
+// @public (undocumented)
+export const editorConstants: {
+    readonly ANIMATION_MEDIUM_MS: 320;
+    readonly ANIMATION_SHORT_MS: 80;
+    readonly BOUND_ARROW_OFFSET: 10;
+    readonly CAMERA_MOVING_TIMEOUT: 64;
+    readonly CAMERA_SLIDE_FRICTION: 0.09;
+    readonly COARSE_DRAG_DISTANCE: 36;
+    readonly COARSE_HANDLE_RADIUS: 20;
+    readonly COARSE_POINTER_WIDTH: 12;
+    readonly COLLABORATOR_CHECK_INTERVAL: 1200;
+    readonly COLLABORATOR_IDLE_TIMEOUT: 3000;
+    readonly COLLABORATOR_INACTIVE_TIMEOUT: 60000;
+    readonly DEFAULT_ANIMATION_OPTIONS: {
+        readonly duration: 0;
+        readonly easing: (t: number) => number;
+    };
+    readonly DOUBLE_CLICK_DURATION: 450;
+    readonly DRAG_DISTANCE: 16;
+    readonly EDGE_SCROLL_DISTANCE: 8;
+    readonly EDGE_SCROLL_SPEED: 20;
+    readonly FOLLOW_CHASE_PAN_SNAP: 0.1;
+    readonly FOLLOW_CHASE_PAN_UNSNAP: 0.2;
+    readonly FOLLOW_CHASE_PROPORTION: 0.5;
+    readonly FOLLOW_CHASE_ZOOM_SNAP: 0.005;
+    readonly FOLLOW_CHASE_ZOOM_UNSNAP: 0.05;
+    readonly GRID_STEPS: readonly [{
+        readonly mid: 0.15;
+        readonly min: -1;
+        readonly step: 64;
+    }, {
+        readonly mid: 0.375;
+        readonly min: 0.05;
+        readonly step: 16;
+    }, {
+        readonly mid: 1;
+        readonly min: 0.15;
+        readonly step: 4;
+    }, {
+        readonly mid: 2.5;
+        readonly min: 0.7;
+        readonly step: 1;
+    }];
+    readonly HANDLE_RADIUS: 12;
+    readonly HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
+    readonly HIT_TEST_MARGIN: 8;
+    readonly INTERNAL_POINTER_IDS: {
+        readonly CAMERA_MOVE: -10;
+    };
+    readonly LONG_PRESS_DURATION: 500;
+    readonly MAX_CLICK_DISTANCE: 40;
+    readonly MAX_PAGES: 40;
+    readonly MAX_SHAPES_PER_PAGE: 2000;
+    readonly MAX_ZOOM: 8;
+    readonly MIN_ARROW_LENGTH: 10;
+    readonly MIN_ZOOM: 0.1;
+    readonly MULTI_CLICK_DURATION: 200;
+    readonly ROTATE_CORNER_TO_SELECTION_CORNER: {
+        readonly bottom_left_rotate: "bottom_left";
+        readonly bottom_right_rotate: "bottom_right";
+        readonly mobile_rotate: "top_left";
+        readonly top_left_rotate: "top_left";
+        readonly top_right_rotate: "top_right";
+    };
+    readonly SIDES: readonly ["top", "right", "bottom", "left"];
+    readonly STROKE_SIZES: {
+        readonly l: 5;
+        readonly m: 3.5;
+        readonly s: 2;
+        readonly xl: 10;
+    };
+    readonly SVG_PADDING: 32;
+    readonly TEXT_SHADOW_LOD: 0.35;
+    readonly WAY_TOO_BIG_ARROW_BEND_FACTOR: 10;
+    readonly ZOOMS: readonly [0.1, 0.25, 0.5, 1, 2, 4, 8];
+};
+
 // @internal (undocumented)
 export const EditorContext: React_2.Context<Editor>;
 
@@ -1136,13 +1192,6 @@ export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): strin
 export function getUserPreferences(): TLUserPreferences;
 
 // @public (undocumented)
-export const GRID_STEPS: {
-    mid: number;
-    min: number;
-    step: number;
-}[];
-
-// @public (undocumented)
 export class Group2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         children: Geometry2d[];
@@ -1210,9 +1259,6 @@ export function hardReset({ shouldReload }?: {
 // @public (undocumented)
 export function hardResetEditor(): void;
 
-// @internal (undocumented)
-export const HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
-
 // @public (undocumented)
 export class HistoryManager<R extends UnknownRecord> {
     constructor(opts: {
@@ -1261,9 +1307,6 @@ export class HistoryManager<R extends UnknownRecord> {
     // (undocumented)
     undo: () => this;
 }
-
-// @public (undocumented)
-export const HIT_TEST_MARGIN = 8;
 
 // @public (undocumented)
 export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX_2.Element;
@@ -1442,23 +1485,8 @@ export interface MatModel {
     f: number;
 }
 
-// @internal (undocumented)
-export const MAX_PAGES = 40;
-
-// @internal (undocumented)
-export const MAX_SHAPES_PER_PAGE = 2000;
-
-// @internal (undocumented)
-export const MAX_ZOOM = 8;
-
-// @internal (undocumented)
-export const MIN_ZOOM = 0.1;
-
 // @public
 export function moveCameraWhenCloseToEdge(editor: Editor): void;
-
-// @internal (undocumented)
-export const MULTI_CLICK_DURATION = 200;
 
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
@@ -1644,15 +1672,6 @@ export type ResizeBoxOptions = Partial<{
 }>;
 
 // @public (undocumented)
-export const ROTATE_CORNER_TO_SELECTION_CORNER: {
-    readonly bottom_left_rotate: "bottom_left";
-    readonly bottom_right_rotate: "bottom_right";
-    readonly mobile_rotate: "top_left";
-    readonly top_left_rotate: "top_left";
-    readonly top_right_rotate: "top_right";
-};
-
-// @public (undocumented)
 export type RotateCorner = 'bottom_left_rotate' | 'bottom_right_rotate' | 'mobile_rotate' | 'top_left_rotate' | 'top_right_rotate';
 
 // @public (undocumented)
@@ -1809,9 +1828,6 @@ export class SideEffectManager<CTX extends {
     }>): () => void;
 }
 
-// @public (undocumented)
-export const SIDES: readonly ["top", "right", "bottom", "left"];
-
 export { Signal }
 
 // @public (undocumented)
@@ -1943,9 +1959,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 // @public (undocumented)
 export const stopEventPropagation: (e: any) => any;
-
-// @internal (undocumented)
-export const SVG_PADDING = 32;
 
 // @public (undocumented)
 export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX_2.Element;
@@ -3066,9 +3079,6 @@ export class WeakMapCache<T extends object, K> {
 }
 
 export { whyAmIRunning }
-
-// @internal (undocumented)
-export const ZOOMS: number[];
 
 
 export * from "@tldraw/store";

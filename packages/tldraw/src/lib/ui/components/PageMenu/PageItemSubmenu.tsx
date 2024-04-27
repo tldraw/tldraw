@@ -1,5 +1,6 @@
-import { MAX_PAGES, PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
+import { PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -12,6 +13,9 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { onMovePage } from './edit-pages-shared'
+
+const { MAX_PAGES } = tldrawConstants
+
 /** @public */
 export interface PageItemSubmenuProps {
 	index: number

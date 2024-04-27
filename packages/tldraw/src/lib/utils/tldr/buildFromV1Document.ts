@@ -1,7 +1,6 @@
 import {
 	AssetRecordType,
 	Editor,
-	MAX_SHAPES_PER_PAGE,
 	PageRecordType,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
@@ -26,6 +25,9 @@ import {
 	clamp,
 	createShapeId,
 } from '@tldraw/editor'
+import { tldrawConstants } from '../../tldraw-constants'
+
+const { MAX_SHAPES_PER_PAGE } = tldrawConstants
 
 const TLDRAW_V1_VERSION = 15.5
 

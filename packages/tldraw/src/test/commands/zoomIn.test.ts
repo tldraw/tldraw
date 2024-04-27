@@ -1,5 +1,7 @@
-import { ZOOMS } from '@tldraw/editor'
+import { editorConstants } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
+
+const { ZOOMS } = editorConstants
 
 let editor: TestEditor
 

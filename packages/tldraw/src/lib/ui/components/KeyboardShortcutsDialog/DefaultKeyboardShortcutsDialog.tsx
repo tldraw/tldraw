@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { ReactNode, memo } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiDialogProps } from '../../context/dialogs'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -12,6 +12,8 @@ import {
 } from '../primitives/TldrawUiDialog'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultKeyboardShortcutsDialogContent } from './DefaultKeyboardShortcutsDialogContent'
+
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 /** @public */
 export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {

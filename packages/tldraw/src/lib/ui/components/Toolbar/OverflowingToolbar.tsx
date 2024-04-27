@@ -2,7 +2,7 @@ import { preventDefault, useEditor, useEvent, useSafeId } from '@tldraw/editor'
 import classNames from 'classnames'
 import hotkeys from 'hotkeys-js'
 import { createContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
 import { TLUiToolItem } from '../../hooks/useTools'
@@ -15,6 +15,8 @@ import {
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
+
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 export const IsInOverflowContext = createContext(false)
 

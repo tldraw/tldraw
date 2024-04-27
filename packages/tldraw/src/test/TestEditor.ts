@@ -6,7 +6,6 @@ import {
 	IdOf,
 	Mat,
 	PageRecordType,
-	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RequiredKeys,
 	RotateCorner,
 	SelectionHandle,
@@ -24,12 +23,15 @@ import {
 	VecLike,
 	createShapeId,
 	createTLStore,
+	editorConstants,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
 import { shapesFromJsx } from './test-jsx'
+
+const { ROTATE_CORNER_TO_SELECTION_CORNER } = editorConstants
 
 jest.useFakeTimers()
 

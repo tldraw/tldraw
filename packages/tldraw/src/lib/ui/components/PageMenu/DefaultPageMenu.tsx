@@ -1,5 +1,4 @@
 import {
-	MAX_PAGES,
 	PageRecordType,
 	TLPageId,
 	releasePointerCapture,
@@ -8,7 +7,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
@@ -25,6 +24,8 @@ import {
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 import { onMovePage } from './edit-pages-shared'
+
+const { MAX_PAGES, PORTRAIT_BREAKPOINT } = tldrawConstants
 
 /** @public */
 export const DefaultPageMenu = memo(function DefaultPageMenu() {

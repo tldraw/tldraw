@@ -1,5 +1,7 @@
-import { MAX_PAGES, PageRecordType } from '@tldraw/editor'
+import { editorConstants, PageRecordType } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
+
+const { MAX_PAGES } = editorConstants
 
 let editor: TestEditor
 

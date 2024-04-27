@@ -27,16 +27,11 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
-import {
-	FONT_FAMILIES,
-	LABEL_FONT_SIZES,
-	LABEL_PADDING,
-	TEXT_PROPS,
-} from '../shared/default-shape-constants'
+
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
+import { tldrawConstants } from '../../tldraw-constants'
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-import { ADJACENT_SHAPE_MARGIN } from '../../ui/constants'
 import { useForceSolid } from '../shared/useForceSolid'
 import {
 	CLONE_HANDLE_MARGIN,
@@ -44,6 +39,9 @@ import {
 	NOTE_SIZE,
 	getNoteShapeForAdjacentPosition,
 } from './noteHelpers'
+
+const { ADJACENT_SHAPE_MARGIN, FONT_FAMILIES, LABEL_FONT_SIZES, LABEL_PADDING, TEXT_PROPS } =
+	tldrawConstants
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {

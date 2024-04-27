@@ -1,5 +1,6 @@
 import { modulate } from '@tldraw/utils'
-import { GRID_STEPS } from '../../constants'
+import { editorConstants } from '../../editor-constants'
+const { GRID_STEPS } = editorConstants
 
 /** @public */
 export type TLGridProps = {

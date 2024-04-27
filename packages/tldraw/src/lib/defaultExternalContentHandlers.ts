@@ -19,12 +19,13 @@ import {
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
+import { tldrawConstants } from './tldraw-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize, downsizeImage, isGifAnimated } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
+const { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } = tldrawConstants
 
 /** @public */
 export type TLExternalContentProps = {

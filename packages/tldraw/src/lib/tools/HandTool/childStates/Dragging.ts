@@ -1,4 +1,6 @@
-import { CAMERA_SLIDE_FRICTION, StateNode, TLEventHandlers, Vec } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, Vec } from '@tldraw/editor'
+import { tldrawConstants } from '../../../tldraw-constants'
+const { CAMERA_SLIDE_FRICTION } = tldrawConstants
 
 export class Dragging extends StateNode {
 	static override id = 'dragging'

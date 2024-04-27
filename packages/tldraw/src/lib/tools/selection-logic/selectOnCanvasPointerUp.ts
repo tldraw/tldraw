@@ -1,4 +1,6 @@
-import { Editor, HIT_TEST_MARGIN, TLShape, isShapeId } from '@tldraw/editor'
+import { Editor, TLShape, isShapeId } from '@tldraw/editor'
+import { tldrawConstants } from '../../tldraw-constants'
+const { HIT_TEST_MARGIN } = tldrawConstants
 
 export function selectOnCanvasPointerUp(editor: Editor) {
 	const selectedShapeIds = editor.getSelectedShapeIds()

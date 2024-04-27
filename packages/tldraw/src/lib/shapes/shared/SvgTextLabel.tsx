@@ -6,10 +6,11 @@ import {
 	TLDefaultVerticalAlignStyle,
 	useEditor,
 } from '@tldraw/editor'
+import { tldrawConstants } from '../../tldraw-constants'
 import { useDefaultColorTheme } from './ShapeFill'
 import { createTextJsxFromSpans } from './createTextJsxFromSpans'
-import { TEXT_PROPS } from './default-shape-constants'
 import { getLegacyOffsetX } from './legacyProps'
+const { TEXT_PROPS } = tldrawConstants
 
 export function SvgTextLabel({
 	fontSize,

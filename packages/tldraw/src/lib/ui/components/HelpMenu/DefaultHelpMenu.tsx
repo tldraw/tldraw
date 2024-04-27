@@ -1,5 +1,5 @@
 import { ReactNode, memo } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -11,6 +11,8 @@ import {
 } from '../primitives/TldrawUiDropdownMenu'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultHelpMenuContent } from './DefaultHelpMenuContent'
+
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 /** @public */
 export type TLUiHelpMenuProps = {

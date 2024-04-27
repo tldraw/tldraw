@@ -4,14 +4,11 @@ import {
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
 	DefaultVerticalAlignStyle,
-	FONT_FAMILIES,
 	Geometry2d,
-	LABEL_FONT_SIZES,
 	Polygon2d,
 	ShapePropsType,
 	ShapeUtil,
 	T,
-	TEXT_PROPS,
 	TLBaseShape,
 	TLHandle,
 	TLOnBeforeUpdateHandler,
@@ -22,10 +19,12 @@ import {
 	ZERO_INDEX_KEY,
 	resizeBox,
 	structuredClone,
+	tldrawConstants,
 	useDefaultColorTheme,
 	vecModelValidator,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
+const { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } = tldrawConstants
 
 // Copied from tldraw/tldraw
 export const STROKE_SIZES = {

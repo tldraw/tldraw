@@ -1,6 +1,8 @@
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { kbd } from '../../kbd-utils'
+
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 /** @public */
 export interface TLUiKbdProps {

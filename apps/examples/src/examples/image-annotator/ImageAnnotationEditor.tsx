@@ -3,7 +3,6 @@ import {
 	AssetRecordType,
 	Box,
 	Editor,
-	PORTRAIT_BREAKPOINT,
 	SVGContainer,
 	TLImageShape,
 	TLShapeId,
@@ -13,11 +12,13 @@ import {
 	exportToBlob,
 	getIndexBelow,
 	react,
+	tldrawConstants,
 	track,
 	useBreakpoint,
 	useEditor,
 } from 'tldraw'
 import { AnnotatorImage } from './types'
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 // TODO:
 // - prevent changing pages (create page, change page, move shapes to new page)

@@ -1,4 +1,4 @@
-import { COARSE_POINTER_WIDTH, EDGE_SCROLL_DISTANCE, EDGE_SCROLL_SPEED } from '../constants'
+import { editorConstants } from '../editor-constants'
 import { Editor } from '../editor/Editor'
 
 /**
@@ -14,8 +14,8 @@ function getEdgeProximityFactor(
 	insetStart: boolean,
 	insetEnd: boolean
 ) {
-	const dist = EDGE_SCROLL_DISTANCE
-	const pw = isCoarse ? COARSE_POINTER_WIDTH : 0 // pointer width
+	const dist = editorConstants.EDGE_SCROLL_DISTANCE
+	const pw = isCoarse ? editorConstants.COARSE_POINTER_WIDTH : 0 // pointer width
 	const pMin = position - pw
 	const pMax = position + pw
 	const min = insetStart ? 0 : dist
@@ -62,7 +62,7 @@ export function moveCameraWhenCloseToEdge(editor: Editor) {
 	if (proximityFactorX === 0 && proximityFactorY === 0) return
 
 	// Determines the base speed of the scroll
-	const pxSpeed = editor.user.getEdgeScrollSpeed() * EDGE_SCROLL_SPEED
+	const pxSpeed = editor.user.getEdgeScrollSpeed() * editorConstants.EDGE_SCROLL_SPEED
 	const scrollDeltaX = (pxSpeed * proximityFactorX * screenSizeFactorX) / zoomLevel
 	const scrollDeltaY = (pxSpeed * proximityFactorY * screenSizeFactorY) / zoomLevel
 

@@ -1,6 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { ReactNode, memo } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -13,6 +13,8 @@ import {
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
+
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 /** @public */
 export type TLUiActionsMenuProps = {

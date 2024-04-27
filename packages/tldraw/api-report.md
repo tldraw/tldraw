@@ -414,7 +414,7 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
+export const defaultShapeTools: (typeof ArrowShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof HighlightShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
@@ -460,7 +460,7 @@ export function downsizeImage(blob: Blob, width: number, height: number, opts?: 
 // @public (undocumented)
 export class DrawShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_2)[];
+    static children: () => (typeof Drawing | typeof Idle_3)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -623,9 +623,6 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
 export function FitFrameToContentMenuItem(): JSX_2.Element | null;
 
 // @public (undocumented)
-export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
-
-// @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static id: string;
@@ -683,7 +680,7 @@ export function FrameToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_3 | typeof Pointing_2)[];
+    static children: () => (typeof Idle_2 | typeof Pointing_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -893,7 +890,7 @@ export function HexagonToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class HighlightShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_2)[];
+    static children: () => (typeof Drawing | typeof Idle_3)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -992,9 +989,6 @@ export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
 
 // @internal (undocumented)
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): void;
-
-// @public (undocumented)
-export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export function LanguageMenu(): JSX_2.Element;
@@ -1235,26 +1229,6 @@ export function parseTldrawJsonFile({ json, schema, }: {
 export function PasteMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
-export enum PORTRAIT_BREAKPOINT {
-    // (undocumented)
-    DESKTOP = 7,
-    // (undocumented)
-    MOBILE = 4,
-    // (undocumented)
-    MOBILE_SM = 3,
-    // (undocumented)
-    MOBILE_XS = 2,
-    // (undocumented)
-    MOBILE_XXS = 1,
-    // (undocumented)
-    TABLET = 6,
-    // (undocumented)
-    TABLET_SM = 5,
-    // (undocumented)
-    ZERO = 0
-}
-
-// @public (undocumented)
 export function PreferencesGroup(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1331,15 +1305,6 @@ export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
-
-// @public (undocumented)
-export const TEXT_PROPS: {
-    fontStyle: string;
-    fontVariant: string;
-    fontWeight: string;
-    lineHeight: number;
-    padding: string;
-};
 
 // @public (undocumented)
 export const TextLabel: React_2.NamedExoticComponent<TextLabelProps>;
@@ -1479,6 +1444,339 @@ export function Tldraw(props: TldrawProps): JSX_2.Element;
 
 // @public (undocumented)
 export const TLDRAW_FILE_EXTENSION: ".tldr";
+
+// @public (undocumented)
+export const tldrawConstants: {
+    ADJACENT_SHAPE_MARGIN: number;
+    ANIMATION_MEDIUM_MS: 320;
+    ANIMATION_SHORT_MS: 80;
+    ARROW_LABEL_FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
+    ARROW_LABEL_PADDING: number;
+    BOUND_ARROW_OFFSET: 10;
+    CAMERA_MOVING_TIMEOUT: 64;
+    CAMERA_SLIDE_FRICTION: 0.09;
+    COARSE_DRAG_DISTANCE: 36;
+    COARSE_HANDLE_RADIUS: 20;
+    COARSE_POINTER_WIDTH: 12;
+    COLLABORATOR_CHECK_INTERVAL: 1200;
+    COLLABORATOR_IDLE_TIMEOUT: 3000;
+    COLLABORATOR_INACTIVE_TIMEOUT: 60000;
+    DEFAULT_ANIMATION_OPTIONS: {
+        readonly duration: 0;
+        readonly easing: (t: number) => number;
+    };
+    DOUBLE_CLICK_DURATION: 450;
+    DRAG_DISTANCE: 16;
+    EDGE_SCROLL_DISTANCE: 8;
+    EDGE_SCROLL_SPEED: 20;
+    FOLLOW_CHASE_PAN_SNAP: 0.1;
+    FOLLOW_CHASE_PAN_UNSNAP: 0.2;
+    FOLLOW_CHASE_PROPORTION: 0.5;
+    FOLLOW_CHASE_ZOOM_SNAP: 0.005;
+    FOLLOW_CHASE_ZOOM_UNSNAP: 0.05;
+    FONT_FAMILIES: {
+        draw: string;
+        mono: string;
+        sans: string;
+        serif: string;
+    };
+    FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
+    GRID_STEPS: readonly [{
+        readonly mid: 0.15;
+        readonly min: -1;
+        readonly step: 64;
+    }, {
+        readonly mid: 0.375;
+        readonly min: 0.05;
+        readonly step: 16;
+    }, {
+        readonly mid: 1;
+        readonly min: 0.15;
+        readonly step: 4;
+    }, {
+        readonly mid: 2.5;
+        readonly min: 0.7;
+        readonly step: 1;
+    }];
+    HANDLE_RADIUS: 12;
+    HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
+    HIT_TEST_MARGIN: 8;
+    INTERNAL_POINTER_IDS: {
+        readonly CAMERA_MOVE: -10;
+    };
+    LABEL_FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
+    LABEL_PADDING: number;
+    LABEL_TO_ARROW_PADDING: number;
+    LONG_PRESS_DURATION: 500;
+    MAX_CLICK_DISTANCE: 40;
+    MAX_PAGES: 40;
+    MAX_SHAPES_PER_PAGE: 2000;
+    MAX_ZOOM: 8;
+    MIN_ARROW_LENGTH: 10;
+    MIN_CROP_SIZE: number;
+    MIN_END_PRESSURE: number;
+    MIN_GEO_SIZE_WITH_LABEL: number;
+    MIN_START_PRESSURE: number;
+    MIN_ZOOM: 0.1;
+    MULTI_CLICK_DURATION: 200;
+    PORTRAIT_BREAKPOINT: {
+        DESKTOP: number;
+        MOBILE_SM: number;
+        MOBILE_XS: number;
+        MOBILE_XXS: number;
+        MOBILE: number;
+        TABLET_SM: number;
+        TABLET: number;
+        ZERO: number;
+    };
+    PORTRAIT_BREAKPOINTS: number[];
+    ROTATE_CORNER_TO_SELECTION_CORNER: {
+        readonly bottom_left_rotate: "bottom_left";
+        readonly bottom_right_rotate: "bottom_right";
+        readonly mobile_rotate: "top_left";
+        readonly top_left_rotate: "top_left";
+        readonly top_right_rotate: "top_right";
+    };
+    SIDES: readonly ["top", "right", "bottom", "left"];
+    STROKE_SIZES: Record<"l" | "m" | "s" | "xl", number>;
+    STYLES: {
+        readonly arrowheadEnd: readonly [{
+            readonly icon: "arrowhead-none";
+            readonly value: "none";
+        }, {
+            readonly icon: "arrowhead-arrow";
+            readonly value: "arrow";
+        }, {
+            readonly icon: "arrowhead-triangle";
+            readonly value: "triangle";
+        }, {
+            readonly icon: "arrowhead-square";
+            readonly value: "square";
+        }, {
+            readonly icon: "arrowhead-dot";
+            readonly value: "dot";
+        }, {
+            readonly icon: "arrowhead-diamond";
+            readonly value: "diamond";
+        }, {
+            readonly icon: "arrowhead-triangle-inverted";
+            readonly value: "inverted";
+        }, {
+            readonly icon: "arrowhead-bar";
+            readonly value: "bar";
+        }];
+        readonly arrowheadStart: readonly [{
+            readonly icon: "arrowhead-none";
+            readonly value: "none";
+        }, {
+            readonly icon: "arrowhead-arrow";
+            readonly value: "arrow";
+        }, {
+            readonly icon: "arrowhead-triangle";
+            readonly value: "triangle";
+        }, {
+            readonly icon: "arrowhead-square";
+            readonly value: "square";
+        }, {
+            readonly icon: "arrowhead-dot";
+            readonly value: "dot";
+        }, {
+            readonly icon: "arrowhead-diamond";
+            readonly value: "diamond";
+        }, {
+            readonly icon: "arrowhead-triangle-inverted";
+            readonly value: "inverted";
+        }, {
+            readonly icon: "arrowhead-bar";
+            readonly value: "bar";
+        }];
+        readonly color: readonly [{
+            readonly icon: "color";
+            readonly value: "black";
+        }, {
+            readonly icon: "color";
+            readonly value: "grey";
+        }, {
+            readonly icon: "color";
+            readonly value: "light-violet";
+        }, {
+            readonly icon: "color";
+            readonly value: "violet";
+        }, {
+            readonly icon: "color";
+            readonly value: "blue";
+        }, {
+            readonly icon: "color";
+            readonly value: "light-blue";
+        }, {
+            readonly icon: "color";
+            readonly value: "yellow";
+        }, {
+            readonly icon: "color";
+            readonly value: "orange";
+        }, {
+            readonly icon: "color";
+            readonly value: "green";
+        }, {
+            readonly icon: "color";
+            readonly value: "light-green";
+        }, {
+            readonly icon: "color";
+            readonly value: "light-red";
+        }, {
+            readonly icon: "color";
+            readonly value: "red";
+        }];
+        readonly dash: readonly [{
+            readonly icon: "dash-draw";
+            readonly value: "draw";
+        }, {
+            readonly icon: "dash-dashed";
+            readonly value: "dashed";
+        }, {
+            readonly icon: "dash-dotted";
+            readonly value: "dotted";
+        }, {
+            readonly icon: "dash-solid";
+            readonly value: "solid";
+        }];
+        readonly fill: readonly [{
+            readonly icon: "fill-none";
+            readonly value: "none";
+        }, {
+            readonly icon: "fill-semi";
+            readonly value: "semi";
+        }, {
+            readonly icon: "fill-solid";
+            readonly value: "solid";
+        }, {
+            readonly icon: "fill-pattern";
+            readonly value: "pattern";
+        }];
+        readonly font: readonly [{
+            readonly icon: "font-draw";
+            readonly value: "draw";
+        }, {
+            readonly icon: "font-sans";
+            readonly value: "sans";
+        }, {
+            readonly icon: "font-serif";
+            readonly value: "serif";
+        }, {
+            readonly icon: "font-mono";
+            readonly value: "mono";
+        }];
+        readonly geo: readonly [{
+            readonly icon: "geo-rectangle";
+            readonly value: "rectangle";
+        }, {
+            readonly icon: "geo-ellipse";
+            readonly value: "ellipse";
+        }, {
+            readonly icon: "geo-cloud";
+            readonly value: "cloud";
+        }, {
+            readonly icon: "geo-triangle";
+            readonly value: "triangle";
+        }, {
+            readonly icon: "geo-diamond";
+            readonly value: "diamond";
+        }, {
+            readonly icon: "geo-pentagon";
+            readonly value: "pentagon";
+        }, {
+            readonly icon: "geo-hexagon";
+            readonly value: "hexagon";
+        }, {
+            readonly icon: "geo-octagon";
+            readonly value: "octagon";
+        }, {
+            readonly icon: "geo-star";
+            readonly value: "star";
+        }, {
+            readonly icon: "geo-rhombus";
+            readonly value: "rhombus";
+        }, {
+            readonly icon: "geo-rhombus-2";
+            readonly value: "rhombus-2";
+        }, {
+            readonly icon: "geo-oval";
+            readonly value: "oval";
+        }, {
+            readonly icon: "geo-trapezoid";
+            readonly value: "trapezoid";
+        }, {
+            readonly icon: "geo-arrow-right";
+            readonly value: "arrow-right";
+        }, {
+            readonly icon: "geo-arrow-left";
+            readonly value: "arrow-left";
+        }, {
+            readonly icon: "geo-arrow-up";
+            readonly value: "arrow-up";
+        }, {
+            readonly icon: "geo-arrow-down";
+            readonly value: "arrow-down";
+        }, {
+            readonly icon: "geo-x-box";
+            readonly value: "x-box";
+        }, {
+            readonly icon: "geo-check-box";
+            readonly value: "check-box";
+        }];
+        readonly horizontalAlign: readonly [{
+            readonly icon: "text-align-left";
+            readonly value: "start";
+        }, {
+            readonly icon: "text-align-center";
+            readonly value: "middle";
+        }, {
+            readonly icon: "text-align-right";
+            readonly value: "end";
+        }];
+        readonly size: readonly [{
+            readonly icon: "size-small";
+            readonly value: "s";
+        }, {
+            readonly icon: "size-medium";
+            readonly value: "m";
+        }, {
+            readonly icon: "size-large";
+            readonly value: "l";
+        }, {
+            readonly icon: "size-extra-large";
+            readonly value: "xl";
+        }];
+        readonly spline: readonly [{
+            readonly icon: "spline-line";
+            readonly value: "line";
+        }, {
+            readonly icon: "spline-cubic";
+            readonly value: "cubic";
+        }];
+        readonly verticalAlign: readonly [{
+            readonly icon: "vertical-align-start";
+            readonly value: "start";
+        }, {
+            readonly icon: "vertical-align-center";
+            readonly value: "middle";
+        }, {
+            readonly icon: "vertical-align-end";
+            readonly value: "end";
+        }];
+    };
+    SVG_PADDING: 32;
+    TEXT_PROPS: {
+        fontStyle: string;
+        fontVariant: string;
+        fontWeight: string;
+        lineHeight: number;
+        padding: string;
+    };
+    TEXT_SHADOW_LOD: 0.35;
+    WAY_TOO_BIG_ARROW_BEND_FACTOR: 10;
+    ZOOMS: readonly [0.1, 0.25, 0.5, 1, 2, 4, 8];
+};
 
 // @public (undocumented)
 export interface TldrawFile {

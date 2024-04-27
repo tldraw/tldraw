@@ -1,5 +1,4 @@
 import {
-	HIT_TEST_MARGIN,
 	StateNode,
 	TLEventHandlers,
 	TLFrameShape,
@@ -8,6 +7,8 @@ import {
 	TLShapeId,
 	pointInPolygon,
 } from '@tldraw/editor'
+import { tldrawConstants } from '../../../tldraw-constants'
+const { HIT_TEST_MARGIN } = tldrawConstants
 
 export class Erasing extends StateNode {
 	static override id = 'erasing'

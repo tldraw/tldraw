@@ -6,10 +6,11 @@ import {
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
 import { Fragment, ReactElement } from 'react'
-import { SVG_PADDING } from '../constants'
+import { editorConstants } from '../editor-constants'
 import { Editor } from './Editor'
 import { SvgExportContext, SvgExportContextProvider, SvgExportDef } from './types/SvgExportContext'
 import { TLSvgOptions } from './types/misc-types'
+const { SVG_PADDING } = editorConstants
 
 export async function getSvgJsx(
 	editor: Editor,

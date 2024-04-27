@@ -2,7 +2,7 @@ import { Vec } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
-import { getVerticesCountForLength } from './geometry-constants'
+import { getVerticesCountForLength } from './getVerticesCountForLength'
 
 /** @public */
 export class Arc2d extends Geometry2d {

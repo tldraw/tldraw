@@ -1,5 +1,4 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	Box,
 	TLPointerEventInfo,
 	Vec,
@@ -12,7 +11,10 @@ import {
 	useIsDarkMode,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { MinimapManager } from './MinimapManager'
+
+const { ANIMATION_MEDIUM_MS } = tldrawConstants
 
 /** @public */
 export function DefaultMinimap() {

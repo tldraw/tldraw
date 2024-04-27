@@ -1,5 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import {
@@ -10,6 +10,8 @@ import {
 	useUnlockedSelectedShapesCount,
 } from '../../hooks/menu-hooks'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 /** @public */
 export function DefaultActionsMenuContent() {

@@ -19,8 +19,8 @@ import {
 	sortByIndex,
 } from '@tldraw/editor'
 
+import { tldrawConstants } from '../../tldraw-constants'
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
-import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getDrawLinePathData } from '../shared/polygon-helpers'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
@@ -29,6 +29,8 @@ import {
 	getSvgPathForEdge,
 	getSvgPathForLineGeometry,
 } from './components/svg'
+
+const { STROKE_SIZES } = tldrawConstants
 
 const handlesCache = new WeakMapCache<TLLineShape['props'], TLHandle[]>()
 

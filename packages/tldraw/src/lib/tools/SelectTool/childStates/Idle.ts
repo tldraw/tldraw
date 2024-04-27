@@ -1,7 +1,6 @@
 import {
 	Editor,
 	Group2d,
-	HIT_TEST_MARGIN,
 	StateNode,
 	TLArrowShape,
 	TLClickEventInfo,
@@ -16,11 +15,13 @@ import {
 	debugFlags,
 	pointInPolygon,
 } from '@tldraw/editor'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 import { kickoutOccludedShapes, startEditingShapeWithLabel } from '../selectHelpers'
+const { HIT_TEST_MARGIN } = tldrawConstants
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',

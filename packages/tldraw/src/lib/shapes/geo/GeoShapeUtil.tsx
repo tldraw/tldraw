@@ -27,17 +27,11 @@ import {
 	getPolygonVertices,
 } from '@tldraw/editor'
 
+import { tldrawConstants } from '../../tldraw-constants'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
-import {
-	FONT_FAMILIES,
-	LABEL_FONT_SIZES,
-	LABEL_PADDING,
-	STROKE_SIZES,
-	TEXT_PROPS,
-} from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
 	getFillDefForExport,
@@ -50,7 +44,14 @@ import { GeoShapeBody } from './components/GeoShapeBody'
 import { getOvalIndicatorPath } from './components/SolidStyleOval'
 import { getLines } from './getLines'
 
-const MIN_SIZE_WITH_LABEL = 17 * 3
+const {
+	MIN_GEO_SIZE_WITH_LABEL,
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	LABEL_PADDING,
+	STROKE_SIZES,
+	TEXT_PROPS,
+} = tldrawConstants
 
 /** @public */
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
@@ -526,15 +527,15 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		let overShrinkY = 0
 
 		if (shape.props.text.trim()) {
-			let newW = Math.max(Math.abs(w), MIN_SIZE_WITH_LABEL)
-			let newH = Math.max(Math.abs(h), MIN_SIZE_WITH_LABEL)
+			let newW = Math.max(Math.abs(w), MIN_GEO_SIZE_WITH_LABEL)
+			let newH = Math.max(Math.abs(h), MIN_GEO_SIZE_WITH_LABEL)
 
-			if (newW < MIN_SIZE_WITH_LABEL && newH === MIN_SIZE_WITH_LABEL) {
-				newW = MIN_SIZE_WITH_LABEL
+			if (newW < MIN_GEO_SIZE_WITH_LABEL && newH === MIN_GEO_SIZE_WITH_LABEL) {
+				newW = MIN_GEO_SIZE_WITH_LABEL
 			}
 
-			if (newW === MIN_SIZE_WITH_LABEL && newH < MIN_SIZE_WITH_LABEL) {
-				newH = MIN_SIZE_WITH_LABEL
+			if (newW === MIN_GEO_SIZE_WITH_LABEL && newH < MIN_GEO_SIZE_WITH_LABEL) {
+				newH = MIN_GEO_SIZE_WITH_LABEL
 			}
 
 			const labelSize = getLabelSize(this.editor, {
@@ -665,9 +666,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			let h = Math.max(prevHeight, nextHeight)
 
 			// If both the width and height were less than the minimum size, make the shape square
-			if (prev.props.w < MIN_SIZE_WITH_LABEL && prev.props.h < MIN_SIZE_WITH_LABEL) {
-				w = Math.max(w, MIN_SIZE_WITH_LABEL)
-				h = Math.max(h, MIN_SIZE_WITH_LABEL)
+			if (prev.props.w < MIN_GEO_SIZE_WITH_LABEL && prev.props.h < MIN_GEO_SIZE_WITH_LABEL) {
+				w = Math.max(w, MIN_GEO_SIZE_WITH_LABEL)
+				h = Math.max(h, MIN_GEO_SIZE_WITH_LABEL)
 				w = Math.max(w, h)
 				h = Math.max(w, h)
 			}

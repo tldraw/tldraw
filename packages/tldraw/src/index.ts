@@ -46,11 +46,11 @@ export { getOccludedChildren, kickoutOccludedShapes } from './lib/tools/SelectTo
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 // UI
 export { useEditableText } from './lib/shapes/shared/useEditableText'
+export { tldrawConstants } from './lib/tldraw-constants'
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
-export { PORTRAIT_BREAKPOINT } from './lib/ui/constants'
 export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
@@ -433,11 +433,3 @@ export {
 	TldrawUiMenuSubmenu,
 	type TLUiMenuSubmenuProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
-
-/* ----------------- Constants ---------------- */
-
-export {
-	FONT_FAMILIES,
-	LABEL_FONT_SIZES,
-	TEXT_PROPS,
-} from './lib/shapes/shared/default-shape-constants'

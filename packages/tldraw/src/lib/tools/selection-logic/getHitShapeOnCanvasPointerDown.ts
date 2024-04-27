@@ -1,4 +1,6 @@
-import { Editor, HIT_TEST_MARGIN, TLShape } from '@tldraw/editor'
+import { Editor, TLShape } from '@tldraw/editor'
+import { tldrawConstants } from '../../tldraw-constants'
+const { HIT_TEST_MARGIN } = tldrawConstants
 
 export function getHitShapeOnCanvasPointerDown(
 	editor: Editor,

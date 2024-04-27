@@ -1,5 +1,4 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	Editor,
 	Geometry2d,
 	Mat,
@@ -11,6 +10,8 @@ import {
 	polygonIntersectsPolyline,
 	polygonsIntersect,
 } from '@tldraw/editor'
+import { tldrawConstants } from '../../tldraw-constants'
+const { ANIMATION_MEDIUM_MS } = tldrawConstants
 
 /** @internal */
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {

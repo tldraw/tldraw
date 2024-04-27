@@ -20,13 +20,15 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { tldrawConstants } from '../../tldraw-constants'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextHelpers } from '../shared/TextHelpers'
 import { TextLabel } from '../shared/TextLabel'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
+
+const { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } = tldrawConstants
 
 const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width: number }>()
 

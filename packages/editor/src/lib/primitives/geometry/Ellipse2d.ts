@@ -3,7 +3,7 @@ import { Vec } from '../Vec'
 import { PI, PI2 } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
-import { getVerticesCountForLength } from './geometry-constants'
+import { getVerticesCountForLength } from './getVerticesCountForLength'
 
 /** @public */
 export class Ellipse2d extends Geometry2d {

@@ -1,5 +1,5 @@
 import { Group2d, TLGeoShape, useEditor } from '@tldraw/editor'
-import { STROKE_SIZES } from '../../shared/default-shape-constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { getLines } from '../getLines'
 import { DashStyleCloud } from './DashStyleCloud'
 import { DashStyleEllipse } from './DashStyleEllipse'
@@ -11,6 +11,8 @@ import { SolidStyleCloud } from './SolidStyleCloud'
 import { SolidStyleEllipse } from './SolidStyleEllipse'
 import { SolidStyleOval } from './SolidStyleOval'
 import { SolidStylePolygon } from './SolidStylePolygon'
+
+const { STROKE_SIZES } = tldrawConstants
 
 export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 	const editor = useEditor()

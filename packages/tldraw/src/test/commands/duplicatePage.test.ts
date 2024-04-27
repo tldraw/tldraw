@@ -1,5 +1,7 @@
-import { MAX_PAGES, createShapeId } from '@tldraw/editor'
+import { createShapeId, editorConstants } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
+
+const { MAX_PAGES } = editorConstants
 
 let editor: TestEditor
 

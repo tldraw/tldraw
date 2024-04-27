@@ -1,10 +1,12 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+
+const { PORTRAIT_BREAKPOINT } = tldrawConstants
 
 interface ToggleToolLockedButtonProps {
 	activeToolId?: string
