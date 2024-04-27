@@ -51,9 +51,11 @@ export const textShapeMigrations = createShapePropsMigrationSequence({
 			id: Versions.AddTextAlign,
 			up: (props) => {
 				props.textAlign = props.align
+				delete props.align
 			},
 			down: (props) => {
 				props.align = props.textAlign
+				delete props.textAlign
 			},
 		},
 	],
