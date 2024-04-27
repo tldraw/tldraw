@@ -1,4 +1,10 @@
-import { TLSyncClient, schema } from '@tldraw/tlsync'
+import {
+	TLCloseEventCode,
+	TLIncompatibilityReason,
+	TLPersistentClientSocketStatus,
+	TLSyncClient,
+	schema,
+} from '@tldraw/tlsync'
 import { useEffect, useState } from 'react'
 import {
 	TAB_ID,
@@ -53,6 +59,16 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 			withParams.searchParams.set('sessionKey', TAB_ID)
 			withParams.searchParams.set('storeId', store.id)
 			return withParams.toString()
+		})
+
+		socket.onStatusChange((val: TLPersistentClientSocketStatus, closeCode?: number) => {
+			if (val === 'error' && closeCode === TLCloseEventCode.NOT_FOUND) {
+				trackAnalyticsEvent(MULTIPLAYER_EVENT_NAME, { name: 'room-not-found', roomId })
+				setState({ error: new RemoteSyncError(TLIncompatibilityReason.RoomNotFound) })
+				client.close()
+				socket.close()
+				return
+			}
 		})
 
 		let didCancel = false

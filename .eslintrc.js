@@ -46,12 +46,12 @@ module.exports = {
 		'react-hooks/rules-of-hooks': 'error',
 		'react-hooks/exhaustive-deps': 'error',
 		'import/no-extraneous-dependencies': 'error',
-		'import/no-internal-modules': ['error', { forbid: ['@tldraw/*/**', 'tldraw/**'] }],
 		'@typescript-eslint/consistent-type-exports': [
 			'error',
 			{ fixMixedExportsWithInlineTypeSpecifier: true },
 		],
 		'local/no-export-star': 'error',
+		'local/no-internal-imports': 'error',
 		'no-only-tests/no-only-tests': 'error',
 		'no-restricted-syntax': [
 			'error',
@@ -99,7 +99,6 @@ module.exports = {
 		{
 			files: ['apps/examples/**/*'],
 			rules: {
-				'import/no-internal-modules': 'off',
 				'no-restricted-syntax': 'off',
 			},
 		},

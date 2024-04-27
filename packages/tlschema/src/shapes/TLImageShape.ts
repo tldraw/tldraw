@@ -40,7 +40,7 @@ const Versions = createShapePropsMigrationIds('image', {
 
 export { Versions as imageShapeVersions }
 
-/** @internal */
+/** @public */
 export const imageShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{

@@ -23,10 +23,10 @@ export interface TLPage extends BaseRecord<'page', TLPageId> {
 /** @public */
 export type TLPageId = RecordId<TLPage>
 
-/** @internal */
+/** @public */
 export const pageIdValidator = idValidator<TLPageId>('page')
 
-/** @internal */
+/** @public */
 export const pageValidator: T.Validator<TLPage> = T.model(
 	'page',
 	T.object({
@@ -38,12 +38,12 @@ export const pageValidator: T.Validator<TLPage> = T.model(
 	})
 )
 
-/** @internal */
+/** @public */
 export const pageVersions = createMigrationIds('com.tldraw.page', {
 	AddMeta: 1,
 })
 
-/** @internal */
+/** @public */
 export const pageMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.page',
 	recordType: 'page',

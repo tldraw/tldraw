@@ -183,6 +183,7 @@ a {
 	font-weight: 500;
 	color: var(--text-color-2);
 	padding: 12px 4px;
+	text-decoration: underline;
 }
 
 /* ------------------ Board history ----------------- */

@@ -7,8 +7,8 @@ export type TLGroupShapeProps = { [key in never]: undefined }
 /** @public */
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>
 
-/** @internal */
+/** @public */
 export const groupShapeProps: ShapeProps<TLGroupShape> = {}
 
-/** @internal */
+/** @public */
 export const groupShapeMigrations = createShapePropsMigrationSequence({ sequence: [] })

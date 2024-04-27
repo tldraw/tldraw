@@ -61,10 +61,7 @@ export class Resizing extends StateNode {
 		if (isCreating) {
 			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
 
-			this.editor.updateInstanceState(
-				{ cursor: { type: 'cross', rotation: 0 } },
-				{ ephemeral: true }
-			)
+			this.editor.setCursor({ type: 'cross', rotation: 0 })
 		} else {
 			this.markId = 'starting resizing'
 			this.editor.mark(this.markId)
@@ -407,10 +404,7 @@ export class Resizing extends StateNode {
 
 	override onExit = () => {
 		this.parent.setCurrentToolIdMask(undefined)
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
 	}
 

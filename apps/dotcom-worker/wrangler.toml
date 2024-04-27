@@ -114,3 +114,36 @@ bucket_name = "rooms-history-ephemeral-preview"
 [[env.production.r2_buckets]]
 binding = "ROOMS_HISTORY_EPHEMERAL"
 bucket_name = "rooms-history-ephemeral"
+
+#################### Key value storage ####################
+[[env.dev.kv_namespaces]]
+binding = "SLUG_TO_READONLY_SLUG"
+id = "847a6bded62045c6808dda6a275ef96c"
+
+[[env.dev.kv_namespaces]]
+binding = "READONLY_SLUG_TO_SLUG"
+id = "0a83acab40374ccd918cc9d755741714"
+
+[[env.preview.kv_namespaces]]
+binding = "SLUG_TO_READONLY_SLUG"
+id = "847a6bded62045c6808dda6a275ef96c"
+
+[[env.preview.kv_namespaces]]
+binding = "READONLY_SLUG_TO_SLUG"
+id = "0a83acab40374ccd918cc9d755741714"
+
+[[env.staging.kv_namespaces]]
+binding = "SLUG_TO_READONLY_SLUG"
+id = "847a6bded62045c6808dda6a275ef96c"
+
+[[env.staging.kv_namespaces]]
+binding = "READONLY_SLUG_TO_SLUG"
+id = "0a83acab40374ccd918cc9d755741714"
+
+[[env.production.kv_namespaces]]
+binding = "SLUG_TO_READONLY_SLUG"
+id = "2fb5fc7f7ca54a5a9dfae1b07a30a778"
+
+[[env.production.kv_namespaces]]
+binding = "READONLY_SLUG_TO_SLUG"
+id = "96be6637b281412ab35b2544539d78e8"

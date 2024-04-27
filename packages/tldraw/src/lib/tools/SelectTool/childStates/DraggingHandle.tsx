@@ -82,10 +82,7 @@ export class DraggingHandle extends StateNode {
 		this.initialPageRotation = this.initialPageTransform.rotation()
 		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
 
-		this.editor.updateInstanceState(
-			{ cursor: { type: isCreating ? 'cross' : 'grabbing', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
 		const handles = this.editor.getShapeHandles(shape)!.sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
@@ -196,10 +193,7 @@ export class DraggingHandle extends StateNode {
 		this.editor.setHintingShapes([])
 		this.editor.snaps.clearIndicators()
 
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	private complete() {
@@ -312,7 +306,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		if (changes) {
-			editor.updateShapes([next], { squashing: true })
+			editor.updateShapes([next])
 		}
 	}
 }
