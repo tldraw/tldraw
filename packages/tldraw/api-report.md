@@ -414,7 +414,7 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof HighlightShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
+export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
@@ -460,7 +460,7 @@ export function downsizeImage(blob: Blob, width: number, height: number, opts?: 
 // @public (undocumented)
 export class DrawShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_3)[];
+    static children: () => (typeof Drawing | typeof Idle_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -680,7 +680,7 @@ export function FrameToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_2 | typeof Pointing_2)[];
+    static children: () => (typeof Idle_3 | typeof Pointing_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -890,7 +890,7 @@ export function HexagonToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class HighlightShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_3)[];
+    static children: () => (typeof Drawing | typeof Idle_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1447,33 +1447,34 @@ export const TLDRAW_FILE_EXTENSION: ".tldr";
 
 // @public (undocumented)
 export const tldrawConstants: {
+    MAX_PAGES: number;
     ADJACENT_SHAPE_MARGIN: number;
-    ANIMATION_MEDIUM_MS: 320;
-    ANIMATION_SHORT_MS: 80;
+    ANIMATION_MEDIUM_MS: number;
+    ANIMATION_SHORT_MS: number;
     ARROW_LABEL_FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
     ARROW_LABEL_PADDING: number;
-    BOUND_ARROW_OFFSET: 10;
-    CAMERA_MOVING_TIMEOUT: 64;
-    CAMERA_SLIDE_FRICTION: 0.09;
-    COARSE_DRAG_DISTANCE: 36;
-    COARSE_HANDLE_RADIUS: 20;
-    COARSE_POINTER_WIDTH: 12;
-    COLLABORATOR_CHECK_INTERVAL: 1200;
-    COLLABORATOR_IDLE_TIMEOUT: 3000;
-    COLLABORATOR_INACTIVE_TIMEOUT: 60000;
+    BOUND_ARROW_OFFSET: number;
+    CAMERA_MOVING_TIMEOUT: number;
+    CAMERA_SLIDE_FRICTION: number;
+    COARSE_DRAG_DISTANCE: number;
+    COARSE_HANDLE_RADIUS: number;
+    COARSE_POINTER_WIDTH: number;
+    COLLABORATOR_CHECK_INTERVAL: number;
+    COLLABORATOR_IDLE_TIMEOUT: number;
+    COLLABORATOR_INACTIVE_TIMEOUT: number;
     DEFAULT_ANIMATION_OPTIONS: {
-        readonly duration: 0;
-        readonly easing: (t: number) => number;
+        duration: number;
+        easing: (t: number) => number;
     };
-    DOUBLE_CLICK_DURATION: 450;
-    DRAG_DISTANCE: 16;
-    EDGE_SCROLL_DISTANCE: 8;
-    EDGE_SCROLL_SPEED: 20;
-    FOLLOW_CHASE_PAN_SNAP: 0.1;
-    FOLLOW_CHASE_PAN_UNSNAP: 0.2;
-    FOLLOW_CHASE_PROPORTION: 0.5;
-    FOLLOW_CHASE_ZOOM_SNAP: 0.005;
-    FOLLOW_CHASE_ZOOM_UNSNAP: 0.05;
+    DOUBLE_CLICK_DURATION: number;
+    DRAG_DISTANCE: number;
+    EDGE_SCROLL_DISTANCE: number;
+    EDGE_SCROLL_SPEED: number;
+    FOLLOW_CHASE_PAN_SNAP: number;
+    FOLLOW_CHASE_PAN_UNSNAP: number;
+    FOLLOW_CHASE_PROPORTION: number;
+    FOLLOW_CHASE_ZOOM_SNAP: number;
+    FOLLOW_CHASE_ZOOM_UNSNAP: number;
     FONT_FAMILIES: {
         draw: string;
         mono: string;
@@ -1481,44 +1482,31 @@ export const tldrawConstants: {
         serif: string;
     };
     FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
-    GRID_STEPS: readonly [{
-        readonly mid: 0.15;
-        readonly min: -1;
-        readonly step: 64;
-    }, {
-        readonly mid: 0.375;
-        readonly min: 0.05;
-        readonly step: 16;
-    }, {
-        readonly mid: 1;
-        readonly min: 0.15;
-        readonly step: 4;
-    }, {
-        readonly mid: 2.5;
-        readonly min: 0.7;
-        readonly step: 1;
-    }];
-    HANDLE_RADIUS: 12;
+    GRID_STEPS: {
+        mid: number;
+        min: number;
+        step: number;
+    }[];
+    HANDLE_RADIUS: number;
     HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
-    HIT_TEST_MARGIN: 8;
+    HIT_TEST_MARGIN: number;
     INTERNAL_POINTER_IDS: {
         readonly CAMERA_MOVE: -10;
     };
     LABEL_FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
     LABEL_PADDING: number;
     LABEL_TO_ARROW_PADDING: number;
-    LONG_PRESS_DURATION: 500;
-    MAX_CLICK_DISTANCE: 40;
-    MAX_PAGES: 40;
-    MAX_SHAPES_PER_PAGE: 2000;
-    MAX_ZOOM: 8;
-    MIN_ARROW_LENGTH: 10;
+    LONG_PRESS_DURATION: number;
+    MAX_CLICK_DISTANCE: number;
+    MAX_SHAPES_PER_PAGE: number;
+    MAX_ZOOM: number;
+    MIN_ARROW_LENGTH: number;
     MIN_CROP_SIZE: number;
     MIN_END_PRESSURE: number;
     MIN_GEO_SIZE_WITH_LABEL: number;
     MIN_START_PRESSURE: number;
-    MIN_ZOOM: 0.1;
-    MULTI_CLICK_DURATION: 200;
+    MIN_ZOOM: number;
+    MULTI_CLICK_DURATION: number;
     PORTRAIT_BREAKPOINT: {
         DESKTOP: number;
         MOBILE_SM: number;
@@ -1765,7 +1753,7 @@ export const tldrawConstants: {
             readonly value: "end";
         }];
     };
-    SVG_PADDING: 32;
+    SVG_PADDING: number;
     TEXT_PROPS: {
         fontStyle: string;
         fontVariant: string;
@@ -1773,9 +1761,9 @@ export const tldrawConstants: {
         lineHeight: number;
         padding: string;
     };
-    TEXT_SHADOW_LOD: 0.35;
-    WAY_TOO_BIG_ARROW_BEND_FACTOR: 10;
-    ZOOMS: readonly [0.1, 0.25, 0.5, 1, 2, 4, 8];
+    TEXT_SHADOW_LOD: number;
+    WAY_TOO_BIG_ARROW_BEND_FACTOR: number;
+    ZOOMS: number[];
 };
 
 // @public (undocumented)

@@ -945,79 +945,67 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 // @public (undocumented)
 export const editorConstants: {
-    readonly ANIMATION_MEDIUM_MS: 320;
-    readonly ANIMATION_SHORT_MS: 80;
-    readonly BOUND_ARROW_OFFSET: 10;
-    readonly CAMERA_MOVING_TIMEOUT: 64;
-    readonly CAMERA_SLIDE_FRICTION: 0.09;
-    readonly COARSE_DRAG_DISTANCE: 36;
-    readonly COARSE_HANDLE_RADIUS: 20;
-    readonly COARSE_POINTER_WIDTH: 12;
-    readonly COLLABORATOR_CHECK_INTERVAL: 1200;
-    readonly COLLABORATOR_IDLE_TIMEOUT: 3000;
-    readonly COLLABORATOR_INACTIVE_TIMEOUT: 60000;
-    readonly DEFAULT_ANIMATION_OPTIONS: {
-        readonly duration: 0;
-        readonly easing: (t: number) => number;
+    ANIMATION_MEDIUM_MS: number;
+    ANIMATION_SHORT_MS: number;
+    BOUND_ARROW_OFFSET: number;
+    CAMERA_MOVING_TIMEOUT: number;
+    CAMERA_SLIDE_FRICTION: number;
+    COARSE_DRAG_DISTANCE: number;
+    COARSE_HANDLE_RADIUS: number;
+    COARSE_POINTER_WIDTH: number;
+    COLLABORATOR_CHECK_INTERVAL: number;
+    COLLABORATOR_IDLE_TIMEOUT: number;
+    COLLABORATOR_INACTIVE_TIMEOUT: number;
+    DEFAULT_ANIMATION_OPTIONS: {
+        duration: number;
+        easing: (t: number) => number;
     };
-    readonly DOUBLE_CLICK_DURATION: 450;
-    readonly DRAG_DISTANCE: 16;
-    readonly EDGE_SCROLL_DISTANCE: 8;
-    readonly EDGE_SCROLL_SPEED: 20;
-    readonly FOLLOW_CHASE_PAN_SNAP: 0.1;
-    readonly FOLLOW_CHASE_PAN_UNSNAP: 0.2;
-    readonly FOLLOW_CHASE_PROPORTION: 0.5;
-    readonly FOLLOW_CHASE_ZOOM_SNAP: 0.005;
-    readonly FOLLOW_CHASE_ZOOM_UNSNAP: 0.05;
-    readonly GRID_STEPS: readonly [{
-        readonly mid: 0.15;
-        readonly min: -1;
-        readonly step: 64;
-    }, {
-        readonly mid: 0.375;
-        readonly min: 0.05;
-        readonly step: 16;
-    }, {
-        readonly mid: 1;
-        readonly min: 0.15;
-        readonly step: 4;
-    }, {
-        readonly mid: 2.5;
-        readonly min: 0.7;
-        readonly step: 1;
-    }];
-    readonly HANDLE_RADIUS: 12;
-    readonly HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
-    readonly HIT_TEST_MARGIN: 8;
-    readonly INTERNAL_POINTER_IDS: {
+    DOUBLE_CLICK_DURATION: number;
+    DRAG_DISTANCE: number;
+    EDGE_SCROLL_DISTANCE: number;
+    EDGE_SCROLL_SPEED: number;
+    FOLLOW_CHASE_PAN_SNAP: number;
+    FOLLOW_CHASE_PAN_UNSNAP: number;
+    FOLLOW_CHASE_PROPORTION: number;
+    FOLLOW_CHASE_ZOOM_SNAP: number;
+    FOLLOW_CHASE_ZOOM_UNSNAP: number;
+    GRID_STEPS: {
+        mid: number;
+        min: number;
+        step: number;
+    }[];
+    HANDLE_RADIUS: number;
+    HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
+    HIT_TEST_MARGIN: number;
+    INTERNAL_POINTER_IDS: {
         readonly CAMERA_MOVE: -10;
     };
-    readonly LONG_PRESS_DURATION: 500;
-    readonly MAX_CLICK_DISTANCE: 40;
-    readonly MAX_PAGES: 40;
-    readonly MAX_SHAPES_PER_PAGE: 2000;
-    readonly MAX_ZOOM: 8;
-    readonly MIN_ARROW_LENGTH: 10;
-    readonly MIN_ZOOM: 0.1;
-    readonly MULTI_CLICK_DURATION: 200;
-    readonly ROTATE_CORNER_TO_SELECTION_CORNER: {
+    LONG_PRESS_DURATION: number;
+    MAX_CLICK_DISTANCE: number;
+    MAX_PAGES: number;
+    MAX_SHAPES_PER_PAGE: number;
+    MAX_ZOOM: number;
+    MIN_ARROW_LENGTH: number;
+    MIN_ZOOM: number;
+    MULTI_CLICK_DURATION: number;
+    ROTATE_CORNER_TO_SELECTION_CORNER: {
         readonly bottom_left_rotate: "bottom_left";
         readonly bottom_right_rotate: "bottom_right";
         readonly mobile_rotate: "top_left";
         readonly top_left_rotate: "top_left";
         readonly top_right_rotate: "top_right";
     };
-    readonly SIDES: readonly ["top", "right", "bottom", "left"];
-    readonly STROKE_SIZES: {
-        readonly l: 5;
-        readonly m: 3.5;
-        readonly s: 2;
-        readonly xl: 10;
+    SIDES: readonly ["top", "right", "bottom", "left"];
+    STROKE_SIZES: {
+        l: number;
+        m: number;
+        s: number;
+        xl: number;
     };
-    readonly SVG_PADDING: 32;
-    readonly TEXT_SHADOW_LOD: 0.35;
-    readonly WAY_TOO_BIG_ARROW_BEND_FACTOR: 10;
-    readonly ZOOMS: readonly [0.1, 0.25, 0.5, 1, 2, 4, 8];
+    SVG_PADDING: number;
+    TEXT_SHADOW_LOD: number;
+    WAY_TOO_BIG_ARROW_BEND_FACTOR: number;
+    ZOOMS: number[];
 };
 
 // @internal (undocumented)

@@ -39,8 +39,6 @@ export const editorConstants = {
 	COLLABORATOR_INACTIVE_TIMEOUT: 60000,
 	COLLABORATOR_IDLE_TIMEOUT: 3000,
 	COLLABORATOR_CHECK_INTERVAL: 1200,
-	// Negative pointer ids are reserved for internal use.
-	INTERNAL_POINTER_IDS: { CAMERA_MOVE: -10 } as const,
 	CAMERA_MOVING_TIMEOUT: 64,
 	HIT_TEST_MARGIN: 8,
 	EDGE_SCROLL_SPEED: 20,
@@ -48,7 +46,6 @@ export const editorConstants = {
 	COARSE_POINTER_WIDTH: 12,
 	COARSE_HANDLE_RADIUS: 20,
 	HANDLE_RADIUS: 12,
-	SIDES: ['top', 'right', 'bottom', 'left'] as const,
 	LONG_PRESS_DURATION: 500,
 	TEXT_SHADOW_LOD: 0.35,
 	MIN_ARROW_LENGTH: 10,
@@ -60,6 +57,7 @@ export const editorConstants = {
 		l: 5,
 		xl: 10,
 	},
+	SIDES: ['top', 'right', 'bottom', 'left'] as const,
 	ROTATE_CORNER_TO_SELECTION_CORNER: {
 		top_left_rotate: 'top_left',
 		top_right_rotate: 'top_right',
@@ -67,4 +65,6 @@ export const editorConstants = {
 		bottom_left_rotate: 'bottom_left',
 		mobile_rotate: 'top_left',
 	} as const,
-} as const
+	// Negative pointer ids are reserved for internal use.
+	INTERNAL_POINTER_IDS: { CAMERA_MOVE: -10 } as const,
+}
