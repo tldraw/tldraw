@@ -1,5 +1,6 @@
 import {
 	ANIMATION_MEDIUM_MS,
+	Box,
 	TLPointerEventInfo,
 	Vec,
 	getPointerInfo,
@@ -74,26 +75,33 @@ export function DefaultMinimap() {
 				false
 			)
 
-			const clampedPoint = minimapRef.current.minimapScreenPointToPagePoint(
-				e.clientX,
-				e.clientY,
-				false,
-				true
+			const _vpPageBounds = editor.getViewportPageBounds()
+			const commonBounds = minimapRef.current.getContentPageBounds()
+			const allowedBounds = new Box(
+				commonBounds.x - _vpPageBounds.width / 2,
+				commonBounds.y - _vpPageBounds.height / 2,
+				commonBounds.width + _vpPageBounds.width,
+				commonBounds.height + _vpPageBounds.height
 			)
 
-			const _vpPageBounds = editor.getViewportPageBounds()
-
-			minimapRef.current.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
-
-			if (minimapRef.current.isInViewport) {
-				minimapRef.current.originPagePoint.setTo(clampedPoint)
-				minimapRef.current.originPageCenter.setTo(_vpPageBounds.center)
-			} else {
+			// If we clicked inside of the allowed area, but outside of the viewport
+			if (allowedBounds.containsPoint(point) && !_vpPageBounds.containsPoint(point)) {
+				minimapRef.current.isInViewport = _vpPageBounds.containsPoint(point)
 				const delta = Vec.Sub(_vpPageBounds.center, _vpPageBounds.point)
 				const pagePoint = Vec.Add(point, delta)
 				minimapRef.current.originPagePoint.setTo(pagePoint)
 				minimapRef.current.originPageCenter.setTo(point)
 				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
+			} else {
+				const clampedPoint = minimapRef.current.minimapScreenPointToPagePoint(
+					e.clientX,
+					e.clientY,
+					false,
+					true
+				)
+				minimapRef.current.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
+				minimapRef.current.originPagePoint.setTo(clampedPoint)
+				minimapRef.current.originPageCenter.setTo(_vpPageBounds.center)
 			}
 
 			function release(e: PointerEvent) {
