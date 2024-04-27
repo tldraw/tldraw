@@ -1,10 +1,16 @@
+import {
+	CreateRoomRequestBody,
+	CreateSnapshotRequestBody,
+	CreateSnapshotResponseBody,
+	ROOM_PREFIX,
+	SNAPSHOT_PREFIX,
+	Snapshot,
+} from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
 	AssetRecordType,
 	Editor,
-	SerializedSchema,
-	SerializedStore,
 	TLAsset,
 	TLAssetId,
 	TLRecord,
@@ -20,6 +26,7 @@ import { useMultiplayerAssets } from '../hooks/useMultiplayerAssets'
 import { getViewportUrlQuery } from '../hooks/useUrlState'
 import { cloneAssetForShare } from './cloneAssetForShare'
 import { ASSET_UPLOADER_URL } from './config'
+import { getParentOrigin, isInIframe } from './iFrame'
 import { shouldLeaveSharedProject } from './shouldLeaveSharedProject'
 import { trackAnalyticsEvent } from './trackAnalyticsEvent'
 import { UI_OVERRIDE_TODO_EVENT, useHandleUiEvents } from './useHandleUiEvent'
@@ -31,27 +38,6 @@ export const FORK_PROJECT_ACTION = 'fork-project' as const
 
 const CREATE_SNAPSHOT_ENDPOINT = `/api/snapshots`
 const SNAPSHOT_UPLOAD_URL = `/api/new-room`
-
-type SnapshotRequestBody = {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-}
-
-type CreateSnapshotRequestBody = {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | string[] | undefined
-}
-
-type CreateSnapshotResponseBody =
-	| {
-			error: false
-			roomId: string
-	  }
-	| {
-			error: true
-			message: string
-	  }
 
 async function getSnapshotLink(
 	source: string,
@@ -85,8 +71,21 @@ async function getSnapshotLink(
 	}
 	const paramsToUse = getViewportUrlQuery(editor)
 	const params = paramsToUse ? `?${new URLSearchParams(paramsToUse).toString()}` : ''
-	return new Blob([`${window.location.origin}/s/${response.roomId}${params}`], {
+	return new Blob([`${window.location.origin}/${SNAPSHOT_PREFIX}/${response.roomId}${params}`], {
 		type: 'text/plain',
+	})
+}
+
+export async function getNewRoomResponse(snapshot: Snapshot) {
+	return await fetch(SNAPSHOT_UPLOAD_URL, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({
+			origin: getParentOrigin(),
+			snapshot,
+		} satisfies CreateRoomRequestBody),
 	})
 }
 
@@ -95,6 +94,7 @@ export function useSharing(): TLUiOverrides {
 	const id = useSearchParams()[0].get('id') ?? undefined
 	const uploadFileToAsset = useMultiplayerAssets(ASSET_UPLOADER_URL)
 	const handleUiEvent = useHandleUiEvents()
+	const runningInIFrame = isInIframe()
 
 	return useMemo(
 		(): TLUiOverrides => ({
@@ -122,17 +122,10 @@ export function useSharing(): TLUiOverrides {
 							const data = await getRoomData(editor, addToast, msg, uploadFileToAsset)
 							if (!data) return
 
-							const res = await fetch(SNAPSHOT_UPLOAD_URL, {
-								method: 'POST',
-								headers: {
-									'Content-Type': 'application/json',
-								},
-								body: JSON.stringify({
-									schema: editor.store.schema.serialize(),
-									snapshot: data,
-								} satisfies SnapshotRequestBody),
+							const res = await getNewRoomResponse({
+								schema: editor.store.schema.serialize(),
+								snapshot: data,
 							})
-
 							const response = (await res.json()) as { error: boolean; slug?: string }
 							if (!res.ok || response.error) {
 								console.error(await res.text())
@@ -140,13 +133,19 @@ export function useSharing(): TLUiOverrides {
 							}
 
 							const query = getViewportUrlQuery(editor)
-
-							navigate(`/r/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`)
+							const origin = window.location.origin
+							const pathname = `/${ROOM_PREFIX}/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`
+							if (runningInIFrame) {
+								window.open(`${origin}${pathname}`)
+							} else {
+								navigate(pathname)
+							}
 						} catch (error) {
 							console.error(error)
 							addToast({
 								title: 'Error',
 								description: msg('share-menu.upload-failed'),
+								severity: 'error',
 							})
 						}
 					},
@@ -181,12 +180,12 @@ export function useSharing(): TLUiOverrides {
 				actions[FORK_PROJECT_ACTION] = {
 					...actions[SHARE_PROJECT_ACTION],
 					id: FORK_PROJECT_ACTION,
-					label: 'action.fork-project',
+					label: runningInIFrame ? 'action.fork-project-on-tldraw' : 'action.fork-project',
 				}
 				return actions
 			},
 		}),
-		[handleUiEvent, navigate, uploadFileToAsset, id]
+		[handleUiEvent, navigate, uploadFileToAsset, id, runningInIFrame]
 	)
 }
 
@@ -242,6 +241,7 @@ async function getRoomData(
 		addToast({
 			title: 'Too big!',
 			description: msg('share-menu.project-too-large'),
+			severity: 'warning',
 		})
 
 		trackAnalyticsEvent('shared-fail-too-big', {

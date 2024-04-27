@@ -1,0 +1,32 @@
+.slides-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-height: calc(100% - 110px);
+	margin: 50px 0px;
+	padding: 4px;
+	background-color: var(--color-low);
+	pointer-events: all;
+	border-top-right-radius: var(--radius-4);
+	border-bottom-right-radius: var(--radius-4);
+	overflow: auto;
+	border-right: 2px solid var(--color-background);
+	border-bottom: 2px solid var(--color-background);
+	border-top: 2px solid var(--color-background);
+}
+
+.slides-panel-button {
+	border-radius: var(--radius-4);
+	outline-offset: -1px;
+}
+
+.slide-shape-label {
+	pointer-events: all;
+	position: absolute;
+	background: var(--color-low);
+	padding: calc(12px * var(--tl-scale));
+	border-bottom-right-radius: calc(var(--radius-4) * var(--tl-scale));
+	font-size: calc(12px * var(--tl-scale));
+	color: var(--color-text);
+	white-space: nowrap;
+}

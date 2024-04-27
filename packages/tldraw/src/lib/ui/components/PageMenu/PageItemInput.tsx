@@ -15,17 +15,13 @@ export const PageItemInput = function PageItemInput({
 
 	const rInput = useRef<HTMLInputElement | null>(null)
 
+	const handleFocus = useCallback(() => {
+		editor.mark('rename page')
+	}, [editor])
+
 	const handleChange = useCallback(
 		(value: string) => {
-			editor.renamePage(id, value ? value : 'New Page', { ephemeral: true })
-		},
-		[editor, id]
-	)
-
-	const handleComplete = useCallback(
-		(value: string) => {
-			editor.mark('rename page')
-			editor.renamePage(id, value || 'New Page', { ephemeral: false })
+			editor.renamePage(id, value || 'New Page')
 		},
 		[editor, id]
 	)
@@ -36,8 +32,7 @@ export const PageItemInput = function PageItemInput({
 			ref={(el) => (rInput.current = el)}
 			defaultValue={name}
 			onValueChange={handleChange}
-			onComplete={handleComplete}
-			onCancel={handleComplete}
+			onFocus={handleFocus}
 			shouldManuallyMaintainScrollPositionWhenFocused
 			autofocus={isCurrentPage}
 			autoselect

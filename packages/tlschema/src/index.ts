@@ -10,7 +10,12 @@ export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
-export { createTLSchema, type SchemaShapeInfo, type TLSchema } from './createTLSchema'
+export {
+	createTLSchema,
+	defaultShapeSchemas,
+	type SchemaShapeInfo,
+	type TLSchema,
+} from './createTLSchema'
 export {
 	TL_CANVAS_UI_COLOR_TYPES,
 	canvasUiColorTypeValidator,
@@ -52,6 +57,8 @@ export { InstancePresenceRecordType, type TLInstancePresence } from './records/T
 export { type TLRecord } from './records/TLRecord'
 export {
 	createShapeId,
+	createShapePropsMigrationIds,
+	createShapePropsMigrationSequence,
 	getShapePropKeysByStyle,
 	isShape,
 	isShapeId,
@@ -63,6 +70,7 @@ export {
 	type TLShapePartial,
 	type TLShapeProp,
 	type TLShapeProps,
+	type TLShapePropsMigrations,
 	type TLUnknownShape,
 } from './records/TLShape'
 export {
@@ -80,6 +88,7 @@ export {
 	parentIdValidator,
 	shapeIdValidator,
 	type ShapeProps,
+	type ShapePropsType,
 	type TLBaseShape,
 } from './shapes/TLBaseShape'
 export {

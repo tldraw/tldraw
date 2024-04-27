@@ -65,6 +65,9 @@ describe(ClientWebSocketAdapter, () => {
 		const prevServerSocket = connectedServerSocket
 		prevServerSocket.terminate()
 		await waitFor(() => connectedServerSocket !== prevServerSocket)
+		// there is a race here, the server could've opened a new socket already, but it hasn't
+		// transitioned to OPEN yet, thus the second waitFor
+		await waitFor(() => connectedServerSocket.readyState === WebSocket.OPEN)
 		expect(adapter._ws).not.toBe(prevClientSocket)
 		expect(adapter._ws?.readyState).toBe(WebSocket.OPEN)
 	})
@@ -137,7 +140,7 @@ describe(ClientWebSocketAdapter, () => {
 		const message: TLSocketClientSentEvent<TLRecord> = {
 			type: 'connect',
 			connectRequestId: 'test',
-			schema: { schemaVersion: 0, storeVersion: 0, recordVersions: {} },
+			schema: { schemaVersion: 1, storeVersion: 0, recordVersions: {} },
 			protocolVersion: TLSYNC_PROTOCOL_VERSION,
 			lastServerClock: 0,
 		}
@@ -152,20 +155,33 @@ describe(ClientWebSocketAdapter, () => {
 	it('signals status changes', async () => {
 		const onStatusChange = jest.fn()
 		adapter.onStatusChange(onStatusChange)
+
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(onStatusChange).toHaveBeenCalledWith('online')
 		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
-		expect(onStatusChange).toHaveBeenCalledWith('offline')
+		expect(onStatusChange).toHaveBeenCalledWith('offline', 1006)
+
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(onStatusChange).toHaveBeenCalledWith('online')
 		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
-		expect(onStatusChange).toHaveBeenCalledWith('offline')
+		expect(onStatusChange).toHaveBeenCalledWith('offline', 1006)
+
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(onStatusChange).toHaveBeenCalledWith('online')
 		adapter._ws?.onerror?.({} as any)
-		expect(onStatusChange).toHaveBeenCalledWith('error')
+		expect(onStatusChange).toHaveBeenCalledWith('error', undefined)
+	})
+
+	it('signals the correct closeCode when a room is not found', async () => {
+		const onStatusChange = jest.fn()
+		adapter.onStatusChange(onStatusChange)
+		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+
+		adapter._ws!.onclose?.({ code: 4099 } as any)
+
+		expect(onStatusChange).toHaveBeenCalledWith('error', 4099)
 	})
 
 	it('signals status changes while restarting', async () => {
@@ -178,7 +194,7 @@ describe(ClientWebSocketAdapter, () => {
 
 		await waitFor(() => onStatusChange.mock.calls.length === 2)
 
-		expect(onStatusChange).toHaveBeenCalledWith('offline')
+		expect(onStatusChange).toHaveBeenCalledWith('offline', undefined)
 		expect(onStatusChange).toHaveBeenCalledWith('online')
 	})
 })

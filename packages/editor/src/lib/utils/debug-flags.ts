@@ -24,15 +24,15 @@ export const pointerCaptureTrackingObject = createDebugValue(
 )
 
 /** @internal */
-export const debugFlags: Record<string, DebugFlag<boolean>> = {
+export const debugFlags = {
 	// --- DEBUG VALUES ---
-	preventDefaultLogging: createDebugValue('preventDefaultLogging', {
+	logPreventDefaults: createDebugValue('logPreventDefaults', {
 		defaults: { all: false },
 	}),
-	pointerCaptureTracking: createDebugValue('pointerCaptureTracking', {
+	logPointerCaptures: createDebugValue('logPointerCaptures', {
 		defaults: { all: false },
 	}),
-	elementRemovalLogging: createDebugValue('elementRemovalLogging', {
+	logElementRemoves: createDebugValue('logElementRemoves', {
 		defaults: { all: false },
 	}),
 	debugSvg: createDebugValue('debugSvg', {
@@ -44,7 +44,7 @@ export const debugFlags: Record<string, DebugFlag<boolean>> = {
 	throwToBlob: createDebugValue('throwToBlob', {
 		defaults: { all: false },
 	}),
-	resetConnectionEveryPing: createDebugValue('resetConnectionEveryPing', {
+	reconnectOnPing: createDebugValue('reconnectOnPing', {
 		defaults: { all: false },
 	}),
 	debugCursors: createDebugValue('debugCursors', {
@@ -53,8 +53,8 @@ export const debugFlags: Record<string, DebugFlag<boolean>> = {
 	forceSrgb: createDebugValue('forceSrgbColors', { defaults: { all: false } }),
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
-	documentName: createDebugValue('documentName', { defaults: { all: false } }),
-}
+	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
+} as const
 
 declare global {
 	interface Window {
@@ -78,7 +78,7 @@ declare global {
 if (typeof Element !== 'undefined') {
 	const nativeElementRemoveChild = Element.prototype.removeChild
 	react('element removal logging', () => {
-		if (debugFlags.elementRemovalLogging.get()) {
+		if (debugFlags.logElementRemoves.get()) {
 			Element.prototype.removeChild = function <T extends Node>(this: any, child: Node): T {
 				console.warn('[tldraw] removing child:', child)
 				return nativeElementRemoveChild.call(this, child) as T

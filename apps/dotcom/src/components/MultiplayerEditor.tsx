@@ -1,3 +1,4 @@
+import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
@@ -9,18 +10,15 @@ import {
 	DefaultMainMenu,
 	EditSubmenu,
 	Editor,
+	ExportFileContentSubMenu,
 	ExtrasGroup,
-	OfflineIndicator,
 	PreferencesGroup,
-	ShapeSubmenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	ViewSubmenu,
 	atom,
-	debugFlags,
-	lns,
 	useActions,
 	useValue,
 } from 'tldraw'
@@ -69,8 +67,8 @@ const components: TLComponents = {
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
 			<EditSubmenu />
-			<ShapeSubmenu />
 			<ViewSubmenu />
+			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
 			<Links />
@@ -80,12 +78,12 @@ const components: TLComponents = {
 		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuGroup id="shortcuts-dialog.file">
+				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
 					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
 					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
-				<TldrawUiMenuGroup id="shortcuts-dialog.collaboration">
+				<TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">
 					<TldrawUiMenuItem {...actions[CURSOR_CHAT_ACTION]} />
 				</TldrawUiMenuGroup>
 			</DefaultKeyboardShortcutsDialog>
@@ -93,15 +91,6 @@ const components: TLComponents = {
 	},
 	TopPanel: () => {
 		const isOffline = useValue('offline', () => shittyOfflineAtom.get(), [])
-		const showDocumentName = useValue('documentName ', () => debugFlags.documentName.get(), [
-			debugFlags,
-		])
-		if (!showDocumentName) {
-			if (isOffline) {
-				return <OfflineIndicator />
-			}
-			return null
-		}
 		return <DocumentTopZone isOffline={isOffline} />
 	},
 	SharePanel: () => {
@@ -115,19 +104,17 @@ const components: TLComponents = {
 }
 
 export function MultiplayerEditor({
-	isReadOnly,
+	roomOpenMode,
 	roomSlug,
 }: {
-	isReadOnly: boolean
+	roomOpenMode: RoomOpenMode
 	roomSlug: string
 }) {
 	const handleUiEvent = useHandleUiEvents()
 
-	const roomId = isReadOnly ? lns(roomSlug) : roomSlug
-
 	const storeWithStatus = useRemoteSyncClient({
-		uri: `${MULTIPLAYER_SERVER}/r/${roomId}`,
-		roomId,
+		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
+		roomId: roomSlug,
 	})
 
 	const isOffline =
@@ -139,16 +126,22 @@ export function MultiplayerEditor({
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const cursorChatOverrides = useCursorChat()
+	const isReadonly =
+		roomOpenMode === ROOM_OPEN_MODE.READ_ONLY || roomOpenMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
-			;(window as any).app = editor
-			;(window as any).editor = editor
-			editor.updateInstanceState({ isReadonly: isReadOnly })
+			if (!isReadonly) {
+				;(window as any).app = editor
+				;(window as any).editor = editor
+			}
+			editor.updateInstanceState({
+				isReadonly,
+			})
 			editor.registerExternalAssetHandler('file', createAssetFromFile)
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 		},
-		[isReadOnly]
+		[isReadonly]
 	)
 
 	if (storeWithStatus.error) {
@@ -162,7 +155,7 @@ export function MultiplayerEditor({
 				assetUrls={assetUrls}
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides, cursorChatOverrides]}
-				initialState={isReadOnly ? 'hand' : 'select'}
+				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
 				autoFocus

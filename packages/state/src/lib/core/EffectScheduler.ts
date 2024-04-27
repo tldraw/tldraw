@@ -1,3 +1,4 @@
+import { ArraySet } from './ArraySet'
 import { startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { attach, detach, haveParentsChanged, singleton } from './helpers'
@@ -63,9 +64,11 @@ class __EffectScheduler__<Result> {
 	}
 
 	/** @internal */
-	parentEpochs: number[] = []
+	readonly parentSet = new ArraySet<Signal<any, any>>()
 	/** @internal */
-	parents: Signal<any, any>[] = []
+	readonly parentEpochs: number[] = []
+	/** @internal */
+	readonly parents: Signal<any, any>[] = []
 	private readonly _scheduleEffect?: (execute: () => void) => void
 	constructor(
 		public readonly name: string,
@@ -103,7 +106,8 @@ class __EffectScheduler__<Result> {
 		}
 	}
 
-	private maybeExecute = () => {
+	/** @internal */
+	readonly maybeExecute = () => {
 		// bail out if we have been detached before this runs
 		if (!this._isActivelyListening) return
 		this.execute()

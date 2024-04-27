@@ -1,5 +1,16 @@
+import { throttleToNextFrame as _throttleToNextFrame } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { Editor } from '../Editor'
+
+const throttleToNextFrame =
+	typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+		? // At test time we should use actual raf and not throttle, because throttle was set up to evaluate immediately during tests, which causes stack overflow
+			// for the tick manager since it sets up a raf loop.
+			function mockThrottle(cb: any) {
+				const frame = requestAnimationFrame(cb)
+				return () => cancelAnimationFrame(frame)
+			}
+		: _throttleToNextFrame
 
 export class TickManager {
 	constructor(public editor: Editor) {
@@ -7,16 +18,15 @@ export class TickManager {
 		this.start()
 	}
 
-	raf: any
+	cancelRaf?: null | (() => void)
 	isPaused = true
-	last = 0
-	t = 0
+	now = 0
 
 	start = () => {
 		this.isPaused = false
-		cancelAnimationFrame(this.raf)
-		this.raf = requestAnimationFrame(this.tick)
-		this.last = Date.now()
+		this.cancelRaf?.()
+		this.cancelRaf = throttleToNextFrame(this.tick)
+		this.now = Date.now()
 	}
 
 	tick = () => {
@@ -25,27 +35,20 @@ export class TickManager {
 		}
 
 		const now = Date.now()
-		const elapsed = now - this.last
-		this.last = now
-		this.t += elapsed
+		const elapsed = now - this.now
+		this.now = now
 
-		this.editor.emit('frame', elapsed)
-
-		if (this.t < 16) {
-			this.raf = requestAnimationFrame(this.tick)
-			return
-		}
-
-		this.t -= 16
 		this.updatePointerVelocity(elapsed)
+		this.editor.emit('frame', elapsed)
 		this.editor.emit('tick', elapsed)
-		this.raf = requestAnimationFrame(this.tick)
+		this.cancelRaf = throttleToNextFrame(this.tick)
 	}
 
 	// Clear the listener
 	dispose = () => {
 		this.isPaused = true
-		cancelAnimationFrame(this.raf)
+
+		this.cancelRaf?.()
 	}
 
 	private prevPoint = new Vec()

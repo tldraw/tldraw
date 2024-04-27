@@ -37,7 +37,7 @@ export function loopToHtmlElement(elm: Element): HTMLElement {
  */
 export function preventDefault(event: React.BaseSyntheticEvent | Event) {
 	event.preventDefault()
-	if (debugFlags.preventDefaultLogging.get()) {
+	if (debugFlags.logPreventDefaults.get()) {
 		console.warn('preventDefault called on event:', event)
 	}
 }
@@ -48,7 +48,7 @@ export function setPointerCapture(
 	event: React.PointerEvent<Element> | PointerEvent
 ) {
 	element.setPointerCapture(event.pointerId)
-	if (debugFlags.pointerCaptureTracking.get()) {
+	if (debugFlags.logPointerCaptures.get()) {
 		const trackingObj = pointerCaptureTrackingObject.get()
 		trackingObj.set(element, (trackingObj.get(element) ?? 0) + 1)
 		console.warn('setPointerCapture called on element:', element, event)
@@ -65,7 +65,7 @@ export function releasePointerCapture(
 	}
 
 	element.releasePointerCapture(event.pointerId)
-	if (debugFlags.pointerCaptureTracking.get()) {
+	if (debugFlags.logPointerCaptures.get()) {
 		const trackingObj = pointerCaptureTrackingObject.get()
 		if (trackingObj.get(element) === 1) {
 			trackingObj.delete(element)
@@ -80,3 +80,13 @@ export function releasePointerCapture(
 
 /** @public */
 export const stopEventPropagation = (e: any) => e.stopPropagation()
+
+/** @internal */
+export const setStyleProperty = (
+	elm: HTMLElement | null,
+	property: string,
+	value: string | number
+) => {
+	if (!elm) return
+	elm.style.setProperty(property, value as string)
+}

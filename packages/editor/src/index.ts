@@ -17,7 +17,6 @@ export {
 	type Atom,
 	type Signal,
 } from '@tldraw/state'
-export type { TLCommandHistoryOptions } from './lib/editor/types/history-types'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -62,10 +61,6 @@ export {
 	DefaultHandles,
 	type TLHandlesProps,
 } from './lib/components/default-components/DefaultHandles'
-export {
-	DefaultHoveredShapeIndicator,
-	type TLHoveredShapeIndicatorProps,
-} from './lib/components/default-components/DefaultHoveredShapeIndicator'
 export {
 	DefaultScribble,
 	type TLScribbleProps,
@@ -125,6 +120,7 @@ export {
 	MAX_ZOOM,
 	MIN_ZOOM,
 	MULTI_CLICK_DURATION,
+	SIDES,
 	SVG_PADDING,
 	ZOOMS,
 } from './lib/constants'
@@ -134,7 +130,9 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export type {
+	SideEffectManager,
 	TLAfterChangeHandler,
 	TLAfterCreateHandler,
 	TLAfterDeleteHandler,
@@ -192,7 +190,11 @@ export { getArrowTerminalsInArrowSpace } from './lib/editor/shapes/shared/arrow/
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
-export { type SvgExportContext, type SvgExportDef } from './lib/editor/types/SvgExportContext'
+export {
+	useSvgExportContext,
+	type SvgExportContext,
+	type SvgExportDef,
+} from './lib/editor/types/SvgExportContext'
 export { type TLContent } from './lib/editor/types/clipboard-types'
 export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'
 export {
@@ -223,7 +225,6 @@ export {
 	type TLPointerEventName,
 	type TLPointerEventTarget,
 	type TLTickEvent,
-	type TLTickEventHandler,
 	type TLWheelEvent,
 	type TLWheelEventInfo,
 	type UiEvent,
@@ -234,12 +235,6 @@ export {
 	type TLExternalContent,
 	type TLExternalContentSource,
 } from './lib/editor/types/external-content'
-export {
-	type TLCommand,
-	type TLCommandHandler,
-	type TLHistoryEntry,
-	type TLHistoryMark,
-} from './lib/editor/types/history-types'
 export { type RequiredKeys, type TLSvgOptions } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
@@ -247,6 +242,7 @@ export { getCursor } from './lib/hooks/useCursor'
 export { EditorContext, useEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useEvent } from './lib/hooks/useEvent'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
@@ -254,6 +250,7 @@ export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
+export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
@@ -294,6 +291,7 @@ export {
 	intersectPolygonBounds,
 	intersectPolygonPolygon,
 	linesIntersect,
+	polygonIntersectsPolyline,
 	polygonsIntersect,
 } from './lib/primitives/intersect'
 export {

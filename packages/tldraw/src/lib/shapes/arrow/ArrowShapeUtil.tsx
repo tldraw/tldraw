@@ -1,8 +1,8 @@
 import {
 	Arc2d,
 	Box,
-	DefaultFontFamilies,
 	Edge2d,
+	Editor,
 	Geometry2d,
 	Group2d,
 	Rectangle2d,
@@ -10,11 +10,7 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	TLArrowShape,
-	TLArrowShapeArrowheadStyle,
 	TLArrowShapeProps,
-	TLDefaultColorStyle,
-	TLDefaultColorTheme,
-	TLDefaultFillStyle,
 	TLHandle,
 	TLOnEditEndHandler,
 	TLOnHandleDragHandler,
@@ -33,12 +29,14 @@ import {
 	objectMapEntries,
 	structuredClone,
 	toDomPrecision,
+	track,
+	useEditor,
 	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
-import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
-import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgTextLabel } from '../shared/SvgTextLabel'
+import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES } from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
 	getFillDefForExport,
@@ -131,14 +129,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return new Group2d({
 			children: [...(labelGeom ? [bodyGeom, labelGeom] : [bodyGeom]), ...debugGeom],
 		})
-	}
-
-	private getLength(shape: TLArrowShape): number {
-		const info = this.editor.getArrowInfo(shape)!
-
-		return info.isStraight
-			? Vec.Dist(info.start.handle, info.end.handle)
-			: Math.abs(info.handleArc.length)
 	}
 
 	override getHandles(shape: TLArrowShape): TLHandle[] {
@@ -343,15 +333,20 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// If no bound shapes are in the selection, unbind any bound shapes
 
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
-
-		if (
-			(startBindingId &&
-				(selectedShapeIds.includes(startBindingId) ||
-					this.editor.isAncestorSelected(startBindingId))) ||
-			(endBindingId &&
-				(selectedShapeIds.includes(endBindingId) || this.editor.isAncestorSelected(endBindingId)))
-		) {
-			return
+		const shapesToCheck = new Set<string>()
+		if (startBindingId) {
+			// Add shape and all ancestors to set
+			shapesToCheck.add(startBindingId)
+			this.editor.getShapeAncestors(startBindingId).forEach((a) => shapesToCheck.add(a.id))
+		}
+		if (endBindingId) {
+			// Add shape and all ancestors to set
+			shapesToCheck.add(endBindingId)
+			this.editor.getShapeAncestors(endBindingId).forEach((a) => shapesToCheck.add(a.id))
+		}
+		// If any of the shapes are selected, return
+		for (const id of selectedShapeIds) {
+			if (shapesToCheck.has(id)) return
 		}
 
 		let result = shape
@@ -553,11 +548,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	component(shape: TLArrowShape) {
-		// Not a class component, but eslint can't tell that :(
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
-
 		const shouldDisplayHandles =
 			this.editor.isInAny(
 				'select.idle',
@@ -568,166 +559,33 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			) && !this.editor.getInstanceState().isReadonly
 
 		const info = this.editor.getArrowInfo(shape)
-		const bounds = Box.ZeroFix(this.editor.getShapeGeometry(shape).bounds)
-
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const changeIndex = React.useMemo<number>(() => {
-			return this.editor.environment.isSafari ? (globalRenderIndex += 1) : 0
-			// eslint-disable-next-line react-hooks/exhaustive-deps
-		}, [shape])
-
 		if (!info?.isValid) return null
 
-		const strokeWidth = STROKE_SIZES[shape.props.size]
-
-		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
-		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
-
-		const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
-
-		let handlePath: null | React.JSX.Element = null
-
-		if (onlySelectedShape === shape && shouldDisplayHandles) {
-			const sw = 2
-			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(this.getLength(shape), sw, {
-				end: 'skip',
-				start: 'skip',
-				lengthRatio: 2.5,
-			})
-
-			handlePath =
-				shape.props.start.type === 'binding' || shape.props.end.type === 'binding' ? (
-					<path
-						className="tl-arrow-hint"
-						d={info.isStraight ? getStraightArrowHandlePath(info) : getCurvedArrowHandlePath(info)}
-						strokeDasharray={strokeDasharray}
-						strokeDashoffset={strokeDashoffset}
-						strokeWidth={sw}
-						markerStart={
-							shape.props.start.type === 'binding'
-								? shape.props.start.isExact
-									? ''
-									: shape.props.start.isPrecise
-										? 'url(#arrowhead-cross)'
-										: 'url(#arrowhead-dot)'
-								: ''
-						}
-						markerEnd={
-							shape.props.end.type === 'binding'
-								? shape.props.end.isExact
-									? ''
-									: shape.props.end.isPrecise
-										? 'url(#arrowhead-cross)'
-										: 'url(#arrowhead-dot)'
-								: ''
-						}
-						opacity={0.16}
-					/>
-				) : null
-		}
-
-		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-			info.isStraight ? info.length : Math.abs(info.bodyArc.length),
-			strokeWidth,
-			{
-				style: shape.props.dash,
-			}
-		)
-
 		const labelPosition = getArrowLabelPosition(this.editor, shape)
-
-		const maskStartArrowhead = !(
-			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
-		)
-		const maskEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
-
-		// NOTE: I know right setting `changeIndex` hacky-as right! But we need this because otherwise safari loses
-		// the mask, see <https://linear.app/tldraw/issue/TLD-1500/changing-arrow-color-makes-line-pass-through-text>
-		const maskId = (shape.id + '_clip_' + changeIndex).replace(':', '_')
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const isEditing = this.editor.getEditingShapeId() === shape.id
+		const showArrowLabel = isEditing || shape.props.text
 
 		return (
 			<>
 				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
-					{/* Yep */}
-					<defs>
-						<mask id={maskId}>
-							<rect
-								x={toDomPrecision(-100 + bounds.minX)}
-								y={toDomPrecision(-100 + bounds.minY)}
-								width={toDomPrecision(bounds.width + 200)}
-								height={toDomPrecision(bounds.height + 200)}
-								fill="white"
-							/>
-							{shape.props.text.trim() && (
-								<rect
-									x={labelPosition.box.x}
-									y={labelPosition.box.y}
-									width={labelPosition.box.w}
-									height={labelPosition.box.h}
-									fill="black"
-									rx={4}
-									ry={4}
-								/>
-							)}
-							{as && maskStartArrowhead && (
-								<path
-									d={as}
-									fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'}
-									stroke="none"
-								/>
-							)}
-							{ae && maskEndArrowhead && (
-								<path
-									d={ae}
-									fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'}
-									stroke="none"
-								/>
-							)}
-						</mask>
-					</defs>
-					<g
-						fill="none"
-						stroke={theme[shape.props.color].solid}
-						strokeWidth={strokeWidth}
-						strokeLinejoin="round"
-						strokeLinecap="round"
-						pointerEvents="none"
-					>
-						{handlePath}
-						{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
-						<g mask={`url(#${maskId})`}>
-							<rect
-								x={toDomPrecision(bounds.minX - 100)}
-								y={toDomPrecision(bounds.minY - 100)}
-								width={toDomPrecision(bounds.width + 200)}
-								height={toDomPrecision(bounds.height + 200)}
-								opacity={0}
-							/>
-							<path
-								d={path}
-								strokeDasharray={strokeDasharray}
-								strokeDashoffset={strokeDashoffset}
-							/>
-						</g>
-						{as && maskStartArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill theme={theme} d={as} color={shape.props.color} fill={shape.props.fill} />
-						)}
-						{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill theme={theme} d={ae} color={shape.props.color} fill={shape.props.fill} />
-						)}
-						{as && <path d={as} />}
-						{ae && <path d={ae} />}
-					</g>
+					<ArrowSvg
+						shape={shape}
+						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape === shape}
+					/>
 				</SVGContainer>
-				<ArrowTextLabel
-					id={shape.id}
-					text={shape.props.text}
-					font={shape.props.font}
-					size={shape.props.size}
-					position={labelPosition.box.center}
-					width={labelPosition.box.w}
-					labelColor={theme[shape.props.labelColor].solid}
-				/>
+				{showArrowLabel && (
+					<ArrowTextLabel
+						id={shape.id}
+						text={shape.props.text}
+						font={shape.props.font}
+						size={shape.props.size}
+						position={labelPosition.box.center}
+						width={labelPosition.box.w}
+						isSelected={isSelected}
+						labelColor={shape.props.labelColor}
+					/>
+				)}
 			</>
 		)
 	}
@@ -866,233 +724,201 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
-		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
+		ctx.addExportDef(getFillDefForExport(shape.props.fill))
+		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
+		const theme = getDefaultColorTheme(ctx)
 
-		const color = theme[shape.props.color].solid
-
-		const info = this.editor.getArrowInfo(shape)
-
-		const strokeWidth = STROKE_SIZES[shape.props.size]
-
-		// Group for arrow
-		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-		if (!info) return g
-
-		// Arrowhead start path
-		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
-		// Arrowhead end path
-		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
-
-		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
-		const bounds = geometry.bounds
-
-		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
-
-		const maskId = (shape.id + '_clip').replace(':', '_')
-
-		// If we have any arrowheads, then mask the arrowheads
-		if (as || ae || !!labelGeometry) {
-			// Create mask for arrowheads
-
-			// Create defs
-			const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-
-			// Create mask
-			const mask = document.createElementNS('http://www.w3.org/2000/svg', 'mask')
-			mask.id = maskId
-
-			// Create large white shape for mask
-			const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-			rect.setAttribute('x', bounds.minX - 100 + '')
-			rect.setAttribute('y', bounds.minY - 100 + '')
-			rect.setAttribute('width', bounds.width + 200 + '')
-			rect.setAttribute('height', bounds.height + 200 + '')
-			rect.setAttribute('fill', 'white')
-			mask.appendChild(rect)
-
-			// add arrowhead start mask
-			if (as) mask.appendChild(getArrowheadSvgMask(as, info.start.arrowhead))
-
-			// add arrowhead end mask
-			if (ae) mask.appendChild(getArrowheadSvgMask(ae, info.end.arrowhead))
-
-			// Mask out text label if text is present
-			if (labelGeometry) {
-				const labelMask = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-				labelMask.setAttribute('x', labelGeometry.x + '')
-				labelMask.setAttribute('y', labelGeometry.y + '')
-				labelMask.setAttribute('width', labelGeometry.w + '')
-				labelMask.setAttribute('height', labelGeometry.h + '')
-				labelMask.setAttribute('fill', 'black')
-
-				mask.appendChild(labelMask)
-			}
-
-			defs.appendChild(mask)
-			g.appendChild(defs)
-		}
-
-		const g2 = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-		g2.setAttribute('mask', `url(#${maskId})`)
-		g.appendChild(g2)
-
-		// Dumb mask fix thing
-		const rect2 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		rect2.setAttribute('x', '-100')
-		rect2.setAttribute('y', '-100')
-		rect2.setAttribute('width', bounds.width + 200 + '')
-		rect2.setAttribute('height', bounds.height + 200 + '')
-		rect2.setAttribute('fill', 'transparent')
-		rect2.setAttribute('stroke', 'none')
-		g2.appendChild(rect2)
-
-		// Arrowhead body path
-		const path = getArrowSvgPath(
-			info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info),
-			color,
-			strokeWidth
+		return (
+			<>
+				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
+				<SvgTextLabel
+					fontSize={ARROW_LABEL_FONT_SIZES[shape.props.size]}
+					font={shape.props.font}
+					align="middle"
+					verticalAlign="middle"
+					text={shape.props.text}
+					labelColor={theme[shape.props.labelColor].solid}
+					bounds={getArrowLabelPosition(this.editor, shape).box}
+					padding={4}
+				/>
+			</>
 		)
-
-		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-			info.isStraight ? info.length : Math.abs(info.bodyArc.length),
-			strokeWidth,
-			{
-				style: shape.props.dash,
-			}
-		)
-
-		path.setAttribute('stroke-dasharray', strokeDasharray)
-		path.setAttribute('stroke-dashoffset', strokeDashoffset)
-
-		g2.appendChild(path)
-
-		// Arrowhead start path
-		if (as) {
-			g.appendChild(
-				getArrowheadSvgPath(
-					as,
-					shape.props.color,
-					strokeWidth,
-					shape.props.arrowheadStart === 'arrow' ? 'none' : shape.props.fill,
-					theme
-				)
-			)
-		}
-		// Arrowhead end path
-		if (ae) {
-			g.appendChild(
-				getArrowheadSvgPath(
-					ae,
-					shape.props.color,
-					strokeWidth,
-					shape.props.arrowheadEnd === 'arrow' ? 'none' : shape.props.fill,
-					theme
-				)
-			)
-		}
-
-		// Text Label
-		if (labelGeometry) {
-			ctx.addExportDef(getFontDefForExport(shape.props.font))
-
-			const opts = {
-				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-				lineHeight: TEXT_PROPS.lineHeight,
-				fontFamily: DefaultFontFamilies[shape.props.font],
-				padding: 0,
-				textAlign: 'middle' as const,
-				width: labelGeometry.w - 8,
-				verticalTextAlign: 'middle' as const,
-				height: labelGeometry.h,
-				fontStyle: 'normal',
-				fontWeight: 'normal',
-				overflow: 'wrap' as const,
-			}
-
-			const textElm = createTextSvgElementFromSpans(
-				this.editor,
-				this.editor.textMeasure.measureTextSpans(shape.props.text, opts),
-				opts
-			)
-			textElm.setAttribute('fill', theme[shape.props.labelColor].solid)
-
-			const children = Array.from(textElm.children) as unknown as SVGTSpanElement[]
-
-			children.forEach((child) => {
-				const x = parseFloat(child.getAttribute('x') || '0')
-				const y = parseFloat(child.getAttribute('y') || '0')
-
-				child.setAttribute('x', x + 4 + labelGeometry.x + 'px')
-				child.setAttribute('y', y + labelGeometry.y + 'px')
-			})
-
-			const textBgEl = textElm.cloneNode(true) as SVGTextElement
-			textBgEl.setAttribute('stroke-width', '2')
-			textBgEl.setAttribute('fill', theme.background)
-			textBgEl.setAttribute('stroke', theme.background)
-
-			g.appendChild(textBgEl)
-			g.appendChild(textElm)
-		}
-
-		return g
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
-		return [getFillDefForCanvas()]
+		return [
+			getFillDefForCanvas(),
+			{
+				key: `arrow:dot`,
+				component: ArrowheadDotDef,
+			},
+			{
+				key: `arrow:cross`,
+				component: ArrowheadCrossDef,
+			},
+		]
 	}
 }
 
-function getArrowheadSvgMask(d: string, arrowhead: TLArrowShapeArrowheadStyle) {
-	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	path.setAttribute('d', d)
-	path.setAttribute('fill', arrowhead === 'arrow' ? 'none' : 'black')
-	path.setAttribute('stroke', 'none')
-	return path
+function getLength(editor: Editor, shape: TLArrowShape): number {
+	const info = editor.getArrowInfo(shape)!
+
+	return info.isStraight
+		? Vec.Dist(info.start.handle, info.end.handle)
+		: Math.abs(info.handleArc.length)
 }
 
-function getArrowSvgPath(d: string, color: string, strokeWidth: number) {
-	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	path.setAttribute('d', d)
-	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', color)
-	path.setAttribute('stroke-width', strokeWidth + '')
-	return path
-}
+const ArrowSvg = track(function ArrowSvg({
+	shape,
+	shouldDisplayHandles,
+}: {
+	shape: TLArrowShape
+	shouldDisplayHandles: boolean
+}) {
+	const editor = useEditor()
+	const theme = useDefaultColorTheme()
+	const info = editor.getArrowInfo(shape)
+	const bounds = Box.ZeroFix(editor.getShapeGeometry(shape).bounds)
 
-function getArrowheadSvgPath(
-	d: string,
-	color: TLDefaultColorStyle,
-	strokeWidth: number,
-	fill: TLDefaultFillStyle,
-	theme: TLDefaultColorTheme
-) {
-	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	path.setAttribute('d', d)
-	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', theme[color].solid)
-	path.setAttribute('stroke-width', strokeWidth + '')
+	const changeIndex = React.useMemo<number>(() => {
+		return editor.environment.isSafari ? (globalRenderIndex += 1) : 0
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [shape])
 
-	// Get the fill element, if any
-	const shapeFill = getShapeFillSvg({
-		d,
-		fill,
-		color,
-		theme,
-	})
+	if (!info?.isValid) return null
 
-	if (shapeFill) {
-		// If there is a fill element, return a group containing the fill and the path
-		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-		g.appendChild(shapeFill)
-		g.appendChild(path)
-		return g
-	} else {
-		// Otherwise, just return the path
-		return path
+	const strokeWidth = STROKE_SIZES[shape.props.size]
+
+	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
+	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
+
+	const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
+
+	let handlePath: null | React.JSX.Element = null
+
+	if (shouldDisplayHandles) {
+		const sw = 2
+		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+			getLength(editor, shape),
+			sw,
+			{
+				end: 'skip',
+				start: 'skip',
+				lengthRatio: 2.5,
+			}
+		)
+
+		handlePath =
+			shape.props.start.type === 'binding' || shape.props.end.type === 'binding' ? (
+				<path
+					className="tl-arrow-hint"
+					d={info.isStraight ? getStraightArrowHandlePath(info) : getCurvedArrowHandlePath(info)}
+					strokeDasharray={strokeDasharray}
+					strokeDashoffset={strokeDashoffset}
+					strokeWidth={sw}
+					markerStart={
+						shape.props.start.type === 'binding'
+							? shape.props.start.isExact
+								? ''
+								: shape.props.start.isPrecise
+									? 'url(#arrowhead-cross)'
+									: 'url(#arrowhead-dot)'
+							: ''
+					}
+					markerEnd={
+						shape.props.end.type === 'binding'
+							? shape.props.end.isExact
+								? ''
+								: shape.props.end.isPrecise
+									? 'url(#arrowhead-cross)'
+									: 'url(#arrowhead-dot)'
+							: ''
+					}
+					opacity={0.16}
+				/>
+			) : null
 	}
-}
+
+	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+		info.isStraight ? info.length : Math.abs(info.bodyArc.length),
+		strokeWidth,
+		{
+			style: shape.props.dash,
+		}
+	)
+
+	const labelPosition = getArrowLabelPosition(editor, shape)
+
+	const maskStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
+	const maskEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
+
+	// NOTE: I know right setting `changeIndex` hacky-as right! But we need this because otherwise safari loses
+	// the mask, see <https://linear.app/tldraw/issue/TLD-1500/changing-arrow-color-makes-line-pass-through-text>
+	const maskId = (shape.id + '_clip_' + changeIndex).replace(':', '_')
+
+	return (
+		<>
+			{/* Yep */}
+			<defs>
+				<mask id={maskId}>
+					<rect
+						x={toDomPrecision(-100 + bounds.minX)}
+						y={toDomPrecision(-100 + bounds.minY)}
+						width={toDomPrecision(bounds.width + 200)}
+						height={toDomPrecision(bounds.height + 200)}
+						fill="white"
+					/>
+					{shape.props.text.trim() && (
+						<rect
+							x={labelPosition.box.x}
+							y={labelPosition.box.y}
+							width={labelPosition.box.w}
+							height={labelPosition.box.h}
+							fill="black"
+							rx={4}
+							ry={4}
+						/>
+					)}
+					{as && maskStartArrowhead && (
+						<path d={as} fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'} stroke="none" />
+					)}
+					{ae && maskEndArrowhead && (
+						<path d={ae} fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'} stroke="none" />
+					)}
+				</mask>
+			</defs>
+			<g
+				fill="none"
+				stroke={theme[shape.props.color].solid}
+				strokeWidth={strokeWidth}
+				strokeLinejoin="round"
+				strokeLinecap="round"
+				pointerEvents="none"
+			>
+				{handlePath}
+				{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
+				<g mask={`url(#${maskId})`}>
+					<rect
+						x={toDomPrecision(bounds.minX - 100)}
+						y={toDomPrecision(bounds.minY - 100)}
+						width={toDomPrecision(bounds.width + 200)}
+						height={toDomPrecision(bounds.height + 200)}
+						opacity={0}
+					/>
+					<path d={path} strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} />
+				</g>
+				{as && maskStartArrowhead && shape.props.fill !== 'none' && (
+					<ShapeFill theme={theme} d={as} color={shape.props.color} fill={shape.props.fill} />
+				)}
+				{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
+					<ShapeFill theme={theme} d={ae} color={shape.props.color} fill={shape.props.fill} />
+				)}
+				{as && <path d={as} />}
+				{ae && <path d={ae} />}
+			</g>
+		</>
+	)
+})
 
 const shapeAtTranslationStart = new WeakMap<
 	TLArrowShape,
@@ -1113,3 +939,20 @@ const MIN_DISTANCE_TO_CENTER_BIND = 20
 const MIN_DISTANCE_TO_ANGLE_BIND = 150
 const MAX_TIME_TO_ANGLE_BIND = 750
 const MAX_TIME_TO_START_ANGLE_BIND = 300
+
+function ArrowheadDotDef() {
+	return (
+		<marker id="arrowhead-dot" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
+			<circle cx="3" cy="3" r="2" strokeDasharray="100%" />
+		</marker>
+	)
+}
+
+function ArrowheadCrossDef() {
+	return (
+		<marker id="arrowhead-cross" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
+			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
+			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
+		</marker>
+	)
+}

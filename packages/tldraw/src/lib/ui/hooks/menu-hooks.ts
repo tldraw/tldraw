@@ -176,7 +176,8 @@ export function useHasLinkShapeSelected() {
 			return !!(
 				onlySelectedShape &&
 				onlySelectedShape.type !== 'embed' &&
-				'url' in onlySelectedShape.props
+				'url' in onlySelectedShape.props &&
+				!onlySelectedShape.isLocked
 			)
 		},
 		[editor]
@@ -188,16 +189,13 @@ export function useOnlyFlippableShape() {
 	return useValue(
 		'onlyFlippableShape',
 		() => {
-			const selectedShapes = editor.getSelectedShapes()
+			const shape = editor.getOnlySelectedShape()
 			return (
-				selectedShapes.length === 1 &&
-				selectedShapes.every(
-					(shape) =>
-						editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
-						editor.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
-						editor.isShapeOfType<TLLineShape>(shape, 'line') ||
-						editor.isShapeOfType<TLDrawShape>(shape, 'draw')
-				)
+				shape &&
+				(editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+					editor.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
+					editor.isShapeOfType<TLLineShape>(shape, 'line') ||
+					editor.isShapeOfType<TLDrawShape>(shape, 'draw'))
 			)
 		},
 		[editor]

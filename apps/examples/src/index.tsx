@@ -19,9 +19,9 @@ import EndToEnd from './misc/end-to-end'
 const assetUrls = getAssetUrlsByMetaUrl()
 setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
-const gettingStartedExamples = examples.find((e) => e.id === 'Getting Started')
+const gettingStartedExamples = examples.find((e) => e.id === 'Getting started')
 if (!gettingStartedExamples) throw new Error('Could not find getting started exmaples')
-const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Persistence key')
+const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Tldraw component')
 if (!basicExample) throw new Error('Could not find initial example')
 
 const router = createBrowserRouter([

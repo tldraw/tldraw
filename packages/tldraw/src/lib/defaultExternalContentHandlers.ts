@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	FileHelpers,
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
@@ -96,7 +97,7 @@ export function registerDefaultExternalContentHandlers(
 			typeName: 'asset',
 			props: {
 				name,
-				src: await MediaHelpers.blobToDataUrl(file),
+				src: await FileHelpers.blobToDataUrl(file),
 				w: size.w,
 				h: size.h,
 				mimeType: file.type,
@@ -127,6 +128,7 @@ export function registerDefaultExternalContentHandlers(
 			console.error(error)
 			toasts.addToast({
 				title: msg('assets.url.failed'),
+				severity: 'error',
 			})
 			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
 		}
@@ -249,6 +251,7 @@ export function registerDefaultExternalContentHandlers(
 				} catch (error) {
 					toasts.addToast({
 						title: msg('assets.files.upload-failed'),
+						severity: 'error',
 					})
 					console.error(error)
 					return null
@@ -268,6 +271,22 @@ export function registerDefaultExternalContentHandlers(
 		const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
 
 		const textToPaste = cleanupText(text)
+
+		// If we're pasting into a text shape, update the text.
+		const onlySelectedShape = editor.getOnlySelectedShape()
+		if (onlySelectedShape && 'text' in onlySelectedShape.props) {
+			editor.updateShapes([
+				{
+					id: onlySelectedShape.id,
+					type: onlySelectedShape.type,
+					props: {
+						text: textToPaste,
+					},
+				},
+			])
+
+			return
+		}
 
 		// Measure the text with default values
 		let w: number
@@ -368,6 +387,7 @@ export function registerDefaultExternalContentHandlers(
 			} catch (e) {
 				toasts.addToast({
 					title: msg('assets.url.failed'),
+					severity: 'error',
 				})
 				return
 			}

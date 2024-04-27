@@ -1,4 +1,4 @@
-import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
+import { MigrationSequence, SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
@@ -49,6 +49,7 @@ export type TldrawEditorProps = Expand<
 			  }
 			| {
 					store?: undefined
+					migrations?: readonly MigrationSequence[]
 					snapshot?: StoreSnapshot<TLRecord>
 					initialData?: SerializedStore<TLRecord>
 					persistenceKey?: string
@@ -379,8 +380,11 @@ function useOnMount(onMount?: TLOnMountHandler) {
 	const editor = useEditor()
 
 	const onMountEvent = useEvent((editor: Editor) => {
-		const teardown = onMount?.(editor)
-		editor.emit('mount')
+		let teardown: (() => void) | void = undefined
+		editor.history.ignore(() => {
+			teardown = onMount?.(editor)
+			editor.emit('mount')
+		})
 		window.tldrawReady = true
 		return teardown
 	})

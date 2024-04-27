@@ -37,9 +37,6 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 // @public
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
-// @public
-export function deepCopy<T = unknown>(obj: T): T;
-
 // @internal
 export function deleteFromLocalStorage(key: string): void;
 
@@ -48,8 +45,8 @@ export function deleteFromSessionStorage(key: string): void;
 
 // @public (undocumented)
 export type ErrorResult<E> = {
-    readonly ok: false;
     readonly error: E;
+    readonly ok: false;
 };
 
 // @internal (undocumented)
@@ -62,9 +59,10 @@ export type Expand<T> = T extends infer O ? {
 
 // @public
 export class FileHelpers {
-    // @internal (undocumented)
-    static base64ToFile(dataURL: string): Promise<ArrayBuffer>;
-    static fileToBase64(file: Blob): Promise<string>;
+    static blobToDataUrl(file: Blob): Promise<string>;
+    static blobToText(file: Blob): Promise<string>;
+    // (undocumented)
+    static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
 }
 
 // @internal
@@ -73,6 +71,9 @@ export function filterEntries<Key extends string, Value>(object: {
 }, predicate: (key: Key, value: Value) => boolean): {
     [K in Key]: Value;
 };
+
+// @internal
+export function fpsThrottle(fn: () => void): () => void;
 
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
@@ -136,6 +137,9 @@ export function invLerp(a: number, b: number, t: number): number;
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
 
+// @internal (undocumented)
+export const isNativeStructuredClone: boolean;
+
 // @public
 export function isNonNull<T>(value: T): value is typeof value extends null ? never : T;
 
@@ -172,16 +176,24 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
     [K in Key]: ValueAfter;
 };
 
+// @internal (undocumented)
+export function measureAverageDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
+
+// @internal (undocumented)
+export function measureCbDuration(name: string, cb: () => any): any;
+
+// @internal (undocumented)
+export function measureDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
+
 // @public
 export class MediaHelpers {
-    static blobToDataUrl(blob: Blob): Promise<string>;
     static getImageSize(blob: Blob): Promise<{
-        w: number;
         h: number;
+        w: number;
     }>;
     static getVideoSize(blob: Blob): Promise<{
-        w: number;
         h: number;
+        w: number;
     }>;
     static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
@@ -260,12 +272,9 @@ export class PngHelpers {
 
 // @internal (undocumented)
 export function promiseWithResolve<T>(): Promise<T> & {
-    resolve: (value: T) => void;
     reject: (reason?: any) => void;
+    resolve: (value: T) => void;
 };
-
-// @internal
-export function rafThrottle(fn: () => void): () => void;
 
 // @public (undocumented)
 export type RecursivePartial<T> = {
@@ -281,8 +290,8 @@ export type Result<T, E> = ErrorResult<E> | OkResult<T>;
 
 // @public (undocumented)
 export const Result: {
-    ok<T>(value: T): OkResult<T>;
     err<E>(error: E): ErrorResult<E>;
+    ok<T>(value: T): OkResult<T>;
 };
 
 // @public
@@ -307,6 +316,9 @@ export function sortByIndex<T extends {
     index: IndexKey;
 }>(a: T, b: T): -1 | 0 | 1;
 
+// @internal
+export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
+
 // @public
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
@@ -315,7 +327,7 @@ export { structuredClone_2 as structuredClone }
 export function throttle<T extends (...args: any) => any>(func: T, limit: number): (...args: Parameters<T>) => ReturnType<T>;
 
 // @internal
-export function throttledRaf(fn: () => void): void;
+export function throttleToNextFrame(fn: () => void): () => void;
 
 // @internal (undocumented)
 export function validateIndexKey(key: string): asserts key is IndexKey;

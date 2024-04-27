@@ -1,11 +1,12 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrationSequence,
+} from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
-import {
-	DefaultHorizontalAlignStyle,
-	TLDefaultHorizontalAlignStyle,
-} from '../styles/TLHorizontalAlignStyle'
+import { DefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { DefaultVerticalAlignStyle } from '../styles/TLVerticalAlignStyle'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
@@ -15,6 +16,7 @@ export const noteShapeProps = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,
+	fontSizeAdjustment: T.positiveNumber,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
 	growY: T.positiveNumber,
@@ -28,121 +30,79 @@ export type TLNoteShapeProps = ShapePropsType<typeof noteShapeProps>
 /** @public */
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('note', {
 	AddUrlProp: 1,
 	RemoveJustify: 2,
 	MigrateLegacyAlign: 3,
 	AddVerticalAlign: 4,
 	MakeUrlsValid: 5,
-} as const
+	AddFontSizeAdjustment: 6,
+})
 
-/** @internal */
-export const noteShapeMigrations = defineMigrations({
-	currentVersion: Versions.MakeUrlsValid,
-	migrators: {
-		[Versions.AddUrlProp]: {
-			up: (shape) => {
-				return { ...shape, props: { ...shape.props, url: '' } }
+export { Versions as noteShapeVersions }
+
+/** @public */
+export const noteShapeMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: Versions.AddUrlProp,
+			up: (props) => {
+				props.url = ''
 			},
-			down: (shape) => {
-				const { url: _, ...props } = shape.props
-				return { ...shape, props }
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-		[Versions.RemoveJustify]: {
-			up: (shape) => {
-				let newAlign = shape.props.align
-				if (newAlign === 'justify') {
-					newAlign = 'start'
-				}
-
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						align: newAlign,
-					},
+		{
+			id: Versions.RemoveJustify,
+			up: (props) => {
+				if (props.align === 'justify') {
+					props.align = 'start'
 				}
 			},
-			down: (shape) => {
-				return { ...shape }
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-
-		[Versions.MigrateLegacyAlign]: {
-			up: (shape) => {
-				let newAlign: TLDefaultHorizontalAlignStyle
-				switch (shape.props.align) {
+		{
+			id: Versions.MigrateLegacyAlign,
+			up: (props) => {
+				switch (props.align) {
 					case 'start':
-						newAlign = 'start-legacy'
-						break
+						props.align = 'start-legacy'
+						return
 					case 'end':
-						newAlign = 'end-legacy'
-						break
+						props.align = 'end-legacy'
+						return
 					default:
-						newAlign = 'middle-legacy'
-						break
-				}
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						align: newAlign,
-					},
+						props.align = 'middle-legacy'
+						return
 				}
 			},
-			down: (shape) => {
-				let oldAlign: TLDefaultHorizontalAlignStyle
-				switch (shape.props.align) {
-					case 'start-legacy':
-						oldAlign = 'start'
-						break
-					case 'end-legacy':
-						oldAlign = 'end'
-						break
-					case 'middle-legacy':
-						oldAlign = 'middle'
-						break
-					default:
-						oldAlign = shape.props.align
+			down: RETIRED_DOWN_MIGRATION,
+		},
+		{
+			id: Versions.AddVerticalAlign,
+			up: (props) => {
+				props.verticalAlign = 'middle'
+			},
+			down: RETIRED_DOWN_MIGRATION,
+		},
+		{
+			id: Versions.MakeUrlsValid,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
 				}
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						align: oldAlign,
-					},
-				}
+			},
+			down: (_props) => {
+				// noop
 			},
 		},
-		[Versions.AddVerticalAlign]: {
-			up: (shape) => {
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						verticalAlign: 'middle',
-					},
-				}
+		{
+			id: Versions.AddFontSizeAdjustment,
+			up: (props) => {
+				props.fontSizeAdjustment = 0
 			},
-			down: (shape) => {
-				const { verticalAlign: _, ...props } = shape.props
-
-				return {
-					...shape,
-					props,
-				}
+			down: (props) => {
+				delete props.fontSizeAdjustment
 			},
 		},
-		[Versions.MakeUrlsValid]: {
-			up: (shape) => {
-				const url = shape.props.url
-				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
-					return { ...shape, props: { ...shape.props, url: '' } }
-				}
-				return shape
-			},
-			down: (shape) => shape,
-		},
-	},
+	],
 })

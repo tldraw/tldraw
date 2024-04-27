@@ -13,13 +13,13 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLTickEventHandler,
 	Vec,
 	VecLike,
 	areAnglesCompatible,
 	compact,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
+import { kickoutOccludedShapes } from '../selectHelpers'
 
 type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -61,10 +61,7 @@ export class Resizing extends StateNode {
 		if (isCreating) {
 			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
 
-			this.editor.updateInstanceState(
-				{ cursor: { type: 'cross', rotation: 0 } },
-				{ ephemeral: true }
-			)
+			this.editor.setCursor({ type: 'cross', rotation: 0 })
 		} else {
 			this.markId = 'starting resizing'
 			this.editor.mark(this.markId)
@@ -74,7 +71,7 @@ export class Resizing extends StateNode {
 		this.updateShapes()
 	}
 
-	override onTick: TLTickEventHandler = () => {
+	override onTick = () => {
 		moveCameraWhenCloseToEdge(this.editor)
 	}
 
@@ -112,6 +109,8 @@ export class Resizing extends StateNode {
 	}
 
 	private complete() {
+		kickoutOccludedShapes(this.editor, this.snapshot.selectedShapeIds)
+
 		this.handleResizeEnd()
 
 		if (this.info.isCreating && this.info.onCreate) {
@@ -405,10 +404,7 @@ export class Resizing extends StateNode {
 
 	override onExit = () => {
 		this.parent.setCurrentToolIdMask(undefined)
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
 	}
 

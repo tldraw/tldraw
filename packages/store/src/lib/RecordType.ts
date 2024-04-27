@@ -1,8 +1,7 @@
-import { structuredClone } from '@tldraw/utils'
+import { objectMapEntries, structuredClone } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
 import { IdOf, OmitMeta, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
-import { Migrations } from './migrate'
 
 export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['create']>
 
@@ -28,9 +27,9 @@ export class RecordType<
 	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>,
 > {
 	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
-	readonly migrations: Migrations
 	readonly validator: StoreValidator<R>
-
+	readonly ephemeralKeys?: { readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean }
+	readonly ephemeralKeySet: ReadonlySet<string>
 	readonly scope: RecordScope
 
 	constructor(
@@ -43,15 +42,23 @@ export class RecordType<
 		public readonly typeName: R['typeName'],
 		config: {
 			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
-			readonly migrations: Migrations
 			readonly validator?: StoreValidator<R>
 			readonly scope?: RecordScope
+			readonly ephemeralKeys?: { readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean }
 		}
 	) {
 		this.createDefaultProperties = config.createDefaultProperties
-		this.migrations = config.migrations
 		this.validator = config.validator ?? { validate: (r: unknown) => r as R }
 		this.scope = config.scope ?? 'document'
+		this.ephemeralKeys = config.ephemeralKeys
+
+		const ephemeralKeySet = new Set<string>()
+		if (config.ephemeralKeys) {
+			for (const [key, isEphemeral] of objectMapEntries(config.ephemeralKeys)) {
+				if (isEphemeral) ephemeralKeySet.add(key)
+			}
+		}
+		this.ephemeralKeySet = ephemeralKeySet
 	}
 
 	/**
@@ -188,9 +195,9 @@ export class RecordType<
 	): RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>> {
 		return new RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>>(this.typeName, {
 			createDefaultProperties: createDefaultProperties as any,
-			migrations: this.migrations,
 			validator: this.validator,
 			scope: this.scope,
+			ephemeralKeys: this.ephemeralKeys,
 		})
 	}
 
@@ -221,16 +228,16 @@ export class RecordType<
 export function createRecordType<R extends UnknownRecord>(
 	typeName: R['typeName'],
 	config: {
-		migrations?: Migrations
 		validator?: StoreValidator<R>
 		scope: RecordScope
+		ephemeralKeys?: { readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean }
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
 	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {
 		createDefaultProperties: () => ({}) as any,
-		migrations: config.migrations ?? { currentVersion: 0, firstVersion: 0, migrators: {} },
 		validator: config.validator,
 		scope: config.scope,
+		ephemeralKeys: config.ephemeralKeys,
 	})
 }
 

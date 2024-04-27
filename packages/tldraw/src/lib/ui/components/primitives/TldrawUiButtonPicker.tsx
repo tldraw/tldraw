@@ -3,9 +3,8 @@ import {
 	SharedStyle,
 	StyleProp,
 	TLDefaultColorStyle,
-	getDefaultColorTheme,
+	TLDefaultColorTheme,
 	useEditor,
-	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useMemo, useRef } from 'react'
@@ -22,7 +21,8 @@ export interface TLUiButtonPickerProps<T extends string> {
 	style: StyleProp<T>
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
-	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
+	theme: TLDefaultColorTheme
+	onValueChange: (style: StyleProp<T>, value: T) => void
 }
 
 function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>) {
@@ -34,6 +34,7 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 		value,
 		// columns = clamp(items.length, 2, 4),
 		onValueChange,
+		theme,
 	} = props
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -56,14 +57,14 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 			if (value.type === 'shared' && value.value === id) return
 
 			editor.mark('point picker item')
-			onValueChange(style, id as T, false)
+			onValueChange(style, id as T)
 		}
 
 		const handleButtonPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 
 			editor.mark('point picker item')
-			onValueChange(style, id as T, true)
+			onValueChange(style, id as T)
 
 			rPointing.current = true
 			window.addEventListener('pointerup', handlePointerUp) // see TLD-658
@@ -73,14 +74,14 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 			if (!rPointing.current) return
 
 			const { id } = e.currentTarget.dataset
-			onValueChange(style, id as T, true)
+			onValueChange(style, id as T)
 		}
 
 		const handleButtonPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 			if (value.type === 'shared' && value.value === id) return
 
-			onValueChange(style, id as T, false)
+			onValueChange(style, id as T)
 		}
 
 		return {
@@ -90,12 +91,6 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 			handleButtonPointerUp,
 		}
 	}, [value, editor, onValueChange, style])
-
-	const theme = useValue(
-		'theme',
-		() => getDefaultColorTheme({ isDarkMode: editor.user.getIsDarkMode() }),
-		[editor]
-	)
 
 	return (
 		<div data-testid={`style.${uiType}`} className={classNames('tlui-buttons__grid')}>

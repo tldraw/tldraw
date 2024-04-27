@@ -15,6 +15,7 @@ const colors = [
 	'light-green',
 	'light-red',
 	'red',
+	'white',
 ] as const
 
 /** @public */
@@ -22,6 +23,10 @@ export type TLDefaultColorThemeColor = {
 	solid: string
 	semi: string
 	pattern: string
+	note: {
+		fill: string
+		text: string
+	}
 	highlight: {
 		srgb: string
 		p3: string
@@ -48,9 +53,12 @@ export const DefaultColorThemePalette: {
 		text: '#000000',
 		background: 'rgb(249, 250, 251)',
 		solid: '#fcfffe',
-
 		black: {
 			solid: '#1d1d1d',
+			note: {
+				fill: '#FCE19C',
+				text: '#000000',
+			},
 			semi: '#e8e8e8',
 			pattern: '#494949',
 			highlight: {
@@ -59,7 +67,11 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		blue: {
-			solid: '#4263eb',
+			solid: '#4465e9',
+			note: {
+				fill: '#8AA3FF',
+				text: '#000000',
+			},
 			semi: '#dce1f8',
 			pattern: '#6681ee',
 			highlight: {
@@ -69,6 +81,10 @@ export const DefaultColorThemePalette: {
 		},
 		green: {
 			solid: '#099268',
+			note: {
+				fill: '#6FC896',
+				text: '#000000',
+			},
 			semi: '#d3e9e3',
 			pattern: '#39a785',
 			highlight: {
@@ -77,7 +93,11 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		grey: {
-			solid: '#adb5bd',
+			solid: '#9fa8b2',
+			note: {
+				fill: '#C0CAD3',
+				text: '#000000',
+			},
 			semi: '#eceef0',
 			pattern: '#bcc3c9',
 			highlight: {
@@ -86,7 +106,11 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		'light-blue': {
-			solid: '#4dabf7',
+			solid: '#4ba1f1',
+			note: {
+				fill: '#9BC4FD',
+				text: '#000000',
+			},
 			semi: '#ddedfa',
 			pattern: '#6fbbf8',
 			highlight: {
@@ -95,7 +119,11 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		'light-green': {
-			solid: '#40c057',
+			solid: '#4cb05e',
+			note: {
+				fill: '#98D08A',
+				text: '#000000',
+			},
 			semi: '#dbf0e0',
 			pattern: '#65cb78',
 			highlight: {
@@ -104,7 +132,11 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		'light-red': {
-			solid: '#ff8787',
+			solid: '#f87777',
+			note: {
+				fill: '#F7A5A1',
+				text: '#000000',
+			},
 			semi: '#f4dadb',
 			pattern: '#fe9e9e',
 			highlight: {
@@ -113,7 +145,11 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		'light-violet': {
-			solid: '#e599f7',
+			solid: '#e085f4',
+			note: {
+				fill: '#DFB0F9',
+				text: '#000000',
+			},
 			semi: '#f5eafa',
 			pattern: '#e9acf8',
 			highlight: {
@@ -122,7 +158,11 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		orange: {
-			solid: '#f76707',
+			solid: '#e16919',
+			note: {
+				fill: '#FAA475',
+				text: '#000000',
+			},
 			semi: '#f8e2d4',
 			pattern: '#f78438',
 			highlight: {
@@ -132,6 +172,10 @@ export const DefaultColorThemePalette: {
 		},
 		red: {
 			solid: '#e03131',
+			note: {
+				fill: '#FC8282',
+				text: '#000000',
+			},
 			semi: '#f4dadb',
 			pattern: '#e55959',
 			highlight: {
@@ -141,6 +185,10 @@ export const DefaultColorThemePalette: {
 		},
 		violet: {
 			solid: '#ae3ec9',
+			note: {
+				fill: '#DB91FD',
+				text: '#000000',
+			},
 			semi: '#ecdcf2',
 			pattern: '#bd63d3',
 			highlight: {
@@ -149,7 +197,11 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		yellow: {
-			solid: '#ffc078',
+			solid: '#f1ac4b',
+			note: {
+				fill: '#FED49A',
+				text: '#000000',
+			},
 			semi: '#f9f0e6',
 			pattern: '#fecb92',
 			highlight: {
@@ -157,15 +209,32 @@ export const DefaultColorThemePalette: {
 				p3: 'color(display-p3 0.972 0.8705 0.05)',
 			},
 		},
+		white: {
+			solid: '#FFFFFF',
+			semi: '#f5f5f5',
+			pattern: '#f9f9f9',
+			note: {
+				fill: '#FFFFFF',
+				text: '#000000',
+			},
+			highlight: {
+				srgb: '#ffffff',
+				p3: 'color(display-p3 1 1 1)',
+			},
+		},
 	},
 	darkMode: {
 		id: 'dark',
 		text: 'hsl(210, 17%, 98%)',
-		background: 'hsl(240, 5%, 8%)',
+		background: 'hsl(240, 5%, 6.5%)',
 		solid: '#010403',
 
 		black: {
-			solid: '#e1e1e1',
+			solid: '#f2f2f2',
+			note: {
+				fill: '#2c2c2c',
+				text: '#f2f2f2',
+			},
 			semi: '#2c3036',
 			pattern: '#989898',
 			highlight: {
@@ -174,7 +243,11 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		blue: {
-			solid: '#4263eb',
+			solid: '#4f72fc', // 3c60f0
+			note: {
+				fill: '#2A3F98',
+				text: '#f2f2f2',
+			},
 			semi: '#262d40',
 			pattern: '#3a4b9e',
 			highlight: {
@@ -184,6 +257,10 @@ export const DefaultColorThemePalette: {
 		},
 		green: {
 			solid: '#099268',
+			note: {
+				fill: '#014429',
+				text: '#f2f2f2',
+			},
 			semi: '#253231',
 			pattern: '#366a53',
 			highlight: {
@@ -193,6 +270,10 @@ export const DefaultColorThemePalette: {
 		},
 		grey: {
 			solid: '#9398b0',
+			note: {
+				fill: '#56595F',
+				text: '#f2f2f2',
+			},
 			semi: '#33373c',
 			pattern: '#7c8187',
 			highlight: {
@@ -202,6 +283,10 @@ export const DefaultColorThemePalette: {
 		},
 		'light-blue': {
 			solid: '#4dabf7',
+			note: {
+				fill: '#1F5495',
+				text: '#f2f2f2',
+			},
 			semi: '#2a3642',
 			pattern: '#4d7aa9',
 			highlight: {
@@ -211,6 +296,10 @@ export const DefaultColorThemePalette: {
 		},
 		'light-green': {
 			solid: '#40c057',
+			note: {
+				fill: '#21581D',
+				text: '#f2f2f2',
+			},
 			semi: '#2a3830',
 			pattern: '#4e874e',
 			highlight: {
@@ -220,6 +309,10 @@ export const DefaultColorThemePalette: {
 		},
 		'light-red': {
 			solid: '#ff8787',
+			note: {
+				fill: '#923632',
+				text: '#f2f2f2',
+			},
 			semi: '#3b3235',
 			pattern: '#a56767',
 			highlight: {
@@ -229,6 +322,10 @@ export const DefaultColorThemePalette: {
 		},
 		'light-violet': {
 			solid: '#e599f7',
+			note: {
+				fill: '#762F8E',
+				text: '#f2f2f2',
+			},
 			semi: '#383442',
 			pattern: '#9770a9',
 			highlight: {
@@ -238,6 +335,10 @@ export const DefaultColorThemePalette: {
 		},
 		orange: {
 			solid: '#f76707',
+			note: {
+				fill: '#843906',
+				text: '#f2f2f2',
+			},
 			semi: '#3a2e2a',
 			pattern: '#9f552d',
 			highlight: {
@@ -247,6 +348,10 @@ export const DefaultColorThemePalette: {
 		},
 		red: {
 			solid: '#e03131',
+			note: {
+				fill: '#89231A',
+				text: '#f2f2f2',
+			},
 			semi: '#36292b',
 			pattern: '#8f3734',
 			highlight: {
@@ -256,6 +361,10 @@ export const DefaultColorThemePalette: {
 		},
 		violet: {
 			solid: '#ae3ec9',
+			note: {
+				fill: '#681683',
+				text: '#f2f2f2',
+			},
 			semi: '#31293c',
 			pattern: '#763a8b',
 			highlight: {
@@ -265,11 +374,28 @@ export const DefaultColorThemePalette: {
 		},
 		yellow: {
 			solid: '#ffc034',
+			note: {
+				fill: '#98571B',
+				text: '#f2f2f2',
+			},
 			semi: '#3c3934',
 			pattern: '#fecb92',
 			highlight: {
 				srgb: '#d2b700',
 				p3: 'color(display-p3 0.8078 0.7225 0.0312)',
+			},
+		},
+		white: {
+			solid: '#f3f3f3',
+			semi: '#f5f5f5',
+			pattern: '#f9f9f9',
+			note: {
+				fill: '#eaeaea',
+				text: '#1d1d1d',
+			},
+			highlight: {
+				srgb: '#ffffff',
+				p3: 'color(display-p3 1 1 1)',
 			},
 		},
 	},

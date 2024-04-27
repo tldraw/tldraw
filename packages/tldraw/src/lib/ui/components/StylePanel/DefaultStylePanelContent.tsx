@@ -13,12 +13,16 @@ import {
 	ReadonlySharedStyleMap,
 	StyleProp,
 	TLArrowShapeArrowheadStyle,
+	TLDefaultColorTheme,
+	getDefaultColorTheme,
 	minBy,
 	useEditor,
+	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
 import { STYLES } from '../../../styles'
+import { kickoutOccludedShapes } from '../../../tools/SelectTool/selectHelpers'
 import { useUiEvents } from '../../context/events'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -36,6 +40,8 @@ export type TLUiStylePanelContentProps = {
 
 /** @public */
 export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps) {
+	const isDarkMode = useIsDarkMode()
+
 	if (!styles) return null
 
 	const geo = styles.get(GeoShapeGeoStyle)
@@ -49,10 +55,12 @@ export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps)
 	const hideSpline = spline === undefined
 	const hideText = font === undefined
 
+	const theme = getDefaultColorTheme({ isDarkMode: isDarkMode })
+
 	return (
 		<>
-			<CommonStylePickerSet styles={styles} />
-			{!hideText && <TextStylePickerSet styles={styles} />}
+			<CommonStylePickerSet theme={theme} styles={styles} />
+			{!hideText && <TextStylePickerSet theme={theme} styles={styles} />}
 			{!(hideGeo && hideArrowHeads && hideSpline) && (
 				<div className="tlui-style-panel__section" aria-label="style panel styles">
 					<GeoStylePickerSet styles={styles} />
@@ -70,13 +78,13 @@ function useStyleChangeCallback() {
 
 	return React.useMemo(
 		() =>
-			function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
+			function handleStyleChange<T>(style: StyleProp<T>, value: T) {
 				editor.batch(() => {
 					if (editor.isIn('select')) {
-						editor.setStyleForSelectedShapes(style, value, { squashing })
+						editor.setStyleForSelectedShapes(style, value)
 					}
-					editor.setStyleForNextShapes(style, value, { squashing })
-					editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
+					editor.setStyleForNextShapes(style, value)
+					editor.updateInstanceState({ isChangingStyle: true })
 				})
 
 				trackEvent('set-style', { source: 'style-panel', id: style.id, value: value as string })
@@ -86,8 +94,15 @@ function useStyleChangeCallback() {
 }
 
 /** @public */
-export function CommonStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
+export function CommonStylePickerSet({
+	styles,
+	theme,
+}: {
+	styles: ReadonlySharedStyleMap
+	theme: TLDefaultColorTheme
+}) {
 	const msg = useTranslation()
+	const editor = useEditor()
 
 	const handleValueChange = useStyleChangeCallback()
 
@@ -114,6 +129,7 @@ export function CommonStylePickerSet({ styles }: { styles: ReadonlySharedStyleMa
 						items={STYLES.color}
 						value={color}
 						onValueChange={handleValueChange}
+						theme={theme}
 					/>
 				)}
 				<OpacitySlider />
@@ -128,6 +144,7 @@ export function CommonStylePickerSet({ styles }: { styles: ReadonlySharedStyleMa
 							items={STYLES.fill}
 							value={fill}
 							onValueChange={handleValueChange}
+							theme={theme}
 						/>
 					)}
 					{dash === undefined ? null : (
@@ -138,6 +155,7 @@ export function CommonStylePickerSet({ styles }: { styles: ReadonlySharedStyleMa
 							items={STYLES.dash}
 							value={dash}
 							onValueChange={handleValueChange}
+							theme={theme}
 						/>
 					)}
 					{size === undefined ? null : (
@@ -147,7 +165,14 @@ export function CommonStylePickerSet({ styles }: { styles: ReadonlySharedStyleMa
 							style={DefaultSizeStyle}
 							items={STYLES.size}
 							value={size}
-							onValueChange={handleValueChange}
+							onValueChange={(style, value) => {
+								handleValueChange(style, value)
+								const selectedShapeIds = editor.getSelectedShapeIds()
+								if (selectedShapeIds.length > 0) {
+									kickoutOccludedShapes(editor, selectedShapeIds)
+								}
+							}}
+							theme={theme}
 						/>
 					)}
 				</div>
@@ -157,7 +182,13 @@ export function CommonStylePickerSet({ styles }: { styles: ReadonlySharedStyleMa
 }
 
 /** @public */
-export function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
+export function TextStylePickerSet({
+	theme,
+	styles,
+}: {
+	theme: TLDefaultColorTheme
+	styles: ReadonlySharedStyleMap
+}) {
 	const msg = useTranslation()
 	const handleValueChange = useStyleChangeCallback()
 
@@ -178,6 +209,7 @@ export function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap 
 					items={STYLES.font}
 					value={font}
 					onValueChange={handleValueChange}
+					theme={theme}
 				/>
 			)}
 
@@ -190,6 +222,7 @@ export function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap 
 						items={STYLES.horizontalAlign}
 						value={align}
 						onValueChange={handleValueChange}
+						theme={theme}
 					/>
 					<div className="tlui-style-panel__row__extra-button">
 						{verticalAlign === undefined ? (
@@ -300,14 +333,14 @@ export function OpacitySlider() {
 	const msg = useTranslation()
 
 	const handleOpacityValueChange = React.useCallback(
-		(value: number, squashing: boolean) => {
+		(value: number) => {
 			const item = tldrawSupportedOpacities[value]
 			editor.batch(() => {
 				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(item, { squashing })
+					editor.setOpacityForSelectedShapes(item)
 				}
-				editor.setOpacityForNextShapes(item, { squashing })
-				editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true })
+				editor.setOpacityForNextShapes(item)
+				editor.updateInstanceState({ isChangingStyle: true })
 			})
 
 			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })

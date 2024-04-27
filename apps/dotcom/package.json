@@ -23,10 +23,11 @@
 		"@sentry/integrations": "^7.34.0",
 		"@sentry/react": "^7.77.0",
 		"@tldraw/assets": "workspace:*",
+		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/tlsync": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
-		"browser-fs-access": "^0.33.0",
+		"browser-fs-access": "^0.35.0",
 		"idb": "^7.1.1",
 		"nanoid": "4.0.2",
 		"qrcode": "^1.5.1",
@@ -58,7 +59,7 @@
 		"roots": [
 			"<rootDir>"
 		],
-		"testEnvironment": "jsdom",
+		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"transformIgnorePatterns": [
 			"node_modules/(?!(nanoid|nanoevents)/)"
 		],

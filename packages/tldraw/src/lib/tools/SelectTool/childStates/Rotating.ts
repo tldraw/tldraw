@@ -10,6 +10,7 @@ import {
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
+import { kickoutOccludedShapes } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180
@@ -38,7 +39,22 @@ export class Rotating extends StateNode {
 		this.snapshot = snapshot
 
 		// Trigger a pointer move
-		this.handleStart()
+		const newSelectionRotation = this._getRotationFromPointerPosition({
+			snapToNearestDegree: false,
+		})
+
+		applyRotationToSnapshotShapes({
+			editor: this.editor,
+			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
+			snapshot: this.snapshot,
+			stage: 'start',
+		})
+
+		// Update cursor
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle as RotateCorner],
+			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
+		})
 	}
 
 	override onExit = () => {
@@ -87,11 +103,9 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-			},
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle as RotateCorner],
+			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
 		})
 	}
 
@@ -111,32 +125,15 @@ export class Rotating extends StateNode {
 			snapshot: this.snapshot,
 			stage: 'end',
 		})
+		kickoutOccludedShapes(
+			this.editor,
+			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
+		)
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.parent.transition('idle', this.info)
 		}
-	}
-
-	protected handleStart() {
-		const newSelectionRotation = this._getRotationFromPointerPosition({
-			snapToNearestDegree: false,
-		})
-
-		applyRotationToSnapshotShapes({
-			editor: this.editor,
-			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
-			snapshot: this.snapshot,
-			stage: 'start',
-		})
-
-		// Update cursor
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-			},
-		})
 	}
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {

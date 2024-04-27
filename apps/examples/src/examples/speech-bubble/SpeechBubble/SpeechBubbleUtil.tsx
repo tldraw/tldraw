@@ -1,24 +1,28 @@
 import {
 	DefaultColorStyle,
+	DefaultFontStyle,
+	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
+	DefaultVerticalAlignStyle,
+	FONT_FAMILIES,
 	Geometry2d,
+	LABEL_FONT_SIZES,
 	Polygon2d,
+	ShapePropsType,
 	ShapeUtil,
 	T,
+	TEXT_PROPS,
 	TLBaseShape,
-	TLDefaultColorStyle,
-	TLDefaultSizeStyle,
 	TLHandle,
 	TLOnBeforeUpdateHandler,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
+	TextLabel,
 	Vec,
-	VecModel,
 	ZERO_INDEX_KEY,
-	deepCopy,
-	getDefaultColorTheme,
 	resizeBox,
 	structuredClone,
+	useDefaultColorTheme,
 	vecModelValidator,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
@@ -34,28 +38,28 @@ export const STROKE_SIZES = {
 // There's a guide at the bottom of this file!
 
 // [1]
-export type SpeechBubbleShape = TLBaseShape<
-	'speech-bubble',
-	{
-		w: number
-		h: number
-		size: TLDefaultSizeStyle
-		color: TLDefaultColorStyle
-		tail: VecModel
-	}
->
+
+export const speechBubbleShapeProps = {
+	w: T.number,
+	h: T.number,
+	size: DefaultSizeStyle,
+	color: DefaultColorStyle,
+	font: DefaultFontStyle,
+	align: DefaultHorizontalAlignStyle,
+	verticalAlign: DefaultVerticalAlignStyle,
+	growY: T.positiveNumber,
+	text: T.string,
+	tail: vecModelValidator,
+}
+
+export type SpeechBubbleShapeProps = ShapePropsType<typeof speechBubbleShapeProps>
+export type SpeechBubbleShape = TLBaseShape<'speech-bubble', SpeechBubbleShapeProps>
 
 export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	static override type = 'speech-bubble' as const
 
 	// [2]
-	static override props = {
-		w: T.number,
-		h: T.number,
-		size: DefaultSizeStyle,
-		color: DefaultColorStyle,
-		tail: vecModelValidator,
-	}
+	static override props = speechBubbleShapeProps
 
 	override isAspectRatioLocked = (_shape: SpeechBubbleShape) => false
 
@@ -63,15 +67,26 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	override canBind = (_shape: SpeechBubbleShape) => true
 
+	override canEdit = () => true
+
 	// [3]
-	getDefaultProps(): SpeechBubbleShape['props'] {
+	getDefaultProps(): SpeechBubbleShapeProps {
 		return {
 			w: 200,
 			h: 130,
 			color: 'black',
 			size: 'm',
+			font: 'draw',
+			align: 'middle',
+			verticalAlign: 'start',
+			growY: 0,
+			text: '',
 			tail: { x: 0.5, y: 1.5 },
 		}
+	}
+
+	getHeight(shape: SpeechBubbleShape) {
+		return shape.props.h + shape.props.growY
 	}
 
 	getGeometry(shape: SpeechBubbleShape): Geometry2d {
@@ -85,7 +100,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	// [4]
 	override getHandles(shape: SpeechBubbleShape): TLHandle[] {
-		const { tail, w, h } = shape.props
+		const { tail, w } = shape.props
 
 		return [
 			{
@@ -95,7 +110,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 				// props.tail coordinates are normalized
 				// but here we need them in shape space
 				x: tail.x * w,
-				y: tail.y * h,
+				y: tail.y * this.getHeight(shape),
 			},
 		]
 	}
@@ -106,29 +121,34 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			props: {
 				tail: {
 					x: handle.x / shape.props.w,
-					y: handle.y / shape.props.h,
+					y: handle.y / this.getHeight(shape),
 				},
 			},
 		}
 	}
 
+	override onBeforeCreate = (next: SpeechBubbleShape) => {
+		return this.getGrowY(next, next.props.growY)
+	}
+
 	// [5]
 	override onBeforeUpdate: TLOnBeforeUpdateHandler<SpeechBubbleShape> | undefined = (
-		_: SpeechBubbleShape,
+		prev: SpeechBubbleShape,
 		shape: SpeechBubbleShape
 	) => {
-		const { w, h, tail } = shape.props
+		const { w, tail } = shape.props
+		const fullHeight = this.getHeight(shape)
 
 		const { segmentsIntersection, insideShape } = getTailIntersectionPoint(shape)
 
-		const slantedLength = Math.hypot(w, h)
+		const slantedLength = Math.hypot(w, fullHeight)
 		const MIN_DISTANCE = slantedLength / 5
 		const MAX_DISTANCE = slantedLength / 1.5
 
-		const tailInShapeSpace = new Vec(tail.x * w, tail.y * h)
+		const tailInShapeSpace = new Vec(tail.x * w, tail.y * fullHeight)
 
 		const distanceToIntersection = tailInShapeSpace.dist(segmentsIntersection)
-		const center = new Vec(w / 2, h / 2)
+		const center = new Vec(w / 2, fullHeight / 2)
 		const tailDirection = Vec.Sub(tailInShapeSpace, center).uni()
 
 		let newPoint = tailInShapeSpace
@@ -143,30 +163,48 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			}
 		}
 
-		const next = deepCopy(shape)
+		const next = structuredClone(shape)
 		next.props.tail.x = newPoint.x / w
-		next.props.tail.y = newPoint.y / h
+		next.props.tail.y = newPoint.y / fullHeight
 
-		return next
+		return this.getGrowY(next, prev.props.growY)
 	}
 
 	component(shape: SpeechBubbleShape) {
-		const theme = getDefaultColorTheme({
-			isDarkMode: this.editor.user.getIsDarkMode(),
-		})
+		const {
+			id,
+			type,
+			props: { color, font, size, align, text },
+		} = shape
 		const vertices = getSpeechBubbleVertices(shape)
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const theme = useDefaultColorTheme()
 
 		return (
 			<>
 				<svg className="tl-svg-container">
 					<path
 						d={pathData}
-						strokeWidth={STROKE_SIZES[shape.props.size]}
-						stroke={theme[shape.props.color].solid}
+						strokeWidth={STROKE_SIZES[size]}
+						stroke={theme[color].solid}
 						fill={'none'}
 					/>
 				</svg>
+				<TextLabel
+					id={id}
+					type={type}
+					font={font}
+					fontSize={LABEL_FONT_SIZES[size]}
+					lineHeight={TEXT_PROPS.lineHeight}
+					align={align}
+					verticalAlign="start"
+					text={text}
+					labelColor={theme[color].solid}
+					isSelected={isSelected}
+					wrap
+				/>
 			</>
 		)
 	}
@@ -185,6 +223,37 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		next.props.w = resized.props.w
 		next.props.h = resized.props.h
 		return next
+	}
+
+	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
+		const PADDING = 17
+
+		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			maxWidth: shape.props.w - PADDING * 2,
+		})
+
+		const nextHeight = nextTextSize.h + PADDING * 2
+
+		let growY = 0
+
+		if (nextHeight > shape.props.h) {
+			growY = nextHeight - shape.props.h
+		} else {
+			if (prevGrowY) {
+				growY = 0
+			}
+		}
+
+		return {
+			...shape,
+			props: {
+				...shape.props,
+				growY,
+			},
+		}
 	}
 }
 

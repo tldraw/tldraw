@@ -1,6 +1,10 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { vecModelValidator } from '../misc/geometry-types'
+import {
+	RETIRED_DOWN_MIGRATION,
+	createShapePropsMigrationIds,
+	createShapePropsMigrationSequence,
+} from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultFillStyle } from '../styles/TLFillStyle'
@@ -33,31 +37,28 @@ export type TLDrawShapeProps = ShapePropsType<typeof drawShapeProps>
 /** @public */
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,
-} as const
+})
 
-/** @internal */
-export const drawShapeMigrations = defineMigrations({
-	currentVersion: Versions.AddInPen,
-	migrators: {
-		[Versions.AddInPen]: {
-			up: (shape) => {
+export { Versions as drawShapeVersions }
+
+/** @public */
+export const drawShapeMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: Versions.AddInPen,
+			up: (props) => {
 				// Rather than checking to see whether the shape is a pen at runtime,
 				// from now on we're going to use the type of device reported to us
 				// as well as the pressure data received; but for existing shapes we
 				// need to check the pressure data to see if it's a pen or not.
 
-				const { points } = shape.props.segments[0]
+				const { points } = props.segments[0]
 
 				if (points.length === 0) {
-					return {
-						...shape,
-						props: {
-							...shape.props,
-							isPen: false,
-						},
-					}
+					props.isPen = false
+					return
 				}
 
 				let isPen = !(points[0].z === 0 || points[0].z === 0.5)
@@ -66,24 +67,9 @@ export const drawShapeMigrations = defineMigrations({
 					// Double check if we have a second point (we probably should)
 					isPen = isPen && !(points[1].z === 0 || points[1].z === 0.5)
 				}
-
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						isPen,
-					},
-				}
+				props.isPen = isPen
 			},
-			down: (shape) => {
-				const { isPen: _isPen, ...propsWithOutIsPen } = shape.props
-				return {
-					...shape,
-					props: {
-						...propsWithOutIsPen,
-					},
-				}
-			},
+			down: RETIRED_DOWN_MIGRATION,
 		},
-	},
+	],
 })

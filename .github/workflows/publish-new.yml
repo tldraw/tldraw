@@ -27,7 +27,7 @@ jobs:
   deploy:
     name: 'Publish new version of public packages'
     environment: npm deploy
-    timeout-minutes: 15
+    timeout-minutes: 60
     runs-on: ubuntu-latest-16-cores-open
 
     steps:
@@ -76,6 +76,4 @@ jobs:
     secrets:
       VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
       NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
-    needs: [
-      deploy
-    ]
+    needs: [deploy]

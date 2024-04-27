@@ -1,3 +1,4 @@
+import { ArraySet } from '../ArraySet'
 import { atom } from '../Atom'
 import { computed } from '../Computed'
 import { react } from '../EffectScheduler'
@@ -14,6 +15,7 @@ const emptyChild = (props: Partial<Child> = {}) =>
 	({
 		parentEpochs: [],
 		parents: [],
+		parentSet: new ArraySet(),
 		isActivelyListening: false,
 		lastTraversedEpoch: 0,
 		...props,

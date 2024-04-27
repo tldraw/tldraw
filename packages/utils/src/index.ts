@@ -27,7 +27,6 @@ export { MediaHelpers } from './lib/media'
 export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
 	areObjectsShallowEqual,
-	deepCopy,
 	filterEntries,
 	getOwnProperty,
 	hasOwnProperty,
@@ -37,8 +36,8 @@ export {
 	objectMapKeys,
 	objectMapValues,
 } from './lib/object'
+export { measureAverageDuration, measureCbDuration, measureDuration } from './lib/perf'
 export { PngHelpers } from './lib/png'
-export { rafThrottle, throttledRaf } from './lib/raf'
 export { type IndexKey } from './lib/reordering/IndexKey'
 export {
 	ZERO_INDEX_KEY,
@@ -63,6 +62,14 @@ export {
 	setInLocalStorage,
 	setInSessionStorage,
 } from './lib/storage'
+export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export type { Expand, RecursivePartial, Required } from './lib/types'
-export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'
+export {
+	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
+	isDefined,
+	isNativeStructuredClone,
+	isNonNull,
+	isNonNullish,
+	structuredClone,
+} from './lib/value'
 export { warnDeprecatedGetter } from './lib/warnDeprecatedGetter'

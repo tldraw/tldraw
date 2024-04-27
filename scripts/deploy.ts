@@ -6,7 +6,7 @@ import { execSync } from 'child_process'
 import { appendFileSync, existsSync, readdirSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { PassThrough } from 'stream'
-import tar from 'tar'
+import * as tar from 'tar'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
@@ -185,6 +185,7 @@ name = "${previewId}-tldraw-assets"`
 
 let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
 	if (previewId && !didUpdateTlsyncWorker) {
 		appendFileSync(
 			join(worker, 'wrangler.toml'),
@@ -212,6 +213,8 @@ name = "${previewId}-tldraw-multiplayer"`
 			`TLDRAW_ENV:${env.TLDRAW_ENV}`,
 			'--var',
 			`APP_ORIGIN:${env.APP_ORIGIN}`,
+			'--var',
+			`WORKER_NAME:${workerId}`,
 		],
 		{
 			pwd: worker,
@@ -512,7 +515,7 @@ async function coalesceWithPreviousAssets(assetsDir: string) {
 		// and it will mess up the inline source viewer on sentry errors.
 		const out = tar.x({ cwd: assetsDir, 'keep-existing': true })
 		for await (const chunk of Body?.transformToWebStream() as any as AsyncIterable<Uint8Array>) {
-			out.write(chunk)
+			out.write(Buffer.from(chunk.buffer))
 		}
 		out.end()
 	}
