@@ -2,6 +2,7 @@ import * as Popover from '@radix-ui/react-popover'
 import {
 	GetReadonlySlugResponseBody,
 	ROOM_OPEN_MODE,
+	ROOM_PREFIX,
 	RoomOpenModeToPath,
 } from '@tldraw/dotcom-shared'
 import React, { useEffect, useState } from 'react'
@@ -43,7 +44,7 @@ function isSharedReadonlyUrl(pathname: string) {
 }
 
 function isSharedReadWriteUrl(pathname: string) {
-	return pathname.startsWith('/r/')
+	return pathname.startsWith(`/${ROOM_PREFIX}/`)
 }
 
 function getFreshShareState(): ShareState {
