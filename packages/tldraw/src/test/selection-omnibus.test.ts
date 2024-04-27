@@ -1923,7 +1923,7 @@ describe('When a shape is locked', () => {
 	})
 })
 
-it.only('Ignores locked shapes when hovering', () => {
+it('Ignores locked shapes when hovering', () => {
 	editor.createShape({ x: 100, y: 100, type: 'geo', props: { fill: 'solid' } })
 	const a = editor.getLastCreatedShape()
 	editor.createShape({ x: 100, y: 100, type: 'geo', props: { fill: 'solid' } })
