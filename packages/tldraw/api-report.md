@@ -1386,13 +1386,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             autoSize: boolean;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             font: "draw" | "mono" | "sans" | "serif";
             scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
+            textAlign: "end" | "middle" | "start";
             w: number;
         };
         rotation: number;
@@ -1410,13 +1410,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             autoSize: boolean;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             font: "draw" | "mono" | "sans" | "serif";
             scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
+            textAlign: "end" | "middle" | "start";
             w: number;
         };
         rotation: number;
@@ -1447,13 +1447,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     onResize: TLOnResizeHandler<TLTextShape>;
     // (undocumented)
     static props: {
-        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
         autoSize: Validator<boolean>;
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         scale: Validator<number>;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         text: Validator<string>;
+        textAlign: EnumStyleProp<"end" | "middle" | "start">;
         w: Validator<number>;
     };
     // (undocumented)
@@ -2177,7 +2177,7 @@ export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
 }
 
 // @public (undocumented)
-export type TLUiIconType = 'align-bottom-center' | 'align-bottom-left' | 'align-bottom-right' | 'align-bottom' | 'align-center-center' | 'align-center-horizontal' | 'align-center-left' | 'align-center-right' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top-center' | 'align-top-left' | 'align-top-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'aspect-ratio' | 'avatar' | 'blob' | 'bring-forward' | 'bring-to-front' | 'check-circle' | 'check' | 'checkbox-checked' | 'checkbox-empty' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'code' | 'collab' | 'color' | 'comment' | 'cross-2' | 'cross-circle' | 'cross' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'error' | 'external-link' | 'file' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'hidden' | 'image' | 'info-circle' | 'leading' | 'link' | 'lock-small' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'page' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'ruler' | 'search' | 'send-backward' | 'send-to-back' | 'settings-horizontal' | 'settings-vertical-1' | 'settings-vertical' | 'share-1' | 'share-2' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'status-online' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-justify' | 'text-align-left' | 'text-align-right' | 'tool-arrow' | 'tool-embed' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-text' | 'trash' | 'triangle-down' | 'triangle-up' | 'twitter' | 'undo' | 'ungroup' | 'unlock-small' | 'unlock' | 'vertical-align-center' | 'vertical-align-end' | 'vertical-align-start' | 'visible' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
+export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'blob' | 'bring-forward' | 'bring-to-front' | 'broken' | 'check-circle' | 'check' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'color' | 'cross-2' | 'cross-circle' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'disconnected' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'horizontal-align-end' | 'horizontal-align-middle' | 'horizontal-align-start' | 'info-circle' | 'leading' | 'link' | 'menu' | 'minus' | 'mixed' | 'pack' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'search' | 'send-backward' | 'send-to-back' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'stack-horizontal' | 'stack-vertical' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-left' | 'text-align-right' | 'toggle-off' | 'toggle-on' | 'tool-arrow' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-screenshot' | 'tool-text' | 'trash' | 'twitter' | 'undo' | 'ungroup' | 'vertical-align-end' | 'vertical-align-middle' | 'vertical-align-start' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
 
 // @public (undocumented)
 export interface TLUiInputProps {

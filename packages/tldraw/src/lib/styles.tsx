@@ -43,14 +43,19 @@ export const STYLES = {
 		{ value: 'serif', icon: 'font-serif' },
 		{ value: 'mono', icon: 'font-mono' },
 	],
-	horizontalAlign: [
+	textAlign: [
 		{ value: 'start', icon: 'text-align-left' },
 		{ value: 'middle', icon: 'text-align-center' },
 		{ value: 'end', icon: 'text-align-right' },
 	],
+	horizontalAlign: [
+		{ value: 'start', icon: 'horizontal-align-start' },
+		{ value: 'middle', icon: 'horizontal-align-middle' },
+		{ value: 'end', icon: 'horizontal-align-end' },
+	],
 	verticalAlign: [
 		{ value: 'start', icon: 'vertical-align-start' },
-		{ value: 'middle', icon: 'vertical-align-center' },
+		{ value: 'middle', icon: 'vertical-align-middle' },
 		{ value: 'end', icon: 'vertical-align-end' },
 	],
 	geo: [

@@ -6348,6 +6348,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const shapeRecordsToCreate: TLShape[] = []
 
+			const { opacityForNextShape } = this.getInstanceState()
+
 			for (const partial of partials) {
 				const util = this.getShapeUtil(partial as TLShapePartial)
 
@@ -6391,7 +6393,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				).create({
 					...partial,
 					index,
-					opacity: partial.opacity ?? this.getInstanceState().opacityForNextShape,
+					opacity: partial.opacity ?? opacityForNextShape,
 					parentId: partial.parentId ?? focusedGroupId,
 					props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
 				})

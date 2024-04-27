@@ -406,6 +406,12 @@
 	background-color: currentColor;
 }
 
+.tlui-icon__placeholder {
+	flex-shrink: 0;
+	width: 15px;
+	height: 15px;
+}
+
 .tlui-icon__small {
 	width: 15px;
 	height: 15px;

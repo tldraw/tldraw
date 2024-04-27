@@ -63,7 +63,11 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
-					<TldrawUiIcon small icon={checked ? 'check' : 'checkbox-empty'} />
+					{checked ? (
+						<TldrawUiIcon small icon={'check'} />
+					) : (
+						<div className="tlui-icon__placeholder" /> // empty icon
+					)}
 					{labelStr && (
 						<span className="tlui-button__label" draggable={false}>
 							{labelStr}
@@ -87,7 +91,7 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
-					<TldrawUiIcon small icon={checked ? 'check' : 'checkbox-empty'} />
+					<TldrawUiIcon small icon={checked ? 'toggle-on' : 'toggle-off'} />
 					{labelStr && (
 						<span className="tlui-button__label" draggable={false}>
 							{labelStr}

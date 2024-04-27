@@ -6,8 +6,8 @@ import {
 } from '../records/TLShape'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
-import { DefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { DefaultTextAlignStyle } from '../styles/TLTextAlignStyle'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
@@ -15,7 +15,7 @@ export const textShapeProps = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,
-	align: DefaultHorizontalAlignStyle,
+	textAlign: DefaultTextAlignStyle,
 	w: T.nonZeroNumber,
 	text: T.string,
 	scale: T.nonZeroNumber,
@@ -30,6 +30,7 @@ export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
 const Versions = createShapePropsMigrationIds('text', {
 	RemoveJustify: 1,
+	AddTextAlign: 2,
 })
 
 export { Versions as textShapeVersions }
@@ -45,6 +46,15 @@ export const textShapeMigrations = createShapePropsMigrationSequence({
 				}
 			},
 			down: RETIRED_DOWN_MIGRATION,
+		},
+		{
+			id: Versions.AddTextAlign,
+			up: (props) => {
+				props.textAlign = props.align
+			},
+			down: (props) => {
+				props.align = props.textAlign
+			},
 		},
 	],
 })

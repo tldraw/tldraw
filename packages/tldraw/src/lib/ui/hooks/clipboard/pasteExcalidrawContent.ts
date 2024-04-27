@@ -282,7 +282,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						font: fontFamilyToFontType[element.fontFamily] ?? 'draw',
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						text: element.text,
-						align: textAlignToAlignTypes[element.textAlign],
+						textAlign: textAlignToAlignTypes[element.textAlign],
 					},
 				})
 				break
