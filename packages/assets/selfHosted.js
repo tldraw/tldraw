@@ -232,6 +232,7 @@ export function getAssetUrls(opts) {
 		embedIcons: {
 			codepen: formatAssetUrl('./embed-icons/codepen.png', opts),
 			codesandbox: formatAssetUrl('./embed-icons/codesandbox.png', opts),
+			desmos: formatAssetUrl('./embed-icons/desmos.png', opts),
 			excalidraw: formatAssetUrl('./embed-icons/excalidraw.png', opts),
 			felt: formatAssetUrl('./embed-icons/felt.png', opts),
 			figma: formatAssetUrl('./embed-icons/figma.png', opts),

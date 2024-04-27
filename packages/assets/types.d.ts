@@ -222,6 +222,7 @@ export type AssetUrls = {
 	embedIcons: {
 		codepen: string
 		codesandbox: string
+		desmos: string
 		excalidraw: string
 		felt: string
 		figma: string
