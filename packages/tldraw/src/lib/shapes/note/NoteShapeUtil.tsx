@@ -36,9 +36,9 @@ import {
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
+import { ADJACENT_SHAPE_MARGIN } from '../../ui/constants'
 import { useForceSolid } from '../shared/useForceSolid'
 import {
-	ADJACENT_NOTE_MARGIN,
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
 	NOTE_SIZE,
@@ -402,7 +402,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 				const offsetLength =
 					NOTE_SIZE +
-					ADJACENT_NOTE_MARGIN +
+					ADJACENT_SHAPE_MARGIN +
 					// If we're growing down, we need to account for the current shape's growY
 					(isCmdEnter && !e.shiftKey ? shape.props.growY : 0)
 

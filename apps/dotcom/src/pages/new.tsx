@@ -1,4 +1,4 @@
-import { Snapshot } from '@tldraw/dotcom-shared'
+import { ROOM_PREFIX, Snapshot } from '@tldraw/dotcom-shared'
 import { schema } from '@tldraw/tlsync'
 import { Navigate } from 'react-router-dom'
 import '../../styles/globals.css'
@@ -36,5 +36,5 @@ export function Component() {
 				}}
 			/>
 		)
-	return <Navigate to={`/r/${data.slug}`} />
+	return <Navigate to={`/${ROOM_PREFIX}/${data.slug}`} />
 }
