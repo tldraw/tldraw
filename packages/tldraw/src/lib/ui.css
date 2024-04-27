@@ -408,8 +408,9 @@
 
 .tlui-icon__placeholder {
 	flex-shrink: 0;
-	width: 15px;
-	height: 15px;
+	width: 18px;
+	height: 18px;
+	background-color: transparent;
 }
 
 .tlui-icon__small {

@@ -22,6 +22,7 @@ export type TLUiMenuCheckboxItemProps<
 	label?: TranslationKey | { [key: string]: TranslationKey }
 	readonlyOk?: boolean
 	onSelect: (source: TLUiEventSource) => Promise<void> | void
+	toggle?: boolean
 	checked?: boolean
 	disabled?: boolean
 }
@@ -36,6 +37,7 @@ export function TldrawUiMenuCheckboxItem<
 	label,
 	readonlyOk,
 	onSelect,
+	toggle = false,
 	disabled = false,
 	checked = false,
 }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>) {
@@ -63,11 +65,10 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
-					{checked ? (
-						<TldrawUiIcon small icon={'check'} />
-					) : (
-						<div className="tlui-icon__placeholder" /> // empty icon
-					)}
+					<TldrawUiIcon
+						small
+						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
+					/>
 					{labelStr && (
 						<span className="tlui-button__label" draggable={false}>
 							{labelStr}
@@ -91,7 +92,10 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
-					<TldrawUiIcon small icon={checked ? 'toggle-on' : 'toggle-off'} />
+					<TldrawUiIcon
+						small
+						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
+					/>
 					{labelStr && (
 						<span className="tlui-button__label" draggable={false}>
 							{labelStr}
