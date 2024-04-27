@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/editor'
+import { TLTextShape, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -13,7 +13,7 @@ afterEach(() => {
 describe('When editing text', () => {
 	it('preserves the top center when center aligned', () => {
 		const id = createShapeId()
-		editor.createShapes([
+		editor.createShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
@@ -21,7 +21,7 @@ describe('When editing text', () => {
 				y: 0,
 				props: {
 					text: 'Hello',
-					align: 'middle',
+					textAlign: 'middle',
 					scale: 2,
 				},
 			},
@@ -47,7 +47,7 @@ describe('When editing text', () => {
 
 	it('preserved the right center when center aligned and rotated 90deg', () => {
 		const id = createShapeId()
-		editor.createShapes([
+		editor.createShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
@@ -56,7 +56,7 @@ describe('When editing text', () => {
 				rotation: Math.PI / 2,
 				props: {
 					text: 'Hello',
-					align: 'middle',
+					textAlign: 'middle',
 					scale: 2,
 				},
 			},
@@ -73,7 +73,7 @@ describe('When editing text', () => {
 
 	it('preserves the top left corner when start aligned', () => {
 		const id = createShapeId()
-		editor.createShapes([
+		editor.createShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
@@ -81,7 +81,7 @@ describe('When editing text', () => {
 				y: 0,
 				props: {
 					text: 'Hello',
-					align: 'start',
+					textAlign: 'start',
 					scale: 2,
 				},
 			},
@@ -107,7 +107,7 @@ describe('When editing text', () => {
 
 	it('preserves the top right edge when end aligned', () => {
 		const id = createShapeId()
-		editor.createShapes([
+		editor.createShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
@@ -115,7 +115,7 @@ describe('When editing text', () => {
 				y: 0,
 				props: {
 					text: 'Hello',
-					align: 'end',
+					textAlign: 'end',
 					scale: 2,
 				},
 			},
@@ -143,7 +143,7 @@ describe('When editing text', () => {
 describe('When changing text size', () => {
 	it('preserves the center when center aligned', () => {
 		const id = createShapeId()
-		editor.createShapes([
+		editor.createShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
@@ -152,7 +152,7 @@ describe('When changing text size', () => {
 				props: {
 					text: 'Hello',
 					size: 'm',
-					align: 'middle',
+					textAlign: 'middle',
 					scale: 2,
 				},
 			},
@@ -178,7 +178,7 @@ describe('When changing text size', () => {
 
 	it('preserves the center left point when start aligned', () => {
 		const id = createShapeId()
-		editor.createShapes([
+		editor.createShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
@@ -187,7 +187,7 @@ describe('When changing text size', () => {
 				props: {
 					text: 'Hello',
 					size: 'm',
-					align: 'start',
+					textAlign: 'start',
 					scale: 2,
 				},
 			},
@@ -213,7 +213,7 @@ describe('When changing text size', () => {
 
 	it('preserves the top right edge when end aligned', () => {
 		const id = createShapeId()
-		editor.createShapes([
+		editor.createShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',
@@ -222,7 +222,7 @@ describe('When changing text size', () => {
 				props: {
 					text: 'Hello',
 					size: 'm',
-					align: 'end',
+					textAlign: 'end',
 					scale: 2,
 				},
 			},
