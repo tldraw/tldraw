@@ -755,6 +755,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitFrameInside?: boolean | undefined;
         hitInside?: boolean | undefined;
         hitLabels?: boolean | undefined;
+        hitLocked?: boolean | undefined;
         margin?: number | undefined;
         renderingOnly?: boolean | undefined;
     }): TLShape | undefined;
