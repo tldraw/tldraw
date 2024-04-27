@@ -106,7 +106,6 @@ export type AssetUrls = {
 		'reset-zoom': string
 		'rotate-ccw': string
 		'rotate-cw': string
-		search: string
 		'send-backward': string
 		'send-to-back': string
 		'size-extra-large': string

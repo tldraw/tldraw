@@ -116,7 +116,6 @@ export function getAssetUrls(opts) {
 			'reset-zoom': formatAssetUrl('./icons/icon/reset-zoom.svg', opts),
 			'rotate-ccw': formatAssetUrl('./icons/icon/rotate-ccw.svg', opts),
 			'rotate-cw': formatAssetUrl('./icons/icon/rotate-cw.svg', opts),
-			search: formatAssetUrl('./icons/icon/search.svg', opts),
 			'send-backward': formatAssetUrl('./icons/icon/send-backward.svg', opts),
 			'send-to-back': formatAssetUrl('./icons/icon/send-to-back.svg', opts),
 			'size-extra-large': formatAssetUrl('./icons/icon/size-extra-large.svg', opts),

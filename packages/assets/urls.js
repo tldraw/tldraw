@@ -341,7 +341,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/rotate-cw.svg', import.meta.url).href,
 				opts
 			),
-			search: formatAssetUrl(new URL('./icons/icon/search.svg', import.meta.url).href, opts),
 			'send-backward': formatAssetUrl(
 				new URL('./icons/icon/send-backward.svg', import.meta.url).href,
 				opts

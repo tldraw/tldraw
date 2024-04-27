@@ -121,7 +121,6 @@ import iconsRedo from './icons/icon/redo.svg'
 import iconsResetZoom from './icons/icon/reset-zoom.svg'
 import iconsRotateCcw from './icons/icon/rotate-ccw.svg'
 import iconsRotateCw from './icons/icon/rotate-cw.svg'
-import iconsSearch from './icons/icon/search.svg'
 import iconsSendBackward from './icons/icon/send-backward.svg'
 import iconsSendToBack from './icons/icon/send-to-back.svg'
 import iconsSizeExtraLarge from './icons/icon/size-extra-large.svg'
@@ -307,7 +306,6 @@ export function getAssetUrlsByImport(opts) {
 			'reset-zoom': formatAssetUrl(iconsResetZoom, opts),
 			'rotate-ccw': formatAssetUrl(iconsRotateCcw, opts),
 			'rotate-cw': formatAssetUrl(iconsRotateCw, opts),
-			search: formatAssetUrl(iconsSearch, opts),
 			'send-backward': formatAssetUrl(iconsSendBackward, opts),
 			'send-to-back': formatAssetUrl(iconsSendToBack, opts),
 			'size-extra-large': formatAssetUrl(iconsSizeExtraLarge, opts),

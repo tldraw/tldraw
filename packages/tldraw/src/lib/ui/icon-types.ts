@@ -98,7 +98,6 @@ export type TLUiIconType =
 	| 'reset-zoom'
 	| 'rotate-ccw'
 	| 'rotate-cw'
-	| 'search'
 	| 'send-backward'
 	| 'send-to-back'
 	| 'size-extra-large'
@@ -235,7 +234,6 @@ export const iconTypes = [
 	'reset-zoom',
 	'rotate-ccw',
 	'rotate-cw',
-	'search',
 	'send-backward',
 	'send-to-back',
 	'size-extra-large',
