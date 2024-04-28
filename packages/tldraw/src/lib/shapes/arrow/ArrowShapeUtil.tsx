@@ -56,11 +56,13 @@ const { ARROW_LABEL_FONT_SIZES, STROKE_SIZES } = tldrawConstants
 
 let globalRenderIndex = 0
 
-enum ARROW_HANDLES {
-	START = 'start',
-	MIDDLE = 'middle',
-	END = 'end',
-}
+const ARROW_HANDLES = {
+	START: 'start',
+	MIDDLE: 'middle',
+	END: 'end',
+} as const
+
+type ArrowHandleId = (typeof ARROW_HANDLES)[keyof typeof ARROW_HANDLES]
 
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
@@ -164,7 +166,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
-		const handleId = handle.id as ARROW_HANDLES
+		const handleId = handle.id as ArrowHandleId
 
 		if (handleId === ARROW_HANDLES.MIDDLE) {
 			// Bending the arrow...
@@ -185,7 +187,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// Start or end, pointing the arrow...
 
-		const next = structuredClone(shape) as TLArrowShape
+		const next = structuredClone(shape)
 
 		if (this.editor.inputs.ctrlKey) {
 			// todo: maybe double check that this isn't equal to the other handle too?
@@ -416,7 +418,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape)
 
-		const { start, end } = structuredClone<TLArrowShape['props']>(shape.props)
+		const { start, end } = structuredClone(shape.props)
 		let { bend } = shape.props
 
 		// Rescale start handle if it's not bound to a shape

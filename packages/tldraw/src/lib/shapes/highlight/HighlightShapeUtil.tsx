@@ -14,18 +14,18 @@ import {
 	rng,
 } from '@tldraw/editor'
 import { tldrawConstants } from '../../tldraw-constants'
-import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
+import { getPointsFromSegments } from '../draw/getPath'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { StrokeOptions } from '../shared/freehand/types'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useForceSolid } from '../shared/useForceSolid'
-
-const { FONT_SIZES } = tldrawConstants
-const OVERLAY_OPACITY = 0.35
-const UNDERLAY_OPACITY = 0.82
+const { FREEHAND_OPTIONS, FONT_SIZES, HIGHLIGHT_OVERLAY_OPACITY, HIGHLIGHT_UNDERLAY_OPACITY } =
+	tldrawConstants
+const { highlight } = FREEHAND_OPTIONS
 
 /** @public */
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
@@ -59,9 +59,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		}
 
 		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, true)
-		const opts = getHighlightFreehandSettings({ strokeWidth: sw, showAsComplete: true })
+		const opts: StrokeOptions = { ...highlight(sw), last: true }
 		setStrokePointRadii(strokePoints, opts)
-
 		return new Polygon2d({
 			points: getStrokeOutlinePoints(strokePoints, opts),
 			isFilled: true,
@@ -70,7 +69,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	component(shape: TLHighlightShape) {
 		return (
-			<SVGContainer id={shape.id} style={{ opacity: OVERLAY_OPACITY }}>
+			<SVGContainer id={shape.id} style={{ opacity: HIGHLIGHT_OVERLAY_OPACITY }}>
 				<HighlightRenderer strokeWidth={getStrokeWidth(shape)} shape={shape} />
 			</SVGContainer>
 		)
@@ -78,7 +77,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override backgroundComponent(shape: TLHighlightShape) {
 		return (
-			<SVGContainer id={shape.id} style={{ opacity: UNDERLAY_OPACITY }}>
+			<SVGContainer id={shape.id} style={{ opacity: HIGHLIGHT_UNDERLAY_OPACITY }}>
 				<HighlightRenderer strokeWidth={getStrokeWidth(shape)} shape={shape} />
 			</SVGContainer>
 		)
@@ -94,12 +93,10 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			sw += rng(shape.id)() * (strokeWidth / 6)
 		}
 
-		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
-		const options = getHighlightFreehandSettings({
-			strokeWidth,
-			showAsComplete,
+		const strokePoints = getStrokePoints(allPointsFromSegments, {
+			...highlight(sw),
+			last: shape.props.isComplete || last(shape.props.segments)?.type === 'straight',
 		})
-		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
 		let strokePath
 		if (strokePoints.length < 2) {
@@ -116,7 +113,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			<HighlightRenderer
 				strokeWidth={getStrokeWidth(shape)}
 				shape={shape}
-				opacity={OVERLAY_OPACITY}
+				opacity={HIGHLIGHT_OVERLAY_OPACITY}
 			/>
 		)
 	}
@@ -126,7 +123,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			<HighlightRenderer
 				strokeWidth={getStrokeWidth(shape)}
 				shape={shape}
-				opacity={UNDERLAY_OPACITY}
+				opacity={HIGHLIGHT_UNDERLAY_OPACITY}
 			/>
 		)
 	}
@@ -177,18 +174,16 @@ function getHighlightStrokePoints(
 	forceSolid: boolean
 ) {
 	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
-	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
 	let sw = strokeWidth
 	if (!forceSolid && !shape.props.isPen && allPointsFromSegments.length === 1) {
 		sw += rng(shape.id)() * (strokeWidth / 6)
 	}
 
-	const options = getHighlightFreehandSettings({
-		strokeWidth: sw,
-		showAsComplete,
+	const strokePoints = getStrokePoints(allPointsFromSegments, {
+		...highlight(sw),
+		last: shape.props.isComplete || last(shape.props.segments)?.type === 'straight',
 	})
-	const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
 	return { strokePoints, sw }
 }

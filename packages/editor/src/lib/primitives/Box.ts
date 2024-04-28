@@ -652,12 +652,3 @@ export function isSelectionCorner(selection: string): selection is SelectionCorn
 		selection === 'bottom_left'
 	)
 }
-
-/** @public */
-export const ROTATE_CORNER_TO_SELECTION_CORNER = {
-	top_left_rotate: 'top_left',
-	top_right_rotate: 'top_right',
-	bottom_right_rotate: 'bottom_right',
-	bottom_left_rotate: 'bottom_left',
-	mobile_rotate: 'top_left',
-} as const

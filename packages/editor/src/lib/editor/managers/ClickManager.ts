@@ -4,8 +4,13 @@ import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../types/event-types'
 
-const { COARSE_DRAG_DISTANCE, DOUBLE_CLICK_DURATION, DRAG_DISTANCE, MULTI_CLICK_DURATION } =
-	editorConstants
+const {
+	MAX_CLICK_DISTANCE,
+	COARSE_DRAG_DISTANCE,
+	DOUBLE_CLICK_DURATION,
+	DRAG_DISTANCE,
+	MULTI_CLICK_DURATION,
+} = editorConstants
 
 type TLClickState =
 	| 'idle'
@@ -14,8 +19,6 @@ type TLClickState =
 	| 'pendingQuadruple'
 	| 'pendingOverflow'
 	| 'overflow'
-
-const MAX_CLICK_DISTANCE = 40
 
 export class ClickManager {
 	constructor(public editor: Editor) {}

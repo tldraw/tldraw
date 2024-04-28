@@ -1447,7 +1447,6 @@ export const TLDRAW_FILE_EXTENSION: ".tldr";
 
 // @public (undocumented)
 export const tldrawConstants: {
-    MAX_PAGES: number;
     ADJACENT_SHAPE_MARGIN: number;
     ANIMATION_MEDIUM_MS: number;
     ANIMATION_SHORT_MS: number;
@@ -1482,6 +1481,13 @@ export const tldrawConstants: {
         serif: string;
     };
     FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
+    FREEHAND_OPTIONS: {
+        highlight(strokeWidth: number): StrokeOptions;
+        realPressure: (strokeWidth: number) => StrokeOptions;
+        simulatedPressure: (strokeWidth: number) => StrokeOptions;
+        solid: (strokeWidth: number) => StrokeOptions;
+    };
+    GEO_LABEL_PADDING: number;
     GRID_STEPS: {
         mid: number;
         min: number;
@@ -1489,15 +1495,18 @@ export const tldrawConstants: {
     }[];
     HANDLE_RADIUS: number;
     HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
+    HIGHLIGHT_OVERLAY_OPACITY: number;
+    HIGHLIGHT_UNDERLAY_OPACITY: number;
     HIT_TEST_MARGIN: number;
+    HYPERLINK_ICON: string;
     INTERNAL_POINTER_IDS: {
         readonly CAMERA_MOVE: -10;
     };
     LABEL_FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
-    LABEL_PADDING: number;
     LABEL_TO_ARROW_PADDING: number;
     LONG_PRESS_DURATION: number;
     MAX_CLICK_DISTANCE: number;
+    MAX_PAGES: number;
     MAX_SHAPES_PER_PAGE: number;
     MAX_ZOOM: number;
     MIN_ARROW_LENGTH: number;
@@ -1507,6 +1516,7 @@ export const tldrawConstants: {
     MIN_START_PRESSURE: number;
     MIN_ZOOM: number;
     MULTI_CLICK_DURATION: number;
+    NOTE_LABEL_PADDING: number;
     PORTRAIT_BREAKPOINT: {
         DESKTOP: number;
         MOBILE_SM: number;

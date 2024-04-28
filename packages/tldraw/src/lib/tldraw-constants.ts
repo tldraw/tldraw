@@ -1,4 +1,5 @@
-import { TLDefaultSizeStyle, editorConstants } from '@tldraw/editor'
+import { EASINGS, PI, SIN, TLDefaultSizeStyle, editorConstants } from '@tldraw/editor'
+import { StrokeOptions } from './shapes/shared/freehand/types'
 import { StyleValuesForUi } from './tldraw-types'
 
 /**@public */
@@ -55,10 +56,18 @@ export const tldrawConstants = {
 		serif: 'var(--tl-font-serif)',
 		mono: 'var(--tl-font-mono)',
 	},
+	// highlight
+	HIGHLIGHT_OVERLAY_OPACITY: 0.35,
+	HIGHLIGHT_UNDERLAY_OPACITY: 0.82,
+	// arrow
 	LABEL_TO_ARROW_PADDING: 20,
 	ARROW_LABEL_PADDING: 4.25,
-	LABEL_PADDING: 16,
+	// geo shape padding
+	GEO_LABEL_PADDING: 16,
 	MIN_GEO_SIZE_WITH_LABEL: 17 * 3,
+	// note shape padding
+	NOTE_LABEL_PADDING: 16,
+	// default styles
 	STYLES: {
 		color: [
 			{ value: 'black', icon: 'color' },
@@ -154,7 +163,53 @@ export const tldrawConstants = {
 			{ value: 'cubic', icon: 'spline-cubic' },
 		],
 	} as const satisfies Record<string, StyleValuesForUi<string>>,
+	// cropping
+	MIN_CROP_SIZE: 8,
+	// ink
 	MIN_START_PRESSURE: 0.025,
 	MIN_END_PRESSURE: 0.01,
-	MIN_CROP_SIZE: 8,
+	FREEHAND_OPTIONS: {
+		simulatedPressure: (strokeWidth: number): StrokeOptions => {
+			return {
+				size: 1 + strokeWidth,
+				thinning: 0.5,
+				streamline: 0.62 + ((1 + strokeWidth) / 8) * 0.06,
+				smoothing: 0.62,
+				easing: EASINGS.easeOutSine,
+				simulatePressure: true,
+			}
+		},
+		realPressure: (strokeWidth: number): StrokeOptions => {
+			return {
+				size: 1 + strokeWidth * 1.2,
+				thinning: 0.62,
+				streamline: 0.62,
+				smoothing: 0.62,
+				simulatePressure: false,
+				easing: (t: number) => t * 0.65 + SIN((t * PI) / 2) * 0.35,
+			}
+		},
+		solid: (strokeWidth: number): StrokeOptions => {
+			return {
+				size: 1 + strokeWidth,
+				thinning: 0,
+				streamline: 0.62 + ((1 + strokeWidth) / 8) * 0.06,
+				smoothing: 0.62,
+				simulatePressure: false,
+				easing: EASINGS.linear,
+			}
+		},
+		highlight(strokeWidth: number): StrokeOptions {
+			return {
+				size: 1 + strokeWidth,
+				thinning: 0,
+				streamline: 0.5,
+				smoothing: 0.5,
+				simulatePressure: false,
+				easing: EASINGS.easeOutSine,
+			}
+		},
+	},
+	HYPERLINK_ICON:
+		"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' fill='none'%3E%3Cpath stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 5H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6M19 5h6m0 0v6m0-6L13 17'/%3E%3C/svg%3E",
 }

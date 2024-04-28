@@ -1,66 +1,8 @@
-import {
-	EASINGS,
-	PI,
-	SIN,
-	TLDefaultDashStyle,
-	TLDrawShape,
-	TLDrawShapeSegment,
-	Vec,
-} from '@tldraw/editor'
+import { TLDefaultDashStyle, TLDrawShape, TLDrawShapeSegment, Vec } from '@tldraw/editor'
+import { tldrawConstants } from '../../tldraw-constants'
 import { StrokeOptions } from '../shared/freehand/types'
-
-const PEN_EASING = (t: number) => t * 0.65 + SIN((t * PI) / 2) * 0.35
-
-const simulatePressureSettings = (strokeWidth: number): StrokeOptions => {
-	return {
-		size: 1 + strokeWidth,
-		thinning: 0.5,
-		streamline: 0.62 + ((1 + strokeWidth) / 8) * 0.06,
-		smoothing: 0.62,
-		easing: EASINGS.easeOutSine,
-		simulatePressure: true,
-	}
-}
-
-const realPressureSettings = (strokeWidth: number): StrokeOptions => {
-	return {
-		size: 1 + strokeWidth * 1.2,
-		thinning: 0.62,
-		streamline: 0.62,
-		smoothing: 0.62,
-		simulatePressure: false,
-		easing: PEN_EASING,
-	}
-}
-
-const solidSettings = (strokeWidth: number): StrokeOptions => {
-	return {
-		size: 1 + strokeWidth,
-		thinning: 0,
-		streamline: 0.62 + ((1 + strokeWidth) / 8) * 0.06,
-		smoothing: 0.62,
-		simulatePressure: false,
-		easing: EASINGS.linear,
-	}
-}
-
-export function getHighlightFreehandSettings({
-	strokeWidth,
-	showAsComplete,
-}: {
-	strokeWidth: number
-	showAsComplete: boolean
-}): StrokeOptions {
-	return {
-		size: 1 + strokeWidth,
-		thinning: 0,
-		streamline: 0.5,
-		smoothing: 0.5,
-		simulatePressure: false,
-		easing: EASINGS.easeOutSine,
-		last: showAsComplete,
-	}
-}
+const { FREEHAND_OPTIONS } = tldrawConstants
+const { solid, realPressure, simulatedPressure } = FREEHAND_OPTIONS
 
 export function getFreehandOptions(
 	shapeProps: { dash: TLDefaultDashStyle; isPen: boolean; isComplete: boolean },
@@ -70,12 +12,12 @@ export function getFreehandOptions(
 ): StrokeOptions {
 	return {
 		...(forceSolid
-			? solidSettings(strokeWidth)
+			? solid(strokeWidth)
 			: shapeProps.dash === 'draw'
 				? shapeProps.isPen
-					? realPressureSettings(strokeWidth)
-					: simulatePressureSettings(strokeWidth)
-				: solidSettings(strokeWidth)),
+					? realPressure(strokeWidth)
+					: simulatedPressure(strokeWidth)
+				: solid(strokeWidth)),
 		last: shapeProps.isComplete || forceComplete,
 	}
 }

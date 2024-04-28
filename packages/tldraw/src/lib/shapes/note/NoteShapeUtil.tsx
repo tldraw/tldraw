@@ -40,8 +40,13 @@ import {
 	getNoteShapeForAdjacentPosition,
 } from './noteHelpers'
 
-const { ADJACENT_SHAPE_MARGIN, FONT_FAMILIES, LABEL_FONT_SIZES, LABEL_PADDING, TEXT_PROPS } =
-	tldrawConstants
+const {
+	ADJACENT_SHAPE_MARGIN,
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	GEO_LABEL_PADDING: LABEL_PADDING,
+	TEXT_PROPS,
+} = tldrawConstants
 
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
