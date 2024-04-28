@@ -1,21 +1,6 @@
 import { Vec } from '@tldraw/editor'
-
-const ROTATING_BOX_SHADOWS = [
-	{
-		offsetX: 0,
-		offsetY: 2,
-		blur: 4,
-		spread: 0,
-		color: '#00000029',
-	},
-	{
-		offsetX: 0,
-		offsetY: 3,
-		blur: 6,
-		spread: 0,
-		color: '#0000001f',
-	},
-]
+import { tldrawConstants } from '../../tldraw-constants'
+const { ROTATING_BOX_SHADOWS } = tldrawConstants
 
 /** @public */
 export function getRotatedBoxShadow(rotation: number) {

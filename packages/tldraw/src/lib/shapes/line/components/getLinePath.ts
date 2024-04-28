@@ -1,29 +1,22 @@
 import { CubicSpline2d, Polyline2d, TLLineShape, getSvgPathFromPoints } from '@tldraw/editor'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { getStrokeOutlinePoints } from '../../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../../shared/freehand/svg'
 import { getSvgPathForLineGeometry } from './svg'
-
-function getLineDrawFreehandOptions(strokeWidth: number) {
-	return {
-		size: strokeWidth,
-		thinning: 0.4,
-		streamline: 0,
-		smoothing: 0.5,
-		simulatePressure: true,
-		last: true,
-	}
-}
+const {
+	FREEHAND_OPTIONS: { line },
+} = tldrawConstants
 
 function getLineStrokePoints(
-	shape: TLLineShape,
+	_shape: TLLineShape,
 	spline: CubicSpline2d | Polyline2d,
 	strokeWidth: number
 ) {
 	// const points = getLinePoints(spline)
 	const points = spline.vertices
-	const options = getLineDrawFreehandOptions(strokeWidth)
+	const options = line(strokeWidth)
 	return getStrokePoints(points, options)
 }
 
@@ -32,7 +25,7 @@ function getLineDrawStrokeOutlinePoints(
 	spline: CubicSpline2d | Polyline2d,
 	strokeWidth: number
 ) {
-	const options = getLineDrawFreehandOptions(strokeWidth)
+	const options = line(strokeWidth)
 	return getStrokeOutlinePoints(
 		setStrokePointRadii(getLineStrokePoints(shape, spline, strokeWidth), options),
 		options

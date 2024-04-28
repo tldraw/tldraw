@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { TLTypeFace, preloadFont } from '../../utils/assets/preload-font'
 import { TLEditorAssetUrls } from '../../utils/static-assets/assetUrls'
 
-enum PreloadStatus {
-	SUCCESS,
-	FAILED,
-	WAITING,
+const PreloadStatus = {
+	SUCCESS: 'success',
+	FAILED: 'failed',
+	WAITING: 'waiting',
 }
+
+type PreloadStatus = (typeof PreloadStatus)[keyof typeof PreloadStatus]
 
 const usePreloadFont = (id: string, font: TLTypeFace): PreloadStatus => {
 	const [state, setState] = useState<PreloadStatus>(PreloadStatus.WAITING)

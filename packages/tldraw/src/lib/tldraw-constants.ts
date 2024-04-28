@@ -163,6 +163,8 @@ export const tldrawConstants = {
 			{ value: 'cubic', icon: 'spline-cubic' },
 		],
 	} as const satisfies Record<string, StyleValuesForUi<string>>,
+	// line
+	LINE_MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES: 2,
 	// cropping
 	MIN_CROP_SIZE: 8,
 	// ink
@@ -209,7 +211,33 @@ export const tldrawConstants = {
 				easing: EASINGS.easeOutSine,
 			}
 		},
+		line(strokeWidth: number): StrokeOptions {
+			return {
+				size: strokeWidth,
+				thinning: 0.4,
+				streamline: 0,
+				smoothing: 0.5,
+				simulatePressure: true,
+				last: true,
+			}
+		},
 	},
 	HYPERLINK_ICON:
 		"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' fill='none'%3E%3Cpath stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 5H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6M19 5h6m0 0v6m0-6L13 17'/%3E%3C/svg%3E",
+	ROTATING_BOX_SHADOWS: [
+		{
+			offsetX: 0,
+			offsetY: 2,
+			blur: 4,
+			spread: 0,
+			color: '#00000029',
+		},
+		{
+			offsetX: 0,
+			offsetY: 3,
+			blur: 6,
+			spread: 0,
+			color: '#0000001f',
+		},
+	],
 }

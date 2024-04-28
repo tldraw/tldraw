@@ -1483,6 +1483,7 @@ export const tldrawConstants: {
     FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
     FREEHAND_OPTIONS: {
         highlight(strokeWidth: number): StrokeOptions;
+        line(strokeWidth: number): StrokeOptions;
         realPressure: (strokeWidth: number) => StrokeOptions;
         simulatedPressure: (strokeWidth: number) => StrokeOptions;
         solid: (strokeWidth: number) => StrokeOptions;
@@ -1504,6 +1505,7 @@ export const tldrawConstants: {
     };
     LABEL_FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
     LABEL_TO_ARROW_PADDING: number;
+    LINE_MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES: number;
     LONG_PRESS_DURATION: number;
     MAX_CLICK_DISTANCE: number;
     MAX_PAGES: number;
@@ -1535,6 +1537,13 @@ export const tldrawConstants: {
         readonly top_left_rotate: "top_left";
         readonly top_right_rotate: "top_right";
     };
+    ROTATING_BOX_SHADOWS: {
+        blur: number;
+        color: string;
+        offsetX: number;
+        offsetY: number;
+        spread: number;
+    }[];
     SIDES: readonly ["top", "right", "bottom", "left"];
     STROKE_SIZES: Record<"l" | "m" | "s" | "xl", number>;
     STYLES: {

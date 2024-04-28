@@ -12,8 +12,8 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
-
-const MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES = 2
+import { tldrawConstants } from '../../../tldraw-constants'
+const { LINE_MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES } = tldrawConstants
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -53,8 +53,12 @@ export class Pointing extends StateNode {
 			const points = structuredClone(this.shape.props.points)
 
 			if (
-				Vec.DistMin(endHandle, prevEndHandle, MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES) ||
-				Vec.DistMin(nextPoint, endHandle, MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES)
+				Vec.DistMin(
+					endHandle,
+					prevEndHandle,
+					LINE_MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES
+				) ||
+				Vec.DistMin(nextPoint, endHandle, LINE_MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES)
 			) {
 				// Don't add a new point if the distance between the last two points is too small
 				points[endHandle.id] = {
