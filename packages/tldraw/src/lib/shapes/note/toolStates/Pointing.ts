@@ -9,7 +9,9 @@ import {
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
-import { NOTE_PIT_RADIUS, getAvailableNoteAdjacentPositions } from '../noteHelpers'
+import { tldrawConstants } from '../../../tldraw-constants'
+import { getAvailableNoteAdjacentPositions } from '../noteHelpers'
+const { NOTE_ADJACENT_POSITION_SNAP_RADIUS } = tldrawConstants
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -40,7 +42,7 @@ export class Pointing extends StateNode {
 			if (offset) {
 				center.sub(offset)
 			}
-			this.shape = createSticky(this.editor, id, center)
+			this.shape = createNoteAtCenter(this.editor, id, center)
 		}
 	}
 
@@ -53,7 +55,7 @@ export class Pointing extends StateNode {
 				if (offset) {
 					center.sub(offset)
 				}
-				this.shape = createSticky(this.editor, id, center)
+				this.shape = createNoteAtCenter(this.editor, id, center)
 			}
 
 			this.editor.setCurrentTool('select.translating', {
@@ -108,21 +110,21 @@ export class Pointing extends StateNode {
 }
 
 export function getNotePitOffset(editor: Editor, center: Vec) {
-	let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
+	let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / editor.getZoomLevel() // in screen space
 	let offset: Vec | undefined
-	for (const pit of getAvailableNoteAdjacentPositions(editor, 0, 0)) {
+	for (const pos of getAvailableNoteAdjacentPositions(editor, 0, 0)) {
 		// only check page rotations of zero
-		const deltaToPit = Vec.Sub(center, pit)
-		const dist = deltaToPit.len()
+		const deltaToPos = Vec.Sub(center, pos)
+		const dist = deltaToPos.len()
 		if (dist < min) {
 			min = dist
-			offset = deltaToPit
+			offset = deltaToPos
 		}
 	}
 	return offset
 }
 
-export function createSticky(editor: Editor, id: TLShapeId, center: Vec) {
+export function createNoteAtCenter(editor: Editor, id: TLShapeId, center: Vec) {
 	editor
 		.createShape({
 			id,

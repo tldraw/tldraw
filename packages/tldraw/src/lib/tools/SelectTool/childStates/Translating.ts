@@ -15,13 +15,12 @@ import {
 	isPageId,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
-import {
-	NOTE_PIT_RADIUS,
-	NOTE_SIZE,
-	getAvailableNoteAdjacentPositions,
-} from '../../../shapes/note/noteHelpers'
+import { getAvailableNoteAdjacentPositions } from '../../../shapes/note/noteHelpers'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { DragAndDropManager } from '../DragAndDropManager'
 import { kickoutOccludedShapes } from '../selectHelpers'
+
+const { NOTE_ADJACENT_POSITION_SNAP_RADIUS, NOTE_SIZE } = tldrawConstants
 
 export class Translating extends StateNode {
 	static override id = 'translating'
@@ -459,7 +458,7 @@ export function moveShapesToPoint({
 	} else {
 		// for sticky notes, snap to grid position next to other notes
 		if (noteSnapshot && noteAdjacentPositions) {
-			let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
+			let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / editor.getZoomLevel() // in screen space
 			let offset = new Vec(0, 0)
 
 			const pageCenter = Vec.Add(

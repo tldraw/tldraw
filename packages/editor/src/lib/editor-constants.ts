@@ -51,6 +51,7 @@ export const editorConstants = {
 	MIN_ARROW_LENGTH: 10,
 	BOUND_ARROW_OFFSET: 10,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR: 10,
+	DUPLICATE_DISTANCE: 20,
 	STROKE_SIZES: {
 		s: 2,
 		m: 3.5,

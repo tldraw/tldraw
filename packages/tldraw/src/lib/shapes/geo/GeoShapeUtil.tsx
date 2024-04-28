@@ -49,6 +49,7 @@ const {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
 	GEO_LABEL_PADDING: LABEL_PADDING,
+	MIN_GEO_SIZES_FOR_TEXT_SIZE,
 	STROKE_SIZES,
 	TEXT_PROPS,
 } = tldrawConstants
@@ -759,14 +760,6 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		maxWidth: 100,
 	})
 
-	// TODO: Can I get these from somewhere?
-	const sizes = {
-		s: 2,
-		m: 3.5,
-		l: 5,
-		xl: 10,
-	}
-
 	const size = editor.textMeasure.measureText(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
@@ -776,7 +769,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 			// Guard because a DOM nodes can't be less 0
 			0,
 			// A 'w' width that we're setting as the min-width
-			Math.ceil(minSize.w + sizes[shape.props.size]),
+			Math.ceil(minSize.w + MIN_GEO_SIZES_FOR_TEXT_SIZE[shape.props.size]),
 			// The actual text size
 			Math.ceil(shape.props.w - LABEL_PADDING * 2)
 		),

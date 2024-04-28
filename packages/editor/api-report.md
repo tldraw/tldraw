@@ -963,6 +963,7 @@ export const editorConstants: {
     };
     DOUBLE_CLICK_DURATION: number;
     DRAG_DISTANCE: number;
+    DUPLICATE_DISTANCE: number;
     EDGE_SCROLL_DISTANCE: number;
     EDGE_SCROLL_SPEED: number;
     FOLLOW_CHASE_PAN_SNAP: number;

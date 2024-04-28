@@ -33,19 +33,18 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { tldrawConstants } from '../../tldraw-constants'
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 import { useForceSolid } from '../shared/useForceSolid'
-import {
-	CLONE_HANDLE_MARGIN,
-	NOTE_CENTER_OFFSET,
-	NOTE_SIZE,
-	getNoteShapeForAdjacentPosition,
-} from './noteHelpers'
+import { getNoteShapeForAdjacentPosition } from './noteHelpers'
 
 const {
-	ADJACENT_SHAPE_MARGIN,
 	FONT_FAMILIES,
+	DUPLICATE_DISTANCE,
 	LABEL_FONT_SIZES,
+	FONT_SIZE_ADJUSTMENT_MAX_ITERATIONS,
+	FONT_SIZE_ADJUSTMENT_MIN_SIZE,
 	GEO_LABEL_PADDING: LABEL_PADDING,
 	TEXT_PROPS,
+	NOTE_CLONE_HANDLE_MARGIN,
+	NOTE_SIZE,
 } = tldrawConstants
 
 /** @public */
@@ -103,7 +102,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override getHandles(shape: TLNoteShape): TLHandle[] {
 		const zoom = this.editor.getZoomLevel()
-		const offset = CLONE_HANDLE_MARGIN / zoom
+		const offset = NOTE_CLONE_HANDLE_MARGIN / zoom
 		const noteHeight = getNoteHeight(shape)
 		const isCoarsePointer = this.editor.getInstanceState().isCoarsePointer
 
@@ -349,7 +348,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 		labelHeight = nextTextSize.h + LABEL_PADDING * 2
 		labelWidth = nextTextSize.w + LABEL_PADDING * 2
 
-		if (fontSizeAdjustment <= 14) {
+		if (fontSizeAdjustment <= FONT_SIZE_ADJUSTMENT_MIN_SIZE) {
 			// Too small, just rely now on CSS `overflow-wrap: break-word`
 			// We need to recalculate the text measurement here with break-word enabled.
 			const nextTextSizeWithOverflowBreak = editor.textMeasure.measureText(text, {
@@ -366,7 +365,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 		if (nextTextSize.scrollWidth.toFixed(0) === nextTextSize.w.toFixed(0)) {
 			break
 		}
-	} while (iterations++ < 50)
+	} while (iterations++ < FONT_SIZE_ADJUSTMENT_MAX_ITERATIONS)
 
 	return {
 		labelHeight,
@@ -405,7 +404,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 				const offsetLength =
 					NOTE_SIZE +
-					ADJACENT_SHAPE_MARGIN +
+					DUPLICATE_DISTANCE +
 					// If we're growing down, we need to account for the current shape's growY
 					(isCmdEnter && !e.shiftKey ? shape.props.growY : 0)
 
@@ -414,7 +413,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 					isCmdEnter ? (e.shiftKey ? -1 : 1) : 0
 				)
 					.mul(offsetLength)
-					.add(NOTE_CENTER_OFFSET)
+					.add({ x: NOTE_SIZE / 2, y: NOTE_SIZE / 2 })
 					.rot(pageRotation)
 					.add(pageTransform.point())
 

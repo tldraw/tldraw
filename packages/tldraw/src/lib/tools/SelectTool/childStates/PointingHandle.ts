@@ -9,11 +9,12 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import {
-	NOTE_CENTER_OFFSET,
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
 } from '../../../shapes/note/noteHelpers'
+import { tldrawConstants } from '../../../tldraw-constants'
 import { startEditingShapeWithLabel } from '../selectHelpers'
+const { NOTE_SIZE } = tldrawConstants
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
@@ -77,7 +78,7 @@ export class PointingHandle extends StateNode {
 				// Center the shape on the current pointer
 				const centeredOnPointer = editor
 					.getPointInParentSpace(nextNote, editor.inputs.originPagePoint)
-					.sub(Vec.Rot(NOTE_CENTER_OFFSET, nextNote.rotation))
+					.sub(Vec.Rot({ x: NOTE_SIZE / 2, y: NOTE_SIZE / 2 }, nextNote.rotation))
 				editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
 
 				// Then select and begin translating the shape

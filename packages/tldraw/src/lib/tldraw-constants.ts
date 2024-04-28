@@ -5,7 +5,6 @@ import { StyleValuesForUi } from './tldraw-types'
 /**@public */
 export const tldrawConstants = {
 	...editorConstants,
-	ADJACENT_SHAPE_MARGIN: 20,
 	// Breakpoints for portrait, keep in sync with PORTRAIT_BREAKPOINT enum below!
 	PORTRAIT_BREAKPOINTS: [0, 390, 428, 468, 580, 640, 840, 1023],
 	// Mapping for PORTRAIT_BREAKPOINTS -- needs to be kept in sync!
@@ -65,6 +64,12 @@ export const tldrawConstants = {
 	// geo shape padding
 	GEO_LABEL_PADDING: 16,
 	MIN_GEO_SIZE_WITH_LABEL: 17 * 3,
+	MIN_GEO_SIZES_FOR_TEXT_SIZE: {
+		s: 2,
+		m: 3.5,
+		l: 5,
+		xl: 10,
+	},
 	// note shape padding
 	NOTE_LABEL_PADDING: 16,
 	// default styles
@@ -240,4 +245,11 @@ export const tldrawConstants = {
 			color: '#0000001f',
 		},
 	],
+	NOTE_CLONE_HANDLE_MARGIN: 0,
+	NOTE_SIZE: 200,
+	NOTE_ADJACENT_POSITION_SNAP_RADIUS: 10,
+	FONT_SIZE_ADJUSTMENT_MAX_ITERATIONS: 50,
+	FONT_SIZE_ADJUSTMENT_MIN_SIZE: 14,
+	BOOKMARK_WIDTH: 300,
+	BOOKMARK_HEIGHT: 320,
 }

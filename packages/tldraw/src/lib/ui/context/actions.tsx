@@ -37,7 +37,7 @@ import { useDialogs } from './dialogs'
 import { TLUiEventSource, useUiEvents } from './events'
 import { useToasts } from './toasts'
 
-const { ADJACENT_SHAPE_MARGIN, ANIMATION_MEDIUM_MS } = tldrawConstants
+const { BOOKMARK_HEIGHT, BOOKMARK_WIDTH, DUPLICATE_DISTANCE, ANIMATION_MEDIUM_MS } = tldrawConstants
 
 /** @public */
 export interface TLUiActionItem<
@@ -432,7 +432,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 							const newPos = new Vec(shape.x, shape.y)
 							newPos.rot(-shape.rotation)
-							newPos.add(new Vec(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
+							newPos.add(
+								new Vec(
+									shape.props.w / 2 - BOOKMARK_WIDTH / 2,
+									shape.props.h / 2 - BOOKMARK_HEIGHT / 2
+								)
+							) // see bookmark shape util
 							newPos.rot(shape.rotation)
 							const partial: TLShapePartial<TLBookmarkShape> = {
 								id: createShapeId(),
@@ -533,13 +538,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
 						offset = instanceState.canMoveCamera
 							? {
-									x: commonBounds.width + 20,
+									x: commonBounds.width + DUPLICATE_DISTANCE,
 									y: 0,
 								}
 							: {
-									// same as the adjacent note margin
-									x: 20,
-									y: 20,
+									x: DUPLICATE_DISTANCE,
+									y: DUPLICATE_DISTANCE,
 								}
 					}
 
@@ -847,7 +851,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('pack-shapes', { source })
 					editor.mark('pack')
 					const selectedShapeIds = editor.getSelectedShapeIds()
-					editor.packShapes(selectedShapeIds, ADJACENT_SHAPE_MARGIN)
+					editor.packShapes(selectedShapeIds, DUPLICATE_DISTANCE)
 					kickoutOccludedShapes(editor, selectedShapeIds)
 				},
 			},
@@ -865,7 +869,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('stack-shapes', { operation: 'vertical', source })
 					editor.mark('stack-vertical')
 					const selectedShapeIds = editor.getSelectedShapeIds()
-					editor.stackShapes(selectedShapeIds, 'vertical', 16)
+					editor.stackShapes(selectedShapeIds, 'vertical', DUPLICATE_DISTANCE)
 					kickoutOccludedShapes(editor, selectedShapeIds)
 				},
 			},
@@ -883,7 +887,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('stack-shapes', { operation: 'horizontal', source })
 					editor.mark('stack-horizontal')
 					const selectedShapeIds = editor.getSelectedShapeIds()
-					editor.stackShapes(selectedShapeIds, 'horizontal', 16)
+					editor.stackShapes(selectedShapeIds, 'horizontal', DUPLICATE_DISTANCE)
 					kickoutOccludedShapes(editor, selectedShapeIds)
 				},
 			},

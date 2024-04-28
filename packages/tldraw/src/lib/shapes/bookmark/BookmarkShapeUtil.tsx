@@ -16,9 +16,11 @@ import {
 	stopEventPropagation,
 	toDomPrecision,
 } from '@tldraw/editor'
+import { tldrawConstants } from '../../tldraw-constants'
 import { truncateStringWithEllipsis } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
+const { BOOKMARK_WIDTH, BOOKMARK_HEIGHT } = tldrawConstants
 
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
@@ -33,8 +35,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	override getDefaultProps(): TLBookmarkShape['props'] {
 		return {
 			url: '',
-			w: 300,
-			h: 320,
+			w: BOOKMARK_WIDTH,
+			h: BOOKMARK_HEIGHT,
 			assetId: null,
 		}
 	}

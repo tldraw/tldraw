@@ -1450,11 +1450,12 @@ export const TLDRAW_FILE_EXTENSION: ".tldr";
 
 // @public (undocumented)
 export const tldrawConstants: {
-    ADJACENT_SHAPE_MARGIN: number;
     ANIMATION_MEDIUM_MS: number;
     ANIMATION_SHORT_MS: number;
     ARROW_LABEL_FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
     ARROW_LABEL_PADDING: number;
+    BOOKMARK_HEIGHT: number;
+    BOOKMARK_WIDTH: number;
     BOUND_ARROW_OFFSET: number;
     CAMERA_MOVING_TIMEOUT: number;
     CAMERA_SLIDE_FRICTION: number;
@@ -1470,6 +1471,7 @@ export const tldrawConstants: {
     };
     DOUBLE_CLICK_DURATION: number;
     DRAG_DISTANCE: number;
+    DUPLICATE_DISTANCE: number;
     EDGE_SCROLL_DISTANCE: number;
     EDGE_SCROLL_SPEED: number;
     FOLLOW_CHASE_PAN_SNAP: number;
@@ -1483,6 +1485,8 @@ export const tldrawConstants: {
         sans: string;
         serif: string;
     };
+    FONT_SIZE_ADJUSTMENT_MAX_ITERATIONS: number;
+    FONT_SIZE_ADJUSTMENT_MIN_SIZE: number;
     FONT_SIZES: Record<"l" | "m" | "s" | "xl", number>;
     FREEHAND_OPTIONS: {
         highlight(strokeWidth: number): StrokeOptions;
@@ -1518,10 +1522,19 @@ export const tldrawConstants: {
     MIN_CROP_SIZE: number;
     MIN_END_PRESSURE: number;
     MIN_GEO_SIZE_WITH_LABEL: number;
+    MIN_GEO_SIZES_FOR_TEXT_SIZE: {
+        l: number;
+        m: number;
+        s: number;
+        xl: number;
+    };
     MIN_START_PRESSURE: number;
     MIN_ZOOM: number;
     MULTI_CLICK_DURATION: number;
+    NOTE_ADJACENT_POSITION_SNAP_RADIUS: number;
+    NOTE_CLONE_HANDLE_MARGIN: number;
     NOTE_LABEL_PADDING: number;
+    NOTE_SIZE: number;
     PORTRAIT_BREAKPOINT: {
         DESKTOP: number;
         MOBILE_SM: number;
