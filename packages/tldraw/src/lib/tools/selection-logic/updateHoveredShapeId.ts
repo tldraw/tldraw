@@ -2,7 +2,7 @@ import { Editor, TLShape, throttle } from '@tldraw/editor'
 import { tldrawConstants } from '../../tldraw-constants'
 const { HIT_TEST_MARGIN } = tldrawConstants
 
-function _updateHoveredId(editor: Editor) {
+function _updateHoveredShapeId(editor: Editor) {
 	// todo: consider replacing `get hoveredShapeId` with this; it would mean keeping hoveredShapeId in memory rather than in the store and possibly re-computing it more often than necessary
 	const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint, {
 		hitInside: false,
@@ -33,5 +33,6 @@ function _updateHoveredId(editor: Editor) {
 	return editor.setHoveredShape(shapeToHover.id)
 }
 
-export const updateHoveredId =
-	process.env.NODE_ENV === 'test' ? _updateHoveredId : throttle(_updateHoveredId, 32)
+/** @internal */
+export const updateHoveredShapeId =
+	process.env.NODE_ENV === 'test' ? _updateHoveredShapeId : throttle(_updateHoveredShapeId, 32)
