@@ -1440,6 +1440,9 @@ export function TextToolbarItem(): JSX_2.Element;
 export type TLComponents = Expand<TLEditorComponents & TLUiComponents>;
 
 // @public (undocumented)
+export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
+
+// @public (undocumented)
 export function Tldraw(props: TldrawProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -2829,9 +2832,6 @@ export function useCanRedo(): boolean;
 export function useCanUndo(): boolean;
 
 // @public (undocumented)
-export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
-
-// @public (undocumented)
 export const useCurrentTranslation: () => TLUiTranslation;
 
 // @public (undocumented)
@@ -2888,9 +2888,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string): {
     isEmpty: boolean;
     rInput: React_2.RefObject<HTMLTextAreaElement>;
 };
-
-// @public (undocumented)
-export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
 // @public (undocumented)
 export function useIsToolSelected(tool: TLUiToolItem): boolean;

@@ -85,8 +85,6 @@ export {
 	type TLUiToastsContextType,
 } from './lib/ui/context/toasts'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
-export { useCopyAs } from './lib/ui/hooks/useCopyAs'
-export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
@@ -116,7 +114,7 @@ export {
 	isGifAnimated,
 } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
-export { copyAs } from './lib/utils/export/copyAs'
+export { copyAs, type TLCopyType } from './lib/utils/export/copyAs'
 export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'
 export { exportAs, type TLExportType } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'

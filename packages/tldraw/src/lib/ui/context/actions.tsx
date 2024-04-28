@@ -22,12 +22,12 @@ import * as React from 'react'
 import { tldrawConstants } from '../../tldraw-constants'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
+import { TLCopyType, copyAs } from '../../utils/export/copyAs'
+import { TLExportType, exportAs } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
-import { useCopyAs } from '../hooks/useCopyAs'
-import { useExportAs } from '../hooks/useExportAs'
 import { useInsertMedia } from '../hooks/useInsertMedia'
 import { usePrint } from '../hooks/usePrint'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -73,34 +73,62 @@ function makeActions(actions: TLUiActionItem[]) {
 	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
 }
 
-function getExportName(editor: Editor, defaultName: string) {
-	const selectedShapes = editor.getSelectedShapes()
-	// When we don't have any shapes selected, we want to use the document name
-	if (selectedShapes.length === 0) {
-		return editor.getDocumentSettings().name || defaultName
-	}
-	return undefined
-}
-
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
 
 	const { addDialog, clearDialogs } = useDialogs()
-	const { clearToasts } = useToasts()
+	const { addToast, clearToasts } = useToasts()
 	const msg = useTranslation()
 
 	const insertMedia = useInsertMedia()
 	const printSelectionOrPages = usePrint()
 	const { cut, copy, paste } = useMenuClipboardEvents()
-	const copyAs = useCopyAs()
-	const exportAs = useExportAs()
 	const defaultDocumentName = msg('document.default-name')
 
 	const trackEvent = useUiEvents()
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
+		function getExportName(defaultName: string) {
+			const selectedShapes = editor.getSelectedShapes()
+			// When we don't have any shapes selected, we want to use the document name
+			if (selectedShapes.length === 0) {
+				return editor.getDocumentSettings().name || defaultName
+			}
+			return undefined
+		}
+
+		function copyAsFormat(ids: TLShapeId[], format: TLCopyType = 'svg') {
+			copyAs(editor, ids, format).catch(() => {
+				addToast({
+					id: 'copy-fail',
+					severity: 'warning',
+					title: msg('toast.error.copy-fail.title'),
+					description: msg('toast.error.copy-fail.desc'),
+				})
+			})
+		}
+
+		function exportAsFormat(
+			ids: TLShapeId[],
+			format: TLExportType = 'png',
+			name: string | undefined
+		) {
+			exportAs(editor, ids, format, name, {
+				scale: 1,
+				background: editor.getInstanceState().exportBackground,
+			}).catch((e) => {
+				console.error(e.message)
+				addToast({
+					id: 'export-fail',
+					title: msg('toast.error.export-fail.title'),
+					description: msg('toast.error.export-fail.desc'),
+					severity: 'error',
+				})
+			})
+		}
+
 		function mustGoBackToSelectToolFirst() {
 			if (!editor.isIn('select')) {
 				editor.complete()
@@ -108,7 +136,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				return false // false will still let the action happen, true will stop it
 				// todo: remove this return value once we're suuuuure
 			}
-
 			return false
 		}
 
@@ -181,7 +208,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'svg', source })
-					exportAs(ids, 'svg', getExportName(editor, defaultDocumentName))
+					exportAsFormat(ids, 'svg', getExportName(defaultDocumentName))
 				},
 			},
 			{
@@ -197,7 +224,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'png', source })
-					exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+					exportAsFormat(ids, 'png', getExportName(defaultDocumentName))
 				},
 			},
 			{
@@ -213,7 +240,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'json', source })
-					exportAs(ids, 'json', getExportName(editor, defaultDocumentName))
+					exportAsFormat(ids, 'json', getExportName(defaultDocumentName))
 				},
 			},
 			{
@@ -229,10 +256,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'svg', source })
-					exportAs(
+					exportAsFormat(
 						Array.from(editor.getCurrentPageShapeIds()),
 						'svg',
-						getExportName(editor, defaultDocumentName)
+						getExportName(defaultDocumentName)
 					)
 				},
 			},
@@ -248,7 +275,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'png', source })
-					exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+					exportAsFormat(ids, 'png', getExportName(defaultDocumentName))
 				},
 			},
 			{
@@ -263,7 +290,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'json', source })
-					exportAs(ids, 'json', getExportName(editor, defaultDocumentName))
+					exportAsFormat(ids, 'json', getExportName(defaultDocumentName))
 				},
 			},
 			{
@@ -280,7 +307,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'svg', source })
-					copyAs(ids, 'svg')
+					copyAsFormat(ids, 'svg')
 				},
 			},
 			{
@@ -296,7 +323,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'png', source })
-					copyAs(ids, 'png')
+					copyAsFormat(ids, 'png')
 				},
 			},
 			{
@@ -312,7 +339,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'json', source })
-					copyAs(ids, 'json')
+					copyAsFormat(ids, 'json')
 				},
 			},
 			{
@@ -1348,8 +1375,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		overrides,
 		addDialog,
 		insertMedia,
-		exportAs,
-		copyAs,
+		addToast,
 		cut,
 		copy,
 		paste,
