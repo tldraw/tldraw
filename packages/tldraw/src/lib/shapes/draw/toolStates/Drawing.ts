@@ -172,9 +172,13 @@ export class Drawing extends StateNode {
 		this.markId = 'draw start ' + uniqueId()
 		this.editor.mark(this.markId)
 
-		// If the pressure is weird, then it's probably a pen
+		// If the pressure is weird, then it's probably a stylus reporting as a mouse
+		// We treat pen/stylus inputs differently in the drawing tool, so we need to
+		// have our own value for this. The inputs.isPen is only if the input is a regular
+		// pen, like an iPad pen, which needs to trigger "pen mode" in order to avoid
+		// accidental palm touches. We don't have to worry about that with styluses though.
 		const z = this.info.point.z === undefined ? 0.5 : this.info.point.z
-		this.isPenOrStylus = isPen || (z > 0 && z < 0.5)
+		this.isPenOrStylus = isPen || (z !== 0 && z !== 0.5 && z !== 1)
 
 		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
 
