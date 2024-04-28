@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/editor'
+import { TLTextShape, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -245,25 +245,100 @@ describe('When changing text size', () => {
 		expect(boundsA!.maxX).toEqual(boundsB!.maxX)
 		expect(boundsA!.maxY).not.toEqual(boundsB!.maxY)
 	})
+
+	it('preserves the top left when the text has text', () => {
+		const x = 0
+		const y = 0
+		const id = createShapeId()
+		editor.createShapes([
+			{
+				id,
+				type: 'text',
+				x: 0,
+				y: 0,
+				props: {
+					text: 'Hello',
+				},
+			},
+		])
+		expect(editor.getShape(id)).toMatchObject({
+			x,
+			y,
+		})
+	})
 })
 
-it('preserves the top left when the text has text', () => {
-	const x = 0
-	const y = 0
-	const id = createShapeId()
-	editor.createShapes([
-		{
-			id,
+describe('resizing text with autosize true', () => {
+	it('resizes text from the right side', () => {
+		editor.createShape<TLTextShape>({
 			type: 'text',
 			x: 0,
 			y: 0,
 			props: {
 				text: 'Hello',
+				autoSize: false,
+				w: 200,
 			},
-		},
-	])
-	expect(editor.getShape(id)).toMatchObject({
-		x,
-		y,
+		})
+
+		const shape = editor.getLastCreatedShape()
+
+		const bounds = editor.getShapePageBounds(shape.id)!
+		editor
+			.select(shape)
+			.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
+			.expectToBeIn('select.pointing_resize_handle')
+			.pointerMove(bounds.maxX + 100, bounds.midY)
+			.expectToBeIn('select.resizing')
+			.expectShapeToMatch({ ...shape, x: 0, y: 0, props: { w: 300 } })
+	})
+
+	it('resizes text from the right side when alt key is pressed', () => {
+		editor.createShape<TLTextShape>({
+			type: 'text',
+			x: 0,
+			y: 0,
+			props: {
+				text: 'Hello',
+				autoSize: false,
+				w: 200,
+			},
+		})
+
+		const shape = editor.getLastCreatedShape()
+
+		const bounds = editor.getShapePageBounds(shape.id)!
+		editor
+			.select(shape)
+			.keyDown('Alt')
+			.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
+			.expectToBeIn('select.pointing_resize_handle')
+			.pointerMove(bounds.maxX + 100, bounds.midY)
+			.expectToBeIn('select.resizing')
+			.expectShapeToMatch({ ...shape, x: -100, y: 0, props: { w: 400 } })
+	})
+
+	it('resizes text from the left side', () => {
+		editor.createShape<TLTextShape>({
+			type: 'text',
+			x: 0,
+			y: 0,
+			props: {
+				text: 'Hello',
+				autoSize: false,
+				w: 200,
+			},
+		})
+
+		const shape = editor.getLastCreatedShape()
+
+		const bounds = editor.getShapePageBounds(shape.id)!
+		editor
+			.select(shape)
+			.pointerDown(bounds.minX, bounds.midY, { target: 'selection', handle: 'left' }) // right edge
+			.expectToBeIn('select.pointing_resize_handle')
+			.pointerMove(bounds.minX - 100, bounds.midY)
+			.expectToBeIn('select.resizing')
+			.expectShapeToMatch({ ...shape, x: -100, y: 0, props: { w: 300 } })
 	})
 })

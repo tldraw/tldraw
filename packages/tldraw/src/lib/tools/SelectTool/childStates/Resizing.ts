@@ -13,6 +13,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLTextShape,
 	Vec,
 	VecLike,
 	areAnglesCompatible,
@@ -175,7 +176,14 @@ export class Resizing extends StateNode {
 			canShapesDeform,
 		} = this.snapshot
 
-		const isAspectRatioLocked = shiftKey || !canShapesDeform
+		let isAspectRatioLocked = shiftKey || !canShapesDeform
+
+		if (shapeSnapshots.size === 1) {
+			const onlySnapshot = [...shapeSnapshots.values()][0]!
+			if (this.editor.isShapeOfType<TLTextShape>(onlySnapshot.shape, 'text')) {
+				isAspectRatioLocked = !(this.info.handle === 'left' || this.info.handle === 'right')
+			}
+		}
 
 		// first negate the 'cursor handle offset'
 		// we need to do this because we do grid snapping based on the page point of the handle
@@ -216,6 +224,7 @@ export class Resizing extends StateNode {
 			.clone()
 			.sub(cursorHandleOffset)
 			.sub(this.creationCursorOffset)
+
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
 		if (this.editor.getInstanceState().isGridMode && !ctrlKey) {
@@ -252,6 +261,8 @@ export class Resizing extends StateNode {
 
 		// calculate the scale by measuring the current distance between the drag handle and the scale origin
 		// and dividing by the original distance between the drag handle and the scale origin
+
+		// bug: for edges, the page point doesn't matter, the
 
 		const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
 			-selectionRotation
@@ -316,6 +327,7 @@ export class Resizing extends StateNode {
 						? 'resize_bounds'
 						: 'scale_shape',
 				scaleOrigin: scaleOriginPage,
+				isAspectRatioLocked,
 				scaleAxisRotation: selectionRotation,
 			})
 		}
