@@ -916,10 +916,10 @@ export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 // @public (undocumented)
 export type TLDefaultColorTheme = Expand<{
     background: string;
-    id: 'dark' | 'light';
+    id: (typeof DEFAULT_THEMES)[number];
     solid: string;
     text: string;
-} & Record<(typeof colors)[number], TLDefaultColorThemeColor>>;
+} & Record<(typeof DEFAULT_COLORS)[number], TLDefaultColorThemeColor>>;
 
 // @public (undocumented)
 export type TLDefaultColorThemeColor = {
