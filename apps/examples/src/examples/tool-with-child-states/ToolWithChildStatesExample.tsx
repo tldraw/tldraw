@@ -175,7 +175,7 @@ export default function ToolWithChildStatesExample() {
 						props: {
 							text: '-Double click the canvas to add a sticker\n-Double click a sticker to delete it\n-Click and drag on a sticker to change it\n-Click and drag on the canvas to create a sticker\n-Shift click a sticker for a surprise!',
 							size: 's',
-							align: 'start',
+							textAlign: 'start',
 						},
 					})
 				}}
