@@ -243,6 +243,9 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["google.*"];
+    readonly overridePermissions: {
+        readonly 'allow-presentation': true;
+    };
     readonly title: "Google Maps";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "google_maps";
@@ -296,6 +299,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
     readonly isAspectRatioLocked: true;
     readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
         readonly 'allow-presentation': true;
     };
     readonly title: "YouTube";
@@ -310,6 +314,9 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
     readonly minHeight: 360;
     readonly minWidth: 460;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+    };
     readonly title: "Google Calendar";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "google_calendar";
@@ -321,6 +328,9 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["docs.google.*"];
     readonly minHeight: 360;
     readonly minWidth: 460;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+    };
     readonly title: "Google Slides";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "google_slides";
@@ -426,7 +436,7 @@ export const embedShapePermissionDefaults: {
     readonly 'allow-modals': false;
     readonly 'allow-orientation-lock': false;
     readonly 'allow-pointer-lock': false;
-    readonly 'allow-popups-to-escape-sandbox': true;
+    readonly 'allow-popups-to-escape-sandbox': false;
     readonly 'allow-popups': true;
     readonly 'allow-presentation': false;
     readonly 'allow-same-origin': true;

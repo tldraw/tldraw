@@ -83,6 +83,9 @@ export const EMBED_DEFINITIONS = [
 		width: 720,
 		height: 500,
 		doesResize: true,
+		overridePermissions: {
+			'allow-presentation': true,
+		},
 		toEmbedUrl: (url) => {
 			if (url.includes('/maps/')) {
 				const match = url.match(/@(.*),(.*),(.*)z/)
@@ -124,7 +127,7 @@ export const EMBED_DEFINITIONS = [
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			// e.g. extract "steveruizok.mathFact" from https://www.val.town/v/steveruizok.mathFact
-			const matches = urlObj && urlObj.pathname.match(/\/v\/([^/]+)\/?/)
+			const matches = urlObj && urlObj.pathname.match(/\/v\/(.+)\/?/)
 			if (matches) {
 				return `https://www.val.town/embed/${matches[1]}`
 			}
@@ -133,7 +136,7 @@ export const EMBED_DEFINITIONS = [
 		fromEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			// e.g. extract "steveruizok.mathFact" from https://www.val.town/v/steveruizok.mathFact
-			const matches = urlObj && urlObj.pathname.match(/\/embed\/([^/]+)\/?/)
+			const matches = urlObj && urlObj.pathname.match(/\/embed\/(.+)\/?/)
 			if (matches) {
 				return `https://www.val.town/v/${matches[1]}`
 			}
@@ -229,6 +232,7 @@ export const EMBED_DEFINITIONS = [
 		doesResize: true,
 		overridePermissions: {
 			'allow-presentation': true,
+			'allow-popups-to-escape-sandbox': true,
 		},
 		isAspectRatioLocked: true,
 		toEmbedUrl: (url) => {
@@ -272,6 +276,9 @@ export const EMBED_DEFINITIONS = [
 		minHeight: 360,
 		doesResize: true,
 		instructionLink: 'https://support.google.com/calendar/answer/41207?hl=en',
+		overridePermissions: {
+			'allow-popups-to-escape-sandbox': true,
+		},
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			const cidQs = urlObj?.searchParams.get('cid')
@@ -313,6 +320,9 @@ export const EMBED_DEFINITIONS = [
 		minWidth: 460,
 		minHeight: 360,
 		doesResize: true,
+		overridePermissions: {
+			'allow-popups-to-escape-sandbox': true,
+		},
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 
@@ -555,8 +565,8 @@ export const embedShapePermissionDefaults = {
 	// [REASON] We want to allow embeds to link back to their original sites (e.g. YouTube).
 	'allow-popups': true,
 	// [MDN] Lets the sandboxed document open new windows without those windows inheriting the sandboxing. For example, this can safely sandbox an advertisement without forcing the same restrictions upon the page the ad links to.
-	// [REASON] We want to allow embeds to link back to their original sites (e.g. YouTube).
-	'allow-popups-to-escape-sandbox': true,
+	// [REASON] We shouldn't allow popups as a embed could pretend to be us by opening a mocked version of tldraw. This is very unobvious when it is performed as an action within our app.
+	'allow-popups-to-escape-sandbox': false,
 	// [MDN] Lets the resource start a presentation session.
 	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us.
 	'allow-presentation': false,
