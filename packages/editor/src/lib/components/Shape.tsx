@@ -142,6 +142,8 @@ export const Shape = memo(function Shape({
 
 	if (!shape) return null
 
+	const isFilledShape = 'fill' in shape.props && shape.props.fill !== 'none'
+
 	return (
 		<>
 			{util.backgroundComponent && (
@@ -156,7 +158,13 @@ export const Shape = memo(function Shape({
 					</OptionalErrorBoundary>
 				</div>
 			)}
-			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
+			<div
+				ref={containerRef}
+				className="tl-shape"
+				data-shape-type={shape.type}
+				data-shape-is-filled={isFilledShape}
+				draggable={false}
+			>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>

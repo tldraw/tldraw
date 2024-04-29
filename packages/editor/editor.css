@@ -1087,13 +1087,15 @@ input,
  * One extra nuance is we don't use this behavior for:
  *  - arrows which have weird geometry and just gets in the way.
  *  - draw/line shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
+ *  - shapes that are not filled
  */
-.tl-canvas[data-iseditinganything='true']
+.tl-canvas:is([data-iseditinganything='true'], [data-isselectinganything='true'])
 	.tl-shape:not(
 		[data-shape-type='arrow'],
 		[data-shape-type='draw'],
 		[data-shape-type='line'],
-		[data-shape-type='highlight']
+		[data-shape-type='highlight'],
+		[data-shape-is-filled='false']
 	) {
 	pointer-events: all;
 }
