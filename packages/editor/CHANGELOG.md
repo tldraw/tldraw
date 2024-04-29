@@ -1,3 +1,25 @@
+# v2.1.4 (Mon Apr 29 2024)
+
+### Release Notes
+
+#### textfields: for unfilled geo shapes fix edit->edit (#3577) ([#3643](https://github.com/tldraw/tldraw/pull/3643))
+
+- Text labels: fix edit→edit not working as expected when unfilled geo shapes are on 'top' of other shapes.
+
+Describe what your pull request does. If appropriate, add GIFs or images showing the before and after.
+
+---
+
+#### 🐛 Bug Fix
+
+- textfields: for unfilled geo shapes fix edit->edit (#3577) [#3643](https://github.com/tldraw/tldraw/pull/3643) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v2.1.0 (Tue Apr 23 2024)
 
 ### Release Notes
