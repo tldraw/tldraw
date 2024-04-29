@@ -584,7 +584,7 @@ export function useMenuClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
+			if (editor.getEditingShapeId() !== null) return
 
 			if (Array.isArray(data) && data[0] instanceof ClipboardItem) {
 				handlePasteFromClipboardApi(editor, data, point)
