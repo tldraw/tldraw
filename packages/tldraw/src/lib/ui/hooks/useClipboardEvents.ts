@@ -74,12 +74,13 @@ const INPUTS = ['input', 'select', 'textarea']
  * @param editor - The editor instance.
  * @internal
  */
-function disallowClipboardEvents() {
+function disallowClipboardEvents(editor: Editor) {
 	const { activeElement } = document
 	return (
-		activeElement &&
-		(activeElement.getAttribute('contenteditable') ||
-			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
+		editor.getIsMenuOpen() ||
+		(activeElement &&
+			(activeElement.getAttribute('contenteditable') ||
+				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
 	)
 }
 
@@ -583,7 +584,7 @@ export function useMenuClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.getEditingShapeId() !== null || disallowClipboardEvents()) return
+			if (editor.getEditingShapeId() !== null) return
 
 			if (Array.isArray(data) && data[0] instanceof ClipboardItem) {
 				handlePasteFromClipboardApi(editor, data, point)
@@ -620,7 +621,7 @@ export function useNativeClipboardEvents() {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
 				editor.getEditingShapeId() !== null ||
-				disallowClipboardEvents()
+				disallowClipboardEvents(editor)
 			) {
 				return
 			}
@@ -634,7 +635,7 @@ export function useNativeClipboardEvents() {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
 				editor.getEditingShapeId() !== null ||
-				disallowClipboardEvents()
+				disallowClipboardEvents(editor)
 			) {
 				return
 			}
@@ -663,7 +664,7 @@ export function useNativeClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.getEditingShapeId() !== null || disallowClipboardEvents()) return
+			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
 
 			// First try to use the clipboard data on the event
 			if (e.clipboardData && !editor.inputs.shiftKey) {
