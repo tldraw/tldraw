@@ -4,7 +4,7 @@ import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { EMPTY_ARRAY, equals, haveParentsChanged, singleton } from './helpers'
-import { getGlobalEpoch, getIsReacting } from './transactions'
+import { getGlobalEpoch, getIsReacting, getReactionEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logComputedGetterWarning } from './warnings'
 
@@ -194,7 +194,9 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 		if (
 			!isNew &&
 			(this.lastCheckedEpoch === globalEpoch ||
-				(this.isActivelyListening && getIsReacting() && this.lastTraversedEpoch < globalEpoch) ||
+				(this.isActivelyListening &&
+					getIsReacting() &&
+					this.lastTraversedEpoch < getReactionEpoch()) ||
 				!haveParentsChanged(this))
 		) {
 			this.lastCheckedEpoch = globalEpoch

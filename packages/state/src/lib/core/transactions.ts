@@ -64,7 +64,12 @@ const inst = singleton('transactions', () => ({
 	currentTransaction: null as Transaction | null,
 
 	cleanupReactors: null as null | Set<EffectScheduler<unknown>>,
+	reactionEpoch: GLOBAL_START_EPOCH + 1,
 }))
+
+export function getReactionEpoch() {
+	return inst.reactionEpoch
+}
 
 export function getGlobalEpoch() {
 	return inst.globalEpoch
@@ -100,6 +105,7 @@ function flushChanges(atoms: Iterable<_Atom>) {
 
 	try {
 		inst.globalIsReacting = true
+		inst.reactionEpoch = inst.globalEpoch
 
 		// Collect all of the visited reactors.
 		const reactors = new Set<EffectScheduler<unknown>>()

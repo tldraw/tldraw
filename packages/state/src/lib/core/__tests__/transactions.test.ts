@@ -263,23 +263,28 @@ describe('setting atoms during a reaction', () => {
 	it('[regression] should allow computeds to be updated properly', () => {
 		// todo: how to repro
 		const a = atom('', 0)
-		const b = atom('', 0)
-		const c = computed('', () => b.get() * 2)
+		const b = atom('', 1)
+		const c = atom('', 0)
+		const ad = computed('', () => a.get() * 2)
 
-		let cValue = 0
-
+		let adValue = 0
 		react('', () => {
-			b.set(a.get() + 1)
-			cValue = c.get()
+			// update a
+			a.set(b.get())
+			// update c
+			c.set(a.get())
+			// get latest value of computed that depends on a
+			adValue = ad.get()
 		})
 
-		expect(a.get()).toBe(0)
+		expect(a.get()).toBe(1)
 		expect(b.get()).toBe(1)
-		expect(cValue).toBe(2)
+
+		expect(adValue).toBe(2)
 
 		transact(() => {
-			a.set(1)
+			b.set(2)
 		})
-		expect(cValue).toBe(4)
+		expect(adValue).toBe(4)
 	})
 })
