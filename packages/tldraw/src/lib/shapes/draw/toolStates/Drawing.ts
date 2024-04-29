@@ -33,7 +33,7 @@ export class Drawing extends StateNode {
 
 	util = this.editor.getShapeUtil(this.shapeType)
 
-	isPen = false
+	isPenOrStylus = false
 
 	segmentMode = 'free' as 'free' | 'straight' | 'starting_straight' | 'starting_free'
 
@@ -64,7 +64,7 @@ export class Drawing extends StateNode {
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		const { inputs } = this.editor
 
-		if (this.isPen !== inputs.isPen) {
+		if (this.isPenOrStylus !== inputs.isPen) {
 			// The user made a palm gesture before starting a pen gesture;
 			// ideally we'd start the new shape here but we could also just bail
 			// as the next interaction will work correctly
@@ -172,9 +172,15 @@ export class Drawing extends StateNode {
 		this.markId = 'draw start ' + uniqueId()
 		this.editor.mark(this.markId)
 
-		this.isPen = isPen
+		// If the pressure is weird, then it's probably a stylus reporting as a mouse
+		// We treat pen/stylus inputs differently in the drawing tool, so we need to
+		// have our own value for this. The inputs.isPen is only if the input is a regular
+		// pen, like an iPad pen, which needs to trigger "pen mode" in order to avoid
+		// accidental palm touches. We don't have to worry about that with styluses though.
+		const z = this.info.point.z === undefined ? 0.5 : this.info.point.z
+		this.isPenOrStylus = isPen || (z !== 0 && z !== 0.5 && z !== 1)
 
-		const pressure = this.isPen ? this.info.point.z! * 1.25 : 0.5
+		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
 
 		this.segmentMode = this.editor.inputs.shiftKey ? 'straight' : 'free'
 
@@ -196,8 +202,6 @@ export class Drawing extends StateNode {
 				if (!prevPoint) throw Error('Expected a previous point!')
 
 				const { x, y } = this.editor.getPointInShapeSpace(shape, originPagePoint).toFixed()
-
-				const pressure = this.isPen ? this.info.point.z! * 1.25 : 0.5
 
 				const newSegment: TLDrawShapeSegment = {
 					type: this.segmentMode,
@@ -261,7 +265,7 @@ export class Drawing extends StateNode {
 				x: originPagePoint.x,
 				y: originPagePoint.y,
 				props: {
-					isPen: this.isPen,
+					isPen: this.isPenOrStylus,
 					segments: [
 						{
 							type: this.segmentMode,
@@ -300,7 +304,7 @@ export class Drawing extends StateNode {
 
 		const { x, y, z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
 
-		const newPoint = { x, y, z: this.isPen ? +(z! * 1.25).toFixed(2) : 0.5 }
+		const newPoint = { x, y, z: this.isPenOrStylus ? +(z! * 1.25).toFixed(2) : 0.5 }
 
 		switch (this.segmentMode) {
 			case 'starting_straight': {
@@ -634,11 +638,11 @@ export class Drawing extends StateNode {
 							x: toFixed(inputs.currentPagePoint.x),
 							y: toFixed(inputs.currentPagePoint.y),
 							props: {
-								isPen: this.isPen,
+								isPen: this.isPenOrStylus,
 								segments: [
 									{
 										type: 'free',
-										points: [{ x: 0, y: 0, z: this.isPen ? +(z! * 1.25).toFixed() : 0.5 }],
+										points: [{ x: 0, y: 0, z: this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5 }],
 									},
 								],
 							},
