@@ -7,6 +7,7 @@ import {
 	DefaultFontStyle,
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
+	DefaultTextAlignStyle,
 	DefaultVerticalAlignStyle,
 	GeoShapeGeoStyle,
 	LineShapeSplineStyle,
@@ -193,9 +194,10 @@ export function TextStylePickerSet({
 	const handleValueChange = useStyleChangeCallback()
 
 	const font = styles.get(DefaultFontStyle)
-	const align = styles.get(DefaultHorizontalAlignStyle)
-	const verticalAlign = styles.get(DefaultVerticalAlignStyle)
-	if (font === undefined && align === undefined) {
+	const textAlign = styles.get(DefaultTextAlignStyle)
+	const labelAlign = styles.get(DefaultHorizontalAlignStyle)
+	const verticalLabelAlign = styles.get(DefaultVerticalAlignStyle)
+	if (font === undefined && labelAlign === undefined) {
 		return null
 	}
 
@@ -213,26 +215,50 @@ export function TextStylePickerSet({
 				/>
 			)}
 
-			{align === undefined ? null : (
+			{textAlign === undefined ? null : (
+				<div className="tlui-style-panel__row">
+					<TldrawUiButtonPicker
+						title={msg('style-panel.align')}
+						uiType="align"
+						style={DefaultTextAlignStyle}
+						items={STYLES.textAlign}
+						value={textAlign}
+						onValueChange={handleValueChange}
+						theme={theme}
+					/>
+					<div className="tlui-style-panel__row__extra-button">
+						<TldrawUiButton
+							type="icon"
+							title={msg('style-panel.vertical-align')}
+							data-testid="vertical-align"
+							disabled
+						>
+							<TldrawUiButtonIcon icon="vertical-align-middle" />
+						</TldrawUiButton>
+					</div>
+				</div>
+			)}
+
+			{labelAlign === undefined ? null : (
 				<div className="tlui-style-panel__row">
 					<TldrawUiButtonPicker
 						title={msg('style-panel.align')}
 						uiType="align"
 						style={DefaultHorizontalAlignStyle}
 						items={STYLES.horizontalAlign}
-						value={align}
+						value={labelAlign}
 						onValueChange={handleValueChange}
 						theme={theme}
 					/>
 					<div className="tlui-style-panel__row__extra-button">
-						{verticalAlign === undefined ? (
+						{verticalLabelAlign === undefined ? (
 							<TldrawUiButton
 								type="icon"
 								title={msg('style-panel.vertical-align')}
 								data-testid="vertical-align"
 								disabled
 							>
-								<TldrawUiButtonIcon icon="vertical-align-center" />
+								<TldrawUiButtonIcon icon="vertical-align-middle" />
 							</TldrawUiButton>
 						) : (
 							<DropdownPicker
@@ -241,7 +267,7 @@ export function TextStylePickerSet({
 								uiType="verticalAlign"
 								style={DefaultVerticalAlignStyle}
 								items={STYLES.verticalAlign}
-								value={verticalAlign}
+								value={verticalLabelAlign}
 								onValueChange={handleValueChange}
 							/>
 						)}

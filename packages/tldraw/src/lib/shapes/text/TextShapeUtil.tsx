@@ -43,7 +43,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			w: 8,
 			text: '',
 			font: 'draw',
-			align: 'middle',
+			textAlign: 'start',
 			autoSize: true,
 			scale: 1,
 		}
@@ -71,7 +71,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	component(shape: TLTextShape) {
 		const {
 			id,
-			props: { font, size, text, color, scale, align },
+			props: { font, size, text, color, scale, textAlign },
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
@@ -87,7 +87,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				font={font}
 				fontSize={FONT_SIZES[size]}
 				lineHeight={TEXT_PROPS.lineHeight}
-				align={align}
+				align={textAlign}
 				verticalAlign="middle"
 				text={text}
 				labelColor={theme[color].solid}
@@ -125,7 +125,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			<SvgTextLabel
 				fontSize={FONT_SIZES[shape.props.size]}
 				font={shape.props.font}
-				align={shape.props.align}
+				align={shape.props.textAlign}
 				verticalAlign="middle"
 				text={shape.props.text}
 				labelColor={theme[shape.props.color].solid}
@@ -211,7 +211,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const styleDidChange =
 			prev.props.size !== next.props.size ||
-			prev.props.align !== next.props.align ||
+			prev.props.textAlign !== next.props.textAlign ||
 			prev.props.font !== next.props.font ||
 			(prev.props.scale !== 1 && next.props.scale === 1)
 
@@ -233,7 +233,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		let delta: Vec | undefined
 
-		switch (next.props.align) {
+		switch (next.props.textAlign) {
 			case 'middle': {
 				delta = new Vec((wB - wA) / 2, textDidChange ? 0 : (hB - hA) / 2)
 				break
