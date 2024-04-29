@@ -245,25 +245,25 @@ describe('When changing text size', () => {
 		expect(boundsA!.maxX).toEqual(boundsB!.maxX)
 		expect(boundsA!.maxY).not.toEqual(boundsB!.maxY)
 	})
-})
 
-it('preserves the top left when the text has text', () => {
-	const x = 0
-	const y = 0
-	const id = createShapeId()
-	editor.createShapes([
-		{
-			id,
-			type: 'text',
-			x: 0,
-			y: 0,
-			props: {
-				text: 'Hello',
+	it('preserves the top left when the text has text', () => {
+		const x = 0
+		const y = 0
+		const id = createShapeId()
+		editor.createShapes([
+			{
+				id,
+				type: 'text',
+				x: 0,
+				y: 0,
+				props: {
+					text: 'Hello',
+				},
 			},
-		},
-	])
-	expect(editor.getShape(id)).toMatchObject({
-		x,
-		y,
+		])
+		expect(editor.getShape(id)).toMatchObject({
+			x,
+			y,
+		})
 	})
 })
