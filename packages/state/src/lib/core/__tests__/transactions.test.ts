@@ -200,3 +200,86 @@ describe('transact', () => {
 		expect.assertions(3)
 	})
 })
+
+describe('setting atoms during a reaction', () => {
+	it('should work', () => {
+		const a = atom('', 0)
+		const b = atom('', 0)
+
+		react('', () => {
+			b.set(a.get() + 1)
+		})
+
+		expect(a.get()).toBe(0)
+		expect(b.get()).toBe(1)
+	})
+
+	it('should throw an error if it gets into a loop', () => {
+		expect(() => {
+			const a = atom('', 0)
+
+			react('', () => {
+				a.set(a.get() + 1)
+			})
+		}).toThrowErrorMatchingInlineSnapshot(`"Reaction update depth limit exceeded"`)
+	})
+
+	it('should work with a transaction running', () => {
+		const a = atom('', 0)
+
+		react('', () => {
+			transact(() => {
+				if (a.get() < 10) {
+					a.set(a.get() + 1)
+				}
+			})
+		})
+
+		expect(a.get()).toBe(10)
+	})
+
+	it('[regression] should allow computeds to be updated properly', () => {
+		const a = atom('', 0)
+		const b = atom('', 0)
+		const c = computed('', () => b.get() * 2)
+
+		let cValue = 0
+
+		react('', () => {
+			b.set(a.get() + 1)
+			cValue = c.get()
+		})
+
+		expect(a.get()).toBe(0)
+		expect(b.get()).toBe(1)
+		expect(cValue).toBe(2)
+
+		transact(() => {
+			a.set(1)
+		})
+		expect(cValue).toBe(4)
+	})
+
+	it('[regression] should allow computeds to be updated properly', () => {
+		// todo: how to repro
+		const a = atom('', 0)
+		const b = atom('', 0)
+		const c = computed('', () => b.get() * 2)
+
+		let cValue = 0
+
+		react('', () => {
+			b.set(a.get() + 1)
+			cValue = c.get()
+		})
+
+		expect(a.get()).toBe(0)
+		expect(b.get()).toBe(1)
+		expect(cValue).toBe(2)
+
+		transact(() => {
+			a.set(1)
+		})
+		expect(cValue).toBe(4)
+	})
+})
