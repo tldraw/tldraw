@@ -10,6 +10,7 @@ import {
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
+import { kickoutOccludedShapes } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180
@@ -22,7 +23,6 @@ export class Rotating extends StateNode {
 	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & { onInteractionEnd?: string }
 
 	markId = ''
-	isDirty = false
 
 	override onEnter = (
 		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }
@@ -51,11 +51,9 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-			},
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle as RotateCorner],
+			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
 		})
 	}
 
@@ -66,15 +64,8 @@ export class Rotating extends StateNode {
 		this.snapshot = {} as TLRotationSnapshot
 	}
 
-	override onTick = () => {
-		if (this.isDirty) {
-			this.isDirty = false
-			this.update()
-		}
-	}
-
 	override onPointerMove = () => {
-		this.isDirty = true
+		this.update()
 	}
 
 	override onKeyDown = () => {
@@ -112,11 +103,9 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-			},
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle as RotateCorner],
+			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
 		})
 	}
 
@@ -136,6 +125,10 @@ export class Rotating extends StateNode {
 			snapshot: this.snapshot,
 			stage: 'end',
 		})
+		kickoutOccludedShapes(
+			this.editor,
+			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
+		)
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {

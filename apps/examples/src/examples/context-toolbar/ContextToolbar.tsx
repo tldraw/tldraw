@@ -6,7 +6,6 @@ import {
 	TLEditorComponents,
 	track,
 	useEditor,
-	Vec,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -33,10 +32,7 @@ const ContextToolbarComponent = track(() => {
 	if (!size) return null
 	const currentSize = size.type === 'shared' ? size.value : undefined
 
-	const pageCoordinates = Vec.Sub(
-		editor.pageToScreen(selectionRotatedPageBounds.point),
-		editor.getViewportScreenBounds()
-	)
+	const pageCoordinates = editor.pageToViewport(selectionRotatedPageBounds.point)
 
 	return (
 		<div
@@ -81,9 +77,7 @@ const ContextToolbarComponent = track(() => {
 									width: 32,
 									background: isActive ? 'var(--color-muted-2)' : 'transparent',
 								}}
-								onClick={() =>
-									editor.setStyleForSelectedShapes(DefaultSizeStyle, value, { squashing: false })
-								}
+								onClick={() => editor.setStyleForSelectedShapes(DefaultSizeStyle, value)}
 							>
 								<TldrawUiIcon icon={icon} />
 							</div>

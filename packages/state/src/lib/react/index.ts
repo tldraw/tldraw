@@ -1,7 +1,6 @@
 export { track } from './track'
 export { useAtom } from './useAtom'
 export { useComputed } from './useComputed'
-export { useLayoutReaction } from './useLayoutReaction'
 export { useQuickReactor } from './useQuickReactor'
 export { useReactor } from './useReactor'
 export { useStateTracking } from './useStateTracking'

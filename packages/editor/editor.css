@@ -24,10 +24,18 @@
 	/* Z Index */
 	--layer-background: 100;
 	--layer-grid: 150;
+	--layer-culled-shapes: 175;
 	--layer-canvas: 200;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
 	--layer-following-indicator: 1000;
+	--layer-blocker: 10000;
+
+	/* z index for text editors */
+	--layer-text-container: 1;
+	--layer-text-content: 3;
+	--layer-text-editor: 4;
+
 	/* Misc */
 	--tl-zoom: 1;
 
@@ -124,6 +132,10 @@
 	--color-text-3: hsl(220, 2%, 65%);
 	--color-text-shadow: hsl(0, 0%, 100%);
 	--color-primary: hsl(214, 84%, 56%);
+	--color-success: hsl(123, 46%, 34%);
+	--color-info: hsl(201, 98%, 41%);
+	--color-warning: hsl(27, 98%, 47%);
+	--color-error: hsl(0, 65%, 51%);
 	--color-warn: hsl(0, 90%, 43%);
 	--color-text: hsl(0, 0%, 0%);
 	--color-laser: hsl(0, 100%, 50%);
@@ -139,11 +151,11 @@
 
 .tl-theme__dark {
 	--color-accent: hsl(0, 76%, 60%);
-	--color-background: hsl(240, 5%, 8%);
+	--color-background: hsl(240, 5%, 6.5%);
 	--color-brush-fill: hsl(0, 0%, 71%, 5.1%);
 	--color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
-	--color-grid: hsl(0, 0%, 56%);
-	--color-low: hsl(260, 5%, 12.5%);
+	--color-grid: hsl(0, 0%, 40%);
+	--color-low: hsl(260, 4.5%, 10.5%);
 	--color-low-border: hsl(207, 10%, 10%);
 	--color-culled: hsl(210, 11%, 19%);
 	--color-muted-none: hsl(0, 0%, 100%, 0%);
@@ -152,10 +164,10 @@
 	--color-muted-2: hsl(0, 0%, 100%, 5%);
 	--color-hint: hsl(0, 0%, 100%, 7%);
 	--color-overlay: hsl(0, 0%, 0%, 50%);
-	--color-divider: hsl(240, 9%, 25%);
-	--color-panel-contrast: hsl(240, 13%, 22%);
-	--color-panel: hsl(220, 8%, 15%);
-	--color-panel-overlay: hsl(210, 11%, 24%, 82%);
+	--color-divider: hsl(240, 9%, 22%);
+	--color-panel-contrast: hsl(245, 12%, 23%);
+	--color-panel: hsl(235, 6.8%, 13.5%);
+	--color-panel-overlay: hsl(210, 10%, 24%, 82%);
 	--color-focus: hsl(217, 76%, 80%);
 	--color-selected: hsl(217, 89%, 61%);
 	--color-selected-contrast: hsl(0, 0%, 100%);
@@ -166,6 +178,10 @@
 	--color-text-3: hsl(210, 6%, 45%);
 	--color-text-shadow: hsl(210, 13%, 18%);
 	--color-primary: hsl(214, 84%, 56%);
+	--color-success: hsl(123, 38%, 57%);
+	--color-info: hsl(199, 92%, 56%);
+	--color-warning: hsl(36, 100%, 57%);
+	--color-error: hsl(4, 90%, 58%);
 	--color-warn: hsl(0, 81%, 66%);
 	--color-text: hsl(210, 17%, 98%);
 	--color-laser: hsl(0, 100%, 50%);
@@ -228,6 +244,20 @@ input,
 	contain: strict;
 }
 
+.tl-culled-shapes {
+	width: 100%;
+	height: 100%;
+	z-index: var(--layer-culled-shapes);
+	position: absolute;
+	pointer-events: none;
+	contain: size layout;
+}
+
+.tl-culled-shapes__canvas {
+	width: 100%;
+	height: 100%;
+}
+
 .tl-shapes {
 	position: relative;
 	z-index: var(--layer-shapes);
@@ -256,18 +286,25 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
+	width: 100%;
+	height: 100%;
 	pointer-events: none;
 }
 
 /* ------------------- Background ------------------- */
 
-.tl-background {
+.tl-background__wrapper {
+	z-index: var(--layer-background);
 	position: absolute;
-	background-color: var(--color-background);
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-background);
+}
+
+.tl-background {
+	background-color: var(--color-background);
+	width: 100%;
+	height: 100%;
 }
 
 /* --------------------- Grid Layer --------------------- */
@@ -330,10 +367,13 @@ input,
 }
 
 .tl-shape__culled {
-	position: relative;
+	position: absolute;
+	pointer-events: none;
+	overflow: visible;
+	transform-origin: top left;
+	contain: size layout;
 	background-color: var(--color-culled);
-	width: 100%;
-	height: 100%;
+	z-index: 0;
 }
 
 /* ---------------- Shape Containers ---------------- */
@@ -431,7 +471,7 @@ input,
 	transform-origin: top left;
 	fill: none;
 	stroke-width: calc(1.5px * var(--tl-scale));
-	contain: size;
+	contain: size layout;
 }
 
 /* ------------------ SelectionBox ------------------ */
@@ -515,17 +555,14 @@ input,
 .tl-handle__create {
 	opacity: 0;
 }
-.tl-handle__create:hover {
-	opacity: 1;
+
+.tl-handle__clone > .tl-handle__fg {
+	fill: var(--color-selection-stroke);
+	stroke: none;
 }
 
 .tl-handle__bg:active {
 	fill: none;
-}
-
-.tl-handle__bg:hover {
-	cursor: var(--tl-cursor-grab);
-	fill: var(--color-selection-fill);
 }
 
 @media (pointer: coarse) {
@@ -682,14 +719,15 @@ input,
 
 /* ------------------- Text Shape ------------------- */
 
-.tl-text-shape__wrapper {
+.tl-text-shape-label {
 	position: relative;
 	font-weight: normal;
 	min-width: 1px;
 	padding: 0px;
 	margin: 0px;
 	border: none;
-	height: 100%;
+	width: fit-content;
+	height: fit-content;
 	font-variant: normal;
 	font-style: normal;
 	pointer-events: all;
@@ -698,35 +736,38 @@ input,
 	text-shadow: var(--tl-text-outline);
 }
 
-.tl-text-shape__wrapper[data-align='start'] {
-	text-align: left;
-}
-
-.tl-text-shape__wrapper[data-align='middle'] {
-	text-align: center;
-}
-
-.tl-text-shape__wrapper[data-align='end'] {
-	text-align: right;
-}
-
-.tl-text-shape__wrapper[data-font='draw'] {
+.tl-text-wrapper[data-font='draw'] {
 	font-family: var(--tl-font-draw);
 }
 
-.tl-text-shape__wrapper[data-font='sans'] {
+.tl-text-wrapper[data-font='sans'] {
 	font-family: var(--tl-font-sans);
 }
 
-.tl-text-shape__wrapper[data-font='serif'] {
+.tl-text-wrapper[data-font='serif'] {
 	font-family: var(--tl-font-serif);
 }
 
-.tl-text-shape__wrapper[data-font='mono'] {
+.tl-text-wrapper[data-font='mono'] {
 	font-family: var(--tl-font-mono);
 }
 
-.tl-text-shape__wrapper[data-isediting='true'] .tl-text-content {
+.tl-text-wrapper[data-align='start'],
+.tl-text-wrapper[data-align='start-legacy'] {
+	text-align: left;
+}
+
+.tl-text-wrapper[data-align='middle'],
+.tl-text-wrapper[data-align='middle-legacy'] {
+	text-align: center;
+}
+
+.tl-text-wrapper[data-align='end'],
+.tl-text-wrapper[data-align='end-legacy'] {
+	text-align: right;
+}
+
+.tl-text-wrapper[data-isediting='true'] .tl-text-content {
 	opacity: 0;
 }
 
@@ -752,7 +793,6 @@ input,
 	white-space: pre-wrap;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
-	pointer-events: all;
 	text-rendering: auto;
 	text-transform: none;
 	text-indent: 0px;
@@ -795,6 +835,17 @@ input,
 	outline: none;
 }
 
+.tl-text-content__wrapper {
+	position: relative;
+	width: fit-content;
+	height: fit-content;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	min-height: auto;
+}
+
 .tl-text-content {
 	pointer-events: none;
 }
@@ -805,6 +856,12 @@ input,
 	-webkit-user-select: text;
 	overflow: hidden;
 	cursor: var(--tl-cursor-text);
+}
+
+.tl-text-wrapper[data-isediting='false'] .tl-text-input,
+.tl-arrow-label[data-isediting='false'] .tl-text-input {
+	opacity: 0;
+	cursor: var(--tl-cursor-default);
 }
 
 .tl-text-input::selection {
@@ -918,10 +975,6 @@ input,
 	cursor: var(--tl-cursor-pointer);
 }
 
-.tl-bookmark__link:hover {
-	color: var(--color-selected);
-}
-
 /* ---------------- Hyperlink Button ---------------- */
 
 .tl-hyperlink-button {
@@ -960,10 +1013,6 @@ input,
 	pointer-events: none;
 }
 
-.tl-hyperlink-button:hover {
-	color: var(--color-selected);
-}
-
 .tl-hyperlink-button:focus-visible {
 	color: var(--color-selected);
 }
@@ -995,10 +1044,6 @@ input,
 	z-index: 10;
 }
 
-.tl-text-label[data-isediting='true'] .tl-text-content {
-	opacity: 0;
-}
-
 .tl-text-label[data-hastext='false'][data-isediting='false'] > .tl-text-label__inner {
 	width: 40px;
 	height: 40px;
@@ -1008,15 +1053,9 @@ input,
 	pointer-events: all;
 }
 
-.tl-text-label__inner {
-	position: relative;
-	width: fit-content;
-	height: fit-content;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	pointer-events: none;
-	min-height: auto;
+.tl-text-wrapper .tl-text-content {
+	pointer-events: all;
+	z-index: var(--layer-text-content);
 }
 
 .tl-text-label__inner > .tl-text-content {
@@ -1028,7 +1067,6 @@ input,
 	width: fit-content;
 	border-radius: var(--radius-1);
 	max-width: 100%;
-	z-index: 3;
 }
 
 .tl-text-label__inner > .tl-text-input {
@@ -1037,7 +1075,27 @@ input,
 	height: 100%;
 	width: 100%;
 	padding: 16px;
-	z-index: 4;
+}
+
+.tl-text-wrapper[data-isselected='true'] .tl-text-input {
+	z-index: var(--layer-text-editor);
+	pointer-events: all;
+}
+
+/* This part of the rule helps preserve the occlusion rules for the shapes so we
+ * don't click on shapes that are behind other shapes.
+ * One extra nuance is we don't use this behavior for:
+ *  - arrows which have weird geometry and just gets in the way.
+ *  - draw/line shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
+ */
+.tl-canvas[data-iseditinganything='true']
+	.tl-shape:not(
+		[data-shape-type='arrow'],
+		[data-shape-type='draw'],
+		[data-shape-type='line'],
+		[data-shape-type='highlight']
+	) {
+	pointer-events: all;
 }
 
 .tl-text-label[data-textwrap='true'] > .tl-text-label__inner {
@@ -1053,46 +1111,11 @@ input,
 	opacity: 0;
 }
 
-.tl-text-label[data-align='start'],
-.tl-text-label[data-align='start-legacy'] {
-	text-align: left;
-}
-
-.tl-text-label[data-align='middle'],
-.tl-text-label[data-align='middle-legacy'] {
-	text-align: center;
-}
-
-.tl-text-label[data-align='end'],
-.tl-text-label[data-align='end-legacy'] {
-	text-align: right;
-}
-
 .tl-arrow-hint {
 	stroke: var(--color-text-1);
 	fill: none;
 	stroke-linecap: round;
 	overflow: visible;
-}
-
-.tl-arrow-label[data-font='draw'],
-.tl-text-label[data-font='draw'] {
-	font-family: var(--tl-font-draw);
-}
-
-.tl-arrow-label[data-font='sans'],
-.tl-text-label[data-font='sans'] {
-	font-family: var(--tl-font-sans);
-}
-
-.tl-arrow-label[data-font='serif'],
-.tl-text-label[data-font='serif'] {
-	font-family: var(--tl-font-serif);
-}
-
-.tl-arrow-label[data-font='mono'],
-.tl-text-label[data-font='mono'] {
-	font-family: var(--tl-font-mono);
 }
 
 /* ------------------- Arrow Shape ------------------ */
@@ -1107,6 +1130,7 @@ input,
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	text-align: center;
 	color: var(--color-text);
 	text-shadow: var(--tl-text-outline);
 }
@@ -1125,66 +1149,21 @@ input,
 	position: relative;
 	height: max-content;
 	width: max-content;
-	pointer-events: all;
+	pointer-events: none;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 }
 
-.tl-arrow-label p,
-.tl-arrow-label textarea {
-	margin: 0px;
-	padding: 0px;
-	border: 0px;
-	color: inherit;
-	caret-color: var(--color-text);
-	background: none;
-	border-image: none;
-	font-size: inherit;
-	font-family: inherit;
-	font-weight: inherit;
-	line-height: inherit;
-	font-variant: inherit;
-	font-style: inherit;
-	text-align: inherit;
-	letter-spacing: inherit;
-	text-shadow: inherit;
-	outline: none;
-	white-space: pre-wrap;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	pointer-events: all;
-	text-rendering: auto;
-	text-transform: none;
-	text-indent: 0px;
-	display: inline-block;
-	appearance: auto;
-	column-count: initial !important;
-	writing-mode: horizontal-tb !important;
-	word-spacing: 0px;
-}
-
-.tl-arrow-label p {
+.tl-arrow-label .tl-arrow {
 	position: relative;
 	height: max-content;
-	z-index: 2;
 	padding: 4px;
 	overflow: visible;
 }
 
 .tl-arrow-label textarea {
-	z-index: 3;
-	margin: 0px;
 	padding: 4px;
-	height: 100%;
-	width: 100%;
-	position: absolute;
-	resize: none;
-	border: 0px;
-	user-select: all;
-	-webkit-user-select: text;
-	caret-color: var(--color-text);
-	border-image: none;
 	/* Don't allow textarea to be zero width */
 	min-width: 4px;
 }
@@ -1195,27 +1174,18 @@ input,
 	position: relative;
 	width: 100%;
 	height: 100%;
-	border-radius: var(--radius-2);
-	box-shadow: var(--shadow-1);
-	overflow: hidden;
-	border-color: currentColor;
-	border-style: solid;
-	border-width: 1px;
+	pointer-events: all;
+	opacity: 1;
+	z-index: var(--layer-text-container);
+	border-radius: 1px;
 }
 
-.tl-note__container .tl-text-label {
+.tl-note__container > .tl-text-label {
 	text-shadow: none;
+	color: currentColor;
 }
 
-.tl-note__scrim {
-	position: absolute;
-	z-index: 1;
-	inset: 0px;
-	height: 100%;
-	width: 100%;
-	background-color: var(--color-background);
-	opacity: 0.28;
-}
+/* --------------------- Loading -------------------- */
 
 .tl-loading {
 	background-color: var(--color-background);
@@ -1483,17 +1453,11 @@ it from receiving any pointer events or affecting the cursor. */
 	color: inherit;
 	background-color: transparent;
 }
-.tl-error-boundary__content button:hover {
-	background-color: var(--color-low);
-}
 
 .tl-error-boundary__content a {
 	color: var(--color-text-1);
 	font-weight: 500;
 	text-decoration: none;
-}
-.tl-error-boundary__content a:hover {
-	color: var(--color-text-1);
 }
 
 .tl-error-boundary__content__error {
@@ -1529,11 +1493,6 @@ it from receiving any pointer events or affecting the cursor. */
 	background-color: var(--color-primary);
 	color: var(--color-selected-contrast);
 }
-.tl-error-boundary__content .tl-error-boundary__refresh:hover {
-	background-color: var(--color-primary);
-	opacity: 0.9;
-}
-
 /* --------------------- Coarse --------------------- */
 
 .tl-hidden {
@@ -1548,4 +1507,56 @@ it from receiving any pointer events or affecting the cursor. */
 	color: #555;
 	font-size: 12px;
 	font-family: monospace;
+}
+
+/* ---------------- Hit test blocker ---------------- */
+
+.tl-hit-test-blocker {
+	position: absolute;
+	z-index: var(--layer-blocker);
+	inset: 0px;
+	width: 100%;
+	height: 100%;
+	pointer-events: all;
+}
+
+.tl-hit-test-blocker__hidden {
+	display: none;
+}
+
+@media (hover: hover) {
+	.tl-handle__create:hover {
+		opacity: 1;
+	}
+
+	.tl-handle__bg:hover {
+		cursor: var(--tl-cursor-grab);
+		fill: var(--color-selection-fill);
+	}
+
+	.tl-bookmark__link:hover {
+		color: var(--color-selected);
+	}
+
+	.tl-hyperlink-button:hover {
+		color: var(--color-selected);
+	}
+
+	.tl-error-boundary__content button:hover {
+		background-color: var(--color-low);
+	}
+	.tl-error-boundary__content a:hover {
+		color: var(--color-text-1);
+	}
+	.tl-error-boundary__content .tl-error-boundary__refresh:hover {
+		background-color: var(--color-primary);
+		opacity: 0.9;
+	}
+
+	/* These three rules help preserve clicking into specific points in text areas *while*
+ * already in edit mode when jumping from shape to shape. */
+	.tl-canvas[data-iseditinganything='true'] .tl-text-wrapper:hover .tl-text-input {
+		z-index: var(--layer-text-editor);
+		pointer-events: all;
+	}
 }

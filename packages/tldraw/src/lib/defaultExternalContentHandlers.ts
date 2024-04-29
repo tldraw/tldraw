@@ -128,6 +128,7 @@ export function registerDefaultExternalContentHandlers(
 			console.error(error)
 			toasts.addToast({
 				title: msg('assets.url.failed'),
+				severity: 'error',
 			})
 			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
 		}
@@ -250,6 +251,7 @@ export function registerDefaultExternalContentHandlers(
 				} catch (error) {
 					toasts.addToast({
 						title: msg('assets.files.upload-failed'),
+						severity: 'error',
 					})
 					console.error(error)
 					return null
@@ -270,11 +272,27 @@ export function registerDefaultExternalContentHandlers(
 
 		const textToPaste = cleanupText(text)
 
+		// If we're pasting into a text shape, update the text.
+		const onlySelectedShape = editor.getOnlySelectedShape()
+		if (onlySelectedShape && 'text' in onlySelectedShape.props) {
+			editor.updateShapes([
+				{
+					id: onlySelectedShape.id,
+					type: onlySelectedShape.type,
+					props: {
+						text: textToPaste,
+					},
+				},
+			])
+
+			return
+		}
+
 		// Measure the text with default values
 		let w: number
 		let h: number
 		let autoSize: boolean
-		let align = 'middle' as TLTextShapeProps['align']
+		let align = 'middle' as TLTextShapeProps['textAlign']
 
 		const isMultiLine = textToPaste.split('\n').length > 1
 
@@ -328,7 +346,7 @@ export function registerDefaultExternalContentHandlers(
 				props: {
 					text: textToPaste,
 					// if the text has more than one line, align it to the left
-					align,
+					textAlign: align,
 					autoSize,
 					w,
 				},
@@ -369,6 +387,7 @@ export function registerDefaultExternalContentHandlers(
 			} catch (e) {
 				toasts.addToast({
 					title: msg('assets.url.failed'),
+					severity: 'error',
 				})
 				return
 			}

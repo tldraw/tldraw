@@ -1,5 +1,6 @@
 import { TLDefaultDashStyle } from '@tldraw/editor'
 
+/** @public */
 export function getPerfectDashProps(
 	totalLength: number,
 	strokeWidth: number,

@@ -7,6 +7,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.rooms
+
 node_modules
 dist
 dist-cjs
@@ -72,6 +74,7 @@ apps/examples/www/translations
 !.yarn/versions
 
 packages/*/api/temp
+packages/*/api/api.json
 packages/*/api/internal.d.ts
 packages/*/api/public.d.ts
 
@@ -85,6 +88,8 @@ apps/examples/e2e/test-results
 apps/examples/playwright-report
 
 apps/docs/content/gen
+apps/docs/content/releases
+apps/docs/api
 
 .dev.vars
 .env.local
@@ -93,3 +98,5 @@ apps/docs/content/gen
 
 .wrangler
 /vercel.json
+license-report-prod.html
+license-report.html

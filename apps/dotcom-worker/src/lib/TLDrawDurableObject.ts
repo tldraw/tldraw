@@ -3,14 +3,24 @@
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
+	READ_ONLY_LEGACY_PREFIX,
+	READ_ONLY_PREFIX,
+	ROOM_OPEN_MODE,
+	ROOM_PREFIX,
+	type RoomOpenMode,
+} from '@tldraw/dotcom-shared'
+import {
+	DBLoadResultType,
 	RoomSnapshot,
+	TLCloseEventCode,
 	TLServer,
+	TLServerEvent,
 	TLSyncRoom,
 	type DBLoadResult,
 	type PersistedRoomSnapshotForSupabase,
 	type RoomState,
 } from '@tldraw/tlsync'
-import { assert, assertExists } from '@tldraw/utils'
+import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest, Router } from 'itty-router'
 import Toucan from 'toucan-js'
 import { AlarmScheduler } from './AlarmScheduler'
@@ -18,6 +28,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, Environment } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 
 const MAX_CONNECTIONS = 50
@@ -86,13 +97,23 @@ export class TLDrawDurableObject extends TLServer {
 
 	readonly router = Router()
 		.get(
-			'/r/:roomId',
-			(req) => this.extractDocumentInfoFromRequest(req),
+			`/${ROOM_PREFIX}/:roomId`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRequest(req)
+		)
+		.get(
+			`/${READ_ONLY_LEGACY_PREFIX}/:roomId`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY),
+			(req) => this.onRequest(req)
+		)
+		.get(
+			`/${READ_ONLY_PREFIX}/:roomId`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY),
 			(req) => this.onRequest(req)
 		)
 		.post(
-			'/r/:roomId/restore',
-			(req) => this.extractDocumentInfoFromRequest(req),
+			`/${ROOM_PREFIX}/:roomId/restore`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req)
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
@@ -112,8 +133,11 @@ export class TLDrawDurableObject extends TLServer {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	extractDocumentInfoFromRequest = async (req: IRequest) => {
-		const slug = assertExists(req.params.roomId, 'roomId must be present')
+	extractDocumentInfoFromRequest = async (req: IRequest, roomOpenMode: RoomOpenMode) => {
+		const slug = assertExists(
+			await getSlug(this.env, req.params.roomId, roomOpenMode),
+			'roomId must be present'
+		)
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
@@ -225,9 +249,10 @@ export class TLDrawDurableObject extends TLServer {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 
 		// Handle the connection (see TLServer)
+		let connectionResult: DBLoadResultType
 		try {
 			// block concurrency while initializing the room if that needs to happen
-			await this.controller.blockConcurrencyWhile(() =>
+			connectionResult = await this.controller.blockConcurrencyWhile(() =>
 				this.handleConnection({
 					socket: serverWebSocket as any,
 					persistenceKey: this.documentInfo.slug!,
@@ -252,40 +277,50 @@ export class TLDrawDurableObject extends TLServer {
 			this.schedulePersist()
 		})
 
+		if (connectionResult === 'room_not_found') {
+			// If the room is not found, we need to accept and then immediately close the connection
+			// with our custom close code.
+			serverWebSocket.close(TLCloseEventCode.NOT_FOUND, 'Room not found')
+		}
+
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
-	logEvent(
-		event:
-			| {
-					type: 'client'
-					roomId: string
-					name: string
-					clientId: string
-					instanceId: string
-					localClientId: string
-			  }
-			| {
-					type: 'room'
-					roomId: string
-					name: string
-			  }
+	private writeEvent(
+		name: string,
+		{ blobs, indexes, doubles }: { blobs?: string[]; indexes?: [string]; doubles?: number[] }
 	) {
+		this.measure?.writeDataPoint({
+			blobs: [name, this.env.WORKER_NAME ?? 'development-tldraw-multiplayer', ...(blobs ?? [])],
+			doubles,
+			indexes,
+		})
+	}
+
+	logEvent(event: TLServerEvent) {
 		switch (event.type) {
 			case 'room': {
-				this.measure?.writeDataPoint({
-					blobs: [event.name, event.roomId], // we would add user/connection ids here if we could
-				})
-
+				// we would add user/connection ids here if we could
+				this.writeEvent(event.name, { blobs: [event.roomId] })
 				break
 			}
 			case 'client': {
-				this.measure?.writeDataPoint({
-					blobs: [event.name, event.roomId, event.clientId, event.instanceId], // we would add user/connection ids here if we could
+				// we would add user/connection ids here if we could
+				this.writeEvent(event.name, {
+					blobs: [event.roomId, event.clientId, event.instanceId],
 					indexes: [event.localClientId],
 				})
-
 				break
+			}
+			case 'send_message': {
+				this.writeEvent(event.type, {
+					blobs: [event.roomId, event.messageType],
+					doubles: [event.messageLength],
+				})
+				break
+			}
+			default: {
+				exhaustiveSwitchError(event)
 			}
 		}
 	}

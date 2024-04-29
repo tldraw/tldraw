@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -54,6 +54,7 @@
 		"@radix-ui/react-slider": "^1.1.0",
 		"@radix-ui/react-toast": "^1.1.1",
 		"@tldraw/editor": "workspace:*",
+		"@tldraw/store": "workspace:*",
 		"canvas-size": "^1.2.6",
 		"classnames": "^2.3.2",
 		"hotkeys-js": "^3.11.2",
@@ -78,7 +79,7 @@
 	},
 	"jest": {
 		"preset": "config/jest/node",
-		"testEnvironment": "jsdom",
+		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"fakeTimers": {
 			"enableGlobally": true
 		},

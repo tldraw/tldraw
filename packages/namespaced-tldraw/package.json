@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -57,7 +57,7 @@
 	},
 	"jest": {
 		"preset": "config/jest/node",
-		"testEnvironment": "jsdom",
+		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"fakeTimers": {
 			"enableGlobally": true
 		},
