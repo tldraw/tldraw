@@ -43,7 +43,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			w: 8,
 			text: '',
 			font: 'draw',
-			align: 'middle',
+			textAlign: 'start',
 			autoSize: true,
 			scale: 1,
 		}
@@ -66,12 +66,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	override canEdit = () => true
 
-	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
+	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER
 
 	component(shape: TLTextShape) {
 		const {
 			id,
-			props: { font, size, text, color, scale, align },
+			props: { font, size, text, color, scale, textAlign },
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
@@ -87,7 +87,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				font={font}
 				fontSize={FONT_SIZES[size]}
 				lineHeight={TEXT_PROPS.lineHeight}
-				align={align}
+				align={textAlign}
 				verticalAlign="middle"
 				text={text}
 				labelColor={theme[color].solid}
@@ -125,7 +125,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			<SvgTextLabel
 				fontSize={FONT_SIZES[shape.props.size]}
 				font={shape.props.font}
-				align={shape.props.align}
+				align={shape.props.textAlign}
 				verticalAlign="middle"
 				text={shape.props.text}
 				labelColor={theme[shape.props.color].solid}
@@ -136,7 +136,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override onResize: TLOnResizeHandler<TLTextShape> = (shape, info) => {
-		const { initialBounds, initialShape, scaleX, handle } = info
+		const { newPoint, initialBounds, initialShape, scaleX, handle } = info
 
 		if (info.mode === 'scale_shape' || (handle !== 'right' && handle !== 'left')) {
 			return {
@@ -145,25 +145,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				...resizeScaled(shape, info),
 			}
 		} else {
-			const prevWidth = initialBounds.width
-			let nextWidth = prevWidth * scaleX
-
-			const offset = new Vec(0, 0)
-
-			nextWidth = Math.max(1, Math.abs(nextWidth))
-
-			if (handle === 'left') {
-				offset.x = prevWidth - nextWidth
-				if (scaleX < 0) {
-					offset.x += nextWidth
-				}
-			} else {
-				if (scaleX < 0) {
-					offset.x -= nextWidth
-				}
-			}
-
-			const { x, y } = offset.rot(shape.rotation).add(initialShape)
+			const nextWidth = Math.max(1, Math.abs(initialBounds.width * scaleX))
+			const { x, y } =
+				scaleX < 0 ? Vec.Sub(newPoint, Vec.FromAngle(shape.rotation).mul(nextWidth)) : newPoint
 
 			return {
 				id: shape.id,
@@ -227,7 +211,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const styleDidChange =
 			prev.props.size !== next.props.size ||
-			prev.props.align !== next.props.align ||
+			prev.props.textAlign !== next.props.textAlign ||
 			prev.props.font !== next.props.font ||
 			(prev.props.scale !== 1 && next.props.scale === 1)
 
@@ -249,7 +233,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		let delta: Vec | undefined
 
-		switch (next.props.align) {
+		switch (next.props.textAlign) {
 			case 'middle': {
 				delta = new Vec((wB - wA) / 2, textDidChange ? 0 : (hB - hA) / 2)
 				break

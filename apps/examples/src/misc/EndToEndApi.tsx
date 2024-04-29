@@ -1,4 +1,4 @@
-import { TLExportType } from 'tldraw/src/lib/utils/export/exportAs'
+import { TLExportType } from 'tldraw'
 
 export interface EndToEndApi {
 	exportAsSvg: () => void

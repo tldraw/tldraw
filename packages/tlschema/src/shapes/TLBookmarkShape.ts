@@ -28,7 +28,7 @@ const Versions = createShapePropsMigrationIds('bookmark', {
 
 export { Versions as bookmarkShapeVersions }
 
-/** @internal */
+/** @public */
 export const bookmarkShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{

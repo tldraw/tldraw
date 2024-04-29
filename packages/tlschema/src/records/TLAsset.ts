@@ -14,7 +14,7 @@ import { TLShape } from './TLShape'
 /** @public */
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 
-/** @internal */
+/** @public */
 export const assetValidator: T.Validator<TLAsset> = T.model(
 	'asset',
 	T.union('type', {
@@ -24,12 +24,12 @@ export const assetValidator: T.Validator<TLAsset> = T.model(
 	})
 )
 
-/** @internal */
+/** @public */
 export const assetVersions = createMigrationIds('com.tldraw.asset', {
 	AddMeta: 1,
 } as const)
 
-/** @internal */
+/** @public */
 export const assetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset',
 	recordType: 'asset',

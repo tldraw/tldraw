@@ -534,6 +534,40 @@ export const EMBED_DEFINITIONS = [
 			return
 		},
 	},
+	{
+		type: 'desmos',
+		title: 'Desmos',
+		hostnames: ['desmos.com'],
+		width: 700,
+		height: 450,
+		doesResize: true,
+		toEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			if (
+				urlObj &&
+				urlObj.hostname === 'www.desmos.com' &&
+				urlObj.pathname.match(/^\/calculator\/([^/]+)\/?$/) &&
+				urlObj.search === '' &&
+				urlObj.hash === ''
+			) {
+				return `${url}?embed`
+			}
+			return
+		},
+		fromEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			if (
+				urlObj &&
+				urlObj.hostname === 'www.desmos.com' &&
+				urlObj.pathname.match(/^\/calculator\/([^/]+)\/?$/) &&
+				urlObj.search === '?embed' &&
+				urlObj.hash === ''
+			) {
+				return url.replace('?embed', '')
+			}
+			return
+		},
+	},
 ] as const satisfies readonly EmbedDefinition[]
 
 /**
@@ -635,7 +669,7 @@ const Versions = createShapePropsMigrationIds('embed', {
 
 export { Versions as embedShapeVersions }
 
-/** @internal */
+/** @public */
 export const embedShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{

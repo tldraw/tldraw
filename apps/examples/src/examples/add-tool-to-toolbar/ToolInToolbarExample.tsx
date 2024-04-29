@@ -66,7 +66,8 @@ export const customAssetUrls: TLUiAssetUrlOverrides = {
 
 // [4]
 const customTools = [StickerTool]
-export default function CustomToolExample() {
+
+export default function ToolInToolbarExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw

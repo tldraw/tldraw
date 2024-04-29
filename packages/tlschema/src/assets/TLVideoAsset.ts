@@ -19,7 +19,7 @@ export type TLVideoAsset = TLBaseAsset<
 	}
 >
 
-/** @internal */
+/** @public */
 export const videoAssetValidator: T.Validator<TLVideoAsset> = createAssetValidator(
 	'video',
 	T.object({
@@ -40,7 +40,7 @@ const Versions = createMigrationIds('com.tldraw.asset.video', {
 
 export { Versions as videoAssetVersions }
 
-/** @internal */
+/** @public */
 export const videoAssetMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.asset.video',
 	recordType: 'asset',

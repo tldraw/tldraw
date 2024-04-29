@@ -41,7 +41,7 @@ const Versions = createShapePropsMigrationIds('note', {
 
 export { Versions as noteShapeVersions }
 
-/** @internal */
+/** @public */
 export const noteShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{

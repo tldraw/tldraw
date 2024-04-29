@@ -396,6 +396,25 @@ export class TestEditor extends Editor {
 		return this
 	}
 
+	rightClick = (
+		x = this.inputs.currentScreenPoint.x,
+		y = this.inputs.currentScreenPoint.y,
+		options?: PointerEventInit,
+		modifiers?: EventModifiers
+	) => {
+		this.dispatch({
+			...this.getPointerEventInfo(x, y, options, modifiers),
+			name: 'pointer_down',
+			button: 2,
+		}).forceTick()
+		this.dispatch({
+			...this.getPointerEventInfo(x, y, options, modifiers),
+			name: 'pointer_up',
+			button: 2,
+		}).forceTick()
+		return this
+	}
+
 	doubleClick = (
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
