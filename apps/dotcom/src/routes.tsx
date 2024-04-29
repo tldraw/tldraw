@@ -1,6 +1,12 @@
 import { captureException } from '@sentry/react'
+import {
+	READ_ONLY_LEGACY_PREFIX,
+	READ_ONLY_PREFIX,
+	ROOM_PREFIX,
+	SNAPSHOT_PREFIX,
+} from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
-import { createRoutesFromElements, Navigate, Outlet, Route, useRouteError } from 'react-router-dom'
+import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 
@@ -29,17 +35,20 @@ export const router = createRoutesFromElements(
 	>
 		<Route errorElement={<DefaultErrorFallback />}>
 			<Route path="/" lazy={() => import('./pages/root')} />
-			<Route path="/r" element={<Navigate to="/" />} />
+			<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
 			<Route path="/new" lazy={() => import('./pages/new')} />
-			<Route path="/r/:roomId" lazy={() => import('./pages/public-multiplayer')} />
-			<Route path="/r/:boardId/history" lazy={() => import('./pages/history')} />
+			<Route path={`/${ROOM_PREFIX}/:roomId`} lazy={() => import('./pages/public-multiplayer')} />
+			<Route path={`/${ROOM_PREFIX}/:boardId/history`} lazy={() => import('./pages/history')} />
 			<Route
-				path="/r/:boardId/history/:timestamp"
+				path={`/${ROOM_PREFIX}/:boardId/history/:timestamp`}
 				lazy={() => import('./pages/history-snapshot')}
 			/>
-			<Route path="/s/:roomId" lazy={() => import('./pages/public-snapshot')} />
-			<Route path="/v/:roomId" lazy={() => import('./pages/public-readonly-legacy')} />
-			<Route path="/ro/:roomId" lazy={() => import('./pages/public-readonly')} />
+			<Route path={`/${SNAPSHOT_PREFIX}/:roomId`} lazy={() => import('./pages/public-snapshot')} />
+			<Route
+				path={`/${READ_ONLY_LEGACY_PREFIX}/:roomId`}
+				lazy={() => import('./pages/public-readonly-legacy')}
+			/>
+			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
 		</Route>
 		<Route path="*" lazy={() => import('./pages/not-found')} />
 	</Route>

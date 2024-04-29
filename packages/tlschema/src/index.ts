@@ -190,6 +190,7 @@ export {
 	type TLDefaultHorizontalAlignStyle,
 } from './styles/TLHorizontalAlignStyle'
 export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
+export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {
 	DefaultVerticalAlignStyle,
 	type TLDefaultVerticalAlignStyle,

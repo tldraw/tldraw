@@ -204,6 +204,9 @@ export const defaultShapeSchemas: {
 export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
 
 // @public (undocumented)
+export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
+
+// @public (undocumented)
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
 // @public (undocumented)
@@ -407,6 +410,15 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "observable";
     readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 450;
+    readonly hostnames: readonly ["desmos.com"];
+    readonly title: "Desmos";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "desmos";
+    readonly width: 700;
 }];
 
 // @public (undocumented)
@@ -798,13 +810,13 @@ export const textShapeMigrations: TLPropsMigrations;
 
 // @public (undocumented)
 export const textShapeProps: {
-    align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
     autoSize: T.Validator<boolean>;
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     scale: T.Validator<number>;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     text: T.Validator<string>;
+    textAlign: EnumStyleProp<"end" | "middle" | "start">;
     w: T.Validator<number>;
 };
 
@@ -1002,6 +1014,9 @@ export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEm
 
 // @public (undocumented)
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
+
+// @public (undocumented)
+export type TLDefaultTextAlignStyle = T.TypeOf<typeof DefaultTextAlignStyle>;
 
 // @public (undocumented)
 export type TLDefaultVerticalAlignStyle = T.TypeOf<typeof DefaultVerticalAlignStyle>;

@@ -805,6 +805,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitFrameInside?: boolean | undefined;
         hitInside?: boolean | undefined;
         hitLabels?: boolean | undefined;
+        hitLocked?: boolean | undefined;
         margin?: number | undefined;
         renderingOnly?: boolean | undefined;
     }): TLShape | undefined;
@@ -2580,6 +2581,7 @@ export type TLResizeShapeOptions = Partial<{
     initialBounds: Box;
     initialPageTransform: MatLike;
     initialShape: TLShape;
+    isAspectRatioLocked: boolean;
     mode: TLResizeMode;
     scaleAxisRotation: number;
     scaleOrigin: VecLike;
