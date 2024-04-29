@@ -178,7 +178,7 @@ export class Drawing extends StateNode {
 		// pen, like an iPad pen, which needs to trigger "pen mode" in order to avoid
 		// accidental palm touches. We don't have to worry about that with styluses though.
 		const z = this.info.point.z === undefined ? 0.5 : this.info.point.z
-		this.isPenOrStylus = isPen || (z !== 0 && z !== 0.5 && z !== 1)
+		this.isPenOrStylus = isPen || (z > 0 && z < 0.5) || (z > 0.5 && z < 1)
 
 		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
 
