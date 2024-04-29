@@ -1549,6 +1549,18 @@ describe('Add font size adjustment to notes', () => {
 	})
 })
 
+describe('Add text align to text shapes', () => {
+	const { up, down } = getTestMigration(textShapeVersions.AddTextAlign)
+
+	test('up works as expected', () => {
+		expect(up({ props: { align: 'middle' } })).toEqual({ props: { textAlign: 'middle' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { textAlign: 'middle' } })).toEqual({ props: { align: 'middle' } })
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once

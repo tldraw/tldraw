@@ -2505,6 +2505,7 @@ export type TLResizeShapeOptions = Partial<{
     initialBounds: Box;
     initialPageTransform: MatLike;
     initialShape: TLShape;
+    isAspectRatioLocked: boolean;
     mode: TLResizeMode;
     scaleAxisRotation: number;
     scaleOrigin: VecLike;

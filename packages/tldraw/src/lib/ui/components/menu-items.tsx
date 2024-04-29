@@ -123,7 +123,9 @@ export function ToggleTransparentBgMenuItem() {
 		() => !editor.getInstanceState().exportBackground,
 		[editor]
 	)
-	return <TldrawUiMenuCheckboxItem {...actions['toggle-transparent']} checked={isTransparentBg} />
+	return (
+		<TldrawUiMenuCheckboxItem {...actions['toggle-transparent']} checked={isTransparentBg} toggle />
+	)
 }
 /** @public */
 export function UnlockAllMenuItem() {

@@ -146,6 +146,7 @@ export type TLResizeShapeOptions = Partial<{
 	initialShape: TLShape
 	initialPageTransform: MatLike
 	dragHandle: TLResizeHandle
+	isAspectRatioLocked: boolean
 	mode: TLResizeMode
 }>
 
@@ -5391,6 +5392,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						initialPageTransform,
 						initialShape: shape,
 						mode: 'scale_shape',
+						isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
 						scaleOrigin: scaleOriginPage,
 						scaleAxisRotation: 0,
 					}
@@ -5915,6 +5917,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.resizeShape(shape.id, scale, {
 							initialBounds: bounds,
 							scaleOrigin: new Vec(pageBounds.center.x, commonBounds.minY),
+							isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
 							scaleAxisRotation: 0,
 						})
 					}
@@ -5938,6 +5941,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.resizeShape(shape.id, scale, {
 							initialBounds: bounds,
 							scaleOrigin: new Vec(commonBounds.minX, pageBounds.center.y),
+							isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
 							scaleAxisRotation: 0,
 						})
 					}
@@ -5991,6 +5995,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (!initialBounds) return this
 
+		const isAspectRatioLocked =
+			options.isAspectRatioLocked ??
+			this.getShapeUtil(initialShape).isAspectRatioLocked(initialShape)
+
 		if (!areAnglesCompatible(pageRotation, scaleAxisRotation)) {
 			// shape is awkwardly rotated, keep the aspect ratio locked and adopt the scale factor
 			// from whichever axis is being scaled the least, to avoid the shape getting bigger
@@ -6002,13 +6010,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				scaleOrigin,
 				scaleAxisRotation,
 				initialPageTransform: pageTransform,
+				isAspectRatioLocked,
 				initialShape,
 			})
 		}
 
 		const util = this.getShapeUtil(initialShape)
 
-		if (util.isAspectRatioLocked(initialShape)) {
+		if (isAspectRatioLocked) {
 			if (Math.abs(scale.x) > Math.abs(scale.y)) {
 				scale = new Vec(scale.x, Math.sign(scale.y) * Math.abs(scale.x))
 			} else {
@@ -6128,6 +6137,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			scaleOrigin: VecLike
 			scaleAxisRotation: number
 			initialShape: TLShape
+			isAspectRatioLocked: boolean
 			initialPageTransform: MatLike
 		}
 	) {
@@ -6151,6 +6161,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.resizeShape(id, shapeScale, {
 			initialShape: options.initialShape,
 			initialBounds: options.initialBounds,
+			isAspectRatioLocked: options.isAspectRatioLocked,
 		})
 
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation
@@ -6351,6 +6362,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const shapeRecordsToCreate: TLShape[] = []
 
+			const { opacityForNextShape } = this.getInstanceState()
+
 			for (const partial of partials) {
 				const util = this.getShapeUtil(partial as TLShapePartial)
 
@@ -6394,7 +6407,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				).create({
 					...partial,
 					index,
-					opacity: partial.opacity ?? this.getInstanceState().opacityForNextShape,
+					opacity: partial.opacity ?? opacityForNextShape,
 					parentId: partial.parentId ?? focusedGroupId,
 					props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
 				})
