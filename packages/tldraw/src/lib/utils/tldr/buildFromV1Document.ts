@@ -561,7 +561,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								})
 
 								if (change) {
-									// TODO(alex): can we delete this?
+									// TODO(alex): #bindings can we delete this?
 									// if (change.props?.[handleId]) {
 									// 	const terminal = change.props?.[handleId] as TLArrowShapeTerminal
 									// 	if (terminal.type === 'binding') {

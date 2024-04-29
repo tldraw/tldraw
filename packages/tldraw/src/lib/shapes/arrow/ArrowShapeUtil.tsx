@@ -10,11 +10,13 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	TLArrowBinding,
+	TLArrowBindings,
 	TLArrowShape,
 	TLHandle,
 	TLOnEditEndHandler,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
+	TLOnResizeStartHandler,
 	TLOnTranslateHandler,
 	TLOnTranslateStartHandler,
 	TLShapePartial,
@@ -276,23 +278,31 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		}
 
-		arrowBindingMakeItSo(this.editor, shape, target.id, {
+		const b = {
 			terminal: handleId,
 			normalizedAnchor,
 			isPrecise: precise,
 			isExact: this.editor.inputs.altKey,
-		})
+		}
+
+		arrowBindingMakeItSo(this.editor, shape, target.id, b)
 
 		this.editor.setHintingShapes([target.id])
 
-		// TODO(alex): restore this if we can
-		// if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {
-		// 	if (next.props.start.boundShapeId === next.props.end.boundShapeId) {
-		// 		if (Vec.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
-		// 			next.props.end.normalizedAnchor.x += 0.05
-		// 		}
-		// 	}
-		// }
+		const newBindings = getArrowBindings(this.editor, shape)
+		if (newBindings.start && newBindings.end && newBindings.start.toId === newBindings.end.toId) {
+			if (
+				Vec.Equals(newBindings.start.props.normalizedAnchor, newBindings.end.props.normalizedAnchor)
+			) {
+				arrowBindingMakeItSo(this.editor, shape, newBindings.end.toId, {
+					...newBindings.end.props,
+					normalizedAnchor: {
+						x: newBindings.end.props.normalizedAnchor.x + 0.05,
+						y: newBindings.end.props.normalizedAnchor.y,
+					},
+				})
+			}
+		}
 
 		return next
 	}
@@ -388,10 +398,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
+	// replace this with memo bag?
+	private _resizeInitialBindings: TLArrowBindings = { start: undefined, end: undefined }
+	override onResizeStart?: TLOnResizeStartHandler<TLArrowShape> = (shape) => {
+		this._resizeInitialBindings = getArrowBindings(this.editor, shape)
+	}
 	override onResize: TLOnResizeHandler<TLArrowShape> = (shape, info) => {
 		const { scaleX, scaleY } = info
 
-		const bindings = getArrowBindings(this.editor, shape)
+		const bindings = this._resizeInitialBindings
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 
 		const { start, end } = structuredClone<TLArrowShape['props']>(shape.props)
@@ -469,13 +484,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (bindings.start && startNormalizedAnchor) {
 			arrowBindingMakeItSo(this.editor, shape, bindings.start.toId, {
 				...bindings.start.props,
-				normalizedAnchor: startNormalizedAnchor,
+				normalizedAnchor: startNormalizedAnchor.toJson(),
 			})
 		}
 		if (bindings.end && endNormalizedAnchor) {
 			arrowBindingMakeItSo(this.editor, shape, bindings.end.toId, {
 				...bindings.end.props,
-				normalizedAnchor: endNormalizedAnchor,
+				normalizedAnchor: endNormalizedAnchor.toJson(),
 			})
 		}
 

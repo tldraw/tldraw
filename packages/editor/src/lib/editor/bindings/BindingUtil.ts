@@ -1,4 +1,10 @@
-import { RecordProps, TLPropsMigrations, TLShape, TLUnknownBinding } from '@tldraw/tlschema'
+import {
+	RecordProps,
+	TLPropsMigrations,
+	TLShape,
+	TLShapeId,
+	TLUnknownBinding,
+} from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
 /** @public */
@@ -30,14 +36,39 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 *
 	 * @public
 	 */
-	abstract getDefaultProps(): Binding['props']
+	abstract getDefaultProps(): Partial<Binding['props']>
 
-	onAfterShapeChange?(
+	// self lifecycle hooks
+	onBeforeCreate?(binding: Binding): Binding | void
+	onAfterCreate?(binding: Binding): void
+	onBeforeChange?(prev: Binding, next: Binding): Binding | void
+	onAfterChange?(prev: Binding, next: Binding): void
+	onBeforeDelete?(binding: Binding): void
+	onAfterDelete?(binding: Binding): void
+
+	// related shape lifecycle hooks
+	onAfterCreateFromShape?(binding: Binding, shape: TLShape): void
+	onAfterCreateToShape?(binding: Binding, shape: TLShape): void
+	onAfterDuplicateFromShape?(
 		binding: Binding,
-		direction: 'from' | 'to',
-		prev: TLShape,
-		next: TLShape
+		originalShape: TLShape,
+		newShape: TLShape,
+		duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>
+	): void
+	onAfterDuplicateToShape?(
+		binding: Binding,
+		originalShape: TLShape,
+		newShape: TLShape,
+		duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>
 	): void
 
-	onBeforeShapeDelete?(binding: Binding, direction: 'from' | 'to', shape: TLShape): void
+	onAfterChangeFromShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void
+	onAfterChangeToShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void
+	onAfterChangeToShapeAncestry?(binding: Binding): void
+	onAfterChangeFromShapeAncestry?(binding: Binding): void
+
+	onBeforeDeleteFromShape?(binding: Binding, shape: TLShape): void
+	onBeforeDeleteToShape?(binding: Binding, shape: TLShape): void
+	onAfterDeleteFromShape?(binding: Binding, shape: TLShape): void
+	onAfterDeleteToShape?(binding: Binding, shape: TLShape): void
 }

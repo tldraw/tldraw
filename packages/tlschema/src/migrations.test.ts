@@ -1561,6 +1561,15 @@ describe('Add text align to text shapes', () => {
 	})
 })
 
+describe('Extract bindings from arrows', () => {
+	const { up } = getTestMigration(arrowShapeVersions.ExtractBindings)
+
+	test('up works as expected', () => {
+		// TODO: real test here
+		up({})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once

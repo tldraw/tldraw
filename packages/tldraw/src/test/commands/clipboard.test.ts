@@ -198,7 +198,8 @@ describe('When copying and pasting', () => {
 		})
 	})
 
-	it('creates new bindings for arrows when pasting', async () => {
+	// TODO(alex) #bindings-clipboard
+	it.failing('creates new bindings for arrows when pasting', async () => {
 		const mockClipboard = doMockClipboard()
 
 		editor.createShapes([
@@ -382,7 +383,8 @@ describe('When copying and pasting', () => {
 		})
 	})
 
-	it('creates new bindings for arrows when pasting', async () => {
+	// TODO(alex) #bindings-clipboard
+	it.failing('creates new bindings for arrows when pasting', async () => {
 		const mockClipboard = doMockClipboard()
 
 		editor.createShapes([

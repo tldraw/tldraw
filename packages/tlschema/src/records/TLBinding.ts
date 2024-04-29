@@ -106,11 +106,6 @@ export function createBindingRecordType(bindings: Record<string, SchemaPropsInfo
 			)
 		),
 	}).withDefaultProperties(() => ({
-		x: 0,
-		y: 0,
-		rotation: 0,
-		isLocked: false,
-		opacity: 1,
 		meta: {},
 	}))
 }

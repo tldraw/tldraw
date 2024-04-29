@@ -84,16 +84,8 @@ describe('Making an arrow on the page', () => {
 			x: 0,
 			y: 0,
 			props: {
-				start: {
-					x: 0,
-					y: 0,
-					type: 'point',
-				},
-				end: {
-					x: 100,
-					y: 0,
-					type: 'point',
-				},
+				start: { x: 0, y: 0 },
+				end: { x: 100, y: 0 },
 			},
 		})
 		expect(editor.getShapeUtil(arrow1).getHandles!(arrow1)).toMatchObject([
@@ -219,13 +211,13 @@ describe('When shapes are overlapping', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(125, 50) // over box1 only
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box1 })
+		expect(bindings().end).toMatchObject({ toId: ids.box1 })
 		editor.pointerMove(175, 50) // box2 is higher
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box2 })
+		expect(bindings().end).toMatchObject({ toId: ids.box2 })
 		editor.pointerMove(225, 50) // box3 is higher
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
+		expect(bindings().end).toMatchObject({ toId: ids.box3 })
 		editor.pointerMove(275, 50) // box4 is higher
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box4 })
+		expect(bindings().end).toMatchObject({ toId: ids.box4 })
 	})
 
 	it('does not bind when shapes are locked', () => {
@@ -233,13 +225,13 @@ describe('When shapes are overlapping', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(125, 50) // over box1 only
-		expect(arrow().props.end).toMatchObject({ type: 'point' }) // box 1 is locked!
+		expect(bindings().end).toBeUndefined() // box 1 is locked!
 		editor.pointerMove(175, 50) // box2 is higher
-		expect(arrow().props.end).toMatchObject({ type: 'point' }) // box 2 is locked! box1 is locked!
+		expect(bindings().end).toBeUndefined() // box 2 is locked! box1 is locked!
 		editor.pointerMove(225, 50) // box3 is higher
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
+		expect(bindings().end).toMatchObject({ toId: ids.box3 })
 		editor.pointerMove(275, 50) // box4 is higher
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 }) // box 4 is locked!
+		expect(bindings().end).toMatchObject({ toId: ids.box3 }) // box 4 is locked!
 	})
 
 	it('binds to the highest shape or to the first filled shape', () => {
@@ -250,13 +242,13 @@ describe('When shapes are overlapping', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50) // over nothing
 		editor.pointerMove(125, 50) // over box1 only
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box1 })
+		expect(bindings().end).toMatchObject({ toId: ids.box1 })
 		editor.pointerMove(175, 50) // box2 is higher but box1 is filled?
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box1 })
+		expect(bindings().end).toMatchObject({ toId: ids.box1 })
 		editor.pointerMove(225, 50) // box3 is higher
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
+		expect(bindings().end).toMatchObject({ toId: ids.box3 })
 		editor.pointerMove(275, 50) // box4 is higher but box 3 is filled
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
+		expect(bindings().end).toMatchObject({ toId: ids.box3 })
 	})
 
 	it('binds to the smallest shape regardless of order', () => {
@@ -268,14 +260,14 @@ describe('When shapes are overlapping', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(175, 50) // box1 is smaller even though it's behind box2
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box1 })
+		expect(bindings().end).toMatchObject({ toId: ids.box1 })
 		editor.pointerMove(150, 90) // box3 is smaller and at the front
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
+		expect(bindings().end).toMatchObject({ toId: ids.box3 })
 		editor.sendToBack([ids.box3])
 		editor.pointerMove(149, 90) // box3 is smaller, even when at the back
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
+		expect(bindings().end).toMatchObject({ toId: ids.box3 })
 		editor.pointerMove(175, 50)
-		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box1 })
+		expect(bindings().end).toMatchObject({ toId: ids.box1 })
 	})
 })
 
@@ -306,21 +298,20 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		expect(arrow()).toBe(null)
 		editor.pointerMove(55, 50)
 		expect(editor.getCurrentPageShapes().length).toBe(2)
-		expect(arrow()).toMatchObject({
-			x: 50,
-			y: 50,
-			props: {
-				start: {
-					type: 'binding',
-					boundShapeId: ids.box1,
+		expect(arrow()).toMatchObject({ x: 50, y: 50 })
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box1,
+				props: {
 					normalizedAnchor: {
 						x: 0.5,
 						y: 0.5,
 					},
 				},
-				end: {
-					type: 'binding',
-					boundShapeId: ids.box1,
+			},
+			end: {
+				toId: ids.box1,
+				props: {
 					normalizedAnchor: {
 						x: 0.55,
 						y: 0.5,
@@ -337,13 +328,11 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		expect(arrow()).toBe(null)
 		editor.pointerMove(25, 20)
 		expect(editor.getCurrentPageShapes().length).toBe(2)
-		expect(arrow()).toMatchObject({
-			x: 20,
-			y: 20,
-			props: {
-				start: {
-					type: 'binding',
-					boundShapeId: ids.box1,
+		expect(arrow()).toMatchObject({ x: 20, y: 20 })
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box1,
+				props: {
 					normalizedAnchor: {
 						// bound to the center, imprecise!
 						x: 0.2,
@@ -351,9 +340,10 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					},
 					isPrecise: false,
 				},
-				end: {
-					type: 'binding',
-					boundShapeId: ids.box1,
+			},
+			end: {
+				toId: ids.box1,
+				props: {
 					normalizedAnchor: {
 						x: 0.25,
 						y: 0.2,
@@ -371,22 +361,21 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		jest.advanceTimersByTime(1000)
 		editor.pointerMove(25, 20)
 		expect(editor.getCurrentPageShapes().length).toBe(2)
-		expect(arrow()).toMatchObject({
-			x: 20,
-			y: 20,
-			props: {
-				start: {
-					type: 'binding',
-					boundShapeId: ids.box1,
+		expect(arrow()).toMatchObject({ x: 20, y: 20 })
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box1,
+				props: {
 					normalizedAnchor: {
 						// precise!
 						x: 0.2,
 						y: 0.2,
 					},
 				},
-				end: {
-					type: 'binding',
-					boundShapeId: ids.box1,
+			},
+			end: {
+				toId: ids.box1,
+				props: {
 					normalizedAnchor: {
 						x: 0.25,
 						y: 0.2,
@@ -413,21 +402,20 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		expect(arrow()).toBe(null)
 		editor.pointerMove(30, 30)
 		expect(editor.getCurrentPageShapes().length).toBe(3)
-		expect(arrow()).toMatchObject({
-			x: 25,
-			y: 25,
-			props: {
-				start: {
-					type: 'binding',
-					boundShapeId: ids.box2,
+		expect(arrow()).toMatchObject({ x: 25, y: 25 })
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box2,
+				props: {
 					normalizedAnchor: {
 						x: 0.5,
 						y: 0.5,
 					},
 				},
-				end: {
-					type: 'binding',
-					boundShapeId: ids.box2,
+			},
+			end: {
+				toId: ids.box2,
+				props: {
 					normalizedAnchor: {
 						x: 0.55,
 						y: 0.5,
@@ -447,21 +435,20 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		expect(arrow()).toBe(null)
 		editor.pointerMove(30, 30)
 		expect(editor.getCurrentPageShapes().length).toBe(3)
-		expect(arrow()).toMatchObject({
-			x: 25,
-			y: 25,
-			props: {
-				start: {
-					type: 'binding',
-					boundShapeId: ids.box2,
+		expect(arrow()).toMatchObject({ x: 25, y: 25 })
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box2,
+				props: {
 					normalizedAnchor: {
 						x: 0.5,
 						y: 0.5,
 					},
 				},
-				end: {
-					type: 'binding',
-					boundShapeId: ids.box2,
+			},
+			end: {
+				toId: ids.box2,
+				props: {
 					normalizedAnchor: {
 						x: 0.55,
 						y: 0.5,
@@ -482,14 +469,12 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		expect(arrow()).toBe(null)
 		editor.pointerMove(30, 30)
 		expect(editor.getCurrentPageShapes().length).toBe(3)
-		expect(arrow()).toMatchObject({
-			props: {
-				start: {
-					boundShapeId: ids.box1, // not box 2!
-				},
-				end: {
-					boundShapeId: ids.box1, // not box 2
-				},
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box1, // not box 2!
+			},
+			end: {
+				toId: ids.box1, // not box 2
 			},
 		})
 	})
@@ -515,22 +500,21 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		expect(arrow()).toBe(null)
 		editor.pointerMove(30, 30)
 		expect(editor.getCurrentPageShapes().length).toBe(3)
-		expect(arrow()).toMatchObject({
-			x: 25,
-			y: 25,
-			props: {
-				start: {
-					type: 'binding',
-					boundShapeId: ids.box1,
+		expect(arrow()).toMatchObject({ x: 25, y: 25 })
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box1,
+				props: {
 					normalizedAnchor: {
 						x: 0.25,
 						y: 0.25,
 					},
 					isPrecise: false,
 				},
-				end: {
-					type: 'binding',
-					boundShapeId: ids.box1,
+			},
+			end: {
+				toId: ids.box1,
+				props: {
 					normalizedAnchor: {
 						x: 0.3,
 						y: 0.3,
@@ -552,21 +536,20 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		expect(arrow()).toBe(null)
 		editor.pointerMove(30, 30)
 		expect(editor.getCurrentPageShapes().length).toBe(3)
-		expect(arrow()).toMatchObject({
-			x: 25,
-			y: 25,
-			props: {
-				start: {
-					type: 'binding',
-					boundShapeId: ids.box2,
+		expect(arrow()).toMatchObject({ x: 25, y: 25 })
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box2,
+				props: {
 					normalizedAnchor: {
 						x: 0.5,
 						y: 0.5,
 					},
 				},
-				end: {
-					type: 'binding',
-					boundShapeId: ids.box2,
+			},
+			end: {
+				toId: ids.box2,
+				props: {
 					normalizedAnchor: {
 						x: 0.55,
 						y: 0.5,
@@ -664,15 +647,13 @@ describe('Moving a bound arrow', () => {
 	}
 
 	function expectBound(handle: 'start' | 'end', boundShapeId: TLShapeId) {
-		expect(editor.getOnlySelectedShape()).toMatchObject({
-			props: { [handle]: { type: 'binding', boundShapeId } },
+		expect(bindings()[handle]).toMatchObject({
+			toId: boundShapeId,
 		})
 	}
 
 	function expectUnbound(handle: 'start' | 'end') {
-		expect(editor.getOnlySelectedShape()).toMatchObject({
-			props: { [handle]: { type: 'point' } },
-		})
+		expect(bindings()[handle]).toBeUndefined()
 	}
 
 	it('keeps the start of the arrow bound to the original shape as it moves', () => {

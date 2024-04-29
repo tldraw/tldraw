@@ -286,119 +286,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const invalidParents = new Set<TLShapeId>()
 
-		// const reparentArrow = (arrowId: TLArrowShape['id']) => {
-		// 	const arrow = this.getShape<TLArrowShape>(arrowId)
-		// 	if (!arrow) return
-		// 	const { start, end } = arrow.props
-		// 	const startShape = start.type === 'binding' ? this.getShape(start.boundShapeId) : undefined
-		// 	const endShape = end.type === 'binding' ? this.getShape(end.boundShapeId) : undefined
-
-		// 	const parentPageId = this.getAncestorPageId(arrow)
-		// 	if (!parentPageId) return
-
-		// 	let nextParentId: TLParentId
-		// 	if (startShape && endShape) {
-		// 		// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
-		// 		nextParentId = this.findCommonAncestor([startShape, endShape]) ?? parentPageId
-		// 	} else if (startShape || endShape) {
-		// 		const bindingParentId = (startShape || endShape)?.parentId
-		// 		// If the arrow and the shape that it is bound to have the same parent, then keep that parent
-		// 		if (bindingParentId && bindingParentId === arrow.parentId) {
-		// 			nextParentId = arrow.parentId
-		// 		} else {
-		// 			// if arrow has one binding, keep arrow on its own page
-		// 			nextParentId = parentPageId
-		// 		}
-		// 	} else {
-		// 		return
-		// 	}
-
-		// 	if (nextParentId && nextParentId !== arrow.parentId) {
-		// 		this.reparentShapes([arrowId], nextParentId)
-		// 	}
-
-		// 	const reparentedArrow = this.getShape<TLArrowShape>(arrowId)
-		// 	if (!reparentedArrow) throw Error('no reparented arrow')
-
-		// 	const startSibling = this.getShapeNearestSibling(reparentedArrow, startShape)
-		// 	const endSibling = this.getShapeNearestSibling(reparentedArrow, endShape)
-
-		// 	let highestSibling: TLShape | undefined
-
-		// 	if (startSibling && endSibling) {
-		// 		highestSibling = startSibling.index > endSibling.index ? startSibling : endSibling
-		// 	} else if (startSibling && !endSibling) {
-		// 		highestSibling = startSibling
-		// 	} else if (endSibling && !startSibling) {
-		// 		highestSibling = endSibling
-		// 	} else {
-		// 		return
-		// 	}
-
-		// 	let finalIndex: IndexKey
-
-		// 	const higherSiblings = this.getSortedChildIdsForParent(highestSibling.parentId)
-		// 		.map((id) => this.getShape(id)!)
-		// 		.filter((sibling) => sibling.index > highestSibling!.index)
-
-		// 	if (higherSiblings.length) {
-		// 		// there are siblings above the highest bound sibling, we need to
-		// 		// insert between them.
-
-		// 		// if the next sibling is also a bound arrow though, we can end up
-		// 		// all fighting for the same indexes. so lets find the next
-		// 		// non-arrow sibling...
-		// 		const nextHighestNonArrowSibling = higherSiblings.find(
-		// 			(sibling) => sibling.type !== 'arrow'
-		// 		)
-
-		// 		if (
-		// 			// ...then, if we're above the last shape we want to be above...
-		// 			reparentedArrow.index > highestSibling.index &&
-		// 			// ...but below the next non-arrow sibling...
-		// 			(!nextHighestNonArrowSibling || reparentedArrow.index < nextHighestNonArrowSibling.index)
-		// 		) {
-		// 			// ...then we're already in the right place. no need to update!
-		// 			return
-		// 		}
-
-		// 		// otherwise, we need to find the index between the highest sibling
-		// 		// we want to be above, and the next highest sibling we want to be
-		// 		// below:
-		// 		finalIndex = getIndexBetween(highestSibling.index, higherSiblings[0].index)
-		// 	} else {
-		// 		// if there are no siblings above us, we can just get the next index:
-		// 		finalIndex = getIndexAbove(highestSibling.index)
-		// 	}
-
-		// 	if (finalIndex !== reparentedArrow.index) {
-		// 		this.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }])
-		// 	}
-		// }
-
-		// const unbindArrowTerminal = (arrow: TLArrowShape, handleId: 'start' | 'end') => {
-		// 	const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
-		// 	this.store.put([{ ...arrow, props: { ...arrow.props, [handleId]: { type: 'point', x, y } } }])
-		// }
-
-		// const arrowDidUpdate = (arrow: TLArrowShape) => {
-		// 	// if the shape is an arrow and its bound shape is on another page
-		// 	// or was deleted, unbind it
-		// 	for (const handle of ['start', 'end'] as const) {
-		// 		const terminal = arrow.props[handle]
-		// 		if (terminal.type !== 'binding') continue
-		// 		const boundShape = this.getShape(terminal.boundShapeId)
-		// 		const isShapeInSamePageAsArrow =
-		// 			this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
-		// 		if (!boundShape || !isShapeInSamePageAsArrow) {
-		// 			unbindArrowTerminal(arrow, handle)
-		// 		}
-		// 	}
-
-		// 	// always check the arrow parents
-		// 	reparentArrow(arrow.id)
-		// }
-
 		const cleanupInstancePageState = (
 			prevPageState: TLInstancePageState,
 			shapesNoLongerInPage: Set<TLShapeId>
@@ -470,29 +357,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(
 			this.sideEffects.register({
 				shape: {
-					afterCreate: (record) => {
-						// if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
-						// 	arrowDidUpdate(record)
-						// }
+					afterCreate: (shape) => {
+						for (const binding of this.getAllBindingsFromShape(shape)) {
+							this.getBindingUtil(binding).onAfterCreateFromShape?.(binding, shape)
+						}
+						for (const binding of this.getAllBindingsToShape(shape)) {
+							this.getBindingUtil(binding).onAfterCreateToShape?.(binding, shape)
+						}
 					},
 					afterChange: (prev, next) => {
-						// if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
-						// 	arrowDidUpdate(next)
-						// }
+						for (const binding of this.getAllBindingsFromShape(next)) {
+							this.getBindingUtil(binding).onAfterChangeFromShape?.(binding, prev, next)
+						}
+						for (const binding of this.getAllBindingsToShape(next)) {
+							this.getBindingUtil(binding).onAfterChangeToShape?.(binding, prev, next)
+						}
 
-						// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
-						// if (prev.parentId !== next.parentId) {
-						// 	const reparentBoundArrows = (id: TLShapeId) => {
-						// 		const boundArrows = this._getArrowBindingsIndex().get()[id]
-						// 		if (boundArrows?.length) {
-						// 			for (const arrow of boundArrows) {
-						// 				reparentArrow(arrow.arrowId)
-						// 			}
-						// 		}
-						// 	}
-						// 	reparentBoundArrows(next.id)
-						// 	this.visitDescendants(next.id, reparentBoundArrows)
-						// }
+						// if the shape's parent changed and it has a binding, update the binding
+						if (prev.parentId !== next.parentId) {
+							const notifyBindingAncestryChange = (id: TLShapeId) => {
+								const shape = this.getShape(id)
+								if (!shape) return
+
+								for (const binding of this.getAllBindingsFromShape(shape)) {
+									this.getBindingUtil(binding).onAfterChangeFromShapeAncestry?.(binding)
+								}
+								for (const binding of this.getAllBindingsToShape(shape)) {
+									this.getBindingUtil(binding).onAfterChangeToShapeAncestry?.(binding)
+								}
+							}
+							notifyBindingAncestryChange(next.id)
+							this.visitDescendants(next.id, notifyBindingAncestryChange)
+						}
 
 						// if this shape moved to a new page, clean up any previous page's instance state
 						if (prev.parentId !== next.parentId && isPageId(next.parentId)) {
@@ -519,21 +415,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 							invalidParents.add(next.parentId)
 						}
 					},
-					beforeDelete: (record) => {
+					beforeDelete: (shape) => {
 						// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
-						if (record.parentId && isShapeId(record.parentId)) {
-							invalidParents.add(record.parentId)
+						if (shape.parentId && isShapeId(shape.parentId)) {
+							invalidParents.add(shape.parentId)
 						}
-						// clean up any arrows bound to this shape
-						// const bindings = this._getArrowBindingsIndex().get()[record.id]
-						// if (bindings?.length) {
-						// 	for (const { arrowId, handleId } of bindings) {
-						// 		const arrow = this.getShape<TLArrowShape>(arrowId)
-						// 		if (!arrow) continue
-						// 		unbindArrowTerminal(arrow, handleId)
-						// 	}
-						// }
-						const deletedIds = new Set([record.id])
+
+						for (const binding of this.getAllBindingsFromShape(shape)) {
+							this.getBindingUtil(binding).onBeforeDeleteFromShape?.(binding, shape)
+						}
+						for (const binding of this.getAllBindingsToShape(shape)) {
+							this.getBindingUtil(binding).onBeforeDeleteToShape?.(binding, shape)
+						}
+
+						const deletedIds = new Set([shape.id])
 						const updates = compact(
 							this.getPageStates().map((pageState) => {
 								return cleanupInstancePageState(pageState, deletedIds)
@@ -543,6 +438,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (updates.length) {
 							this.store.put(updates)
 						}
+					},
+					afterDelete: (shape) => {
+						for (const binding of this.getAllBindingsFromShape(shape)) {
+							this.getBindingUtil(binding).onAfterDeleteFromShape?.(binding, shape)
+						}
+						for (const binding of this.getAllBindingsToShape(shape)) {
+							this.getBindingUtil(binding).onAfterDeleteToShape?.(binding, shape)
+						}
+					},
+				},
+				binding: {
+					beforeCreate: (binding) => {
+						const next = this.getBindingUtil(binding).onBeforeCreate?.(binding)
+						if (next) return next
+						return binding
+					},
+					afterCreate: (binding) => {
+						this.getBindingUtil(binding).onAfterCreate?.(binding)
+					},
+					beforeChange: (prev, next) => {
+						const updated = this.getBindingUtil(next).onBeforeChange?.(prev, next)
+						if (updated) return updated
+						return next
+					},
+					afterChange: (prev, next) => {
+						this.getBindingUtil(next).onAfterChange?.(prev, next)
+					},
+					beforeDelete: (binding) => {
+						this.getBindingUtil(binding).onBeforeDelete?.(binding)
+					},
+					afterDelete: (binding) => {
+						this.getBindingUtil(binding).onAfterDelete?.(binding)
 					},
 				},
 				page: {
@@ -4518,7 +4445,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	private getShapeNearestSibling(
+	getShapeNearestSibling(
 		siblingShape: TLShape,
 		targetShape: TLShape | undefined
 	): TLShape | undefined {
@@ -4899,7 +4826,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.get(id) as TLBinding | undefined
 	}
 
-	// TODO: maintain these indexes more pro-actively
+	// TODO: maintain these indexes more pro-actively?
 	getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
@@ -4920,21 +4847,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 			type: { eq: type },
 		}) as Binding[]
 	}
-	getAllBindingsForShape(shape: TLShape | TLShapeId): TLBinding[] {
+	getAllBindingsFromShape(shape: TLShape | TLShapeId): TLBinding[] {
 		const id = typeof shape === 'string' ? shape : shape.id
-		const from = this.store.query.index('binding', 'fromId').get().get(id) ?? new Set()
-		const to = this.store.query.index('binding', 'toId').get().get(id)
-		const shapes = []
-		for (const id of from) {
-			shapes.push(this.store.get(id) as TLBinding)
-		}
-		if (to) {
-			for (const id of to) {
-				if (from.has(id)) continue
-				shapes.push(this.store.get(id) as TLBinding)
-			}
-		}
-		return shapes
+		return this.store.query.exec('binding', {
+			fromId: { eq: id },
+		})
+	}
+	getAllBindingsToShape(shape: TLShape | TLShapeId): TLBinding[] {
+		const id = typeof shape === 'string' ? shape : shape.id
+		return this.store.query.exec('binding', {
+			toId: { eq: id },
+		})
 	}
 
 	createBindings(partials: RequiredKeys<TLBindingPartial, 'type' | 'toId' | 'fromId'>[]) {
@@ -4951,6 +4874,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		})
 		this.store.put(bindings)
+		return this
 	}
 	createBinding(partial: RequiredKeys<TLBindingPartial, 'type' | 'fromId' | 'toId'>) {
 		return this.createBindings([partial])
@@ -4972,6 +4896,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.store.put(updated)
+
+		return this
 	}
 
 	updateBinding(partial: TLBindingPartial) {
@@ -4981,6 +4907,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deleteBindings(bindings: (TLBinding | TLBindingId)[]) {
 		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
 		this.store.remove(ids)
+		return this
 	}
 	deleteBinding(binding: TLBinding | TLBindingId) {
 		return this.deleteBindings([binding])
@@ -5117,118 +5044,117 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const idsMap = new Map<any, TLShapeId>(idsToCreate.map((id) => [id, createShapeId()]))
 
-		const shapesToCreate = compact(
-			idsToCreate.map((id) => {
-				const shape = this.getShape(id)
+		const shapesToCreate: TLShape[] = []
+		const duplicatesForBindings: { original: TLShape; duplicate: TLShape }[] = []
 
-				if (!shape) {
-					return null
-				}
+		for (const id of idsToCreate) {
+			const shape = this.getShape(id)
+			if (!shape) continue
 
-				const createId = idsMap.get(id)!
+			const createId = idsMap.get(id)!
 
-				let ox = 0
-				let oy = 0
+			let ox = 0
+			let oy = 0
 
-				if (offset && initialIds.has(id)) {
-					const parentTransform = this.getShapeParentTransform(shape)
-					const vec = new Vec(offset.x, offset.y).rot(-parentTransform!.rotation())
-					ox = vec.x
-					oy = vec.y
-				}
+			if (offset && initialIds.has(id)) {
+				const parentTransform = this.getShapeParentTransform(shape)
+				const vec = new Vec(offset.x, offset.y).rot(-parentTransform!.rotation())
+				ox = vec.x
+				oy = vec.y
+			}
 
-				const parentId = shape.parentId ?? this.getCurrentPageId()
-				const siblings = this.getSortedChildIdsForParent(parentId)
-				const currentIndex = siblings.indexOf(shape.id)
-				const siblingAboveId = siblings[currentIndex + 1]
-				const siblingAbove = siblingAboveId ? this.getShape(siblingAboveId) : null
+			const parentId = shape.parentId ?? this.getCurrentPageId()
+			const siblings = this.getSortedChildIdsForParent(parentId)
+			const currentIndex = siblings.indexOf(shape.id)
+			const siblingAboveId = siblings[currentIndex + 1]
+			const siblingAbove = siblingAboveId ? this.getShape(siblingAboveId) : null
 
-				const index = siblingAbove
-					? getIndexBetween(shape.index, siblingAbove.index)
-					: getIndexAbove(shape.index)
+			const index = siblingAbove
+				? getIndexBetween(shape.index, siblingAbove.index)
+				: getIndexAbove(shape.index)
 
-				let newShape: TLShape = structuredClone(shape)
+			let newShape: TLShape = structuredClone(shape)
 
-				// if (
-				// 	this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
-				// 	this.isShapeOfType<TLArrowShape>(newShape, 'arrow')
-				// ) {
-				// 	const info = this.getArrowInfo(shape)
-				// 	let newStartShapeId: TLShapeId | undefined = undefined
-				// 	let newEndShapeId: TLShapeId | undefined = undefined
+			// if (
+			// 	this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
+			// 	this.isShapeOfType<TLArrowShape>(newShape, 'arrow')
+			// ) {
+			// 	const info = this.getArrowInfo(shape)
+			// 	let newStartShapeId: TLShapeId | undefined = undefined
+			// 	let newEndShapeId: TLShapeId | undefined = undefined
 
-				// 	if (shape.props.start.type === 'binding') {
-				// 		newStartShapeId = idsMap.get(shape.props.start.boundShapeId)
+			// 	if (shape.props.start.type === 'binding') {
+			// 		newStartShapeId = idsMap.get(shape.props.start.boundShapeId)
 
-				// 		if (!newStartShapeId) {
-				// 			if (info?.isValid) {
-				// 				const { x, y } = info.start.point
-				// 				newShape.props.start = {
-				// 					type: 'point',
-				// 					x,
-				// 					y,
-				// 				}
-				// 			} else {
-				// 				const { start } = getArrowTerminalsInArrowSpace(this, shape)
-				// 				newShape.props.start = {
-				// 					type: 'point',
-				// 					x: start.x,
-				// 					y: start.y,
-				// 				}
-				// 			}
-				// 		}
-				// 	}
+			// 		if (!newStartShapeId) {
+			// 			if (info?.isValid) {
+			// 				const { x, y } = info.start.point
+			// 				newShape.props.start = {
+			// 					type: 'point',
+			// 					x,
+			// 					y,
+			// 				}
+			// 			} else {
+			// 				const { start } = getArrowTerminalsInArrowSpace(this, shape)
+			// 				newShape.props.start = {
+			// 					type: 'point',
+			// 					x: start.x,
+			// 					y: start.y,
+			// 				}
+			// 			}
+			// 		}
+			// 	}
 
-				// 	if (shape.props.end.type === 'binding') {
-				// 		newEndShapeId = idsMap.get(shape.props.end.boundShapeId)
-				// 		if (!newEndShapeId) {
-				// 			if (info?.isValid) {
-				// 				const { x, y } = info.end.point
-				// 				newShape.props.end = {
-				// 					type: 'point',
-				// 					x,
-				// 					y,
-				// 				}
-				// 			} else {
-				// 				const { end } = getArrowTerminalsInArrowSpace(this, shape)
-				// 				newShape.props.start = {
-				// 					type: 'point',
-				// 					x: end.x,
-				// 					y: end.y,
-				// 				}
-				// 			}
-				// 		}
-				// 	}
+			// 	if (shape.props.end.type === 'binding') {
+			// 		newEndShapeId = idsMap.get(shape.props.end.boundShapeId)
+			// 		if (!newEndShapeId) {
+			// 			if (info?.isValid) {
+			// 				const { x, y } = info.end.point
+			// 				newShape.props.end = {
+			// 					type: 'point',
+			// 					x,
+			// 					y,
+			// 				}
+			// 			} else {
+			// 				const { end } = getArrowTerminalsInArrowSpace(this, shape)
+			// 				newShape.props.start = {
+			// 					type: 'point',
+			// 					x: end.x,
+			// 					y: end.y,
+			// 				}
+			// 			}
+			// 		}
+			// 	}
 
-				// 	const infoAfter = getIsArrowStraight(newShape)
-				// 		? getStraightArrowInfo(this, newShape)
-				// 		: getCurvedArrowInfo(this, newShape)
+			// 	const infoAfter = getIsArrowStraight(newShape)
+			// 		? getStraightArrowInfo(this, newShape)
+			// 		: getCurvedArrowInfo(this, newShape)
 
-				// 	if (info?.isValid && infoAfter?.isValid && !getIsArrowStraight(shape)) {
-				// 		const mpA = Vec.Med(info.start.handle, info.end.handle)
-				// 		const distA = Vec.Dist(info.middle, mpA)
-				// 		const distB = Vec.Dist(infoAfter.middle, mpA)
-				// 		if (newShape.props.bend < 0) {
-				// 			newShape.props.bend += distB - distA
-				// 		} else {
-				// 			newShape.props.bend -= distB - distA
-				// 		}
-				// 	}
+			// 	if (info?.isValid && infoAfter?.isValid && !getIsArrowStraight(shape)) {
+			// 		const mpA = Vec.Med(info.start.handle, info.end.handle)
+			// 		const distA = Vec.Dist(info.middle, mpA)
+			// 		const distB = Vec.Dist(infoAfter.middle, mpA)
+			// 		if (newShape.props.bend < 0) {
+			// 			newShape.props.bend += distB - distA
+			// 		} else {
+			// 			newShape.props.bend -= distB - distA
+			// 		}
+			// 	}
 
-				// 	if (newShape.props.start.type === 'binding' && newStartShapeId) {
-				// 		newShape.props.start.boundShapeId = newStartShapeId
-				// 	}
+			// 	if (newShape.props.start.type === 'binding' && newStartShapeId) {
+			// 		newShape.props.start.boundShapeId = newStartShapeId
+			// 	}
 
-				// 	if (newShape.props.end.type === 'binding' && newEndShapeId) {
-				// 		newShape.props.end.boundShapeId = newEndShapeId
-				// 	}
-				// }
+			// 	if (newShape.props.end.type === 'binding' && newEndShapeId) {
+			// 		newShape.props.end.boundShapeId = newEndShapeId
+			// 	}
+			// }
 
-				newShape = { ...newShape, id: createId, x: shape.x + ox, y: shape.y + oy, index }
+			newShape = { ...newShape, id: createId, x: shape.x + ox, y: shape.y + oy, index }
 
-				return newShape
-			})
-		)
+			shapesToCreate.push(newShape)
+			duplicatesForBindings.push({ original: shape, duplicate: newShape })
+		}
 
 		shapesToCreate.forEach((shape) => {
 			if (isShapeId(shape.parentId)) {
@@ -5253,6 +5179,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const ids = newShapes.map((s) => s.id)
 
 			this.createShapes(newShapes)
+			for (const { original, duplicate } of duplicatesForBindings) {
+				for (const binding of this.getAllBindingsFromShape(original)) {
+					this.getBindingUtil(binding).onAfterDuplicateFromShape?.(
+						binding,
+						original,
+						duplicate,
+						idsMap
+					)
+				}
+				for (const binding of this.getAllBindingsToShape(original)) {
+					this.getBindingUtil(binding).onAfterDuplicateToShape?.(
+						binding,
+						original,
+						duplicate,
+						idsMap
+					)
+				}
+			}
 			this.setSelectedShapes(ids)
 
 			if (offset !== undefined) {

@@ -193,6 +193,7 @@ export {
 	arrowBindingMakeItSo,
 	getArrowBindings,
 	getArrowTerminalsInArrowSpace,
+	type TLArrowBindings,
 } from './lib/editor/shapes/shared/arrow/shared'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'

@@ -58,16 +58,8 @@ const arrow = (id: TLShapeId, start: VecLike, end: VecLike): TLShapePartial => (
 	id,
 	// index: bumpIndex(),
 	props: {
-		start: {
-			type: 'point',
-			x: start.x,
-			y: start.y,
-		},
-		end: {
-			type: 'point',
-			x: end.x,
-			y: end.y,
-		},
+		start: { x: start.x, y: start.y },
+		end: { x: end.x, y: end.y },
 	},
 })
 const randomRotation = () => Math.random() * Math.PI * 2
@@ -1563,8 +1555,9 @@ describe('binding bug', () => {
 		// go from A to group A
 		editor.pointerDown(5, 5).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
-		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxA })
-		expect(arrow.props.end).toMatchObject({ type: 'point' })
+		const bindings = getArrowBindings(editor, arrow)
+		expect(bindings.start).toMatchObject({ toId: ids.boxA })
+		expect(bindings.end).toBeUndefined()
 	})
 })
 
@@ -1609,9 +1602,10 @@ describe('bindings', () => {
 		// go from E to group C (not hovering over a leaf box)
 		editor.pointerDown(5, 25).pointerMove(35, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
-		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxE })
-		expect(arrow.props.end).toMatchObject({ type: 'point' })
+		expect(bindings.start).toMatchObject({ toId: ids.boxE })
+		expect(bindings.end).toBeUndefined()
 	})
 
 	it('can not be made from a group shape to some sibling shape', () => {
@@ -1620,20 +1614,22 @@ describe('bindings', () => {
 		editor.pointerDown(35, 5).pointerMove(5, 25).pointerUp()
 
 		const arrow = onlySelectedShape() as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
-		expect(arrow.props.start).toMatchObject({ type: 'point' })
-		expect(arrow.props.end).toMatchObject({ boundShapeId: ids.boxE })
+		expect(bindings.start).toBeUndefined
+		expect(bindings.end).toMatchObject({ toId: ids.boxE })
 	})
 	it('can be made from a shape within a group to some shape outside of the group', () => {
 		editor.setCurrentTool('arrow')
 		// go from A to E
 		editor.pointerDown(5, 5).pointerMove(5, 25).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
 		expect(arrow.parentId).toBe(editor.getCurrentPageId())
 
-		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxA })
-		expect(arrow.props.end).toMatchObject({ boundShapeId: ids.boxE })
+		expect(bindings.start).toMatchObject({ toId: ids.boxA })
+		expect(bindings.end).toMatchObject({ toId: ids.boxE })
 	})
 
 	it('can be made from a shape within a group to another shape within the group', () => {
@@ -1641,10 +1637,11 @@ describe('bindings', () => {
 		// go from A to B
 		editor.pointerDown(5, 5).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
 		expect(arrow.parentId).toBe(groupAId)
-		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxA })
-		expect(arrow.props.end).toMatchObject({ boundShapeId: ids.boxB })
+		expect(bindings.start).toMatchObject({ toId: ids.boxA })
+		expect(bindings.end).toMatchObject({ toId: ids.boxB })
 	})
 
 	it('can be made from a shape outside of a group to a shape within the group', () => {
@@ -1652,10 +1649,11 @@ describe('bindings', () => {
 		// go from E to B
 		editor.pointerDown(5, 25).pointerMove(27, 7).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
 		expect(arrow.parentId).toBe(editor.getCurrentPageId())
-		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxE })
-		expect(arrow.props.end).toMatchObject({ boundShapeId: ids.boxB })
+		expect(bindings.start).toMatchObject({ toId: ids.boxE })
+		expect(bindings.end).toMatchObject({ toId: ids.boxB })
 	})
 })
 

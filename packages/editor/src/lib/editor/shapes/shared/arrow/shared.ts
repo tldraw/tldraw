@@ -138,7 +138,7 @@ export function getArrowTerminalsInArrowSpace(
 
 /**
  * Create or update the arrow binding for a particular arrow terminal. Will clear up if needed.
- * TODO(alex): find a better name for this
+ * TODO(alex): #bindings find a better name for this
  * @internal
  */
 export function arrowBindingMakeItSo(

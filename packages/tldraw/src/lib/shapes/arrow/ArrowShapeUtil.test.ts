@@ -7,7 +7,6 @@ import {
 	createShapeId,
 	getArrowBindings,
 } from '@tldraw/editor'
-import { describe } from 'node:test'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor

@@ -42,11 +42,12 @@ export class Pointing extends StateNode {
 
 			if (!this.shape) throw Error(`expected shape`)
 
+			// const initialEndHandle = this.editor.getShapeHandles(this.shape)!.find((h) => h.id === 'end')!
 			this.updateArrowShapeEndHandle()
 
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
-				handle: this.editor.getShapeHandles(this.shape)!.find((h) => h.id === 'end')!,
+				handle: { id: 'end', type: 'vertex', index: 'a3', x: 0, y: 0, canBind: true },
 				isCreating: true,
 				onInteractionEnd: 'arrow',
 			})
@@ -126,20 +127,14 @@ export class Pointing extends StateNode {
 		const handles = this.editor.getShapeHandles(shape)
 		if (!handles) throw Error(`expected handles for arrow`)
 
-		const shapeWithOutEndOffset = {
-			...shape,
-			props: { ...shape.props, end: { ...shape.props.end, x: 0, y: 0 } },
-		}
-
-		// end update
+		// start update
 		{
 			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 			const initial = this.shape
-			const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
-			const endHandle = handles.find((h) => h.id === 'end')!
-			const change = util.onHandleDrag?.(shapeWithOutEndOffset, {
-				handle: { ...endHandle, x: point.x, y: point.y },
-				isPrecise: false, // sure about that?
+			const startHandle = handles.find((h) => h.id === 'start')!
+			const change = util.onHandleDrag?.(shape, {
+				handle: { ...startHandle, x: 0, y: 0 },
+				isPrecise: this.didTimeout, // sure about that?
 				initial: initial,
 			})
 
@@ -148,14 +143,15 @@ export class Pointing extends StateNode {
 			}
 		}
 
-		// start update
+		// end update
 		{
 			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 			const initial = this.shape
-			const startHandle = handles.find((h) => h.id === 'start')!
-			const change = util.onHandleDrag?.(shapeWithOutEndOffset, {
-				handle: { ...startHandle, x: 0, y: 0 },
-				isPrecise: this.didTimeout, // sure about that?
+			const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
+			const endHandle = handles.find((h) => h.id === 'end')!
+			const change = util.onHandleDrag?.(this.editor.getShape(shape)!, {
+				handle: { ...endHandle, x: point.x, y: point.y },
+				isPrecise: false, // sure about that?
 				initial: initial,
 			})
 
@@ -172,6 +168,7 @@ export class Pointing extends StateNode {
 	private didTimeout = false
 	private startPreciseTimeout() {
 		this.preciseTimeout = window.setTimeout(() => {
+			console.error('precise timeout fired')
 			if (!this.getIsActive()) return
 			this.didTimeout = true
 		}, 320)
