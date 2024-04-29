@@ -126,7 +126,7 @@ export const EMBED_DEFINITIONS = [
 		doesResize: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
-			// e.g. extract "steveruizok.mathFact" from https://www.val.town/v/steveruizok.mathFact
+			// e.g. extract "steveruizok/mathFact" from https://www.val.town/v/steveruizok/mathFact
 			const matches = urlObj && urlObj.pathname.match(/\/v\/(.+)\/?/)
 			if (matches) {
 				return `https://www.val.town/embed/${matches[1]}`
@@ -135,7 +135,7 @@ export const EMBED_DEFINITIONS = [
 		},
 		fromEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
-			// e.g. extract "steveruizok.mathFact" from https://www.val.town/v/steveruizok.mathFact
+			// e.g. extract "steveruizok/mathFact" from https://www.val.town/v/steveruizok/mathFact
 			const matches = urlObj && urlObj.pathname.match(/\/embed\/(.+)\/?/)
 			if (matches) {
 				return `https://www.val.town/v/${matches[1]}`
