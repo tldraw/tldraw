@@ -121,12 +121,18 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		() => editor.getEditingShapeId() !== null,
 		[editor]
 	)
+	const isSelectingAnything = useValue(
+		'isSelectingAnything',
+		() => !!editor.getSelectedShapeIds().length,
+		[editor]
+	)
 
 	return (
 		<div
 			ref={rCanvas}
 			draggable={false}
 			data-iseditinganything={isEditingAnything}
+			data-isselectinganything={isSelectingAnything}
 			className={classNames('tl-canvas', className)}
 			data-testid="canvas"
 			{...events}
