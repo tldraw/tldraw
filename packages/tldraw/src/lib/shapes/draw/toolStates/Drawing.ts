@@ -33,6 +33,7 @@ export class Drawing extends StateNode {
 
 	util = this.editor.getShapeUtil(this.shapeType)
 
+	isPen = false
 	isPenOrStylus = false
 
 	segmentMode = 'free' as 'free' | 'straight' | 'starting_straight' | 'starting_free'
@@ -64,7 +65,7 @@ export class Drawing extends StateNode {
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		const { inputs } = this.editor
 
-		if (this.isPenOrStylus !== inputs.isPen) {
+		if (this.isPen && !inputs.isPen) {
 			// The user made a palm gesture before starting a pen gesture;
 			// ideally we'd start the new shape here but we could also just bail
 			// as the next interaction will work correctly
@@ -82,7 +83,7 @@ export class Drawing extends StateNode {
 		}
 
 		if (this.canDraw) {
-			if (inputs.isPen) {
+			if (this.isPenOrStylus) {
 				// Don't update the shape if we haven't moved far enough from the last time we recorded a point
 				if (
 					Vec.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
@@ -178,6 +179,7 @@ export class Drawing extends StateNode {
 		// pen, like an iPad pen, which needs to trigger "pen mode" in order to avoid
 		// accidental palm touches. We don't have to worry about that with styluses though.
 		const z = this.info.point.z === undefined ? 0.5 : this.info.point.z
+		this.isPen = isPen
 		this.isPenOrStylus = isPen || (z > 0 && z < 0.5) || (z > 0.5 && z < 1)
 
 		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
