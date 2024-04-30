@@ -135,6 +135,12 @@ export const ShareMenu = React.memo(function ShareMenu() {
 					})
 				}
 			})
+		} else if (!shareState.readonlyQrCodeDataUrl) {
+			createQRCodeImageDataString(shareState.readonlyUrl).then((dataUrl) => {
+				if (!cancelled) {
+					setShareState((s) => ({ ...s, readonlyQrCodeDataUrl: dataUrl }))
+				}
+			})
 		}
 
 		const interval = setInterval(() => {
