@@ -65,16 +65,8 @@ export const TextLabel = React.memo(function TextLabel({
 		if (!isEditing) setInitialText(text)
 	}, [isEditing, text])
 
-	const finalTextArray = TextHelpers.normalizeTextForDom(text).split('\n')
-	const hasText = finalTextArray.length > 0
-
-	// create final text by putting each line into separate tags with dir="auto" to fix bidi-text direction
-	const finalText = finalTextArray.map((lineOfText, index) => (
-		<span dir="auto" key={index}>
-			{lineOfText}
-			<br />
-		</span>
-	))
+	const finalText = TextHelpers.normalizeTextForDom(text)
+	const hasText = finalText.length > 0
 
 	const legacyAlign = isLegacyAlign(align)
 
@@ -113,7 +105,11 @@ export const TextLabel = React.memo(function TextLabel({
 				}}
 			>
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
-					{finalText}
+					{finalText.split('\n').map((lineOfText, index) => (
+						<div key={index} dir="auto">
+							{lineOfText}
+						</div>
+					))}
 				</div>
 				{(isEditingAnything || isSelected) && (
 					<TextArea
