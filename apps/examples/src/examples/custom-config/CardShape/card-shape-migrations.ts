@@ -1,5 +1,4 @@
-import { createShapePropsMigrationIds } from '@tldraw/tlschema/src/records/TLShape'
-import { createShapePropsMigrationSequence } from 'tldraw'
+import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from 'tldraw'
 
 const versions = createShapePropsMigrationIds(
 	// this must match the shape type in the shape definition

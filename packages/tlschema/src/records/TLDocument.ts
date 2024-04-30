@@ -19,7 +19,7 @@ export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>>
 	meta: JsonObject
 }
 
-/** @internal */
+/** @public */
 export const documentValidator: T.Validator<TLDocument> = T.model(
 	'document',
 	T.object({
@@ -31,13 +31,13 @@ export const documentValidator: T.Validator<TLDocument> = T.model(
 	})
 )
 
-/** @internal */
+/** @public */
 export const documentVersions = createMigrationIds('com.tldraw.document', {
 	AddName: 1,
 	AddMeta: 2,
 } as const)
 
-/** @internal */
+/** @public */
 export const documentMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.document',
 	recordType: 'document',

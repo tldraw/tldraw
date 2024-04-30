@@ -43,7 +43,7 @@ const Versions = createShapePropsMigrationIds('draw', {
 
 export { Versions as drawShapeVersions }
 
-/** @internal */
+/** @public */
 export const drawShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{

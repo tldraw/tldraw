@@ -7456,6 +7456,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/dotcom-shared@workspace:*, @tldraw/dotcom-shared@workspace:packages/dotcom-shared":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
+  dependencies:
+    tldraw: "workspace:*"
+  peerDependencies:
+    react: ^18
+    react-dom: ^18
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/dotcom-worker@workspace:apps/dotcom-worker":
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-worker@workspace:apps/dotcom-worker"
@@ -7463,6 +7474,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20230821.0"
     "@supabase/auth-helpers-remix": "npm:^0.2.2"
     "@supabase/supabase-js": "npm:^2.33.2"
+    "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/tlsync": "workspace:*"
@@ -11914,6 +11926,7 @@ __metadata:
     "@sentry/integrations": "npm:^7.34.0"
     "@sentry/react": "npm:^7.77.0"
     "@tldraw/assets": "workspace:*"
+    "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/tlsync": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
