@@ -46,12 +46,16 @@ export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 			const elm2 = ref2.current
 			if (!elm2) return
 			if (popped) {
-				// elm.style.transform = `rotateX(-45deg) translateY(-25px) translateZ(65px)`
+				// man
+				// elm2.style.transform = `rotateX(0deg) translateY(0px) translateZ(0px)`
+				// note
 				elm.style.transform = `rotateX(0deg) translateY(0px) translateZ(0px)`
-				elm2.style.transform = `rotateX(0deg) translateY(0px) translateZ(0px)`
 			} else {
-				elm.style.transform = `rotateX(-50deg) translateY(5px) translateZ(0px)`
-				elm2.style.transform = `scaleY(.8)`
+				// man
+				// elm.style.transform = `rotateX(-50deg) translateY(5px) translateZ(0px)`
+				// elm2.style.transform = `scaleY(.8)`
+				// note
+				elm.style.transform = `rotateX(20deg)`
 			}
 		}, [popped])
 
@@ -81,13 +85,15 @@ export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 						left: 0,
 						width: '100%',
 						height: '100%',
-						// backgroundColor: 'rgba(0,0,0,.5)',
 						transition: `all .5s`,
-						backgroundImage: `url(/shadow-man.png)`,
 						backgroundSize: 'contain',
 						backgroundRepeat: 'no-repeat',
 						backgroundPosition: 'center',
-						transformOrigin: 'bottom center',
+						// man
+						// transformOrigin: 'bottom center',
+						// backgroundImage: `url(/shadow-man.png)`,
+						// note
+						backgroundColor: 'rgba(0,0,0,.5)',
 					}}
 				/>
 				<div
@@ -99,7 +105,6 @@ export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 						width: '100%',
 						height: '100%',
 						transition: `all .5s`,
-						// background: `gold`,
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'center',
@@ -108,13 +113,17 @@ export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 						fontFamily: 'tldraw_draw',
 						color: '#333',
 						fontSize: 24,
-						// border: '1px solid goldenrod',
-						backgroundImage: `url(/man.png)`,
 						backgroundSize: 'contain',
 						backgroundRepeat: 'no-repeat',
 						backgroundPosition: 'center',
-						transformOrigin: 'bottom center',
-						transform: `rotateX(20deg) translateY(5px) translateZ(40px)`,
+						transformOrigin: 'top center',
+						// man
+						// backgroundImage: `url(/man.png)`,
+						// transformOrigin: 'bottom center',
+						// transform: `rotateX(20deg) translateY(5px) translateZ(40px)`,
+						// note
+						background: `gold`,
+						border: '1px solid goldenrod',
 					}}
 				>
 					{/* {shape.id.slice(-1).toUpperCase()} */}
