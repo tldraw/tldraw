@@ -171,6 +171,7 @@ export function getAssetUrls(opts) {
 			'hi-in': formatAssetUrl('./translations/hi-in.json', opts),
 			hr: formatAssetUrl('./translations/hr.json', opts),
 			hu: formatAssetUrl('./translations/hu.json', opts),
+			id: formatAssetUrl('./translations/id.json', opts),
 			it: formatAssetUrl('./translations/it.json', opts),
 			ja: formatAssetUrl('./translations/ja.json', opts),
 			'ko-kr': formatAssetUrl('./translations/ko-kr.json', opts),
