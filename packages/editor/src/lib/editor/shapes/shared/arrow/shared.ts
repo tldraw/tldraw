@@ -85,12 +85,13 @@ function getArrowTerminalInArrowSpace(
 	}
 }
 
+/** @public */
 export interface TLArrowBindings {
 	start: TLArrowBinding | undefined
 	end: TLArrowBinding | undefined
 }
 
-/** @internal */
+/** @public */
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings {
 	const bindings = editor.getBindingsFromShape<TLArrowBinding>(shape, 'arrow')
 	return {

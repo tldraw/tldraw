@@ -95,6 +95,7 @@ import { TLOnDoubleClickHandler } from '@tldraw/editor';
 import { TLOnEditEndHandler } from '@tldraw/editor';
 import { TLOnHandleDragHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
+import { TLOnResizeStartHandler } from '@tldraw/editor';
 import { TLOnTranslateHandler } from '@tldraw/editor';
 import { TLOnTranslateStartHandler } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
@@ -200,6 +201,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     onHandleDrag: TLOnHandleDragHandler<TLArrowShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLArrowShape>;
+    // (undocumented)
+    onResizeStart?: TLOnResizeStartHandler<TLArrowShape>;
     // (undocumented)
     onTranslate?: TLOnTranslateHandler<TLArrowShape>;
     // (undocumented)

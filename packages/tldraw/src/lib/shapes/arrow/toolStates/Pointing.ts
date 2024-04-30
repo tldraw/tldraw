@@ -168,7 +168,6 @@ export class Pointing extends StateNode {
 	private didTimeout = false
 	private startPreciseTimeout() {
 		this.preciseTimeout = window.setTimeout(() => {
-			console.error('precise timeout fired')
 			if (!this.getIsActive()) return
 			this.didTimeout = true
 		}, 320)

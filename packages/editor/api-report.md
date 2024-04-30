@@ -186,13 +186,45 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     constructor(editor: Editor);
     // (undocumented)
     editor: Editor;
-    abstract getDefaultProps(): Binding['props'];
+    abstract getDefaultProps(): Partial<Binding['props']>;
     // (undocumented)
     static migrations?: TLPropsMigrations;
     // (undocumented)
-    onAfterShapeChange?(binding: Binding, direction: 'from' | 'to', prev: TLShape, next: TLShape): void;
+    onAfterChange?(prev: Binding, next: Binding): void;
     // (undocumented)
-    onBeforeShapeDelete?(binding: Binding, direction: 'from' | 'to', shape: TLShape): void;
+    onAfterChangeFromShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void;
+    // (undocumented)
+    onAfterChangeFromShapeAncestry?(binding: Binding): void;
+    // (undocumented)
+    onAfterChangeToShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void;
+    // (undocumented)
+    onAfterChangeToShapeAncestry?(binding: Binding): void;
+    // (undocumented)
+    onAfterCreate?(binding: Binding): void;
+    // (undocumented)
+    onAfterCreateFromShape?(binding: Binding, shape: TLShape): void;
+    // (undocumented)
+    onAfterCreateToShape?(binding: Binding, shape: TLShape): void;
+    // (undocumented)
+    onAfterDelete?(binding: Binding): void;
+    // (undocumented)
+    onAfterDeleteFromShape?(binding: Binding, shape: TLShape): void;
+    // (undocumented)
+    onAfterDeleteToShape?(binding: Binding, shape: TLShape): void;
+    // (undocumented)
+    onAfterDuplicateFromShape?(binding: Binding, originalShape: TLShape, newShape: TLShape, duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>): void;
+    // (undocumented)
+    onAfterDuplicateToShape?(binding: Binding, originalShape: TLShape, newShape: TLShape, duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>): void;
+    // (undocumented)
+    onBeforeChange?(prev: Binding, next: Binding): Binding | void;
+    // (undocumented)
+    onBeforeCreate?(binding: Binding): Binding | void;
+    // (undocumented)
+    onBeforeDelete?(binding: Binding): void;
+    // (undocumented)
+    onBeforeDeleteFromShape?(binding: Binding, shape: TLShape): void;
+    // (undocumented)
+    onBeforeDeleteToShape?(binding: Binding, shape: TLShape): void;
     // (undocumented)
     static props?: RecordProps<TLUnknownBinding>;
     static type: string;
@@ -652,9 +684,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     crash(error: unknown): this;
     createAssets(assets: TLAsset[]): this;
     // (undocumented)
-    createBinding(partial: RequiredKeys<TLBindingPartial, 'fromId' | 'toId' | 'type'>): void;
+    createBinding(partial: RequiredKeys<TLBindingPartial, 'fromId' | 'toId' | 'type'>): this;
     // (undocumented)
-    createBindings(partials: RequiredKeys<TLBindingPartial, 'fromId' | 'toId' | 'type'>[]): void;
+    createBindings(partials: RequiredKeys<TLBindingPartial, 'fromId' | 'toId' | 'type'>[]): this;
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
         extras: {
@@ -673,9 +705,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     // (undocumented)
-    deleteBinding(binding: TLBinding | TLBindingId): void;
+    deleteBinding(binding: TLBinding | TLBindingId): this;
     // (undocumented)
-    deleteBindings(bindings: (TLBinding | TLBindingId)[]): void;
+    deleteBindings(bindings: (TLBinding | TLBindingId)[]): this;
     deleteOpenMenu(id: string): this;
     deletePage(page: TLPage | TLPageId): this;
     deleteShape(id: TLShapeId): this;
@@ -712,7 +744,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
-    getAllBindingsForShape(shape: TLShape | TLShapeId): TLBinding[];
+    getAllBindingsFromShape(shape: TLShape | TLShapeId): TLBinding[];
+    // (undocumented)
+    getAllBindingsToShape(shape: TLShape | TLShapeId): TLBinding[];
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
     getArrowsBoundTo(shapeId: TLShapeId): TLArrowShape[];
@@ -815,6 +849,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
+    // @internal
+    getShapeNearestSibling(siblingShape: TLShape, targetShape: TLShape | undefined): TLShape | undefined;
     getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
     getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
@@ -992,9 +1028,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
     // (undocumented)
-    updateBinding(partial: TLBindingPartial): void;
+    updateBinding(partial: TLBindingPartial): this;
     // (undocumented)
-    updateBindings(partials: (null | TLBindingPartial | undefined)[]): void;
+    updateBindings(partials: (null | TLBindingPartial | undefined)[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions): this;
     // (undocumented)
     _updateCurrentPageState: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions) => void;
@@ -1140,7 +1176,7 @@ export abstract class Geometry2d {
 // @public
 export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
 
-// @internal (undocumented)
+// @public (undocumented)
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
 
 // @public (undocumented)
@@ -2063,6 +2099,14 @@ export interface TLArcInfo {
     size: number;
     // (undocumented)
     sweepFlag: number;
+}
+
+// @public (undocumented)
+export interface TLArrowBindings {
+    // (undocumented)
+    end: TLArrowBinding | undefined;
+    // (undocumented)
+    start: TLArrowBinding | undefined;
 }
 
 // @public (undocumented)
