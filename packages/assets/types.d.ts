@@ -32,6 +32,7 @@ export type AssetUrls = {
 		broken: string
 		'check-circle': string
 		check: string
+		'checkbox-empty': string
 		'chevron-down': string
 		'chevron-left': string
 		'chevron-right': string

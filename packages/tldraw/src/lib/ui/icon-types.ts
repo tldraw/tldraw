@@ -24,6 +24,7 @@ export type TLUiIconType =
 	| 'broken'
 	| 'check-circle'
 	| 'check'
+	| 'checkbox-empty'
 	| 'chevron-down'
 	| 'chevron-left'
 	| 'chevron-right'
@@ -160,6 +161,7 @@ export const iconTypes = [
 	'broken',
 	'check-circle',
 	'check',
+	'checkbox-empty',
 	'chevron-down',
 	'chevron-left',
 	'chevron-right',
