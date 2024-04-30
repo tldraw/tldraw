@@ -99,6 +99,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 		const isInteractive = isEditing || isHoveringWhileEditingSameShape
 
+		// Prevent nested embedding of tldraw
+		const isIframe =
+			typeof window !== 'undefined' && (window !== window.top || window.self !== window.parent)
+		if (isIframe && embedInfo?.definition.type === 'tldraw') return null
+
 		if (embedInfo?.definition.type === 'github_gist') {
 			const idFromGistUrl = embedInfo.url.split('/').pop()
 			if (!idFromGistUrl) throw Error('No gist id!')

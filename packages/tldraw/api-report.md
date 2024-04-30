@@ -539,7 +539,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canResize: (shape: TLEmbedShape) => boolean;
     // (undocumented)
-    component(shape: TLEmbedShape): JSX_2.Element;
+    component(shape: TLEmbedShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
