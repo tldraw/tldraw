@@ -1,3 +1,10 @@
+## 2.0.32
+
+- Performance improvements.
+- Improves resizing of text.
+- Fixes a few issues with the minimap.
+- Fixes a few issues with editing text.
+
 ## 2.0.31
 
 - Improved minimap.
