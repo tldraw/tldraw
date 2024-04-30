@@ -56,7 +56,9 @@ export function useUrlState(onChangeUrl: (params: UrlStateParams) => void) {
 				url.searchParams.get(PARAMS.page) ?? 'page:' + url.searchParams.get(PARAMS.p)
 			if (newPageId) {
 				if (editor.store.has(newPageId as TLPageId)) {
-					editor.setCurrentPage(newPageId as TLPageId)
+					editor.history.ignore(() => {
+						editor.setCurrentPage(newPageId as TLPageId)
+					})
 				}
 			}
 		}
