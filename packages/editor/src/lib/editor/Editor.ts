@@ -1450,15 +1450,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setSelectedShapes(shapes: TLShapeId[] | TLShape[]): this {
-		return this.batch(() => {
-			const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
-			const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
-			const prevSet = new Set(prevSelectedShapeIds)
+		return this.batch(
+			() => {
+				const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
+				const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
+				const prevSet = new Set(prevSelectedShapeIds)
 
-			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
+				if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
 
-			this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
-		})
+				this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
+			},
+			{ history: 'record-preserveRedoStack' }
+		)
 	}
 
 	/**
@@ -2030,7 +2033,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.batch(() => {
 			const camera = { ...currentCamera, ...point }
-			this.store.put([camera]) // include id and meta here
+			this.history.ignore(() => {
+				this.store.put([camera]) // include id and meta here
+			})
 
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
