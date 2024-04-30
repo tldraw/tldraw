@@ -380,11 +380,8 @@ function useOnMount(onMount?: TLOnMountHandler) {
 	const editor = useEditor()
 
 	const onMountEvent = useEvent((editor: Editor) => {
-		let teardown: (() => void) | void = undefined
-		editor.history.ignore(() => {
-			teardown = onMount?.(editor)
-			editor.emit('mount')
-		})
+		const teardown = onMount?.(editor)
+		editor.emit('mount')
 		window.tldrawReady = true
 		return teardown
 	})

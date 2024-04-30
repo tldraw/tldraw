@@ -134,7 +134,7 @@ export function usePrint() {
 			}
 
 			const afterPrintHandler = () => {
-				editor.once('tick', () => {
+				editor.once('change-history', () => {
 					clearElements(el, style)
 				})
 			}

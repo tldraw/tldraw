@@ -22,7 +22,7 @@ interface DropdownPickerProps<T extends string> {
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
 	type: TLUiButtonProps['type']
-	onValueChange: (style: StyleProp<T>, value: T) => void
+	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
 function _DropdownPicker<T extends string>({
@@ -68,7 +68,7 @@ function _DropdownPicker<T extends string>({
 									title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
 									onClick={() => {
 										editor.mark('select style dropdown item')
-										onValueChange(style, item.value)
+										onValueChange(style, item.value, false)
 									}}
 								>
 									<TldrawUiButtonIcon icon={item.icon} />

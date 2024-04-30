@@ -1,3 +1,4 @@
+import isEqual from 'lodash.isequal'
 import { nanoid } from 'nanoid'
 import {
 	Editor,
@@ -7,9 +8,7 @@ import {
 	computed,
 	createPresenceStateDerivation,
 	createTLStore,
-	isRecordsDiffEmpty,
 } from 'tldraw'
-import { prettyPrintDiff } from '../../../tldraw/src/test/testutils/pretty'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { schema } from '../lib/schema'
 import { FuzzEditor, Op } from './FuzzEditor'
@@ -75,8 +74,8 @@ class FuzzTestInstance extends RandomSource {
 	) {
 		super(seed)
 
+		this.store = createTLStore({ schema })
 		this.id = nanoid()
-		this.store = createTLStore({ schema, id: this.id })
 		this.socketPair = new TestSocketPair(this.id, server)
 		this.client = new TLSyncClient<TLRecord>({
 			store: this.store,
@@ -103,13 +102,6 @@ class FuzzTestInstance extends RandomSource {
 		disposables.push(() => {
 			this.client.close()
 		})
-	}
-}
-
-function assertPeerStoreIsUsable(peer: FuzzTestInstance) {
-	const diffToEnsureUsable = peer.store.extractingChanges(() => peer.store.ensureStoreIsUsable())
-	if (!isRecordsDiffEmpty(diffToEnsureUsable)) {
-		throw new Error(`store of ${peer.id} was not usable\n${prettyPrintDiff(diffToEnsureUsable)}`)
 	}
 }
 
@@ -181,7 +173,6 @@ function runTest(seed: number) {
 
 				allOk('before applyOp')
 				peer.editor.applyOp(op)
-				assertPeerStoreIsUsable(peer)
 				allOk('after applyOp')
 
 				server.flushDebouncingMessages()
@@ -219,7 +210,6 @@ function runTest(seed: number) {
 				if (!peer.socketPair.isConnected && peer.randomInt(2) === 0) {
 					peer.socketPair.connect()
 					allOk('final connect')
-					assertPeerStoreIsUsable(peer)
 				}
 			}
 		}
@@ -233,29 +223,33 @@ function runTest(seed: number) {
 					allOk('final flushServer')
 					peer.socketPair.flushClientSentEvents()
 					allOk('final flushClient')
-					assertPeerStoreIsUsable(peer)
 				}
 			}
 		}
 
-		// peers should all be usable without changes:
-		for (const peer of peers) {
-			assertPeerStoreIsUsable(peer)
-		}
-
-		// all stores should be the same
-		for (let i = 1; i < peers.length; i++) {
-			const expected = peers[i - 1]
-			const actual = peers[i]
-			try {
-				expect(actual.store.serialize('document')).toEqual(expected.store.serialize('document'))
-			} catch (e: any) {
-				throw new Error(`received = ${actual.id}, expected = ${expected.id}\n${e.message}`)
+		const equalityResults = []
+		for (let i = 0; i < peers.length; i++) {
+			const row = []
+			for (let j = 0; j < peers.length; j++) {
+				row.push(
+					isEqual(
+						peers[i].editor?.store.serialize('document'),
+						peers[j].editor?.store.serialize('document')
+					)
+				)
 			}
+			equalityResults.push(row)
 		}
 
-		totalNumPages += peers[0].store.query.ids('page').get().size
-		totalNumShapes += peers[0].store.query.ids('shape').get().size
+		const [first, ...rest] = peers.map((peer) => peer.editor?.store.serialize('document'))
+
+		// writeFileSync(`./test-results.${seed}.json`, JSON.stringify(ops, null, '\t'))
+
+		expect(first).toEqual(rest[0])
+		// all snapshots should be the same
+		expect(rest.every((other) => isEqual(other, first))).toBe(true)
+		totalNumPages += Object.values(first!).filter((v) => v.typeName === 'page').length
+		totalNumShapes += Object.values(first!).filter((v) => v.typeName === 'shape').length
 	} catch (e) {
 		console.error('seed', seed)
 		console.error(
@@ -275,25 +269,21 @@ const NUM_TESTS = 50
 const NUM_OPS_PER_TEST = 100
 const MAX_PEERS = 4
 
-test('seed 8360926944486245 - undo/redo page integrity regression', () => {
-	runTest(8360926944486245)
-})
-test('seed 3467175630814895 - undo/redo page integrity regression', () => {
-	runTest(3467175630814895)
-})
-test('seed 6820615056006575 - undo/redo page integrity regression', () => {
-	runTest(6820615056006575)
-})
-test('seed 5279266392988747 - undo/redo page integrity regression', () => {
-	runTest(5279266392988747)
-})
+// test.only('seed 8343632005032947', () => {
+// 	runTest(8343632005032947)
+// })
 
-for (let i = 0; i < NUM_TESTS; i++) {
-	const seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
-	test(`seed ${seed}`, () => {
-		runTest(seed)
-	})
-}
+test('fuzzzzz', () => {
+	for (let i = 0; i < NUM_TESTS; i++) {
+		const seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
+		try {
+			runTest(seed)
+		} catch (e) {
+			console.error('seed', seed)
+			throw e
+		}
+	}
+})
 
 test('totalNumPages', () => {
 	expect(totalNumPages).not.toBe(0)

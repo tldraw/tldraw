@@ -329,11 +329,4 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			),
 		}
 	}
-
-	/** @internal */
-	getType(typeName: string) {
-		const type = getOwnProperty(this.types, typeName)
-		assert(type, 'record type does not exists')
-		return type
-	}
 }

@@ -5,7 +5,10 @@ export class Pointing extends StateNode {
 
 	override onEnter = () => {
 		this.editor.stopCameraAnimation()
-		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'grabbing', rotation: 0 } },
+			{ ephemeral: true }
+		)
 	}
 
 	override onLongPress: TLEventHandlers['onLongPress'] = () => {

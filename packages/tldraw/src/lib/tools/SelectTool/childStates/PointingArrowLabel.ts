@@ -62,7 +62,10 @@ export class PointingArrowLabel extends StateNode {
 	override onExit = () => {
 		this.parent.setCurrentToolIdMask(undefined)
 
-		this.editor.setCursor({ type: 'default', rotation: 0 })
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 	}
 
 	private _labelDragOffset = new Vec(0, 0)
@@ -102,11 +105,10 @@ export class PointingArrowLabel extends StateNode {
 		}
 
 		this.didDrag = true
-		this.editor.updateShape<TLArrowShape>({
-			id: shape.id,
-			type: shape.type,
-			props: { labelPosition: nextLabelPosition },
-		})
+		this.editor.updateShape<TLArrowShape>(
+			{ id: shape.id, type: shape.type, props: { labelPosition: nextLabelPosition } },
+			{ squashing: true }
+		)
 	}
 
 	override onPointerUp = () => {

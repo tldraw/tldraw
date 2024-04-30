@@ -24,7 +24,7 @@ interface DoubleDropdownPickerProps<T extends string> {
 	styleB: StyleProp<T>
 	valueA: SharedStyle<T>
 	valueB: SharedStyle<T>
-	onValueChange: (style: StyleProp<T>, value: T) => void
+	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
 function _DoubleDropdownPicker<T extends string>({
@@ -88,7 +88,7 @@ function _DoubleDropdownPicker<T extends string>({
 										<TldrawUiButton
 											type="icon"
 											key={item.value}
-											onClick={() => onValueChange(styleA, item.value)}
+											onClick={() => onValueChange(styleA, item.value, false)}
 											title={`${msg(labelA)} — ${msg(`${uiTypeA}-style.${item.value}`)}`}
 										>
 											<TldrawUiButtonIcon icon={item.icon} invertIcon />
@@ -124,7 +124,7 @@ function _DoubleDropdownPicker<T extends string>({
 											type="icon"
 											title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
 											data-testid={`style.${uiTypeB}.${item.value}`}
-											onClick={() => onValueChange(styleB, item.value)}
+											onClick={() => onValueChange(styleB, item.value, false)}
 										>
 											<TldrawUiButtonIcon icon={item.icon} />
 										</TldrawUiButton>

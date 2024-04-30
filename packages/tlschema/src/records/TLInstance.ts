@@ -27,6 +27,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	currentPageId: TLPageId
 	opacityForNextShape: TLOpacityType
 	stylesForNextShape: Record<string, unknown>
+	// ephemeral
 	followingUserId: string | null
 	highlightedUserIds: string[]
 	brush: BoxModel | null
@@ -128,38 +129,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 	return createRecordType<TLInstance>('instance', {
 		validator: instanceTypeValidator,
 		scope: 'session',
-		ephemeralKeys: {
-			currentPageId: false,
-			meta: false,
-
-			followingUserId: true,
-			opacityForNextShape: true,
-			stylesForNextShape: true,
-			brush: true,
-			cursor: true,
-			scribbles: true,
-			isFocusMode: true,
-			isDebugMode: true,
-			isToolLocked: true,
-			exportBackground: true,
-			screenBounds: true,
-			insets: true,
-			zoomBrush: true,
-			isPenMode: true,
-			isGridMode: true,
-			chatMessage: true,
-			isChatting: true,
-			highlightedUserIds: true,
-			canMoveCamera: true,
-			isFocused: true,
-			devicePixelRatio: true,
-			isCoarsePointer: true,
-			isHoveringCanvas: true,
-			openMenus: true,
-			isChangingStyle: true,
-			isReadonly: true,
-			duplicateProps: true,
-		},
 	}).withDefaultProperties(
 		(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
 			followingUserId: null,

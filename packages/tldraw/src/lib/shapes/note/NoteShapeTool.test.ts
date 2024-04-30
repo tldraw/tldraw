@@ -25,6 +25,7 @@ describe(NoteShapeTool, () => {
 
 		editor.cancel() // leave edit mode
 
+		editor.undo() // undoes the selection change
 		editor.undo()
 
 		expect(editor.getCurrentPageShapes().length).toBe(0)

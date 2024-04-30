@@ -284,9 +284,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.lastServerClock = 0
 		}
 		// kill all presence state
-		this.store.mergeRemoteChanges(() => {
-			this.store.remove(Object.keys(this.store.serialize('presence')) as any)
-		})
+		this.store.remove(Object.keys(this.store.serialize('presence')) as any)
 		this.lastPushedPresenceState = null
 		this.isConnectedToRoom = false
 		this.pendingPushRequests = []
@@ -335,7 +333,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				const wipeAll = event.hydrationType === 'wipe_all'
 				if (!wipeAll) {
 					// if we're only wiping presence data, undo the speculative changes first
-					this.store.applyDiff(reverseRecordsDiff(stashedChanges), { runCallbacks: false })
+					this.store.applyDiff(reverseRecordsDiff(stashedChanges), false)
 				}
 
 				// now wipe all presence data and, if needed, all document data
@@ -350,22 +348,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 				// then apply the upstream changes
 				this.applyNetworkDiff({ ...wipeDiff, ...event.diff }, true)
-
-				this.isConnectedToRoom = true
-
-				// now re-apply the speculative changes creating a new push request with the
-				// appropriate diff
-				const speculativeChanges = this.store.filterChangesByScope(
-					this.store.extractingChanges(() => {
-						this.store.applyDiff(stashedChanges)
-					}),
-					'document'
-				)
-				if (speculativeChanges) this.push(speculativeChanges)
 			})
 
-			// this.isConnectedToRoom = true
-			// this.store.applyDiff(stashedChanges, false)
+			// now re-apply the speculative changes as a 'user' to trigger
+			// creating a new push request with the appropriate diff
+			this.isConnectedToRoom = true
+			this.store.applyDiff(stashedChanges)
 
 			this.store.ensureStoreIsUsable()
 			// TODO: reinstate isNew
@@ -549,7 +537,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			}
 		}
 		if (hasChanges) {
-			this.store.applyDiff(changes, { runCallbacks })
+			this.store.applyDiff(changes, runCallbacks)
 		}
 	}
 
@@ -565,7 +553,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		try {
 			this.store.mergeRemoteChanges(() => {
 				// first undo speculative changes
-				this.store.applyDiff(reverseRecordsDiff(this.speculativeChanges), { runCallbacks: false })
+				this.store.applyDiff(reverseRecordsDiff(this.speculativeChanges), false)
 
 				// then apply network diffs on top of known-to-be-synced data
 				for (const diff of diffs) {

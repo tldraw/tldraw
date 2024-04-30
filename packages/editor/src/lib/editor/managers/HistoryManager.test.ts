@@ -1,75 +1,92 @@
-import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
-import { TLHistoryBatchOptions } from '../types/history-types'
+import { TLCommandHistoryOptions } from '../types/history-types'
 import { HistoryManager } from './HistoryManager'
 import { stack } from './Stack'
 
-interface TestRecord extends BaseRecord<'test', TestRecordId> {
-	value: number | string
-}
-type TestRecordId = RecordId<TestRecord>
-const testSchema = StoreSchema.create<TestRecord, null>({
-	test: createRecordType<TestRecord>('test', { scope: 'document' }),
-})
-
-const ids = {
-	count: testSchema.types.test.createId('count'),
-	name: testSchema.types.test.createId('name'),
-	age: testSchema.types.test.createId('age'),
-	a: testSchema.types.test.createId('a'),
-	b: testSchema.types.test.createId('b'),
-}
-
 function createCounterHistoryManager() {
-	const store = new Store({ schema: testSchema, props: null })
-	store.put([
-		testSchema.types.test.create({ id: ids.count, value: 0 }),
-		testSchema.types.test.create({ id: ids.name, value: 'David' }),
-		testSchema.types.test.create({ id: ids.age, value: 35 }),
-	])
+	const manager = new HistoryManager({ emit: () => void null }, () => {
+		return
+	})
+	const state = {
+		count: 0,
+		name: 'David',
+		age: 35,
+	}
+	const increment = manager.createCommand(
+		'increment',
+		(n = 1, squashing = false) => ({
+			data: { n },
+			squashing,
+		}),
+		{
+			do: ({ n }) => {
+				state.count += n
+			},
+			undo: ({ n }) => {
+				state.count -= n
+			},
+			squash: ({ n: n1 }, { n: n2 }) => ({ n: n1 + n2 }),
+		}
+	)
 
-	const manager = new HistoryManager<TestRecord>({ store })
+	const decrement = manager.createCommand(
+		'decrement',
+		(n = 1, squashing = false) => ({
+			data: { n },
+			squashing,
+		}),
+		{
+			do: ({ n }) => {
+				state.count -= n
+			},
+			undo: ({ n }) => {
+				state.count += n
+			},
+			squash: ({ n: n1 }, { n: n2 }) => ({ n: n1 + n2 }),
+		}
+	)
 
-	function getCount() {
-		return store.get(ids.count)!.value as number
-	}
-	function getName() {
-		return store.get(ids.name)!.value as string
-	}
-	function getAge() {
-		return store.get(ids.age)!.value as number
-	}
-	function _setCount(n: number) {
-		store.update(ids.count, (c) => ({ ...c, value: n }))
-	}
-	function _setName(name: string) {
-		store.update(ids.name, (c) => ({ ...c, value: name }))
-	}
-	function _setAge(age: number) {
-		store.update(ids.age, (c) => ({ ...c, value: age }))
-	}
+	const setName = manager.createCommand(
+		'setName',
+		(name = 'David') => ({
+			data: { name, prev: state.name },
+			ephemeral: true,
+		}),
+		{
+			do: ({ name }) => {
+				state.name = name
+			},
+			undo: ({ prev }) => {
+				state.name = prev
+			},
+		}
+	)
 
-	const increment = (n = 1) => {
-		_setCount(getCount() + n)
-	}
+	const setAge = manager.createCommand(
+		'setAge',
+		(age = 35) => ({
+			data: { age, prev: state.age },
+			preservesRedoStack: true,
+		}),
+		{
+			do: ({ age }) => {
+				state.age = age
+			},
+			undo: ({ prev }) => {
+				state.age = prev
+			},
+		}
+	)
 
-	const decrement = (n = 1) => {
-		_setCount(getCount() - n)
-	}
-
-	const setName = (name = 'David') => {
-		manager.ignore(() => _setName(name))
-	}
-
-	const setAge = (age = 35) => {
-		manager.batch(() => _setAge(age), { history: 'record-preserveRedoStack' })
-	}
-
-	const incrementTwice = () => {
-		manager.batch(() => {
+	const incrementTwice = manager.createCommand('incrementTwice', () => ({ data: {} }), {
+		do: () => {
 			increment()
 			increment()
-		})
-	}
+		},
+		undo: () => {
+			decrement()
+			decrement()
+		},
+	})
 
 	return {
 		increment,
@@ -78,9 +95,9 @@ function createCounterHistoryManager() {
 		setName,
 		setAge,
 		history: manager,
-		getCount,
-		getName,
-		getAge,
+		getCount: () => state.count,
+		getName: () => state.name,
+		getAge: () => state.age,
 	}
 }
 
@@ -99,9 +116,9 @@ describe(HistoryManager, () => {
 		editor.decrement()
 		expect(editor.getCount()).toBe(3)
 
-		const undos = [...editor.history.stacks.get().undos]
+		const undos = [...editor.history._undos.get()]
 		const parsedUndos = JSON.parse(JSON.stringify(undos))
-		editor.history.stacks.update(({ redos }) => ({ undos: stack(parsedUndos), redos }))
+		editor.history._undos.set(stack(parsedUndos))
 
 		editor.history.undo()
 
@@ -183,16 +200,17 @@ describe(HistoryManager, () => {
 		editor.history.mark('stop at 1')
 		expect(editor.getCount()).toBe(1)
 
-		editor.increment(1)
-		editor.increment(1)
-		editor.increment(1)
-		editor.increment(1)
+		editor.increment(1, true)
+		editor.increment(1, true)
+		editor.increment(1, true)
+		editor.increment(1, true)
 
 		expect(editor.getCount()).toBe(5)
 
 		expect(editor.history.getNumUndos()).toBe(3)
 	})
-	it('allows ignore commands that do not affect the stack', () => {
+
+	it('allows ephemeral commands that do not affect the stack', () => {
 		editor.increment()
 		editor.history.mark('stop at 1')
 		editor.increment()
@@ -245,7 +263,7 @@ describe(HistoryManager, () => {
 		editor.history.mark('2')
 		editor.incrementTwice()
 		editor.incrementTwice()
-		expect(editor.history.getNumUndos()).toBe(4)
+		expect(editor.history.getNumUndos()).toBe(5)
 		expect(editor.getCount()).toBe(6)
 		editor.history.bail()
 		expect(editor.getCount()).toBe(2)
@@ -271,35 +289,58 @@ describe(HistoryManager, () => {
 })
 
 describe('history options', () => {
-	let manager: HistoryManager<TestRecord>
+	let manager: HistoryManager<any>
+	let state: { a: number; b: number }
 
-	let getState: () => { a: number; b: number }
-	let setA: (n: number, historyOptions?: TLHistoryBatchOptions) => any
-	let setB: (n: number, historyOptions?: TLHistoryBatchOptions) => any
+	let setA: (n: number, historyOptions?: TLCommandHistoryOptions) => any
+	let setB: (n: number, historyOptions?: TLCommandHistoryOptions) => any
 
 	beforeEach(() => {
-		const store = new Store({ schema: testSchema, props: null })
-		store.put([
-			testSchema.types.test.create({ id: ids.a, value: 0 }),
-			testSchema.types.test.create({ id: ids.b, value: 0 }),
-		])
+		manager = new HistoryManager({ emit: () => void null }, () => {
+			return
+		})
 
-		manager = new HistoryManager<TestRecord>({ store })
-
-		getState = () => {
-			return { a: store.get(ids.a)!.value as number, b: store.get(ids.b)!.value as number }
+		state = {
+			a: 0,
+			b: 0,
 		}
 
-		setA = (n: number, historyOptions?: TLHistoryBatchOptions) => {
-			manager.batch(() => store.update(ids.a, (s) => ({ ...s, value: n })), historyOptions)
-		}
+		setA = manager.createCommand(
+			'setA',
+			(n: number, historyOptions?: TLCommandHistoryOptions) => ({
+				data: { next: n, prev: state.a },
+				...historyOptions,
+			}),
+			{
+				do: ({ next }) => {
+					state = { ...state, a: next }
+				},
+				undo: ({ prev }) => {
+					state = { ...state, a: prev }
+				},
+				squash: ({ prev }, { next }) => ({ prev, next }),
+			}
+		)
 
-		setB = (n: number, historyOptions?: TLHistoryBatchOptions) => {
-			manager.batch(() => store.update(ids.b, (s) => ({ ...s, value: n })), historyOptions)
-		}
+		setB = manager.createCommand(
+			'setB',
+			(n: number, historyOptions?: TLCommandHistoryOptions) => ({
+				data: { next: n, prev: state.b },
+				...historyOptions,
+			}),
+			{
+				do: ({ next }) => {
+					state = { ...state, b: next }
+				},
+				undo: ({ prev }) => {
+					state = { ...state, b: prev }
+				},
+				squash: ({ prev }, { next }) => ({ prev, next }),
+			}
+		)
 	})
 
-	it('undos, redoes, separate marks', () => {
+	it('sets, undoes, redoes', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
@@ -307,18 +348,18 @@ describe('history options', () => {
 		manager.mark()
 		setB(2)
 
-		expect(getState()).toMatchObject({ a: 1, b: 2 })
+		expect(state).toMatchObject({ a: 1, b: 2 })
 
 		manager.undo()
 
-		expect(getState()).toMatchObject({ a: 1, b: 1 })
+		expect(state).toMatchObject({ a: 1, b: 1 })
 
 		manager.redo()
 
-		expect(getState()).toMatchObject({ a: 1, b: 2 })
+		expect(state).toMatchObject({ a: 1, b: 2 })
 	})
 
-	it('undos, redos, squashing', () => {
+	it('sets, undoes, redoes', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
@@ -328,107 +369,71 @@ describe('history options', () => {
 		setB(3)
 		setB(4)
 
-		expect(getState()).toMatchObject({ a: 1, b: 4 })
+		expect(state).toMatchObject({ a: 1, b: 4 })
 
 		manager.undo()
 
-		expect(getState()).toMatchObject({ a: 1, b: 1 })
+		expect(state).toMatchObject({ a: 1, b: 1 })
 
 		manager.redo()
 
-		expect(getState()).toMatchObject({ a: 1, b: 4 })
+		expect(state).toMatchObject({ a: 1, b: 4 })
 	})
 
-	it('undos, redos, ignore', () => {
+	it('sets ephemeral, undoes, redos', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
 		setB(1) // B 0->1
 		manager.mark()
-		setB(2, { history: 'ignore' }) // B 0->2, but ignore
+		setB(2, { ephemeral: true }) // B 0->2, but ephemeral
 
-		expect(getState()).toMatchObject({ a: 1, b: 2 })
+		expect(state).toMatchObject({ a: 1, b: 2 })
 
 		manager.undo() // undoes B 2->0
 
-		expect(getState()).toMatchObject({ a: 1, b: 0 })
+		expect(state).toMatchObject({ a: 1, b: 0 })
 
 		manager.redo() // redoes B 0->1, but not B 1-> 2
 
-		expect(getState()).toMatchObject({ a: 1, b: 1 }) // no change, b 1->2 was ignore
+		expect(state).toMatchObject({ a: 1, b: 1 }) // no change, b 1->2 was ephemeral
 	})
 
-	it('squashing, undos, redos', () => {
+	it('sets squashing, undoes, redos', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
 		setB(1)
-		setB(2) // squashes with the previous command
-		setB(3) // squashes with the previous command
+		setB(2, { squashing: true }) // squashes with the previous command
+		setB(3, { squashing: true }) // squashes with the previous command
 
-		expect(getState()).toMatchObject({ a: 1, b: 3 })
+		expect(state).toMatchObject({ a: 1, b: 3 })
 
 		manager.undo()
 
-		expect(getState()).toMatchObject({ a: 1, b: 0 })
+		expect(state).toMatchObject({ a: 1, b: 0 })
 
 		manager.redo()
 
-		expect(getState()).toMatchObject({ a: 1, b: 3 })
+		expect(state).toMatchObject({ a: 1, b: 3 })
 	})
 
-	it('squashing, undos, redos, ignore', () => {
+	it('sets squashing and ephemeral, undoes, redos', () => {
 		manager.mark()
 		setA(1)
 		manager.mark()
 		setB(1)
-		setB(2) // squashes with the previous command
-		setB(3, { history: 'ignore' }) // squashes with the previous command
+		setB(2, { squashing: true }) // squashes with the previous command
+		setB(3, { squashing: true, ephemeral: true }) // squashes with the previous command
 
-		expect(getState()).toMatchObject({ a: 1, b: 3 })
+		expect(state).toMatchObject({ a: 1, b: 3 })
 
 		manager.undo()
 
-		expect(getState()).toMatchObject({ a: 1, b: 0 })
+		expect(state).toMatchObject({ a: 1, b: 0 })
 
 		manager.redo()
 
-		expect(getState()).toMatchObject({ a: 1, b: 2 }) // B2->3 was ignore
-	})
-
-	it('nested ignore', () => {
-		manager.mark()
-		manager.batch(
-			() => {
-				setA(1)
-				// even though we set this to record, it will still be ignored
-				manager.batch(() => setB(1), { history: 'record' })
-				setA(2)
-			},
-			{ history: 'ignore' }
-		)
-		expect(getState()).toMatchObject({ a: 2, b: 1 })
-
-		// changes were ignored:
-		manager.undo()
-		expect(getState()).toMatchObject({ a: 2, b: 1 })
-
-		manager.mark()
-		manager.batch(
-			() => {
-				setA(3)
-				manager.batch(() => setB(2), { history: 'ignore' })
-			},
-			{ history: 'record-preserveRedoStack' }
-		)
-		expect(getState()).toMatchObject({ a: 3, b: 2 })
-
-		// changes to A were recorded, but changes to B were ignore:
-		manager.undo()
-		expect(getState()).toMatchObject({ a: 2, b: 2 })
-
-		// We can still redo because we preserved the redo stack:
-		manager.redo()
-		expect(getState()).toMatchObject({ a: 3, b: 2 })
+		expect(state).toMatchObject({ a: 1, b: 2 }) // B2->3 was ephemeral
 	})
 })

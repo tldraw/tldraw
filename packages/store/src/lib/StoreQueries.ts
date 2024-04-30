@@ -12,9 +12,8 @@ import isEqual from 'lodash.isequal'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'
-import { RecordsDiff } from './RecordsDiff'
 import { diffSets } from './setUtils'
-import { CollectionDiff } from './Store'
+import { CollectionDiff, RecordsDiff } from './Store'
 
 export type RSIndexDiff<
 	R extends UnknownRecord,

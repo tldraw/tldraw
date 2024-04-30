@@ -505,6 +505,7 @@ export function moveShapesToPoint({
 					y: newLocalPoint.y,
 				}
 			})
-		)
+		),
+		{ squashing: true }
 	)
 }

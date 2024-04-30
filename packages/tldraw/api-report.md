@@ -1814,7 +1814,7 @@ export interface TLUiButtonPickerProps<T extends string> {
     // (undocumented)
     items: StyleValuesForUi<T>;
     // (undocumented)
-    onValueChange: (style: StyleProp<T>, value: T) => void;
+    onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void;
     // (undocumented)
     style: StyleProp<T>;
     // (undocumented)
@@ -2206,8 +2206,6 @@ export interface TLUiInputProps {
     // (undocumented)
     onComplete?: (value: string) => void;
     // (undocumented)
-    onFocus?: () => void;
-    // (undocumented)
     onValueChange?: (value: string) => void;
     // (undocumented)
     placeholder?: string;
@@ -2335,7 +2333,7 @@ export interface TLUiSliderProps {
     // (undocumented)
     label: string;
     // (undocumented)
-    onValueChange: (value: number) => void;
+    onValueChange: (value: number, squashing: boolean) => void;
     // (undocumented)
     steps: number;
     // (undocumented)

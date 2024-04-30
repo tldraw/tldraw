@@ -17,6 +17,7 @@ export {
 	type Atom,
 	type Signal,
 } from '@tldraw/state'
+export type { TLCommandHistoryOptions } from './lib/editor/types/history-types'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -130,7 +131,6 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
-export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export type {
 	SideEffectManager,
 	TLAfterChangeHandler,
@@ -235,6 +235,12 @@ export {
 	type TLExternalContent,
 	type TLExternalContentSource,
 } from './lib/editor/types/external-content'
+export {
+	type TLCommand,
+	type TLCommandHandler,
+	type TLHistoryEntry,
+	type TLHistoryMark,
+} from './lib/editor/types/history-types'
 export { type RequiredKeys, type TLSvgOptions } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { ContainerProvider, useContainer } from './lib/hooks/useContainer'

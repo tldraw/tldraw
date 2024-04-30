@@ -77,7 +77,9 @@ const ContextToolbarComponent = track(() => {
 									width: 32,
 									background: isActive ? 'var(--color-muted-2)' : 'transparent',
 								}}
-								onClick={() => editor.setStyleForSelectedShapes(DefaultSizeStyle, value)}
+								onClick={() =>
+									editor.setStyleForSelectedShapes(DefaultSizeStyle, value, { squashing: false })
+								}
 							>
 								<TldrawUiIcon icon={icon} />
 							</div>

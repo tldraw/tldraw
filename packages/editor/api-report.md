@@ -29,12 +29,10 @@ import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
-import { RecordsDiff } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
 import { Signal } from '@tldraw/state';
-import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
@@ -377,7 +375,7 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, ...rest }: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, ...rest }: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -604,7 +602,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     bail(): this;
     bailToMark(id: string): this;
-    batch(fn: () => void, opts?: TLHistoryBatchOptions): this;
+    batch(fn: () => void): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
     cancel(): this;
@@ -813,7 +811,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getZoomLevel(): number;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
-    readonly history: HistoryManager<TLRecord>;
+    readonly history: HistoryManager<this>;
     inputs: {
         buttons: Set<number>;
         keys: Set<string>;
@@ -835,7 +833,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPointing: boolean;
     };
     interrupt(): this;
-    isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
@@ -849,9 +846,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
-    mark(markId?: string): this;
+    mark(markId?: string, onUndo?: boolean, onRedo?: boolean): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
-    nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
+    nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     pageToScreen(point: VecLike): {
         x: number;
@@ -880,7 +877,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent['type']>(type: T, handler: ((info: T extends TLExternalContent['type'] ? TLExternalContent & {
         type: T;
     } : TLExternalContent) => void) | null): this;
-    renamePage(page: TLPage | TLPageId, name: string): this;
+    renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
     renderingBoundsMargin: number;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, animation?: TLAnimationOptions): this;
@@ -900,7 +897,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
     setCamera(point: VecLike, animation?: TLAnimationOptions): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
-    setCurrentPage(page: TLPage | TLPageId): this;
+    setCurrentPage(page: TLPage | TLPageId, historyOptions?: TLCommandHistoryOptions): this;
     setCurrentTool(id: string, info?: {}): this;
     setCursor: (cursor: Partial<TLCursor>) => this;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
@@ -908,11 +905,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setHoveredShape(shape: null | TLShape | TLShapeId): this;
-    setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
-    setOpacityForSelectedShapes(opacity: number): this;
-    setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
-    setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
-    setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
+    setOpacityForNextShapes(opacity: number, historyOptions?: TLCommandHistoryOptions): this;
+    setOpacityForSelectedShapes(opacity: number, historyOptions?: TLCommandHistoryOptions): this;
+    setSelectedShapes(shapes: TLShape[] | TLShapeId[], historyOptions?: TLCommandHistoryOptions): this;
+    setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLCommandHistoryOptions): this;
+    setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>, historyOptions?: TLCommandHistoryOptions): this;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
@@ -941,16 +938,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
-    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions): this;
-    // (undocumented)
-    _updateCurrentPageState: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions) => void;
+    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: TLCommandHistoryOptions): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: TLHistoryBatchOptions): this;
-    updatePage(partial: RequiredKeys<TLPage, 'id'>): this;
+    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: TLCommandHistoryOptions): this;
+    updatePage(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: TLCommandHistoryOptions): this;
     // @internal
     updateRenderingBounds(): this;
-    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined): this;
-    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
+    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, historyOptions?: TLCommandHistoryOptions): this;
+    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], historyOptions?: TLCommandHistoryOptions): this;
     updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
@@ -1213,55 +1208,6 @@ export function hardResetEditor(): void;
 
 // @internal (undocumented)
 export const HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
-
-// @public (undocumented)
-export class HistoryManager<R extends UnknownRecord> {
-    constructor(opts: {
-        annotateError?: (error: unknown) => void;
-        store: Store<R>;
-    });
-    // (undocumented)
-    bail: () => this;
-    // (undocumented)
-    bailToMark: (id: string) => this;
-    // (undocumented)
-    batch: (fn: () => void, opts?: TLHistoryBatchOptions) => this;
-    // (undocumented)
-    clear(): void;
-    // @internal (undocumented)
-    debug(): {
-        pendingDiff: {
-            diff: RecordsDiff<R>;
-            isEmpty: boolean;
-        };
-        redos: (NonNullable<TLHistoryEntry<R>> | undefined)[];
-        state: HistoryRecorderState;
-        undos: (NonNullable<TLHistoryEntry<R>> | undefined)[];
-    };
-    // (undocumented)
-    readonly dispose: () => void;
-    // (undocumented)
-    getNumRedos(): number;
-    // (undocumented)
-    getNumUndos(): number;
-    // (undocumented)
-    ignore(fn: () => void): this;
-    // @internal (undocumented)
-    _isInBatch: boolean;
-    // (undocumented)
-    mark: (id?: string) => string;
-    // (undocumented)
-    onBatchComplete: () => void;
-    // (undocumented)
-    redo: () => this | undefined;
-    // @internal (undocumented)
-    stacks: Atom<    {
-    redos: Stack<TLHistoryEntry<R>>;
-    undos: Stack<TLHistoryEntry<R>>;
-    }, unknown>;
-    // (undocumented)
-    undo: () => this;
-}
 
 // @public (undocumented)
 export const HIT_TEST_MARGIN = 8;
@@ -1778,17 +1724,6 @@ export class SideEffectManager<CTX extends {
     constructor(editor: CTX);
     // (undocumented)
     editor: CTX;
-    // @internal
-    register(handlersByType: {
-        [R in TLRecord as R['typeName']]?: {
-            afterChange?: TLAfterChangeHandler<R>;
-            afterCreate?: TLAfterCreateHandler<R>;
-            afterDelete?: TLAfterDeleteHandler<R>;
-            beforeChange?: TLBeforeChangeHandler<R>;
-            beforeCreate?: TLBeforeCreateHandler<R>;
-            beforeDelete?: TLBeforeDeleteHandler<R>;
-        };
-    }): () => void;
     registerAfterChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterChangeHandler<TLRecord & {
         typeName: T;
     }>): () => void;
@@ -2104,6 +2039,29 @@ export type TLCollaboratorHintProps = {
 };
 
 // @public (undocumented)
+export type TLCommand<Name extends string = any, Data = any> = {
+    preservesRedoStack?: boolean;
+    data: Data;
+    name: Name;
+    type: 'command';
+};
+
+// @public (undocumented)
+export type TLCommandHandler<Data> = {
+    squash?: (prevData: Data, nextData: Data) => Data;
+    do: (data: Data) => void;
+    redo?: (data: Data) => void;
+    undo: (data: Data) => void;
+};
+
+// @public (undocumented)
+export type TLCommandHistoryOptions = Partial<{
+    preservesRedoStack: boolean;
+    squashing: boolean;
+    ephemeral: boolean;
+}>;
+
+// @public (undocumented)
 export type TLCompleteEvent = (info: TLCompleteEventInfo) => void;
 
 // @public (undocumented)
@@ -2237,6 +2195,17 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 // @public (undocumented)
 export interface TLEventMap {
     // (undocumented)
+    'change-history': [{
+        markId?: string;
+        reason: 'bail';
+    } | {
+        reason: 'push' | 'redo' | 'undo';
+    }];
+    // (undocumented)
+    'mark-history': [{
+        id: string;
+    }];
+    // (undocumented)
     'max-shapes': [{
         count: number;
         name: string;
@@ -2346,6 +2315,17 @@ export type TLHandleProps = {
 // @public (undocumented)
 export type TLHandlesProps = {
     children: ReactNode;
+};
+
+// @public (undocumented)
+export type TLHistoryEntry = TLCommand | TLHistoryMark;
+
+// @public (undocumented)
+export type TLHistoryMark = {
+    id: string;
+    onRedo: boolean;
+    onUndo: boolean;
+    type: 'STOP';
 };
 
 // @public (undocumented)
@@ -2632,7 +2612,6 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 // @public (undocumented)
 export type TLStoreOptions = {
     defaultName?: string;
-    id?: string;
     initialData?: SerializedStore<TLRecord>;
 } & ({
     migrations?: readonly MigrationSequence[];

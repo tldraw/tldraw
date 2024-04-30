@@ -30,13 +30,16 @@ export const FrameLabelInput = forwardRef<
 			const value = e.currentTarget.value.trim()
 			if (name === value) return
 
-			editor.updateShapes([
-				{
-					id,
-					type: 'frame',
-					props: { name: value },
-				},
-			])
+			editor.updateShapes(
+				[
+					{
+						id,
+						type: 'frame',
+						props: { name: value },
+					},
+				],
+				{ squashing: true }
+			)
 		},
 		[id, editor]
 	)
@@ -50,13 +53,16 @@ export const FrameLabelInput = forwardRef<
 			const value = e.currentTarget.value
 			if (name === value) return
 
-			editor.updateShapes([
-				{
-					id,
-					type: 'frame',
-					props: { name: value },
-				},
-			])
+			editor.updateShapes(
+				[
+					{
+						id,
+						type: 'frame',
+						props: { name: value },
+					},
+				],
+				{ squashing: true }
+			)
 		},
 		[id, editor]
 	)

@@ -164,7 +164,7 @@ export class ScribbleBrushing extends StateNode {
 			shiftKey ? [...newlySelectedShapeIds, ...initialSelectedShapeIds] : [...newlySelectedShapeIds]
 		)
 		if (current.length !== next.size || current.some((id) => !next.has(id))) {
-			this.editor.setSelectedShapes(Array.from(next))
+			this.editor.setSelectedShapes(Array.from(next), { squashing: true })
 		}
 	}
 
@@ -174,7 +174,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private cancel() {
-		this.editor.setSelectedShapes([...this.initialSelectedShapeIds])
+		this.editor.setSelectedShapes([...this.initialSelectedShapeIds], { squashing: true })
 		this.parent.transition('idle')
 	}
 }
