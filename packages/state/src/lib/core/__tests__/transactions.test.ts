@@ -238,7 +238,7 @@ describe('setting atoms during a reaction', () => {
 		expect(a.get()).toBe(10)
 	})
 
-	it('[regression] should allow computeds to be updated properly', () => {
+	it('[regression 1] should allow computeds to be updated properly', () => {
 		const a = atom('', 0)
 		const b = atom('', 0)
 		const c = computed('', () => b.get() * 2)
@@ -260,31 +260,31 @@ describe('setting atoms during a reaction', () => {
 		expect(cValue).toBe(4)
 	})
 
-	it('[regression] should allow computeds to be updated properly', () => {
-		// todo: how to repro
+	it('[regression 2] should allow computeds to be updated properly', () => {
 		const a = atom('', 0)
 		const b = atom('', 1)
 		const c = atom('', 0)
-		const ad = computed('', () => a.get() * 2)
+		const d = computed('', () => a.get() * 2)
 
-		let adValue = 0
+		let dValue = 0
 		react('', () => {
-			// update a
+			// update a, causes a and d to be traversed (but not updated)
 			a.set(b.get())
 			// update c
 			c.set(a.get())
-			// get latest value of computed that depends on a
-			adValue = ad.get()
+			// make sure that when we get d, it is updated properly
+			dValue = d.get()
 		})
 
 		expect(a.get()).toBe(1)
 		expect(b.get()).toBe(1)
+		expect(c.get()).toBe(1)
 
-		expect(adValue).toBe(2)
+		expect(dValue).toBe(2)
 
 		transact(() => {
 			b.set(2)
 		})
-		expect(adValue).toBe(4)
+		expect(dValue).toBe(4)
 	})
 })
