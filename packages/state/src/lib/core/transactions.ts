@@ -25,10 +25,10 @@ class Transaction {
 	 */
 	commit() {
 		if (this.isRoot) {
-			// For root transactions, flush changes to each of the atom's initial values.
+			// For root transactions, flush changed atoms
 			flushChanges(this.initialAtomValues.keys())
 		} else {
-			// For transaction's with parents, add the transaction's initial values to the parent's.
+			// For transactions with parents, add the transaction's initial values to the parent's.
 			this.initialAtomValues.forEach((value, atom) => {
 				if (!this.parent!.initialAtomValues.has(atom)) {
 					this.parent!.initialAtomValues.set(atom, value)
@@ -146,11 +146,18 @@ function flushChanges(atoms: Iterable<_Atom>) {
  */
 export function atomDidChange(atom: _Atom, previousValue: any) {
 	if (inst.globalIsReacting) {
+		// If the atom changed during the reaction phase of flushChanges
+		// then we are past the point where a transaction can be aborted
+		// so we don't need to note down the previousValue.
 		const rs = (inst.cleanupReactors ??= new Set())
 		atom.children.visit((child) => traverse(rs, child))
 	} else if (!inst.currentTransaction) {
+		// If there is no transaction, flush the changes immediately.
 		flushChanges([atom])
 	} else if (!inst.currentTransaction.initialAtomValues.has(atom)) {
+		// If we are in a transaction, then all we have to do is preserve
+		// the value of the atom at the start of the transaction in case
+		// we need to roll back.
 		inst.currentTransaction.initialAtomValues.set(atom, previousValue)
 	}
 }
