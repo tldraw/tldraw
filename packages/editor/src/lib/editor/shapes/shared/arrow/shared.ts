@@ -25,8 +25,9 @@ export function getBoundShapeInfoForTerminal(
 		return
 	}
 
-	const shape = editor.getShape(terminal.boundShapeId)!
-	const transform = editor.getShapePageTransform(shape)!
+	const shape = editor.getShape(terminal.boundShapeId)
+	if (!shape) return
+	const transform = editor.getShapePageTransform(shape)
 	const geometry = editor.getShapeGeometry(shape)
 
 	// This is hacky: we're only looking at the first child in the group. Really the arrow should
