@@ -20,8 +20,12 @@ export function useCoarsePointer() {
 		}
 
 		// When the user moves the mouse, we assume they have a fine pointer
-		const handleMouseMove = () => {
+		const handleMouseMove = (
+			e: MouseEvent & { sourceCapabilities?: { firesTouchEvents: boolean } }
+		) => {
 			if (!isCoarse) return
+			// Fix Android Chrome bug where mousemove is fired even if the user long presses
+			if (e.sourceCapabilities?.firesTouchEvents) return
 			isCoarse = false
 			editor.updateInstanceState({ isCoarsePointer: false })
 		}
