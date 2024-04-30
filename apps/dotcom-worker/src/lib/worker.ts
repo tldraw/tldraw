@@ -9,6 +9,7 @@ import {
 import { Router, createCors } from 'itty-router'
 import { env } from 'process'
 import Toucan from 'toucan-js'
+import { onScheduledEvent } from './cron'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
@@ -83,6 +84,9 @@ const Worker = {
 				}
 				return newResponse
 			})
+	},
+	async scheduled(controller: ScheduledController, env: Environment, ctx: ExecutionContext) {
+		await onScheduledEvent(controller, env, ctx)
 	},
 }
 

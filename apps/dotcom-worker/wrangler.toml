@@ -147,3 +147,16 @@ id = "2fb5fc7f7ca54a5a9dfae1b07a30a778"
 [[env.production.kv_namespaces]]
 binding = "READONLY_SLUG_TO_SLUG"
 id = "96be6637b281412ab35b2544539d78e8"
+
+#################### Cron tiggers ####################
+[env.dev.triggers]
+crons = ['5 * * * *'] 
+
+[env.preview.triggers]
+crons = [] # never
+
+[env.staging.triggers]
+crons = ['5 * * * *'] # every hour, 5 minutes past
+
+[env.production.triggers]
+crons = ['5 * * * *'] # every hour, 5 minutes past
