@@ -111,6 +111,7 @@ import iconsHorizontalAlignStart from './icons/icon/horizontal-align-start.svg'
 import iconsInfoCircle from './icons/icon/info-circle.svg'
 import iconsLeading from './icons/icon/leading.svg'
 import iconsLink from './icons/icon/link.svg'
+import iconsLock from './icons/icon/lock.svg'
 import iconsMenu from './icons/icon/menu.svg'
 import iconsMinus from './icons/icon/minus.svg'
 import iconsMixed from './icons/icon/mixed.svg'
@@ -124,6 +125,7 @@ import iconsRotateCcw from './icons/icon/rotate-ccw.svg'
 import iconsRotateCw from './icons/icon/rotate-cw.svg'
 import iconsSendBackward from './icons/icon/send-backward.svg'
 import iconsSendToBack from './icons/icon/send-to-back.svg'
+import iconsShare1 from './icons/icon/share-1.svg'
 import iconsSizeExtraLarge from './icons/icon/size-extra-large.svg'
 import iconsSizeLarge from './icons/icon/size-large.svg'
 import iconsSizeMedium from './icons/icon/size-medium.svg'
@@ -154,6 +156,7 @@ import iconsTrash from './icons/icon/trash.svg'
 import iconsTwitter from './icons/icon/twitter.svg'
 import iconsUndo from './icons/icon/undo.svg'
 import iconsUngroup from './icons/icon/ungroup.svg'
+import iconsUnlock from './icons/icon/unlock.svg'
 import iconsVerticalAlignEnd from './icons/icon/vertical-align-end.svg'
 import iconsVerticalAlignMiddle from './icons/icon/vertical-align-middle.svg'
 import iconsVerticalAlignStart from './icons/icon/vertical-align-start.svg'
@@ -296,6 +299,7 @@ export function getAssetUrlsByImport(opts) {
 			'info-circle': formatAssetUrl(iconsInfoCircle, opts),
 			leading: formatAssetUrl(iconsLeading, opts),
 			link: formatAssetUrl(iconsLink, opts),
+			lock: formatAssetUrl(iconsLock, opts),
 			menu: formatAssetUrl(iconsMenu, opts),
 			minus: formatAssetUrl(iconsMinus, opts),
 			mixed: formatAssetUrl(iconsMixed, opts),
@@ -309,6 +313,7 @@ export function getAssetUrlsByImport(opts) {
 			'rotate-cw': formatAssetUrl(iconsRotateCw, opts),
 			'send-backward': formatAssetUrl(iconsSendBackward, opts),
 			'send-to-back': formatAssetUrl(iconsSendToBack, opts),
+			'share-1': formatAssetUrl(iconsShare1, opts),
 			'size-extra-large': formatAssetUrl(iconsSizeExtraLarge, opts),
 			'size-large': formatAssetUrl(iconsSizeLarge, opts),
 			'size-medium': formatAssetUrl(iconsSizeMedium, opts),
@@ -339,6 +344,7 @@ export function getAssetUrlsByImport(opts) {
 			twitter: formatAssetUrl(iconsTwitter, opts),
 			undo: formatAssetUrl(iconsUndo, opts),
 			ungroup: formatAssetUrl(iconsUngroup, opts),
+			unlock: formatAssetUrl(iconsUnlock, opts),
 			'vertical-align-end': formatAssetUrl(iconsVerticalAlignEnd, opts),
 			'vertical-align-middle': formatAssetUrl(iconsVerticalAlignMiddle, opts),
 			'vertical-align-start': formatAssetUrl(iconsVerticalAlignStart, opts),

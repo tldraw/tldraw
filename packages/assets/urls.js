@@ -315,6 +315,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			),
 			leading: formatAssetUrl(new URL('./icons/icon/leading.svg', import.meta.url).href, opts),
 			link: formatAssetUrl(new URL('./icons/icon/link.svg', import.meta.url).href, opts),
+			lock: formatAssetUrl(new URL('./icons/icon/lock.svg', import.meta.url).href, opts),
 			menu: formatAssetUrl(new URL('./icons/icon/menu.svg', import.meta.url).href, opts),
 			minus: formatAssetUrl(new URL('./icons/icon/minus.svg', import.meta.url).href, opts),
 			mixed: formatAssetUrl(new URL('./icons/icon/mixed.svg', import.meta.url).href, opts),
@@ -349,6 +350,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/send-to-back.svg', import.meta.url).href,
 				opts
 			),
+			'share-1': formatAssetUrl(new URL('./icons/icon/share-1.svg', import.meta.url).href, opts),
 			'size-extra-large': formatAssetUrl(
 				new URL('./icons/icon/size-extra-large.svg', import.meta.url).href,
 				opts
@@ -457,6 +459,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			twitter: formatAssetUrl(new URL('./icons/icon/twitter.svg', import.meta.url).href, opts),
 			undo: formatAssetUrl(new URL('./icons/icon/undo.svg', import.meta.url).href, opts),
 			ungroup: formatAssetUrl(new URL('./icons/icon/ungroup.svg', import.meta.url).href, opts),
+			unlock: formatAssetUrl(new URL('./icons/icon/unlock.svg', import.meta.url).href, opts),
 			'vertical-align-end': formatAssetUrl(
 				new URL('./icons/icon/vertical-align-end.svg', import.meta.url).href,
 				opts

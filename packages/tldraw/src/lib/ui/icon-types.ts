@@ -87,6 +87,7 @@ export type TLUiIconType =
 	| 'info-circle'
 	| 'leading'
 	| 'link'
+	| 'lock'
 	| 'menu'
 	| 'minus'
 	| 'mixed'
@@ -100,6 +101,7 @@ export type TLUiIconType =
 	| 'rotate-cw'
 	| 'send-backward'
 	| 'send-to-back'
+	| 'share-1'
 	| 'size-extra-large'
 	| 'size-large'
 	| 'size-medium'
@@ -130,6 +132,7 @@ export type TLUiIconType =
 	| 'twitter'
 	| 'undo'
 	| 'ungroup'
+	| 'unlock'
 	| 'vertical-align-end'
 	| 'vertical-align-middle'
 	| 'vertical-align-start'
@@ -223,6 +226,7 @@ export const iconTypes = [
 	'info-circle',
 	'leading',
 	'link',
+	'lock',
 	'menu',
 	'minus',
 	'mixed',
@@ -236,6 +240,7 @@ export const iconTypes = [
 	'rotate-cw',
 	'send-backward',
 	'send-to-back',
+	'share-1',
 	'size-extra-large',
 	'size-large',
 	'size-medium',
@@ -266,6 +271,7 @@ export const iconTypes = [
 	'twitter',
 	'undo',
 	'ungroup',
+	'unlock',
 	'vertical-align-end',
 	'vertical-align-middle',
 	'vertical-align-start',
