@@ -48,7 +48,6 @@ import iconsBringToFront from './icons/icon/bring-to-front.svg'
 import iconsBroken from './icons/icon/broken.svg'
 import iconsCheckCircle from './icons/icon/check-circle.svg'
 import iconsCheck from './icons/icon/check.svg'
-import iconsCheckboxEmpty from './icons/icon/checkbox-empty.svg'
 import iconsChevronDown from './icons/icon/chevron-down.svg'
 import iconsChevronLeft from './icons/icon/chevron-left.svg'
 import iconsChevronRight from './icons/icon/chevron-right.svg'
@@ -234,7 +233,6 @@ export function getAssetUrlsByImport(opts) {
 			broken: formatAssetUrl(iconsBroken, opts),
 			'check-circle': formatAssetUrl(iconsCheckCircle, opts),
 			check: formatAssetUrl(iconsCheck, opts),
-			'checkbox-empty': formatAssetUrl(iconsCheckboxEmpty, opts),
 			'chevron-down': formatAssetUrl(iconsChevronDown, opts),
 			'chevron-left': formatAssetUrl(iconsChevronLeft, opts),
 			'chevron-right': formatAssetUrl(iconsChevronRight, opts),

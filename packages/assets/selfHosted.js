@@ -42,7 +42,6 @@ export function getAssetUrls(opts) {
 			broken: formatAssetUrl('./icons/icon/broken.svg', opts),
 			'check-circle': formatAssetUrl('./icons/icon/check-circle.svg', opts),
 			check: formatAssetUrl('./icons/icon/check.svg', opts),
-			'checkbox-empty': formatAssetUrl('./icons/icon/checkbox-empty.svg', opts),
 			'chevron-down': formatAssetUrl('./icons/icon/chevron-down.svg', opts),
 			'chevron-left': formatAssetUrl('./icons/icon/chevron-left.svg', opts),
 			'chevron-right': formatAssetUrl('./icons/icon/chevron-right.svg', opts),

@@ -105,10 +105,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 				opts
 			),
 			check: formatAssetUrl(new URL('./icons/icon/check.svg', import.meta.url).href, opts),
-			'checkbox-empty': formatAssetUrl(
-				new URL('./icons/icon/checkbox-empty.svg', import.meta.url).href,
-				opts
-			),
 			'chevron-down': formatAssetUrl(
 				new URL('./icons/icon/chevron-down.svg', import.meta.url).href,
 				opts
