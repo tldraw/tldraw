@@ -104,8 +104,12 @@ export const TextLabel = React.memo(function TextLabel({
 					height: textHeight,
 				}}
 			>
-				<div className={`${cssPrefix} tl-text tl-text-content`} dir="ltr">
-					{finalText}
+				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
+					{finalText.split('\n').map((lineOfText, index) => (
+						<div key={index} dir="auto">
+							{lineOfText}
+						</div>
+					))}
 				</div>
 				{(isEditingAnything || isSelected) && (
 					<TextArea
