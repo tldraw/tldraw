@@ -585,6 +585,9 @@ export function isShapeId(id?: string): id is TLShapeId;
 
 // @public (undocumented)
 export const LANGUAGES: readonly [{
+    readonly label: "Bahasa Indonesia";
+    readonly locale: "id";
+}, {
     readonly label: "Català";
     readonly locale: "ca";
 }, {

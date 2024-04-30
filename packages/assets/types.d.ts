@@ -161,6 +161,7 @@ export type AssetUrls = {
 		'hi-in': string
 		hr: string
 		hu: string
+		id: string
 		it: string
 		ja: string
 		'ko-kr': string
