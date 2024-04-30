@@ -70,7 +70,9 @@ async function getSnapshotLink(
 		return ''
 	}
 	const paramsToUse = getViewportUrlQuery(editor)
-	const params = paramsToUse ? `?${new URLSearchParams(paramsToUse).toString()}` : ''
+	const params = paramsToUse
+		? decodeURIComponent(`?${new URLSearchParams(paramsToUse).toString()}`)
+		: ''
 	return new Blob([`${window.location.origin}/${SNAPSHOT_PREFIX}/${response.roomId}${params}`], {
 		type: 'text/plain',
 	})
