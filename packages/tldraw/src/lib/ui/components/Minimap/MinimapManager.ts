@@ -276,6 +276,11 @@ export class MinimapManager {
 		this.gl.prepareTriangles(this.gl.viewport, len)
 		this.gl.setFillColor(this.colors.viewportFill)
 		this.gl.drawTrianglesTransparently(len)
+		if (this.editor.environment.isSafari) {
+			this.gl.drawTrianglesTransparently(len)
+			this.gl.drawTrianglesTransparently(len)
+			this.gl.drawTrianglesTransparently(len)
+		}
 	}
 
 	drawCollaborators() {
