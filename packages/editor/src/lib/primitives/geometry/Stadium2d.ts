@@ -1,12 +1,13 @@
 import { Vec } from '../Vec'
 import { HALF_PI, PI } from '../utils'
 import { Ellipse2d } from './Ellipse2d'
-import { Geometry2dOptions } from './Geometry2d'
+import { Geometry2dOptions, Geometry2d } from './Geometry2d'
+import { SVGProps } from 'react'
 
 const STADIUM_VERTICES_LENGTH = 18
 
 /** @public */
-export class Stadium2d extends Ellipse2d {
+export class Stadium2d extends Ellipse2d implements Geometry2d {
 	constructor(
 		public config: Omit<Geometry2dOptions, 'isClosed'> & { width: number; height: number }
 	) {
@@ -44,4 +45,7 @@ export class Stadium2d extends Ellipse2d {
 
 		return points
 	}
+
+	// Implementing abstract method toSvg for rendering stadium geometry as SVG
+	abstract toSvg(props?: SVGProps<SVGSVGElement>): JSX.Element
 }

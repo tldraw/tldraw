@@ -1,6 +1,7 @@
 import { Vec } from '../Vec'
 import { linesIntersect } from '../intersect'
 import { Geometry2d } from './Geometry2d'
+import { SVGProps } from 'react'
 
 /** @public */
 export class Edge2d extends Geometry2d {
@@ -58,4 +59,7 @@ export class Edge2d extends Geometry2d {
 			linesIntersect(A, B, this.start, this.end) || this.distanceToLineSegment(A, B) <= distance
 		)
 	}
+
+	// Implementing abstract method toSvg for rendering edge geometry as SVG
+	abstract toSvg(props?: SVGProps<SVGSVGElement>): JSX.Element
 }

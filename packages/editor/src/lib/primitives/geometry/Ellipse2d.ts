@@ -4,6 +4,7 @@ import { PI, PI2 } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
+import { SVGProps } from 'react'
 
 /** @public */
 export class Ellipse2d extends Geometry2d {
@@ -97,4 +98,7 @@ export class Ellipse2d extends Geometry2d {
 	getBounds() {
 		return new Box(0, 0, this.w, this.h)
 	}
+
+	// Implementing abstract method toSvg for rendering ellipse geometry as SVG
+	abstract toSvg(props?: SVGProps<SVGSVGElement>): JSX.Element
 }

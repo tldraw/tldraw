@@ -3,6 +3,7 @@ import { intersectLineSegmentCircle } from '../intersect'
 import { getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
+import { SVGProps } from 'react'
 
 /** @public */
 export class Arc2d extends Geometry2d {
@@ -41,6 +42,8 @@ export class Arc2d extends Geometry2d {
 
 		this._center = center
 		this.radius = radius
+		this.sweepFlag = sweepFlag
+		this.largeArcFlag = largeArcFlag
 	}
 
 	nearestPoint(point: Vec): Vec {
@@ -89,4 +92,7 @@ export class Arc2d extends Geometry2d {
 
 		return vertices
 	}
+
+	// Abstract method toSvg allowing rendering with customizable SVGProps
+	abstract toSvg(props?: SVGProps<SVGSVGElement>): JSX.Element
 }

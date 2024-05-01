@@ -4,6 +4,7 @@ import { intersectLineSegmentCircle } from '../intersect'
 import { PI2, getPointOnCircle } from '../utils'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
+import { SVGProps } from 'react'
 
 /** @public */
 export class Circle2d extends Geometry2d {
@@ -53,4 +54,7 @@ export class Circle2d extends Geometry2d {
 		const { _center, radius } = this
 		return intersectLineSegmentCircle(A, B, _center, radius + distance) !== null
 	}
+
+	// Implementing abstract method toSvg for rendering circle geometry as SVG
+	abstract toSvg(props?: SVGProps<SVGSVGElement>): JSX.Element
 }

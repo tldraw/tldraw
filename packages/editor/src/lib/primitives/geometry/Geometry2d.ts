@@ -1,6 +1,7 @@
 import { Box } from '../Box'
 import { Vec } from '../Vec'
 import { pointInPolygon } from '../utils'
+import { SVGProps } from 'react'
 
 export interface Geometry2dOptions {
 	isFilled: boolean
@@ -178,4 +179,7 @@ export abstract class Geometry2d {
 
 		return path
 	}
+
+	// Abstract method toSvg allowing rendering with customizable SVGProps
+	abstract toSvg(props?: SVGProps<SVGSVGElement>): JSX.Element
 }

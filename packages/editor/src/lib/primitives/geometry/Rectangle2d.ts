@@ -2,6 +2,7 @@ import { Box } from '../Box'
 import { Vec } from '../Vec'
 import { Geometry2dOptions } from './Geometry2d'
 import { Polygon2d } from './Polygon2d'
+import { SVGProps } from 'react'
 
 /** @public */
 export class Rectangle2d extends Polygon2d {
@@ -37,4 +38,7 @@ export class Rectangle2d extends Polygon2d {
 	getBounds() {
 		return new Box(this.x, this.y, this.w, this.h)
 	}
+
+	// Implementing abstract method toSvg for rendering rectangle geometry as SVG
+	abstract toSvg(props?: SVGProps<SVGSVGElement>): JSX.Element
 }
