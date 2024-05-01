@@ -105,17 +105,17 @@ export function useCanvasEvents() {
 
 			function onTouchEnd(e: React.TouchEvent) {
 				;(e as any).isKilled = true
+				// check that e.target is an HTMLElement
+				if (!(e.target instanceof HTMLElement)) return
+
 				if (
-					(e.target as HTMLElement).tagName !== 'A' &&
-					(e.target as HTMLElement).tagName !== 'TEXTAREA' &&
+					e.target.tagName !== 'A' &&
+					e.target.tagName !== 'TEXTAREA' &&
 					// When in EditingShape state, we are actually clicking on a 'DIV'
 					// not A/TEXTAREA element yet. So, to preserve cursor position
 					// for edit mode on mobile we need to not preventDefault.
 					// TODO: Find out if we still need this preventDefault in general though.
-					!(
-						editor.getEditingShape() &&
-						(e.target as HTMLElement).className.includes('tl-text-content')
-					)
+					!(editor.getEditingShape() && e.target.className.includes('tl-text-content'))
 				) {
 					preventDefault(e)
 				}
