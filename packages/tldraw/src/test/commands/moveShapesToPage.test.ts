@@ -226,8 +226,7 @@ describe('arrows', () => {
 		})
 	})
 
-	// TODO(alex) #bindings-clipboard
-	it.failing('retains the arrow binding if you move the arrow to the other page too', () => {
+	it('retains the arrow binding if you move the arrow to the other page too', () => {
 		editor
 			.setCurrentTool('arrow')
 			.pointerDown(250, 250)

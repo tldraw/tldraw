@@ -1,6 +1,9 @@
 import {
+	arrowBindingMakeItSo,
 	createBindingId,
 	createShapeId,
+	getArrowBindings,
+	sortByIndex,
 	TLArrowShape,
 	TLBindingPartial,
 	TLShapePartial,
@@ -22,56 +25,48 @@ beforeEach(() => {
 
 	editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 })
-// TODO(alex) #bindings-clipboard
-it.failing('creates new bindings for arrows when pasting', async () => {
+it('creates new bindings for arrows when pasting', async () => {
 	editor
 		.selectAll()
 		.deleteShapes(editor.getSelectedShapeIds())
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
-			{
-				id: ids.arrow1,
-				type: 'arrow',
-				x: 150,
-				y: 150,
-				props: {
-					start: {
-						type: 'binding',
-						boundShapeId: ids.box1,
-						isExact: false,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
-					},
-					end: {
-						type: 'binding',
-						boundShapeId: ids.box2,
-						isExact: false,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
-					},
-				},
-			},
+			{ id: ids.arrow1, type: 'arrow', x: 150, y: 150 },
 		])
 
-	const shapesBefore = editor.getCurrentPageShapes()
+	arrowBindingMakeItSo(editor, ids.arrow1, ids.box1, {
+		terminal: 'start',
+		isExact: false,
+		normalizedAnchor: { x: 0.5, y: 0.5 },
+		isPrecise: false,
+	})
+	arrowBindingMakeItSo(editor, ids.arrow1, ids.box2, {
+		terminal: 'end',
+		isExact: false,
+		normalizedAnchor: { x: 0.5, y: 0.5 },
+		isPrecise: false,
+	})
+
+	const shapesBefore = editor.getCurrentPageShapesSorted()
+	const bindingsBefore = getArrowBindings(editor, shapesBefore[2] as TLArrowShape)
 
 	editor.selectAll().duplicateShapes(editor.getSelectedShapeIds())
 
-	const shapesAfter = editor.getCurrentPageShapes()
+	const shapesAfter = editor.getCurrentPageShapesSorted()
 
 	// We should not have changed the original shapes
 	expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
-	expect(shapesBefore[1]).toMatchObject(shapesAfter[1])
-	expect(shapesBefore[2]).toMatchObject(shapesAfter[2])
+	expect(shapesBefore[1]).toMatchObject(shapesAfter[2])
+	expect(shapesBefore[2]).toMatchObject(shapesAfter[4])
 
 	const box1a = shapesAfter[0]
-	const box2a = shapesAfter[1]
-	const arrow1a = shapesAfter[2] as TLArrowShape
+	const box2a = shapesAfter[2]
+	const arrow1a = shapesAfter[4] as TLArrowShape
 
-	const box1b = shapesAfter[3]
-	const box2b = shapesAfter[4]
-	const arrow1b = shapesAfter[5]
+	const box1b = shapesAfter[1]
+	const box2b = shapesAfter[3]
+	const arrow1b = shapesAfter[5] as TLArrowShape
 
 	// The new shapes should match the old shapes, except for their id and the arrow's bindings!
 	expect(shapesAfter.length).toBe(shapesBefore.length * 2)
@@ -82,9 +77,11 @@ it.failing('creates new bindings for arrows when pasting', async () => {
 		index: 'a4',
 		props: {
 			...arrow1a.props,
-			start: { ...arrow1a.props.start, boundShapeId: box1b.id },
-			end: { ...arrow1a.props.end, boundShapeId: box2b.id },
 		},
+	})
+	expect(getArrowBindings(editor, arrow1b)).toMatchObject({
+		start: { toId: box1b.id, props: bindingsBefore.start!.props },
+		end: { toId: box2b.id, props: bindingsBefore.end!.props },
 	})
 })
 
@@ -314,5 +311,33 @@ describe('When duplicating shapes after cloning', () => {
 		instance = editor.getInstanceState()
 		duplicateProps = instance?.duplicateProps
 		expect(duplicateProps).toBe(null)
+	})
+})
+
+test('can duplicate arrows bound to parents and children', () => {
+	// draw a frame
+	editor.setCurrentTool('frame').pointerDown(0, 0).pointerMove(400, 400).pointerUp()
+	const frameId = editor.getOnlySelectedShapeId()!
+
+	// draw a box in the frame
+	editor.setCurrentTool('geo').pointerDown(100, 100).pointerMove(200, 200).pointerUp()
+	const boxId = editor.getOnlySelectedShapeId()!
+	expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
+
+	// draw an arrow from the box to the frame
+	editor.setCurrentTool('arrow').pointerDown(150, 150).pointerMove(300, 300).pointerUp()
+	const arrowId = editor.getOnlySelectedShapeId()!
+	expect(getArrowBindings(editor, editor.getOnlySelectedShape() as TLArrowShape)).toMatchObject({
+		start: { toId: boxId },
+		end: { toId: frameId },
+	})
+
+	// select the arrow and the box, but not the frame
+	editor.duplicateShapes([boxId, arrowId])
+	const newShapes = editor.getSelectedShapes().toSorted(sortByIndex)
+	expect(newShapes).toMatchObject([{ type: 'geo' }, { type: 'arrow' }])
+	expect(getArrowBindings(editor, newShapes[1] as TLArrowShape)).toMatchObject({
+		start: { toId: newShapes[0].id },
+		end: undefined,
 	})
 })
