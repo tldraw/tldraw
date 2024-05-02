@@ -1,6 +1,5 @@
 import { TLIncompatibilityReason } from '@tldraw/tlsync'
 import { exhaustiveSwitchError } from 'tldraw'
-import 'tldraw/tldraw.css'
 import { RemoteSyncError } from '../utils/remote-sync/remote-sync'
 import { ErrorPage } from './ErrorPage/ErrorPage'
 
