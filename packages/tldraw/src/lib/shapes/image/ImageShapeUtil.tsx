@@ -46,6 +46,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	component(shape: TLImageShape) {
+		const containerStyle = getCroppedContainerStyle(shape)
+
 		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
@@ -56,11 +58,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const asset = shape.props.assetId
 			? this.editor.getAsset<TLImageAsset>(shape.props.assetId)
 			: undefined
-		const src = getImageSrcForZoom(asset, zoomLevel)
 
 		if (asset?.type !== 'image') {
 			throw Error('Asset is not a video')
 		}
+
+		const src = getImageSrcForZoom(asset, zoomLevel, shape.props.w / asset.props.w)
 
 		useEffect(() => {
 			if (!asset) return
@@ -102,8 +105,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const reduceMotion =
 			prefersReducedMotion &&
 			(asset?.props.mimeType?.includes('video') || asset?.props.mimeType?.includes('gif'))
-
-		const containerStyle = getCroppedContainerStyle(shape)
 
 		if (!asset || !src) {
 			return (
@@ -183,8 +184,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const asset = shape.props.assetId
 			? this.editor.getAsset<TLImageAsset>(shape.props.assetId)
 			: undefined
-		let src = getImageSrcForZoom(asset, zoomLevel)
+		if (!asset) return null
 
+		let src = getImageSrcForZoom(asset, zoomLevel, shape.props.w / asset.props.w)
 		if (!src) return null
 
 		if (src.startsWith('http') || src.startsWith('/') || src.startsWith('./')) {
@@ -229,12 +231,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const asset = shape.props.assetId
 			? this.editor.getAsset<TLImageAsset>(shape.props.assetId)
 			: undefined
-		const src = getImageSrcForZoom(asset, zoomLevel)
+		if (!asset) return
 
-		if (!(asset && src)) return
+		const src = getImageSrcForZoom(asset, zoomLevel, shape.props.w / asset.props.w)
+		if (!src) return
 
 		const canPlay = src && 'mimeType' in asset.props && asset.props.mimeType === 'image/gif'
-
 		if (!canPlay) return
 
 		this.editor.updateShapes([
@@ -316,14 +318,16 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 	}
 }
 
-function getImageSrcForZoom(asset: TLImageAsset | undefined, zoomLevel: number) {
+function getImageSrcForZoom(asset: TLImageAsset, zoomLevel: number, scale: number) {
 	let src: string | null = null
-	if (asset) {
-		for (const source of asset.props.sources) {
+	for (let i = 0; i < asset.props.sources.length; i++) {
+		const source = asset.props.sources[i]
+		if (i === 0) {
 			src = source.src
-			if (source.scale >= zoomLevel) {
-				break
-			}
+		}
+		if (source.scale > zoomLevel * scale) {
+			src = source.src
+			continue
 		}
 	}
 	return src

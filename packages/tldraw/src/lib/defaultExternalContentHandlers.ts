@@ -89,33 +89,35 @@ export function registerDefaultExternalContentHandlers(
 
 			// Always rescale the image
 			if (file.type === 'image/jpeg' || file.type === 'image/png') {
-				sources.push({
-					scale: 1 / 8,
-					src: await FileHelpers.blobToDataUrl(
-						await downsizeImage(file, size.w / 8, size.h / 8, {
-							type: file.type,
-							quality: 0.92,
-						})
-					),
-				})
-				sources.push({
-					scale: 0.5,
-					src: await FileHelpers.blobToDataUrl(
-						await downsizeImage(file, size.w / 2, size.h / 2, {
-							type: file.type,
-							quality: 0.92,
-						})
-					),
-				})
-				sources.push({
-					scale: 1,
-					src: await FileHelpers.blobToDataUrl(
-						await downsizeImage(file, size.w, size.h, {
-							type: file.type,
-							quality: 0.92,
-						})
-					),
-				})
+				sources.push(
+					{
+						scale: 1,
+						src: await FileHelpers.blobToDataUrl(
+							await downsizeImage(file, size.w, size.h, {
+								type: file.type,
+								quality: 0.92,
+							})
+						),
+					},
+					{
+						scale: 1 / 2,
+						src: await FileHelpers.blobToDataUrl(
+							await downsizeImage(file, size.w / 2, size.h / 2, {
+								type: file.type,
+								quality: 0.92,
+							})
+						),
+					},
+					{
+						scale: 1 / 4,
+						src: await FileHelpers.blobToDataUrl(
+							await downsizeImage(file, size.w / 4, size.h / 4, {
+								type: file.type,
+								quality: 0.92,
+							})
+						),
+					}
+				)
 			}
 
 			return AssetRecordType.create({
