@@ -29,7 +29,7 @@ export {
 } from './lib/diff'
 export {
 	TLIncompatibilityReason,
-	TLSYNC_PROTOCOL_VERSION,
+	getTlsyncProtocolVersion,
 	type TLConnectRequest,
 	type TLPingRequest,
 	type TLPushRequest,

@@ -25,7 +25,6 @@ export function Component() {
 	if (!data)
 		return (
 			<ErrorPage
-				icon
 				messages={{
 					header: 'Page not found',
 					para1: 'The page you are looking does not exist or has been moved.',
