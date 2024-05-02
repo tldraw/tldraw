@@ -182,14 +182,14 @@ export class TextManager {
 					}
 					prevCharLeftForRTLTest = left
 				} else {
-					// otherwise we just need to extend the current span with the next character
-					currentSpan.box.w = right - currentSpan.box.x
-					currentSpan.text += char
-
 					// Looks like we're in RTL mode, so we need to adjust the left position.
 					if (isRTL) {
 						currentSpan.box.x = left
 					}
+
+					// otherwise we just need to extend the current span with the next character
+					currentSpan.box.w = isRTL ? currentSpan.box.w + rect.width : right - currentSpan.box.x
+					currentSpan.text += char
 				}
 
 				if (char === '\n') {

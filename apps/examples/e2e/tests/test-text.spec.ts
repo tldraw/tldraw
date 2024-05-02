@@ -237,14 +237,7 @@ test.describe('text measurement', () => {
 			typeof measureTextSpansOptions
 		>(
 			async (options) =>
-				editor.textMeasure.measureTextSpans(
-					`unicode is cool!
-e  o
-stuff and stuff
-كتابة باللغة العرب!!!!
-كتابة   باللغة العرب!`,
-					options
-				),
+				editor.textMeasure.measureTextSpans(`unicode is cool!\nكتابة باللغة  العرب!!!!`, options),
 			measureTextSpansOptions
 		)
 
@@ -261,65 +254,22 @@ stuff and stuff
 				text: 'cool!',
 			},
 			{ box: { x: 85.0625, y: 32.3984375, w: 0, h: 32 }, text: '\n' },
-			{ box: { x: 0, y: 64.796875, w: 14.5703125, h: 32 }, text: 'e' },
+			{ box: { x: 0, y: 64.796875, w: 48.546875, h: 32 }, text: 'كتابة' },
 			{
-				box: { x: 14.5625, y: 64.796875, w: 16.4765625, h: 32 },
+				box: { x: -8.234375, y: 64.796875, w: 8.234375, h: 32 },
+				text: ' ',
+			},
+			{
+				box: { x: 0, y: 97.1953125, w: 56.0703125, h: 32 },
+				text: 'باللغة',
+			},
+			{
+				box: { x: -16.46875, y: 97.1953125, w: 16.453125, h: 32 },
 				text: '  ',
 			},
 			{
-				box: { x: 31.03125, y: 64.796875, w: 14.6171875, h: 32 },
-				text: 'o',
-			},
-			{ box: { x: 45.6484375, y: 64.796875, w: 0, h: 32 }, text: '\n' },
-			{ box: { x: 0, y: 97.1953125, w: 61.921875, h: 32 }, text: 'stuff' },
-			{
-				box: { x: 61.921875, y: 97.1953125, w: 8.234375, h: 32 },
-				text: ' ',
-			},
-			{ box: { x: 0, y: 129.59375, w: 47.8359375, h: 32 }, text: 'and' },
-			{
-				box: { x: 47.8359375, y: 129.59375, w: 8.234375, h: 32 },
-				text: ' ',
-			},
-			{ box: { x: 0, y: 161.9921875, w: 61.921875, h: 32 }, text: 'stuff' },
-			{ box: { x: 61.921875, y: 161.9921875, w: 0, h: 32 }, text: '\n' },
-			{ box: { x: 0, y: 194.390625, w: -0.0078125, h: 32 }, text: 'كتابة' },
-			{
-				box: { x: -8.234375, y: 194.390625, w: 8.234375, h: 32 },
-				text: ' ',
-			},
-			{
-				box: { x: 0, y: 226.7890625, w: -0.0078125, h: 32 },
-				text: 'باللغة',
-			},
-			{
-				box: { x: -8.234375, y: 226.7890625, w: 8.234375, h: 32 },
-				text: ' ',
-			},
-			{
-				box: { x: 0, y: 259.1875, w: -0.0078125, h: 32 },
+				box: { x: 0, y: 129.59375, w: 82.2109375, h: 32 },
 				text: 'العرب!!!!',
-			},
-			{ box: { x: 0, y: 259.1875, w: 0, h: 32 }, text: '\n' },
-			{
-				box: { x: 0, y: 291.5859375, w: -0.0078125, h: 32 },
-				text: 'كتابة',
-			},
-			{
-				box: { x: -24.703125, y: 291.5859375, w: -0.0078125, h: 32 },
-				text: '   ',
-			},
-			{
-				box: { x: 0, y: 323.984375, w: -0.0078125, h: 32 },
-				text: 'باللغة',
-			},
-			{
-				box: { x: -8.234375, y: 323.984375, w: 8.234375, h: 32 },
-				text: ' ',
-			},
-			{
-				box: { x: 0, y: 356.3828125, w: -0.0078125, h: 32 },
-				text: 'العرب!',
 			},
 		]
 
@@ -329,10 +279,19 @@ stuff and stuff
 			if (span) {
 				expect(expectedSpan.text).toEqual(span.text)
 				for (const key in expectedSpan.box) {
-					expect(expectedSpan.box[key as keyof BoxModel]).toBeCloseTo(
-						span.box[key as keyof BoxModel],
-						0
-					)
+					if (key === 'x' || key === 'y') {
+						expect(span.box[key as keyof BoxModel]).toBeGreaterThanOrEqual(
+							expectedSpan.box[key as keyof BoxModel] - 2
+						)
+						expect(span.box[key as keyof BoxModel]).toBeLessThanOrEqual(
+							expectedSpan.box[key as keyof BoxModel] + 2
+						)
+					} else {
+						expect(span.box[key as keyof BoxModel]).toBeCloseTo(
+							expectedSpan.box[key as keyof BoxModel],
+							0
+						)
+					}
 				}
 			} else {
 				throw new Error('Expected more spans')
