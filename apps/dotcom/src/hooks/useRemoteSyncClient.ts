@@ -40,7 +40,11 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 
 	const store = useTLStore({ schema })
 
+	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
+
 	useEffect(() => {
+		if (error) return
+
 		const userPreferences = computed<{ id: string; color: string; name: string }>(
 			'userPreferences',
 			() => {
@@ -107,7 +111,7 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 			client.close()
 			socket.close()
 		}
-	}, [prefs, roomId, store, uri])
+	}, [prefs, roomId, store, uri, error])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
