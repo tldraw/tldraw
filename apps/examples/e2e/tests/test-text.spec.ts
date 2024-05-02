@@ -231,6 +231,115 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([['hi', '\n'], [' \n'], [' \n'], [' ']])
 	})
 
+	test('should handle RTL, in mixed context', async () => {
+		const spans = await page.evaluate<
+			{ text: string; box: BoxModel }[],
+			typeof measureTextSpansOptions
+		>(
+			async (options) =>
+				editor.textMeasure.measureTextSpans(
+					`unicode is cool!
+e  o
+stuff and stuff
+كتابة باللغة العرب!!!!
+كتابة   باللغة العرب!`,
+					options
+				),
+			measureTextSpansOptions
+		)
+
+		const expectedSpans = [
+			{ box: { x: 0, y: 0, w: 93.53125, h: 32 }, text: 'unicode' },
+			{ box: { x: 93.53125, y: 0, w: 8.234375, h: 32 }, text: ' ' },
+			{ box: { x: 0, y: 32.3984375, w: 19.8046875, h: 32 }, text: 'is' },
+			{
+				box: { x: 19.796875, y: 32.3984375, w: 8.2421875, h: 32 },
+				text: ' ',
+			},
+			{
+				box: { x: 28.03125, y: 32.3984375, w: 57.03125, h: 32 },
+				text: 'cool!',
+			},
+			{ box: { x: 85.0625, y: 32.3984375, w: 0, h: 32 }, text: '\n' },
+			{ box: { x: 0, y: 64.796875, w: 14.5703125, h: 32 }, text: 'e' },
+			{
+				box: { x: 14.5625, y: 64.796875, w: 16.4765625, h: 32 },
+				text: '  ',
+			},
+			{
+				box: { x: 31.03125, y: 64.796875, w: 14.6171875, h: 32 },
+				text: 'o',
+			},
+			{ box: { x: 45.6484375, y: 64.796875, w: 0, h: 32 }, text: '\n' },
+			{ box: { x: 0, y: 97.1953125, w: 61.921875, h: 32 }, text: 'stuff' },
+			{
+				box: { x: 61.921875, y: 97.1953125, w: 8.234375, h: 32 },
+				text: ' ',
+			},
+			{ box: { x: 0, y: 129.59375, w: 47.8359375, h: 32 }, text: 'and' },
+			{
+				box: { x: 47.8359375, y: 129.59375, w: 8.234375, h: 32 },
+				text: ' ',
+			},
+			{ box: { x: 0, y: 161.9921875, w: 61.921875, h: 32 }, text: 'stuff' },
+			{ box: { x: 61.921875, y: 161.9921875, w: 0, h: 32 }, text: '\n' },
+			{ box: { x: 0, y: 194.390625, w: -0.0078125, h: 32 }, text: 'كتابة' },
+			{
+				box: { x: -8.234375, y: 194.390625, w: 8.234375, h: 32 },
+				text: ' ',
+			},
+			{
+				box: { x: 0, y: 226.7890625, w: -0.0078125, h: 32 },
+				text: 'باللغة',
+			},
+			{
+				box: { x: -8.234375, y: 226.7890625, w: 8.234375, h: 32 },
+				text: ' ',
+			},
+			{
+				box: { x: 0, y: 259.1875, w: -0.0078125, h: 32 },
+				text: 'العرب!!!!',
+			},
+			{ box: { x: 0, y: 259.1875, w: 0, h: 32 }, text: '\n' },
+			{
+				box: { x: 0, y: 291.5859375, w: -0.0078125, h: 32 },
+				text: 'كتابة',
+			},
+			{
+				box: { x: -24.703125, y: 291.5859375, w: -0.0078125, h: 32 },
+				text: '   ',
+			},
+			{
+				box: { x: 0, y: 323.984375, w: -0.0078125, h: 32 },
+				text: 'باللغة',
+			},
+			{
+				box: { x: -8.234375, y: 323.984375, w: 8.234375, h: 32 },
+				text: ' ',
+			},
+			{
+				box: { x: 0, y: 356.3828125, w: -0.0078125, h: 32 },
+				text: 'العرب!',
+			},
+		]
+
+		for (const expectedSpan of expectedSpans) {
+			const span = spans.shift()
+
+			if (span) {
+				expect(expectedSpan.text).toEqual(span.text)
+				for (const key in expectedSpan.box) {
+					expect(expectedSpan.box[key as keyof BoxModel]).toBeCloseTo(
+						span.box[key as keyof BoxModel],
+						0
+					)
+				}
+			} else {
+				throw new Error('Expected more spans')
+			}
+		}
+	})
+
 	test('should handle only newlines', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
