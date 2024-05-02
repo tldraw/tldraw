@@ -33,7 +33,6 @@ export type RoomSession<R extends UnknownRecord> =
 			state: typeof RoomSessionState.Connected
 			sessionKey: string
 			presenceId: string
-			isV4Client: boolean
 			socket: TLRoomSocket<R>
 			serializedSchema: SerializedSchema
 			lastInteractionTime: number
