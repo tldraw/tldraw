@@ -14,7 +14,7 @@ import { DBLoadResult, TLServer } from '../lib/TLServer'
 import { RoomSnapshot } from '../lib/TLSyncRoom'
 import { chunk } from '../lib/chunk'
 import { RecordOpType } from '../lib/diff'
-import { TLSYNC_PROTOCOL_VERSION, TLSocketClientSentEvent } from '../lib/protocol'
+import { TLSocketClientSentEvent, getTlsyncProtocolVersion } from '../lib/protocol'
 import { RoomState } from '../lib/server-types'
 
 // Because we are using jsdom in this package, jest tries to load the 'browser' version of the ws library
@@ -145,7 +145,7 @@ describe('TLServer', () => {
 			type: 'connect',
 			lastServerClock: 0,
 			connectRequestId: 'test-connect-request-id',
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			schema,
 		}
 
