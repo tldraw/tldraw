@@ -1,4 +1,10 @@
-import { RecordProps, TLPropsMigrations, TLShape, TLUnknownBinding } from '@tldraw/tlschema'
+import {
+	RecordProps,
+	TLPropsMigrations,
+	TLShape,
+	TLShapeId,
+	TLUnknownBinding,
+} from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
 /** @public */
@@ -43,29 +49,18 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	// related shape lifecycle hooks
 	onAfterCreateFromShape?(binding: Binding, shape: TLShape): void
 	onAfterCreateToShape?(binding: Binding, shape: TLShape): void
-	// onAfterDuplicateFromShape?(
-	// 	binding: Binding,
-	// 	originalShape: TLShape,
-	// 	newShape: TLShape,
-	// 	duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>
-	// ): void
-	// onAfterDuplicateToShape?(
-	// 	binding: Binding,
-	// 	originalShape: TLShape,
-	// 	newShape: TLShape,
-	// 	duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>
-	// ): void
-
-	onDuplicateFromWithoutTo?(
+	onAfterDuplicateFromShape?(
 		binding: Binding,
 		originalShape: TLShape,
-		duplicatedShape: TLShape
-	): TLShape
-	onDuplicateToWithoutFrom?(
+		newShape: TLShape,
+		duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>
+	): void
+	onAfterDuplicateToShape?(
 		binding: Binding,
 		originalShape: TLShape,
-		duplicatedShape: TLShape
-	): TLShape
+		newShape: TLShape,
+		duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>
+	): void
 
 	onAfterChangeFromShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void
 	onAfterChangeToShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void

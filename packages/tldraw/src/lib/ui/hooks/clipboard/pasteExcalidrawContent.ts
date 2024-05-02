@@ -40,8 +40,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 		shapes: [],
 		rootShapeIds: [],
 		assets: [],
-		bindings: [],
-		additionalShapesForBindings: [],
 		schema: editor.store.schema.serialize(),
 	}
 
@@ -232,7 +230,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 				const startTargetId = excElementIdsToTldrawShapeIds.get(element.startBinding?.elementId)
 				const endTargetId = excElementIdsToTldrawShapeIds.get(element.endBinding?.elementId)
 
-				// TODO(alex) #bindings fix this (and add tests?)
 				tldrawContent.shapes.push({
 					...base,
 					type: 'arrow',
