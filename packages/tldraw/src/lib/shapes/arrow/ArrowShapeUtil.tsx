@@ -189,7 +189,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// Start or end, pointing the arrow...
 
-		const next = structuredClone(shape) as TLArrowShape
+		const update: TLShapePartial<TLArrowShape> = { id: shape.id, type: 'arrow', props: {} }
 
 		const currentBinding = bindings[handleId]
 
@@ -201,11 +201,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			// Skip binding
 			arrowBindingMakeItNotSo(this.editor, shape, handleId)
 
-			next.props[handleId] = {
+			update.props![handleId] = {
 				x: handle.x,
 				y: handle.y,
 			}
-			return next
+			return update
 		}
 
 		const point = this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle)
@@ -223,18 +223,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			// todo: maybe double check that this isn't equal to the other handle too?
 			arrowBindingMakeItNotSo(this.editor, shape, handleId)
 
-			next.props[handleId] = {
+			update.props![handleId] = {
 				x: handle.x,
 				y: handle.y,
 			}
-			return next
+			return update
 		}
 
 		// we've got a target! the handle is being dragged over a shape, bind to it
 
 		const targetGeometry = this.editor.getShapeGeometry(target)
 		const targetBounds = Box.ZeroFix(targetGeometry.bounds)
-		const pageTransform = this.editor.getShapePageTransform(next.id)!
+		const pageTransform = this.editor.getShapePageTransform(update.id)!
 		const pointInPageSpace = pageTransform.applyToPoint(handle)
 		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
@@ -304,7 +304,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		}
 
-		return next
+		return update
 	}
 
 	override onTranslateStart: TLOnTranslateStartHandler<TLArrowShape> = (shape) => {

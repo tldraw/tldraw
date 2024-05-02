@@ -202,19 +202,7 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     // (undocumented)
     onAfterCreate?(binding: Binding): void;
     // (undocumented)
-    onAfterCreateFromShape?(binding: Binding, shape: TLShape): void;
-    // (undocumented)
-    onAfterCreateToShape?(binding: Binding, shape: TLShape): void;
-    // (undocumented)
     onAfterDelete?(binding: Binding): void;
-    // (undocumented)
-    onAfterDeleteFromShape?(binding: Binding, shape: TLShape): void;
-    // (undocumented)
-    onAfterDeleteToShape?(binding: Binding, shape: TLShape): void;
-    // (undocumented)
-    onAfterDuplicateFromShape?(binding: Binding, originalShape: TLShape, newShape: TLShape, duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>): void;
-    // (undocumented)
-    onAfterDuplicateToShape?(binding: Binding, originalShape: TLShape, newShape: TLShape, duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>): void;
     // (undocumented)
     onBeforeChange?(prev: Binding, next: Binding): Binding | void;
     // (undocumented)
@@ -2234,6 +2222,8 @@ export type TLCompleteEventInfo = {
 export interface TLContent {
     // (undocumented)
     assets: TLAsset[];
+    // (undocumented)
+    bindings: TLBinding[] | undefined;
     // (undocumented)
     rootShapeIds: TLShapeId[];
     // (undocumented)

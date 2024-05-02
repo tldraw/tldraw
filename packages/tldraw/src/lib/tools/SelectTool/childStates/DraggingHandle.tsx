@@ -280,7 +280,7 @@ export class DraggingHandle extends StateNode {
 			initial: initial,
 		})
 
-		const next: TLShapePartial<any> = { ...shape, ...changes }
+		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
 
 		// Arrows
 		if (initialHandle.canBind && this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {

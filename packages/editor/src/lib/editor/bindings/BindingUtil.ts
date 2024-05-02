@@ -41,11 +41,12 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	onAfterDelete?(binding: Binding): void
 
 	// related shape lifecycle hooks
-	onAfterCreateFromShape?(binding: Binding, shape: TLShape): void
-	onAfterCreateToShape?(binding: Binding, shape: TLShape): void
+	// onAfterCreateFromShape?(binding: Binding, shape: TLShape): void
+	// onAfterCreateToShape?(binding: Binding, shape: TLShape): void
 
 	onAfterChangeFromShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void
 	onAfterChangeToShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void
+
 	onAfterChangeToShapeAncestry?(binding: Binding): void
 	onAfterChangeFromShapeAncestry?(binding: Binding): void
 

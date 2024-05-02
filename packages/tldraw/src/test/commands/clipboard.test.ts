@@ -1,4 +1,4 @@
-import { createShapeId, TLArrowShape } from '@tldraw/editor'
+import { createShapeId, getArrowBindings, TLArrowShape } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -198,36 +198,39 @@ describe('When copying and pasting', () => {
 		})
 	})
 
-	// TODO(alex) #bindings-clipboard
-	it.failing('creates new bindings for arrows when pasting', async () => {
+	it('creates new bindings for arrows when pasting', async () => {
 		const mockClipboard = doMockClipboard()
 
-		editor.createShapes([
-			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
-			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
-			{
-				id: ids.arrow1,
-				type: 'arrow',
-				x: 150,
-				y: 150,
-				props: {
-					start: {
-						type: 'binding',
-						boundShapeId: ids.box1,
-						isExact: false,
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
+				{ id: ids.arrow1, type: 'arrow', x: 150, y: 150 },
+			])
+			.createBindings([
+				{
+					fromId: ids.arrow1,
+					toId: ids.box1,
+					type: 'arrow',
+					props: {
+						terminal: 'start',
 						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
-					},
-					end: {
-						type: 'binding',
-						boundShapeId: ids.box2,
 						isExact: false,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
 						isPrecise: false,
 					},
 				},
-			},
-		])
+				{
+					fromId: ids.arrow1,
+					toId: ids.box2,
+					type: 'arrow',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+			])
 
 		const shapesBefore = editor.getCurrentPageShapes()
 		editor.selectAll().copy()
@@ -259,11 +262,10 @@ describe('When copying and pasting', () => {
 			...arrow1a,
 			id: arrow1b.id,
 			index: 'a6',
-			props: {
-				...arrow1a.props,
-				start: { ...arrow1a.props.start, boundShapeId: box1b.id },
-				end: { ...arrow1a.props.end, boundShapeId: box2b.id },
-			},
+		})
+		expect(getArrowBindings(editor, arrow1b as TLArrowShape)).toMatchObject({
+			start: { toId: box1b.id },
+			end: { toId: box2b.id },
 		})
 	})
 
@@ -383,38 +385,41 @@ describe('When copying and pasting', () => {
 		})
 	})
 
-	// TODO(alex) #bindings-clipboard
-	it.failing('creates new bindings for arrows when pasting', async () => {
+	it('creates new bindings for arrows when pasting', async () => {
 		const mockClipboard = doMockClipboard()
 
-		editor.createShapes([
-			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
-			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
-			{
-				id: ids.arrow1,
-				type: 'arrow',
-				x: 150,
-				y: 150,
-				props: {
-					start: {
-						type: 'binding',
-						boundShapeId: ids.box1,
-						isExact: false,
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
+				{ id: ids.arrow1, type: 'arrow', x: 150, y: 150 },
+			])
+			.createBindings([
+				{
+					fromId: ids.arrow1,
+					toId: ids.box1,
+					type: 'arrow',
+					props: {
+						terminal: 'start',
 						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
-					},
-					end: {
-						type: 'binding',
-						boundShapeId: ids.box2,
 						isExact: false,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
 						isPrecise: false,
 					},
 				},
-			},
-		])
+				{
+					fromId: ids.arrow1,
+					toId: ids.box2,
+					type: 'arrow',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isExact: false,
+						isPrecise: false,
+					},
+				},
+			])
 
-		const shapesBefore = editor.getCurrentPageShapes()
+		const shapesBefore = editor.getCurrentPageShapesSorted()
 
 		editor.selectAll().cut()
 
@@ -422,23 +427,16 @@ describe('When copying and pasting', () => {
 		await assertClipboardOfCorrectShape(mockClipboard.current)
 
 		editor.paste()
-		const shapesAfter = editor.getCurrentPageShapes()
+		const shapesAfter = editor.getCurrentPageShapesSorted()
 
 		// The new shapes should match the old shapes, except for their id and the arrow's bindings!
 		expect(shapesAfter.length).toBe(shapesBefore.length)
 		expect(shapesAfter[0]).toMatchObject({ ...shapesBefore[0], id: shapesAfter[0].id })
 		expect(shapesAfter[1]).toMatchObject({ ...shapesBefore[1], id: shapesAfter[1].id })
-		expect(shapesAfter[2]).toMatchObject({
-			...shapesBefore[2],
-			id: shapesAfter[2].id,
-			props: {
-				...shapesBefore[2].props,
-				start: {
-					...(shapesBefore[2] as TLArrowShape).props.start,
-					boundShapeId: shapesAfter[0].id,
-				},
-				end: { ...(shapesBefore[2] as TLArrowShape).props.end, boundShapeId: shapesAfter[1].id },
-			},
+		expect(shapesAfter[2]).toMatchObject({ ...shapesBefore[2], id: shapesAfter[2].id })
+		expect(getArrowBindings(editor, shapesAfter[2] as TLArrowShape)).toMatchObject({
+			start: { toId: shapesAfter[0].id },
+			end: { toId: shapesAfter[1].id },
 		})
 	})
 

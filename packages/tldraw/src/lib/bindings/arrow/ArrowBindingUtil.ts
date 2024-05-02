@@ -8,19 +8,17 @@ import {
 	TLParentId,
 	TLShape,
 	TLShapeId,
+	TLShapePartial,
 	TLUnknownBinding,
 	Vec,
 	arrowBindingMakeItNotSo,
-	arrowBindingMakeItSo,
 	arrowBindingMigrations,
 	arrowBindingProps,
 	assert,
 	getArrowBindings,
-	getArrowTerminalsInArrowSpace,
 	getIndexAbove,
 	getIndexBetween,
 	intersectLineSegmentCircle,
-	structuredClone,
 } from '@tldraw/editor'
 
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
@@ -47,119 +45,109 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		arrowDidUpdate(this.editor, this.editor.getShape(next.fromId) as TLArrowShape)
 	}
 
-	// if an arrow is created whilst already bound
-	override onAfterCreateFromShape(binding: TLArrowBinding, shape: TLShape): void {
-		arrowDidUpdate(this.editor, shape as TLArrowShape)
-	}
-
-	// when a bound arrow is updated
-	override onAfterChangeFromShape(binding: TLArrowBinding, prev: TLShape, next: TLShape): void {
-		arrowDidUpdate(this.editor, next as TLArrowShape)
-	}
-
 	// when duplicating an arrow shape
-	override onAfterDuplicateFromShape(
-		binding: TLArrowBinding,
-		originalShape: TLShape,
-		newShape: TLShape,
-		duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>
-	): void {
-		assert(
-			this.editor.isShapeOfType<TLArrowShape>(newShape, 'arrow') &&
-				this.editor.isShapeOfType<TLArrowShape>(originalShape, 'arrow')
-		)
+	// override onAfterDuplicateFromShape(
+	// 	binding: TLArrowBinding,
+	// 	originalShape: TLShape,
+	// 	newShape: TLShape,
+	// 	duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>
+	// ): void {
+	// 	assert(
+	// 		this.editor.isShapeOfType<TLArrowShape>(newShape, 'arrow') &&
+	// 			this.editor.isShapeOfType<TLArrowShape>(originalShape, 'arrow')
+	// 	)
 
-		if (this.editor.getBindingsFromShape<TLArrowBinding>(newShape, 'arrow').length) {
-			// if the new shape is already bound, we don't need to do anything. arrows can be bound
-			// more than once (start/end), and this handles all the cases although it will be called
-			// for each binding.
-			return
-		}
+	// 	if (this.editor.getBindingsFromShape<TLArrowBinding>(newShape, 'arrow').length) {
+	// 		// if the new shape is already bound, we don't need to do anything. arrows can be bound
+	// 		// more than once (start/end), and this handles all the cases although it will be called
+	// 		// for each binding.
+	// 		return
+	// 	}
 
-		const nextShape = structuredClone(newShape)
+	// 	const nextShape = structuredClone(newShape)
 
-		const originalInfo = this.editor.getArrowInfo(originalShape)!
-		let didBindStart = false
-		let didBindEnd = false
+	// 	const originalInfo = this.editor.getArrowInfo(originalShape)!
+	// 	let didBindStart = false
+	// 	let didBindEnd = false
 
-		if (originalInfo.bindings.start) {
-			const newStartShapeId = duplicatedIds.get(originalInfo.bindings.start.toId)
+	// 	if (originalInfo.bindings.start) {
+	// 		const newStartShapeId = duplicatedIds.get(originalInfo.bindings.start.toId)
 
-			if (newStartShapeId) {
-				arrowBindingMakeItSo(
-					this.editor,
-					nextShape,
-					newStartShapeId,
-					originalInfo.bindings.start.props
-				)
-				didBindStart = true
-			} else {
-				if (originalInfo?.isValid) {
-					const { x, y } = originalInfo.start.point
-					nextShape.props.start = { x, y }
-				} else {
-					const { start } = getArrowTerminalsInArrowSpace(
-						this.editor,
-						originalShape,
-						originalInfo.bindings
-					)
-					nextShape.props.start = { x: start.x, y: start.y }
-				}
-			}
-		}
+	// 		if (newStartShapeId) {
+	// 			arrowBindingMakeItSo(
+	// 				this.editor,
+	// 				nextShape,
+	// 				newStartShapeId,
+	// 				originalInfo.bindings.start.props
+	// 			)
+	// 			didBindStart = true
+	// 		} else {
+	// 			if (originalInfo?.isValid) {
+	// 				const { x, y } = originalInfo.start.point
+	// 				nextShape.props.start = { x, y }
+	// 			} else {
+	// 				const { start } = getArrowTerminalsInArrowSpace(
+	// 					this.editor,
+	// 					originalShape,
+	// 					originalInfo.bindings
+	// 				)
+	// 				nextShape.props.start = { x: start.x, y: start.y }
+	// 			}
+	// 		}
+	// 	}
 
-		if (originalInfo.bindings.end) {
-			const newEndShapeId = duplicatedIds.get(originalInfo.bindings.end.toId)
-			if (newEndShapeId) {
-				arrowBindingMakeItSo(this.editor, nextShape, newEndShapeId, originalInfo.bindings.end.props)
-				didBindEnd = true
-			} else {
-				if (originalInfo?.isValid) {
-					const { x, y } = originalInfo.end.point
-					nextShape.props.end = { x, y }
-				} else {
-					const { end } = getArrowTerminalsInArrowSpace(
-						this.editor,
-						originalShape,
-						originalInfo.bindings
-					)
-					nextShape.props.start = { x: end.x, y: end.y }
-				}
-			}
-		}
+	// 	if (originalInfo.bindings.end) {
+	// 		const newEndShapeId = duplicatedIds.get(originalInfo.bindings.end.toId)
+	// 		if (newEndShapeId) {
+	// 			arrowBindingMakeItSo(this.editor, nextShape, newEndShapeId, originalInfo.bindings.end.props)
+	// 			didBindEnd = true
+	// 		} else {
+	// 			if (originalInfo?.isValid) {
+	// 				const { x, y } = originalInfo.end.point
+	// 				nextShape.props.end = { x, y }
+	// 			} else {
+	// 				const { end } = getArrowTerminalsInArrowSpace(
+	// 					this.editor,
+	// 					originalShape,
+	// 					originalInfo.bindings
+	// 				)
+	// 				nextShape.props.start = { x: end.x, y: end.y }
+	// 			}
+	// 		}
+	// 	}
 
-		// fix up the bend:
-		if (!originalInfo.isStraight) {
-			// find the new start/end points of the resulting arrow
-			const startPoint = didBindStart ? originalInfo.start.handle : nextShape.props.start
-			const endPoint = didBindEnd ? originalInfo.end.handle : nextShape.props.end
-			const midPoint = Vec.Med(startPoint, endPoint)
+	// 	// fix up the bend:
+	// 	if (!originalInfo.isStraight) {
+	// 		// find the new start/end points of the resulting arrow
+	// 		const startPoint = didBindStart ? originalInfo.start.handle : nextShape.props.start
+	// 		const endPoint = didBindEnd ? originalInfo.end.handle : nextShape.props.end
+	// 		const midPoint = Vec.Med(startPoint, endPoint)
 
-			// intersect a line segment perpendicular to the new arrow with the old arrow arc to
-			// find the new mid-point
-			const lineSegment = (
-				originalShape.props.bend < 0 ? Vec.Sub(endPoint, startPoint) : Vec.Sub(startPoint, endPoint)
-			)
-				.per()
-				.uni()
-				.mul(originalInfo.handleArc.radius * 2)
+	// 		// intersect a line segment perpendicular to the new arrow with the old arrow arc to
+	// 		// find the new mid-point
+	// 		const lineSegment = (
+	// 			originalShape.props.bend < 0 ? Vec.Sub(endPoint, startPoint) : Vec.Sub(startPoint, endPoint)
+	// 		)
+	// 			.per()
+	// 			.uni()
+	// 			.mul(originalInfo.handleArc.radius * 2)
 
-			// find the intersections with the old arrow arc:
-			const intersections = intersectLineSegmentCircle(
-				originalInfo.handleArc.center,
-				Vec.Add(midPoint, lineSegment),
-				originalInfo.handleArc.center,
-				originalInfo.handleArc.radius
-			)
+	// 		// find the intersections with the old arrow arc:
+	// 		const intersections = intersectLineSegmentCircle(
+	// 			originalInfo.handleArc.center,
+	// 			Vec.Add(midPoint, lineSegment),
+	// 			originalInfo.handleArc.center,
+	// 			originalInfo.handleArc.radius
+	// 		)
 
-			if (intersections?.length === 1) {
-				const bend = Vec.Dist(midPoint, intersections[0]) * Math.sign(originalShape.props.bend)
-				nextShape.props.bend = bend
-			}
-		}
+	// 		if (intersections?.length === 1) {
+	// 			const bend = Vec.Dist(midPoint, intersections[0]) * Math.sign(originalShape.props.bend)
+	// 			nextShape.props.bend = bend
+	// 		}
+	// 	}
 
-		this.editor.updateShape(nextShape)
-	}
+	// 	this.editor.updateShape(nextShape)
+	// }
 
 	// when the shape an arrow is bound to changes ancestry
 	override onAfterChangeToShapeAncestry(binding: TLArrowBinding): void {
@@ -294,16 +282,58 @@ function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {
 }
 
 function unbindArrowTerminal(editor: Editor, arrow: TLArrowShape, terminal: 'start' | 'end') {
-	const terminalPositions = getArrowTerminalsInArrowSpace(
-		editor,
-		arrow,
-		getArrowBindings(editor, arrow)
-	)
-	const { x, y } = terminalPositions[terminal]
-	editor.updateShape<TLArrowShape>({
+	const info = editor.getArrowInfo(arrow)!
+	if (!info) {
+		throw new Error('expected arrow info')
+		// const terminalPositions = getArrowTerminalsInArrowSpace(
+		// 	editor,
+		// 	arrow,
+		// 	getArrowBindings(editor, arrow)
+		// )
+		// const { x, y } = terminalPositions[terminal]
+		// editor.updateShape<TLArrowShape>({
+		// 	id: arrow.id,
+		// 	type: 'arrow',
+		// 	props: { [terminal]: { x, y } },
+		// })
+	}
+
+	const update = {
 		id: arrow.id,
 		type: 'arrow',
-		props: { [terminal]: { x, y } },
-	})
+		props: {
+			[terminal]: { x: info[terminal].point.x, y: info[terminal].point.y },
+			bend: arrow.props.bend,
+		},
+	} satisfies TLShapePartial<TLArrowShape>
+
+	// fix up the bend:
+	if (!info.isStraight) {
+		// find the new start/end points of the resulting arrow
+		const newStart = terminal === 'start' ? info.start.point : info.start.handle
+		const newEnd = terminal === 'end' ? info.end.point : info.end.handle
+		const newMidPoint = Vec.Med(newStart, newEnd)
+
+		// intersect a line segment perpendicular to the new arrow with the old arrow arc to
+		// find the new mid-point
+		const lineSegment = Vec.Sub(newStart, newEnd)
+			.per()
+			.uni()
+			.mul(info.handleArc.radius * 2 * Math.sign(arrow.props.bend))
+
+		// find the intersections with the old arrow arc:
+		const intersections = intersectLineSegmentCircle(
+			info.handleArc.center,
+			Vec.Add(newMidPoint, lineSegment),
+			info.handleArc.center,
+			info.handleArc.radius
+		)
+
+		assert(intersections?.length === 1)
+		const bend = Vec.Dist(newMidPoint, intersections[0]) * Math.sign(arrow.props.bend)
+		update.props.bend = bend
+	}
+
+	editor.updateShape(update)
 	arrowBindingMakeItNotSo(editor, arrow, terminal)
 }

@@ -1,6 +1,7 @@
 import {
 	createBindingId,
 	createShapeId,
+	getArrowBindings,
 	TLArrowShape,
 	TLBindingPartial,
 	TLShapePartial,
@@ -22,56 +23,57 @@ beforeEach(() => {
 
 	editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 })
-// TODO(alex) #bindings-clipboard
-it.failing('creates new bindings for arrows when pasting', async () => {
+it('creates new bindings for arrows when pasting', async () => {
 	editor
 		.selectAll()
 		.deleteShapes(editor.getSelectedShapeIds())
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
+			{ id: ids.arrow1, type: 'arrow', x: 150, y: 150 },
+		])
+		.createBindings([
 			{
-				id: ids.arrow1,
+				fromId: ids.arrow1,
+				toId: ids.box1,
 				type: 'arrow',
-				x: 150,
-				y: 150,
 				props: {
-					start: {
-						type: 'binding',
-						boundShapeId: ids.box1,
-						isExact: false,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
-					},
-					end: {
-						type: 'binding',
-						boundShapeId: ids.box2,
-						isExact: false,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
-					},
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+			{
+				fromId: ids.arrow1,
+				toId: ids.box2,
+				type: 'arrow',
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
 				},
 			},
 		])
 
-	const shapesBefore = editor.getCurrentPageShapes()
+	const shapesBefore = editor.getCurrentPageShapesSorted()
 
 	editor.selectAll().duplicateShapes(editor.getSelectedShapeIds())
 
-	const shapesAfter = editor.getCurrentPageShapes()
+	const shapesAfter = editor.getCurrentPageShapesSorted()
 
 	// We should not have changed the original shapes
 	expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
-	expect(shapesBefore[1]).toMatchObject(shapesAfter[1])
-	expect(shapesBefore[2]).toMatchObject(shapesAfter[2])
+	expect(shapesBefore[1]).toMatchObject(shapesAfter[2])
+	expect(shapesBefore[2]).toMatchObject(shapesAfter[4])
 
 	const box1a = shapesAfter[0]
-	const box2a = shapesAfter[1]
-	const arrow1a = shapesAfter[2] as TLArrowShape
+	const box2a = shapesAfter[2]
 
-	const box1b = shapesAfter[3]
-	const box2b = shapesAfter[4]
-	const arrow1b = shapesAfter[5]
+	const box1b = shapesAfter[1]
+	const box2b = shapesAfter[3]
+	const arrow1b = shapesAfter[5] as TLArrowShape
 
 	// The new shapes should match the old shapes, except for their id and the arrow's bindings!
 	expect(shapesAfter.length).toBe(shapesBefore.length * 2)
@@ -80,11 +82,10 @@ it.failing('creates new bindings for arrows when pasting', async () => {
 	expect(arrow1b).toMatchObject({
 		id: arrow1b.id,
 		index: 'a4',
-		props: {
-			...arrow1a.props,
-			start: { ...arrow1a.props.start, boundShapeId: box1b.id },
-			end: { ...arrow1a.props.end, boundShapeId: box2b.id },
-		},
+	})
+	expect(getArrowBindings(editor, arrow1b)).toMatchObject({
+		start: { toId: box1b.id },
+		end: { toId: box2b.id },
 	})
 })
 
