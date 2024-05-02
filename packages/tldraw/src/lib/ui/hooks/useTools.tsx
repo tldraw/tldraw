@@ -102,15 +102,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: ('geo-' + id) as TLUiIconType,
 				onSelect(source: TLUiEventSource) {
 					editor.batch(() => {
-						editor.updateInstanceState(
-							{
-								stylesForNextShape: {
-									...editor.getInstanceState().stylesForNextShape,
-									[GeoShapeGeoStyle.id]: id,
-								},
-							},
-							{ ephemeral: true }
-						)
+						editor.setStyleForNextShapes(GeoShapeGeoStyle, id)
 						editor.setCurrentTool('geo')
 						trackEvent('select-tool', { source, id: `geo-${id}` })
 					})
@@ -190,7 +182,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'embed',
 				label: 'tool.embed',
-				icon: 'tool-embed',
+				icon: 'dot',
 				onSelect(source) {
 					addDialog({ component: EmbedDialog })
 					trackEvent('select-tool', { source, id: 'embed' })

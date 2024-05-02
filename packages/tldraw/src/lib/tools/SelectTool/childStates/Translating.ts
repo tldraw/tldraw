@@ -1,22 +1,27 @@
 import {
 	BoundsSnapPoint,
-	Box,
 	Editor,
 	Mat,
 	MatModel,
 	PageRecordType,
 	StateNode,
 	TLEventHandlers,
+	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapePartial,
-	TLTickEventHandler,
 	Vec,
 	compact,
 	isPageId,
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
+import {
+	NOTE_PIT_RADIUS,
+	NOTE_SIZE,
+	getAvailableNoteAdjacentPositions,
+} from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
+import { kickoutOccludedShapes } from '../selectHelpers'
 
 export class Translating extends StateNode {
 	static override id = 'translating'
@@ -25,6 +30,7 @@ export class Translating extends StateNode {
 		target: 'shape'
 		isCreating?: boolean
 		onCreate?: () => void
+		didStartInPit?: boolean
 		onInteractionEnd?: string
 	}
 
@@ -36,7 +42,6 @@ export class Translating extends StateNode {
 
 	isCloning = false
 	isCreating = false
-	isDirty = false
 	onCreate: (shape: TLShape | null) => void = () => void null
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
@@ -52,7 +57,6 @@ export class Translating extends StateNode {
 		const { isCreating = false, onCreate = () => void null } = info
 
 		this.info = info
-		this.isDirty = false
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
 		this.onCreate = onCreate
@@ -88,27 +92,20 @@ export class Translating extends StateNode {
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clearIndicators()
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.dragAndDropManager.clear()
 	}
 
-	override onTick: TLTickEventHandler = () => {
+	override onTick = () => {
 		this.dragAndDropManager.updateDroppingNode(
 			this.snapshot.movingShapes,
 			this.updateParentTransforms
 		)
 		moveCameraWhenCloseToEdge(this.editor)
-		if (this.isDirty) {
-			this.isDirty = false
-			this.updateShapes()
-		}
 	}
 
 	override onPointerMove = () => {
-		this.isDirty = true
+		this.updateShapes()
 	}
 
 	override onKeyDown = () => {
@@ -173,8 +170,11 @@ export class Translating extends StateNode {
 
 	protected complete() {
 		this.updateShapes()
-		this.isDirty = false
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
+		kickoutOccludedShapes(
+			this.editor,
+			this.snapshot.movingShapes.map((s) => s.id)
+		)
 		this.handleEnd()
 
 		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
@@ -276,10 +276,7 @@ export class Translating extends StateNode {
 
 		moveShapesToPoint({
 			editor: this.editor,
-			shapeSnapshots: snapshot.shapeSnapshots,
-			averagePagePoint: snapshot.averagePagePoint,
-			initialSelectionPageBounds: snapshot.initialPageBounds,
-			initialSelectionSnapPoints: snapshot.initialSnapPoints,
+			snapshot,
 		})
 
 		this.handleChange()
@@ -310,14 +307,17 @@ function getTranslatingSnapshot(editor: Editor) {
 	const movingShapes: TLShape[] = []
 	const pagePoints: Vec[] = []
 
+	const selectedShapeIds = editor.getSelectedShapeIds()
 	const shapeSnapshots = compact(
-		editor.getSelectedShapeIds().map((id): null | MovingShapeSnapshot => {
+		selectedShapeIds.map((id): null | MovingShapeSnapshot => {
 			const shape = editor.getShape(id)
 			if (!shape) return null
 			movingShapes.push(shape)
 
-			const pagePoint = editor.getShapePageTransform(id)!.point()
-			if (!pagePoint) return null
+			const pageTransform = editor.getShapePageTransform(id)
+			const pagePoint = pageTransform.point()
+			const pageRotation = pageTransform.rotation()
+
 			pagePoints.push(pagePoint)
 
 			const parentTransform = PageRecordType.isId(shape.parentId)
@@ -327,14 +327,18 @@ function getTranslatingSnapshot(editor: Editor) {
 			return {
 				shape,
 				pagePoint,
+				pageRotation,
 				parentTransform,
 			}
 		})
 	)
 
+	const onlySelectedShape = editor.getOnlySelectedShape()
+
 	let initialSnapPoints: BoundsSnapPoint[] = []
-	if (editor.getSelectedShapeIds().length === 1) {
-		initialSnapPoints = editor.snaps.shapeBounds.getSnapPoints(editor.getSelectedShapeIds()[0])!
+
+	if (onlySelectedShape) {
+		initialSnapPoints = editor.snaps.shapeBounds.getSnapPoints(onlySelectedShape.id)!
 	} else {
 		const selectionPageBounds = editor.getSelectionPageBounds()
 		if (selectionPageBounds) {
@@ -346,12 +350,49 @@ function getTranslatingSnapshot(editor: Editor) {
 		}
 	}
 
+	let noteAdjacentPositions: Vec[] | undefined
+	let noteSnapshot: MovingShapeSnapshot | undefined
+
+	const { originPagePoint } = editor.inputs
+
+	const allHoveredNotes = shapeSnapshots.filter(
+		(s) =>
+			editor.isShapeOfType<TLNoteShape>(s.shape, 'note') &&
+			editor.isPointInShape(s.shape, originPagePoint)
+	)
+
+	if (allHoveredNotes.length === 0) {
+		// noop
+	} else if (allHoveredNotes.length === 1) {
+		// just one, easy
+		noteSnapshot = allHoveredNotes[0]
+	} else {
+		// More than one under the cursor, so we need to find the highest shape in z-order
+		const allShapesSorted = editor.getCurrentPageShapesSorted()
+		noteSnapshot = allHoveredNotes
+			.map((s) => ({
+				snapshot: s,
+				index: allShapesSorted.findIndex((shape) => shape.id === s.shape.id),
+			}))
+			.sort((a, b) => b.index - a.index)[0]?.snapshot // highest up first
+	}
+
+	if (noteSnapshot) {
+		noteAdjacentPositions = getAvailableNoteAdjacentPositions(
+			editor,
+			noteSnapshot.pageRotation,
+			(noteSnapshot.shape as TLNoteShape).props.growY ?? 0
+		)
+	}
+
 	return {
 		averagePagePoint: Vec.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
 		initialPageBounds: editor.getSelectionPageBounds()!,
 		initialSnapPoints,
+		noteAdjacentPositions,
+		noteSnapshot,
 	}
 }
 
@@ -360,23 +401,27 @@ export type TranslatingSnapshot = ReturnType<typeof getTranslatingSnapshot>
 export interface MovingShapeSnapshot {
 	shape: TLShape
 	pagePoint: Vec
+	pageRotation: number
 	parentTransform: MatModel | null
 }
 
 export function moveShapesToPoint({
 	editor,
-	shapeSnapshots: snapshots,
-	averagePagePoint,
-	initialSelectionPageBounds,
-	initialSelectionSnapPoints,
+	snapshot,
 }: {
 	editor: Editor
-	shapeSnapshots: MovingShapeSnapshot[]
-	averagePagePoint: Vec
-	initialSelectionPageBounds: Box
-	initialSelectionSnapPoints: BoundsSnapPoint[]
+	snapshot: TranslatingSnapshot
 }) {
 	const { inputs } = editor
+
+	const {
+		noteSnapshot,
+		noteAdjacentPositions,
+		initialPageBounds,
+		initialSnapPoints,
+		shapeSnapshots,
+		averagePagePoint,
+	} = snapshot
 
 	const isGridMode = editor.getInstanceState().isGridMode
 
@@ -399,19 +444,41 @@ export function moveShapesToPoint({
 	// Provisional snapping
 	editor.snaps.clearIndicators()
 
-	const shouldSnap =
-		(editor.user.getIsSnapMode() ? !inputs.ctrlKey : inputs.ctrlKey) &&
-		editor.inputs.pointerVelocity.len() < 0.5 // ...and if the user is not dragging fast
-
-	if (shouldSnap) {
+	// If the user isn't moving super quick
+	const isSnapping = editor.user.getIsSnapMode() ? !inputs.ctrlKey : inputs.ctrlKey
+	if (isSnapping && editor.inputs.pointerVelocity.len() < 0.5) {
+		// snapping
 		const { nudge } = editor.snaps.shapeBounds.snapTranslateShapes({
 			dragDelta: delta,
-			initialSelectionPageBounds,
+			initialSelectionPageBounds: initialPageBounds,
 			lockedAxis: flatten,
-			initialSelectionSnapPoints,
+			initialSelectionSnapPoints: initialSnapPoints,
 		})
 
 		delta.add(nudge)
+	} else {
+		// for sticky notes, snap to grid position next to other notes
+		if (noteSnapshot && noteAdjacentPositions) {
+			let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
+			let offset = new Vec(0, 0)
+
+			const pageCenter = Vec.Add(
+				Vec.Add(noteSnapshot.pagePoint, delta),
+				new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2).rot(noteSnapshot.pageRotation)
+			)
+
+			for (const pit of noteAdjacentPositions) {
+				// We've already filtered pits with the same page rotation
+				const deltaToPit = Vec.Sub(pageCenter, pit)
+				const dist = deltaToPit.len()
+				if (dist < min) {
+					min = dist
+					offset = deltaToPit
+				}
+			}
+
+			delta.sub(offset)
+		}
 	}
 
 	const averageSnappedPoint = Vec.Add(averagePagePoint, delta)
@@ -424,8 +491,9 @@ export function moveShapesToPoint({
 
 	editor.updateShapes(
 		compact(
-			snapshots.map(({ shape, pagePoint, parentTransform }): TLShapePartial | null => {
+			shapeSnapshots.map(({ shape, pagePoint, parentTransform }): TLShapePartial | null => {
 				const newPagePoint = Vec.Add(pagePoint, averageSnap)
+
 				const newLocalPoint = parentTransform
 					? Mat.applyToPoint(parentTransform, newPagePoint)
 					: newPagePoint
@@ -437,7 +505,6 @@ export function moveShapesToPoint({
 					y: newLocalPoint.y,
 				}
 			})
-		),
-		{ squashing: true }
+		)
 	)
 }

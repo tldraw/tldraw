@@ -1,63 +1,67 @@
-import { defineMigrations, SerializedStore } from '@tldraw/store'
-import { TLRecord } from './records/TLRecord'
+import { createMigrationIds, createMigrationSequence } from '@tldraw/store'
+import { objectMapEntries } from '@tldraw/utils'
+import { TLShape } from './records/TLShape'
 
-const Versions = {
+const Versions = createMigrationIds('com.tldraw.store', {
 	RemoveCodeAndIconShapeTypes: 1,
 	AddInstancePresenceType: 2,
 	RemoveTLUserAndPresenceAndAddPointer: 3,
 	RemoveUserDocument: 4,
-} as const
+} as const)
 
 export { Versions as storeVersions }
 
 /** @public */
-export const storeMigrations = defineMigrations({
-	currentVersion: Versions.RemoveUserDocument,
-	migrators: {
-		[Versions.RemoveCodeAndIconShapeTypes]: {
-			up: (store: SerializedStore<TLRecord>) => {
-				return Object.fromEntries(
-					Object.entries(store).filter(
-						([_, v]) => v.typeName !== 'shape' || (v.type !== 'icon' && v.type !== 'code')
-					)
-				)
+export const storeMigrations = createMigrationSequence({
+	sequenceId: 'com.tldraw.store',
+	retroactive: false,
+	sequence: [
+		{
+			id: Versions.RemoveCodeAndIconShapeTypes,
+			scope: 'store',
+			up: (store) => {
+				for (const [id, record] of objectMapEntries(store)) {
+					if (
+						record.typeName === 'shape' &&
+						((record as TLShape).type === 'icon' || (record as TLShape).type === 'code')
+					) {
+						delete store[id]
+					}
+				}
 			},
-			down: (store: SerializedStore<TLRecord>) => {
+		},
+		{
+			id: Versions.AddInstancePresenceType,
+			scope: 'store',
+			up(_store) {
 				// noop
-				return store
+				// there used to be a down migration for this but we made down migrations optional
+				// and we don't use them on store-level migrations so we can just remove it
 			},
 		},
-		[Versions.AddInstancePresenceType]: {
-			up: (store: SerializedStore<TLRecord>) => {
-				return store
-			},
-			down: (store: SerializedStore<TLRecord>) => {
-				return Object.fromEntries(
-					Object.entries(store).filter(([_, v]) => v.typeName !== 'instance_presence')
-				)
-			},
-		},
-		[Versions.RemoveTLUserAndPresenceAndAddPointer]: {
-			up: (store: SerializedStore<TLRecord>) => {
-				return Object.fromEntries(
-					Object.entries(store).filter(([_, v]) => !v.typeName.match(/^(user|user_presence)$/))
-				)
-			},
-			down: (store: SerializedStore<TLRecord>) => {
-				return Object.fromEntries(
-					Object.entries(store).filter(([_, v]) => v.typeName !== 'pointer')
-				)
+		{
+			// remove user and presence records and add pointer records
+			id: Versions.RemoveTLUserAndPresenceAndAddPointer,
+			scope: 'store',
+			up: (store) => {
+				for (const [id, record] of objectMapEntries(store)) {
+					if (record.typeName.match(/^(user|user_presence)$/)) {
+						delete store[id]
+					}
+				}
 			},
 		},
-		[Versions.RemoveUserDocument]: {
-			up: (store: SerializedStore<TLRecord>) => {
-				return Object.fromEntries(
-					Object.entries(store).filter(([_, v]) => !v.typeName.match('user_document'))
-				)
-			},
-			down: (store: SerializedStore<TLRecord>) => {
-				return store
+		{
+			// remove user document records
+			id: Versions.RemoveUserDocument,
+			scope: 'store',
+			up: (store) => {
+				for (const [id, record] of objectMapEntries(store)) {
+					if (record.typeName.match('user_document')) {
+						delete store[id]
+					}
+				}
 			},
 		},
-	},
+	],
 })

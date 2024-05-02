@@ -1,5 +1,11 @@
-export { TLServer, type DBLoadResult } from './lib/TLServer'
 export {
+	TLServer,
+	type DBLoadResult,
+	type DBLoadResultType,
+	type TLServerEvent,
+} from './lib/TLServer'
+export {
+	TLCloseEventCode,
 	TLSyncClient,
 	type TLPersistentClientSocket,
 	type TLPersistentClientSocketStatus,
@@ -23,7 +29,7 @@ export {
 } from './lib/diff'
 export {
 	TLIncompatibilityReason,
-	TLSYNC_PROTOCOL_VERSION,
+	getTlsyncProtocolVersion,
 	type TLConnectRequest,
 	type TLPingRequest,
 	type TLPushRequest,

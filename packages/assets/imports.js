@@ -7,6 +7,7 @@ import { formatAssetUrl } from './utils.js'
 
 import embedIconsCodepen from './embed-icons/codepen.png'
 import embedIconsCodesandbox from './embed-icons/codesandbox.png'
+import embedIconsDesmos from './embed-icons/desmos.png'
 import embedIconsExcalidraw from './embed-icons/excalidraw.png'
 import embedIconsFelt from './embed-icons/felt.png'
 import embedIconsFigma from './embed-icons/figma.png'
@@ -26,20 +27,11 @@ import fontsMonospace from './fonts/IBMPlexMono-Medium.woff2'
 import fontsSansSerif from './fonts/IBMPlexSans-Medium.woff2'
 import fontsSerif from './fonts/IBMPlexSerif-Medium.woff2'
 import fontsDraw from './fonts/Shantell_Sans-Tldrawish.woff2'
-import iconsAlignBottomCenter from './icons/icon/align-bottom-center.svg'
-import iconsAlignBottomLeft from './icons/icon/align-bottom-left.svg'
-import iconsAlignBottomRight from './icons/icon/align-bottom-right.svg'
 import iconsAlignBottom from './icons/icon/align-bottom.svg'
-import iconsAlignCenterCenter from './icons/icon/align-center-center.svg'
 import iconsAlignCenterHorizontal from './icons/icon/align-center-horizontal.svg'
-import iconsAlignCenterLeft from './icons/icon/align-center-left.svg'
-import iconsAlignCenterRight from './icons/icon/align-center-right.svg'
 import iconsAlignCenterVertical from './icons/icon/align-center-vertical.svg'
 import iconsAlignLeft from './icons/icon/align-left.svg'
 import iconsAlignRight from './icons/icon/align-right.svg'
-import iconsAlignTopCenter from './icons/icon/align-top-center.svg'
-import iconsAlignTopLeft from './icons/icon/align-top-left.svg'
-import iconsAlignTopRight from './icons/icon/align-top-right.svg'
 import iconsAlignTop from './icons/icon/align-top.svg'
 import iconsArrowLeft from './icons/icon/arrow-left.svg'
 import iconsArrowheadArrow from './icons/icon/arrowhead-arrow.svg'
@@ -50,14 +42,12 @@ import iconsArrowheadNone from './icons/icon/arrowhead-none.svg'
 import iconsArrowheadSquare from './icons/icon/arrowhead-square.svg'
 import iconsArrowheadTriangleInverted from './icons/icon/arrowhead-triangle-inverted.svg'
 import iconsArrowheadTriangle from './icons/icon/arrowhead-triangle.svg'
-import iconsAspectRatio from './icons/icon/aspect-ratio.svg'
-import iconsAvatar from './icons/icon/avatar.svg'
 import iconsBlob from './icons/icon/blob.svg'
 import iconsBringForward from './icons/icon/bring-forward.svg'
 import iconsBringToFront from './icons/icon/bring-to-front.svg'
+import iconsBroken from './icons/icon/broken.svg'
+import iconsCheckCircle from './icons/icon/check-circle.svg'
 import iconsCheck from './icons/icon/check.svg'
-import iconsCheckboxChecked from './icons/icon/checkbox-checked.svg'
-import iconsCheckboxEmpty from './icons/icon/checkbox-empty.svg'
 import iconsChevronDown from './icons/icon/chevron-down.svg'
 import iconsChevronLeft from './icons/icon/chevron-left.svg'
 import iconsChevronRight from './icons/icon/chevron-right.svg'
@@ -66,16 +56,14 @@ import iconsChevronsNe from './icons/icon/chevrons-ne.svg'
 import iconsChevronsSw from './icons/icon/chevrons-sw.svg'
 import iconsClipboardCopied from './icons/icon/clipboard-copied.svg'
 import iconsClipboardCopy from './icons/icon/clipboard-copy.svg'
-import iconsCode from './icons/icon/code.svg'
-import iconsCollab from './icons/icon/collab.svg'
 import iconsColor from './icons/icon/color.svg'
-import iconsComment from './icons/icon/comment.svg'
 import iconsCross2 from './icons/icon/cross-2.svg'
-import iconsCross from './icons/icon/cross.svg'
+import iconsCrossCircle from './icons/icon/cross-circle.svg'
 import iconsDashDashed from './icons/icon/dash-dashed.svg'
 import iconsDashDotted from './icons/icon/dash-dotted.svg'
 import iconsDashDraw from './icons/icon/dash-draw.svg'
 import iconsDashSolid from './icons/icon/dash-solid.svg'
+import iconsDisconnected from './icons/icon/disconnected.svg'
 import iconsDiscord from './icons/icon/discord.svg'
 import iconsDistributeHorizontal from './icons/icon/distribute-horizontal.svg'
 import iconsDistributeVertical from './icons/icon/distribute-vertical.svg'
@@ -86,7 +74,6 @@ import iconsDragHandleDots from './icons/icon/drag-handle-dots.svg'
 import iconsDuplicate from './icons/icon/duplicate.svg'
 import iconsEdit from './icons/icon/edit.svg'
 import iconsExternalLink from './icons/icon/external-link.svg'
-import iconsFile from './icons/icon/file.svg'
 import iconsFillNone from './icons/icon/fill-none.svg'
 import iconsFillPattern from './icons/icon/fill-pattern.svg'
 import iconsFillSemi from './icons/icon/fill-semi.svg'
@@ -118,18 +105,17 @@ import iconsGeoTriangle from './icons/icon/geo-triangle.svg'
 import iconsGeoXBox from './icons/icon/geo-x-box.svg'
 import iconsGithub from './icons/icon/github.svg'
 import iconsGroup from './icons/icon/group.svg'
-import iconsHidden from './icons/icon/hidden.svg'
-import iconsImage from './icons/icon/image.svg'
+import iconsHorizontalAlignEnd from './icons/icon/horizontal-align-end.svg'
+import iconsHorizontalAlignMiddle from './icons/icon/horizontal-align-middle.svg'
+import iconsHorizontalAlignStart from './icons/icon/horizontal-align-start.svg'
 import iconsInfoCircle from './icons/icon/info-circle.svg'
 import iconsLeading from './icons/icon/leading.svg'
 import iconsLink from './icons/icon/link.svg'
-import iconsLockSmall from './icons/icon/lock-small.svg'
 import iconsLock from './icons/icon/lock.svg'
 import iconsMenu from './icons/icon/menu.svg'
 import iconsMinus from './icons/icon/minus.svg'
 import iconsMixed from './icons/icon/mixed.svg'
 import iconsPack from './icons/icon/pack.svg'
-import iconsPage from './icons/icon/page.svg'
 import iconsPlus from './icons/icon/plus.svg'
 import iconsQuestionMarkCircle from './icons/icon/question-mark-circle.svg'
 import iconsQuestionMark from './icons/icon/question-mark.svg'
@@ -137,33 +123,23 @@ import iconsRedo from './icons/icon/redo.svg'
 import iconsResetZoom from './icons/icon/reset-zoom.svg'
 import iconsRotateCcw from './icons/icon/rotate-ccw.svg'
 import iconsRotateCw from './icons/icon/rotate-cw.svg'
-import iconsRuler from './icons/icon/ruler.svg'
-import iconsSearch from './icons/icon/search.svg'
 import iconsSendBackward from './icons/icon/send-backward.svg'
 import iconsSendToBack from './icons/icon/send-to-back.svg'
-import iconsSettingsHorizontal from './icons/icon/settings-horizontal.svg'
-import iconsSettingsVertical1 from './icons/icon/settings-vertical-1.svg'
-import iconsSettingsVertical from './icons/icon/settings-vertical.svg'
 import iconsShare1 from './icons/icon/share-1.svg'
-import iconsShare2 from './icons/icon/share-2.svg'
 import iconsSizeExtraLarge from './icons/icon/size-extra-large.svg'
 import iconsSizeLarge from './icons/icon/size-large.svg'
 import iconsSizeMedium from './icons/icon/size-medium.svg'
 import iconsSizeSmall from './icons/icon/size-small.svg'
-import iconsSplineCubic from './icons/icon/spline-cubic.svg'
-import iconsSplineLine from './icons/icon/spline-line.svg'
 import iconsStackHorizontal from './icons/icon/stack-horizontal.svg'
 import iconsStackVertical from './icons/icon/stack-vertical.svg'
-import iconsStatusOffline from './icons/icon/status-offline.svg'
-import iconsStatusOnline from './icons/icon/status-online.svg'
 import iconsStretchHorizontal from './icons/icon/stretch-horizontal.svg'
 import iconsStretchVertical from './icons/icon/stretch-vertical.svg'
 import iconsTextAlignCenter from './icons/icon/text-align-center.svg'
-import iconsTextAlignJustify from './icons/icon/text-align-justify.svg'
 import iconsTextAlignLeft from './icons/icon/text-align-left.svg'
 import iconsTextAlignRight from './icons/icon/text-align-right.svg'
+import iconsToggleOff from './icons/icon/toggle-off.svg'
+import iconsToggleOn from './icons/icon/toggle-on.svg'
 import iconsToolArrow from './icons/icon/tool-arrow.svg'
-import iconsToolEmbed from './icons/icon/tool-embed.svg'
 import iconsToolEraser from './icons/icon/tool-eraser.svg'
 import iconsToolFrame from './icons/icon/tool-frame.svg'
 import iconsToolHand from './icons/icon/tool-hand.svg'
@@ -174,19 +150,16 @@ import iconsToolMedia from './icons/icon/tool-media.svg'
 import iconsToolNote from './icons/icon/tool-note.svg'
 import iconsToolPencil from './icons/icon/tool-pencil.svg'
 import iconsToolPointer from './icons/icon/tool-pointer.svg'
+import iconsToolScreenshot from './icons/icon/tool-screenshot.svg'
 import iconsToolText from './icons/icon/tool-text.svg'
 import iconsTrash from './icons/icon/trash.svg'
-import iconsTriangleDown from './icons/icon/triangle-down.svg'
-import iconsTriangleUp from './icons/icon/triangle-up.svg'
 import iconsTwitter from './icons/icon/twitter.svg'
 import iconsUndo from './icons/icon/undo.svg'
 import iconsUngroup from './icons/icon/ungroup.svg'
-import iconsUnlockSmall from './icons/icon/unlock-small.svg'
 import iconsUnlock from './icons/icon/unlock.svg'
-import iconsVerticalAlignCenter from './icons/icon/vertical-align-center.svg'
 import iconsVerticalAlignEnd from './icons/icon/vertical-align-end.svg'
+import iconsVerticalAlignMiddle from './icons/icon/vertical-align-middle.svg'
 import iconsVerticalAlignStart from './icons/icon/vertical-align-start.svg'
-import iconsVisible from './icons/icon/visible.svg'
 import iconsWarningTriangle from './icons/icon/warning-triangle.svg'
 import iconsZoomIn from './icons/icon/zoom-in.svg'
 import iconsZoomOut from './icons/icon/zoom-out.svg'
@@ -205,6 +178,7 @@ import translationsHe from './translations/he.json'
 import translationsHiIn from './translations/hi-in.json'
 import translationsHr from './translations/hr.json'
 import translationsHu from './translations/hu.json'
+import translationsId from './translations/id.json'
 import translationsIt from './translations/it.json'
 import translationsJa from './translations/ja.json'
 import translationsKoKr from './translations/ko-kr.json'
@@ -242,20 +216,11 @@ export function getAssetUrlsByImport(opts) {
 			draw: formatAssetUrl(fontsDraw, opts),
 		},
 		icons: {
-			'align-bottom-center': formatAssetUrl(iconsAlignBottomCenter, opts),
-			'align-bottom-left': formatAssetUrl(iconsAlignBottomLeft, opts),
-			'align-bottom-right': formatAssetUrl(iconsAlignBottomRight, opts),
 			'align-bottom': formatAssetUrl(iconsAlignBottom, opts),
-			'align-center-center': formatAssetUrl(iconsAlignCenterCenter, opts),
 			'align-center-horizontal': formatAssetUrl(iconsAlignCenterHorizontal, opts),
-			'align-center-left': formatAssetUrl(iconsAlignCenterLeft, opts),
-			'align-center-right': formatAssetUrl(iconsAlignCenterRight, opts),
 			'align-center-vertical': formatAssetUrl(iconsAlignCenterVertical, opts),
 			'align-left': formatAssetUrl(iconsAlignLeft, opts),
 			'align-right': formatAssetUrl(iconsAlignRight, opts),
-			'align-top-center': formatAssetUrl(iconsAlignTopCenter, opts),
-			'align-top-left': formatAssetUrl(iconsAlignTopLeft, opts),
-			'align-top-right': formatAssetUrl(iconsAlignTopRight, opts),
 			'align-top': formatAssetUrl(iconsAlignTop, opts),
 			'arrow-left': formatAssetUrl(iconsArrowLeft, opts),
 			'arrowhead-arrow': formatAssetUrl(iconsArrowheadArrow, opts),
@@ -266,14 +231,12 @@ export function getAssetUrlsByImport(opts) {
 			'arrowhead-square': formatAssetUrl(iconsArrowheadSquare, opts),
 			'arrowhead-triangle-inverted': formatAssetUrl(iconsArrowheadTriangleInverted, opts),
 			'arrowhead-triangle': formatAssetUrl(iconsArrowheadTriangle, opts),
-			'aspect-ratio': formatAssetUrl(iconsAspectRatio, opts),
-			avatar: formatAssetUrl(iconsAvatar, opts),
 			blob: formatAssetUrl(iconsBlob, opts),
 			'bring-forward': formatAssetUrl(iconsBringForward, opts),
 			'bring-to-front': formatAssetUrl(iconsBringToFront, opts),
+			broken: formatAssetUrl(iconsBroken, opts),
+			'check-circle': formatAssetUrl(iconsCheckCircle, opts),
 			check: formatAssetUrl(iconsCheck, opts),
-			'checkbox-checked': formatAssetUrl(iconsCheckboxChecked, opts),
-			'checkbox-empty': formatAssetUrl(iconsCheckboxEmpty, opts),
 			'chevron-down': formatAssetUrl(iconsChevronDown, opts),
 			'chevron-left': formatAssetUrl(iconsChevronLeft, opts),
 			'chevron-right': formatAssetUrl(iconsChevronRight, opts),
@@ -282,16 +245,14 @@ export function getAssetUrlsByImport(opts) {
 			'chevrons-sw': formatAssetUrl(iconsChevronsSw, opts),
 			'clipboard-copied': formatAssetUrl(iconsClipboardCopied, opts),
 			'clipboard-copy': formatAssetUrl(iconsClipboardCopy, opts),
-			code: formatAssetUrl(iconsCode, opts),
-			collab: formatAssetUrl(iconsCollab, opts),
 			color: formatAssetUrl(iconsColor, opts),
-			comment: formatAssetUrl(iconsComment, opts),
 			'cross-2': formatAssetUrl(iconsCross2, opts),
-			cross: formatAssetUrl(iconsCross, opts),
+			'cross-circle': formatAssetUrl(iconsCrossCircle, opts),
 			'dash-dashed': formatAssetUrl(iconsDashDashed, opts),
 			'dash-dotted': formatAssetUrl(iconsDashDotted, opts),
 			'dash-draw': formatAssetUrl(iconsDashDraw, opts),
 			'dash-solid': formatAssetUrl(iconsDashSolid, opts),
+			disconnected: formatAssetUrl(iconsDisconnected, opts),
 			discord: formatAssetUrl(iconsDiscord, opts),
 			'distribute-horizontal': formatAssetUrl(iconsDistributeHorizontal, opts),
 			'distribute-vertical': formatAssetUrl(iconsDistributeVertical, opts),
@@ -302,7 +263,6 @@ export function getAssetUrlsByImport(opts) {
 			duplicate: formatAssetUrl(iconsDuplicate, opts),
 			edit: formatAssetUrl(iconsEdit, opts),
 			'external-link': formatAssetUrl(iconsExternalLink, opts),
-			file: formatAssetUrl(iconsFile, opts),
 			'fill-none': formatAssetUrl(iconsFillNone, opts),
 			'fill-pattern': formatAssetUrl(iconsFillPattern, opts),
 			'fill-semi': formatAssetUrl(iconsFillSemi, opts),
@@ -334,18 +294,17 @@ export function getAssetUrlsByImport(opts) {
 			'geo-x-box': formatAssetUrl(iconsGeoXBox, opts),
 			github: formatAssetUrl(iconsGithub, opts),
 			group: formatAssetUrl(iconsGroup, opts),
-			hidden: formatAssetUrl(iconsHidden, opts),
-			image: formatAssetUrl(iconsImage, opts),
+			'horizontal-align-end': formatAssetUrl(iconsHorizontalAlignEnd, opts),
+			'horizontal-align-middle': formatAssetUrl(iconsHorizontalAlignMiddle, opts),
+			'horizontal-align-start': formatAssetUrl(iconsHorizontalAlignStart, opts),
 			'info-circle': formatAssetUrl(iconsInfoCircle, opts),
 			leading: formatAssetUrl(iconsLeading, opts),
 			link: formatAssetUrl(iconsLink, opts),
-			'lock-small': formatAssetUrl(iconsLockSmall, opts),
 			lock: formatAssetUrl(iconsLock, opts),
 			menu: formatAssetUrl(iconsMenu, opts),
 			minus: formatAssetUrl(iconsMinus, opts),
 			mixed: formatAssetUrl(iconsMixed, opts),
 			pack: formatAssetUrl(iconsPack, opts),
-			page: formatAssetUrl(iconsPage, opts),
 			plus: formatAssetUrl(iconsPlus, opts),
 			'question-mark-circle': formatAssetUrl(iconsQuestionMarkCircle, opts),
 			'question-mark': formatAssetUrl(iconsQuestionMark, opts),
@@ -353,33 +312,23 @@ export function getAssetUrlsByImport(opts) {
 			'reset-zoom': formatAssetUrl(iconsResetZoom, opts),
 			'rotate-ccw': formatAssetUrl(iconsRotateCcw, opts),
 			'rotate-cw': formatAssetUrl(iconsRotateCw, opts),
-			ruler: formatAssetUrl(iconsRuler, opts),
-			search: formatAssetUrl(iconsSearch, opts),
 			'send-backward': formatAssetUrl(iconsSendBackward, opts),
 			'send-to-back': formatAssetUrl(iconsSendToBack, opts),
-			'settings-horizontal': formatAssetUrl(iconsSettingsHorizontal, opts),
-			'settings-vertical-1': formatAssetUrl(iconsSettingsVertical1, opts),
-			'settings-vertical': formatAssetUrl(iconsSettingsVertical, opts),
 			'share-1': formatAssetUrl(iconsShare1, opts),
-			'share-2': formatAssetUrl(iconsShare2, opts),
 			'size-extra-large': formatAssetUrl(iconsSizeExtraLarge, opts),
 			'size-large': formatAssetUrl(iconsSizeLarge, opts),
 			'size-medium': formatAssetUrl(iconsSizeMedium, opts),
 			'size-small': formatAssetUrl(iconsSizeSmall, opts),
-			'spline-cubic': formatAssetUrl(iconsSplineCubic, opts),
-			'spline-line': formatAssetUrl(iconsSplineLine, opts),
 			'stack-horizontal': formatAssetUrl(iconsStackHorizontal, opts),
 			'stack-vertical': formatAssetUrl(iconsStackVertical, opts),
-			'status-offline': formatAssetUrl(iconsStatusOffline, opts),
-			'status-online': formatAssetUrl(iconsStatusOnline, opts),
 			'stretch-horizontal': formatAssetUrl(iconsStretchHorizontal, opts),
 			'stretch-vertical': formatAssetUrl(iconsStretchVertical, opts),
 			'text-align-center': formatAssetUrl(iconsTextAlignCenter, opts),
-			'text-align-justify': formatAssetUrl(iconsTextAlignJustify, opts),
 			'text-align-left': formatAssetUrl(iconsTextAlignLeft, opts),
 			'text-align-right': formatAssetUrl(iconsTextAlignRight, opts),
+			'toggle-off': formatAssetUrl(iconsToggleOff, opts),
+			'toggle-on': formatAssetUrl(iconsToggleOn, opts),
 			'tool-arrow': formatAssetUrl(iconsToolArrow, opts),
-			'tool-embed': formatAssetUrl(iconsToolEmbed, opts),
 			'tool-eraser': formatAssetUrl(iconsToolEraser, opts),
 			'tool-frame': formatAssetUrl(iconsToolFrame, opts),
 			'tool-hand': formatAssetUrl(iconsToolHand, opts),
@@ -390,19 +339,16 @@ export function getAssetUrlsByImport(opts) {
 			'tool-note': formatAssetUrl(iconsToolNote, opts),
 			'tool-pencil': formatAssetUrl(iconsToolPencil, opts),
 			'tool-pointer': formatAssetUrl(iconsToolPointer, opts),
+			'tool-screenshot': formatAssetUrl(iconsToolScreenshot, opts),
 			'tool-text': formatAssetUrl(iconsToolText, opts),
 			trash: formatAssetUrl(iconsTrash, opts),
-			'triangle-down': formatAssetUrl(iconsTriangleDown, opts),
-			'triangle-up': formatAssetUrl(iconsTriangleUp, opts),
 			twitter: formatAssetUrl(iconsTwitter, opts),
 			undo: formatAssetUrl(iconsUndo, opts),
 			ungroup: formatAssetUrl(iconsUngroup, opts),
-			'unlock-small': formatAssetUrl(iconsUnlockSmall, opts),
 			unlock: formatAssetUrl(iconsUnlock, opts),
-			'vertical-align-center': formatAssetUrl(iconsVerticalAlignCenter, opts),
 			'vertical-align-end': formatAssetUrl(iconsVerticalAlignEnd, opts),
+			'vertical-align-middle': formatAssetUrl(iconsVerticalAlignMiddle, opts),
 			'vertical-align-start': formatAssetUrl(iconsVerticalAlignStart, opts),
-			visible: formatAssetUrl(iconsVisible, opts),
 			'warning-triangle': formatAssetUrl(iconsWarningTriangle, opts),
 			'zoom-in': formatAssetUrl(iconsZoomIn, opts),
 			'zoom-out': formatAssetUrl(iconsZoomOut, opts),
@@ -423,6 +369,7 @@ export function getAssetUrlsByImport(opts) {
 			'hi-in': formatAssetUrl(translationsHiIn, opts),
 			hr: formatAssetUrl(translationsHr, opts),
 			hu: formatAssetUrl(translationsHu, opts),
+			id: formatAssetUrl(translationsId, opts),
 			it: formatAssetUrl(translationsIt, opts),
 			ja: formatAssetUrl(translationsJa, opts),
 			'ko-kr': formatAssetUrl(translationsKoKr, opts),
@@ -450,6 +397,7 @@ export function getAssetUrlsByImport(opts) {
 		embedIcons: {
 			codepen: formatAssetUrl(embedIconsCodepen, opts),
 			codesandbox: formatAssetUrl(embedIconsCodesandbox, opts),
+			desmos: formatAssetUrl(embedIconsDesmos, opts),
 			excalidraw: formatAssetUrl(embedIconsExcalidraw, opts),
 			felt: formatAssetUrl(embedIconsFelt, opts),
 			figma: formatAssetUrl(embedIconsFigma, opts),

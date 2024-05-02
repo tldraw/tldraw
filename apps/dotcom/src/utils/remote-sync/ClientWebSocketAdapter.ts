@@ -1,5 +1,6 @@
 import {
 	chunk,
+	TLCloseEventCode,
 	TLPersistentClientSocket,
 	TLPersistentClientSocketStatus,
 	TLSocketClientSentEvent,
@@ -68,15 +69,20 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		this._reconnectManager.connected()
 	}
 
-	private _handleDisconnect(reason: 'closed' | 'error' | 'manual') {
+	private _handleDisconnect(reason: 'closed' | 'error' | 'manual', closeCode?: number) {
 		debug('handleDisconnect', {
 			currentStatus: this.connectionStatus,
+			closeCode,
 			reason,
 		})
 
 		let newStatus: 'offline' | 'error'
 		switch (reason) {
 			case 'closed':
+				if (closeCode === TLCloseEventCode.NOT_FOUND) {
+					newStatus = 'error'
+					break
+				}
 				newStatus = 'offline'
 				break
 			case 'error':
@@ -94,7 +100,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 			!(newStatus === 'error' && this.connectionStatus === 'offline')
 		) {
 			this._connectionStatus.set(newStatus)
-			this.statusListeners.forEach((cb) => cb(newStatus))
+			this.statusListeners.forEach((cb) => cb(newStatus, closeCode))
 		}
 
 		this._reconnectManager.disconnected()
@@ -120,10 +126,10 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 			)
 			this._handleConnect()
 		}
-		ws.onclose = () => {
+		ws.onclose = (event: CloseEvent) => {
 			debug('ws.onclose')
 			if (this._ws === ws) {
-				this._handleDisconnect('closed')
+				this._handleDisconnect('closed', event.code)
 			} else {
 				debug('ignoring onclose for an orphaned socket')
 			}
@@ -194,8 +200,10 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		}
 	}
 
-	private statusListeners = new Set<(status: TLPersistentClientSocketStatus) => void>()
-	onStatusChange(cb: (val: TLPersistentClientSocketStatus) => void) {
+	private statusListeners = new Set<
+		(status: TLPersistentClientSocketStatus, closeCode?: number) => void
+	>()
+	onStatusChange(cb: (val: TLPersistentClientSocketStatus, closeCode?: number) => void) {
 		assert(!this.isDisposed, 'Tried to add status listener on a disposed socket')
 
 		this.statusListeners.add(cb)

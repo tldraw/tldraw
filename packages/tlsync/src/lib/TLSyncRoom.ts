@@ -6,17 +6,17 @@ import {
 	SerializedSchema,
 	StoreSchema,
 	UnknownRecord,
-	compareRecordVersions,
-	getRecordVersion,
 } from '@tldraw/store'
 import { DocumentRecordType, PageRecordType, TLDOCUMENT_ID } from '@tldraw/tlschema'
 import {
 	IndexKey,
 	Result,
+	assert,
 	assertExists,
 	exhaustiveSwitchError,
 	getOwnProperty,
 	hasOwnProperty,
+	isNativeStructuredClone,
 	objectMapEntries,
 	objectMapKeys,
 } from '@tldraw/utils'
@@ -41,10 +41,10 @@ import {
 import { interval } from './interval'
 import {
 	TLIncompatibilityReason,
-	TLSYNC_PROTOCOL_VERSION,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
+	getTlsyncProtocolVersion,
 } from './protocol'
 
 /** @public */
@@ -208,6 +208,12 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		public readonly schema: StoreSchema<R, any>,
 		snapshot?: RoomSnapshot
 	) {
+		assert(
+			isNativeStructuredClone,
+			'TLSyncRoom is supposed to run either on Cloudflare Workers' +
+				'or on a 18+ version of Node.js, which both support the native structuredClone API'
+		)
+
 		// do a json serialization cycle to make sure the schema has no 'undefined' values
 		this.serializedSchema = JSON.parse(JSON.stringify(schema.serialize()))
 
@@ -280,6 +286,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			store: Object.fromEntries(
 				objectMapEntries(documents).map(([id, { state }]) => [id, state as R])
 			) as Record<IdOf<R>, R>,
+			// eslint-disable-next-line deprecation/deprecation
 			schema: snapshot.schema ?? schema.serializeEarliestVersion(),
 		})
 
@@ -662,20 +669,28 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		// if the protocol versions don't match, disconnect the client
 		// we will eventually want to try to make our protocol backwards compatible to some degree
 		// and have a MIN_PROTOCOL_VERSION constant that the TLSyncRoom implements support for
-		if (message.protocolVersion == null || message.protocolVersion < TLSYNC_PROTOCOL_VERSION) {
+		let theirProtocolVersion = message.protocolVersion
+		// 5 is the same as 6
+		if (theirProtocolVersion === 5) {
+			theirProtocolVersion = 6
+		}
+		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session, TLIncompatibilityReason.ClientTooOld)
 			return
-		} else if (message.protocolVersion > TLSYNC_PROTOCOL_VERSION) {
+		} else if (theirProtocolVersion > getTlsyncProtocolVersion()) {
 			this.rejectSession(session, TLIncompatibilityReason.ServerTooOld)
 			return
 		}
 		// If the client's store is at a different version to ours, it could cause corruption.
 		// We should disconnect the client and ask them to refresh.
-		if (message.schema == null || message.schema.storeVersion < this.schema.currentStoreVersion) {
+		if (message.schema == null) {
 			this.rejectSession(session, TLIncompatibilityReason.ClientTooOld)
 			return
-		} else if (message.schema.storeVersion > this.schema.currentStoreVersion) {
-			this.rejectSession(session, TLIncompatibilityReason.ServerTooOld)
+		}
+		const migrations = this.schema.getMigrationsSince(message.schema)
+		// if the client's store is at a different version to ours, we can't support them
+		if (!migrations.ok || migrations.value.some((m) => m.scope === 'store' || !m.down)) {
+			this.rejectSession(session, TLIncompatibilityReason.ClientTooOld)
 			return
 		}
 
@@ -727,7 +742,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					type: 'connect',
 					connectRequestId: message.connectRequestId,
 					hydrationType: 'wipe_all',
-					protocolVersion: TLSYNC_PROTOCOL_VERSION,
+					protocolVersion: getTlsyncProtocolVersion(),
 					schema: this.schema.serialize(),
 					serverClock: this.clock,
 					diff: migrated.value,
@@ -773,7 +788,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					connectRequestId: message.connectRequestId,
 					hydrationType: 'wipe_presence',
 					schema: this.schema.serialize(),
-					protocolVersion: TLSYNC_PROTOCOL_VERSION,
+					protocolVersion: getTlsyncProtocolVersion(),
 					serverClock: this.clock,
 					diff: migrated.value,
 				})
@@ -856,61 +871,48 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				// if it was already deleted, there's no need to apply the patch
 				const doc = this.getDocument(id)
 				if (!doc) return Result.ok(undefined)
+				// If the client's version of the record is older than ours,
+				// we apply the patch to the downgraded version of the record
+				const downgraded = this.schema.migratePersistedRecord(
+					doc.state,
+					session.serializedSchema,
+					'down'
+				)
+				if (downgraded.type === 'error') {
+					return fail(TLIncompatibilityReason.ClientTooOld)
+				}
 
-				// Compare versions of the record
-				const theirVersion = getRecordVersion(doc.state, session.serializedSchema)
-				const ourVersion = getRecordVersion(doc.state, this.serializedSchema)
-				const comparison = compareRecordVersions(ourVersion, theirVersion)
-
-				switch (comparison) {
-					case 0: {
-						// If the versions are compatible, apply the patch and propagate the patch op
-						const diff = doc.mergeDiff(patch, this.clock)
-						if (!diff.ok) {
-							return fail(TLIncompatibilityReason.InvalidRecord)
-						}
-						if (diff.value) {
-							propagateOp(id, [RecordOpType.Patch, diff.value])
-						}
-						break
+				if (downgraded.value === doc.state) {
+					// If the versions are compatible, apply the patch and propagate the patch op
+					const diff = doc.mergeDiff(patch, this.clock)
+					if (!diff.ok) {
+						return fail(TLIncompatibilityReason.InvalidRecord)
 					}
-					case -1: {
-						// If the client's version of the record is newer than ours, we can't apply the patch
-						return fail(TLIncompatibilityReason.ServerTooOld)
+					if (diff.value) {
+						propagateOp(id, [RecordOpType.Patch, diff.value])
 					}
-					case 1: {
-						// If the client's version of the record is older than ours,
-						// we apply the patch to the downgraded version of the record
-						const downgraded = this.schema.migratePersistedRecord(
-							doc.state,
-							session.serializedSchema,
-							'down'
-						)
-						if (downgraded.type === 'error') {
-							return fail(TLIncompatibilityReason.ClientTooOld)
-						}
+				} else {
+					// need to apply the patch to the downgraded version and then upgrade it
 
-						// apply the patch to the downgraded version
-						const patched = applyObjectDiff(downgraded.value, patch)
-						// then upgrade the patched version and use that as the new state
-						const upgraded = this.schema.migratePersistedRecord(
-							patched,
-							session.serializedSchema,
-							'up'
-						)
-						// If the client's version is too old, we'll hit an error
-						if (upgraded.type === 'error') {
-							return fail(TLIncompatibilityReason.ClientTooOld)
-						}
-						// replace the state with the upgraded version and propagate the patch op
-						const diff = doc.replaceState(upgraded.value, this.clock)
-						if (!diff.ok) {
-							return fail(TLIncompatibilityReason.InvalidRecord)
-						}
-						if (diff.value) {
-							propagateOp(id, [RecordOpType.Patch, diff.value])
-						}
-						break
+					// apply the patch to the downgraded version
+					const patched = applyObjectDiff(downgraded.value, patch)
+					// then upgrade the patched version and use that as the new state
+					const upgraded = this.schema.migratePersistedRecord(
+						patched,
+						session.serializedSchema,
+						'up'
+					)
+					// If the client's version is too old, we'll hit an error
+					if (upgraded.type === 'error') {
+						return fail(TLIncompatibilityReason.ClientTooOld)
+					}
+					// replace the state with the upgraded version and propagate the patch op
+					const diff = doc.replaceState(upgraded.value, this.clock)
+					if (!diff.ok) {
+						return fail(TLIncompatibilityReason.InvalidRecord)
+					}
+					if (diff.value) {
+						propagateOp(id, [RecordOpType.Patch, diff.value])
 					}
 				}
 

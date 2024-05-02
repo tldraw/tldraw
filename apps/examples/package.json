@@ -29,8 +29,8 @@
 		"dev": "vite --host",
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",
-		"e2e": "NODE_ENV=test && playwright test -c ./e2e/playwright.config.ts",
-		"e2e-ui": "NODE_ENV=test && playwright test --ui -c ./e2e/playwright.config.ts"
+		"e2e": "playwright test -c ./e2e/playwright.config.ts",
+		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts"
 	},
 	"dependencies": {
 		"@playwright/test": "^1.38.1",
@@ -40,6 +40,8 @@
 		"classnames": "^2.3.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
+		"pdf-lib": "^1.17.1",
+		"pdfjs-dist": "^4.0.379",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.17.0",

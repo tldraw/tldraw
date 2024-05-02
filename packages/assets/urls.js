@@ -30,36 +30,12 @@ export function getAssetUrlsByMetaUrl(opts) {
 			),
 		},
 		icons: {
-			'align-bottom-center': formatAssetUrl(
-				new URL('./icons/icon/align-bottom-center.svg', import.meta.url).href,
-				opts
-			),
-			'align-bottom-left': formatAssetUrl(
-				new URL('./icons/icon/align-bottom-left.svg', import.meta.url).href,
-				opts
-			),
-			'align-bottom-right': formatAssetUrl(
-				new URL('./icons/icon/align-bottom-right.svg', import.meta.url).href,
-				opts
-			),
 			'align-bottom': formatAssetUrl(
 				new URL('./icons/icon/align-bottom.svg', import.meta.url).href,
 				opts
 			),
-			'align-center-center': formatAssetUrl(
-				new URL('./icons/icon/align-center-center.svg', import.meta.url).href,
-				opts
-			),
 			'align-center-horizontal': formatAssetUrl(
 				new URL('./icons/icon/align-center-horizontal.svg', import.meta.url).href,
-				opts
-			),
-			'align-center-left': formatAssetUrl(
-				new URL('./icons/icon/align-center-left.svg', import.meta.url).href,
-				opts
-			),
-			'align-center-right': formatAssetUrl(
-				new URL('./icons/icon/align-center-right.svg', import.meta.url).href,
 				opts
 			),
 			'align-center-vertical': formatAssetUrl(
@@ -72,18 +48,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 			),
 			'align-right': formatAssetUrl(
 				new URL('./icons/icon/align-right.svg', import.meta.url).href,
-				opts
-			),
-			'align-top-center': formatAssetUrl(
-				new URL('./icons/icon/align-top-center.svg', import.meta.url).href,
-				opts
-			),
-			'align-top-left': formatAssetUrl(
-				new URL('./icons/icon/align-top-left.svg', import.meta.url).href,
-				opts
-			),
-			'align-top-right': formatAssetUrl(
-				new URL('./icons/icon/align-top-right.svg', import.meta.url).href,
 				opts
 			),
 			'align-top': formatAssetUrl(
@@ -126,11 +90,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/arrowhead-triangle.svg', import.meta.url).href,
 				opts
 			),
-			'aspect-ratio': formatAssetUrl(
-				new URL('./icons/icon/aspect-ratio.svg', import.meta.url).href,
-				opts
-			),
-			avatar: formatAssetUrl(new URL('./icons/icon/avatar.svg', import.meta.url).href, opts),
 			blob: formatAssetUrl(new URL('./icons/icon/blob.svg', import.meta.url).href, opts),
 			'bring-forward': formatAssetUrl(
 				new URL('./icons/icon/bring-forward.svg', import.meta.url).href,
@@ -140,15 +99,12 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/bring-to-front.svg', import.meta.url).href,
 				opts
 			),
+			broken: formatAssetUrl(new URL('./icons/icon/broken.svg', import.meta.url).href, opts),
+			'check-circle': formatAssetUrl(
+				new URL('./icons/icon/check-circle.svg', import.meta.url).href,
+				opts
+			),
 			check: formatAssetUrl(new URL('./icons/icon/check.svg', import.meta.url).href, opts),
-			'checkbox-checked': formatAssetUrl(
-				new URL('./icons/icon/checkbox-checked.svg', import.meta.url).href,
-				opts
-			),
-			'checkbox-empty': formatAssetUrl(
-				new URL('./icons/icon/checkbox-empty.svg', import.meta.url).href,
-				opts
-			),
 			'chevron-down': formatAssetUrl(
 				new URL('./icons/icon/chevron-down.svg', import.meta.url).href,
 				opts
@@ -181,12 +137,12 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/clipboard-copy.svg', import.meta.url).href,
 				opts
 			),
-			code: formatAssetUrl(new URL('./icons/icon/code.svg', import.meta.url).href, opts),
-			collab: formatAssetUrl(new URL('./icons/icon/collab.svg', import.meta.url).href, opts),
 			color: formatAssetUrl(new URL('./icons/icon/color.svg', import.meta.url).href, opts),
-			comment: formatAssetUrl(new URL('./icons/icon/comment.svg', import.meta.url).href, opts),
 			'cross-2': formatAssetUrl(new URL('./icons/icon/cross-2.svg', import.meta.url).href, opts),
-			cross: formatAssetUrl(new URL('./icons/icon/cross.svg', import.meta.url).href, opts),
+			'cross-circle': formatAssetUrl(
+				new URL('./icons/icon/cross-circle.svg', import.meta.url).href,
+				opts
+			),
 			'dash-dashed': formatAssetUrl(
 				new URL('./icons/icon/dash-dashed.svg', import.meta.url).href,
 				opts
@@ -201,6 +157,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 			),
 			'dash-solid': formatAssetUrl(
 				new URL('./icons/icon/dash-solid.svg', import.meta.url).href,
+				opts
+			),
+			disconnected: formatAssetUrl(
+				new URL('./icons/icon/disconnected.svg', import.meta.url).href,
 				opts
 			),
 			discord: formatAssetUrl(new URL('./icons/icon/discord.svg', import.meta.url).href, opts),
@@ -231,7 +191,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/external-link.svg', import.meta.url).href,
 				opts
 			),
-			file: formatAssetUrl(new URL('./icons/icon/file.svg', import.meta.url).href, opts),
 			'fill-none': formatAssetUrl(
 				new URL('./icons/icon/fill-none.svg', import.meta.url).href,
 				opts
@@ -338,24 +297,29 @@ export function getAssetUrlsByMetaUrl(opts) {
 			),
 			github: formatAssetUrl(new URL('./icons/icon/github.svg', import.meta.url).href, opts),
 			group: formatAssetUrl(new URL('./icons/icon/group.svg', import.meta.url).href, opts),
-			hidden: formatAssetUrl(new URL('./icons/icon/hidden.svg', import.meta.url).href, opts),
-			image: formatAssetUrl(new URL('./icons/icon/image.svg', import.meta.url).href, opts),
+			'horizontal-align-end': formatAssetUrl(
+				new URL('./icons/icon/horizontal-align-end.svg', import.meta.url).href,
+				opts
+			),
+			'horizontal-align-middle': formatAssetUrl(
+				new URL('./icons/icon/horizontal-align-middle.svg', import.meta.url).href,
+				opts
+			),
+			'horizontal-align-start': formatAssetUrl(
+				new URL('./icons/icon/horizontal-align-start.svg', import.meta.url).href,
+				opts
+			),
 			'info-circle': formatAssetUrl(
 				new URL('./icons/icon/info-circle.svg', import.meta.url).href,
 				opts
 			),
 			leading: formatAssetUrl(new URL('./icons/icon/leading.svg', import.meta.url).href, opts),
 			link: formatAssetUrl(new URL('./icons/icon/link.svg', import.meta.url).href, opts),
-			'lock-small': formatAssetUrl(
-				new URL('./icons/icon/lock-small.svg', import.meta.url).href,
-				opts
-			),
 			lock: formatAssetUrl(new URL('./icons/icon/lock.svg', import.meta.url).href, opts),
 			menu: formatAssetUrl(new URL('./icons/icon/menu.svg', import.meta.url).href, opts),
 			minus: formatAssetUrl(new URL('./icons/icon/minus.svg', import.meta.url).href, opts),
 			mixed: formatAssetUrl(new URL('./icons/icon/mixed.svg', import.meta.url).href, opts),
 			pack: formatAssetUrl(new URL('./icons/icon/pack.svg', import.meta.url).href, opts),
-			page: formatAssetUrl(new URL('./icons/icon/page.svg', import.meta.url).href, opts),
 			plus: formatAssetUrl(new URL('./icons/icon/plus.svg', import.meta.url).href, opts),
 			'question-mark-circle': formatAssetUrl(
 				new URL('./icons/icon/question-mark-circle.svg', import.meta.url).href,
@@ -378,8 +342,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/rotate-cw.svg', import.meta.url).href,
 				opts
 			),
-			ruler: formatAssetUrl(new URL('./icons/icon/ruler.svg', import.meta.url).href, opts),
-			search: formatAssetUrl(new URL('./icons/icon/search.svg', import.meta.url).href, opts),
 			'send-backward': formatAssetUrl(
 				new URL('./icons/icon/send-backward.svg', import.meta.url).href,
 				opts
@@ -388,20 +350,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/send-to-back.svg', import.meta.url).href,
 				opts
 			),
-			'settings-horizontal': formatAssetUrl(
-				new URL('./icons/icon/settings-horizontal.svg', import.meta.url).href,
-				opts
-			),
-			'settings-vertical-1': formatAssetUrl(
-				new URL('./icons/icon/settings-vertical-1.svg', import.meta.url).href,
-				opts
-			),
-			'settings-vertical': formatAssetUrl(
-				new URL('./icons/icon/settings-vertical.svg', import.meta.url).href,
-				opts
-			),
 			'share-1': formatAssetUrl(new URL('./icons/icon/share-1.svg', import.meta.url).href, opts),
-			'share-2': formatAssetUrl(new URL('./icons/icon/share-2.svg', import.meta.url).href, opts),
 			'size-extra-large': formatAssetUrl(
 				new URL('./icons/icon/size-extra-large.svg', import.meta.url).href,
 				opts
@@ -418,28 +367,12 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/size-small.svg', import.meta.url).href,
 				opts
 			),
-			'spline-cubic': formatAssetUrl(
-				new URL('./icons/icon/spline-cubic.svg', import.meta.url).href,
-				opts
-			),
-			'spline-line': formatAssetUrl(
-				new URL('./icons/icon/spline-line.svg', import.meta.url).href,
-				opts
-			),
 			'stack-horizontal': formatAssetUrl(
 				new URL('./icons/icon/stack-horizontal.svg', import.meta.url).href,
 				opts
 			),
 			'stack-vertical': formatAssetUrl(
 				new URL('./icons/icon/stack-vertical.svg', import.meta.url).href,
-				opts
-			),
-			'status-offline': formatAssetUrl(
-				new URL('./icons/icon/status-offline.svg', import.meta.url).href,
-				opts
-			),
-			'status-online': formatAssetUrl(
-				new URL('./icons/icon/status-online.svg', import.meta.url).href,
 				opts
 			),
 			'stretch-horizontal': formatAssetUrl(
@@ -454,10 +387,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/text-align-center.svg', import.meta.url).href,
 				opts
 			),
-			'text-align-justify': formatAssetUrl(
-				new URL('./icons/icon/text-align-justify.svg', import.meta.url).href,
-				opts
-			),
 			'text-align-left': formatAssetUrl(
 				new URL('./icons/icon/text-align-left.svg', import.meta.url).href,
 				opts
@@ -466,12 +395,16 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/text-align-right.svg', import.meta.url).href,
 				opts
 			),
-			'tool-arrow': formatAssetUrl(
-				new URL('./icons/icon/tool-arrow.svg', import.meta.url).href,
+			'toggle-off': formatAssetUrl(
+				new URL('./icons/icon/toggle-off.svg', import.meta.url).href,
 				opts
 			),
-			'tool-embed': formatAssetUrl(
-				new URL('./icons/icon/tool-embed.svg', import.meta.url).href,
+			'toggle-on': formatAssetUrl(
+				new URL('./icons/icon/toggle-on.svg', import.meta.url).href,
+				opts
+			),
+			'tool-arrow': formatAssetUrl(
+				new URL('./icons/icon/tool-arrow.svg', import.meta.url).href,
 				opts
 			),
 			'tool-eraser': formatAssetUrl(
@@ -514,40 +447,31 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/tool-pointer.svg', import.meta.url).href,
 				opts
 			),
+			'tool-screenshot': formatAssetUrl(
+				new URL('./icons/icon/tool-screenshot.svg', import.meta.url).href,
+				opts
+			),
 			'tool-text': formatAssetUrl(
 				new URL('./icons/icon/tool-text.svg', import.meta.url).href,
 				opts
 			),
 			trash: formatAssetUrl(new URL('./icons/icon/trash.svg', import.meta.url).href, opts),
-			'triangle-down': formatAssetUrl(
-				new URL('./icons/icon/triangle-down.svg', import.meta.url).href,
-				opts
-			),
-			'triangle-up': formatAssetUrl(
-				new URL('./icons/icon/triangle-up.svg', import.meta.url).href,
-				opts
-			),
 			twitter: formatAssetUrl(new URL('./icons/icon/twitter.svg', import.meta.url).href, opts),
 			undo: formatAssetUrl(new URL('./icons/icon/undo.svg', import.meta.url).href, opts),
 			ungroup: formatAssetUrl(new URL('./icons/icon/ungroup.svg', import.meta.url).href, opts),
-			'unlock-small': formatAssetUrl(
-				new URL('./icons/icon/unlock-small.svg', import.meta.url).href,
-				opts
-			),
 			unlock: formatAssetUrl(new URL('./icons/icon/unlock.svg', import.meta.url).href, opts),
-			'vertical-align-center': formatAssetUrl(
-				new URL('./icons/icon/vertical-align-center.svg', import.meta.url).href,
-				opts
-			),
 			'vertical-align-end': formatAssetUrl(
 				new URL('./icons/icon/vertical-align-end.svg', import.meta.url).href,
+				opts
+			),
+			'vertical-align-middle': formatAssetUrl(
+				new URL('./icons/icon/vertical-align-middle.svg', import.meta.url).href,
 				opts
 			),
 			'vertical-align-start': formatAssetUrl(
 				new URL('./icons/icon/vertical-align-start.svg', import.meta.url).href,
 				opts
 			),
-			visible: formatAssetUrl(new URL('./icons/icon/visible.svg', import.meta.url).href, opts),
 			'warning-triangle': formatAssetUrl(
 				new URL('./icons/icon/warning-triangle.svg', import.meta.url).href,
 				opts
@@ -571,6 +495,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'hi-in': formatAssetUrl(new URL('./translations/hi-in.json', import.meta.url).href, opts),
 			hr: formatAssetUrl(new URL('./translations/hr.json', import.meta.url).href, opts),
 			hu: formatAssetUrl(new URL('./translations/hu.json', import.meta.url).href, opts),
+			id: formatAssetUrl(new URL('./translations/id.json', import.meta.url).href, opts),
 			it: formatAssetUrl(new URL('./translations/it.json', import.meta.url).href, opts),
 			ja: formatAssetUrl(new URL('./translations/ja.json', import.meta.url).href, opts),
 			'ko-kr': formatAssetUrl(new URL('./translations/ko-kr.json', import.meta.url).href, opts),
@@ -604,6 +529,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./embed-icons/codesandbox.png', import.meta.url).href,
 				opts
 			),
+			desmos: formatAssetUrl(new URL('./embed-icons/desmos.png', import.meta.url).href, opts),
 			excalidraw: formatAssetUrl(
 				new URL('./embed-icons/excalidraw.png', import.meta.url).href,
 				opts

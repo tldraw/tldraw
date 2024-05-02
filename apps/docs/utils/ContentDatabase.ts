@@ -295,9 +295,9 @@ export class ContentDatabase {
 
 let contentDatabase: ContentDatabase | null = null
 
-export async function getDb(opts = {} as { reset?: boolean }) {
-	if (!contentDatabase || opts.reset) {
-		const db = await connect(opts)
+export async function getDb() {
+	if (!contentDatabase) {
+		const db = await connect({ mode: 'readonly' })
 		contentDatabase = new ContentDatabase(db)
 	}
 

@@ -17,6 +17,9 @@ export interface Environment {
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
 
+	SLUG_TO_READONLY_SLUG: KVNamespace
+	READONLY_SLUG_TO_SLUG: KVNamespace
+
 	// env vars
 	SUPABASE_URL: string | undefined
 	SUPABASE_KEY: string | undefined
@@ -26,4 +29,5 @@ export interface Environment {
 	TLDRAW_ENV: string | undefined
 	SENTRY_DSN: string | undefined
 	IS_LOCAL: string | undefined
+	WORKER_NAME: string | undefined
 }

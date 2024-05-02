@@ -1,0 +1,108 @@
+.ImageAnnotator {
+	position: absolute;
+	inset: 0;
+}
+
+.ImageAnnotator .ImagePicker {
+	position: absolute;
+	inset: 1rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	flex-direction: column;
+	gap: 1rem;
+}
+.ImageAnnotator .ImagePicker button {
+	padding: 0.5rem 1rem;
+	border: none;
+	background: #eee;
+	cursor: pointer;
+	font: inherit;
+}
+.ImageAnnotator .ImagePicker button:hover {
+	opacity: 0.9;
+}
+.ImageAnnotator .ImagePicker-exampleLabel {
+	padding-top: 1rem;
+	opacity: 0.7;
+	font-size: 14px;
+}
+.ImageAnnotator .ImagePicker-examples {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	width: 100%;
+	max-width: 780px;
+	gap: 1rem;
+}
+.ImageAnnotator .ImagePicker-examples img {
+	width: 100%;
+	height: auto;
+	object-fit: contain;
+	aspect-ratio: 1;
+	cursor: pointer;
+}
+.ImageAnnotator .ImagePicker-examples img:hover {
+	opacity: 0.9;
+}
+
+.ImageAnnotator .ImageOverlayScreen {
+	pointer-events: none;
+	z-index: -1;
+	fill: var(--color-background);
+	fill-opacity: 0.8;
+	stroke: none;
+}
+
+.ImageAnnotator .DoneButton {
+	font: inherit;
+	background: var(--color-primary);
+	border: none;
+	color: var(--color-selected-contrast);
+	font-size: 1rem;
+	padding: 0.5rem 1rem;
+	border-radius: 6px;
+	margin: 6px;
+	pointer-events: all;
+	z-index: var(--layer-panels);
+	border: 2px solid var(--color-background);
+	cursor: pointer;
+}
+.ImageAnnotator .DoneButton:hover {
+	filter: brightness(1.1);
+}
+
+.ImageAnnotator .ImageExport {
+	padding: 1rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	align-items: center;
+	height: 100%;
+}
+.ImageAnnotator .ImageExport img {
+	width: 100%;
+	max-height: 50vh;
+	object-fit: contain;
+}
+.ImageAnnotator .ImageExport button {
+	padding: 0.5rem 1rem;
+	border: none;
+	background: #eee;
+	cursor: pointer;
+	font: inherit;
+}
+.ImageAnnotator .ImageExport button:hover {
+	opacity: 0.9;
+}
+.ImageAnnotator .ImageExport-buttons {
+	display: flex;
+	gap: 1rem;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: auto;
+}
+.ImageAnnotator .ImageExport-buttons button {
+	background-color: hsl(214, 84%, 56%);
+	color: white;
+}
