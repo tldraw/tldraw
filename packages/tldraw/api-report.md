@@ -31,7 +31,7 @@ import { Mat } from '@tldraw/editor';
 import { MatModel } from '@tldraw/editor';
 import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
-import { MigrationSequence } from '@tldraw/editor';
+import { Migrations } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
 import { ObjectValidator } from '@tldraw/editor';
 import { Polygon2d } from '@tldraw/editor';
@@ -62,14 +62,7 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLCancelEvent } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
-import { TLDefaultColorTheme } from '@tldraw/editor';
-import { TLDefaultColorThemeColor } from '@tldraw/editor';
-import { TLDefaultDashStyle } from '@tldraw/editor';
-import { TLDefaultFillStyle } from '@tldraw/editor';
-import { TLDefaultFontStyle } from '@tldraw/editor';
-import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
-import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
@@ -83,6 +76,7 @@ import { TLGeoShape } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
+import { TLHoveredShapeIndicatorProps } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
@@ -94,6 +88,7 @@ import { TLOnBeforeUpdateHandler } from '@tldraw/editor';
 import { TLOnDoubleClickHandler } from '@tldraw/editor';
 import { TLOnEditEndHandler } from '@tldraw/editor';
 import { TLOnHandleDragHandler } from '@tldraw/editor';
+import { TLOnResizeEndHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
 import { TLOnTranslateHandler } from '@tldraw/editor';
 import { TLOnTranslateStartHandler } from '@tldraw/editor';
@@ -112,13 +107,13 @@ import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLShapePartial } from '@tldraw/editor';
-import { TLShapePropsMigrations } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreWithStatus } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLTickEventHandler } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnionValidator } from '@tldraw/editor';
@@ -127,9 +122,6 @@ import { Validator } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
-
-// @public (undocumented)
-export type AlertSeverity = 'error' | 'info' | 'success' | 'warning';
 
 // @public (undocumented)
 export function AlignMenuItems(): JSX_2.Element;
@@ -192,7 +184,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     indicator(shape: TLArrowShape): JSX_2.Element | null;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
     // (undocumented)
@@ -207,48 +199,48 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
     // (undocumented)
     static props: {
-        arrowheadEnd: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
-        arrowheadStart: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
-        bend: Validator<number>;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        end: UnionValidator<"type", {
-        binding: ObjectValidator<    {
-        boundShapeId: TLShapeId;
-        isExact: boolean;
-        isPrecise: boolean;
-        normalizedAnchor: VecModel;
-        type: "binding";
-        }>;
-        point: ObjectValidator<    {
-        type: "point";
-        x: number;
-        y: number;
-        }>;
-        }, never>;
+        labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        labelPosition: Validator<number>;
+        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+        arrowheadStart: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+        arrowheadEnd: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         start: UnionValidator<"type", {
         binding: ObjectValidator<    {
+        type: "binding";
         boundShapeId: TLShapeId;
+        normalizedAnchor: VecModel;
         isExact: boolean;
         isPrecise: boolean;
-        normalizedAnchor: VecModel;
-        type: "binding";
         }>;
         point: ObjectValidator<    {
-        type: "point";
         x: number;
         y: number;
+        type: "point";
         }>;
         }, never>;
+        end: UnionValidator<"type", {
+        binding: ObjectValidator<    {
+        type: "binding";
+        boundShapeId: TLShapeId;
+        normalizedAnchor: VecModel;
+        isExact: boolean;
+        isPrecise: boolean;
+        }>;
+        point: ObjectValidator<    {
+        x: number;
+        y: number;
+        type: "point";
+        }>;
+        }, never>;
+        bend: Validator<number>;
         text: Validator<string>;
+        labelPosition: Validator<number>;
     };
     // (undocumented)
-    toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX_2.Element;
+    toSvg(shape: TLArrowShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "arrow";
 }
@@ -281,17 +273,17 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     indicator(shape: TLBookmarkShape): JSX_2.Element;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onBeforeCreate?: TLOnBeforeCreateHandler<TLBookmarkShape>;
     // (undocumented)
     onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
     // (undocumented)
     static props: {
-        assetId: T.Validator<null | TLAssetId>;
-        h: T.Validator<number>;
-        url: T.Validator<string>;
         w: T.Validator<number>;
+        h: T.Validator<number>;
+        assetId: T.Validator<null | TLAssetId>;
+        url: T.Validator<string>;
     };
     // (undocumented)
     static type: "bookmark";
@@ -299,8 +291,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 // @public (undocumented)
 export function BreakPointProvider({ forceMobile, children, }: {
-    children: ReactNode;
     forceMobile?: boolean;
+    children: ReactNode;
 }): JSX_2.Element;
 
 // @internal (undocumented)
@@ -316,9 +308,8 @@ export function ClipboardMenuGroup(): JSX_2.Element;
 export function CloudToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function CommonStylePickerSet({ styles, theme, }: {
+export function CommonStylePickerSet({ styles }: {
     styles: ReadonlySharedStyleMap;
-    theme: TLDefaultColorTheme;
 }): JSX_2.Element;
 
 // @public
@@ -373,9 +364,6 @@ export function DefaultDebugMenu({ children }: TLUiDebugMenuProps): JSX_2.Elemen
 
 // @public (undocumented)
 export function DefaultDebugMenuContent(): JSX_2.Element;
-
-// @public (undocumented)
-export let defaultEditorAssetUrls: TLEditorAssetUrls;
 
 // @public (undocumented)
 export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps): JSX_2.Element;
@@ -453,8 +441,8 @@ export function DistributeMenuItems(): JSX_2.Element;
 
 // @public
 export function downsizeImage(blob: Blob, width: number, height: number, opts?: {
-    quality?: number | undefined;
     type?: string | undefined;
+    quality?: number | undefined;
 }): Promise<Blob>;
 
 // @public (undocumented)
@@ -492,25 +480,25 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     indicator(shape: TLDrawShape): JSX_2.Element;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onResize: TLOnResizeHandler<TLDrawShape>;
     // (undocumented)
     static props: {
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
+        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
-        isClosed: Validator<boolean>;
-        isComplete: Validator<boolean>;
-        isPen: Validator<boolean>;
-        segments: ArrayOfValidator<    {
-        points: VecModel[];
-        type: "free" | "straight";
-        }>;
+        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+        segments: ArrayOfValidator<    {
+        type: "free" | "straight";
+        points: VecModel[];
+        }>;
+        isComplete: Validator<boolean>;
+        isClosed: Validator<boolean>;
+        isPen: Validator<boolean>;
     };
     // (undocumented)
-    toSvg(shape: TLDrawShape, ctx: SvgExportContext): JSX_2.Element;
+    toSvg(shape: TLDrawShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "draw";
 }
@@ -539,7 +527,9 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canResize: (shape: TLEmbedShape) => boolean;
     // (undocumented)
-    component(shape: TLEmbedShape): JSX_2.Element | null;
+    canUnmount: TLShapeUtilFlag<TLEmbedShape>;
+    // (undocumented)
+    component(shape: TLEmbedShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
@@ -549,14 +539,14 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onResize: TLOnResizeHandler<TLEmbedShape>;
     // (undocumented)
     static props: {
+        w: Validator<number>;
         h: Validator<number>;
         url: Validator<string>;
-        w: Validator<number>;
     };
     // (undocumented)
     static type: "embed";
@@ -579,19 +569,19 @@ export function EraserToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export type EventsProviderProps = {
-    children: React_3.ReactNode;
     onEvent?: TLUiEventHandler;
+    children: React_3.ReactNode;
 };
 
 // @public (undocumented)
 export function ExampleDialog({ title, body, cancel, confirm, displayDontShowAgain, onCancel, onContinue, }: {
+    title?: string;
     body?: string;
     cancel?: string;
     confirm?: string;
     displayDontShowAgain?: boolean;
     onCancel: () => void;
     onContinue: () => void;
-    title?: string;
 }): JSX_2.Element;
 
 // @public
@@ -603,8 +593,8 @@ export function ExportFileContentSubMenu(): JSX_2.Element;
 // @public
 export function exportToBlob({ editor, ids, format, opts, }: {
     editor: Editor;
-    format: 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
     ids: TLShapeId[];
+    format: 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
     opts?: Partial<TLSvgOptions>;
 }): Promise<Blob>;
 
@@ -621,9 +611,6 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
 
 // @public (undocumented)
 export function FitFrameToContentMenuItem(): JSX_2.Element | null;
-
-// @public (undocumented)
-export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 
 // @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
@@ -656,23 +643,27 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
     // (undocumented)
-    onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => void;
+    onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => {
+        shouldHint: boolean;
+    };
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
     // (undocumented)
+    onResizeEnd: TLOnResizeEndHandler<TLFrameShape>;
+    // (undocumented)
     static props: {
+        w: Validator<number>;
         h: Validator<number>;
         name: Validator<string>;
-        w: Validator<number>;
     };
     // (undocumented)
     providesBackgroundForChildren(): boolean;
     // (undocumented)
-    toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX_2.Element;
+    toSvg(shape: TLFrameShape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
     // (undocumented)
     static type: "frame";
 }
@@ -709,98 +700,98 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onBeforeCreate: (shape: TLGeoShape) => {
-        id: TLShapeId;
-        index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            dash: "dashed" | "dotted" | "draw" | "solid";
-            fill: "none" | "pattern" | "semi" | "solid";
-            font: "draw" | "mono" | "sans" | "serif";
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
-            h: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
+            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
+            fill: "none" | "pattern" | "semi" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "solid";
             size: "l" | "m" | "s" | "xl";
-            text: string;
-            url: string;
+            font: "draw" | "mono" | "sans" | "serif";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             verticalAlign: "end" | "middle" | "start";
+            url: string;
             w: number;
+            h: number;
+            text: string;
         };
-        rotation: number;
         type: "geo";
-        typeName: "shape";
         x: number;
         y: number;
+        rotation: number;
+        index: IndexKey;
+        parentId: TLParentId;
+        isLocked: boolean;
+        opacity: number;
+        meta: JsonObject;
+        id: TLShapeId;
+        typeName: "shape";
     } | undefined;
     // (undocumented)
     onBeforeUpdate: (prev: TLGeoShape, next: TLGeoShape) => {
-        id: TLShapeId;
-        index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            dash: "dashed" | "dotted" | "draw" | "solid";
-            fill: "none" | "pattern" | "semi" | "solid";
-            font: "draw" | "mono" | "sans" | "serif";
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
-            h: number;
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
+            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
+            fill: "none" | "pattern" | "semi" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "solid";
             size: "l" | "m" | "s" | "xl";
-            text: string;
-            url: string;
+            font: "draw" | "mono" | "sans" | "serif";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             verticalAlign: "end" | "middle" | "start";
+            url: string;
             w: number;
+            h: number;
+            text: string;
         };
-        rotation: number;
         type: "geo";
-        typeName: "shape";
         x: number;
         y: number;
+        rotation: number;
+        index: IndexKey;
+        parentId: TLParentId;
+        isLocked: boolean;
+        opacity: number;
+        meta: JsonObject;
+        id: TLShapeId;
+        typeName: "shape";
     } | undefined;
     // (undocumented)
     onDoubleClick: (shape: TLGeoShape) => {
-        id: TLShapeId;
-        index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
         props: {
             geo: "check-box";
         };
-        rotation: number;
         type: "geo";
-        typeName: "shape";
         x: number;
         y: number;
-    } | {
-        id: TLShapeId;
+        rotation: number;
         index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
         parentId: TLParentId;
+        isLocked: boolean;
+        opacity: number;
+        meta: JsonObject;
+        id: TLShapeId;
+        typeName: "shape";
+    } | {
         props: {
             geo: "rectangle";
         };
-        rotation: number;
         type: "geo";
-        typeName: "shape";
         x: number;
         y: number;
+        rotation: number;
+        index: IndexKey;
+        parentId: TLParentId;
+        isLocked: boolean;
+        opacity: number;
+        meta: JsonObject;
+        id: TLShapeId;
+        typeName: "shape";
     } | undefined;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLGeoShape>;
@@ -808,23 +799,23 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     onResize: TLOnResizeHandler<TLGeoShape>;
     // (undocumented)
     static props: {
-        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         geo: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
-        growY: Validator<number>;
-        h: Validator<number>;
-        labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+        labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
+        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        text: Validator<string>;
-        url: Validator<string>;
+        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
+        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
         verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
+        url: Validator<string>;
         w: Validator<number>;
+        h: Validator<number>;
+        growY: Validator<number>;
+        text: Validator<string>;
     };
     // (undocumented)
-    toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX_2.Element;
+    toSvg(shape: TLGeoShape, ctx: SvgExportContext): SVGElement;
     // (undocumented)
     static type: "geo";
 }
@@ -838,29 +829,14 @@ export function GeoStylePickerSet({ styles }: {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
-export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
-
-// @public (undocumented)
-export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
-    closed: boolean;
-    end: 'none' | 'outset' | 'skip';
-    lengthRatio: number;
-    snap: number;
-    start: 'none' | 'outset' | 'skip';
-    style: TLDefaultDashStyle;
-}>): {
-    strokeDasharray: string;
-    strokeDashoffset: string;
-};
-
-// @public (undocumented)
-export function getSvgAsImage(svgString: string, isSafari: boolean, options: {
-    height: number;
+export function getSvgAsImage(svg: SVGElement, isSafari: boolean, options: {
+    type: 'jpeg' | 'png' | 'webp';
     quality: number;
     scale: number;
-    type: 'jpeg' | 'png' | 'webp';
-    width: number;
 }): Promise<Blob | null>;
+
+// @public (undocumented)
+export function getSvgAsString(svg: SVGElement): Promise<string>;
 
 // @public (undocumented)
 export function GroupMenuItem(): JSX_2.Element | null;
@@ -923,24 +899,24 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     indicator(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onResize: TLOnResizeHandler<TLHighlightShape>;
     // (undocumented)
     static props: {
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+        segments: ArrayOfValidator<    {
+        type: "free" | "straight";
+        points: VecModel[];
+        }>;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
-        segments: ArrayOfValidator<    {
-        points: VecModel[];
-        type: "free" | "straight";
-        }>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     };
     // (undocumented)
-    toBackgroundSvg(shape: TLHighlightShape): JSX_2.Element;
+    toBackgroundSvg(shape: TLHighlightShape): SVGPathElement;
     // (undocumented)
-    toSvg(shape: TLHighlightShape): JSX_2.Element;
+    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): SVGPathElement;
     // (undocumented)
     static type: "highlight";
 }
@@ -961,25 +937,25 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     isAspectRatioLocked: () => boolean;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onDoubleClick: (shape: TLImageShape) => void;
     // (undocumented)
     onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape>;
     // (undocumented)
     static props: {
-        assetId: Validator<TLAssetId | null>;
-        crop: Validator<    {
-        bottomRight: VecModel;
-        topLeft: VecModel;
-        } | null>;
+        w: Validator<number>;
         h: Validator<number>;
         playing: Validator<boolean>;
         url: Validator<string>;
-        w: Validator<number>;
+        assetId: Validator<TLAssetId | null>;
+        crop: Validator<    {
+        topLeft: VecModel;
+        bottomRight: VecModel;
+        } | null>;
     };
     // (undocumented)
-    toSvg(shape: TLImageShape): Promise<JSX_2.Element | null>;
+    toSvg(shape: TLImageShape): Promise<SVGGElement>;
     // (undocumented)
     static type: "image";
 }
@@ -989,12 +965,6 @@ export function isGifAnimated(file: Blob): Promise<boolean>;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
-
-// @internal (undocumented)
-export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): void;
-
-// @public (undocumented)
-export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export function LanguageMenu(): JSX_2.Element;
@@ -1045,7 +1015,7 @@ export class LineShapeTool extends StateNode {
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
-    component(shape: TLLineShape): JSX_2.Element;
+    component(shape: TLLineShape): JSX_2.Element | undefined;
     // (undocumented)
     getDefaultProps(): TLLineShape['props'];
     // (undocumented)
@@ -1065,26 +1035,26 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     indicator(shape: TLLineShape): JSX_2.Element;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onHandleDrag: TLOnHandleDragHandler<TLLineShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLLineShape>;
     // (undocumented)
     static props: {
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        points: DictValidator<string, {
-        id: string;
-        index: IndexKey;
-        x: number;
-        y: number;
-        }>;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
+        points: DictValidator<string, {
+        id: string;
+        x: number;
+        y: number;
+        index: IndexKey;
+        }>;
     };
     // (undocumented)
-    toSvg(shape: TLLineShape): JSX_2.Element;
+    toSvg(shape: TLLineShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "line";
 }
@@ -1119,9 +1089,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
-    getGeometry(shape: TLNoteShape): Group2d;
+    getGeometry(shape: TLNoteShape): Rectangle2d;
     // (undocumented)
-    getHandles(shape: TLNoteShape): TLHandle[];
+    getHeight(shape: TLNoteShape): number;
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
@@ -1129,73 +1099,70 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onBeforeCreate: (next: TLNoteShape) => {
-        id: TLShapeId;
-        index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
-            fontSizeAdjustment: number;
             growY: number;
+            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             size: "l" | "m" | "s" | "xl";
-            text: string;
-            url: string;
+            font: "draw" | "mono" | "sans" | "serif";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             verticalAlign: "end" | "middle" | "start";
+            url: string;
+            text: string;
         };
-        rotation: number;
         type: "note";
-        typeName: "shape";
         x: number;
         y: number;
+        rotation: number;
+        index: IndexKey;
+        parentId: TLParentId;
+        isLocked: boolean;
+        opacity: number;
+        meta: JsonObject;
+        id: TLShapeId;
+        typeName: "shape";
     } | undefined;
     // (undocumented)
     onBeforeUpdate: (prev: TLNoteShape, next: TLNoteShape) => {
-        id: TLShapeId;
-        index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
         props: {
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
-            fontSizeAdjustment: number;
             growY: number;
+            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             size: "l" | "m" | "s" | "xl";
-            text: string;
-            url: string;
+            font: "draw" | "mono" | "sans" | "serif";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             verticalAlign: "end" | "middle" | "start";
+            url: string;
+            text: string;
         };
-        rotation: number;
         type: "note";
-        typeName: "shape";
         x: number;
         y: number;
+        rotation: number;
+        index: IndexKey;
+        parentId: TLParentId;
+        isLocked: boolean;
+        opacity: number;
+        meta: JsonObject;
+        id: TLShapeId;
+        typeName: "shape";
     } | undefined;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
     static props: {
-        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        fontSizeAdjustment: Validator<number>;
-        growY: Validator<number>;
+        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        text: Validator<string>;
-        url: Validator<string>;
+        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
+        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
         verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
+        growY: Validator<number>;
+        url: Validator<string>;
+        text: Validator<string>;
     };
     // (undocumented)
-    toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX_2.Element;
+    toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "note";
 }
@@ -1214,9 +1181,9 @@ export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export const PageItemInput: ({ name, id, isCurrentPage, }: {
+    name: string;
     id: TLPageId;
     isCurrentPage: boolean;
-    name: string;
 }) => JSX_2.Element;
 
 // @public (undocumented)
@@ -1227,32 +1194,12 @@ export function parseAndLoadDocument(editor: Editor, document: string, msg: (id:
 
 // @public (undocumented)
 export function parseTldrawJsonFile({ json, schema, }: {
-    json: string;
     schema: TLSchema;
+    json: string;
 }): Result<TLStore, TldrawFileParseError>;
 
 // @public (undocumented)
 export function PasteMenuItem(): JSX_2.Element;
-
-// @public (undocumented)
-export enum PORTRAIT_BREAKPOINT {
-    // (undocumented)
-    DESKTOP = 7,
-    // (undocumented)
-    MOBILE = 4,
-    // (undocumented)
-    MOBILE_SM = 3,
-    // (undocumented)
-    MOBILE_XS = 2,
-    // (undocumented)
-    MOBILE_XXS = 1,
-    // (undocumented)
-    TABLET = 6,
-    // (undocumented)
-    TABLET_SM = 5,
-    // (undocumented)
-    ZERO = 0
-}
 
 // @public (undocumented)
 export function PreferencesGroup(): JSX_2.Element;
@@ -1333,18 +1280,6 @@ export function StackMenuItems(): JSX_2.Element;
 export function StarToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export const TEXT_PROPS: {
-    fontStyle: string;
-    fontVariant: string;
-    fontWeight: string;
-    lineHeight: number;
-    padding: string;
-};
-
-// @public (undocumented)
-export const TextLabel: React_2.NamedExoticComponent<TextLabelProps>;
-
-// @public (undocumented)
 export class TextShapeTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle_6 | typeof Pointing_5)[];
@@ -1376,70 +1311,70 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     isAspectRatioLocked: TLShapeUtilFlag<TLTextShape>;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     onBeforeCreate: (shape: TLTextShape) => {
-        id: TLShapeId;
-        index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
-        props: {
-            autoSize: boolean;
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
-            scale: number;
-            size: "l" | "m" | "s" | "xl";
-            text: string;
-            textAlign: "end" | "middle" | "start";
-            w: number;
-        };
-        rotation: number;
-        type: "text";
-        typeName: "shape";
         x: number;
         y: number;
+        type: "text";
+        rotation: number;
+        index: IndexKey;
+        parentId: TLParentId;
+        isLocked: boolean;
+        opacity: number;
+        props: {
+            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
+            size: "l" | "m" | "s" | "xl";
+            font: "draw" | "mono" | "sans" | "serif";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            w: number;
+            text: string;
+            scale: number;
+            autoSize: boolean;
+        };
+        meta: JsonObject;
+        id: TLShapeId;
+        typeName: "shape";
     } | undefined;
     // (undocumented)
     onBeforeUpdate: (prev: TLTextShape, next: TLTextShape) => {
-        id: TLShapeId;
-        index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
-        props: {
-            autoSize: boolean;
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
-            scale: number;
-            size: "l" | "m" | "s" | "xl";
-            text: string;
-            textAlign: "end" | "middle" | "start";
-            w: number;
-        };
-        rotation: number;
-        type: "text";
-        typeName: "shape";
         x: number;
         y: number;
+        props: {
+            w: number;
+            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
+            size: "l" | "m" | "s" | "xl";
+            font: "draw" | "mono" | "sans" | "serif";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            text: string;
+            scale: number;
+            autoSize: boolean;
+        };
+        type: "text";
+        rotation: number;
+        index: IndexKey;
+        parentId: TLParentId;
+        isLocked: boolean;
+        opacity: number;
+        meta: JsonObject;
+        id: TLShapeId;
+        typeName: "shape";
     } | undefined;
     // (undocumented)
     onDoubleClickEdge: (shape: TLTextShape) => {
         id: TLShapeId;
+        type: "text";
         props: {
             autoSize: boolean;
             scale?: undefined;
         };
-        type: "text";
     } | {
         id: TLShapeId;
-        props: {
-            autoSize?: undefined;
-            scale: number;
-        };
         type: "text";
+        props: {
+            scale: number;
+            autoSize?: undefined;
+        };
     } | undefined;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLTextShape>;
@@ -1447,25 +1382,24 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     onResize: TLOnResizeHandler<TLTextShape>;
     // (undocumented)
     static props: {
-        autoSize: Validator<boolean>;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        scale: Validator<number>;
+        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        text: Validator<string>;
-        textAlign: EnumStyleProp<"end" | "middle" | "start">;
+        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
+        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
         w: Validator<number>;
+        text: Validator<string>;
+        scale: Validator<number>;
+        autoSize: Validator<boolean>;
     };
     // (undocumented)
-    toSvg(shape: TLTextShape, ctx: SvgExportContext): JSX_2.Element;
+    toSvg(shape: TLTextShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "text";
 }
 
 // @public (undocumented)
-export function TextStylePickerSet({ theme, styles, }: {
+export function TextStylePickerSet({ styles }: {
     styles: ReadonlySharedStyleMap;
-    theme: TLDefaultColorTheme;
 }): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -1493,40 +1427,42 @@ export interface TldrawFile {
 // @public (undocumented)
 export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | null;
 
+// @public (undocumented)
+export function TldrawHoveredShapeIndicator({ shapeId }: TLHoveredShapeIndicatorProps): JSX_2.Element | null;
+
 // @public
 export const TldrawImage: NamedExoticComponent<    {
-background?: boolean | undefined;
-bounds?: Box | undefined;
-darkMode?: boolean | undefined;
-format?: "png" | "svg" | undefined;
-padding?: number | undefined;
-pageId?: TLPageId | undefined;
-preserveAspectRatio?: string | undefined;
-scale?: number | undefined;
-shapeUtils?: readonly TLAnyShapeUtilConstructor[] | undefined;
 snapshot: StoreSnapshot<TLRecord>;
+format?: "png" | "svg" | undefined;
+pageId?: TLPageId | undefined;
+shapeUtils?: readonly TLAnyShapeUtilConstructor[] | undefined;
+bounds?: Box | undefined;
+scale?: number | undefined;
+background?: boolean | undefined;
+padding?: number | undefined;
+darkMode?: boolean | undefined;
+preserveAspectRatio?: string | undefined;
 }>;
 
 // @public
 export type TldrawImageProps = Expand<{
-    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    snapshot: StoreSnapshot<TLRecord>;
     format?: 'png' | 'svg';
     pageId?: TLPageId;
-    snapshot: StoreSnapshot<TLRecord>;
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 } & Partial<TLSvgOptions>>;
 
 // @public (undocumented)
 export type TldrawProps = Expand<(Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
     components?: TLComponents;
 }) & Partial<TLExternalContentProps> & ({
-    snapshot?: StoreSnapshot<TLRecord>;
-    defaultName?: string;
-    migrations?: readonly MigrationSequence[];
+    store: TLStore | TLStoreWithStatus;
+} | {
+    store?: undefined;
     persistenceKey?: string;
     sessionId?: string;
-    store?: undefined;
-} | {
-    store: TLStore | TLStoreWithStatus;
+    defaultName?: string;
+    snapshot?: StoreSnapshot<TLRecord>;
 })>;
 
 // @public (undocumented)
@@ -1540,101 +1476,100 @@ export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation,
 
 // @public (undocumented)
 export const TldrawUi: React_2.NamedExoticComponent<{
-    assetUrls?: (RecursivePartial<TLUiAssetUrls> & RecursivePartial<TLUiAssetUrls>) | undefined;
     children?: ReactNode;
-    components?: Partial<{
-        ActionsMenu: null | React_2.ComponentType<TLUiActionsMenuProps>;
-        ContextMenu: null | React_2.ComponentType<TLUiContextMenuProps>;
-        DebugMenu: null | React_2.ComponentType;
-        DebugPanel: null | React_2.ComponentType;
-        HelperButtons: null | React_2.ComponentType<TLUiHelperButtonsProps>;
-        HelpMenu: null | React_2.ComponentType<TLUiHelpMenuProps>;
-        KeyboardShortcutsDialog: null | React_2.ComponentType<TLUiKeyboardShortcutsDialogProps>;
-        MainMenu: null | React_2.ComponentType<TLUiMainMenuProps>;
-        MenuPanel: null | React_2.ComponentType;
-        Minimap: null | React_2.ComponentType;
-        NavigationPanel: null | React_2.ComponentType;
-        PageMenu: null | React_2.ComponentType;
-        QuickActions: null | React_2.ComponentType<TLUiQuickActionsProps>;
-        SharePanel: null | React_2.ComponentType;
-        StylePanel: null | React_2.ComponentType<TLUiStylePanelProps>;
-        Toolbar: null | React_2.ComponentType;
-        TopPanel: null | React_2.ComponentType;
-        ZoomMenu: null | React_2.ComponentType<TLUiZoomMenuProps>;
-    }> | undefined;
-    forceMobile?: boolean | undefined;
     hideUi?: boolean | undefined;
-    onUiEvent?: TLUiEventHandler | undefined;
+    components?: Partial<{
+        ContextMenu: null | React_2.ComponentType<TLUiContextMenuProps>;
+        ActionsMenu: null | React_2.ComponentType<TLUiActionsMenuProps>;
+        HelpMenu: null | React_2.ComponentType<TLUiHelpMenuProps>;
+        ZoomMenu: null | React_2.ComponentType<TLUiZoomMenuProps>;
+        MainMenu: null | React_2.ComponentType<TLUiMainMenuProps>;
+        Minimap: null | React_2.ComponentType;
+        StylePanel: null | React_2.ComponentType<TLUiStylePanelProps>;
+        PageMenu: null | React_2.ComponentType;
+        NavigationPanel: null | React_2.ComponentType;
+        Toolbar: null | React_2.ComponentType;
+        KeyboardShortcutsDialog: null | React_2.ComponentType<TLUiKeyboardShortcutsDialogProps>;
+        QuickActions: null | React_2.ComponentType<TLUiQuickActionsProps>;
+        HelperButtons: null | React_2.ComponentType<TLUiHelperButtonsProps>;
+        DebugMenu: null | React_2.ComponentType;
+        MenuPanel: null | React_2.ComponentType;
+        TopPanel: null | React_2.ComponentType;
+        SharePanel: null | React_2.ComponentType;
+    }> | undefined;
+    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
+    assetUrls?: (RecursivePartial<TLUiAssetUrls> & RecursivePartial<TLUiAssetUrls>) | undefined;
     overrides?: Partial<{
         actions: TLUiOverride<TLUiActionsContextType, {
-        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-        id?: string | undefined;
-        }) => string;
         addToast: (toast: Omit<TLUiToast, "id"> & {
         id?: string | undefined;
         }) => string;
-        clearDialogs: () => void;
-        clearToasts: () => void;
-        isMobile: boolean;
-        msg: (id?: string | undefined) => string;
-        removeDialog: (id: string) => string;
         removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
         updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
         }>;
         tools: TLUiOverride<TLUiToolsContextType, {
         insertMedia: () => void;
         } & {
-        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-        id?: string | undefined;
-        }) => string;
         addToast: (toast: Omit<TLUiToast, "id"> & {
         id?: string | undefined;
         }) => string;
-        clearDialogs: () => void;
-        clearToasts: () => void;
-        isMobile: boolean;
-        msg: (id?: string | undefined) => string;
-        removeDialog: (id: string) => string;
         removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
         updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
         }>;
         translations: Record<string, Record<string, string>> | undefined;
     }> | Partial<{
         actions: TLUiOverride<TLUiActionsContextType, {
-        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-        id?: string | undefined;
-        }) => string;
         addToast: (toast: Omit<TLUiToast, "id"> & {
         id?: string | undefined;
         }) => string;
-        clearDialogs: () => void;
-        clearToasts: () => void;
-        isMobile: boolean;
-        msg: (id?: string | undefined) => string;
-        removeDialog: (id: string) => string;
         removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
         updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
         }>;
         tools: TLUiOverride<TLUiToolsContextType, {
         insertMedia: () => void;
         } & {
-        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-        id?: string | undefined;
-        }) => string;
         addToast: (toast: Omit<TLUiToast, "id"> & {
         id?: string | undefined;
         }) => string;
-        clearDialogs: () => void;
-        clearToasts: () => void;
-        isMobile: boolean;
-        msg: (id?: string | undefined) => string;
-        removeDialog: (id: string) => string;
         removeToast: (id: string) => string;
+        clearToasts: () => void;
+        addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+        }) => string;
+        clearDialogs: () => void;
+        removeDialog: (id: string) => string;
         updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+        msg: (id?: string | undefined) => string;
+        isMobile: boolean;
         }>;
         translations: Record<string, Record<string, string>> | undefined;
     }>[] | undefined;
-    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
+    onUiEvent?: TLUiEventHandler | undefined;
+    forceMobile?: boolean | undefined;
 }>;
 
 // @public
@@ -1729,7 +1664,7 @@ export const TldrawUiInput: React_3.ForwardRefExoticComponent<TLUiInputProps & R
 export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
@@ -1738,7 +1673,7 @@ export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiM
 export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, isSelected, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, title, isSelected, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
@@ -1759,9 +1694,6 @@ export type TldrawUiProps = Expand<TldrawUiBaseProps & TldrawUiContextProviderPr
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
 
 // @public (undocumented)
-export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
-
-// @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checkbox?: boolean;
@@ -1779,6 +1711,8 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     onSelect: (source: TLUiEventSource) => Promise<void> | void;
     // (undocumented)
     readonlyOk?: boolean;
+    // (undocumented)
+    title?: string;
 }
 
 // @public (undocumented)
@@ -1800,8 +1734,8 @@ export type TLUiButtonCheckProps = {
 // @public (undocumented)
 export type TLUiButtonIconProps = {
     icon: string;
-    invertIcon?: boolean;
     small?: boolean;
+    invertIcon?: boolean;
 };
 
 // @public (undocumented)
@@ -1814,11 +1748,9 @@ export interface TLUiButtonPickerProps<T extends string> {
     // (undocumented)
     items: StyleValuesForUi<T>;
     // (undocumented)
-    onValueChange: (style: StyleProp<T>, value: T) => void;
+    onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void;
     // (undocumented)
     style: StyleProp<T>;
-    // (undocumented)
-    theme: TLDefaultColorTheme;
     // (undocumented)
     title: string;
     // (undocumented)
@@ -1842,8 +1774,8 @@ export type TLUiComponents = Partial<{
 
 // @public (undocumented)
 export type TLUiComponentsProviderProps = {
-    children: ReactNode;
     overrides?: TLUiComponents;
+    children: ReactNode;
 };
 
 // @public (undocumented)
@@ -1869,21 +1801,21 @@ export interface TLUiDialog {
 
 // @public (undocumented)
 export type TLUiDialogBodyProps = {
-    children: ReactNode;
     className?: string;
+    children: ReactNode;
     style?: React.CSSProperties;
 };
 
 // @public (undocumented)
 export type TLUiDialogFooterProps = {
-    children: ReactNode;
     className?: string;
+    children: ReactNode;
 };
 
 // @public (undocumented)
 export type TLUiDialogHeaderProps = {
-    children: ReactNode;
     className?: string;
+    children: ReactNode;
 };
 
 // @public (undocumented)
@@ -1897,16 +1829,16 @@ export type TLUiDialogsContextType = {
     addDialog: (dialog: Omit<TLUiDialog, 'id'> & {
         id?: string;
     }) => string;
-    clearDialogs: () => void;
-    dialogs: TLUiDialog[];
     removeDialog: (id: string) => string;
     updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+    clearDialogs: () => void;
+    dialogs: TLUiDialog[];
 };
 
 // @public (undocumented)
 export type TLUiDialogTitleProps = {
-    children: ReactNode;
     className?: string;
+    children: ReactNode;
 };
 
 // @public (undocumented)
@@ -1925,12 +1857,12 @@ export interface TLUiDropdownMenuCheckboxItemProps {
 
 // @public (undocumented)
 export type TLUiDropdownMenuContentProps = {
-    align?: 'center' | 'end' | 'start';
-    alignOffset?: number;
-    children: ReactNode;
     id?: string;
-    side?: 'bottom' | 'left' | 'right' | 'top';
+    children: ReactNode;
+    alignOffset?: number;
     sideOffset?: number;
+    align?: 'center' | 'end' | 'start';
+    side?: 'bottom' | 'left' | 'right' | 'top';
 };
 
 // @public (undocumented)
@@ -1948,24 +1880,24 @@ export interface TLUiDropdownMenuItemProps {
 
 // @public (undocumented)
 export type TLUiDropdownMenuRootProps = {
-    children: ReactNode;
-    debugOpen?: boolean;
     id: string;
+    children: ReactNode;
     modal?: boolean;
+    debugOpen?: boolean;
 };
 
 // @public (undocumented)
 export type TLUiDropdownMenuSubProps = {
-    children: ReactNode;
     id: string;
+    children: ReactNode;
 };
 
 // @public (undocumented)
 export type TLUiDropdownMenuSubTriggerProps = {
-    disabled?: boolean;
-    id?: string;
     label: string;
+    id?: string;
     title?: string;
+    disabled?: boolean;
 };
 
 // @public (undocumented)
@@ -2177,7 +2109,7 @@ export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
 }
 
 // @public (undocumented)
-export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'blob' | 'bring-forward' | 'bring-to-front' | 'broken' | 'check-circle' | 'check' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'color' | 'cross-2' | 'cross-circle' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'disconnected' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'horizontal-align-end' | 'horizontal-align-middle' | 'horizontal-align-start' | 'info-circle' | 'leading' | 'link' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'send-backward' | 'send-to-back' | 'share-1' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'stack-horizontal' | 'stack-vertical' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-left' | 'text-align-right' | 'toggle-off' | 'toggle-on' | 'tool-arrow' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-screenshot' | 'tool-text' | 'trash' | 'twitter' | 'undo' | 'ungroup' | 'unlock' | 'vertical-align-end' | 'vertical-align-middle' | 'vertical-align-start' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
+export type TLUiIconType = 'align-bottom-center' | 'align-bottom-left' | 'align-bottom-right' | 'align-bottom' | 'align-center-center' | 'align-center-horizontal' | 'align-center-left' | 'align-center-right' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top-center' | 'align-top-left' | 'align-top-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'aspect-ratio' | 'avatar' | 'blob' | 'bring-forward' | 'bring-to-front' | 'check' | 'checkbox-checked' | 'checkbox-empty' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'code' | 'collab' | 'color' | 'comment' | 'cross-2' | 'cross' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'file' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'hidden' | 'image' | 'info-circle' | 'leading' | 'link' | 'lock-small' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'page' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'ruler' | 'search' | 'send-backward' | 'send-to-back' | 'settings-horizontal' | 'settings-vertical-1' | 'settings-vertical' | 'share-1' | 'share-2' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'status-online' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-justify' | 'text-align-left' | 'text-align-right' | 'tool-arrow' | 'tool-embed' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-text' | 'trash' | 'triangle-down' | 'triangle-up' | 'twitter' | 'undo' | 'ungroup' | 'unlock-small' | 'unlock' | 'vertical-align-center' | 'vertical-align-end' | 'vertical-align-start' | 'visible' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
 
 // @public (undocumented)
 export interface TLUiInputProps {
@@ -2205,8 +2137,6 @@ export interface TLUiInputProps {
     onCancel?: (value: string) => void;
     // (undocumented)
     onComplete?: (value: string) => void;
-    // (undocumented)
-    onFocus?: () => void;
     // (undocumented)
     onValueChange?: (value: string) => void;
     // (undocumented)
@@ -2236,60 +2166,60 @@ export type TLUiMainMenuProps = {
 
 // @public (undocumented)
 export type TLUiMenuCheckboxItemProps<TranslationKey extends string = string, IconType extends string = string> = {
-    checked?: boolean;
-    disabled?: boolean;
     icon?: IconType;
     id: string;
     kbd?: string;
+    title?: string;
     label?: {
         [key: string]: TranslationKey;
     } | TranslationKey;
-    onSelect: (source: TLUiEventSource) => Promise<void> | void;
     readonlyOk?: boolean;
-    title?: string;
-    toggle?: boolean;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    checked?: boolean;
+    disabled?: boolean;
 };
 
 // @public (undocumented)
 export type TLUiMenuContextProviderProps = {
-    children: React.ReactNode;
-    sourceId: TLUiEventSource;
     type: TldrawUiMenuContextType;
+    sourceId: TLUiEventSource;
+    children: React.ReactNode;
 };
 
 // @public (undocumented)
 export type TLUiMenuGroupProps<TranslationKey extends string = string> = {
+    id: string;
     label?: {
         [key: string]: TranslationKey;
     } | TranslationKey;
     children?: ReactNode;
-    id: string;
 };
 
 // @public (undocumented)
 export type TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> = {
-    readonlyOk?: boolean;
-    noClose?: boolean;
-    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    id: string;
     icon?: IconType;
     kbd?: string;
+    title?: string;
     label?: {
         [key: string]: TranslationKey;
     } | TranslationKey;
-    isSelected?: boolean;
+    readonlyOk?: boolean;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
     disabled?: boolean;
+    noClose?: boolean;
     spinner?: boolean;
-    id: string;
+    isSelected?: boolean;
 };
 
 // @public (undocumented)
 export type TLUiMenuSubmenuProps<Translation extends string = string> = {
-    children: ReactNode;
-    disabled?: boolean;
     id: string;
     label?: {
         [key: string]: Translation;
     } | Translation;
+    disabled?: boolean;
+    children: ReactNode;
     size?: 'medium' | 'small' | 'tiny' | 'wide';
 };
 
@@ -2302,19 +2232,19 @@ export type TLUiOverrides = Partial<{
 
 // @public (undocumented)
 export type TLUiPopoverContentProps = {
-    align?: 'center' | 'end' | 'start';
-    alignOffset?: number;
     children: React_2.ReactNode;
     side: 'bottom' | 'left' | 'right' | 'top';
+    align?: 'center' | 'end' | 'start';
+    alignOffset?: number;
     sideOffset?: number;
 };
 
 // @public (undocumented)
 export type TLUiPopoverProps = {
-    children: React_2.ReactNode;
     id: string;
-    onOpenChange?: (isOpen: boolean) => void;
     open?: boolean;
+    children: React_2.ReactNode;
+    onOpenChange?: (isOpen: boolean) => void;
 };
 
 // @public (undocumented)
@@ -2335,7 +2265,7 @@ export interface TLUiSliderProps {
     // (undocumented)
     label: string;
     // (undocumented)
-    onValueChange: (value: number) => void;
+    onValueChange: (value: number, squashing: boolean) => void;
     // (undocumented)
     steps: number;
     // (undocumented)
@@ -2372,8 +2302,6 @@ export interface TLUiToast {
     // (undocumented)
     keepOpen?: boolean;
     // (undocumented)
-    severity?: AlertSeverity;
-    // (undocumented)
     title?: string;
 }
 
@@ -2392,8 +2320,8 @@ export type TLUiToastsContextType = {
     addToast: (toast: Omit<TLUiToast, 'id'> & {
         id?: string;
     }) => string;
-    clearToasts: () => void;
     removeToast: (id: TLUiToast['id']) => string;
+    clearToasts: () => void;
     toasts: TLUiToast[];
 };
 
@@ -2424,17 +2352,16 @@ export type TLUiToolsContextType = Record<string, TLUiToolItem>;
 
 // @public (undocumented)
 export type TLUiToolsProviderProps = {
-    children: React_3.ReactNode;
     overrides?: (editor: Editor, tools: TLUiToolsContextType, helpers: {
         insertMedia: () => void;
     }) => TLUiToolsContextType;
+    children: React_3.ReactNode;
 };
 
 // @public (undocumented)
 export type TLUiTranslation = {
-    readonly dir: 'ltr' | 'rtl';
-    readonly label: string;
     readonly locale: string;
+    readonly label: string;
     readonly messages: Record<TLUiTranslationKey, string>;
 };
 
@@ -2442,7 +2369,7 @@ export type TLUiTranslation = {
 export type TLUiTranslationContextType = TLUiTranslation;
 
 // @public (undocumented)
-export type TLUiTranslationKey = 'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-json.short' | 'action.copy-as-json' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.duplicate' | 'action.edit-link' | 'action.exit-pen-mode' | 'action.export-all-as-json.short' | 'action.export-all-as-json' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-json.short' | 'action.export-as-json' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project-on-tldraw' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.pack' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-size' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-lock' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.white' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'debug-panel.more' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'edit-pages-dialog.move-down' | 'edit-pages-dialog.move-up' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.keyboard-shortcuts' | 'help-menu.title' | 'help-menu.twitter' | 'home-project-dialog.description' | 'home-project-dialog.ok' | 'home-project-dialog.title' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.language' | 'menu.preferences' | 'menu.title' | 'menu.view' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'rename-project-dialog.cancel' | 'rename-project-dialog.rename' | 'rename-project-dialog.title' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.default-project-name' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.readonly-link' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'status.online' | 'style-panel.align' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'tool-panel.drawing' | 'tool-panel.more' | 'tool-panel.shapes' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.asset' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.frame' | 'tool.hand' | 'tool.hexagon' | 'tool.highlight' | 'tool.laser' | 'tool.line' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.rectangle' | 'tool.rhombus' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open';
+export type TLUiTranslationKey = 'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-json.short' | 'action.copy-as-json' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.duplicate' | 'action.edit-link' | 'action.exit-pen-mode' | 'action.export-all-as-json.short' | 'action.export-all-as-json' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-json.short' | 'action.export-as-json' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.pack' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-size' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-lock' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'debug-panel.more' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'edit-pages-dialog.move-down' | 'edit-pages-dialog.move-up' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.keyboard-shortcuts' | 'help-menu.title' | 'help-menu.twitter' | 'home-project-dialog.description' | 'home-project-dialog.ok' | 'home-project-dialog.title' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.language' | 'menu.preferences' | 'menu.title' | 'menu.view' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'rename-project-dialog.cancel' | 'rename-project-dialog.rename' | 'rename-project-dialog.title' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.default-project-name' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.readonly-link' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'status.online' | 'style-panel.align' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'tool-panel.drawing' | 'tool-panel.more' | 'tool-panel.shapes' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.asset' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.frame' | 'tool.hand' | 'tool.hexagon' | 'tool.highlight' | 'tool.laser' | 'tool.line' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.rectangle' | 'tool.rhombus' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open';
 
 // @public (undocumented)
 export type TLUiZoomMenuProps = {
@@ -2528,62 +2455,24 @@ export function useCanUndo(): boolean;
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
-export const useCurrentTranslation: () => TLUiTranslation;
-
-// @public (undocumented)
-export function useDefaultColorTheme(): {
-    "light-blue": TLDefaultColorThemeColor;
-    "light-green": TLDefaultColorThemeColor;
-    "light-red": TLDefaultColorThemeColor;
-    "light-violet": TLDefaultColorThemeColor;
-    background: string;
-    black: TLDefaultColorThemeColor;
-    blue: TLDefaultColorThemeColor;
-    green: TLDefaultColorThemeColor;
-    grey: TLDefaultColorThemeColor;
-    id: "dark" | "light";
-    orange: TLDefaultColorThemeColor;
-    red: TLDefaultColorThemeColor;
-    solid: string;
-    text: string;
-    violet: TLDefaultColorThemeColor;
-    white: TLDefaultColorThemeColor;
-    yellow: TLDefaultColorThemeColor;
-};
-
-// @public (undocumented)
 export function useDefaultHelpers(): {
-    addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-        id?: string | undefined;
-    }) => string;
     addToast: (toast: Omit<TLUiToast, "id"> & {
         id?: string | undefined;
     }) => string;
-    clearDialogs: () => void;
-    clearToasts: () => void;
-    isMobile: boolean;
-    msg: (id?: string | undefined) => string;
-    removeDialog: (id: string) => string;
     removeToast: (id: string) => string;
+    clearToasts: () => void;
+    addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+        id?: string | undefined;
+    }) => string;
+    clearDialogs: () => void;
+    removeDialog: (id: string) => string;
     updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+    msg: (id?: string | undefined) => string;
+    isMobile: boolean;
 };
 
 // @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
-
-// @public (undocumented)
-export function useEditableText(id: TLShapeId, type: string, text: string): {
-    handleBlur: () => void;
-    handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
-    handleDoubleClick: (e: any) => any;
-    handleFocus: typeof noop;
-    handleInputPointerDown: (e: React_2.PointerEvent) => void;
-    handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
-    isEditing: boolean;
-    isEditingAnything: boolean;
-    isEmpty: boolean;
-    rInput: React_2.RefObject<HTMLTextAreaElement>;
-};
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
@@ -2611,12 +2500,6 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): reado
 export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
-export function usePreloadAssets(assetUrls: TLEditorAssetUrls): {
-    done: boolean;
-    error: boolean;
-};
-
-// @public (undocumented)
 export function useReadonly(): boolean;
 
 // @public (undocumented)
@@ -2624,24 +2507,23 @@ export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): nu
 
 // @public (undocumented)
 export function useTldrawUiComponents(): Partial<{
-    ActionsMenu: ComponentType<TLUiActionsMenuProps> | null;
     ContextMenu: ComponentType<TLUiContextMenuProps> | null;
-    DebugMenu: ComponentType | null;
-    DebugPanel: ComponentType | null;
-    HelperButtons: ComponentType<TLUiHelperButtonsProps> | null;
+    ActionsMenu: ComponentType<TLUiActionsMenuProps> | null;
     HelpMenu: ComponentType<TLUiHelpMenuProps> | null;
-    KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps> | null;
-    MainMenu: ComponentType<TLUiMainMenuProps> | null;
-    MenuPanel: ComponentType | null;
-    Minimap: ComponentType | null;
-    NavigationPanel: ComponentType | null;
-    PageMenu: ComponentType | null;
-    QuickActions: ComponentType<TLUiQuickActionsProps> | null;
-    SharePanel: ComponentType | null;
-    StylePanel: ComponentType<TLUiStylePanelProps> | null;
-    Toolbar: ComponentType | null;
-    TopPanel: ComponentType | null;
     ZoomMenu: ComponentType<TLUiZoomMenuProps> | null;
+    MainMenu: ComponentType<TLUiMainMenuProps> | null;
+    Minimap: ComponentType | null;
+    StylePanel: ComponentType<TLUiStylePanelProps> | null;
+    PageMenu: ComponentType | null;
+    NavigationPanel: ComponentType | null;
+    Toolbar: ComponentType | null;
+    KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps> | null;
+    QuickActions: ComponentType<TLUiQuickActionsProps> | null;
+    HelperButtons: ComponentType<TLUiHelperButtonsProps> | null;
+    DebugMenu: ComponentType | null;
+    MenuPanel: ComponentType | null;
+    TopPanel: ComponentType | null;
+    SharePanel: ComponentType | null;
 }>;
 
 // @public (undocumented)
@@ -2669,18 +2551,18 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     isAspectRatioLocked: () => boolean;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: Migrations;
     // (undocumented)
     static props: {
-        assetId: Validator<TLAssetId | null>;
-        h: Validator<number>;
-        playing: Validator<boolean>;
-        time: Validator<number>;
-        url: Validator<string>;
         w: Validator<number>;
+        h: Validator<number>;
+        time: Validator<number>;
+        playing: Validator<boolean>;
+        url: Validator<string>;
+        assetId: Validator<TLAssetId | null>;
     };
     // (undocumented)
-    toSvg(shape: TLVideoShape): JSX_2.Element;
+    toSvg(shape: TLVideoShape): SVGGElement;
     // (undocumented)
     static type: "video";
 }

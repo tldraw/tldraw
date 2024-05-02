@@ -3,7 +3,6 @@ import {
 	ErrorScreen,
 	Expand,
 	LoadingScreen,
-	MigrationSequence,
 	StoreSnapshot,
 	TLEditorComponents,
 	TLOnMountHandler,
@@ -12,14 +11,15 @@ import {
 	TLStoreWithStatus,
 	TldrawEditor,
 	TldrawEditorBaseProps,
+	assert,
 	useEditor,
 	useEditorComponents,
-	useEvent,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
-import { useLayoutEffect, useMemo } from 'react'
+import { useCallback, useDebugValue, useLayoutEffect, useMemo, useRef } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
+import { TldrawHoveredShapeIndicator } from './canvas/TldrawHoveredShapeIndicator'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
@@ -56,7 +56,6 @@ export type TldrawProps = Expand<
 			  }
 			| {
 					store?: undefined
-					migrations?: readonly MigrationSequence[]
 					persistenceKey?: string
 					sessionId?: string
 					defaultName?: string
@@ -91,6 +90,7 @@ export function Tldraw(props: TldrawProps) {
 			SelectionForeground: TldrawSelectionForeground,
 			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
+			HoveredShapeIndicator: TldrawHoveredShapeIndicator,
 			..._components,
 		}),
 		[_components]
@@ -109,10 +109,13 @@ export function Tldraw(props: TldrawProps) {
 	)
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
+
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
+
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
+
 	if (!preloadingComplete) {
 		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
@@ -205,4 +208,23 @@ function InsideOfEditorAndUiContext({
 	}
 
 	return null
+}
+
+// duped from tldraw editor
+function useEvent<Args extends Array<unknown>, Result>(
+	handler: (...args: Args) => Result
+): (...args: Args) => Result {
+	const handlerRef = useRef<(...args: Args) => Result>()
+
+	useLayoutEffect(() => {
+		handlerRef.current = handler
+	})
+
+	useDebugValue(handler)
+
+	return useCallback((...args: Args) => {
+		const fn = handlerRef.current
+		assert(fn, 'fn does not exist')
+		return fn(...args)
+	}, [])
 }

@@ -152,8 +152,9 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	const tA = a.clone().add(u.clone().mul(offsetA * (didFlip ? -1 : 1)))
 	const tB = b.clone().sub(u.clone().mul(offsetB * (didFlip ? -1 : 1)))
+	const distAB = Vec.Dist(tA, tB)
 
-	if (Vec.DistMin(tA, tB, minLength)) {
+	if (distAB < minLength) {
 		if (offsetA !== 0 && offsetB !== 0) {
 			// both bound + offset
 			offsetA *= -1.5
@@ -240,7 +241,7 @@ function updateArrowheadPointWithBoundShape(
 
 	if (intersection !== null) {
 		targetInt =
-			intersection.sort((p1, p2) => Vec.Dist2(p1, targetFrom) - Vec.Dist2(p2, targetFrom))[0] ??
+			intersection.sort((p1, p2) => Vec.Dist(p1, targetFrom) - Vec.Dist(p2, targetFrom))[0] ??
 			(isClosed ? undefined : targetTo)
 	}
 

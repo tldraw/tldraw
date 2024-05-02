@@ -1,4 +1,3 @@
-import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/tlsync'
 import { useCallback, useState } from 'react'
 import { Tldraw, createTLStore, defaultShapeUtils } from 'tldraw'
@@ -32,7 +31,7 @@ export function BoardHistorySnapshot({
 		const sure = window.confirm('Are you sure?')
 		if (!sure) return
 
-		const res = await fetch(`/api/${ROOM_PREFIX}/${roomId}/restore`, {
+		const res = await fetch(`/api/r/${roomId}/restore`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

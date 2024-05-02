@@ -16,7 +16,6 @@ apps/examples/www
 content.json
 apps/docs/utils/vector-db/index.json
 **/gen/**/*.md
-.github/pull_request_template.md
 
 **/api-report.md
 **/CHANGELOG.md

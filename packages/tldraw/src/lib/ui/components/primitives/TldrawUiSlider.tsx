@@ -10,7 +10,7 @@ export interface TLUiSliderProps {
 	value: number | null
 	label: string
 	title: string
-	onValueChange: (value: number) => void
+	onValueChange: (value: number, squashing: boolean) => void
 	'data-testid'?: string
 }
 
@@ -22,7 +22,7 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 
 	const handleValueChange = useCallback(
 		(value: number[]) => {
-			onValueChange(value[0])
+			onValueChange(value[0], true)
 		},
 		[onValueChange]
 	)
@@ -33,7 +33,7 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 
 	const handlePointerUp = useCallback(() => {
 		if (!value) return
-		onValueChange(value)
+		onValueChange(value, false)
 	}, [value, onValueChange])
 
 	return (

@@ -10,21 +10,17 @@ import { DEFAULT_TRANSLATION } from './defaultTranslation'
 
 /* ----------------- (do not change) ---------------- */
 
-export const RTL_LANGUAGES = new Set(['ar', 'fa', 'he', 'ur', 'ku'])
-
 /** @public */
 export type TLUiTranslation = {
 	readonly locale: string
 	readonly label: string
 	readonly messages: Record<TLUiTranslationKey, string>
-	readonly dir: 'rtl' | 'ltr'
 }
 
 const EN_TRANSLATION: TLUiTranslation = {
 	locale: 'en',
 	label: 'English',
 	messages: DEFAULT_TRANSLATION as TLUiTranslation['messages'],
-	dir: 'ltr',
 }
 
 /** @internal */
@@ -73,7 +69,6 @@ export async function fetchTranslation(
 	return {
 		locale,
 		label: language.label,
-		dir: RTL_LANGUAGES.has(language.locale) ? 'rtl' : 'ltr',
 		messages: { ...EN_TRANSLATION.messages, ...messages },
 	}
 }

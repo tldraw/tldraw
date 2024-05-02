@@ -2,20 +2,14 @@ import { Vec, VecLike, lerp, pointInPolygon } from 'tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
 export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
-	const { w, tail } = shape.props
+	const { w, h, tail } = shape.props
 
-	const fullHeight = shape.props.h + shape.props.growY
-	const tailInShapeSpace = new Vec(tail.x * w, tail.y * fullHeight)
+	const tailInShapeSpace = new Vec(tail.x * w, tail.y * h)
 
-	const [tl, tr, br, bl] = [
-		new Vec(0, 0),
-		new Vec(w, 0),
-		new Vec(w, fullHeight),
-		new Vec(0, fullHeight),
-	]
+	const [tl, tr, br, bl] = [new Vec(0, 0), new Vec(w, 0), new Vec(w, h), new Vec(0, h)]
 
 	const offsetH = w / 10
-	const offsetV = fullHeight / 10
+	const offsetV = h / 10
 
 	const { adjustedIntersection, intersectionSegmentIndex } = getTailIntersectionPoint(shape)
 
@@ -79,12 +73,11 @@ export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
 }
 
 export function getTailIntersectionPoint(shape: SpeechBubbleShape) {
-	const { w, tail } = shape.props
-	const fullHeight = shape.props.h + shape.props.growY
-	const tailInShapeSpace = new Vec(tail.x * w, tail.y * fullHeight)
+	const { w, h, tail } = shape.props
+	const tailInShapeSpace = new Vec(tail.x * w, tail.y * h)
 
-	const center = new Vec(w / 2, fullHeight / 2)
-	const corners = [new Vec(0, 0), new Vec(w, 0), new Vec(w, fullHeight), new Vec(0, fullHeight)]
+	const center = new Vec(w / 2, h / 2)
+	const corners = [new Vec(0, 0), new Vec(w, 0), new Vec(w, h), new Vec(0, h)]
 	const segments = [
 		[corners[0], corners[1]],
 		[corners[1], corners[2]],
@@ -139,7 +132,7 @@ export function getTailIntersectionPoint(shape: SpeechBubbleShape) {
 	const squared = mapRange(-1, 1, 0, totalDistance, squaredRelative) // -1 to 1 -> absolute
 
 	//keep it away from the edges
-	const offset = (segments.indexOf(intersectionSegment) % 2 === 0 ? w / 10 : fullHeight / 10) * 3
+	const offset = (segments.indexOf(intersectionSegment) % 2 === 0 ? w / 10 : h / 10) * 3
 	const constrained = mapRange(0, totalDistance, offset, totalDistance - offset, distance)
 
 	// combine the two

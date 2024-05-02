@@ -7,13 +7,6 @@
 		"sidebar_behavior": "show-links"
 	},
 	{
-		"id": "releases",
-		"title": "Releases",
-		"description": "Introduction articles for tldraw.",
-		"categories": [],
-		"sidebar_behavior": "hidden"
-	},
-	{
 		"id": "docs",
 		"title": "Learn tldraw",
 		"description": "Learn to use the tldraw SDK.",

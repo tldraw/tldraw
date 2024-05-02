@@ -77,17 +77,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 ## Star History
 
 <a href="https://star-history.com/#tldraw/tldraw">
-	<picture>
-	  <source
-	    media="(prefers-color-scheme: dark)"
-	    srcset="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date&theme=dark"
-	  />
-	  <source
-	    media="(prefers-color-scheme: light)"
-	    srcset="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date"
-	  />
-	  <img src="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date" alt="Star History Chart" width="100%" />
-	</picture>
+  <img src="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date" alt="Star History Chart" width="100%" />
 </a>
 
 ## Contact

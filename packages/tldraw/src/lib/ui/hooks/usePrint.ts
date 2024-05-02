@@ -134,7 +134,7 @@ export function usePrint() {
 			}
 
 			const afterPrintHandler = () => {
-				editor.once('tick', () => {
+				editor.once('change-history', () => {
 					clearElements(el, style)
 				})
 			}
@@ -142,14 +142,14 @@ export function usePrint() {
 			window.addEventListener('beforeprint', beforePrintHandler)
 			window.addEventListener('afterprint', afterPrintHandler)
 
-			function addPageToPrint(title: string, footer: string | null, svg: string) {
+			function addPageToPrint(title: string, footer: string | null, svg: SVGElement) {
 				try {
 					el.innerHTML += `<div class="${className}__item">
         <div class="${className}__item__header">
           ${title.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
         </div>
         <div class="${className}__item__main">
-          ${svg}
+          ${svg.outerHTML}
         </div>
         <div class="${className}__item__footer ${className}__item__footer__${footer ? '' : 'hide'}">
           ${footer ?? ''}
@@ -188,11 +188,11 @@ export function usePrint() {
 
 			if (editor.getSelectedShapeIds().length > 0) {
 				// Print the selected ids from the current page
-				const svgExport = await editor.getSvgString(selectedShapeIds, svgOpts)
+				const svg = await editor.getSvg(selectedShapeIds, svgOpts)
 
-				if (svgExport) {
+				if (svg) {
 					const page = pages.find((p) => p.id === currentPageId)
-					addPageToPrint(`tldraw — ${page?.name}`, null, svgExport.svg)
+					addPageToPrint(`tldraw — ${page?.name}`, null, svg)
 					triggerPrint()
 				}
 			} else {
@@ -200,23 +200,17 @@ export function usePrint() {
 					// Print all pages
 					for (let i = 0; i < pages.length; i++) {
 						const page = pages[i]
-						const svgExport = await editor.getSvgString(
-							editor.getSortedChildIdsForParent(page.id),
-							svgOpts
-						)
-						if (svgExport) {
-							addPageToPrint(`tldraw — ${page.name}`, `${i}/${pages.length}`, svgExport.svg)
+						const svg = await editor.getSvg(editor.getSortedChildIdsForParent(page.id), svgOpts)
+						if (svg) {
+							addPageToPrint(`tldraw — ${page.name}`, `${i}/${pages.length}`, svg)
 						}
 					}
 					triggerPrint()
 				} else {
 					const page = editor.getCurrentPage()
-					const svgExport = await editor.getSvgString(
-						editor.getSortedChildIdsForParent(page.id),
-						svgOpts
-					)
-					if (svgExport) {
-						addPageToPrint(`tldraw — ${page.name}`, null, svgExport.svg)
+					const svg = await editor.getSvg(editor.getSortedChildIdsForParent(page.id), svgOpts)
+					if (svg) {
+						addPageToPrint(`tldraw — ${page.name}`, null, svg)
 						triggerPrint()
 					}
 				}

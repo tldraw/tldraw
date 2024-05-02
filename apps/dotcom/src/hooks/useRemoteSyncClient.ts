@@ -1,10 +1,4 @@
-import {
-	TLCloseEventCode,
-	TLIncompatibilityReason,
-	TLPersistentClientSocketStatus,
-	TLSyncClient,
-	schema,
-} from '@tldraw/tlsync'
+import { TLSyncClient, schema } from '@tldraw/tlsync'
 import { useEffect, useState } from 'react'
 import {
 	TAB_ID,
@@ -36,7 +30,7 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
 	} | null>(null)
-	const { uri, roomId = 'default', userPreferences: prefs } = opts
+	const { uri, roomId = 'default', userPreferences: prefs, getAccessToken } = opts
 
 	const store = useTLStore({ schema })
 
@@ -58,17 +52,11 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 			const withParams = new URL(uri)
 			withParams.searchParams.set('sessionKey', TAB_ID)
 			withParams.searchParams.set('storeId', store.id)
-			return withParams.toString()
-		})
-
-		socket.onStatusChange((val: TLPersistentClientSocketStatus, closeCode?: number) => {
-			if (val === 'error' && closeCode === TLCloseEventCode.NOT_FOUND) {
-				trackAnalyticsEvent(MULTIPLAYER_EVENT_NAME, { name: 'room-not-found', roomId })
-				setState({ error: new RemoteSyncError(TLIncompatibilityReason.RoomNotFound) })
-				client.close()
-				socket.close()
-				return
+			const accessToken = await getAccessToken?.()
+			if (accessToken) {
+				withParams.searchParams.set('accessToken', accessToken)
 			}
+			return withParams.toString()
 		})
 
 		let didCancel = false
@@ -107,7 +95,7 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 			client.close()
 			socket.close()
 		}
-	}, [prefs, roomId, store, uri])
+	}, [getAccessToken, prefs, roomId, store, uri])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',

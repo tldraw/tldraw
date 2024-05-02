@@ -16,7 +16,6 @@ export type TLPointerEventTarget =
 export type TLPointerEventName =
 	| 'pointer_down'
 	| 'pointer_move'
-	| 'long_press'
 	| 'pointer_up'
 	| 'right_click'
 	| 'middle_click'
@@ -40,7 +39,6 @@ export type TLEventName =
 	| 'cancel'
 	| 'complete'
 	| 'interrupt'
-	| 'tick'
 
 /** @public */
 export interface TLBaseEventInfo {
@@ -101,8 +99,6 @@ export type TLCancelEventInfo = { type: 'misc'; name: 'cancel' }
 export type TLCompleteEventInfo = { type: 'misc'; name: 'complete' }
 /** @public */
 export type TLInterruptEventInfo = { type: 'misc'; name: 'interrupt' }
-/** @public */
-export type TLTickEventInfo = { type: 'misc'; name: 'tick'; elapsed: number }
 
 /** @public */
 export type TLEventInfo =
@@ -114,7 +110,6 @@ export type TLEventInfo =
 	| TLCancelEventInfo
 	| TLCompleteEventInfo
 	| TLInterruptEventInfo
-	| TLTickEventInfo
 
 /** @public */
 export type TLPointerEvent = (info: TLPointerEventInfo) => void
@@ -132,8 +127,6 @@ export type TLCancelEvent = (info: TLCancelEventInfo) => void
 export type TLCompleteEvent = (info: TLCompleteEventInfo) => void
 /** @public */
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void
-/** @public */
-export type TLTickEvent = (info: TLTickEventInfo) => void
 
 /** @public */
 export type UiEvent =
@@ -145,6 +138,8 @@ export type UiEvent =
 	| TLCompleteEvent
 
 /** @public */
+export type TLTickEventHandler = () => void
+/** @public */
 export type TLEnterEventHandler = (info: any, from: string) => void
 /** @public */
 export type TLExitEventHandler = (info: any, to: string) => void
@@ -153,7 +148,6 @@ export type TLExitEventHandler = (info: any, to: string) => void
 export interface TLEventHandlers {
 	onPointerDown: TLPointerEvent
 	onPointerMove: TLPointerEvent
-	onLongPress: TLPointerEvent
 	onRightClick: TLPointerEvent
 	onDoubleClick: TLClickEvent
 	onTripleClick: TLClickEvent
@@ -167,7 +161,6 @@ export interface TLEventHandlers {
 	onCancel: TLCancelEvent
 	onComplete: TLCompleteEvent
 	onInterrupt: TLInterruptEvent
-	onTick: TLTickEvent
 }
 
 /** @public */
@@ -178,7 +171,6 @@ export const EVENT_NAME_MAP: Record<
 	wheel: 'onWheel',
 	pointer_down: 'onPointerDown',
 	pointer_move: 'onPointerMove',
-	long_press: 'onLongPress',
 	pointer_up: 'onPointerUp',
 	right_click: 'onRightClick',
 	middle_click: 'onMiddleClick',
@@ -191,5 +183,7 @@ export const EVENT_NAME_MAP: Record<
 	double_click: 'onDoubleClick',
 	triple_click: 'onTripleClick',
 	quadruple_click: 'onQuadrupleClick',
-	tick: 'onTick',
 }
+
+/** @public */
+export type TLTickEvent = (elapsed: number) => void

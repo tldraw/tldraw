@@ -3,11 +3,14 @@ import {
 	Geometry2d,
 	Rectangle2d,
 	SVGContainer,
+	SelectionEdge,
 	SvgExportContext,
 	TLFrameShape,
 	TLGroupShape,
+	TLOnResizeEndHandler,
 	TLOnResizeHandler,
 	TLShape,
+	TLShapeId,
 	canonicalizeRotation,
 	frameShapeMigrations,
 	frameShapeProps,
@@ -19,7 +22,7 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
-import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FrameHeading } from './components/FrameHeading'
 
 export function defaultEmptyAs(str: string, dflt: string) {
@@ -66,7 +69,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				const info = (resizingState as typeof resizingState & { info: { isCreating: boolean } })
 					?.info
 				if (!info) return false
-				return info.isCreating && this.editor.getOnlySelectedShapeId() === shape.id
+				return info.isCreating && this.editor.getOnlySelectedShape()?.id === shape.id
 			},
 			[shape.id]
 		)
@@ -94,8 +97,19 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 	}
 
-	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
+	override toSvg(shape: TLFrameShape, ctx: SvgExportContext): SVGElement | Promise<SVGElement> {
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
+		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+
+		const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+		rect.setAttribute('width', shape.props.w.toString())
+		rect.setAttribute('height', shape.props.h.toString())
+		rect.setAttribute('fill', theme.solid)
+		rect.setAttribute('stroke', theme.black.solid)
+		rect.setAttribute('stroke-width', '1')
+		rect.setAttribute('rx', '1')
+		rect.setAttribute('ry', '1')
+		g.appendChild(rect)
 
 		// Text label
 		const pageRotation = canonicalizeRotation(
@@ -104,26 +118,28 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		// rotate right 45 deg
 		const offsetRotation = pageRotation + Math.PI / 4
 		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
-		const labelSide = Math.floor(scaledRotation)
+		const labelSide: SelectionEdge = (['top', 'left', 'bottom', 'right'] as const)[
+			Math.floor(scaledRotation)
+		]
 
 		let labelTranslate: string
 		switch (labelSide) {
-			case 0: // top
+			case 'top':
 				labelTranslate = ``
 				break
-			case 3: // right
-				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, 0) rotate(90)`
+			case 'right':
+				labelTranslate = `translate(${toDomPrecision(shape.props.w)}px, 0px) rotate(90deg)`
 				break
-			case 2: // bottom
-				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, ${toDomPrecision(
+			case 'bottom':
+				labelTranslate = `translate(${toDomPrecision(shape.props.w)}px, ${toDomPrecision(
 					shape.props.h
-				)}) rotate(180)`
+				)}px) rotate(180deg)`
 				break
-			case 1: // left
-				labelTranslate = `translate(0, ${toDomPrecision(shape.props.h)}) rotate(270)`
+			case 'left':
+				labelTranslate = `translate(0px, ${toDomPrecision(shape.props.h)}px) rotate(270deg)`
 				break
 			default:
-				throw Error('labelSide out of bounds')
+				labelTranslate = ``
 		}
 
 		// Truncate with ellipsis
@@ -149,36 +165,25 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const firstSpan = spans[0]
 		const lastSpan = last(spans)!
 		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-		const text = createTextJsxFromSpans(this.editor, spans, {
+		const text = createTextSvgElementFromSpans(this.editor, spans, {
 			offsetY: -opts.height - 2,
 			...opts,
 		})
+		text.style.setProperty('transform', labelTranslate)
 
-		return (
-			<>
-				<rect
-					width={shape.props.w}
-					height={shape.props.h}
-					fill={theme.solid}
-					stroke={theme.black.solid}
-					strokeWidth={1}
-					rx={1}
-					ry={1}
-				/>
-				<g transform={labelTranslate}>
-					<rect
-						x={-8}
-						y={-opts.height - 4}
-						width={labelTextWidth + 16}
-						height={opts.height}
-						fill={theme.background}
-						rx={4}
-						ry={4}
-					/>
-					{text}
-				</g>
-			</>
-		)
+		const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+		textBg.setAttribute('x', '-8px')
+		textBg.setAttribute('y', -opts.height - 4 + 'px')
+		textBg.setAttribute('width', labelTextWidth + 16 + 'px')
+		textBg.setAttribute('height', `${opts.height}px`)
+		textBg.setAttribute('rx', 4 + 'px')
+		textBg.setAttribute('ry', 4 + 'px')
+		textBg.setAttribute('fill', theme.background)
+
+		g.appendChild(textBg)
+		g.appendChild(text)
+
+		return g
 	}
 
 	indicator(shape: TLFrameShape) {
@@ -205,10 +210,15 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return !shape.isLocked
 	}
 
-	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]) => {
+	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]): { shouldHint: boolean } => {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
-			this.editor.reparentShapes(shapes, frame.id)
+			this.editor.reparentShapes(
+				shapes.map((shape) => shape.id),
+				frame.id
+			)
+			return { shouldHint: true }
 		}
+		return { shouldHint: false }
 	}
 
 	override onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
@@ -222,6 +232,24 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			this.editor.reparentShapes(shapes, parent.id)
 		} else {
 			this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
+		}
+	}
+
+	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
+		const bounds = this.editor.getShapePageBounds(shape)!
+		const children = this.editor.getSortedChildIdsForParent(shape.id)
+
+		const shapesToReparent: TLShapeId[] = []
+
+		for (const childId of children) {
+			const childBounds = this.editor.getShapePageBounds(childId)!
+			if (!bounds.includes(childBounds)) {
+				shapesToReparent.push(childId)
+			}
+		}
+
+		if (shapesToReparent.length > 0) {
+			this.editor.reparentShapes(shapesToReparent, this.editor.getCurrentPageId())
 		}
 	}
 

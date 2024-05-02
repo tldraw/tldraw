@@ -1,5 +1,5 @@
 import { writeFileSync } from 'fs'
-import * as tar from 'tar'
+import tar from 'tar'
 import tmp from 'tmp'
 import { exec } from './exec'
 import { PackageDetails, getAllPackageDetails } from './publishing'
@@ -18,12 +18,12 @@ async function hasPackageChanged(pkg: PackageDetails) {
 		}
 		const publishedTarballPath = `${dirPath}/published-package.tgz`
 		writeFileSync(publishedTarballPath, Buffer.from(await res.arrayBuffer()))
-		const publishedManifest = getTarballManifestSync(publishedTarballPath)
+		const publishedManifest = await getTarballManifest(publishedTarballPath)
 
 		const localTarballPath = `${dirPath}/local-package.tgz`
 		await exec('yarn', ['pack', '--out', localTarballPath], { pwd: pkg.dir })
 
-		const localManifest = getTarballManifestSync(localTarballPath)
+		const localManifest = await getTarballManifest(localTarballPath)
 
 		return !manifestsAreEqual(publishedManifest, localManifest)
 	} finally {
@@ -48,25 +48,34 @@ function manifestsAreEqual(a: Record<string, Buffer>, b: Record<string, Buffer>)
 	return true
 }
 
-function getTarballManifestSync(tarballPath: string) {
+function getTarballManifest(tarballPath: string): Promise<Record<string, Buffer>> {
 	const manifest: Record<string, Buffer> = {}
-	tar.list({
-		file: tarballPath,
-		onentry: (entry) => {
-			entry.on('data', (data) => {
-				// we could hash these to reduce memory but it's probably fine
-				const existing = manifest[entry.path]
-				if (existing) {
-					manifest[entry.path] = Buffer.concat([existing, data])
+	return new Promise((resolve, reject) =>
+		tar.list(
+			{
+				// @ts-expect-error bad typings
+				file: tarballPath,
+				onentry: (entry) => {
+					entry.on('data', (data) => {
+						// we could hash these to reduce memory but it's probably fine
+						const existing = manifest[entry.path]
+						if (existing) {
+							manifest[entry.path] = Buffer.concat([existing, data])
+						} else {
+							manifest[entry.path] = data
+						}
+					})
+				},
+			},
+			(err: any) => {
+				if (err) {
+					reject(err)
 				} else {
-					manifest[entry.path] = data
+					resolve(manifest)
 				}
-			})
-		},
-		sync: true,
-	})
-
-	return manifest
+			}
+		)
+	)
 }
 
 export async function didAnyPackageChange() {

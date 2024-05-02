@@ -7,9 +7,9 @@ import {
 	TLOnDoubleClickHandler,
 	TLShapePartial,
 	Vec,
+	deepCopy,
 	imageShapeMigrations,
 	imageShapeProps,
-	structuredClone,
 	toDomPrecision,
 } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
@@ -50,7 +50,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
 
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const isSelected = shape.id === this.editor.getOnlySelectedShape()?.id
 
 		useEffect(() => {
 			if (asset?.props.src && 'mimeType' in asset.props && asset?.props.mimeType === 'image/gif') {
@@ -171,9 +171,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	override async toSvg(shape: TLImageShape) {
+		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
 
-		if (!asset) return null
+		if (!asset) return g
 
 		let src = asset?.props.src || ''
 		if (src.startsWith('http') || src.startsWith('/') || src.startsWith('./')) {
@@ -181,6 +182,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			src = (await getDataURIFromURL(src)) || ''
 		}
 
+		const image = document.createElementNS('http://www.w3.org/2000/svg', 'image')
+		image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', src)
 		const containerStyle = getCroppedContainerStyle(shape)
 		const crop = shape.props.crop
 		if (containerStyle.transform && crop) {
@@ -195,22 +198,31 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				new Vec(0, croppedHeight),
 			]
 
-			const cropClipId = `cropClipPath_${shape.id.replace(':', '_')}`
-			return (
-				<>
-					<defs>
-						<clipPath id={cropClipId}>
-							<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
-						</clipPath>
-					</defs>
-					<g clipPath="url(#{cropClipId})">
-						<image href={src} width={width} height={height} style={{ transform }} />
-					</g>
-				</>
-			)
+			const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+			polygon.setAttribute('points', points.map((p) => `${p.x},${p.y}`).join(' '))
+
+			const clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
+			clipPath.setAttribute('id', 'cropClipPath')
+			clipPath.appendChild(polygon)
+
+			const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+			defs.appendChild(clipPath)
+			g.appendChild(defs)
+
+			const innerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+			innerElement.setAttribute('clip-path', 'url(#cropClipPath)')
+			image.setAttribute('width', width.toString())
+			image.setAttribute('height', height.toString())
+			image.style.transform = transform
+			innerElement.appendChild(image)
+			g.appendChild(innerElement)
 		} else {
-			return <image href={src} width={shape.props.w} height={shape.props.h} />
+			image.setAttribute('width', shape.props.w.toString())
+			image.setAttribute('height', shape.props.h.toString())
+			g.appendChild(image)
 		}
+
+		return g
 	}
 
 	override onDoubleClick = (shape: TLImageShape) => {
@@ -242,7 +254,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			return
 		}
 
-		const crop = structuredClone(props.crop) || {
+		const crop = deepCopy(props.crop) || {
 			topLeft: { x: 0, y: 0 },
 			bottomRight: { x: 1, y: 1 },
 		}

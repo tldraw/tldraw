@@ -7,6 +7,7 @@ import {
 	TLEventInfo,
 	TLExitEventHandler,
 	TLPinchEventInfo,
+	TLTickEventHandler,
 } from '../types/event-types'
 
 type TLStateNodeType = 'branch' | 'leaf' | 'root'
@@ -146,14 +147,10 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
-		const currentActiveChild = this._current.__unsafe__getWithoutCapture()
+		const x = this.getCurrent()
 		this[cbName]?.(info as any)
-		if (
-			this._isActive.__unsafe__getWithoutCapture() &&
-			currentActiveChild &&
-			currentActiveChild === this._current.__unsafe__getWithoutCapture()
-		) {
-			currentActiveChild.handleEvent(info)
+		if (this.getCurrent() === x && this.getIsActive()) {
+			x?.handleEvent(info)
 		}
 	}
 
@@ -161,7 +158,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	enter = (info: any, from: string) => {
 		this._isActive.set(true)
 		this.onEnter?.(info, from)
-
+		if (this.onTick) this.editor.on('tick', this.onTick)
 		if (this.children && this.initial && this.getIsActive()) {
 			const initial = this.children[this.initial]
 			this._current.set(initial)
@@ -172,8 +169,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	// todo: move this logic into transition
 	exit = (info: any, from: string) => {
 		this._isActive.set(false)
+		if (this.onTick) this.editor.off('tick', this.onTick)
 		this.onExit?.(info, from)
-
 		if (!this.getIsActive()) {
 			this.getCurrent()?.exit(info, from)
 		}
@@ -202,7 +199,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onWheel?: TLEventHandlers['onWheel']
 	onPointerDown?: TLEventHandlers['onPointerDown']
 	onPointerMove?: TLEventHandlers['onPointerMove']
-	onLongPress?: TLEventHandlers['onLongPress']
 	onPointerUp?: TLEventHandlers['onPointerUp']
 	onDoubleClick?: TLEventHandlers['onDoubleClick']
 	onTripleClick?: TLEventHandlers['onTripleClick']
@@ -215,8 +211,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onCancel?: TLEventHandlers['onCancel']
 	onComplete?: TLEventHandlers['onComplete']
 	onInterrupt?: TLEventHandlers['onInterrupt']
-	onTick?: TLEventHandlers['onTick']
 
 	onEnter?: TLEnterEventHandler
 	onExit?: TLExitEventHandler
+	onTick?: TLTickEventHandler
 }

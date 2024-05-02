@@ -3,10 +3,7 @@ import { CAMERA_SLIDE_FRICTION, StateNode, TLEventHandlers, Vec } from '@tldraw/
 export class Dragging extends StateNode {
 	static override id = 'dragging'
 
-	initialCamera = new Vec()
-
 	override onEnter = () => {
-		this.initialCamera = Vec.From(this.editor.getCamera())
 		this.update()
 	}
 
@@ -19,7 +16,7 @@ export class Dragging extends StateNode {
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
-		this.parent.transition('idle')
+		this.complete()
 	}
 
 	override onComplete = () => {
@@ -27,27 +24,21 @@ export class Dragging extends StateNode {
 	}
 
 	private update() {
-		const { initialCamera, editor } = this
-		const { currentScreenPoint, originScreenPoint } = editor.inputs
+		const { currentScreenPoint, previousScreenPoint } = this.editor.inputs
 
-		const delta = Vec.Sub(currentScreenPoint, originScreenPoint).div(editor.getZoomLevel())
-		if (delta.len2() === 0) return
-		editor.setCamera(initialCamera.clone().add(delta))
+		const delta = Vec.Sub(currentScreenPoint, previousScreenPoint)
+
+		if (Math.abs(delta.x) > 0 || Math.abs(delta.y) > 0) {
+			this.editor.pan(delta)
+		}
 	}
 
 	private complete() {
-		const { editor } = this
-		const { pointerVelocity } = editor.inputs
-
-		const velocityAtPointerUp = Math.min(pointerVelocity.len(), 2)
-
-		if (velocityAtPointerUp > 0.1) {
-			this.editor.slideCamera({
-				speed: velocityAtPointerUp,
-				direction: pointerVelocity,
-				friction: CAMERA_SLIDE_FRICTION,
-			})
-		}
+		this.editor.slideCamera({
+			speed: Math.min(2, this.editor.inputs.pointerVelocity.len()),
+			direction: this.editor.inputs.pointerVelocity,
+			friction: CAMERA_SLIDE_FRICTION,
+		})
 
 		this.parent.transition('idle')
 	}

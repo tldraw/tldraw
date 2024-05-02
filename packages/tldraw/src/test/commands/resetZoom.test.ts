@@ -27,18 +27,4 @@ describe('When resetting zoom', () => {
 		editor.resetZoom()
 		expect(editor.getViewportScreenBounds().center.clone()).toMatchObject(center)
 	})
-
-	it('is not undoable', () => {
-		editor.zoomOut()
-		editor.mark()
-		editor.resetZoom()
-		editor.undo()
-		expect(editor.getZoomLevel()).toBe(1)
-
-		editor.mark()
-		editor.zoomIn()
-		editor.resetZoom()
-		editor.undo()
-		expect(editor.getZoomLevel()).toBe(1)
-	})
 })

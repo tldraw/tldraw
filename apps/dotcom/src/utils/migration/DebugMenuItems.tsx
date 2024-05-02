@@ -7,19 +7,20 @@ export function DebugMenuItems() {
 	return (
 		<TldrawUiMenuGroup id="release">
 			<TldrawUiMenuItem
+				id="release-info"
+				title={`${RELEASE_INFO}`}
+				label="Version"
+				onSelect={() => {
+					window.alert(`${RELEASE_INFO}`)
+				}}
+			/>
+			<TldrawUiMenuItem
 				id="v1"
 				label="Test v1 content"
 				onSelect={async () => {
 					const { writeV1ContentsToIdb } = await import('./writeV1ContentsToIdb')
 					await writeV1ContentsToIdb()
 					window.location.reload()
-				}}
-			/>
-			<TldrawUiMenuItem
-				id="release-info"
-				label={'Release info'}
-				onSelect={() => {
-					window.alert(`${RELEASE_INFO}`)
 				}}
 			/>
 		</TldrawUiMenuGroup>

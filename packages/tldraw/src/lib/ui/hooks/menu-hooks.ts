@@ -176,8 +176,7 @@ export function useHasLinkShapeSelected() {
 			return !!(
 				onlySelectedShape &&
 				onlySelectedShape.type !== 'embed' &&
-				'url' in onlySelectedShape.props &&
-				!onlySelectedShape.isLocked
+				'url' in onlySelectedShape.props
 			)
 		},
 		[editor]

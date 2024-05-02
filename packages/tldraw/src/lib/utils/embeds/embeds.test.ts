@@ -291,23 +291,6 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		url: 'https://excalidraw.com/help',
 		match: false,
 	},
-	//desmos
-	{
-		url: 'https://www.desmos.com/calculator/js9hryvejc',
-		match: true,
-		output: {
-			type: 'desmos',
-			embedUrl: 'https://www.desmos.com/calculator/js9hryvejc?embed',
-		},
-	},
-	{
-		url: 'https://www.desmos.com/calculator',
-		match: false,
-	},
-	{
-		url: 'https://www.desmos.com/calculator/js9hryvejc?foobar',
-		match: false,
-	},
 ]
 
 type MatchEmbedTestMatchDef = {
@@ -576,23 +559,6 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 	},
 	{
 		embedUrl: 'https://excalidraw.com/help',
-		match: false,
-	},
-	// desmos
-	{
-		embedUrl: 'https://www.desmos.com/calculator/js9hryvejc?embed',
-		match: true,
-		output: {
-			type: 'desmos',
-			url: 'https://www.desmos.com/calculator/js9hryvejc',
-		},
-	},
-	{
-		embedUrl: 'https://www.desmos.com/calculator',
-		match: false,
-	},
-	{
-		embedUrl: 'https://www.desmos.com/calculator/js9hryvejc?foobar',
 		match: false,
 	},
 ]

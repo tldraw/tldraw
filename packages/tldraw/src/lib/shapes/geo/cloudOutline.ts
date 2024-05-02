@@ -28,7 +28,7 @@ type PillSection =
 			startAngle: number
 	  }
 
-function getPillPoints(width: number, height: number, numPoints: number) {
+export function getPillPoints(width: number, height: number, numPoints: number) {
 	const radius = Math.min(width, height) / 2
 	const longSide = Math.max(width, height) - radius * 2
 
@@ -311,8 +311,8 @@ export function inkyCloudSvgPath(
 	}
 	const arcs = getCloudArcs(width, height, seed, size)
 	const avgArcLength =
-		arcs.reduce((sum, arc) => sum + Vec.Dist2(arc.leftPoint, arc.rightPoint), 0) / arcs.length
-	const shouldMutatePoints = avgArcLength > (mutMultiplier * 15) ** 2
+		arcs.reduce((sum, arc) => sum + Vec.Dist(arc.leftPoint, arc.rightPoint), 0) / arcs.length
+	const shouldMutatePoints = avgArcLength > mutMultiplier * 15
 
 	const mutPoint = shouldMutatePoints ? (p: Vec) => new Vec(mut(p.x), mut(p.y)) : (p: Vec) => p
 	let pathA = `M${toDomPrecision(arcs[0].leftPoint.x)},${toDomPrecision(arcs[0].leftPoint.y)}`
@@ -352,7 +352,7 @@ export function inkyCloudSvgPath(
 	return pathA + pathB + ' Z'
 }
 
-function pointsOnArc(
+export function pointsOnArc(
 	startPoint: VecModel,
 	endPoint: VecModel,
 	center: VecModel | null,

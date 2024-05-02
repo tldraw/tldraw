@@ -59,48 +59,4 @@ exports.rules = {
 		},
 		defaultOptions: [],
 	}),
-	'no-internal-imports': ESLintUtils.RuleCreator.withoutDocs({
-		create(context) {
-			return {
-				ImportDeclaration(node) {
-					const path = node.source.value
-
-					const parts = path.split('/')
-
-					switch (parts[0]) {
-						case 'tldraw':
-							// 'tldraw'
-							if (parts.length === 1) return
-							// 'tldraw/**/*.css'
-							if (path.endsWith('.css')) return
-							break
-						case '@tldraw':
-							// '@tldraw/*'
-							if (parts.length === 2) return
-							// '@tldraw/**/*.css'
-							if (path.endsWith('.css')) return
-							// '@tldraw/assets/*'
-							if (parts[1] === 'assets' && parts.length === 3) return
-							break
-						default:
-							return
-					}
-
-					context.report({
-						messageId: 'internal',
-						node: node.source,
-						data: { path },
-					})
-				},
-			}
-		},
-		meta: {
-			messages: {
-				internal: "Don't import from internal tldraw source ({{path}})",
-			},
-			type: 'problem',
-			schema: [],
-		},
-		defaultOptions: [],
-	}),
 }

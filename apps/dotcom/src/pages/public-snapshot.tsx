@@ -1,6 +1,6 @@
 import { SerializedSchema, TLRecord } from 'tldraw'
 import '../../styles/globals.css'
-import { IFrameProtector, ROOM_CONTEXT } from '../components/IFrameProtector'
+import { IFrameProtector } from '../components/IFrameProtector'
 import { SnapshotsEditor } from '../components/SnapshotsEditor'
 import { defineLoader } from '../utils/defineLoader'
 
@@ -23,7 +23,7 @@ export function Component() {
 	if (!result) throw Error('Room not found')
 	const { roomId, records, schema } = result
 	return (
-		<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>
+		<IFrameProtector slug={roomId} context="public-snapshot">
 			<SnapshotsEditor records={records} schema={schema} />
 		</IFrameProtector>
 	)

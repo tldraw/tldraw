@@ -9,10 +9,6 @@ export default defineConfig({
 	build: {
 		outDir: path.join(__dirname, 'dist'),
 		assetsInlineLimit: 0,
-		target: 'es2022',
-	},
-	esbuild: {
-		target: 'es2022',
 	},
 	server: {
 		port: 5420,
@@ -20,9 +16,6 @@ export default defineConfig({
 	clearScreen: false,
 	optimizeDeps: {
 		exclude: ['@tldraw/assets'],
-		esbuildOptions: {
-			target: 'es2022',
-		},
 	},
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),

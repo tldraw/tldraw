@@ -69,7 +69,7 @@ test('the client connects on instantiation, announcing its schema', async () => 
 	expect(channel.postMessage).toHaveBeenCalledTimes(1)
 	const [msg] = channel.postMessage.mock.calls[0]
 
-	expect(msg).toMatchObject({ type: 'announce', schema: {} })
+	expect(msg).toMatchObject({ type: 'announce', schema: { recordVersions: {} } })
 })
 
 test('when a client receives an announce with a newer schema version it reloads itself', async () => {

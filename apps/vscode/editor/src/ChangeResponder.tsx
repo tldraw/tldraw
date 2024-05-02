@@ -57,11 +57,11 @@ export const ChangeResponder = () => {
 			type: 'vscode:editor-loaded',
 		})
 
-		const dispose = editor.store.listen(handleChange, { scope: 'document' })
+		editor.on('change-history', handleChange)
 
 		return () => {
 			handleChange()
-			dispose()
+			editor.off('change-history', handleChange)
 		}
 	}, [editor])
 

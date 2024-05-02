@@ -67,6 +67,3 @@ window.DOMRect = class DOMRect {
 		this.height = height
 	}
 }
-
-global.TextEncoder = require('util').TextEncoder
-global.TextDecoder = require('util').TextDecoder

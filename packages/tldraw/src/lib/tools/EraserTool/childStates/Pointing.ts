@@ -4,7 +4,6 @@ import {
 	TLEventHandlers,
 	TLFrameShape,
 	TLGroupShape,
-	TLPointerEventInfo,
 	TLShapeId,
 } from '@tldraw/editor'
 
@@ -53,13 +52,9 @@ export class Pointing extends StateNode {
 		this.editor.setErasingShapes([...erasing])
 	}
 
-	override onLongPress: TLEventHandlers['onLongPress'] = (info) => {
-		this.startErasing(info)
-	}
-
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			this.startErasing(info)
+			this.parent.transition('erasing', info)
 		}
 	}
 
@@ -77,10 +72,6 @@ export class Pointing extends StateNode {
 
 	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
 		this.cancel()
-	}
-
-	private startErasing(info: TLPointerEventInfo) {
-		this.parent.transition('erasing', info)
 	}
 
 	complete() {

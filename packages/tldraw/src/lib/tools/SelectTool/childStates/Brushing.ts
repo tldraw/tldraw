@@ -1,5 +1,6 @@
 import {
 	Box,
+	HIT_TEST_MARGIN,
 	Mat,
 	StateNode,
 	TLCancelEvent,
@@ -12,6 +13,7 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
+	TLTickEventHandler,
 	Vec,
 	moveCameraWhenCloseToEdge,
 	pointInPolygon,
@@ -23,8 +25,10 @@ export class Brushing extends StateNode {
 
 	info = {} as TLPointerEventInfo & { target: 'canvas' }
 
+	brush = new Box()
 	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
+	isDirty = false
 	isWrapMode = false
 
 	// The shape that the brush started on
@@ -52,6 +56,7 @@ export class Brushing extends StateNode {
 		)
 
 		this.info = info
+		this.isDirty = false
 		this.initialSelectedShapeIds = this.editor.getSelectedShapeIds().slice()
 		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
 		this.hitTestShapes()
@@ -62,12 +67,16 @@ export class Brushing extends StateNode {
 		this.editor.updateInstanceState({ brush: null })
 	}
 
-	override onTick = () => {
+	override onTick: TLTickEventHandler = () => {
 		moveCameraWhenCloseToEdge(this.editor)
+		if (this.isDirty) {
+			this.isDirty = false
+			this.hitTestShapes()
+		}
 	}
 
 	override onPointerMove = () => {
-		this.hitTestShapes()
+		this.isDirty = true
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
@@ -79,7 +88,7 @@ export class Brushing extends StateNode {
 	}
 
 	override onCancel?: TLCancelEvent | undefined = (info) => {
-		this.editor.setSelectedShapes(this.initialSelectedShapeIds)
+		this.editor.setSelectedShapes(this.initialSelectedShapeIds, { squashing: true })
 		this.parent.transition('idle', info)
 	}
 
@@ -97,26 +106,23 @@ export class Brushing extends StateNode {
 
 	private complete() {
 		this.hitTestShapes()
+		this.isDirty = false
 		this.parent.transition('idle')
 	}
 
 	private hitTestShapes() {
-		const { editor, excludedShapeIds, isWrapMode } = this
+		const zoomLevel = this.editor.getZoomLevel()
+		const currentPageShapes = this.editor.getCurrentPageShapes()
+		const currentPageId = this.editor.getCurrentPageId()
 		const {
 			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
-		} = editor
-
-		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
-		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
-
-		// In wrap mode, we need to completely enclose a shape to select it
-		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
+		} = this.editor
 
 		// Set the brush to contain the current and origin points
-		const brush = Box.FromPoints([originPagePoint, currentPagePoint])
+		this.brush.setTo(Box.FromPoints([originPagePoint, currentPagePoint]))
 
-		// We'll be testing the corners of the brush against the shapes
-		const { corners } = brush
+		// We'll be collecting shape ids
+		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
 
 		let A: Vec,
 			B: Vec,
@@ -125,59 +131,64 @@ export class Brushing extends StateNode {
 			pageTransform: Mat | undefined,
 			localCorners: Vec[]
 
-		const currentPageShapes = editor.getCurrentPageShapes()
-		const currentPageId = editor.getCurrentPageId()
+		// We'll be testing the corners of the brush against the shapes
+		const { corners } = this.brush
+
+		const { excludedShapeIds, isWrapMode } = this
+
+		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
 
 		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
 			shape = currentPageShapes[i]
-			if (excludedShapeIds.has(shape.id) || results.has(shape.id)) continue testAllShapes
+			if (excludedShapeIds.has(shape.id)) continue testAllShapes
+			if (results.has(shape.id)) continue testAllShapes
 
-			pageBounds = editor.getShapePageBounds(shape)
+			pageBounds = this.editor.getShapePageBounds(shape)
 			if (!pageBounds) continue testAllShapes
 
 			// If the brush fully wraps a shape, it's almost certainly a hit
-			if (brush.contains(pageBounds)) {
+			if (this.brush.contains(pageBounds)) {
 				this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
 				continue testAllShapes
 			}
 
-			// If we're in wrap mode and the brush did not fully encloses the shape, it's a miss
-			// We also skip frames unless we've completely selected the frame.
-			if (isWrapping || editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+			// Should we even test for a single segment intersections? Only if
+			// we're not holding the ctrl key for alternate selection mode
+			// (only wraps count!), or if the shape is a frame.
+			if (isWrapping || this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
 				continue testAllShapes
 			}
 
 			// If the brush collides the page bounds, then do hit tests against
 			// each of the brush's four sides.
-			if (brush.collides(pageBounds)) {
+			if (this.brush.collides(pageBounds)) {
 				// Shapes expect to hit test line segments in their own coordinate system,
 				// so we first need to get the brush corners in the shape's local space.
-				pageTransform = editor.getShapePageTransform(shape)
-				if (!pageTransform) continue testAllShapes
+				const geometry = this.editor.getShapeGeometry(shape)
+
+				pageTransform = this.editor.getShapePageTransform(shape)
+
+				if (!pageTransform) {
+					continue testAllShapes
+				}
+
+				// Check whether any of the the brush edges intersect the shape
 				localCorners = pageTransform.clone().invert().applyToPoints(corners)
-				// See if any of the edges intersect the shape's geometry
-				const geometry = editor.getShapeGeometry(shape)
-				hitTestBrushEdges: for (let i = 0; i < 4; i++) {
+
+				hitTestBrushEdges: for (let i = 0; i < localCorners.length; i++) {
 					A = localCorners[i]
-					B = localCorners[(i + 1) % 4]
-					if (geometry.hitTestLineSegment(A, B, 0)) {
+					B = localCorners[(i + 1) % localCorners.length]
+
+					if (geometry.hitTestLineSegment(A, B, HIT_TEST_MARGIN / zoomLevel)) {
 						this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
 						break hitTestBrushEdges
 					}
 				}
 			}
 		}
-		editor.getInstanceState().isCoarsePointer
 
-		const currentBrush = editor.getInstanceState().brush
-		if (!currentBrush || !brush.equals(currentBrush)) {
-			editor.updateInstanceState({ brush: { ...brush.toJson() } })
-		}
-
-		const current = editor.getSelectedShapeIds()
-		if (current.length !== results.size || current.some((id) => !results.has(id))) {
-			editor.setSelectedShapes(Array.from(results))
-		}
+		this.editor.updateInstanceState({ brush: { ...this.brush.toJson() } })
+		this.editor.setSelectedShapes(Array.from(results), { squashing: true })
 	}
 
 	override onInterrupt: TLInterruptEvent = () => {
@@ -200,6 +211,7 @@ export class Brushing extends StateNode {
 		// page mask; and if so, check to see if the brush intersects it
 		const selectedShape = this.editor.getOutermostSelectableShape(shape)
 		const pageMask = this.editor.getShapeMask(selectedShape.id)
+
 		if (
 			pageMask &&
 			!polygonsIntersect(pageMask, corners) &&
@@ -207,6 +219,7 @@ export class Brushing extends StateNode {
 		) {
 			return
 		}
+
 		results.add(selectedShape.id)
 	}
 }

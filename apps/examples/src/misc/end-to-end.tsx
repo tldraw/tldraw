@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
-import { Tldraw, exportAs, useActions, useEditor } from 'tldraw'
+import { Tldraw, useActions } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { EndToEndApi } from './EndToEndApi'
 ;(window as any).__tldraw_ui_event = { id: 'NOTHING_YET' }
 ;(window as any).__tldraw_editor_events = []
 
@@ -28,17 +27,11 @@ export default function EndToEnd() {
 }
 
 function SneakyExportButton() {
-	const editor = useEditor()
 	const actions = useActions()
 
 	useEffect(() => {
-		const api: EndToEndApi = {
-			exportAsSvg: () => actions['export-as-svg'].onSelect('unknown'),
-			exportAsFormat: (format) =>
-				exportAs(editor, editor.selectAll().getSelectedShapeIds(), format, 'test'),
-		}
-		;(window as any).tldrawApi = api
-	}, [actions, editor])
+		;(window as any)['tldraw-export'] = () => actions['export-as-svg'].onSelect('unknown')
+	}, [actions])
 
 	return null
 }

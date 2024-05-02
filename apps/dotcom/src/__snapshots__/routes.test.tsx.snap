@@ -27,10 +27,6 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/r/[^/]*/?$",
   },
   {
-    "reactRouterPattern": "/ro/:roomId",
-    "vercelRouterPattern": "^/ro/[^/]*/?$",
-  },
-  {
     "reactRouterPattern": "/s/:roomId",
     "vercelRouterPattern": "^/s/[^/]*/?$",
   },

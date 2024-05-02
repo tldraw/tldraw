@@ -8,7 +8,6 @@ import json5 from 'json5'
 import { nicelog } from '../../../scripts/lib/nicelog'
 
 import { T } from '@tldraw/validate'
-import { getMultiplayerServerURL } from '../vite.config'
 
 // We load the list of routes that should be forwarded to our SPA's index.html here.
 // It uses a jest snapshot file because deriving the set of routes from our
@@ -57,7 +56,9 @@ async function build() {
 					// rewrite api calls to the multiplayer server
 					{
 						src: '^/api(/(.*))?$',
-						dest: `${getMultiplayerServerURL()}$1`,
+						dest: `${
+							process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http') ?? 'http://127.0.0.1:8787'
+						}$1`,
 						check: true,
 					},
 					// cache static assets immutably

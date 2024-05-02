@@ -30,6 +30,10 @@ export type TLUiMenuItemProps<
 	 */
 	kbd?: string
 	/**
+	 * The title to display on the item.
+	 */
+	title?: string
+	/**
 	 * The label to display on the item. If it's a string, it will be translated. If it's an object, the keys will be used as the language keys and the values will be translated.
 	 */
 	label?: TranslationKey | { [key: string]: TranslationKey }
@@ -73,6 +77,7 @@ export function TldrawUiMenuItem<
 	icon,
 	onSelect,
 	noClose,
+	title,
 	isSelected,
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
@@ -205,7 +210,7 @@ export function TldrawUiMenuItem<
 					aria-label={labelToUse}
 					data-value={id}
 					onClick={() => onSelect('toolbar')}
-					title={titleStr}
+					title={title}
 					onTouchStart={(e) => {
 						preventDefault(e)
 						onSelect('toolbar')
@@ -227,7 +232,7 @@ export function TldrawUiMenuItem<
 							onSelect('toolbar')
 						}}
 						data-testid={`tools.more.${id}`}
-						title={titleStr}
+						title={title}
 						role="radio"
 						aria-checked={isSelected ? 'true' : 'false'}
 						data-value={id}

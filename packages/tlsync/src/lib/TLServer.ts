@@ -6,7 +6,7 @@ import { JsonChunkAssembler } from './chunk'
 import { schema } from './schema'
 import { RoomState } from './server-types'
 
-type LoadKind = 'reopen' | 'open' | 'room_not_found'
+type LoadKind = 'new' | 'reopen' | 'open'
 export type DBLoadResult =
 	| {
 			type: 'error'
@@ -19,33 +19,6 @@ export type DBLoadResult =
 	| {
 			type: 'room_not_found'
 	  }
-export type DBLoadResultType = DBLoadResult['type']
-
-export type TLServerEvent =
-	| {
-			type: 'client'
-			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
-			roomId: string
-			clientId: string
-			instanceId: string
-			localClientId: string
-	  }
-	| {
-			type: 'room'
-			name:
-				| 'failed_load_from_db'
-				| 'failed_persist_to_db'
-				| 'room_empty'
-				| 'fail_persist'
-				| 'room_start'
-			roomId: string
-	  }
-	| {
-			type: 'send_message'
-			roomId: string
-			messageType: string
-			messageLength: number
-	  }
 
 /**
  * This class manages rooms for a websocket server.
@@ -55,10 +28,10 @@ export type TLServerEvent =
 export abstract class TLServer {
 	schema = schema
 
-	async getInitialRoomState(persistenceKey: string): Promise<[RoomState | undefined, LoadKind]> {
+	async getInitialRoomState(persistenceKey: string): Promise<[RoomState, LoadKind]> {
 		let roomState = this.getRoomForPersistenceKey(persistenceKey)
 
-		let roomOpenKind: LoadKind = 'open'
+		let roomOpenKind = 'open' as 'open' | 'reopen' | 'new'
 
 		// If no room exists for the id, create one
 		if (roomState === undefined) {
@@ -79,22 +52,14 @@ export abstract class TLServer {
 				}
 			}
 
-			// If we still don't have a room, throw an error.
+			// If we still don't have a room, create a new one
 			if (roomState === undefined) {
-				// This is how it bubbles down to the client:
-				// 1.) From here, we send back a `room_not_found` to TLDrawDurableObject.
-				// 2.) In TLDrawDurableObject, we accept and then immediately close the client.
-				//   This lets us send a TLCloseEventCode.NOT_FOUND closeCode down to the client.
-				// 3.) joinExistingRoom which handles the websocket upgrade is not affected.
-				//   Again, we accept the connection, it's just that we immediately close right after.
-				// 4.) In ClientWebSocketAdapter, ws.onclose is called, and that calls _handleDisconnect.
-				// 5.) _handleDisconnect sets the status to 'error' and calls the onStatusChange callback.
-				// 6.) On the dotcom app in useRemoteSyncClient, we have socket.onStatusChange callback
-				//   where we set TLIncompatibilityReason.RoomNotFound and close the client + socket.
-				// 7.) Finally on the dotcom app we use StoreErrorScreen to display an appropriate msg.
-				//
-				// Phew!
-				return [roomState, 'room_not_found']
+				roomOpenKind = 'new'
+
+				roomState = {
+					persistenceKey,
+					room: new TLSyncRoom(this.schema),
+				}
 			}
 
 			const thisRoom = roomState.room
@@ -147,29 +112,13 @@ export abstract class TLServer {
 		persistenceKey: string
 		sessionKey: string
 		storeId: string
-	}): Promise<DBLoadResultType> => {
+	}) => {
 		const clientId = nanoid()
-
 		const [roomState, roomOpenKind] = await this.getInitialRoomState(persistenceKey)
-		if (roomOpenKind === 'room_not_found' || !roomState) {
-			return 'room_not_found'
-		}
 
-		roomState.room.handleNewSession(
-			sessionKey,
-			new ServerSocketAdapter({
-				ws: socket,
-				logSendMessage: (messageType, messageLength) =>
-					this.logEvent({
-						type: 'send_message',
-						roomId: persistenceKey,
-						messageType,
-						messageLength,
-					}),
-			})
-		)
+		roomState.room.handleNewSession(sessionKey, new ServerSocketAdapter(socket))
 
-		if (roomOpenKind === 'reopen') {
+		if (roomOpenKind === 'new' || roomOpenKind === 'reopen') {
 			// Record that the room is now active
 			this.logEvent({ type: 'room', roomId: persistenceKey, name: 'room_start' })
 
@@ -177,7 +126,7 @@ export abstract class TLServer {
 			this.logEvent({
 				type: 'client',
 				roomId: persistenceKey,
-				name: 'room_reopen',
+				name: roomOpenKind === 'new' ? 'room_create' : 'room_reopen',
 				clientId,
 				instanceId: sessionKey,
 				localClientId: storeId,
@@ -250,8 +199,6 @@ export abstract class TLServer {
 		socket.addEventListener('message', handleMessageFromClient)
 		socket.addEventListener('close', handleCloseOrErrorFromClient)
 		socket.addEventListener('error', handleCloseOrErrorFromClient)
-
-		return 'room_found'
 	}
 
 	/**
@@ -276,7 +223,22 @@ export abstract class TLServer {
 	 * @param event - The event to log.
 	 * @public
 	 */
-	abstract logEvent(event: TLServerEvent): void
+	abstract logEvent(
+		event:
+			| {
+					type: 'client'
+					roomId: string
+					name: string
+					clientId: string
+					instanceId: string
+					localClientId: string
+			  }
+			| {
+					type: 'room'
+					roomId: string
+					name: string
+			  }
+	): void
 
 	/**
 	 * Get a room by its id.

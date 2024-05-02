@@ -1,0 +1,174 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Matches a snapshot: Basic SVG 1`] = `
+<wrapper>
+  <svg
+    direction="ltr"
+    height="564"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    style="background-color: transparent;"
+    viewBox="-32 -32 564 564"
+    width="564"
+  >
+    <defs>
+      <!--def: tldraw:font:pattern-->
+      <mask
+        id="hash_pattern_mask"
+      >
+        
+							
+        <rect
+          fill="white"
+          height="8"
+          width="8"
+          x="0"
+          y="0"
+        />
+        
+							
+        <g
+          stroke="black"
+          strokelinecap="round"
+        >
+          
+								
+          <line
+            x1="0.6666666666666666"
+            x2="2"
+            y1="2"
+            y2="0.6666666666666666"
+          />
+          
+								
+          <line
+            x1="3.333333333333333"
+            x2="4.666666666666666"
+            y1="4.666666666666666"
+            y2="3.333333333333333"
+          />
+          
+								
+          <line
+            x1="6"
+            x2="7.333333333333333"
+            y1="7.333333333333333"
+            y2="6"
+          />
+          
+							
+        </g>
+        
+						
+      </mask>
+      <pattern
+        height="8"
+        id="hash_pattern"
+        patternUnits="userSpaceOnUse"
+        width="8"
+      >
+        
+							
+        <rect
+          fill="#fcfffe"
+          height="8"
+          mask="url(#hash_pattern_mask)"
+          width="8"
+          x="0"
+          y="0"
+        />
+        
+						
+      </pattern>
+    </defs>
+    <g
+      opacity="1"
+      transform="matrix(1, 0, 0, 1, 0, 0)"
+    >
+      <g>
+        <path
+          d="M0, 0L100, 0,100, 428,0, 428Z"
+          fill="none"
+          stroke="#1d1d1d"
+          stroke-width="3.5"
+        />
+        <g>
+          <text
+            alignment-baseline="mathematical"
+            dominant-baseline="mathematical"
+            fill="rgb(249, 250, 251)"
+            font-family="'tldraw_draw', sans-serif"
+            font-size="22px"
+            font-style="normal"
+            font-weight="normal"
+            line-height="29.700000000000003px"
+            stroke="rgb(249, 250, 251)"
+            stroke-width="2"
+          >
+            <tspan
+              alignment-baseline="mathematical"
+              x="16px"
+              y="-17px"
+            >
+              Hello world
+            </tspan>
+          </text>
+          <text
+            alignment-baseline="mathematical"
+            dominant-baseline="mathematical"
+            fill="#1d1d1d"
+            font-family="'tldraw_draw', sans-serif"
+            font-size="22px"
+            font-style="normal"
+            font-weight="normal"
+            line-height="29.700000000000003px"
+            stroke="none"
+          >
+            <tspan
+              alignment-baseline="mathematical"
+              x="16px"
+              y="-17px"
+            >
+              Hello world
+            </tspan>
+          </text>
+        </g>
+      </g>
+    </g>
+    <g
+      opacity="1"
+      transform="matrix(1, 0, 0, 1, 100, 100)"
+    >
+      <path
+        d="M0, 0L50, 0,50, 50,0, 50Z"
+        fill="none"
+        stroke="#1d1d1d"
+        stroke-width="3.5"
+      />
+    </g>
+    <g
+      opacity="1"
+      transform="matrix(1, 0, 0, 1, 400, 400)"
+    >
+      <g>
+        <g>
+          <path
+            d="M0, 0L100, 0,100, 100,0, 100Z"
+            fill="#494949"
+          />
+          <path
+            d="M0, 0L100, 0,100, 100,0, 100Z"
+            fill="url(#hash_pattern)"
+          />
+        </g>
+        <path
+          d="M0, 0L100, 0,100, 100,0, 100Z"
+          fill="none"
+          stroke="#1d1d1d"
+          stroke-width="3.5"
+        />
+      </g>
+    </g>
+  </svg>
+</wrapper>
+`;

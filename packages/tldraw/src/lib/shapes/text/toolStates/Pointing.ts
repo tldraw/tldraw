@@ -48,7 +48,7 @@ export class Pointing extends StateNode {
 				target: 'selection',
 				handle: 'right',
 				isCreating: true,
-				creationCursorOffset: { x: 18, y: 1 },
+				creationCursorOffset: { x: 1, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
 					this.editor.setEditingShape(shape.id)

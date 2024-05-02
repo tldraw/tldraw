@@ -1,11 +1,7 @@
-import { ReactElement, ReactNode, createContext, useContext } from 'react'
-import { EditorContext } from '../../hooks/useEditor'
-import { Editor } from '../Editor'
-
 /** @public */
 export interface SvgExportDef {
 	key: string
-	getElement: () => Promise<ReactElement | null> | ReactElement | null
+	getElement: () => Promise<SVGElement | SVGElement[] | null> | SVGElement | SVGElement[] | null
 }
 
 /** @public */
@@ -20,31 +16,4 @@ export interface SvgExportContext {
 	 * Whether the export should be in dark mode.
 	 */
 	readonly isDarkMode: boolean
-}
-
-const Context = createContext<SvgExportContext | null>(null)
-export function SvgExportContextProvider({
-	context,
-	editor,
-	children,
-}: {
-	context: SvgExportContext
-	editor: Editor
-	children: ReactNode
-}) {
-	return (
-		<EditorContext.Provider value={editor}>
-			<Context.Provider value={context}>{children}</Context.Provider>
-		</EditorContext.Provider>
-	)
-}
-
-/**
- * Returns the read-only parts of {@link SvgExportContext}.
- * @public
- */
-export function useSvgExportContext() {
-	const ctx = useContext(Context)
-	if (!ctx) return null
-	return { isDarkMode: ctx.isDarkMode }
 }

@@ -6,6 +6,7 @@ import {
 	HASH_PATTERN_ZOOM_NAMES,
 	MAX_ZOOM,
 	SvgExportDef,
+	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLShapeUtilCanvasSvgDef,
@@ -13,7 +14,6 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useDefaultColorTheme } from './ShapeFill'
 
 /** @public */
 export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {
@@ -31,7 +31,9 @@ export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef
 			const base64FontFile = await FileHelpers.blobToDataUrl(fontFile)
 
 			const newFontFaceRule = fontFaceRule.replace(url, base64FontFile)
-			return <style>{newFontFaceRule}</style>
+			const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
+			style.textContent = newFontFaceRule
+			return style
 		},
 	}
 }
@@ -47,40 +49,45 @@ function findFont(name: TLDefaultFontStyle): FontFace | null {
 }
 
 /** @public */
-export function getFillDefForExport(fill: TLDefaultFillStyle): SvgExportDef {
+export function getFillDefForExport(
+	fill: TLDefaultFillStyle,
+	theme: TLDefaultColorTheme
+): SvgExportDef {
 	return {
 		key: `${DefaultFontStyle.id}:${fill}`,
 		getElement: async () => {
 			if (fill !== 'pattern') return null
 
-			return <HashPatternForExport />
+			const t = 8 / 12
+			const divEl = document.createElement('div')
+			divEl.innerHTML = `
+				<svg>
+					<defs>
+						<mask id="hash_pattern_mask">
+							<rect x="0" y="0" width="8" height="8" fill="white" />
+							<g
+								strokeLinecap="round"
+								stroke="black"
+							>
+								<line x1="${t * 1}" y1="${t * 3}" x2="${t * 3}" y2="${t * 1}" />
+								<line x1="${t * 5}" y1="${t * 7}" x2="${t * 7}" y2="${t * 5}" />
+								<line x1="${t * 9}" y1="${t * 11}" x2="${t * 11}" y2="${t * 9}" />
+							</g>
+						</mask>
+						<pattern
+							id="hash_pattern"
+							width="8"
+							height="8"
+							patternUnits="userSpaceOnUse"
+						>
+							<rect x="0" y="0" width="8" height="8" fill="${theme.solid}" mask="url(#hash_pattern_mask)" />
+						</pattern>
+					</defs>
+				</svg>
+			`
+			return Array.from(divEl.querySelectorAll('defs > *'))
 		},
 	}
-}
-
-function HashPatternForExport() {
-	const theme = useDefaultColorTheme()
-	const t = 8 / 12
-	return (
-		<>
-			<mask id="hash_pattern_mask">
-				<rect x="0" y="0" width="8" height="8" fill="white" />
-				<g strokeLinecap="round" stroke="black">
-					<line x1={t * 1} y1={t * 3} x2={t * 3} y2={t * 1} />
-					<line x1={t * 5} y1={t * 7} x2={t * 7} y2={t * 5} />
-					<line x1={t * 9} y1={t * 11} x2={t * 11} y2={t * 9} />
-				</g>
-			</mask>
-			<pattern
-				id={HASH_PATTERN_ZOOM_NAMES[`1_${theme.id}`]}
-				width="8"
-				height="8"
-				patternUnits="userSpaceOnUse"
-			>
-				<rect x="0" y="0" width="8" height="8" fill={theme.solid} mask="url(#hash_pattern_mask)" />
-			</pattern>
-		</>
-	)
 }
 
 export function getFillDefForCanvas(): TLShapeUtilCanvasSvgDef {
@@ -179,11 +186,6 @@ function usePattern() {
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(defaultPatterns)
 
 	useEffect(() => {
-		if (process.env.NODE_ENV === 'test') {
-			setIsReady(true)
-			return
-		}
-
 		const promises: Promise<{ zoom: number; url: string; darkMode: boolean }>[] = []
 
 		for (let i = 1; i <= Math.ceil(MAX_ZOOM); i++) {

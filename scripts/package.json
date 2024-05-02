@@ -32,6 +32,7 @@
 		"@aws-sdk/lib-storage": "^3.440.0",
 		"@types/is-ci": "^3.0.0",
 		"@types/node": "~20.11",
+		"@types/tar": "^6.1.11",
 		"@typescript-eslint/utils": "^5.59.0",
 		"ast-types": "^0.14.2",
 		"cross-fetch": "^3.1.5",
@@ -58,7 +59,7 @@
 		"@types/tmp": "^0.2.6",
 		"ignore": "^5.2.4",
 		"minimist": "^1.2.8",
-		"tar": "^7.0.1",
+		"tar": "^6.2.0",
 		"tmp": "^0.2.3"
 	}
 }

@@ -25,9 +25,8 @@ export function getBoundShapeInfoForTerminal(
 		return
 	}
 
-	const shape = editor.getShape(terminal.boundShapeId)
-	if (!shape) return
-	const transform = editor.getShapePageTransform(shape)
+	const shape = editor.getShape(terminal.boundShapeId)!
+	const transform = editor.getShapePageTransform(shape)!
 	const geometry = editor.getShapeGeometry(shape)
 
 	// This is hacky: we're only looking at the first child in the group. Really the arrow should
@@ -119,6 +118,8 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 export const MIN_ARROW_LENGTH = 10
 /** @internal */
 export const BOUND_ARROW_OFFSET = 10
+/** @internal */
+export const LABEL_TO_ARROW_PADDING = 20
 /** @internal */
 export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10
 

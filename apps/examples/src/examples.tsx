@@ -13,14 +13,7 @@ export type Example = {
 	loadComponent: () => Promise<ComponentType>
 }
 
-type Category =
-	| 'basic'
-	| 'editor-api'
-	| 'ui'
-	| 'collaboration'
-	| 'data/assets'
-	| 'shapes/tools'
-	| 'use-cases'
+type Category = 'basic' | 'editor-api' | 'ui' | 'collaboration' | 'data/assets' | 'shapes/tools'
 
 const getExamplesForCategory = (category: Category) =>
 	(Object.values(import.meta.glob('./examples/*/README.md', { eager: true })) as Example[])
@@ -31,13 +24,12 @@ const getExamplesForCategory = (category: Category) =>
 		})
 
 const categories: Record<Category, string> = {
-	basic: 'Getting started',
-	ui: 'UI & theming',
-	'shapes/tools': 'Shapes & tools',
-	'data/assets': 'Data & assets',
+	basic: 'Getting Started',
+	ui: 'UI/Theming',
+	'shapes/tools': 'Shapes & Tools',
+	'data/assets': 'Data & Assets',
 	'editor-api': 'Editor API',
 	collaboration: 'Collaboration',
-	'use-cases': 'Use cases',
 }
 
 export const examples = Object.entries(categories).map(([category, title]) => ({

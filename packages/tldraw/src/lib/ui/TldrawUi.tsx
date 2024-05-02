@@ -3,6 +3,7 @@ import { Expand, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
+import { DebugPanel } from './components/DebugPanel'
 import { Dialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { ToastViewport, Toasts } from './components/Toasts'
@@ -119,7 +120,6 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		HelpMenu,
 		NavigationPanel,
 		HelperButtons,
-		DebugPanel,
 	} = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
@@ -168,7 +168,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 								{Toolbar && <Toolbar />}
 								{HelpMenu && <HelpMenu />}
 							</div>
-							{isDebugMode && DebugPanel && <DebugPanel />}
+							{isDebugMode && <DebugPanel />}
 						</div>
 					</>
 				)}

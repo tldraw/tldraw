@@ -10,7 +10,7 @@ describe('<Tldraw />', () => {
 			<Tldraw>
 				<div data-testid="canvas-1" />
 			</Tldraw>,
-			{ waitForPatterns: true }
+			{ waitForPatterns: false }
 		)
 
 		await screen.findByTestId('canvas-1')
@@ -27,7 +27,7 @@ describe('<Tldraw />', () => {
 			)
 		}
 
-		await renderTldrawComponent(<TestComponent />, { waitForPatterns: true })
+		await renderTldrawComponent(<TestComponent />, { waitForPatterns: false })
 		await screen.findByTestId('canvas-1')
 	})
 

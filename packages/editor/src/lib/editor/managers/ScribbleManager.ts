@@ -2,6 +2,7 @@ import { TLScribble, VecModel } from '@tldraw/tlschema'
 import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import { Editor } from '../Editor'
+import { TLTickEvent } from '../types/event-types'
 
 type ScribbleItem = {
 	id: string
@@ -40,12 +41,26 @@ export class ScribbleManager {
 			next: null,
 		}
 		this.scribbleItems.set(id, item)
+		if (this.state === 'paused') {
+			this.resume()
+		}
 		return item
+	}
+
+	resume() {
+		this.state = 'running'
+		this.editor.addListener('tick', this.tick)
+	}
+
+	pause() {
+		this.editor.removeListener('tick', this.tick)
+		this.state = 'paused'
 	}
 
 	reset() {
 		this.editor.updateInstanceState({ scribbles: [] })
 		this.scribbleItems.clear()
+		this.pause()
 	}
 
 	/**
@@ -84,8 +99,7 @@ export class ScribbleManager {
 	 * @param elapsed - The number of milliseconds since the last tick.
 	 * @public
 	 */
-	tick = (elapsed: number) => {
-		if (this.scribbleItems.size === 0) return
+	tick: TLTickEvent = (elapsed) => {
 		this.editor.batch(() => {
 			this.scribbleItems.forEach((item) => {
 				// let the item get at least eight points before
@@ -176,6 +190,11 @@ export class ScribbleManager {
 					}))
 					.slice(-5), // limit to three as a minor sanity check
 			})
+
+			// If we've removed all the scribbles, stop ticking
+			if (this.scribbleItems.size === 0) {
+				this.pause()
+			}
 		})
 	}
 }

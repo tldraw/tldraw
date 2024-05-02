@@ -15,6 +15,10 @@ import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 import { renderTldrawComponent } from './testutils/renderTldrawComponent'
 
 function checkAllShapes(editor: Editor, shapes: string[]) {
+	expect(Object.keys(editor!.store.schema.types.shape.migrations.subTypeMigrations!)).toStrictEqual(
+		shapes
+	)
+
 	expect(Object.keys(editor!.shapeUtils)).toStrictEqual(shapes)
 }
 
@@ -179,7 +183,10 @@ describe('<TldrawEditor />', () => {
 
 		expect(editor).toBeTruthy()
 		await act(async () => {
-			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } })
+			editor.updateInstanceState(
+				{ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } },
+				{ ephemeral: true, squashing: true }
+			)
 		})
 
 		const id = createShapeId()
@@ -206,14 +213,15 @@ describe('<TldrawEditor />', () => {
 
 		// Is the shape's component rendering?
 		expect(document.querySelectorAll('.tl-shape')).toHaveLength(1)
-		// though indicator should be display none
-		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
+
+		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(0)
 
 		// Select the shape
 		await act(async () => editor.select(id))
 
 		expect(editor.getSelectedShapeIds().length).toBe(1)
-		// though indicator it should be visible
+
+		// Is the shape's component rendering?
 		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
 
 		// Select the eraser tool...
@@ -296,7 +304,10 @@ describe('Custom shapes', () => {
 
 		expect(editor).toBeTruthy()
 		await act(async () => {
-			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } })
+			editor.updateInstanceState(
+				{ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } },
+				{ ephemeral: true, squashing: true }
+			)
 		})
 
 		expect(editor.shapeUtils.card).toBeTruthy()

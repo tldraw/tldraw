@@ -76,22 +76,21 @@ export class Ellipse2d extends Geometry2d {
 	nearestPoint(A: Vec): Vec {
 		let nearest: Vec | undefined
 		let dist = Infinity
-		let d: number
-		let p: Vec
 		for (const edge of this.edges) {
-			p = edge.nearestPoint(A)
-			d = Vec.Dist2(p, A)
+			const p = edge.nearestPoint(A)
+			const d = p.dist(A)
 			if (d < dist) {
 				nearest = p
 				dist = d
 			}
 		}
+
 		if (!nearest) throw Error('nearest point not found')
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec): boolean {
-		return this.edges.some((edge) => edge.hitTestLineSegment(A, B))
+	hitTestLineSegment(A: Vec, B: Vec, zoom: number): boolean {
+		return this.edges.some((edge) => edge.hitTestLineSegment(A, B, zoom))
 	}
 
 	getBounds() {

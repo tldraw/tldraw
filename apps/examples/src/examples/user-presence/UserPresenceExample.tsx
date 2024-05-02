@@ -29,9 +29,7 @@ export default function UserPresenceExample() {
 						chatMessage: CURSOR_CHAT_MESSAGE,
 					})
 
-					editor.store.mergeRemoteChanges(() => {
-						editor.store.put([peerPresence])
-					})
+					editor.store.put([peerPresence])
 
 					// [b]
 					const raf = rRaf.current
@@ -69,29 +67,23 @@ export default function UserPresenceExample() {
 												)
 							}
 
-							editor.store.mergeRemoteChanges(() => {
-								editor.store.put([
-									{
-										...peerPresence,
-										cursor,
-										chatMessage,
-										lastActivityTimestamp: now,
-									},
-								])
-							})
+							editor.store.put([
+								{
+									...peerPresence,
+									cursor,
+									chatMessage,
+									lastActivityTimestamp: now,
+								},
+							])
 
 							rRaf.current = requestAnimationFrame(loop)
 						}
 
 						rRaf.current = requestAnimationFrame(loop)
 					} else {
-						editor.store.mergeRemoteChanges(() => {
-							editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
-						})
+						editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
 						rRaf.current = setInterval(() => {
-							editor.store.mergeRemoteChanges(() => {
-								editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
-							})
+							editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
 						}, 1000)
 					}
 				}}

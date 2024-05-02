@@ -1,14 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
-import {
-	ShapeProps,
-	TLHandle,
-	TLShape,
-	TLShapePartial,
-	TLShapePropsMigrations,
-	TLUnknownShape,
-} from '@tldraw/tlschema'
-import { ReactElement } from 'react'
+import { Migrations } from '@tldraw/store'
+import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import { Box } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
@@ -26,7 +18,7 @@ export interface TLShapeUtilConstructor<
 	new (editor: Editor): U
 	type: T['type']
 	props?: ShapeProps<T>
-	migrations?: LegacyMigrations | TLShapePropsMigrations | MigrationSequence
+	migrations?: Migrations
 }
 
 /** @public */
@@ -42,7 +34,7 @@ export interface TLShapeUtilCanvasSvgDef {
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
 	static props?: ShapeProps<TLUnknownShape>
-	static migrations?: LegacyMigrations | TLShapePropsMigrations
+	static migrations?: Migrations
 
 	/**
 	 * The type of the shape util, which should match the shape's type.
@@ -95,6 +87,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	canScroll: TLShapeUtilFlag<Shape> = () => false
+
+	/**
+	 * Whether the shape should unmount when not visible in the editor. Consider keeping this to false if the shape's `component` has local state.
+	 *
+	 * @public
+	 */
+	canUnmount: TLShapeUtilFlag<Shape> = () => true
 
 	/**
 	 * Whether the shape can be bound to by an arrow.
@@ -231,7 +230,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(shape: Shape, ctx: SvgExportContext): ReactElement | null | Promise<ReactElement | null>
+	toSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement>
 
 	/**
 	 * Get the shape's background layer as an SVG object.
@@ -241,10 +240,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toBackgroundSvg?(
-		shape: Shape,
-		ctx: SvgExportContext
-	): ReactElement | null | Promise<ReactElement | null>
+	toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement> | null
 
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number {
@@ -327,15 +323,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * ```ts
 	 * onDragShapesOver = (shape, shapes) => {
-	 * 	this.editor.reparentShapes(shapes, shape.id)
+	 * 	return { shouldHint: true }
 	 * }
 	 * ```
 	 *
 	 * @param shape - The shape.
 	 * @param shapes - The shapes that are being dragged over this one.
+	 * @returns An object specifying whether the shape should hint that it can receive the dragged shapes.
 	 * @public
 	 */
-	onDragShapesOver?: TLOnDragHandler<Shape>
+	onDragShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
 
 	/**
 	 * A callback called when some other shapes are dragged out of this one.

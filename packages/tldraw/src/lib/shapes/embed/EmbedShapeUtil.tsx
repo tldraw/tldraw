@@ -34,6 +34,9 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
 	override canEdit: TLShapeUtilFlag<TLEmbedShape> = () => true
+	override canUnmount: TLShapeUtilFlag<TLEmbedShape> = (shape: TLEmbedShape) => {
+		return !!getEmbedInfo(shape.props.url)?.definition?.canUnmount
+	}
 	override canResize = (shape: TLEmbedShape) => {
 		return !!getEmbedInfo(shape.props.url)?.definition?.doesResize
 	}
@@ -98,11 +101,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		const isInteractive = isEditing || isHoveringWhileEditingSameShape
-
-		// Prevent nested embedding of tldraw
-		const isIframe =
-			typeof window !== 'undefined' && (window !== window.top || window.self !== window.parent)
-		if (isIframe && embedInfo?.definition.type === 'tldraw') return null
 
 		if (embedInfo?.definition.type === 'github_gist') {
 			const idFromGistUrl = embedInfo.url.split('/').pop()

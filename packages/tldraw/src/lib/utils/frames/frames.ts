@@ -3,7 +3,7 @@ import { Box, Editor, TLFrameShape, TLShapeId, TLShapePartial, Vec, compact } fr
 /**
  * Remove a frame.
  *
- * @param editor - tldraw editor instance.
+ * @param editor - tlraw editor instance.
  * @param ids - Ids of the frames you wish to remove.
  *
  * @public

@@ -8,7 +8,6 @@ import {
 	TLSelectionHandle,
 	TLShapeId,
 	TLShapePartial,
-	TLTextShape,
 	Vec,
 	canonicalizeRotation,
 	createShapeId,
@@ -3916,113 +3915,5 @@ describe('When resizing near the edges of the screen', () => {
 		expect(after.y).toBeLessThan(before.y)
 		expect(after.props.w).toBeGreaterThan(before.props.w)
 		expect(after.props.h).toBeGreaterThan(before.props.h)
-	})
-})
-
-describe('resizing text with autosize true', () => {
-	it('resizes text from the right side', () => {
-		editor.createShape<TLTextShape>({
-			type: 'text',
-			x: 0,
-			y: 0,
-			props: {
-				text: 'Hello',
-				autoSize: false,
-				w: 200,
-			},
-		})
-
-		const shape = editor.getLastCreatedShape()
-
-		const bounds = editor.getShapePageBounds(shape.id)!
-		editor
-			.select(shape)
-			.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
-			.expectToBeIn('select.pointing_resize_handle')
-			.pointerMove(bounds.maxX + 100, bounds.midY)
-			.expectToBeIn('select.resizing')
-			.expectShapeToMatch({ ...shape, x: 0, y: 0, props: { w: 300 } })
-			.pointerMove(bounds.maxX - 10, bounds.midY)
-			.expectShapeToMatch({ ...shape, x: 0, y: 0, props: { w: 190 } })
-	})
-
-	it('resizes text from the right side when alt key is pressed', () => {
-		editor.createShape<TLTextShape>({
-			type: 'text',
-			x: 0,
-			y: 0,
-			props: {
-				text: 'Hello',
-				autoSize: false,
-				w: 200,
-			},
-		})
-
-		const shape = editor.getLastCreatedShape()
-
-		const bounds = editor.getShapePageBounds(shape.id)!
-		editor
-			.select(shape)
-			.keyDown('Alt')
-			.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
-			.expectToBeIn('select.pointing_resize_handle')
-			.pointerMove(bounds.maxX + 100, bounds.midY)
-			.expectToBeIn('select.resizing')
-			.expectShapeToMatch({ ...shape, x: -100, y: 0, props: { w: 400 } })
-			.pointerMove(bounds.maxX - 10, bounds.midY)
-			.expectShapeToMatch({ ...shape, x: 10, y: 0, props: { w: 180 } })
-	})
-
-	it('resizes text from the left side', () => {
-		editor.createShape<TLTextShape>({
-			type: 'text',
-			x: 0,
-			y: 0,
-			props: {
-				text: 'Hello',
-				autoSize: false,
-				w: 200,
-			},
-		})
-
-		const shape = editor.getLastCreatedShape()
-
-		const bounds = editor.getShapePageBounds(shape.id)!
-		editor
-			.select(shape)
-			.pointerDown(bounds.minX, bounds.midY, { target: 'selection', handle: 'left' }) // right edge
-			.expectToBeIn('select.pointing_resize_handle')
-			.pointerMove(bounds.minX - 100, bounds.midY)
-			.expectToBeIn('select.resizing')
-			.expectShapeToMatch({ ...shape, x: -100, y: 0, props: { w: 300 } })
-			.pointerMove(bounds.minX + 10, bounds.midY)
-			.expectShapeToMatch({ ...shape, x: 10, y: 0, props: { w: 190 } })
-	})
-
-	it('resizes text from the left side when alt is pressed', () => {
-		editor.createShape<TLTextShape>({
-			type: 'text',
-			x: 0,
-			y: 0,
-			props: {
-				text: 'Hello',
-				autoSize: false,
-				w: 200,
-			},
-		})
-
-		const shape = editor.getLastCreatedShape()
-
-		const bounds = editor.getShapePageBounds(shape.id)!
-		editor
-			.select(shape)
-			.keyDown('Alt')
-			.pointerDown(bounds.minX, bounds.midY, { target: 'selection', handle: 'left' }) // right edge
-			.expectToBeIn('select.pointing_resize_handle')
-			.pointerMove(bounds.minX - 100, bounds.midY)
-			.expectToBeIn('select.resizing')
-			.expectShapeToMatch({ ...shape, x: -100, y: 0, props: { w: 400 } })
-			.pointerMove(bounds.minX + 10, bounds.midY)
-			.expectShapeToMatch({ ...shape, x: 10, y: 0, props: { w: 180 } })
 	})
 })

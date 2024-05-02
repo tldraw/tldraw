@@ -1,5 +1,5 @@
-import { useEditor, useQuickReactor } from '@tldraw/editor'
-import { useRef, useState } from 'react'
+import { useEditor } from '@tldraw/editor'
+import { useEffect, useState } from 'react'
 import { useActions } from '../../context/actions'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
@@ -9,25 +9,34 @@ export function BackToContent() {
 	const actions = useActions()
 
 	const [showBackToContent, setShowBackToContent] = useState(false)
-	const rIsShowing = useRef(false)
 
-	useQuickReactor(
-		'toggle showback to content',
-		() => {
-			const showBackToContentPrev = rIsShowing.current
-			const shapeIds = editor.getCurrentPageShapeIds()
-			let showBackToContentNow = false
-			if (shapeIds.size) {
-				showBackToContentNow = shapeIds.size === editor.getCulledShapes().size
-			}
+	useEffect(() => {
+		let showBackToContentPrev = false
+
+		const interval = setInterval(() => {
+			const renderingShapes = editor.getRenderingShapes()
+			const renderingBounds = editor.getRenderingBounds()
+
+			// renderingShapes will also include shapes that have the canUnmount flag
+			// set to true. These shapes will be on the canvas but may not be in the
+			// viewport... so we also need to narrow down the list to only shapes that
+			// are ALSO in the viewport.
+			const visibleShapes = renderingShapes.filter(
+				(s) => s.maskedPageBounds && renderingBounds.includes(s.maskedPageBounds)
+			)
+			const showBackToContentNow =
+				visibleShapes.length === 0 && editor.getCurrentPageShapes().length > 0
 
 			if (showBackToContentPrev !== showBackToContentNow) {
 				setShowBackToContent(showBackToContentNow)
-				rIsShowing.current = showBackToContentNow
+				showBackToContentPrev = showBackToContentNow
 			}
-		},
-		[editor]
-	)
+		}, 1000)
+
+		return () => {
+			clearInterval(interval)
+		}
+	}, [editor])
 
 	if (!showBackToContent) return null
 

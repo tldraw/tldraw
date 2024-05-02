@@ -44,7 +44,6 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 							addToast({
 								title: msg('file-system.shared-document-file-open-error.title'),
 								description: msg('file-system.shared-document-file-open-error.description'),
-								severity: 'error',
 							})
 							return
 						}

@@ -1,7 +1,6 @@
-import { createMigrationIds, createRecordMigrationSequence } from '@tldraw/store'
+import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLAsset } from '../records/TLAsset'
-import { TLBaseAsset, createAssetValidator } from './TLBaseAsset'
+import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
 
 /**
  * An asset used for videos, used by the TLVideoShape.
@@ -19,7 +18,7 @@ export type TLVideoAsset = TLBaseAsset<
 	}
 >
 
-/** @public */
+/** @internal */
 export const videoAssetValidator: T.Validator<TLVideoAsset> = createAssetValidator(
 	'video',
 	T.object({
@@ -32,54 +31,54 @@ export const videoAssetValidator: T.Validator<TLVideoAsset> = createAssetValidat
 	})
 )
 
-const Versions = createMigrationIds('com.tldraw.asset.video', {
+const Versions = {
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
 	MakeUrlsValid: 3,
-} as const)
+} as const
 
-export { Versions as videoAssetVersions }
-
-/** @public */
-export const videoAssetMigrations = createRecordMigrationSequence({
-	sequenceId: 'com.tldraw.asset.video',
-	recordType: 'asset',
-	filter: (asset) => (asset as TLAsset).type === 'video',
-	sequence: [
-		{
-			id: Versions.AddIsAnimated,
-			up: (asset: any) => {
-				asset.props.isAnimated = false
-			},
-			down: (asset: any) => {
-				delete asset.props.isAnimated
-			},
-		},
-		{
-			id: Versions.RenameWidthHeight,
-			up: (asset: any) => {
-				asset.props.w = asset.props.width
-				asset.props.h = asset.props.height
-				delete asset.props.width
-				delete asset.props.height
-			},
-			down: (asset: any) => {
-				asset.props.width = asset.props.w
-				asset.props.height = asset.props.h
-				delete asset.props.w
-				delete asset.props.h
-			},
-		},
-		{
-			id: Versions.MakeUrlsValid,
-			up: (asset: any) => {
-				if (!T.srcUrl.isValid(asset.props.src)) {
-					asset.props.src = ''
+/** @internal */
+export const videoAssetMigrations = defineMigrations({
+	currentVersion: Versions.MakeUrlsValid,
+	migrators: {
+		[Versions.AddIsAnimated]: {
+			up: (asset) => {
+				return {
+					...asset,
+					props: {
+						...asset.props,
+						isAnimated: false,
+					},
 				}
 			},
-			down: (_asset) => {
-				// noop
+			down: (asset) => {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const { isAnimated, ...rest } = asset.props
+				return {
+					...asset,
+					props: rest,
+				}
 			},
 		},
-	],
+		[Versions.RenameWidthHeight]: {
+			up: (asset) => {
+				const { width, height, ...others } = asset.props
+				return { ...asset, props: { w: width, h: height, ...others } }
+			},
+			down: (asset) => {
+				const { w, h, ...others } = asset.props
+				return { ...asset, props: { width: w, height: h, ...others } }
+			},
+		},
+		[Versions.MakeUrlsValid]: {
+			up: (asset: TLVideoAsset) => {
+				const src = asset.props.src
+				if (src && !T.srcUrl.isValid(src)) {
+					return { ...asset, props: { ...asset.props, src: '' } }
+				}
+				return asset
+			},
+			down: (asset) => asset,
+		},
+	},
 })

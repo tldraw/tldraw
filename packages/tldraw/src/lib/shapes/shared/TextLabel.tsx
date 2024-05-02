@@ -1,126 +1,129 @@
 import {
 	Box,
+	TLDefaultColorStyle,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
+	TLDefaultSizeStyle,
 	TLDefaultVerticalAlignStyle,
-	TLShapeId,
+	TLShape,
+	stopEventPropagation,
 } from '@tldraw/editor'
-import React, { useEffect, useState } from 'react'
-import { TextArea } from '../text/TextArea'
+import React from 'react'
+import { useDefaultColorTheme } from './ShapeFill'
 import { TextHelpers } from './TextHelpers'
+import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableText } from './useEditableText'
 
-type TextLabelProps = {
-	id: TLShapeId
-	type: string
+export const TextLabel = React.memo(function TextLabel<
+	T extends Extract<TLShape, { props: { text: string } }>,
+>({
+	id,
+	type,
+	text,
+	size,
+	labelColor,
+	font,
+	align,
+	verticalAlign,
+	wrap,
+	bounds,
+}: {
+	id: T['id']
+	type: T['type']
+	size: TLDefaultSizeStyle
 	font: TLDefaultFontStyle
-	fontSize: number
-	lineHeight: number
 	fill?: TLDefaultFillStyle
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
 	wrap?: boolean
 	text: string
-	labelColor: string
+	labelColor: TLDefaultColorStyle
 	bounds?: Box
-	isNote?: boolean
-	isSelected: boolean
-	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
-	classNamePrefix?: string
-	style?: React.CSSProperties
-	textWidth?: number
-	textHeight?: number
-}
-
-/** @public */
-export const TextLabel = React.memo(function TextLabel({
-	id,
-	type,
-	text,
-	labelColor,
-	font,
-	fontSize,
-	lineHeight,
-	align,
-	verticalAlign,
-	wrap,
-	isSelected,
-	onKeyDown: handleKeyDownCustom,
-	classNamePrefix,
-	style,
-	textWidth,
-	textHeight,
-}: TextLabelProps) {
-	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
-		id,
-		type,
-		text
-	)
-
-	const [initialText, setInitialText] = useState(text)
-
-	useEffect(() => {
-		if (!isEditing) setInitialText(text)
-	}, [isEditing, text])
+}) {
+	const {
+		rInput,
+		isEmpty,
+		isEditing,
+		handleFocus,
+		handleChange,
+		handleKeyDown,
+		handleBlur,
+		handleInputPointerDown,
+		handleDoubleClick,
+	} = useEditableText(id, type, text)
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.length > 0
 
 	const legacyAlign = isLegacyAlign(align)
+	const theme = useDefaultColorTheme()
 
 	if (!isEditing && !hasText) {
 		return null
 	}
 
-	// TODO: probably combine tl-text and tl-arrow eventually
-	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
-			className={`${cssPrefix}-label tl-text-wrapper`}
+			className="tl-text-label"
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
-			data-iseditinganything={isEditingAnything}
 			data-textwrap={!!wrap}
-			data-isselected={isSelected}
 			style={{
 				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
 				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
-				...style,
+				...(bounds
+					? {
+							top: bounds.minY,
+							left: bounds.minX,
+							width: bounds.width,
+							height: bounds.height,
+							position: 'absolute',
+						}
+					: {}),
 			}}
 		>
 			<div
-				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
+				className="tl-text-label__inner"
 				style={{
-					fontSize,
-					lineHeight: fontSize * lineHeight + 'px',
-					minHeight: lineHeight + 32,
-					minWidth: textWidth || 0,
-					color: labelColor,
-					width: textWidth,
-					height: textHeight,
+					fontSize: LABEL_FONT_SIZES[size],
+					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
+					minHeight: TEXT_PROPS.lineHeight + 32,
+					minWidth: 0,
+					color: theme[labelColor].solid,
 				}}
 			>
-				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
-					{finalText.split('\n').map((lineOfText, index) => (
-						<div key={index} dir="auto">
-							{lineOfText}
-						</div>
-					))}
+				<div className="tl-text tl-text-content" dir="ltr">
+					{finalText}
 				</div>
-				{(isEditingAnything || isSelected) && (
-					<TextArea
+				{isEditing && (
+					<textarea
 						ref={rInput}
-						// We need to add the initial value as the key here because we need this component to
-						// 'reset' when this state changes and grab the latest defaultValue.
-						key={initialText}
-						text={text}
-						isEditing={isEditing}
-						{...editableTextRest}
-						handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
+						className="tl-text tl-text-input"
+						name="text"
+						tabIndex={-1}
+						autoComplete="off"
+						autoCapitalize="off"
+						autoCorrect="off"
+						autoSave="off"
+						autoFocus
+						placeholder=""
+						spellCheck="true"
+						wrap="off"
+						dir="auto"
+						datatype="wysiwyg"
+						defaultValue={text}
+						onFocus={handleFocus}
+						onChange={handleChange}
+						onKeyDown={handleKeyDown}
+						onBlur={handleBlur}
+						onTouchEnd={stopEventPropagation}
+						onContextMenu={stopEventPropagation}
+						onPointerDown={handleInputPointerDown}
+						onDoubleClick={handleDoubleClick}
 					/>
 				)}
 			</div>

@@ -40,18 +40,6 @@ export const TldrawUiIcon = memo(function TldrawUi({
 		}
 	}, [ref, asset, icon])
 
-	if (icon === 'none') {
-		return (
-			<div
-				className={classNames(
-					'tlui-icon tlui-icon__placeholder',
-					{ 'tlui-icon__small': small },
-					className
-				)}
-			/>
-		)
-	}
-
 	return (
 		<div
 			{...props}

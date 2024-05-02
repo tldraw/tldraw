@@ -1,4 +1,4 @@
-import { createShapePropsMigrationSequence } from '../records/TLShape'
+import { defineMigrations } from '@tldraw/store'
 import { ShapeProps, TLBaseShape } from './TLBaseShape'
 
 /** @public */
@@ -7,8 +7,8 @@ export type TLGroupShapeProps = { [key in never]: undefined }
 /** @public */
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>
 
-/** @public */
+/** @internal */
 export const groupShapeProps: ShapeProps<TLGroupShape> = {}
 
-/** @public */
-export const groupShapeMigrations = createShapePropsMigrationSequence({ sequence: [] })
+/** @internal */
+export const groupShapeMigrations = defineMigrations({})

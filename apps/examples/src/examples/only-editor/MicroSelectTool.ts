@@ -84,7 +84,7 @@ deletes that shape.
 
 [1]
 This is where we define our state node by extending the StateNode class. Since 
-there are no children states We can give it an id and define methods we
+there are no children states We can simply give it an id and define methods we
 want to override to handle events.
 
 

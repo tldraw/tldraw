@@ -61,10 +61,19 @@ let store: Store<Author | Book>
 beforeEach(() => {
 	store = new Store({
 		props: {},
-		schema: StoreSchema.create<Author | Book>({
-			author: Author,
-			book: Book,
-		}),
+		schema: StoreSchema.create<Author | Book>(
+			{
+				author: Author,
+				book: Book,
+			},
+			{
+				snapshotMigrations: {
+					currentVersion: 0,
+					firstVersion: 0,
+					migrators: {},
+				},
+			}
+		),
 	})
 	store.put([
 		authors.tolkein,

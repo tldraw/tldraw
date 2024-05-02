@@ -1,18 +1,11 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
-import {
-	READ_ONLY_LEGACY_PREFIX,
-	READ_ONLY_PREFIX,
-	ROOM_OPEN_MODE,
-	ROOM_PREFIX,
-} from '@tldraw/dotcom-shared'
 import { Router, createCors } from 'itty-router'
 import { env } from 'process'
 import Toucan from 'toucan-js'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
-import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
@@ -31,19 +24,10 @@ const router = Router()
 	.post('/new-room', createRoom)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
-	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
-		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_WRITE)
-	)
-	.get(`/${READ_ONLY_LEGACY_PREFIX}/:roomId`, (req, env) =>
-		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
-	)
-	.get(`/${READ_ONLY_PREFIX}/:roomId`, (req, env) =>
-		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
-	)
-	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
-	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
-	.get('/readonly-slug/:roomId', getReadonlySlug)
-	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
+	.get('/r/:roomId', joinExistingRoom)
+	.get('/r/:roomId/history', getRoomHistory)
+	.get('/r/:roomId/history/:timestamp', getRoomHistorySnapshot)
+	.post('/r/:roomId/restore', forwardRoomRequest)
 	.all('*', fourOhFour)
 
 const Worker = {
@@ -86,7 +70,7 @@ const Worker = {
 	},
 }
 
-export function isAllowedOrigin(origin: string) {
+function isAllowedOrigin(origin: string) {
 	if (origin === 'http://localhost:3000') return true
 	if (origin === 'http://localhost:5420') return true
 	if (origin.endsWith('.tldraw.com')) return true

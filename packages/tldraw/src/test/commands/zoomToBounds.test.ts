@@ -48,10 +48,3 @@ it('does not zoom to bounds when camera is frozen', () => {
 	editor.zoomToBounds(new Box(200, 300, 300, 300))
 	expect(editor.getViewportPageCenter().toJson()).toCloselyMatchObject({ x: 500, y: 500 })
 })
-
-it('is ignored by undo/redo', () => {
-	editor.mark()
-	editor.zoomToBounds(new Box(200, 300, 300, 300))
-	editor.undo()
-	expect(editor.getViewportPageCenter().toJson()).toCloselyMatchObject({ x: 350, y: 450 })
-})

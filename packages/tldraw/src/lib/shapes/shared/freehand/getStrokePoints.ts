@@ -68,7 +68,7 @@ export function getStrokePoints(
 	// Strip points that are too close to the first point.
 	let pt = pts[1]
 	while (pt) {
-		if (Vec.Dist2(pt, pts[0]) > (size / 3) ** 2) break
+		if (Vec.Dist(pt, pts[0]) > size / 3) break
 		pts[0].z = Math.max(pts[0].z, pt.z) // Use maximum pressure
 		pts.splice(1, 1)
 		pt = pts[1]
@@ -78,7 +78,7 @@ export function getStrokePoints(
 	const last = pts.pop()!
 	pt = pts[pts.length - 1]
 	while (pt) {
-		if (Vec.Dist2(pt, last) > (size / 3) ** 2) break
+		if (Vec.Dist(pt, last) > size / 3) break
 		pts.pop()
 		pt = pts[pts.length - 1]
 		pointsRemovedFromNearEnd++
@@ -88,7 +88,7 @@ export function getStrokePoints(
 	const isComplete =
 		options.last ||
 		!options.simulatePressure ||
-		(pts.length > 1 && Vec.Dist2(pts[pts.length - 1], pts[pts.length - 2]) < size ** 2) ||
+		(pts.length > 1 && Vec.Dist(pts[pts.length - 1], pts[pts.length - 2]) < size) ||
 		pointsRemovedFromNearEnd > 0
 
 	// Add extra points between the two, to help avoid "dash" lines

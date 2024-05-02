@@ -1,3 +1,6 @@
+// eslint-disable-next-line import/no-internal-modules
+import 'tldraw/tldraw.css'
+// eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
@@ -10,7 +13,6 @@ import {
 	TldrawUiMenuGroup,
 	setRuntimeOverrides,
 } from 'tldraw'
-import 'tldraw/tldraw.css'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
 import { ChangeResponder } from './ChangeResponder'

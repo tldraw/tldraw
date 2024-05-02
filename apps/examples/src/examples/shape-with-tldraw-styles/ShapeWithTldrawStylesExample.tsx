@@ -8,8 +8,8 @@ import {
 	TLDefaultColorStyle,
 	TLDefaultSizeStyle,
 	Tldraw,
-	useDefaultColorTheme,
 } from 'tldraw'
+import { useDefaultColorTheme } from 'tldraw/src/lib/shapes/shared/ShapeFill'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!

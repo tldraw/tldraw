@@ -160,8 +160,9 @@ export async function publish(distTag?: string) {
 				nicelog('Waiting for package to be published... attempt', attempt, 'of', total)
 				// fetch the new package directly from the npm registry
 				const newVersion = packageDetails.version
+				const unscopedName = packageDetails.name.replace('@tldraw/', '')
 
-				const url = `https://registry.npmjs.org/${packageDetails.name}/${newVersion}`
+				const url = `https://registry.npmjs.org/${packageDetails.name}/-/${unscopedName}-${newVersion}.tgz`
 				nicelog('looking for package at url: ', url)
 				const res = await fetch(url, {
 					method: 'HEAD',
@@ -171,8 +172,8 @@ export async function publish(distTag?: string) {
 				}
 			},
 			{
-				delay: 10000,
-				numAttempts: 50,
+				delay: 4000,
+				numAttempts: 20,
 			}
 		)
 	}

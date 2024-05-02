@@ -1,7 +1,6 @@
 import {
 	IndexKey,
 	JsonValue,
-	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
 	exhaustiveSwitchError,
 	getOwnProperty,
 	hasOwnProperty,
@@ -394,8 +393,7 @@ export class UnionValidator<
 	constructor(
 		private readonly key: Key,
 		private readonly config: Config,
-		private readonly unknownValueValidation: (value: object, variant: string) => UnknownValue,
-		private readonly useNumberKeys: boolean
+		private readonly unknownValueValidation: (value: object, variant: string) => UnknownValue
 	) {
 		super(
 			(input) => {
@@ -443,13 +441,11 @@ export class UnionValidator<
 		matchingSchema: Validatable<any> | undefined
 		variant: string
 	} {
-		const variant = getOwnProperty(object, this.key) as string & keyof Config
-		if (!this.useNumberKeys && typeof variant !== 'string') {
+		const variant = getOwnProperty(object, this.key) as keyof Config | undefined
+		if (typeof variant !== 'string') {
 			throw new ValidationError(
 				`Expected a string for key "${this.key}", got ${typeToString(variant)}`
 			)
-		} else if (this.useNumberKeys && !Number.isFinite(Number(variant))) {
-			throw new ValidationError(`Expected a number for key "${this.key}", got "${variant as any}"`)
 		}
 
 		const matchingSchema = hasOwnProperty(this.config, variant) ? this.config[variant] : undefined
@@ -459,7 +455,7 @@ export class UnionValidator<
 	validateUnknownVariants<Unknown>(
 		unknownValueValidation: (value: object, variant: string) => Unknown
 	): UnionValidator<Key, Config, Unknown> {
-		return new UnionValidator(this.key, this.config, unknownValueValidation, this.useNumberKeys)
+		return new UnionValidator(this.key, this.config, unknownValueValidation)
 	}
 }
 
@@ -702,9 +698,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return (
 		typeof value === 'object' &&
 		value !== null &&
-		(Object.getPrototypeOf(value) === Object.prototype ||
-			Object.getPrototypeOf(value) === null ||
-			Object.getPrototypeOf(value) === STRUCTURED_CLONE_OBJECT_PROTOTYPE)
+		(value.constructor === Object || !value.constructor)
 	)
 }
 
@@ -832,41 +826,14 @@ export function union<Key extends string, Config extends UnionValidatorConfig<Ke
 	key: Key,
 	config: Config
 ): UnionValidator<Key, Config> {
-	return new UnionValidator(
-		key,
-		config,
-		(unknownValue, unknownVariant) => {
-			throw new ValidationError(
-				`Expected one of ${Object.keys(config)
-					.map((key) => JSON.stringify(key))
-					.join(' or ')}, got ${JSON.stringify(unknownVariant)}`,
-				[key]
-			)
-		},
-		false
-	)
-}
-
-/**
- * @internal
- */
-export function numberUnion<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(
-	key: Key,
-	config: Config
-): UnionValidator<Key, Config> {
-	return new UnionValidator(
-		key,
-		config,
-		(unknownValue, unknownVariant) => {
-			throw new ValidationError(
-				`Expected one of ${Object.keys(config)
-					.map((key) => JSON.stringify(key))
-					.join(' or ')}, got ${JSON.stringify(unknownVariant)}`,
-				[key]
-			)
-		},
-		true
-	)
+	return new UnionValidator(key, config, (unknownValue, unknownVariant) => {
+		throw new ValidationError(
+			`Expected one of ${Object.keys(config)
+				.map((key) => JSON.stringify(key))
+				.join(' or ')}, got ${JSON.stringify(unknownVariant)}`,
+			[key]
+		)
+	})
 }
 
 /**

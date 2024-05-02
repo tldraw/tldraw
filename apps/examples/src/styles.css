@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
 :root {
 	--gray-light: #f5f5f5;
@@ -17,8 +17,6 @@ body {
 	/* mobile viewport bug fix */
 	min-height: -webkit-fill-available;
 	height: 100%;
-	/* prevent two-finger swipe to go back */
-	overscroll-behavior-x: none;
 }
 @media screen and (max-width: 600px) {
 	html,
@@ -70,7 +68,7 @@ html,
 	width: 256px;
 	min-width: 256px;
 	display: grid;
-	grid-template-rows: auto 48px 48px 1fr auto;
+	grid-template-rows: auto 1fr auto;
 	border-right: 1px solid var(--black-transparent-light);
 	overflow: hidden;
 	font-size: 14px;
@@ -81,14 +79,6 @@ html,
 .example__sidebar a {
 	text-decoration: none;
 	color: inherit;
-}
-
-.example__sidebar__filter {
-	margin: 8px;
-	padding: 8px;
-	border-radius: 6px;
-	border: 1px solid #e8e8e8;
-	font-size: 14px;
 }
 
 /* Header */
@@ -139,13 +129,8 @@ ul.example__sidebar__categories {
 /* Category */
 
 li.example__sidebar__category {
-	display: none;
 	position: relative;
 	padding: 8px 0px;
-}
-
-.example__sidebar__category:has(> ul > li) {
-	display: block;
 }
 
 ul.example__sidebar__category__items {

@@ -1,5 +1,4 @@
-import { Page, test as base } from '@playwright/test'
-import { EndToEndApi } from '../../../src/misc/EndToEndApi'
+import { test as base } from '@playwright/test'
 import { ActionsMenu } from './menus/ActionsMenu'
 import { HelpMenu } from './menus/HelpMenu'
 import { MainMenu } from './menus/MainMenu'
@@ -16,30 +15,6 @@ type Fixtures = {
 	mainMenu: MainMenu
 	pageMenu: PageMenu
 	navigationPanel: NavigationPanel
-	api: ReturnType<typeof makeApiFixture>
-}
-
-export type ApiFixture = {
-	[K in keyof EndToEndApi]: (
-		...args: Parameters<EndToEndApi[K]>
-	) => Promise<ReturnType<EndToEndApi[K]>>
-}
-
-function makeApiFixture(keys: { [K in keyof EndToEndApi]: true }, page: Page): ApiFixture {
-	const result = {} as any
-
-	for (const key of Object.keys(keys)) {
-		result[key] = (...args: any[]) => {
-			return page.evaluate(
-				([key, ...args]) => {
-					return (window as any).tldrawApi[key](...args)
-				},
-				[key, ...args]
-			)
-		}
-	}
-
-	return result
 }
 
 const test = base.extend<Fixtures>({
@@ -70,16 +45,6 @@ const test = base.extend<Fixtures>({
 	navigationPanel: async ({ page }, use) => {
 		const navigationPanel = new NavigationPanel(page)
 		await use(navigationPanel)
-	},
-	api: async ({ page }, use) => {
-		const api = makeApiFixture(
-			{
-				exportAsSvg: true,
-				exportAsFormat: true,
-			},
-			page
-		)
-		await use(api)
 	},
 })
 

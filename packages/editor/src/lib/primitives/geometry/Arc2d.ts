@@ -52,21 +52,20 @@ export class Arc2d extends Geometry2d {
 		// Get the point (P) on the arc, then pick the nearest of A, B, and P
 		const P = _center.clone().add(point.clone().sub(_center).uni().mul(radius))
 
+		let distance = Infinity
 		let nearest: Vec | undefined
-		let dist = Infinity
-		let d: number
-		for (const p of [A, B, P]) {
-			d = Vec.Dist2(point, p)
-			if (d < dist) {
-				nearest = p
-				dist = d
+		for (const pt of [A, B, P]) {
+			if (point.dist(pt) < distance) {
+				nearest = pt
+				distance = point.dist(pt)
 			}
 		}
+
 		if (!nearest) throw Error('nearest point not found')
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec, B: Vec): boolean {
+	hitTestLineSegment(A: Vec, B: Vec, _zoom: number): boolean {
 		const { _center, radius, measure, angleStart, angleEnd } = this
 		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
 		if (intersection === null) return false

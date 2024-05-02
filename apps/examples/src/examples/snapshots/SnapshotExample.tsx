@@ -1,8 +1,6 @@
-import { TLStoreSnapshot, Tldraw } from 'tldraw'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
-import _jsonSnapshot from './snapshot.json'
-
-const jsonSnapshot = _jsonSnapshot as TLStoreSnapshot
+import jsonSnapshot from './snapshot.json'
 
 // There's a guide at the bottom of this file!
 

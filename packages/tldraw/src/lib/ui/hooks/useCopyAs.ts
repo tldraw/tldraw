@@ -15,7 +15,7 @@ export function useCopyAs() {
 			copyAs(editor, ids, format).catch(() => {
 				addToast({
 					id: 'copy-fail',
-					severity: 'warning',
+					icon: 'warning-triangle',
 					title: msg('toast.error.copy-fail.title'),
 					description: msg('toast.error.copy-fail.desc'),
 				})

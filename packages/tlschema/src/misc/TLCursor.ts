@@ -35,7 +35,7 @@ export const TL_CURSOR_TYPES = new Set([
  *  @public */
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>
 
-/** @public */
+/** @internal */
 export const cursorTypeValidator = T.setEnum(TL_CURSOR_TYPES)
 
 /**
@@ -47,7 +47,7 @@ export interface TLCursor {
 	rotation: number
 }
 
-/** @public */
+/** @internal */
 export const cursorValidator: T.Validator<TLCursor> = T.object<TLCursor>({
 	type: cursorTypeValidator,
 	rotation: T.number,

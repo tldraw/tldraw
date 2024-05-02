@@ -11,7 +11,6 @@ import {
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultSizeStyle,
-	TLDefaultTextAlignStyle,
 	TLOpacityType,
 	TLShapeId,
 	Vec,
@@ -283,7 +282,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						font: fontFamilyToFontType[element.fontFamily] ?? 'draw',
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						text: element.text,
-						textAlign: textAlignToTextAlignTypes[element.textAlign],
+						align: textAlignToAlignTypes[element.textAlign],
 					},
 				})
 				break
@@ -468,12 +467,6 @@ const fillStylesToFillType: Record<string, TLDefaultFillStyle> = {
 }
 
 const textAlignToAlignTypes: Record<string, TLDefaultHorizontalAlignStyle> = {
-	left: 'start',
-	center: 'middle',
-	right: 'end',
-}
-
-const textAlignToTextAlignTypes: Record<string, TLDefaultTextAlignStyle> = {
 	left: 'start',
 	center: 'middle',
 	right: 'end',

@@ -1,32 +1,33 @@
-import { useQuickReactor, useStateTracking } from '@tldraw/state'
+import { track, useLayoutReaction, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
-import { memo, useCallback, useRef } from 'react'
+import * as React from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Mat } from '../primitives/Mat'
-import { setStyleProperty } from '../utils/dom'
+import { toDomPrecision } from '../primitives/utils'
+import { nearestMultiple } from '../utils/nearestMultiple'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /*
 This component renders shapes on the canvas. There are two stages: positioning
 and styling the shape's container using CSS, and then rendering the shape's 
 JSX using its shape util's render method. Rendering the "inside" of a shape is
-more expensive than positioning it or changing its color, so we use memo
+more expensive than positioning it or changing its color, so we use React.memo
 to wrap the inner shape and only re-render it when the shape's props change. 
 
 The shape also receives props for its index and opacity. The index is used to
 determine the z-index of the shape, and the opacity is used to set the shape's
 opacity based on its own opacity and that of its parent's.
 */
-export const Shape = memo(function Shape({
+export const Shape = track(function Shape({
 	id,
 	shape,
 	util,
 	index,
 	backgroundIndex,
 	opacity,
-	dprMultiple,
+	isCulled,
 }: {
 	id: TLShapeId
 	shape: TLShape
@@ -34,153 +35,102 @@ export const Shape = memo(function Shape({
 	index: number
 	backgroundIndex: number
 	opacity: number
-	dprMultiple: number
+	isCulled: boolean
 }) {
 	const editor = useEditor()
 
 	const { ShapeErrorFallback } = useEditorComponents()
 
-	const containerRef = useRef<HTMLDivElement>(null)
-	const bgContainerRef = useRef<HTMLDivElement>(null)
+	const containerRef = React.useRef<HTMLDivElement>(null)
+	const backgroundContainerRef = React.useRef<HTMLDivElement>(null)
 
-	const memoizedStuffRef = useRef({
-		transform: '',
-		clipPath: 'none',
-		width: 0,
-		height: 0,
-		x: 0,
-		y: 0,
-		isCulled: false,
+	const setProperty = React.useCallback((property: string, value: string) => {
+		containerRef.current?.style.setProperty(property, value)
+		backgroundContainerRef.current?.style.setProperty(property, value)
+	}, [])
+
+	useLayoutReaction('set shape stuff', () => {
+		const shape = editor.getShape(id)
+		if (!shape) return // probably the shape was just deleted
+
+		const pageTransform = editor.getShapePageTransform(id)
+		const transform = Mat.toCssString(pageTransform)
+		setProperty('transform', transform)
+
+		const clipPath = editor.getShapeClipPath(id)
+		setProperty('clip-path', clipPath ?? 'none')
+
+		const bounds = editor.getShapeGeometry(shape).bounds
+		const dpr = Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100
+		// dprMultiple is the smallest number we can multiply dpr by to get an integer
+		// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
+		const dprMultiple = nearestMultiple(dpr)
+		// We round the shape width and height up to the nearest multiple of dprMultiple to avoid the browser
+		// making miscalculations when applying the transform.
+		const widthRemainder = bounds.w % dprMultiple
+		const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
+		const heightRemainder = bounds.h % dprMultiple
+		const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
+		setProperty('width', Math.max(width, dprMultiple) + 'px')
+		setProperty('height', Math.max(height, dprMultiple) + 'px')
 	})
 
-	useQuickReactor(
-		'set shape stuff',
-		() => {
-			const shape = editor.getShape(id)
-			if (!shape) return // probably the shape was just deleted
+	// Set the opacity of the container when the opacity changes
+	React.useLayoutEffect(() => {
+		setProperty('opacity', opacity + '')
+		containerRef.current?.style.setProperty('z-index', index + '')
+		backgroundContainerRef.current?.style.setProperty('z-index', backgroundIndex + '')
+	}, [opacity, index, backgroundIndex, setProperty])
 
-			const prev = memoizedStuffRef.current
-
-			// Clip path
-			const clipPath = editor.getShapeClipPath(id) ?? 'none'
-			if (clipPath !== prev.clipPath) {
-				setStyleProperty(containerRef.current, 'clip-path', clipPath)
-				setStyleProperty(bgContainerRef.current, 'clip-path', clipPath)
-				prev.clipPath = clipPath
-			}
-
-			// Page transform
-			const pageTransform = editor.getShapePageTransform(id)
-			const transform = Mat.toCssString(pageTransform)
-			const bounds = editor.getShapeGeometry(shape).bounds
-
-			// Update if the tranform has changed
-			if (transform !== prev.transform) {
-				setStyleProperty(containerRef.current, 'transform', transform)
-				setStyleProperty(bgContainerRef.current, 'transform', transform)
-				prev.transform = transform
-			}
-
-			// Width / Height
-			// We round the shape width and height up to the nearest multiple of dprMultiple
-			// to avoid the browser making miscalculations when applying the transform.
-			const widthRemainder = bounds.w % dprMultiple
-			const heightRemainder = bounds.h % dprMultiple
-			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
-			const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
-
-			if (width !== prev.width || height !== prev.height) {
-				setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-				setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
-				setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-				setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
-				prev.width = width
-				prev.height = height
-			}
+	const annotateError = React.useCallback(
+		(error: any) => {
+			editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
 		},
-		[editor]
-	)
-
-	// This stuff changes pretty infrequently, so we can change them together
-	useQuickReactor(
-		'set opacity and z-index',
-		() => {
-			const container = containerRef.current
-			const bgContainer = bgContainerRef.current
-
-			// Opacity
-			setStyleProperty(container, 'opacity', opacity)
-			setStyleProperty(bgContainer, 'opacity', opacity)
-
-			// Z-Index
-			setStyleProperty(container, 'z-index', index)
-			setStyleProperty(bgContainer, 'z-index', backgroundIndex)
-		},
-		[opacity, index, backgroundIndex]
-	)
-
-	useQuickReactor(
-		'set display',
-		() => {
-			const shape = editor.getShape(id)
-			if (!shape) return // probably the shape was just deleted
-
-			const culledShapes = editor.getCulledShapes()
-			const isCulled = culledShapes.has(id)
-			if (isCulled !== memoizedStuffRef.current.isCulled) {
-				setStyleProperty(containerRef.current, 'display', isCulled ? 'none' : 'block')
-				setStyleProperty(bgContainerRef.current, 'display', isCulled ? 'none' : 'block')
-				memoizedStuffRef.current.isCulled = isCulled
-			}
-		},
-		[editor]
-	)
-	const annotateError = useCallback(
-		(error: any) => editor.annotateError(error, { origin: 'shape', willCrashApp: false }),
 		[editor]
 	)
 
 	if (!shape) return null
 
-	const isFilledShape = 'fill' in shape.props && shape.props.fill !== 'none'
-
 	return (
 		<>
 			{util.backgroundComponent && (
 				<div
-					ref={bgContainerRef}
+					ref={backgroundContainerRef}
 					className="tl-shape tl-shape-background"
 					data-shape-type={shape.type}
 					draggable={false}
 				>
-					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
-						<InnerShapeBackground shape={shape} util={util} />
-					</OptionalErrorBoundary>
+					{!isCulled && (
+						<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
+							<InnerShapeBackground shape={shape} util={util} />
+						</OptionalErrorBoundary>
+					)}
 				</div>
 			)}
-			<div
-				ref={containerRef}
-				className="tl-shape"
-				data-shape-type={shape.type}
-				data-shape-is-filled={isFilledShape}
-				draggable={false}
-			>
-				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
-					<InnerShape shape={shape} util={util} />
-				</OptionalErrorBoundary>
+			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
+				{isCulled ? (
+					<CulledShape shape={shape} />
+				) : (
+					<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
+						<InnerShape shape={shape} util={util} />
+					</OptionalErrorBoundary>
+				)}
 			</div>
 		</>
 	)
 })
 
-const InnerShape = memo(
+const InnerShape = React.memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
 		return useStateTracking('InnerShape:' + shape.type, () => util.component(shape))
 	},
-	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
+	(prev, next) =>
+		prev.shape.props === next.shape.props &&
+		prev.shape.meta === next.shape.meta &&
+		prev.util === next.util
 )
 
-const InnerShapeBackground = memo(
+const InnerShapeBackground = React.memo(
 	function InnerShapeBackground<T extends TLShape>({
 		shape,
 		util,
@@ -191,4 +141,25 @@ const InnerShapeBackground = memo(
 		return useStateTracking('InnerShape:' + shape.type, () => util.backgroundComponent?.(shape))
 	},
 	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
+)
+
+const CulledShape = React.memo(
+	function CulledShape<T extends TLShape>({ shape }: { shape: T }) {
+		const editor = useEditor()
+		const bounds = editor.getShapeGeometry(shape).bounds
+
+		return (
+			<div
+				className="tl-shape__culled"
+				style={{
+					transform: `translate(${toDomPrecision(bounds.minX)}px, ${toDomPrecision(
+						bounds.minY
+					)}px)`,
+					width: Math.max(1, toDomPrecision(bounds.width)),
+					height: Math.max(1, toDomPrecision(bounds.height)),
+				}}
+			/>
+		)
+	},
+	() => true
 )

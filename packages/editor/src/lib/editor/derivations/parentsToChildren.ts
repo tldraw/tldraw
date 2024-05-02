@@ -7,7 +7,6 @@ type Parents2Children = Record<TLParentId, TLShapeId[]>
 
 export const parentsToChildren = (store: TLStore) => {
 	const shapeIdsQuery = store.query.ids<'shape'>('shape')
-	const shapeHistory = store.query.filterHistory('shape')
 
 	function fromScratch() {
 		const result: Parents2Children = {}
@@ -36,7 +35,7 @@ export const parentsToChildren = (store: TLStore) => {
 				return fromScratch()
 			}
 
-			const diff = shapeHistory.getDiffSince(lastComputedEpoch)
+			const diff = store.history.getDiffSince(lastComputedEpoch)
 
 			if (diff === RESET_VALUE) {
 				return fromScratch()

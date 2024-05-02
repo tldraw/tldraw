@@ -1,6 +1,6 @@
 ---
 title: Things on the canvas
-component: ./OnTheCanvasExample.tsx
+component: ./OnTheCanvas.tsx
 category: ui
 priority: 2
 ---

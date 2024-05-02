@@ -1,5 +1,6 @@
 import {
 	Editor,
+	FileHelpers,
 	PngHelpers,
 	TLShapeId,
 	TLSvgOptions,
@@ -10,18 +11,18 @@ import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanva
 
 /** @public */
 export async function getSvgAsImage(
-	svgString: string,
+	svg: SVGElement,
 	isSafari: boolean,
 	options: {
 		type: 'png' | 'jpeg' | 'webp'
 		quality: number
 		scale: number
-		width: number
-		height: number
 	}
 ) {
-	const { type, quality, scale, width, height } = options
+	const { type, quality, scale } = options
 
+	const width = +svg.getAttribute('width')!
+	const height = +svg.getAttribute('height')!
 	let [clampedWidth, clampedHeight] = await clampToBrowserMaxCanvasSize(
 		width * scale,
 		height * scale
@@ -30,6 +31,7 @@ export async function getSvgAsImage(
 	clampedHeight = Math.floor(clampedHeight)
 	const effectiveScale = clampedWidth / width
 
+	const svgString = await getSvgAsString(svg)
 	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
@@ -84,18 +86,42 @@ export async function getSvgAsImage(
 
 	if (!blob) return null
 
-	if (type === 'png') {
-		const view = new DataView(await blob.arrayBuffer())
-		return PngHelpers.setPhysChunk(view, effectiveScale, {
-			type: 'image/' + type,
-		})
-	} else {
-		return blob
-	}
+	const view = new DataView(await blob.arrayBuffer())
+	return PngHelpers.setPhysChunk(view, effectiveScale, {
+		type: 'image/' + type,
+	})
 }
 
-async function getSvgString(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {
-	const svg = await editor.getSvgString(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
+/** @public */
+export async function getSvgAsString(svg: SVGElement) {
+	const clone = svg.cloneNode(true) as SVGGraphicsElement
+
+	svg.setAttribute('width', +svg.getAttribute('width')! + '')
+	svg.setAttribute('height', +svg.getAttribute('height')! + '')
+
+	const imgs = Array.from(clone.querySelectorAll('image')) as SVGImageElement[]
+
+	for (const img of imgs) {
+		const src = img.getAttribute('xlink:href')
+		if (src) {
+			if (!src.startsWith('data:')) {
+				const blob = await (await fetch(src)).blob()
+				const base64 = await FileHelpers.blobToDataUrl(blob)
+				img.setAttribute('xlink:href', base64)
+			}
+		}
+	}
+
+	const out = new XMLSerializer()
+		.serializeToString(clone)
+		.replaceAll('&#10;      ', '')
+		.replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
+
+	return out
+}
+
+async function getSvg(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {
+	const svg = await editor.getSvg(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
 		scale: 1,
 		background: editor.getInstanceState().exportBackground,
 		...opts,
@@ -114,7 +140,7 @@ export async function exportToString(
 ) {
 	switch (format) {
 		case 'svg': {
-			return (await getSvgString(editor, ids, opts))?.svg
+			return getSvgAsString(await getSvg(editor, ids, opts))
 		}
 		case 'json': {
 			const data = editor.getContentFromCurrentPage(ids)
@@ -154,15 +180,15 @@ export async function exportToBlob({
 		case 'jpeg':
 		case 'png':
 		case 'webp': {
-			const svgResult = await getSvgString(editor, ids, opts)
-			if (!svgResult) throw new Error('Could not construct image.')
-			const image = await getSvgAsImage(svgResult.svg, editor.environment.isSafari, {
-				type: format,
-				quality: 1,
-				scale: 2,
-				width: svgResult.width,
-				height: svgResult.height,
-			})
+			const image = await getSvgAsImage(
+				await getSvg(editor, ids, opts),
+				editor.environment.isSafari,
+				{
+					type: format,
+					quality: 1,
+					scale: 2,
+				}
+			)
 			if (!image) {
 				throw new Error('Could not construct image.')
 			}

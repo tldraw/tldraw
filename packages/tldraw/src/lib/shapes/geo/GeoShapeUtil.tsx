@@ -1,6 +1,6 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	DefaultFontFamilies,
 	Editor,
 	Ellipse2d,
 	Geometry2d,
@@ -15,11 +15,13 @@ import {
 	SVGContainer,
 	Stadium2d,
 	SvgExportContext,
+	TLDefaultDashStyle,
 	TLGeoShape,
 	TLOnEditEndHandler,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
+	VecLike,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -28,13 +30,10 @@ import {
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useDefaultColorTheme } from '../shared/ShapeFill'
-import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
-	LABEL_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
@@ -43,13 +42,26 @@ import {
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
+import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../shared/polygon-helpers'
 import { cloudOutline, cloudSvgPath } from './cloudOutline'
-import { getEllipseIndicatorPath } from './components/DrawStyleEllipse'
-import { GeoShapeBody } from './components/GeoShapeBody'
-import { getOvalIndicatorPath } from './components/SolidStyleOval'
-import { getLines } from './getLines'
+import { DashStyleCloud, DashStyleCloudSvg } from './components/DashStyleCloud'
+import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
+import { DashStyleOval, DashStyleOvalSvg } from './components/DashStyleOval'
+import { DashStylePolygon, DashStylePolygonSvg } from './components/DashStylePolygon'
+import { DrawStyleCloud, DrawStyleCloudSvg } from './components/DrawStyleCloud'
+import { DrawStyleEllipseSvg, getEllipseIndicatorPath } from './components/DrawStyleEllipse'
+import { DrawStylePolygon, DrawStylePolygonSvg } from './components/DrawStylePolygon'
+import { SolidStyleCloud, SolidStyleCloudSvg } from './components/SolidStyleCloud'
+import { SolidStyleEllipse, SolidStyleEllipseSvg } from './components/SolidStyleEllipse'
+import {
+	SolidStyleOval,
+	SolidStyleOvalSvg,
+	getOvalIndicatorPath,
+} from './components/SolidStyleOval'
+import { SolidStylePolygon, SolidStylePolygonSvg } from './components/SolidStylePolygon'
 
+const LABEL_PADDING = 16
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
@@ -295,13 +307,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		const labelSize = getLabelSize(this.editor, shape)
-		const minWidth = Math.min(100, w / 2)
-		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(minWidth, Math.max(1, w - 8))))
-		const minHeight = Math.min(
-			LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
-			h / 2
-		)
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(minHeight, Math.max(1, w - 8)))) // not sure if bug
+		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
+		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8)))) // not sure if bug
 
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
@@ -389,44 +396,173 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
-		const { fill, font, align, verticalAlign, size, text } = props
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const theme = useDefaultColorTheme()
-		const isEditingAnything = this.editor.getEditingShapeId() !== null
-		const showHtmlContainer = isEditingAnything || shape.props.text
+
+		const strokeWidth = STROKE_SIZES[props.size]
+
+		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
+			props
+
+		const getShape = () => {
+			const h = props.h + growY
+
+			switch (props.geo) {
+				case 'cloud': {
+					if (dash === 'solid') {
+						return (
+							<SolidStyleCloud
+								color={color}
+								fill={fill}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								id={id}
+								size={size}
+							/>
+						)
+					} else if (dash === 'dashed' || dash === 'dotted') {
+						return (
+							<DashStyleCloud
+								color={color}
+								fill={fill}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								id={id}
+								size={size}
+								dash={dash}
+							/>
+						)
+					} else if (dash === 'draw') {
+						return (
+							<DrawStyleCloud
+								color={color}
+								fill={fill}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								id={id}
+								size={size}
+							/>
+						)
+					}
+
+					break
+				}
+				case 'ellipse': {
+					if (dash === 'solid') {
+						return (
+							<SolidStyleEllipse strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
+						)
+					} else if (dash === 'dashed' || dash === 'dotted') {
+						return (
+							<DashStyleEllipse
+								id={id}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								dash={dash}
+								color={color}
+								fill={fill}
+							/>
+						)
+					} else if (dash === 'draw') {
+						return (
+							<SolidStyleEllipse strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
+						)
+					}
+					break
+				}
+				case 'oval': {
+					if (dash === 'solid') {
+						return (
+							<SolidStyleOval strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
+						)
+					} else if (dash === 'dashed' || dash === 'dotted') {
+						return (
+							<DashStyleOval
+								id={id}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								dash={dash}
+								color={color}
+								fill={fill}
+							/>
+						)
+					} else if (dash === 'draw') {
+						return (
+							<SolidStyleOval strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
+						)
+					}
+					break
+				}
+				default: {
+					const geometry = this.editor.getShapeGeometry(shape)
+					const outline =
+						geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
+					const lines = getLines(shape.props, strokeWidth)
+
+					if (dash === 'solid') {
+						return (
+							<SolidStylePolygon
+								fill={fill}
+								color={color}
+								strokeWidth={strokeWidth}
+								outline={outline}
+								lines={lines}
+							/>
+						)
+					} else if (dash === 'dashed' || dash === 'dotted') {
+						return (
+							<DashStylePolygon
+								dash={dash}
+								fill={fill}
+								color={color}
+								strokeWidth={strokeWidth}
+								outline={outline}
+								lines={lines}
+							/>
+						)
+					} else if (dash === 'draw') {
+						return (
+							<DrawStylePolygon
+								id={id}
+								fill={fill}
+								color={color}
+								strokeWidth={strokeWidth}
+								outline={outline}
+								lines={lines}
+							/>
+						)
+					}
+				}
+			}
+		}
 
 		return (
 			<>
-				<SVGContainer id={id}>
-					<GeoShapeBody shape={shape} />
-				</SVGContainer>
-				{showHtmlContainer && (
-					<HTMLContainer
-						style={{
-							overflow: 'hidden',
-							width: shape.props.w,
-							height: shape.props.h + props.growY,
-						}}
-					>
-						<TextLabel
-							id={id}
-							type={type}
-							font={font}
-							fontSize={LABEL_FONT_SIZES[size]}
-							lineHeight={TEXT_PROPS.lineHeight}
-							fill={fill}
-							align={align}
-							verticalAlign={verticalAlign}
-							text={text}
-							isSelected={isSelected}
-							labelColor={theme[props.labelColor].solid}
-							wrap
-						/>
-					</HTMLContainer>
-				)}
-				{shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-				)}
+				<SVGContainer id={id}>{getShape()}</SVGContainer>
+				<HTMLContainer
+					id={shape.id}
+					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h + props.growY }}
+				>
+					<TextLabel
+						id={id}
+						type={type}
+						font={font}
+						fill={fill}
+						size={size}
+						align={align}
+						verticalAlign={verticalAlign}
+						text={text}
+						labelColor={labelColor}
+						wrap
+						bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
+					/>
+					{shape.props.url && (
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+					)}
+				</HTMLContainer>
 			</>
 		)
 	}
@@ -480,34 +616,222 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
-		const { props } = shape
-		ctx.addExportDef(getFillDefForExport(shape.props.fill))
+		const { id, props } = shape
+		const strokeWidth = STROKE_SIZES[props.size]
+		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
+		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
-		let textEl
-		if (props.text) {
-			ctx.addExportDef(getFontDefForExport(shape.props.font))
-			const theme = getDefaultColorTheme(ctx)
+		let svgElm: SVGElement
 
-			const bounds = this.editor.getShapeGeometry(shape).bounds
-			textEl = (
-				<SvgTextLabel
-					fontSize={LABEL_FONT_SIZES[props.size]}
-					font={props.font}
-					align={props.align}
-					verticalAlign={props.verticalAlign}
-					text={props.text}
-					labelColor={theme[props.labelColor].solid}
-					bounds={bounds}
-				/>
-			)
+		switch (props.geo) {
+			case 'ellipse': {
+				switch (props.dash) {
+					case 'draw':
+						svgElm = DrawStyleEllipseSvg({
+							id,
+							w: props.w,
+							h: props.h,
+							color: props.color,
+							fill: props.fill,
+							strokeWidth,
+							theme,
+						})
+						break
+
+					case 'solid':
+						svgElm = SolidStyleEllipseSvg({
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							color: props.color,
+							fill: props.fill,
+							theme,
+						})
+						break
+
+					default:
+						svgElm = DashStyleEllipseSvg({
+							id,
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							dash: props.dash,
+							color: props.color,
+							fill: props.fill,
+							theme,
+						})
+						break
+				}
+				break
+			}
+
+			case 'oval': {
+				switch (props.dash) {
+					case 'draw':
+						svgElm = DashStyleOvalSvg({
+							id,
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							dash: props.dash,
+							color: props.color,
+							fill: props.fill,
+							theme,
+						})
+						break
+
+					case 'solid':
+						svgElm = SolidStyleOvalSvg({
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							color: props.color,
+							fill: props.fill,
+							theme,
+						})
+						break
+
+					default:
+						svgElm = DashStyleOvalSvg({
+							id,
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							dash: props.dash,
+							color: props.color,
+							fill: props.fill,
+							theme,
+						})
+				}
+				break
+			}
+
+			case 'cloud': {
+				switch (props.dash) {
+					case 'draw':
+						svgElm = DrawStyleCloudSvg({
+							id,
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							color: props.color,
+							fill: props.fill,
+							size: props.size,
+							theme,
+						})
+						break
+
+					case 'solid':
+						svgElm = SolidStyleCloudSvg({
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							color: props.color,
+							fill: props.fill,
+							size: props.size,
+							id,
+							theme,
+						})
+						break
+
+					default:
+						svgElm = DashStyleCloudSvg({
+							id,
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							dash: props.dash,
+							color: props.color,
+							fill: props.fill,
+							theme,
+							size: props.size,
+						})
+				}
+				break
+			}
+			default: {
+				const geometry = this.editor.getShapeGeometry(shape)
+				const outline =
+					geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
+				const lines = getLines(shape.props, strokeWidth)
+
+				switch (props.dash) {
+					case 'draw':
+						svgElm = DrawStylePolygonSvg({
+							id,
+							fill: props.fill,
+							color: props.color,
+							strokeWidth,
+							outline,
+							lines,
+							theme,
+						})
+						break
+
+					case 'solid':
+						svgElm = SolidStylePolygonSvg({
+							fill: props.fill,
+							color: props.color,
+							strokeWidth,
+							outline,
+							lines,
+							theme,
+						})
+						break
+
+					default:
+						svgElm = DashStylePolygonSvg({
+							dash: props.dash,
+							fill: props.fill,
+							color: props.color,
+							strokeWidth,
+							outline,
+							lines,
+							theme,
+						})
+						break
+				}
+				break
+			}
 		}
 
-		return (
-			<>
-				<GeoShapeBody shape={shape} />
-				{textEl}
-			</>
-		)
+		if (props.text) {
+			const bounds = this.editor.getShapeGeometry(shape).bounds
+
+			ctx.addExportDef(getFontDefForExport(shape.props.font))
+
+			const rootTextElm = getTextLabelSvgElement({
+				editor: this.editor,
+				shape,
+				font: DefaultFontFamilies[shape.props.font],
+				bounds,
+			})
+
+			const textElm = rootTextElm.cloneNode(true) as SVGTextElement
+			textElm.setAttribute('fill', theme[shape.props.labelColor].solid)
+			textElm.setAttribute('stroke', 'none')
+
+			const textBgEl = rootTextElm.cloneNode(true) as SVGTextElement
+			textBgEl.setAttribute('stroke-width', '2')
+			textBgEl.setAttribute('fill', theme.background)
+			textBgEl.setAttribute('stroke', theme.background)
+
+			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+			groupEl.append(textBgEl)
+			groupEl.append(textElm)
+
+			if (svgElm.nodeName === 'g') {
+				svgElm.appendChild(groupEl)
+				return svgElm
+			} else {
+				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+				g.appendChild(svgElm)
+				g.appendChild(groupEl)
+				return g
+			}
+		}
+
+		return svgElm
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
@@ -770,7 +1094,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		minWidth: minSize.w,
+		minWidth: minSize.w + 'px',
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0
 			0,
@@ -785,4 +1109,81 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		w: size.w + LABEL_PADDING * 2,
 		h: size.h + LABEL_PADDING * 2,
 	}
+}
+
+function getLines(props: TLGeoShape['props'], sw: number) {
+	switch (props.geo) {
+		case 'x-box': {
+			return getXBoxLines(props.w, props.h, sw, props.dash)
+		}
+		case 'check-box': {
+			return getCheckBoxLines(props.w, props.h)
+		}
+		default: {
+			return undefined
+		}
+	}
+}
+
+function getXBoxLines(w: number, h: number, sw: number, dash: TLDefaultDashStyle) {
+	const inset = dash === 'draw' ? 0.62 : 0
+
+	if (dash === 'dashed') {
+		return [
+			[new Vec(0, 0), new Vec(w / 2, h / 2)],
+			[new Vec(w, h), new Vec(w / 2, h / 2)],
+			[new Vec(0, h), new Vec(w / 2, h / 2)],
+			[new Vec(w, 0), new Vec(w / 2, h / 2)],
+		]
+	}
+
+	const clampX = (x: number) => Math.max(0, Math.min(w, x))
+	const clampY = (y: number) => Math.max(0, Math.min(h, y))
+
+	return [
+		[
+			new Vec(clampX(sw * inset), clampY(sw * inset)),
+			new Vec(clampX(w - sw * inset), clampY(h - sw * inset)),
+		],
+		[
+			new Vec(clampX(sw * inset), clampY(h - sw * inset)),
+			new Vec(clampX(w - sw * inset), clampY(sw * inset)),
+		],
+	]
+}
+
+function getCheckBoxLines(w: number, h: number) {
+	const size = Math.min(w, h) * 0.82
+	const ox = (w - size) / 2
+	const oy = (h - size) / 2
+
+	const clampX = (x: number) => Math.max(0, Math.min(w, x))
+	const clampY = (y: number) => Math.max(0, Math.min(h, y))
+
+	return [
+		[
+			new Vec(clampX(ox + size * 0.25), clampY(oy + size * 0.52)),
+			new Vec(clampX(ox + size * 0.45), clampY(oy + size * 0.82)),
+		],
+		[
+			new Vec(clampX(ox + size * 0.45), clampY(oy + size * 0.82)),
+			new Vec(clampX(ox + size * 0.82), clampY(oy + size * 0.22)),
+		],
+	]
+}
+
+/**
+ * Get the centroid of a regular polygon.
+ * @param points - The points that make up the polygon.
+ * @internal
+ */
+export function getCentroidOfRegularPolygon(points: VecLike[]) {
+	const len = points.length
+	let x = 0
+	let y = 0
+	for (let i = 0; i < len; i++) {
+		x += points[i].x
+		y += points[i].y
+	}
+	return new Vec(x / len, y / len)
 }

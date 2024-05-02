@@ -1,12 +1,7 @@
 import { captureException } from '@sentry/react'
-import {
-	READ_ONLY_LEGACY_PREFIX,
-	READ_ONLY_PREFIX,
-	ROOM_PREFIX,
-	SNAPSHOT_PREFIX,
-} from '@tldraw/dotcom-shared'
+import { nanoid } from 'nanoid'
 import { useEffect } from 'react'
-import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
+import { createRoutesFromElements, Outlet, redirect, Route, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 
@@ -35,20 +30,28 @@ export const router = createRoutesFromElements(
 	>
 		<Route errorElement={<DefaultErrorFallback />}>
 			<Route path="/" lazy={() => import('./pages/root')} />
-			<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
-			<Route path="/new" lazy={() => import('./pages/new')} />
-			<Route path={`/${ROOM_PREFIX}/:roomId`} lazy={() => import('./pages/public-multiplayer')} />
-			<Route path={`/${ROOM_PREFIX}/:boardId/history`} lazy={() => import('./pages/history')} />
 			<Route
-				path={`/${ROOM_PREFIX}/:boardId/history/:timestamp`}
+				path="/r"
+				loader={() => {
+					const id = 'v2' + nanoid()
+					return redirect(`/r/${id}`)
+				}}
+			/>
+			<Route
+				path="/new"
+				loader={() => {
+					const id = 'v2' + nanoid()
+					return redirect(`/r/${id}`)
+				}}
+			/>
+			<Route path="/r/:roomId" lazy={() => import('./pages/public-multiplayer')} />
+			<Route path="/r/:boardId/history" lazy={() => import('./pages/history')} />
+			<Route
+				path="/r/:boardId/history/:timestamp"
 				lazy={() => import('./pages/history-snapshot')}
 			/>
-			<Route path={`/${SNAPSHOT_PREFIX}/:roomId`} lazy={() => import('./pages/public-snapshot')} />
-			<Route
-				path={`/${READ_ONLY_LEGACY_PREFIX}/:roomId`}
-				lazy={() => import('./pages/public-readonly-legacy')}
-			/>
-			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
+			<Route path="/s/:roomId" lazy={() => import('./pages/public-snapshot')} />
+			<Route path="/v/:roomId" lazy={() => import('./pages/public-readonly')} />
 		</Route>
 		<Route path="*" lazy={() => import('./pages/not-found')} />
 	</Route>

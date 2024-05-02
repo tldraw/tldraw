@@ -34,10 +34,10 @@ export const DOUBLE_CLICK_DURATION = 450
 export const MULTI_CLICK_DURATION = 200
 
 /** @internal */
-export const COARSE_DRAG_DISTANCE = 36 // 6 squared
+export const COARSE_DRAG_DISTANCE = 6
 
 /** @internal */
-export const DRAG_DISTANCE = 16 // 4 squared
+export const DRAG_DISTANCE = 4
 
 /** @internal */
 export const SVG_PADDING = 32
@@ -87,6 +87,9 @@ export const INTERNAL_POINTER_IDS = {
 /** @internal */
 export const CAMERA_MOVING_TIMEOUT = 64
 
+/** @internal */
+export const CAMERA_MAX_RENDERING_INTERVAL = 620
+
 /** @public */
 export const HIT_TEST_MARGIN = 8
 
@@ -104,12 +107,3 @@ export const COARSE_HANDLE_RADIUS = 20
 
 /** @internal */
 export const HANDLE_RADIUS = 12
-
-/** @public */
-export const SIDES = ['top', 'right', 'bottom', 'left'] as const
-
-/** @internal */
-export const LONG_PRESS_DURATION = 500
-
-/** @internal */
-export const TEXT_SHADOW_LOD = 0.35

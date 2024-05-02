@@ -24,15 +24,15 @@ export const pointerCaptureTrackingObject = createDebugValue(
 )
 
 /** @internal */
-export const debugFlags = {
+export const debugFlags: Record<string, DebugFlag<boolean>> = {
 	// --- DEBUG VALUES ---
-	logPreventDefaults: createDebugValue('logPreventDefaults', {
+	preventDefaultLogging: createDebugValue('preventDefaultLogging', {
 		defaults: { all: false },
 	}),
-	logPointerCaptures: createDebugValue('logPointerCaptures', {
+	pointerCaptureTracking: createDebugValue('pointerCaptureTracking', {
 		defaults: { all: false },
 	}),
-	logElementRemoves: createDebugValue('logElementRemoves', {
+	elementRemovalLogging: createDebugValue('elementRemovalLogging', {
 		defaults: { all: false },
 	}),
 	debugSvg: createDebugValue('debugSvg', {
@@ -44,7 +44,7 @@ export const debugFlags = {
 	throwToBlob: createDebugValue('throwToBlob', {
 		defaults: { all: false },
 	}),
-	reconnectOnPing: createDebugValue('reconnectOnPing', {
+	resetConnectionEveryPing: createDebugValue('resetConnectionEveryPing', {
 		defaults: { all: false },
 	}),
 	debugCursors: createDebugValue('debugCursors', {
@@ -53,8 +53,7 @@ export const debugFlags = {
 	forceSrgb: createDebugValue('forceSrgbColors', { defaults: { all: false } }),
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
-	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
-} as const
+}
 
 declare global {
 	interface Window {
@@ -78,7 +77,7 @@ declare global {
 if (typeof Element !== 'undefined') {
 	const nativeElementRemoveChild = Element.prototype.removeChild
 	react('element removal logging', () => {
-		if (debugFlags.logElementRemoves.get()) {
+		if (debugFlags.elementRemovalLogging.get()) {
 			Element.prototype.removeChild = function <T extends Node>(this: any, child: Node): T {
 				console.warn('[tldraw] removing child:', child)
 				return nativeElementRemoveChild.call(this, child) as T

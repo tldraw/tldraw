@@ -44,10 +44,9 @@ export function DefaultDebugMenuContent() {
 					onSelect={() => {
 						addToast({
 							id: uniqueId(),
-							title: 'Something good happened',
+							title: 'Something happened',
 							description: 'Hey, attend to this thing over here. It might be important!',
 							keepOpen: true,
-							severity: 'success',
 							// icon?: string
 							// title?: string
 							// description?: string
@@ -58,7 +57,6 @@ export function DefaultDebugMenuContent() {
 							title: 'Something happened',
 							description: 'Hey, attend to this thing over here. It might be important!',
 							keepOpen: true,
-							severity: 'info',
 							actions: [
 								{
 									label: 'Primary',
@@ -89,10 +87,10 @@ export function DefaultDebugMenuContent() {
 						})
 						addToast({
 							id: uniqueId(),
-							title: 'Something maybe bad happened',
+							title: 'Something happened',
 							description: 'Hey, attend to this thing over here. It might be important!',
 							keepOpen: true,
-							severity: 'warning',
+							icon: 'twitter',
 							actions: [
 								{
 									label: 'Primary',
@@ -116,12 +114,6 @@ export function DefaultDebugMenuContent() {
 									},
 								},
 							],
-						})
-						addToast({
-							id: uniqueId(),
-							title: 'Something bad happened',
-							severity: 'error',
-							keepOpen: true,
 						})
 					}}
 					label={untranslated('Show toast')}
@@ -153,12 +145,26 @@ export function DefaultDebugMenuContent() {
 					id="count-nodes"
 					label={'Count shapes / nodes'}
 					onSelect={() => {
+						function countDescendants({ children }: HTMLElement) {
+							let count = 0
+							if (!children.length) return 0
+							for (const el of [...(children as any)]) {
+								count++
+								count += countDescendants(el)
+							}
+							return count
+						}
 						const selectedShapes = editor.getSelectedShapes()
 						const shapes =
 							selectedShapes.length === 0 ? editor.getRenderingShapes() : selectedShapes
-						window.alert(
-							`Shapes ${shapes.length}, DOM nodes:${document.querySelector('.tl-shapes')!.querySelectorAll('*')?.length}`
+						const elms = shapes.map(
+							(shape) => (document.getElementById(shape.id) as HTMLElement)!.parentElement!
 						)
+						let descendants = elms.length
+						for (const elm of elms) {
+							descendants += countDescendants(elm)
+						}
+						window.alert(`Shapes ${shapes.length}, DOM nodes:${descendants}`)
 					}}
 				/>
 				{(() => {

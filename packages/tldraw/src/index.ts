@@ -9,6 +9,7 @@ export * from '@tldraw/editor'
 export { Tldraw, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
+export { TldrawHoveredShapeIndicator } from './lib/canvas/TldrawHoveredShapeIndicator'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackground'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
@@ -32,9 +33,6 @@ export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
-export { useDefaultColorTheme } from './lib/shapes/shared/ShapeFill'
-export { TextLabel } from './lib/shapes/shared/TextLabel'
-export { getPerfectDashProps } from './lib/shapes/shared/getPerfectDashProps'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -42,15 +40,12 @@ export { EraserTool } from './lib/tools/EraserTool/EraserTool'
 export { HandTool } from './lib/tools/HandTool/HandTool'
 export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
-export { getOccludedChildren, kickoutOccludedShapes } from './lib/tools/SelectTool/selectHelpers'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 // UI
-export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
-export { PORTRAIT_BREAKPOINT } from './lib/ui/constants'
 export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
@@ -79,7 +74,6 @@ export {
 } from './lib/ui/context/events'
 export {
 	useToasts,
-	type AlertSeverity,
 	type TLUiToast,
 	type TLUiToastAction,
 	type TLUiToastsContextType,
@@ -90,7 +84,6 @@ export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
-export { usePreloadAssets } from './lib/ui/hooks/usePreloadAssets'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
@@ -102,7 +95,6 @@ export {
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
 export { type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
-	useCurrentTranslation,
 	useTranslation,
 	type TLUiTranslationContextType,
 } from './lib/ui/hooks/useTranslation/useTranslation'
@@ -117,13 +109,10 @@ export {
 } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
-export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'
-export { exportAs, type TLExportType } from './lib/utils/export/exportAs'
+export { exportToBlob, getSvgAsImage, getSvgAsString } from './lib/utils/export/export'
+export { exportAs } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
-export {
-	defaultEditorAssetUrls,
-	setDefaultEditorAssetUrls,
-} from './lib/utils/static-assets/assetUrls'
+export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {
 	buildFromV1Document,
@@ -433,11 +422,3 @@ export {
 	TldrawUiMenuSubmenu,
 	type TLUiMenuSubmenuProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
-
-/* ----------------- Constants ---------------- */
-
-export {
-	FONT_FAMILIES,
-	LABEL_FONT_SIZES,
-	TEXT_PROPS,
-} from './lib/shapes/shared/default-shape-constants'

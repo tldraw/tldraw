@@ -21,7 +21,6 @@ test.describe('Canvas events', () => {
 			await page.mouse.move(200, 200) // to kill any double clicks
 			await page.mouse.move(100, 100)
 			await page.mouse.down()
-			await page.waitForTimeout(20)
 			expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
 				target: 'canvas',
 				type: 'pointer',
@@ -47,7 +46,6 @@ test.describe('Canvas events', () => {
 			await page.mouse.down()
 			await page.mouse.move(101, 101)
 			await page.mouse.up()
-			await page.waitForTimeout(20)
 			expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
 				target: 'canvas',
 				type: 'pointer',
@@ -120,7 +118,6 @@ test.describe('Shape events', () => {
 	test('pointer down', async () => {
 		await page.mouse.move(51, 51)
 		await page.mouse.down()
-		await page.waitForTimeout(20)
 		expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
 			target: 'canvas',
 			type: 'pointer',
@@ -131,7 +128,6 @@ test.describe('Shape events', () => {
 	test('pointer move', async () => {
 		await page.mouse.move(51, 51)
 		await page.mouse.move(52, 52)
-		await page.waitForTimeout(20)
 		expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
 			target: 'canvas',
 			type: 'pointer',
@@ -143,7 +139,6 @@ test.describe('Shape events', () => {
 		await page.mouse.move(51, 51)
 		await page.mouse.down()
 		await page.mouse.up()
-		await page.waitForTimeout(20)
 		expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
 			target: 'canvas',
 			type: 'pointer',

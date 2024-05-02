@@ -27,8 +27,7 @@ const TranslationsContext = React.createContext<TLUiTranslationContextType>(
 	{} as TLUiTranslationContextType
 )
 
-/** @public */
-export const useCurrentTranslation = () => React.useContext(TranslationsContext)
+const useCurrentTranslation = () => React.useContext(TranslationsContext)
 
 /**
  * Provides a translation context to the editor.
@@ -48,7 +47,6 @@ export const TranslationProvider = track(function TranslationProvider({
 			return {
 				locale: 'en',
 				label: 'English',
-				dir: 'ltr',
 				messages: { ...DEFAULT_TRANSLATION, ...overrides['en'] },
 			}
 		}
@@ -56,7 +54,6 @@ export const TranslationProvider = track(function TranslationProvider({
 		return {
 			locale: 'en',
 			label: 'English',
-			dir: 'ltr',
 			messages: DEFAULT_TRANSLATION,
 		}
 	})

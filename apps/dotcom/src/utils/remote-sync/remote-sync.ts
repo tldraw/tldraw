@@ -15,4 +15,5 @@ export type UseSyncClientConfig = {
 	roomId?: string
 	userPreferences?: Signal<TLUserPreferences>
 	snapshotForNewRoomRef?: { current: null | TLStoreSnapshot }
+	getAccessToken?: () => Promise<string | undefined | null> | string | undefined | null
 }

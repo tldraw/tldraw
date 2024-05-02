@@ -30,7 +30,6 @@ const config = {
 					},
 				},
 				'apps/docs': {
-					runsAfter: { 'build-api': { in: 'all-packages' } },
 					cache: {
 						inputs: [
 							'app/**/*',

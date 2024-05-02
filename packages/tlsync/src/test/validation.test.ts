@@ -1,5 +1,12 @@
 import { computed } from '@tldraw/state'
-import { RecordId, Store, StoreSchema, UnknownRecord, createRecordType } from '@tldraw/store'
+import {
+	RecordId,
+	Store,
+	StoreSchema,
+	UnknownRecord,
+	createRecordType,
+	defineMigrations,
+} from '@tldraw/store'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { RecordOpType } from '../lib/diff'
 import { TestServer } from './TestServer'
@@ -42,11 +49,18 @@ const presenceType = createRecordType<Presence>('presence', {
 	validator: { validate: (record) => record as Presence },
 })
 
-const schema = StoreSchema.create<Book | Presence>({ book: Book, presence: presenceType })
-const schemaWithoutValidator = StoreSchema.create<Book | Presence>({
-	book: BookWithoutValidator,
-	presence: presenceType,
-})
+const schema = StoreSchema.create<Book | Presence>(
+	{ book: Book, presence: presenceType },
+	{
+		snapshotMigrations: defineMigrations({}),
+	}
+)
+const schemaWithoutValidator = StoreSchema.create<Book | Presence>(
+	{ book: BookWithoutValidator, presence: presenceType },
+	{
+		snapshotMigrations: defineMigrations({}),
+	}
+)
 
 const disposables: Array<() => void> = []
 afterEach(() => {

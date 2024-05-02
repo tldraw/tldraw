@@ -11,11 +11,20 @@ export type AssetUrls = {
 		draw: string
 	}
 	icons: {
+		'align-bottom-center': string
+		'align-bottom-left': string
+		'align-bottom-right': string
 		'align-bottom': string
+		'align-center-center': string
 		'align-center-horizontal': string
+		'align-center-left': string
+		'align-center-right': string
 		'align-center-vertical': string
 		'align-left': string
 		'align-right': string
+		'align-top-center': string
+		'align-top-left': string
+		'align-top-right': string
 		'align-top': string
 		'arrow-left': string
 		'arrowhead-arrow': string
@@ -26,12 +35,14 @@ export type AssetUrls = {
 		'arrowhead-square': string
 		'arrowhead-triangle-inverted': string
 		'arrowhead-triangle': string
+		'aspect-ratio': string
+		avatar: string
 		blob: string
 		'bring-forward': string
 		'bring-to-front': string
-		broken: string
-		'check-circle': string
 		check: string
+		'checkbox-checked': string
+		'checkbox-empty': string
 		'chevron-down': string
 		'chevron-left': string
 		'chevron-right': string
@@ -40,14 +51,16 @@ export type AssetUrls = {
 		'chevrons-sw': string
 		'clipboard-copied': string
 		'clipboard-copy': string
+		code: string
+		collab: string
 		color: string
+		comment: string
 		'cross-2': string
-		'cross-circle': string
+		cross: string
 		'dash-dashed': string
 		'dash-dotted': string
 		'dash-draw': string
 		'dash-solid': string
-		disconnected: string
 		discord: string
 		'distribute-horizontal': string
 		'distribute-vertical': string
@@ -58,6 +71,7 @@ export type AssetUrls = {
 		duplicate: string
 		edit: string
 		'external-link': string
+		file: string
 		'fill-none': string
 		'fill-pattern': string
 		'fill-semi': string
@@ -89,17 +103,18 @@ export type AssetUrls = {
 		'geo-x-box': string
 		github: string
 		group: string
-		'horizontal-align-end': string
-		'horizontal-align-middle': string
-		'horizontal-align-start': string
+		hidden: string
+		image: string
 		'info-circle': string
 		leading: string
 		link: string
+		'lock-small': string
 		lock: string
 		menu: string
 		minus: string
 		mixed: string
 		pack: string
+		page: string
 		plus: string
 		'question-mark-circle': string
 		'question-mark': string
@@ -107,23 +122,33 @@ export type AssetUrls = {
 		'reset-zoom': string
 		'rotate-ccw': string
 		'rotate-cw': string
+		ruler: string
+		search: string
 		'send-backward': string
 		'send-to-back': string
+		'settings-horizontal': string
+		'settings-vertical-1': string
+		'settings-vertical': string
 		'share-1': string
+		'share-2': string
 		'size-extra-large': string
 		'size-large': string
 		'size-medium': string
 		'size-small': string
+		'spline-cubic': string
+		'spline-line': string
 		'stack-horizontal': string
 		'stack-vertical': string
+		'status-offline': string
+		'status-online': string
 		'stretch-horizontal': string
 		'stretch-vertical': string
 		'text-align-center': string
+		'text-align-justify': string
 		'text-align-left': string
 		'text-align-right': string
-		'toggle-off': string
-		'toggle-on': string
 		'tool-arrow': string
+		'tool-embed': string
 		'tool-eraser': string
 		'tool-frame': string
 		'tool-hand': string
@@ -134,16 +159,19 @@ export type AssetUrls = {
 		'tool-note': string
 		'tool-pencil': string
 		'tool-pointer': string
-		'tool-screenshot': string
 		'tool-text': string
 		trash: string
+		'triangle-down': string
+		'triangle-up': string
 		twitter: string
 		undo: string
 		ungroup: string
+		'unlock-small': string
 		unlock: string
+		'vertical-align-center': string
 		'vertical-align-end': string
-		'vertical-align-middle': string
 		'vertical-align-start': string
+		visible: string
 		'warning-triangle': string
 		'zoom-in': string
 		'zoom-out': string
@@ -164,7 +192,6 @@ export type AssetUrls = {
 		'hi-in': string
 		hr: string
 		hu: string
-		id: string
 		it: string
 		ja: string
 		'ko-kr': string
@@ -192,7 +219,6 @@ export type AssetUrls = {
 	embedIcons: {
 		codepen: string
 		codesandbox: string
-		desmos: string
 		excalidraw: string
 		felt: string
 		figma: string

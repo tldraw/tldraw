@@ -1,10 +1,4 @@
-import {
-	BaseRecord,
-	createMigrationIds,
-	createRecordMigrationSequence,
-	createRecordType,
-	RecordId,
-} from '@tldraw/store'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { BoxModel, boxModelValidator } from '../misc/geometry-types'
@@ -27,6 +21,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	currentPageId: TLPageId
 	opacityForNextShape: TLOpacityType
 	stylesForNextShape: Record<string, unknown>
+	// ephemeral
 	followingUserId: string | null
 	highlightedUserIds: string[]
 	brush: BoxModel | null
@@ -73,7 +68,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 /** @public */
 export type TLInstanceId = RecordId<TLInstance>
 
-/** @public */
+/** @internal */
 export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 
 export function createInstanceRecordType(stylesById: Map<string, StyleProp<unknown>>) {
@@ -126,40 +121,9 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 	)
 
 	return createRecordType<TLInstance>('instance', {
+		migrations: instanceMigrations,
 		validator: instanceTypeValidator,
 		scope: 'session',
-		ephemeralKeys: {
-			currentPageId: false,
-			meta: false,
-
-			followingUserId: true,
-			opacityForNextShape: true,
-			stylesForNextShape: true,
-			brush: true,
-			cursor: true,
-			scribbles: true,
-			isFocusMode: true,
-			isDebugMode: true,
-			isToolLocked: true,
-			exportBackground: true,
-			screenBounds: true,
-			insets: true,
-			zoomBrush: true,
-			isPenMode: true,
-			isGridMode: true,
-			chatMessage: true,
-			isChatting: true,
-			highlightedUserIds: true,
-			canMoveCamera: true,
-			isFocused: true,
-			devicePixelRatio: true,
-			isCoarsePointer: true,
-			isHoveringCanvas: true,
-			openMenus: true,
-			isChangingStyle: true,
-			isReadonly: true,
-			duplicateProps: true,
-		},
 	}).withDefaultProperties(
 		(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
 			followingUserId: null,
@@ -197,8 +161,8 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 	)
 }
 
-/** @public */
-export const instanceVersions = createMigrationIds('com.tldraw.instance', {
+/** @internal */
+export const instanceVersions = {
 	AddTransparentExportBgs: 1,
 	RemoveDialog: 2,
 	AddToolLockMode: 3,
@@ -223,36 +187,37 @@ export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 	AddScribbles: 22,
 	AddInset: 23,
 	AddDuplicateProps: 24,
-} as const)
-
-// TODO: rewrite these to use mutation
+} as const
 
 /** @public */
-export const instanceMigrations = createRecordMigrationSequence({
-	sequenceId: 'com.tldraw.instance',
-	recordType: 'instance',
-	sequence: [
-		{
-			id: instanceVersions.AddTransparentExportBgs,
-			up: (instance) => {
+export const instanceMigrations = defineMigrations({
+	currentVersion: instanceVersions.AddDuplicateProps,
+	migrators: {
+		[instanceVersions.AddTransparentExportBgs]: {
+			up: (instance: TLInstance) => {
 				return { ...instance, exportBackground: true }
 			},
-		},
-		{
-			id: instanceVersions.RemoveDialog,
-			up: ({ dialog: _, ...instance }: any) => {
+			down: ({ exportBackground: _, ...instance }: TLInstance) => {
 				return instance
 			},
 		},
-
-		{
-			id: instanceVersions.AddToolLockMode,
-			up: (instance) => {
-				return { ...instance, isToolLocked: false }
+		[instanceVersions.RemoveDialog]: {
+			up: ({ dialog: _, ...instance }: any) => {
+				return instance
+			},
+			down: (instance: TLInstance) => {
+				return { ...instance, dialog: null }
 			},
 		},
-		{
-			id: instanceVersions.RemoveExtraPropsForNextShape,
+		[instanceVersions.AddToolLockMode]: {
+			up: (instance: TLInstance) => {
+				return { ...instance, isToolLocked: false }
+			},
+			down: ({ isToolLocked: _, ...instance }: TLInstance) => {
+				return instance
+			},
+		},
+		[instanceVersions.RemoveExtraPropsForNextShape]: {
 			up: ({ propsForNextShape, ...instance }: any) => {
 				return {
 					...instance,
@@ -277,9 +242,12 @@ export const instanceMigrations = createRecordMigrationSequence({
 					),
 				}
 			},
+			down: (instance: TLInstance) => {
+				// we can't restore these, so do nothing :/
+				return instance
+			},
 		},
-		{
-			id: instanceVersions.AddLabelColor,
+		[instanceVersions.AddLabelColor]: {
 			up: ({ propsForNextShape, ...instance }: any) => {
 				return {
 					...instance,
@@ -289,15 +257,25 @@ export const instanceMigrations = createRecordMigrationSequence({
 					},
 				}
 			},
-		},
-		{
-			id: instanceVersions.AddFollowingUserId,
-			up: (instance) => {
-				return { ...instance, followingUserId: null }
+			down: (instance) => {
+				const { labelColor: _, ...rest } = instance.propsForNextShape
+				return {
+					...instance,
+					propsForNextShape: {
+						...rest,
+					},
+				}
 			},
 		},
-		{
-			id: instanceVersions.RemoveAlignJustify,
+		[instanceVersions.AddFollowingUserId]: {
+			up: (instance: TLInstance) => {
+				return { ...instance, followingUserId: null }
+			},
+			down: ({ followingUserId: _, ...instance }: TLInstance) => {
+				return instance
+			},
+		},
+		[instanceVersions.RemoveAlignJustify]: {
 			up: (instance: any) => {
 				let newAlign = instance.propsForNextShape.align
 				if (newAlign === 'justify') {
@@ -312,16 +290,20 @@ export const instanceMigrations = createRecordMigrationSequence({
 					},
 				}
 			},
-		},
-		{
-			id: instanceVersions.AddZoom,
-			up: (instance) => {
-				return { ...instance, zoomBrush: null }
+			down: (instance: TLInstance) => {
+				return { ...instance }
 			},
 		},
-		{
-			id: instanceVersions.AddVerticalAlign,
-			up: (instance: any) => {
+		[instanceVersions.AddZoom]: {
+			up: (instance: TLInstance) => {
+				return { ...instance, zoomBrush: null }
+			},
+			down: ({ zoomBrush: _, ...instance }: TLInstance) => {
+				return instance
+			},
+		},
+		[instanceVersions.AddVerticalAlign]: {
+			up: (instance) => {
 				return {
 					...instance,
 					propsForNextShape: {
@@ -330,73 +312,141 @@ export const instanceMigrations = createRecordMigrationSequence({
 					},
 				}
 			},
+			down: (instance) => {
+				const { verticalAlign: _, ...propsForNextShape } = instance.propsForNextShape
+				return {
+					...instance,
+					propsForNextShape,
+				}
+			},
 		},
-		{
-			id: instanceVersions.AddScribbleDelay,
-			up: (instance: any) => {
+		[instanceVersions.AddScribbleDelay]: {
+			up: (instance) => {
 				if (instance.scribble !== null) {
 					return { ...instance, scribble: { ...instance.scribble, delay: 0 } }
 				}
 				return { ...instance }
 			},
+			down: (instance) => {
+				if (instance.scribble !== null) {
+					const { delay: _delay, ...rest } = instance.scribble
+					return { ...instance, scribble: rest }
+				}
+				return { ...instance }
+			},
 		},
-		{
-			id: instanceVersions.RemoveUserId,
+		[instanceVersions.RemoveUserId]: {
 			up: ({ userId: _, ...instance }: any) => {
 				return instance
 			},
-		},
-		{
-			id: instanceVersions.AddIsPenModeAndIsGridMode,
-			up: (instance) => {
-				return { ...instance, isPenMode: false, isGridMode: false }
+			down: (instance: TLInstance) => {
+				return { ...instance, userId: 'user:none' }
 			},
 		},
-		{
-			id: instanceVersions.HoistOpacity,
+		[instanceVersions.AddIsPenModeAndIsGridMode]: {
+			up: (instance: TLInstance) => {
+				return { ...instance, isPenMode: false, isGridMode: false }
+			},
+			down: ({ isPenMode: _, isGridMode: __, ...instance }: TLInstance) => {
+				return instance
+			},
+		},
+		[instanceVersions.HoistOpacity]: {
 			up: ({ propsForNextShape: { opacity, ...propsForNextShape }, ...instance }: any) => {
 				return { ...instance, opacityForNextShape: Number(opacity ?? '1'), propsForNextShape }
 			},
+			down: ({ opacityForNextShape: opacity, ...instance }: any) => {
+				return {
+					...instance,
+					propsForNextShape: {
+						...instance.propsForNextShape,
+						opacity:
+							opacity < 0.175
+								? '0.1'
+								: opacity < 0.375
+									? '0.25'
+									: opacity < 0.625
+										? '0.5'
+										: opacity < 0.875
+											? '0.75'
+											: '1',
+					},
+				}
+			},
 		},
-		{
-			id: instanceVersions.AddChat,
-			up: (instance) => {
+		[instanceVersions.AddChat]: {
+			up: (instance: TLInstance) => {
 				return { ...instance, chatMessage: '', isChatting: false }
 			},
+			down: ({ chatMessage: _, isChatting: __, ...instance }: TLInstance) => {
+				return instance
+			},
 		},
-		{
-			id: instanceVersions.AddHighlightedUserIds,
-			up: (instance) => {
+		[instanceVersions.AddHighlightedUserIds]: {
+			up: (instance: TLInstance) => {
 				return { ...instance, highlightedUserIds: [] }
 			},
-		},
-		{
-			id: instanceVersions.ReplacePropsForNextShapeWithStylesForNextShape,
-			up: ({ propsForNextShape: _, ...instance }: any) => {
-				return { ...instance, stylesForNextShape: {} }
+			down: ({ highlightedUserIds: _, ...instance }: TLInstance) => {
+				return instance
 			},
 		},
-		{
-			id: instanceVersions.AddMeta,
+		[instanceVersions.ReplacePropsForNextShapeWithStylesForNextShape]: {
+			up: ({ propsForNextShape: _, ...instance }) => {
+				return { ...instance, stylesForNextShape: {} }
+			},
+			down: ({ stylesForNextShape: _, ...instance }: TLInstance) => {
+				return {
+					...instance,
+					propsForNextShape: {
+						color: 'black',
+						labelColor: 'black',
+						dash: 'draw',
+						fill: 'none',
+						size: 'm',
+						icon: 'file',
+						font: 'draw',
+						align: 'middle',
+						verticalAlign: 'middle',
+						geo: 'rectangle',
+						arrowheadStart: 'none',
+						arrowheadEnd: 'arrow',
+						spline: 'line',
+					},
+				}
+			},
+		},
+		[instanceVersions.AddMeta]: {
 			up: (record) => {
 				return {
 					...record,
 					meta: {},
 				}
 			},
+			down: ({ meta: _, ...record }) => {
+				return {
+					...record,
+				}
+			},
 		},
-		{
-			id: instanceVersions.RemoveCursorColor,
-			up: (record: any) => {
+		[instanceVersions.RemoveCursorColor]: {
+			up: (record) => {
 				const { color: _, ...cursor } = record.cursor
 				return {
 					...record,
 					cursor,
 				}
 			},
+			down: (record) => {
+				return {
+					...record,
+					cursor: {
+						...record.cursor,
+						color: 'black',
+					},
+				}
+			},
 		},
-		{
-			id: instanceVersions.AddLonelyProperties,
+		[instanceVersions.AddLonelyProperties]: {
 			up: (record) => {
 				return {
 					...record,
@@ -409,63 +459,86 @@ export const instanceMigrations = createRecordMigrationSequence({
 					isReadOnly: false,
 				}
 			},
+			down: ({
+				canMoveCamera: _canMoveCamera,
+				isFocused: _isFocused,
+				devicePixelRatio: _devicePixelRatio,
+				isCoarsePointer: _isCoarsePointer,
+				openMenus: _openMenus,
+				isChangingStyle: _isChangingStyle,
+				isReadOnly: _isReadOnly,
+				...record
+			}) => {
+				return {
+					...record,
+				}
+			},
 		},
-		{
-			id: instanceVersions.ReadOnlyReadonly,
-			up: ({ isReadOnly: _isReadOnly, ...record }: any) => {
+		[instanceVersions.ReadOnlyReadonly]: {
+			up: ({ isReadOnly: _isReadOnly, ...record }) => {
 				return {
 					...record,
 					isReadonly: _isReadOnly,
 				}
 			},
+			down: ({ isReadonly: _isReadonly, ...record }) => {
+				return {
+					...record,
+					isReadOnly: _isReadonly,
+				}
+			},
 		},
-		{
-			id: instanceVersions.AddHoveringCanvas,
+		[instanceVersions.AddHoveringCanvas]: {
 			up: (record) => {
 				return {
 					...record,
 					isHoveringCanvas: null,
 				}
 			},
+			down: ({ isHoveringCanvas: _, ...record }) => {
+				return {
+					...record,
+				}
+			},
 		},
-		{
-			id: instanceVersions.AddScribbles,
-			up: ({ scribble: _, ...record }: any) => {
+		[instanceVersions.AddScribbles]: {
+			up: ({ scribble: _, ...record }) => {
 				return {
 					...record,
 					scribbles: [],
 				}
 			},
+			down: ({ scribbles: _, ...record }) => {
+				return { ...record, scribble: null }
+			},
 		},
-		{
-			id: instanceVersions.AddInset,
+		[instanceVersions.AddInset]: {
 			up: (record) => {
 				return {
 					...record,
 					insets: [false, false, false, false],
 				}
 			},
-			down: ({ insets: _, ...record }: any) => {
+			down: ({ insets: _, ...record }) => {
 				return {
 					...record,
 				}
 			},
 		},
-		{
-			id: instanceVersions.AddDuplicateProps,
+		[instanceVersions.AddDuplicateProps]: {
 			up: (record) => {
 				return {
 					...record,
 					duplicateProps: null,
 				}
 			},
-			down: ({ duplicateProps: _, ...record }: any) => {
+			down: ({ duplicateProps: _, ...record }) => {
 				return {
 					...record,
 				}
 			},
 		},
-	],
+	},
 })
 
 /** @public */

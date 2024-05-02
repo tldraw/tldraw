@@ -27,7 +27,7 @@ describe('when less than two shapes are selected', () => {
 	it('does nothing', () => {
 		editor.setSelectedShapes([ids.boxB])
 		const fn = jest.fn()
-		editor.store.listen(fn)
+		editor.on('change-history', fn)
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
 		jest.advanceTimersByTime(1000)
 

@@ -1,19 +1,16 @@
 import {
 	ContextMenu,
 	DefaultContextMenuContent,
-	ErrorScreen,
-	LoadingScreen,
 	TldrawEditor,
 	TldrawHandles,
+	TldrawHoveredShapeIndicator,
 	TldrawScribble,
 	TldrawSelectionBackground,
 	TldrawSelectionForeground,
 	TldrawUi,
-	defaultEditorAssetUrls,
 	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
-	usePreloadAssets,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -26,20 +23,11 @@ const defaultComponents = {
 	SelectionForeground: TldrawSelectionForeground,
 	SelectionBackground: TldrawSelectionBackground,
 	Handles: TldrawHandles,
+	HoveredShapeIndicator: TldrawHoveredShapeIndicator,
 }
 
 //[2]
 export default function ExplodedExample() {
-	const assetLoading = usePreloadAssets(defaultEditorAssetUrls)
-
-	if (assetLoading.error) {
-		return <ErrorScreen>Could not load assets.</ErrorScreen>
-	}
-
-	if (!assetLoading.done) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
-	}
-
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor

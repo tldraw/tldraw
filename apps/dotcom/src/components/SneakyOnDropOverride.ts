@@ -16,7 +16,6 @@ export function SneakyOnDropOverride({ isMultiplayer }: { isMultiplayer: boolean
 					addToast({
 						title: msg('file-system.shared-document-file-open-error.title'),
 						description: msg('file-system.shared-document-file-open-error.description'),
-						severity: 'error',
 					})
 				} else {
 					const shouldOverride = await shouldOverrideDocument(addDialog)

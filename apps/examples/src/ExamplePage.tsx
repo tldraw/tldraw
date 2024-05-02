@@ -28,10 +28,6 @@ export function ExamplePage({
 	children: React.ReactNode
 }) {
 	const categories = examples.map((e) => e.id)
-	const [filterValue, setFilterValue] = useState('')
-	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFilterValue(e.target.value)
-	}
 
 	return (
 		<DialogContextProvider>
@@ -73,12 +69,6 @@ export function ExamplePage({
 							Develop
 						</a>
 					</div>
-					<input
-						className="example__sidebar__filter"
-						placeholder="Filter…"
-						value={filterValue}
-						onChange={handleFilterChange}
-					/>
 					<ul className="example__sidebar__categories scroll-light">
 						{categories.map((currentCategory) => (
 							<li key={currentCategory} className="example__sidebar__category">
@@ -86,10 +76,7 @@ export function ExamplePage({
 								<ul className="example__sidebar__category__items">
 									{examples
 										.find((category) => category.id === currentCategory)
-										?.value.filter((example) =>
-											example.title.toLowerCase().includes(filterValue.toLowerCase())
-										)
-										.map((sidebarExample) => (
+										?.value.map((sidebarExample) => (
 											<ExampleSidebarListItem
 												key={sidebarExample.path}
 												example={sidebarExample}

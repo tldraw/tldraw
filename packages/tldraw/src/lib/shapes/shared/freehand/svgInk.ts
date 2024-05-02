@@ -1,4 +1,12 @@
-import { Vec, VecLike, assert, average, precise, toDomPrecision } from '@tldraw/editor'
+import {
+	Vec,
+	VecLike,
+	assert,
+	average,
+	precise,
+	shortAngleDist,
+	toDomPrecision,
+} from '@tldraw/editor'
 import { getStrokeOutlineTracks } from './getStrokeOutlinePoints'
 import { getStrokePoints } from './getStrokePoints'
 import { setStrokePointRadii } from './setStrokePointRadii'
@@ -28,20 +36,17 @@ function partitionAtElbows(points: StrokePoint[]): StrokePoint[][] {
 
 	const result: StrokePoint[][] = []
 	let currentPartition: StrokePoint[] = [points[0]]
-	let prevV = Vec.Sub(points[1].point, points[0].point).uni()
-	let nextV: Vec
-	let dpr: number
-	let prevPoint: StrokePoint, thisPoint: StrokePoint, nextPoint: StrokePoint
-	for (let i = 1, n = points.length; i < n - 1; i++) {
-		prevPoint = points[i - 1]
-		thisPoint = points[i]
-		nextPoint = points[i + 1]
-
-		nextV = Vec.Sub(nextPoint.point, thisPoint.point).uni()
-		dpr = Vec.Dpr(prevV, nextV)
-		prevV = nextV
-
-		if (dpr < -0.8) {
+	for (let i = 1; i < points.length - 1; i++) {
+		const prevPoint = points[i - 1]
+		const thisPoint = points[i]
+		const nextPoint = points[i + 1]
+		const prevAngle = Vec.Angle(prevPoint.point, thisPoint.point)
+		const nextAngle = Vec.Angle(thisPoint.point, nextPoint.point)
+		// acuteness is a normalized representation of how acute the angle is.
+		// 1 is an infinitely thin wedge
+		// 0 is a straight line
+		const acuteness = Math.abs(shortAngleDist(prevAngle, nextAngle)) / Math.PI
+		if (acuteness > 0.8) {
 			// always treat such acute angles as elbows
 			// and use the extended .input point as the elbow point for swooshiness in fast zaggy lines
 			const elbowPoint = {
@@ -54,20 +59,19 @@ function partitionAtElbows(points: StrokePoint[]): StrokePoint[][] {
 			continue
 		}
 		currentPartition.push(thisPoint)
-
-		if (dpr > 0.7) {
-			// Not an elbow
+		if (acuteness < 0.25) {
+			// this is not an elbow, bail out
 			continue
 		}
-
 		// so now we have a reasonably acute angle but it might not be an elbow if it's far
-		// away from it's neighbors, angular dist is a normalized representation of how far away the point is from it's neighbors
+		// away from it's neighbors
+		const avgRadius = (prevPoint.radius + thisPoint.radius + nextPoint.radius) / 3
+		const incomingNormalizedDist = Vec.Dist(prevPoint.point, thisPoint.point) / avgRadius
+		const outgoingNormalizedDist = Vec.Dist(thisPoint.point, nextPoint.point) / avgRadius
+		// angular dist is a normalized representation of how far away the point is from it's neighbors
 		// (normalized by the radius)
-		if (
-			(Vec.Dist2(prevPoint.point, thisPoint.point) + Vec.Dist2(thisPoint.point, nextPoint.point)) /
-				((prevPoint.radius + thisPoint.radius + nextPoint.radius) / 3) ** 2 <
-			1.5
-		) {
+		const angularDist = incomingNormalizedDist + outgoingNormalizedDist
+		if (angularDist < 1.5) {
 			// if this point is kinda close to its neighbors and it has a reasonably
 			// acute angle, it's probably a hard elbow
 			currentPartition.push(thisPoint)
@@ -85,13 +89,11 @@ function partitionAtElbows(points: StrokePoint[]): StrokePoint[][] {
 function cleanUpPartition(partition: StrokePoint[]) {
 	// clean up start of partition (remove points that are too close to the start)
 	const startPoint = partition[0]
-	let nextPoint: StrokePoint
 	while (partition.length > 2) {
-		nextPoint = partition[1]
-		if (
-			Vec.Dist2(startPoint.point, nextPoint.point) <
-			(((startPoint.radius + nextPoint.radius) / 2) * 0.5) ** 2
-		) {
+		const nextPoint = partition[1]
+		const dist = Vec.Dist(startPoint.point, nextPoint.point)
+		const avgRadius = (startPoint.radius + nextPoint.radius) / 2
+		if (dist < avgRadius * 0.5) {
 			partition.splice(1, 1)
 		} else {
 			break
@@ -99,13 +101,11 @@ function cleanUpPartition(partition: StrokePoint[]) {
 	}
 	// clean up end of partition in the same fashion
 	const endPoint = partition[partition.length - 1]
-	let prevPoint: StrokePoint
 	while (partition.length > 2) {
-		prevPoint = partition[partition.length - 2]
-		if (
-			Vec.Dist2(endPoint.point, prevPoint.point) <
-			(((endPoint.radius + prevPoint.radius) / 2) * 0.5) ** 2
-		) {
+		const prevPoint = partition[partition.length - 2]
+		const dist = Vec.Dist(endPoint.point, prevPoint.point)
+		const avgRadius = (endPoint.radius + prevPoint.radius) / 2
+		if (dist < avgRadius * 0.5) {
 			partition.splice(partition.length - 2, 1)
 		} else {
 			break
@@ -115,14 +115,13 @@ function cleanUpPartition(partition: StrokePoint[]) {
 	if (partition.length > 1) {
 		partition[0] = {
 			...partition[0],
-			vector: Vec.Sub(partition[0].point, partition[1].point).uni(),
+			vector: Vec.FromAngle(Vec.Angle(partition[1].point, partition[0].point)),
 		}
 		partition[partition.length - 1] = {
 			...partition[partition.length - 1],
-			vector: Vec.Sub(
-				partition[partition.length - 2].point,
-				partition[partition.length - 1].point
-			).uni(),
+			vector: Vec.FromAngle(
+				Vec.Angle(partition[partition.length - 1].point, partition[partition.length - 2].point)
+			),
 		}
 	}
 	return partition
@@ -152,7 +151,7 @@ function circlePath(cx: number, cy: number, r: number) {
 	)
 }
 
-function renderPartition(strokePoints: StrokePoint[], options: StrokeOptions = {}): string {
+export function renderPartition(strokePoints: StrokePoint[], options: StrokeOptions = {}): string {
 	if (strokePoints.length === 0) return ''
 	if (strokePoints.length === 1) {
 		return circlePath(strokePoints[0].point.x, strokePoints[0].point.y, strokePoints[0].radius)

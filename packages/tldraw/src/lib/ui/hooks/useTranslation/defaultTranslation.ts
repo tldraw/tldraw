@@ -52,7 +52,6 @@ export const DEFAULT_TRANSLATION = {
 	'action.flip-horizontal.short': 'Flip H',
 	'action.flip-vertical.short': 'Flip V',
 	'action.fork-project': 'Fork this project',
-	'action.fork-project-on-tldraw': 'Fork project on tldraw',
 	'action.group': 'Group',
 	'action.insert-embed': 'Insert embed',
 	'action.insert-media': 'Upload media',
@@ -116,7 +115,6 @@ export const DEFAULT_TRANSLATION = {
 	'action.zoom-to-selection': 'Zoom to selection',
 	'assets.files.upload-failed': 'Upload failed',
 	'assets.url.failed': "Couldn't load URL preview",
-	'color-style.white': 'White',
 	'color-style.black': 'Black',
 	'color-style.blue': 'Blue',
 	'color-style.green': 'Green',
@@ -267,7 +265,8 @@ export const DEFAULT_TRANSLATION = {
 	'share-menu.copy-readonly-link': 'Copy read-only link',
 	'share-menu.offline-note': 'Create a new shared project based on your current project.',
 	'share-menu.copy-link-note': 'Anyone with the link will be able to view and edit this project.',
-	'share-menu.copy-readonly-link-note': 'Anyone with the link will be able to access this project.',
+	'share-menu.copy-readonly-link-note':
+		'Anyone with the link will be able to view (but not edit) this project.',
 	'share-menu.project-too-large':
 		"Sorry, this project can't be shared because it's too large. We're working on it!",
 	'share-menu.upload-failed':

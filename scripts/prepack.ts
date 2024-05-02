@@ -23,7 +23,6 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 	const cssFiles = glob.sync(path.join(sourcePackageDir, '*.css'))
 
 	// construct the final package.json
-	// eslint-disable-next-line no-restricted-globals
 	const newManifest = structuredClone({
 		// filter out comments
 		...Object.fromEntries(

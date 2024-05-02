@@ -1,4 +1,3 @@
-import { ArraySet } from './ArraySet'
 import { startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { attach, detach, haveParentsChanged, singleton } from './helpers'
@@ -52,6 +51,7 @@ class __EffectScheduler__<Result> {
 	lastTraversedEpoch = GLOBAL_START_EPOCH
 
 	private lastReactedEpoch = GLOBAL_START_EPOCH
+	private hasPendingEffect = true
 	private _scheduleCount = 0
 
 	/**
@@ -64,11 +64,9 @@ class __EffectScheduler__<Result> {
 	}
 
 	/** @internal */
-	readonly parentSet = new ArraySet<Signal<any, any>>()
+	parentEpochs: number[] = []
 	/** @internal */
-	readonly parentEpochs: number[] = []
-	/** @internal */
-	readonly parents: Signal<any, any>[] = []
+	parents: Signal<any, any>[] = []
 	private readonly _scheduleEffect?: (execute: () => void) => void
 	constructor(
 		public readonly name: string,
@@ -97,6 +95,7 @@ class __EffectScheduler__<Result> {
 	/** @internal */
 	scheduleEffect() {
 		this._scheduleCount++
+		this.hasPendingEffect = true
 		if (this._scheduleEffect) {
 			// if the effect should be deferred (e.g. until a react render), do so
 			this._scheduleEffect(this.maybeExecute)
@@ -109,7 +108,7 @@ class __EffectScheduler__<Result> {
 	/** @internal */
 	readonly maybeExecute = () => {
 		// bail out if we have been detached before this runs
-		if (!this._isActivelyListening) return
+		if (!this._isActivelyListening || !this.hasPendingEffect) return
 		this.execute()
 	}
 
@@ -144,12 +143,9 @@ class __EffectScheduler__<Result> {
 	execute(): Result {
 		try {
 			startCapturingParents(this)
-			// Important! We have to make a note of the current epoch before running the effect.
-			// We allow atoms to be updated during effects, which increments the global epoch,
-			// so if we were to wait until after the effect runs, the this.lastReactedEpoch value might get ahead of itself.
-			const currentEpoch = getGlobalEpoch()
 			const result = this.runEffect(this.lastReactedEpoch)
-			this.lastReactedEpoch = currentEpoch
+			this.hasPendingEffect = false
+			this.lastReactedEpoch = getGlobalEpoch()
 			return result
 		} finally {
 			stopCapturingParents()

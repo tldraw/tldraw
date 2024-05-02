@@ -1,8 +1,6 @@
 import { Editor, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
-import { getOccludedChildren } from './selectHelpers'
 
-const INITIAL_POINTER_LAG_DURATION = 20
-const FAST_POINTER_LAG_DURATION = 100
+const LAG_DURATION = 100
 
 /** @public */
 export class DragAndDropManager {
@@ -18,12 +16,6 @@ export class DragAndDropManager {
 
 	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
 		if (this.first) {
-			this.editor.setHintingShapes(
-				movingShapes
-					.map((s) => this.editor.findShapeAncestor(s, (v) => v.type !== 'group'))
-					.filter((s) => s) as TLShape[]
-			)
-
 			this.prevDroppingShapeId =
 				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint, movingShapes)?.id ??
 				null
@@ -31,10 +23,10 @@ export class DragAndDropManager {
 		}
 
 		if (this.droppingNodeTimer === null) {
-			this.setDragTimer(movingShapes, INITIAL_POINTER_LAG_DURATION, cb)
+			this.setDragTimer(movingShapes, LAG_DURATION * 10, cb)
 		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
 			clearInterval(this.droppingNodeTimer)
-			this.setDragTimer(movingShapes, FAST_POINTER_LAG_DURATION, cb)
+			this.setDragTimer(movingShapes, LAG_DURATION, cb)
 		}
 	}
 
@@ -54,7 +46,6 @@ export class DragAndDropManager {
 
 		// is the next dropping shape id different than the last one?
 		if (nextDroppingShapeId === this.prevDroppingShapeId) {
-			this.hintParents(movingShapes)
 			return
 		}
 
@@ -73,44 +64,22 @@ export class DragAndDropManager {
 		}
 
 		if (nextDroppingShape) {
-			this.editor
+			const res = this.editor
 				.getShapeUtil(nextDroppingShape)
 				.onDragShapesOver?.(nextDroppingShape, movingShapes)
+
+			if (res && res.shouldHint) {
+				this.editor.setHintingShapes([nextDroppingShape.id])
+			}
+		} else {
+			// If we're dropping onto the page, then clear hinting ids
+			this.editor.setHintingShapes([])
 		}
 
-		this.hintParents(movingShapes)
 		cb?.()
 
 		// next -> curr
 		this.prevDroppingShapeId = nextDroppingShapeId
-	}
-
-	hintParents(movingShapes: TLShape[]) {
-		// Group moving shapes by their ancestor
-		const shapesGroupedByAncestor = new Map<TLShapeId, TLShapeId[]>()
-		for (const shape of movingShapes) {
-			const ancestor = this.editor.findShapeAncestor(shape, (v) => v.type !== 'group')
-			if (!ancestor) continue
-			if (!shapesGroupedByAncestor.has(ancestor.id)) {
-				shapesGroupedByAncestor.set(ancestor.id, [])
-			}
-			shapesGroupedByAncestor.get(ancestor.id)!.push(shape.id)
-		}
-
-		// Only hint an ancestor if some shapes will drop into it on pointer up
-		const hintingShapes = []
-		for (const [ancestorId, shapeIds] of shapesGroupedByAncestor) {
-			const ancestor = this.editor.getShape(ancestorId)
-			if (!ancestor) continue
-			// If all of the ancestor's children would be occluded, then don't hint it
-			// 1. get the number of fully occluded children
-			// 2. if that number is less than the number of moving shapes, hint the ancestor
-			if (getOccludedChildren(this.editor, ancestor).length < shapeIds.length) {
-				hintingShapes.push(ancestor.id)
-			}
-		}
-
-		this.editor.setHintingShapes(hintingShapes)
 	}
 
 	dropShapes(shapes: TLShape[]) {

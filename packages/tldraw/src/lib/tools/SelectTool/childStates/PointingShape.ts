@@ -1,18 +1,19 @@
 import {
+	Group2d,
 	HIT_TEST_MARGIN,
 	StateNode,
+	TLArrowShape,
 	TLEventHandlers,
+	TLGeoShape,
 	TLPointerEventInfo,
 	TLShape,
 } from '@tldraw/editor'
-import { getTextLabels } from '../../../utils/shapes/shapes'
 
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
 
 	hitShape = {} as TLShape
 	hitShapeForPointerUp = {} as TLShape
-	isDoubleClick = false
 
 	didSelectOnEnter = false
 
@@ -25,11 +26,7 @@ export class PointingShape extends StateNode {
 		} = this.editor
 
 		this.hitShape = info.shape
-		this.isDoubleClick = false
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
-		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
-			selectedShapeIds.includes(parent.id)
-		)
 
 		if (
 			// If the shape has an onClick handler
@@ -38,8 +35,7 @@ export class PointingShape extends StateNode {
 			outermostSelectingShape.id === focusedGroupId ||
 			// ...or if the shape is within the selection
 			selectedShapeIds.includes(outermostSelectingShape.id) ||
-			// ...or if an ancestor of the shape is selected
-			selectedAncestor ||
+			this.editor.isAncestorSelected(outermostSelectingShape.id) ||
 			// ...or if the current point is NOT within the selection bounds
 			(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
 		) {
@@ -131,22 +127,24 @@ export class PointingShape extends StateNode {
 						// then we would want to begin editing the shape. At the moment we're relying on the shape label's onPointerUp
 						// handler to do this logic, and prevent the regular pointer up event, so we won't be here in that case.
 
-						// if the shape has a text label, and we're inside of the label, then we want to begin editing the label.
-						if (selectedShapeIds.length === 1) {
-							const geometry = this.editor.getShapeUtil(selectingShape).getGeometry(selectingShape)
-							const textLabels = getTextLabels(geometry)
-							const textLabel = textLabels.length === 1 ? textLabels[0] : undefined
-							// N.B. we're only interested if there is exactly one text label. We don't handle the
-							// case if there's potentially more than one text label at the moment.
-							if (textLabel) {
+						// ! tldraw hack
+						// if the shape is a geo shape, and we're inside of the label, then we want to begin editing the label
+						if (
+							selectedShapeIds.length === 1 &&
+							(this.editor.isShapeOfType<TLGeoShape>(selectingShape, 'geo') ||
+								this.editor.isShapeOfType<TLArrowShape>(selectingShape, 'arrow'))
+						) {
+							const geometry = this.editor.getShapeGeometry(selectingShape)
+							const labelGeometry = (geometry as Group2d).children[1]
+							if (labelGeometry) {
 								const pointInShapeSpace = this.editor.getPointInShapeSpace(
 									selectingShape,
 									currentPagePoint
 								)
 
 								if (
-									textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
-									textLabel.hitTestPoint(pointInShapeSpace)
+									labelGeometry.bounds.containsPoint(pointInShapeSpace, 0) &&
+									labelGeometry.hitTestPoint(pointInShapeSpace)
 								) {
 									this.editor.batch(() => {
 										this.editor.mark('editing on pointer up')
@@ -161,10 +159,6 @@ export class PointingShape extends StateNode {
 
 										this.editor.setEditingShape(selectingShape.id)
 										this.editor.setCurrentTool('select.editing_shape')
-
-										if (this.isDoubleClick) {
-											this.editor.emit('select-all-text', { shapeId: selectingShape.id })
-										}
 									})
 									return
 								}
@@ -199,26 +193,11 @@ export class PointingShape extends StateNode {
 		this.parent.transition('idle', info)
 	}
 
-	override onDoubleClick: TLEventHandlers['onDoubleClick'] = () => {
-		this.isDoubleClick = true
-	}
-
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			this.startTranslating(info)
+			if (this.editor.getInstanceState().isReadonly) return
+			this.parent.transition('translating', info)
 		}
-	}
-
-	override onLongPress: TLEventHandlers['onLongPress'] = (info) => {
-		this.startTranslating(info)
-	}
-
-	private startTranslating(info: TLPointerEventInfo) {
-		if (this.editor.getInstanceState().isReadonly) return
-
-		// Re-focus the editor, just in case the text label of the shape has stolen focus
-		this.editor.getContainer().focus()
-		this.parent.transition('translating', info)
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

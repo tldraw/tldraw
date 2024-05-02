@@ -1,9 +1,8 @@
-import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/tlsync'
 import '../../styles/globals.css'
 import { BoardHistorySnapshot } from '../components/BoardHistorySnapshot/BoardHistorySnapshot'
 import { ErrorPage } from '../components/ErrorPage/ErrorPage'
-import { IFrameProtector, ROOM_CONTEXT } from '../components/IFrameProtector'
+import { IFrameProtector } from '../components/IFrameProtector'
 import { defineLoader } from '../utils/defineLoader'
 
 const { loader, useData } = defineLoader(async (args) => {
@@ -12,7 +11,7 @@ const { loader, useData } = defineLoader(async (args) => {
 
 	if (!roomId) return null
 
-	const result = await fetch(`/api/${ROOM_PREFIX}/${roomId}/history/${timestamp}`, {
+	const result = await fetch(`/api/r/${roomId}/history/${timestamp}`, {
 		headers: {},
 	})
 	if (!result.ok) return null
@@ -33,12 +32,13 @@ export function Component() {
 					header: 'Page not found',
 					para1: 'The page you are looking does not exist or has been moved.',
 				}}
+				redirectTo="/"
 			/>
 		)
 
 	const { data, roomId, timestamp } = result
 	return (
-		<IFrameProtector slug={roomId} context={ROOM_CONTEXT.HISTORY_SNAPSHOT}>
+		<IFrameProtector slug={roomId} context="history-snapshot">
 			<BoardHistorySnapshot data={data} roomId={roomId} timestamp={timestamp} />
 		</IFrameProtector>
 	)

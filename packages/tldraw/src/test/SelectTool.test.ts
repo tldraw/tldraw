@@ -20,74 +20,6 @@ beforeEach(() => {
 		.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 })
 
-describe('TLSelectTool.Idle', () => {
-	it('Updates hovered ID on pointer move', () => {
-		editor.pointerMove(100, 100)
-		expect(editor.getHoveredShapeId()).not.toBeNull()
-	})
-
-	it('Transitions to pointing_shape on shape pointer down', () => {
-		const shape = editor.getShape(ids.box1)!
-		editor.pointerDown(shape.x + 10, shape.y + 10, { target: 'shape', shape })
-		editor.expectToBeIn('select.pointing_shape')
-	})
-
-	it('Transitions to pointing_canvas on canvas pointer down', () => {
-		editor.pointerDown(10, 10, { target: 'canvas' })
-		editor.expectToBeIn('select.pointing_canvas')
-	})
-
-	it('Nudges selected shapes on arrow key down', () => {
-		const shape = editor.getShape(ids.box1)!
-		editor.select(shape.id)
-		editor.keyDown('ArrowRight')
-		// Assuming nudgeSelectedShapes moves the shape by 1 unit to the right
-		const nudgedShape = editor.getShape(shape.id)
-		expect(nudgedShape).toBeDefined()
-		expect(nudgedShape?.x).toBe(101)
-	})
-})
-
-// todo: turn on feature flag for these tests or remove them
-describe.skip('Edit on type', () => {
-	it('Starts editing shape on key down if shape does auto-edit on key stroke', () => {
-		const id = createShapeId()
-		editor.createShapes([{ id, type: 'note', x: 100, y: 100, props: { text: 'hello' } }])!
-		const shape = editor.getShape(id)!
-		editor.select(shape.id)
-		editor.keyDown('a') // Press a key that would start editing
-		expect(editor.getEditingShapeId()).toBe(shape.id)
-	})
-
-	it('Does not start editing if shape does not auto-edit on key stroke', () => {
-		const shape = editor.getShape(ids.box1)!
-		editor.select(shape.id)
-		editor.keyDown('a') // Press a key that would not start editing for non-editable shapes
-		expect(editor.getEditingShapeId()).not.toBe(shape.id)
-	})
-
-	it('Does not start editing on excluded keys', () => {
-		const id = createShapeId()
-		editor.createShapes([{ id, type: 'note', x: 100, y: 100, props: { text: 'hello' } }])!
-		const shape = editor.getShape(id)!
-		editor.select(shape.id)
-		editor.keyDown('Enter') // Press an excluded key
-		expect(editor.getEditingShapeId()).not.toBe(shape.id)
-	})
-
-	it('Ignores key down if altKey or ctrlKey is pressed', () => {
-		const id = createShapeId()
-		editor.createShapes([{ id, type: 'note', x: 100, y: 100, props: { text: 'hello' } }])!
-		const shape = editor.getShape(id)!
-		editor.select(shape.id)
-		// Simulate altKey being pressed
-		editor.keyDown('a', { altKey: true })
-		// Simulate ctrlKey being pressed
-		editor.keyDown('a', { ctrlKey: true })
-		expect(editor.getEditingShapeId()).not.toBe(shape.id)
-	})
-})
-
 describe('TLSelectTool.Translating', () => {
 	it('Enters from pointing and exits to idle', () => {
 		const shape = editor.getShape(ids.box1)
@@ -437,11 +369,11 @@ describe('When editing shapes', () => {
 		// start editing the geo shape
 		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShape(ids.geo1) })
 		expect(editor.getEditingShapeId()).toBe(ids.geo1)
-		expect(editor.getOnlySelectedShapeId()).toBe(ids.geo1)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.geo1)
 		// point the text shape
 		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.text1) })
 		expect(editor.getEditingShapeId()).toBe(null)
-		expect(editor.getOnlySelectedShapeId()).toBe(ids.text1)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.text1)
 	})
 
 	// The behavior described here will only work end to end, not with the library,
@@ -453,12 +385,12 @@ describe('When editing shapes', () => {
 		// start editing the geo shape
 		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShape(ids.geo1) })
 		expect(editor.getEditingShapeId()).toBe(ids.geo1)
-		expect(editor.getOnlySelectedShapeId()).toBe(ids.geo1)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.geo1)
 		// point the other geo shape
 		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.geo2) })
 		// that other shape should now be editing and selected!
 		expect(editor.getEditingShapeId()).toBe(ids.geo2)
-		expect(editor.getOnlySelectedShapeId()).toBe(ids.geo2)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.geo2)
 	})
 
 	// This works but only end to end — the logic had to move to React
@@ -471,7 +403,7 @@ describe('When editing shapes', () => {
 		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.text2) })
 		// that other shape should now be editing and selected!
 		expect(editor.getEditingShapeId()).toBe(ids.text2)
-		expect(editor.getOnlySelectedShapeId()).toBe(ids.text2)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.text2)
 	})
 
 	it('Double clicking the canvas creates a new text shape', () => {
@@ -501,7 +433,7 @@ describe('When editing shapes', () => {
 		expect(editor.getShape(shapeId)).toBe(undefined)
 	})
 
-	it('It deletes an empty text shape when you click another text shape', () => {
+	it('It deletes an empty text shape when your click another text shape', () => {
 		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getSelectedShapeIds().length).toBe(0)
 		expect(editor.getCurrentPageShapes().length).toBe(5)
@@ -561,15 +493,4 @@ describe('When in readonly mode', () => {
 		editor.keyUp('Enter')
 		expect(editor.getEditingShapeId()).toBe(ids.embed1)
 	})
-})
-
-// This should be end to end, the problem is the blur handler of the react component
-it('goes into pointing canvas', () => {
-	editor
-		.createShape({ type: 'note' })
-		.pointerMove(50, 50)
-		.doubleClick()
-		.expectToBeIn('select.editing_shape')
-		.pointerDown(300, 300)
-		.expectToBeIn('select.pointing_canvas')
 })

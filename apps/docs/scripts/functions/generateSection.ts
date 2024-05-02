@@ -31,7 +31,6 @@ export function generateSection(section: InputSection, articles: Articles, index
 
 	for (const file of files) {
 		const filename = file.toString()
-		if (filename.startsWith('.')) continue
 		const pathname = isExamples ? path.join(dir, filename, 'README.md') : path.join(dir, filename)
 		const fileContent = fs.readFileSync(pathname).toString()
 		const extension = path.extname(filename)

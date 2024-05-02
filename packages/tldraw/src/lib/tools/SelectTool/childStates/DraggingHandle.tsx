@@ -16,7 +16,6 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
-import { kickoutOccludedShapes } from '../selectHelpers'
 
 export class DraggingHandle extends StateNode {
 	static override id = 'dragging_handle'
@@ -40,6 +39,7 @@ export class DraggingHandle extends StateNode {
 	isPrecise = false
 	isPreciseId = null as TLShapeId | null
 	pointingId = null as TLShapeId | null
+	isDirty = false
 
 	override onEnter: TLEnterEventHandler = (
 		info: TLPointerEventInfo & {
@@ -51,6 +51,7 @@ export class DraggingHandle extends StateNode {
 	) => {
 		const { shape, isCreating, handle } = info
 		this.info = info
+		this.isDirty = false
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.shapeId = shape.id
 		this.markId = isCreating ? `creating:${shape.id}` : 'dragging handle'
@@ -82,7 +83,10 @@ export class DraggingHandle extends StateNode {
 		this.initialPageRotation = this.initialPageTransform.rotation()
 		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
 
-		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
+		this.editor.updateInstanceState(
+			{ cursor: { type: isCreating ? 'cross' : 'grabbing', rotation: 0 } },
+			{ ephemeral: true }
+		)
 
 		const handles = this.editor.getShapeHandles(shape)!.sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
@@ -163,8 +167,15 @@ export class DraggingHandle extends StateNode {
 		}
 	}
 
+	override onTick = () => {
+		if (this.isDirty) {
+			this.isDirty = false
+			this.update()
+		}
+	}
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.update()
+		this.isDirty = true
 	}
 
 	override onKeyDown: TLKeyboardEvent | undefined = () => {
@@ -181,6 +192,7 @@ export class DraggingHandle extends StateNode {
 
 	override onComplete: TLEventHandlers['onComplete'] = () => {
 		this.update()
+		this.isDirty = false
 		this.complete()
 	}
 
@@ -193,12 +205,14 @@ export class DraggingHandle extends StateNode {
 		this.editor.setHintingShapes([])
 		this.editor.snaps.clearIndicators()
 
-		this.editor.setCursor({ type: 'default', rotation: 0 })
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 	}
 
 	private complete() {
 		this.editor.snaps.clearIndicators()
-		kickoutOccludedShapes(this.editor, [this.shapeId])
 
 		const { onInteractionEnd } = this.info
 		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
@@ -306,7 +320,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		if (changes) {
-			editor.updateShapes([next])
+			editor.updateShapes([next], { squashing: true })
 		}
 	}
 }

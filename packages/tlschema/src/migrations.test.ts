@@ -1,28 +1,109 @@
-import { createRecordType } from '@tldraw/store'
-import { getTestMigration, testSchema } from './__tests__/migrationTestUtils'
-import { bookmarkAssetVersions } from './assets/TLBookmarkAsset'
-import { imageAssetVersions } from './assets/TLImageAsset'
-import { videoAssetVersions } from './assets/TLVideoAsset'
-import { assetVersions } from './records/TLAsset'
-import { cameraVersions } from './records/TLCamera'
-import { documentVersions } from './records/TLDocument'
-import { instanceVersions } from './records/TLInstance'
-import { pageVersions } from './records/TLPage'
-import { instancePageStateVersions } from './records/TLPageState'
-import { pointerVersions } from './records/TLPointer'
-import { instancePresenceVersions } from './records/TLPresence'
-import { TLShape, rootShapeVersions } from './records/TLShape'
-import { arrowShapeVersions } from './shapes/TLArrowShape'
-import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
-import { drawShapeVersions } from './shapes/TLDrawShape'
-import { embedShapeVersions } from './shapes/TLEmbedShape'
-import { geoShapeVersions } from './shapes/TLGeoShape'
-import { imageShapeVersions } from './shapes/TLImageShape'
-import { lineShapeVersions } from './shapes/TLLineShape'
-import { noteShapeVersions } from './shapes/TLNoteShape'
-import { textShapeVersions } from './shapes/TLTextShape'
-import { videoShapeVersions } from './shapes/TLVideoShape'
-import { storeVersions } from './store-migrations'
+import { Migrations, Store, createRecordType } from '@tldraw/store'
+import { structuredClone } from '@tldraw/utils'
+import fs from 'fs'
+import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
+import { imageAssetMigrations } from './assets/TLImageAsset'
+import { videoAssetMigrations } from './assets/TLVideoAsset'
+import { assetMigrations, assetVersions } from './records/TLAsset'
+import { cameraMigrations, cameraVersions } from './records/TLCamera'
+import { documentMigrations, documentVersions } from './records/TLDocument'
+import { instanceMigrations, instanceVersions } from './records/TLInstance'
+import { pageMigrations, pageVersions } from './records/TLPage'
+import { instancePageStateMigrations, instancePageStateVersions } from './records/TLPageState'
+import { pointerMigrations, pointerVersions } from './records/TLPointer'
+import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
+import { TLShape, rootShapeMigrations, rootShapeVersions } from './records/TLShape'
+import { ArrowMigrationVersions, arrowShapeMigrations } from './shapes/TLArrowShape'
+import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
+import { drawShapeMigrations } from './shapes/TLDrawShape'
+import { embedShapeMigrations } from './shapes/TLEmbedShape'
+import { GeoShapeVersions, geoShapeMigrations } from './shapes/TLGeoShape'
+import { imageShapeMigrations } from './shapes/TLImageShape'
+import { lineShapeMigrations, lineShapeVersions } from './shapes/TLLineShape'
+import { noteShapeMigrations } from './shapes/TLNoteShape'
+import { textShapeMigrations } from './shapes/TLTextShape'
+import { videoShapeMigrations } from './shapes/TLVideoShape'
+import { storeMigrations, storeVersions } from './store-migrations'
+
+const assetModules = fs
+	.readdirSync('src/assets')
+	.filter((n) => n.match(/^TL.*\.ts$/))
+	.map((f) => [f, require(`./assets/${f.slice(0, -3)}`)])
+const shapeModules = fs
+	.readdirSync('src/shapes')
+	.filter((n) => n.match(/^TL.*\.ts$/))
+	.map((f) => [f, require(`./shapes/${f.slice(0, -3)}`)])
+const recordModules = fs
+	.readdirSync('src/records')
+	.filter((n) => n.match(/^TL.*\.ts$/))
+	.map((f) => [f, require(`./records/${f.slice(0, -3)}`)])
+
+const allModules = [
+	...assetModules,
+	...shapeModules,
+	...recordModules,
+	['store-migrations.ts', require('./store-migrations')],
+]
+
+const allMigrators: Array<{
+	fileName: string
+	version: number
+	up: jest.SpyInstance
+	down: jest.SpyInstance
+}> = []
+
+for (const [fileName, module] of allModules) {
+	const migrationsKey = Object.keys(module).find((k) => k.endsWith('igrations'))
+
+	if (!migrationsKey) continue
+
+	const migrations: Migrations = module[migrationsKey]
+
+	for (const version of Object.keys(migrations.migrators)) {
+		const originalUp = migrations.migrators[version as any].up
+		const originalDown = migrations.migrators[version as any].down
+		const up = jest
+			.spyOn(migrations.migrators[version as any], 'up')
+			.mockImplementation((initialRecord) => {
+				if (initialRecord instanceof Store) return originalUp(initialRecord)
+
+				const clonedRecord = structuredClone(initialRecord)
+				const result = originalUp(initialRecord)
+				// mutations should never mutate their input
+				expect(initialRecord).toEqual(clonedRecord)
+				return result
+			})
+		const down = jest
+			.spyOn(migrations.migrators[version as any], 'down')
+			.mockImplementation((initialRecord) => {
+				if (initialRecord instanceof Store) return originalDown(initialRecord)
+
+				const clonedRecord = structuredClone(initialRecord)
+				const result = originalDown(initialRecord)
+				// mutations should never mutate their input
+				expect(initialRecord).toEqual(clonedRecord)
+				return result
+			})
+		allMigrators.push({
+			fileName,
+			version: Number(version),
+			up,
+			down,
+		})
+	}
+}
+
+test('all modules export migrations', () => {
+	const modulesWithoutMigrations = allModules
+		.filter(([, module]) => {
+			return !Object.keys(module).find((k) => k.endsWith('igrations'))
+		})
+		.map(([fileName]) => fileName)
+		.filter((n) => !(n === 'TLBaseAsset.ts' || n === 'TLBaseShape.ts' || n === 'TLRecord.ts'))
+
+	// IF THIS LINE IS FAILING YOU NEED TO MAKE SURE THE MIGRATIONS ARE EXPORTED
+	expect(modulesWithoutMigrations).toHaveLength(0)
+})
 
 /* ---  PUT YOUR MIGRATIONS TESTS BELOW HERE --- */
 
@@ -52,7 +133,7 @@ describe('TLVideoAsset AddIsAnimated', () => {
 		},
 	}
 
-	const { up, down } = getTestMigration(videoAssetVersions.AddIsAnimated)
+	const { up, down } = videoAssetMigrations.migrators[1]
 
 	test('up works as expected', () => {
 		expect(up(oldAsset)).toEqual(newAsset)
@@ -88,7 +169,7 @@ describe('TLImageAsset AddIsAnimated', () => {
 		},
 	}
 
-	const { up, down } = getTestMigration(imageAssetVersions.AddIsAnimated)
+	const { up, down } = imageAssetMigrations.migrators[1]
 
 	test('up works as expected', () => {
 		expect(up(oldAsset)).toEqual(newAsset)
@@ -104,7 +185,6 @@ const ShapeRecord = createRecordType('shape', {
 })
 
 describe('Store removing Icon and Code shapes', () => {
-	const { up } = getTestMigration(storeVersions.RemoveCodeAndIconShapeTypes)
 	test('up works as expected', () => {
 		const snapshot = Object.fromEntries(
 			[
@@ -140,78 +220,127 @@ describe('Store removing Icon and Code shapes', () => {
 				} as any),
 			].map((shape) => [shape.id, shape])
 		)
-		const fixed = up(snapshot)
+		const fixed = storeMigrations.migrators[storeVersions.RemoveCodeAndIconShapeTypes].up(snapshot)
 		expect(Object.entries(fixed)).toHaveLength(1)
+	})
+
+	test('down works as expected', () => {
+		const snapshot = Object.fromEntries(
+			[
+				ShapeRecord.create({
+					type: 'geo',
+					parentId: 'page:any',
+					index: 'a0',
+					props: { geo: 'rectangle', name: 'e', w: 1, h: 1, growY: 1, text: '' },
+				} as any),
+			].map((shape) => [shape.id, shape])
+		)
+
+		storeMigrations.migrators[storeVersions.RemoveCodeAndIconShapeTypes].down(snapshot)
+		expect(Object.entries(snapshot)).toHaveLength(1)
 	})
 })
 
 describe('Adding export background', () => {
-	const { up } = getTestMigration(instanceVersions.AddTransparentExportBgs)
+	const { up, down } = instanceMigrations.migrators[1]
 	test('up works as expected', () => {
 		const before = {}
 		const after = { exportBackground: true }
-		expect(up(before)).toEqual(after)
+		expect(up(before)).toStrictEqual(after)
+	})
+
+	test('down works as expected', () => {
+		const before = { exportBackground: true }
+		const after = {}
+		expect(down(before)).toStrictEqual(after)
 	})
 })
 
 describe('Removing dialogs from instance', () => {
-	const { up } = getTestMigration(instanceVersions.RemoveDialog)
+	const { up, down } = instanceMigrations.migrators[2]
 	test('up works as expected', () => {
 		const before = { dialog: null }
 		const after = {}
-		expect(up(before)).toEqual(after)
+		expect(up(before)).toStrictEqual(after)
+	})
+
+	test('down works as expected', () => {
+		const before = {}
+		const after = { dialog: null }
+		expect(down(before)).toStrictEqual(after)
 	})
 })
 
 describe('Adding url props', () => {
-	for (const [name, { up }] of [
-		['video shape', getTestMigration(videoShapeVersions.AddUrlProp)],
-		['note shape', getTestMigration(noteShapeVersions.AddUrlProp)],
-		['geo shape', getTestMigration(geoShapeVersions.AddUrlProp)],
-		['image shape', getTestMigration(imageShapeVersions.AddUrlProp)],
+	for (const [name, { up, down }] of [
+		['video shape', videoShapeMigrations.migrators[1]],
+		['note shape', noteShapeMigrations.migrators[1]],
+		['geo shape', geoShapeMigrations.migrators[1]],
+		['image shape', imageShapeMigrations.migrators[1]],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
-			expect(up({ props: {} })).toEqual({ props: { url: '' } })
+			const before = { props: {} }
+			const after = { props: { url: '' } }
+			expect(up(before)).toStrictEqual(after)
+		})
+
+		test(`${name}: down works as expected`, () => {
+			const before = { props: { url: '' } }
+			const after = { props: {} }
+			expect(down(before)).toStrictEqual(after)
 		})
 	}
 })
 
 describe('Bookmark null asset id', () => {
-	const { up } = getTestMigration(bookmarkShapeVersions.NullAssetId)
+	const { up, down } = bookmarkShapeMigrations.migrators[1]
 	test('up works as expected', () => {
-		expect(up({ props: {} })).toEqual({ props: { assetId: null } })
+		const before = { props: {} }
+		const after = { props: { assetId: null } }
+		expect(up(before)).toStrictEqual(after)
+	})
+
+	test('down works as expected', () => {
+		const before = { props: { assetId: null } }
+		const after = { props: {} }
+		expect(down(before)).toStrictEqual(after)
 	})
 })
 
 describe('Renaming asset props', () => {
 	for (const [name, { up, down }] of [
-		['image shape', getTestMigration(imageAssetVersions.RenameWidthHeight)],
-		['video shape', getTestMigration(videoAssetVersions.RenameWidthHeight)],
+		['image shape', imageAssetMigrations.migrators[2]],
+		['video shape', videoAssetMigrations.migrators[2]],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
 			const before = { props: { width: 100, height: 100 } }
 			const after = { props: { w: 100, h: 100 } }
-			expect(up(before)).toEqual(after)
+			expect(up(before)).toStrictEqual(after)
 		})
 
 		test(`${name}: down works as expected`, () => {
 			const before = { props: { w: 100, h: 100 } }
 			const after = { props: { width: 100, height: 100 } }
-			expect(down(before)).toEqual(after)
+			expect(down(before)).toStrictEqual(after)
 		})
 	}
 })
 
 describe('Adding instance.isToolLocked', () => {
-	const { up } = getTestMigration(instanceVersions.AddToolLockMode)
+	const { up, down } = instanceMigrations.migrators[3]
 	test('up works as expected', () => {
 		expect(up({})).toMatchObject({ isToolLocked: false })
 		expect(up({ isToolLocked: true })).toMatchObject({ isToolLocked: false })
 	})
+
+	test('down works as expected', () => {
+		expect(down({ isToolLocked: true })).toStrictEqual({})
+		expect(down({ isToolLocked: false })).toStrictEqual({})
+	})
 })
 
 describe('Cleaning up junk data in instance.propsForNextShape', () => {
-	const { up } = getTestMigration(instanceVersions.RemoveExtraPropsForNextShape)
+	const { up, down } = instanceMigrations.migrators[4]
 	test('up works as expected', () => {
 		expect(up({ propsForNextShape: { color: 'red', unknown: 'gone' } })).toEqual({
 			propsForNextShape: {
@@ -219,10 +348,15 @@ describe('Cleaning up junk data in instance.propsForNextShape', () => {
 			},
 		})
 	})
+
+	test('down works as expected', () => {
+		const instance = { propsForNextShape: { color: 'red' } }
+		expect(down(instance)).toBe(instance)
+	})
 })
 
 describe('Generating original URL from embed URL in GenOriginalUrlInEmbed', () => {
-	const { up } = getTestMigration(embedShapeVersions.GenOriginalUrlInEmbed)
+	const { up, down } = embedShapeMigrations.migrators[1]
 	test('up works as expected', () => {
 		expect(up({ props: { url: 'https://codepen.io/Rplus/embed/PWZYRM' } })).toEqual({
 			props: {
@@ -240,10 +374,30 @@ describe('Generating original URL from embed URL in GenOriginalUrlInEmbed', () =
 			},
 		})
 	})
+
+	test('down works as expected', () => {
+		const instance = {
+			props: {
+				url: 'https://codepen.io/Rplus/pen/PWZYRM',
+				tmpOldUrl: 'https://codepen.io/Rplus/embed/PWZYRM',
+			},
+		}
+		expect(down(instance)).toEqual({ props: { url: 'https://codepen.io/Rplus/embed/PWZYRM' } })
+	})
+
+	test('invalid down works as expected', () => {
+		const instance = {
+			props: {
+				url: 'https://example.com',
+				tmpOldUrl: '',
+			},
+		}
+		expect(down(instance)).toEqual({ props: { url: '' } })
+	})
 })
 
 describe('Adding isPen prop', () => {
-	const { up } = getTestMigration(drawShapeVersions.AddInPen)
+	const { up, down } = drawShapeMigrations.migrators[1]
 
 	test('up works as expected with a shape that is not a pen shape', () => {
 		expect(
@@ -306,10 +460,16 @@ describe('Adding isPen prop', () => {
 			},
 		})
 	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { isPen: false } })).toEqual({
+			props: {},
+		})
+	})
 })
 
 describe('Adding isLocked prop', () => {
-	const { up, down } = getTestMigration(rootShapeVersions.AddIsLocked)
+	const { up, down } = rootShapeMigrations.migrators[1]
 
 	test('up works as expected', () => {
 		expect(up({})).toEqual({ isLocked: false })
@@ -321,38 +481,55 @@ describe('Adding isLocked prop', () => {
 })
 
 describe('Adding labelColor prop to geo / arrow shapes', () => {
-	for (const [name, { up }] of [
-		['arrow shape', getTestMigration(arrowShapeVersions.AddLabelColor)],
-		['geo shape', getTestMigration(geoShapeVersions.AddLabelColor)],
+	for (const [name, { up, down }] of [
+		['arrow shape', arrowShapeMigrations.migrators[1]],
+		['geo shape', geoShapeMigrations.migrators[2]],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
 			expect(up({ props: { color: 'red' } })).toEqual({
 				props: { color: 'red', labelColor: 'black' },
 			})
 		})
+
+		test(`${name}: down works as expected`, () => {
+			expect(down({ props: { color: 'red', labelColor: 'blue' } })).toEqual({
+				props: { color: 'red' },
+			})
+		})
 	}
 })
 
 describe('Adding labelColor prop to propsForNextShape', () => {
-	const { up } = getTestMigration(instanceVersions.AddLabelColor)
+	const { up, down } = instanceMigrations.migrators[5]
 	test('up works as expected', () => {
 		expect(up({ propsForNextShape: { color: 'red' } })).toEqual({
 			propsForNextShape: { color: 'red', labelColor: 'black' },
 		})
 	})
+
+	test('down works as expected', () => {
+		expect(down({ propsForNextShape: { color: 'red', labelColor: 'blue' } })).toEqual({
+			propsForNextShape: { color: 'red' },
+		})
+	})
 })
 
 describe('Adding croppingShapeId to instancePageState', () => {
-	const { up } = getTestMigration(instancePageStateVersions.AddCroppingId)
+	const { up, down } = instancePageStateMigrations.migrators[1]
 	test('up works as expected', () => {
 		expect(up({})).toEqual({
 			croppingShapeId: null,
 		})
 	})
+
+	test('down works as expected', () => {
+		expect(down({ croppingShapeId: null })).toEqual({})
+	})
 })
 
 describe('Renaming properties in instancePageState', () => {
-	const { up, down } = getTestMigration(instancePageStateVersions.RenameProperties)
+	const { up, down } =
+		instancePageStateMigrations.migrators[instancePageStateVersions.RenameProperties]
 	test('up works as expected', () => {
 		expect(
 			up({
@@ -411,7 +588,8 @@ describe('Renaming properties in instancePageState', () => {
 })
 
 describe('Renaming properties again in instancePageState', () => {
-	const { up, down } = getTestMigration(instancePageStateVersions.RenamePropertiesAgain)
+	const { up, down } =
+		instancePageStateMigrations.migrators[instancePageStateVersions.RenamePropertiesAgain]
 	test('up works as expected', () => {
 		expect(
 			up({
@@ -470,14 +648,18 @@ describe('Renaming properties again in instancePageState', () => {
 })
 
 describe('Adding followingUserId prop to instance', () => {
-	const { up } = getTestMigration(instanceVersions.AddFollowingUserId)
+	const { up, down } = instanceMigrations.migrators[6]
 	test('up works as expected', () => {
 		expect(up({})).toEqual({ followingUserId: null })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ followingUserId: '123' })).toEqual({})
 	})
 })
 
 describe('Removing align=justify from propsForNextShape', () => {
-	const { up } = getTestMigration(instanceVersions.RemoveAlignJustify)
+	const { up, down } = instanceMigrations.migrators[7]
 	test('up works as expected', () => {
 		expect(up({ propsForNextShape: { color: 'black', align: 'justify' } })).toEqual({
 			propsForNextShape: { color: 'black', align: 'start' },
@@ -486,49 +668,83 @@ describe('Removing align=justify from propsForNextShape', () => {
 			propsForNextShape: { color: 'black', align: 'end' },
 		})
 	})
+
+	test('down works as expected', () => {
+		expect(down({ propsForNextShape: { color: 'black', align: 'end' } })).toEqual({
+			propsForNextShape: { color: 'black', align: 'end' },
+		})
+	})
 })
 
 describe('Adding zoomBrush prop to instance', () => {
-	const { up } = getTestMigration(instanceVersions.AddZoom)
+	const { up, down } = instanceMigrations.migrators[8]
 	test('up works as expected', () => {
 		expect(up({})).toEqual({ zoomBrush: null })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ zoomBrush: { x: 1, y: 2, w: 3, h: 4 } })).toEqual({})
 	})
 })
 
 describe('Removing align=justify from shape align props', () => {
-	for (const [name, { up }] of [
-		['text', getTestMigration(textShapeVersions.RemoveJustify)],
-		['note', getTestMigration(noteShapeVersions.RemoveJustify)],
-		['geo', getTestMigration(geoShapeVersions.RemoveJustify)],
+	for (const [name, { up, down }] of [
+		['text', textShapeMigrations.migrators[1]],
+		['note', noteShapeMigrations.migrators[2]],
+		['geo', geoShapeMigrations.migrators[3]],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
-			expect(up({ props: { align: 'justify' } })).toEqual({ props: { align: 'start' } })
-			expect(up({ props: { align: 'end' } })).toEqual({ props: { align: 'end' } })
+			expect(up({ props: { align: 'justify' } })).toEqual({
+				props: { align: 'start' },
+			})
+			expect(up({ props: { align: 'end' } })).toEqual({
+				props: { align: 'end' },
+			})
+		})
+
+		test(`${name}: down works as expected`, () => {
+			expect(down({ props: { align: 'start' } })).toEqual({
+				props: { align: 'start' },
+			})
 		})
 	}
 })
 
 describe('Add crop=null to image shapes', () => {
-	const { up, down } = getTestMigration(imageShapeVersions.AddCropProp)
+	const { up, down } = imageShapeMigrations.migrators[2]
 	test('up works as expected', () => {
-		expect(up({ props: { w: 100 } })).toEqual({ props: { w: 100, crop: null } })
+		expect(up({ props: { w: 100 } })).toEqual({
+			props: { w: 100, crop: null },
+		})
 	})
 
 	test('down works as expected', () => {
-		expect(down({ props: { w: 100, crop: null } })).toEqual({ props: { w: 100 } })
+		expect(down({ props: { w: 100, crop: null } })).toEqual({
+			props: { w: 100 },
+		})
 	})
 })
 
 describe('Adding instance_presence to the schema', () => {
-	const { up } = getTestMigration(storeVersions.AddInstancePresenceType)
+	const { up, down } = storeMigrations.migrators[storeVersions.AddInstancePresenceType]
 
 	test('up works as expected', () => {
 		expect(up({})).toEqual({})
 	})
+	test('down works as expected', () => {
+		expect(
+			down({
+				'instance_presence:123': { id: 'instance_presence:123', typeName: 'instance_presence' },
+				'instance:123': { id: 'instance:123', typeName: 'instance' },
+			})
+		).toEqual({
+			'instance:123': { id: 'instance:123', typeName: 'instance' },
+		})
+	})
 })
 
 describe('Adding name to document', () => {
-	const { up, down } = getTestMigration(documentVersions.AddName)
+	const { up, down } = documentMigrations.migrators[1]
 
 	test('up works as expected', () => {
 		expect(up({})).toEqual({ name: '' })
@@ -540,25 +756,34 @@ describe('Adding name to document', () => {
 })
 
 describe('Adding check-box to geo shape', () => {
-	const { up } = getTestMigration(geoShapeVersions.AddCheckBox)
+	const { up, down } = geoShapeMigrations.migrators[4]
 
 	test('up works as expected', () => {
 		expect(up({ props: { geo: 'rectangle' } })).toEqual({ props: { geo: 'rectangle' } })
 	})
+	test('down works as expected', () => {
+		expect(down({ props: { geo: 'rectangle' } })).toEqual({ props: { geo: 'rectangle' } })
+		expect(down({ props: { geo: 'check-box' } })).toEqual({ props: { geo: 'rectangle' } })
+	})
 })
 
 describe('Add verticalAlign to geo shape', () => {
-	const { up } = getTestMigration(geoShapeVersions.AddVerticalAlign)
+	const { up, down } = geoShapeMigrations.migrators[5]
 
 	test('up works as expected', () => {
 		expect(up({ props: { type: 'ellipse' } })).toEqual({
 			props: { type: 'ellipse', verticalAlign: 'middle' },
 		})
 	})
+	test('down works as expected', () => {
+		expect(down({ props: { verticalAlign: 'middle', type: 'ellipse' } })).toEqual({
+			props: { type: 'ellipse' },
+		})
+	})
 })
 
 describe('Add verticalAlign to props for next shape', () => {
-	const { up } = getTestMigration(instanceVersions.AddVerticalAlign)
+	const { up, down } = instanceMigrations.migrators[9]
 	test('up works as expected', () => {
 		expect(up({ propsForNextShape: { color: 'red' } })).toEqual({
 			propsForNextShape: {
@@ -567,40 +792,62 @@ describe('Add verticalAlign to props for next shape', () => {
 			},
 		})
 	})
+
+	test('down works as expected', () => {
+		const instance = { propsForNextShape: { color: 'red', verticalAlign: 'middle' } }
+		expect(down(instance)).toEqual({
+			propsForNextShape: {
+				color: 'red',
+			},
+		})
+	})
 })
 
 describe('Migrate GeoShape legacy horizontal alignment', () => {
-	const { up } = getTestMigration(geoShapeVersions.MigrateLegacyAlign)
+	const { up, down } = geoShapeMigrations.migrators[6]
 
 	test('up works as expected', () => {
 		expect(up({ props: { align: 'start', type: 'ellipse' } })).toEqual({
-			props: {
-				align: 'start-legacy',
-				type: 'ellipse',
-			},
+			props: { align: 'start-legacy', type: 'ellipse' },
 		})
 		expect(up({ props: { align: 'middle', type: 'ellipse' } })).toEqual({
-			props: {
-				align: 'middle-legacy',
-				type: 'ellipse',
-			},
+			props: { align: 'middle-legacy', type: 'ellipse' },
 		})
 		expect(up({ props: { align: 'end', type: 'ellipse' } })).toEqual({
 			props: { align: 'end-legacy', type: 'ellipse' },
 		})
 	})
+	test('down works as expected', () => {
+		expect(down({ props: { align: 'start-legacy', type: 'ellipse' } })).toEqual({
+			props: { align: 'start', type: 'ellipse' },
+		})
+		expect(down({ props: { align: 'middle-legacy', type: 'ellipse' } })).toEqual({
+			props: { align: 'middle', type: 'ellipse' },
+		})
+		expect(down({ props: { align: 'end-legacy', type: 'ellipse' } })).toEqual({
+			props: { align: 'end', type: 'ellipse' },
+		})
+	})
 })
 
 describe('adding cloud shape', () => {
-	const { up } = getTestMigration(geoShapeVersions.AddCloud)
+	const { up, down } = geoShapeMigrations.migrators[GeoShapeVersions.AddCloud]
 
 	test('up does nothing', () => {
-		expect(up({ props: { geo: 'rectangle' } })).toEqual({ props: { geo: 'rectangle' } })
+		expect(up({ props: { geo: 'rectangle' } })).toEqual({
+			props: { geo: 'rectangle' },
+		})
+	})
+
+	test('down converts clouds to rectangles', () => {
+		expect(down({ props: { geo: 'cloud' } })).toEqual({
+			props: { geo: 'rectangle' },
+		})
 	})
 })
 
 describe('Migrate NoteShape legacy horizontal alignment', () => {
-	const { up } = getTestMigration(noteShapeVersions.MigrateLegacyAlign)
+	const { up, down } = noteShapeMigrations.migrators[3]
 
 	test('up works as expected', () => {
 		expect(up({ props: { align: 'start', color: 'red' } })).toEqual({
@@ -613,10 +860,21 @@ describe('Migrate NoteShape legacy horizontal alignment', () => {
 			props: { align: 'end-legacy', color: 'red' },
 		})
 	})
+	test('down works as expected', () => {
+		expect(down({ props: { align: 'start-legacy', color: 'red' } })).toEqual({
+			props: { align: 'start', color: 'red' },
+		})
+		expect(down({ props: { align: 'middle-legacy', color: 'red' } })).toEqual({
+			props: { align: 'middle', color: 'red' },
+		})
+		expect(down({ props: { align: 'end-legacy', color: 'red' } })).toEqual({
+			props: { align: 'end', color: 'red' },
+		})
+	})
 })
 
 describe('Adds delay to scribble', () => {
-	const { up } = getTestMigration(instanceVersions.AddScribbleDelay)
+	const { up, down } = instanceMigrations.migrators[10]
 
 	test('up has no effect when scribble is null', () => {
 		expect(
@@ -648,10 +906,37 @@ describe('Adds delay to scribble', () => {
 			},
 		})
 	})
+
+	test('down has no effect when scribble is null', () => {
+		expect(down({ scribble: null })).toEqual({ scribble: null })
+	})
+
+	test('removes the delay property', () => {
+		expect(
+			down({
+				scribble: {
+					points: [{ x: 0, y: 0 }],
+					size: 4,
+					color: 'black',
+					opacity: 1,
+					state: 'starting',
+					delay: 0,
+				},
+			})
+		).toEqual({
+			scribble: {
+				points: [{ x: 0, y: 0 }],
+				size: 4,
+				color: 'black',
+				opacity: 1,
+				state: 'starting',
+			},
+		})
+	})
 })
 
 describe('Adds delay to scribble', () => {
-	const { up } = getTestMigration(instancePresenceVersions.AddScribbleDelay)
+	const { up, down } = instancePresenceMigrations.migrators[1]
 
 	test('up has no effect when scribble is null', () => {
 		expect(
@@ -680,6 +965,33 @@ describe('Adds delay to scribble', () => {
 				opacity: 1,
 				state: 'starting',
 				delay: 0,
+			},
+		})
+	})
+
+	test('down has no effect when scribble is null', () => {
+		expect(down({ scribble: null })).toEqual({ scribble: null })
+	})
+
+	test('removes the delay property', () => {
+		expect(
+			down({
+				scribble: {
+					points: [{ x: 0, y: 0 }],
+					size: 4,
+					color: 'black',
+					opacity: 1,
+					state: 'starting',
+					delay: 0,
+				},
+			})
+		).toEqual({
+			scribble: {
+				points: [{ x: 0, y: 0 }],
+				size: 4,
+				color: 'black',
+				opacity: 1,
+				state: 'starting',
 			},
 		})
 	})
@@ -687,7 +999,8 @@ describe('Adds delay to scribble', () => {
 
 describe('user config refactor', () => {
 	test('removes user and user_presence types from snapshots', () => {
-		const { up } = getTestMigration(storeVersions.RemoveTLUserAndPresenceAndAddPointer)
+		const { up, down } =
+			storeMigrations.migrators[storeVersions.RemoveTLUserAndPresenceAndAddPointer]
 
 		const prevSnapshot = {
 			'user:123': {
@@ -713,10 +1026,20 @@ describe('user config refactor', () => {
 
 		// up removes the user and user_presence types
 		expect(up(prevSnapshot)).toEqual(nextSnapshot)
+		// down cannot add them back so it should be a no-op
+		expect(
+			down({
+				...nextSnapshot,
+				'pointer:134': {
+					id: 'pointer:134',
+					typeName: 'pointer',
+				},
+			})
+		).toEqual(nextSnapshot)
 	})
 
 	test('removes userId from the instance state', () => {
-		const { up } = getTestMigration(instanceVersions.RemoveUserId)
+		const { up, down } = instanceMigrations.migrators[instanceVersions.RemoveUserId]
 
 		const prev = {
 			id: 'instance:123',
@@ -730,12 +1053,21 @@ describe('user config refactor', () => {
 		}
 
 		expect(up(prev)).toEqual(next)
+		// it cannot be added back so it should add some meaningless id in there
+		// in practice, because we bumped the store version, this down migrator will never be used
+		expect(down(next)).toMatchInlineSnapshot(`
+		{
+		  "id": "instance:123",
+		  "typeName": "instance",
+		  "userId": "user:none",
+		}
+	`)
 	})
 })
 
 describe('making instance state independent', () => {
 	it('adds isPenMode and isGridMode to instance state', () => {
-		const { up } = getTestMigration(instanceVersions.AddIsPenModeAndIsGridMode)
+		const { up, down } = instanceMigrations.migrators[instanceVersions.AddIsPenModeAndIsGridMode]
 
 		const prev = {
 			id: 'instance:123',
@@ -749,10 +1081,12 @@ describe('making instance state independent', () => {
 		}
 
 		expect(up(prev)).toEqual(next)
+		expect(down(next)).toEqual(prev)
 	})
 
 	it('removes instanceId and cameraId from instancePageState', () => {
-		const { up } = getTestMigration(instancePageStateVersions.RemoveInstanceIdAndCameraId)
+		const { up, down } =
+			instancePageStateMigrations.migrators[instancePageStateVersions.RemoveInstanceIdAndCameraId]
 
 		const prev = {
 			id: 'instance_page_state:123',
@@ -769,10 +1103,21 @@ describe('making instance state independent', () => {
 		}
 
 		expect(up(prev)).toEqual(next)
+		// down should never be called
+		expect(down(next)).toMatchInlineSnapshot(`
+		{
+		  "cameraId": "camera:void",
+		  "id": "instance_page_state:123",
+		  "instanceId": "instance:instance",
+		  "selectedShapeIds": [],
+		  "typeName": "instance_page_state",
+		}
+	`)
 	})
 
 	it('removes instanceId from instancePresence', () => {
-		const { up } = getTestMigration(instancePresenceVersions.RemoveInstanceId)
+		const { up, down } =
+			instancePresenceMigrations.migrators[instancePresenceVersions.RemoveInstanceId]
 
 		const prev = {
 			id: 'instance_presence:123',
@@ -788,10 +1133,20 @@ describe('making instance state independent', () => {
 		}
 
 		expect(up(prev)).toEqual(next)
+
+		// down should never be called
+		expect(down(next)).toMatchInlineSnapshot(`
+		{
+		  "id": "instance_presence:123",
+		  "instanceId": "instance:instance",
+		  "selectedShapeIds": [],
+		  "typeName": "instance_presence",
+		}
+	`)
 	})
 
 	it('removes userDocument from the schema', () => {
-		const { up } = getTestMigration(storeVersions.RemoveUserDocument)
+		const { up, down } = storeMigrations.migrators[storeVersions.RemoveUserDocument]
 
 		const prev = {
 			'user_document:123': {
@@ -812,22 +1167,28 @@ describe('making instance state independent', () => {
 		}
 
 		expect(up(prev)).toEqual(next)
+		expect(down(next)).toEqual(next)
 	})
 })
 
 describe('Adds NoteShape vertical alignment', () => {
-	const { up } = getTestMigration(noteShapeVersions.AddVerticalAlign)
+	const { up, down } = noteShapeMigrations.migrators[4]
 
 	test('up works as expected', () => {
 		expect(up({ props: { color: 'red' } })).toEqual({
-			props: { color: 'red', verticalAlign: 'middle' },
+			props: { verticalAlign: 'middle', color: 'red' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { verticalAlign: 'top', color: 'red' } })).toEqual({
+			props: { color: 'red' },
 		})
 	})
 })
 
 describe('hoist opacity', () => {
-	test('hoists opacity from props to the root of the shape', () => {
-		const { up, down } = getTestMigration(rootShapeVersions.HoistOpacity)
+	test('hoists opacity from a shape to another', () => {
+		const { up, down } = rootShapeMigrations.migrators[rootShapeVersions.HoistOpacity]
 		const before = {
 			type: 'myShape',
 			x: 0,
@@ -846,10 +1207,6 @@ describe('hoist opacity', () => {
 				color: 'red',
 			},
 		}
-
-		expect(up(before)).toEqual(after)
-		expect(down(after)).toEqual(before)
-
 		const afterWithNonMatchingOpacity = {
 			type: 'myShape',
 			x: 0,
@@ -860,11 +1217,13 @@ describe('hoist opacity', () => {
 			},
 		}
 
+		expect(up(before)).toEqual(after)
+		expect(down(after)).toEqual(before)
 		expect(down(afterWithNonMatchingOpacity)).toEqual(before)
 	})
 
 	test('hoists opacity from propsForNextShape', () => {
-		const { up } = getTestMigration(instanceVersions.HoistOpacity)
+		const { up, down } = instanceMigrations.migrators[instanceVersions.HoistOpacity]
 		const before = {
 			isToolLocked: true,
 			propsForNextShape: {
@@ -879,74 +1238,105 @@ describe('hoist opacity', () => {
 				color: 'black',
 			},
 		}
+		const afterWithNonMatchingOpacity = {
+			isToolLocked: true,
+			opacityForNextShape: 0.6,
+			propsForNextShape: {
+				color: 'black',
+			},
+		}
 
 		expect(up(before)).toEqual(after)
+		expect(down(after)).toEqual(before)
+		expect(down(afterWithNonMatchingOpacity)).toEqual(before)
 	})
 })
 
 describe('Adds highlightedUserIds to instance', () => {
-	const { up } = getTestMigration(instanceVersions.AddHighlightedUserIds)
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddHighlightedUserIds]
 
 	test('up works as expected', () => {
 		expect(up({})).toEqual({ highlightedUserIds: [] })
 	})
+
+	test('down works as expected', () => {
+		expect(down({ highlightedUserIds: [] })).toEqual({})
+	})
 })
 
 describe('Adds chat message to presence', () => {
-	const { up } = getTestMigration(instancePresenceVersions.AddChatMessage)
+	const { up, down } = instancePresenceMigrations.migrators[3]
 
 	test('up adds the chatMessage property', () => {
 		expect(up({})).toEqual({ chatMessage: '' })
 	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ chatMessage: '' })).toEqual({})
+	})
 })
 
 describe('Adds chat properties to instance', () => {
-	const { up } = getTestMigration(instanceVersions.AddChat)
+	const { up, down } = instanceMigrations.migrators[14]
 
 	test('up adds the chatMessage property', () => {
 		expect(up({})).toEqual({ chatMessage: '', isChatting: false })
 	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ chatMessage: '', isChatting: true })).toEqual({})
+	})
 })
 
 describe('Removes does resize from embed', () => {
-	const { up } = getTestMigration(embedShapeVersions.RemoveDoesResize)
+	const { up, down } = embedShapeMigrations.migrators[2]
 	test('up works as expected', () => {
 		expect(up({ props: { url: 'https://tldraw.com', doesResize: true } })).toEqual({
-			props: {
-				url: 'https://tldraw.com',
-			},
+			props: { url: 'https://tldraw.com' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { url: 'https://tldraw.com' } })).toEqual({
+			props: { url: 'https://tldraw.com', doesResize: true },
 		})
 	})
 })
 
 describe('Removes tmpOldUrl from embed', () => {
-	const { up } = getTestMigration(embedShapeVersions.RemoveTmpOldUrl)
+	const { up, down } = embedShapeMigrations.migrators[3]
 	test('up works as expected', () => {
 		expect(up({ props: { url: 'https://tldraw.com', tmpOldUrl: 'https://tldraw.com' } })).toEqual({
-			props: {
-				url: 'https://tldraw.com',
-			},
+			props: { url: 'https://tldraw.com' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { url: 'https://tldraw.com' } })).toEqual({
+			props: { url: 'https://tldraw.com' },
 		})
 	})
 })
 
 describe('Removes overridePermissions from embed', () => {
-	const { up } = getTestMigration(embedShapeVersions.RemovePermissionOverrides)
+	const { up, down } = embedShapeMigrations.migrators[4]
 
 	test('up works as expected', () => {
 		expect(
 			up({ props: { url: 'https://tldraw.com', overridePermissions: { display: 'maybe' } } })
 		).toEqual({
-			props: {
-				url: 'https://tldraw.com',
-			},
+			props: { url: 'https://tldraw.com' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { url: 'https://tldraw.com' } })).toEqual({
+			props: { url: 'https://tldraw.com' },
 		})
 	})
 })
 
 describe('propsForNextShape -> stylesForNextShape', () => {
 	test('deletes propsForNextShape and adds stylesForNextShape without trying to bring across contents', () => {
-		const { up } = getTestMigration(instanceVersions.ReplacePropsForNextShapeWithStylesForNextShape)
+		const { up, down } =
+			instanceMigrations.migrators[instanceVersions.ReplacePropsForNextShapeWithStylesForNextShape]
 		const beforeUp = {
 			isToolLocked: true,
 			propsForNextShape: {
@@ -958,33 +1348,56 @@ describe('propsForNextShape -> stylesForNextShape', () => {
 			isToolLocked: true,
 			stylesForNextShape: {},
 		}
+		const afterDown = {
+			isToolLocked: true,
+			propsForNextShape: {
+				color: 'black',
+				labelColor: 'black',
+				dash: 'draw',
+				fill: 'none',
+				size: 'm',
+				icon: 'file',
+				font: 'draw',
+				align: 'middle',
+				verticalAlign: 'middle',
+				geo: 'rectangle',
+				arrowheadStart: 'none',
+				arrowheadEnd: 'arrow',
+				spline: 'line',
+			},
+		}
 
 		expect(up(beforeUp)).toEqual(afterUp)
+		expect(down(afterUp)).toEqual(afterDown)
 	})
 })
 
 describe('adds meta ', () => {
 	const metaMigrations = [
-		getTestMigration(assetVersions.AddMeta),
-		getTestMigration(cameraVersions.AddMeta),
-		getTestMigration(documentVersions.AddMeta),
-		getTestMigration(instanceVersions.AddMeta),
-		getTestMigration(instancePageStateVersions.AddMeta),
-		getTestMigration(instancePresenceVersions.AddMeta),
-		getTestMigration(pageVersions.AddMeta),
-		getTestMigration(pointerVersions.AddMeta),
-		getTestMigration(rootShapeVersions.AddMeta),
+		assetMigrations.migrators[assetVersions.AddMeta],
+		cameraMigrations.migrators[cameraVersions.AddMeta],
+		documentMigrations.migrators[documentVersions.AddMeta],
+		instanceMigrations.migrators[instanceVersions.AddMeta],
+		instancePageStateMigrations.migrators[instancePageStateVersions.AddMeta],
+		instancePresenceMigrations.migrators[instancePresenceVersions.AddMeta],
+		pageMigrations.migrators[pageVersions.AddMeta],
+		pointerMigrations.migrators[pointerVersions.AddMeta],
+		rootShapeMigrations.migrators[rootShapeVersions.AddMeta],
 	]
 
-	for (const { up, id } of metaMigrations) {
-		test('up works as expected for ' + id, () => {
-			expect(up({})).toEqual({ meta: {} })
+	for (const { up, down } of metaMigrations) {
+		test('up works as expected', () => {
+			expect(up({})).toStrictEqual({ meta: {} })
+		})
+
+		test('down works as expected', () => {
+			expect(down({ meta: {} })).toStrictEqual({})
 		})
 	}
 })
 
 describe('removes cursor color', () => {
-	const { up } = getTestMigration(instanceVersions.RemoveCursorColor)
+	const { up, down } = instanceMigrations.migrators[instanceVersions.RemoveCursorColor]
 
 	test('up works as expected', () => {
 		expect(
@@ -995,20 +1408,37 @@ describe('removes cursor color', () => {
 					color: 'black',
 				},
 			})
-		).toEqual({
+		).toStrictEqual({
 			cursor: {
 				type: 'default',
 				rotation: 0.1,
 			},
 		})
 	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				cursor: {
+					type: 'default',
+					rotation: 0.1,
+				},
+			})
+		).toStrictEqual({
+			cursor: {
+				type: 'default',
+				rotation: 0.1,
+				color: 'black',
+			},
+		})
+	})
 })
 
 describe('adds lonely properties', () => {
-	const { up } = getTestMigration(instanceVersions.AddLonelyProperties)
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddLonelyProperties]
 
 	test('up works as expected', () => {
-		expect(up({})).toEqual({
+		expect(up({})).toStrictEqual({
 			canMoveCamera: true,
 			isFocused: false,
 			devicePixelRatio: 1,
@@ -1018,28 +1448,53 @@ describe('adds lonely properties', () => {
 			isReadOnly: false,
 		})
 	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				canMoveCamera: true,
+				isFocused: false,
+				devicePixelRatio: 1,
+				isCoarsePointer: false,
+				openMenus: [],
+				isChangingStyle: false,
+				isReadOnly: false,
+			})
+		).toStrictEqual({})
+	})
 })
 
 describe('rename isReadOnly to isReadonly', () => {
-	const { up } = getTestMigration(instanceVersions.ReadOnlyReadonly)
+	const { up, down } = instanceMigrations.migrators[instanceVersions.ReadOnlyReadonly]
 
 	test('up works as expected', () => {
-		expect(up({ isReadOnly: false })).toEqual({
+		expect(up({ isReadOnly: false })).toStrictEqual({
 			isReadonly: false,
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(down({ isReadonly: false })).toStrictEqual({
+			isReadOnly: false,
 		})
 	})
 })
 
 describe('Renames selectedShapeIds in presence', () => {
-	const { up } = getTestMigration(instancePresenceVersions.RenameSelectedShapeIds)
+	const { up, down } =
+		instancePresenceMigrations.migrators[instancePresenceVersions.RenameSelectedShapeIds]
 
 	test('up adds the chatMessage property', () => {
 		expect(up({ selectedShapeIds: [] })).toEqual({ selectedShapeIds: [] })
 	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ selectedShapeIds: [] })).toEqual({ selectedShapeIds: [] })
+	})
 })
 
 describe('Adding canSnap to line handles', () => {
-	const { up } = getTestMigration(lineShapeVersions.AddSnapHandles)
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.AddSnapHandles]
 
 	test(`up works as expected`, () => {
 		expect(
@@ -1090,18 +1545,72 @@ describe('Adding canSnap to line handles', () => {
 			},
 		})
 	})
+
+	test(`down works as expected`, () => {
+		expect(
+			down({
+				props: {
+					handles: {
+						start: {
+							id: 'start',
+							type: 'vertex',
+							canBind: false,
+							canSnap: true,
+							index: 'a1',
+							x: 0,
+							y: 0,
+						},
+						end: {
+							id: 'end',
+							type: 'vertex',
+							canBind: false,
+							canSnap: true,
+							index: 'a2',
+							x: 100.66015625,
+							y: -22.07421875,
+						},
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				handles: {
+					start: {
+						id: 'start',
+						type: 'vertex',
+						canBind: false,
+						index: 'a1',
+						x: 0,
+						y: 0,
+					},
+					end: {
+						id: 'end',
+						type: 'vertex',
+						canBind: false,
+						index: 'a2',
+						x: 100.66015625,
+						y: -22.07421875,
+					},
+				},
+			},
+		})
+	})
 })
 
 describe('add isHoveringCanvas to TLInstance', () => {
-	const { up } = getTestMigration(instanceVersions.AddHoveringCanvas)
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddHoveringCanvas]
 
 	test('up works as expected', () => {
 		expect(up({})).toEqual({ isHoveringCanvas: null })
 	})
+
+	test('down works as expected', () => {
+		expect(down({ isHoveringCanvas: null })).toEqual({})
+	})
 })
 
 describe('add isInset to TLInstance', () => {
-	const { up, down } = getTestMigration(instanceVersions.AddInset)
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddInset]
 
 	test('up works as expected', () => {
 		expect(up({})).toEqual({ insets: [false, false, false, false] })
@@ -1113,7 +1622,7 @@ describe('add isInset to TLInstance', () => {
 })
 
 describe('add scribbles to TLInstance', () => {
-	const { up } = getTestMigration(instanceVersions.AddScribbles)
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddScribbles]
 
 	test('up works as expected', () => {
 		expect(
@@ -1122,10 +1631,14 @@ describe('add scribbles to TLInstance', () => {
 			})
 		).toEqual({ scribbles: [] })
 	})
+
+	test('down works as expected', () => {
+		expect(down({ scribbles: [] })).toEqual({ scribble: null })
+	})
 })
 
 describe('add isPrecise to arrow handles', () => {
-	const { up, down } = getTestMigration(arrowShapeVersions.AddIsPrecise)
+	const { up, down } = arrowShapeMigrations.migrators[ArrowMigrationVersions.AddIsPrecise]
 
 	test('up works as expected', () => {
 		expect(
@@ -1260,10 +1773,16 @@ describe('add isPrecise to arrow handles', () => {
 })
 
 describe('add AddLabelPosition to arrow handles', () => {
-	const { up, down } = getTestMigration(arrowShapeVersions.AddLabelPosition)
+	const { up, down } = arrowShapeMigrations.migrators[ArrowMigrationVersions.AddLabelPosition]
 
 	test('up works as expected', () => {
-		expect(up({ props: {} })).toEqual({ props: { labelPosition: 0.5 } })
+		expect(
+			up({
+				props: {},
+			})
+		).toEqual({
+			props: { labelPosition: 0.5 },
+		})
 	})
 
 	test('down works as expected', () => {
@@ -1273,7 +1792,9 @@ describe('add AddLabelPosition to arrow handles', () => {
 					labelPosition: 0.5,
 				},
 			})
-		).toEqual({ props: {} })
+		).toEqual({
+			props: {},
+		})
 	})
 })
 
@@ -1282,11 +1803,11 @@ const validUrl = ''
 
 describe('Make urls valid for all the shapes', () => {
 	const migrations = [
-		['bookmark shape', getTestMigration(bookmarkShapeVersions.MakeUrlsValid)],
-		['geo shape', getTestMigration(geoShapeVersions.MakeUrlsValid)],
-		['image shape', getTestMigration(imageShapeVersions.MakeUrlsValid)],
-		['note shape', getTestMigration(noteShapeVersions.MakeUrlsValid)],
-		['video shape', getTestMigration(videoShapeVersions.MakeUrlsValid)],
+		['bookmark shape', bookmarkShapeMigrations.migrators[2]],
+		['geo shape', geoShapeMigrations.migrators[8]],
+		['image shape', imageShapeMigrations.migrators[3]],
+		['note shape', noteShapeMigrations.migrators[5]],
+		['video shape', videoShapeMigrations.migrators[2]],
 	] as const
 
 	for (const [shapeName, { up, down }] of migrations) {
@@ -1300,9 +1821,9 @@ describe('Make urls valid for all the shapes', () => {
 
 describe('Make urls valid for all the assets', () => {
 	const migrations = [
-		['bookmark asset', getTestMigration(bookmarkAssetVersions.MakeUrlsValid)],
-		['image asset', getTestMigration(imageAssetVersions.MakeUrlsValid)],
-		['video asset', getTestMigration(videoAssetVersions.MakeUrlsValid)],
+		['bookmark asset', bookmarkAssetMigrations.migrators[1]],
+		['image asset', imageAssetMigrations.migrators[3]],
+		['video asset', videoAssetMigrations.migrators[3]],
 	] as const
 
 	for (const [assetName, { up, down }] of migrations) {
@@ -1315,7 +1836,7 @@ describe('Make urls valid for all the assets', () => {
 })
 
 describe('Add duplicate props to instance', () => {
-	const { up, down } = getTestMigration(instanceVersions.AddDuplicateProps)
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddDuplicateProps]
 	it('up works as expected', () => {
 		expect(up({})).toEqual({ duplicateProps: null })
 	})
@@ -1325,7 +1846,7 @@ describe('Add duplicate props to instance', () => {
 })
 
 describe('Remove extra handle props', () => {
-	const { up, down } = getTestMigration(lineShapeVersions.RemoveExtraHandleProps)
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.RemoveExtraHandleProps]
 	it('up works as expected', () => {
 		expect(
 			up({
@@ -1418,7 +1939,7 @@ describe('Remove extra handle props', () => {
 })
 
 describe('Restore some handle props', () => {
-	const { up, down } = getTestMigration(lineShapeVersions.HandlesToPoints)
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.HandlesToPoints]
 	it('up works as expected', () => {
 		expect(
 			up({
@@ -1464,7 +1985,7 @@ describe('Restore some handle props', () => {
 })
 
 describe('Fractional indexing for line points', () => {
-	const { up, down } = getTestMigration(lineShapeVersions.PointIndexIds)
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.PointIndexIds]
 	it('up works as expected', () => {
 		expect(
 			up({
@@ -1509,68 +2030,11 @@ describe('Fractional indexing for line points', () => {
 	})
 })
 
-describe('add white', () => {
-	const { up, down } = getTestMigration(rootShapeVersions.AddWhite)
-
-	test('up works as expected', () => {
-		expect(
-			up({
-				props: {},
-			})
-		).toEqual({
-			props: {},
-		})
-	})
-
-	test('down works as expected', () => {
-		expect(
-			down({
-				props: {
-					color: 'white',
-				},
-			})
-		).toEqual({
-			props: {
-				color: 'black',
-			},
-		})
-	})
-})
-
-describe('Add font size adjustment to notes', () => {
-	const { up, down } = getTestMigration(noteShapeVersions.AddFontSizeAdjustment)
-
-	test('up works as expected', () => {
-		expect(up({ props: {} })).toEqual({ props: { fontSizeAdjustment: 0 } })
-	})
-
-	test('down works as expected', () => {
-		expect(down({ props: { fontSizeAdjustment: 0 } })).toEqual({ props: {} })
-	})
-})
-
-describe('Add text align to text shapes', () => {
-	const { up, down } = getTestMigration(textShapeVersions.AddTextAlign)
-
-	test('up works as expected', () => {
-		expect(up({ props: { align: 'middle' } })).toEqual({ props: { textAlign: 'middle' } })
-	})
-
-	test('down works as expected', () => {
-		expect(down({ props: { textAlign: 'middle' } })).toEqual({ props: { align: 'middle' } })
-	})
-})
-
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
-// check that all migrator fns were called at least once
-describe('all migrator fns were called at least once', () => {
-	for (const migration of testSchema.sortedMigrations) {
-		it(`migration ${migration.id}`, () => {
-			expect((migration as any).up).toHaveBeenCalled()
-			if (typeof migration.down === 'function') {
-				expect((migration as any).down).toHaveBeenCalled()
-			}
-		})
-	}
-})
+for (const migrator of allMigrators) {
+	test(`[${migrator.fileName} v${migrator.version}] up and down migrations have both been tested`, () => {
+		expect(migrator.up).toHaveBeenCalled()
+		expect(migrator.down).toHaveBeenCalled()
+	})
+}

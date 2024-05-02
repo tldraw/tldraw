@@ -24,10 +24,5 @@
 		".next/types/**/*.ts",
 		"watcher.ts"
 	],
-	"exclude": ["node_modules", ".next"],
-	"references": [
-		{
-			"path": "../../packages/utils"
-		}
-	]
+	"exclude": ["node_modules", ".next"]
 }

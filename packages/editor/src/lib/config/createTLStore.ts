@@ -1,4 +1,4 @@
-import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
+import { HistoryEntry, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import {
 	SchemaShapeInfo,
 	TLRecord,
@@ -14,9 +14,8 @@ import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShape
 export type TLStoreOptions = {
 	initialData?: SerializedStore<TLRecord>
 	defaultName?: string
-	id?: string
 } & (
-	| { shapeUtils?: readonly TLAnyShapeUtilConstructor[]; migrations?: readonly MigrationSequence[] }
+	| { shapeUtils?: readonly TLAnyShapeUtilConstructor[] }
 	| { schema?: StoreSchema<TLRecord, TLStoreProps> }
 )
 
@@ -29,12 +28,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>
  * @param opts - Options for creating the store.
  *
  * @public */
-export function createTLStore({
-	initialData,
-	defaultName = '',
-	id,
-	...rest
-}: TLStoreOptions): TLStore {
+export function createTLStore({ initialData, defaultName = '', ...rest }: TLStoreOptions): TLStore {
 	const schema =
 		'schema' in rest && rest.schema
 			? // we have a schema
@@ -44,11 +38,9 @@ export function createTLStore({
 					shapes: currentPageShapesToShapeMap(
 						checkShapesAndAddCore('shapeUtils' in rest && rest.shapeUtils ? rest.shapeUtils : [])
 					),
-					migrations: 'migrations' in rest ? rest.migrations : [],
 				})
 
 	return new Store({
-		id,
 		schema,
 		initialData,
 		props: {

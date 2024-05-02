@@ -112,7 +112,6 @@ test.describe('Shape Tools', () => {
 
 			// Click on the page
 			await page.mouse.click(200, 200)
-			await page.waitForTimeout(20)
 
 			// We should have a corresponding shape in the page
 			expect(await getAllShapeTypes(page)).toEqual([shape])
@@ -120,7 +119,6 @@ test.describe('Shape Tools', () => {
 			// Reset for next time
 			await page.mouse.click(50, 50) // to ensure we're not focused
 			await page.keyboard.press('v') // go to the select tool
-			await page.waitForTimeout(20)
 			await page.keyboard.press('Control+a')
 			await page.keyboard.press('Backspace')
 		}
@@ -158,7 +156,6 @@ test.describe('Shape Tools', () => {
 			// Reset for next time
 			await page.mouse.click(50, 50) // to ensure we're not focused
 			await page.keyboard.press('v')
-			await page.waitForTimeout(20)
 			await page.keyboard.press('Control+a')
 			await page.keyboard.press('Backspace')
 		}

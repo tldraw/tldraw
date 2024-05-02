@@ -13,6 +13,3 @@ document.fonts = {
 	forEach: () => {},
 	[Symbol.iterator]: () => [][Symbol.iterator](),
 }
-
-global.TextEncoder = require('util').TextEncoder
-global.TextDecoder = require('util').TextDecoder

@@ -1,4 +1,3 @@
-import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
@@ -19,6 +18,7 @@ import {
 	TldrawUiMenuItem,
 	ViewSubmenu,
 	atom,
+	lns,
 	useActions,
 	useValue,
 } from 'tldraw'
@@ -104,17 +104,19 @@ const components: TLComponents = {
 }
 
 export function MultiplayerEditor({
-	roomOpenMode,
+	isReadOnly,
 	roomSlug,
 }: {
-	roomOpenMode: RoomOpenMode
+	isReadOnly: boolean
 	roomSlug: string
 }) {
 	const handleUiEvent = useHandleUiEvents()
 
+	const roomId = isReadOnly ? lns(roomSlug) : roomSlug
+
 	const storeWithStatus = useRemoteSyncClient({
-		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
-		roomId: roomSlug,
+		uri: `${MULTIPLAYER_SERVER}/r/${roomId}`,
+		roomId,
 	})
 
 	const isOffline =
@@ -126,22 +128,16 @@ export function MultiplayerEditor({
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const cursorChatOverrides = useCursorChat()
-	const isReadonly =
-		roomOpenMode === ROOM_OPEN_MODE.READ_ONLY || roomOpenMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
-			if (!isReadonly) {
-				;(window as any).app = editor
-				;(window as any).editor = editor
-			}
-			editor.updateInstanceState({
-				isReadonly,
-			})
+			;(window as any).app = editor
+			;(window as any).editor = editor
+			editor.updateInstanceState({ isReadonly: isReadOnly })
 			editor.registerExternalAssetHandler('file', createAssetFromFile)
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 		},
-		[isReadonly]
+		[isReadOnly]
 	)
 
 	if (storeWithStatus.error) {
@@ -155,7 +151,7 @@ export function MultiplayerEditor({
 				assetUrls={assetUrls}
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides, cursorChatOverrides]}
-				initialState={isReadonly ? 'hand' : 'select'}
+				initialState={isReadOnly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
 				autoFocus

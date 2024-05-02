@@ -1,4 +1,31 @@
-import { Vec, VecLike, precise, rng } from '@tldraw/editor'
+import { Vec, VecLike, toDomPrecision } from '@tldraw/editor'
+
+function precise(A: VecLike) {
+	return `${toDomPrecision(A.x)},${toDomPrecision(A.y)} `
+}
+
+function rng(seed = '') {
+	let x = 0
+	let y = 0
+	let z = 0
+	let w = 0
+
+	function next() {
+		const t = x ^ (x << 11)
+		x = y
+		y = z
+		z = w
+		w ^= ((w >>> 19) ^ t ^ (t >>> 8)) >>> 0
+		return (w / 0x100000000) * 2
+	}
+
+	for (let k = 0; k < seed.length + 64; k++) {
+		x ^= seed.charCodeAt(k) | 0
+		next()
+	}
+
+	return next
+}
 
 /** @public */
 export function getRoundedInkyPolygonPath(points: VecLike[]) {

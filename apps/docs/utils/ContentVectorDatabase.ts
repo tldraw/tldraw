@@ -210,7 +210,7 @@ export async function getVectorDb(
 
 	if (opts.updateContent || opts.rebuildIndex) {
 		nicelog(`Rebuilding index`)
-		const db = await connect({ reset: false, mode: 'readonly' })
+		const db = await connect({ reset: false })
 
 		nicelog(`Getting articles`)
 		const articles =

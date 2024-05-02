@@ -13,7 +13,6 @@ import {
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultSizeStyle,
-	TLDefaultTextAlignStyle,
 	TLDrawShape,
 	TLGeoShape,
 	TLImageShape,
@@ -437,7 +436,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 										color: getV2Color(v1Shape.style.color),
 										size: getV2TextSize(v1Shape.style.size),
 										font: getV2Font(v1Shape.style.font),
-										textAlign: getV2TextAlign(v1Shape.style.textAlign),
+										align: getV2Align(v1Shape.style.textAlign),
 										scale: v1Shape.style.scale ?? 1,
 									},
 								},
@@ -1107,13 +1106,6 @@ const v1AlignsToV2Aligns: Record<AlignStyle, TLDefaultHorizontalAlignStyle> = {
 	[AlignStyle.Justify]: 'start',
 }
 
-const v1TextAlignsToV2TextAligns: Record<AlignStyle, TLDefaultTextAlignStyle> = {
-	[AlignStyle.Start]: 'start',
-	[AlignStyle.Middle]: 'middle',
-	[AlignStyle.End]: 'end',
-	[AlignStyle.Justify]: 'start',
-}
-
 const v1TextSizesToV2TextSizes: Record<SizeStyle, TLDefaultSizeStyle> = {
 	[SizeStyle.Small]: 's',
 	[SizeStyle.Medium]: 'l',
@@ -1143,10 +1135,6 @@ function getV2Font(font: FontStyle | undefined): TLDefaultFontStyle {
 
 function getV2Align(align: AlignStyle | undefined): TLDefaultHorizontalAlignStyle {
 	return align ? v1AlignsToV2Aligns[align] ?? 'middle' : 'middle'
-}
-
-function getV2TextAlign(align: AlignStyle | undefined): TLDefaultTextAlignStyle {
-	return align ? v1TextAlignsToV2TextAligns[align] ?? 'middle' : 'middle'
 }
 
 function getV2TextSize(size: SizeStyle | undefined): TLDefaultSizeStyle {

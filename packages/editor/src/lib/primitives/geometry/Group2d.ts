@@ -30,8 +30,8 @@ export class Group2d extends Geometry2d {
 	}
 
 	override nearestPoint(point: Vec): Vec {
-		let dist = Infinity
-		let nearest: Vec | undefined
+		let d = Infinity
+		let p: Vec | undefined
 
 		const { children } = this
 
@@ -39,18 +39,16 @@ export class Group2d extends Geometry2d {
 			throw Error('no children')
 		}
 
-		let p: Vec
-		let d: number
 		for (const child of children) {
-			p = child.nearestPoint(point)
-			d = Vec.Dist2(p, point)
-			if (d < dist) {
-				dist = d
-				nearest = p
+			const nearest = child.nearestPoint(point)
+			const dist = nearest.dist(point)
+			if (dist < d) {
+				d = dist
+				p = nearest
 			}
 		}
-		if (!nearest) throw Error('nearest point not found')
-		return nearest
+		if (!p) throw Error('nearest point not found')
+		return p
 	}
 
 	override distanceToPoint(point: Vec, hitInside = false) {

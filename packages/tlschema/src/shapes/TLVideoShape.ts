@@ -1,10 +1,6 @@
+import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import {
-	RETIRED_DOWN_MIGRATION,
-	createShapePropsMigrationIds,
-	createShapePropsMigrationSequence,
-} from '../records/TLShape'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
@@ -23,33 +19,33 @@ export type TLVideoShapeProps = ShapePropsType<typeof videoShapeProps>
 /** @public */
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
 
-const Versions = createShapePropsMigrationIds('video', {
+const Versions = {
 	AddUrlProp: 1,
 	MakeUrlsValid: 2,
-})
+} as const
 
-export { Versions as videoShapeVersions }
-
-/** @public */
-export const videoShapeMigrations = createShapePropsMigrationSequence({
-	sequence: [
-		{
-			id: Versions.AddUrlProp,
-			up: (props) => {
-				props.url = ''
+/** @internal */
+export const videoShapeMigrations = defineMigrations({
+	currentVersion: Versions.MakeUrlsValid,
+	migrators: {
+		[Versions.AddUrlProp]: {
+			up: (shape) => {
+				return { ...shape, props: { ...shape.props, url: '' } }
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: (shape) => {
+				const { url: _, ...props } = shape.props
+				return { ...shape, props }
+			},
 		},
-		{
-			id: Versions.MakeUrlsValid,
-			up: (props) => {
-				if (!T.linkUrl.isValid(props.url)) {
-					props.url = ''
+		[Versions.MakeUrlsValid]: {
+			up: (shape) => {
+				const url = shape.props.url
+				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
+					return { ...shape, props: { ...shape.props, url: '' } }
 				}
+				return shape
 			},
-			down: (_props) => {
-				// noop
-			},
+			down: (shape) => shape,
 		},
-	],
+	},
 })

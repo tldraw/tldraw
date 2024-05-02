@@ -1,37 +1,37 @@
-import { ReactNode, useEffect } from 'react'
+import { ReactNode, useEffect, useState, version } from 'react'
+import { LoadingScreen } from 'tldraw'
 import { useUrl } from '../hooks/useUrl'
-import { getParentOrigin, isInIframe } from '../utils/iFrame'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 
-export const ROOM_CONTEXT = {
-	PUBLIC_MULTIPLAYER: 'public-multiplayer',
-	PUBLIC_READONLY: 'public-readonly',
-	PUBLIC_SNAPSHOT: 'public-snapshot',
-	HISTORY_SNAPSHOT: 'history-snapshot',
-	HISTORY: 'history',
-	LOCAL: 'local',
-} as const
-type $ROOM_CONTEXT = (typeof ROOM_CONTEXT)[keyof typeof ROOM_CONTEXT]
+/*
+If we're in an iframe, we need to figure out whether we're on a whitelisted host (e.g. tldraw itself)
+or a not-allowed host (e.g. someone else's website). Some websites embed tldraw in iframes and this is kinda
+risky for us and for them, too—and hey, if we decide to offer a hosted thing, then that's another stor
 
-const EMBEDDED_STATE = {
-	IFRAME_OK: 'iframe-ok',
-	IFRAME_NOT_ALLOWED: 'iframe-not-allowed',
-	NOT_IFRAME: 'not-iframe',
-} as const
+Figuring this out is a little tricky because the same code here is going to run on:
+- the website as a top window (tldraw-top)
+- the website in an iframe  (tldraw-iframe)
 
-// Which routes do we allow to be embedded
-const WHITELIST_CONTEXT: $ROOM_CONTEXT[] = [
-	ROOM_CONTEXT.PUBLIC_MULTIPLAYER,
-	ROOM_CONTEXT.PUBLIC_READONLY,
-	ROOM_CONTEXT.PUBLIC_SNAPSHOT,
-]
+We set a listener on the current window (which may be top or not) to listen for a "are-we-cool" message,
+which responds "yes" with the current library version.
 
-function getEmbeddedState(context: $ROOM_CONTEXT) {
-	if (!isInIframe()) return EMBEDDED_STATE.NOT_IFRAME
+If we detect that we're in an iframe (i.e. that our window is not the top window) then we send this 
+"are-we-cool" message to the parent window. If we get back the "yes" + version message, then that means
+the iframe is embedded inside of another tldraw window, and so we can show the contents of the iframe.
 
-	return WHITELIST_CONTEXT.includes(context)
-		? EMBEDDED_STATE.IFRAME_OK
-		: EMBEDDED_STATE.IFRAME_NOT_ALLOWED
+If we don't get a message back in time, then that means the iframe is embedded in a not-allowed website, 
+and we should show an annoying messsage.
+
+If we're not in an iframe, we don't need to do anything.
+*/
+
+// Which routes do we allow to be embedded in tldraw.com itself?
+const WHITELIST_CONTEXT = ['public-multiplayer', 'public-readonly', 'public-snapshot']
+const EXPECTED_QUESTION = 'are we cool?'
+const EXPECTED_RESPONSE = 'yes' + version
+
+const isInIframe = () => {
+	return typeof window !== 'undefined' && (window !== window.top || window.self !== window.parent)
 }
 
 export function IFrameProtector({
@@ -40,30 +40,80 @@ export function IFrameProtector({
 	children,
 }: {
 	slug: string
-	context: $ROOM_CONTEXT
+	context:
+		| 'public-multiplayer'
+		| 'public-readonly'
+		| 'public-snapshot'
+		| 'history-snapshot'
+		| 'history'
+		| 'local'
 	children: ReactNode
 }) {
-	const embeddedState = getEmbeddedState(context)
+	const [embeddedState, setEmbeddedState] = useState<
+		'iframe-unknown' | 'iframe-not-allowed' | 'not-iframe' | 'iframe-ok'
+	>(isInIframe() ? 'iframe-unknown' : 'not-iframe')
 
 	const url = useUrl()
 
 	useEffect(() => {
-		if (embeddedState === EMBEDDED_STATE.IFRAME_NOT_ALLOWED) {
-			trackAnalyticsEvent('connect_to_room_in_iframe', {
-				slug,
-				context,
-				origin: getParentOrigin(),
-			})
+		if (typeof window === 'undefined') {
+			return
+		}
+
+		let timeout: any | undefined
+
+		function handleMessageEvent(event: MessageEvent) {
+			if (!event.source) return
+
+			if (event.data === EXPECTED_QUESTION) {
+				if (!isInIframe()) {
+					// If _we're_ in an iframe, then we don't want to show a nested
+					// iframe, even if we're on a whitelisted host / context
+					event.source.postMessage(EXPECTED_RESPONSE)
+				}
+			}
+
+			if (event.data === EXPECTED_RESPONSE) {
+				// todo: check the origin?
+				setEmbeddedState('iframe-ok')
+				clearTimeout(timeout)
+			}
+		}
+
+		window.addEventListener('message', handleMessageEvent, false)
+
+		if (embeddedState === 'iframe-unknown') {
+			// We iframe embeddings on multiplayer or readonly
+			if (WHITELIST_CONTEXT.includes(context)) {
+				window.parent.postMessage(EXPECTED_QUESTION, '*') // todo: send to a specific origin?
+				timeout = setTimeout(() => {
+					setEmbeddedState('iframe-not-allowed')
+					trackAnalyticsEvent('connect_to_room_in_iframe', { slug, context })
+				}, 1000)
+			} else {
+				// We don't allow iframe embeddings on other routes
+				setEmbeddedState('iframe-not-allowed')
+			}
+		}
+
+		return () => {
+			clearTimeout(timeout)
+			window.removeEventListener('message', handleMessageEvent)
 		}
 	}, [embeddedState, slug, context])
 
-	if (embeddedState === EMBEDDED_STATE.IFRAME_NOT_ALLOWED) {
+	if (embeddedState === 'iframe-unknown') {
+		// We're in an iframe, but we don't know if it's a tldraw iframe
+		return <LoadingScreen>Loading in an iframe...</LoadingScreen>
+	}
+
+	if (embeddedState === 'iframe-not-allowed') {
 		// We're in an iframe and its not one of ours
 		return (
 			<div className="tldraw__editor tl-container">
 				<div className="iframe-warning__container">
 					<a className="iframe-warning__link" href={url} target="_blank">
-						{'Visit this page on tldraw.com'}
+						{'Visit this page on tldraw.com '}
 						<svg
 							width="15"
 							height="15"
