@@ -25,9 +25,19 @@ export function DefaultMinimap() {
 	const minimapRef = React.useRef<MinimapManager>()
 
 	React.useEffect(() => {
-		const minimap = new MinimapManager(editor, rCanvas.current, container)
-		minimapRef.current = minimap
-		return minimapRef.current.close
+		try {
+			const minimap = new MinimapManager(editor, rCanvas.current, container)
+			minimapRef.current = minimap
+			return minimapRef.current.close
+		} catch (e) {
+			editor.annotateError(e, {
+				origin: 'minimap',
+				willCrashApp: false,
+			})
+			setTimeout(() => {
+				throw e
+			})
+		}
 	}, [editor, container])
 
 	const onDoubleClick = React.useCallback(
