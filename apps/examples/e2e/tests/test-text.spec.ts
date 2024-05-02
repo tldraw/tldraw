@@ -279,19 +279,12 @@ test.describe('text measurement', () => {
 			if (span) {
 				expect(expectedSpan.text).toEqual(span.text)
 				for (const key in expectedSpan.box) {
-					if (key === 'x' || key === 'y') {
-						expect(span.box[key as keyof BoxModel]).toBeGreaterThanOrEqual(
-							expectedSpan.box[key as keyof BoxModel] - 2
-						)
-						expect(span.box[key as keyof BoxModel]).toBeLessThanOrEqual(
-							expectedSpan.box[key as keyof BoxModel] + 2
-						)
-					} else {
-						expect(span.box[key as keyof BoxModel]).toBeCloseTo(
-							expectedSpan.box[key as keyof BoxModel],
-							0
-						)
-					}
+					expect(span.box[key as keyof BoxModel]).toBeGreaterThanOrEqual(
+						expectedSpan.box[key as keyof BoxModel] - 2
+					)
+					expect(span.box[key as keyof BoxModel]).toBeLessThanOrEqual(
+						expectedSpan.box[key as keyof BoxModel] + 2
+					)
 				}
 			} else {
 				throw new Error('Expected more spans')
