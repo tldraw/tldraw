@@ -3,6 +3,7 @@ import {
 	BaseBoxShapeUtil,
 	FileHelpers,
 	HTMLContainer,
+	TLImageAsset,
 	TLImageShape,
 	TLOnDoubleClickHandler,
 	TLShapePartial,
@@ -11,6 +12,7 @@ import {
 	imageShapeProps,
 	structuredClone,
 	toDomPrecision,
+	useValue,
 } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
@@ -48,14 +50,24 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
-
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
+		const zoomLevel = useValue('zoom level', () => this.editor.getZoomLevel(), [this.editor])
+		const asset = shape.props.assetId
+			? this.editor.getAsset<TLImageAsset>(shape.props.assetId)
+			: undefined
+		const src = getImageSrcForZoom(asset, zoomLevel)
+
+		if (asset?.type !== 'image') {
+			throw Error('Asset is not a video')
+		}
+
 		useEffect(() => {
-			if (asset?.props.src && 'mimeType' in asset.props && asset?.props.mimeType === 'image/gif') {
+			if (!asset) return
+
+			if (src && 'mimeType' in asset.props && asset.props.mimeType === 'image/gif') {
 				let cancelled = false
-				const url = asset.props.src
+				const url = src
 				if (!url) return
 
 				const image = new Image()
@@ -79,11 +91,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, asset?.props])
-
-		if (asset?.type === 'bookmark') {
-			throw Error("Bookmark assets can't be rendered as images")
-		}
+		}, [prefersReducedMotion, src, asset])
 
 		const showCropPreview =
 			isSelected &&
@@ -97,7 +105,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
-		if (!asset?.props.src) {
+		if (!asset || !src) {
 			return (
 				<HTMLContainer
 					id={shape.id}
@@ -130,7 +138,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							style={{
 								opacity: 0.1,
 								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+									!shape.props.playing || reduceMotion ? staticFrameSrc : src
 								})`,
 							}}
 							draggable={false}
@@ -146,7 +154,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							className="tl-image"
 							style={{
 								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+									!shape.props.playing || reduceMotion ? staticFrameSrc : src
 								})`,
 							}}
 							draggable={false}
@@ -171,11 +179,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	override async toSvg(shape: TLImageShape) {
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
+		const zoomLevel = useValue('zoom level', () => this.editor.getZoomLevel(), [this.editor])
+		const asset = shape.props.assetId
+			? this.editor.getAsset<TLImageAsset>(shape.props.assetId)
+			: undefined
+		let src = getImageSrcForZoom(asset, zoomLevel)
 
-		if (!asset) return null
+		if (!src) return null
 
-		let src = asset?.props.src || ''
 		if (src.startsWith('http') || src.startsWith('/') || src.startsWith('./')) {
 			// If it's a remote image, we need to fetch it and convert it to a data URI
 			src = (await getDataURIFromURL(src)) || ''
@@ -214,12 +225,15 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	override onDoubleClick = (shape: TLImageShape) => {
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
+		const zoomLevel = useValue('zoom level', () => this.editor.getZoomLevel(), [this.editor])
+		const asset = shape.props.assetId
+			? this.editor.getAsset<TLImageAsset>(shape.props.assetId)
+			: undefined
+		const src = getImageSrcForZoom(asset, zoomLevel)
 
-		if (!asset) return
+		if (!(asset && src)) return
 
-		const canPlay =
-			asset.props.src && 'mimeType' in asset.props && asset.props.mimeType === 'image/gif'
+		const canPlay = src && 'mimeType' in asset.props && asset.props.mimeType === 'image/gif'
 
 		if (!canPlay) return
 
@@ -300,4 +314,17 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 		width: w,
 		height: h,
 	}
+}
+
+function getImageSrcForZoom(asset: TLImageAsset | undefined, zoomLevel: number) {
+	let src: string | null = null
+	if (asset) {
+		for (const source of asset.props.sources) {
+			src = source.src
+			if (source.scale >= zoomLevel) {
+				break
+			}
+		}
+	}
+	return src
 }

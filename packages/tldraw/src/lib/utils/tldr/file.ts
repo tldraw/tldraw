@@ -169,36 +169,58 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 	const records: TLRecord[] = []
 	const usedAssets = new Set<TLAssetId | null>()
 	const assets: TLAsset[] = []
+
 	for (const record of store.allRecords()) {
 		switch (record.typeName) {
-			case 'asset':
-				if (
-					record.type !== 'bookmark' &&
-					record.props.src &&
-					!record.props.src.startsWith('data:')
-				) {
-					let assetSrcToSave
-					try {
-						// try to save the asset as a base64 string
-						assetSrcToSave = await FileHelpers.blobToDataUrl(
-							await (await fetch(record.props.src)).blob()
-						)
-					} catch {
-						// if that fails, just save the original src
-						assetSrcToSave = record.props.src
+			case 'asset': {
+				if (record.type === 'video') {
+					if (record.props.src && !record.props.src.startsWith('data:')) {
+						let assetSrcToSave: string | null = record.props.src
+						try {
+							assetSrcToSave = await FileHelpers.blobToDataUrl(
+								await (await fetch(assetSrcToSave)).blob()
+							)
+						} catch {
+							// noop, keep the original src
+						}
+						assets.push({
+							...record,
+							props: {
+								...record.props,
+								src: assetSrcToSave,
+							},
+						})
 					}
-
-					assets.push({
-						...record,
-						props: {
-							...record.props,
-							src: assetSrcToSave,
-						},
-					})
+				} else if (record.type === 'image') {
+					const biggestImageSource = record.props.sources.sort((a, b) => b.scale - a.scale)[0]
+					if (biggestImageSource.src && !biggestImageSource.src.startsWith('data:')) {
+						let assetSrcToSave: string | null = biggestImageSource.src
+						try {
+							assetSrcToSave = await FileHelpers.blobToDataUrl(
+								await (await fetch(assetSrcToSave)).blob()
+							)
+						} catch {
+							// noop, keep the original src
+						}
+						assets.push({
+							...record,
+							props: {
+								...record.props,
+								sources: [
+									{
+										scale: 1,
+										src: assetSrcToSave,
+									},
+								],
+							},
+						})
+					}
 				} else {
 					assets.push(record)
 				}
+
 				break
+			}
 			case 'shape':
 				if ('assetId' in record.props) {
 					usedAssets.add(record.props.assetId)

@@ -17,6 +17,7 @@ import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
 import { Expand } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
+import { IdOf } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
@@ -677,7 +678,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         arrowId: TLShapeId;
         handleId: "end" | "start";
     }[];
-    getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
+    getAsset<T extends TLAsset>(asset: IdOf<T> | T): T | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getCamera(): TLCamera;

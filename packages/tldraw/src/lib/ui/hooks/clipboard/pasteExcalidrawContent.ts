@@ -303,7 +303,12 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						name: element.id ?? 'Untitled',
 						isAnimated: false,
 						mimeType: file.mimeType,
-						src: file.dataURL,
+						sources: [
+							{
+								scale: 1,
+								src: file.dataURL,
+							},
+						],
 					},
 					meta: {},
 				})

@@ -7,6 +7,7 @@ import {
 	TLAssetId,
 	TLBookmarkShape,
 	TLEmbedShape,
+	TLImageAsset,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
@@ -81,19 +82,61 @@ export function registerDefaultExternalContentHandlers(
 			}
 		}
 
-		// Always rescale the image
-		if (file.type === 'image/jpeg' || file.type === 'image/png') {
-			file = await downsizeImage(file, size.w, size.h, {
-				type: file.type,
-				quality: 0.92,
-			})
-		}
-
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
 
-		const asset = AssetRecordType.create({
+		if (isImageType) {
+			const sources: TLImageAsset['props']['sources'] = []
+
+			// Always rescale the image
+			if (file.type === 'image/jpeg' || file.type === 'image/png') {
+				sources.push({
+					scale: 1 / 8,
+					src: await FileHelpers.blobToDataUrl(
+						await downsizeImage(file, size.w / 8, size.h / 8, {
+							type: file.type,
+							quality: 0.92,
+						})
+					),
+				})
+				sources.push({
+					scale: 0.5,
+					src: await FileHelpers.blobToDataUrl(
+						await downsizeImage(file, size.w / 2, size.h / 2, {
+							type: file.type,
+							quality: 0.92,
+						})
+					),
+				})
+				sources.push({
+					scale: 1,
+					src: await FileHelpers.blobToDataUrl(
+						await downsizeImage(file, size.w, size.h, {
+							type: file.type,
+							quality: 0.92,
+						})
+					),
+				})
+			}
+
+			return AssetRecordType.create({
+				id: assetId,
+				type: 'image',
+				typeName: 'asset',
+				props: {
+					name,
+					sources,
+					w: size.w,
+					h: size.h,
+					mimeType: file.type,
+					isAnimated,
+				},
+				meta: {},
+			} satisfies TLImageAsset)
+		}
+
+		return AssetRecordType.create({
 			id: assetId,
-			type: isImageType ? 'image' : 'video',
+			type: 'video',
 			typeName: 'asset',
 			props: {
 				name,
@@ -103,9 +146,8 @@ export function registerDefaultExternalContentHandlers(
 				mimeType: file.type,
 				isAnimated,
 			},
+			meta: {},
 		})
-
-		return asset
 	})
 
 	// urls -> bookmark asset

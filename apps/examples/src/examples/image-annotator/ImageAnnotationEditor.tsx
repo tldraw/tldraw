@@ -45,7 +45,12 @@ export function ImageAnnotationEditor({
 					w: image.width,
 					h: image.height,
 					mimeType: image.type,
-					src: image.src,
+					sources: [
+						{
+							scale: 1,
+							src: image.src,
+						},
+					],
 					name: 'image',
 					isAnimated: false,
 				},

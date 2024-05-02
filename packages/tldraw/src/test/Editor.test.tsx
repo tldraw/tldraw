@@ -540,7 +540,7 @@ describe('snapshots', () => {
 					name: '',
 					isAnimated: false,
 					mimeType: 'png',
-					src: '',
+					sources: [],
 				},
 				meta: {},
 			},

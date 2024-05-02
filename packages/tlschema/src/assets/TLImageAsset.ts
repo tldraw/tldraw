@@ -15,7 +15,7 @@ export type TLImageAsset = TLBaseAsset<
 		name: string
 		isAnimated: boolean
 		mimeType: string | null
-		src: string | null
+		sources: { scale: number; src: string }[]
 	}
 >
 
@@ -28,7 +28,7 @@ export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidat
 		name: T.string,
 		isAnimated: T.boolean,
 		mimeType: T.string.nullable(),
-		src: T.srcUrl.nullable(),
+		sources: T.arrayOf(T.object({ scale: T.number, src: T.string })),
 	})
 )
 
@@ -36,6 +36,7 @@ const Versions = createMigrationIds('com.tldraw.asset.image', {
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
 	MakeUrlsValid: 3,
+	AddSources: 4,
 } as const)
 
 export { Versions as imageAssetVersions }
@@ -79,6 +80,23 @@ export const imageAssetMigrations = createRecordMigrationSequence({
 			},
 			down: (_asset) => {
 				// noop
+			},
+		},
+		{
+			id: Versions.AddSources,
+			up: (asset: any) => {
+				if (asset.props.src === null) {
+					asset.props.sources = []
+				} else {
+					asset.props.sources = [{ scale: 1, src: asset.src }]
+				}
+				delete asset.props.src
+			},
+			down: (asset: any) => {
+				// get the largest source
+				const src = asset.props.sources.sort((a: any, b: any) => b.scale - a.scale)[0]?.src ?? null
+				asset.props.src = src
+				delete asset.props.sources
 			},
 		},
 	],

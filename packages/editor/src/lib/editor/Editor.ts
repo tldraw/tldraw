@@ -1,5 +1,5 @@
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
-import { ComputedCache, RecordType, StoreSnapshot } from '@tldraw/store'
+import { ComputedCache, IdOf, RecordType, StoreSnapshot } from '@tldraw/store'
 import {
 	CameraRecordType,
 	InstancePageStateRecordType,
@@ -3581,8 +3581,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getAsset(asset: TLAssetId | TLAsset): TLAsset | undefined {
-		return this.store.get(typeof asset === 'string' ? asset : asset.id) as TLAsset | undefined
+	getAsset<T extends TLAsset>(asset: IdOf<T> | T): T | undefined {
+		return this.store.get(typeof asset === 'string' ? asset : asset.id) as T | undefined
 	}
 
 	/* --------------------- Shapes --------------------- */
@@ -7613,15 +7613,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 				continue
 			}
 
-			if (
-				(asset.type === 'image' || asset.type === 'video') &&
-				asset.props.src?.startsWith('data:image')
-			) {
-				// it's src is a base64 image or video; we need to create a new asset without the src,
-				// then create a new asset from the original src. So we save a copy of the original asset,
-				// then delete the src from the original asset.
-				assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset))
-				asset.props.src = null
+			if (asset.type === 'image' || asset.type === 'video') {
+				const src =
+					asset.type === 'video'
+						? asset.props.src
+						: asset.type === 'image'
+							? asset.props.sources.sort((a, b) => a.scale - b.scale)[0]?.src
+							: null
+
+				if (src?.startsWith('data:image')) {
+					// it's src is a base64 image or video; we need to create a new asset without the src,
+					// then create a new asset from the original src. So we save a copy of the original asset,
+					// then delete the src from the original asset.
+					assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset))
+
+					// clear the asset for now, we'll update it in a moment
+					if (asset.type === 'video') {
+						asset.props.src = null
+					} else {
+						asset.props.sources = []
+					}
+				}
 			}
 
 			// Add the asset to the list of assets to create
@@ -7631,12 +7643,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Start loading the new assets, order does not matter
 		Promise.allSettled(
 			(assetsToUpdate as (TLImageAsset | TLVideoAsset)[]).map(async (asset) => {
-				// Turn the data url into a file
-				const file = await dataUrlToFile(
-					asset.props.src!,
-					asset.props.name,
-					asset.props.mimeType ?? 'image/png'
-				)
+				// get the source with the smallest zoom
+				const src =
+					asset.type === 'video'
+						? asset.props.src
+						: asset.props.sources.sort((a, b) => a.scale - b.scale)[0]?.src
+
+				if (!src) {
+					this.deleteAssets([asset.id])
+					return
+				}
+
+				const file = await dataUrlToFile(src, asset.props.name, asset.props.mimeType ?? 'image/png')
 
 				// Get a new asset for the file
 				const newAsset = await this.getAssetForExternalContent({ type: 'file', file })

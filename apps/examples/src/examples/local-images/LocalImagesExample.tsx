@@ -18,7 +18,12 @@ export default function LocalImagesExample() {
 				typeName: 'asset',
 				props: {
 					name: 'tldraw.png',
-					src: '/tldraw.png', // You could also use a base64 encoded string here
+					sources: [
+						{
+							scale: 1,
+							src: '/tldraw.png', // You could also use a base64 encoded string here
+						},
+					],
 					w: imageWidth,
 					h: imageHeight,
 					mimeType: 'image/png',

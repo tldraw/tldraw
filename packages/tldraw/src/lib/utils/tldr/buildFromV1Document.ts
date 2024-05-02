@@ -69,7 +69,12 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							name: v1Asset.fileName ?? 'Untitled',
 							isAnimated: false,
 							mimeType: null,
-							src: v1Asset.src,
+							sources: [
+								{
+									scale: 1,
+									src: v1Asset.src,
+								},
+							],
 						},
 						meta: {},
 					}
@@ -620,9 +625,27 @@ function coerceDimension(d: unknown): number {
  */
 async function tryMigrateAsset(editor: Editor, placeholderAsset: TLAsset) {
 	try {
-		if (placeholderAsset.type === 'bookmark' || !placeholderAsset.props.src) return
+		if (placeholderAsset.type === 'bookmark') return
 
-		const response = await fetch(placeholderAsset.props.src)
+		let src: string | null = null
+
+		switch (placeholderAsset.type) {
+			case 'video': {
+				src = placeholderAsset.props.src
+				break
+			}
+			case 'image': {
+				const biggestImageSource = placeholderAsset.props.sources.sort(
+					(a, b) => b.scale - a.scale
+				)[0]
+				src = biggestImageSource.src
+				break
+			}
+		}
+
+		if (!src) return
+
+		const response = await fetch(src)
 		if (!response.ok) return
 
 		const file = new File([await response.blob()], placeholderAsset.props.name, {

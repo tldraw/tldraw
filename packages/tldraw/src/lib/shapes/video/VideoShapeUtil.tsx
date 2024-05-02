@@ -2,6 +2,7 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
+	TLVideoAsset,
 	TLVideoShape,
 	toDomPrecision,
 	useIsEditing,
@@ -36,7 +37,12 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	component(shape: TLVideoShape) {
 		const { editor } = this
 		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
-		const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
+		const asset = shape.props.assetId ? editor.getAsset<TLVideoAsset>(shape.props.assetId) : null
+
+		if (asset?.type !== 'video') {
+			throw Error('Asset is not a video')
+		}
+
 		const { time, playing } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()

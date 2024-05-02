@@ -42,7 +42,12 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 							w: page.bounds.w,
 							h: page.bounds.h,
 							mimeType: 'image/png',
-							src: page.src,
+							sources: [
+								{
+									scale: 1,
+									src: page.src,
+								},
+							],
 							name: 'page',
 							isAnimated: false,
 						},
