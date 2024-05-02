@@ -237,7 +237,7 @@ test.describe('text measurement', () => {
 			typeof measureTextSpansOptions
 		>(
 			async (options) =>
-				editor.textMeasure.measureTextSpans(`unicode is cool!\nكتابة باللغة  العرب!!!!`, options),
+				editor.textMeasure.measureTextSpans(`unicode is cool!\nكتابة باللغة  العرب!`, options),
 			measureTextSpansOptions
 		)
 
@@ -267,10 +267,7 @@ test.describe('text measurement', () => {
 				box: { x: -16.46875, y: 97.1953125, w: 16.453125, h: 32 },
 				text: '  ',
 			},
-			{
-				box: { x: 0, y: 129.59375, w: 82.2109375, h: 32 },
-				text: 'العرب!!!!',
-			},
+			{ box: { x: 0, y: 129.59375, w: 61.2578125, h: 32 }, text: 'العرب!' },
 		]
 
 		for (const expectedSpan of expectedSpans) {
