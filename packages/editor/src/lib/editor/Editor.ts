@@ -4963,6 +4963,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (ids.length <= 0) return this
 
+		const maxShapesReached =
+			shapes.length + this.getCurrentPageShapeIds().size > MAX_SHAPES_PER_PAGE
+
+		if (maxShapesReached) {
+			alertMaxShapes(this)
+			return this
+		}
+
 		const initialIds = new Set(ids)
 		const idsToCreate: TLShapeId[] = []
 		const idsToCheck = [...ids]
@@ -5100,14 +5108,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.history.batch(() => {
-			const maxShapesReached =
-				shapesToCreate.length + this.getCurrentPageShapeIds().size > MAX_SHAPES_PER_PAGE
-
-			if (maxShapesReached) {
-				alertMaxShapes(this)
-				return
-			}
-
 			const ids = shapesToCreate.map((s) => s.id)
 
 			this.createShapes(shapesToCreate)
