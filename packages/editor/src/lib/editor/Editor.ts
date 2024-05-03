@@ -20,6 +20,7 @@ import {
 	TLBinding,
 	TLBindingId,
 	TLBindingPartial,
+	TLCamera,
 	TLCursor,
 	TLCursorType,
 	TLDOCUMENT_ID,
@@ -88,11 +89,7 @@ import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
 	DRAG_DISTANCE,
-	FOLLOW_CHASE_PAN_SNAP,
-	FOLLOW_CHASE_PAN_UNSNAP,
-	FOLLOW_CHASE_PROPORTION,
-	FOLLOW_CHASE_ZOOM_SNAP,
-	FOLLOW_CHASE_ZOOM_UNSNAP,
+	FOLLOW_CHASE_VIEWPORT_SNAP,
 	HIT_TEST_MARGIN,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
@@ -2018,8 +2015,55 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getCamera() {
-		return this.store.get(this.getCameraId())!
+	@computed getCamera(): TLCamera {
+		const baseCamera = this.store.get(this.getCameraId())!
+		if (this._isLockedOnFollowingUser.get()) {
+			const followingCamera = this.getCameraForFollowing()
+			if (followingCamera) {
+				return { ...baseCamera, ...followingCamera }
+			}
+		}
+		return baseCamera
+	}
+
+	@computed
+	private getViewportPageBoundsForFollowing(): null | Box {
+		const followingUserId = this.getInstanceState().followingUserId
+		if (!followingUserId) return null
+		const leaderPresence = this.getCollaborators().find((c) => c.userId === followingUserId)
+		if (!leaderPresence) return null
+
+		// Fit their viewport inside of our screen bounds
+		// 1. calculate their viewport in page space
+		const { w: lw, h: lh } = leaderPresence.screenBounds
+		const { x: lx, y: ly, z: lz } = leaderPresence.camera
+		const theirViewport = new Box(-lx, -ly, lw / lz, lh / lz)
+
+		// resize our screenBounds to contain their viewport
+		const ourViewport = this.getViewportScreenBounds().clone()
+		const ourAspectRatio = ourViewport.width / ourViewport.height
+
+		ourViewport.width = theirViewport.width
+		ourViewport.height = ourViewport.width / ourAspectRatio
+		if (ourViewport.height < theirViewport.height) {
+			ourViewport.height = theirViewport.height
+			ourViewport.width = ourViewport.height * ourAspectRatio
+		}
+
+		ourViewport.center = theirViewport.center
+		return ourViewport
+	}
+
+	@computed
+	private getCameraForFollowing(): null | { x: number; y: number; z: number } {
+		const viewport = this.getViewportPageBoundsForFollowing()
+		if (!viewport) return null
+
+		return {
+			x: -viewport.x,
+			y: -viewport.y,
+			z: this.getViewportScreenBounds().w / viewport.width,
+		}
 	}
 
 	/**
@@ -2836,7 +2880,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomToUser(myUserId, { animation: { duration: 200 } })
 	 * ```
 	 *
-	 * @param userId - The id of the user to aniamte to.
+	 * @param userId - The id of the user to animate to.
 	 * @param opts - The camera move options.
 	 * @public
 	 */
@@ -3082,6 +3126,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	// Following
 
+	private _isLockedOnFollowingUser = atom('isLockedOnFollowingUser', false)
+
 	/**
 	 * Start viewport-following a user.
 	 *
@@ -3091,10 +3137,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param userId - The id of the user to follow.
+	 * @param opts - Options for starting to follow a user.
 	 *
 	 * @public
 	 */
-	startFollowingUser(userId: string): this {
+	startFollowingUser(
+		userId: string,
+		{ animateToUser = true }: { animateToUser?: boolean } = {}
+	): this {
 		const leaderPresences = this._getCollaboratorsQuery()
 			.get()
 			.filter((p) => p.userId === userId)
@@ -3116,11 +3166,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		const cancel = () => {
+			this._isLockedOnFollowingUser.set(false)
 			this.off('frame', moveTowardsUser)
 			this.off('stop-following', cancel)
 		}
-
-		let isCaughtUp = false
 
 		const moveTowardsUser = () => {
 			transact(() => {
@@ -3132,91 +3181,68 @@ export class Editor extends EventEmitter<TLEventMap> {
 						return b.lastActivityTimestamp - a.lastActivityTimestamp
 					})[0]
 
-				if (!leaderPresence) {
-					this.stopFollowingUser()
-					return
-				}
-
 				// Change page if leader is on a different page
 				const isOnSamePage = leaderPresence.currentPageId === this.getCurrentPageId()
-				const chaseProportion = isOnSamePage ? FOLLOW_CHASE_PROPORTION : 1
 				if (!isOnSamePage) {
 					this.stopFollowingUser()
 					this.setCurrentPage(leaderPresence.currentPageId)
-					this.startFollowingUser(userId)
+					this.startFollowingUser(userId, { animateToUser: false })
 					return
 				}
 
-				// Get the bounds of the follower (me) and the leader (them)
-				const { center, width, height } = this.getViewportPageBounds()
-				const leaderScreen = Box.From(leaderPresence.screenBounds)
-				const leaderWidth = leaderScreen.width / leaderPresence.camera.z
-				const leaderHeight = leaderScreen.height / leaderPresence.camera.z
-				const leaderCenter = new Vec(
-					leaderWidth / 2 - leaderPresence.camera.x,
-					leaderHeight / 2 - leaderPresence.camera.y
+				if (this._isLockedOnFollowingUser.get()) return
+
+				const animationSpeed = this.user.getAnimationSpeed()
+
+				if (!animateToUser || animationSpeed === 0) {
+					this._isLockedOnFollowingUser.set(true)
+					return
+				}
+
+				const targetViewport = this.getViewportPageBoundsForFollowing()
+				if (!targetViewport) {
+					this.stopFollowingUser()
+					return
+				}
+				const currentViewport = this.getViewportPageBounds()
+
+				const diffX =
+					Math.abs(targetViewport.minX - currentViewport.minX) +
+					Math.abs(targetViewport.maxX - currentViewport.maxX)
+				const diffY =
+					Math.abs(targetViewport.minY - currentViewport.minY) +
+					Math.abs(targetViewport.maxY - currentViewport.maxY)
+
+				// Stop chasing if we're close enough!
+				if (diffX < FOLLOW_CHASE_VIEWPORT_SNAP && diffY < FOLLOW_CHASE_VIEWPORT_SNAP) {
+					this._isLockedOnFollowingUser.set(true)
+					return
+				}
+
+				const midpointViewport = new Box(
+					(currentViewport.minX + targetViewport.minX) / 2,
+					(currentViewport.minY + targetViewport.minY) / 2,
+					(currentViewport.width + targetViewport.width) / 2,
+					(currentViewport.height + targetViewport.height) / 2
 				)
 
-				// At this point, let's check if we're following someone who's following us.
-				// If so, we can't try to contain their entire viewport
-				// because that would become a feedback loop where we zoom, they zoom, etc.
-				const isFollowingFollower = leaderPresence.followingUserId === thisUserId
-
-				// Figure out how much to zoom
-				const desiredWidth = width + (leaderWidth - width) * chaseProportion
-				const desiredHeight = height + (leaderHeight - height) * chaseProportion
-				const ratio = !isFollowingFollower
-					? Math.min(width / desiredWidth, height / desiredHeight)
-					: height / desiredHeight
-
-				const baseZoom = this.getBaseZoom()
-				const { zoomSteps } = this.getCameraOptions()
-				const zoomMin = zoomSteps[0]
-				const zoomMax = last(zoomSteps)!
-				const targetZoom = clamp(this.getCamera().z * ratio, zoomMin * baseZoom, zoomMax * baseZoom)
-				const targetWidth = this.getViewportScreenBounds().w / targetZoom
-				const targetHeight = this.getViewportScreenBounds().h / targetZoom
-
-				// Figure out where to move the camera
-				const displacement = leaderCenter.sub(center)
-				const targetCenter = Vec.Add(center, Vec.Mul(displacement, chaseProportion))
-
-				// Now let's assess whether we've caught up to the leader or not
-				const distance = Vec.Sub(targetCenter, center).len()
-				const zoomChange = Math.abs(targetZoom - this.getCamera().z)
-
-				// If we're chasing the leader...
-				// Stop chasing if we're close enough
-				if (distance < FOLLOW_CHASE_PAN_SNAP && zoomChange < FOLLOW_CHASE_ZOOM_SNAP) {
-					isCaughtUp = true
-					return
-				}
-
-				// If we're already caught up with the leader...
-				// Only start moving again if we're far enough away
-				if (
-					isCaughtUp &&
-					distance < FOLLOW_CHASE_PAN_UNSNAP &&
-					zoomChange < FOLLOW_CHASE_ZOOM_UNSNAP
-				) {
-					return
-				}
+				const midpointCamera = new Vec(
+					-midpointViewport.x,
+					-midpointViewport.y,
+					this.getViewportScreenBounds().width / midpointViewport.width
+				)
 
 				// Update the camera!
-				isCaughtUp = false
 				this.stopCameraAnimation()
-				this._setCamera(
-					new Vec(
-						-(targetCenter.x - targetWidth / 2),
-						-(targetCenter.y - targetHeight / 2),
-						targetZoom
-					)
-				)
+				this._setCamera(midpointCamera)
 			})
 		}
 
 		this.once('stop-following', cancel)
 		this.on('frame', moveTowardsUser)
+
+		// call once to start synchronously
+		moveTowardsUser()
 
 		return this
 	}
@@ -3231,8 +3257,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopFollowingUser(): this {
-		this.updateInstanceState({ followingUserId: null })
-		this.emit('stop-following')
+		this.batch(() => {
+			// commit the current camera to the store
+			this._setCamera(this.getCamera())
+			// this must happen after the camera is committed
+			this._isLockedOnFollowingUser.set(false)
+			this.updateInstanceState({ followingUserId: null })
+			this.emit('stop-following')
+		})
 		return this
 	}
 

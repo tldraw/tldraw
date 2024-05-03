@@ -1033,7 +1033,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     readonly snaps: SnapManager;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;
-    startFollowingUser(userId: string): this;
+    startFollowingUser(userId: string, { animateToUser }?: {
+        animateToUser?: boolean;
+    }): this;
     stopCameraAnimation(): this;
     stopFollowingUser(): this;
     readonly store: TLStore;
