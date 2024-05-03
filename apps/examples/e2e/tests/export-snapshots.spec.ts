@@ -33,6 +33,17 @@ test.describe('Export snapshots', () => {
 				},
 			},
 		],
+		'Exports geo text with mixed RTL': [
+			{
+				id: 'shape:testShape' as TLShapeId,
+				type: 'geo',
+				props: {
+					w: 300,
+					h: 300,
+					text: 'unicode is cool!\nكتابة باللغة  العرب!',
+				},
+			},
+		],
 	} as Record<string, TLShapePartial[]>
 
 	for (const fill of ['none', 'semi', 'solid', 'pattern']) {

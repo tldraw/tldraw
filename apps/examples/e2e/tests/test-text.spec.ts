@@ -231,61 +231,6 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([['hi', '\n'], [' \n'], [' \n'], [' ']])
 	})
 
-	test('should handle RTL, in mixed context', async () => {
-		const spans = await page.evaluate<
-			{ text: string; box: BoxModel }[],
-			typeof measureTextSpansOptions
-		>(
-			async (options) =>
-				editor.textMeasure.measureTextSpans(`unicode is cool!\nكتابة باللغة  العرب!`, options),
-			measureTextSpansOptions
-		)
-
-		const expectedSpans = [
-			{ box: { x: 0, y: 0, w: 93.53125, h: 32 }, text: 'unicode' },
-			{ box: { x: 93.53125, y: 0, w: 8.234375, h: 32 }, text: ' ' },
-			{ box: { x: 0, y: 32.3984375, w: 19.8046875, h: 32 }, text: 'is' },
-			{
-				box: { x: 19.796875, y: 32.3984375, w: 8.2421875, h: 32 },
-				text: ' ',
-			},
-			{
-				box: { x: 28.03125, y: 32.3984375, w: 57.03125, h: 32 },
-				text: 'cool!',
-			},
-			{ box: { x: 85.0625, y: 32.3984375, w: 0, h: 32 }, text: '\n' },
-			{ box: { x: 0, y: 64.796875, w: 48.546875, h: 32 }, text: 'كتابة' },
-			{
-				box: { x: -8.234375, y: 64.796875, w: 8.234375, h: 32 },
-				text: ' ',
-			},
-			{
-				box: { x: 0, y: 97.1953125, w: 56.0703125, h: 32 },
-				text: 'باللغة',
-			},
-			{
-				box: { x: -16.46875, y: 97.1953125, w: 16.453125, h: 32 },
-				text: '  ',
-			},
-			{ box: { x: 0, y: 129.59375, w: 61.2578125, h: 32 }, text: 'العرب!' },
-		]
-
-		for (const expectedSpan of expectedSpans) {
-			const span = spans.shift()
-
-			if (span) {
-				expect(expectedSpan.text).toEqual(span.text)
-				for (const boxKey in expectedSpan.box) {
-					const key = boxKey as keyof BoxModel
-					expect(span.box[key]).toBeGreaterThanOrEqual(expectedSpan.box[key] - 5)
-					expect(span.box[key]).toBeLessThanOrEqual(expectedSpan.box[key] + 5)
-				}
-			} else {
-				throw new Error('Expected more spans')
-			}
-		}
-	})
-
 	test('should handle only newlines', async () => {
 		const spans = await page.evaluate<
 			{ text: string; box: BoxModel }[],
