@@ -15,8 +15,8 @@ export interface Environment {
 	MEASURE: Analytics | undefined
 
 	ROOMS: R2Bucket
-	ROOM_SNAPSHOTS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
+	ROOM_SNAPSHOTS: R2Bucket
 
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace
