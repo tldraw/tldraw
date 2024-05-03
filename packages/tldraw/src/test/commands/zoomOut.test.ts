@@ -23,10 +23,12 @@ it('zooms out and in by increments', () => {
 })
 
 it('is ignored by undo/redo', () => {
+	const cameraOptions = editor.getCameraOptions()
+
 	editor.mark()
 	editor.zoomOut()
 	editor.undo()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[2])
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[2])
 })
 
 it('does not zoom out when camera is frozen', () => {

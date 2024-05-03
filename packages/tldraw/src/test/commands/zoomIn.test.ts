@@ -24,10 +24,12 @@ it('zooms by increments', () => {
 })
 
 it('is ignored by undo/redo', () => {
+	const cameraOptions = editor.getCameraOptions()
+
 	editor.mark()
 	editor.zoomIn()
 	editor.undo()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[4])
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[4])
 })
 
 it('preserves the screen center', () => {
