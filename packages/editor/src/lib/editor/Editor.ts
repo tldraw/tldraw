@@ -5105,15 +5105,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (maxShapesReached) {
 				alertMaxShapes(this)
+				return
 			}
 
-			const newShapes = maxShapesReached
-				? shapesToCreate.slice(0, MAX_SHAPES_PER_PAGE - this.getCurrentPageShapeIds().size)
-				: shapesToCreate
+			const ids = shapesToCreate.map((s) => s.id)
 
-			const ids = newShapes.map((s) => s.id)
-
-			this.createShapes(newShapes)
+			this.createShapes(shapesToCreate)
 			this.setSelectedShapes(ids)
 
 			if (offset !== undefined) {
