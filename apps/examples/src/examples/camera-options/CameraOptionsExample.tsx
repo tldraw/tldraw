@@ -258,6 +258,7 @@ const CameraOptionsControlPanel = track(() => {
 					onChange={(e) => {
 						const currentConstraints = constraints ?? CAMERA_OPTIONS.constraints
 						const value = e.target.value
+
 						if (value === 'none') {
 							updateOptions({
 								...CAMERA_OPTIONS,
@@ -412,10 +413,11 @@ const CameraOptionsControlPanel = track(() => {
 								})
 							}}
 						>
+							<option>free</option>
 							<option>contain</option>
 							<option>inside</option>
 							<option>outside</option>
-							<option>lock</option>
+							<option>fixed</option>
 						</select>
 						<label htmlFor="behaviorY">Behavior Y</label>
 						<select
@@ -434,10 +436,11 @@ const CameraOptionsControlPanel = track(() => {
 								})
 							}}
 						>
+							<option>free</option>
 							<option>contain</option>
 							<option>inside</option>
 							<option>outside</option>
-							<option>lock</option>
+							<option>fixed</option>
 						</select>
 					</>
 				) : null}
