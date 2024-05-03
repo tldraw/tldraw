@@ -300,7 +300,7 @@ export function registerDefaultExternalContentHandlers(
 		let w: number
 		let h: number
 		let autoSize: boolean
-		let align = 'middle' as TLTextShapeProps['align']
+		let align = 'middle' as TLTextShapeProps['textAlign']
 
 		const isMultiLine = textToPaste.split('\n').length > 1
 
@@ -354,7 +354,7 @@ export function registerDefaultExternalContentHandlers(
 				props: {
 					text: textToPaste,
 					// if the text has more than one line, align it to the left
-					align,
+					textAlign: align,
 					autoSize,
 					w,
 				},

@@ -23,6 +23,13 @@ it('zooms by increments', () => {
 	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[6])
 })
 
+it('is ignored by undo/redo', () => {
+	editor.mark()
+	editor.zoomIn()
+	editor.undo()
+	expect(editor.getZoomLevel()).toBe(ZOOMS[4])
+})
+
 it('preserves the screen center', () => {
 	const viewportCenter = editor.getViewportPageCenter().toJson()
 	const screenCenter = editor.getViewportScreenCenter().toJson()

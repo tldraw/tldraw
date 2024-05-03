@@ -52,7 +52,8 @@ export type SchemaShapeInfo = {
 /** @public */
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
 
-const defaultShapes: { [T in TLDefaultShape['type']]: SchemaShapeInfo } = {
+/** @public */
+export const defaultShapeSchemas: { [T in TLDefaultShape['type']]: SchemaShapeInfo } = {
 	arrow: { migrations: arrowShapeMigrations, props: arrowShapeProps },
 	bookmark: { migrations: bookmarkShapeMigrations, props: bookmarkShapeProps },
 	draw: { migrations: drawShapeMigrations, props: drawShapeProps },
@@ -75,7 +76,7 @@ const defaultShapes: { [T in TLDefaultShape['type']]: SchemaShapeInfo } = {
  *
  * @public */
 export function createTLSchema({
-	shapes = defaultShapes,
+	shapes = defaultShapeSchemas,
 	migrations,
 }: {
 	shapes?: Record<string, SchemaShapeInfo>

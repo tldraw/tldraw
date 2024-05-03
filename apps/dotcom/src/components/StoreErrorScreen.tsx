@@ -6,12 +6,27 @@ import { ErrorPage } from './ErrorPage/ErrorPage'
 export function StoreErrorScreen({ error }: { error: Error }) {
 	let header = 'Could not connect to server.'
 	let message = ''
-
 	if (error instanceof RemoteSyncError) {
 		switch (error.reason) {
 			case TLIncompatibilityReason.ClientTooOld: {
-				message = 'This client is out of date. Please refresh the page.'
-				break
+				return (
+					<ErrorPage
+						icon={
+							<img
+								width={36}
+								height={36}
+								src="/tldraw-white-on-black.svg"
+								loading="lazy"
+								role="presentation"
+							/>
+						}
+						messages={{
+							header: 'Refresh the page',
+							para1: 'You need to update to the latest version of tldraw to continue.',
+						}}
+						cta={<button onClick={() => window.location.reload()}>Refresh</button>}
+					/>
+				)
 			}
 			case TLIncompatibilityReason.ServerTooOld: {
 				message =
@@ -38,5 +53,5 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 		}
 	}
 
-	return <ErrorPage icon messages={{ header, para1: message }} />
+	return <ErrorPage messages={{ header, para1: message }} />
 }

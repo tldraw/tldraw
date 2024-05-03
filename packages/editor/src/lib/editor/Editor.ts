@@ -150,6 +150,7 @@ export type TLResizeShapeOptions = Partial<{
 	initialShape: TLShape
 	initialPageTransform: MatLike
 	dragHandle: TLResizeHandle
+	isAspectRatioLocked: boolean
 	mode: TLResizeMode
 }>
 
@@ -1458,15 +1459,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setSelectedShapes(shapes: TLShapeId[] | TLShape[]): this {
-		return this.batch(() => {
-			const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
-			const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
-			const prevSet = new Set(prevSelectedShapeIds)
+		return this.batch(
+			() => {
+				const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
+				const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
+				const prevSet = new Set(prevSelectedShapeIds)
 
-			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
+				if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
 
-			this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
-		})
+				this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
+			},
+			{ history: 'record-preserveRedoStack' }
+		)
 	}
 
 	/**
@@ -2304,7 +2308,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.batch(() => {
 			const camera = { ...currentCamera, x, y, z }
-			this.store.put([camera]) // include id and meta here
+			this.history.ignore(() => {
+				this.store.put([camera]) // include id and meta here
+			})
 
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
@@ -3088,12 +3094,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let isCaughtUp = false
 
-		const moveTowardsUser = () =>
+		const moveTowardsUser = () => {
 			transact(() => {
 				// Stop following if we can't find the user
-				const leaderPresence = [...leaderPresences].sort(
-					(a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp
-				)[0]
+				const leaderPresence = this._getCollaboratorsQuery()
+					.get()
+					.filter((p) => p.userId === userId)
+					.sort((a, b) => {
+						return b.lastActivityTimestamp - a.lastActivityTimestamp
+					})[0]
+
 				if (!leaderPresence) {
 					this.stopFollowingUser()
 					return
@@ -3175,6 +3185,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					)
 				)
 			})
+		}
 
 		this.once('stop-following', cancel)
 		this.on('frame', moveTowardsUser)
@@ -4241,6 +4252,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			renderingOnly?: boolean
 			margin?: number
 			hitInside?: boolean
+			hitLocked?: boolean
 			// TODO: we probably need to rename this, we don't quite _always_
 			// respect this esp. in the part below that does "Check labels first"
 			hitLabels?: boolean
@@ -4253,6 +4265,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const {
 			filter,
 			margin = 0,
+			hitLocked = false,
 			hitLabels = false,
 			hitInside = false,
 			hitFrameInside = false,
@@ -4269,12 +4282,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
-			if (this.isShapeOfType(shape, 'group')) return false
+			if ((shape.isLocked && !hitLocked) || this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
 			if (filter) return filter(shape)
 			return true
 		})
+
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
 			const geometry = this.getShapeGeometry(shape)
@@ -5547,6 +5561,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						initialPageTransform,
 						initialShape: shape,
 						mode: 'scale_shape',
+						isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
 						scaleOrigin: scaleOriginPage,
 						scaleAxisRotation: 0,
 					}
@@ -6071,6 +6086,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.resizeShape(shape.id, scale, {
 							initialBounds: bounds,
 							scaleOrigin: new Vec(pageBounds.center.x, commonBounds.minY),
+							isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
 							scaleAxisRotation: 0,
 						})
 					}
@@ -6094,6 +6110,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.resizeShape(shape.id, scale, {
 							initialBounds: bounds,
 							scaleOrigin: new Vec(commonBounds.minX, pageBounds.center.y),
+							isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
 							scaleAxisRotation: 0,
 						})
 					}
@@ -6147,6 +6164,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (!initialBounds) return this
 
+		const isAspectRatioLocked =
+			options.isAspectRatioLocked ??
+			this.getShapeUtil(initialShape).isAspectRatioLocked(initialShape)
+
 		if (!areAnglesCompatible(pageRotation, scaleAxisRotation)) {
 			// shape is awkwardly rotated, keep the aspect ratio locked and adopt the scale factor
 			// from whichever axis is being scaled the least, to avoid the shape getting bigger
@@ -6158,13 +6179,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				scaleOrigin,
 				scaleAxisRotation,
 				initialPageTransform: pageTransform,
+				isAspectRatioLocked,
 				initialShape,
 			})
 		}
 
 		const util = this.getShapeUtil(initialShape)
 
-		if (util.isAspectRatioLocked(initialShape)) {
+		if (isAspectRatioLocked) {
 			if (Math.abs(scale.x) > Math.abs(scale.y)) {
 				scale = new Vec(scale.x, Math.sign(scale.y) * Math.abs(scale.x))
 			} else {
@@ -6284,6 +6306,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			scaleOrigin: VecLike
 			scaleAxisRotation: number
 			initialShape: TLShape
+			isAspectRatioLocked: boolean
 			initialPageTransform: MatLike
 		}
 	) {
@@ -6307,6 +6330,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.resizeShape(id, shapeScale, {
 			initialShape: options.initialShape,
 			initialBounds: options.initialBounds,
+			isAspectRatioLocked: options.isAspectRatioLocked,
 		})
 
 		// then if the shape is flipped in one axis only, we need to apply an extra rotation
@@ -6507,6 +6531,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const shapeRecordsToCreate: TLShape[] = []
 
+			const { opacityForNextShape } = this.getInstanceState()
+
 			for (const partial of partials) {
 				const util = this.getShapeUtil(partial as TLShapePartial)
 
@@ -6550,7 +6576,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				).create({
 					...partial,
 					index,
-					opacity: partial.opacity ?? this.getInstanceState().opacityForNextShape,
+					opacity: partial.opacity ?? opacityForNextShape,
 					parentId: partial.parentId ?? focusedGroupId,
 					props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
 				})

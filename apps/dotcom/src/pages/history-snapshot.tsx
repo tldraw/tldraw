@@ -1,3 +1,4 @@
+import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/tlsync'
 import '../../styles/globals.css'
 import { BoardHistorySnapshot } from '../components/BoardHistorySnapshot/BoardHistorySnapshot'
@@ -11,7 +12,7 @@ const { loader, useData } = defineLoader(async (args) => {
 
 	if (!roomId) return null
 
-	const result = await fetch(`/api/r/${roomId}/history/${timestamp}`, {
+	const result = await fetch(`/api/${ROOM_PREFIX}/${roomId}/history/${timestamp}`, {
 		headers: {},
 	})
 	if (!result.ok) return null
@@ -27,7 +28,6 @@ export function Component() {
 	if (!result || !result.timestamp)
 		return (
 			<ErrorPage
-				icon
 				messages={{
 					header: 'Page not found',
 					para1: 'The page you are looking does not exist or has been moved.',

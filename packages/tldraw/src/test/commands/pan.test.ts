@@ -26,6 +26,13 @@ describe('When panning', () => {
 		editor.expectCameraToBe(100, 100, 1)
 	})
 
+	it('Is not undoable', () => {
+		editor.mark()
+		editor.pan({ x: 200, y: 200 })
+		editor.undo()
+		editor.expectCameraToBe(200, 200, 1)
+	})
+
 	it('Updates the pageBounds', () => {
 		const screenBounds = editor.getViewportScreenBounds()
 		const beforeScreenBounds = new Box(

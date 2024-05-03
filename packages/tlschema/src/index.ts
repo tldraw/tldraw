@@ -10,7 +10,12 @@ export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
-export { createTLSchema, type SchemaShapeInfo, type TLSchema } from './createTLSchema'
+export {
+	createTLSchema,
+	defaultShapeSchemas,
+	type SchemaShapeInfo,
+	type TLSchema,
+} from './createTLSchema'
 export {
 	TL_CANVAS_UI_COLOR_TYPES,
 	canvasUiColorTypeValidator,
@@ -161,6 +166,7 @@ export {
 	type TLDefaultHorizontalAlignStyle,
 } from './styles/TLHorizontalAlignStyle'
 export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
+export { DefaultTextAlignStyle, type TLDefaultTextAlignStyle } from './styles/TLTextAlignStyle'
 export {
 	DefaultVerticalAlignStyle,
 	type TLDefaultVerticalAlignStyle,

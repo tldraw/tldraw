@@ -27,7 +27,7 @@ export const ArrowShapeArrowheadEndStyle: EnumStyleProp<"arrow" | "bar" | "diamo
 // @public (undocumented)
 export const ArrowShapeArrowheadStartStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const arrowShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -76,16 +76,16 @@ export const arrowShapeProps: {
 // @public
 export const assetIdValidator: T.Validator<TLAssetId>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const assetMigrations: MigrationSequence;
 
 // @public (undocumented)
 export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const assetValidator: T.Validator<TLAsset>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const bookmarkShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -193,7 +193,15 @@ export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">
 export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
 
 // @public (undocumented)
+export const defaultShapeSchemas: {
+    [T in TLDefaultShape['type']]: SchemaShapeInfo;
+};
+
+// @public (undocumented)
 export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
+
+// @public (undocumented)
+export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
 // @public (undocumented)
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
@@ -201,7 +209,7 @@ export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start"
 // @public (undocumented)
 export const DocumentRecordType: RecordType<TLDocument, never>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const drawShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -248,6 +256,9 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["google.*"];
+    readonly overridePermissions: {
+        readonly 'allow-presentation': true;
+    };
     readonly title: "Google Maps";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "google_maps";
@@ -301,6 +312,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
     readonly isAspectRatioLocked: true;
     readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
         readonly 'allow-presentation': true;
     };
     readonly title: "YouTube";
@@ -315,6 +327,9 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
     readonly minHeight: 360;
     readonly minWidth: 460;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+    };
     readonly title: "Google Calendar";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "google_calendar";
@@ -326,6 +341,9 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["docs.google.*"];
     readonly minHeight: 360;
     readonly minWidth: 460;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+    };
     readonly title: "Google Slides";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "google_slides";
@@ -399,6 +417,15 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "observable";
     readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 450;
+    readonly hostnames: readonly ["desmos.com"];
+    readonly title: "Desmos";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "desmos";
+    readonly width: 700;
 }];
 
 // @public (undocumented)
@@ -420,7 +447,7 @@ export type EmbedDefinition = {
     readonly width: number;
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export const embedShapeMigrations: TLShapePropsMigrations;
 
 // @public
@@ -456,7 +483,7 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     readonly values: readonly T[];
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export const frameShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -469,7 +496,7 @@ export const frameShapeProps: {
 // @public (undocumented)
 export const GeoShapeGeoStyle: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const geoShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -501,13 +528,13 @@ export function getDefaultTranslationLocale(): TLLanguage['locale'];
 // @internal (undocumented)
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const groupShapeMigrations: TLShapePropsMigrations;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const groupShapeProps: ShapeProps<TLGroupShape>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const highlightShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -522,10 +549,10 @@ export const highlightShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const imageShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -558,6 +585,9 @@ export function isShapeId(id?: string): id is TLShapeId;
 
 // @public (undocumented)
 export const LANGUAGES: readonly [{
+    readonly label: "Bahasa Indonesia";
+    readonly locale: "id";
+}, {
     readonly label: "Català";
     readonly locale: "ca";
 }, {
@@ -667,7 +697,7 @@ export const LANGUAGES: readonly [{
     readonly locale: "zh-tw";
 }];
 
-// @internal (undocumented)
+// @public (undocumented)
 export const lineShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -687,7 +717,7 @@ export const lineShapeProps: {
 // @public (undocumented)
 export const LineShapeSplineStyle: EnumStyleProp<"cubic" | "line">;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const noteShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
@@ -703,10 +733,10 @@ export const noteShapeProps: {
     verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export const opacityValidator: T.Validator<number>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public (undocumented)
@@ -718,7 +748,7 @@ export const parentIdValidator: T.Validator<TLParentId>;
 // @public (undocumented)
 export const PointerRecordType: RecordType<TLPointer, never>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const rootShapeMigrations: MigrationSequence;
 
 // @public (undocumented)
@@ -728,7 +758,7 @@ export type SchemaShapeInfo = {
     props?: Record<string, AnyValidator>;
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export const scribbleValidator: T.Validator<TLScribble>;
 
 // @public (undocumented)
@@ -771,18 +801,18 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 // @public (undocumented)
 export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const textShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)
 export const textShapeProps: {
-    align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
     autoSize: T.Validator<boolean>;
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     scale: T.Validator<number>;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     text: T.Validator<string>;
+    textAlign: EnumStyleProp<"end" | "middle" | "start">;
     w: T.Validator<number>;
 };
 
@@ -939,6 +969,9 @@ export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEm
 
 // @public (undocumented)
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
+
+// @public (undocumented)
+export type TLDefaultTextAlignStyle = T.TypeOf<typeof DefaultTextAlignStyle>;
 
 // @public (undocumented)
 export type TLDefaultVerticalAlignStyle = T.TypeOf<typeof DefaultVerticalAlignStyle>;
@@ -1288,7 +1321,7 @@ export interface VecModel {
 // @public (undocumented)
 export const vecModelValidator: T.Validator<VecModel>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const videoShapeMigrations: TLShapePropsMigrations;
 
 // @public (undocumented)

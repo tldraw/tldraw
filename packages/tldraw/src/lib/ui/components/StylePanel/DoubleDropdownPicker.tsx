@@ -80,7 +80,7 @@ function _DoubleDropdownPicker<T extends string>({
 							<TldrawUiButtonIcon icon={iconA} small invertIcon />
 						</TldrawUiButton>
 					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+					<TldrawUiDropdownMenuContent side="left" align="center" sideOffset={80} alignOffset={0}>
 						<div className="tlui-buttons__grid">
 							{itemsA.map((item, i) => {
 								return (
@@ -115,7 +115,7 @@ function _DoubleDropdownPicker<T extends string>({
 							<TldrawUiButtonIcon icon={iconB} small />
 						</TldrawUiButton>
 					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+					<TldrawUiDropdownMenuContent side="left" align="center" sideOffset={116} alignOffset={0}>
 						<div className="tlui-buttons__grid">
 							{itemsB.map((item) => {
 								return (

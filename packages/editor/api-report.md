@@ -520,7 +520,7 @@ export const defaultUserPreferences: Readonly<{
     isDarkMode: false;
     isSnapMode: false;
     isWrapMode: false;
-    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
 }>;
 
@@ -771,6 +771,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitFrameInside?: boolean | undefined;
         hitInside?: boolean | undefined;
         hitLabels?: boolean | undefined;
+        hitLocked?: boolean | undefined;
         margin?: number | undefined;
         renderingOnly?: boolean | undefined;
     }): TLShape | undefined;
@@ -2521,6 +2522,7 @@ export type TLResizeShapeOptions = Partial<{
     initialBounds: Box;
     initialPageTransform: MatLike;
     initialShape: TLShape;
+    isAspectRatioLocked: boolean;
     mode: TLResizeMode;
     scaleAxisRotation: number;
     scaleOrigin: VecLike;

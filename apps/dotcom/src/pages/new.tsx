@@ -1,4 +1,4 @@
-import { Snapshot } from '@tldraw/dotcom-shared'
+import { ROOM_PREFIX, Snapshot } from '@tldraw/dotcom-shared'
 import { schema } from '@tldraw/tlsync'
 import { Navigate } from 'react-router-dom'
 import '../../styles/globals.css'
@@ -29,12 +29,11 @@ export function Component() {
 	if (!data)
 		return (
 			<ErrorPage
-				icon
 				messages={{
 					header: 'Page not found',
 					para1: 'The page you are looking does not exist or has been moved.',
 				}}
 			/>
 		)
-	return <Navigate to={`/r/${data.slug}`} />
+	return <Navigate to={`/${ROOM_PREFIX}/${data.slug}`} />
 }
