@@ -19,7 +19,6 @@ import {
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { createQRCodeImageDataString } from '../utils/qrcode'
 import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
-import { sameUrls } from '../utils/url'
 import { ShareButton } from './ShareButton'
 
 const SHARE_CURRENT_STATE = {
@@ -146,7 +145,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 
 		const interval = setInterval(() => {
 			const url = window.location.href
-			if (sameUrls(url, shareState.url)) return
+			if (shareState.url === url) return
 			setShareState(getFreshShareState())
 		}, 300)
 
