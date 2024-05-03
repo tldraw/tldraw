@@ -338,7 +338,7 @@ export class TLDrawDurableObject extends TLServer {
 		this._roomState = undefined
 	}
 
-	// Load the room's drawing data from supabase
+	// Load the room's drawing data. First we check the bucket, then we fallback to supabase (legacy).
 	override async loadFromDatabase(persistenceKey: string): Promise<DBLoadResult> {
 		try {
 			const key = getR2KeyForRoom(persistenceKey)
