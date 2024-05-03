@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed, react, transact } from '@tldraw/state'
 import {
 	ComputedCache,
 	RecordType,
@@ -3160,33 +3160,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
+		const latestLeaderPresence = computed('latestLeaderPresence', () => {
+			return this.getCollaborators().find((p) => p.userId === userId)
+		})
+
 		transact(() => {
 			this.stopFollowingUser()
 			this.updateInstanceState({ followingUserId: userId })
-		})
 
-		const cancel = () => {
-			this._isLockedOnFollowingUser.set(false)
-			this.off('frame', moveTowardsUser)
-			this.off('stop-following', cancel)
-		}
+			const stopUpdatingPage = react('update current page', () => {
+				const leaderPresence = latestLeaderPresence.get()
+				if (!leaderPresence) return
+				if (
+					leaderPresence.currentPageId !== this.getCurrentPageId() &&
+					this.getPage(leaderPresence.currentPageId)
+				) {
+					this.history.ignore(() => {
+						this.store.put([
+							{ ...this.getInstanceState(), currentPageId: leaderPresence.currentPageId },
+						])
+					})
+				}
+			})
 
-		const moveTowardsUser = () => {
-			transact(() => {
+			const cancel = () => {
+				stopUpdatingPage()
+				this._isLockedOnFollowingUser.set(false)
+				this.removeListener('frame', moveTowardsUser)
+				this.removeListener('stop-following', cancel)
+			}
+
+			const moveTowardsUser = () => {
 				// Stop following if we can't find the user
-				const leaderPresence = this._getCollaboratorsQuery()
-					.get()
-					.filter((p) => p.userId === userId)
-					.sort((a, b) => {
-						return b.lastActivityTimestamp - a.lastActivityTimestamp
-					})[0]
-
-				// Change page if leader is on a different page
-				const isOnSamePage = leaderPresence.currentPageId === this.getCurrentPageId()
-				if (!isOnSamePage) {
+				const leaderPresence = latestLeaderPresence.get()
+				if (!leaderPresence) {
 					this.stopFollowingUser()
-					this.setCurrentPage(leaderPresence.currentPageId)
-					this.startFollowingUser(userId, { animateToUser: false })
 					return
 				}
 
@@ -3235,14 +3243,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Update the camera!
 				this.stopCameraAnimation()
 				this._setCamera(midpointCamera)
-			})
-		}
+			}
 
-		this.once('stop-following', cancel)
-		this.on('frame', moveTowardsUser)
+			this.once('stop-following', cancel)
+			this.addListener('frame', moveTowardsUser)
 
-		// call once to start synchronously
-		moveTowardsUser()
+			// call once to start synchronously
+			moveTowardsUser()
+		})
 
 		return this
 	}
@@ -3257,6 +3265,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopFollowingUser(): this {
+		console.error('why did i stop')
 		this.batch(() => {
 			// commit the current camera to the store
 			this._setCamera(this.getCamera())
