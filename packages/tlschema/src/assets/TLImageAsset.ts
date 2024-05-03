@@ -88,13 +88,13 @@ export const imageAssetMigrations = createRecordMigrationSequence({
 				if (asset.props.src === null) {
 					asset.props.sources = []
 				} else {
-					asset.props.sources = [{ scale: 1, src: asset.src }]
+					asset.props.sources = [{ scale: 1, src: asset.props.src }]
 				}
 				delete asset.props.src
 			},
 			down: (asset: any) => {
 				// get the largest source
-				const src = asset.props.sources.sort((a: any, b: any) => b.scale - a.scale)[0]?.src ?? null
+				const src = asset.props.sources[0]?.src ?? null
 				asset.props.src = src
 				delete asset.props.sources
 			},

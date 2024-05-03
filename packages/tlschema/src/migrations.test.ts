@@ -1561,6 +1561,22 @@ describe('Add text align to text shapes', () => {
 	})
 })
 
+describe('Add image sources to image shape', () => {
+	const { up, down } = getTestMigration(imageAssetVersions.AddSources)
+
+	test('up works as expected', () => {
+		expect(up({ props: { src: 'abc' } })).toEqual({
+			props: { sources: [{ scale: 1, src: 'abc' }] },
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { sources: [{ scale: 1, src: 'abc' }] } })).toEqual({
+			props: { src: 'abc' },
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once

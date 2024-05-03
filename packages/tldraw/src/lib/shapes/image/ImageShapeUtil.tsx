@@ -227,7 +227,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	override onDoubleClick = (shape: TLImageShape) => {
-		const zoomLevel = useValue('zoom level', () => this.editor.getZoomLevel(), [this.editor])
+		const zoomLevel = this.editor.getZoomLevel()
 		const asset = shape.props.assetId
 			? this.editor.getAsset<TLImageAsset>(shape.props.assetId)
 			: undefined
