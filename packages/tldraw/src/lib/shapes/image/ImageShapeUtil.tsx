@@ -318,14 +318,19 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 	}
 }
 
+/**
+ * Get the image source for a given zoom level.
+ *
+ * @param asset - The image asset
+ * @param zoomLevel - The zoom level
+ * @param scale - How the image has been scaled (ie a 100x100 image resized to 200x200 would have a scale of 2)
+ * @internal
+ */
 function getImageSrcForZoom(asset: TLImageAsset, zoomLevel: number, scale: number) {
-	let src: string | null = null
-	for (let i = 0; i < asset.props.sources.length; i++) {
+	let src = asset.props.sources[0]?.src ?? null
+	for (let i = 1; i < asset.props.sources.length; i++) {
 		const source = asset.props.sources[i]
-		if (i === 0) {
-			src = source.src
-		}
-		if (source.scale > zoomLevel * scale) {
+		if (source.scale / scale > zoomLevel) {
 			src = source.src
 			continue
 		}
