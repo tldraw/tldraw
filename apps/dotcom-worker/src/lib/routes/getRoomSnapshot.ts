@@ -36,7 +36,7 @@ export async function getRoomSnapshot(request: IRequest, env: Environment): Prom
 		}
 	}
 
-	// If we don't have it then fallback to Supabase
+	// If we can't find the snapshot in R2 then fallback to Supabase
 	// Create a supabase client
 	const supabase = createSupabaseClient(env)
 	if (!supabase) return noSupabaseSorry()
