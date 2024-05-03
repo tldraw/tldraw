@@ -165,9 +165,9 @@ export function parseTldrawJsonFile({
 }
 
 function pruneUnusedAssets(records: TLRecord[]) {
-	const usedAssets = new Set<TLAssetId | null>()
+	const usedAssets = new Set<TLAssetId>()
 	for (const record of records) {
-		if (record.typeName === 'shape' && 'assetId' in record.props) {
+		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
 			usedAssets.add(record.props.assetId)
 		}
 	}
