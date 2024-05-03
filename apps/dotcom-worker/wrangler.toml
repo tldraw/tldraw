@@ -115,6 +115,27 @@ bucket_name = "rooms-history-ephemeral-preview"
 binding = "ROOMS_HISTORY_EPHEMERAL"
 bucket_name = "rooms-history-ephemeral"
 
+#################### Room snapshots bucket ####################
+# in dev, we write to the preview bucket and need a `preview_bucket_name`
+[[env.dev.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots-preview"
+preview_bucket_name = "room-snapshots-preview"
+
+# in preview and staging we write to the preview bucket
+[[env.preview.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots-preview"
+
+[[env.staging.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots-preview"
+
+# in production, we write to the main bucket
+[[env.production.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots"
+
 #################### Key value storage ####################
 [[env.dev.kv_namespaces]]
 binding = "SLUG_TO_READONLY_SLUG"
