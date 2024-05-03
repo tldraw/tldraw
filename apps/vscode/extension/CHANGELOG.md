@@ -1,3 +1,7 @@
+## 2.0.33
+
+- Improves minimap rendering.
+
 ## 2.0.32
 
 - Performance improvements.
