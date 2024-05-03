@@ -560,7 +560,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.ungroupShapes(editor.getSelectedShapeIds())
 					} else {
 						editor.mark('group')
-						editor.groupShapes(editor.getSelectedShapeIds())
+						const groupId = createShapeId()
+						editor.groupShapes(editor.getSelectedShapeIds(), groupId)
+						editor.select(groupId)
 					}
 				},
 			},

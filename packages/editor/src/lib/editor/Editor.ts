@@ -6632,7 +6632,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 			])
 			this.reparentShapes(sortedShapeIds, groupId)
-			this.select(groupId)
 		})
 
 		return this
