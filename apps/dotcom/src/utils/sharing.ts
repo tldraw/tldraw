@@ -70,7 +70,12 @@ async function getSnapshotLink(
 		return ''
 	}
 	const paramsToUse = getViewportUrlQuery(editor)
-	const params = paramsToUse ? `?${new URLSearchParams(paramsToUse).toString()}` : ''
+	// React router has an issue with the search params being encoded, which can cause multiple navigations
+	// and can also make us believe that the URL has changed when it hasn't.
+	// https://github.com/tldraw/tldraw/pull/3663#discussion_r1584946080
+	const params = paramsToUse
+		? decodeURIComponent(`?${new URLSearchParams(paramsToUse).toString()}`)
+		: ''
 	return new Blob([`${window.location.origin}/${SNAPSHOT_PREFIX}/${response.roomId}${params}`], {
 		type: 'text/plain',
 	})
@@ -134,7 +139,13 @@ export function useSharing(): TLUiOverrides {
 
 							const query = getViewportUrlQuery(editor)
 							const origin = window.location.origin
-							const pathname = `/${ROOM_PREFIX}/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`
+
+							// React router has an issue with the search params being encoded, which can cause multiple navigations
+							// and can also make us believe that the URL has changed when it hasn't.
+							// https://github.com/tldraw/tldraw/pull/3663#discussion_r1584946080
+							const pathname = decodeURIComponent(
+								`/${ROOM_PREFIX}/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`
+							)
 							if (runningInIFrame) {
 								window.open(`${origin}${pathname}`)
 							} else {

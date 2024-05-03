@@ -2919,7 +2919,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const moveTowardsUser = () => {
 			// Stop following if we can't find the user
-			const leaderPresence = [...leaderPresences]
+			const leaderPresence = this._getCollaboratorsQuery()
+				.get()
+				.filter((p) => p.userId === userId)
 				.sort((a, b) => {
 					return a.lastActivityTimestamp - b.lastActivityTimestamp
 				})
