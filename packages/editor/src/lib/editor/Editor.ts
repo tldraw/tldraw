@@ -139,6 +139,11 @@ export type TLAnimationOptions = Partial<{
 }>
 
 /** @public */
+export type TLGroupShapesOptions = Partial<{
+	selectAfterGrouping: boolean
+}>
+
+/** @public */
 export type TLResizeShapeOptions = Partial<{
 	initialBounds: Box
 	scaleOrigin: VecLike
@@ -6582,7 +6587,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	groupShapes(shapes: TLShapeId[] | TLShape[], groupId = createShapeId()): this {
+	groupShapes(
+		shapes: TLShapeId[] | TLShape[],
+		groupId = createShapeId(),
+		options: TLGroupShapesOptions = { selectAfterGrouping: true }
+	): this {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.groupShapes: must provide an array of shapes or shape ids')
 		}
@@ -6632,7 +6641,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 			])
 			this.reparentShapes(sortedShapeIds, groupId)
-			this.select(groupId)
+			if (options.selectAfterGrouping) {
+				this.select(groupId)
+			}
 		})
 
 		return this
