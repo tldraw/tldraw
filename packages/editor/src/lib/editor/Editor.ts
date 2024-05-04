@@ -2064,6 +2064,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 			case 'fit-y': {
 				return zy
 			}
+			case 'fit-min-100': {
+				return Math.min(1, Math.max(zx, zy))
+			}
+			case 'fit-max-100': {
+				return Math.min(1, Math.min(zx, zy))
+			}
+			case 'fit-x-100': {
+				return Math.min(1, zx)
+			}
+			case 'fit-y-100': {
+				return Math.min(1, zy)
+			}
 			default: {
 				throw exhaustiveSwitchError(cameraOptions.constraints.initialZoom)
 			}
@@ -2101,6 +2113,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			case 'fit-y': {
 				return zy
+			}
+			case 'fit-min-100': {
+				return Math.min(1, Math.max(zx, zy))
+			}
+			case 'fit-max-100': {
+				return Math.min(1, Math.min(zx, zy))
+			}
+			case 'fit-x-100': {
+				return Math.min(1, zx)
+			}
+			case 'fit-y-100': {
+				return Math.min(1, zy)
 			}
 			default: {
 				throw exhaustiveSwitchError(cameraOptions.constraints.baseZoom)

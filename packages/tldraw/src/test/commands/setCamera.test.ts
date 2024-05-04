@@ -549,6 +549,43 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 		editor.zoomIn().resetZoom().forceTick()
 		expect(editor.getCamera()).toCloselyMatchObject({ x: -375, y: 0, z: 2 }, 2)
 	})
+
+	it('When fit is fit-min-100', () => {
+		editor.updateViewportScreenBounds(new Box(0, 0, 1600, 900))
+
+		editor.setCameraOptions(
+			{
+				...DEFAULT_CAMERA_OPTIONS,
+				constraints: {
+					...DEFAULT_CONSTRAINTS,
+					behavior: 'contain',
+					origin: { x: 0.5, y: 0.5 },
+					initialZoom: 'fit-min-100',
+				},
+			},
+			{ reset: true }
+		)
+
+		// Max 1 on initial / reset
+		expect(editor.getCamera()).toCloselyMatchObject({ x: 200, y: 50, z: 1 }, 2)
+
+		// Min is regular
+		editor.updateViewportScreenBounds(new Box(0, 0, 800, 450))
+		editor.setCameraOptions(
+			{
+				...DEFAULT_CAMERA_OPTIONS,
+				constraints: {
+					...DEFAULT_CONSTRAINTS,
+					behavior: 'contain',
+					origin: { x: 0.5, y: 0.5 },
+					initialZoom: 'fit-min-100',
+				},
+			},
+			{ reset: true }
+		)
+
+		expect(editor.getCamera()).toCloselyMatchObject({ x: 0, y: -62.5, z: 0.66 }, 2)
+	})
 })
 
 describe('Padding', () => {

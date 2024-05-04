@@ -2072,8 +2072,8 @@ export type TLCameraOptions = {
             y: 'contain' | 'fixed' | 'free' | 'inside' | 'outside';
         };
         bounds: BoxModel;
-        baseZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';
-        initialZoom: 'default' | 'fit-max' | 'fit-min' | 'fit-x' | 'fit-y';
+        baseZoom: 'default' | 'fit-max-100' | 'fit-max' | 'fit-min-100' | 'fit-min' | 'fit-x-100' | 'fit-x' | 'fit-y-100' | 'fit-y';
+        initialZoom: 'default' | 'fit-max-100' | 'fit-max' | 'fit-min-100' | 'fit-min' | 'fit-x-100' | 'fit-x' | 'fit-y-100' | 'fit-y';
         origin: VecLike;
         padding: VecLike;
     };

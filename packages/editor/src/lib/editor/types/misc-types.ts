@@ -55,9 +55,27 @@ export type TLCameraOptions = {
 		/** The origin for placement. Used to position the bounds within the viewport when an axis is fixed or contained and zoom is below the axis fit. */
 		origin: VecLike
 		/** The camera's initial zoom, used also when the camera is reset. */
-		initialZoom: 'fit-min' | 'fit-max' | 'fit-x' | 'fit-y' | 'default'
+		initialZoom:
+			| 'fit-min'
+			| 'fit-max'
+			| 'fit-x'
+			| 'fit-y'
+			| 'fit-min-100'
+			| 'fit-max-100'
+			| 'fit-x-100'
+			| 'fit-y-100'
+			| 'default'
 		/** The camera's base for its zoom steps. */
-		baseZoom: 'fit-min' | 'fit-max' | 'fit-x' | 'fit-y' | 'default'
+		baseZoom:
+			| 'fit-min'
+			| 'fit-max'
+			| 'fit-x'
+			| 'fit-y'
+			| 'fit-min-100'
+			| 'fit-max-100'
+			| 'fit-x-100'
+			| 'fit-y-100'
+			| 'default'
 		/** The behavior for the constraints on the x axis. */
 		behavior:
 			| 'free'

@@ -1,18 +1,17 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import {
 	Box,
 	DEFAULT_CAMERA_OPTIONS,
-	PORTRAIT_BREAKPOINT,
 	SVGContainer,
+	TLComponents,
 	TLImageShape,
-	TLShapeId,
 	TLShapePartial,
 	Tldraw,
 	compact,
 	getIndicesBetween,
+	react,
 	sortByIndex,
 	track,
-	useBreakpoint,
 	useEditor,
 } from 'tldraw'
 import { ExportPdfButton } from './ExportPdfButton'
@@ -24,13 +23,19 @@ import { Pdf } from './PdfPicker'
 // - inertial scrolling for constrained camera
 // - render pages on-demand instead of all at once.
 export function PdfEditor({ pdf }: { pdf: Pdf }) {
-	const pdfShapeIds = useMemo(() => pdf.pages.map((page) => page.shapeId), [pdf.pages])
+	const components = useMemo<TLComponents>(
+		() => ({
+			PageMenu: null,
+			InFrontOfTheCanvas: () => <PageOverlayScreen pdf={pdf} />,
+			SharePanel: () => <ExportPdfButton pdf={pdf} />,
+		}),
+		[pdf]
+	)
+
 	return (
 		<Tldraw
 			onMount={(editor) => {
 				editor.updateInstanceState({ isDebugMode: false })
-				editor.setCamera({ x: 1000, y: 1000, z: 1 })
-
 				editor.createAssets(
 					pdf.pages.map((page) => ({
 						id: page.assetId,
@@ -47,7 +52,6 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 						},
 					}))
 				)
-
 				editor.createShapes(
 					pdf.pages.map(
 						(page): TLShapePartial<TLImageShape> => ({
@@ -55,6 +59,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 							type: 'image',
 							x: page.bounds.x,
 							y: page.bounds.y,
+							isLocked: true,
 							props: {
 								assetId: page.assetId,
 								w: page.bounds.w,
@@ -63,21 +68,84 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 						})
 					)
 				)
+
+				const shapeIds = pdf.pages.map((page) => page.shapeId)
+				const shapeIdSet = new Set(shapeIds)
+
+				// Don't let the user unlock the pages
+				editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {
+					if (!shapeIdSet.has(next.id)) return next
+					if (next.isLocked) return next
+					return { ...prev, isLocked: true }
+				})
+
+				// Make sure the shapes are below any of the other shapes
+				function makeSureShapesAreAtBottom() {
+					const shapes = shapeIds.map((id) => editor.getShape(id)!).sort(sortByIndex)
+					const pageId = editor.getCurrentPageId()
+
+					const siblings = editor.getSortedChildIdsForParent(pageId)
+					const currentBottomShapes = siblings
+						.slice(0, shapes.length)
+						.map((id) => editor.getShape(id)!)
+
+					if (currentBottomShapes.every((shape, i) => shape.id === shapes[i].id)) return
+
+					const otherSiblings = siblings.filter((id) => !shapeIdSet.has(id))
+					const bottomSibling = otherSiblings[0]
+					const lowestIndex = editor.getShape(bottomSibling)!.index
+
+					const indexes = getIndicesBetween(undefined, lowestIndex, shapes.length)
+					editor.updateShapes(
+						shapes.map((shape, i) => ({
+							id: shape.id,
+							type: shape.type,
+							isLocked: shape.isLocked,
+							index: indexes[i],
+						}))
+					)
+				}
+
+				makeSureShapesAreAtBottom()
+				editor.sideEffects.registerAfterCreateHandler('shape', makeSureShapesAreAtBottom)
+				editor.sideEffects.registerAfterChangeHandler('shape', makeSureShapesAreAtBottom)
+
+				// Constrain the camera to the bounds of the pages
+				const targetBounds = pdf.pages.reduce(
+					(acc, page) => acc.union(page.bounds),
+					pdf.pages[0].bounds.clone()
+				)
+
+				function updateCameraBounds(isMobile: boolean) {
+					editor.setCameraOptions(
+						{
+							...DEFAULT_CAMERA_OPTIONS,
+							constraints: {
+								bounds: targetBounds,
+								padding: { x: isMobile ? 16 : 164, y: 64 },
+								origin: { x: 0.5, y: 0 },
+								initialZoom: 'fit-x-100',
+								baseZoom: 'default',
+								behavior: 'contain',
+							},
+						},
+						{ reset: true }
+					)
+				}
+
+				let isMobile = editor.getViewportScreenBounds().width < 840
+
+				react('update camera', () => {
+					const isMobileNow = editor.getViewportScreenBounds().width < 840
+					if (isMobileNow === isMobile) return
+					isMobile = isMobileNow
+					updateCameraBounds(isMobile)
+				})
+
+				updateCameraBounds(isMobile)
 			}}
-			components={{
-				PageMenu: null,
-				InFrontOfTheCanvas: useCallback(() => {
-					return <PageOverlayScreen pdf={pdf} />
-				}, [pdf]),
-				SharePanel: useCallback(() => {
-					return <ExportPdfButton pdf={pdf} />
-				}, [pdf]),
-			}}
-		>
-			<ConstrainCamera pdf={pdf} />
-			<KeepShapesLocked shapeIds={pdfShapeIds} />
-			<KeepShapesAtBottomOfCurrentPage shapeIds={pdfShapeIds} />
-		</Tldraw>
+			components={components}
+		/>
 	)
 }
 
@@ -124,112 +192,3 @@ const PageOverlayScreen = track(function PageOverlayScreen({ pdf }: { pdf: Pdf }
 		</>
 	)
 })
-
-function ConstrainCamera({ pdf }: { pdf: Pdf }) {
-	const editor = useEditor()
-	const breakpoint = useBreakpoint()
-	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
-
-	useEffect(() => {
-		const targetBounds = pdf.pages.reduce(
-			(acc, page) => acc.union(page.bounds),
-			pdf.pages[0].bounds.clone()
-		)
-
-		editor.setCameraOptions(
-			{
-				...DEFAULT_CAMERA_OPTIONS,
-				constraints: {
-					bounds: targetBounds,
-					padding: { x: isMobile ? 16 : 164, y: 64 },
-					origin: { x: 0.5, y: 0 },
-					initialZoom: 'fit-x',
-					baseZoom: 'default',
-					behavior: 'contain',
-				},
-			},
-			{ reset: true }
-		)
-	}, [editor, isMobile, pdf.pages])
-
-	return null
-}
-
-function KeepShapesLocked({ shapeIds }: { shapeIds: TLShapeId[] }) {
-	const editor = useEditor()
-
-	useEffect(() => {
-		const shapeIdSet = new Set(shapeIds)
-
-		for (const shapeId of shapeIdSet) {
-			const shape = editor.getShape(shapeId)!
-			editor.updateShape({
-				id: shape.id,
-				type: shape.type,
-				isLocked: true,
-			})
-		}
-
-		const removeOnChange = editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {
-			if (!shapeIdSet.has(next.id)) return next
-			if (next.isLocked) return next
-			return { ...prev, isLocked: true }
-		})
-
-		return () => {
-			removeOnChange()
-		}
-	}, [editor, shapeIds])
-
-	return null
-}
-
-function KeepShapesAtBottomOfCurrentPage({ shapeIds }: { shapeIds: TLShapeId[] }) {
-	const editor = useEditor()
-
-	useEffect(() => {
-		const shapeIdSet = new Set(shapeIds)
-
-		function makeSureShapesAreAtBottom() {
-			const shapes = shapeIds.map((id) => editor.getShape(id)!).sort(sortByIndex)
-			const pageId = editor.getCurrentPageId()
-
-			const siblings = editor.getSortedChildIdsForParent(pageId)
-			const currentBottomShapes = siblings.slice(0, shapes.length).map((id) => editor.getShape(id)!)
-
-			if (currentBottomShapes.every((shape, i) => shape.id === shapes[i].id)) return
-
-			const otherSiblings = siblings.filter((id) => !shapeIdSet.has(id))
-			const bottomSibling = otherSiblings[0]
-			const lowestIndex = editor.getShape(bottomSibling)!.index
-
-			const indexes = getIndicesBetween(undefined, lowestIndex, shapes.length)
-			editor.updateShapes(
-				shapes.map((shape, i) => ({
-					id: shape.id,
-					type: shape.type,
-					isLocked: shape.isLocked,
-					index: indexes[i],
-				}))
-			)
-		}
-
-		makeSureShapesAreAtBottom()
-
-		const removeOnCreate = editor.sideEffects.registerAfterCreateHandler(
-			'shape',
-			makeSureShapesAreAtBottom
-		)
-		const removeOnChange = editor.sideEffects.registerAfterChangeHandler(
-			'shape',
-			makeSureShapesAreAtBottom
-		)
-
-		return () => {
-			removeOnCreate()
-			removeOnChange()
-		}
-	}, [editor, shapeIds])
-
-	return null
-}
