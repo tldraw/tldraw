@@ -2170,7 +2170,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (cameraOptions.constraints) {
 				const { constraints } = cameraOptions
 
-				// Get padding (it's either a number or an array of 2 numbers for t/b, l/r)
 				// Clamp padding to half the viewport size on either dimension
 				const py = Math.min(constraints.padding.y, vsb.w / 2)
 				const px = Math.min(constraints.padding.x, vsb.h / 2)

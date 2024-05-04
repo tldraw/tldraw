@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import {
 	Box,
+	DEFAULT_CAMERA_OPTIONS,
 	PORTRAIT_BREAKPOINT,
 	SVGContainer,
 	TLImageShape,
 	TLShapeId,
 	TLShapePartial,
 	Tldraw,
-	clamp,
 	compact,
 	getIndicesBetween,
-	react,
 	sortByIndex,
 	track,
 	useBreakpoint,
@@ -132,78 +131,25 @@ function ConstrainCamera({ pdf }: { pdf: Pdf }) {
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 
 	useEffect(() => {
-		const marginTop = 64
-		const marginSide = isMobile ? 16 : 164
-		const marginBottom = 80
-
 		const targetBounds = pdf.pages.reduce(
 			(acc, page) => acc.union(page.bounds),
 			pdf.pages[0].bounds.clone()
 		)
 
-		function constrainCamera(camera: { x: number; y: number; z: number }): {
-			x: number
-			y: number
-			z: number
-		} {
-			const viewportBounds = editor.getViewportScreenBounds()
-
-			const usableViewport = new Box(
-				marginSide,
-				marginTop,
-				viewportBounds.w - marginSide * 2,
-				viewportBounds.h - marginTop - marginBottom
-			)
-
-			const minZoom = Math.min(
-				usableViewport.w / targetBounds.w,
-				usableViewport.h / targetBounds.h,
-				1
-			)
-			const zoom = Math.max(minZoom, camera.z)
-
-			const centerX = targetBounds.x - targetBounds.w / 2 + usableViewport.midX / zoom
-			const centerY = targetBounds.y - targetBounds.h / 2 + usableViewport.midY / zoom
-
-			const availableXMovement = Math.max(0, targetBounds.w - usableViewport.w / zoom)
-			const availableYMovement = Math.max(0, targetBounds.h - usableViewport.h / zoom)
-
-			return {
-				x: clamp(camera.x, centerX - availableXMovement / 2, centerX + availableXMovement / 2),
-				y: clamp(camera.y, centerY - availableYMovement / 2, centerY + availableYMovement / 2),
-				z: zoom,
-			}
-		}
-
-		const removeOnChange = editor.sideEffects.registerBeforeChangeHandler(
-			'camera',
-			(_prev, next) => {
-				const constrained = constrainCamera(next)
-				if (constrained.x === next.x && constrained.y === next.y && constrained.z === next.z)
-					return next
-				return { ...next, ...constrained }
-			}
+		editor.setCameraOptions(
+			{
+				...DEFAULT_CAMERA_OPTIONS,
+				constraints: {
+					bounds: targetBounds,
+					padding: { x: isMobile ? 16 : 164, y: 64 },
+					origin: { x: 0.5, y: 0 },
+					initialZoom: 'fit-x',
+					baseZoom: 'default',
+					behavior: 'contain',
+				},
+			},
+			{ reset: true }
 		)
-
-		const removeReaction = react('update camera when viewport/shape changes', () => {
-			const original = editor.getCamera()
-			const constrained = constrainCamera(original)
-			if (
-				original.x === constrained.x &&
-				original.y === constrained.y &&
-				original.z === constrained.z
-			) {
-				return
-			}
-
-			// this needs to be in a microtask for some reason, but idk why
-			queueMicrotask(() => editor.setCamera(constrained))
-		})
-
-		return () => {
-			removeOnChange()
-			removeReaction()
-		}
 	}, [editor, isMobile, pdf.pages])
 
 	return null
