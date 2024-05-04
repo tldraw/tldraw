@@ -551,6 +551,90 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 	})
 })
 
+describe('Padding', () => {
+	it('sets when padding is zero', () => {
+		editor.setCameraOptions(
+			{
+				...DEFAULT_CAMERA_OPTIONS,
+				constraints: {
+					...DEFAULT_CONSTRAINTS,
+					behavior: 'contain',
+					origin: { x: 0.5, y: 0.5 },
+					padding: { x: 0, y: 0 },
+					initialZoom: 'fit-max',
+				},
+			},
+			{ reset: true }
+		)
+
+		// y should be 0 because the viewport width is bigger than the height
+		expect(editor.getCamera()).toCloselyMatchObject({ x: 111.11, y: 0, z: 1.125 }, 2)
+		editor.zoomIn().resetZoom().forceTick()
+		expect(editor.getCamera()).toCloselyMatchObject({ x: 111.11, y: 0, z: 1.125 }, 2)
+	})
+
+	it('sets when padding is 100, 0', () => {
+		editor.setCameraOptions(
+			{
+				...DEFAULT_CAMERA_OPTIONS,
+				constraints: {
+					...DEFAULT_CONSTRAINTS,
+					behavior: 'contain',
+					origin: { x: 0.5, y: 0.5 },
+					padding: { x: 100, y: 0 },
+					initialZoom: 'fit-max',
+				},
+			},
+			{ reset: true }
+		)
+
+		// no change because the horizontal axis has extra space available
+		expect(editor.getCamera()).toCloselyMatchObject({ x: 111.11, y: 0, z: 1.125 }, 2)
+		editor.zoomIn().resetZoom().forceTick()
+		expect(editor.getCamera()).toCloselyMatchObject({ x: 111.11, y: 0, z: 1.125 }, 2)
+
+		editor.setCameraOptions(
+			{
+				...DEFAULT_CAMERA_OPTIONS,
+				constraints: {
+					...DEFAULT_CONSTRAINTS,
+					behavior: 'contain',
+					origin: { x: 0.5, y: 0.5 },
+					padding: { x: 200, y: 0 },
+					initialZoom: 'fit-max',
+				},
+			},
+			{ reset: true }
+		)
+
+		// now we're pinching
+		expect(editor.getCamera()).toCloselyMatchObject({ x: 200, y: 50, z: 1 }, 2)
+		editor.zoomIn().resetZoom().forceTick()
+		expect(editor.getCamera()).toCloselyMatchObject({ x: 200, y: 50, z: 1 }, 2)
+	})
+
+	it('sets when padding is 0 x 100', () => {
+		editor.setCameraOptions(
+			{
+				...DEFAULT_CAMERA_OPTIONS,
+				constraints: {
+					...DEFAULT_CONSTRAINTS,
+					behavior: 'contain',
+					origin: { x: 0.5, y: 0.5 },
+					padding: { x: 0, y: 100 },
+					initialZoom: 'fit-max',
+				},
+			},
+			{ reset: true }
+		)
+
+		// y should be 0 because the viewport width is bigger than the height
+		expect(editor.getCamera()).toCloselyMatchObject({ x: 314.28, y: 114.28, z: 0.875 }, 2)
+		editor.zoomIn().resetZoom().forceTick()
+		expect(editor.getCamera()).toCloselyMatchObject({ x: 314.28, y: 114.28, z: 0.875 }, 2)
+	})
+})
+
 describe('Contain behavior', () => {
 	it.todo(
 		'Locks axis until the bounds are bigger than the padded viewport, then allows "inside" panning'
