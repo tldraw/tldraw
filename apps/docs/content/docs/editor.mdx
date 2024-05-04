@@ -209,10 +209,10 @@ The editor offers many methods and properties relating to the part of the infini
 
 The viewport is the rectangular area contained by the editor.
 
-| Method                            | Description                                                                                                        |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| [Editor#getViewportScreenBounds]  | A [Box](?) that describes the size and position of the component's canvas in actual screen pixels.                 |
-| [Editor#getViewportPageBounds](?) | A [Box](?) that describes the size and position of the part of the current page that is displayed in the viewport. |
+| Method                              | Description                                                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [Editor#getViewportScreenBounds](?) | A [Box](?) that describes the size and position of the component's canvas in actual screen pixels.                 |
+| [Editor#getViewportPageBounds](?)   | A [Box](?) that describes the size and position of the part of the current page that is displayed in the viewport. |
 
 ## Screen vs. page coordinates
 
@@ -295,13 +295,17 @@ For example, when the `behavior` is `fixed` and the `origin.x` is `0`, the bound
 
 The `initialZoom` option defines the camera's initial zoom level and what the zoom should be when when the camera is reset. The zoom it produces is based on the value provided:
 
-| Value     | Description                                                                                                             |
-| --------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 'default' | 100%.                                                                                                                   |
-| 'fit-x'   | The zoom at which the constraint's `bounds.width` exactly fits within the viewport.                                     |
-| 'fit-y'   | The zoom at which the constraint's `bounds.height` exactly fits within the viewport.                                    |
-| 'fit-min' | The zoom at which the _smaller_ of the constraint's `bounds.width` or `bounds.height` exactly fits within the viewport. |
-| 'fit-max' | The zoom at which the _larger_ of the constraint's `bounds.width` or `bounds.height` exactly fits within the viewport.  |
+| Value         | Description                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| `default`     | Sets the initial zoom to 100%.                                                                 |
+| `fit-x`       | The x axis will completely fill the viewport bounds.                                           |
+| `fit-y`       | The y axis will completely fill the viewport bounds.                                           |
+| `fit-min`     | The smaller axis will completely fill the viewport bounds.                                     |
+| `fit-max`     | The larger axis will completely fill the viewport bounds.                                      |
+| `fit-x-100`   | The x axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.       |
+| `fit-y-100`   | The y axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.       |
+| `fit-min-100` | The smaller axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller. |
+| `fit-max-100` | The larger axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.  |
 
 ### `constraints.baseZoom`
 
