@@ -257,9 +257,13 @@ const CameraOptionsControlPanel = track(() => {
 					type="text"
 					defaultValue={cameraOptions.zoomSteps.join(', ')}
 					onChange={(e) => {
-						const val = e.target.value.split(', ').map((v) => Number(v))
-						if (val.every((v) => typeof v === 'number' && Number.isFinite(v))) {
-							updateOptions({ zoomSteps: val })
+						try {
+							const val = e.target.value.split(', ').map((v) => Number(v))
+							if (val.every((v) => typeof v === 'number' && Number.isFinite(v))) {
+								updateOptions({ zoomSteps: val })
+							}
+						} catch (e) {
+							// ignore
 						}
 					}}
 				/>
@@ -464,6 +468,8 @@ const CameraOptionsControlPanel = track(() => {
 				<button
 					onClick={() => {
 						editor.setCamera(editor.getCamera(), { reset: true })
+						// eslint-disable-next-line no-console
+						console.log(editor.getCameraOptions())
 					}}
 				>
 					Reset Camera

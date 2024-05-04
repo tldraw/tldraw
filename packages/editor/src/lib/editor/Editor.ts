@@ -2548,8 +2548,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (zoomSteps !== null && zoomSteps.length > 1) {
 			const baseZoom = this.getBaseZoom()
 			const { x: cx, y: cy, z: cz } = this.getCamera()
+			// start at the max
 			let zoom = zoomSteps[0] * baseZoom
-			for (let i = zoomSteps.length - 2; i > 0; i--) {
+			for (let i = zoomSteps.length - 1; i > 0; i--) {
 				const z1 = zoomSteps[i - 1] * baseZoom
 				const z2 = zoomSteps[i] * baseZoom
 				if (z2 - cz >= (z2 - z1) / 2) continue
@@ -8419,16 +8420,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const { x: cx, y: cy, z: cz } = camera
 						const { x: dx, y: dy, z: dz = 0 } = info.delta
 
+						let behavior = wheelBehavior
+
 						// If the camera behavior is "zoom" and the ctrl key is presssed, then pan;
 						// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
-						let behavior = wheelBehavior
 						if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
 						switch (behavior) {
 							case 'zoom': {
 								// Zoom in on current screen point using the wheel delta
 								const { x, y } = this.inputs.currentScreenPoint
-								const zoom = cz + (dz ?? 0) * zoomSpeed * cz
+								let delta = dz
+
+								// If we're forcing zoom, then we need to do the wheel normalization math here
+								if (wheelBehavior === 'zoom') {
+									if (Math.abs(dy) > 10) {
+										delta = (10 * Math.sign(dy)) / 100
+									} else {
+										delta = dy / 100
+									}
+								}
+
+								const zoom = cz + (delta ?? 0) * zoomSpeed * cz
 								this._setCamera(
 									new Vec(
 										cx + (x / zoom - x) - (x / cz - x),
