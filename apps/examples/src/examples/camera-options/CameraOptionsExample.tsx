@@ -320,6 +320,10 @@ const CameraOptionsControlPanel = track(() => {
 							<option>fit-max</option>
 							<option>fit-x</option>
 							<option>fit-y</option>
+							<option>fit-min-100</option>
+							<option>fit-max-100</option>
+							<option>fit-x-100</option>
+							<option>fit-y-100</option>
 							<option>default</option>
 						</select>
 						<label htmlFor="zoomBehavior">Base Zoom</label>
@@ -339,6 +343,10 @@ const CameraOptionsControlPanel = track(() => {
 							<option>fit-max</option>
 							<option>fit-x</option>
 							<option>fit-y</option>
+							<option>fit-min-100</option>
+							<option>fit-max-100</option>
+							<option>fit-x-100</option>
+							<option>fit-y-100</option>
 							<option>default</option>
 						</select>
 						<label htmlFor="originX">Origin X</label>
