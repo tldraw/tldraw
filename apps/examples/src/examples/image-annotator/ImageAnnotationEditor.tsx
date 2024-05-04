@@ -1,20 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
 	AssetRecordType,
-	Box,
 	Editor,
-	PORTRAIT_BREAKPOINT,
 	SVGContainer,
 	TLImageShape,
 	TLShapeId,
 	Tldraw,
-	clamp,
 	createShapeId,
 	exportToBlob,
-	getIndexBelow,
-	react,
 	track,
-	useBreakpoint,
 	useEditor,
 } from 'tldraw'
 import { AnnotatorImage } from './types'
@@ -31,9 +25,19 @@ export function ImageAnnotationEditor({
 	onDone: (result: Blob) => void
 }) {
 	const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null)
+	const [editor, setEditor] = useState(null as Editor | null)
+
 	function onMount(editor: Editor) {
+		setEditor(editor)
+	}
+
+	useEffect(() => {
+		if (!editor) return
+
+		// Turn off debug mode
 		editor.updateInstanceState({ isDebugMode: false })
 
+		// Create the asset and image shape
 		const assetId = AssetRecordType.createId()
 		editor.createAssets([
 			{
@@ -51,10 +55,9 @@ export function ImageAnnotationEditor({
 				},
 			},
 		])
-
-		const imageId = createShapeId()
+		const shapeId = createShapeId()
 		editor.createShape<TLImageShape>({
-			id: imageId,
+			id: shapeId,
 			type: 'image',
 			x: 0,
 			y: 0,
@@ -66,13 +69,88 @@ export function ImageAnnotationEditor({
 			},
 		})
 
-		editor.history.clear()
-		setImageShapeId(imageId)
+		// Make sure the shape is at the bottom of the page
+		function makeSureShapeIsAtBottom() {
+			if (!editor) return
 
-		// zoom aaaaallll the way out. our camera constraints will make sure we end up nicely
-		// centered on the image
-		editor.setCamera({ x: 0, y: 0, z: 0.0001 })
-	}
+			const shape = editor.getShape(shapeId)
+			if (!shape) return
+
+			const pageId = editor.getCurrentPageId()
+
+			// The shape should always be the child of the current page
+			if (shape.parentId !== pageId) {
+				editor.moveShapesToPage([shape], pageId)
+			}
+
+			// The shape should always be at the bottom of the page's children
+			const siblings = editor.getSortedChildIdsForParent(pageId)
+			const currentBottomShape = editor.getShape(siblings[0])!
+			if (currentBottomShape.id !== shapeId) {
+				editor.sendToBack([shape])
+			}
+		}
+
+		makeSureShapeIsAtBottom()
+
+		const removeOnCreate = editor.sideEffects.registerAfterCreateHandler(
+			'shape',
+			makeSureShapeIsAtBottom
+		)
+
+		const removeOnChange = editor.sideEffects.registerAfterChangeHandler(
+			'shape',
+			makeSureShapeIsAtBottom
+		)
+
+		// The shape should always be locked
+		const cleanupKeepShapeLocked = editor.sideEffects.registerBeforeChangeHandler(
+			'shape',
+			(prev, next) => {
+				if (next.id !== shapeId) return next
+				if (next.isLocked) return next
+				return { ...prev, isLocked: true }
+			}
+		)
+
+		// Reset the history
+		editor.history.clear()
+		setImageShapeId(shapeId)
+
+		return () => {
+			removeOnChange()
+			removeOnCreate()
+			cleanupKeepShapeLocked()
+		}
+	}, [image, editor])
+
+	useEffect(() => {
+		if (!editor) return
+		if (!imageShapeId) return
+
+		/**
+		 * We don't want the user to be able to scroll away from the image, or zoom it all the way out. This
+		 * component hooks into camera updates to keep the camera constrained - try uploading a very long,
+		 * thin image and seeing how the camera behaves.
+		 */
+		editor.setCameraOptions(
+			{
+				constraints: {
+					initialZoom: 'fit-max',
+					baseZoom: 'default',
+					bounds: { w: image.width, h: image.height, x: 0, y: 0 },
+					padding: { x: 32, y: 64 },
+					origin: { x: 0.5, y: 0.5 },
+					behavior: 'contain',
+				},
+				zoomSteps: [1, 2, 4, 8],
+				zoomSpeed: 1,
+				panSpeed: 1,
+				isLocked: false,
+			},
+			{ reset: true }
+		)
+	}, [editor, imageShapeId, image])
 
 	return (
 		<Tldraw
@@ -91,11 +169,7 @@ export function ImageAnnotationEditor({
 					return <DoneButton imageShapeId={imageShapeId} onClick={onDone} />
 				}, [imageShapeId, onDone]),
 			}}
-		>
-			{imageShapeId && <KeepShapeAtBottomOfCurrentPage shapeId={imageShapeId} />}
-			{imageShapeId && <KeepShapeLocked shapeId={imageShapeId} />}
-			{imageShapeId && <ConstrainCamera shapeId={imageShapeId} />}
-		</Tldraw>
+		/>
 	)
 }
 
@@ -171,166 +245,4 @@ function DoneButton({
 			Done
 		</button>
 	)
-}
-
-/**
- * We want to keep our locked image at the bottom of the current page - people shouldn't be able to
- * place other shapes beneath it. This component adds side effects for when shapes are created or
- * updated to make sure that this shape is always kept at the bottom.
- */
-function KeepShapeAtBottomOfCurrentPage({ shapeId }: { shapeId: TLShapeId }) {
-	const editor = useEditor()
-
-	useEffect(() => {
-		function makeSureShapeIsAtBottom() {
-			let shape = editor.getShape(shapeId)
-			if (!shape) return
-			const pageId = editor.getCurrentPageId()
-
-			if (shape.parentId !== pageId) {
-				editor.moveShapesToPage([shape], pageId)
-				shape = editor.getShape(shapeId)!
-			}
-
-			const siblings = editor.getSortedChildIdsForParent(pageId)
-			const currentBottomShape = editor.getShape(siblings[0])!
-			if (currentBottomShape.id === shapeId) return
-
-			editor.updateShape({
-				id: shape.id,
-				type: shape.type,
-				isLocked: shape.isLocked,
-				index: getIndexBelow(currentBottomShape.index),
-			})
-		}
-
-		makeSureShapeIsAtBottom()
-
-		const removeOnCreate = editor.sideEffects.registerAfterCreateHandler(
-			'shape',
-			makeSureShapeIsAtBottom
-		)
-		const removeOnChange = editor.sideEffects.registerAfterChangeHandler(
-			'shape',
-			makeSureShapeIsAtBottom
-		)
-
-		return () => {
-			removeOnCreate()
-			removeOnChange()
-		}
-	}, [editor, shapeId])
-
-	return null
-}
-
-function KeepShapeLocked({ shapeId }: { shapeId: TLShapeId }) {
-	const editor = useEditor()
-
-	useEffect(() => {
-		const shape = editor.getShape(shapeId)
-		if (!shape) return
-
-		editor.updateShape({
-			id: shape.id,
-			type: shape.type,
-			isLocked: true,
-		})
-
-		const removeOnChange = editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next) => {
-			if (next.id !== shapeId) return next
-			if (next.isLocked) return next
-			return { ...prev, isLocked: true }
-		})
-
-		return () => {
-			removeOnChange()
-		}
-	}, [editor, shapeId])
-
-	return null
-}
-
-/**
- * We don't want the user to be able to scroll away from the image, or zoom it all the way out. This
- * component hooks into camera updates to keep the camera constrained - try uploading a very long,
- * thin image and seeing how the camera behaves.
- */
-function ConstrainCamera({ shapeId }: { shapeId: TLShapeId }) {
-	const editor = useEditor()
-	const breakpoint = useBreakpoint()
-	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
-
-	useEffect(() => {
-		const marginTop = 44
-		const marginSide = isMobile ? 16 : 164
-		const marginBottom = 60
-
-		function constrainCamera(camera: { x: number; y: number; z: number }): {
-			x: number
-			y: number
-			z: number
-		} {
-			const viewportBounds = editor.getViewportScreenBounds()
-			const targetBounds = editor.getShapePageBounds(shapeId)!
-
-			const usableViewport = new Box(
-				marginSide,
-				marginTop,
-				viewportBounds.w - marginSide * 2,
-				viewportBounds.h - marginTop - marginBottom
-			)
-
-			const minZoom = Math.min(
-				usableViewport.w / targetBounds.w,
-				usableViewport.h / targetBounds.h,
-				1
-			)
-			const zoom = Math.max(minZoom, camera.z)
-
-			const centerX = targetBounds.x - targetBounds.w / 2 + usableViewport.midX / zoom
-			const centerY = targetBounds.y - targetBounds.h / 2 + usableViewport.midY / zoom
-
-			const availableXMovement = Math.max(0, targetBounds.w - usableViewport.w / zoom)
-			const availableYMovement = Math.max(0, targetBounds.h - usableViewport.h / zoom)
-
-			return {
-				x: clamp(camera.x, centerX - availableXMovement / 2, centerX + availableXMovement / 2),
-				y: clamp(camera.y, centerY - availableYMovement / 2, centerY + availableYMovement / 2),
-				z: zoom,
-			}
-		}
-
-		const removeOnChange = editor.sideEffects.registerBeforeChangeHandler(
-			'camera',
-			(_prev, next) => {
-				const constrained = constrainCamera(next)
-				if (constrained.x === next.x && constrained.y === next.y && constrained.z === next.z)
-					return next
-				return { ...next, ...constrained }
-			}
-		)
-
-		const removeReaction = react('update camera when viewport/shape changes', () => {
-			const original = editor.getCamera()
-			const constrained = constrainCamera(original)
-			if (
-				original.x === constrained.x &&
-				original.y === constrained.y &&
-				original.z === constrained.z
-			) {
-				return
-			}
-
-			// this needs to be in a microtask for some reason, but idk why
-			queueMicrotask(() => editor.setCamera(constrained))
-		})
-
-		return () => {
-			removeOnChange()
-			removeReaction()
-		}
-	}, [editor, isMobile, shapeId])
-
-	return null
 }

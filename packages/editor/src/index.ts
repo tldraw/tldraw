@@ -110,26 +110,18 @@ export {
 	ANIMATION_SHORT_MS,
 	CAMERA_SLIDE_FRICTION,
 	DEFAULT_ANIMATION_OPTIONS,
+	DEFAULT_CAMERA_OPTIONS,
 	DOUBLE_CLICK_DURATION,
 	DRAG_DISTANCE,
 	GRID_STEPS,
-	HASH_PATTERN_ZOOM_NAMES,
 	HIT_TEST_MARGIN,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
-	MAX_ZOOM,
-	MIN_ZOOM,
 	MULTI_CLICK_DURATION,
 	SIDES,
 	SVG_PADDING,
-	ZOOMS,
 } from './lib/constants'
-export {
-	Editor,
-	type TLAnimationOptions,
-	type TLEditorOptions,
-	type TLResizeShapeOptions,
-} from './lib/editor/Editor'
+export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export type {
 	SideEffectManager,
@@ -235,7 +227,12 @@ export {
 	type TLExternalContent,
 	type TLExternalContentSource,
 } from './lib/editor/types/external-content'
-export { type RequiredKeys, type TLSvgOptions } from './lib/editor/types/misc-types'
+export {
+	type RequiredKeys,
+	type TLCameraMoveOptions,
+	type TLCameraOptions,
+	type TLSvgOptions,
+} from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'

@@ -1549,6 +1549,18 @@ describe('Add font size adjustment to notes', () => {
 	})
 })
 
+describe('removes can move camera', () => {
+	const { up, down } = getTestMigration(instanceVersions.RemoveCanMoveCamera)
+
+	test('up works as expected', () => {
+		expect(up({ canMoveCamera: true })).toStrictEqual({})
+	})
+
+	test('down works as expected', () => {
+		expect(down({})).toStrictEqual({ canMoveCamera: true })
+	})
+})
+
 describe('Add text align to text shapes', () => {
 	const { up, down } = getTestMigration(textShapeVersions.AddTextAlign)
 

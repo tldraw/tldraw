@@ -305,7 +305,6 @@ export async function parseAndLoadDocument(
 		editor.history.clear()
 		// Put the old bounds back in place
 		editor.updateViewportScreenBounds(initialBounds)
-		editor.updateRenderingBounds()
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {

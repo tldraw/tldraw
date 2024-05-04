@@ -503,7 +503,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					} else {
 						ids = editor.getSelectedShapeIds()
 						const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-						offset = instanceState.canMoveCamera
+						offset = !editor.getCameraOptions().isLocked
 							? {
 									x: commonBounds.width + 20,
 									y: 0,
@@ -1037,7 +1037,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
-					editor.zoomIn(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
+					editor.zoomIn(undefined, {
+						animation: { duration: ANIMATION_MEDIUM_MS },
+					})
 				},
 			},
 			{
@@ -1047,7 +1049,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source })
-					editor.zoomOut(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
+					editor.zoomOut(undefined, {
+						animation: { duration: ANIMATION_MEDIUM_MS },
+					})
 				},
 			},
 			{
@@ -1058,7 +1062,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
-					editor.resetZoom(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
+					editor.resetZoom(undefined, {
+						animation: { duration: ANIMATION_MEDIUM_MS },
+					})
 				},
 			},
 			{
@@ -1068,7 +1074,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-fit', { source })
-					editor.zoomToFit({ duration: ANIMATION_MEDIUM_MS })
+					editor.zoomToFit({ animation: { duration: ANIMATION_MEDIUM_MS } })
 				},
 			},
 			{
@@ -1081,7 +1087,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('zoom-to-selection', { source })
-					editor.zoomToSelection({ duration: ANIMATION_MEDIUM_MS })
+					editor.zoomToSelection({ animation: { duration: ANIMATION_MEDIUM_MS } })
 				},
 			},
 			{
@@ -1288,7 +1294,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-content', { source })
-					editor.zoomToContent()
+					const bounds = editor.getSelectionPageBounds() ?? editor.getCurrentPageBounds()
+					if (!bounds) return
+					editor.zoomToBounds(bounds, {
+						targetZoom: Math.min(1, editor.getZoomLevel()),
+						animation: { duration: 220 },
+					})
 				},
 			},
 			{
