@@ -214,6 +214,21 @@ const CameraOptionsControlPanel = track(() => {
 					<option value="true">true</option>
 					<option value="false">false</option>
 				</select>
+				<label htmlFor="wheelBehavior">Wheel behavior</label>
+				<select
+					name="wheelBehavior"
+					value={cameraOptions.wheelBehavior}
+					onChange={(e) => {
+						const value = e.target.value
+						updateOptions({
+							...CAMERA_OPTIONS,
+							wheelBehavior: value as 'zoom' | 'pan',
+						})
+					}}
+				>
+					<option>zoom</option>
+					<option>pan</option>
+				</select>
 				<label htmlFor="panspeed">Pan Speed</label>
 				<input
 					name="panspeed"

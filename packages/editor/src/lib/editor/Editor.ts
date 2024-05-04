@@ -2137,7 +2137,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public */
 	setCameraOptions(options: Partial<TLCameraOptions>, opts?: TLCameraMoveOptions) {
-		const next = { ...this._cameraOptions.__unsafe__getWithoutCapture(), ...options }
+		const next = structuredClone({
+			...this.getCameraOptions(),
+			...options,
+		})
 		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
 		this.setCamera(this.getCamera(), opts)
@@ -8418,8 +8421,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						// If the camera behavior is "zoom" and the ctrl key is presssed, then pan;
 						// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
-						const behavior =
-							wheelBehavior === 'pan' ? (inputs.ctrlKey ? 'zoom' : 'pan') : wheelBehavior
+						let behavior = wheelBehavior
+						if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
 						switch (behavior) {
 							case 'zoom': {
