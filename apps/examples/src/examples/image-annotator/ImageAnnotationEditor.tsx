@@ -128,8 +128,11 @@ export function ImageAnnotationEditor({
 		if (!editor) return
 		if (!imageShapeId) return
 
-		// We want to set the default zoom only on first mount
-		let isInitial = true
+		/**
+		 * We don't want the user to be able to scroll away from the image, or zoom it all the way out. This
+		 * component hooks into camera updates to keep the camera constrained - try uploading a very long,
+		 * thin image and seeing how the camera behaves.
+		 */
 		editor.setCameraOptions(
 			{
 				constraints: {
@@ -145,10 +148,8 @@ export function ImageAnnotationEditor({
 				panSpeed: 1,
 				isLocked: false,
 			},
-			{ reset: isInitial }
+			{ reset: true }
 		)
-
-		isInitial = false
 	}, [editor, imageShapeId, image])
 
 	return (
@@ -245,9 +246,3 @@ function DoneButton({
 		</button>
 	)
 }
-
-/**
- * We don't want the user to be able to scroll away from the image, or zoom it all the way out. This
- * component hooks into camera updates to keep the camera constrained - try uploading a very long,
- * thin image and seeing how the camera behaves.
- */
