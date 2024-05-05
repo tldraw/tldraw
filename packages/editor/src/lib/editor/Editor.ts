@@ -2162,12 +2162,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public */
 	setCameraOptions(options: Partial<TLCameraOptions>, opts?: TLCameraMoveOptions) {
 		const next = structuredClone({
-			...this.getCameraOptions(),
+			...this._cameraOptions.__unsafe__getWithoutCapture(),
 			...options,
 		})
 		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
-		this.setCamera(this.getCamera(), opts)
+		// this.setCamera(this.getCamera(), opts)
 		return this
 	}
 
@@ -2637,16 +2637,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		bounds: BoxLike,
 		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
 	): this {
-		if (this.getCameraOptions().isLocked) return this
+		const cameraOptions = this._cameraOptions.__unsafe__getWithoutCapture()
+		if (cameraOptions.isLocked) return this
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
 		const inset = opts?.inset ?? Math.min(256, viewportScreenBounds.width * 0.28)
 
 		const baseZoom = this.getBaseZoom()
-		const { zoomSteps } = this.getCameraOptions()
-		const zoomMin = zoomSteps[0]
-		const zoomMax = last(zoomSteps)!
+		const zoomMin = cameraOptions.zoomSteps[0]
+		const zoomMax = last(cameraOptions.zoomSteps)!
 
 		let zoom = clamp(
 			Math.min(
@@ -2701,19 +2701,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _animateViewport(ms: number): void {
 		if (!this._viewportAnimation) return
 
-		const cancelAnimation = () => {
-			this.off('tick', this._animateViewport)
-			this.off('stop-camera-animation', cancelAnimation)
-			this._viewportAnimation = null
-		}
-
-		this.once('stop-camera-animation', cancelAnimation)
-
 		this._viewportAnimation.elapsed += ms
 
 		const { elapsed, easing, duration, start, end } = this._viewportAnimation
 
 		if (elapsed > duration) {
+			this.off('tick', this._animateViewport)
+			this._viewportAnimation = null
 			this._setCamera(new Vec(-end.x, -end.y, this.getViewportScreenBounds().width / end.width))
 			return
 		}
@@ -2725,7 +2719,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const top = start.minY + (end.minY - start.minY) * t
 		const right = start.maxX + (end.maxX - start.maxX) * t
 
-		this._setCamera(new Vec(-left, -top, this.getViewportScreenBounds().width / (right - left)))
+		this._setCamera(new Vec(-left, -top, this.getViewportScreenBounds().width / (right - left)), {
+			force: true,
+		})
 	}
 
 	/** @internal */
@@ -2733,8 +2729,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		targetViewportPage: Box,
 		opts = { animation: DEFAULT_ANIMATION_OPTIONS } as TLCameraMoveOptions
 	) {
-		if (!opts.animation) return
-		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts.animation
+		const { animation, ...rest } = opts
+		if (!animation) return
+		const { duration = 0, easing = EASINGS.easeInOutCubic } = animation
 		const animationSpeed = this.user.getAnimationSpeed()
 		const viewportPageBounds = this.getViewportPageBounds()
 
@@ -2753,7 +2750,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					-targetViewportPage.x,
 					-targetViewportPage.y,
 					this.getViewportScreenBounds().width / targetViewportPage.width
-				)
+				),
+				{ ...rest }
 			)
 		}
 
@@ -2765,6 +2763,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			start: viewportPageBounds.clone(),
 			end: targetViewportPage.clone(),
 		}
+
+		// If we ever get a "stop-camera-animation" event, we stop
+		this.once('stop-camera-animation', () => {
+			this.off('tick', this._animateViewport)
+			this._viewportAnimation = null
+		})
 
 		// On each tick, animate the viewport
 		this.on('tick', this._animateViewport)
