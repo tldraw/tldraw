@@ -522,13 +522,6 @@ export function ToggleWrapModeItem() {
 }
 
 /** @public */
-export function ToggleDarkModeItem() {
-	const actions = useActions()
-	const editor = useEditor()
-	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
-	return <TldrawUiMenuCheckboxItem {...actions['toggle-dark-mode']} checked={isDarkMode} />
-}
-/** @public */
 export function ToggleFocusModeItem() {
 	const actions = useActions()
 	const editor = useEditor()

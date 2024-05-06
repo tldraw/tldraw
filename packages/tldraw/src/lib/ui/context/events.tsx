@@ -84,13 +84,13 @@ export interface TLUiEventMap {
 	'toggle-snap-mode': null
 	'toggle-tool-lock': null
 	'toggle-grid-mode': null
-	'toggle-dark-mode': null
 	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
 	'toggle-debug-mode': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
 	'toggle-edge-scrolling': null
+	'color-scheme': { value: string }
 	'exit-pen-mode': null
 	'stop-following': null
 	'open-cursor-chat': null

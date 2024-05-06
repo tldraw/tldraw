@@ -1,0 +1,41 @@
+import { useEditor, useValue } from '@tldraw/editor'
+import { useUiEvents } from '../context/events'
+import { TldrawUiMenuCheckboxItem } from './primitives/menus/TldrawUiMenuCheckboxItem'
+import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
+
+const COLOR_SCHEMES = [
+	{ colorScheme: 'light' as const, label: 'color-scheme.light' },
+	{ colorScheme: 'dark' as const, label: 'color-scheme.dark' },
+	{ colorScheme: 'system' as const, label: 'color-scheme.system' },
+]
+
+/** @public */
+export function ColorSchemeMenu() {
+	const editor = useEditor()
+	const trackEvent = useUiEvents()
+	const currentColorScheme = useValue(
+		'colorScheme',
+		() => editor.user.getUserPreferences().colorScheme,
+		[editor]
+	)
+
+	return (
+		<TldrawUiMenuSubmenu id="help menu color-scheme" label="menu.color-scheme">
+			<TldrawUiMenuGroup id="languages">
+				{COLOR_SCHEMES.map(({ colorScheme, label }) => (
+					<TldrawUiMenuCheckboxItem
+						id={`color-scheme-${colorScheme}`}
+						key={colorScheme}
+						label={label}
+						checked={colorScheme === currentColorScheme}
+						onSelect={() => {
+							editor.user.updateUserPreferences({ colorScheme })
+							trackEvent('color-scheme', { source: 'menu', value: colorScheme })
+						}}
+					/>
+				))}
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}

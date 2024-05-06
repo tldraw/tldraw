@@ -226,7 +226,6 @@ export {
 	ReorderMenuSubmenu,
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
-	ToggleDarkModeItem,
 	ToggleDebugModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,

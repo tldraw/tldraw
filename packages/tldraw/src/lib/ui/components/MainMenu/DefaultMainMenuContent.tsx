@@ -1,6 +1,7 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
+import { ColorSchemeMenu } from '../ColorSchemeMenu'
 import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
@@ -13,7 +14,6 @@ import {
 	RemoveFrameMenuItem,
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
-	ToggleDarkModeItem,
 	ToggleDebugModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
@@ -167,11 +167,13 @@ export function PreferencesGroup() {
 					<ToggleToolLockItem />
 					<ToggleGridItem />
 					<ToggleWrapModeItem />
-					<ToggleDarkModeItem />
 					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
 					<ToggleReduceMotionItem />
 					<ToggleDebugModeItem />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="color-scheme">
+					<ColorSchemeMenu />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="language">
 					<LanguageMenu />

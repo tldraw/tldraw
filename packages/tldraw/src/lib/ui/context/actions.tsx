@@ -1109,8 +1109,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$/',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('toggle-dark-mode', { source })
-					editor.user.updateUserPreferences({ isDarkMode: !editor.user.getIsDarkMode() })
+					const value = editor.user.getIsDarkMode() ? 'light' : 'dark'
+					trackEvent('color-scheme', { source, value })
+					editor.user.updateUserPreferences({
+						colorScheme: value,
+					})
 				},
 				checkbox: true,
 			},

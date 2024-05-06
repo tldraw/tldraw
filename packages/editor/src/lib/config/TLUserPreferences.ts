@@ -18,7 +18,7 @@ export interface TLUserPreferences {
 	color?: string | null
 	animationSpeed?: number | null
 	edgeScrollSpeed?: number | null
-	isDarkMode?: boolean | null
+	colorScheme?: 'light' | 'dark' | 'system'
 	isSnapMode?: boolean | null
 	isWrapMode?: boolean | null
 }
@@ -39,7 +39,7 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPrefere
 	name: T.string.nullable().optional(),
 	locale: T.string.nullable().optional(),
 	color: T.string.nullable().optional(),
-	isDarkMode: T.boolean.nullable().optional(),
+	colorScheme: T.literalEnum('light', 'dark', 'system').optional(),
 	animationSpeed: T.number.nullable().optional(),
 	edgeScrollSpeed: T.number.nullable().optional(),
 	isSnapMode: T.boolean.nullable().optional(),
@@ -52,6 +52,7 @@ const Versions = {
 	MakeFieldsNullable: 3,
 	AddEdgeScrollSpeed: 4,
 	AddExcalidrawSelectMode: 5,
+	AllowSystemColorScheme: 6,
 } as const
 
 const CURRENT_VERSION = Math.max(...Object.values(Versions))
@@ -71,6 +72,14 @@ function migrateSnapshot(data: { version: number; user: any }) {
 	}
 	if (data.version < Versions.AddExcalidrawSelectMode) {
 		data.user.isWrapMode = false
+	}
+	if (data.version < Versions.AllowSystemColorScheme) {
+		if (data.user.isDarkMode === true) {
+			data.user.colorScheme = 'dark'
+		} else if (data.user.isDarkMode === false) {
+			data.user.colorScheme = 'light'
+		}
+		delete data.user.isDarkMode
 	}
 
 	// finally
@@ -118,7 +127,7 @@ export const defaultUserPreferences = Object.freeze({
 	name: 'New User',
 	locale: getDefaultTranslationLocale(),
 	color: getRandomColor(),
-	isDarkMode: false,
+	colorScheme: 'light',
 	edgeScrollSpeed: 1,
 	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
 	isSnapMode: false,
@@ -129,6 +138,7 @@ export const defaultUserPreferences = Object.freeze({
 export function getFreshUserPreferences(): TLUserPreferences {
 	return {
 		id: uniqueId(),
+		colorScheme: 'light',
 	}
 }
 

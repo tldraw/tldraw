@@ -2096,6 +2096,10 @@ export interface TLUiEventMap {
         id: string;
     };
     // (undocumented)
+    'color-scheme': {
+        value: string;
+    };
+    // (undocumented)
     'convert-to-bookmark': null;
     // (undocumented)
     'convert-to-embed': null;
@@ -2192,8 +2196,6 @@ export interface TLUiEventMap {
     };
     // (undocumented)
     'toggle-auto-size': null;
-    // (undocumented)
-    'toggle-dark-mode': null;
     // (undocumented)
     'toggle-debug-mode': null;
     // (undocumented)
@@ -2596,9 +2598,6 @@ export interface TLUiZoomMenuProps {
 
 // @public (undocumented)
 export function ToggleAutoSizeMenuItem(): JSX_2.Element | null;
-
-// @public (undocumented)
-export function ToggleDarkModeItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function ToggleDebugModeItem(): JSX_2.Element;

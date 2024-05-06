@@ -661,8 +661,8 @@ export const defaultTldrawOptions: {
 export const defaultUserPreferences: Readonly<{
     animationSpeed: 0 | 1;
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
+    colorScheme: "light";
     edgeScrollSpeed: 1;
-    isDarkMode: false;
     isSnapMode: false;
     isWrapMode: false;
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
@@ -2999,11 +2999,11 @@ export interface TLUserPreferences {
     // (undocumented)
     color?: null | string;
     // (undocumented)
+    colorScheme?: 'dark' | 'light' | 'system';
+    // (undocumented)
     edgeScrollSpeed?: null | number;
     // (undocumented)
     id: string;
-    // (undocumented)
-    isDarkMode?: boolean | null;
     // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)

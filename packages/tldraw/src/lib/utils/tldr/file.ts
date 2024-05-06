@@ -315,5 +315,5 @@ export async function parseAndLoadDocument(
 		editor.updateInstanceState({ isFocused })
 	})
 
-	if (forceDarkMode) editor.user.updateUserPreferences({ isDarkMode: true })
+	if (forceDarkMode) editor.user.updateUserPreferences({ colorScheme: 'dark' })
 }
