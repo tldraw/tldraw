@@ -187,7 +187,7 @@ test.describe('Keyboard Shortcuts', () => {
 	test('Toggle dark mode', async () => {
 		await page.keyboard.press('Control+/')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
-			name: 'toggle-dark-mode',
+			name: 'color-scheme',
 			data: { source: 'kbd' },
 		})
 	})
