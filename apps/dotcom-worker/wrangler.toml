@@ -136,6 +136,23 @@ bucket_name = "room-snapshots-preview"
 binding = "ROOM_SNAPSHOTS"
 bucket_name = "room-snapshots"
 
+#################### Room snapshots parent slug KV store ####################
+[[env.dev.kv_namespaces]]
+binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"
+id = "5eaa50a2b87145e582661ea3344804b8"
+
+[[env.preview.kv_namespaces]]
+binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"
+id = "5eaa50a2b87145e582661ea3344804b8"
+
+[[env.staging.kv_namespaces]]
+binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"
+id = "5eaa50a2b87145e582661ea3344804b8"
+
+[[env.production.kv_namespaces]]
+binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"
+id = "c6ce1f45447e4a44a00edb2a2077bc5c"
+
 #################### Key value storage ####################
 [[env.dev.kv_namespaces]]
 binding = "SLUG_TO_READONLY_SLUG"

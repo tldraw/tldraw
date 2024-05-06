@@ -2,7 +2,7 @@ import { CreateSnapshotRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/tlsync'
 import { IRequest } from 'itty-router'
 import { nanoid } from 'nanoid'
-import { getR2KeyForRoom } from '../r2'
+import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
 import { validateSnapshot } from '../utils/validateSnapshot'
 
@@ -34,7 +34,14 @@ export async function createRoomSnapshot(request: IRequest, env: Environment): P
 		},
 	} satisfies R2Snapshot
 
-	await env.ROOM_SNAPSHOTS.put(getR2KeyForRoom(roomId), JSON.stringify(persistedRoomSnapshot))
+	const parentSlug = data.parent_slug
+	if (parentSlug) {
+		await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(roomId, parentSlug)
+	}
+	await env.ROOM_SNAPSHOTS.put(
+		getR2KeyForSnapshot(parentSlug, roomId),
+		JSON.stringify(persistedRoomSnapshot)
+	)
 
 	return new Response(JSON.stringify({ error: false, roomId }))
 }

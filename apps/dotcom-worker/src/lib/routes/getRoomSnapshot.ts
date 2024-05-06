@@ -1,6 +1,6 @@
 import { RoomSnapshot } from '@tldraw/tlsync'
 import { IRequest } from 'itty-router'
-import { getR2KeyForRoom } from '../r2'
+import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
 import { createSupabaseClient, noSupabaseSorry } from '../utils/createSupabaseClient'
 import { fourOhFour } from '../utils/fourOhFour'
@@ -26,8 +26,11 @@ export async function getRoomSnapshot(request: IRequest, env: Environment): Prom
 	const roomId = request.params.roomId
 	if (!roomId) return fourOhFour()
 
+	// Get the parent slug if it exists
+	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
+
 	// Get the room snapshot from R2
-	const snapshot = await env.ROOM_SNAPSHOTS.get(getR2KeyForRoom(roomId))
+	const snapshot = await env.ROOM_SNAPSHOTS.get(getR2KeyForSnapshot(parentSlug, roomId))
 
 	if (snapshot) {
 		const data = ((await snapshot.json()) as R2Snapshot)?.drawing as RoomSnapshot
