@@ -10,8 +10,8 @@ export class UserPreferencesManager {
 	) {
 		if (window) {
 			const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-			darkModeMediaQuery.addEventListener('change', (evt) => {
-				if (evt.matches) {
+			darkModeMediaQuery.addEventListener('change', (e) => {
+				if (e.matches) {
 					this.systemColorScheme.set('dark')
 				} else {
 					this.systemColorScheme.set('light')
