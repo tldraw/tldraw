@@ -138,7 +138,6 @@ export const defaultUserPreferences = Object.freeze({
 export function getFreshUserPreferences(): TLUserPreferences {
 	return {
 		id: uniqueId(),
-		colorScheme: 'light',
 	}
 }
 
