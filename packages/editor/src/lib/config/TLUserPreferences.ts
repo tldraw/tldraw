@@ -107,14 +107,6 @@ function getRandomColor() {
 }
 
 /** @internal */
-export function userPrefersDarkUI() {
-	if (typeof window === 'undefined') {
-		return false
-	}
-	return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false
-}
-
-/** @internal */
 export function userPrefersReducedMotion() {
 	if (typeof window === 'undefined') {
 		return false
