@@ -12,14 +12,18 @@ export class HandTool extends StateNode {
 	override onDoubleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {
 			const { currentScreenPoint } = this.editor.inputs
-			this.editor.zoomIn(currentScreenPoint, { duration: 220, easing: EASINGS.easeOutQuint })
+			this.editor.zoomIn(currentScreenPoint, {
+				animation: { duration: 220, easing: EASINGS.easeOutQuint },
+			})
 		}
 	}
 
 	override onTripleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {
 			const { currentScreenPoint } = this.editor.inputs
-			this.editor.zoomOut(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
+			this.editor.zoomOut(currentScreenPoint, {
+				animation: { duration: 320, easing: EASINGS.easeOutQuint },
+			})
 		}
 	}
 
@@ -31,9 +35,11 @@ export class HandTool extends StateNode {
 			} = this.editor
 
 			if (zoomLevel === 1) {
-				this.editor.zoomToFit({ duration: 400, easing: EASINGS.easeOutQuint })
+				this.editor.zoomToFit({ animation: { duration: 400, easing: EASINGS.easeOutQuint } })
 			} else {
-				this.editor.resetZoom(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
+				this.editor.resetZoom(currentScreenPoint, {
+					animation: { duration: 320, easing: EASINGS.easeOutQuint },
+				})
 			}
 		}
 	}

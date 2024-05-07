@@ -34,6 +34,7 @@ export function getBoundShapeInfoForTerminal(
 	if (!binding) return
 
 	const boundShape = editor.getShape(binding.toId)!
+	if (!boundShape) return
 	const transform = editor.getShapePageTransform(boundShape)!
 	const geometry = editor.getShapeGeometry(boundShape)
 

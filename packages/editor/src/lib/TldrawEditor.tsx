@@ -19,6 +19,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
+import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -120,6 +121,11 @@ export interface TldrawEditorBaseProps {
 	 * Whether to infer dark mode from the user's OS. Defaults to false.
 	 */
 	inferDarkMode?: boolean
+
+	/**
+	 * Camera options for the editor.
+	 */
+	cameraOptions?: Partial<TLCameraOptions>
 }
 
 /**
@@ -288,6 +294,7 @@ function TldrawEditorWithReadyStore({
 	initialState,
 	autoFocus = true,
 	inferDarkMode,
+	cameraOptions,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -309,13 +316,24 @@ function TldrawEditorWithReadyStore({
 			user,
 			initialState,
 			inferDarkMode,
+			cameraOptions,
 		})
 		setEditor(editor)
 
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapeUtils, bindingUtils, tools, store, user, initialState, inferDarkMode])
+	}, [
+		container,
+		shapeUtils,
+		bindingUtils,
+		tools,
+		store,
+		user,
+		initialState,
+		inferDarkMode,
+		cameraOptions,
+	])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
@@ -382,7 +400,22 @@ function Layout({
 	useFocusEvents(autoFocus)
 	useOnMount(onMount)
 
-	return <>{children}</>
+	return (
+		<>
+			{children}
+			<InFrontOfTheCanvasWrapper />
+		</>
+	)
+}
+
+function InFrontOfTheCanvasWrapper() {
+	const { InFrontOfTheCanvas } = useEditorComponents()
+	if (!InFrontOfTheCanvas) return null
+	return (
+		<div className="tl-front">
+			<InFrontOfTheCanvas />
+		</div>
+	)
 }
 
 function Crash({ crashingError }: { crashingError: unknown }): null {

@@ -15,10 +15,10 @@ import { interval } from './interval'
 import {
 	TLIncompatibilityReason,
 	TLPushRequest,
-	TLSYNC_PROTOCOL_VERSION,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
+	getTlsyncProtocolVersion,
 } from './protocol'
 import './requestAnimationFrame.polyfill'
 
@@ -272,7 +272,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			type: 'connect',
 			connectRequestId: this.latestConnectRequestId,
 			schema: this.store.schema.serialize(),
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			lastServerClock: this.lastServerClock,
 		})
 	}

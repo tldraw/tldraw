@@ -7,7 +7,6 @@ let editor: TestEditor
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.setScreenBounds({ x: 0, y: 0, w: 1800, h: 900 })
-	editor.renderingBoundsMargin = 100
 })
 
 function createShapes() {

@@ -160,10 +160,15 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
-			// This is important that we only dispatch when editing.
-			// Otherwise, you can get into a state where you're editing
-			// able to drag a selected shape behind another shape.
-			if (!isEditing) return
+			// N.B. We used to only do this only when isEditing to help
+			// prevent an issue where you could drag a selected shape
+			// behind another shape. That is addressed now by the CSS logic
+			// looking at data-isselectinganything.
+			//
+			// We still need to follow this logic even if not isEditing
+			// because otherwise there is some flakiness in selection.
+			// When selecting text, it would sometimes select some text
+			// partially if we didn't dispatch/stop below.
 
 			editor.dispatch({
 				...getPointerInfo(e),
@@ -175,7 +180,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 			stopEventPropagation(e) // we need to prevent blurring the input
 		},
-		[editor, id, isEditing]
+		[editor, id]
 	)
 
 	return {

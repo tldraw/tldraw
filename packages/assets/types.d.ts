@@ -95,6 +95,7 @@ export type AssetUrls = {
 		'info-circle': string
 		leading: string
 		link: string
+		lock: string
 		menu: string
 		minus: string
 		mixed: string
@@ -108,6 +109,7 @@ export type AssetUrls = {
 		'rotate-cw': string
 		'send-backward': string
 		'send-to-back': string
+		'share-1': string
 		'size-extra-large': string
 		'size-large': string
 		'size-medium': string
@@ -138,6 +140,7 @@ export type AssetUrls = {
 		twitter: string
 		undo: string
 		ungroup: string
+		unlock: string
 		'vertical-align-end': string
 		'vertical-align-middle': string
 		'vertical-align-start': string
@@ -161,6 +164,7 @@ export type AssetUrls = {
 		'hi-in': string
 		hr: string
 		hu: string
+		id: string
 		it: string
 		ja: string
 		'ko-kr': string

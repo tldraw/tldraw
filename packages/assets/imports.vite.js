@@ -111,6 +111,7 @@ import iconsHorizontalAlignStart from './icons/icon/horizontal-align-start.svg?u
 import iconsInfoCircle from './icons/icon/info-circle.svg?url'
 import iconsLeading from './icons/icon/leading.svg?url'
 import iconsLink from './icons/icon/link.svg?url'
+import iconsLock from './icons/icon/lock.svg?url'
 import iconsMenu from './icons/icon/menu.svg?url'
 import iconsMinus from './icons/icon/minus.svg?url'
 import iconsMixed from './icons/icon/mixed.svg?url'
@@ -124,6 +125,7 @@ import iconsRotateCcw from './icons/icon/rotate-ccw.svg?url'
 import iconsRotateCw from './icons/icon/rotate-cw.svg?url'
 import iconsSendBackward from './icons/icon/send-backward.svg?url'
 import iconsSendToBack from './icons/icon/send-to-back.svg?url'
+import iconsShare1 from './icons/icon/share-1.svg?url'
 import iconsSizeExtraLarge from './icons/icon/size-extra-large.svg?url'
 import iconsSizeLarge from './icons/icon/size-large.svg?url'
 import iconsSizeMedium from './icons/icon/size-medium.svg?url'
@@ -154,6 +156,7 @@ import iconsTrash from './icons/icon/trash.svg?url'
 import iconsTwitter from './icons/icon/twitter.svg?url'
 import iconsUndo from './icons/icon/undo.svg?url'
 import iconsUngroup from './icons/icon/ungroup.svg?url'
+import iconsUnlock from './icons/icon/unlock.svg?url'
 import iconsVerticalAlignEnd from './icons/icon/vertical-align-end.svg?url'
 import iconsVerticalAlignMiddle from './icons/icon/vertical-align-middle.svg?url'
 import iconsVerticalAlignStart from './icons/icon/vertical-align-start.svg?url'
@@ -175,6 +178,7 @@ import translationsHe from './translations/he.json?url'
 import translationsHiIn from './translations/hi-in.json?url'
 import translationsHr from './translations/hr.json?url'
 import translationsHu from './translations/hu.json?url'
+import translationsId from './translations/id.json?url'
 import translationsIt from './translations/it.json?url'
 import translationsJa from './translations/ja.json?url'
 import translationsKoKr from './translations/ko-kr.json?url'
@@ -296,6 +300,7 @@ export function getAssetUrlsByImport(opts) {
 			'info-circle': formatAssetUrl(iconsInfoCircle, opts),
 			leading: formatAssetUrl(iconsLeading, opts),
 			link: formatAssetUrl(iconsLink, opts),
+			lock: formatAssetUrl(iconsLock, opts),
 			menu: formatAssetUrl(iconsMenu, opts),
 			minus: formatAssetUrl(iconsMinus, opts),
 			mixed: formatAssetUrl(iconsMixed, opts),
@@ -309,6 +314,7 @@ export function getAssetUrlsByImport(opts) {
 			'rotate-cw': formatAssetUrl(iconsRotateCw, opts),
 			'send-backward': formatAssetUrl(iconsSendBackward, opts),
 			'send-to-back': formatAssetUrl(iconsSendToBack, opts),
+			'share-1': formatAssetUrl(iconsShare1, opts),
 			'size-extra-large': formatAssetUrl(iconsSizeExtraLarge, opts),
 			'size-large': formatAssetUrl(iconsSizeLarge, opts),
 			'size-medium': formatAssetUrl(iconsSizeMedium, opts),
@@ -339,6 +345,7 @@ export function getAssetUrlsByImport(opts) {
 			twitter: formatAssetUrl(iconsTwitter, opts),
 			undo: formatAssetUrl(iconsUndo, opts),
 			ungroup: formatAssetUrl(iconsUngroup, opts),
+			unlock: formatAssetUrl(iconsUnlock, opts),
 			'vertical-align-end': formatAssetUrl(iconsVerticalAlignEnd, opts),
 			'vertical-align-middle': formatAssetUrl(iconsVerticalAlignMiddle, opts),
 			'vertical-align-start': formatAssetUrl(iconsVerticalAlignStart, opts),
@@ -362,6 +369,7 @@ export function getAssetUrlsByImport(opts) {
 			'hi-in': formatAssetUrl(translationsHiIn, opts),
 			hr: formatAssetUrl(translationsHr, opts),
 			hu: formatAssetUrl(translationsHu, opts),
+			id: formatAssetUrl(translationsId, opts),
 			it: formatAssetUrl(translationsIt, opts),
 			ja: formatAssetUrl(translationsJa, opts),
 			'ko-kr': formatAssetUrl(translationsKoKr, opts),

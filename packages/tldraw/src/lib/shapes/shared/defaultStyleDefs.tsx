@@ -3,8 +3,6 @@ import {
 	DefaultFontFamilies,
 	DefaultFontStyle,
 	FileHelpers,
-	HASH_PATTERN_ZOOM_NAMES,
-	MAX_ZOOM,
 	SvgExportDef,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
@@ -14,6 +12,16 @@ import {
 } from '@tldraw/editor'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDefaultColorTheme } from './ShapeFill'
+
+/** @internal */
+export const HASH_PATTERN_ZOOM_NAMES: Record<string, string> = {}
+
+const HASH_PATTERN_COUNT = 6
+
+for (let zoom = 1; zoom <= HASH_PATTERN_COUNT; zoom++) {
+	HASH_PATTERN_ZOOM_NAMES[zoom + '_dark'] = `hash_pattern_zoom_${zoom}_dark`
+	HASH_PATTERN_ZOOM_NAMES[zoom + '_light'] = `hash_pattern_zoom_${zoom}_light`
+}
 
 /** @public */
 export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {
@@ -102,7 +110,9 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 		const ctx = canvasEl.getContext('2d')
 		if (!ctx) return
 
-		ctx.fillStyle = darkMode ? '#212529' : '#f8f9fa'
+		ctx.fillStyle = darkMode
+			? DefaultColorThemePalette.darkMode.solid
+			: DefaultColorThemePalette.lightMode.solid
 		ctx.fillRect(0, 0, size, size)
 
 		// This essentially generates an inverse of the pattern we're drawing.
@@ -148,7 +158,7 @@ type PatternDef = { zoom: number; url: string; darkMode: boolean }
 
 const getDefaultPatterns = () => {
 	const defaultPatterns: PatternDef[] = []
-	for (let i = 1; i <= Math.ceil(MAX_ZOOM); i++) {
+	for (let i = 1; i <= HASH_PATTERN_COUNT; i++) {
 		const whitePixelBlob = canvasBlob([1, 1], (ctx) => {
 			ctx.fillStyle = DefaultColorThemePalette.lightMode.black.semi
 			ctx.fillRect(0, 0, 1, 1)
@@ -186,7 +196,7 @@ function usePattern() {
 
 		const promises: Promise<{ zoom: number; url: string; darkMode: boolean }>[] = []
 
-		for (let i = 1; i <= Math.ceil(MAX_ZOOM); i++) {
+		for (let i = 1; i <= HASH_PATTERN_COUNT; i++) {
 			promises.push(
 				generateImage(dpr, i, false).then((blob) => ({
 					zoom: i,

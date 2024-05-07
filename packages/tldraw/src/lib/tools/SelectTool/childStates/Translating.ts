@@ -56,6 +56,11 @@ export class Translating extends StateNode {
 	) => {
 		const { isCreating = false, onCreate = () => void null } = info
 
+		if (!this.editor.getSelectedShapeIds()?.length) {
+			this.parent.transition('idle')
+			return
+		}
+
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
@@ -251,8 +256,17 @@ export class Translating extends StateNode {
 		}
 	}
 
-	protected handleChange() {
-		const { movingShapes } = this.snapshot
+	protected updateShapes() {
+		const { snapshot } = this
+
+		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
+
+		moveShapesToPoint({
+			editor: this.editor,
+			snapshot,
+		})
+
+		const { movingShapes } = snapshot
 
 		const changes: TLShapePartial[] = []
 
@@ -268,18 +282,6 @@ export class Translating extends StateNode {
 		if (changes.length > 0) {
 			this.editor.updateShapes(changes)
 		}
-	}
-
-	protected updateShapes() {
-		const { snapshot } = this
-		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
-
-		moveShapesToPoint({
-			editor: this.editor,
-			snapshot,
-		})
-
-		this.handleChange()
 	}
 
 	protected updateParentTransforms = () => {

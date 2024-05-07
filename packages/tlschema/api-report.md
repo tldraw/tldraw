@@ -259,6 +259,9 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["google.*"];
+    readonly overridePermissions: {
+        readonly 'allow-presentation': true;
+    };
     readonly title: "Google Maps";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "google_maps";
@@ -312,6 +315,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
     readonly isAspectRatioLocked: true;
     readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
         readonly 'allow-presentation': true;
     };
     readonly title: "YouTube";
@@ -326,6 +330,9 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
     readonly minHeight: 360;
     readonly minWidth: 460;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+    };
     readonly title: "Google Calendar";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "google_calendar";
@@ -337,6 +344,9 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly hostnames: readonly ["docs.google.*"];
     readonly minHeight: 360;
     readonly minWidth: 460;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+    };
     readonly title: "Google Slides";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "google_slides";
@@ -584,6 +594,9 @@ export function isShapeId(id?: string): id is TLShapeId;
 
 // @public (undocumented)
 export const LANGUAGES: readonly [{
+    readonly label: "Bahasa Indonesia";
+    readonly locale: "id";
+}, {
     readonly label: "Català";
     readonly locale: "ca";
 }, {
@@ -1103,8 +1116,6 @@ export type TLImageShapeProps = RecordPropsType<typeof imageShapeProps>;
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     brush: BoxModel | null;
-    // (undocumented)
-    canMoveCamera: boolean;
     // (undocumented)
     chatMessage: string;
     // (undocumented)

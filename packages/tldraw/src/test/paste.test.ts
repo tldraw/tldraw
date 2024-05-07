@@ -419,7 +419,6 @@ describe('When pasting into frames...', () => {
 			.bringToFront(editor.getSelectedShapeIds())
 
 		editor.setCamera({ x: -2000, y: -2000, z: 1 })
-		editor.updateRenderingBounds()
 
 		// Copy box 1 (should be out of viewport)
 		editor.select(ids.box1).copy()

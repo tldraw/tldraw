@@ -15,11 +15,23 @@ import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import {
 	TLIncompatibilityReason,
-	TLSYNC_PROTOCOL_VERSION,
 	TLSocketServerSentEvent,
+	getTlsyncProtocolVersion,
 } from '../lib/protocol'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
+
+const actualProtocol = jest.requireActual('../lib/protocol')
+
+jest.mock('../lib/protocol', () => {
+	const actual = jest.requireActual('../lib/protocol')
+	return {
+		...actual,
+		getTlsyncProtocolVersion: jest.fn(actual.getTlsyncProtocolVersion),
+	}
+})
+
+const mockGetTlsyncProtocolVersion = getTlsyncProtocolVersion as jest.Mock
 
 function mockSocket<R extends UnknownRecord>(): TLRoomSocket<R> {
 	return {
@@ -328,7 +340,7 @@ test('clients will receive updates from a snapshot migration upon connection', (
 		type: 'connect',
 		connectRequestId: 'test',
 		lastServerClock: snapshot.clock,
-		protocolVersion: TLSYNC_PROTOCOL_VERSION,
+		protocolVersion: getTlsyncProtocolVersion(),
 		schema: schemaV3.serialize(),
 	})
 
@@ -352,7 +364,7 @@ test('out-of-date clients will receive incompatibility errors', () => {
 		type: 'connect',
 		connectRequestId: 'test',
 		lastServerClock: 0,
-		protocolVersion: TLSYNC_PROTOCOL_VERSION,
+		protocolVersion: getTlsyncProtocolVersion(),
 		schema: schemaV2.serialize(),
 	})
 
@@ -363,6 +375,38 @@ test('out-of-date clients will receive incompatibility errors', () => {
 })
 
 test('clients using an out-of-date protocol will receive compatibility errors', () => {
+	const actualVersion = getTlsyncProtocolVersion()
+	mockGetTlsyncProtocolVersion.mockReturnValue(actualVersion + 1)
+	try {
+		const v2server = new TestServer(schemaV2)
+
+		const id = 'test_upgrade_v3'
+		const socket = mockSocket()
+
+		v2server.room.handleNewSession(id, socket)
+		v2server.room.handleMessage(id, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 0,
+			protocolVersion: actualVersion,
+			schema: schemaV2.serialize(),
+		})
+
+		expect(socket.sendMessage).toHaveBeenCalledWith({
+			type: 'incompatibility_error',
+			reason: TLIncompatibilityReason.ClientTooOld,
+		})
+	} finally {
+		mockGetTlsyncProtocolVersion.mockReset()
+		mockGetTlsyncProtocolVersion.mockImplementation(actualProtocol.getTlsyncProtocolVersion)
+	}
+})
+
+// this can be deleted when the protocol gets to v7
+test('v5 special case should allow connections', () => {
+	const actualVersion = getTlsyncProtocolVersion()
+	if (actualVersion > 6) return
+
 	const v2server = new TestServer(schemaV2)
 
 	const id = 'test_upgrade_v3'
@@ -373,13 +417,23 @@ test('clients using an out-of-date protocol will receive compatibility errors', 
 		type: 'connect',
 		connectRequestId: 'test',
 		lastServerClock: 0,
-		protocolVersion: TLSYNC_PROTOCOL_VERSION - 2,
+		protocolVersion: 5,
 		schema: schemaV2.serialize(),
 	})
 
 	expect(socket.sendMessage).toHaveBeenCalledWith({
-		type: 'incompatibility_error',
-		reason: TLIncompatibilityReason.ClientTooOld,
+		connectRequestId: 'test',
+		diff: {},
+		hydrationType: 'wipe_all',
+		protocolVersion: 6,
+		schema: {
+			schemaVersion: 2,
+			sequences: {
+				'com.tldraw.user': 1,
+			},
+		},
+		serverClock: 1,
+		type: 'connect',
 	})
 })
 
@@ -394,7 +448,7 @@ test('clients using a too-new protocol will receive compatibility errors', () =>
 		type: 'connect',
 		connectRequestId: 'test',
 		lastServerClock: 0,
-		protocolVersion: TLSYNC_PROTOCOL_VERSION + 1,
+		protocolVersion: getTlsyncProtocolVersion() + 1,
 		schema: schemaV2.serialize(),
 	})
 
@@ -436,7 +490,7 @@ test('when the client is too new it cannot connect', () => {
 		type: 'connect',
 		connectRequestId: 'test',
 		lastServerClock: 10,
-		protocolVersion: TLSYNC_PROTOCOL_VERSION,
+		protocolVersion: getTlsyncProtocolVersion(),
 		schema: schemaV2.serialize(),
 	})
 
@@ -496,7 +550,7 @@ describe('when the client is too old', () => {
 			type: 'connect',
 			connectRequestId: 'test',
 			lastServerClock: 10,
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV1.serialize(),
 		})
 
@@ -505,7 +559,7 @@ describe('when the client is too old', () => {
 			type: 'connect',
 			connectRequestId: 'test',
 			lastServerClock: 10,
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 		})
 
@@ -514,7 +568,7 @@ describe('when the client is too old', () => {
 			connectRequestId: 'test',
 			hydrationType: 'wipe_presence',
 			diff: {},
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 		} satisfies TLSocketServerSentEvent<RV2>)
@@ -524,7 +578,7 @@ describe('when the client is too old', () => {
 			connectRequestId: 'test',
 			hydrationType: 'wipe_presence',
 			diff: {},
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 		} satisfies TLSocketServerSentEvent<RV2>)
@@ -643,7 +697,7 @@ describe('when the client is the same version', () => {
 			type: 'connect',
 			connectRequestId: 'test',
 			lastServerClock: 10,
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			schema: JSON.parse(JSON.stringify(schemaV2.serialize())),
 		})
 
@@ -652,7 +706,7 @@ describe('when the client is the same version', () => {
 			type: 'connect',
 			connectRequestId: 'test',
 			lastServerClock: 10,
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			schema: JSON.parse(JSON.stringify(schemaV2.serialize())),
 		})
 
@@ -661,7 +715,7 @@ describe('when the client is the same version', () => {
 			connectRequestId: 'test',
 			hydrationType: 'wipe_presence',
 			diff: {},
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 		} satisfies TLSocketServerSentEvent<RV2>)
@@ -671,7 +725,7 @@ describe('when the client is the same version', () => {
 			connectRequestId: 'test',
 			hydrationType: 'wipe_presence',
 			diff: {},
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 		} satisfies TLSocketServerSentEvent<RV2>)

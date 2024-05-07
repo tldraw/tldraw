@@ -28,6 +28,7 @@
 	--layer-canvas: 200;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
+	--layer-in-front: 500;
 	--layer-following-indicator: 1000;
 	--layer-blocker: 10000;
 
@@ -265,7 +266,8 @@ input,
 
 .tl-overlays {
 	position: absolute;
-	inset: 0px;
+	top: 0px;
+	left: 0px;
 	height: 100%;
 	width: 100%;
 	contain: strict;
@@ -291,6 +293,17 @@ input,
 	pointer-events: none;
 }
 
+.tl-front {
+	z-index: 600;
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	overflow: clip;
+	content-visibility: auto;
+	touch-action: none;
+	pointer-events: none;
+}
 /* ------------------- Background ------------------- */
 
 .tl-background__wrapper {
@@ -1087,13 +1100,15 @@ input,
  * One extra nuance is we don't use this behavior for:
  *  - arrows which have weird geometry and just gets in the way.
  *  - draw/line shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
+ *  - shapes that are not filled
  */
-.tl-canvas[data-iseditinganything='true']
+.tl-canvas:is([data-iseditinganything='true'], [data-isselectinganything='true'])
 	.tl-shape:not(
 		[data-shape-type='arrow'],
 		[data-shape-type='draw'],
 		[data-shape-type='line'],
-		[data-shape-type='highlight']
+		[data-shape-type='highlight'],
+		[data-shape-is-filled='false']
 	) {
 	pointer-events: all;
 }

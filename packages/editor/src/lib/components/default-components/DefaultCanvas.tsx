@@ -121,12 +121,18 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		() => editor.getEditingShapeId() !== null,
 		[editor]
 	)
+	const isSelectingAnything = useValue(
+		'isSelectingAnything',
+		() => !!editor.getSelectedShapeIds().length,
+		[editor]
+	)
 
 	return (
 		<div
 			ref={rCanvas}
 			draggable={false}
 			data-iseditinganything={isEditingAnything}
+			data-isselectinganything={isSelectingAnything}
 			className={classNames('tl-canvas', className)}
 			data-testid="canvas"
 			{...events}
@@ -163,7 +169,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
-				<InFrontOfTheCanvasWrapper />
 			</div>
 			<MovingCameraHitTestBlocker />
 		</div>
@@ -639,12 +644,6 @@ function OnTheCanvasWrapper() {
 	const { OnTheCanvas } = useEditorComponents()
 	if (!OnTheCanvas) return null
 	return <OnTheCanvas />
-}
-
-function InFrontOfTheCanvasWrapper() {
-	const { InFrontOfTheCanvas } = useEditorComponents()
-	if (!InFrontOfTheCanvas) return null
-	return <InFrontOfTheCanvas />
 }
 
 function MovingCameraHitTestBlocker() {

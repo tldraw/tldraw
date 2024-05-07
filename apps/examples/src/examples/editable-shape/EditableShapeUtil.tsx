@@ -90,7 +90,7 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 	override onEditEnd: TLOnEditEndHandler<IMyEditableShape> = (shape) => {
 		this.editor.animateShape(
 			{ ...shape, rotation: shape.rotation + Math.PI * 2 },
-			{ duration: 250 }
+			{ animation: { duration: 250 } }
 		)
 	}
 }

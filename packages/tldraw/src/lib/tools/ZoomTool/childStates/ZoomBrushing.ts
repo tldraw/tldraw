@@ -48,13 +48,13 @@ export class ZoomBrushing extends StateNode {
 		if (zoomBrush.width < threshold && zoomBrush.height < threshold) {
 			const point = this.editor.inputs.currentScreenPoint
 			if (this.editor.inputs.altKey) {
-				this.editor.zoomOut(point, { duration: 220 })
+				this.editor.zoomOut(point, { animation: { duration: 220 } })
 			} else {
-				this.editor.zoomIn(point, { duration: 220 })
+				this.editor.zoomIn(point, { animation: { duration: 220 } })
 			}
 		} else {
 			const targetZoom = this.editor.inputs.altKey ? this.editor.getZoomLevel() / 2 : undefined
-			this.editor.zoomToBounds(zoomBrush, { targetZoom, duration: 220 })
+			this.editor.zoomToBounds(zoomBrush, { targetZoom, animation: { duration: 220 } })
 		}
 
 		this.parent.transition('idle', this.info)
