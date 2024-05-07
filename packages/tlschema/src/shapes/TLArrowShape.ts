@@ -174,6 +174,8 @@ export const arrowShapeMigrations = createMigrationSequence({
 
 						oldStore[id] = binding
 						arrow.props.start = { x: 0, y: 0 }
+					} else {
+						delete arrow.props.start.type
 					}
 					if (end.type === 'binding') {
 						const id = createBindingId()
@@ -194,6 +196,8 @@ export const arrowShapeMigrations = createMigrationSequence({
 
 						oldStore[id] = binding
 						arrow.props.end = { x: 0, y: 0 }
+					} else {
+						delete arrow.props.end.type
 					}
 				}
 			},
