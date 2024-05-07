@@ -3,7 +3,7 @@ import { TLBinding, TLShapeId } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
 import { Editor } from '../Editor'
 
-type TLBindingsIndex = Record<TLShapeId, undefined | TLBinding[]>
+type TLBindingsIndex = Map<TLShapeId, TLBinding[]>
 
 export const bindingsIndex = (editor: Editor): Computed<TLBindingsIndex> => {
 	const { store } = editor
@@ -12,14 +12,22 @@ export const bindingsIndex = (editor: Editor): Computed<TLBindingsIndex> => {
 	function fromScratch() {
 		const allBindings = bindingsQuery.get() as TLBinding[]
 
-		const shape2Binding: TLBindingsIndex = {}
+		const shape2Binding: TLBindingsIndex = new Map()
 
 		for (const binding of allBindings) {
 			const { fromId, toId } = binding
-			const bindingsForFromShape = (shape2Binding[fromId] ??= [])
-			bindingsForFromShape.push(binding)
-			const bindingsForToShape = (shape2Binding[toId] ??= [])
-			bindingsForToShape.push(binding)
+			const bindingsForFromShape = shape2Binding.get(fromId)
+			if (!bindingsForFromShape) {
+				shape2Binding.set(fromId, [binding])
+			} else {
+				bindingsForFromShape.push(binding)
+			}
+			const bindingsForToShape = shape2Binding.get(toId)
+			if (!bindingsForToShape) {
+				shape2Binding.set(toId, [binding])
+			} else {
+				bindingsForToShape.push(binding)
+			}
 		}
 
 		return shape2Binding
@@ -41,31 +49,40 @@ export const bindingsIndex = (editor: Editor): Computed<TLBindingsIndex> => {
 		let nextValue: TLBindingsIndex | undefined = undefined
 
 		function removingBinding(binding: TLBinding) {
-			nextValue ??= { ...lastValue }
-			nextValue[binding.fromId] = nextValue[binding.fromId]?.filter((b) => b.id !== binding.id)
-			if (!nextValue[binding.fromId]?.length) {
-				delete nextValue[binding.fromId]
+			nextValue ??= new Map(lastValue)
+			const prevFrom = lastValue.get(binding.fromId)
+			const nextFrom = prevFrom?.filter((b) => b.id !== binding.id)
+			if (!nextFrom?.length) {
+				nextValue.delete(binding.fromId)
+			} else {
+				nextValue.set(binding.fromId, nextFrom)
 			}
-			nextValue[binding.toId] = nextValue[binding.toId]?.filter((b) => b.id !== binding.id)
-			if (!nextValue[binding.toId]?.length) {
-				delete nextValue[binding.toId]
+			const prevTo = lastValue.get(binding.toId)
+			const nextTo = prevTo?.filter((b) => b.id !== binding.id)
+			if (!nextTo?.length) {
+				nextValue.delete(binding.toId)
+			} else {
+				nextValue.set(binding.toId, nextTo)
 			}
 		}
 
 		function ensureNewArray(shapeId: TLShapeId) {
-			nextValue ??= { ...lastValue }
-			if (!nextValue[shapeId]) {
-				nextValue[shapeId] = []
-			} else if (nextValue[shapeId] === lastValue[shapeId]) {
-				nextValue[shapeId] = nextValue[shapeId]!.slice(0)
+			nextValue ??= new Map(lastValue)
+
+			let result = nextValue.get(shapeId)
+			if (!result) {
+				result = []
+				nextValue.set(shapeId, result)
+			} else if (result === lastValue.get(shapeId)) {
+				result = result.slice(0)
+				nextValue.set(shapeId, result)
 			}
+			return result
 		}
 
 		function addBinding(binding: TLBinding) {
-			ensureNewArray(binding.fromId)
-			ensureNewArray(binding.toId)
-			nextValue![binding.fromId]!.push(binding)
-			nextValue![binding.toId]!.push(binding)
+			ensureNewArray(binding.fromId).push(binding)
+			ensureNewArray(binding.toId).push(binding)
 		}
 
 		for (const changes of diff) {
