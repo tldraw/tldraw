@@ -1,9 +1,9 @@
-import react from '@vitejs/plugin-react'
+import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import { PluginOption, defineConfig } from 'vite'
 
 export default defineConfig({
-	plugins: [react(), exampleReadmePlugin()],
+	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {

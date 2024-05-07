@@ -367,7 +367,22 @@ function Layout({
 	useFocusEvents(autoFocus)
 	useOnMount(onMount)
 
-	return <>{children}</>
+	return (
+		<>
+			{children}
+			<InFrontOfTheCanvasWrapper />
+		</>
+	)
+}
+
+function InFrontOfTheCanvasWrapper() {
+	const { InFrontOfTheCanvas } = useEditorComponents()
+	if (!InFrontOfTheCanvas) return null
+	return (
+		<div className="tl-front">
+			<InFrontOfTheCanvas />
+		</div>
+	)
 }
 
 function Crash({ crashingError }: { crashingError: unknown }): null {

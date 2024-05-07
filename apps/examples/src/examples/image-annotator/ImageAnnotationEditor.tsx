@@ -133,23 +133,21 @@ export function ImageAnnotationEditor({
 		 * component hooks into camera updates to keep the camera constrained - try uploading a very long,
 		 * thin image and seeing how the camera behaves.
 		 */
-		editor.setCameraOptions(
-			{
-				constraints: {
-					initialZoom: 'fit-max',
-					baseZoom: 'default',
-					bounds: { w: image.width, h: image.height, x: 0, y: 0 },
-					padding: { x: 32, y: 64 },
-					origin: { x: 0.5, y: 0.5 },
-					behavior: 'contain',
-				},
-				zoomSteps: [1, 2, 4, 8],
-				zoomSpeed: 1,
-				panSpeed: 1,
-				isLocked: false,
+		editor.setCameraOptions({
+			constraints: {
+				initialZoom: 'fit-max',
+				baseZoom: 'default',
+				bounds: { w: image.width, h: image.height, x: 0, y: 0 },
+				padding: { x: 32, y: 64 },
+				origin: { x: 0.5, y: 0.5 },
+				behavior: 'contain',
 			},
-			{ reset: true }
-		)
+			zoomSteps: [1, 2, 4, 8],
+			zoomSpeed: 1,
+			panSpeed: 1,
+			isLocked: false,
+		})
+		editor.setCamera(editor.getCamera(), { reset: true })
 	}, [editor, imageShapeId, image])
 
 	return (

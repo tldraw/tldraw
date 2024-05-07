@@ -13,16 +13,26 @@ export default function EditorFocusExample() {
 	}, [focused])
 
 	return (
-		<div style={{ padding: 32 }}>
-			<div style={{ display: 'flex', gap: 4 }}>
-				<input
-					id={'focus'}
-					type={'checkbox'}
-					onChange={(e) => {
-						setFocused(e.target.checked)
-					}}
-				/>
-				<label htmlFor={'focus'}>Focus</label>
+		<div
+			style={{ padding: 32 }}
+			onPointerDown={() => {
+				const editor = rEditorRef.current
+				if (editor && editor.getInstanceState().isFocused) {
+					editor.updateInstanceState({ isFocused: false })
+				}
+			}}
+		>
+			<div>
+				<div style={{ display: 'flex', gap: 4 }}>
+					<input
+						id="focus"
+						type="checkbox"
+						onChange={(e) => {
+							setFocused(e.target.checked)
+						}}
+					/>
+					<label htmlFor="focus">Focus</label>
+				</div>
 			</div>
 			<p>
 				The checkbox controls the editor's <code>instanceState.isFocused</code> property.
@@ -39,6 +49,7 @@ export default function EditorFocusExample() {
 					}}
 				/>
 			</div>
+			<input type="text" placeholder="Test me" />
 		</div>
 	)
 }
