@@ -359,40 +359,56 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(
 			this.sideEffects.register({
 				shape: {
-					afterChange: (prev, next) => {
-						for (const binding of this.getAllBindingsFromShape(next)) {
-							this.getBindingUtil(binding).onAfterChangeFromShape?.(binding, prev, next)
+					afterChange: (shapeBefore, shapeAfter) => {
+						for (const binding of this.getAllBindingsFromShape(shapeAfter)) {
+							this.getBindingUtil(binding).onAfterChangeFromShape?.({
+								binding,
+								shapeBefore,
+								shapeAfter,
+							})
 						}
-						for (const binding of this.getAllBindingsToShape(next)) {
-							this.getBindingUtil(binding).onAfterChangeToShape?.(binding, prev, next)
+						for (const binding of this.getAllBindingsToShape(shapeAfter)) {
+							this.getBindingUtil(binding).onAfterChangeToShape?.({
+								binding,
+								shapeBefore,
+								shapeAfter,
+							})
 						}
 
 						// if the shape's parent changed and it has a binding, update the binding
-						if (prev.parentId !== next.parentId) {
+						if (shapeBefore.parentId !== shapeAfter.parentId) {
 							const notifyBindingAncestryChange = (id: TLShapeId) => {
-								const shape = this.getShape(id)
-								if (!shape) return
+								const descendantShape = this.getShape(id)
+								if (!descendantShape) return
 
-								for (const binding of this.getAllBindingsFromShape(shape)) {
-									this.getBindingUtil(binding).onAfterChangeFromShapeAncestry?.(binding)
+								for (const binding of this.getAllBindingsFromShape(descendantShape)) {
+									this.getBindingUtil(binding).onAfterChangeFromShape?.({
+										binding,
+										shapeBefore: descendantShape,
+										shapeAfter: descendantShape,
+									})
 								}
-								for (const binding of this.getAllBindingsToShape(shape)) {
-									this.getBindingUtil(binding).onAfterChangeToShapeAncestry?.(binding)
+								for (const binding of this.getAllBindingsToShape(descendantShape)) {
+									this.getBindingUtil(binding).onAfterChangeToShape?.({
+										binding,
+										shapeBefore: descendantShape,
+										shapeAfter: descendantShape,
+									})
 								}
 							}
-							notifyBindingAncestryChange(next.id)
-							this.visitDescendants(next.id, notifyBindingAncestryChange)
+							notifyBindingAncestryChange(shapeAfter.id)
+							this.visitDescendants(shapeAfter.id, notifyBindingAncestryChange)
 						}
 
 						// if this shape moved to a new page, clean up any previous page's instance state
-						if (prev.parentId !== next.parentId && isPageId(next.parentId)) {
-							const allMovingIds = new Set([prev.id])
-							this.visitDescendants(prev.id, (id) => {
+						if (shapeBefore.parentId !== shapeAfter.parentId && isPageId(shapeAfter.parentId)) {
+							const allMovingIds = new Set([shapeBefore.id])
+							this.visitDescendants(shapeBefore.id, (id) => {
 								allMovingIds.add(id)
 							})
 
 							for (const instancePageState of this.getPageStates()) {
-								if (instancePageState.pageId === next.parentId) continue
+								if (instancePageState.pageId === shapeAfter.parentId) continue
 								const nextPageState = cleanupInstancePageState(instancePageState, allMovingIds)
 
 								if (nextPageState) {
@@ -401,12 +417,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 						}
 
-						if (prev.parentId && isShapeId(prev.parentId)) {
-							invalidParents.add(prev.parentId)
+						if (shapeBefore.parentId && isShapeId(shapeBefore.parentId)) {
+							invalidParents.add(shapeBefore.parentId)
 						}
 
-						if (next.parentId !== prev.parentId && isShapeId(next.parentId)) {
-							invalidParents.add(next.parentId)
+						if (shapeAfter.parentId !== shapeBefore.parentId && isShapeId(shapeAfter.parentId)) {
+							invalidParents.add(shapeAfter.parentId)
 						}
 					},
 					beforeDelete: (shape) => {
@@ -417,11 +433,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const deleteBindingIds: TLBindingId[] = []
 						for (const binding of this.getAllBindingsFromShape(shape)) {
-							this.getBindingUtil(binding).onBeforeDeleteFromShape?.(binding, shape)
+							this.getBindingUtil(binding).onBeforeDeleteFromShape?.({ binding, shape })
 							deleteBindingIds.push(binding.id)
 						}
 						for (const binding of this.getAllBindingsToShape(shape)) {
-							this.getBindingUtil(binding).onBeforeDeleteToShape?.(binding, shape)
+							this.getBindingUtil(binding).onBeforeDeleteToShape?.({ binding, shape })
 							deleteBindingIds.push(binding.id)
 						}
 						this.deleteBindings(deleteBindingIds)
@@ -440,26 +456,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				binding: {
 					beforeCreate: (binding) => {
-						const next = this.getBindingUtil(binding).onBeforeCreate?.(binding)
+						const next = this.getBindingUtil(binding).onBeforeCreate?.({ binding })
 						if (next) return next
 						return binding
 					},
 					afterCreate: (binding) => {
-						this.getBindingUtil(binding).onAfterCreate?.(binding)
+						this.getBindingUtil(binding).onAfterCreate?.({ binding })
 					},
-					beforeChange: (prev, next) => {
-						const updated = this.getBindingUtil(next).onBeforeChange?.(prev, next)
+					beforeChange: (bindingBefore, bindingAfter) => {
+						const updated = this.getBindingUtil(bindingAfter).onBeforeChange?.({
+							bindingBefore,
+							bindingAfter,
+						})
 						if (updated) return updated
-						return next
+						return bindingAfter
 					},
-					afterChange: (prev, next) => {
-						this.getBindingUtil(next).onAfterChange?.(prev, next)
+					afterChange: (bindingBefore, bindingAfter) => {
+						this.getBindingUtil(bindingAfter).onAfterChange?.({ bindingBefore, bindingAfter })
 					},
 					beforeDelete: (binding) => {
-						this.getBindingUtil(binding).onBeforeDelete?.(binding)
+						this.getBindingUtil(binding).onBeforeDelete?.({ binding })
 					},
 					afterDelete: (binding) => {
-						this.getBindingUtil(binding).onAfterDelete?.(binding)
+						this.getBindingUtil(binding).onAfterDelete?.({ binding })
 					},
 				},
 				page: {
@@ -8587,10 +8606,10 @@ function withoutBindingsToUnrelatedShapes<T>(
 				const binding = editor.getBinding(bindingId)
 				if (!binding) continue
 
-				const fromShape = editor.getShape(binding.fromId)
-				if (!fromShape) continue
+				const shape = editor.getShape(binding.fromId)
+				if (!shape) continue
 
-				editor.getBindingUtil(binding).onBeforeDeleteFromShape?.(binding, fromShape)
+				editor.getBindingUtil(binding).onBeforeDeleteFromShape?.({ binding, shape })
 				bindingsToRemove.push(binding.id)
 			}
 
@@ -8598,10 +8617,10 @@ function withoutBindingsToUnrelatedShapes<T>(
 				const binding = editor.getBinding(bindingId)
 				if (!binding) continue
 
-				const toShape = editor.getShape(binding.toId)
-				if (!toShape) continue
+				const shape = editor.getShape(binding.toId)
+				if (!shape) continue
 
-				editor.getBindingUtil(binding).onBeforeDeleteToShape?.(binding, toShape)
+				editor.getBindingUtil(binding).onBeforeDeleteToShape?.({ binding, shape })
 				bindingsToRemove.push(binding.id)
 			}
 

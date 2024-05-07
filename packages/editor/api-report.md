@@ -182,6 +182,44 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 }
 
 // @public (undocumented)
+export interface BindingOnChangeOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    bindingAfter: Binding;
+    // (undocumented)
+    bindingBefore: Binding;
+}
+
+// @public (undocumented)
+export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    binding: Binding;
+}
+
+// @public (undocumented)
+export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    binding: Binding;
+}
+
+// @public (undocumented)
+export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    binding: Binding;
+    // (undocumented)
+    shapeAfter: TLShape;
+    // (undocumented)
+    shapeBefore: TLShape;
+}
+
+// @public (undocumented)
+export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    binding: Binding;
+    // (undocumented)
+    shape: TLShape;
+}
+
+// @public (undocumented)
 export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBinding> {
     constructor(editor: Editor);
     // (undocumented)
@@ -190,29 +228,25 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     // (undocumented)
     static migrations?: TLPropsMigrations;
     // (undocumented)
-    onAfterChange?(prev: Binding, next: Binding): void;
+    onAfterChange?(options: BindingOnChangeOptions<Binding>): void;
     // (undocumented)
-    onAfterChangeFromShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void;
+    onAfterChangeFromShape?(options: BindingOnShapeChangeOptions<Binding>): void;
     // (undocumented)
-    onAfterChangeFromShapeAncestry?(binding: Binding): void;
+    onAfterChangeToShape?(options: BindingOnShapeChangeOptions<Binding>): void;
     // (undocumented)
-    onAfterChangeToShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void;
+    onAfterCreate?(options: BindingOnCreateOptions<Binding>): void;
     // (undocumented)
-    onAfterChangeToShapeAncestry?(binding: Binding): void;
+    onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void;
     // (undocumented)
-    onAfterCreate?(binding: Binding): void;
+    onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void;
     // (undocumented)
-    onAfterDelete?(binding: Binding): void;
+    onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void;
     // (undocumented)
-    onBeforeChange?(prev: Binding, next: Binding): Binding | void;
+    onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): void;
     // (undocumented)
-    onBeforeCreate?(binding: Binding): Binding | void;
+    onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
     // (undocumented)
-    onBeforeDelete?(binding: Binding): void;
-    // (undocumented)
-    onBeforeDeleteFromShape?(binding: Binding, shape: TLShape): void;
-    // (undocumented)
-    onBeforeDeleteToShape?(binding: Binding, shape: TLShape): void;
+    onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
     // (undocumented)
     static props?: RecordProps<TLUnknownBinding>;
     static type: string;

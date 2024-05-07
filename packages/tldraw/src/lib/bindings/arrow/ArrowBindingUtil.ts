@@ -1,4 +1,8 @@
 import {
+	BindingOnChangeOptions,
+	BindingOnCreateOptions,
+	BindingOnShapeChangeOptions,
+	BindingOnShapeDeleteOptions,
 	BindingUtil,
 	Editor,
 	IndexKey,
@@ -9,7 +13,6 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLUnknownBinding,
 	Vec,
 	arrowBindingMakeItNotSo,
 	arrowBindingMigrations,
@@ -36,139 +39,32 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 	}
 
 	// when the binding itself changes
-	override onAfterCreate(binding: TLArrowBinding): void {
+	override onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>): void {
 		arrowDidUpdate(this.editor, this.editor.getShape(binding.fromId) as TLArrowShape)
 	}
 
 	// when the binding itself changes
-	override onAfterChange(prev: TLArrowBinding, next: TLArrowBinding): void {
-		arrowDidUpdate(this.editor, this.editor.getShape(next.fromId) as TLArrowShape)
+	override onAfterChange({ bindingAfter }: BindingOnChangeOptions<TLArrowBinding>): void {
+		arrowDidUpdate(this.editor, this.editor.getShape(bindingAfter.fromId) as TLArrowShape)
 	}
 
-	// when duplicating an arrow shape
-	// override onAfterDuplicateFromShape(
-	// 	binding: TLArrowBinding,
-	// 	originalShape: TLShape,
-	// 	newShape: TLShape,
-	// 	duplicatedIds: ReadonlyMap<TLShapeId, TLShapeId>
-	// ): void {
-	// 	assert(
-	// 		this.editor.isShapeOfType<TLArrowShape>(newShape, 'arrow') &&
-	// 			this.editor.isShapeOfType<TLArrowShape>(originalShape, 'arrow')
-	// 	)
+	// when the arrow itself changes
+	override onAfterChangeFromShape({
+		shapeAfter,
+	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
+		arrowDidUpdate(this.editor, shapeAfter as TLArrowShape)
+	}
 
-	// 	if (this.editor.getBindingsFromShape<TLArrowBinding>(newShape, 'arrow').length) {
-	// 		// if the new shape is already bound, we don't need to do anything. arrows can be bound
-	// 		// more than once (start/end), and this handles all the cases although it will be called
-	// 		// for each binding.
-	// 		return
-	// 	}
-
-	// 	const nextShape = structuredClone(newShape)
-
-	// 	const originalInfo = this.editor.getArrowInfo(originalShape)!
-	// 	let didBindStart = false
-	// 	let didBindEnd = false
-
-	// 	if (originalInfo.bindings.start) {
-	// 		const newStartShapeId = duplicatedIds.get(originalInfo.bindings.start.toId)
-
-	// 		if (newStartShapeId) {
-	// 			arrowBindingMakeItSo(
-	// 				this.editor,
-	// 				nextShape,
-	// 				newStartShapeId,
-	// 				originalInfo.bindings.start.props
-	// 			)
-	// 			didBindStart = true
-	// 		} else {
-	// 			if (originalInfo?.isValid) {
-	// 				const { x, y } = originalInfo.start.point
-	// 				nextShape.props.start = { x, y }
-	// 			} else {
-	// 				const { start } = getArrowTerminalsInArrowSpace(
-	// 					this.editor,
-	// 					originalShape,
-	// 					originalInfo.bindings
-	// 				)
-	// 				nextShape.props.start = { x: start.x, y: start.y }
-	// 			}
-	// 		}
-	// 	}
-
-	// 	if (originalInfo.bindings.end) {
-	// 		const newEndShapeId = duplicatedIds.get(originalInfo.bindings.end.toId)
-	// 		if (newEndShapeId) {
-	// 			arrowBindingMakeItSo(this.editor, nextShape, newEndShapeId, originalInfo.bindings.end.props)
-	// 			didBindEnd = true
-	// 		} else {
-	// 			if (originalInfo?.isValid) {
-	// 				const { x, y } = originalInfo.end.point
-	// 				nextShape.props.end = { x, y }
-	// 			} else {
-	// 				const { end } = getArrowTerminalsInArrowSpace(
-	// 					this.editor,
-	// 					originalShape,
-	// 					originalInfo.bindings
-	// 				)
-	// 				nextShape.props.start = { x: end.x, y: end.y }
-	// 			}
-	// 		}
-	// 	}
-
-	// 	// fix up the bend:
-	// 	if (!originalInfo.isStraight) {
-	// 		// find the new start/end points of the resulting arrow
-	// 		const startPoint = didBindStart ? originalInfo.start.handle : nextShape.props.start
-	// 		const endPoint = didBindEnd ? originalInfo.end.handle : nextShape.props.end
-	// 		const midPoint = Vec.Med(startPoint, endPoint)
-
-	// 		// intersect a line segment perpendicular to the new arrow with the old arrow arc to
-	// 		// find the new mid-point
-	// 		const lineSegment = (
-	// 			originalShape.props.bend < 0 ? Vec.Sub(endPoint, startPoint) : Vec.Sub(startPoint, endPoint)
-	// 		)
-	// 			.per()
-	// 			.uni()
-	// 			.mul(originalInfo.handleArc.radius * 2)
-
-	// 		// find the intersections with the old arrow arc:
-	// 		const intersections = intersectLineSegmentCircle(
-	// 			originalInfo.handleArc.center,
-	// 			Vec.Add(midPoint, lineSegment),
-	// 			originalInfo.handleArc.center,
-	// 			originalInfo.handleArc.radius
-	// 		)
-
-	// 		if (intersections?.length === 1) {
-	// 			const bend = Vec.Dist(midPoint, intersections[0]) * Math.sign(originalShape.props.bend)
-	// 			nextShape.props.bend = bend
-	// 		}
-	// 	}
-
-	// 	this.editor.updateShape(nextShape)
-	// }
-
-	// when the shape an arrow is bound to changes ancestry
-	override onAfterChangeToShapeAncestry(binding: TLArrowBinding): void {
+	// when the shape an arrow is bound to changes
+	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<TLArrowBinding>): void {
 		reparentArrow(this.editor, binding.fromId)
 	}
 
-	// when the arrow itself changes ancestry
-	override onAfterChangeFromShapeAncestry(binding: TLUnknownBinding): void {
-		arrowDidUpdate(this.editor, this.editor.getShape(binding.fromId) as TLArrowShape)
-	}
-
-	// when the shape the arrow is pointing to is deleted:
-	override onBeforeDeleteToShape(binding: TLArrowBinding): void {
+	// when the shape the arrow is pointing to is deleted
+	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<TLArrowBinding>): void {
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
 		if (!arrow) return
 		unbindArrowTerminal(this.editor, arrow, binding.props.terminal)
-	}
-
-	// when the arrow itself is deleted, also delete the bindings:
-	override onBeforeDeleteFromShape(binding: TLArrowBinding): void {
-		this.editor.deleteBinding(binding)
 	}
 }
 
@@ -285,17 +181,6 @@ function unbindArrowTerminal(editor: Editor, arrow: TLArrowShape, terminal: 'sta
 	const info = editor.getArrowInfo(arrow)!
 	if (!info) {
 		throw new Error('expected arrow info')
-		// const terminalPositions = getArrowTerminalsInArrowSpace(
-		// 	editor,
-		// 	arrow,
-		// 	getArrowBindings(editor, arrow)
-		// )
-		// const { x, y } = terminalPositions[terminal]
-		// editor.updateShape<TLArrowShape>({
-		// 	id: arrow.id,
-		// 	type: 'arrow',
-		// 	props: { [terminal]: { x, y } },
-		// })
 	}
 
 	const update = {

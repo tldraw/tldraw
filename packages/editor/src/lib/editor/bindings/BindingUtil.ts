@@ -13,6 +13,35 @@ export interface TLBindingUtilConstructor<
 }
 
 /** @public */
+export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
+	binding: Binding
+}
+
+/** @public */
+export interface BindingOnChangeOptions<Binding extends TLUnknownBinding> {
+	bindingBefore: Binding
+	bindingAfter: Binding
+}
+
+/** @public */
+export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
+	binding: Binding
+}
+
+/** @public */
+export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
+	binding: Binding
+	shapeBefore: TLShape
+	shapeAfter: TLShape
+}
+
+/** @public */
+export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
+	binding: Binding
+	shape: TLShape
+}
+
+/** @public */
 export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBinding> {
 	constructor(public editor: Editor) {}
 	static props?: RecordProps<TLUnknownBinding>
@@ -33,23 +62,16 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	abstract getDefaultProps(): Partial<Binding['props']>
 
 	// self lifecycle hooks
-	onBeforeCreate?(binding: Binding): Binding | void
-	onAfterCreate?(binding: Binding): void
-	onBeforeChange?(prev: Binding, next: Binding): Binding | void
-	onAfterChange?(prev: Binding, next: Binding): void
-	onBeforeDelete?(binding: Binding): void
-	onAfterDelete?(binding: Binding): void
+	onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void
+	onAfterCreate?(options: BindingOnCreateOptions<Binding>): void
+	onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void
+	onAfterChange?(options: BindingOnChangeOptions<Binding>): void
+	onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): void
+	onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void
 
-	// related shape lifecycle hooks
-	// onAfterCreateFromShape?(binding: Binding, shape: TLShape): void
-	// onAfterCreateToShape?(binding: Binding, shape: TLShape): void
+	onAfterChangeFromShape?(options: BindingOnShapeChangeOptions<Binding>): void
+	onAfterChangeToShape?(options: BindingOnShapeChangeOptions<Binding>): void
 
-	onAfterChangeFromShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void
-	onAfterChangeToShape?(binding: Binding, shapeBefore: TLShape, shapeAfter: TLShape): void
-
-	onAfterChangeToShapeAncestry?(binding: Binding): void
-	onAfterChangeFromShapeAncestry?(binding: Binding): void
-
-	onBeforeDeleteFromShape?(binding: Binding, shape: TLShape): void
-	onBeforeDeleteToShape?(binding: Binding, shape: TLShape): void
+	onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void
+	onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void
 }

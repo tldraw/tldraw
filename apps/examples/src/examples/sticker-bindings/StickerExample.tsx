@@ -1,4 +1,6 @@
 import {
+	BindingOnShapeChangeOptions,
+	BindingOnShapeDeleteOptions,
 	BindingUtil,
 	Box,
 	DefaultToolbar,
@@ -12,7 +14,6 @@ import {
 	TLEventHandlers,
 	TLOnTranslateEndHandler,
 	TLOnTranslateStartHandler,
-	TLShape,
 	TLUiComponents,
 	TLUiOverrides,
 	Tldraw,
@@ -124,19 +125,18 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 	}
 
 	// when the shape we're stuck to changes, update the sticker's position
-	override onAfterChangeToShape(
-		binding: StickerBinding,
-		shapeBefore: TLShape,
-		shape: TLShape
-	): void {
+	override onAfterChangeToShape({
+		binding,
+		shapeAfter,
+	}: BindingOnShapeChangeOptions<StickerBinding>): void {
 		const sticker = this.editor.getShape<StickerShape>(binding.fromId)!
 
-		const shapeBounds = this.editor.getShapeGeometry(shape)!.bounds
+		const shapeBounds = this.editor.getShapeGeometry(shapeAfter)!.bounds
 		const shapeAnchor = {
 			x: lerp(shapeBounds.minX, shapeBounds.maxX, binding.props.anchor.x),
 			y: lerp(shapeBounds.minY, shapeBounds.maxY, binding.props.anchor.y),
 		}
-		const pageAnchor = this.editor.getShapePageTransform(shape).applyToPoint(shapeAnchor)
+		const pageAnchor = this.editor.getShapePageTransform(shapeAfter).applyToPoint(shapeAnchor)
 
 		const stickerParentAnchor = this.editor
 			.getShapeParentTransform(sticker)
@@ -152,9 +152,9 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 	}
 
 	// when the thing we're stuck to is deleted, delete the sticker too
-	override onBeforeDeleteToShape(binding: StickerBinding): void {
-		const sticker = this.editor.getShape<StickerShape>(binding.fromId)!
-		this.editor.deleteShape(sticker.id)
+	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<StickerBinding>): void {
+		const sticker = this.editor.getShape<StickerShape>(binding.fromId)
+		if (sticker) this.editor.deleteShape(sticker.id)
 	}
 }
 

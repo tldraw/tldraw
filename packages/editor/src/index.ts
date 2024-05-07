@@ -131,7 +131,15 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
-export { BindingUtil, type TLBindingUtilConstructor } from './lib/editor/bindings/BindingUtil'
+export {
+	BindingUtil,
+	type BindingOnChangeOptions,
+	type BindingOnCreateOptions,
+	type BindingOnDeleteOptions,
+	type BindingOnShapeChangeOptions,
+	type BindingOnShapeDeleteOptions,
+	type TLBindingUtilConstructor,
+} from './lib/editor/bindings/BindingUtil'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export type {
 	SideEffectManager,
