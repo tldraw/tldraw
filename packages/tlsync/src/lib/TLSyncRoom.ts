@@ -921,7 +921,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 			const { clientClock } = message
 
-			if ('presence' in message) {
+			if ('presence' in message && message.presence) {
 				// The push request was for the presence scope.
 				const id = session.presenceId
 				const [type, val] = message.presence
@@ -944,15 +944,11 @@ export class TLSyncRoom<R extends UnknownRecord> {
 						break
 					}
 				}
-				this.sendMessage(session.sessionKey, {
-					type: 'push_result',
-					clientClock,
-					action: 'commit',
-					serverClock: this.clock,
-				})
-			} else {
+			}
+			const hasDiff = 'diff' in message && message.diff
+			if (hasDiff) {
 				// The push request was for the document scope.
-				for (const [id, op] of Object.entries(message.diff)) {
+				for (const [id, op] of Object.entries(message.diff!)) {
 					switch (op[0]) {
 						case RecordOpType.Put: {
 							// Try to add the document.
@@ -993,16 +989,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				}
 
 				// Let the client know what action to take based on the results of the push
-				if (!mergedChanges) {
-					// DISCARD
-					// Applying the client's changes had no effect, so the client should drop the diff
-					this.sendMessage(session.sessionKey, {
-						type: 'push_result',
-						serverClock: this.clock,
-						clientClock,
-						action: 'discard',
-					})
-				} else if (isEqual(mergedChanges, message.diff)) {
+				if (!hasDiff || isEqual(mergedChanges, message.diff)) {
 					// COMMIT
 					// Applying the client's changes had the exact same effect on the server as
 					// they had on the client, so the client should keep the diff
@@ -1011,6 +998,15 @@ export class TLSyncRoom<R extends UnknownRecord> {
 						serverClock: this.clock,
 						clientClock,
 						action: 'commit',
+					})
+				} else if (!mergedChanges) {
+					// DISCARD
+					// Applying the client's changes had no effect, so the client should drop the diff
+					this.sendMessage(session.sessionKey, {
+						type: 'push_result',
+						serverClock: this.clock,
+						clientClock,
+						action: 'discard',
 					})
 				} else {
 					// REBASE

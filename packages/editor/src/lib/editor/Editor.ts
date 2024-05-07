@@ -3265,7 +3265,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopFollowingUser(): this {
-		console.error('why did i stop')
 		this.batch(() => {
 			// commit the current camera to the store
 			this._setCamera(this.getCamera())
