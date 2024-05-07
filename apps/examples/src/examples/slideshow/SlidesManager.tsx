@@ -1,42 +1,36 @@
 import { createContext, ReactNode, useContext, useState } from 'react'
-import { atom, computed, getIndexAbove, IndexKey, sortByIndex, ZERO_INDEX_KEY } from 'tldraw'
+import { atom, computed, structuredClone, uniqueId } from 'tldraw'
 
 export const SLIDE_SIZE = { x: 0, y: 0, w: 1600, h: 900 }
 export const SLIDE_MARGIN = 100
 
 type Slide = {
 	id: string
-	index: IndexKey
+	index: number
 	name: string
-}
-
-let index = ZERO_INDEX_KEY
-const getNextIndex = () => {
-	index = getIndexAbove(index)
-	return index
 }
 
 class SlidesManager {
 	private _slides = atom<Slide[]>('slide', [
 		{
 			id: '1',
-			index: getNextIndex(),
+			index: 0,
 			name: 'Slide 1',
 		},
 		{
 			id: '2',
-			index: getNextIndex(),
+			index: 1,
 			name: 'Slide 2',
 		},
 		{
 			id: '3',
-			index: getNextIndex(),
+			index: 2,
 			name: 'Slide 3',
 		},
 	])
 
 	@computed getCurrentSlides() {
-		return this._slides.get().sort(sortByIndex)
+		return this._slides.get().sort((a, b) => (a.index < b.index ? -1 : 1))
 	}
 
 	private _currentSlideId = atom('currentSlide', '1')
@@ -58,7 +52,7 @@ class SlidesManager {
 		this._currentSlideId.set(id)
 	}
 
-	move(delta: number) {
+	moveBy(delta: number) {
 		const slides = this.getCurrentSlides()
 		const currentIndex = slides.findIndex((slide) => slide.id === this.getCurrentSlideId())
 		const next = slides[currentIndex + delta]
@@ -66,12 +60,36 @@ class SlidesManager {
 		this._currentSlideId.set(next.id)
 	}
 
-	next() {
-		this.move(1)
+	nextSlide() {
+		this.moveBy(1)
 	}
 
-	prev() {
-		this.move(-1)
+	prevSlide() {
+		this.moveBy(-1)
+	}
+
+	newSlide(index: number) {
+		const slides = structuredClone(this.getCurrentSlides())
+
+		let bumping = false
+		for (const slide of slides) {
+			if (slide.index === index) {
+				bumping = true
+			}
+			if (bumping) {
+				slide.index++
+			}
+		}
+
+		const newSlide = {
+			id: uniqueId(),
+			index,
+			name: `Slide ${slides.length + 1}`,
+		}
+
+		this._slides.set([...slides, newSlide])
+
+		return newSlide
 	}
 }
 
