@@ -43,11 +43,6 @@ class SlidesManager {
 		return this._slides.get().find((slide) => slide.id === this.getCurrentSlideId())!
 	}
 
-	@computed getCurrentSlideIndex() {
-		const slides = this.getCurrentSlides()
-		return slides.indexOf(this.getCurrentSlide())
-	}
-
 	setCurrentSlide(id: string) {
 		this._currentSlideId.set(id)
 	}
