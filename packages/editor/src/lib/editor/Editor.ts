@@ -4937,20 +4937,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		}
 		return shapeIds
-
-		// const idsToCheck = [...ids]
-
-		// while (idsToCheck.length > 0) {
-		// 	const id = idsToCheck.pop()
-		// 	if (!id) break
-		// 	if (idsToInclude.has(id)) continue
-		// 	idsToInclude.add(id)
-		// 	for (const childId of this.getSortedChildIdsForParent(id)) {
-		// 		idsToCheck.push(childId)
-		// 	}
-		// }
-
-		// return idsToInclude
 	}
 
 	/**
