@@ -117,20 +117,18 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 				)
 
 				function updateCameraBounds(isMobile: boolean) {
-					editor.setCameraOptions(
-						{
-							...DEFAULT_CAMERA_OPTIONS,
-							constraints: {
-								bounds: targetBounds,
-								padding: { x: isMobile ? 16 : 164, y: 64 },
-								origin: { x: 0.5, y: 0 },
-								initialZoom: 'fit-x-100',
-								baseZoom: 'default',
-								behavior: 'contain',
-							},
+					editor.setCameraOptions({
+						...DEFAULT_CAMERA_OPTIONS,
+						constraints: {
+							bounds: targetBounds,
+							padding: { x: isMobile ? 16 : 164, y: 64 },
+							origin: { x: 0.5, y: 0 },
+							initialZoom: 'fit-x-100',
+							baseZoom: 'default',
+							behavior: 'contain',
 						},
-						{ reset: true }
-					)
+					})
+					editor.setCamera(editor.getCamera(), { reset: true })
 				}
 
 				let isMobile = editor.getViewportScreenBounds().width < 840

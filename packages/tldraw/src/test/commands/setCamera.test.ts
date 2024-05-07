@@ -361,8 +361,8 @@ describe('When constraints are contain', () => {
 
 describe('Zoom reset positions based on origin', () => {
 	it('Default .5, .5 origin', () => {
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -370,17 +370,17 @@ describe('Zoom reset positions based on origin', () => {
 					origin: { x: 0.5, y: 0.5 },
 					initialZoom: 'default',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
+
 		expect(editor.getCamera()).toMatchObject({ x: 200, y: 50, z: 1 })
 		editor.zoomIn().resetZoom().forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 200, y: 50, z: 1 })
 	})
 
 	it('0 0 origin', () => {
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -388,17 +388,17 @@ describe('Zoom reset positions based on origin', () => {
 					origin: { x: 0, y: 0 },
 					initialZoom: 'default',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
+
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		editor.zoomIn().resetZoom().forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 	})
 
 	it('1 1 origin', () => {
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -406,9 +406,9 @@ describe('Zoom reset positions based on origin', () => {
 					origin: { x: 1, y: 1 },
 					initialZoom: 'default',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
+
 		expect(editor.getCamera()).toMatchObject({ x: 400, y: 100, z: 1 })
 		editor.zoomIn().resetZoom().forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 400, y: 100, z: 1 })
@@ -417,8 +417,8 @@ describe('Zoom reset positions based on origin', () => {
 
 describe('CameraOptions.constraints.initialZoom + behavior', () => {
 	it('When fit is default', () => {
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -426,17 +426,17 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 					origin: { x: 0.5, y: 0.5 },
 					initialZoom: 'default',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
+
 		expect(editor.getCamera()).toMatchObject({ x: 200, y: 50, z: 1 })
 		editor.zoomIn().resetZoom().forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 200, y: 50, z: 1 })
 	})
 
 	it('When fit is fit-max', () => {
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -444,17 +444,16 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 					origin: { x: 0.5, y: 0.5 },
 					initialZoom: 'fit-max',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		// y should be 0 because the viewport width is bigger than the height
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 111.11, y: 0, z: 1.125 }, 2)
 		editor.zoomIn().resetZoom().forceTick()
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 111.11, y: 0, z: 1.125 }, 2)
 
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -463,9 +462,8 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 					origin: { x: 0.5, y: 0.5 },
 					initialZoom: 'fit-max',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		// y should be 0 because the viewport width is bigger than the height
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 666.66, y: 0, z: 0.75 }, 2)
@@ -474,8 +472,8 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 
 		// The proportions of the bounds don't matter, it's the proportion of the viewport that decides which axis gets fit
 		editor.updateViewportScreenBounds(new Box(0, 0, 900, 1600))
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -483,9 +481,8 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 					origin: { x: 0.5, y: 0.5 },
 					initialZoom: 'fit-max',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 0, y: 666.66, z: 0.75 }, 2)
 		editor.zoomIn().resetZoom().forceTick()
@@ -493,8 +490,8 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 	})
 
 	it('When fit is fit-min', () => {
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -502,17 +499,16 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 					origin: { x: 0.5, y: 0.5 },
 					initialZoom: 'fit-min',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		// x should be 0 because the viewport width is bigger than the height
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 0, y: -62.5, z: 1.333 }, 2)
 		editor.zoomIn().resetZoom().forceTick()
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 0, y: -62.5, z: 1.333 }, 2)
 
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -521,9 +517,8 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 					origin: { x: 0.5, y: 0.5 },
 					initialZoom: 'fit-min',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		// x should be 0 because the viewport width is bigger than the height
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 0, y: -375, z: 2 }, 2)
@@ -532,8 +527,8 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 
 		// The proportions of the bounds don't matter, it's the proportion of the viewport that decides which axis gets fit
 		editor.updateViewportScreenBounds(new Box(0, 0, 900, 1600))
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -541,9 +536,8 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 					origin: { x: 0.5, y: 0.5 },
 					initialZoom: 'fit-min',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		expect(editor.getCamera()).toCloselyMatchObject({ x: -375, y: 0, z: 2 }, 2)
 		editor.zoomIn().resetZoom().forceTick()
@@ -553,8 +547,8 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 	it('When fit is fit-min-100', () => {
 		editor.updateViewportScreenBounds(new Box(0, 0, 1600, 900))
 
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -562,17 +556,16 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 					origin: { x: 0.5, y: 0.5 },
 					initialZoom: 'fit-min-100',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		// Max 1 on initial / reset
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 200, y: 50, z: 1 }, 2)
 
 		// Min is regular
 		editor.updateViewportScreenBounds(new Box(0, 0, 800, 450))
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -580,9 +573,8 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 					origin: { x: 0.5, y: 0.5 },
 					initialZoom: 'fit-min-100',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 0, y: -62.5, z: 0.66 }, 2)
 	})
@@ -590,8 +582,8 @@ describe('CameraOptions.constraints.initialZoom + behavior', () => {
 
 describe('Padding', () => {
 	it('sets when padding is zero', () => {
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -600,9 +592,8 @@ describe('Padding', () => {
 					padding: { x: 0, y: 0 },
 					initialZoom: 'fit-max',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		// y should be 0 because the viewport width is bigger than the height
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 111.11, y: 0, z: 1.125 }, 2)
@@ -611,8 +602,8 @@ describe('Padding', () => {
 	})
 
 	it('sets when padding is 100, 0', () => {
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -621,17 +612,16 @@ describe('Padding', () => {
 					padding: { x: 100, y: 0 },
 					initialZoom: 'fit-max',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		// no change because the horizontal axis has extra space available
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 111.11, y: 0, z: 1.125 }, 2)
 		editor.zoomIn().resetZoom().forceTick()
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 111.11, y: 0, z: 1.125 }, 2)
 
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -640,9 +630,8 @@ describe('Padding', () => {
 					padding: { x: 200, y: 0 },
 					initialZoom: 'fit-max',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true })
 
 		// now we're pinching
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 200, y: 50, z: 1 }, 2)
@@ -651,8 +640,8 @@ describe('Padding', () => {
 	})
 
 	it('sets when padding is 0 x 100', () => {
-		editor.setCameraOptions(
-			{
+		editor
+			.setCameraOptions({
 				...DEFAULT_CAMERA_OPTIONS,
 				constraints: {
 					...DEFAULT_CONSTRAINTS,
@@ -661,9 +650,8 @@ describe('Padding', () => {
 					padding: { x: 0, y: 100 },
 					initialZoom: 'fit-max',
 				},
-			},
-			{ reset: true }
-		)
+			})
+			.setCamera(editor.getCamera(), { reset: true, immediate: true })
 
 		// y should be 0 because the viewport width is bigger than the height
 		expect(editor.getCamera()).toCloselyMatchObject({ x: 314.28, y: 114.28, z: 0.875 }, 2)

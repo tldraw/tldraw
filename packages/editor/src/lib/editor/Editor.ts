@@ -2148,26 +2148,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the camera options.
+	 * Set the camera options. Changing the options won't immediately change the camera itself, so you may want to call `setCamera` after changing the options.
 	 *
 	 * @example
 	 * ```ts
 	 * editor.setCameraOptions(myCameraOptions)
-	 * editor.setCameraOptions(myCameraOptions, { immediate: true, force: true, initial: false })
+	 * editor.setCamera(editor.getCamera())
 	 * ```
 	 *
 	 * @param options - The camera options to set.
-	 * @param opts - The options for the change.
 	 *
 	 * @public */
-	setCameraOptions(options: Partial<TLCameraOptions>, opts?: TLCameraMoveOptions) {
+	setCameraOptions(options: Partial<TLCameraOptions>) {
 		const next = structuredClone({
 			...this._cameraOptions.__unsafe__getWithoutCapture(),
 			...options,
 		})
 		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
-		// this.setCamera(this.getCamera(), opts)
 		return this
 	}
 
