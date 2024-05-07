@@ -110,7 +110,9 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 		const ctx = canvasEl.getContext('2d')
 		if (!ctx) return
 
-		ctx.fillStyle = darkMode ? '#212529' : '#f8f9fa'
+		ctx.fillStyle = darkMode
+			? DefaultColorThemePalette.darkMode.solid
+			: DefaultColorThemePalette.lightMode.solid
 		ctx.fillRect(0, 0, size, size)
 
 		// This essentially generates an inverse of the pattern we're drawing.
