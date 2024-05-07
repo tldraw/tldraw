@@ -123,6 +123,7 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 		}
 	}
 
+	// when the shape we're stuck to changes, update the sticker's position
 	override onAfterChangeToShape(
 		binding: StickerBinding,
 		shapeBefore: TLShape,
@@ -150,7 +151,8 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 		})
 	}
 
-	override onBeforeDeleteToShape(binding: StickerBinding, shape: TLShape): void {
+	// when the thing we're stuck to is deleted, delete the sticker too
+	override onBeforeDeleteToShape(binding: StickerBinding): void {
 		const sticker = this.editor.getShape<StickerShape>(binding.fromId)!
 		this.editor.deleteShape(sticker.id)
 	}
