@@ -5040,19 +5040,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* -------------------- Bindings -------------------- */
 
 	@computed
-	private _getBindingsIndex() {
-		return bindingsIndex(this)
-	}
-
-	private getBindingsIndex() {
-		return this._getBindingsIndex().get()
+	private _getBindingsIndexCache() {
+		const index = bindingsIndex(this)
+		return this.store.createComputedCache<TLBinding[], TLShape>('bindingsIndex', (shape) => {
+			return index.get()[shape.id]
+		})
 	}
 
 	getBinding(id: TLBindingId): TLBinding | undefined {
 		return this.store.get(id) as TLBinding | undefined
 	}
 
-	// TODO(alex) #bindings - cache `allBindings` getters and derive type-specific ones from them
 	getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type?: Binding['type']
@@ -5072,7 +5070,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		type?: Binding['type']
 	): Binding[] {
 		const id = typeof shape === 'string' ? shape : shape.id
-		const result = this.getBindingsIndex()[id] ?? EMPTY_ARRAY
+		const result = this._getBindingsIndexCache().get(id) ?? EMPTY_ARRAY
 		if (!type) return result as Binding[]
 		return result.filter((b) => b.type === type) as Binding[]
 	}
