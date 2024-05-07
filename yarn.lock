@@ -19112,14 +19112,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minipass@npm:^5.0.0 || ^6.0.2 || ^7.0.0, minipass@npm:^7.0.2, minipass@npm:^7.0.3, minipass@npm:^7.0.4":
-  version: 7.0.4
-  resolution: "minipass@npm:7.0.4"
-  checksum: e864bd02ceb5e0707696d58f7ce3a0b89233f0d686ef0d447a66db705c0846a8dc6f34865cd85256c1472ff623665f616b90b8ff58058b2ad996c5de747d2d18
-  languageName: node
-  linkType: hard
-
-"minipass@npm:^7.1.0":
+"minipass@npm:^5.0.0 || ^6.0.2 || ^7.0.0, minipass@npm:^7.0.2, minipass@npm:^7.0.3, minipass@npm:^7.0.4, minipass@npm:^7.1.0":
   version: 7.1.0
   resolution: "minipass@npm:7.1.0"
   checksum: 0cfc1bc95bfce2a0cf69fcb5e7b92f62ee7159f2787356e66b5804dba73546e1653bbc70bf9bb32acb031e6d0d4b6249628a014644a597a7e4a14b441a510ba5
