@@ -25,6 +25,8 @@ import {
 	VecModel,
 	clamp,
 	createShapeId,
+	getArrowBindings,
+	structuredClone,
 } from '@tldraw/editor'
 
 const TLDRAW_V1_VERSION = 15.5
@@ -561,20 +563,24 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								})
 
 								if (change) {
-									// TODO(alex): #bindings can we delete this?
-									// if (change.props?.[handleId]) {
-									// 	const terminal = change.props?.[handleId] as TLArrowShapeTerminal
-									// 	if (terminal.type === 'binding') {
-									// 		terminal.isExact = binding.distance === 0
+									editor.updateShape(change)
+								}
 
-									// 		if (terminal.boundShapeId !== targetId) {
-									// 			console.warn('Hit the wrong shape!')
-									// 			terminal.boundShapeId = targetId
-									// 			terminal.normalizedAnchor = { x: 0.5, y: 0.5 }
-									// 		}
-									// 	}
-									// }
-									editor.updateShapes([change])
+								const freshBinding = getArrowBindings(
+									editor,
+									editor.getShape<TLArrowShape>(v2ShapeId)!
+								)[handleId]
+								if (freshBinding) {
+									const updatedFreshBinding = structuredClone(freshBinding)
+									if (binding.distance === 0) {
+										updatedFreshBinding.props.isExact = true
+									}
+									if (updatedFreshBinding.toId !== targetId) {
+										updatedFreshBinding.toId = targetId
+										updatedFreshBinding.props.normalizedAnchor = { x: nx, y: ny }
+									}
+
+									editor.updateBinding(updatedFreshBinding)
 								}
 							}
 						}
