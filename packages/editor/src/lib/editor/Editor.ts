@@ -5056,14 +5056,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		type: Binding['type']
 	): Binding[] {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this.getBindingsInvolvingShape(id, type).filter((b) => b.fromId === id) as Binding[]
+		return this.getBindingsInvolvingShape(id).filter(
+			(b) => b.fromId === id && b.type === type
+		) as Binding[]
 	}
 	getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
 	): Binding[] {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this.getBindingsInvolvingShape(id, type).filter((b) => b.toId === id) as Binding[]
+		return this.getBindingsInvolvingShape(id).filter(
+			(b) => b.toId === id && b.type === type
+		) as Binding[]
 	}
 	getBindingsInvolvingShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
