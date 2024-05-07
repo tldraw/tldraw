@@ -415,12 +415,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 							invalidParents.add(shape.parentId)
 						}
 
+						const deleteBindingIds: TLBindingId[] = []
 						for (const binding of this.getAllBindingsFromShape(shape)) {
 							this.getBindingUtil(binding).onBeforeDeleteFromShape?.(binding, shape)
+							deleteBindingIds.push(binding.id)
 						}
 						for (const binding of this.getAllBindingsToShape(shape)) {
 							this.getBindingUtil(binding).onBeforeDeleteToShape?.(binding, shape)
+							deleteBindingIds.push(binding.id)
 						}
+						this.deleteBindings(deleteBindingIds)
 
 						const deletedIds = new Set([shape.id])
 						const updates = compact(
