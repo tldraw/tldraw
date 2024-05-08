@@ -22,39 +22,49 @@ export function sleep(ms: number) {
 test.describe('camera', () => {
 	test.beforeEach(setup)
 
-	test.only('panning', async ({ isMobile, page, toolbar }) => {
+	test('panning', async ({ isMobile, page }) => {
 		test.skip(!isMobile)
 		client = await page.context().newCDPSession(page)
-
-		/*
-		// This just makes a rectangle so it's easier to see the panning 
-		await toolbar.moreToolsButton.click()
-		const rectangle = toolbar.popOverTools.popoverRectangle
-		await rectangle.click()
-		await page.mouse.click(50, 50) */
 
 		expect(await page.evaluate(() => editor.inputs.currentPagePoint)).toEqual({
 			x: 50,
 			y: 50,
 			z: 0,
 		})
+
 		await dispatchTouch(client, 'touchStart', [
 			{ x: 100, y: 100 },
 			{ x: 200, y: 200 },
 		])
-		for (let i = 100; i > 0; i--) {
+		let finalTouch: { x: number; y: number }[] = [
+			{ x: 100, y: 100 },
+			{ x: 200, y: 200 },
+		]
+		for (let i = 1; i < 100; i++) {
 			await dispatchTouch(client, 'touchMove', [
 				{ x: 100 + i * 10, y: 100 + i * 10 },
 				{ x: 200 + i * 10, y: 200 + i * 10 },
 			])
+			finalTouch = [
+				{ x: 100 + i * 10, y: 100 + i * 10 },
+				{ x: 200 + i * 10, y: 200 + i * 10 },
+			]
 			await sleep(10)
 		}
-		expect(await page.evaluate(() => editor.inputs.currentPagePoint.x)).toBeCloseTo(144, 0)
+		await dispatchTouch(client, 'touchEnd', finalTouch)
+
+		await sleep(10)
+		// not sure how the touch coordinates translate to the editor coordinates
+		expect(
+			await page.evaluate(() => [
+				editor.inputs.currentPagePoint.x,
+				editor.inputs.currentPagePoint.y,
+			])
+		).toStrictEqual([160, 160])
 	})
 
-	test('pinching', async ({ page, isMobile }) => {
-		// This test doesn't yet use touch events, it only tests punching on the trackpad
-		// A pinch on the trackpad is the same as a ctrl+scrollwheel
+	test('pinching on trackpad', async ({ page, isMobile }) => {
+		// pinching on trackpad is the same event as ctrl+scrollwheel
 		test.skip(isMobile)
 		const { mouse, keyboard } = page
 		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(1)
@@ -62,6 +72,62 @@ test.describe('camera', () => {
 		await mouse.wheel(0, 14)
 		await keyboard.up('Control')
 		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(0.9)
+	})
+
+	test.only('pinching on touchscreen', async ({ page, isMobile }) => {
+		test.skip(!isMobile)
+
+		client = await page.context().newCDPSession(page)
+
+		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(1)
+		await page.evaluate(() => editor.updateInstanceState({ isGridMode: true }))
+
+		// zoom out
+
+		await dispatchTouch(client, 'touchStart', [
+			{ x: 100, y: 100 },
+			{ x: 200, y: 200 },
+		])
+		let finalTouch: { x: number; y: number }[] = [
+			{ x: 100, y: 100 },
+			{ x: 200, y: 200 },
+		]
+		for (let i = 1; i < 50; i++) {
+			await dispatchTouch(client, 'touchMove', [
+				{ x: 100 + i, y: 100 + i },
+				{ x: 200 - i, y: 200 - i },
+			])
+			finalTouch = [
+				{ x: 100 + i, y: 100 + i },
+				{ x: 200 - i, y: 200 - i },
+			]
+			await sleep(10)
+		}
+		await dispatchTouch(client, 'touchEnd', finalTouch)
+
+		await sleep(10)
+		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(0.1)
+
+		// now zoom in
+		await dispatchTouch(client, 'touchStart', [
+			{ x: 149, y: 149 },
+			{ x: 150, y: 150 },
+		])
+
+		for (let i = 1; i < 50; i++) {
+			await dispatchTouch(client, 'touchMove', [
+				{ x: 149 - i, y: 149 - i },
+				{ x: 150 + i, y: 150 + i },
+			])
+			finalTouch = [
+				{ x: 149 - i, y: 149 - i },
+				{ x: 150 + i, y: 150 + i },
+			]
+			await sleep(10)
+		}
+		await dispatchTouch(client, 'touchEnd', finalTouch)
+		await sleep(10)
+		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(0)
 	})
 
 	test.fixme('minimap', () => {
