@@ -136,8 +136,8 @@ describe('When brushing arrows', () => {
 					ref="arrow1"
 					x={0}
 					y={0}
-					start={{ type: 'point', x: 0, y: 0 }}
-					end={{ type: 'point', x: 100, y: 100 }}
+					start={{ x: 0, y: 0 }}
+					end={{ x: 100, y: 100 }}
 					bend={0}
 				/>,
 			])
@@ -158,8 +158,8 @@ describe('When brushing arrows', () => {
 					ref="arrow1"
 					x={0}
 					y={0}
-					start={{ type: 'point', x: 0, y: 0 }}
-					end={{ type: 'point', x: 100, y: 100 }}
+					start={{ x: 0, y: 0 }}
+					end={{ x: 100, y: 100 }}
 					bend={40}
 				/>,
 			])

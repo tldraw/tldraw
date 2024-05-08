@@ -1490,8 +1490,8 @@ describe('When double clicking an editable shape', () => {
 				x: 200,
 				y: 50,
 				props: {
-					start: { type: 'point', x: 0, y: 0 },
-					end: { type: 'point', x: 100, y: 0 },
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
 				},
 			},
 		])

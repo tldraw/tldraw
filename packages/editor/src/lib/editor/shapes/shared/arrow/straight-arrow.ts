@@ -12,15 +12,20 @@ import {
 	BoundShapeInfo,
 	MIN_ARROW_LENGTH,
 	STROKE_SIZES,
+	TLArrowBindings,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
 	getBoundShapeRelationships,
 } from './shared'
 
-export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArrowInfo {
-	const { start, end, arrowheadStart, arrowheadEnd } = shape.props
+export function getStraightArrowInfo(
+	editor: Editor,
+	shape: TLArrowShape,
+	bindings: TLArrowBindings
+): TLArrowInfo {
+	const { arrowheadStart, arrowheadEnd } = shape.props
 
-	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape)
+	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape, bindings)
 
 	const a = terminalsInArrowSpace.start.clone()
 	const b = terminalsInArrowSpace.end.clone()
@@ -28,6 +33,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	if (Vec.Equals(a, b)) {
 		return {
+			bindings,
 			isStraight: true,
 			start: {
 				handle: a,
@@ -49,8 +55,8 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	// Update the arrowhead points using intersections with the bound shapes, if any.
 
-	const startShapeInfo = getBoundShapeInfoForTerminal(editor, start)
-	const endShapeInfo = getBoundShapeInfoForTerminal(editor, end)
+	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape, 'start')
+	const endShapeInfo = getBoundShapeInfoForTerminal(editor, shape, 'end')
 
 	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
@@ -189,6 +195,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 	const length = Vec.Dist(a, b)
 
 	return {
+		bindings,
 		isStraight: true,
 		start: {
 			handle: terminalsInArrowSpace.start,

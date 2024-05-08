@@ -15,6 +15,7 @@ import {
 	BOUND_ARROW_OFFSET,
 	MIN_ARROW_LENGTH,
 	STROKE_SIZES,
+	TLArrowBindings,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
@@ -25,16 +26,16 @@ import { getStraightArrowInfo } from './straight-arrow'
 export function getCurvedArrowInfo(
 	editor: Editor,
 	shape: TLArrowShape,
-	extraBend = 0
+	bindings: TLArrowBindings
 ): TLArrowInfo {
 	const { arrowheadEnd, arrowheadStart } = shape.props
-	const bend = shape.props.bend + extraBend
+	const bend = shape.props.bend
 
 	if (Math.abs(bend) > Math.abs(shape.props.bend * WAY_TOO_BIG_ARROW_BEND_FACTOR)) {
-		return getStraightArrowInfo(editor, shape)
+		return getStraightArrowInfo(editor, shape, bindings)
 	}
 
-	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape)
+	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape, bindings)
 
 	const med = Vec.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end) // point between start and end
 	const distance = Vec.Sub(terminalsInArrowSpace.end, terminalsInArrowSpace.start)
@@ -42,8 +43,8 @@ export function getCurvedArrowInfo(
 	const u = Vec.Len(distance) ? distance.uni() : Vec.From(distance) // unit vector between start and end
 	const middle = Vec.Add(med, u.per().mul(-bend)) // middle handle
 
-	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.start)
-	const endShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.end)
+	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape, 'start')
+	const endShapeInfo = getBoundShapeInfoForTerminal(editor, shape, 'end')
 
 	// The positions of the body of the arrow, which may be different
 	// than the arrow's start / end points if the arrow is bound to shapes
@@ -53,6 +54,7 @@ export function getCurvedArrowInfo(
 
 	if (Vec.Equals(a, b)) {
 		return {
+			bindings,
 			isStraight: true,
 			start: {
 				handle: a,
@@ -84,7 +86,7 @@ export function getCurvedArrowInfo(
 		!isSafeFloat(handleArc.length) ||
 		!isSafeFloat(handleArc.size)
 	) {
-		return getStraightArrowInfo(editor, shape)
+		return getStraightArrowInfo(editor, shape, bindings)
 	}
 
 	const tempA = a.clone()
@@ -341,6 +343,7 @@ export function getCurvedArrowInfo(
 	const bodyArc = getArcInfo(a, b, c)
 
 	return {
+		bindings,
 		isStraight: false,
 		start: {
 			point: a,

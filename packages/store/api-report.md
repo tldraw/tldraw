@@ -37,7 +37,7 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
 export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R>;
 
 // @public
-export function createMigrationIds<ID extends string, Versions extends Record<string, number>>(sequenceId: ID, versions: Versions): {
+export function createMigrationIds<const ID extends string, const Versions extends Record<string, number>>(sequenceId: ID, versions: Versions): {
     [K in keyof Versions]: `${ID}/${Versions[K]}`;
 };
 
@@ -264,6 +264,11 @@ export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>
 
 // @internal
 export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[]): void;
+
+// @public (undocumented)
+export type StandaloneDependsOn = {
+    readonly dependsOn: readonly MigrationId[];
+};
 
 // @public
 export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {

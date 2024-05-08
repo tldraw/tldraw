@@ -43,5 +43,6 @@ export {
 	type MigrationId,
 	type MigrationResult,
 	type MigrationSequence,
+	type StandaloneDependsOn,
 } from './lib/migrate'
 export type { AllRecords } from './lib/type-utils'

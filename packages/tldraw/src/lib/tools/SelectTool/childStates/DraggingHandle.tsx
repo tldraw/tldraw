@@ -1,7 +1,6 @@
 import {
 	StateNode,
 	TLArrowShape,
-	TLArrowShapeTerminal,
 	TLCancelEvent,
 	TLEnterEventHandler,
 	TLEventHandlers,
@@ -12,6 +11,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Vec,
+	getArrowBindings,
 	snapAngle,
 	sortByIndex,
 	structuredClone,
@@ -112,16 +112,16 @@ export class DraggingHandle extends StateNode {
 
 		// <!-- Only relevant to arrows
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-			const initialTerminal = shape.props[info.handle.id as 'start' | 'end']
+			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
 
 			this.isPrecise = false
 
-			if (initialTerminal?.type === 'binding') {
-				this.editor.setHintingShapes([initialTerminal.boundShapeId])
+			if (initialBinding) {
+				this.editor.setHintingShapes([initialBinding.toId])
 
-				this.isPrecise = initialTerminal.isPrecise
+				this.isPrecise = initialBinding.props.isPrecise
 				if (this.isPrecise) {
-					this.isPreciseId = initialTerminal.boundShapeId
+					this.isPreciseId = initialBinding.toId
 				} else {
 					this.resetExactTimeout()
 				}
@@ -280,18 +280,18 @@ export class DraggingHandle extends StateNode {
 			initial: initial,
 		})
 
-		const next: TLShapePartial<any> = { ...shape, ...changes }
+		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
 
 		// Arrows
-		if (initialHandle.canBind) {
-			const bindingAfter = (next.props as any)[initialHandle.id] as TLArrowShapeTerminal | undefined
+		if (initialHandle.canBind && this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 
-			if (bindingAfter?.type === 'binding') {
-				if (hintingShapeIds[0] !== bindingAfter.boundShapeId) {
-					editor.setHintingShapes([bindingAfter.boundShapeId])
-					this.pointingId = bindingAfter.boundShapeId
+			if (bindingAfter) {
+				if (hintingShapeIds[0] !== bindingAfter.toId) {
+					editor.setHintingShapes([bindingAfter.toId])
+					this.pointingId = bindingAfter.toId
 					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
-					this.isPreciseId = this.isPrecise ? bindingAfter.boundShapeId : null
+					this.isPreciseId = this.isPrecise ? bindingAfter.toId : null
 					this.resetExactTimeout()
 				}
 			} else {

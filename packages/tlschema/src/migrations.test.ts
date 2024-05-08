@@ -1573,6 +1573,236 @@ describe('Add text align to text shapes', () => {
 	})
 })
 
+describe('Extract bindings from arrows', () => {
+	const { up } = getTestMigration(arrowShapeVersions.ExtractBindings)
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				'shape:arrow1': {
+					id: 'shape:arrow1',
+					type: 'arrow',
+					props: {
+						start: {
+							type: 'binding',
+							boundShapeId: 'shape:box1',
+							normalizedAnchor: {
+								x: 0.4383437225516159,
+								y: 0.5065334673177019,
+							},
+							isPrecise: false,
+							isExact: false,
+						},
+						end: {
+							type: 'binding',
+							boundShapeId: 'shape:box2',
+							normalizedAnchor: {
+								x: 0.5848167203201774,
+								y: 0.5766996080606552,
+							},
+							isPrecise: false,
+							isExact: false,
+						},
+					},
+					typeName: 'shape',
+				},
+				'shape:arrow2': {
+					id: 'shape:arrow2',
+					type: 'arrow',
+					props: {
+						start: {
+							type: 'binding',
+							boundShapeId: 'shape:arrow2',
+							normalizedAnchor: {
+								x: 0.4383437225516159,
+								y: 0.5065334673177019,
+							},
+							isPrecise: false,
+							isExact: false,
+						},
+						end: {
+							type: 'point',
+							x: 174.75451263561803,
+							y: -1.4725753187527948,
+						},
+					},
+					typeName: 'shape',
+				},
+				'shape:arrow3': {
+					id: 'shape:arrow3',
+					type: 'arrow',
+					props: {
+						start: {
+							type: 'point',
+							x: 68.25440152898136,
+							y: -1.0404886613512332,
+						},
+						end: {
+							type: 'binding',
+							boundShapeId: 'shape:box3',
+							normalizedAnchor: {
+								x: 0.5848167203201774,
+								y: 0.5766996080606552,
+							},
+							isPrecise: true,
+							isExact: false,
+						},
+					},
+					typeName: 'shape',
+				},
+				'shape:arrow4': {
+					id: 'shape:arrow4',
+					type: 'arrow',
+					props: {
+						start: {
+							type: 'point',
+							x: 68.25440152898136,
+							y: -1.0404886613512758,
+						},
+						end: {
+							type: 'point',
+							x: 174.75451263561803,
+							y: -1.4725753187527948,
+						},
+					},
+					typeName: 'shape',
+				},
+			})
+		).toMatchInlineSnapshot(`
+		{
+		  "binding:nanoid_1": {
+		    "fromId": "shape:arrow1",
+		    "id": "binding:nanoid_1",
+		    "meta": {},
+		    "props": {
+		      "isExact": false,
+		      "isPrecise": false,
+		      "normalizedAnchor": {
+		        "x": 0.4383437225516159,
+		        "y": 0.5065334673177019,
+		      },
+		      "terminal": "start",
+		    },
+		    "toId": "shape:box1",
+		    "type": "arrow",
+		    "typeName": "binding",
+		  },
+		  "binding:nanoid_2": {
+		    "fromId": "shape:arrow1",
+		    "id": "binding:nanoid_2",
+		    "meta": {},
+		    "props": {
+		      "isExact": false,
+		      "isPrecise": false,
+		      "normalizedAnchor": {
+		        "x": 0.5848167203201774,
+		        "y": 0.5766996080606552,
+		      },
+		      "terminal": "end",
+		    },
+		    "toId": "shape:box2",
+		    "type": "arrow",
+		    "typeName": "binding",
+		  },
+		  "binding:nanoid_3": {
+		    "fromId": "shape:arrow2",
+		    "id": "binding:nanoid_3",
+		    "meta": {},
+		    "props": {
+		      "isExact": false,
+		      "isPrecise": false,
+		      "normalizedAnchor": {
+		        "x": 0.4383437225516159,
+		        "y": 0.5065334673177019,
+		      },
+		      "terminal": "start",
+		    },
+		    "toId": "shape:arrow2",
+		    "type": "arrow",
+		    "typeName": "binding",
+		  },
+		  "binding:nanoid_4": {
+		    "fromId": "shape:arrow3",
+		    "id": "binding:nanoid_4",
+		    "meta": {},
+		    "props": {
+		      "isExact": false,
+		      "isPrecise": true,
+		      "normalizedAnchor": {
+		        "x": 0.5848167203201774,
+		        "y": 0.5766996080606552,
+		      },
+		      "terminal": "end",
+		    },
+		    "toId": "shape:box3",
+		    "type": "arrow",
+		    "typeName": "binding",
+		  },
+		  "shape:arrow1": {
+		    "id": "shape:arrow1",
+		    "props": {
+		      "end": {
+		        "x": 0,
+		        "y": 0,
+		      },
+		      "start": {
+		        "x": 0,
+		        "y": 0,
+		      },
+		    },
+		    "type": "arrow",
+		    "typeName": "shape",
+		  },
+		  "shape:arrow2": {
+		    "id": "shape:arrow2",
+		    "props": {
+		      "end": {
+		        "x": 174.75451263561803,
+		        "y": -1.4725753187527948,
+		      },
+		      "start": {
+		        "x": 0,
+		        "y": 0,
+		      },
+		    },
+		    "type": "arrow",
+		    "typeName": "shape",
+		  },
+		  "shape:arrow3": {
+		    "id": "shape:arrow3",
+		    "props": {
+		      "end": {
+		        "x": 0,
+		        "y": 0,
+		      },
+		      "start": {
+		        "x": 68.25440152898136,
+		        "y": -1.0404886613512332,
+		      },
+		    },
+		    "type": "arrow",
+		    "typeName": "shape",
+		  },
+		  "shape:arrow4": {
+		    "id": "shape:arrow4",
+		    "props": {
+		      "end": {
+		        "x": 174.75451263561803,
+		        "y": -1.4725753187527948,
+		      },
+		      "start": {
+		        "x": 68.25440152898136,
+		        "y": -1.0404886613512758,
+		      },
+		    },
+		    "type": "arrow",
+		    "typeName": "shape",
+		  },
+		}
+	`)
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once

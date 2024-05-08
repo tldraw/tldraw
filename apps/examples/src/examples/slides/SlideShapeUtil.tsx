@@ -1,9 +1,9 @@
 import { useCallback } from 'react'
 import {
 	Geometry2d,
+	RecordProps,
 	Rectangle2d,
 	SVGContainer,
-	ShapeProps,
 	ShapeUtil,
 	T,
 	TLBaseShape,
@@ -24,7 +24,7 @@ export type SlideShape = TLBaseShape<
 
 export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 	static override type = 'slide' as const
-	static override props: ShapeProps<SlideShape> = {
+	static override props: RecordProps<SlideShape> = {
 		w: T.number,
 		h: T.number,
 	}

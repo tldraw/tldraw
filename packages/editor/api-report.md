@@ -23,28 +23,34 @@ import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
+import { PerformanceTracker } from '@tldraw/utils';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
+import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
-import { ShapeProps } from '@tldraw/tlschema';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
+import { TLArrowBinding } from '@tldraw/tlschema';
+import { TLArrowBindingProps } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
+import { TLBinding } from '@tldraw/tlschema';
+import { TLBindingId } from '@tldraw/tlschema';
+import { TLBindingPartial } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
@@ -60,14 +66,15 @@ import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
+import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
-import { TLShapePropsMigrations } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
+import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { track } from '@tldraw/state';
@@ -167,6 +174,77 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
+}
+
+// @public (undocumented)
+export interface BindingOnChangeOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    bindingAfter: Binding;
+    // (undocumented)
+    bindingBefore: Binding;
+}
+
+// @public (undocumented)
+export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    binding: Binding;
+}
+
+// @public (undocumented)
+export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    binding: Binding;
+}
+
+// @public (undocumented)
+export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    binding: Binding;
+    // (undocumented)
+    shapeAfter: TLShape;
+    // (undocumented)
+    shapeBefore: TLShape;
+}
+
+// @public (undocumented)
+export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    binding: Binding;
+    // (undocumented)
+    shape: TLShape;
+}
+
+// @public (undocumented)
+export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBinding> {
+    constructor(editor: Editor);
+    // (undocumented)
+    editor: Editor;
+    abstract getDefaultProps(): Partial<Binding['props']>;
+    // (undocumented)
+    static migrations?: TLPropsMigrations;
+    // (undocumented)
+    onAfterChange?(options: BindingOnChangeOptions<Binding>): void;
+    // (undocumented)
+    onAfterChangeFromShape?(options: BindingOnShapeChangeOptions<Binding>): void;
+    // (undocumented)
+    onAfterChangeToShape?(options: BindingOnShapeChangeOptions<Binding>): void;
+    // (undocumented)
+    onAfterCreate?(options: BindingOnCreateOptions<Binding>): void;
+    // (undocumented)
+    onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void;
+    // (undocumented)
+    onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void;
+    // (undocumented)
+    onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void;
+    // (undocumented)
+    onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): void;
+    // (undocumented)
+    onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
+    // (undocumented)
+    onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
+    // (undocumented)
+    static props?: RecordProps<TLUnknownBinding>;
+    static type: string;
 }
 
 // @public
@@ -373,6 +451,9 @@ export const coreShapes: readonly [typeof GroupShapeUtil];
 // @public
 export function counterClockwiseAngleDist(a0: number, a1: number): number;
 
+// @internal
+export function createOrUpdateArrowBinding(editor: Editor, arrow: TLArrowShape | TLShapeId, target: TLShape | TLShapeId, props: TLArrowBindingProps): void;
+
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
@@ -450,6 +531,7 @@ export const debugFlags: {
     readonly logElementRemoves: DebugFlag<boolean>;
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
+    readonly measurePerformance: DebugFlag<boolean>;
     readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
@@ -588,7 +670,7 @@ export class Edge2d extends Geometry2d {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
@@ -619,6 +701,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     bail(): this;
     bailToMark(id: string): this;
     batch(fn: () => void, opts?: TLHistoryBatchOptions): this;
+    bindingUtils: {
+        readonly [K in string]?: BindingUtil<TLUnknownBinding>;
+    };
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
     cancel(): this;
@@ -633,6 +718,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     crash(error: unknown): this;
     createAssets(assets: TLAsset[]): this;
+    // (undocumented)
+    createBinding(partial: RequiredKeys<TLBindingPartial, 'fromId' | 'toId' | 'type'>): this;
+    // (undocumented)
+    createBindings(partials: RequiredKeys<TLBindingPartial, 'fromId' | 'toId' | 'type'>[]): this;
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
         extras: {
@@ -650,6 +739,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
+    // (undocumented)
+    deleteBinding(binding: TLBinding | TLBindingId): this;
+    // (undocumented)
+    deleteBindings(bindings: (TLBinding | TLBindingId)[]): this;
     deleteOpenMenu(id: string): this;
     deletePage(page: TLPage | TLPageId): this;
     deleteShape(id: TLShapeId): this;
@@ -687,16 +780,28 @@ export class Editor extends EventEmitter<TLEventMap> {
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     focus(): this;
     readonly focusManager: FocusManager;
+    // (undocumented)
+    getAllBindingsFromShape(shape: TLShape | TLShapeId): TLBinding[];
+    // (undocumented)
+    getAllBindingsToShape(shape: TLShape | TLShapeId): TLBinding[];
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
-    getArrowsBoundTo(shapeId: TLShapeId): {
-        arrowId: TLShapeId;
-        handleId: "end" | "start";
-    }[];
+    getArrowsBoundTo(shapeId: TLShapeId): TLArrowShape[];
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getBaseZoom(): number;
+    // (undocumented)
+    getBinding(id: TLBindingId): TLBinding | undefined;
+    // (undocumented)
+    getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
+    // (undocumented)
+    getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
+    getBindingUtil<S extends TLUnknownBinding>(binding: S | TLBindingPartial<S>): BindingUtil<S>;
+    // (undocumented)
+    getBindingUtil<S extends TLUnknownBinding>(type: S['type']): BindingUtil<S>;
+    // (undocumented)
+    getBindingUtil<T extends BindingUtil>(type: T extends BindingUtil<infer R> ? R['type'] : string): T;
     getCamera(): TLCamera;
     getCameraOptions(): TLCameraOptions;
     getCameraState(): "idle" | "moving";
@@ -783,6 +888,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeLocalTransform(shape: TLShape | TLShapeId): Mat;
     getShapeMask(shape: TLShape | TLShapeId): undefined | VecLike[];
     getShapeMaskedPageBounds(shape: TLShape | TLShapeId): Box | undefined;
+    // @internal
+    getShapeNearestSibling(siblingShape: TLShape, targetShape: TLShape | undefined): TLShape | undefined;
     getShapePageBounds(shape: TLShape | TLShapeId): Box | undefined;
     getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
@@ -944,6 +1051,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
+    // (undocumented)
+    updateBinding(partial: TLBindingPartial): this;
+    // (undocumented)
+    updateBindings(partials: (null | TLBindingPartial | undefined)[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions): this;
     // (undocumented)
     _updateCurrentPageState: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions) => void;
@@ -1101,7 +1212,10 @@ export abstract class Geometry2d {
 export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
 
 // @public (undocumented)
-export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape): {
+export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
+
+// @public (undocumented)
+export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape, bindings: TLArrowBindings): {
     end: Vec;
     start: Vec;
 };
@@ -1197,11 +1311,11 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     indicator(shape: TLGroupShape): JSX_2.Element;
     // (undocumented)
-    static migrations: TLShapePropsMigrations;
+    static migrations: TLPropsMigrations;
     // (undocumented)
     onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape>;
     // (undocumented)
-    static props: ShapeProps<TLGroupShape>;
+    static props: RecordProps<TLGroupShape>;
     // (undocumented)
     static type: "group";
 }
@@ -1615,6 +1729,9 @@ export function refreshPage(): void;
 // @public (undocumented)
 export function releasePointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 
+// @internal
+export function removeArrowBinding(editor: Editor, arrow: TLArrowShape, terminal: 'end' | 'start'): void;
+
 // @public (undocumented)
 export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>;
 
@@ -1694,6 +1811,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor);
     // @internal
     backgroundComponent?(shape: Shape): any;
+    canBeLaidOut: TLShapeUtilFlag<Shape>;
     canBind: <K>(_shape: Shape, _otherShape?: K) => boolean;
     canCrop: TLShapeUtilFlag<Shape>;
     canDropShapes(shape: Shape, shapes: TLShape[]): boolean;
@@ -1721,7 +1839,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
     // (undocumented)
-    static migrations?: LegacyMigrations | TLShapePropsMigrations;
+    static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?: TLOnBeforeCreateHandler<Shape>;
     onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>;
     // @internal
@@ -1746,7 +1864,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
     onTranslateStart?: TLOnTranslateStartHandler<Shape>;
     // (undocumented)
-    static props?: ShapeProps<TLUnknownShape>;
+    static props?: RecordProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
@@ -1939,6 +2057,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     _path: Computed<string>;
     // (undocumented)
+    performanceTracker: PerformanceTracker;
+    // (undocumented)
     setCurrentToolIdMask(id: string | undefined): void;
     // (undocumented)
     shapeType?: string;
@@ -1986,6 +2106,9 @@ export type TLAfterCreateHandler<R extends TLRecord> = (record: R, source: 'remo
 export type TLAfterDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void;
 
 // @public (undocumented)
+export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
+
+// @public (undocumented)
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
 // @public (undocumented)
@@ -2005,7 +2128,16 @@ export interface TLArcInfo {
 }
 
 // @public (undocumented)
+export interface TLArrowBindings {
+    // (undocumented)
+    end: TLArrowBinding | undefined;
+    // (undocumented)
+    start: TLArrowBinding | undefined;
+}
+
+// @public (undocumented)
 export type TLArrowInfo = {
+    bindings: TLArrowBindings;
     bodyArc: TLArcInfo;
     end: TLArrowPoint;
     handleArc: TLArcInfo;
@@ -2014,6 +2146,7 @@ export type TLArrowInfo = {
     middle: VecLike;
     start: TLArrowPoint;
 } | {
+    bindings: TLArrowBindings;
     end: TLArrowPoint;
     isStraight: true;
     isValid: boolean;
@@ -2058,6 +2191,18 @@ export type TLBeforeCreateHandler<R extends TLRecord> = (record: R, source: 'rem
 
 // @public (undocumented)
 export type TLBeforeDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => false | void;
+
+// @public (undocumented)
+export interface TLBindingUtilConstructor<T extends TLUnknownBinding, U extends BindingUtil<T> = BindingUtil<T>> {
+    // (undocumented)
+    new (editor: Editor): U;
+    // (undocumented)
+    migrations?: TLPropsMigrations;
+    // (undocumented)
+    props?: RecordProps<T>;
+    // (undocumented)
+    type: T['type'];
+}
 
 // @public (undocumented)
 export type TLBrushProps = {
@@ -2147,6 +2292,8 @@ export interface TLContent {
     // (undocumented)
     assets: TLAsset[];
     // (undocumented)
+    bindings: TLBinding[] | undefined;
+    // (undocumented)
     rootShapeIds: TLShapeId[];
     // (undocumented)
     schema: SerializedSchema;
@@ -2170,6 +2317,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public
 export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
+    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     cameraOptions?: Partial<TLCameraOptions>;
     children?: ReactNode;
     className?: string;
@@ -2203,6 +2351,7 @@ export type TLEditorComponents = Partial<{
 // @public (undocumented)
 export interface TLEditorOptions {
     autoFocus?: boolean;
+    bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[];
     cameraOptions?: Partial<TLCameraOptions>;
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
@@ -2630,9 +2779,9 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
     // (undocumented)
     new (editor: Editor): U;
     // (undocumented)
-    migrations?: LegacyMigrations | MigrationSequence | TLShapePropsMigrations;
+    migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     // (undocumented)
-    props?: ShapeProps<T>;
+    props?: RecordProps<T>;
     // (undocumented)
     type: T['type'];
 }
@@ -2668,6 +2817,7 @@ export type TLStoreOptions = {
     id?: string;
     initialData?: SerializedStore<TLRecord>;
 } & ({
+    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     migrations?: readonly MigrationSequence[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 } | {

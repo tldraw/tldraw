@@ -9,6 +9,7 @@ import {
 	TldrawSelectionBackground,
 	TldrawSelectionForeground,
 	TldrawUi,
+	defaultBindingUtils,
 	defaultEditorAssetUrls,
 	defaultShapeTools,
 	defaultShapeUtils,
@@ -45,6 +46,7 @@ export default function ExplodedExample() {
 			<TldrawEditor
 				initialState="select"
 				shapeUtils={defaultShapeUtils}
+				bindingUtils={defaultBindingUtils}
 				tools={[...defaultTools, ...defaultShapeTools]}
 				components={defaultComponents}
 				persistenceKey="exploded-example"
