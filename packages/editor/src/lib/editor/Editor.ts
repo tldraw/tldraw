@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY, atom, computed, react, transact } from '@tldraw/state'
+import { EMPTY_ARRAY, atom, computed, react, transact, unsafe__withoutCapture } from '@tldraw/state'
 import {
 	ComputedCache,
 	RecordType,
@@ -3142,9 +3142,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	startFollowingUser(userId: string): this {
+		// if we were already following someone, stop following them
+		this.stopFollowingUser()
+
 		const leaderPresences = this._getCollaboratorsQuery()
 			.get()
 			.filter((p) => p.userId === userId)
+
+		if (!leaderPresences.length) {
+			console.warn('User not found')
+			return this
+		}
 
 		const thisUserId = this.user.getId()
 
@@ -3162,17 +3170,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		transact(() => {
-			this.stopFollowingUser()
 			this.updateInstanceState({ followingUserId: userId })
 
 			const stopUpdatingPage = react('update current page', () => {
 				const leaderPresence = latestLeaderPresence.get()
-				if (!leaderPresence) return
+				if (!leaderPresence) {
+					this.stopFollowingUser()
+					return
+				}
 				if (
 					leaderPresence.currentPageId !== this.getCurrentPageId() &&
 					this.getPage(leaderPresence.currentPageId)
 				) {
 					this.history.ignore(() => {
+						// sneaky store.put here, we can't go through setCurrentPage because it calls stopFollowingUser
 						this.store.put([
 							{ ...this.getInstanceState(), currentPageId: leaderPresence.currentPageId },
 						])
@@ -3183,8 +3194,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const cancel = () => {
 				stopUpdatingPage()
 				this._isLockedOnFollowingUser.set(false)
-				this.removeListener('frame', moveTowardsUser)
-				this.removeListener('stop-following', cancel)
+				this.off('frame', moveTowardsUser)
+				this.off('stop-following', cancel)
 			}
 
 			const moveTowardsUser = () => {
@@ -3264,7 +3275,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	stopFollowingUser(): this {
 		this.batch(() => {
 			// commit the current camera to the store
-			this._setCamera(this.getCamera())
+			this.store.put([this.getCamera()])
 			// this must happen after the camera is committed
 			this._isLockedOnFollowingUser.set(false)
 			this.updateInstanceState({ followingUserId: null })
@@ -8304,7 +8315,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const instanceState = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const pageState = this.store.get(this._getCurrentPageStateId())!
 		const cameraOptions = this._cameraOptions.__unsafe__getWithoutCapture()!
-		const camera = this.store.unsafeGetWithoutCapture(this.getCameraId())!
 
 		switch (type) {
 			case 'pinch': {
@@ -8346,12 +8356,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							instanceState.screenBounds.y
 						)
 
-						const { x: cx, y: cy, z: cz } = camera
-
 						this.stopCameraAnimation()
 						if (instanceState.followingUserId) {
 							this.stopFollowingUser()
 						}
+
+						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
 						const { panSpeed, zoomSpeed } = cameraOptions
 						this._setCamera(
@@ -8411,7 +8421,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.stopFollowingUser()
 						}
 
-						const { x: cx, y: cy, z: cz } = camera
+						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 						const { x: dx, y: dy, z: dz = 0 } = info.delta
 
 						let behavior = wheelBehavior
@@ -8526,10 +8536,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If the user is in pen mode, but the pointer is not a pen, stop here.
 						if (!isPen && isPenMode) return
 
+						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
+
+						// If we've started panning, then clear any long press timeout
 						if (this.inputs.isPanning && this.inputs.isPointing) {
 							// Handle spacebar / middle mouse button panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
-							const { x: cx, y: cy, z: cz } = camera
 							const { panSpeed } = cameraOptions
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
 							this.setCamera(
@@ -8544,7 +8556,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing &&
 							!inputs.isDragging &&
 							Vec.Dist2(originPagePoint, currentPagePoint) >
-								(instanceState.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) / camera.z
+								(instanceState.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) / cz
 						) {
 							// Start dragging
 							inputs.isDragging = true
