@@ -9,6 +9,9 @@ import { Mat } from '../../../../primitives/Mat'
 import { Vec } from '../../../../primitives/Vec'
 import { Group2d } from '../../../../primitives/geometry/Group2d'
 import { Editor } from '../../../Editor'
+import { createComputedCache } from '@tldraw/store'
+import { getCurvedArrowInfo } from './curved-arrow'
+import { getStraightArrowInfo } from './straight-arrow'
 
 export function getIsArrowStraight(shape: TLArrowShape) {
 	return Math.abs(shape.props.bend) < 8 // snap to +-8px
@@ -100,6 +103,16 @@ export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBi
 		end: bindings.find((b) => b.props.terminal === 'end'),
 	}
 }
+
+const arrowInfoCache = createComputedCache('arrow info', (editor: Editor, shape: TLArrowShape) => {
+	const bindings = getArrowBindings(editor, shape)
+			return getIsArrowStraight(shape)
+				? getStraightArrowInfo(editor, shape, bindings)
+				: getCurvedArrowInfo(editor, shape, bindings)
+})
+
+/** @public */
+function getArrowInfo(editor: Editor, shape: TLArrowShape) {
 
 /** @public */
 export function getArrowTerminalsInArrowSpace(

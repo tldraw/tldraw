@@ -343,7 +343,6 @@ export {
 	SharedStyleMap,
 	type SharedStyle,
 } from './lib/utils/SharedStylesMap'
-export { WeakMapCache } from './lib/utils/WeakMapCache'
 export { dataUrlToFile } from './lib/utils/assets'
 export { debugFlags, featureFlags, type DebugFlag } from './lib/utils/debug-flags'
 export {

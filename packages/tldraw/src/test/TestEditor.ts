@@ -10,6 +10,8 @@ import {
 	RequiredKeys,
 	RotateCorner,
 	SelectionHandle,
+	TLArrowBinding,
+	TLArrowShape,
 	TLContent,
 	TLEditorOptions,
 	TLEventInfo,
@@ -22,6 +24,7 @@ import {
 	TLWheelEventInfo,
 	Vec,
 	VecLike,
+	compact,
 	computed,
 	createShapeId,
 	createTLStore,
@@ -707,6 +710,13 @@ export class TestEditor extends Editor {
 
 	getPageRotation(shape: TLShape) {
 		return this.getPageRotationById(shape.id)
+	}
+
+	getArrowsBoundTo(shapeId: TLShapeId) {
+		const ids = new Set(
+			this.getBindingsToShape<TLArrowBinding>(shapeId, 'arrow').map((b) => b.fromId)
+		)
+		return compact(Array.from(ids, (id) => this.getShape<TLArrowShape>(id)))
 	}
 }
 

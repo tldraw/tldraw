@@ -1,5 +1,6 @@
 import { Atom, Computed, Reactor, atom, computed, reactor, transact } from '@tldraw/state'
 import {
+	WeakCache,
 	assert,
 	filterEntries,
 	getOwnProperty,
@@ -11,7 +12,6 @@ import {
 } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
-import { Cache } from './Cache'
 import { RecordScope } from './RecordType'
 import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { StoreQueries } from './StoreQueries'
@@ -770,7 +770,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		derive: (record: V) => T | undefined,
 		isEqual?: (a: V, b: V) => boolean
 	): ComputedCache<T, V> => {
-		const cache = new Cache<Atom<any>, Computed<T | undefined>>()
+		const cache = new WeakCache<Atom<any>, Computed<T | undefined>>()
 		return {
 			get: (id: IdOf<V>) => {
 				const atom = this.atoms.get()[id]
@@ -804,7 +804,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		selector: (record: V) => T | undefined,
 		derive: (input: T) => J | undefined
 	): ComputedCache<J, V> => {
-		const cache = new Cache<Atom<any>, Computed<J | undefined>>()
+		const cache = new WeakCache<Atom<any>, Computed<J | undefined>>()
 		return {
 			get: (id: IdOf<V>) => {
 				const atom = this.atoms.get()[id]
@@ -987,5 +987,44 @@ class HistoryAccumulator<T extends UnknownRecord> {
 
 	hasChanges() {
 		return this._history.length > 0
+	}
+}
+
+type StoreContext<R extends UnknownRecord> = Store<R> | { store: Store<R> }
+type ContextRecordType<Context extends StoreContext<any>> =
+	Context extends Store<infer R> ? R : Context extends { store: Store<infer R> } ? R : never
+
+/**
+ * Free version of {@link Store.createComputedCache}.
+ *
+ * @example
+ * ```ts
+ * const myCache = createComputedCache('myCache', (editor: Editor, shape: TLShape) => {
+ *     return editor.getSomethingExpensive(shape)
+ * })
+ *
+ * myCache.get(editor, shape.id)
+ * ```
+ *
+ * @public
+ */
+export function createComputedCache<
+	Context extends StoreContext<any>,
+	Result,
+	Record extends ContextRecordType<Context> = ContextRecordType<Context>,
+>(
+	name: string,
+	derive: (context: Context, record: Record) => Result | undefined,
+	isEqual?: (a: Record, b: Record) => boolean
+) {
+	const cache = new WeakCache<Context, ComputedCache<Result, Record>>()
+	return {
+		get(context: Context, id: IdOf<Record>) {
+			const computedCache = cache.get(context, () => {
+				const store = (context instanceof Store ? context : context.store) as Store<Record>
+				return store.createComputedCache(name, (record) => derive(context, record), isEqual)
+			})
+			return computedCache.get(id)
+		},
 	}
 }
