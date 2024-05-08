@@ -44,5 +44,5 @@ function createDemoShapes(editor: Editor) {
 				},
 			},
 		])
-		.zoomToContent({ duration: 0 })
+		.zoomToFit({ animation: { duration: 0 } })
 }

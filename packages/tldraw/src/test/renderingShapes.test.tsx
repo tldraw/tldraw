@@ -34,7 +34,6 @@ function normalizeIndexes(
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.setScreenBounds({ x: 0, y: 0, w: 1800, h: 900 })
-	editor.renderingBoundsMargin = 100
 })
 
 function createShapes() {
@@ -47,18 +46,6 @@ function createShapes() {
 		</TL.frame>,
 	])
 }
-
-it('updates the rendering viewport when the camera stops moving', () => {
-	const ids = createShapes()
-
-	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
-	editor.pan({ x: -201, y: -201 })
-	jest.advanceTimersByTime(500)
-
-	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
-	expect(editor.getRenderingBounds()).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
-	expect(editor.getShapePageBounds(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
-})
 
 it('lists shapes in viewport sorted by id with correct indexes & background indexes', () => {
 	const ids = createShapes()

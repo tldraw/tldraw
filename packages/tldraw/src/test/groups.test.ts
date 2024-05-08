@@ -12,6 +12,7 @@ import {
 	assert,
 	compact,
 	createShapeId,
+	getArrowBindings,
 	sortByIndex,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
@@ -57,16 +58,8 @@ const arrow = (id: TLShapeId, start: VecLike, end: VecLike): TLShapePartial => (
 	id,
 	// index: bumpIndex(),
 	props: {
-		start: {
-			type: 'point',
-			x: start.x,
-			y: start.y,
-		},
-		end: {
-			type: 'point',
-			x: end.x,
-			y: end.y,
-		},
+		start: { x: start.x, y: start.y },
+		end: { x: end.x, y: end.y },
 	},
 })
 const randomRotation = () => Math.random() * Math.PI * 2
@@ -1562,8 +1555,9 @@ describe('binding bug', () => {
 		// go from A to group A
 		editor.pointerDown(5, 5).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
-		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxA })
-		expect(arrow.props.end).toMatchObject({ type: 'point' })
+		const bindings = getArrowBindings(editor, arrow)
+		expect(bindings.start).toMatchObject({ toId: ids.boxA })
+		expect(bindings.end).toBeUndefined()
 	})
 })
 
@@ -1608,9 +1602,10 @@ describe('bindings', () => {
 		// go from E to group C (not hovering over a leaf box)
 		editor.pointerDown(5, 25).pointerMove(35, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
-		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxE })
-		expect(arrow.props.end).toMatchObject({ type: 'point' })
+		expect(bindings.start).toMatchObject({ toId: ids.boxE })
+		expect(bindings.end).toBeUndefined()
 	})
 
 	it('can not be made from a group shape to some sibling shape', () => {
@@ -1619,20 +1614,22 @@ describe('bindings', () => {
 		editor.pointerDown(35, 5).pointerMove(5, 25).pointerUp()
 
 		const arrow = onlySelectedShape() as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
-		expect(arrow.props.start).toMatchObject({ type: 'point' })
-		expect(arrow.props.end).toMatchObject({ boundShapeId: ids.boxE })
+		expect(bindings.start).toBeUndefined
+		expect(bindings.end).toMatchObject({ toId: ids.boxE })
 	})
 	it('can be made from a shape within a group to some shape outside of the group', () => {
 		editor.setCurrentTool('arrow')
 		// go from A to E
 		editor.pointerDown(5, 5).pointerMove(5, 25).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
 		expect(arrow.parentId).toBe(editor.getCurrentPageId())
 
-		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxA })
-		expect(arrow.props.end).toMatchObject({ boundShapeId: ids.boxE })
+		expect(bindings.start).toMatchObject({ toId: ids.boxA })
+		expect(bindings.end).toMatchObject({ toId: ids.boxE })
 	})
 
 	it('can be made from a shape within a group to another shape within the group', () => {
@@ -1640,10 +1637,11 @@ describe('bindings', () => {
 		// go from A to B
 		editor.pointerDown(5, 5).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
 		expect(arrow.parentId).toBe(groupAId)
-		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxA })
-		expect(arrow.props.end).toMatchObject({ boundShapeId: ids.boxB })
+		expect(bindings.start).toMatchObject({ toId: ids.boxA })
+		expect(bindings.end).toMatchObject({ toId: ids.boxB })
 	})
 
 	it('can be made from a shape outside of a group to a shape within the group', () => {
@@ -1651,10 +1649,11 @@ describe('bindings', () => {
 		// go from E to B
 		editor.pointerDown(5, 25).pointerMove(27, 7).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
 		expect(arrow.parentId).toBe(editor.getCurrentPageId())
-		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxE })
-		expect(arrow.props.end).toMatchObject({ boundShapeId: ids.boxB })
+		expect(bindings.start).toMatchObject({ toId: ids.boxE })
+		expect(bindings.end).toMatchObject({ toId: ids.boxB })
 	})
 })
 
@@ -1723,20 +1722,17 @@ describe('moving handles within a group', () => {
 		editor.pointerDown(50, 50).pointerMove(60, 60).pointerUp(60, 60)
 
 		let arrow = onlySelectedShape() as TLArrowShape
+		let bindings = getArrowBindings(editor, arrow)
 
 		expect(arrow.parentId).toBe(groupA.id)
 
-		expect(arrow.props.start.type).toBe('point')
-		if (arrow.props.start.type === 'point') {
-			expect(arrow.props.start.x).toBe(0)
-			expect(arrow.props.start.y).toBe(0)
-		}
+		expect(bindings.start).toBeUndefined()
+		expect(arrow.props.start.x).toBe(0)
+		expect(arrow.props.start.y).toBe(0)
 
-		expect(arrow.props.end.type).toBe('point')
-		if (arrow.props.end.type === 'point') {
-			expect(arrow.props.end.x).toBe(10)
-			expect(arrow.props.end.y).toBe(10)
-		}
+		expect(bindings.end).toBeUndefined()
+		expect(arrow.props.end.x).toBe(10)
+		expect(arrow.props.end.y).toBe(10)
 
 		editor.expectToBeIn('select.idle')
 
@@ -1759,20 +1755,17 @@ describe('moving handles within a group', () => {
 		editor.pointerMove(60, -10)
 
 		arrow = editor.getShape(arrow.id)!
+		bindings = getArrowBindings(editor, arrow)
 
 		expect(arrow.parentId).toBe(groupA.id)
 
-		expect(arrow.props.start.type).toBe('point')
-		if (arrow.props.start.type === 'point') {
-			expect(arrow.props.start.x).toBe(0)
-			expect(arrow.props.start.y).toBe(0)
-		}
+		expect(bindings.start).toBeUndefined()
+		expect(arrow.props.start.x).toBe(0)
+		expect(arrow.props.start.y).toBe(0)
 
-		expect(arrow.props.end.type).toBe('point')
-		if (arrow.props.end.type === 'point') {
-			expect(arrow.props.end.x).toBe(10)
-			expect(arrow.props.end.y).toBe(-60)
-		}
+		expect(bindings.end).toBeUndefined()
+		expect(arrow.props.end.x).toBe(10)
+		expect(arrow.props.end.y).toBe(-60)
 
 		expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 			x: 0,

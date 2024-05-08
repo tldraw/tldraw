@@ -41,10 +41,10 @@ import {
 import { interval } from './interval'
 import {
 	TLIncompatibilityReason,
-	TLSYNC_PROTOCOL_VERSION,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
+	getTlsyncProtocolVersion,
 } from './protocol'
 
 /** @public */
@@ -420,9 +420,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			} else {
 				if (session.debounceTimer === null) {
 					// this is the first message since the last flush, don't delay it
-					session.socket.sendMessage(
-						session.isV4Client ? message : { type: 'data', data: [message] }
-					)
+					session.socket.sendMessage({ type: 'data', data: [message] })
 
 					session.debounceTimer = setTimeout(
 						() => this._flushDataMessages(sessionKey),
@@ -449,14 +447,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		session.debounceTimer = null
 
 		if (session.outstandingDataMessages.length > 0) {
-			if (session.isV4Client) {
-				// v4 clients don't support the "data" message, so we need to send each message separately
-				for (const message of session.outstandingDataMessages) {
-					session.socket.sendMessage(message)
-				}
-			} else {
-				session.socket.sendMessage({ type: 'data', data: session.outstandingDataMessages })
-			}
+			session.socket.sendMessage({ type: 'data', data: session.outstandingDataMessages })
 			session.outstandingDataMessages.length = 0
 		}
 	}
@@ -678,14 +669,15 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		// if the protocol versions don't match, disconnect the client
 		// we will eventually want to try to make our protocol backwards compatible to some degree
 		// and have a MIN_PROTOCOL_VERSION constant that the TLSyncRoom implements support for
-		const isV4Client = message.protocolVersion === 4 && TLSYNC_PROTOCOL_VERSION === 5
-		if (
-			message.protocolVersion == null ||
-			(message.protocolVersion < TLSYNC_PROTOCOL_VERSION && !isV4Client)
-		) {
+		let theirProtocolVersion = message.protocolVersion
+		// 5 is the same as 6
+		if (theirProtocolVersion === 5) {
+			theirProtocolVersion = 6
+		}
+		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session, TLIncompatibilityReason.ClientTooOld)
 			return
-		} else if (message.protocolVersion > TLSYNC_PROTOCOL_VERSION) {
+		} else if (theirProtocolVersion > getTlsyncProtocolVersion()) {
 			this.rejectSession(session, TLIncompatibilityReason.ServerTooOld)
 			return
 		}
@@ -711,7 +703,6 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				state: RoomSessionState.Connected,
 				sessionKey: session.sessionKey,
 				presenceId: session.presenceId,
-				isV4Client,
 				socket: session.socket,
 				serializedSchema: sessionSchema,
 				lastInteractionTime: Date.now(),
@@ -751,7 +742,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					type: 'connect',
 					connectRequestId: message.connectRequestId,
 					hydrationType: 'wipe_all',
-					protocolVersion: TLSYNC_PROTOCOL_VERSION,
+					protocolVersion: getTlsyncProtocolVersion(),
 					schema: this.schema.serialize(),
 					serverClock: this.clock,
 					diff: migrated.value,
@@ -797,7 +788,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					connectRequestId: message.connectRequestId,
 					hydrationType: 'wipe_presence',
 					schema: this.schema.serialize(),
-					protocolVersion: TLSYNC_PROTOCOL_VERSION,
+					protocolVersion: getTlsyncProtocolVersion(),
 					serverClock: this.clock,
 					diff: migrated.value,
 				})

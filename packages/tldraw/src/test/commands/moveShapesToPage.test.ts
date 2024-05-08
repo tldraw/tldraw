@@ -221,7 +221,7 @@ describe('arrows', () => {
 		expect(editor.getShapePageBounds(arrow)).toCloselyMatchObject({
 			x: 300,
 			y: 250,
-			w: 150,
+			w: 86.5,
 			h: 0,
 		})
 	})

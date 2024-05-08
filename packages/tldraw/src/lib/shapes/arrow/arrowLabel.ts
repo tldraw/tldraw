@@ -268,8 +268,8 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 	const debugGeom: Geometry2d[] = []
 	const info = editor.getArrowInfo(shape)!
 
-	const hasStartBinding = shape.props.start.type === 'binding'
-	const hasEndBinding = shape.props.end.type === 'binding'
+	const hasStartBinding = !!info.bindings.start
+	const hasEndBinding = !!info.bindings.end
 	const hasStartArrowhead = info.start.arrowhead !== 'none'
 	const hasEndArrowhead = info.end.arrowhead !== 'none'
 	if (info.isStraight) {

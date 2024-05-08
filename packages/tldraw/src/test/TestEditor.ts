@@ -22,10 +22,12 @@ import {
 	TLWheelEventInfo,
 	Vec,
 	VecLike,
+	computed,
 	createShapeId,
 	createTLStore,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
+import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
@@ -60,12 +62,17 @@ export class TestEditor extends Editor {
 		elm.tabIndex = 0
 
 		const shapeUtilsWithDefaults = [...defaultShapeUtils, ...(options.shapeUtils ?? [])]
+		const bindingUtilsWithDefaults = [...defaultBindingUtils, ...(options.bindingUtils ?? [])]
 
 		super({
 			...options,
-			shapeUtils: [...shapeUtilsWithDefaults],
+			shapeUtils: shapeUtilsWithDefaults,
+			bindingUtils: bindingUtilsWithDefaults,
 			tools: [...defaultTools, ...defaultShapeTools, ...(options.tools ?? [])],
-			store: createTLStore({ shapeUtils: [...shapeUtilsWithDefaults] }),
+			store: createTLStore({
+				shapeUtils: shapeUtilsWithDefaults,
+				bindingUtils: bindingUtilsWithDefaults,
+			}),
 			getContainer: () => elm,
 			initialState: 'select',
 		})
@@ -143,6 +150,15 @@ export class TestEditor extends Editor {
 	elm: HTMLDivElement
 	bounds = { x: 0, y: 0, top: 0, left: 0, width: 1080, height: 720, bottom: 720, right: 1080 }
 
+	/**
+	 * The center of the viewport in the current page space.
+	 *
+	 * @public
+	 */
+	@computed getViewportPageCenter() {
+		return this.getViewportPageBounds().center
+	}
+
 	setScreenBounds(bounds: BoxModel, center = false) {
 		this.bounds.x = bounds.x
 		this.bounds.y = bounds.y
@@ -154,7 +170,6 @@ export class TestEditor extends Editor {
 		this.bounds.bottom = bounds.y + bounds.h
 
 		this.updateViewportScreenBounds(Box.From(bounds), center)
-		this.updateRenderingBounds()
 		return this
 	}
 
@@ -200,12 +215,12 @@ export class TestEditor extends Editor {
 	 * _transformPointerDownSpy.mockRestore())
 	 */
 	_transformPointerDownSpy = jest
-		.spyOn(this._clickManager, 'transformPointerDownEvent')
+		.spyOn(this._clickManager, 'handlePointerEvent')
 		.mockImplementation((info) => {
 			return info
 		})
 	_transformPointerUpSpy = jest
-		.spyOn(this._clickManager, 'transformPointerDownEvent')
+		.spyOn(this._clickManager, 'handlePointerEvent')
 		.mockImplementation((info) => {
 			return info
 		})
@@ -471,6 +486,16 @@ export class TestEditor extends Editor {
 			...options,
 			delta: { x: dx, y: dy },
 		}).forceTick(2)
+		return this
+	}
+
+	pan(offset: VecLike): this {
+		const { isLocked, panSpeed } = this.getCameraOptions()
+		if (isLocked) return this
+		const { x: cx, y: cy, z: cz } = this.getCamera()
+		this.setCamera(new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz), {
+			immediate: true,
+		})
 		return this
 	}
 

@@ -38,6 +38,8 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 
 	const tldrawContent: TLContent = {
 		shapes: [],
+		// todo(alex) #write these properly
+		bindings: [],
 		rootShapeIds: [],
 		assets: [],
 		schema: editor.store.schema.serialize(),

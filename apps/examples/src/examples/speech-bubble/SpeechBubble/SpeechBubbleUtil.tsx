@@ -8,7 +8,7 @@ import {
 	Geometry2d,
 	LABEL_FONT_SIZES,
 	Polygon2d,
-	ShapePropsType,
+	RecordPropsType,
 	ShapeUtil,
 	T,
 	TEXT_PROPS,
@@ -52,7 +52,7 @@ export const speechBubbleShapeProps = {
 	tail: vecModelValidator,
 }
 
-export type SpeechBubbleShapeProps = ShapePropsType<typeof speechBubbleShapeProps>
+export type SpeechBubbleShapeProps = RecordPropsType<typeof speechBubbleShapeProps>
 export type SpeechBubbleShape = TLBaseShape<'speech-bubble', SpeechBubbleShapeProps>
 
 export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {

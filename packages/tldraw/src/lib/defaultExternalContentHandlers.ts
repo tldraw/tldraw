@@ -196,7 +196,9 @@ export function registerDefaultExternalContentHandlers(
 	editor.registerExternalContentHandler('svg-text', async ({ point, text }) => {
 		const position =
 			point ??
-			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
+			(editor.inputs.shiftKey
+				? editor.inputs.currentPagePoint
+				: editor.getViewportPageBounds().center)
 
 		const svg = new DOMParser().parseFromString(text, 'image/svg+xml').querySelector('svg')
 		if (!svg) {
@@ -229,7 +231,9 @@ export function registerDefaultExternalContentHandlers(
 	editor.registerExternalContentHandler('embed', ({ point, url, embed }) => {
 		const position =
 			point ??
-			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
+			(editor.inputs.shiftKey
+				? editor.inputs.currentPagePoint
+				: editor.getViewportPageBounds().center)
 
 		const { width, height } = embed
 
@@ -254,7 +258,9 @@ export function registerDefaultExternalContentHandlers(
 	editor.registerExternalContentHandler('files', async ({ point, files }) => {
 		const position =
 			point ??
-			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
+			(editor.inputs.shiftKey
+				? editor.inputs.currentPagePoint
+				: editor.getViewportPageBounds().center)
 
 		const pagePoint = new Vec(position.x, position.y)
 
@@ -310,7 +316,9 @@ export function registerDefaultExternalContentHandlers(
 	editor.registerExternalContentHandler('text', async ({ point, text }) => {
 		const p =
 			point ??
-			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
+			(editor.inputs.shiftKey
+				? editor.inputs.currentPagePoint
+				: editor.getViewportPageBounds().center)
 
 		const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
 
@@ -414,7 +422,9 @@ export function registerDefaultExternalContentHandlers(
 
 		const position =
 			point ??
-			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
+			(editor.inputs.shiftKey
+				? editor.inputs.currentPagePoint
+				: editor.getViewportPageBounds().center)
 
 		const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 		const shape = createEmptyBookmarkShape(editor, url, position)
