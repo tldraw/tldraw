@@ -5639,15 +5639,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((s) => s.id)
 		if (this.getInstanceState().isReadonly) return this
 
-		const shapesToStack = compact(
-			ids
-				.map((id) => this.getShape(id)) // always fresh shapes
-				.filter((shape) => {
-					if (!shape) return false
+		const shapesToStack = ids
+			.map((id) => this.getShape(id)) // always fresh shapes
+			.filter((shape): shape is TLShape => {
+				if (!shape) return false
 
-					return this.getShapeUtil(shape).canBeLaidOut(shape)
-				})
-		)
+				return this.getShapeUtil(shape).canBeLaidOut(shape)
+			})
 
 		const len = shapesToStack.length
 
@@ -5779,21 +5777,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getInstanceState().isReadonly) return this
 		if (ids.length < 2) return this
 
-		const shapesToPack = compact(
-			ids
-				.map((id) => this.getShape(id)) // always fresh shapes
-				.filter((shape) => {
-					if (!shape) return false
+		const shapesToPack = ids
+			.map((id) => this.getShape(id)) // always fresh shapes
+			.filter((shape): shape is TLShape => {
+				if (!shape) return false
 
-					// if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-					// 	if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
-					// 		return false
-					// 	}
-					// }
-
-					return true
-				})
-		)
+				return this.getShapeUtil(shape).canBeLaidOut(shape)
+			})
 		const shapePageBounds: Record<string, Box> = {}
 		const nextShapePageBounds: Record<string, Box> = {}
 
