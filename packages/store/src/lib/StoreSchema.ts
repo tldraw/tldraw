@@ -139,7 +139,6 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			}
 			return recordType.validate(record, recordBefore ?? undefined)
 		} catch (error: unknown) {
-			debugger
 			if (this.options.onValidationFailure) {
 				return this.options.onValidationFailure({
 					store,

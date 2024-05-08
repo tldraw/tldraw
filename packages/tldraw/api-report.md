@@ -337,6 +337,9 @@ export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
 export function DefaultActionsMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
+export const defaultBindingUtils: TLAnyBindingUtilConstructor[];
+
+// @public (undocumented)
 const DefaultContextMenu: NamedExoticComponent<TLUiContextMenuProps>;
 export { DefaultContextMenu as ContextMenu }
 export { DefaultContextMenu }

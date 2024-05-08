@@ -1,5 +1,11 @@
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
-import { ComputedCache, RecordType, StoreSnapshot, reverseRecordsDiff } from '@tldraw/store'
+import {
+	ComputedCache,
+	RecordType,
+	StoreSnapshot,
+	UnknownRecord,
+	reverseRecordsDiff,
+} from '@tldraw/store'
 import {
 	CameraRecordType,
 	InstancePageStateRecordType,
@@ -5089,7 +5095,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const current = this.getBinding(partial.id)
 			if (!current) continue
 
-			const updatedBinding = applyPartialToBinding(current, partial)
+			const updatedBinding = applyPartialToRecordWithProps(current, partial)
 			if (updatedBinding === current) continue
 
 			updated.push(updatedBinding)
@@ -5147,24 +5153,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let workingShape = initialShape
 		const util = this.getShapeUtil(initialShape)
 
-		workingShape = applyPartialToShape(
+		workingShape = applyPartialToRecordWithProps(
 			workingShape,
 			util.onTranslateStart?.(workingShape) ?? undefined
 		)
 
-		workingShape = applyPartialToShape(workingShape, {
+		workingShape = applyPartialToRecordWithProps(workingShape, {
 			id: initialShape.id,
 			type: initialShape.type,
 			x: newShapeCoords.x,
 			y: newShapeCoords.y,
 		})
 
-		workingShape = applyPartialToShape(
+		workingShape = applyPartialToRecordWithProps(
 			workingShape,
 			util.onTranslate?.(initialShape, workingShape) ?? undefined
 		)
 
-		workingShape = applyPartialToShape(
+		workingShape = applyPartialToRecordWithProps(
 			workingShape,
 			util.onTranslateEnd?.(initialShape, workingShape) ?? undefined
 		)
@@ -6970,7 +6976,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// Get the updated version of the shape
 				// If the update had no effect, we'll skip this update
-				updated = applyPartialToShape(shape, partial)
+				updated = applyPartialToRecordWithProps(shape, partial)
 				if (updated === shape) continue
 
 				//if any shape has an onBeforeUpdate handler, call it and, if the handler returns a
@@ -8661,42 +8667,9 @@ function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
 }
 
-function applyPartialToShape<T extends TLShape>(prev: T, partial?: TLShapePartial<T>): T {
-	if (!partial) return prev
-	let next = null as null | T
-	const entries = Object.entries(partial)
-	for (let i = 0, n = entries.length; i < n; i++) {
-		const [k, v] = entries[i]
-		if (v === undefined) continue
-
-		// Is the key a special key? We don't update those
-		if (k === 'id' || k === 'type' || k === 'typeName') continue
-
-		// Is the value the same as it was before?
-		if (v === (prev as any)[k]) continue
-
-		// There's a new value, so create the new shape if we haven't already (should we be cloning this?)
-		if (!next) next = { ...prev }
-
-		// for props / meta properties, we support updates with partials of this object
-		if (k === 'props' || k === 'meta') {
-			next[k] = { ...prev[k] } as JsonObject
-			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				if (nextValue !== undefined) {
-					;(next[k] as JsonObject)[nextKey] = nextValue
-				}
-			}
-			continue
-		}
-
-		// base property
-		;(next as any)[k] = v
-	}
-	if (!next) return prev
-	return next
-}
-
-function applyPartialToBinding<T extends TLBinding>(prev: T, partial?: TLBindingPartial<T>): T {
+function applyPartialToRecordWithProps<
+	T extends UnknownRecord & { type: string; props: object; meta: object },
+>(prev: T, partial?: Partial<T> & { props?: Partial<T['props']> }): T {
 	if (!partial) return prev
 	let next = null as null | T
 	const entries = Object.entries(partial)

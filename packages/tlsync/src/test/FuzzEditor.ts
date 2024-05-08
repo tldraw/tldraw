@@ -9,10 +9,10 @@ import {
 	TLStore,
 	VecModel,
 	createShapeId,
+	defaultBindingUtils,
 	defaultShapeUtils,
 	defaultTools,
 } from 'tldraw'
-import { defaultBindingUtils } from 'tldraw/src/lib/defaultBindingUtils'
 import { RandomSource } from './RandomSource'
 
 export type Op =
