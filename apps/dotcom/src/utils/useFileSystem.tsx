@@ -86,7 +86,6 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 							editor.history.clear()
 							// Put the old bounds back in place
 							editor.updateViewportScreenBounds(bounds)
-							editor.updateRenderingBounds()
 							editor.updateInstanceState({ isFocused })
 						})
 					},

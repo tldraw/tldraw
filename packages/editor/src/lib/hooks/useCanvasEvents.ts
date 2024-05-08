@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { RIGHT_MOUSE_BUTTON } from '../constants'
 import {
 	preventDefault,
 	releasePointerCapture,
@@ -19,7 +20,7 @@ export function useCanvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
 
-				if (e.button === 2) {
+				if (e.button === RIGHT_MOUSE_BUTTON) {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',

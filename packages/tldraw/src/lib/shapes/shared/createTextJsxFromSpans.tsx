@@ -75,6 +75,9 @@ export function createTextJsxFromSpans(
 				alignmentBaseline="mathematical"
 				x={box.x + offsetX}
 				y={box.y + offsetY}
+				// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
+				// is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs.
+				unicodeBidi="plaintext"
 			>
 				{correctSpacesToNbsp(text)}
 			</tspan>

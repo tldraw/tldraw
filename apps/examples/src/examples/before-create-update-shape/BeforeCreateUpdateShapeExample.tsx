@@ -44,7 +44,7 @@ export default function BeforeCreateUpdateShapeExample() {
 					editor.zoomToBounds(new Box(-500, -500, 1000, 1000))
 
 					// lock the camera on that area
-					editor.updateInstanceState({ canMoveCamera: false })
+					editor.setCameraOptions({ isLocked: true })
 				}}
 				components={{
 					// to make it a little clearer what's going on in this example, we'll draw a

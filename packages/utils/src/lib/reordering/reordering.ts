@@ -33,7 +33,7 @@ export function getIndicesBetween(
  * @param n - The number of indices to get.
  * @public
  */
-export function getIndicesAbove(below: IndexKey, n: number) {
+export function getIndicesAbove(below: IndexKey | undefined, n: number) {
 	return generateNKeysBetween(below, undefined, n)
 }
 
@@ -43,7 +43,7 @@ export function getIndicesAbove(below: IndexKey, n: number) {
  * @param n - The number of indices to get.
  * @public
  */
-export function getIndicesBelow(above: IndexKey, n: number) {
+export function getIndicesBelow(above: IndexKey | undefined, n: number) {
 	return generateNKeysBetween(undefined, above, n)
 }
 
@@ -53,7 +53,7 @@ export function getIndicesBelow(above: IndexKey, n: number) {
  * @param above - The index above.
  * @public
  */
-export function getIndexBetween(below: IndexKey, above?: IndexKey) {
+export function getIndexBetween(below: IndexKey | undefined, above: IndexKey | undefined) {
 	return generateNKeysBetween(below, above, 1)[0]
 }
 
@@ -62,7 +62,7 @@ export function getIndexBetween(below: IndexKey, above?: IndexKey) {
  * @param below - The index below.
  * @public
  */
-export function getIndexAbove(below: IndexKey) {
+export function getIndexAbove(below?: IndexKey | undefined) {
 	return generateNKeysBetween(below, undefined, 1)[0]
 }
 
@@ -71,7 +71,7 @@ export function getIndexAbove(below: IndexKey) {
  * @param above - The index above.
  *  @public
  */
-export function getIndexBelow(above: IndexKey) {
+export function getIndexBelow(above?: IndexKey | undefined) {
 	return generateNKeysBetween(undefined, above, 1)[0]
 }
 

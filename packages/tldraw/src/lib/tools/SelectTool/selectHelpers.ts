@@ -148,7 +148,9 @@ export function zoomToShapeIfOffscreen(editor: Editor) {
 			y: (eb.center.y - viewportPageBounds.center.y) * 2,
 		})
 		editor.zoomToBounds(nextBounds, {
-			duration: ANIMATION_MEDIUM_MS,
+			animation: {
+				duration: ANIMATION_MEDIUM_MS,
+			},
 			inset: 0,
 		})
 	}

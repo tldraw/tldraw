@@ -169,7 +169,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
-				<InFrontOfTheCanvasWrapper />
 			</div>
 			<MovingCameraHitTestBlocker />
 		</div>
@@ -645,12 +644,6 @@ function OnTheCanvasWrapper() {
 	const { OnTheCanvas } = useEditorComponents()
 	if (!OnTheCanvas) return null
 	return <OnTheCanvas />
-}
-
-function InFrontOfTheCanvasWrapper() {
-	const { InFrontOfTheCanvas } = useEditorComponents()
-	if (!InFrontOfTheCanvas) return null
-	return <InFrontOfTheCanvas />
 }
 
 function MovingCameraHitTestBlocker() {

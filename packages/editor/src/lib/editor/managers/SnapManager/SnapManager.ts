@@ -64,7 +64,7 @@ export class SnapManager {
 	// TODO: make this an incremental derivation
 	@computed getSnappableShapes(): Set<TLShapeId> {
 		const { editor } = this
-		const renderingBounds = editor.getRenderingBounds()
+		const renderingBounds = editor.getViewportPageBounds()
 		const selectedShapeIds = editor.getSelectedShapeIds()
 
 		const snappableShapes: Set<TLShapeId> = new Set()
