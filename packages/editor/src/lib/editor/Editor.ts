@@ -99,6 +99,7 @@ import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
+import { debugFlags } from '../utils/debug-flags'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
@@ -8327,7 +8328,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (info.ctrlKey) {
 			clearInterval(this._ctrlKeyTimeout)
 			this._ctrlKeyTimeout = -1
-			inputs.ctrlKey = true /** @internal */ /** @internal */ /** @internal */
+			inputs.ctrlKey = true
 		} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === -1) {
 			this._ctrlKeyTimeout = setTimeout(this._setCtrlKeyTimeout, 150)
 		}
@@ -8481,6 +8482,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 									),
 									{ immediate: true }
 								)
+								this.maybeTrackPerformance('Zooming')
+
 								return
 							}
 							case 'pan': {
@@ -8488,6 +8491,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								this._setCamera(new Vec(cx + (dx * panSpeed) / cz, cy + (dy * panSpeed) / cz, cz), {
 									immediate: true,
 								})
+								this.maybeTrackPerformance('Panning')
 								return
 							}
 						}
@@ -8561,7 +8565,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If the user is in pen mode, but the pointer is not a pen, stop here.
 						if (!isPen && isPenMode) return
 
-						// If we've started panning, then clear any long press timeout
 						if (this.inputs.isPanning && this.inputs.isPointing) {
 							// Handle spacebar / middle mouse button panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
@@ -8572,6 +8575,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz),
 								{ immediate: true }
 							)
+							this.maybeTrackPerformance('Panning')
 							return
 						}
 
@@ -8727,6 +8731,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.emit('event', info)
 
 		return this
+	}
+
+	/** @internal */
+	private maybeTrackPerformance(name: string) {
+		if (debugFlags.measurePerformance.get()) {
+			if (this.performanceTracker.isStarted()) {
+				clearTimeout(this.performanceTrackerTimeout)
+			} else {
+				this.performanceTracker.start(name)
+			}
+			this.performanceTrackerTimeout = setTimeout(() => {
+				this.performanceTracker.stop()
+			}, 50)
+		}
 	}
 }
 
