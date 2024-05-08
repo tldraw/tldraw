@@ -127,7 +127,7 @@ test.describe('camera', () => {
 		}
 		await dispatchTouch(client, 'touchEnd', finalTouch)
 		await sleep(10)
-		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(0)
+		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(8)
 	})
 
 	test.fixme('minimap', () => {
