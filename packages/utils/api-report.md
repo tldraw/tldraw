@@ -97,22 +97,22 @@ export function getHashForObject(obj: any): string;
 export function getHashForString(string: string): string;
 
 // @public
-export function getIndexAbove(below: IndexKey): IndexKey;
+export function getIndexAbove(below?: IndexKey | undefined): IndexKey;
 
 // @public
-export function getIndexBelow(above: IndexKey): IndexKey;
+export function getIndexBelow(above?: IndexKey | undefined): IndexKey;
 
 // @public
-export function getIndexBetween(below: IndexKey, above?: IndexKey): IndexKey;
+export function getIndexBetween(below: IndexKey | undefined, above: IndexKey | undefined): IndexKey;
 
 // @public
 export function getIndices(n: number, start?: IndexKey): IndexKey[];
 
 // @public
-export function getIndicesAbove(below: IndexKey, n: number): IndexKey[];
+export function getIndicesAbove(below: IndexKey | undefined, n: number): IndexKey[];
 
 // @public
-export function getIndicesBelow(above: IndexKey, n: number): IndexKey[];
+export function getIndicesBelow(above: IndexKey | undefined, n: number): IndexKey[];
 
 // @public
 export function getIndicesBetween(below: IndexKey | undefined, above: IndexKey | undefined, n: number): IndexKey[];

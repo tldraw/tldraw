@@ -25,9 +25,19 @@ export function DefaultMinimap() {
 	const minimapRef = React.useRef<MinimapManager>()
 
 	React.useEffect(() => {
-		const minimap = new MinimapManager(editor, rCanvas.current, container)
-		minimapRef.current = minimap
-		return minimapRef.current.close
+		try {
+			const minimap = new MinimapManager(editor, rCanvas.current, container)
+			minimapRef.current = minimap
+			return minimapRef.current.close
+		} catch (e) {
+			editor.annotateError(e, {
+				origin: 'minimap',
+				willCrashApp: false,
+			})
+			setTimeout(() => {
+				throw e
+			})
+		}
 	}, [editor, container])
 
 	const onDoubleClick = React.useCallback(
@@ -52,7 +62,7 @@ export function DefaultMinimap() {
 			minimapRef.current.originPagePoint.setTo(clampedPoint)
 			minimapRef.current.originPageCenter.setTo(editor.getViewportPageBounds().center)
 
-			editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
+			editor.centerOnPoint(point, { animation: { duration: ANIMATION_MEDIUM_MS } })
 		},
 		[editor]
 	)
@@ -91,7 +101,7 @@ export function DefaultMinimap() {
 				const pagePoint = Vec.Add(point, delta)
 				minimapRef.current.originPagePoint.setTo(pagePoint)
 				minimapRef.current.originPageCenter.setTo(point)
-				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
+				editor.centerOnPoint(point, { animation: { duration: ANIMATION_MEDIUM_MS } })
 			} else {
 				const clampedPoint = minimapRef.current.minimapScreenPointToPagePoint(
 					e.clientX,

@@ -1,6 +1,6 @@
 import { _Atom } from './Atom'
-import { GLOBAL_START_EPOCH } from './constants'
 import { EffectScheduler } from './EffectScheduler'
+import { GLOBAL_START_EPOCH } from './constants'
 import { singleton } from './helpers'
 import { Child, Signal } from './types'
 
@@ -25,12 +25,10 @@ class Transaction {
 	 */
 	commit() {
 		if (this.isRoot) {
-			// For root transactions, flush changes to each of the atom's initial values.
-			const atoms = this.initialAtomValues
-			this.initialAtomValues = new Map()
-			flushChanges(atoms.keys())
+			// For root transactions, flush changed atoms
+			flushChanges(this.initialAtomValues.keys())
 		} else {
-			// For transaction's with parents, add the transaction's initial values to the parent's.
+			// For transactions with parents, add the transaction's initial values to the parent's.
 			this.initialAtomValues.forEach((value, atom) => {
 				if (!this.parent!.initialAtomValues.has(atom)) {
 					this.parent!.initialAtomValues.set(atom, value)
@@ -64,10 +62,35 @@ const inst = singleton('transactions', () => ({
 	// Whether any transaction is reacting.
 	globalIsReacting: false,
 	currentTransaction: null as Transaction | null,
+
+	cleanupReactors: null as null | Set<EffectScheduler<unknown>>,
+	reactionEpoch: GLOBAL_START_EPOCH + 1,
 }))
+
+export function getReactionEpoch() {
+	return inst.reactionEpoch
+}
 
 export function getGlobalEpoch() {
 	return inst.globalEpoch
+}
+
+export function getIsReacting() {
+	return inst.globalIsReacting
+}
+
+function traverse(reactors: Set<EffectScheduler<unknown>>, child: Child) {
+	if (child.lastTraversedEpoch === inst.globalEpoch) {
+		return
+	}
+
+	child.lastTraversedEpoch = inst.globalEpoch
+
+	if (child instanceof EffectScheduler) {
+		reactors.add(child)
+	} else {
+		;(child as any as Signal<any>).children.visit((c) => traverse(reactors, c))
+	}
 }
 
 /**
@@ -82,34 +105,33 @@ function flushChanges(atoms: Iterable<_Atom>) {
 
 	try {
 		inst.globalIsReacting = true
+		inst.reactionEpoch = inst.globalEpoch
 
 		// Collect all of the visited reactors.
 		const reactors = new Set<EffectScheduler<unknown>>()
 
-		// Visit each descendant of the atom, collecting reactors.
-		const traverse = (node: Child) => {
-			if (node.lastTraversedEpoch === inst.globalEpoch) {
-				return
-			}
-
-			node.lastTraversedEpoch = inst.globalEpoch
-
-			if (node instanceof EffectScheduler) {
-				reactors.add(node)
-			} else {
-				;(node as any as Signal<any>).children.visit(traverse)
-			}
-		}
-
 		for (const atom of atoms) {
-			atom.children.visit(traverse)
+			atom.children.visit((child) => traverse(reactors, child))
 		}
 
 		// Run each reactor.
 		for (const r of reactors) {
 			r.maybeScheduleEffect()
 		}
+
+		let updateDepth = 0
+		while (inst.cleanupReactors?.size) {
+			if (updateDepth++ > 1000) {
+				throw new Error('Reaction update depth limit exceeded')
+			}
+			const reactors = inst.cleanupReactors
+			inst.cleanupReactors = null
+			for (const r of reactors) {
+				r.maybeScheduleEffect()
+			}
+		}
 	} finally {
+		inst.cleanupReactors = null
 		inst.globalIsReacting = false
 	}
 }
@@ -123,9 +145,19 @@ function flushChanges(atoms: Iterable<_Atom>) {
  * @internal
  */
 export function atomDidChange(atom: _Atom, previousValue: any) {
-	if (!inst.currentTransaction) {
+	if (inst.globalIsReacting) {
+		// If the atom changed during the reaction phase of flushChanges
+		// then we are past the point where a transaction can be aborted
+		// so we don't need to note down the previousValue.
+		const rs = (inst.cleanupReactors ??= new Set())
+		atom.children.visit((child) => traverse(rs, child))
+	} else if (!inst.currentTransaction) {
+		// If there is no transaction, flush the changes immediately.
 		flushChanges([atom])
 	} else if (!inst.currentTransaction.initialAtomValues.has(atom)) {
+		// If we are in a transaction, then all we have to do is preserve
+		// the value of the atom at the start of the transaction in case
+		// we need to roll back.
 		inst.currentTransaction.initialAtomValues.set(atom, previousValue)
 	}
 }
@@ -213,24 +245,26 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 	inst.currentTransaction = txn
 
 	try {
+		let result = undefined as T | undefined
 		let rollback = false
 
-		// Run the function.
-		const result = fn(() => (rollback = true))
+		try {
+			// Run the function.
+			result = fn(() => (rollback = true))
+		} catch (e) {
+			// Abort the transaction if the function throws.
+			txn.abort()
+			throw e
+		}
 
 		if (rollback) {
 			// If the rollback was triggered, abort the transaction.
 			txn.abort()
 		} else {
-			// Otherwise, commit the transaction.
 			txn.commit()
 		}
 
 		return result
-	} catch (e) {
-		// Abort the transaction if the function throws.
-		txn.abort()
-		throw e
 	} finally {
 		// Set the current transaction to the transaction's parent.
 		inst.currentTransaction = inst.currentTransaction.parent

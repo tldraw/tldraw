@@ -144,8 +144,12 @@ class __EffectScheduler__<Result> {
 	execute(): Result {
 		try {
 			startCapturingParents(this)
+			// Important! We have to make a note of the current epoch before running the effect.
+			// We allow atoms to be updated during effects, which increments the global epoch,
+			// so if we were to wait until after the effect runs, the this.lastReactedEpoch value might get ahead of itself.
+			const currentEpoch = getGlobalEpoch()
 			const result = this.runEffect(this.lastReactedEpoch)
-			this.lastReactedEpoch = getGlobalEpoch()
+			this.lastReactedEpoch = currentEpoch
 			return result
 		} finally {
 			stopCapturingParents()

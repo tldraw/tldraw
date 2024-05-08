@@ -17,7 +17,7 @@ export default function PopupShapeExample() {
 							y: Math.floor(i / 3) * 220,
 						})
 					}
-					editor.zoomToContent({ duration: 0 })
+					editor.zoomToBounds(editor.getCurrentPageBounds()!, { animation: { duration: 0 } })
 				}}
 			/>
 		</div>

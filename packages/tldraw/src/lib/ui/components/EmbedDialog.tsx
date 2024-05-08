@@ -117,7 +117,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								editor.putExternalContent({
 									type: 'embed',
 									url,
-									point: editor.getViewportPageCenter(),
+									point: editor.getViewportPageBounds().center,
 									embed: embedInfoForUrl.definition,
 								})
 

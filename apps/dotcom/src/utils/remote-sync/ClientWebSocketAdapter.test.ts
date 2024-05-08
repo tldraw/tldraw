@@ -1,4 +1,4 @@
-import { TLSocketClientSentEvent, TLSYNC_PROTOCOL_VERSION } from '@tldraw/tlsync'
+import { TLSocketClientSentEvent, getTlsyncProtocolVersion } from '@tldraw/tlsync'
 import { TLRecord } from 'tldraw'
 import { ClientWebSocketAdapter, INACTIVE_MIN_DELAY } from './ClientWebSocketAdapter'
 // NOTE: there is a hack in apps/dotcom/jestResolver.js to make this import work
@@ -141,7 +141,7 @@ describe(ClientWebSocketAdapter, () => {
 			type: 'connect',
 			connectRequestId: 'test',
 			schema: { schemaVersion: 1, storeVersion: 0, recordVersions: {} },
-			protocolVersion: TLSYNC_PROTOCOL_VERSION,
+			protocolVersion: getTlsyncProtocolVersion(),
 			lastServerClock: 0,
 		}
 

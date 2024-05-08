@@ -86,6 +86,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       >
         <tspan
           alignment-baseline="mathematical"
+          unicode-bidi="plaintext"
           x="16"
           y="-17"
         >
@@ -103,6 +104,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       >
         <tspan
           alignment-baseline="mathematical"
+          unicode-bidi="plaintext"
           x="16"
           y="-17"
         >
