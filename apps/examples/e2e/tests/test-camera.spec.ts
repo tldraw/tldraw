@@ -63,15 +63,28 @@ test.describe('camera', () => {
 		).toStrictEqual([160, 160])
 	})
 
-	test('pinching on trackpad', async ({ page, isMobile }) => {
+	test.only('pinching on trackpad', async ({ page, isMobile }) => {
 		// pinching on trackpad is the same event as ctrl+scrollwheel
 		test.skip(isMobile)
+		await page.evaluate(() => editor.updateInstanceState({ isGridMode: true }))
 		const { mouse, keyboard } = page
 		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(1)
+		// zooming in
 		await keyboard.down('Control')
-		await mouse.wheel(0, 14)
+		// scrolling 15px on the mouse wheel is a bit less that 0.1 zoom level at default zoom speed
+		await mouse.wheel(0, 15) // 0.9
+		await mouse.wheel(0, 15) // 0.81
+		await mouse.wheel(0, 15) // 0.72
 		await keyboard.up('Control')
-		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(0.9)
+		expect(await page.evaluate(() => editor.getZoomLevel())).toBeCloseTo(0.72, 1)
+		// zooming out
+		// scrolling back doesn't progress in the same steps
+		await keyboard.down('Control')
+		await mouse.wheel(0, -15) // 0.8019000000000001
+		await mouse.wheel(0, -15) // 0.88209
+		await mouse.wheel(0, -15) // 0.970299
+		await keyboard.up('Control')
+		expect(await page.evaluate(() => editor.getZoomLevel())).toBeCloseTo(0.97)
 	})
 
 	test('pinching on touchscreen', async ({ page, isMobile }) => {
@@ -80,7 +93,6 @@ test.describe('camera', () => {
 		client = await page.context().newCDPSession(page)
 
 		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(1)
-		await page.evaluate(() => editor.updateInstanceState({ isGridMode: true }))
 
 		// zoom out
 
