@@ -870,8 +870,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			updateDepth++
 			if (updateDepth > 100) {
-				console.warn('Maximum store update depth exceeded, bailing out')
-				return
+				throw new Error('Maximum store update depth exceeded, bailing out')
 			}
 
 			for (const { before, after, source } of events.values()) {
