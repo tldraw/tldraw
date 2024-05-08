@@ -63,7 +63,7 @@ test.describe('camera', () => {
 		).toStrictEqual([160, 160])
 	})
 
-	test.only('pinching on trackpad', async ({ page, isMobile }) => {
+	test('pinching on trackpad', async ({ page, isMobile }) => {
 		// pinching on trackpad is the same event as ctrl+scrollwheel
 		test.skip(isMobile)
 		await page.evaluate(() => editor.updateInstanceState({ isGridMode: true }))
