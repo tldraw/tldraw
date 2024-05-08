@@ -189,10 +189,10 @@ export {
 	type TLArrowPoint,
 } from './lib/editor/shapes/shared/arrow/arrow-types'
 export {
-	arrowBindingMakeItNotSo,
-	arrowBindingMakeItSo,
+	createOrUpdateArrowBinding,
 	getArrowBindings,
 	getArrowTerminalsInArrowSpace,
+	removeArrowBinding,
 	type TLArrowBindings,
 } from './lib/editor/shapes/shared/arrow/shared'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'

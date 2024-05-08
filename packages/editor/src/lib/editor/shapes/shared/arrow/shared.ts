@@ -140,10 +140,9 @@ export function getArrowTerminalsInArrowSpace(
 
 /**
  * Create or update the arrow binding for a particular arrow terminal. Will clear up if needed.
- * TODO(alex): #bindings find a better name for this
  * @internal
  */
-export function arrowBindingMakeItSo(
+export function createOrUpdateArrowBinding(
 	editor: Editor,
 	arrow: TLArrowShape | TLShapeId,
 	target: TLShape | TLShapeId,
@@ -182,11 +181,7 @@ export function arrowBindingMakeItSo(
  * Remove any arrow bindings for a particular terminal.
  * @internal
  */
-export function arrowBindingMakeItNotSo(
-	editor: Editor,
-	arrow: TLArrowShape,
-	terminal: 'start' | 'end'
-) {
+export function removeArrowBinding(editor: Editor, arrow: TLArrowShape, terminal: 'start' | 'end') {
 	const existing = editor
 		.getBindingsFromShape<TLArrowBinding>(arrow, 'arrow')
 		.filter((b) => b.props.terminal === terminal)

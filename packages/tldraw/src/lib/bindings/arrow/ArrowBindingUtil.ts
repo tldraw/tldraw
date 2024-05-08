@@ -14,7 +14,6 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Vec,
-	arrowBindingMakeItNotSo,
 	arrowBindingMigrations,
 	arrowBindingProps,
 	assert,
@@ -22,6 +21,7 @@ import {
 	getIndexAbove,
 	getIndexBetween,
 	intersectLineSegmentCircle,
+	removeArrowBinding,
 } from '@tldraw/editor'
 
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
@@ -220,5 +220,5 @@ function unbindArrowTerminal(editor: Editor, arrow: TLArrowShape, terminal: 'sta
 	}
 
 	editor.updateShape(update)
-	arrowBindingMakeItNotSo(editor, arrow, terminal)
+	removeArrowBinding(editor, arrow, terminal)
 }

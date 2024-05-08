@@ -2,7 +2,7 @@ import {
 	HALF_PI,
 	TLArrowShape,
 	TLShapeId,
-	arrowBindingMakeItSo,
+	createOrUpdateArrowBinding,
 	createShapeId,
 	getArrowBindings,
 } from '@tldraw/editor'
@@ -55,14 +55,14 @@ beforeEach(() => {
 			},
 		])
 
-	arrowBindingMakeItSo(editor, ids.arrow1, ids.box1, {
+	createOrUpdateArrowBinding(editor, ids.arrow1, ids.box1, {
 		terminal: 'start',
 		isExact: false,
 		isPrecise: false,
 		normalizedAnchor: { x: 0.5, y: 0.5 },
 	})
 
-	arrowBindingMakeItSo(editor, ids.arrow1, ids.box2, {
+	createOrUpdateArrowBinding(editor, ids.arrow1, ids.box2, {
 		terminal: 'end',
 		isExact: false,
 		isPrecise: false,

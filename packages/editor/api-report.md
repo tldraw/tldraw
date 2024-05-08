@@ -144,12 +144,6 @@ export class Arc2d extends Geometry2d {
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
 
-// @internal
-export function arrowBindingMakeItNotSo(editor: Editor, arrow: TLArrowShape, terminal: 'end' | 'start'): void;
-
-// @internal
-export function arrowBindingMakeItSo(editor: Editor, arrow: TLArrowShape | TLShapeId, target: TLShape | TLShapeId, props: TLArrowBindingProps): void;
-
 export { Atom }
 
 export { atom }
@@ -455,6 +449,9 @@ export const coreShapes: readonly [typeof GroupShapeUtil];
 
 // @public
 export function counterClockwiseAngleDist(a0: number, a1: number): number;
+
+// @internal
+export function createOrUpdateArrowBinding(editor: Editor, arrow: TLArrowShape | TLShapeId, target: TLShape | TLShapeId, props: TLArrowBindingProps): void;
 
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
@@ -1714,6 +1711,9 @@ export function refreshPage(): void;
 
 // @public (undocumented)
 export function releasePointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
+
+// @internal
+export function removeArrowBinding(editor: Editor, arrow: TLArrowShape, terminal: 'end' | 'start'): void;
 
 // @public (undocumented)
 export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>;

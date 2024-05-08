@@ -23,14 +23,14 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec,
-	arrowBindingMakeItNotSo,
-	arrowBindingMakeItSo,
 	arrowShapeMigrations,
 	arrowShapeProps,
+	createOrUpdateArrowBinding,
 	getArrowBindings,
 	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
 	mapObjectMapValues,
+	removeArrowBinding,
 	structuredClone,
 	toDomPrecision,
 	track,
@@ -204,7 +204,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (this.editor.inputs.ctrlKey) {
 			// todo: maybe double check that this isn't equal to the other handle too?
 			// Skip binding
-			arrowBindingMakeItNotSo(this.editor, shape, handleId)
+			removeArrowBinding(this.editor, shape, handleId)
 
 			update.props![handleId] = {
 				x: handle.x,
@@ -226,7 +226,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (!target) {
 			// todo: maybe double check that this isn't equal to the other handle too?
-			arrowBindingMakeItNotSo(this.editor, shape, handleId)
+			removeArrowBinding(this.editor, shape, handleId)
 
 			update.props![handleId] = {
 				x: handle.x,
@@ -290,7 +290,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			isExact: this.editor.inputs.altKey,
 		}
 
-		arrowBindingMakeItSo(this.editor, shape, target.id, b)
+		createOrUpdateArrowBinding(this.editor, shape, target.id, b)
 
 		this.editor.setHintingShapes([target.id])
 
@@ -299,7 +299,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			if (
 				Vec.Equals(newBindings.start.props.normalizedAnchor, newBindings.end.props.normalizedAnchor)
 			) {
-				arrowBindingMakeItSo(this.editor, shape, newBindings.end.toId, {
+				createOrUpdateArrowBinding(this.editor, shape, newBindings.end.toId, {
 					...newBindings.end.props,
 					normalizedAnchor: {
 						x: newBindings.end.props.normalizedAnchor.x + 0.05,
@@ -392,13 +392,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
 					y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
 				}
-				arrowBindingMakeItSo(this.editor, shape, newTarget.id, {
+				createOrUpdateArrowBinding(this.editor, shape, newTarget.id, {
 					...terminalBinding.binding.props,
 					normalizedAnchor,
 					isPrecise: true,
 				})
 			} else {
-				arrowBindingMakeItNotSo(this.editor, shape, terminalBinding.binding.props.terminal)
+				removeArrowBinding(this.editor, shape, terminalBinding.binding.props.terminal)
 			}
 		}
 	}
@@ -487,13 +487,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		if (bindings.start && startNormalizedAnchor) {
-			arrowBindingMakeItSo(this.editor, shape, bindings.start.toId, {
+			createOrUpdateArrowBinding(this.editor, shape, bindings.start.toId, {
 				...bindings.start.props,
 				normalizedAnchor: startNormalizedAnchor.toJson(),
 			})
 		}
 		if (bindings.end && endNormalizedAnchor) {
-			arrowBindingMakeItSo(this.editor, shape, bindings.end.toId, {
+			createOrUpdateArrowBinding(this.editor, shape, bindings.end.toId, {
 				...bindings.end.props,
 				normalizedAnchor: endNormalizedAnchor.toJson(),
 			})
