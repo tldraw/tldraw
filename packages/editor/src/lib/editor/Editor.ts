@@ -70,6 +70,7 @@ import {
 	getOwnProperty,
 	hasOwnProperty,
 	last,
+	lerp,
 	sortById,
 	sortByIndex,
 	structuredClone,
@@ -3126,6 +3127,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	// Following
 
+	// When we are 'locked on' to a user, our camera is derived from their camera.
 	private _isLockedOnFollowingUser = atom('isLockedOnFollowingUser', false)
 
 	/**
@@ -3158,6 +3160,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (!thisUserId) {
 			console.warn('You should set the userId for the current instance before following a user')
+			// allow to continue since it's probably fine most of the time.
 		}
 
 		// If the leader is following us, then we can't follow them
@@ -3172,7 +3175,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		transact(() => {
 			this.updateInstanceState({ followingUserId: userId })
 
-			const stopUpdatingPage = react('update current page', () => {
+			// we listen for page changes separately from the 'moveTowardsUser' tick
+			const dispose = react('update current page', () => {
 				const leaderPresence = latestLeaderPresence.get()
 				if (!leaderPresence) {
 					this.stopFollowingUser()
@@ -3182,17 +3186,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 					leaderPresence.currentPageId !== this.getCurrentPageId() &&
 					this.getPage(leaderPresence.currentPageId)
 				) {
+					// if the page changed, switch page
 					this.history.ignore(() => {
 						// sneaky store.put here, we can't go through setCurrentPage because it calls stopFollowingUser
 						this.store.put([
 							{ ...this.getInstanceState(), currentPageId: leaderPresence.currentPageId },
 						])
+						this._isLockedOnFollowingUser.set(true)
 					})
 				}
 			})
 
 			const cancel = () => {
-				stopUpdatingPage()
+				dispose()
 				this._isLockedOnFollowingUser.set(false)
 				this.off('frame', moveTowardsUser)
 				this.off('stop-following', cancel)
@@ -3235,22 +3241,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return
 				}
 
-				const midpointViewport = new Box(
-					(currentViewport.minX + targetViewport.minX) / 2,
-					(currentViewport.minY + targetViewport.minY) / 2,
-					(currentViewport.width + targetViewport.width) / 2,
-					(currentViewport.height + targetViewport.height) / 2
+				// Chase the user's viewport!
+				// Interpolate between the current viewport and the target viewport based on animation speed.
+				// This will produce an 'ease-out' effect.
+				const t = clamp(animationSpeed * 0.5, 0.1, 0.8)
+
+				const nextViewport = new Box(
+					lerp(currentViewport.minX, targetViewport.minX, t),
+					lerp(currentViewport.minY, targetViewport.minY, t),
+					lerp(currentViewport.width, targetViewport.width, t),
+					lerp(currentViewport.height, targetViewport.height, t)
 				)
 
-				const midpointCamera = new Vec(
-					-midpointViewport.x,
-					-midpointViewport.y,
-					this.getViewportScreenBounds().width / midpointViewport.width
+				const nextCamera = new Vec(
+					-nextViewport.x,
+					-nextViewport.y,
+					this.getViewportScreenBounds().width / nextViewport.width
 				)
 
 				// Update the camera!
 				this.stopCameraAnimation()
-				this._setCamera(midpointCamera)
+				this._setCamera(nextCamera)
 			}
 
 			this.once('stop-following', cancel)
