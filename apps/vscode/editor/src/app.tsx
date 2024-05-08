@@ -126,7 +126,6 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 			persistenceKey={uri}
 			onMount={handleMount}
 			components={components}
-			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 

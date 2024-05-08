@@ -585,7 +585,7 @@ export class Edge2d extends Geometry2d {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, tools, getContainer, initialState, autoFocus, inferDarkMode, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, animationOptions?: TLAnimationOptions): this;
@@ -671,6 +671,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
+    focus(): this;
+    readonly focusManager: FocusManager;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
     getArrowsBoundTo(shapeId: TLShapeId): {
@@ -1026,6 +1028,19 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 
 // @internal (undocumented)
 export const featureFlags: Record<string, DebugFlag<boolean>>;
+
+// @public
+export class FocusManager {
+    constructor(editor: Editor, autoFocus?: boolean);
+    // (undocumented)
+    blur(): void;
+    // (undocumented)
+    dispose(): void;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    focus(): void;
+}
 
 // @public (undocumented)
 export type GapsSnapIndicator = {
@@ -2171,6 +2186,7 @@ export type TLEditorComponents = Partial<{
 
 // @public (undocumented)
 export interface TLEditorOptions {
+    autoFocus?: boolean;
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;

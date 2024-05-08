@@ -2182,9 +2182,9 @@ export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-c
 // @public (undocumented)
 export interface TLUiInputProps {
     // (undocumented)
-    autofocus?: boolean;
+    autoFocus?: boolean;
     // (undocumented)
-    autoselect?: boolean;
+    autoSelect?: boolean;
     // (undocumented)
     children?: React_3.ReactNode;
     // (undocumented)
@@ -2573,7 +2573,7 @@ export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
 export function useEditableText(id: TLShapeId, type: string, text: string): {
-    handleBlur: () => void;
+    handleBlur: typeof noop;
     handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
     handleDoubleClick: (e: any) => any;
     handleFocus: typeof noop;

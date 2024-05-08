@@ -36,7 +36,6 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 			autoCapitalize="off"
 			autoCorrect="off"
 			autoSave="off"
-			// autoFocus
 			placeholder=""
 			spellCheck="true"
 			wrap="off"

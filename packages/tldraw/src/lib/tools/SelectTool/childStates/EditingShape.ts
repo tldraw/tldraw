@@ -100,6 +100,13 @@ export class EditingShape extends StateNode {
 
 							this.editor.mark('editing on pointer up')
 							this.editor.select(selectingShape.id)
+
+							// We start the editing process here, but we don't transition to the editing state until the pointer up event.
+							// The user might decide to possibly drag the shape around instead.
+							// It's important the next shape is marked for editing for focus events to work properly.
+							// This is because onBlur for a text label, we try to maintain focus on the label,
+							// for example, when you click on the style panel for different colors, the focus should stay on the label.
+							this.editor.setEditingShape(selectingShape.id)
 							return
 						}
 					}

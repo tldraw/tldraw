@@ -130,6 +130,7 @@ export {
 	type TLEditorOptions,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export type { FocusManager } from './lib/editor/managers/FocusManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export type {
 	SideEffectManager,

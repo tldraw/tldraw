@@ -4,7 +4,7 @@ export class EnvironmentManager {
 	constructor(public editor: Editor) {
 		if (typeof window !== 'undefined' && 'navigator' in window) {
 			this.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-			this.isIos = !!navigator.userAgent.match(/iPad/i) || !!navigator.userAgent.match(/iPhone/i)
+			this.isIos = true //!!navigator.userAgent.match(/iPad/i) || !!navigator.userAgent.match(/iPhone/i)
 			this.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
 			this.isFirefox = /firefox/i.test(navigator.userAgent)
 			this.isAndroid = /android/i.test(navigator.userAgent)

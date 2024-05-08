@@ -20,10 +20,9 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 
 describe('<TldrawEditor />', () => {
 	it('Renders without crashing', async () => {
-		await renderTldrawComponent(
-			<TldrawEditor tools={defaultTools} autoFocus initialState="select" />,
-			{ waitForPatterns: false }
-		)
+		await renderTldrawComponent(<TldrawEditor tools={defaultTools} initialState="select" />, {
+			waitForPatterns: false,
+		})
 		await screen.findByTestId('canvas')
 	})
 
@@ -36,7 +35,6 @@ describe('<TldrawEditor />', () => {
 				}}
 				initialState="select"
 				tools={defaultTools}
-				autoFocus
 			/>,
 			{ waitForPatterns: false }
 		)
@@ -53,7 +51,6 @@ describe('<TldrawEditor />', () => {
 				onMount={(e) => {
 					editor = e
 				}}
-				autoFocus
 			/>,
 			{ waitForPatterns: false }
 		)
@@ -72,7 +69,6 @@ describe('<TldrawEditor />', () => {
 				onMount={(editor) => {
 					expect(editor.store).toBe(store)
 				}}
-				autoFocus
 			/>,
 			{ waitForPatterns: false }
 		)
@@ -85,7 +81,6 @@ describe('<TldrawEditor />', () => {
 		// 		<TldrawEditor
 		// 			shapeUtils={[GroupShapeUtil]}
 		// 			store={createTLStore({ shapeUtils: [] })}
-		// 			autoFocus
 		// 			components={{
 		// 				ErrorFallback: ({ error }) => {
 		// 					throw error
@@ -103,7 +98,6 @@ describe('<TldrawEditor />', () => {
 		// 		render(
 		// 			<TldrawEditor
 		// 				store={createTLStore({ shapeUtils: [GroupShapeUtil] })}
-		// 				autoFocus
 		// 				components={{
 		// 					ErrorFallback: ({ error }) => {
 		// 						throw error
@@ -128,7 +122,6 @@ describe('<TldrawEditor />', () => {
 				tools={defaultTools}
 				store={initialStore}
 				onMount={onMount}
-				autoFocus
 			/>
 		)
 		const initialEditor = onMount.mock.lastCall[0]
@@ -141,7 +134,6 @@ describe('<TldrawEditor />', () => {
 				initialState="select"
 				store={initialStore}
 				onMount={onMount}
-				autoFocus
 			/>
 		)
 		// not called again:
@@ -149,13 +141,7 @@ describe('<TldrawEditor />', () => {
 		// re-render with a new store:
 		const newStore = createTLStore({ shapeUtils: [] })
 		rendered.rerender(
-			<TldrawEditor
-				tools={defaultTools}
-				initialState="select"
-				store={newStore}
-				onMount={onMount}
-				autoFocus
-			/>
+			<TldrawEditor tools={defaultTools} initialState="select" store={newStore} onMount={onMount} />
 		)
 		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
@@ -169,7 +155,6 @@ describe('<TldrawEditor />', () => {
 				shapeUtils={[GeoShapeUtil]}
 				initialState="select"
 				tools={defaultTools}
-				autoFocus
 				onMount={(editorApp) => {
 					editor = editorApp
 				}}
@@ -285,7 +270,6 @@ describe('Custom shapes', () => {
 			<TldrawEditor
 				shapeUtils={shapeUtils}
 				tools={[...defaultTools, ...tools]}
-				autoFocus
 				initialState="select"
 				onMount={(editorApp) => {
 					editor = editorApp
