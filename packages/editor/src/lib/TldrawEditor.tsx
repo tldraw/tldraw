@@ -15,6 +15,7 @@ import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { TLUser, createTLUser } from './config/createTLUser'
+import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
@@ -75,6 +76,11 @@ export interface TldrawEditorBaseProps {
 	 * An array of shape utils to use in the editor.
 	 */
 	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+
+	/**
+	 * An array of binding utils to use in the editor.
+	 */
+	bindingUtils?: readonly TLAnyBindingUtilConstructor[]
 
 	/**
 	 * An array of tools to add to the editor's state chart.
@@ -141,6 +147,7 @@ declare global {
 }
 
 const EMPTY_SHAPE_UTILS_ARRAY = [] as const
+const EMPTY_BINDING_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
 
 /** @public */
@@ -163,6 +170,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const withDefaults = {
 		...rest,
 		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
+		bindingUtils: rest.bindingUtils ?? EMPTY_BINDING_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 		components,
 	}
@@ -203,12 +211,25 @@ export const TldrawEditor = memo(function TldrawEditor({
 })
 
 function TldrawEditorWithOwnStore(
-	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapeUtils' | 'tools'>
+	props: Required<
+		TldrawEditorProps & { store: undefined; user: TLUser },
+		'shapeUtils' | 'bindingUtils' | 'tools'
+	>
 ) {
-	const { defaultName, snapshot, initialData, shapeUtils, persistenceKey, sessionId, user } = props
+	const {
+		defaultName,
+		snapshot,
+		initialData,
+		shapeUtils,
+		bindingUtils,
+		persistenceKey,
+		sessionId,
+		user,
+	} = props
 
 	const syncedStore = useLocalStore({
 		shapeUtils,
+		bindingUtils,
 		initialData,
 		persistenceKey,
 		sessionId,
@@ -225,7 +246,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	...rest
 }: Required<
 	TldrawEditorProps & { store: TLStoreWithStatus; user: TLUser },
-	'shapeUtils' | 'tools'
+	'shapeUtils' | 'bindingUtils' | 'tools'
 >) {
 	const container = useContainer()
 
@@ -268,6 +289,7 @@ function TldrawEditorWithReadyStore({
 	store,
 	tools,
 	shapeUtils,
+	bindingUtils,
 	user,
 	initialState,
 	autoFocus = true,
@@ -278,7 +300,7 @@ function TldrawEditorWithReadyStore({
 		store: TLStore
 		user: TLUser
 	},
-	'shapeUtils' | 'tools'
+	'shapeUtils' | 'bindingUtils' | 'tools'
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
@@ -288,6 +310,7 @@ function TldrawEditorWithReadyStore({
 		const editor = new Editor({
 			store,
 			shapeUtils,
+			bindingUtils,
 			tools,
 			getContainer: () => container,
 			user,
@@ -300,7 +323,17 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapeUtils, tools, store, user, initialState, inferDarkMode, cameraOptions])
+	}, [
+		container,
+		shapeUtils,
+		bindingUtils,
+		tools,
+		store,
+		user,
+		initialState,
+		inferDarkMode,
+		cameraOptions,
+	])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

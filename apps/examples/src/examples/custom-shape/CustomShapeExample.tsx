@@ -1,8 +1,8 @@
 import {
 	Geometry2d,
 	HTMLContainer,
+	RecordProps,
 	Rectangle2d,
-	ShapeProps,
 	ShapeUtil,
 	T,
 	TLBaseShape,
@@ -28,7 +28,7 @@ type ICustomShape = TLBaseShape<
 export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	// [a]
 	static override type = 'my-custom-shape' as const
-	static override props: ShapeProps<ICustomShape> = {
+	static override props: RecordProps<ICustomShape> = {
 		w: T.number,
 		h: T.number,
 		text: T.string,

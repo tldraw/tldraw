@@ -1,9 +1,6 @@
 import { T } from '@tldraw/validate'
-import {
-	RETIRED_DOWN_MIGRATION,
-	createShapePropsMigrationIds,
-	createShapePropsMigrationSequence,
-} from '../records/TLShape'
+import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
+import { RETIRED_DOWN_MIGRATION, RecordPropsType } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -15,7 +12,7 @@ import {
 } from '../styles/TLHorizontalAlignStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { DefaultVerticalAlignStyle } from '../styles/TLVerticalAlignStyle'
-import { ShapePropsType, TLBaseShape } from './TLBaseShape'
+import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export const GeoShapeGeoStyle = StyleProp.defineEnum('tldraw:geo', {
@@ -65,7 +62,7 @@ export const geoShapeProps = {
 }
 
 /** @public */
-export type TLGeoShapeProps = ShapePropsType<typeof geoShapeProps>
+export type TLGeoShapeProps = RecordPropsType<typeof geoShapeProps>
 
 /** @public */
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>

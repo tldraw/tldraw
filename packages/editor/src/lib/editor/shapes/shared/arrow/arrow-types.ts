@@ -1,5 +1,6 @@
 import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema'
 import { VecLike } from '../../../../primitives/Vec'
+import { TLArrowBindings } from './shared'
 
 /** @public */
 export type TLArrowPoint = {
@@ -21,6 +22,7 @@ export interface TLArcInfo {
 /** @public */
 export type TLArrowInfo =
 	| {
+			bindings: TLArrowBindings
 			isStraight: false
 			start: TLArrowPoint
 			end: TLArrowPoint
@@ -30,6 +32,7 @@ export type TLArrowInfo =
 			isValid: boolean
 	  }
 	| {
+			bindings: TLArrowBindings
 			isStraight: true
 			start: TLArrowPoint
 			end: TLArrowPoint

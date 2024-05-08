@@ -91,10 +91,10 @@ export function createMigrationSequence({
  * @public
  * @public
  */
-export function createMigrationIds<ID extends string, Versions extends Record<string, number>>(
-	sequenceId: ID,
-	versions: Versions
-): { [K in keyof Versions]: `${ID}/${Versions[K]}` } {
+export function createMigrationIds<
+	const ID extends string,
+	const Versions extends Record<string, number>,
+>(sequenceId: ID, versions: Versions): { [K in keyof Versions]: `${ID}/${Versions[K]}` } {
 	return Object.fromEntries(
 		objectMapEntries(versions).map(([key, version]) => [key, `${sequenceId}/${version}`] as const)
 	) as any
@@ -136,6 +136,7 @@ export type LegacyMigration<Before = any, After = any> = {
 /** @public */
 export type MigrationId = `${string}/${number}`
 
+/** @public */
 export type StandaloneDependsOn = {
 	readonly dependsOn: readonly MigrationId[]
 }

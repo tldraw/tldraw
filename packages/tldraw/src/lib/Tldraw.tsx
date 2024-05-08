@@ -23,6 +23,7 @@ import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
+import { defaultBindingUtils } from './defaultBindingUtils'
 import {
 	TLExternalContentProps,
 	registerDefaultExternalContentHandlers,
@@ -79,6 +80,7 @@ export function Tldraw(props: TldrawProps) {
 		onMount,
 		components = {},
 		shapeUtils = [],
+		bindingUtils = [],
 		tools = [],
 		...rest
 	} = props
@@ -102,6 +104,12 @@ export function Tldraw(props: TldrawProps) {
 		[_shapeUtils]
 	)
 
+	const _bindingUtils = useShallowArrayIdentity(bindingUtils)
+	const bindingUtilsWithDefaults = useMemo(
+		() => [...defaultBindingUtils, ..._bindingUtils],
+		[_bindingUtils]
+	)
+
 	const _tools = useShallowArrayIdentity(tools)
 	const toolsWithDefaults = useMemo(
 		() => [...defaultTools, ...defaultShapeTools, ..._tools],
@@ -123,6 +131,7 @@ export function Tldraw(props: TldrawProps) {
 			{...rest}
 			components={componentsWithDefault}
 			shapeUtils={shapeUtilsWithDefaults}
+			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault}>

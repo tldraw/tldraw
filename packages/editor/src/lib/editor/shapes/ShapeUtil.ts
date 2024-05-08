@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
-	ShapeProps,
+	RecordProps,
 	TLHandle,
+	TLPropsMigrations,
 	TLShape,
 	TLShapePartial,
-	TLShapePropsMigrations,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
 import { ReactElement } from 'react'
@@ -25,8 +25,8 @@ export interface TLShapeUtilConstructor<
 > {
 	new (editor: Editor): U
 	type: T['type']
-	props?: ShapeProps<T>
-	migrations?: LegacyMigrations | TLShapePropsMigrations | MigrationSequence
+	props?: RecordProps<T>
+	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 }
 
 /** @public */
@@ -41,8 +41,8 @@ export interface TLShapeUtilCanvasSvgDef {
 /** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
-	static props?: ShapeProps<TLUnknownShape>
-	static migrations?: LegacyMigrations | TLShapePropsMigrations
+	static props?: RecordProps<TLUnknownShape>
+	static migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 
 	/**
 	 * The type of the shape util, which should match the shape's type.
@@ -131,6 +131,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	canCrop: TLShapeUtilFlag<Shape> = () => false
+
+	/**
+	 * Whether the shape participates in stacking, aligning, and distributing.
+	 *
+	 * @public
+	 */
+	canBeLaidOut: TLShapeUtilFlag<Shape> = () => true
 
 	/**
 	 * Does this shape provide a background for its children? If this is true,

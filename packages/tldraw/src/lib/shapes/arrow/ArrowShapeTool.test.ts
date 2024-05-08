@@ -1,4 +1,11 @@
-import { IndexKey, TLArrowShape, Vec, createShapeId } from '@tldraw/editor'
+import {
+	IndexKey,
+	TLArrowShape,
+	TLShapeId,
+	Vec,
+	createShapeId,
+	getArrowBindings,
+} from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -17,6 +24,10 @@ const ids = {
 	box1: createShapeId('box1'),
 	box2: createShapeId('box2'),
 	box3: createShapeId('box3'),
+}
+
+function bindings(id: TLShapeId) {
+	return getArrowBindings(editor, editor.getShape(id) as TLArrowShape)
 }
 
 beforeEach(() => {
@@ -89,10 +100,11 @@ describe('When dragging the arrow', () => {
 			x: 0,
 			y: 0,
 			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: { type: 'point', x: 10, y: 10 },
+				start: { x: 0, y: 0 },
+				end: { x: 10, y: 10 },
 			},
 		})
+		expect(bindings(arrow.id)).toMatchObject({ start: undefined, end: undefined })
 		editor.expectToBeIn('select.dragging_handle')
 	})
 
@@ -146,15 +158,20 @@ describe('When pointing a start shape', () => {
 			x: 375,
 			y: 375,
 			props: {
-				start: {
-					type: 'binding',
+				start: { x: 0, y: 0 },
+				end: { x: 0, y: 125 },
+			},
+		})
+		expect(bindings(arrow.id)).toMatchObject({
+			start: {
+				toId: ids.box3,
+				props: {
 					isExact: false,
 					normalizedAnchor: { x: 0.5, y: 0.5 }, // center!
 					isPrecise: false,
-					boundShapeId: ids.box3,
 				},
-				end: { type: 'point', x: 0, y: 125 },
 			},
+			end: undefined,
 		})
 
 		editor.pointerUp()
@@ -187,13 +204,17 @@ describe('When pointing an end shape', () => {
 			x: 0,
 			y: 0,
 			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: {
-					type: 'binding',
+				start: { x: 0, y: 0 },
+			},
+		})
+		expect(bindings(arrow.id)).toMatchObject({
+			start: undefined,
+			end: {
+				toId: ids.box3,
+				props: {
 					isExact: false,
 					normalizedAnchor: { x: 0.5, y: 0.5 }, // center!
 					isPrecise: false,
-					boundShapeId: ids.box3,
 				},
 			},
 		})
@@ -214,19 +235,14 @@ describe('When pointing an end shape', () => {
 
 		expect(editor.getHintingShapeIds().length).toBe(1)
 
-		editor.expectShapeToMatch(arrow, {
-			id: arrow.id,
-			type: 'arrow',
-			x: 0,
-			y: 0,
-			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: {
-					type: 'binding',
+		expect(bindings(arrow.id)).toMatchObject({
+			start: undefined,
+			end: {
+				toId: ids.box3,
+				props: {
 					isExact: false,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
-					boundShapeId: ids.box3,
 				},
 			},
 		})
@@ -235,19 +251,14 @@ describe('When pointing an end shape', () => {
 
 		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
-		editor.expectShapeToMatch(arrow, {
-			id: arrow.id,
-			type: 'arrow',
-			x: 0,
-			y: 0,
-			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: {
-					type: 'binding',
+		expect(bindings(arrow.id)).toMatchObject({
+			start: undefined,
+			end: {
+				toId: ids.box3,
+				props: {
 					isExact: false,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: true,
-					boundShapeId: ids.box3,
 				},
 			},
 		})
@@ -262,9 +273,13 @@ describe('When pointing an end shape', () => {
 			x: 0,
 			y: 0,
 			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: { type: 'point', x: 375, y: 0 },
+				start: { x: 0, y: 0 },
+				end: { x: 375, y: 0 },
 			},
+		})
+		expect(bindings(arrow.id)).toMatchObject({
+			start: undefined,
+			end: undefined,
 		})
 
 		// Build up some velocity
@@ -280,13 +295,17 @@ describe('When pointing an end shape', () => {
 			x: 0,
 			y: 0,
 			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: {
-					type: 'binding',
+				start: { x: 0, y: 0 },
+			},
+		})
+		expect(bindings(arrow.id)).toMatchObject({
+			start: undefined,
+			end: {
+				toId: ids.box2,
+				props: {
 					isExact: false,
 					normalizedAnchor: { x: 0.25, y: 0.25 }, // center!
 					isPrecise: false,
-					boundShapeId: ids.box2,
 				},
 			},
 		})
@@ -296,18 +315,14 @@ describe('When pointing an end shape', () => {
 
 		arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
-		editor.expectShapeToMatch(arrow, {
-			id: arrow.id,
-			type: 'arrow',
-			x: 0,
-			y: 0,
-			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: {
-					type: 'binding',
+		expect(bindings(arrow.id)).toMatchObject({
+			start: undefined,
+			end: {
+				toId: ids.box2,
+				props: {
 					isExact: false,
 					normalizedAnchor: { x: 0.25, y: 0.25 }, // precise!
-					boundShapeId: ids.box2,
+					isPrecise: true,
 				},
 			},
 		})
@@ -325,19 +340,14 @@ describe('When pointing an end shape', () => {
 
 		expect(editor.getHintingShapeIds().length).toBe(1)
 
-		editor.expectShapeToMatch(arrow, {
-			id: arrow.id,
-			type: 'arrow',
-			x: 0,
-			y: 0,
-			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: {
-					type: 'binding',
+		expect(bindings(arrow.id)).toMatchObject({
+			start: undefined,
+			end: {
+				toId: ids.box3,
+				props: {
 					isExact: false,
 					normalizedAnchor: { x: 0.4, y: 0.4 },
 					isPrecise: false,
-					boundShapeId: ids.box3,
 				},
 			},
 		})
@@ -348,15 +358,9 @@ describe('When pointing an end shape', () => {
 
 		let arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 
-		editor.expectShapeToMatch(arrow, {
-			id: arrow.id,
-			type: 'arrow',
-			x: 0,
-			y: 0,
-			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: { type: 'point', x: 2, y: 0 },
-			},
+		expect(bindings(arrow.id)).toMatchObject({
+			start: undefined,
+			end: undefined,
 		})
 
 		expect(editor.getHintingShapeIds().length).toBe(0)
@@ -373,14 +377,15 @@ describe('When pointing an end shape', () => {
 			type: 'arrow',
 			x: 0,
 			y: 0,
-			props: {
-				start: { type: 'point', x: 0, y: 0 },
-				end: {
-					type: 'binding',
+		})
+		expect(bindings(arrow.id)).toMatchObject({
+			start: undefined,
+			end: {
+				toId: ids.box3,
+				props: {
 					isExact: false,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: true,
-					boundShapeId: ids.box3,
 				},
 			},
 		})
@@ -423,8 +428,8 @@ describe('reparenting issue', () => {
 		editor.expectShapeToMatch({
 			id: arrowId,
 			index: 'a3V' as IndexKey,
-			props: { end: { boundShapeId: ids.box2 } },
 		}) // between box 2 (a3) and 3 (a4)
+		expect(bindings(arrowId)).toMatchObject({ end: { toId: ids.box2 } })
 
 		expect(editor.getShapeAtPoint({ x: 350, y: 350 }, { hitInside: true })).toMatchObject({
 			id: ids.box3,
@@ -434,8 +439,8 @@ describe('reparenting issue', () => {
 		editor.expectShapeToMatch({
 			id: arrowId,
 			index: 'a5' as IndexKey,
-			props: { end: { boundShapeId: ids.box3 } },
 		}) // above box 3 (a4)
+		expect(bindings(arrowId)).toMatchObject({ end: { toId: ids.box3 } })
 
 		editor.pointerMove(150, 150) // over box 1
 		editor.expectShapeToMatch({ id: arrowId, index: 'a2V' as IndexKey }) // between box 1 (a2) and box 3 (a3)
@@ -465,14 +470,14 @@ describe('reparenting issue', () => {
 				type: 'arrow',
 				x: 0,
 				y: 0,
-				props: { start: { type: 'point', x: 0, y: 0 }, end: { type: 'point', x: 100, y: 100 } },
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
 			},
 			{
 				id: arrow2Id,
 				type: 'arrow',
 				x: 0,
 				y: 0,
-				props: { start: { type: 'point', x: 0, y: 0 }, end: { type: 'point', x: 100, y: 100 } },
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
 			},
 		])
 
@@ -530,8 +535,8 @@ describe('line bug', () => {
 			.keyUp('Shift')
 
 		expect(editor.getCurrentPageShapes().length).toBe(2)
-		const arrow = editor.getCurrentPageShapes()[1] as TLArrowShape
-		expect(arrow.props.end.type).toBe('binding')
+		const bindings = getArrowBindings(editor, editor.getCurrentPageShapes()[1] as TLArrowShape)
+		expect(bindings.end).toBeDefined()
 	})
 
 	it('works as expected when binding to a straight horizontal line', () => {
@@ -552,7 +557,7 @@ describe('line bug', () => {
 			.pointerUp()
 
 		expect(editor.getCurrentPageShapes().length).toBe(2)
-		const arrow = editor.getCurrentPageShapes()[1] as TLArrowShape
-		expect(arrow.props.end.type).toBe('binding')
+		const bindings = getArrowBindings(editor, editor.getCurrentPageShapes()[1] as TLArrowShape)
+		expect(bindings.end).toBeDefined()
 	})
 })

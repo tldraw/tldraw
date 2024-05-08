@@ -141,42 +141,55 @@ it('works for shapes that are outside of the viewport, but are then moved inside
 	const box2Id = createShapeId()
 	const arrowId = createShapeId()
 
-	editor.createShapes([
-		{
-			id: box1Id,
-			props: { w: 100, h: 100, geo: 'rectangle' },
-			type: 'geo',
-			x: -500,
-			y: 0,
-		},
-		{
-			id: box2Id,
-			type: 'geo',
-			x: -1000,
-			y: 200,
-			props: { w: 100, h: 100, geo: 'rectangle' },
-		},
-		{
-			id: arrowId,
-			type: 'arrow',
-			props: {
-				start: {
-					type: 'binding',
-					isExact: true,
-					boundShapeId: box1Id,
-					normalizedAnchor: { x: 0.5, y: 0.5 },
-					isPrecise: false,
+	editor
+		.createShapes([
+			{
+				id: box1Id,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+				type: 'geo',
+				x: -500,
+				y: 0,
+			},
+			{
+				id: box2Id,
+				type: 'geo',
+				x: -1000,
+				y: 200,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+			},
+			{
+				id: arrowId,
+				type: 'arrow',
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: 0 },
 				},
-				end: {
-					type: 'binding',
+			},
+		])
+		.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: box1Id,
+				props: {
+					terminal: 'start',
 					isExact: true,
-					boundShapeId: box2Id,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
 				},
 			},
-		},
-	])
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: box2Id,
+				props: {
+					terminal: 'end',
+					isExact: true,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isPrecise: false,
+				},
+			},
+		])
 
 	expect(editor.getCulledShapes()).toEqual(new Set([box1Id, box2Id, arrowId]))
 
