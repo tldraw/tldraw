@@ -139,7 +139,7 @@ test.describe('Focus', () => {
 		await page.waitForTimeout(100) // takes 30ms or so to focus
 		await page.keyboard.press('d')
 
-		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).not.toBe(
+		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).toBe(
 			null
 		)
 		expect(await EditorB.$('.tlui-button[data-testid="tools.draw"][aria-checked="true"]')).not.toBe(

@@ -674,7 +674,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.root.enter(undefined, 'initial')
 
 		this.focusManager = new FocusManager(this, autoFocus)
-		this.disposables.add(this.focusManager.dispose)
+		this.disposables.add(this.focusManager.dispose.bind(this.focusManager))
 
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()

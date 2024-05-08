@@ -31,7 +31,7 @@ export class FocusManager {
 
 		const currentFocusState = editor.getInstanceState().isFocused
 		if (autoFocus !== currentFocusState) {
-			editor.updateInstanceState({ isFocused: autoFocus })
+			editor.updateInstanceState({ isFocused: !!autoFocus })
 		}
 	}
 
