@@ -10,23 +10,19 @@ import type { Editor } from '../Editor'
  * @public
  */
 export class FocusManager {
-	private disposeStoreListener?: () => void
+	private disposeSideEffectListener?: () => void
 
 	constructor(
 		public editor: Editor,
 		autoFocus?: boolean
 	) {
-		this.disposeStoreListener = editor.store.listen(
-			({ changes }) => {
-				for (const [prev, next] of Object.values(changes.updated)) {
-					if (prev.typeName !== 'instance' || next.typeName !== 'instance') continue
-
-					if (prev.isFocused !== next.isFocused) {
-						next.isFocused ? this.focus() : this.blur()
-					}
+		this.disposeSideEffectListener = editor.sideEffects.registerAfterChangeHandler(
+			'instance',
+			(prev, next) => {
+				if (prev.isFocused !== next.isFocused) {
+					next.isFocused ? this.focus() : this.blur()
 				}
-			},
-			{ scope: 'session' }
+			}
 		)
 
 		const currentFocusState = editor.getInstanceState().isFocused
@@ -45,6 +41,6 @@ export class FocusManager {
 	}
 
 	dispose() {
-		this.disposeStoreListener?.()
+		this.disposeSideEffectListener?.()
 	}
 }
