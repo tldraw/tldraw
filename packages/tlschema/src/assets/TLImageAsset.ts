@@ -94,7 +94,10 @@ export const imageAssetMigrations = createRecordMigrationSequence({
 			},
 			down: (asset: any) => {
 				// get the largest source
-				const src = asset.props.sources[0]?.src ?? null
+				const biggestImageSource = (asset as TLImageAsset).props.sources.sort(
+					(a, b) => b.scale - a.scale
+				)[0]
+				const src = biggestImageSource?.src ?? null
 				asset.props.src = src
 				delete asset.props.sources
 			},

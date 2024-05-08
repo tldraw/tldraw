@@ -7738,7 +7738,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					asset.type === 'video'
 						? asset.props.src
 						: asset.type === 'image'
-							? asset.props.sources.sort((a, b) => a.scale - b.scale)[0]?.src
+							? // sort smallest to largest
+								asset.props.sources.sort((a, b) => a.scale - b.scale)[0]?.src
 							: null
 
 				if (src?.startsWith('data:image')) {

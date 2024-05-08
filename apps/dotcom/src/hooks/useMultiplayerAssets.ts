@@ -101,7 +101,7 @@ export function useMultiplayerImageAsset(assetUploaderUrl: string) {
 					h: size!.h,
 					mimeType: mimeType!,
 					isAnimated,
-					sources: urls.map((url, i) => ({ scale: 1 / (1 + i) ** 2, src: url })),
+					sources: urls.map((url, i) => ({ scale: 1 / 2 ** i, src: url })),
 				},
 				meta: {},
 			} satisfies TLImageAsset) as TLImageAsset
