@@ -74,7 +74,7 @@ test.describe('camera', () => {
 		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(0.9)
 	})
 
-	test.only('pinching on touchscreen', async ({ page, isMobile }) => {
+	test('pinching on touchscreen', async ({ page, isMobile }) => {
 		test.skip(!isMobile)
 
 		client = await page.context().newCDPSession(page)
