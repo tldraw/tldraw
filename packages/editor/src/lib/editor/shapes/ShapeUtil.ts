@@ -133,7 +133,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canCrop: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the stack participates in stacking, aligning, and distributing.
+	 * Whether the shape participates in stacking, aligning, and distributing.
 	 *
 	 * @public
 	 */
