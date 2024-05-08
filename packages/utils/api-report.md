@@ -243,6 +243,18 @@ export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...
 export function partition<T>(arr: T[], predicate: (item: T) => boolean): [T[], T[]];
 
 // @public (undocumented)
+export class PerformanceTracker {
+    // (undocumented)
+    isStarted(): boolean;
+    // (undocumented)
+    recordFrame: () => void;
+    // (undocumented)
+    start(name: string): void;
+    // (undocumented)
+    stop(): void;
+}
+
+// @public (undocumented)
 export class PngHelpers {
     // (undocumented)
     static findChunk(view: DataView, type: string): {

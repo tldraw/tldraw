@@ -7,7 +7,7 @@ import {
 	Snapshot,
 } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
 	AssetRecordType,
 	Editor,
@@ -96,7 +96,8 @@ export async function getNewRoomResponse(snapshot: Snapshot) {
 
 export function useSharing(): TLUiOverrides {
 	const navigate = useNavigate()
-	const id = useSearchParams()[0].get('id') ?? undefined
+	const params = useParams()
+	const roomId = params.roomId
 	const uploadFileToAsset = useMultiplayerAssets(ASSET_UPLOADER_URL)
 	const handleUiEvent = useHandleUiEvents()
 	const runningInIFrame = isInIframe()
@@ -173,7 +174,7 @@ export function useSharing(): TLUiOverrides {
 							addToast,
 							msg,
 							uploadFileToAsset,
-							id
+							roomId
 						)
 						if (navigator?.clipboard?.write) {
 							await navigator.clipboard.write([
@@ -196,7 +197,7 @@ export function useSharing(): TLUiOverrides {
 				return actions
 			},
 		}),
-		[handleUiEvent, navigate, uploadFileToAsset, id, runningInIFrame]
+		[handleUiEvent, navigate, uploadFileToAsset, roomId, runningInIFrame]
 	)
 }
 
