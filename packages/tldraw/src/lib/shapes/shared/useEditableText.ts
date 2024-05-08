@@ -19,8 +19,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	])
 
 	useEffect(() => {
-		if (!isEditing) return
-
 		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
 			if (shapeId === id) {
 				rInput.current?.select()
