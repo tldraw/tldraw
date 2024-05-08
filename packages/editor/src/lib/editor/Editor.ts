@@ -8483,7 +8483,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 									{ immediate: true }
 								)
 								this.maybeTrackPerformance('Zooming')
-
 								return
 							}
 							case 'pan': {
