@@ -25,9 +25,9 @@ import {
 	VecModel,
 	clamp,
 	createShapeId,
-	getArrowBindings,
 	structuredClone,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../../shapes/arrow/shared'
 
 const TLDRAW_V1_VERSION = 15.5
 

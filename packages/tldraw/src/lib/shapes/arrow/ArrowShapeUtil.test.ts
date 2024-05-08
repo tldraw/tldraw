@@ -1,12 +1,6 @@
-import {
-	HALF_PI,
-	TLArrowShape,
-	TLShapeId,
-	createOrUpdateArrowBinding,
-	createShapeId,
-	getArrowBindings,
-} from '@tldraw/editor'
+import { HALF_PI, TLArrowShape, TLShapeId, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
+import { createOrUpdateArrowBinding, getArrowBindings } from './shared'
 
 let editor: TestEditor
 

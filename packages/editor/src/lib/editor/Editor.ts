@@ -12,7 +12,6 @@ import {
 	PageRecordType,
 	StyleProp,
 	StylePropValue,
-	TLArrowBinding,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
@@ -133,10 +132,6 @@ import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
-import { TLArrowInfo } from './shapes/shared/arrow/arrow-types'
-import { getCurvedArrowInfo } from './shapes/shared/arrow/curved-arrow'
-import { getArrowBindings, getIsArrowStraight } from './shapes/shared/arrow/shared'
-import { getStraightArrowInfo } from './shapes/shared/arrow/straight-arrow'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -918,50 +913,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	batch(fn: () => void, opts?: TLHistoryBatchOptions): this {
 		this.history.batch(fn, opts)
 		return this
-	}
-
-	/* --------------------- Arrows --------------------- */
-	// todo: move these to tldraw or replace with a bindings API
-
-	/**
-	 * Get all arrows bound to a shape.
-	 *
-	 * @param shapeId - The id of the shape.
-	 *
-	 * @public
-	 */
-	getArrowsBoundTo(shapeId: TLShapeId) {
-		const ids = new Set(
-			this.getBindingsToShape<TLArrowBinding>(shapeId, 'arrow').map((b) => b.fromId)
-		)
-		return compact(Array.from(ids, (id) => this.getShape<TLArrowShape>(id)))
-	}
-
-	@computed
-	private getArrowInfoCache() {
-		return this.store.createComputedCache<TLArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
-			const bindings = getArrowBindings(this, shape)
-			return getIsArrowStraight(shape)
-				? getStraightArrowInfo(this, shape, bindings)
-				: getCurvedArrowInfo(this, shape, bindings)
-		})
-	}
-
-	/**
-	 * Get cached info about an arrow.
-	 *
-	 * @example
-	 * ```ts
-	 * const arrowInfo = editor.getArrowInfo(myArrow)
-	 * ```
-	 *
-	 * @param shape - The shape (or shape id) of the arrow to get the info for.
-	 *
-	 * @public
-	 */
-	getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined {
-		const id = typeof shape === 'string' ? shape : shape.id
-		return this.getArrowInfoCache().get(id)
 	}
 
 	/* --------------------- Errors --------------------- */

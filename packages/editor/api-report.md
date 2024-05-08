@@ -40,10 +40,6 @@ import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
-import { TLArrowBinding } from '@tldraw/tlschema';
-import { TLArrowBindingProps } from '@tldraw/tlschema';
-import { TLArrowShape } from '@tldraw/tlschema';
-import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
@@ -451,9 +447,6 @@ export const coreShapes: readonly [typeof GroupShapeUtil];
 // @public
 export function counterClockwiseAngleDist(a0: number, a1: number): number;
 
-// @internal
-export function createOrUpdateArrowBinding(editor: Editor, arrow: TLArrowShape | TLShapeId, target: TLShape | TLShapeId, props: TLArrowBindingProps): void;
-
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
@@ -783,8 +776,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     getAllBindingsToShape(shape: TLShape | TLShapeId): TLBinding[];
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
-    getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
-    getArrowsBoundTo(shapeId: TLShapeId): TLArrowShape[];
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
@@ -1195,15 +1186,6 @@ export abstract class Geometry2d {
 
 // @public
 export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number): number;
-
-// @public (undocumented)
-export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
-
-// @public (undocumented)
-export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape, bindings: TLArrowBindings): {
-    end: Vec;
-    start: Vec;
-};
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
@@ -1714,9 +1696,6 @@ export function refreshPage(): void;
 // @public (undocumented)
 export function releasePointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 
-// @internal
-export function removeArrowBinding(editor: Editor, arrow: TLArrowShape, terminal: 'end' | 'start'): void;
-
 // @public (undocumented)
 export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>;
 
@@ -2095,57 +2074,6 @@ export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 
 // @public (undocumented)
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
-
-// @public (undocumented)
-export interface TLArcInfo {
-    // (undocumented)
-    center: VecLike;
-    // (undocumented)
-    largeArcFlag: number;
-    // (undocumented)
-    length: number;
-    // (undocumented)
-    radius: number;
-    // (undocumented)
-    size: number;
-    // (undocumented)
-    sweepFlag: number;
-}
-
-// @public (undocumented)
-export interface TLArrowBindings {
-    // (undocumented)
-    end: TLArrowBinding | undefined;
-    // (undocumented)
-    start: TLArrowBinding | undefined;
-}
-
-// @public (undocumented)
-export type TLArrowInfo = {
-    bindings: TLArrowBindings;
-    bodyArc: TLArcInfo;
-    end: TLArrowPoint;
-    handleArc: TLArcInfo;
-    isStraight: false;
-    isValid: boolean;
-    middle: VecLike;
-    start: TLArrowPoint;
-} | {
-    bindings: TLArrowBindings;
-    end: TLArrowPoint;
-    isStraight: true;
-    isValid: boolean;
-    length: number;
-    middle: VecLike;
-    start: TLArrowPoint;
-};
-
-// @public (undocumented)
-export type TLArrowPoint = {
-    arrowhead: TLArrowShapeArrowheadStyle;
-    handle: VecLike;
-    point: VecLike;
-};
 
 // @public (undocumented)
 export type TLBaseBoxShape = TLBaseShape<string, {
@@ -3215,24 +3143,6 @@ export class Vec {
 
 // @public (undocumented)
 export type VecLike = Vec | VecModel;
-
-// @public (undocumented)
-export class WeakMapCache<T extends object, K> {
-    // (undocumented)
-    access(item: T): K | undefined;
-    // (undocumented)
-    bust(): void;
-    // (undocumented)
-    get<P extends T>(item: P, cb: (item: P) => K): NonNullable<K>;
-    // (undocumented)
-    has(item: T): boolean;
-    // (undocumented)
-    invalidate(item: T): void;
-    // (undocumented)
-    items: WeakMap<T, K>;
-    // (undocumented)
-    set(item: T, value: K): void;
-}
 
 export { whyAmIRunning }
 

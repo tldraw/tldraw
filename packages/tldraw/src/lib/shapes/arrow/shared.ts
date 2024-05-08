@@ -1,14 +1,14 @@
 import {
+	Editor,
+	Group2d,
+	Mat,
 	TLArrowBinding,
 	TLArrowBindingProps,
 	TLArrowShape,
 	TLShape,
 	TLShapeId,
-} from '@tldraw/tlschema'
-import { Mat } from '../../../../primitives/Mat'
-import { Vec } from '../../../../primitives/Vec'
-import { Group2d } from '../../../../primitives/geometry/Group2d'
-import { Editor } from '../../../Editor'
+	Vec,
+} from '@tldraw/editor'
 import { createComputedCache } from '@tldraw/store'
 import { getCurvedArrowInfo } from './curved-arrow'
 import { getStraightArrowInfo } from './straight-arrow'
@@ -106,13 +106,16 @@ export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBi
 
 const arrowInfoCache = createComputedCache('arrow info', (editor: Editor, shape: TLArrowShape) => {
 	const bindings = getArrowBindings(editor, shape)
-			return getIsArrowStraight(shape)
-				? getStraightArrowInfo(editor, shape, bindings)
-				: getCurvedArrowInfo(editor, shape, bindings)
+	return getIsArrowStraight(shape)
+		? getStraightArrowInfo(editor, shape, bindings)
+		: getCurvedArrowInfo(editor, shape, bindings)
 })
 
 /** @public */
-function getArrowInfo(editor: Editor, shape: TLArrowShape) {
+export function getArrowInfo(editor: Editor, shape: TLArrowShape | TLShapeId) {
+	const id = typeof shape === 'string' ? shape : shape.id
+	return arrowInfoCache.get(editor, id)
+}
 
 /** @public */
 export function getArrowTerminalsInArrowSpace(

@@ -33,6 +33,11 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
     get(id: IdOf<R>): Data | undefined;
 };
 
+// @public
+export function createComputedCache<Context extends StoreContext<any>, Result, Record extends ContextRecordType<Context> = ContextRecordType<Context>>(name: string, derive: (context: Context, record: Record) => Result | undefined, isEqual?: (a: Record, b: Record) => boolean): {
+    get(context: Context, id: IdOf<Record>): Result | undefined;
+};
+
 // @internal (undocumented)
 export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R>;
 
@@ -289,8 +294,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean): T;
     clear: () => void;
-    createComputedCache: <T, V extends R = R>(name: string, derive: (record: V) => T | undefined, isEqual?: ((a: V, b: V) => boolean) | undefined) => ComputedCache<T, V>;
-    createSelectedComputedCache: <T, J, V extends R = R>(name: string, selector: (record: V) => T | undefined, derive: (input: T) => J | undefined) => ComputedCache<J, V>;
+    createComputedCache: <Result, Record extends R = R>(name: string, derive: (record: Record) => Result | undefined, isEqual?: ((a: Record, b: Record) => boolean) | undefined) => ComputedCache<Result, Record>;
+    createSelectedComputedCache: <Selection, Result, Record extends R = R>(name: string, selector: (record: Record) => Selection | undefined, derive: (input: Selection) => Result | undefined) => ComputedCache<Result, Record>;
     // @internal (undocumented)
     ensureStoreIsUsable(): void;
     extractingChanges(fn: () => void): RecordsDiff<R>;

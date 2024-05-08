@@ -1,4 +1,7 @@
-/** A micro cache used when storing records in memory (using a WeakMap). */
+/**
+ * A micro cache used when storing records in memory (using a WeakMap).
+ * @public
+ */
 export class WeakCache<K extends object, V> {
 	/** The map of items to their cached values. */
 	items = new WeakMap<K, V>()

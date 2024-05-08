@@ -765,14 +765,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param derive - A function used to derive the value of the cache.
 	 * @public
 	 */
-	createComputedCache = <T, V extends R = R>(
+	createComputedCache = <Result, Record extends R = R>(
 		name: string,
-		derive: (record: V) => T | undefined,
-		isEqual?: (a: V, b: V) => boolean
-	): ComputedCache<T, V> => {
-		const cache = new WeakCache<Atom<any>, Computed<T | undefined>>()
+		derive: (record: Record) => Result | undefined,
+		isEqual?: (a: Record, b: Record) => boolean
+	): ComputedCache<Result, Record> => {
+		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
-			get: (id: IdOf<V>) => {
+			get: (id: IdOf<Record>) => {
 				const atom = this.atoms.get()[id]
 				if (!atom) {
 					return undefined
@@ -782,8 +782,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						const recordSignal = isEqual
 							? computed(atom.name + ':equals', () => atom.get(), { isEqual })
 							: atom
-						return computed<T | undefined>(name + ':' + id, () => {
-							return derive(recordSignal.get() as V)
+						return computed<Result | undefined>(name + ':' + id, () => {
+							return derive(recordSignal.get() as Record)
 						})
 					})
 					.get()
@@ -799,24 +799,26 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param derive - A function used to derive the value of the cache.
 	 * @public
 	 */
-	createSelectedComputedCache = <T, J, V extends R = R>(
+	createSelectedComputedCache = <Selection, Result, Record extends R = R>(
 		name: string,
-		selector: (record: V) => T | undefined,
-		derive: (input: T) => J | undefined
-	): ComputedCache<J, V> => {
-		const cache = new WeakCache<Atom<any>, Computed<J | undefined>>()
+		selector: (record: Record) => Selection | undefined,
+		derive: (input: Selection) => Result | undefined
+	): ComputedCache<Result, Record> => {
+		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
-			get: (id: IdOf<V>) => {
+			get: (id: IdOf<Record>) => {
 				const atom = this.atoms.get()[id]
 				if (!atom) {
 					return undefined
 				}
 
-				const d = computed<T | undefined>(name + ':' + id + ':selector', () =>
-					selector(atom.get() as V)
-				)
 				return cache
-					.get(atom, () => computed<J | undefined>(name + ':' + id, () => derive(d.get() as T)))
+					.get(atom, () => {
+						const d = computed<Selection | undefined>(name + ':' + id + ':selector', () =>
+							selector(atom.get() as Record)
+						)
+						return computed<Result | undefined>(name + ':' + id, () => derive(d.get() as Selection))
+					})
 					.get()
 			},
 		}

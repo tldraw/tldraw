@@ -10,7 +10,6 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	TLArrowBinding,
-	TLArrowBindings,
 	TLArrowShape,
 	TLHandle,
 	TLOnEditEndHandler,
@@ -25,12 +24,8 @@ import {
 	Vec,
 	arrowShapeMigrations,
 	arrowShapeProps,
-	createOrUpdateArrowBinding,
-	getArrowBindings,
-	getArrowTerminalsInArrowSpace,
 	getDefaultColorTheme,
 	mapObjectMapValues,
-	removeArrowBinding,
 	structuredClone,
 	toDomPrecision,
 	track,
@@ -56,6 +51,14 @@ import {
 	getStraightArrowHandlePath,
 } from './arrowpaths'
 import { ArrowTextLabel } from './components/ArrowTextLabel'
+import {
+	TLArrowBindings,
+	createOrUpdateArrowBinding,
+	getArrowBindings,
+	getArrowInfo,
+	getArrowTerminalsInArrowSpace,
+	removeArrowBinding,
+} from './shared'
 
 let globalRenderIndex = 0
 
@@ -103,7 +106,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	getGeometry(shape: TLArrowShape) {
-		const info = this.editor.getArrowInfo(shape)!
+		const info = getArrowInfo(this.editor, shape)!
 
 		const debugGeom: Geometry2d[] = []
 
@@ -141,7 +144,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override getHandles(shape: TLArrowShape): TLHandle[] {
-		const info = this.editor.getArrowInfo(shape)!
+		const info = getArrowInfo(this.editor, shape)!
 
 		return [
 			{
@@ -549,7 +552,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'arrow.dragging'
 			) && !this.editor.getInstanceState().isReadonly
 
-		const info = this.editor.getArrowInfo(shape)
+		const info = getArrowInfo(this.editor, shape)
 		if (!info?.isValid) return null
 
 		const labelPosition = getArrowLabelPosition(this.editor, shape)
@@ -585,7 +588,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isEditing = useIsEditing(shape.id)
 
-		const info = this.editor.getArrowInfo(shape)
+		const info = getArrowInfo(this.editor, shape)
 		if (!info) return null
 
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info?.bindings)
@@ -752,7 +755,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 }
 
 function getLength(editor: Editor, shape: TLArrowShape): number {
-	const info = editor.getArrowInfo(shape)!
+	const info = getArrowInfo(editor, shape)!
 
 	return info.isStraight
 		? Vec.Dist(info.start.handle, info.end.handle)
@@ -768,7 +771,7 @@ const ArrowSvg = track(function ArrowSvg({
 }) {
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
-	const info = editor.getArrowInfo(shape)
+	const info = getArrowInfo(editor, shape)
 	const bounds = Box.ZeroFix(editor.getShapeGeometry(shape).bounds)
 	const bindings = getArrowBindings(editor, shape)
 

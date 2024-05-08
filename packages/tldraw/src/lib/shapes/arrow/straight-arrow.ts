@@ -1,11 +1,13 @@
-import { TLArrowShape } from '@tldraw/tlschema'
-import { Mat, MatModel } from '../../../../primitives/Mat'
-import { Vec, VecLike } from '../../../../primitives/Vec'
 import {
+	Editor,
+	Mat,
+	MatModel,
+	TLArrowShape,
+	Vec,
+	VecLike,
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
-} from '../../../../primitives/intersect'
-import { Editor } from '../../../Editor'
+} from '@tldraw/editor'
 import { TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
