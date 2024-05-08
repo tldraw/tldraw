@@ -3141,10 +3141,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	startFollowingUser(
-		userId: string,
-		{ animateToUser = true }: { animateToUser?: boolean } = {}
-	): this {
+	startFollowingUser(userId: string): this {
 		const leaderPresences = this._getCollaboratorsQuery()
 			.get()
 			.filter((p) => p.userId === userId)
@@ -3202,7 +3199,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				const animationSpeed = this.user.getAnimationSpeed()
 
-				if (!animateToUser || animationSpeed === 0) {
+				if (animationSpeed === 0) {
 					this._isLockedOnFollowingUser.set(true)
 					return
 				}
