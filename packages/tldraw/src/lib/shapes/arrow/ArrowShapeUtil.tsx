@@ -79,6 +79,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape> = () => true
 
+	override canBeLaidOut: TLShapeUtilFlag<TLArrowShape> = (shape) => {
+		const bindings = getArrowBindings(this.editor, shape)
+		return !bindings.start && !bindings.end
+	}
+
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {
 			dash: 'draw',

@@ -5641,13 +5641,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				.filter((shape) => {
 					if (!shape) return false
 
-					// if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-					// 	if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
-					// 		return false
-					// 	}
-					// }
-
-					return true
+					return this.getShapeUtil(shape).canBeLaidOut(shape)
 				})
 		)
 
