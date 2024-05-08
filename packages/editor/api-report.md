@@ -23,6 +23,7 @@ import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
+import { PerformanceTracker } from '@tldraw/utils';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
@@ -450,6 +451,7 @@ export const debugFlags: {
     readonly logElementRemoves: DebugFlag<boolean>;
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
+    readonly measurePerformance: DebugFlag<boolean>;
     readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
@@ -1923,6 +1925,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     parent: StateNode;
     // (undocumented)
     _path: Computed<string>;
+    // (undocumented)
+    performanceTracker: PerformanceTracker;
     // (undocumented)
     setCurrentToolIdMask(id: string | undefined): void;
     // (undocumented)

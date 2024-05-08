@@ -1,3 +1,4 @@
+export { PerformanceTracker } from './lib/PerformanceTracker'
 export {
 	areArraysShallowEqual,
 	compact,

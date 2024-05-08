@@ -41,6 +41,7 @@ export const debugFlags = {
 	showFps: createDebugValue('showFps', {
 		defaults: { all: false },
 	}),
+	measurePerformance: createDebugValue('measurePerformance', { defaults: { all: false } }),
 	throwToBlob: createDebugValue('throwToBlob', {
 		defaults: { all: false },
 	}),
