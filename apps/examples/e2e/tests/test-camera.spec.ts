@@ -15,6 +15,36 @@ const dispatchTouch = async (
 	await client.send('Input.dispatchTouchEvent', { type, touchPoints })
 }
 
+const multiTouchGesture = async ({
+	type,
+	start,
+	end,
+	steps,
+}: {
+	type: 'pinch' | 'pan'
+	start: { x: number; y: number }
+	end: { x: number; y: number }
+	steps: number
+}) => {
+	const finger1 = { x: start.x, y: start.y }
+	const finger2 = { x: start.x + 100, y: start.y + 100 }
+	await dispatchTouch(client, 'touchStart', [finger1, finger2])
+	let finalTouch: { x: number; y: number }[] = [finger1, finger2]
+	for (let i = 1; i < 100; i++) {
+		await dispatchTouch(client, 'touchMove', [
+			{ x: 100 + i * 10, y: 100 + i * 10 },
+			{ x: 200 + i * 10, y: 200 + i * 10 },
+		])
+		finalTouch = [
+			{ x: 100 + i * 10, y: 100 + i * 10 },
+			{ x: 200 + i * 10, y: 200 + i * 10 },
+		]
+		await sleep(10)
+	}
+	await dispatchTouch(client, 'touchEnd', finalTouch)
+	return { type, start, end, steps }
+}
+
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -66,7 +96,6 @@ test.describe('camera', () => {
 	test('pinching on trackpad', async ({ page, isMobile }) => {
 		// pinching on trackpad is the same event as ctrl+scrollwheel
 		test.skip(isMobile)
-		await page.evaluate(() => editor.updateInstanceState({ isGridMode: true }))
 		const { mouse, keyboard } = page
 		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(1)
 		// zooming in
@@ -146,7 +175,26 @@ test.describe('camera', () => {
 		// todo
 	})
 
-	test.fixme('hand tool', () => {
-		// todo
+	test.only('hand tool', async ({ page, toolbar }) => {
+		const handTool = toolbar.tools.hand
+		handTool.click()
+		page.mouse.move(50, 50)
+		await page.evaluate(() => editor.updateInstanceState({ isGridMode: true }))
+		expect(
+			await page.evaluate(() => [
+				editor.inputs.currentPagePoint.x,
+				editor.inputs.currentPagePoint.y,
+			])
+		).toStrictEqual([50, 50])
+		await page.mouse.down()
+		await page.mouse.move(200, 600)
+		await page.mouse.up()
+		await page.mouse.move(50, 50)
+		expect(
+			await page.evaluate(() => [
+				editor.inputs.currentPagePoint.x,
+				editor.inputs.currentPagePoint.y,
+			])
+		).toStrictEqual([100, 100])
 	})
 })
