@@ -85,20 +85,21 @@ export function registerDefaultExternalContentHandlers(
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
 
 		if (isImageType) {
-			const sources: TLImageAsset['props']['sources'] = []
+			const sources: TLImageAsset['props']['sources'] = [
+				{
+					scale: 1,
+					src: await FileHelpers.blobToDataUrl(
+						await downsizeImage(file, size.w, size.h, {
+							type: file.type,
+							quality: 0.92,
+						})
+					),
+				},
+			]
 
 			// Always rescale the image
 			if (file.type === 'image/jpeg' || file.type === 'image/png') {
 				sources.push(
-					{
-						scale: 1,
-						src: await FileHelpers.blobToDataUrl(
-							await downsizeImage(file, size.w, size.h, {
-								type: file.type,
-								quality: 0.92,
-							})
-						),
-					},
 					{
 						scale: 1 / 2,
 						src: await FileHelpers.blobToDataUrl(

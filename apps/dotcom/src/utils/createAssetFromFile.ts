@@ -31,6 +31,7 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 	}
 	let isAnimated: boolean
 
+	let props
 	if (isImageType) {
 		size = await MediaHelpers.getImageSize(file)
 		if (file.type === 'image/gif') {
@@ -38,23 +39,37 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 		} else {
 			isAnimated = false
 		}
+		props = {
+			name: file.name,
+			sources: [
+				{
+					scale: 1,
+					src: url,
+				},
+			],
+			w: size.w,
+			h: size.h,
+			mimeType: file.type,
+			isAnimated,
+		}
 	} else {
 		isAnimated = true
 		size = await MediaHelpers.getVideoSize(file)
-	}
-
-	const asset: TLAsset = AssetRecordType.create({
-		id: assetId,
-		type: isImageType ? 'image' : 'video',
-		typeName: 'asset',
-		props: {
+		props = {
 			name: file.name,
 			src: url,
 			w: size.w,
 			h: size.h,
 			mimeType: file.type,
 			isAnimated,
-		},
+		}
+	}
+
+	const asset: TLAsset = AssetRecordType.create({
+		id: assetId,
+		type: isImageType ? 'image' : 'video',
+		typeName: 'asset',
+		props,
 		meta: {},
 	})
 

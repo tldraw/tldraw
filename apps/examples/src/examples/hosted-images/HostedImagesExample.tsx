@@ -40,28 +40,43 @@ export default function HostedImagesExample() {
 			let shapeType: 'image' | 'video'
 
 			//[c]
+			let props
 			if (['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].includes(file.type)) {
 				shapeType = 'image'
 				size = await MediaHelpers.getImageSize(file)
 				isAnimated = file.type === 'image/gif' && (await isGifAnimated(file))
+				props = {
+					name: file.name,
+					sources: [
+						{
+							scale: 1,
+							src: url,
+						},
+					],
+					w: size.w,
+					h: size.h,
+					mimeType: file.type,
+					isAnimated,
+				}
 			} else {
 				shapeType = 'video'
 				isAnimated = true
 				size = await MediaHelpers.getVideoSize(file)
-			}
-			//[d]
-			const asset: TLAsset = AssetRecordType.create({
-				id: assetId,
-				type: shapeType,
-				typeName: 'asset',
-				props: {
+				props = {
 					name: file.name,
 					src: url,
 					w: size.w,
 					h: size.h,
 					mimeType: file.type,
 					isAnimated,
-				},
+				}
+			}
+			//[d]
+			const asset: TLAsset = AssetRecordType.create({
+				id: assetId,
+				type: shapeType,
+				typeName: 'asset',
+				props,
 			})
 
 			return asset
