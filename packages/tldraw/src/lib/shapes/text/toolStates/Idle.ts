@@ -44,9 +44,13 @@ export class Idle extends StateNode {
 								? 'start'
 								: 'end',
 				},
-				meta: {},
+				meta: {
+					preview: false,
+				},
 			})
 			this.editor.setEditingShape(labelPreviewShape.id)
+			this.editor.setHintingShapes([])
+			this.labelPreviewShapeId = null
 			return
 		}
 		this.labelPreviewShapeId = null
@@ -86,12 +90,14 @@ export class Idle extends StateNode {
 			hitFrameInside: false,
 		})
 		if (!boundShape) {
+			this.editor.setHintingShapes([])
 			if (this.labelPreviewShapeId) {
 				this.editor.deleteShape(this.labelPreviewShapeId)
 				this.labelPreviewShapeId = null
 			}
 			return
 		}
+		this.editor.setHintingShapes([boundShape.id])
 
 		const labelPreviewShape = this.labelPreviewShapeId
 			? this.editor.getShape(this.labelPreviewShapeId)
@@ -132,11 +138,12 @@ export class Idle extends StateNode {
 				toId: boundShape.id,
 			})
 			// now position it
-			// this.makeOrUpdateLabelPreview()
+			this.makeOrUpdateLabelPreview()
 		}
 	}
 
 	override onCancel = () => {
+		this.editor.setHintingShapes([])
 		this.editor.setCurrentTool('select')
 	}
 }
