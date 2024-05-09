@@ -3,6 +3,7 @@ import {
 	BaseBoxShapeUtil,
 	FileHelpers,
 	HTMLContainer,
+	MediaHelpers,
 	TLImageShape,
 	TLOnDoubleClickHandler,
 	TLShapePartial,
@@ -53,7 +54,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
 		useEffect(() => {
-			if (asset?.props.src && 'mimeType' in asset.props && asset?.props.mimeType === 'image/gif') {
+			if (
+				asset?.props.src &&
+				'mimeType' in asset.props &&
+				MediaHelpers.isAnimatedImageType(asset?.props.mimeType)
+			) {
 				let cancelled = false
 				const url = asset.props.src
 				if (!url) return
@@ -219,7 +224,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		if (!asset) return
 
 		const canPlay =
-			asset.props.src && 'mimeType' in asset.props && asset.props.mimeType === 'image/gif'
+			asset.props.src &&
+			'mimeType' in asset.props &&
+			MediaHelpers.isAnimatedImageType(asset.props.mimeType)
 
 		if (!canPlay) return
 

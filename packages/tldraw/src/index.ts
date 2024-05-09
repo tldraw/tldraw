@@ -109,13 +109,7 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
-export {
-	DEFAULT_ACCEPTED_IMG_TYPE,
-	DEFAULT_ACCEPTED_VID_TYPE,
-	containBoxSize,
-	downsizeImage,
-	isGifAnimated,
-} from './lib/utils/assets/assets'
+export { containBoxSize, downsizeImage } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
 export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'

@@ -31,7 +31,7 @@ export function isGIF(buffer: ArrayBuffer): boolean {
  *
  * @public
  */
-export function isAnimated(buffer: ArrayBuffer): boolean {
+export function isGifAnimated(buffer: ArrayBuffer): boolean {
 	const view = new Uint8Array(buffer)
 	let hasColorTable, colorTableSize
 	let offset = 0

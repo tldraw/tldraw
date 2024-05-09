@@ -327,12 +327,6 @@ export function CutMenuItem(): JSX_2.Element;
 export function DebugFlags(): JSX_2.Element | null;
 
 // @public (undocumented)
-export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
-
-// @public (undocumented)
-export const DEFAULT_ACCEPTED_VID_TYPE: string[];
-
-// @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
 
 // @public (undocumented)
@@ -584,7 +578,7 @@ export function ExportFileContentSubMenu(): JSX_2.Element;
 // @public
 export function exportToBlob({ editor, ids, format, opts, }: {
     editor: Editor;
-    format: 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
+    format: TLExportType;
     ids: TLShapeId[];
     opts?: Partial<TLSvgOptions>;
 }): Promise<Blob>;
@@ -964,9 +958,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static type: "image";
 }
-
-// @public (undocumented)
-export function isGifAnimated(file: Blob): Promise<boolean>;
 
 // @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;

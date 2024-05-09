@@ -22,7 +22,7 @@ import {
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
-import { containBoxSize, downsizeImage, isGifAnimated } from './utils/assets/assets'
+import { containBoxSize, downsizeImage } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
 
@@ -32,9 +32,9 @@ export type TLExternalContentProps = {
 	maxImageDimension: number
 	// The maximum size (in bytes) of an asset. Assets larger than this will be rejected. Defaults to 10mb (10 * 1024 * 1024).
 	maxAssetSize: number
-	// The mime types of images that are allowed to be handled. Defaults to ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].
+	// The mime types of images that are allowed to be handled. Defaults to DEFAULT_SUPPORTED_IMAGE_TYPES.
 	acceptedImageMimeTypes: readonly string[]
-	// The mime types of videos that are allowed to be handled. Defaults to ['video/mp4', 'video/webm', 'video/quicktime'].
+	// The mime types of videos that are allowed to be handled. Defaults to DEFAULT_SUPPORT_VIDEO_TYPES.
 	acceptedVideoMimeTypes: readonly string[]
 }
 
@@ -70,19 +70,19 @@ export function registerDefaultExternalContentHandlers(
 			? await MediaHelpers.getImageSize(file)
 			: await MediaHelpers.getVideoSize(file)
 
-		const isAnimated = file.type === 'image/gif' ? await isGifAnimated(file) : isVideoType
+		const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
 
 		const hash = await getHashForBuffer(await file.arrayBuffer())
 
 		if (isFinite(maxImageDimension)) {
 			const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
-			if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+			if (size !== resizedSize && MediaHelpers.isStaticImageType(file.type)) {
 				size = resizedSize
 			}
 		}
 
 		// Always rescale the image
-		if (file.type === 'image/jpeg' || file.type === 'image/png') {
+		if (MediaHelpers.isStaticImageType(file.type)) {
 			file = await downsizeImage(file, size.w, size.h, {
 				type: file.type,
 				quality: 0.92,
