@@ -1,4 +1,8 @@
 import {
+	BindingOnShapeChangeOptions,
+	BindingOnShapeDeleteOptions,
+	BindingUtil,
+	Box,
 	DefaultColorStyle,
 	DefaultFontStyle,
 	DefaultHorizontalAlignStyle,
@@ -12,6 +16,7 @@ import {
 	ShapeUtil,
 	T,
 	TEXT_PROPS,
+	TLBaseBinding,
 	TLBaseShape,
 	TLHandle,
 	TLOnBeforeUpdateHandler,
@@ -19,7 +24,10 @@ import {
 	TLOnResizeHandler,
 	TextLabel,
 	Vec,
+	VecModel,
 	ZERO_INDEX_KEY,
+	invLerp,
+	lerp,
 	resizeBox,
 	structuredClone,
 	useDefaultColorTheme,
@@ -115,13 +123,53 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		]
 	}
 
-	override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (shape, { handle }) => {
+	override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (speechBubble, { handle }) => {
+		const pageAnchor = this.editor.getShapePageTransform(speechBubble).applyToPoint({ x: 0, y: 0 })
+		const target = this.editor.getShapeAtPoint(pageAnchor, {
+			hitInside: true,
+			filter: (shape) => shape.id !== speechBubble.id,
+		})
+
+		if (target) {
+			console.log('target', target)
+			const targetBounds = Box.ZeroFix(this.editor.getShapeGeometry(target)!.bounds)
+			const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pageAnchor)
+
+			const anchor = {
+				x: invLerp(targetBounds.minX, targetBounds.maxX, pointInTargetSpace.x),
+				y: invLerp(targetBounds.minY, targetBounds.maxY, pointInTargetSpace.y),
+			}
+			const bindings = this.editor.getBindingsFromShape(speechBubble, 'speech-bubble')
+			if (bindings.length === 0) {
+				this.editor.createBinding({
+					type: 'speech-bubble',
+					fromId: speechBubble.id,
+					toId: target.id,
+					props: {
+						anchor,
+					},
+				})
+			} else {
+				this.editor.updateBinding({
+					...bindings[0],
+					props: {
+						anchor,
+					},
+				})
+			}
+		} else {
+			console.log('no target')
+			const bindings = this.editor.getBindingsFromShape(speechBubble, 'speech-bubble')
+			console.log('bindings', bindings)
+			this.editor.deleteBindings(bindings)
+		}
+
 		return {
-			...shape,
+			...speechBubble,
 			props: {
 				tail: {
-					x: handle.x / shape.props.w,
-					y: handle.y / this.getHeight(shape),
+					x: handle.x / speechBubble.props.w,
+					y: handle.y / this.getHeight(speechBubble),
 				},
 			},
 		}
@@ -289,3 +337,54 @@ This is the last method that fires after a shape has been changed, we can use it
 the tail stays the right length and position. Check out helpers.tsx to get into some of the more
 specific geometry stuff.
 */
+
+type SpeechBubbleBinding = TLBaseBinding<
+	'speech-bubble',
+	{
+		anchor: VecModel
+	}
+>
+export class SpeechBubbleBindingUtil extends BindingUtil<SpeechBubbleBinding> {
+	static override type = 'speech-bubble' as const
+
+	override getDefaultProps() {
+		return {
+			anchor: { x: 0.5, y: 0.5 },
+		}
+	}
+
+	// when the shape we're stuck to changes, update the speechBubble's position
+	override onAfterChangeToShape({
+		binding,
+		shapeAfter,
+	}: BindingOnShapeChangeOptions<SpeechBubbleBinding>): void {
+		const speechBubble = this.editor.getShape<SpeechBubbleShape>(binding.fromId)!
+
+		const shapeBounds = this.editor.getShapeGeometry(shapeAfter)!.bounds
+		const shapeAnchor = {
+			x: lerp(shapeBounds.minX, shapeBounds.maxX, binding.props.anchor.x),
+			y: lerp(shapeBounds.minY, shapeBounds.maxY, binding.props.anchor.y),
+		}
+		const pageAnchor = this.editor.getShapePageTransform(shapeAfter).applyToPoint(shapeAnchor)
+
+		const speechBubbleParentAnchor = this.editor
+			.getShapeParentTransform(speechBubble)
+			.invert()
+			.applyToPoint(pageAnchor)
+
+		this.editor.updateShape({
+			id: speechBubble.id,
+			type: 'speech-bubble',
+			x: speechBubbleParentAnchor.x,
+			y: speechBubbleParentAnchor.y,
+		})
+	}
+
+	// when the thing we're stuck to is deleted, delete the speechBubble too
+	override onBeforeDeleteToShape({
+		binding,
+	}: BindingOnShapeDeleteOptions<SpeechBubbleBinding>): void {
+		const speechBubble = this.editor.getShape<SpeechBubbleShape>(binding.fromId)
+		if (speechBubble) this.editor.deleteShape(speechBubble.id)
+	}
+}

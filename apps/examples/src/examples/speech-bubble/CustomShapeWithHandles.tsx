@@ -1,7 +1,7 @@
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { SpeechBubbleTool } from './SpeechBubble/SpeechBubbleTool'
-import { SpeechBubbleUtil } from './SpeechBubble/SpeechBubbleUtil'
+import { SpeechBubbleBindingUtil, SpeechBubbleUtil } from './SpeechBubble/SpeechBubbleUtil'
 import { components, customAssetUrls, uiOverrides } from './SpeechBubble/ui-overrides'
 import './customhandles.css'
 
@@ -10,6 +10,7 @@ import './customhandles.css'
 // [1]
 const shapeUtils = [SpeechBubbleUtil]
 const tools = [SpeechBubbleTool]
+const bindingUtils = [SpeechBubbleBindingUtil]
 
 // [2]
 export default function CustomShapeWithHandles() {
@@ -18,10 +19,10 @@ export default function CustomShapeWithHandles() {
 			<Tldraw
 				shapeUtils={shapeUtils}
 				tools={tools}
+				bindingUtils={bindingUtils}
 				overrides={uiOverrides}
 				assetUrls={customAssetUrls}
 				components={components}
-				persistenceKey="whatever"
 			/>
 		</div>
 	)
