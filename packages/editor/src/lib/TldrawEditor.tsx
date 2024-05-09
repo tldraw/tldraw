@@ -303,6 +303,7 @@ function TldrawEditorWithReadyStore({
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
 	const [editor, setEditor] = useState<Editor | null>(null)
+	const [initialAutoFocus] = useState(autoFocus)
 
 	useLayoutEffect(() => {
 		const editor = new Editor({
@@ -313,7 +314,7 @@ function TldrawEditorWithReadyStore({
 			getContainer: () => container,
 			user,
 			initialState,
-			autoFocus,
+			autoFocus: initialAutoFocus,
 			inferDarkMode,
 			cameraOptions,
 		})
@@ -330,7 +331,7 @@ function TldrawEditorWithReadyStore({
 		store,
 		user,
 		initialState,
-		autoFocus,
+		initialAutoFocus,
 		inferDarkMode,
 		cameraOptions,
 	])
