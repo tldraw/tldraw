@@ -93,6 +93,20 @@ export class Pointing extends StateNode {
 			])
 			.select(id)
 
+		const boundShape = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+			filter: (shape) => shape.type === 'geo',
+			hitInside: true,
+			hitFrameInside: false,
+		})
+
+		if (boundShape) {
+			this.editor.createBinding({
+				type: 'text',
+				fromId: id,
+				toId: boundShape.id,
+			})
+		}
+
 		this.editor.setEditingShape(id)
 		this.editor.setCurrentTool('select')
 		this.editor.root.getCurrent()?.transition('editing_shape')

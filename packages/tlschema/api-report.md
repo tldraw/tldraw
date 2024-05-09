@@ -819,6 +819,12 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never;
 
 // @public (undocumented)
+export const textBindingMigrations: TLPropsMigrations;
+
+// @public (undocumented)
+export const textBindingProps: RecordProps<TLTextBinding>;
+
+// @public (undocumented)
 export const textShapeMigrations: TLPropsMigrations;
 
 // @public (undocumented)
@@ -982,7 +988,7 @@ export interface TLCursor {
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
 // @public
-export type TLDefaultBinding = TLArrowBinding;
+export type TLDefaultBinding = TLArrowBinding | TLTextBinding;
 
 // @public (undocumented)
 export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
@@ -1343,6 +1349,27 @@ export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
+
+// @public (undocumented)
+export type TLTextBinding = TLBaseBinding<'text', TLTextBindingProps>;
+
+// @public (undocumented)
+export type TLTextBindingProps = {
+    x: {
+        edge: 'left' | 'right';
+        offsetInToShapeSpace: number;
+        type: 'offset';
+    } | {
+        type: 'center';
+    };
+    y: {
+        edge: 'bottom' | 'top';
+        offsetInToShapeSpace: number;
+        type: 'offset';
+    } | {
+        type: 'center';
+    };
+};
 
 // @public (undocumented)
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;

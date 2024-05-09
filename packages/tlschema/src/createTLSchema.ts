@@ -5,6 +5,7 @@ import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
 import { arrowBindingMigrations, arrowBindingProps } from './bindings/TLArrowBinding'
+import { textBindingMigrations, textBindingProps } from './bindings/TLTextBinding'
 import { AssetRecordType, assetMigrations } from './records/TLAsset'
 import { TLBinding, TLDefaultBinding, createBindingRecordType } from './records/TLBinding'
 import { CameraRecordType, cameraMigrations } from './records/TLCamera'
@@ -74,6 +75,7 @@ export const defaultShapeSchemas: { [T in TLDefaultShape['type']]: SchemaPropsIn
 /** @public */
 export const defaultBindingSchemas: { [T in TLDefaultBinding['type']]: SchemaPropsInfo } = {
 	arrow: { migrations: arrowBindingMigrations, props: arrowBindingProps },
+	text: { migrations: textBindingMigrations, props: textBindingProps },
 }
 
 /**

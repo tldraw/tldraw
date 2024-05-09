@@ -20,6 +20,12 @@ export {
 	createBindingValidator,
 	type TLBaseBinding,
 } from './bindings/TLBaseBinding'
+export {
+	textBindingMigrations,
+	textBindingProps,
+	type TLTextBinding,
+	type TLTextBindingProps,
+} from './bindings/TLTextBinding'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export {
 	createTLSchema,

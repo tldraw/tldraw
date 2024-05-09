@@ -1,5 +1,5 @@
-import { react, useQuickReactor, useValue } from '@tldraw/state'
-import { TLHandle, TLShapeId } from '@tldraw/tlschema'
+import { react, track, useQuickReactor, useValue } from '@tldraw/state'
+import { TLHandle, TLShapeId, TLTextBinding } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
@@ -166,6 +166,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<ShapeIndicators />
 					<HintedShapeIndicator />
 					<SnapIndicatorWrapper />
+					<TextLabelAlignmentIndicators />
 					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
@@ -245,6 +246,118 @@ function SnapIndicatorWrapper() {
 		</>
 	)
 }
+
+const TextLabelAlignmentIndicators = track(function TextLabelAlignmentIndicators() {
+	const editor = useEditor()
+	if (!editor.isIn('select.translating')) return null
+
+	const translatingShapes = editor.getSelectedShapes().filter((shape) => shape.type === 'text')
+	const bindingsToRender = translatingShapes.flatMap((shape) =>
+		editor.getBindingsFromShape<TLTextBinding>(shape.id, 'text')
+	)
+
+	return (
+		<svg className={classNames('tl-overlays__item')}>
+			{bindingsToRender.map((binding) => (
+				<TextBindingIndicator key={binding.id} binding={binding} />
+			))}
+		</svg>
+	)
+})
+
+const TextBindingIndicator = track(function TextBindingIndicator({
+	binding,
+}: {
+	binding: TLTextBinding
+}) {
+	const editor = useEditor()
+	const textShape = editor.getShape(binding.fromId)
+	const geoShape = editor.getShape(binding.toId)
+	if (!textShape || !geoShape) return null
+
+	const textShapeBounds = editor.getShapeGeometry(textShape).bounds
+	const geoShapeBounds = editor.getShapeGeometry(geoShape).bounds
+
+	const textShapeTransform = editor.getShapePageTransform(textShape.id)
+	const geoShapeTransform = editor.getShapePageTransform(geoShape.id)
+
+	const textShapeLeftEdgeCenter = editor.getPointInShapeSpace(
+		geoShape.id,
+		Mat.applyToPoint(textShapeTransform, new Vec(textShapeBounds.x, textShapeBounds.center.y))
+	)
+	const textShapeTopEdgeCenter = editor.getPointInShapeSpace(
+		geoShape.id,
+		Mat.applyToPoint(textShapeTransform, new Vec(textShapeBounds.center.x, textShapeBounds.y))
+	)
+	const textShapeRightEdgeCenter = editor.getPointInShapeSpace(
+		geoShape.id,
+		Mat.applyToPoint(textShapeTransform, new Vec(textShapeBounds.maxX, textShapeBounds.center.y))
+	)
+	const textShapeBottomEdgeCenter = editor.getPointInShapeSpace(
+		geoShape.id,
+		Mat.applyToPoint(textShapeTransform, new Vec(textShapeBounds.center.x, textShapeBounds.maxY))
+	)
+
+	const linesInGeoSpace = []
+	if (binding.props.x.type === 'center' || binding.props.x.edge === 'left') {
+		if (textShapeLeftEdgeCenter.x > geoShapeBounds.minX) {
+			linesInGeoSpace.push({
+				hardcore: binding.props.x.type === 'center',
+				start: textShapeLeftEdgeCenter,
+				end: new Vec(geoShapeBounds.minX, textShapeLeftEdgeCenter.y),
+			})
+		}
+	}
+	if (binding.props.x.type === 'center' || binding.props.x.edge === 'right') {
+		if (textShapeRightEdgeCenter.x < geoShapeBounds.maxX) {
+			linesInGeoSpace.push({
+				hardcore: binding.props.x.type === 'center',
+				start: textShapeRightEdgeCenter,
+				end: new Vec(geoShapeBounds.maxX, textShapeRightEdgeCenter.y),
+			})
+		}
+	}
+	if (binding.props.y.type === 'center' || binding.props.y.edge === 'top') {
+		if (textShapeTopEdgeCenter.y > geoShapeBounds.minY) {
+			linesInGeoSpace.push({
+				hardcore: binding.props.y.type === 'center',
+				start: textShapeTopEdgeCenter,
+				end: new Vec(textShapeTopEdgeCenter.x, geoShapeBounds.minY),
+			})
+		}
+	}
+	if (binding.props.y.type === 'center' || binding.props.y.edge === 'bottom') {
+		if (textShapeBottomEdgeCenter.y < geoShapeBounds.maxY) {
+			linesInGeoSpace.push({
+				hardcore: binding.props.y.type === 'center',
+				start: textShapeBottomEdgeCenter,
+				end: new Vec(textShapeBottomEdgeCenter.x, geoShapeBounds.maxY),
+			})
+		}
+	}
+
+	return (
+		<>
+			{linesInGeoSpace.map((l, i) => {
+				const start = Mat.applyToPoint(geoShapeTransform, l.start)
+				const end = Mat.applyToPoint(geoShapeTransform, l.end)
+				const hardcore = l.hardcore
+				return (
+					<line
+						key={i}
+						x1={start.x}
+						y1={start.y}
+						x2={end.x}
+						y2={end.y}
+						strokeWidth={1}
+						strokeDasharray={hardcore ? '0' : '4 2'}
+						stroke={hardcore ? 'red' : 'grey'}
+					/>
+				)
+			})}
+		</>
+	)
+})
 
 function HandlesWrapper() {
 	const editor = useEditor()

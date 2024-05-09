@@ -10,6 +10,7 @@ import { T } from '@tldraw/validate'
 import { nanoid } from 'nanoid'
 import { TLArrowBinding } from '../bindings/TLArrowBinding'
 import { TLBaseBinding, createBindingValidator } from '../bindings/TLBaseBinding'
+import { TLTextBinding } from '../bindings/TLTextBinding'
 import { SchemaPropsInfo } from '../createTLSchema'
 import { TLPropsMigrations } from '../recordsWithProps'
 
@@ -17,7 +18,7 @@ import { TLPropsMigrations } from '../recordsWithProps'
  * The default set of bindings that are available in the editor.
  *
  * @public */
-export type TLDefaultBinding = TLArrowBinding
+export type TLDefaultBinding = TLArrowBinding | TLTextBinding
 
 /**
  * A type for a binding that is available in the editor but whose type is
