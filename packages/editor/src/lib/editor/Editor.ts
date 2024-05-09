@@ -2,6 +2,7 @@ import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import {
 	ComputedCache,
 	RecordType,
+	StoreSideEffects,
 	StoreSnapshot,
 	UnknownRecord,
 	reverseRecordsDiff,
@@ -127,7 +128,6 @@ import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
-import { SideEffectManager } from './managers/SideEffectManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
@@ -300,8 +300,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Cleanup
 
-		const invalidParents = new Set<TLShapeId>()
-
 		const cleanupInstancePageState = (
 			prevPageState: TLInstancePageState,
 			shapesNoLongerInPage: Set<TLShapeId>
@@ -349,10 +347,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return nextPageState
 		}
 
-		this.sideEffects = new SideEffectManager(this)
+		this.sideEffects = this.store.sideEffects
 
+		const invalidParents = new Set<TLShapeId>()
+		let invalidBindingTypes = new Set<string>()
 		this.disposables.add(
-			this.sideEffects.registerBatchCompleteHandler(() => {
+			this.sideEffects.registerOperationCompleteHandler(() => {
 				for (const parentId of invalidParents) {
 					invalidParents.delete(parentId)
 					const parent = this.getShape(parentId)
@@ -366,6 +366,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
+				if (invalidBindingTypes.size) {
+					const t = invalidBindingTypes
+					invalidBindingTypes = new Set()
+					for (const type of t) {
+						const util = this.getBindingUtil(type)
+						util.onOperationComplete?.()
+					}
+				}
+
 				this.emit('update')
 			})
 		)
@@ -375,6 +384,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shape: {
 					afterChange: (shapeBefore, shapeAfter) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
+							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shapeAfter.id) {
 								this.getBindingUtil(binding).onAfterChangeFromShape?.({
 									binding,
@@ -398,6 +408,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 								if (!descendantShape) return
 
 								for (const binding of this.getBindingsInvolvingShape(descendantShape)) {
+									invalidBindingTypes.add(binding.type)
+
 									if (binding.fromId === descendantShape.id) {
 										this.getBindingUtil(binding).onAfterChangeFromShape?.({
 											binding,
@@ -451,6 +463,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const deleteBindingIds: TLBindingId[] = []
 						for (const binding of this.getBindingsInvolvingShape(shape)) {
+							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shape.id) {
 								this.getBindingUtil(binding).onBeforeDeleteFromShape?.({ binding, shape })
 								deleteBindingIds.push(binding.id)
@@ -481,6 +494,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						return binding
 					},
 					afterCreate: (binding) => {
+						invalidBindingTypes.add(binding.type)
 						this.getBindingUtil(binding).onAfterCreate?.({ binding })
 					},
 					beforeChange: (bindingBefore, bindingAfter) => {
@@ -492,12 +506,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 						return bindingAfter
 					},
 					afterChange: (bindingBefore, bindingAfter) => {
+						invalidBindingTypes.add(bindingAfter.type)
 						this.getBindingUtil(bindingAfter).onAfterChange?.({ bindingBefore, bindingAfter })
 					},
 					beforeDelete: (binding) => {
 						this.getBindingUtil(binding).onBeforeDelete?.({ binding })
 					},
 					afterDelete: (binding) => {
+						invalidBindingTypes.add(binding.type)
 						this.getBindingUtil(binding).onAfterDelete?.({ binding })
 					},
 				},
@@ -705,11 +721,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly scribbles: ScribbleManager
 
 	/**
-	 * A manager for side effects and correct state enforcement. See {@link SideEffectManager} for details.
+	 * A manager for side effects and correct state enforcement. See {@link @tldraw/store#StoreSideEffects} for details.
 	 *
 	 * @public
 	 */
-	readonly sideEffects: SideEffectManager<this>
+	readonly sideEffects: StoreSideEffects<TLRecord>
 
 	/**
 	 * The current HTML element containing the editor.

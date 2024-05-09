@@ -61,6 +61,8 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 */
 	abstract getDefaultProps(): Partial<Binding['props']>
 
+	onOperationComplete?(): void
+
 	// self lifecycle hooks
 	onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void
 	onAfterCreate?(options: BindingOnCreateOptions<Binding>): void

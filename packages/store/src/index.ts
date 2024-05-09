@@ -28,6 +28,16 @@ export type {
 	SerializedSchemaV2,
 	StoreSchemaOptions,
 } from './lib/StoreSchema'
+export {
+	StoreSideEffects,
+	type StoreAfterChangeHandler,
+	type StoreAfterCreateHandler,
+	type StoreAfterDeleteHandler,
+	type StoreBeforeChangeHandler,
+	type StoreBeforeCreateHandler,
+	type StoreBeforeDeleteHandler,
+	type StoreOperationCompleteHandler,
+} from './lib/StoreSideEffects'
 export { devFreeze } from './lib/devFreeze'
 export {
 	MigrationFailureReason,
