@@ -249,9 +249,13 @@ function SnapIndicatorWrapper() {
 
 const TextLabelAlignmentIndicators = track(function TextLabelAlignmentIndicators() {
 	const editor = useEditor()
-	if (!editor.isIn('select.translating')) return null
+	const isTranslating = editor.isIn('select.translating')
+	const isAddingText = editor.isIn('text.idle')
+	if (!isTranslating && !isAddingText) return null
 
-	const translatingShapes = editor.getSelectedShapes().filter((shape) => shape.type === 'text')
+	const translatingShapes = isAddingText
+		? editor.getCurrentPageShapes().filter((s) => s.meta.preview)
+		: editor.getSelectedShapes().filter((shape) => shape.type === 'text')
 	const bindingsToRender = translatingShapes.flatMap((shape) =>
 		editor.getBindingsFromShape<TLTextBinding>(shape.id, 'text')
 	)

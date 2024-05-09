@@ -88,6 +88,12 @@ export class TextBindingUtil extends BindingUtil<TLTextBinding> {
 										},
 						},
 					})
+
+					this.editor.updateShape({
+						id: binding.fromId,
+						type: 'text',
+						props: { textAlign: (wasRight && !overrideLeft) || overrideRight ? 'end' : 'start' },
+					})
 				} else {
 					this.editor.updateBinding({
 						...binding,
@@ -95,6 +101,11 @@ export class TextBindingUtil extends BindingUtil<TLTextBinding> {
 							...binding.props,
 							x: { type: 'center' },
 						},
+					})
+					this.editor.updateShape({
+						id: binding.fromId,
+						type: 'text',
+						props: { textAlign: 'middle' },
 					})
 				}
 				binding = this.editor.getBinding(binding.id) as TLTextBinding
