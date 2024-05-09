@@ -4,6 +4,8 @@ import {
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
+	TLImageAsset,
+	downsizeImage,
 	getHashForString,
 	uniqueId,
 } from 'tldraw'
@@ -15,11 +17,6 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 	const UPLOAD_URL = `${ASSET_UPLOADER_URL}/uploads`
 	const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
 	const url = `${UPLOAD_URL}/${objectName}`
-
-	await fetch(url, {
-		method: 'POST',
-		body: file,
-	})
 
 	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 
@@ -39,14 +36,60 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 		} else {
 			isAnimated = false
 		}
+
+		const scaleOneImage = await downsizeImage(file, size.w, size.h, {
+			type: file.type,
+			quality: 0.92,
+		})
+
+		await fetch(url, {
+			method: 'POST',
+			body: scaleOneImage,
+		})
+
+		const sources: TLImageAsset['props']['sources'] = [
+			{
+				scale: 1,
+				src: url,
+			},
+		]
+
+		// Always rescale the image
+		if (file.type === 'image/jpeg' || file.type === 'image/png') {
+			const scaleHalfImage = await downsizeImage(file, size.w / 2, size.h / 2, {
+				type: file.type,
+				quality: 0.92,
+			})
+			const scaleHalfUrl = `${url}-scale0.5`
+			await fetch(scaleHalfUrl, {
+				method: 'POST',
+				body: scaleHalfImage,
+			})
+			const scaleQuarterUrl = `${url}-scale0.25`
+			const scaleQuarterImage = await downsizeImage(file, size.w / 4, size.h / 4, {
+				type: file.type,
+				quality: 0.92,
+			})
+			await fetch(scaleQuarterUrl, {
+				method: 'POST',
+				body: scaleQuarterImage,
+			})
+
+			sources.push(
+				{
+					scale: 1 / 2,
+					src: scaleHalfUrl,
+				},
+				{
+					scale: 1 / 4,
+					src: scaleQuarterUrl,
+				}
+			)
+		}
+
 		props = {
 			name: file.name,
-			sources: [
-				{
-					scale: 1,
-					src: url,
-				},
-			],
+			sources,
 			w: size.w,
 			h: size.h,
 			mimeType: file.type,

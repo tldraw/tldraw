@@ -52,6 +52,7 @@ export default function HostedImagesExample() {
 							scale: 1,
 							src: url,
 						},
+						// More source sizes can be added here
 					],
 					w: size.w,
 					h: size.h,
