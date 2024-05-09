@@ -5,8 +5,8 @@ import {
 	TLFrameShape,
 	TLShapeId,
 	createShapeId,
-	getArrowBindings,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { DEFAULT_FRAME_PADDING, fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
 import { TestEditor } from './TestEditor'
 

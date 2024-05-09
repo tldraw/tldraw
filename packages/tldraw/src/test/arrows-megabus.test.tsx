@@ -1,4 +1,5 @@
-import { TLArrowShape, TLShapeId, Vec, createShapeId, getArrowBindings } from '@tldraw/editor'
+import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
+import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 

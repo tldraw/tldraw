@@ -12,7 +12,6 @@ import {
 	PageRecordType,
 	StyleProp,
 	StylePropValue,
-	TLArrowBinding,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
@@ -112,7 +111,6 @@ import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
-import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
 import { getIncrementedName } from '../utils/getIncrementedName'
@@ -135,10 +133,6 @@ import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
-import { TLArrowInfo } from './shapes/shared/arrow/arrow-types'
-import { getCurvedArrowInfo } from './shapes/shared/arrow/curved-arrow'
-import { getArrowBindings, getIsArrowStraight } from './shapes/shared/arrow/shared'
-import { getStraightArrowInfo } from './shapes/shared/arrow/straight-arrow'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -926,50 +920,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	batch(fn: () => void, opts?: TLHistoryBatchOptions): this {
 		this.history.batch(fn, opts)
 		return this
-	}
-
-	/* --------------------- Arrows --------------------- */
-	// todo: move these to tldraw or replace with a bindings API
-
-	/**
-	 * Get all arrows bound to a shape.
-	 *
-	 * @param shapeId - The id of the shape.
-	 *
-	 * @public
-	 */
-	getArrowsBoundTo(shapeId: TLShapeId) {
-		const ids = new Set(
-			this.getBindingsToShape<TLArrowBinding>(shapeId, 'arrow').map((b) => b.fromId)
-		)
-		return compact(Array.from(ids, (id) => this.getShape<TLArrowShape>(id)))
-	}
-
-	@computed
-	private getArrowInfoCache() {
-		return this.store.createComputedCache<TLArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
-			const bindings = getArrowBindings(this, shape)
-			return getIsArrowStraight(shape)
-				? getStraightArrowInfo(this, shape, bindings)
-				: getCurvedArrowInfo(this, shape, bindings)
-		})
-	}
-
-	/**
-	 * Get cached info about an arrow.
-	 *
-	 * @example
-	 * ```ts
-	 * const arrowInfo = editor.getArrowInfo(myArrow)
-	 * ```
-	 *
-	 * @param shape - The shape (or shape id) of the arrow to get the info for.
-	 *
-	 * @public
-	 */
-	getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined {
-		const id = typeof shape === 'string' ? shape : shape.id
-		return this.getArrowInfoCache().get(id)
 	}
 
 	/* --------------------- Errors --------------------- */
@@ -4885,13 +4835,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * A cache of children for each parent.
-	 *
-	 * @internal
-	 */
-	private _childIdsCache = new WeakMapCache<any[], TLShapeId[]>()
-
-	/**
 	 * Get an array of all the children of a shape.
 	 *
 	 * @example
@@ -4907,7 +4850,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const parentId = typeof parent === 'string' ? parent : parent.id
 		const ids = this._parentIdsToChildIds.get()[parentId]
 		if (!ids) return EMPTY_ARRAY
-		return this._childIdsCache.get(ids, () => ids)
+		return ids
 	}
 
 	/**

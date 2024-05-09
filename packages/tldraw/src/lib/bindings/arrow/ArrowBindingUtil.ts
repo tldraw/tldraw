@@ -17,12 +17,11 @@ import {
 	arrowBindingMigrations,
 	arrowBindingProps,
 	assert,
-	getArrowBindings,
 	getIndexAbove,
 	getIndexBetween,
 	intersectLineSegmentCircle,
-	removeArrowBinding,
 } from '@tldraw/editor'
+import { getArrowBindings, getArrowInfo, removeArrowBinding } from '../../shapes/arrow/shared'
 
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 	static override type = 'arrow'
@@ -178,7 +177,7 @@ function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {
 }
 
 function unbindArrowTerminal(editor: Editor, arrow: TLArrowShape, terminal: 'start' | 'end') {
-	const info = editor.getArrowInfo(arrow)!
+	const info = getArrowInfo(editor, arrow)!
 	if (!info) {
 		throw new Error('expected arrow info')
 	}

@@ -1,4 +1,5 @@
-import { TLArrowShape, createShapeId, getArrowBindings } from '@tldraw/editor'
+import { TLArrowShape, createShapeId } from '@tldraw/editor'
+import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

@@ -1,5 +1,4 @@
-import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema'
-import { VecLike } from '../../../../primitives/Vec'
+import { TLArrowShapeArrowheadStyle, VecLike } from '@tldraw/editor'
 import { TLArrowBindings } from './shared'
 
 /** @public */

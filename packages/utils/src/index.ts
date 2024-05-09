@@ -8,6 +8,7 @@ export {
 	partition,
 	rotateArray,
 } from './lib/array'
+export { WeakCache } from './lib/cache'
 export {
 	Result,
 	assert,
