@@ -24,6 +24,9 @@ export default function CustomShapeWithHandles() {
 				assetUrls={customAssetUrls}
 				components={components}
 				persistenceKey="custom-shape-with-handles"
+				onMount={(editor) => {
+					;(window as any).editor = editor
+				}}
 			/>
 		</div>
 	)

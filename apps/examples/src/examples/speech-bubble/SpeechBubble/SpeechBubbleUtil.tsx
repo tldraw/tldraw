@@ -18,6 +18,7 @@ import {
 	TEXT_PROPS,
 	TLBaseBinding,
 	TLBaseShape,
+	TLGeoShape,
 	TLHandle,
 	TLOnBeforeUpdateHandler,
 	TLOnHandleDragHandler,
@@ -143,7 +144,76 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return this.getGrowY(next, next.props.growY)
 	}
 
-	override onTranslateEnd = (initial: SpeechBubbleShape, next: SpeechBubbleShape) => {
+	override onTranslate = (initial: SpeechBubbleShape, current: SpeechBubbleShape) => {
+		const bindings = this.editor.getBindingsFromShape(current, 'speech-bubble')
+		const bindingExists = bindings.length > 0
+
+		if (bindingExists) {
+			const binding = bindings[0] as SpeechBubbleBinding
+
+			const anchor = binding.props.anchor
+			const toShape = this.editor.getShape(binding.toId) as TLGeoShape
+
+			const pageAnchor = {
+				x: lerp(toShape.x, toShape.x + toShape.props.w, anchor.x),
+				y: lerp(toShape.y, toShape.y + toShape.props.h, anchor.y),
+			}
+
+			const shapeSpaceAnchor = this.editor.getPointInShapeSpace(current, pageAnchor)
+
+			shapeSpaceAnchor.x = invLerp(0, current.props.w, shapeSpaceAnchor.x)
+			shapeSpaceAnchor.y = invLerp(0, this.getHeight(current), shapeSpaceAnchor.y)
+
+			const newShape = {
+				...current,
+				props: {
+					...current.props,
+					tail: {
+						x: shapeSpaceAnchor.x,
+						y: shapeSpaceAnchor.y,
+					},
+				},
+			}
+			const adjustedTailShape = this.getAdjustedTail(newShape)
+			const newTail = adjustedTailShape.props.tail
+
+			const pageTail = {
+				x: lerp(adjustedTailShape.x, adjustedTailShape.x + adjustedTailShape.props.w, newTail.x),
+				y: lerp(
+					adjustedTailShape.y,
+					adjustedTailShape.y + this.getHeight(adjustedTailShape),
+					newTail.y
+				),
+			}
+
+			// if the handle is out of the toShape, delete the bindings
+
+			if (
+				pageTail.x < toShape.x ||
+				pageTail.x > toShape.x + (toShape.props.w || 0) ||
+				pageTail.y < toShape.y ||
+				pageTail.y > toShape.y + toShape.props.h
+			) {
+				this.editor.deleteBindings(bindings)
+				return current
+			}
+
+			return {
+				...current,
+				props: {
+					...current.props,
+					tail: {
+						x: shapeSpaceAnchor.x,
+						y: shapeSpaceAnchor.y,
+					},
+				},
+			}
+		} else {
+			return current
+		}
+	}
+
+	override onTranslateEnd = (_initial: SpeechBubbleShape, next: SpeechBubbleShape) => {
 		const handle = this.getHandles(next)[0]
 		this.createOrUpdateBinding(next, handle)
 	}
@@ -168,7 +238,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
-
 		return (
 			<>
 				<svg className="tl-svg-container">
@@ -180,6 +249,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					/>
 				</svg>
 				<TextLabel
+					textWidth={shape.props.w}
 					id={id}
 					type={type}
 					font={font}
@@ -278,8 +348,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	}
 
 	createOrUpdateBinding = (speechBubble: SpeechBubbleShape, handle: TLHandle) => {
-		// todo: track handle position, not cursor position
-
 		const pageAnchor = this.editor
 			.getShapePageTransform(speechBubble)
 			.applyToPoint({ x: handle.x, y: handle.y })
@@ -374,33 +442,16 @@ export class SpeechBubbleBindingUtil extends BindingUtil<SpeechBubbleBinding> {
 	// when the shape we're stuck to changes, update the speechBubble's position
 	override onAfterChangeToShape({
 		binding,
-		shapeAfter,
 	}: BindingOnShapeChangeOptions<SpeechBubbleBinding>): void {
 		const speechBubble = this.editor.getShape<SpeechBubbleShape>(binding.fromId)!
 		const speechBubbleUtil = this.editor.getShapeUtil(speechBubble) as SpeechBubbleUtil
 
-		const shapeBounds = this.editor.getShapeGeometry(shapeAfter)!.bounds
-		const shapeAnchor = {
-			x: lerp(shapeBounds.minX, shapeBounds.maxX, binding.props.anchor.x),
-			y: lerp(shapeBounds.minY, shapeBounds.maxY, binding.props.anchor.y),
-		}
-		const pageAnchor = this.editor.getShapePageTransform(shapeAfter).applyToPoint(shapeAnchor)
+		const updatedTailSpeechBubble = speechBubbleUtil.onTranslate(speechBubble, speechBubble)
 
-		const speechBubbleParentAnchor = this.editor
-			.getShapeParentTransform(speechBubble)
-			.invert()
-			.applyToPoint(pageAnchor)
-		const tailOffsetX = speechBubble.props.w * speechBubble.props.tail.x
-		const tailOffsetY = speechBubbleUtil.getHeight(speechBubble) * speechBubble.props.tail.y
-		this.editor.updateShape({
-			id: speechBubble.id,
-			type: 'speech-bubble',
-			x: speechBubbleParentAnchor.x - tailOffsetX,
-			y: speechBubbleParentAnchor.y - tailOffsetY,
-		})
+		this.editor.updateShape(updatedTailSpeechBubble)
 	}
 
-	// when the thing we're stuck to is deleted, delete the speechBubble too
+	// when the thing we're stuck to is deleted, delete the binding too
 	override onBeforeDeleteToShape({
 		binding,
 	}: BindingOnShapeDeleteOptions<SpeechBubbleBinding>): void {
