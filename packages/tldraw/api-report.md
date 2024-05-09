@@ -55,7 +55,9 @@ import { SvgExportContext } from '@tldraw/editor';
 import { T } from '@tldraw/editor';
 import { TLAnyBindingUtilConstructor } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
+import { TLArrowBinding } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
+import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
 import { TLBaseEventInfo } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
@@ -815,6 +817,15 @@ export function GeoStylePickerSet({ styles }: {
     styles: ReadonlySharedStyleMap;
 }): JSX_2.Element | null;
 
+// @public (undocumented)
+export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
+
+// @public (undocumented)
+export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape, bindings: TLArrowBindings): {
+    end: Vec;
+    start: Vec;
+};
+
 // @public
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
@@ -1451,6 +1462,57 @@ export function TextStylePickerSet({ theme, styles, }: {
 
 // @public (undocumented)
 export function TextToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export interface TLArcInfo {
+    // (undocumented)
+    center: VecLike;
+    // (undocumented)
+    largeArcFlag: number;
+    // (undocumented)
+    length: number;
+    // (undocumented)
+    radius: number;
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    sweepFlag: number;
+}
+
+// @public (undocumented)
+export interface TLArrowBindings {
+    // (undocumented)
+    end: TLArrowBinding | undefined;
+    // (undocumented)
+    start: TLArrowBinding | undefined;
+}
+
+// @public (undocumented)
+export type TLArrowInfo = {
+    bindings: TLArrowBindings;
+    bodyArc: TLArcInfo;
+    end: TLArrowPoint;
+    handleArc: TLArcInfo;
+    isStraight: false;
+    isValid: boolean;
+    middle: VecLike;
+    start: TLArrowPoint;
+} | {
+    bindings: TLArrowBindings;
+    end: TLArrowPoint;
+    isStraight: true;
+    isValid: boolean;
+    length: number;
+    middle: VecLike;
+    start: TLArrowPoint;
+};
+
+// @public (undocumented)
+export type TLArrowPoint = {
+    arrowhead: TLArrowShapeArrowheadStyle;
+    handle: VecLike;
+    point: VecLike;
+};
 
 // @public (undocumented)
 export type TLComponents = Expand<TLEditorComponents & TLUiComponents>;

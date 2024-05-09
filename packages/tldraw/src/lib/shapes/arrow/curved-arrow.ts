@@ -1,15 +1,17 @@
-import { TLArrowShape } from '@tldraw/tlschema'
-import { Mat } from '../../../../primitives/Mat'
-import { Vec, VecLike } from '../../../../primitives/Vec'
-import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
 import {
+	Editor,
+	Mat,
 	PI,
 	PI2,
+	TLArrowShape,
+	Vec,
+	VecLike,
 	clockwiseAngleDist,
 	counterClockwiseAngleDist,
+	intersectCirclePolygon,
+	intersectCirclePolyline,
 	isSafeFloat,
-} from '../../../../primitives/utils'
-import type { Editor } from '../../../Editor'
+} from '@tldraw/editor'
 import { TLArcInfo, TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,

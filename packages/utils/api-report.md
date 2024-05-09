@@ -348,6 +348,12 @@ export function validateIndexKey(key: string): asserts key is IndexKey;
 export function warnDeprecatedGetter(name: string): void;
 
 // @public
+export class WeakCache<K extends object, V> {
+    get<P extends K>(item: P, cb: (item: P) => V): NonNullable<V>;
+    items: WeakMap<K, V>;
+}
+
+// @public
 export const ZERO_INDEX_KEY: IndexKey;
 
 // (No @packageDocumentation comment for this package)

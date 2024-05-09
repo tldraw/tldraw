@@ -9,7 +9,7 @@ export {
 	squashRecordDiffsMutable,
 	type RecordsDiff,
 } from './lib/RecordsDiff'
-export { Store } from './lib/Store'
+export { Store, createComputedCache } from './lib/Store'
 export type {
 	CollectionDiff,
 	ComputedCache,

@@ -12,7 +12,6 @@ import {
 	PageRecordType,
 	StyleProp,
 	StylePropValue,
-	TLArrowBinding,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
@@ -112,7 +111,6 @@ import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
-import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
 import { getIncrementedName } from '../utils/getIncrementedName'
@@ -120,6 +118,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { BindingUtil, TLBindingUtilConstructor } from './bindings/BindingUtil'
+import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
@@ -135,10 +134,6 @@ import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
-import { TLArrowInfo } from './shapes/shared/arrow/arrow-types'
-import { getCurvedArrowInfo } from './shapes/shared/arrow/curved-arrow'
-import { getArrowBindings, getIsArrowStraight } from './shapes/shared/arrow/shared'
-import { getStraightArrowInfo } from './shapes/shared/arrow/straight-arrow'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -385,19 +380,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.sideEffects.register({
 				shape: {
 					afterChange: (shapeBefore, shapeAfter) => {
-						for (const binding of this.getAllBindingsFromShape(shapeAfter)) {
-							this.getBindingUtil(binding).onAfterChangeFromShape?.({
-								binding,
-								shapeBefore,
-								shapeAfter,
-							})
-						}
-						for (const binding of this.getAllBindingsToShape(shapeAfter)) {
-							this.getBindingUtil(binding).onAfterChangeToShape?.({
-								binding,
-								shapeBefore,
-								shapeAfter,
-							})
+						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
+							if (binding.fromId === shapeAfter.id) {
+								this.getBindingUtil(binding).onAfterChangeFromShape?.({
+									binding,
+									shapeBefore,
+									shapeAfter,
+								})
+							}
+							if (binding.toId === shapeAfter.id) {
+								this.getBindingUtil(binding).onAfterChangeToShape?.({
+									binding,
+									shapeBefore,
+									shapeAfter,
+								})
+							}
 						}
 
 						// if the shape's parent changed and it has a binding, update the binding
@@ -406,19 +403,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 								const descendantShape = this.getShape(id)
 								if (!descendantShape) return
 
-								for (const binding of this.getAllBindingsFromShape(descendantShape)) {
-									this.getBindingUtil(binding).onAfterChangeFromShape?.({
-										binding,
-										shapeBefore: descendantShape,
-										shapeAfter: descendantShape,
-									})
-								}
-								for (const binding of this.getAllBindingsToShape(descendantShape)) {
-									this.getBindingUtil(binding).onAfterChangeToShape?.({
-										binding,
-										shapeBefore: descendantShape,
-										shapeAfter: descendantShape,
-									})
+								for (const binding of this.getBindingsInvolvingShape(descendantShape)) {
+									if (binding.fromId === descendantShape.id) {
+										this.getBindingUtil(binding).onAfterChangeFromShape?.({
+											binding,
+											shapeBefore: descendantShape,
+											shapeAfter: descendantShape,
+										})
+									}
+									if (binding.toId === descendantShape.id) {
+										this.getBindingUtil(binding).onAfterChangeToShape?.({
+											binding,
+											shapeBefore: descendantShape,
+											shapeAfter: descendantShape,
+										})
+									}
 								}
 							}
 							notifyBindingAncestryChange(shapeAfter.id)
@@ -457,13 +456,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						const deleteBindingIds: TLBindingId[] = []
-						for (const binding of this.getAllBindingsFromShape(shape)) {
-							this.getBindingUtil(binding).onBeforeDeleteFromShape?.({ binding, shape })
-							deleteBindingIds.push(binding.id)
-						}
-						for (const binding of this.getAllBindingsToShape(shape)) {
-							this.getBindingUtil(binding).onBeforeDeleteToShape?.({ binding, shape })
-							deleteBindingIds.push(binding.id)
+						for (const binding of this.getBindingsInvolvingShape(shape)) {
+							if (binding.fromId === shape.id) {
+								this.getBindingUtil(binding).onBeforeDeleteFromShape?.({ binding, shape })
+								deleteBindingIds.push(binding.id)
+							}
+							if (binding.toId === shape.id) {
+								this.getBindingUtil(binding).onBeforeDeleteToShape?.({ binding, shape })
+								deleteBindingIds.push(binding.id)
+							}
 						}
 						this.deleteBindings(deleteBindingIds)
 
@@ -935,50 +936,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	batch(fn: () => void, opts?: TLHistoryBatchOptions): this {
 		this.history.batch(fn, opts)
 		return this
-	}
-
-	/* --------------------- Arrows --------------------- */
-	// todo: move these to tldraw or replace with a bindings API
-
-	/**
-	 * Get all arrows bound to a shape.
-	 *
-	 * @param shapeId - The id of the shape.
-	 *
-	 * @public
-	 */
-	getArrowsBoundTo(shapeId: TLShapeId) {
-		const ids = new Set(
-			this.getBindingsToShape<TLArrowBinding>(shapeId, 'arrow').map((b) => b.fromId)
-		)
-		return compact(Array.from(ids, (id) => this.getShape<TLArrowShape>(id)))
-	}
-
-	@computed
-	private getArrowInfoCache() {
-		return this.store.createComputedCache<TLArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
-			const bindings = getArrowBindings(this, shape)
-			return getIsArrowStraight(shape)
-				? getStraightArrowInfo(this, shape, bindings)
-				: getCurvedArrowInfo(this, shape, bindings)
-		})
-	}
-
-	/**
-	 * Get cached info about an arrow.
-	 *
-	 * @example
-	 * ```ts
-	 * const arrowInfo = editor.getArrowInfo(myArrow)
-	 * ```
-	 *
-	 * @param shape - The shape (or shape id) of the arrow to get the info for.
-	 *
-	 * @public
-	 */
-	getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined {
-		const id = typeof shape === 'string' ? shape : shape.id
-		return this.getArrowInfoCache().get(id)
 	}
 
 	/* --------------------- Errors --------------------- */
@@ -4894,13 +4851,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * A cache of children for each parent.
-	 *
-	 * @internal
-	 */
-	private _childIdsCache = new WeakMapCache<any[], TLShapeId[]>()
-
-	/**
 	 * Get an array of all the children of a shape.
 	 *
 	 * @example
@@ -4916,7 +4866,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const parentId = typeof parent === 'string' ? parent : parent.id
 		const ids = this._parentIdsToChildIds.get()[parentId]
 		if (!ids) return EMPTY_ARRAY
-		return this._childIdsCache.get(ids, () => ids)
+		return ids
 	}
 
 	/**
@@ -5048,42 +4998,44 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* -------------------- Bindings -------------------- */
 
+	@computed
+	private _getBindingsIndexCache() {
+		const index = bindingsIndex(this)
+		return this.store.createComputedCache<TLBinding[], TLShape>('bindingsIndex', (shape) => {
+			return index.get().get(shape.id)
+		})
+	}
+
 	getBinding(id: TLBindingId): TLBinding | undefined {
 		return this.store.get(id) as TLBinding | undefined
 	}
 
-	// TODO(alex) #bindings - cache `allBindings` getters and derive type-specific ones from them
 	getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
 	): Binding[] {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this.store.query.exec('binding', {
-			fromId: { eq: id },
-			type: { eq: type },
-		}) as Binding[]
+		return this.getBindingsInvolvingShape(id).filter(
+			(b) => b.fromId === id && b.type === type
+		) as Binding[]
 	}
 	getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
 	): Binding[] {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this.store.query.exec('binding', {
-			toId: { eq: id },
-			type: { eq: type },
-		}) as Binding[]
+		return this.getBindingsInvolvingShape(id).filter(
+			(b) => b.toId === id && b.type === type
+		) as Binding[]
 	}
-	getAllBindingsFromShape(shape: TLShape | TLShapeId): TLBinding[] {
+	getBindingsInvolvingShape<Binding extends TLUnknownBinding = TLBinding>(
+		shape: TLShape | TLShapeId,
+		type?: Binding['type']
+	): Binding[] {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this.store.query.exec('binding', {
-			fromId: { eq: id },
-		})
-	}
-	getAllBindingsToShape(shape: TLShape | TLShapeId): TLBinding[] {
-		const id = typeof shape === 'string' ? shape : shape.id
-		return this.store.query.exec('binding', {
-			toId: { eq: id },
-		})
+		const result = this._getBindingsIndexCache().get(id) ?? EMPTY_ARRAY
+		if (!type) return result as Binding[]
+		return result.filter((b) => b.type === type) as Binding[]
 	}
 
 	createBindings(partials: RequiredKeys<TLBindingPartial, 'type' | 'toId' | 'fromId'>[]) {
@@ -8775,21 +8727,18 @@ function withoutBindingsToUnrelatedShapes<T>(
 		const shape = editor.getShape(shapeId)
 		if (!shape) continue
 
-		for (const binding of editor.getAllBindingsFromShape(shapeId)) {
-			if (shapeIds.has(binding.toId)) {
-				// if we have both sides of the binding, we want to recreate it
+		for (const binding of editor.getBindingsInvolvingShape(shapeId)) {
+			const hasFrom = shapeIds.has(binding.fromId)
+			const hasTo = shapeIds.has(binding.toId)
+			if (hasFrom && hasTo) {
 				bindingsWithBoth.add(binding.id)
-			} else {
-				// otherwise, if we only have one side, we need to record that and duplicate
-				// the shape as if the one it's bound to has been deleted
-				bindingsWithoutTo.add(binding.id)
+				continue
 			}
-		}
-		for (const binding of editor.getAllBindingsToShape(shapeId)) {
-			if (shapeIds.has(binding.fromId)) {
-				bindingsWithBoth.add(binding.id)
-			} else {
+			if (!hasFrom) {
 				bindingsWithoutFrom.add(binding.id)
+			}
+			if (!hasTo) {
+				bindingsWithoutTo.add(binding.id)
 			}
 		}
 	}

@@ -9,8 +9,8 @@ import {
 	TLShapePartial,
 	Vec,
 	createShapeId,
-	getArrowBindings,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 

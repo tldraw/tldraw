@@ -7,8 +7,8 @@ import {
 	TLNoteShape,
 	TLPointerEventInfo,
 	Vec,
-	getArrowBindings,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	NOTE_CENTER_OFFSET,
 	getNoteAdjacentPositions,
