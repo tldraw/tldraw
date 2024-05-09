@@ -23,6 +23,7 @@ export default function CustomShapeWithHandles() {
 				overrides={uiOverrides}
 				assetUrls={customAssetUrls}
 				components={components}
+				persistenceKey="custom-shape-with-handles"
 			/>
 		</div>
 	)

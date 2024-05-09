@@ -103,6 +103,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			points: speechBubbleGeometry,
 			isFilled: true,
 		})
+
 		return body
 	}
 
@@ -124,46 +125,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (speechBubble, { handle }) => {
-		const pageAnchor = this.editor.getShapePageTransform(speechBubble).applyToPoint({ x: 0, y: 0 })
-		const target = this.editor.getShapeAtPoint(pageAnchor, {
-			hitInside: true,
-			filter: (shape) => shape.id !== speechBubble.id,
-		})
-
-		if (target) {
-			console.log('target', target)
-			const targetBounds = Box.ZeroFix(this.editor.getShapeGeometry(target)!.bounds)
-			const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pageAnchor)
-
-			const anchor = {
-				x: invLerp(targetBounds.minX, targetBounds.maxX, pointInTargetSpace.x),
-				y: invLerp(targetBounds.minY, targetBounds.maxY, pointInTargetSpace.y),
-			}
-			const bindings = this.editor.getBindingsFromShape(speechBubble, 'speech-bubble')
-			if (bindings.length === 0) {
-				this.editor.createBinding({
-					type: 'speech-bubble',
-					fromId: speechBubble.id,
-					toId: target.id,
-					props: {
-						anchor,
-					},
-				})
-			} else {
-				this.editor.updateBinding({
-					...bindings[0],
-					props: {
-						anchor,
-					},
-				})
-			}
-		} else {
-			console.log('no target')
-			const bindings = this.editor.getBindingsFromShape(speechBubble, 'speech-bubble')
-			console.log('bindings', bindings)
-			this.editor.deleteBindings(bindings)
-		}
-
+		this.createOrUpdateBinding(speechBubble, handle)
 		return {
 			...speechBubble,
 			props: {
@@ -177,6 +139,11 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	override onBeforeCreate = (next: SpeechBubbleShape) => {
 		return this.getGrowY(next, next.props.growY)
+	}
+
+	override onTranslateEnd = (initial: SpeechBubbleShape, next: SpeechBubbleShape) => {
+		const handle = this.getHandles(next)[0]
+		this.createOrUpdateBinding(next, handle)
 	}
 
 	// [5]
@@ -303,6 +270,51 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			},
 		}
 	}
+
+	createOrUpdateBinding = (speechBubble: SpeechBubbleShape, handle: TLHandle) => {
+		// todo: track handle position, not cursor position
+
+		const pageAnchor = this.editor
+			.getShapePageTransform(speechBubble)
+			.applyToPoint({ x: handle.x, y: handle.y })
+		const target = this.editor.getShapeAtPoint(pageAnchor, {
+			hitInside: true,
+			filter: (shape) => shape.id !== speechBubble.id,
+		})
+
+		if (target) {
+			const targetBounds = Box.ZeroFix(this.editor.getShapeGeometry(target)!.bounds)
+			const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pageAnchor)
+
+			const anchor = {
+				x: invLerp(targetBounds.minX, targetBounds.maxX, pointInTargetSpace.x),
+				y: invLerp(targetBounds.minY, targetBounds.maxY, pointInTargetSpace.y),
+			}
+
+			const bindings = this.editor.getBindingsFromShape(speechBubble, 'speech-bubble')
+			const bindingExists = bindings.length > 0
+			if (bindingExists) {
+				this.editor.updateBinding({
+					...bindings[0],
+					props: {
+						anchor,
+					},
+				})
+			} else {
+				this.editor.createBinding({
+					type: 'speech-bubble',
+					fromId: speechBubble.id,
+					toId: target.id,
+					props: {
+						anchor,
+					},
+				})
+			}
+		} else {
+			const bindings = this.editor.getBindingsFromShape(speechBubble, 'speech-bubble')
+			this.editor.deleteBindings(bindings)
+		}
+	}
 }
 
 /*
@@ -359,6 +371,7 @@ export class SpeechBubbleBindingUtil extends BindingUtil<SpeechBubbleBinding> {
 		shapeAfter,
 	}: BindingOnShapeChangeOptions<SpeechBubbleBinding>): void {
 		const speechBubble = this.editor.getShape<SpeechBubbleShape>(binding.fromId)!
+		const speechBubbleUtil = this.editor.getShapeUtil(speechBubble) as SpeechBubbleUtil
 
 		const shapeBounds = this.editor.getShapeGeometry(shapeAfter)!.bounds
 		const shapeAnchor = {
@@ -371,12 +384,13 @@ export class SpeechBubbleBindingUtil extends BindingUtil<SpeechBubbleBinding> {
 			.getShapeParentTransform(speechBubble)
 			.invert()
 			.applyToPoint(pageAnchor)
-
+		const tailOffsetX = speechBubble.props.w * speechBubble.props.tail.x
+		const tailOffsetY = speechBubbleUtil.getHeight(speechBubble) * speechBubble.props.tail.y
 		this.editor.updateShape({
 			id: speechBubble.id,
 			type: 'speech-bubble',
-			x: speechBubbleParentAnchor.x,
-			y: speechBubbleParentAnchor.y,
+			x: speechBubbleParentAnchor.x - tailOffsetX,
+			y: speechBubbleParentAnchor.y - tailOffsetY,
 		})
 	}
 
