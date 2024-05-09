@@ -125,7 +125,9 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	}
 
 	override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (speechBubble, { handle }) => {
-		this.createOrUpdateBinding(speechBubble, handle)
+		const adjustedTailShape = this.getAdjustedTail(speechBubble)
+		const bindingHandle = this.getHandles(adjustedTailShape)[0]
+		this.createOrUpdateBinding(speechBubble, bindingHandle)
 		return {
 			...speechBubble,
 			props: {
@@ -151,37 +153,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		prev: SpeechBubbleShape,
 		shape: SpeechBubbleShape
 	) => {
-		const { w, tail } = shape.props
-		const fullHeight = this.getHeight(shape)
-
-		const { segmentsIntersection, insideShape } = getTailIntersectionPoint(shape)
-
-		const slantedLength = Math.hypot(w, fullHeight)
-		const MIN_DISTANCE = slantedLength / 5
-		const MAX_DISTANCE = slantedLength / 1.5
-
-		const tailInShapeSpace = new Vec(tail.x * w, tail.y * fullHeight)
-
-		const distanceToIntersection = tailInShapeSpace.dist(segmentsIntersection)
-		const center = new Vec(w / 2, fullHeight / 2)
-		const tailDirection = Vec.Sub(tailInShapeSpace, center).uni()
-
-		let newPoint = tailInShapeSpace
-
-		if (insideShape) {
-			newPoint = Vec.Add(segmentsIntersection, tailDirection.mul(MIN_DISTANCE))
-		} else {
-			if (distanceToIntersection <= MIN_DISTANCE) {
-				newPoint = Vec.Add(segmentsIntersection, tailDirection.mul(MIN_DISTANCE))
-			} else if (distanceToIntersection >= MAX_DISTANCE) {
-				newPoint = Vec.Add(segmentsIntersection, tailDirection.mul(MAX_DISTANCE))
-			}
-		}
-
-		const next = structuredClone(shape)
-		next.props.tail.x = newPoint.x / w
-		next.props.tail.y = newPoint.y / fullHeight
-
+		const next = this.getAdjustedTail(shape)
 		return this.getGrowY(next, prev.props.growY)
 	}
 
@@ -269,6 +241,40 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 				growY,
 			},
 		}
+	}
+
+	getAdjustedTail(shape: SpeechBubbleShape) {
+		const { w, tail } = shape.props
+		const fullHeight = this.getHeight(shape)
+
+		const { segmentsIntersection, insideShape } = getTailIntersectionPoint(shape)
+
+		const slantedLength = Math.hypot(w, fullHeight)
+		const MIN_DISTANCE = slantedLength / 5
+		const MAX_DISTANCE = slantedLength / 1.5
+
+		const tailInShapeSpace = new Vec(tail.x * w, tail.y * fullHeight)
+
+		const distanceToIntersection = tailInShapeSpace.dist(segmentsIntersection)
+		const center = new Vec(w / 2, fullHeight / 2)
+		const tailDirection = Vec.Sub(tailInShapeSpace, center).uni()
+
+		let newPoint = tailInShapeSpace
+
+		if (insideShape) {
+			newPoint = Vec.Add(segmentsIntersection, tailDirection.mul(MIN_DISTANCE))
+		} else {
+			if (distanceToIntersection <= MIN_DISTANCE) {
+				newPoint = Vec.Add(segmentsIntersection, tailDirection.mul(MIN_DISTANCE))
+			} else if (distanceToIntersection >= MAX_DISTANCE) {
+				newPoint = Vec.Add(segmentsIntersection, tailDirection.mul(MAX_DISTANCE))
+			}
+		}
+
+		const next = structuredClone(shape)
+		next.props.tail.x = newPoint.x / w
+		next.props.tail.y = newPoint.y / fullHeight
+		return next
 	}
 
 	createOrUpdateBinding = (speechBubble: SpeechBubbleShape, handle: TLHandle) => {
@@ -399,6 +405,6 @@ export class SpeechBubbleBindingUtil extends BindingUtil<SpeechBubbleBinding> {
 		binding,
 	}: BindingOnShapeDeleteOptions<SpeechBubbleBinding>): void {
 		const speechBubble = this.editor.getShape<SpeechBubbleShape>(binding.fromId)
-		if (speechBubble) this.editor.deleteShape(speechBubble.id)
+		if (speechBubble) this.editor.deleteBinding(binding.id)
 	}
 }
