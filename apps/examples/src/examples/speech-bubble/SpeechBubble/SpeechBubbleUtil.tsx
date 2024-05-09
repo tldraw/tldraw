@@ -144,75 +144,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return this.getGrowY(next, next.props.growY)
 	}
 
-	override onTranslate = (initial: SpeechBubbleShape, current: SpeechBubbleShape) => {
-		const bindings = this.editor.getBindingsFromShape(current, 'speech-bubble')
-		const bindingExists = bindings.length > 0
-
-		if (bindingExists) {
-			const binding = bindings[0] as SpeechBubbleBinding
-
-			const anchor = binding.props.anchor
-			const toShape = this.editor.getShape(binding.toId) as TLGeoShape
-
-			const pageAnchor = {
-				x: lerp(toShape.x, toShape.x + toShape.props.w, anchor.x),
-				y: lerp(toShape.y, toShape.y + toShape.props.h, anchor.y),
-			}
-
-			const shapeSpaceAnchor = this.editor.getPointInShapeSpace(current, pageAnchor)
-
-			shapeSpaceAnchor.x = invLerp(0, current.props.w, shapeSpaceAnchor.x)
-			shapeSpaceAnchor.y = invLerp(0, this.getHeight(current), shapeSpaceAnchor.y)
-
-			const newShape = {
-				...current,
-				props: {
-					...current.props,
-					tail: {
-						x: shapeSpaceAnchor.x,
-						y: shapeSpaceAnchor.y,
-					},
-				},
-			}
-			const adjustedTailShape = this.getAdjustedTail(newShape)
-			const newTail = adjustedTailShape.props.tail
-
-			const pageTail = {
-				x: lerp(adjustedTailShape.x, adjustedTailShape.x + adjustedTailShape.props.w, newTail.x),
-				y: lerp(
-					adjustedTailShape.y,
-					adjustedTailShape.y + this.getHeight(adjustedTailShape),
-					newTail.y
-				),
-			}
-
-			// if the handle is out of the toShape, delete the bindings
-
-			if (
-				pageTail.x < toShape.x ||
-				pageTail.x > toShape.x + (toShape.props.w || 0) ||
-				pageTail.y < toShape.y ||
-				pageTail.y > toShape.y + toShape.props.h
-			) {
-				this.editor.deleteBindings(bindings)
-				return current
-			}
-
-			return {
-				...current,
-				props: {
-					...current.props,
-					tail: {
-						x: shapeSpaceAnchor.x,
-						y: shapeSpaceAnchor.y,
-					},
-				},
-			}
-		} else {
-			return current
-		}
-	}
-
 	override onTranslateEnd = (_initial: SpeechBubbleShape, next: SpeechBubbleShape) => {
 		const handle = this.getHandles(next)[0]
 		this.createOrUpdateBinding(next, handle)
@@ -314,10 +245,40 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	}
 
 	getAdjustedTail(shape: SpeechBubbleShape) {
-		const { w, tail } = shape.props
-		const fullHeight = this.getHeight(shape)
+		// Do we have a binding? If so, let's try to preserve it
+		let next = structuredClone(shape)
+		const bindings = this.editor.getBindingsFromShape(shape, 'speech-bubble')
+		const draggingHandle = this.editor.isIn('select.dragging_handle')
+		if (bindings.length > 0 && !draggingHandle) {
+			const binding = bindings[0] as SpeechBubbleBinding
+			const anchor = binding.props.anchor
+			const toShape = this.editor.getShape(binding.toId) as TLGeoShape
 
-		const { segmentsIntersection, insideShape } = getTailIntersectionPoint(shape)
+			const pageAnchor = {
+				x: lerp(toShape.x, toShape.x + toShape.props.w, anchor.x),
+				y: lerp(toShape.y, toShape.y + toShape.props.h, anchor.y),
+			}
+
+			const shapeSpaceAnchor = this.editor.getPointInShapeSpace(shape, pageAnchor)
+
+			shapeSpaceAnchor.x = invLerp(0, shape.props.w, shapeSpaceAnchor.x)
+			shapeSpaceAnchor.y = invLerp(0, this.getHeight(shape), shapeSpaceAnchor.y)
+
+			next = {
+				...shape,
+				props: {
+					...shape.props,
+					tail: {
+						x: shapeSpaceAnchor.x,
+						y: shapeSpaceAnchor.y,
+					},
+				},
+			}
+		}
+		const { w, tail } = next.props
+		const fullHeight = this.getHeight(next)
+
+		const { segmentsIntersection, insideShape } = getTailIntersectionPoint(next)
 
 		const slantedLength = Math.hypot(w, fullHeight)
 		const MIN_DISTANCE = slantedLength / 5
@@ -341,9 +302,25 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			}
 		}
 
-		const next = structuredClone(shape)
 		next.props.tail.x = newPoint.x / w
 		next.props.tail.y = newPoint.y / fullHeight
+		if (bindings.length > 0 && !draggingHandle) {
+			const binding = bindings[0] as SpeechBubbleBinding
+			const toShape = this.editor.getShape(binding.toId) as TLGeoShape
+			const pageTail = {
+				x: lerp(next.x, next.x + next.props.w, next.props.tail.x),
+				y: lerp(next.y, next.y + this.getHeight(next), next.props.tail.y),
+			}
+			if (
+				pageTail.x < toShape.x ||
+				pageTail.x > toShape.x + (toShape.props.w || 0) ||
+				pageTail.y < toShape.y ||
+				pageTail.y > toShape.y + toShape.props.h
+			) {
+				this.editor.deleteBindings([binding])
+			}
+		}
+
 		return next
 	}
 
@@ -446,7 +423,7 @@ export class SpeechBubbleBindingUtil extends BindingUtil<SpeechBubbleBinding> {
 		const speechBubble = this.editor.getShape<SpeechBubbleShape>(binding.fromId)!
 		const speechBubbleUtil = this.editor.getShapeUtil(speechBubble) as SpeechBubbleUtil
 
-		const updatedTailSpeechBubble = speechBubbleUtil.onTranslate(speechBubble, speechBubble)
+		const updatedTailSpeechBubble = speechBubbleUtil.getAdjustedTail(speechBubble)
 
 		this.editor.updateShape(updatedTailSpeechBubble)
 	}
