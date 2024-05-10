@@ -2,7 +2,8 @@ import {
 	BindingOnChangeOptions,
 	BindingOnCreateOptions,
 	BindingOnShapeChangeOptions,
-	BindingOnShapeDeleteOptions,
+	BindingOnUnbindOptions,
+	BindingUnbindReason,
 	BindingUtil,
 	Editor,
 	Mat,
@@ -48,8 +49,9 @@ export class TextBindingUtil extends BindingUtil<TLTextBinding> {
 		binding,
 	}: BindingOnShapeChangeOptions<TLTextBinding>): void {
 		if (
-			!this.editor.isIn('select.translating') ||
-			!this.editor.getSelectedShapeIds().includes(shapeAfter.id)
+			!this.editor.isIn('text.idle') &&
+			(!this.editor.isIn('select.translating') ||
+				!this.editor.getSelectedShapeIds().includes(shapeAfter.id))
 		)
 			return
 		const edgeSlop = 25
@@ -158,10 +160,10 @@ export class TextBindingUtil extends BindingUtil<TLTextBinding> {
 	}
 
 	// when the shape the text is pointing to is deleted
-	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<TLTextBinding>): void {
-		const text = this.editor.getShape<TLTextShape>(binding.fromId)
-		if (!text) return
-		this.editor.deleteShape(text.id)
+	override onBeforeUnbind({ binding, reason }: BindingOnUnbindOptions<TLTextBinding>): void {
+		if (reason === BindingUnbindReason.DeletingToShape) {
+			this.editor.deleteShape(binding.fromId)
+		}
 	}
 }
 

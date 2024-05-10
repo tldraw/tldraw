@@ -350,13 +350,13 @@ const TextBindingIndicator = track(function TextBindingIndicator({
 				start: textShapeRightEdgeCenter,
 				end: new Vec(geoShapeBounds.maxX, textShapeRightEdgeCenter.y),
 			})
-		}
-		if (xIsRight) {
-			linesInGeoSpace.push({
-				hardcore: false,
-				start: Vec.Add(textShapeRightEdgeCenter, { x: 0, y: -hEdgeHeight / 2 }),
-				end: Vec.Add(textShapeRightEdgeCenter, { x: 0, y: hEdgeHeight / 2 }),
-			})
+			if (xIsRight) {
+				linesInGeoSpace.push({
+					hardcore: false,
+					start: Vec.Add(textShapeRightEdgeCenter, { x: 0, y: -hEdgeHeight / 2 }),
+					end: Vec.Add(textShapeRightEdgeCenter, { x: 0, y: hEdgeHeight / 2 }),
+				})
+			}
 		}
 	}
 	if (yIsCenter || yIsTop) {
@@ -366,14 +366,14 @@ const TextBindingIndicator = track(function TextBindingIndicator({
 				start: textShapeTopEdgeCenter,
 				end: new Vec(textShapeTopEdgeCenter.x, geoShapeBounds.minY),
 			})
-		}
 
-		if (yIsTop) {
-			linesInGeoSpace.push({
-				hardcore: false,
-				start: Vec.Add(textShapeTopEdgeCenter, { x: -vEdgeWidth / 2, y: 0 }),
-				end: Vec.Add(textShapeTopEdgeCenter, { x: vEdgeWidth / 2, y: 0 }),
-			})
+			if (yIsTop) {
+				linesInGeoSpace.push({
+					hardcore: false,
+					start: Vec.Add(textShapeTopEdgeCenter, { x: -vEdgeWidth / 2, y: 0 }),
+					end: Vec.Add(textShapeTopEdgeCenter, { x: vEdgeWidth / 2, y: 0 }),
+				})
+			}
 		}
 	}
 	if (yIsCenter || yIsBottom) {
@@ -383,14 +383,14 @@ const TextBindingIndicator = track(function TextBindingIndicator({
 				start: textShapeBottomEdgeCenter,
 				end: new Vec(textShapeBottomEdgeCenter.x, geoShapeBounds.maxY),
 			})
-		}
 
-		if (yIsBottom) {
-			linesInGeoSpace.push({
-				hardcore: false,
-				start: Vec.Add(textShapeBottomEdgeCenter, { x: -vEdgeWidth / 2, y: 0 }),
-				end: Vec.Add(textShapeBottomEdgeCenter, { x: vEdgeWidth / 2, y: 0 }),
-			})
+			if (yIsBottom) {
+				linesInGeoSpace.push({
+					hardcore: false,
+					start: Vec.Add(textShapeBottomEdgeCenter, { x: -vEdgeWidth / 2, y: 0 }),
+					end: Vec.Add(textShapeBottomEdgeCenter, { x: vEdgeWidth / 2, y: 0 }),
+				})
+			}
 		}
 	}
 
