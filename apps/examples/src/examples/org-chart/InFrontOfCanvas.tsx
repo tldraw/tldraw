@@ -97,6 +97,7 @@ function ExtendButton({ screenBounds, pageBounds, position, shape }: ButtonProps
 				display: 'flex',
 				alignItems: 'center',
 				justifyContent: 'center',
+				boxShadow: 'var(--shadow-1)',
 				borderRadius: 3,
 			}}
 		>
