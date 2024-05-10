@@ -3,24 +3,26 @@
  * Copyright (c) Philip van Heemstra
  */
 
-export function isApng(buffer: Uint8Array): boolean {
+export function isApngAnimated(buffer: ArrayBuffer): boolean {
+	const view = new Uint8Array(buffer)
+
 	if (
-		!buffer ||
-		!((typeof Buffer !== 'undefined' && Buffer.isBuffer(buffer)) || buffer instanceof Uint8Array) ||
-		buffer.length < 16
+		!view ||
+		!((typeof Buffer !== 'undefined' && Buffer.isBuffer(view)) || view instanceof Uint8Array) ||
+		view.length < 16
 	) {
 		return false
 	}
 
 	const isPNG =
-		buffer[0] === 0x89 &&
-		buffer[1] === 0x50 &&
-		buffer[2] === 0x4e &&
-		buffer[3] === 0x47 &&
-		buffer[4] === 0x0d &&
-		buffer[5] === 0x0a &&
-		buffer[6] === 0x1a &&
-		buffer[7] === 0x0a
+		view[0] === 0x89 &&
+		view[1] === 0x50 &&
+		view[2] === 0x4e &&
+		view[3] === 0x47 &&
+		view[4] === 0x0d &&
+		view[5] === 0x0a &&
+		view[6] === 0x1a &&
+		view[7] === 0x0a
 
 	if (!isPNG) {
 		return false
@@ -125,10 +127,9 @@ export function isApng(buffer: Uint8Array): boolean {
 
 	// APNGs have an animation control chunk ('acTL') preceding the IDATs.
 	// See: https://en.wikipedia.org/wiki/APNG#File_format
-	const arr = new Uint8Array(buffer)
-	const idatIdx = indexOfSubstring(arr, 'IDAT', 12)
+	const idatIdx = indexOfSubstring(view, 'IDAT', 12)
 	if (idatIdx >= 12) {
-		const actlIdx = indexOfSubstring(arr, 'acTL', 8, idatIdx)
+		const actlIdx = indexOfSubstring(view, 'acTL', 8, idatIdx)
 		return actlIdx >= 8
 	}
 

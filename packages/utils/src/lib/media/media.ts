@@ -1,7 +1,8 @@
-import { isApng } from './apng'
+import { isApngAnimated } from './apng'
 import { isAvifAnimated } from './avif'
 import { isGifAnimated } from './gif'
 import { PngHelpers } from './png'
+import { isWebpAnimated } from './webp'
 
 /** @public */
 export const DEFAULT_SUPPORTED_VECTOR_IMAGE_TYPES = Object.freeze(['image/svg+xml'])
@@ -130,8 +131,12 @@ export class MediaHelpers {
 			return isAvifAnimated(await file.arrayBuffer())
 		}
 
+		if (file.type === 'image/webp') {
+			return isWebpAnimated(await file.arrayBuffer())
+		}
+
 		if (file.type === 'image/apng') {
-			return isApng(new Uint8Array(await file.arrayBuffer()))
+			return isApngAnimated(await file.arrayBuffer())
 		}
 
 		return false
