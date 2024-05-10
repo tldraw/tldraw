@@ -82,7 +82,7 @@ export function registerDefaultExternalContentHandlers(
 		}
 
 		// Always rescale the image
-		if (MediaHelpers.isStaticImageType(file.type)) {
+		if (!isAnimated && MediaHelpers.isStaticImageType(file.type)) {
 			file = await downsizeImage(file, size.w, size.h, {
 				type: file.type,
 				quality: 0.92,
