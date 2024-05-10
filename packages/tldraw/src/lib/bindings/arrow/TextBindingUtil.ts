@@ -47,6 +47,11 @@ export class TextBindingUtil extends BindingUtil<TLTextBinding> {
 		shapeAfter,
 		binding,
 	}: BindingOnShapeChangeOptions<TLTextBinding>): void {
+		if (
+			!this.editor.isIn('select.translating') ||
+			!this.editor.getSelectedShapeIds().includes(shapeAfter.id)
+		)
+			return
 		const edgeSlop = 25
 		if (shapeBefore.x !== shapeAfter.x || shapeBefore.y !== shapeAfter.y) {
 			const textShapeTransform = this.editor.getShapePageTransform(shapeAfter)
