@@ -1,5 +1,5 @@
 import { react, track, useQuickReactor, useValue } from '@tldraw/state'
-import { TLHandle, TLShapeId, TLTextBinding } from '@tldraw/tlschema'
+import { TLHandle, TLShapeId, TLTextBinding, TLTextShape } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
@@ -274,8 +274,10 @@ const TextBindingIndicator = track(function TextBindingIndicator({
 }: {
 	binding: TLTextBinding
 }) {
+	const hPadding = 6
+	const vPadding = 3
 	const editor = useEditor()
-	const textShape = editor.getShape(binding.fromId)
+	const textShape = editor.getShape(binding.fromId) as TLTextShape | undefined
 	const geoShape = editor.getShape(binding.toId)
 	if (!textShape || !geoShape) return null
 
@@ -287,55 +289,107 @@ const TextBindingIndicator = track(function TextBindingIndicator({
 
 	const textShapeLeftEdgeCenter = editor.getPointInShapeSpace(
 		geoShape.id,
-		Mat.applyToPoint(textShapeTransform, new Vec(textShapeBounds.x, textShapeBounds.center.y))
+		Mat.applyToPoint(
+			textShapeTransform,
+			new Vec(textShapeBounds.x - hPadding, textShapeBounds.center.y)
+		)
 	)
 	const textShapeTopEdgeCenter = editor.getPointInShapeSpace(
 		geoShape.id,
-		Mat.applyToPoint(textShapeTransform, new Vec(textShapeBounds.center.x, textShapeBounds.y))
+		Mat.applyToPoint(
+			textShapeTransform,
+			new Vec(textShapeBounds.center.x, textShapeBounds.y - vPadding)
+		)
 	)
 	const textShapeRightEdgeCenter = editor.getPointInShapeSpace(
 		geoShape.id,
-		Mat.applyToPoint(textShapeTransform, new Vec(textShapeBounds.maxX, textShapeBounds.center.y))
+		Mat.applyToPoint(
+			textShapeTransform,
+			new Vec(textShapeBounds.maxX + hPadding, textShapeBounds.center.y)
+		)
 	)
 	const textShapeBottomEdgeCenter = editor.getPointInShapeSpace(
 		geoShape.id,
-		Mat.applyToPoint(textShapeTransform, new Vec(textShapeBounds.center.x, textShapeBounds.maxY))
+		Mat.applyToPoint(
+			textShapeTransform,
+			new Vec(textShapeBounds.center.x, textShapeBounds.maxY + vPadding)
+		)
 	)
 
+	const xIsCenter = binding.props.x.type === 'center'
+	const xIsLeft = binding.props.x.type === 'offset' && binding.props.x.edge === 'left'
+	const xIsRight = binding.props.x.type === 'offset' && binding.props.x.edge === 'right'
+	const yIsCenter = binding.props.y.type === 'center'
+	const yIsTop = binding.props.y.type === 'offset' && binding.props.y.edge === 'top'
+	const yIsBottom = binding.props.y.type === 'offset' && binding.props.y.edge === 'bottom'
+
+	const hEdgeHeight = textShapeBounds.height + vPadding * 2
+	const vEdgeWidth = textShapeBounds.width + hPadding * 2
+
 	const linesInGeoSpace = []
-	if (binding.props.x.type === 'center' || binding.props.x.edge === 'left') {
+	if (xIsCenter || xIsLeft) {
 		if (textShapeLeftEdgeCenter.x > geoShapeBounds.minX) {
 			linesInGeoSpace.push({
-				hardcore: binding.props.x.type === 'center',
+				hardcore: xIsCenter,
 				start: textShapeLeftEdgeCenter,
 				end: new Vec(geoShapeBounds.minX, textShapeLeftEdgeCenter.y),
 			})
+			if (xIsLeft) {
+				linesInGeoSpace.push({
+					hardcore: false,
+					start: Vec.Add(textShapeLeftEdgeCenter, { x: 0, y: -hEdgeHeight / 2 }),
+					end: Vec.Add(textShapeLeftEdgeCenter, { x: 0, y: hEdgeHeight / 2 }),
+				})
+			}
 		}
 	}
-	if (binding.props.x.type === 'center' || binding.props.x.edge === 'right') {
+	if (xIsCenter || xIsRight) {
 		if (textShapeRightEdgeCenter.x < geoShapeBounds.maxX) {
 			linesInGeoSpace.push({
-				hardcore: binding.props.x.type === 'center',
+				hardcore: xIsCenter,
 				start: textShapeRightEdgeCenter,
 				end: new Vec(geoShapeBounds.maxX, textShapeRightEdgeCenter.y),
 			})
 		}
+		if (xIsRight) {
+			linesInGeoSpace.push({
+				hardcore: false,
+				start: Vec.Add(textShapeRightEdgeCenter, { x: 0, y: -hEdgeHeight / 2 }),
+				end: Vec.Add(textShapeRightEdgeCenter, { x: 0, y: hEdgeHeight / 2 }),
+			})
+		}
 	}
-	if (binding.props.y.type === 'center' || binding.props.y.edge === 'top') {
+	if (yIsCenter || yIsTop) {
 		if (textShapeTopEdgeCenter.y > geoShapeBounds.minY) {
 			linesInGeoSpace.push({
-				hardcore: binding.props.y.type === 'center',
+				hardcore: yIsCenter,
 				start: textShapeTopEdgeCenter,
 				end: new Vec(textShapeTopEdgeCenter.x, geoShapeBounds.minY),
 			})
 		}
+
+		if (yIsTop) {
+			linesInGeoSpace.push({
+				hardcore: false,
+				start: Vec.Add(textShapeTopEdgeCenter, { x: -vEdgeWidth / 2, y: 0 }),
+				end: Vec.Add(textShapeTopEdgeCenter, { x: vEdgeWidth / 2, y: 0 }),
+			})
+		}
 	}
-	if (binding.props.y.type === 'center' || binding.props.y.edge === 'bottom') {
+	if (yIsCenter || yIsBottom) {
 		if (textShapeBottomEdgeCenter.y < geoShapeBounds.maxY) {
 			linesInGeoSpace.push({
-				hardcore: binding.props.y.type === 'center',
+				hardcore: yIsCenter,
 				start: textShapeBottomEdgeCenter,
 				end: new Vec(textShapeBottomEdgeCenter.x, geoShapeBounds.maxY),
+			})
+		}
+
+		if (yIsBottom) {
+			linesInGeoSpace.push({
+				hardcore: false,
+				start: Vec.Add(textShapeBottomEdgeCenter, { x: -vEdgeWidth / 2, y: 0 }),
+				end: Vec.Add(textShapeBottomEdgeCenter, { x: vEdgeWidth / 2, y: 0 }),
 			})
 		}
 	}
@@ -356,6 +410,7 @@ const TextBindingIndicator = track(function TextBindingIndicator({
 						strokeWidth={1}
 						strokeDasharray={hardcore ? '0' : '4 2'}
 						stroke={hardcore ? 'red' : 'grey'}
+						opacity={hardcore ? 1 : 0.5}
 					/>
 				)
 			})}
