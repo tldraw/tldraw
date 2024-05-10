@@ -64,6 +64,23 @@ function getFreshShareState(): ShareState {
 	}
 }
 
+function getUpdatedState(previusReadonlyUrl: string | null) {
+	const freshState = getFreshShareState()
+	// We are in a readonly room and already have the url
+	if (freshState.readonlyUrl) return freshState
+	// We don't have a readonly url from before
+	if (!previusReadonlyUrl) return freshState
+
+	// Pull out the room prefix and the readonly slug from the existing readonly url
+	const segments = window.location.pathname.split('/')
+	const roSegments = new URL(previusReadonlyUrl).pathname.split('/')
+	segments[1] = roSegments[1]
+	segments[2] = roSegments[2]
+	const newPathname = segments.join('/')
+	freshState.readonlyUrl = `${window.location.origin}${newPathname}${window.location.search}`
+	return freshState
+}
+
 async function getReadonlyUrl() {
 	const pathname = window.location.pathname
 	const isReadOnly = isSharedReadonlyUrl(pathname)
@@ -146,7 +163,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 		const interval = setInterval(() => {
 			const url = window.location.href
 			if (shareState.url === url) return
-			setShareState(getFreshShareState())
+			setShareState(getUpdatedState(shareState.readonlyUrl))
 		}, 300)
 
 		return () => {
