@@ -339,6 +339,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// When we start translating shapes, record where their bindings were in page space so we
 		// can maintain them as we translate the arrow
+		// TODO: replace with memo object
 		shapeAtTranslationStart.set(shape, {
 			pagePosition: shapePageTransform.applyToPoint(shape),
 			terminalBindings: mapObjectMapValues(terminalsInArrowSpace, (terminalName, point) => {

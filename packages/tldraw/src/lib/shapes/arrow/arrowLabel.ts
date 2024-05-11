@@ -26,81 +26,80 @@ import {
 import { TLArrowInfo } from './arrow-types'
 import { getArrowInfo } from './shared'
 
-const labelSizeCache = new WeakMap<TLArrowShape, Vec>()
+function getArrowLabelSize(editor: Editor, shape: TLArrowShape): Vec {
+	if (!editor.caches.has('@tldraw/arrowLabelSize')) {
+		editor.caches.createCache<TLArrowShape, Vec>('@tldraw/arrowLabelSize', (shape) => {
+			const info = getArrowInfo(editor, shape)!
+			let width = 0
+			let height = 0
 
-function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
-	const cachedSize = labelSizeCache.get(shape)
-	if (cachedSize) return cachedSize
+			const bodyGeom = info.isStraight
+				? new Edge2d({
+						start: Vec.From(info.start.point),
+						end: Vec.From(info.end.point),
+					})
+				: new Arc2d({
+						center: Vec.Cast(info.handleArc.center),
+						radius: info.handleArc.radius,
+						start: Vec.Cast(info.start.point),
+						end: Vec.Cast(info.end.point),
+						sweepFlag: info.bodyArc.sweepFlag,
+						largeArcFlag: info.bodyArc.largeArcFlag,
+					})
 
-	const info = getArrowInfo(editor, shape)!
-	let width = 0
-	let height = 0
+			if (shape.props.text.trim()) {
+				const bodyBounds = bodyGeom.bounds
 
-	const bodyGeom = info.isStraight
-		? new Edge2d({
-				start: Vec.From(info.start.point),
-				end: Vec.From(info.end.point),
-			})
-		: new Arc2d({
-				center: Vec.Cast(info.handleArc.center),
-				radius: info.handleArc.radius,
-				start: Vec.Cast(info.start.point),
-				end: Vec.Cast(info.end.point),
-				sweepFlag: info.bodyArc.sweepFlag,
-				largeArcFlag: info.bodyArc.largeArcFlag,
-			})
+				const { w, h } = editor.textMeasure.measureText(shape.props.text, {
+					...TEXT_PROPS,
+					fontFamily: FONT_FAMILIES[shape.props.font],
+					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+					maxWidth: null,
+				})
 
-	if (shape.props.text.trim()) {
-		const bodyBounds = bodyGeom.bounds
+				width = w
+				height = h
 
-		const { w, h } = editor.textMeasure.measureText(shape.props.text, {
-			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-			maxWidth: null,
+				if (bodyBounds.width > bodyBounds.height) {
+					width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
+
+					const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
+						shape.props.text,
+						{
+							...TEXT_PROPS,
+							fontFamily: FONT_FAMILIES[shape.props.font],
+							fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+							maxWidth: width,
+						}
+					)
+
+					width = squishedWidth
+					height = squishedHeight
+				}
+
+				if (width > 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]) {
+					width = 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]
+
+					const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
+						shape.props.text,
+						{
+							...TEXT_PROPS,
+							fontFamily: FONT_FAMILIES[shape.props.font],
+							fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+							maxWidth: width,
+						}
+					)
+
+					width = squishedWidth
+					height = squishedHeight
+				}
+			}
+
+			return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2)
 		})
-
-		width = w
-		height = h
-
-		if (bodyBounds.width > bodyBounds.height) {
-			width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
-
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-				shape.props.text,
-				{
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-					maxWidth: width,
-				}
-			)
-
-			width = squishedWidth
-			height = squishedHeight
-		}
-
-		if (width > 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]) {
-			width = 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]
-
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-				shape.props.text,
-				{
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-					maxWidth: width,
-				}
-			)
-
-			width = squishedWidth
-			height = squishedHeight
-		}
 	}
 
-	const size = new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2)
-	labelSizeCache.set(shape, size)
-	return size
+	return editor.caches.getValue('@tldraw/arrowLabelSize', shape)
 }
 
 function getLabelToArrowPadding(editor: Editor, shape: TLArrowShape) {

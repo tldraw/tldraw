@@ -1,28 +1,42 @@
 import { WeakCache } from '@tldraw/utils'
 import { Editor } from '../Editor'
 
+type CacheItem<T extends object, Q> = {
+	cache: WeakCache<T, Q>
+	fn: (input: T) => Q
+}
+
 export class CacheManager {
 	constructor(public editor: Editor) {}
 
-	private caches = new Map<string, WeakCache<any, unknown>>()
+	private items = new Map<string, CacheItem<any, any>>()
 
-	createCache<T extends object, Q>(name: string) {
-		const cache = new WeakCache<T, Q>()
-		this.caches.set(name, cache)
-		return cache
+	createCache<T extends object, Q>(name: string, fn: (input: T) => Q) {
+		this.items.set(name, { cache: new WeakCache<T, Q>(), fn })
+		return this.get<T, Q>(name)
 	}
 
-	get<T extends object, Q>(name: string): WeakCache<T, Q> {
-		return this.caches.get(name) as WeakCache<T, Q>
+	has(name: string) {
+		return this.items.has(name)
+	}
+
+	get<T extends object, Q>(name: string): CacheItem<T, Q> {
+		return this.items.get(name)!
+	}
+
+	getValue<T extends object, Q>(name: string, input: T): Q {
+		const item = this.get<T, Q>(name)
+		if (!item) throw Error(`Cache ${name} not found`)
+		return item.cache.get(input, item.fn)
 	}
 
 	clear(name: string) {
-		const cache = this.caches.get(name)
-		if (!cache) throw Error(`Cache ${name} not found`)
-		cache.clear()
+		const item = this.items.get(name)
+		if (!item) throw Error(`Cache ${name} not found`)
+		item.cache.clear()
 	}
 
 	clearAll() {
-		this.caches.clear()
+		this.items.clear()
 	}
 }

@@ -8,7 +8,6 @@ import {
 	TLHandle,
 	TLNoteShape,
 	TLOnEditEndHandler,
-	TLShape,
 	TLShapeId,
 	Vec,
 	getDefaultColorTheme,
@@ -310,15 +309,15 @@ function getNoteSizeAdjustments(editor: Editor, shape: TLNoteShape) {
 /**
  * Get the label size for a note.
  */
-function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
-	const text = shape.props.text
+function getNoteLabelSize(editor: Editor, props: TLNoteShape['props']) {
+	const text = props.text
 
 	if (!text) {
-		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
+		const minHeight = LABEL_FONT_SIZES[props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
 		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
 	}
 
-	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
+	const unadjustedFontSize = LABEL_FONT_SIZES[props.size]
 
 	let fontSizeAdjustment = 0
 	let iterations = 0
@@ -336,7 +335,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 		fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
 		const nextTextSize = editor.textMeasure.measureText(text, {
 			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontFamily: FONT_FAMILIES[props.font],
 			fontSize: fontSizeAdjustment,
 			maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
 			disableOverflowWrapBreaking: true,
@@ -350,7 +349,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 			// We need to recalculate the text measurement here with break-word enabled.
 			const nextTextSizeWithOverflowBreak = editor.textMeasure.measureText(text, {
 				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontFamily: FONT_FAMILIES[props.font],
 				fontSize: fontSizeAdjustment,
 				maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
 			})
@@ -372,15 +371,16 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 }
 
 function getLabelSize(editor: Editor, shape: TLNoteShape) {
-	let cache = editor.caches.get<TLShape, ReturnType<typeof getNoteLabelSize>>(
-		'@tldraw/noteLabelSize'
-	)
-	if (!cache) {
-		cache = editor.caches.createCache<TLShape, ReturnType<typeof getNoteLabelSize>>(
-			'@tldraw/noteLabelSize'
+	if (!editor.caches.has('@tldraw/noteLabelSize')) {
+		editor.caches.createCache('@tldraw/textShapeSize', (props: TLNoteShape['props']) =>
+			getNoteLabelSize(editor, props)
 		)
 	}
-	return cache.get(shape, () => getNoteLabelSize(editor, shape))
+
+	return editor.caches.getValue<TLNoteShape['props'], ReturnType<typeof getNoteLabelSize>>(
+		'@tldraw/noteLabelSize',
+		shape.props
+	)
 }
 
 function useNoteKeydownHandler(id: TLShapeId) {

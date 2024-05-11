@@ -48,15 +48,15 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	getMinDimensions(shape: TLTextShape) {
 		const { editor } = this
-		let cache = editor.caches.get<TLTextShape['props'], { height: number; width: number }>(
-			'@tldraw/textShapeSize'
-		)
-		if (!cache) {
-			cache = editor.caches.createCache<TLTextShape['props'], { height: number; width: number }>(
-				'@tldraw/textShapeSize'
+		if (!editor.caches.has('@tldraw/textShapeSize')) {
+			editor.caches.createCache('@tldraw/textShapeSize', (props: TLTextShape['props']) =>
+				getTextSize(this.editor, props)
 			)
 		}
-		return cache.get(shape.props, (props) => getTextSize(this.editor, props))
+		return editor.caches.getValue<TLTextShape['props'], { height: number; width: number }>(
+			'@tldraw/textShapeSize',
+			shape.props
+		)
 	}
 
 	getGeometry(shape: TLTextShape) {
