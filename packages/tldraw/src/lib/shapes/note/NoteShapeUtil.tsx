@@ -372,7 +372,7 @@ function getNoteLabelSize(editor: Editor, props: TLNoteShape['props']) {
 
 function getLabelSize(editor: Editor, shape: TLNoteShape) {
 	if (!editor.caches.has('@tldraw/noteLabelSize')) {
-		editor.caches.createCache('@tldraw/textShapeSize', (props: TLNoteShape['props']) =>
+		editor.caches.createCache('@tldraw/noteLabelSize', (props: TLNoteShape['props']) =>
 			getNoteLabelSize(editor, props)
 		)
 	}
