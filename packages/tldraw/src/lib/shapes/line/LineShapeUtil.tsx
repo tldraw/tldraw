@@ -10,7 +10,6 @@ import {
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
-	WeakCache,
 	getIndexBetween,
 	getIndices,
 	lineShapeMigrations,
@@ -29,8 +28,6 @@ import {
 	getSvgPathForEdge,
 	getSvgPathForLineGeometry,
 } from './components/svg'
-
-const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
 
 /** @public */
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
@@ -63,33 +60,31 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override getHandles(shape: TLLineShape) {
-		return handlesCache.get(shape.props, () => {
-			const spline = getGeometryForLineShape(shape)
+		const spline = getGeometryForLineShape(shape)
 
-			const points = linePointsToArray(shape)
-			const results: TLHandle[] = points.map((point) => ({
-				...point,
-				id: point.index,
-				type: 'vertex',
+		const points = linePointsToArray(shape)
+		const results: TLHandle[] = points.map((point) => ({
+			...point,
+			id: point.index,
+			type: 'vertex',
+			canSnap: true,
+		}))
+
+		for (let i = 0; i < points.length - 1; i++) {
+			const index = getIndexBetween(points[i].index, points[i + 1].index)
+			const segment = spline.segments[i]
+			const point = segment.midPoint()
+			results.push({
+				id: index,
+				type: 'create',
+				index,
+				x: point.x,
+				y: point.y,
 				canSnap: true,
-			}))
+			})
+		}
 
-			for (let i = 0; i < points.length - 1; i++) {
-				const index = getIndexBetween(points[i].index, points[i + 1].index)
-				const segment = spline.segments[i]
-				const point = segment.midPoint()
-				results.push({
-					id: index,
-					type: 'create',
-					index,
-					x: point.x,
-					y: point.y,
-					canSnap: true,
-				})
-			}
-
-			return results.sort(sortByIndex)
-		})
+		return results.sort(sortByIndex)
 	}
 
 	//   Events
@@ -164,7 +159,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return {
 			points,
 			getSelfSnapPoints: (handle) => {
-				const index = this.getHandles(shape)
+				const index = this.editor
+					.getShapeHandles<TLLineShape>(shape)!
 					.filter((h) => h.type === 'vertex')
 					.findIndex((h) => h.id === handle.id)!
 
@@ -175,7 +171,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				// We want to skip the segments that include the handle, so
 				// find the index of the handle that shares the same index property
 				// as the initial dragging handle; this catches a quirk of create handles
-				const index = this.getHandles(shape)
+				const index = this.editor
+					.getShapeHandles<TLLineShape>(shape)!
 					.filter((h) => h.type === 'vertex')
 					.findIndex((h) => h.id === handle.id)!
 

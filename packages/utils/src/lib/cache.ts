@@ -20,4 +20,11 @@ export class WeakCache<K extends object, V> {
 
 		return this.items.get(item)!
 	}
+
+	/**
+	 * Clear the cache. (Technically we create a new WeakMap, but the old one will get cleaned up by the GC eventually.)
+	 */
+	clear() {
+		this.items = new WeakMap()
+	}
 }

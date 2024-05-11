@@ -82,6 +82,7 @@ import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
+import { WeakCache } from '@tldraw/utils';
 import { whyAmIRunning } from '@tldraw/state';
 
 // @public
@@ -699,6 +700,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    readonly caches: CacheManager;
     cancel(): this;
     cancelDoubleClick(): void;
     // @internal (undocumented)

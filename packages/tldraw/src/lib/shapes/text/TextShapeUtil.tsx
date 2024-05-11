@@ -11,7 +11,6 @@ import {
 	TLShapeUtilFlag,
 	TLTextShape,
 	Vec,
-	WeakCache,
 	getDefaultColorTheme,
 	preventDefault,
 	textShapeMigrations,
@@ -27,8 +26,6 @@ import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
-
-const sizeCache = new WeakCache<TLTextShape['props'], { height: number; width: number }>()
 
 /** @public */
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
@@ -50,7 +47,16 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getMinDimensions(shape: TLTextShape) {
-		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
+		const { editor } = this
+		let cache = editor.caches.get<TLTextShape['props'], { height: number; width: number }>(
+			'@tldraw/textShapeSize'
+		)
+		if (!cache) {
+			cache = editor.caches.createCache<TLTextShape['props'], { height: number; width: number }>(
+				'@tldraw/textShapeSize'
+			)
+		}
+		return cache.get(shape.props, (props) => getTextSize(this.editor, props))
 	}
 
 	getGeometry(shape: TLTextShape) {

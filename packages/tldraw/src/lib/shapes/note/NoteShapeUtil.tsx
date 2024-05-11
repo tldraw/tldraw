@@ -11,7 +11,6 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
-	WeakCache,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -372,10 +371,16 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	}
 }
 
-const labelSizesForNote = new WeakCache<TLShape, ReturnType<typeof getNoteLabelSize>>()
-
 function getLabelSize(editor: Editor, shape: TLNoteShape) {
-	return labelSizesForNote.get(shape, () => getNoteLabelSize(editor, shape))
+	let cache = editor.caches.get<TLShape, ReturnType<typeof getNoteLabelSize>>(
+		'@tldraw/noteLabelSize'
+	)
+	if (!cache) {
+		cache = editor.caches.createCache<TLShape, ReturnType<typeof getNoteLabelSize>>(
+			'@tldraw/noteLabelSize'
+		)
+	}
+	return cache.get(shape, () => getNoteLabelSize(editor, shape))
 }
 
 function useNoteKeydownHandler(id: TLShapeId) {

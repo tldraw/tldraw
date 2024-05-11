@@ -123,6 +123,7 @@ import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { getSvgJsx } from './getSvgJsx'
+import { CacheManager } from './managers/CacheManager'
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
@@ -297,6 +298,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.environment = new EnvironmentManager(this)
 		this.scribbles = new ScribbleManager(this)
+		this.caches = new CacheManager(this)
 
 		// Cleanup
 
@@ -710,6 +712,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly sideEffects: SideEffectManager<this>
+
+	/**
+	 * A manager for weak map caches.
+	 *
+	 * @public
+	 */
+	readonly caches: CacheManager
 
 	/**
 	 * The current HTML element containing the editor.

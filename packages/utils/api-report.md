@@ -349,6 +349,7 @@ export function warnDeprecatedGetter(name: string): void;
 
 // @public
 export class WeakCache<K extends object, V> {
+    clear(): void;
     get<P extends K>(item: P, cb: (item: P) => V): NonNullable<V>;
     items: WeakMap<K, V>;
 }
