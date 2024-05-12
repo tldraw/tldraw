@@ -48,8 +48,9 @@ export default function NewToolExample() {
 						{ type: 'geo', x: 400, y: 400 },
 						{ type: 'text', x: 200, y: 400, props: { text: 'hello' } },
 						{ type: 'frame', x: 100, y: 600 },
-						{ type: 'geo', x: 150, y: 625 },
 					])
+
+					e.createShapes([{ type: 'geo', x: 150, y: 625 }])
 				}}
 			>
 				<TldrawUi

@@ -221,7 +221,10 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 			size: 12,
 		})
 		this.setContext({
-			state: { name: 'erasing', scribbleId: scribble.id },
+			state: {
+				name: 'erasing',
+				scribbleId: scribble.id,
+			},
 		})
 
 		// Clear any erasing shapes from the pointing state
