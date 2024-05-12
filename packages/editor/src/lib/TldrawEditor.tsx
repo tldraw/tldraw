@@ -18,7 +18,7 @@ import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
-import { TLStateNodeConstructor } from './editor/tools/StateNode'
+import { TLToolUtilConstructor } from './editor/tools/ToolUtil'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
@@ -85,7 +85,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * An array of tools to add to the editor's state chart.
 	 */
-	tools?: readonly TLStateNodeConstructor[]
+	tools?: readonly TLToolUtilConstructor<any, any>[]
 
 	/**
 	 * Whether to automatically focus the editor when it mounts.

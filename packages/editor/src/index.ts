@@ -186,6 +186,7 @@ export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
+export { ToolUtil, type TLToolState, type TLToolUtilConstructor } from './lib/editor/tools/ToolUtil'
 export {
 	useSvgExportContext,
 	type SvgExportContext,

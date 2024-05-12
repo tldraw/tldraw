@@ -66,7 +66,6 @@ import {
 	getIndicesAbove,
 	getIndicesBetween,
 	getOwnProperty,
-	hasOwnProperty,
 	last,
 	sortById,
 	sortByIndex,
@@ -133,8 +132,7 @@ import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
-import { RootState } from './tools/RootState'
-import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
+import { TLToolUtilConstructor, ToolUtil } from './tools/ToolUtil'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import {
@@ -178,13 +176,13 @@ export interface TLEditorOptions {
 	 */
 	shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[]
 	/**
+	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
+	 */
+	tools: readonly TLToolUtilConstructor<any>[]
+	/**
 	 * An array of bindings to use in the editor. These will be used to create and manage bindings in the editor.
 	 */
 	bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[]
-	/**
-	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
-	 */
-	tools: readonly TLStateNodeConstructor[]
 	/**
 	 * Should return a containing html element which has all the styles applied to the editor. If not
 	 * given, the body element will be used.
@@ -213,12 +211,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	constructor({
 		store,
 		user,
-		shapeUtils,
-		bindingUtils,
-		tools,
+		shapeUtils = [],
+		bindingUtils = [],
+		tools = [],
 		getContainer,
 		cameraOptions,
-		initialState,
+		initialState: initialTool,
 		inferDarkMode,
 	}: TLEditorOptions) {
 		super()
@@ -232,23 +230,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		})
 
-		this.snaps = new SnapManager(this)
-
-		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
-
-		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
-
 		this.getContainer = getContainer ?? (() => document.body)
 
+		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
+		this.snaps = new SnapManager(this)
 		this.textMeasure = new TextManager(this)
 		this._tickManager = new TickManager(this)
+		this.environment = new EnvironmentManager(this)
+		this.scribbles = new ScribbleManager(this)
+		this.performanceTracker = new PerformanceTracker()
 
-		class NewRoot extends RootState {
-			static override initial = initialState ?? ''
-		}
-
-		this.root = new NewRoot(this)
-		this.root.children = {}
+		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
 		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
 
@@ -285,18 +277,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		this.bindingUtils = _bindingUtils
 
-		// Tools.
-		// Accept tools from constructor parameters which may not conflict with the root note's default or
-		// "baked in" tools, select and zoom.
+		const toolMap: Record<string, ToolUtil<any>> = {}
+
 		for (const Tool of [...tools]) {
-			if (hasOwnProperty(this.root.children!, Tool.id)) {
-				throw Error(`Can't override tool with id "${Tool.id}"`)
-			}
-			this.root.children![Tool.id] = new Tool(this, this.root)
+			const tool = new Tool(this)
+			toolMap[Tool.type] = tool
+			tool.setContext(tool.getDefaultContext())
 		}
 
-		this.environment = new EnvironmentManager(this)
-		this.scribbles = new ScribbleManager(this)
+		if (!initialTool) throw Error('No initial tool provided')
+
+		this._tools.set(toolMap)
+		this._currentToolId.set(initialTool)
 
 		// Cleanup
 
@@ -626,12 +618,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		})
 
-		if (initialState && this.root.children[initialState] === undefined) {
-			throw Error(`No state found for initialState "${initialState}".`)
-		}
-
-		this.root.enter(undefined, 'initial')
-
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
@@ -641,8 +627,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
-
-		this.performanceTracker = new PerformanceTracker()
 	}
 
 	/**
@@ -651,13 +635,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly store: TLStore
-
-	/**
-	 * The root state of the statechart.
-	 *
-	 * @public
-	 */
-	readonly root: RootState
 
 	/**
 	 * A set of functions to call when the app is disposed.
@@ -971,7 +948,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					willCrashApp,
 				},
 				extras: {
-					activeStateNode: this.root.getPath(),
+					activeStateNode: this.getCurrentToolId(),
 					selectedShapes: this.getSelectedShapes(),
 					editingShape: editingShapeId ? this.getShape(editingShapeId) : undefined,
 					inputs: this.inputs,
@@ -1025,7 +1002,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getPath() {
-		return this.root.getPath().split('root.')[1]
+		return 'root'
 	}
 
 	/**
@@ -1042,18 +1019,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isIn(path: string): boolean {
-		const ids = path.split('.').reverse()
-		let state = this.root as StateNode
-		while (ids.length > 0) {
-			const id = ids.pop()
-			if (!id) return true
-			const current = state.getCurrent()
-			if (current?.id === id) {
-				if (ids.length === 0) return true
-				state = current
-				continue
-			} else return false
-		}
 		return false
 	}
 
@@ -1087,55 +1052,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCurrentTool(id: string, info = {}): this {
-		this.root.transition(id, info)
+		this._currentToolId.set(id)
 		return this
 	}
 
-	/**
-	 * The current selected tool.
-	 *
-	 * @public
-	 */
-	@computed getCurrentTool(): StateNode {
-		return this.root.getCurrent()!
-	}
+	// /**
+	//  * The current selected tool.
+	//  *
+	//  * @public
+	//  */
+	// @computed getCurrentTool(): StateNode {
+	// 	return this.root.getCurrent()!
+	// }
 
-	/**
-	 * The id of the current selected tool.
-	 *
-	 * @public
-	 */
-	@computed getCurrentToolId(): string {
-		const currentTool = this.getCurrentTool()
-		if (!currentTool) return ''
-		return currentTool.getCurrentToolIdMask() ?? currentTool.id
-	}
-
-	/**
-	 * Get a descendant by its path.
-	 *
-	 * @example
-	 * ```ts
-	 * state.getStateDescendant('select')
-	 * state.getStateDescendant('select.brushing')
-	 * ```
-	 *
-	 * @param path - The descendant's path of state ids, separated by periods.
-	 *
-	 * @public
-	 */
-	getStateDescendant<T extends StateNode>(path: string): T | undefined {
-		const ids = path.split('.').reverse()
-		let state = this.root as StateNode
-		while (ids.length > 0) {
-			const id = ids.pop()
-			if (!id) return state as T
-			const childState = state.children?.[id]
-			if (!childState) return undefined
-			state = childState
-		}
-		return state as T
-	}
+	// /**
+	//  * The id of the current selected tool.
+	//  *
+	//  * @public
+	//  */
+	// @computed getCurrentToolId(): string {
+	// 	const currentTool = this.getCurrentTool()
+	// 	if (!currentTool) return ''
+	// 	return currentTool.getCurrentToolIdMask() ?? currentTool.id
+	// }
 
 	/* ---------------- Document Settings --------------- */
 
@@ -1960,6 +1899,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 		return this
+	}
+
+	/* ---------------------- Tool ---------------------- */
+
+	_tools = atom<Record<string, ToolUtil<any>>>('tools', {})
+
+	private _currentToolId = atom<string>('current tool id', '')
+
+	@computed getCurrentToolId() {
+		return this._currentToolId.get()
+	}
+
+	@computed getCurrentTool() {
+		return this._tools.get()[this.getCurrentToolId()]
+	}
+
+	getTool<T extends ToolUtil<any>>(id: string): T {
+		return this._tools.get()[id] as T
 	}
 
 	/* --------------------- Camera --------------------- */
@@ -7081,17 +7038,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// If the current tool is associated with a shape, return the styles for that shape.
 		// Otherwise, just return an empty map.
-		const currentTool = this.root.getCurrent()!
 		const styles = new SharedStyleMap()
-
-		if (!currentTool) return styles
-
-		if (currentTool.shapeType) {
-			for (const style of this.styleProps[currentTool.shapeType].keys()) {
-				styles.applyValue(style, this.getStyleForNextShape(style))
-			}
-		}
-
 		return styles
 	}
 
@@ -8157,7 +8104,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 			if (elapsed > 0) {
-				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
+				this.getCurrentTool().onEvent({ type: 'misc', name: 'tick', elapsed })
 			}
 			this.scribbles.tick(elapsed)
 		})
@@ -8182,7 +8129,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			this.root.handleEvent(info)
+			this.getCurrentTool().onEvent(info)
 			return
 		}
 
@@ -8592,9 +8539,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// changed then hand both events to the statechart
 				const clickInfo = this._clickManager.handlePointerEvent(info)
 				if (info.name !== clickInfo.name) {
-					this.root.handleEvent(info)
+					this.getCurrentTool().onEvent(info)
 					this.emit('event', info)
-					this.root.handleEvent(clickInfo)
+					this.getCurrentTool().onEvent(clickInfo)
 					this.emit('event', clickInfo)
 					return
 				}
@@ -8603,7 +8550,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Send the event to the statechart. It will be handled by all
 		// active states, starting at the root.
-		this.root.handleEvent(info)
+		this.getCurrentTool().onEvent(info)
 		this.emit('event', info)
 
 		return this

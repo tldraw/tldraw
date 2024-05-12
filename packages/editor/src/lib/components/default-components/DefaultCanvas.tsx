@@ -1,6 +1,6 @@
-import { react, useQuickReactor, useValue } from '@tldraw/state'
+import { react, useQuickReactor, useStateTracking, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
-import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
+import { modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
 import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, TEXT_SHADOW_LOD } from '../../constants'
@@ -152,6 +152,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			)}
 			<GridWrapper />
 			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
+				<ActiveToolUnderlay />
 				<OnTheCanvasWrapper />
 				<SelectionBackgroundWrapper />
 				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
@@ -159,12 +160,10 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			<div className="tl-overlays">
 				<div ref={rHtmlLayer2} className="tl-html-layer">
 					{debugGeometry ? <GeometryDebuggingView /> : null}
+					<ActiveToolOverlay />
 					<HandlesWrapper />
-					<BrushWrapper />
 					<ScribbleWrapper />
 					<ZoomBrushWrapper />
-					<ShapeIndicators />
-					<HintedShapeIndicator />
 					<SnapIndicatorWrapper />
 					<SelectionForegroundWrapper />
 					<LiveCollaborators />
@@ -173,6 +172,18 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			<MovingCameraHitTestBlocker />
 		</div>
 	)
+}
+
+function ActiveToolUnderlay() {
+	const editor = useEditor()
+	const activeTool = useValue('active tool', () => editor.getCurrentTool(), [editor])
+	return useStateTracking('Active tool underlay', () => activeTool.underlay?.())
+}
+
+function ActiveToolOverlay() {
+	const editor = useEditor()
+	const activeTool = useValue('active tool', () => editor.getCurrentTool(), [editor])
+	return useStateTracking('Active tool overlay', () => activeTool.overlay?.())
 }
 
 function GridWrapper() {
@@ -207,16 +218,6 @@ function ScribbleWrapper() {
 			))}
 		</>
 	)
-}
-
-function BrushWrapper() {
-	const editor = useEditor()
-	const brush = useValue('brush', () => editor.getInstanceState().brush, [editor])
-	const { Brush } = useEditorComponents()
-
-	if (!(Brush && brush)) return null
-
-	return <Brush className="tl-user-brush" brush={brush} />
 }
 
 function ZoomBrushWrapper() {
@@ -437,88 +438,6 @@ function ShapesToDisplay() {
 				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
 			))}
 			{editor.environment.isSafari && <ReflowIfNeeded />}
-		</>
-	)
-}
-
-function ShapeIndicators() {
-	const editor = useEditor()
-	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
-	const rPreviousSelectedShapeIds = useRef<Set<TLShapeId>>(new Set())
-	const idsToDisplay = useValue(
-		'should display selected ids',
-		() => {
-			// todo: move to tldraw selected ids wrappe
-			const prev = rPreviousSelectedShapeIds.current
-			const next = new Set<TLShapeId>()
-			if (
-				editor.isInAny(
-					'select.idle',
-					'select.brushing',
-					'select.scribble_brushing',
-					'select.editing_shape',
-					'select.pointing_shape',
-					'select.pointing_selection',
-					'select.pointing_handle'
-				) &&
-				!editor.getInstanceState().isChangingStyle
-			) {
-				const selected = editor.getSelectedShapeIds()
-				for (const id of selected) {
-					next.add(id)
-				}
-				if (editor.isInAny('select.idle', 'select.editing_shape')) {
-					const instanceState = editor.getInstanceState()
-					if (instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
-						const hovered = editor.getHoveredShapeId()
-						if (hovered) next.add(hovered)
-					}
-				}
-			}
-
-			if (prev.size !== next.size) {
-				rPreviousSelectedShapeIds.current = next
-				return next
-			}
-
-			for (const id of next) {
-				if (!prev.has(id)) {
-					rPreviousSelectedShapeIds.current = next
-					return next
-				}
-			}
-
-			return prev
-		},
-		[editor]
-	)
-
-	const { ShapeIndicator } = useEditorComponents()
-	if (!ShapeIndicator) return null
-
-	return (
-		<>
-			{renderingShapes.map(({ id }) => (
-				<ShapeIndicator key={id + '_indicator'} shapeId={id} hidden={!idsToDisplay.has(id)} />
-			))}
-		</>
-	)
-}
-
-function HintedShapeIndicator() {
-	const editor = useEditor()
-	const { ShapeIndicator } = useEditorComponents()
-
-	const ids = useValue('hinting shape ids', () => dedupe(editor.getHintingShapeIds()), [editor])
-
-	if (!ids.length) return null
-	if (!ShapeIndicator) return null
-
-	return (
-		<>
-			{ids.map((id) => (
-				<ShapeIndicator className="tl-user-indicator__hint" shapeId={id} key={id + '_hinting'} />
-			))}
 		</>
 	)
 }
