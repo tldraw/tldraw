@@ -5,7 +5,8 @@ Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). t
 - Read the docs and learn more at [tldraw.dev](https://tldraw.dev).
 - Learn about [our license](https://github.com/tldraw/tldraw#License).
 
-> 📄 Interested in purchasing a commercial license? Fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+> 🤵 Interested in purchasing a commercial license for the tldraw SDK?
+> Fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
 
 ## Installation
 
