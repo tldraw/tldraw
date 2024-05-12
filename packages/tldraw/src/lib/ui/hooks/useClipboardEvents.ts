@@ -15,7 +15,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { compressToBase64, decompressFromBase64 } from 'lz-string'
+import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
@@ -328,7 +328,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 							if (tldrawHtmlComment) {
 								try {
 									// If we've found tldraw content in the html string, use that as JSON
-									const jsonComment = decompressFromBase64(tldrawHtmlComment)
+									const jsonComment = lz.decompressFromBase64(tldrawHtmlComment)
 									if (jsonComment === null) {
 										r({
 											type: 'error',
@@ -491,7 +491,7 @@ const handleNativeOrMenuCopy = (editor: Editor) => {
 		return
 	}
 
-	const stringifiedClipboard = compressToBase64(
+	const stringifiedClipboard = lz.compressToBase64(
 		JSON.stringify({
 			type: 'application/tldraw',
 			kind: 'content',
