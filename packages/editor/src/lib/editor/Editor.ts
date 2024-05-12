@@ -54,6 +54,7 @@ import {
 	JsonObject,
 	PerformanceTracker,
 	Result,
+	WeakCache,
 	annotateError,
 	assert,
 	assertExists,
@@ -116,6 +117,7 @@ import { debugFlags } from '../utils/debug-flags'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
+import { AssetBlobObjectStore } from '../utils/sync/AssetBlobObjectStore'
 import { uniqueId } from '../utils/uniqueId'
 import { BindingUtil, TLBindingUtilConstructor } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
@@ -174,6 +176,10 @@ export interface TLEditorOptions {
 	 */
 	store: TLStore
 	/**
+	 * Object store for keeping the app's asset data.
+	 */
+	assetBlobStore: AssetBlobObjectStore
+	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
 	shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[]
@@ -212,6 +218,7 @@ export interface TLEditorOptions {
 export class Editor extends EventEmitter<TLEventMap> {
 	constructor({
 		store,
+		assetBlobStore,
 		user,
 		shapeUtils,
 		bindingUtils,
@@ -224,6 +231,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		super()
 
 		this.store = store
+		this.assetBlobStore = assetBlobStore
 		this.history = new HistoryManager<TLRecord>({
 			store,
 			annotateError: (error) => {
@@ -651,6 +659,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly store: TLStore
+
+	/**
+	 * The editor's asset blob store.
+	 */
+	readonly assetBlobStore: AssetBlobObjectStore
 
 	/**
 	 * The root state of the statechart.
@@ -3667,6 +3680,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getInstanceState().isReadonly) return this
 		if (assets.length <= 0) return this
 		return this.batch(() => this.store.put(assets))
+	}
+
+	/** @private */
+	private assetBlobCache = new WeakCache<TLAsset, Promise<Blob | undefined>>()
+
+	/**
+	 * Get an asset from the database.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getAssetBlobInObjectStore('asset1')
+	 * ```
+	 *
+	 * @public
+	 */
+	async getAssetBlobFromObjectStore(asset: TLAsset): Promise<Blob | undefined> {
+		return await this.assetBlobCache.get(asset, () =>
+			this.assetBlobStore.getAssetBlobFromObjectStore({ asset })
+		)
+	}
+
+	/**
+	 * Put an asset into the database.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.putAssetBlobInObjectStore('asset1', <blob>)
+	 * ```
+	 *
+	 * @public
+	 */
+	async putAssetBlobInObjectStore(asset: TLAsset, assetBlob: Blob) {
+		await this.assetBlobStore.putAssetBlobInObjectStore({ asset, assetBlob })
 	}
 
 	/**

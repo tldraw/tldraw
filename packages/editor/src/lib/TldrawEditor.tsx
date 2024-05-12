@@ -36,6 +36,7 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
 import { stopEventPropagation } from './utils/dom'
+import { AssetBlobObjectStore } from './utils/sync/AssetBlobObjectStore'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
@@ -48,9 +49,11 @@ export type TldrawEditorProps = Expand<
 		(
 			| {
 					store: TLStore | TLStoreWithStatus
+					assetBlobStore: AssetBlobObjectStore
 			  }
 			| {
 					store?: undefined
+					assetBlobStore: AssetBlobObjectStore
 					migrations?: readonly MigrationSequence[]
 					snapshot?: StoreSnapshot<TLRecord>
 					initialData?: SerializedStore<TLRecord>
@@ -175,6 +178,10 @@ export const TldrawEditor = memo(function TldrawEditor({
 		components,
 	}
 
+	const assetBlobStore = new AssetBlobObjectStore(
+		'persistenceKey' in rest ? rest.persistenceKey || '' : ''
+	)
+
 	return (
 		<div
 			ref={setContainer}
@@ -193,14 +200,29 @@ export const TldrawEditor = memo(function TldrawEditor({
 							{store ? (
 								store instanceof Store ? (
 									// Store is ready to go, whether externally synced or not
-									<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+									<TldrawEditorWithReadyStore
+										{...withDefaults}
+										store={store}
+										assetBlobStore={assetBlobStore}
+										user={user}
+									/>
 								) : (
 									// Store is a synced store, so handle syncing stages internally
-									<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
+									<TldrawEditorWithLoadingStore
+										{...withDefaults}
+										store={store}
+										assetBlobStore={assetBlobStore}
+										user={user}
+									/>
 								)
 							) : (
 								// We have no store (it's undefined) so create one and possibly sync it
-								<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
+								<TldrawEditorWithOwnStore
+									{...withDefaults}
+									store={store}
+									assetBlobStore={assetBlobStore}
+									user={user}
+								/>
 							)}
 						</EditorComponentsProvider>
 					</ContainerProvider>
@@ -287,6 +309,7 @@ function TldrawEditorWithReadyStore({
 	onMount,
 	children,
 	store,
+	assetBlobStore,
 	tools,
 	shapeUtils,
 	bindingUtils,
@@ -309,6 +332,7 @@ function TldrawEditorWithReadyStore({
 	useLayoutEffect(() => {
 		const editor = new Editor({
 			store,
+			assetBlobStore,
 			shapeUtils,
 			bindingUtils,
 			tools,
@@ -329,6 +353,7 @@ function TldrawEditorWithReadyStore({
 		bindingUtils,
 		tools,
 		store,
+		assetBlobStore,
 		user,
 		initialState,
 		inferDarkMode,

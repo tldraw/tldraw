@@ -40,8 +40,23 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const { time, playing } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
+		const [url, setUrl] = useState(asset?.props.src || '')
 
 		const rVideo = useRef<HTMLVideoElement>(null!)
+
+		useEffect(() => {
+			async function retrieveAsset() {
+				// Retrieve a local image from the DB.
+				if (asset && url?.startsWith('asset:')) {
+					const blob = await editor.getAssetBlobFromObjectStore(asset)
+					if (blob) {
+						const imgURL = URL.createObjectURL(blob)
+						setUrl(imgURL)
+					}
+				}
+			}
+			retrieveAsset()
+		}, [url, asset, editor])
 
 		const handlePlay = useCallback<ReactEventHandler<HTMLVideoElement>>(
 			(e) => {
@@ -145,6 +160,8 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			}
 		}, [rVideo, prefersReducedMotion])
 
+		if (url.startsWith('asset:')) return null
+
 		return (
 			<>
 				<HTMLContainer
@@ -157,7 +174,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 				>
 					<div className="tl-counter-scaled">
 						<div className="tl-video-container">
-							{asset?.props.src ? (
+							{url ? (
 								<video
 									ref={rVideo}
 									style={isEditing ? { pointerEvents: 'all' } : undefined}
@@ -178,7 +195,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 									onLoadedData={handleLoadedData}
 									hidden={!isLoaded}
 								>
-									<source src={asset.props.src} />
+									<source src={url} />
 								</video>
 							) : (
 								<BrokenAssetIcon />

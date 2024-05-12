@@ -49,13 +49,28 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
+		const [url, setUrl] = useState(asset?.props.src || '')
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const editor = this.editor
 
 		useEffect(() => {
-			if (asset?.props.src && 'mimeType' in asset.props && asset?.props.mimeType === 'image/gif') {
+			async function retrieveAsset() {
+				// Retrieve a local image from the DB.
+				if (asset && url?.startsWith('asset:')) {
+					const blob = await editor.getAssetBlobFromObjectStore(asset)
+					if (blob) {
+						const imgURL = URL.createObjectURL(blob)
+						setUrl(imgURL)
+					}
+				}
+			}
+			retrieveAsset()
+		}, [url, asset, editor])
+
+		useEffect(() => {
+			if (asset && url && 'mimeType' in asset.props && asset?.props.mimeType === 'image/gif') {
 				let cancelled = false
-				const url = asset.props.src
 				if (!url) return
 
 				const image = new Image()
@@ -79,7 +94,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, asset?.props])
+		}, [prefersReducedMotion, url, asset])
 
 		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")
@@ -97,7 +112,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
-		if (!asset?.props.src) {
+		if (!url) {
 			return (
 				<HTMLContainer
 					id={shape.id}
@@ -121,6 +136,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			)
 		}
 
+		if (url.startsWith('asset:')) return null
+
 		return (
 			<>
 				{showCropPreview && (
@@ -130,7 +147,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							style={{
 								opacity: 0.1,
 								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+									!shape.props.playing || reduceMotion ? staticFrameSrc : url
 								})`,
 							}}
 							draggable={false}
@@ -146,12 +163,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							className="tl-image"
 							style={{
 								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+									!shape.props.playing || reduceMotion ? staticFrameSrc : url
 								})`,
 							}}
 							draggable={false}
 						/>
-						{asset.props.isAnimated && !shape.props.playing && (
+						{asset?.props.isAnimated && !shape.props.playing && (
 							<div className="tl-image__tg">GIF</div>
 						)}
 					</div>
@@ -176,6 +193,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		if (!asset) return null
 
 		let src = asset?.props.src || ''
+
+		if (src?.startsWith('asset:')) {
+			const blob = await this.editor.getAssetBlobFromObjectStore(asset)
+			if (blob) {
+				src = (await FileHelpers.blobToDataUrl(blob)) || ''
+			}
+		}
+
 		if (src.startsWith('http') || src.startsWith('/') || src.startsWith('./')) {
 			// If it's a remote image, we need to fetch it and convert it to a data URI
 			src = (await getDataURIFromURL(src)) || ''

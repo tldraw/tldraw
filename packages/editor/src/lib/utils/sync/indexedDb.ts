@@ -12,13 +12,14 @@ const Table = {
 	Records: 'records',
 	Schema: 'schema',
 	SessionState: 'session_state',
+	Assets: 'assets',
 } as const
 
 type StoreName = (typeof Table)[keyof typeof Table]
 
 async function withDb<T>(storeId: string, cb: (db: IDBPDatabase<StoreName>) => Promise<T>) {
 	addDbName(storeId)
-	const db = await openDB<StoreName>(storeId, 3, {
+	const db = await openDB<StoreName>(storeId, 4, {
 		upgrade(database) {
 			if (!database.objectStoreNames.contains(Table.Records)) {
 				database.createObjectStore(Table.Records)
@@ -28,6 +29,9 @@ async function withDb<T>(storeId: string, cb: (db: IDBPDatabase<StoreName>) => P
 			}
 			if (!database.objectStoreNames.contains(Table.SessionState)) {
 				database.createObjectStore(Table.SessionState)
+			}
+			if (!database.objectStoreNames.contains(Table.Assets)) {
+				database.createObjectStore(Table.Assets)
 			}
 		},
 	})
@@ -142,6 +146,43 @@ export async function storeChangesInIndexedDb({
 
 		if (didCancel?.()) return tx.abort()
 
+		await tx.done
+	})
+}
+
+/** @internal */
+export async function getAssetFromIndexedDb({
+	persistenceKey,
+	assetId,
+}: {
+	persistenceKey: string
+	assetId: string
+}): Promise<Blob | undefined> {
+	const storeId = STORE_PREFIX + persistenceKey
+
+	return await withDb(storeId, async (db) => {
+		const tx = db.transaction([Table.Assets], 'readwrite')
+		const assetsStore = tx.objectStore(Table.Assets)
+		return await assetsStore.get(assetId)
+	})
+}
+
+/** @internal */
+export async function storeAssetInIndexedDb({
+	persistenceKey,
+	assetId,
+	assetBlob,
+}: {
+	persistenceKey: string
+	assetId: string
+	assetBlob: Blob
+}) {
+	const storeId = STORE_PREFIX + persistenceKey
+
+	await withDb(storeId, async (db) => {
+		const tx = db.transaction([Table.Assets], 'readwrite')
+		const assetsStore = tx.objectStore(Table.Assets)
+		await assetsStore.put(assetBlob, assetId)
 		await tx.done
 	})
 }

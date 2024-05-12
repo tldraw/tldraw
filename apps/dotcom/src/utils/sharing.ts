@@ -241,7 +241,7 @@ async function getRoomData(
 			// processed it
 			if (!asset) continue
 
-			data[asset.id] = await cloneAssetForShare(asset, uploadFileToAsset)
+			data[asset.id] = await cloneAssetForShare(asset, editor, uploadFileToAsset)
 			// remove the asset after processing so we don't clone it multiple times
 			assets.delete(asset.id)
 		}
