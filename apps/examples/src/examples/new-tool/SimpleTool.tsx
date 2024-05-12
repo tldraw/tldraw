@@ -154,6 +154,8 @@ For example, the selection brush is only relevant to the select tool but the sel
 Therefore the selection brush should be stored in the select tool's context but the selected shape ids should be stored in the editor's context.
 
 The erasing / cropping / hinted shapes are probably relevant only to their tools, and should be extracted from the default canvas into their tool's overlay / underlay.
+
+Snapping seems to be a universal UI (because it's used while shapes are being resized, for example) but that happens while shape tools are being used to create a shape. In that case the select tool is technically active, however.
 */
 
 function SelectionBrush({ brush }: { brush: BoxLike | null }) {
