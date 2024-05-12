@@ -10,7 +10,7 @@ import {
 	SharedStyleMap,
 	TLEventInfo,
 	TLShapeId,
-	TLToolState,
+	TLToolContext,
 	ToolUtil,
 	dedupe,
 	getOwnProperty,
@@ -19,11 +19,19 @@ import {
 	useValue,
 } from 'tldraw'
 
-interface SimpleSelectContext extends TLToolState {
+interface SimpleSelectContext extends TLToolContext {
 	readonly type: '@simple/select'
-	ids: TLShapeId[]
-	brush: BoxLike | null
-	state: 'idle' | 'pointing' | 'brushing'
+	state:
+		| {
+				name: 'idle'
+		  }
+		| {
+				name: 'pointing'
+		  }
+		| {
+				name: 'brushing'
+				brush: BoxLike | null
+		  }
 }
 
 const simpleSelectStyles = new SharedStyleMap()
@@ -38,9 +46,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 	getDefaultContext(): SimpleSelectContext {
 		return {
 			type: '@simple/select',
-			ids: [],
-			brush: null,
-			state: 'idle',
+			state: { name: 'idle' },
 		}
 	}
 
@@ -49,13 +55,14 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 	}
 
 	overlay() {
-		const { brush } = this.getContext()
+		const { state } = this.getContext()
+		if (state.name !== 'brushing') return
 
 		return (
 			<>
 				<ShapeIndicators />
 				<HintedShapeIndicator />
-				<SelectionBrush brush={brush} />
+				<SelectionBrush brush={state.brush} />
 			</>
 		)
 	}
@@ -97,11 +104,13 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 		const { editor, memo } = this
 		const context = this.getContext()
 
-		switch (context.state) {
+		switch (context.state.name) {
 			case 'idle': {
 				if (event.name === 'pointer_down') {
 					this.setContext({
-						state: 'pointing',
+						state: {
+							name: 'pointing',
+						},
 					})
 				}
 				break
@@ -110,7 +119,12 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 				if (editor.inputs.isDragging) {
 					const { originPagePoint, currentPagePoint } = editor.inputs
 					const box = Box.FromPoints([originPagePoint, currentPagePoint])
-					this.setContext({ state: 'brushing', brush: box.toJson() })
+					this.setContext({
+						state: {
+							name: 'brushing',
+							brush: box.toJson(),
+						},
+					})
 
 					// Stash the selected ids so we can restore them later
 					memo.initialSelectedIds = editor.getSelectedShapeIds()
@@ -129,7 +143,12 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 						const box = Box.FromPoints([originPagePoint, currentPagePoint])
 
 						// update the box in the context
-						this.setContext({ brush: box.toJson() })
+						this.setContext({
+							state: {
+								name: 'brushing',
+								brush: box.toJson(),
+							},
+						})
 
 						const hitIds = new Set<TLShapeId>()
 
@@ -160,7 +179,11 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 						}
 					}
 				} else {
-					this.setContext({ state: 'idle', brush: null })
+					this.setContext({
+						state: {
+							name: 'idle',
+						},
+					})
 				}
 				break
 			}
