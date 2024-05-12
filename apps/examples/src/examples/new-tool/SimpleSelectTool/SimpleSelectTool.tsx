@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import {
 	Box,
 	BoxLike,
@@ -6,31 +5,27 @@ import {
 	DefaultDashStyle,
 	DefaultFillStyle,
 	DefaultSizeStyle,
-	SVGContainer,
 	SharedStyleMap,
 	TLEventInfo,
 	TLShapeId,
 	ToolUtil,
-	dedupe,
 	getOwnProperty,
-	useEditor,
-	useEditorComponents,
-	useValue,
 } from 'tldraw'
+import { HintedShapeIndicator } from './components/HintedShapeIndicators'
+import { SelectionBrush } from './components/SelectionBrush'
+import { ShapeIndicators } from './components/ShapeIndicators'
 
-type SimpleSelectContext = {
-	state:
-		| {
-				name: 'idle'
-		  }
-		| {
-				name: 'pointing'
-		  }
-		| {
-				name: 'brushing'
-				brush: BoxLike | null
-		  }
-}
+type SimpleSelectContext =
+	| {
+			name: 'idle'
+	  }
+	| {
+			name: 'pointing'
+	  }
+	| {
+			name: 'brushing'
+			brush: BoxLike | null
+	  }
 
 const simpleSelectStyles = new SharedStyleMap()
 simpleSelectStyles.applyValue(DefaultColorStyle, DefaultColorStyle.defaultValue)
@@ -43,24 +38,12 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 
 	getDefaultContext(): SimpleSelectContext {
 		return {
-			state: { name: 'idle' },
+			name: 'idle',
 		}
 	}
 
 	getDefaultConfig() {
 		return {}
-	}
-
-	override overlay() {
-		const { state } = this.getContext()
-
-		return (
-			<>
-				<ShapeIndicators />
-				<HintedShapeIndicator />
-				{state.name === 'brushing' && <SelectionBrush brush={state.brush} />}
-			</>
-		)
 	}
 
 	override getStyles() {
@@ -83,6 +66,18 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 		return sharedStyleMap
 	}
 
+	override overlay() {
+		const context = this.getContext()
+
+		return (
+			<>
+				<ShapeIndicators />
+				<HintedShapeIndicator />
+				{context.name === 'brushing' && <SelectionBrush brush={context.brush} />}
+			</>
+		)
+	}
+
 	// This object is used for events, it's kept in memory and updated as the user interacts with the tool
 	private memo = {
 		initialSelectedIds: [] as TLShapeId[],
@@ -92,13 +87,11 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 		const { editor, memo } = this
 		const context = this.getContext()
 
-		switch (context.state.name) {
+		switch (context.name) {
 			case 'idle': {
 				if (event.name === 'pointer_down') {
 					this.setContext({
-						state: {
-							name: 'pointing',
-						},
+						name: 'pointing',
 					})
 				}
 				break
@@ -108,10 +101,8 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 					const { originPagePoint, currentPagePoint } = editor.inputs
 					const box = Box.FromPoints([originPagePoint, currentPagePoint])
 					this.setContext({
-						state: {
-							name: 'brushing',
-							brush: box.toJson(),
-						},
+						name: 'brushing',
+						brush: box.toJson(),
 					})
 
 					// Stash the selected ids so we can restore them later
@@ -123,9 +114,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 				if (!editor.inputs.isPointing) {
 					// Stopped pointing
 					this.setContext({
-						state: {
-							name: 'idle',
-						},
+						name: 'idle',
 					})
 					return
 				}
@@ -141,10 +130,8 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 
 					// update the box in the context
 					this.setContext({
-						state: {
-							name: 'brushing',
-							brush: box.toJson(),
-						},
+						name: 'brushing',
+						brush: box.toJson(),
 					})
 
 					const hitIds = new Set<TLShapeId>()
@@ -180,89 +167,4 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 			}
 		}
 	}
-}
-
-function SelectionBrush({ brush }: { brush: BoxLike | null }) {
-	if (!brush) return null
-	return (
-		<SVGContainer>
-			<rect
-				className="tl-brush tl-brush__default"
-				x={brush.x}
-				y={brush.y}
-				width={brush.w}
-				height={brush.h}
-			/>
-		</SVGContainer>
-	)
-}
-
-function ShapeIndicators() {
-	const editor = useEditor()
-	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
-	const rPreviousSelectedShapeIds = useRef<Set<TLShapeId>>(new Set())
-	const idsToDisplay = useValue(
-		'should display selected ids',
-		() => {
-			// todo: move to tldraw selected ids wrappe
-			const prev = rPreviousSelectedShapeIds.current
-			const next = new Set<TLShapeId>()
-			const instanceState = editor.getInstanceState()
-			if (!instanceState.isChangingStyle) {
-				const selected = editor.getSelectedShapeIds()
-				for (const id of selected) {
-					next.add(id)
-				}
-
-				if (instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
-					const hovered = editor.getHoveredShapeId()
-					if (hovered) next.add(hovered)
-				}
-			}
-
-			if (prev.size !== next.size) {
-				rPreviousSelectedShapeIds.current = next
-				return next
-			}
-
-			for (const id of next) {
-				if (!prev.has(id)) {
-					rPreviousSelectedShapeIds.current = next
-					return next
-				}
-			}
-
-			return prev
-		},
-		[editor]
-	)
-
-	const { ShapeIndicator } = useEditorComponents()
-	if (!ShapeIndicator) return null
-
-	return (
-		<>
-			{renderingShapes.map(({ id }) => (
-				<ShapeIndicator key={id + '_indicator'} shapeId={id} hidden={!idsToDisplay.has(id)} />
-			))}
-		</>
-	)
-}
-
-function HintedShapeIndicator() {
-	const editor = useEditor()
-	const { ShapeIndicator } = useEditorComponents()
-
-	const ids = useValue('hinting shape ids', () => dedupe(editor.getHintingShapeIds()), [editor])
-
-	if (!ids.length) return null
-	if (!ShapeIndicator) return null
-
-	return (
-		<>
-			{ids.map((id) => (
-				<ShapeIndicator className="tl-user-indicator__hint" shapeId={id} key={id + '_hinting'} />
-			))}
-		</>
-	)
 }

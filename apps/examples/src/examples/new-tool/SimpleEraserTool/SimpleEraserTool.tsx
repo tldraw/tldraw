@@ -10,19 +10,17 @@ import {
 	pointInPolygon,
 } from 'tldraw'
 
-type SimpleEraserContext = {
-	state:
-		| {
-				name: 'idle'
-		  }
-		| {
-				name: 'pointing'
-		  }
-		| {
-				name: 'erasing'
-				scribbleId: string
-		  }
-}
+type SimpleEraserContext =
+	| {
+			name: 'idle'
+	  }
+	| {
+			name: 'pointing'
+	  }
+	| {
+			name: 'erasing'
+			scribbleId: string
+	  }
 
 type SimpleEraserToolConfig = {
 	scribbleSize: number
@@ -41,7 +39,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 
 	getDefaultContext(): SimpleEraserContext {
 		return {
-			state: { name: 'idle' },
+			name: 'idle',
 		}
 	}
 
@@ -69,12 +67,12 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 			return
 		}
 
-		switch (context.state.name) {
+		switch (context.name) {
 			case 'idle': {
 				if (event.name === 'pointer_down') {
 					// started pointing
 					this.setContext({
-						state: { name: 'pointing' },
+						name: 'pointing',
 					})
 					this.startErasingPointedShapes()
 				}
@@ -130,15 +128,15 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 
 		// Stop the scribble
 		const context = this.getContext()
-		if (context.state.name === 'erasing') {
-			editor.scribbles.stop(context.state.scribbleId)
+		if (context.name === 'erasing') {
+			editor.scribbles.stop(context.scribbleId)
 		}
 
 		memo.erasingShapeIds.clear()
 		memo.excludedShapeIds.clear()
 		memo.scribbleId = null
 
-		this.setContext({ state: { name: 'idle' } })
+		this.setContext({ name: 'idle' })
 	}
 
 	private complete() {
@@ -153,15 +151,15 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 
 		// Stop the scribble
 		const context = this.getContext()
-		if (context.state.name === 'erasing') {
-			editor.scribbles.stop(context.state.scribbleId)
+		if (context.name === 'erasing') {
+			editor.scribbles.stop(context.scribbleId)
 		}
 
 		memo.erasingShapeIds.clear()
 		memo.excludedShapeIds.clear()
 		memo.scribbleId = null
 
-		this.setContext({ state: { name: 'idle' } })
+		this.setContext({ name: 'idle' })
 	}
 
 	private startErasingPointedShapes() {
@@ -213,10 +211,8 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 			size: scribbleSize,
 		})
 		this.setContext({
-			state: {
-				name: 'erasing',
-				scribbleId: scribble.id,
-			},
+			name: 'erasing',
+			scribbleId: scribble.id,
 		})
 
 		// Clear any erasing shapes from the pointing state
@@ -249,10 +245,10 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 		const { editor, memo } = this
 
 		const context = this.getContext()
-		if (context.state.name !== 'erasing') return
+		if (context.name !== 'erasing') return
 
 		const { excludedShapeIds, erasingShapeIds, prevPoint } = memo
-		const { scribbleId } = context.state
+		const { scribbleId } = context
 
 		const {
 			inputs: { currentPagePoint },
