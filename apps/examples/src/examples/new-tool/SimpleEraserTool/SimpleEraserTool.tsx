@@ -233,27 +233,19 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 		const shapes = editor.getCurrentPageShapesSorted()
 		for (let i = shapes.length - 1; i > -1; i--) {
 			const shape = shapes[i]
-
-			// If the shape is locked, exclude it
-			if (editor.isShapeOrAncestorLocked(shape)) {
-				excludedShapeIds.add(shape.id)
-				continue
-			}
-
-			// If the shape is a group or a frame and the click began inside the shape, exclude it
 			if (
-				editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
-				editor.isShapeOfType<TLFrameShape>(shape, 'frame')
-			) {
-				if (
+				// If the shape is locked, or its ancestor is locked...
+				editor.isShapeOrAncestorLocked(shape) ||
+				// ...or if it's a group or a frame and the click began inside the shape
+				((editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+					editor.isShapeOfType<TLFrameShape>(shape, 'frame')) &&
 					editor.isPointInShape(shape, originPagePoint, {
 						hitInside: true,
 						margin: 0,
-					})
-				) {
-					excludedShapeIds.add(shape.id)
-				}
-				continue
+					}))
+			) {
+				// exclude it from being erased
+				excludedShapeIds.add(shape.id)
 			}
 		}
 	}
