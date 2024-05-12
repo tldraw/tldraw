@@ -39,7 +39,7 @@ simpleSelectStyles.applyValue(DefaultDashStyle, DefaultDashStyle.defaultValue)
 simpleSelectStyles.applyValue(DefaultSizeStyle, DefaultSizeStyle.defaultValue)
 
 export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
-	static override type = '@simple/select' as const
+	type = '@simple/select' as const
 
 	getDefaultContext(): SimpleSelectContext {
 		return {

@@ -291,8 +291,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			const tool = new ToolConstructor(this, config)
-			toolMap[ToolConstructor.type] = tool
-
+			toolMap[tool.type] = tool
 			tool.setContext(tool.getDefaultContext())
 		}
 

@@ -30,7 +30,7 @@ type SimpleEraserToolConfig = {
 }
 
 export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEraserToolConfig> {
-	static override type = '@simple/eraser' as const
+	type = '@simple/eraser' as const
 
 	getDefaultConfig(): SimpleEraserToolConfig {
 		return {

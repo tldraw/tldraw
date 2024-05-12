@@ -12,7 +12,7 @@ export abstract class ToolUtil<Context extends object, Config extends object = o
 		this.config = { ...this.getDefaultConfig?.(), ...config }
 	}
 
-	static type: string
+	abstract type: string
 
 	public readonly config: Partial<Config>
 
@@ -84,7 +84,6 @@ export abstract class ToolUtil<Context extends object, Config extends object = o
 /** @public */
 export interface TLToolUtilConstructor<T extends object, Q extends object> {
 	new (editor: Editor, config: Q): ToolUtil<T, Q>
-	type: string
 }
 
 export type TLToolUtilConstructorWithConfig<T extends object, Q extends object> = [
