@@ -529,20 +529,20 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 	)
 }
 
-function SelectionForegroundWrapper() {
-	const editor = useEditor()
-	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
-		editor,
-	])
-	const selectionBounds = useValue(
-		'selection bounds',
-		() => editor.getSelectionRotatedPageBounds(),
-		[editor]
-	)
-	const { SelectionForeground } = useEditorComponents()
-	if (!selectionBounds || !SelectionForeground) return null
-	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
-}
+// function SelectionForegroundWrapper() {
+// 	const editor = useEditor()
+// 	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
+// 		editor,
+// 	])
+// 	const selectionBounds = useValue(
+// 		'selection bounds',
+// 		() => editor.getSelectionRotatedPageBounds(),
+// 		[editor]
+// 	)
+// 	const { SelectionForeground } = useEditorComponents()
+// 	if (!selectionBounds || !SelectionForeground) return null
+// 	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
+// }
 
 function SelectionBackgroundWrapper() {
 	const editor = useEditor()

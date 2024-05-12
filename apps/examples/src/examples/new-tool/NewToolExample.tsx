@@ -15,9 +15,10 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { SimpleEraserToolUtil } from './SimpleEraserTool/SimpleEraserTool'
-import { SimpleSelectToolUtil } from './SimpleSelectTool'
+import { SimpleSelectToolUtil } from './SimpleSelectTool/SimpleSelectTool'
 
 const tools: TLToolUtilConstructor<any, any>[] = [SimpleSelectToolUtil, SimpleEraserToolUtil]
+
 const components: TLComponents = {
 	Scribble: TldrawScribble,
 }
@@ -46,6 +47,8 @@ export default function NewToolExample() {
 						{ type: 'geo', x: 200, y: 200 },
 						{ type: 'geo', x: 400, y: 400 },
 						{ type: 'text', x: 200, y: 400, props: { text: 'hello' } },
+						{ type: 'frame', x: 100, y: 600 },
+						{ type: 'geo', x: 150, y: 625 },
 					])
 				}}
 			>

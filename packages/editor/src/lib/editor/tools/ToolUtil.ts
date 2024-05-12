@@ -4,21 +4,29 @@ import { ReadonlySharedStyleMap } from '../../utils/SharedStylesMap'
 import { Editor } from '../Editor'
 import { TLEventInfo } from '../types/event-types'
 
-export interface TLToolContext {
-	type: string
-}
+export abstract class ToolUtil<Context extends object, Config extends object = object> {
+	constructor(
+		public editor: Editor,
+		config: Partial<Config> = {}
+	) {
+		this.config = { ...this.getDefaultConfig?.(), ...config }
+	}
 
-export abstract class ToolUtil<T extends TLToolContext> {
-	constructor(public editor: Editor) {}
+	static type: string
 
-	static type: TLToolContext['type']
+	public readonly config: Partial<Config>
 
 	/**
 	 * The tool's default context, set when the tool is first registered in the Editor.
 	 */
-	abstract getDefaultContext(): T
+	abstract getDefaultConfig?(): Config
 
-	private _context = atom<T>('tool context', {} as T)
+	/**
+	 * The tool's default context, set when the tool is first registered in the Editor.
+	 */
+	abstract getDefaultContext(): Context
+
+	private _context = atom<Context>('tool context', {} as Context)
 
 	/**
 	 * Get the tool's context.
@@ -32,7 +40,7 @@ export abstract class ToolUtil<T extends TLToolContext> {
 	 *
 	 * @param context - A partial of the tool's context.
 	 */
-	setContext(context: Partial<T>) {
+	setContext(context: Partial<Context>) {
 		this._context.set({ ...this._context.__unsafe__getWithoutCapture(), ...context })
 	}
 
@@ -74,10 +82,12 @@ export abstract class ToolUtil<T extends TLToolContext> {
 }
 
 /** @public */
-export interface TLToolUtilConstructor<
-	T extends TLToolContext,
-	U extends ToolUtil<T> = ToolUtil<T>,
-> {
-	new (editor: Editor): U
-	type: T['type']
+export interface TLToolUtilConstructor<T extends object, Q extends object> {
+	new (editor: Editor, config: Q): ToolUtil<T, Q>
+	type: string
 }
+
+export type TLToolUtilConstructorWithConfig<T extends object, Q extends object> = [
+	TLToolUtilConstructor<T, Q>,
+	Q,
+]

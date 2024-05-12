@@ -132,7 +132,7 @@ import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
-import { TLToolUtilConstructor, ToolUtil } from './tools/ToolUtil'
+import { TLToolUtilConstructor, TLToolUtilConstructorWithConfig, ToolUtil } from './tools/ToolUtil'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import {
@@ -178,7 +178,7 @@ export interface TLEditorOptions {
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
-	tools: readonly TLToolUtilConstructor<any>[]
+	tools: readonly (TLToolUtilConstructor<any, any> | TLToolUtilConstructorWithConfig<any, any>)[]
 	/**
 	 * An array of bindings to use in the editor. These will be used to create and manage bindings in the editor.
 	 */
@@ -279,9 +279,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const toolMap: Record<string, ToolUtil<any>> = {}
 
-		for (const Tool of [...tools]) {
-			const tool = new Tool(this)
-			toolMap[Tool.type] = tool
+		for (const _tool of [...tools]) {
+			let ToolConstructor: TLToolUtilConstructor<any, any>
+			let config: object
+			if (Array.isArray(_tool)) {
+				ToolConstructor = _tool[0]
+				config = _tool[1]
+			} else {
+				ToolConstructor = _tool
+				config = {}
+			}
+
+			const tool = new ToolConstructor(this, config)
+			toolMap[ToolConstructor.type] = tool
+
 			tool.setContext(tool.getDefaultContext())
 		}
 
@@ -1020,7 +1031,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isIn(path: string): boolean {
+	isIn(_path: string): boolean {
 		return false
 	}
 
@@ -1038,52 +1049,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isInAny(...paths: string[]): boolean {
 		return paths.some((path) => this.isIn(path))
 	}
-
-	/**
-	 * Set the selected tool.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setCurrentTool('hand')
-	 * editor.setCurrentTool('hand', { date: Date.now() })
-	 * ```
-	 *
-	 * @param id - The id of the tool to select.
-	 * @param info - Arbitrary data to pass along into the transition.
-	 *
-	 * @public
-	 */
-	setCurrentTool(id: string, info = {}): this {
-		const current = this.getCurrentTool()
-		const next = this.getTool(id)
-		if (current !== next) {
-			current.onExit(info)
-			console.log('setting', id)
-			this._currentToolId.set(id)
-			current.onEnter(info)
-		}
-		return this
-	}
-
-	// /**
-	//  * The current selected tool.
-	//  *
-	//  * @public
-	//  */
-	// @computed getCurrentTool(): StateNode {
-	// 	return this.root.getCurrent()!
-	// }
-
-	// /**
-	//  * The id of the current selected tool.
-	//  *
-	//  * @public
-	//  */
-	// @computed getCurrentToolId(): string {
-	// 	const currentTool = this.getCurrentTool()
-	// 	if (!currentTool) return ''
-	// 	return currentTool.getCurrentToolIdMask() ?? currentTool.id
-	// }
 
 	/* ---------------- Document Settings --------------- */
 
@@ -1926,6 +1891,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	getTool<T extends ToolUtil<any>>(id: string): T {
 		return this._tools.get()[id] as T
+	}
+
+	/**
+	 * Set the selected tool.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setCurrentTool('hand')
+	 * editor.setCurrentTool('hand', { date: Date.now() })
+	 * ```
+	 *
+	 * @param id - The id of the tool to select.
+	 * @param info - Arbitrary data to pass along into the transition.
+	 *
+	 * @public
+	 */
+	setCurrentTool(id: string, info = {}): this {
+		const current = this.getCurrentTool()
+		const next = this.getTool(id)
+		if (current !== next) {
+			current.onExit(info)
+			this._currentToolId.set(id)
+			current.onEnter(info)
+		}
+		return this
 	}
 
 	/* --------------------- Camera --------------------- */

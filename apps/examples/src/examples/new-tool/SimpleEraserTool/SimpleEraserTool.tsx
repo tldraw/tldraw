@@ -4,13 +4,12 @@ import {
 	TLFrameShape,
 	TLGroupShape,
 	TLShapeId,
-	TLToolContext,
 	ToolUtil,
+	Vec,
 	pointInPolygon,
 } from 'tldraw'
 
-interface SimpleEraserContext extends TLToolContext {
-	readonly type: '@simple/eraser'
+type SimpleEraserContext = {
 	state:
 		| {
 				name: 'idle'
@@ -24,12 +23,21 @@ interface SimpleEraserContext extends TLToolContext {
 		  }
 }
 
-export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
+type SimpleEraserToolConfig = {
+	scribbleSize: number
+}
+
+export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEraserToolConfig> {
 	static override type = '@simple/eraser' as const
+
+	getDefaultConfig(): SimpleEraserToolConfig {
+		return {
+			scribbleSize: 12,
+		}
+	}
 
 	getDefaultContext(): SimpleEraserContext {
 		return {
-			type: '@simple/eraser',
 			state: { name: 'idle' },
 		}
 	}
@@ -72,7 +80,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
 
 		switch (context.state.name) {
 			case 'idle': {
-				if (editor.inputs.isPointing) {
+				if (event.name === 'pointer_down') {
 					// started pointing
 					this.setContext({
 						state: { name: 'pointing' },
@@ -90,13 +98,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
 
 				if (editor.inputs.isDragging || event.name === 'long_press') {
 					// started dragging
-					const scribble = editor.scribbles.addScribble({
-						color: 'muted-1',
-						size: 12,
-					})
-					this.setContext({
-						state: { name: 'erasing', scribbleId: scribble.id },
-					})
+					this.startErasingAfterDragging()
 					this.updateErasingShapes()
 					return
 				}
@@ -125,10 +127,11 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
 		scribbleId: null as string | null,
 		excludedShapeIds: new Set<TLShapeId>(),
 		erasingShapeIds: new Set<TLShapeId>(),
+		prevPoint: new Vec(),
 	}
 
 	private cancel() {
-		const { editor } = this
+		const { memo, editor } = this
 
 		// Reset the erasing shapes
 		editor.setErasingShapes([])
@@ -137,14 +140,18 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
 		// Stop the scribble
 		const context = this.getContext()
 		if (context.state.name === 'erasing') {
-			this.editor.scribbles.stop(context.state.scribbleId)
+			editor.scribbles.stop(context.state.scribbleId)
 		}
+
+		memo.erasingShapeIds.clear()
+		memo.excludedShapeIds.clear()
+		memo.scribbleId = null
 
 		this.setContext({ state: { name: 'idle' } })
 	}
 
 	private complete() {
-		const { editor } = this
+		const { memo, editor } = this
 
 		// Delete any shapes that were marked as erasing
 		const erasingShapeIds = editor.getErasingShapeIds()
@@ -156,8 +163,12 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
 		// Stop the scribble
 		const context = this.getContext()
 		if (context.state.name === 'erasing') {
-			this.editor.scribbles.stop(context.state.scribbleId)
+			editor.scribbles.stop(context.state.scribbleId)
 		}
+
+		memo.erasingShapeIds.clear()
+		memo.excludedShapeIds.clear()
+		memo.scribbleId = null
 
 		this.setContext({ state: { name: 'idle' } })
 	}
@@ -165,21 +176,67 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
 	private startErasingPointedShapes() {
 		const { editor, memo } = this
 		const { originPagePoint } = editor.inputs
+		const { erasingShapeIds, prevPoint } = memo
 
 		editor.mark('erasing')
 
-		const zoomLevel = this.editor.getZoomLevel()
-		const minDist = HIT_TEST_MARGIN / zoomLevel
+		prevPoint.setTo(originPagePoint)
 
-		// Populate the excluded shape ids and the erasing shape ids
-		// working front to back...
+		const minDist = HIT_TEST_MARGIN / editor.getZoomLevel()
+
+		// Populate the erasing shape ids working front to back...
+		const shapes = editor.getCurrentPageShapesSorted()
+		for (let i = shapes.length - 1; i > -1; i--) {
+			const shape = shapes[i]
+
+			// Look for hit shapes
+			if (
+				editor.isPointInShape(shape, originPagePoint, {
+					hitInside: false,
+					margin: minDist,
+				})
+			) {
+				const hitShape = editor.getOutermostSelectableShape(shape)
+				// If we've hit a frame after hitting any other shape, stop here
+				if (editor.isShapeOfType<TLFrameShape>(hitShape, 'frame') && erasingShapeIds.size > 0) {
+					break
+				}
+
+				erasingShapeIds.add(hitShape.id)
+			}
+		}
+
+		editor.setErasingShapes(Array.from(erasingShapeIds))
+	}
+
+	private startErasingAfterDragging() {
+		const {
+			editor,
+			memo: { erasingShapeIds, excludedShapeIds },
+		} = this
+		const { originPagePoint } = editor.inputs
+
+		const scribble = editor.scribbles.addScribble({
+			color: 'muted-1',
+			size: 12,
+		})
+		this.setContext({
+			state: { name: 'erasing', scribbleId: scribble.id },
+		})
+
+		// Clear any erasing shapes from the pointing state
+		erasingShapeIds.clear()
+
+		// Populate the excluded shape ids and the erasing shape ids, working front to back...
+		excludedShapeIds.clear()
+
 		const shapes = editor.getCurrentPageShapesSorted()
 		for (let i = shapes.length - 1; i > -1; i--) {
 			const shape = shapes[i]
 
 			// If the shape is locked, exclude it
 			if (editor.isShapeOrAncestorLocked(shape)) {
-				memo.excludedShapeIds.add(shape.id)
+				excludedShapeIds.add(shape.id)
 				continue
 			}
 
@@ -188,35 +245,17 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
 				editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
 				editor.isShapeOfType<TLFrameShape>(shape, 'frame')
 			) {
-				this.editor.isPointInShape(shape, originPagePoint, {
-					hitInside: true,
-					margin: 0,
-				})
-				memo.excludedShapeIds.add(shape.id)
+				if (
+					editor.isPointInShape(shape, originPagePoint, {
+						hitInside: true,
+						margin: 0,
+					})
+				) {
+					excludedShapeIds.add(shape.id)
+				}
 				continue
 			}
-
-			// Look for hit shapes
-			if (
-				this.editor.isPointInShape(shape, originPagePoint, {
-					hitInside: false,
-					margin: minDist,
-				})
-			) {
-				const hitShape = this.editor.getOutermostSelectableShape(shape)
-				// If we've hit a frame after hitting any other shape, stop here
-				if (
-					this.editor.isShapeOfType<TLFrameShape>(hitShape, 'frame') &&
-					memo.erasingShapeIds.size > 0
-				) {
-					break
-				}
-
-				memo.erasingShapeIds.add(hitShape.id)
-			}
 		}
-
-		this.editor.setErasingShapes(Array.from(memo.erasingShapeIds))
 	}
 
 	private updateErasingShapes() {
@@ -225,25 +264,22 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
 		const context = this.getContext()
 		if (context.state.name !== 'erasing') return
 
-		// Erase
-		const { excludedShapeIds } = memo
+		const { excludedShapeIds, erasingShapeIds, prevPoint } = memo
 		const { scribbleId } = context.state
 
-		const zoomLevel = editor.getZoomLevel()
-		const erasingShapeIds = editor.getErasingShapeIds()
-
 		const {
-			inputs: { currentPagePoint, previousPagePoint },
+			inputs: { currentPagePoint },
 		} = editor
 
+		// Update scribble
 		const { x, y } = currentPagePoint
 		editor.scribbles.addPoint(scribbleId, x, y)
 
-		const erasing = new Set<TLShapeId>(erasingShapeIds)
-		const minDist = HIT_TEST_MARGIN / zoomLevel
+		const minDist = HIT_TEST_MARGIN / editor.getZoomLevel()
 
 		const currentPageShapes = editor.getCurrentPageShapes()
 		for (const shape of currentPageShapes) {
+			// Skip groups
 			if (editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
@@ -257,7 +293,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
 			const pageTransform = editor.getShapePageTransform(shape)
 			if (!geometry || !pageTransform) continue
 			const pt = pageTransform.clone().invert()
-			const A = pt.applyToPoint(previousPagePoint)
+			const A = pt.applyToPoint(prevPoint)
 			const B = pt.applyToPoint(currentPagePoint)
 
 			// If the line segment is entirely above / below / left / right of the shape's bounding box, skip the hit test
@@ -272,13 +308,16 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext> {
 			}
 
 			if (geometry.hitTestLineSegment(A, B, minDist)) {
-				erasing.add(editor.getOutermostSelectableShape(shape).id)
+				const shapeToErase = editor.getOutermostSelectableShape(shape)
+				if (excludedShapeIds.has(shapeToErase.id)) continue
+				erasingShapeIds.add(shapeToErase.id)
 			}
 		}
 
-		// Remove the hit shapes, except if they're in the list of excluded shapes
-		// (these excluded shapes will be any frames or groups the pointer was inside of
-		// when the user started erasing)
-		this.editor.setErasingShapes(Array.from(erasing).filter((id) => !excludedShapeIds.has(id)))
+		// Update the prev page point for next segment
+		prevPoint.setTo(currentPagePoint)
+
+		// Remove the hit shapes
+		editor.setErasingShapes(Array.from(erasingShapeIds))
 	}
 }

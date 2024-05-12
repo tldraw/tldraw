@@ -10,7 +10,6 @@ import {
 	SharedStyleMap,
 	TLEventInfo,
 	TLShapeId,
-	TLToolContext,
 	ToolUtil,
 	dedupe,
 	getOwnProperty,
@@ -19,8 +18,7 @@ import {
 	useValue,
 } from 'tldraw'
 
-interface SimpleSelectContext extends TLToolContext {
-	readonly type: '@simple/select'
+type SimpleSelectContext = {
 	state:
 		| {
 				name: 'idle'
@@ -45,9 +43,12 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 
 	getDefaultContext(): SimpleSelectContext {
 		return {
-			type: '@simple/select',
 			state: { name: 'idle' },
 		}
+	}
+
+	getDefaultConfig() {
+		return {}
 	}
 
 	underlay() {
@@ -56,13 +57,12 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 
 	overlay() {
 		const { state } = this.getContext()
-		if (state.name !== 'brushing') return
 
 		return (
 			<>
 				<ShapeIndicators />
 				<HintedShapeIndicator />
-				<SelectionBrush brush={state.brush} />
+				{state.name === 'brushing' && <SelectionBrush brush={state.brush} />}
 			</>
 		)
 	}
@@ -132,59 +132,62 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 				break
 			}
 			case 'brushing': {
-				if (editor.inputs.isDragging) {
-					if (
-						event.name === 'pointer_move' ||
-						// for modifiers
-						event.name === 'key_down' ||
-						event.name === 'key_up'
-					) {
-						const { originPagePoint, currentPagePoint } = editor.inputs
-						const box = Box.FromPoints([originPagePoint, currentPagePoint])
-
-						// update the box in the context
-						this.setContext({
-							state: {
-								name: 'brushing',
-								brush: box.toJson(),
-							},
-						})
-
-						const hitIds = new Set<TLShapeId>()
-
-						// If we're holding shift, add the initial selected ids to the hitIds set
-						if (editor.inputs.shiftKey) {
-							for (const id of memo.initialSelectedIds) {
-								hitIds.add(id)
-							}
-						}
-
-						// Test the rest of the shapes on the page (broad phase only for simplifity)
-						for (const shape of editor.getCurrentPageShapes()) {
-							if (hitIds.has(shape.id)) continue
-							const pageBounds = editor.getShapePageBounds(shape.id)
-							if (!pageBounds) continue
-							if (box.collides(pageBounds)) {
-								hitIds.add(shape.id)
-							}
-						}
-
-						// If the selected ids have changed, update the selection
-						const currentSelectedIds = editor.getSelectedShapeIds()
-						if (
-							currentSelectedIds.length !== hitIds.size ||
-							currentSelectedIds.some((id) => !hitIds.has(id))
-						) {
-							editor.setSelectedShapes(Array.from(hitIds))
-						}
-					}
-				} else {
+				if (!editor.inputs.isPointing) {
+					// Stopped pointing
 					this.setContext({
 						state: {
 							name: 'idle',
 						},
 					})
+					return
 				}
+
+				if (
+					event.name === 'pointer_move' ||
+					// for modifiers
+					event.name === 'key_down' ||
+					event.name === 'key_up'
+				) {
+					const { originPagePoint, currentPagePoint } = editor.inputs
+					const box = Box.FromPoints([originPagePoint, currentPagePoint])
+
+					// update the box in the context
+					this.setContext({
+						state: {
+							name: 'brushing',
+							brush: box.toJson(),
+						},
+					})
+
+					const hitIds = new Set<TLShapeId>()
+
+					// If we're holding shift, add the initial selected ids to the hitIds set
+					if (editor.inputs.shiftKey) {
+						for (const id of memo.initialSelectedIds) {
+							hitIds.add(id)
+						}
+					}
+
+					// Test the rest of the shapes on the page (broad phase only for simplifity)
+					for (const shape of editor.getCurrentPageShapes()) {
+						if (hitIds.has(shape.id)) continue
+						const pageBounds = editor.getShapePageBounds(shape.id)
+						if (!pageBounds) continue
+						if (box.collides(pageBounds)) {
+							hitIds.add(shape.id)
+						}
+					}
+
+					// If the selected ids have changed, update the selection
+					const currentSelectedIds = editor.getSelectedShapeIds()
+					if (
+						currentSelectedIds.length !== hitIds.size ||
+						currentSelectedIds.some((id) => !hitIds.has(id))
+					) {
+						editor.setSelectedShapes(Array.from(hitIds))
+					}
+				}
+
 				break
 			}
 		}
@@ -235,17 +238,16 @@ function ShapeIndicators() {
 			// todo: move to tldraw selected ids wrappe
 			const prev = rPreviousSelectedShapeIds.current
 			const next = new Set<TLShapeId>()
-			if (!editor.getInstanceState().isChangingStyle) {
+			const instanceState = editor.getInstanceState()
+			if (!instanceState.isChangingStyle) {
 				const selected = editor.getSelectedShapeIds()
 				for (const id of selected) {
 					next.add(id)
 				}
-				if (editor.isInAny('select.idle', 'select.editing_shape')) {
-					const instanceState = editor.getInstanceState()
-					if (instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
-						const hovered = editor.getHoveredShapeId()
-						if (hovered) next.add(hovered)
-					}
+
+				if (instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
+					const hovered = editor.getHoveredShapeId()
+					if (hovered) next.add(hovered)
 				}
 			}
 
