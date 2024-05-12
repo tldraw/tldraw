@@ -3,6 +3,7 @@ import {
 	TLEventInfo,
 	TLFrameShape,
 	TLGroupShape,
+	TLScribble,
 	TLShapeId,
 	ToolUtil,
 	Vec,
@@ -25,6 +26,7 @@ type SimpleEraserContext = {
 
 type SimpleEraserToolConfig = {
 	scribbleSize: number
+	scribbleColor: TLScribble['color']
 }
 
 export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEraserToolConfig> {
@@ -33,6 +35,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 	getDefaultConfig(): SimpleEraserToolConfig {
 		return {
 			scribbleSize: 12,
+			scribbleColor: 'muted-1',
 		}
 	}
 
@@ -212,13 +215,14 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 	private startErasingAfterDragging() {
 		const {
 			editor,
+			config: { scribbleSize, scribbleColor },
 			memo: { erasingShapeIds, excludedShapeIds },
 		} = this
 		const { originPagePoint } = editor.inputs
 
 		const scribble = editor.scribbles.addScribble({
-			color: 'muted-1',
-			size: 12,
+			color: scribbleColor,
+			size: scribbleSize,
 		})
 		this.setContext({
 			state: {

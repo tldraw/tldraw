@@ -4,7 +4,7 @@ import {
 	ErrorScreen,
 	LoadingScreen,
 	TLComponents,
-	TLToolUtilConstructor,
+	TLEditorOptions,
 	TldrawEditor,
 	TldrawScribble,
 	TldrawUi,
@@ -17,7 +17,10 @@ import 'tldraw/tldraw.css'
 import { SimpleEraserToolUtil } from './SimpleEraserTool/SimpleEraserTool'
 import { SimpleSelectToolUtil } from './SimpleSelectTool/SimpleSelectTool'
 
-const tools: TLToolUtilConstructor<any, any>[] = [SimpleSelectToolUtil, SimpleEraserToolUtil]
+const tools: TLEditorOptions['tools'] = [
+	SimpleSelectToolUtil,
+	[SimpleEraserToolUtil, { scribbleSize: 16, scribbleColor: 'muted-2' }],
+]
 
 const components: TLComponents = {
 	Scribble: TldrawScribble,

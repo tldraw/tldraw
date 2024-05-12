@@ -17,8 +17,7 @@ import { DefaultErrorFallback } from './components/default-components/DefaultErr
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
-import { Editor } from './editor/Editor'
-import { TLToolUtilConstructor } from './editor/tools/ToolUtil'
+import { Editor, TLEditorOptions } from './editor/Editor'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
@@ -85,7 +84,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * An array of tools to add to the editor's state chart.
 	 */
-	tools?: readonly TLToolUtilConstructor<any, any>[]
+	tools?: TLEditorOptions['tools']
 
 	/**
 	 * Whether to automatically focus the editor when it mounts.
