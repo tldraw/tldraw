@@ -30,7 +30,7 @@ type SimpleEraserToolConfig = {
 }
 
 export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEraserToolConfig> {
-	type = '@simple/eraser' as const
+	id = '@simple/eraser' as const
 
 	getDefaultConfig(): SimpleEraserToolConfig {
 		return {
@@ -45,29 +45,17 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 		}
 	}
 
-	underlay() {
-		return null
-	}
-
-	overlay() {
-		return null
-	}
-
-	getStyles() {
-		return null
-	}
-
-	onEnter() {
+	override onEnter() {
 		const { editor } = this
 		editor.setCursor({ type: 'cross', rotation: 0 })
-		return
 	}
 
-	onExit() {
-		return
+	override onExit() {
+		const { editor } = this
+		editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	onEvent(event: TLEventInfo) {
+	override onEvent(event: TLEventInfo) {
 		const { editor } = this
 		const context = this.getContext()
 

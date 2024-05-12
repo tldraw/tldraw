@@ -39,7 +39,7 @@ simpleSelectStyles.applyValue(DefaultDashStyle, DefaultDashStyle.defaultValue)
 simpleSelectStyles.applyValue(DefaultSizeStyle, DefaultSizeStyle.defaultValue)
 
 export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
-	type = '@simple/select' as const
+	id = '@simple/select' as const
 
 	getDefaultContext(): SimpleSelectContext {
 		return {
@@ -51,11 +51,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 		return {}
 	}
 
-	underlay() {
-		return null
-	}
-
-	overlay() {
+	override overlay() {
 		const { state } = this.getContext()
 
 		return (
@@ -67,7 +63,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 		)
 	}
 
-	getStyles() {
+	override getStyles() {
 		const { editor } = this
 		const selectedShapeIds = editor.getSelectedShapeIds()
 		if (selectedShapeIds.length === 0) {
@@ -92,15 +88,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 		initialSelectedIds: [] as TLShapeId[],
 	}
 
-	onEnter() {
-		return
-	}
-
-	onExit() {
-		return
-	}
-
-	onEvent(event: TLEventInfo) {
+	override onEvent(event: TLEventInfo) {
 		const { editor, memo } = this
 		const context = this.getContext()
 

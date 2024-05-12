@@ -9,27 +9,33 @@ export abstract class ToolUtil<Context extends object, Config extends object = o
 		public editor: Editor,
 		config: Partial<Config> = {}
 	) {
-		this.config = { ...this.getDefaultConfig?.(), ...config }
+		this.config = { ...this.getDefaultConfig(), ...config }
 	}
 
-	abstract type: string
-
-	public readonly config: Partial<Config>
+	/**
+	 * The tool's id. To avoid collisions with other tools, it's best to namespace this (i.e. @yourname/yourtool)
+	 */
+	abstract id: string
 
 	/**
 	 * The tool's default context, set when the tool is first registered in the Editor.
 	 */
-	abstract getDefaultConfig?(): Config
+	abstract getDefaultConfig(): Config
 
 	/**
 	 * The tool's default context, set when the tool is first registered in the Editor.
 	 */
 	abstract getDefaultContext(): Context
 
+	/**
+	 * The configuration passed in by the consumer.
+	 */
+	public readonly config: Partial<Config>
+
 	private _context = atom<Context>('tool context', {} as Context)
 
 	/**
-	 * Get the tool's context.
+	 * Get the tool's context. This data is used to keep track of the tool's state as the user interacts with it.
 	 */
 	@computed getContext() {
 		return this._context.get()
@@ -47,7 +53,9 @@ export abstract class ToolUtil<Context extends object, Config extends object = o
 	/**
 	 * Get the styles (if any) that are relevant to this tool, and which should be displayed when the tool is active.
 	 */
-	abstract getStyles(): ReadonlySharedStyleMap | null
+	getStyles(): ReadonlySharedStyleMap | null {
+		return null
+	}
 
 	/**
 	 * A react component to be displayed when the tool is active behind the shapes.
@@ -55,7 +63,9 @@ export abstract class ToolUtil<Context extends object, Config extends object = o
 	 * @param shape - The shape.
 	 * @public
 	 */
-	abstract underlay(): ReactNode
+	underlay(): ReactNode {
+		return null
+	}
 
 	/**
 	 * A react component to be displayed when the tool is active in front of the shapes.
@@ -63,22 +73,39 @@ export abstract class ToolUtil<Context extends object, Config extends object = o
 	 * @param shape - The shape.
 	 * @public
 	 */
-	abstract overlay(): ReactNode
+	overlay(): ReactNode {
+		return null
+	}
 
 	/**
 	 * An event fired when the tool becomes active.
+	 *
+	 * @param info - Information about the event passed in from the caller of Editor.setCurrentTool
 	 */
-	abstract onEnter(info: any): void
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	onEnter(info: any): void {
+		return
+	}
 
 	/**
 	 * An event fired when the tool becomes inactive.
+	 *
+	 * @param info - Information about the event passed in from the caller of Editor.setCurrentTool
 	 */
-	abstract onExit(info: any): void
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	onExit(info: any): void {
+		return
+	}
 
 	/**
 	 * An event fired when the editor receives or produces dispatched.
+	 *
+	 * @param event - The event.
 	 */
-	abstract onEvent(event: TLEventInfo): void
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	onEvent(event: TLEventInfo): void {
+		return
+	}
 }
 
 /** @public */
