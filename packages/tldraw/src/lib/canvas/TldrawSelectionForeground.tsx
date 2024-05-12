@@ -81,7 +81,18 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 
 	let shouldDisplayBox =
 		(showSelectionBounds &&
-			) ||
+			editor.isInAny(
+				'select.idle',
+				'select.brushing',
+				'select.scribble_brushing',
+				'select.pointing_canvas',
+				'select.pointing_selection',
+				'select.pointing_shape',
+				'select.crop.idle',
+				'select.crop.pointing_crop',
+				'select.pointing_resize_handle',
+				'select.pointing_crop_handle'
+			)) ||
 		(showSelectionBounds &&
 			editor.isIn('select.resizing') &&
 			onlyShape &&

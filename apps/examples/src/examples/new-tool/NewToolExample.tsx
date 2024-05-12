@@ -3,8 +3,10 @@ import {
 	DefaultContextMenuContent,
 	ErrorScreen,
 	LoadingScreen,
+	TLComponents,
 	TLToolUtilConstructor,
 	TldrawEditor,
+	TldrawScribble,
 	TldrawUi,
 	defaultBindingUtils,
 	defaultEditorAssetUrls,
@@ -12,12 +14,14 @@ import {
 	usePreloadAssets,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { SimpleEraserToolUtil } from './SimpleEraserTool'
+import { SimpleEraserToolUtil } from './SimpleEraserTool/SimpleEraserTool'
 import { SimpleSelectToolUtil } from './SimpleSelectTool'
 
 const tools: TLToolUtilConstructor<any, any>[] = [SimpleSelectToolUtil, SimpleEraserToolUtil]
+const components: TLComponents = {
+	Scribble: TldrawScribble,
+}
 
-//[2]
 export default function NewToolExample() {
 	const assetLoading = usePreloadAssets(defaultEditorAssetUrls)
 
@@ -36,6 +40,7 @@ export default function NewToolExample() {
 				shapeUtils={defaultShapeUtils}
 				bindingUtils={defaultBindingUtils}
 				tools={tools}
+				components={components}
 				onMount={(e) => {
 					e.createShapes([
 						{ type: 'geo', x: 200, y: 200 },

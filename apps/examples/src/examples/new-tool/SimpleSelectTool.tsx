@@ -212,18 +212,7 @@ function ShapeIndicators() {
 			// todo: move to tldraw selected ids wrappe
 			const prev = rPreviousSelectedShapeIds.current
 			const next = new Set<TLShapeId>()
-			if (
-				editor.isInAny(
-					'select.idle',
-					'select.brushing',
-					'select.scribble_brushing',
-					'select.editing_shape',
-					'select.pointing_shape',
-					'select.pointing_selection',
-					'select.pointing_handle'
-				) &&
-				!editor.getInstanceState().isChangingStyle
-			) {
+			if (!editor.getInstanceState().isChangingStyle) {
 				const selected = editor.getSelectedShapeIds()
 				for (const id of selected) {
 					next.add(id)
