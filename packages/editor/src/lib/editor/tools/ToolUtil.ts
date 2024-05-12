@@ -50,6 +50,16 @@ export abstract class ToolUtil<T extends TLToolState> {
 	abstract overlay(): ReactNode
 
 	/**
+	 * Handle the tool becoming active.
+	 */
+	abstract onEnter(info: any): void
+
+	/**
+	 * Handle the tool becoming inactive.
+	 */
+	abstract onExit(info: any): void
+
+	/**
 	 * Handle an event.
 	 */
 	abstract onEvent(event: TLEventInfo): void

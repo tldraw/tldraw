@@ -622,6 +622,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
+		this.getCurrentTool().onEnter({})
+
 		this.on('tick', this._flushEventsForTick)
 
 		requestAnimationFrame(() => {
@@ -1052,7 +1054,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCurrentTool(id: string, info = {}): this {
-		this._currentToolId.set(id)
+		const current = this.getCurrentTool()
+		const next = this.getTool(id)
+		if (current !== next) {
+			current.onExit(info)
+			console.log('setting', id)
+			this._currentToolId.set(id)
+			current.onEnter(info)
+		}
 		return this
 	}
 

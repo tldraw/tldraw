@@ -1,38 +1,13 @@
-import {
-	DefaultColorStyle,
-	DefaultDashStyle,
-	DefaultFillStyle,
-	DefaultSizeStyle,
-	ReadonlySharedStyleMap,
-	SharedStyleMap,
-	StyleProp,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
-
-const selectToolStyles: readonly StyleProp<any>[] = Object.freeze([
-	DefaultColorStyle,
-	DefaultDashStyle,
-	DefaultFillStyle,
-	DefaultSizeStyle,
-])
+import { ReadonlySharedStyleMap, useEditor, useValue } from '@tldraw/editor'
 
 /** @public */
-export function useRelevantStyles(
-	stylesToCheck: StyleProp<any>[] = []
-): ReadonlySharedStyleMap | null {
+export function useRelevantStyles(): ReadonlySharedStyleMap | null {
 	const editor = useEditor()
 	return useValue(
 		'getRelevantStyles',
 		() => {
 			const currentTool = editor.getCurrentTool()
 			const currentToolStyles = currentTool.getStyles()
-
-			console.log(stylesToCheck)
-			if (!currentToolStyles) {
-				return new SharedStyleMap(editor.getSharedStyles())
-			}
-
 			return currentToolStyles
 
 			// const isInShapeSpecificTool = false

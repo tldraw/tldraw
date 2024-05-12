@@ -165,7 +165,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<ScribbleWrapper />
 					<ZoomBrushWrapper />
 					<SnapIndicatorWrapper />
-					<SelectionForegroundWrapper />
+					{/* <SelectionForegroundWrapper /> */}
 					<LiveCollaborators />
 				</div>
 			</div>

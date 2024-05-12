@@ -12,9 +12,10 @@ import {
 	usePreloadAssets,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { SimpleSelectToolUtil } from './SimpleTool'
+import { SimpleEraserToolUtil } from './SimpleEraserTool'
+import { SimpleSelectToolUtil } from './SimpleSelectTool'
 
-const tools: TLToolUtilConstructor<any, any>[] = [SimpleSelectToolUtil]
+const tools: TLToolUtilConstructor<any, any>[] = [SimpleSelectToolUtil, SimpleEraserToolUtil]
 
 //[2]
 export default function NewToolExample() {
@@ -31,7 +32,7 @@ export default function NewToolExample() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
-				initialState="@simple/select"
+				initialState="@simple/eraser"
 				shapeUtils={defaultShapeUtils}
 				bindingUtils={defaultBindingUtils}
 				tools={tools}
@@ -39,10 +40,29 @@ export default function NewToolExample() {
 					e.createShapes([
 						{ type: 'geo', x: 200, y: 200 },
 						{ type: 'geo', x: 400, y: 400 },
+						{ type: 'text', x: 200, y: 400, props: { text: 'hello' } },
 					])
 				}}
 			>
-				<TldrawUi>
+				<TldrawUi
+					overrides={{
+						tools: (editor, tools) => {
+							tools['select'] = {
+								...tools['select'],
+								onSelect() {
+									editor.setCurrentTool('@simple/select')
+								},
+							}
+							tools['eraser'] = {
+								...tools['eraser'],
+								onSelect() {
+									editor.setCurrentTool('@simple/eraser')
+								},
+							}
+							return tools
+						},
+					}}
+				>
 					<ContextMenu>
 						<DefaultContextMenuContent />
 					</ContextMenu>
