@@ -5,6 +5,8 @@ Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). t
 - Read the docs and learn more at [tldraw.dev](https://tldraw.dev).
 - Learn about [our license](https://github.com/tldraw/tldraw#License).
 
+> 📄 Interested in purchasing a commercial license? Fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+
 ## Installation
 
 ```bash
@@ -52,7 +54,9 @@ Open the example project at `localhost:5420`.
 
 tldraw's source code and distributed packages are provided under the non-commercial [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
-This license does not permit commercial use. If you wish to use tldraw in a commercial product or enterprise, you will need to purchase a commercial license. To obtain a commercial license, please contact us at [sales@tldraw.com](mailto:sales@tldraw.com).
+This license does not permit commercial use. If you wish to use tldraw in a commercial product or enterprise, you will need to purchase a commercial license.
+
+To obtain a commercial license, please fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
 
 To learn more, see our [license](https://tldraw.dev/community/license) page.
 
@@ -92,4 +96,4 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## Contact
 
-Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [sales@tldraw.com](mailto://sales@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.
+Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support and to connect with the wider tldraw verse.
