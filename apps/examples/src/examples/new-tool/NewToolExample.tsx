@@ -11,6 +11,7 @@ import {
 	defaultBindingUtils,
 	defaultEditorAssetUrls,
 	defaultShapeUtils,
+	toolWithConfig,
 	usePreloadAssets,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -19,7 +20,7 @@ import { SimpleSelectToolUtil } from './SimpleSelectTool/SimpleSelectTool'
 
 const tools: TLEditorOptions['tools'] = [
 	SimpleSelectToolUtil,
-	[SimpleEraserToolUtil, { scribbleSize: 16, scribbleColor: 'muted-2' }],
+	toolWithConfig(SimpleEraserToolUtil, { scribbleSize: 16, scribbleColor: 'muted-1' as const }),
 ]
 
 const components: TLComponents = {

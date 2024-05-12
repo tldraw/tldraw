@@ -117,3 +117,10 @@ export type TLToolUtilConstructorWithConfig<T extends object, Q extends object> 
 	TLToolUtilConstructor<T, Q>,
 	Q,
 ]
+
+export function toolWithConfig<T extends object, Q extends object>(
+	tool: TLToolUtilConstructor<T, Q>,
+	config: Q
+): TLToolUtilConstructorWithConfig<T, Q> {
+	return [tool, config]
+}

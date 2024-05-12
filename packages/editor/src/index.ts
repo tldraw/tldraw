@@ -188,8 +188,7 @@ export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxSha
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export {
 	ToolUtil,
-	type TLToolConfig,
-	type TLToolContext,
+	toolWithConfig,
 	type TLToolUtilConstructor,
 	type TLToolUtilConstructorWithConfig,
 } from './lib/editor/tools/ToolUtil'
