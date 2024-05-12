@@ -4,26 +4,34 @@ import { ReadonlySharedStyleMap } from '../../utils/SharedStylesMap'
 import { Editor } from '../Editor'
 import { TLEventInfo } from '../types/event-types'
 
-// When the tool is loaded, it adds its state to the editor's state
-
-export interface TLToolState {
+export interface TLToolContext {
 	type: string
 }
 
-export abstract class ToolUtil<T extends TLToolState> {
+export abstract class ToolUtil<T extends TLToolContext> {
 	constructor(public editor: Editor) {}
 
-	static type: TLToolState['type']
+	static type: TLToolContext['type']
 
-	// does the default state need to differentiate between private state and sycned state, or is that a detail for the sync stuff?
+	/**
+	 * The tool's default context, set when the tool is first registered in the Editor.
+	 */
 	abstract getDefaultContext(): T
 
 	private _context = atom<T>('tool context', {} as T)
 
+	/**
+	 * Get the tool's context.
+	 */
 	@computed getContext() {
 		return this._context.get()
 	}
 
+	/**
+	 * Set the tool's context.
+	 *
+	 * @param context - A partial of the tool's context.
+	 */
 	setContext(context: Partial<T>) {
 		this._context.set({ ...this._context.__unsafe__getWithoutCapture(), ...context })
 	}
@@ -50,23 +58,26 @@ export abstract class ToolUtil<T extends TLToolState> {
 	abstract overlay(): ReactNode
 
 	/**
-	 * Handle the tool becoming active.
+	 * An event fired when the tool becomes active.
 	 */
 	abstract onEnter(info: any): void
 
 	/**
-	 * Handle the tool becoming inactive.
+	 * An event fired when the tool becomes inactive.
 	 */
 	abstract onExit(info: any): void
 
 	/**
-	 * Handle an event.
+	 * An event fired when the editor receives or produces dispatched.
 	 */
 	abstract onEvent(event: TLEventInfo): void
 }
 
 /** @public */
-export interface TLToolUtilConstructor<T extends TLToolState, U extends ToolUtil<T> = ToolUtil<T>> {
+export interface TLToolUtilConstructor<
+	T extends TLToolContext,
+	U extends ToolUtil<T> = ToolUtil<T>,
+> {
 	new (editor: Editor): U
 	type: T['type']
 }
