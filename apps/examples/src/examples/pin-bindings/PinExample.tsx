@@ -26,8 +26,6 @@ import {
 	createShapeId,
 	invLerp,
 	lerp,
-	track,
-	useEditor,
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
@@ -138,7 +136,6 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 	override onOperationComplete(): void {
 		if (this.changedToShapes.size === 0) return
 
-		console.time('pin layout')
 		const fixedShapes = this.changedToShapes
 		const toCheck = [...this.changedToShapes]
 
@@ -240,8 +237,6 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 			})
 		}
 
-		console.timeEnd('pin layout')
-
 		if (updates.length === 0) {
 			this.changedToShapes.clear()
 		} else {
@@ -252,95 +247,12 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 	// when the shape we're stuck to changes, update the pin's position
 	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<PinBinding>): void {
 		this.changedToShapes.add(binding.toId)
-		// const pin = this.editor.getShape<PinShape>(binding.fromId)!
-
-		// const shapeBounds = this.editor.getShapeGeometry(shapeAfter)!.bounds
-		// const shapeAnchor = {
-		// 	x: lerp(shapeBounds.minX, shapeBounds.maxX, binding.props.anchor.x),
-		// 	y: lerp(shapeBounds.minY, shapeBounds.maxY, binding.props.anchor.y),
-		// }
-		// const pageAnchor = this.editor.getShapePageTransform(shapeAfter).applyToPoint(shapeAnchor)
-
-		// const pinParentAnchor = this.editor
-		// 	.getShapeParentTransform(pin)
-		// 	.invert()
-		// 	.applyToPoint(pageAnchor)
-
-		// this.editor.updateShape({
-		// 	id: pin.id,
-		// 	type: 'pin',
-		// 	x: pinParentAnchor.x,
-		// 	y: pinParentAnchor.y,
-		// })
 	}
 
 	// when the thing we're stuck to is deleted, delete the pin too
 	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<PinBinding>): void {
 		const pin = this.editor.getShape<PinShape>(binding.fromId)
 		if (pin) this.editor.deleteShape(pin.id)
-	}
-}
-
-type RotationLinkBinding = TLBaseBinding<'rotationLink', { offset: number }>
-class RotationLinkBindingUtil extends BindingUtil<RotationLinkBinding> {
-	static override type = 'rotationLink' as const
-
-	override getDefaultProps() {
-		return {
-			offset: 0,
-		}
-	}
-
-	override onAfterChangeFromShape({
-		binding,
-		shapeAfter,
-	}: BindingOnShapeChangeOptions<RotationLinkBinding>): void {
-		const toShape = this.editor.getShape(binding.toId)
-		if (!toShape) return
-
-		const targetRotation = shapeAfter.rotation + binding.props.offset
-		const rotationToApply = targetRotation - toShape.rotation
-		if (Math.abs(rotationToApply) > 0.01) {
-			const shapeCenter = this.editor.getShapePageBounds(toShape)!.center
-			const shapePosition = this.editor.getShapePageTransform(toShape).applyToPoint({ x: 0, y: 0 })
-			const newPagePosition = Vec.RotWith(shapePosition, shapeCenter, rotationToApply)
-			const newPosition = this.editor.getShapeParentTransform(toShape).applyToPoint(newPagePosition)
-			this.editor.updateShape({
-				id: toShape.id,
-				type: toShape.type,
-				rotation: targetRotation,
-				x: newPosition.x,
-				y: newPosition.y,
-			})
-		}
-	}
-
-	override onAfterChangeToShape({
-		binding,
-		shapeAfter,
-	}: BindingOnShapeChangeOptions<RotationLinkBinding>): void {
-		const fromShape = this.editor.getShape(binding.fromId)
-		if (!fromShape) return
-
-		const targetRotation = shapeAfter.rotation - binding.props.offset
-		const rotationToApply = targetRotation - fromShape.rotation
-		if (Math.abs(rotationToApply) > 0.01) {
-			const shapeCenter = this.editor.getShapePageBounds(fromShape)!.center
-			const shapePosition = this.editor
-				.getShapePageTransform(fromShape)
-				.applyToPoint({ x: 0, y: 0 })
-			const newPagePosition = Vec.RotWith(shapePosition, shapeCenter, rotationToApply)
-			const newPosition = this.editor
-				.getShapeParentTransform(fromShape)
-				.applyToPoint(newPagePosition)
-			this.editor.updateShape({
-				id: fromShape.id,
-				type: fromShape.type,
-				rotation: targetRotation,
-				x: newPosition.x,
-				y: newPosition.y,
-			})
-		}
 	}
 }
 
@@ -401,74 +313,6 @@ const components: TLUiComponents & TLEditorComponents = {
 			</DefaultToolbar>
 		)
 	},
-	InFrontOfTheCanvas: track(() => {
-		const editor = useEditor()
-
-		if (!editor.isIn('select.idle')) return null
-		if (editor.getSelectedShapeIds().length < 2) return null
-
-		const pageBounds = editor.getSelectionPageBounds()
-		if (!pageBounds) return null
-
-		const screenPosition = editor.pageToViewport(pageBounds)
-
-		function clearBindings() {
-			const shapes = editor.getSelectedShapes()
-			for (const shape of shapes) {
-				editor.deleteBindings(editor.getBindingsInvolvingShape(shape, 'rotationLink'))
-			}
-		}
-
-		function makeBindings() {
-			clearBindings()
-
-			const shapes = editor.getSelectedShapes()
-			for (let i = 0; i < shapes.length - 1; i++) {
-				const a = shapes[i]
-				for (let j = i + 1; j < shapes.length; j++) {
-					const b = shapes[j]
-					editor.createBinding({
-						type: 'rotationLink',
-						fromId: a.id,
-						toId: b.id,
-						props: {
-							offset: b.rotation - a.rotation,
-						},
-					})
-				}
-			}
-		}
-
-		const hasBindings = editor
-			.getSelectedShapes()
-			.some((shape) => editor.getBindingsFromShape(shape, 'rotationLink').length)
-
-		return (
-			<button
-				onClick={hasBindings ? clearBindings : makeBindings}
-				style={{
-					position: 'absolute',
-					top: -36,
-					left: 0,
-					transform: `translate(${screenPosition.x}px, ${screenPosition.y}px)`,
-					fontSize: 16,
-					background: 'white',
-					border: 'none',
-					width: 32,
-					height: 32,
-					cursor: 'pointer',
-					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-					borderRadius: 4,
-					boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-					pointerEvents: 'all',
-				}}
-			>
-				{hasBindings ? '❌' : '🔄'}
-			</button>
-		)
-	}),
 }
 
 export default function PinExample() {
@@ -481,7 +325,7 @@ export default function PinExample() {
 					editor.setStyleForNextShapes(DefaultFillStyle, 'semi')
 				}}
 				shapeUtils={[PinShapeUtil]}
-				bindingUtils={[PinBindingUtil, RotationLinkBindingUtil]}
+				bindingUtils={[PinBindingUtil]}
 				tools={[PinTool]}
 				overrides={overrides}
 				components={components}
