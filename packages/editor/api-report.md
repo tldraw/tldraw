@@ -23,7 +23,6 @@ import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
-import { noop } from '@tldraw/utils';
 import { PerformanceTracker } from '@tldraw/utils';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
@@ -1342,7 +1341,7 @@ export class HistoryManager<R extends UnknownRecord> {
     // (undocumented)
     mark: (id?: string) => string;
     // (undocumented)
-    onBatchComplete: typeof noop;
+    onBatchComplete: () => void;
     // (undocumented)
     redo: () => this | undefined;
     // @internal (undocumented)

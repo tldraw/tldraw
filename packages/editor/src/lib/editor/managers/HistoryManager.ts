@@ -73,14 +73,14 @@ export class HistoryManager<R extends UnknownRecord> {
 		}))
 	}
 
+	onBatchComplete: () => void = () => void null
+
 	getNumUndos() {
 		return this.stacks.get().undos.length + (this.pendingDiff.isEmpty() ? 0 : 1)
 	}
 	getNumRedos() {
 		return this.stacks.get().redos.length
 	}
-
-	onBatchComplete = noop
 
 	/** @internal */
 	_isInBatch = false
