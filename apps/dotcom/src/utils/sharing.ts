@@ -71,7 +71,7 @@ async function getSnapshotLink(
 	const response = (await res.json()) as CreateSnapshotResponseBody
 
 	if (!res.ok || response.error) {
-		console.error(await res.text())
+		if (response.error) console.error(response.message)
 		return ''
 	}
 	const paramsToUse = getViewportUrlQuery(editor)
@@ -141,9 +141,13 @@ export function useSharing(): TLUiOverrides {
 								schema: editor.store.schema.serialize(),
 								snapshot: data,
 							})
-							const response = (await res.json()) as { error: boolean; slug?: string }
+							const response = (await res.json()) as {
+								error: boolean
+								slug?: string
+								message?: string
+							}
 							if (!res.ok || response.error) {
-								console.error(await res.text())
+								if (response.error) console.error(response.message)
 								throw new Error('Failed to upload snapshot')
 							}
 
