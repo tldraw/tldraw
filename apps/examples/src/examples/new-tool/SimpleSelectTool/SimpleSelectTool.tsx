@@ -11,6 +11,7 @@ import {
 	TLShapeId,
 	ToolUtil,
 	getOwnProperty,
+	react,
 } from 'tldraw'
 import { HintedShapeIndicator } from './components/HintedShapeIndicators'
 import { SelectionBrush } from './components/SelectionBrush'
@@ -121,13 +122,13 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 	}
 
 	override overlay() {
-		const context = this.getContext()
+		const state = this.getState()
 
 		return (
 			<>
 				<ShapeIndicators />
 				<HintedShapeIndicator />
-				{context.name === 'brushing' && <SelectionBrush brush={context.brush} />}
+				{state.name === 'brushing' && <SelectionBrush brush={state.brush} />}
 			</>
 		)
 	}
@@ -137,14 +138,37 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 		initialSelectedIds: [] as TLShapeId[],
 	}
 
+	reactor?: () => void
+
+	override onEnter() {
+		this.reactor = react('clean duplicate props', () => {
+			try {
+				this.cleanUpDuplicateProps()
+			} catch (e) {
+				if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+					// ignore errors at test time
+				} else {
+					console.error(e)
+				}
+			}
+		})
+	}
+
+	override onExit = () => {
+		this.reactor?.()
+		if (this.editor.getCurrentPageState().editingShapeId) {
+			this.editor.setEditingShape(null)
+		}
+	}
+
 	override onEvent(event: TLEventInfo) {
 		const { editor, memo } = this
-		const context = this.getContext()
+		const state = this.getState()
 
-		switch (context.name) {
+		switch (state.name) {
 			case 'idle': {
 				if (event.name === 'pointer_down') {
-					this.setContext({
+					this.setState({
 						name: 'pointing_canvas',
 					})
 				}
@@ -154,7 +178,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 				if (editor.inputs.isDragging) {
 					const { originPagePoint, currentPagePoint } = editor.inputs
 					const box = Box.FromPoints([originPagePoint, currentPagePoint])
-					this.setContext({
+					this.setState({
 						name: 'brushing',
 						brush: box.toJson(),
 					})
@@ -212,7 +236,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 			case 'brushing': {
 				if (!editor.inputs.isPointing) {
 					// Stopped pointing
-					this.setContext({
+					this.setState({
 						name: 'idle',
 					})
 					return
@@ -227,8 +251,8 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 					const { originPagePoint, currentPagePoint } = editor.inputs
 					const box = Box.FromPoints([originPagePoint, currentPagePoint])
 
-					// update the box in the context
-					this.setContext({
+					// update the box in the state
+					this.setState({
 						name: 'brushing',
 						brush: box.toJson(),
 					})
@@ -268,5 +292,22 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 				break
 			}
 		}
+	}
+
+	private cleanUpDuplicateProps = () => {
+		// Clean up the duplicate props when the selection changes
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
+		const instance = this.editor.getInstanceState()
+		if (!instance.duplicateProps) return
+		const duplicatedShapes = new Set(instance.duplicateProps.shapeIds)
+		if (
+			selectedShapeIds.length === duplicatedShapes.size &&
+			selectedShapeIds.every((shapeId) => duplicatedShapes.has(shapeId))
+		) {
+			return
+		}
+		this.editor.updateInstanceState({
+			duplicateProps: null,
+		})
 	}
 }

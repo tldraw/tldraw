@@ -190,6 +190,7 @@ export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/State
 export {
 	ToolUtil,
 	toolWithConfig,
+	type TLToolState,
 	type TLToolUtilConstructor,
 	type TLToolUtilConstructorWithConfig,
 } from './lib/editor/tools/ToolUtil'

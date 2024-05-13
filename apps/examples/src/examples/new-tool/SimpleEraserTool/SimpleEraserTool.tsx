@@ -57,7 +57,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 
 		return (
 			<>
-				{this.getContext().scribbles.map((scribble) => (
+				{this.getState().scribbles.map((scribble) => (
 					<Scribble
 						key={scribble.id}
 						className="tl-user-scribble"
@@ -81,7 +81,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 
 	override onEvent(event: TLEventInfo) {
 		const { editor } = this
-		const context = this.getContext()
+		const state = this.getState()
 
 		if (event.name === 'cancel') {
 			this.cancel()
@@ -97,11 +97,11 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 			this.updateScribbles(event.elapsed)
 		}
 
-		switch (context.name) {
+		switch (state.name) {
 			case 'idle': {
 				if (event.name === 'pointer_down') {
 					// started pointing
-					this.setContext({
+					this.setState({
 						name: 'pointing',
 					})
 					this.startScribble()
@@ -118,7 +118,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 
 				if (editor.inputs.isDragging || event.name === 'long_press') {
 					// started dragging
-					this.setContext({ name: 'erasing' })
+					this.setState({ name: 'erasing' })
 					this.startErasingAfterDragging()
 					this.updateErasingShapes()
 					return
@@ -222,8 +222,8 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 	private updateErasingShapes() {
 		const { editor, memo } = this
 
-		const context = this.getContext()
-		if (context.name !== 'erasing') return
+		const state = this.getState()
+		if (state.name !== 'erasing') return
 
 		const { excludedShapeIds, erasingShapeIds, prevPoint } = memo
 
@@ -289,7 +289,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 		})
 		memo.scribbleId = scribble.id
 		scribbles.set(scribble.id, scribble)
-		this.setContext({
+		this.setState({
 			scribbles: Array.from(scribbles.values()).map((s) => ({ ...s.current })),
 		})
 	}
@@ -318,7 +318,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 			}
 		})
 
-		this.setContext({
+		this.setState({
 			scribbles: Array.from(scribbles.values()).map((s) => ({ ...s.current })),
 		})
 	}
@@ -343,7 +343,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 		memo.excludedShapeIds.clear()
 
 		this.stopScribble()
-		this.setContext({ name: 'idle' })
+		this.setState({ name: 'idle' })
 	}
 
 	private complete() {
@@ -360,6 +360,6 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 		memo.excludedShapeIds.clear()
 
 		this.stopScribble()
-		this.setContext({ name: 'idle' })
+		this.setState({ name: 'idle' })
 	}
 }

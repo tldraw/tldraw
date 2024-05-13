@@ -25,24 +25,24 @@ export class SelectTool extends StateNode {
 	reactor: undefined | (() => void) = undefined
 
 	static override children = () => [
+		Brushing,
 		Crop,
 		Cropping,
-		Idle,
-		PointingCanvas,
-		PointingShape,
-		Translating,
-		Brushing,
-		ScribbleBrushing,
-		PointingCropHandle,
-		PointingSelection,
-		PointingResizeHandle,
+		DraggingHandle,
 		EditingShape,
+		Idle,
+		PointingArrowLabel,
+		PointingCanvas,
+		PointingCropHandle,
+		PointingHandle,
+		PointingResizeHandle,
+		PointingRotateHandle,
+		PointingSelection,
+		PointingShape,
 		Resizing,
 		Rotating,
-		PointingRotateHandle,
-		PointingArrowLabel,
-		PointingHandle,
-		DraggingHandle,
+		ScribbleBrushing,
+		Translating,
 	]
 
 	// We want to clean up the duplicate props when the selection changes

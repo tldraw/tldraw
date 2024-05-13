@@ -4,7 +4,13 @@ import { ReadonlySharedStyleMap } from '../../utils/SharedStylesMap'
 import { Editor } from '../Editor'
 import { TLEventInfo } from '../types/event-types'
 
-export abstract class ToolUtil<Context extends object, Config extends object = object> {
+export type TLToolState = {
+	name: string
+} & {
+	[key: Exclude<string, 'name'>]: any
+}
+
+export abstract class ToolUtil<State extends TLToolState, Config extends object = object> {
 	constructor(
 		public editor: Editor,
 		config: Partial<Config> = {}
@@ -18,36 +24,36 @@ export abstract class ToolUtil<Context extends object, Config extends object = o
 	abstract id: string
 
 	/**
-	 * The tool's default context, set when the tool is first registered in the Editor.
+	 * The tool's default state, set when the tool is first registered in the Editor.
 	 */
 	abstract getDefaultConfig(): Config
 
 	/**
-	 * The tool's default context, set when the tool is first registered in the Editor.
+	 * The tool's default state, set when the tool is first registered in the Editor.
 	 */
-	abstract getDefaultContext(): Context
+	abstract getDefaultContext(): State
 
 	/**
 	 * The configuration passed in by the consumer.
 	 */
 	public readonly config: Partial<Config>
 
-	private _context = atom<Context>('tool context', {} as Context)
+	private _state = atom<State>('tool state', {} as State)
 
 	/**
-	 * Get the tool's context. This data is used to keep track of the tool's state as the user interacts with it.
+	 * Get the tool's state. This data is used to keep track of the tool's state as the user interacts with it.
 	 */
-	@computed getContext() {
-		return this._context.get()
+	@computed getState() {
+		return this._state.get()
 	}
 
 	/**
-	 * Set the tool's context.
+	 * Set the tool's state.
 	 *
-	 * @param context - A partial of the tool's context.
+	 * @param state - A partial of the tool's state.
 	 */
-	setContext(context: Partial<Context>) {
-		this._context.set({ ...this._context.__unsafe__getWithoutCapture(), ...context })
+	setState(state: Partial<State>) {
+		this._state.set({ ...this._state.__unsafe__getWithoutCapture(), ...state })
 	}
 
 	/**
@@ -109,16 +115,16 @@ export abstract class ToolUtil<Context extends object, Config extends object = o
 }
 
 /** @public */
-export interface TLToolUtilConstructor<T extends object, Q extends object> {
+export interface TLToolUtilConstructor<T extends TLToolState, Q extends object> {
 	new (editor: Editor, config: Q): ToolUtil<T, Q>
 }
 
-export type TLToolUtilConstructorWithConfig<T extends object, Q extends object> = [
+export type TLToolUtilConstructorWithConfig<T extends TLToolState, Q extends object> = [
 	TLToolUtilConstructor<T, Q>,
 	Q,
 ]
 
-export function toolWithConfig<T extends object, Q extends object>(
+export function toolWithConfig<T extends TLToolState, Q extends object>(
 	tool: TLToolUtilConstructor<T, Q>,
 	config: Q
 ): TLToolUtilConstructorWithConfig<T, Q> {
