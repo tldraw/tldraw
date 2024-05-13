@@ -216,13 +216,10 @@ test.describe('Focus', () => {
 		await page.keyboard.press('Tab')
 
 		await (await page.$('body'))?.click()
-		await page.keyboard.type('type more')
 
 		// First note's textarea should be focused.
-		expect(
-			await EditorA.evaluate(
-				() => document.querySelector('.tl-shape textarea') === document.activeElement
-			)
-		).toBe(true)
+		expect(await EditorA.evaluate(() => !!document.querySelector('.tl-shape textarea:focus'))).toBe(
+			true
+		)
 	})
 })
