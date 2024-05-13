@@ -80,6 +80,7 @@ export function useMultiplayerImageAsset(assetUploaderUrl: string) {
 					name = file.name
 					assetId = AssetRecordType.createId(getHashForString(url))
 					isAnimated = await MediaHelpers.isAnimated(file)
+					mimeType = file.type
 					size = await MediaHelpers.getImageSize(file)
 				}
 
