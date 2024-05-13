@@ -13,16 +13,20 @@ import {
 	SelectionHandle,
 	SharedStyleMap,
 	TLArrowShape,
+	TLBaseShape,
 	TLClickEventInfo,
 	TLEventInfo,
 	TLGroupShape,
 	TLHandle,
+	TLImageShape,
+	TLImageShapeCrop,
 	TLKeyboardEventInfo,
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLSelectionHandle,
 	TLShape,
 	TLShapeId,
+	TLShapePartial,
 	TLTextShape,
 	ToolUtil,
 	Vec,
@@ -32,12 +36,15 @@ import {
 	getPointInArcT,
 	kickoutOccludedShapes,
 	react,
+	structuredClone,
 } from 'tldraw'
 import { getArrowInfo } from 'tldraw/src/lib/shapes/arrow/shared'
+import { MIN_CROP_SIZE } from 'tldraw/src/lib/tools/SelectTool/childStates/Crop/crop-constants'
 import { HintedShapeIndicator } from './components/HintedShapeIndicators'
 import { SelectionBrush } from './components/SelectionBrush'
 import { ShapeIndicators } from './components/ShapeIndicators'
 import { cursorTypeMap } from './selection-logic/cursorTypeMap'
+import { getCroppingSnapshot } from './selection-logic/getCroppingSnapshot'
 import { getHitShapeOnCanvasPointerDown } from './selection-logic/getHitShapeOnCanvasPointerDown'
 import { getNoteForPit } from './selection-logic/getNoteForPits'
 import { getShouldEnterCropMode } from './selection-logic/getShouldEnterCropModeOnPointerDown'
@@ -63,6 +70,7 @@ type SimpleSelectState =
 	| {
 			name: 'cropping'
 			handle: SelectionHandle
+			snapshot: ReturnType<typeof getCroppingSnapshot>
 	  }
 	| {
 			name: 'pointing_selection'
@@ -294,6 +302,12 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				})
 				break
 			}
+			case 'translating': {
+				break
+			}
+			case 'rotating': {
+				break
+			}
 			case 'brushing': {
 				const { originPagePoint, currentPagePoint } = editor.inputs
 				const box = Box.FromPoints([originPagePoint, currentPagePoint])
@@ -304,9 +318,6 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 
 				// Stash the selected ids so we can restore them later
 				memo.initialSelectedIds = editor.getSelectedShapeIds()
-				break
-			}
-			case 'cropping': {
 				break
 			}
 			case 'crop_idle': {
@@ -333,6 +344,12 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 
 				break
 			}
+			case 'cropping': {
+				const cursorType = cursorTypeMap[next.handle]
+				editor.setCursor({ type: cursorType, rotation: editor.getSelectionRotation() })
+				editor.mark('cropping')
+				break
+			}
 			case 'pointing_resize_handle': {
 				const info = _info as TLPointerEventInfo & {
 					target: 'selection'
@@ -345,6 +362,9 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					type: cursorType,
 					rotation: selected.length === 1 ? editor.getSelectionRotation() : 0,
 				})
+				break
+			}
+			case 'resizing': {
 				break
 			}
 			case 'pointing_arrow_label': {
@@ -1011,7 +1031,11 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					(info.name === 'pointer_move' && editor.inputs.isDragging)
 				) {
 					if (editor.getInstanceState().isReadonly) return
-					this.setState({ name: 'cropping', handle: state.handle })
+					this.setState({
+						name: 'cropping',
+						handle: state.handle,
+						snapshot: getCroppingSnapshot(editor, state.handle),
+					})
 				} else if (
 					info.name === 'complete' ||
 					info.name === 'interrupt' ||
@@ -1253,7 +1277,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 						props: { labelPosition: nextLabelPosition },
 					})
 				} else if (info.name === 'pointer_up') {
-					const shape = this.editor.getShape<TLArrowShape>(state.shapeId)
+					const shape = editor.getShape<TLArrowShape>(state.shapeId)
 					if (!shape) return
 
 					if (state.didDrag || !state.wasAlreadySelected) {
@@ -1274,6 +1298,18 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'cropping': {
+				if (info.name === 'cancel' || info.name === 'interrupt') {
+					editor.bailToMark('cropping')
+					editor.setCroppingShape(null)
+					this.setState({ name: 'idle' })
+				} else if (info.name === 'pointer_move') {
+					this.updateCroppingShapes(state)
+				} else if (info.name === 'complete') {
+					this.updateCroppingShapes(state)
+					kickoutOccludedShapes(editor, [state.snapshot.shape.id])
+					editor.setCroppingShape(null)
+					this.setState({ name: 'idle' })
+				}
 				break
 			}
 			case 'crop_idle': {
@@ -1479,6 +1515,137 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 		const selectedShapeIds = editor.getSelectedShapeIds()
 		editor.nudgeShapes(selectedShapeIds, delta.mul(step))
 		kickoutOccludedShapes(editor, selectedShapeIds)
+	}
+
+	private updateCroppingShapes(state: SimpleSelectState & { name: 'cropping' }) {
+		const { editor } = this
+		const { shape, cursorHandleOffset } = state.snapshot
+
+		if (!shape) return
+		const util = editor.getShapeUtil<TLImageShape>('image')
+		if (!util) return
+
+		const props = shape.props
+
+		const currentPagePoint = editor.inputs.currentPagePoint.clone().sub(cursorHandleOffset)
+		const originPagePoint = editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
+
+		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
+
+		const crop = props.crop ?? {
+			topLeft: { x: 0, y: 0 },
+			bottomRight: { x: 1, y: 1 },
+		}
+		const newCrop = structuredClone(crop)
+		const newPoint = new Vec(shape.x, shape.y)
+		const pointDelta = new Vec(0, 0)
+
+		// original (uncropped) width and height of shape
+		const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * props.w
+		const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * props.h
+
+		let hasCropChanged = false
+
+		// Set y dimension
+		switch (state.handle) {
+			case 'top':
+			case 'top_left':
+			case 'top_right': {
+				if (h < MIN_CROP_SIZE) break
+				hasCropChanged = true
+				// top
+				newCrop.topLeft.y = newCrop.topLeft.y + change.y / h
+				const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
+
+				if (heightAfterCrop < MIN_CROP_SIZE) {
+					newCrop.topLeft.y = newCrop.bottomRight.y - MIN_CROP_SIZE / h
+					pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
+				} else {
+					if (newCrop.topLeft.y <= 0) {
+						newCrop.topLeft.y = 0
+						pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
+					} else {
+						pointDelta.y = change.y
+					}
+				}
+				break
+			}
+			case 'bottom':
+			case 'bottom_left':
+			case 'bottom_right': {
+				if (h < MIN_CROP_SIZE) break
+				hasCropChanged = true
+				// bottom
+				newCrop.bottomRight.y = Math.min(1, newCrop.bottomRight.y + change.y / h)
+				const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
+
+				if (heightAfterCrop < MIN_CROP_SIZE) {
+					newCrop.bottomRight.y = newCrop.topLeft.y + MIN_CROP_SIZE / h
+				}
+				break
+			}
+		}
+
+		// Set x dimension
+		switch (state.handle) {
+			case 'left':
+			case 'top_left':
+			case 'bottom_left': {
+				if (w < MIN_CROP_SIZE) break
+				hasCropChanged = true
+				// left
+				newCrop.topLeft.x = newCrop.topLeft.x + change.x / w
+				const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
+
+				if (widthAfterCrop < MIN_CROP_SIZE) {
+					newCrop.topLeft.x = newCrop.bottomRight.x - MIN_CROP_SIZE / w
+					pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
+				} else {
+					if (newCrop.topLeft.x <= 0) {
+						newCrop.topLeft.x = 0
+						pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
+					} else {
+						pointDelta.x = change.x
+					}
+				}
+				break
+			}
+			case 'right':
+			case 'top_right':
+			case 'bottom_right': {
+				if (w < MIN_CROP_SIZE) break
+				hasCropChanged = true
+				// right
+				newCrop.bottomRight.x = Math.min(1, newCrop.bottomRight.x + change.x / w)
+				const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
+
+				if (widthAfterCrop < MIN_CROP_SIZE) {
+					newCrop.bottomRight.x = newCrop.topLeft.x + MIN_CROP_SIZE / w
+				}
+				break
+			}
+		}
+		if (!hasCropChanged) return
+
+		newPoint.add(pointDelta.rot(shape.rotation))
+
+		const partial: TLShapePartial<
+			TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>
+		> = {
+			id: shape.id,
+			type: shape.type,
+			x: newPoint.x,
+			y: newPoint.y,
+			props: {
+				crop: newCrop,
+				w: (newCrop.bottomRight.x - newCrop.topLeft.x) * w,
+				h: (newCrop.bottomRight.y - newCrop.topLeft.y) * h,
+			},
+		}
+
+		editor.updateShapes([partial])
+		const cursorType = cursorTypeMap[state.handle]
+		editor.setCursor({ type: cursorType, rotation: editor.getSelectionRotation() })
 	}
 }
 
