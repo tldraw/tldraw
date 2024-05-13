@@ -216,6 +216,7 @@ test.describe('Focus', () => {
 		await page.keyboard.press('Tab')
 
 		await (await page.$('body'))?.click()
+		await page.keyboard.type('type more')
 
 		// First note's textarea should be focused.
 		expect(
