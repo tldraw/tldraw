@@ -32,7 +32,7 @@ type ShareState = {
 	state: ShareCurrentState
 	qrCodeDataUrl: string
 	url: string
-	readonlyUrl: string | null
+	readonlyUrl?: string
 	readonlyQrCodeDataUrl: string
 }
 
@@ -47,9 +47,22 @@ function isSharedReadWriteUrl(pathname: string) {
 	return pathname.startsWith(`/${ROOM_PREFIX}/`)
 }
 
-function getFreshShareState(): ShareState {
+function getFreshShareState(previousReadonlyUrl?: string): ShareState {
 	const isSharedReadWrite = isSharedReadWriteUrl(window.location.pathname)
 	const isSharedReadOnly = isSharedReadonlyUrl(window.location.pathname)
+
+	let readonlyUrl
+	if (isSharedReadOnly) {
+		readonlyUrl = window.location.href
+	} else if (previousReadonlyUrl) {
+		// Pull out the room prefix and the readonly slug from the existing readonly url
+		const segments = window.location.pathname.split('/')
+		const roSegments = new URL(previousReadonlyUrl).pathname.split('/')
+		segments[1] = roSegments[1]
+		segments[2] = roSegments[2]
+		const newPathname = segments.join('/')
+		readonlyUrl = `${window.location.origin}${newPathname}${window.location.search}`
+	}
 
 	return {
 		state: isSharedReadWrite
@@ -58,27 +71,10 @@ function getFreshShareState(): ShareState {
 				? SHARE_CURRENT_STATE.SHARED_READ_ONLY
 				: SHARE_CURRENT_STATE.OFFLINE,
 		url: window.location.href,
-		readonlyUrl: isSharedReadOnly ? window.location.href : null,
+		readonlyUrl,
 		qrCodeDataUrl: '',
 		readonlyQrCodeDataUrl: '',
 	}
-}
-
-function getUpdatedState(previusReadonlyUrl: string | null) {
-	const freshState = getFreshShareState()
-	// We are in a readonly room and already have the url
-	if (freshState.readonlyUrl) return freshState
-	// We don't have a readonly url from before
-	if (!previusReadonlyUrl) return freshState
-
-	// Pull out the room prefix and the readonly slug from the existing readonly url
-	const segments = window.location.pathname.split('/')
-	const roSegments = new URL(previusReadonlyUrl).pathname.split('/')
-	segments[1] = roSegments[1]
-	segments[2] = roSegments[2]
-	const newPathname = segments.join('/')
-	freshState.readonlyUrl = `${window.location.origin}${newPathname}${window.location.search}`
-	return freshState
 }
 
 async function getReadonlyUrl() {
@@ -163,7 +159,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 		const interval = setInterval(() => {
 			const url = window.location.href
 			if (shareState.url === url) return
-			setShareState(getUpdatedState(shareState.readonlyUrl))
+			setShareState(getFreshShareState(shareState.readonlyUrl))
 		}, 300)
 
 		return () => {
