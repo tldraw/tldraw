@@ -56,7 +56,7 @@ export interface TLUiActionItem<
 export type TLUiActionsContextType = Record<string, TLUiActionItem>
 
 /** @internal */
-export const ActionsContext = React.createContext<TLUiActionsContextType>({})
+export const ActionsContext = React.createContext<TLUiActionsContextType | null>(null)
 
 /** @public */
 export type ActionsProviderProps = {

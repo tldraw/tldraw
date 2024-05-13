@@ -23,12 +23,16 @@ export interface TLUiTranslationProviderProps {
 /** @public */
 export type TLUiTranslationContextType = TLUiTranslation
 
-const TranslationsContext = React.createContext<TLUiTranslationContextType>(
-	{} as TLUiTranslationContextType
-)
+const TranslationsContext = React.createContext<TLUiTranslationContextType | null>(null)
 
 /** @public */
-export const useCurrentTranslation = () => React.useContext(TranslationsContext)
+export function useCurrentTranslation() {
+	const translations = React.useContext(TranslationsContext)
+	if (!translations) {
+		throw new Error('useCurrentTranslation must be used inside of <TldrawUiContextProvider />')
+	}
+	return translations
+}
 
 /**
  * Provides a translation context to the editor.

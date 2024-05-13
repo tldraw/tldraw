@@ -58,7 +58,7 @@ export type TLUiComponents = Partial<{
 	[K in keyof BaseTLUiComponents]: BaseTLUiComponents[K] | null
 }>
 
-const TldrawUiComponentsContext = createContext({} as TLUiComponents)
+const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
 
 /** @public */
 export type TLUiComponentsProviderProps = {
@@ -105,5 +105,9 @@ export function TldrawUiComponentsProvider({
 
 /** @public */
 export function useTldrawUiComponents() {
-	return useContext(TldrawUiComponentsContext)
+	const components = useContext(TldrawUiComponentsContext)
+	if (!components) {
+		throw new Error('useTldrawUiComponents must be used within a TldrawUiComponentsProvider')
+	}
+	return components
 }

@@ -33,7 +33,7 @@ export type TLUiToastsContextType = {
 }
 
 /** @internal */
-export const ToastsContext = createContext({} as TLUiToastsContextType)
+export const ToastsContext = createContext<TLUiToastsContextType | null>(null)
 
 /** @internal */
 export type ToastsProviderProps = {

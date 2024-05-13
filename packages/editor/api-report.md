@@ -23,6 +23,7 @@ import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
+import { noop } from '@tldraw/utils';
 import { PerformanceTracker } from '@tldraw/utils';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
@@ -1065,7 +1066,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 }
 
 // @internal (undocumented)
-export const EditorContext: React_2.Context<Editor>;
+export const EditorContext: React_2.Context<Editor | null>;
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
@@ -1341,7 +1342,7 @@ export class HistoryManager<R extends UnknownRecord> {
     // (undocumented)
     mark: (id?: string) => string;
     // (undocumented)
-    onBatchComplete: () => void;
+    onBatchComplete: typeof noop;
     // (undocumented)
     redo: () => this | undefined;
     // @internal (undocumented)
