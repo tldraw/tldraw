@@ -7,6 +7,7 @@ import {
 	DefaultSizeStyle,
 	SharedStyleMap,
 	TLEventInfo,
+	TLScribble,
 	TLShapeId,
 	ToolUtil,
 	getOwnProperty,
@@ -15,17 +16,69 @@ import { HintedShapeIndicator } from './components/HintedShapeIndicators'
 import { SelectionBrush } from './components/SelectionBrush'
 import { ShapeIndicators } from './components/ShapeIndicators'
 
-type SimpleSelectContext =
+type SimpleSelectContext = { scribbles: TLScribble[] } & (
 	| {
 			name: 'idle'
 	  }
 	| {
-			name: 'pointing'
+			name: 'pointing_canvas'
+	  }
+	| {
+			name: 'pointing_resize_handle'
+	  }
+	| {
+			name: 'pointing_rotate_handle'
+	  }
+	| {
+			name: 'pointing_selection'
+	  }
+	| {
+			name: 'pointing_shape'
+	  }
+	| {
+			name: 'resizing'
+	  }
+	| {
+			name: 'rotating'
+	  }
+	| {
+			name: 'translating'
+	  }
+	| {
+			name: 'pointing_handle'
+	  }
+	| {
+			name: 'pointing_arrow_handle'
+	  }
+	| {
+			name: 'dragging_handle'
+	  }
+	| {
+			name: 'editing_shape'
+	  }
+	| {
+			name: 'dragging_handle'
+	  }
+	| {
+			name: 'cropping'
 	  }
 	| {
 			name: 'brushing'
 			brush: BoxLike | null
 	  }
+	| {
+			name: 'scribble_brushing'
+	  }
+	| {
+			name: 'crop_idle'
+	  }
+	| {
+			name: 'crop_translating'
+	  }
+	| {
+			name: 'crop_pointing'
+	  }
+)
 
 const simpleSelectStyles = new SharedStyleMap()
 simpleSelectStyles.applyValue(DefaultColorStyle, DefaultColorStyle.defaultValue)
@@ -39,6 +92,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 	getDefaultContext(): SimpleSelectContext {
 		return {
 			name: 'idle',
+			scribbles: [],
 		}
 	}
 
@@ -91,12 +145,12 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 			case 'idle': {
 				if (event.name === 'pointer_down') {
 					this.setContext({
-						name: 'pointing',
+						name: 'pointing_canvas',
 					})
 				}
 				break
 			}
-			case 'pointing': {
+			case 'pointing_canvas': {
 				if (editor.inputs.isDragging) {
 					const { originPagePoint, currentPagePoint } = editor.inputs
 					const box = Box.FromPoints([originPagePoint, currentPagePoint])
@@ -108,6 +162,51 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 					// Stash the selected ids so we can restore them later
 					memo.initialSelectedIds = editor.getSelectedShapeIds()
 				}
+				break
+			}
+			case 'pointing_arrow_handle': {
+				break
+			}
+			case 'pointing_handle': {
+				break
+			}
+			case 'pointing_resize_handle': {
+				break
+			}
+			case 'pointing_rotate_handle': {
+				break
+			}
+			case 'pointing_selection': {
+				break
+			}
+			case 'pointing_shape': {
+				break
+			}
+			case 'cropping': {
+				break
+			}
+			case 'crop_idle': {
+				break
+			}
+			case 'crop_pointing': {
+				break
+			}
+			case 'crop_translating': {
+				break
+			}
+			case 'dragging_handle': {
+				break
+			}
+			case 'editing_shape': {
+				break
+			}
+			case 'resizing': {
+				break
+			}
+			case 'rotating': {
+				break
+			}
+			case 'translating': {
 				break
 			}
 			case 'brushing': {
@@ -163,6 +262,9 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 					}
 				}
 
+				break
+			}
+			case 'scribble_brushing': {
 				break
 			}
 		}
