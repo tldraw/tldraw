@@ -1,7 +1,8 @@
 import { useCallback } from 'react'
 import {
 	AssetRecordType,
-	DEFAULT_ACCEPTED_IMG_TYPE,
+	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORT_VIDEO_TYPES,
 	MediaHelpers,
 	TLAssetId,
 	TLImageAsset,
@@ -25,7 +26,7 @@ export function useMultiplayerVideoAsset(assetUploaderUrl: string) {
 			})
 
 			const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
-			const isImageType = DEFAULT_ACCEPTED_IMG_TYPE.includes(file.type)
+			const isImageType = DEFAULT_SUPPORT_VIDEO_TYPES.includes(file.type)
 			if (isImageType) throw Error('File is not a video')
 			const isAnimated = true
 			const size = await MediaHelpers.getVideoSize(file)
@@ -70,7 +71,7 @@ export function useMultiplayerImageAsset(assetUploaderUrl: string) {
 
 			for (let i = 0; i < files.length; i++) {
 				const file = files[i]
-				if (!DEFAULT_ACCEPTED_IMG_TYPE.includes(file.type)) throw Error('File is not an image')
+				if (!DEFAULT_SUPPORTED_IMAGE_TYPES.includes(file.type)) throw Error('File is not an image')
 
 				const objectName = `${id}-${file.name}-${i}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
 				const url = `${UPLOAD_URL}/${objectName}`
@@ -78,7 +79,7 @@ export function useMultiplayerImageAsset(assetUploaderUrl: string) {
 				if (i === 0) {
 					name = file.name
 					assetId = AssetRecordType.createId(getHashForString(url))
-					if (file.type === 'image/gif') isAnimated = true
+					isAnimated = await MediaHelpers.isAnimated(file)
 					size = await MediaHelpers.getImageSize(file)
 				}
 

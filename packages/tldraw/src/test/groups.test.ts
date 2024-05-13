@@ -12,9 +12,9 @@ import {
 	assert,
 	compact,
 	createShapeId,
-	getArrowBindings,
 	sortByIndex,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 
 jest.mock('nanoid', () => {

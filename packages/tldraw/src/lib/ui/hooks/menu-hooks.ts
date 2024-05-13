@@ -5,10 +5,10 @@ import {
 	TLGroupShape,
 	TLLineShape,
 	TLTextShape,
-	getArrowBindings,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../../shapes/arrow/shared'
 
 function shapesWithUnboundArrows(editor: Editor) {
 	const selectedShapeIds = editor.getSelectedShapeIds()

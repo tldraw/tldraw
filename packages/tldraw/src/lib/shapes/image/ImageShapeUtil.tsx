@@ -3,6 +3,7 @@ import {
 	BaseBoxShapeUtil,
 	FileHelpers,
 	HTMLContainer,
+	MediaHelpers,
 	TLImageAsset,
 	TLImageShape,
 	TLOnDoubleClickHandler,
@@ -45,6 +46,17 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 	}
 
+	isAnimated(shape: TLImageShape) {
+		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
+
+		if (!asset) return false
+
+		return (
+			('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
+			('isAnimated' in asset.props && asset.props.isAnimated)
+		)
+	}
+
 	component(shape: TLImageShape) {
 		const containerStyle = getCroppedContainerStyle(shape)
 
@@ -66,9 +78,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const src = getImageSrcForZoom(asset, zoomLevel, shape.props.w / asset.props.w)
 
 		useEffect(() => {
-			if (!asset) return
-
-			if (src && 'mimeType' in asset.props && asset.props.mimeType === 'image/gif') {
+			if (src && this.isAnimated(shape)) {
 				let cancelled = false
 				const url = src
 				if (!url) return
@@ -94,7 +104,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, src, asset])
+		}, [prefersReducedMotion, src, shape])
 
 		const showCropPreview =
 			isSelected &&
@@ -103,8 +113,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		// We only want to reduce motion for mimeTypes that have motion
 		const reduceMotion =
-			prefersReducedMotion &&
-			(asset?.props.mimeType?.includes('video') || asset?.props.mimeType?.includes('gif'))
+			prefersReducedMotion && (asset?.props.mimeType?.includes('video') || this.isAnimated(shape))
 
 		if (!asset || !src) {
 			return (
@@ -160,7 +169,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							}}
 							draggable={false}
 						/>
-						{asset.props.isAnimated && !shape.props.playing && (
+						{this.isAnimated(shape) && !shape.props.playing && (
 							<div className="tl-image__tg">GIF</div>
 						)}
 					</div>
@@ -236,7 +245,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const src = getImageSrcForZoom(asset, zoomLevel, shape.props.w / asset.props.w)
 		if (!src) return
 
-		const canPlay = src && 'mimeType' in asset.props && asset.props.mimeType === 'image/gif'
+		const canPlay = src && this.isAnimated(shape)
 		if (!canPlay) return
 
 		this.editor.updateShapes([

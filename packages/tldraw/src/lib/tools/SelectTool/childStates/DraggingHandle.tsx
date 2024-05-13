@@ -11,11 +11,11 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Vec,
-	getArrowBindings,
 	snapAngle,
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../../../shapes/arrow/shared'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
 export class DraggingHandle extends StateNode {

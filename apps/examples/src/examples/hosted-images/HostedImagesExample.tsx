@@ -7,7 +7,6 @@ import {
 	TLAssetId,
 	Tldraw,
 	getHashForString,
-	isGifAnimated,
 	uniqueId,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -41,10 +40,10 @@ export default function HostedImagesExample() {
 
 			//[c]
 			let props
-			if (['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].includes(file.type)) {
+			if (MediaHelpers.isImageType(file.type)) {
 				shapeType = 'image'
 				size = await MediaHelpers.getImageSize(file)
-				isAnimated = file.type === 'image/gif' && (await isGifAnimated(file))
+				isAnimated = await MediaHelpers.isAnimated(file)
 				props = {
 					name: file.name,
 					sources: [

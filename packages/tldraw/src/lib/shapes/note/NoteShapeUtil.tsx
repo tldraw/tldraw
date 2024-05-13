@@ -11,7 +11,7 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
-	WeakMapCache,
+	WeakCache,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -372,7 +372,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	}
 }
 
-const labelSizesForNote = new WeakMapCache<TLShape, ReturnType<typeof getNoteLabelSize>>()
+const labelSizesForNote = new WeakCache<TLShape, ReturnType<typeof getNoteLabelSize>>()
 
 function getLabelSize(editor: Editor, shape: TLNoteShape) {
 	return labelSizesForNote.get(shape, () => getNoteLabelSize(editor, shape))

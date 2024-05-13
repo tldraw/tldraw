@@ -18,6 +18,12 @@ export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { defaultTools } from './lib/defaultTools'
 export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
 export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
+export { type TLArcInfo, type TLArrowInfo, type TLArrowPoint } from './lib/shapes/arrow/arrow-types'
+export {
+	getArrowBindings,
+	getArrowTerminalsInArrowSpace,
+	type TLArrowBindings,
+} from './lib/shapes/arrow/shared'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export { DrawShapeUtil } from './lib/shapes/draw/DrawShapeUtil'
@@ -109,13 +115,7 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
-export {
-	DEFAULT_ACCEPTED_IMG_TYPE,
-	DEFAULT_ACCEPTED_VID_TYPE,
-	containBoxSize,
-	downsizeImage,
-	isGifAnimated,
-} from './lib/utils/assets/assets'
+export { containBoxSize, downsizeImage } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'
 export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'

@@ -133,7 +133,13 @@ export class Idle extends StateNode {
 
 		if (info.target === 'selection') {
 			util.onDoubleClickEdge?.(shape)
+			return
 		}
+
+		// If the user double clicks the canvas, we want to cancel cropping,
+		// especially if it's an animated image, we want the image to continue playing.
+		this.cancel()
+		this.editor.root.handleEvent(info)
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {

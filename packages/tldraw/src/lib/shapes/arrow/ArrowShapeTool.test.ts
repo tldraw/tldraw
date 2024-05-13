@@ -1,12 +1,6 @@
-import {
-	IndexKey,
-	TLArrowShape,
-	TLShapeId,
-	Vec,
-	createShapeId,
-	getArrowBindings,
-} from '@tldraw/editor'
+import { IndexKey, TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
+import { getArrowBindings } from './shared'
 
 let editor: TestEditor
 
