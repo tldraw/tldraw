@@ -1,4 +1,6 @@
 import {
+	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORT_VIDEO_TYPES,
 	Editor,
 	ErrorScreen,
 	Expand,
@@ -148,21 +150,12 @@ export function Tldraw(props: TldrawProps) {
 	)
 }
 
-const defaultAcceptedImageMimeTypes = Object.freeze([
-	'image/jpeg',
-	'image/png',
-	'image/gif',
-	'image/svg+xml',
-])
-
-const defaultAcceptedVideoMimeTypes = Object.freeze(['video/mp4', 'video/quicktime'])
-
 // We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor and TldrawUi.
 function InsideOfEditorAndUiContext({
 	maxImageDimension = 1000,
 	maxAssetSize = 10 * 1024 * 1024, // 10mb
-	acceptedImageMimeTypes = defaultAcceptedImageMimeTypes,
-	acceptedVideoMimeTypes = defaultAcceptedVideoMimeTypes,
+	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
+	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
 }: Partial<TLExternalContentProps & { onMount: TLOnMountHandler }>) {
 	const editor = useEditor()

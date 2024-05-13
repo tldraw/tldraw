@@ -25,7 +25,13 @@ export { noop, omitFromStackTrace, throttle } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
-export { MediaHelpers } from './lib/media'
+export {
+	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORTED_MEDIA_TYPE_LIST,
+	DEFAULT_SUPPORT_VIDEO_TYPES,
+	MediaHelpers,
+} from './lib/media/media'
+export { PngHelpers } from './lib/media/png'
 export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
 	areObjectsShallowEqual,
@@ -39,7 +45,6 @@ export {
 	objectMapValues,
 } from './lib/object'
 export { measureAverageDuration, measureCbDuration, measureDuration } from './lib/perf'
-export { PngHelpers } from './lib/png'
 export { type IndexKey } from './lib/reordering/IndexKey'
 export {
 	ZERO_INDEX_KEY,

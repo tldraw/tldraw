@@ -37,6 +37,15 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 // @public
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
+// @public (undocumented)
+export const DEFAULT_SUPPORT_VIDEO_TYPES: readonly string[];
+
+// @public (undocumented)
+export const DEFAULT_SUPPORTED_IMAGE_TYPES: readonly string[];
+
+// @public (undocumented)
+export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST: string;
+
 // @internal
 export function deleteFromLocalStorage(key: string): void;
 
@@ -195,6 +204,14 @@ export class MediaHelpers {
         h: number;
         w: number;
     }>;
+    // (undocumented)
+    static isAnimated(file: Blob): Promise<boolean>;
+    // (undocumented)
+    static isAnimatedImageType(mimeType: null | string): boolean;
+    // (undocumented)
+    static isImageType(mimeType: string): boolean;
+    // (undocumented)
+    static isStaticImageType(mimeType: null | string): boolean;
     static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
     // (undocumented)

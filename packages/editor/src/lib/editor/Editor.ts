@@ -72,7 +72,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/utils'
-import { EventEmitter } from 'eventemitter3'
+import EventEmitter from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { TLUser, createTLUser } from '../config/createTLUser'
