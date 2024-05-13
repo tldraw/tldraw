@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	HIT_TEST_MARGIN,
+	Scribble,
 	TLEventInfo,
 	TLFrameShape,
 	TLGroupShape,
@@ -8,9 +10,12 @@ import {
 	ToolUtil,
 	Vec,
 	pointInPolygon,
+	useEditorComponents,
 } from 'tldraw'
 
-type SimpleEraserContext =
+type SimpleEraserContext = {
+	scribbles: TLScribble[]
+} & (
 	| {
 			name: 'idle'
 	  }
@@ -19,8 +24,8 @@ type SimpleEraserContext =
 	  }
 	| {
 			name: 'erasing'
-			scribbleId: string
 	  }
+)
 
 type SimpleEraserToolConfig = {
 	scribbleSize: number
@@ -40,7 +45,28 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 	getDefaultContext(): SimpleEraserContext {
 		return {
 			name: 'idle',
+			scribbles: [],
 		}
+	}
+
+	override overlay() {
+		const { editor } = this
+		const zoom = editor.getZoomLevel()
+		const { Scribble } = useEditorComponents()
+		if (!Scribble) return
+
+		return (
+			<>
+				{this.getContext().scribbles.map((scribble) => (
+					<Scribble
+						key={scribble.id}
+						className="tl-user-scribble"
+						scribble={scribble}
+						zoom={zoom}
+					/>
+				))}
+			</>
+		)
 	}
 
 	override onEnter() {
@@ -67,6 +93,10 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 			return
 		}
 
+		if (event.name === 'tick') {
+			this.updateScribbles(event.elapsed)
+		}
+
 		switch (context.name) {
 			case 'idle': {
 				if (event.name === 'pointer_down') {
@@ -74,6 +104,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 					this.setContext({
 						name: 'pointing',
 					})
+					this.startScribble()
 					this.startErasingPointedShapes()
 				}
 				break
@@ -87,6 +118,7 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 
 				if (editor.inputs.isDragging || event.name === 'long_press') {
 					// started dragging
+					this.setContext({ name: 'erasing' })
 					this.startErasingAfterDragging()
 					this.updateErasingShapes()
 					return
@@ -114,52 +146,10 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 
 	private memo = {
 		scribbleId: null as string | null,
+		scribbles: new Map<string, Scribble>(),
 		excludedShapeIds: new Set<TLShapeId>(),
 		erasingShapeIds: new Set<TLShapeId>(),
 		prevPoint: new Vec(),
-	}
-
-	private cancel() {
-		const { memo, editor } = this
-
-		// Reset the erasing shapes
-		editor.setErasingShapes([])
-		editor.bailToMark('erasing')
-
-		// Stop the scribble
-		const context = this.getContext()
-		if (context.name === 'erasing') {
-			editor.scribbles.stop(context.scribbleId)
-		}
-
-		memo.erasingShapeIds.clear()
-		memo.excludedShapeIds.clear()
-		memo.scribbleId = null
-
-		this.setContext({ name: 'idle' })
-	}
-
-	private complete() {
-		const { memo, editor } = this
-
-		// Delete any shapes that were marked as erasing
-		const erasingShapeIds = editor.getErasingShapeIds()
-		if (erasingShapeIds.length) {
-			editor.deleteShapes(erasingShapeIds)
-			editor.setErasingShapes([])
-		}
-
-		// Stop the scribble
-		const context = this.getContext()
-		if (context.name === 'erasing') {
-			editor.scribbles.stop(context.scribbleId)
-		}
-
-		memo.erasingShapeIds.clear()
-		memo.excludedShapeIds.clear()
-		memo.scribbleId = null
-
-		this.setContext({ name: 'idle' })
 	}
 
 	private startErasingPointedShapes() {
@@ -199,21 +189,9 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 	}
 
 	private startErasingAfterDragging() {
-		const {
-			editor,
-			config: { scribbleSize, scribbleColor },
-			memo: { erasingShapeIds, excludedShapeIds },
-		} = this
+		const { editor, memo } = this
+		const { erasingShapeIds, excludedShapeIds } = memo
 		const { originPagePoint } = editor.inputs
-
-		const scribble = editor.scribbles.addScribble({
-			color: scribbleColor,
-			size: scribbleSize,
-		})
-		this.setContext({
-			name: 'erasing',
-			scribbleId: scribble.id,
-		})
 
 		// Clear any erasing shapes from the pointing state
 		erasingShapeIds.clear()
@@ -248,15 +226,10 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 		if (context.name !== 'erasing') return
 
 		const { excludedShapeIds, erasingShapeIds, prevPoint } = memo
-		const { scribbleId } = context
 
 		const {
 			inputs: { currentPagePoint },
 		} = editor
-
-		// Update scribble
-		const { x, y } = currentPagePoint
-		editor.scribbles.addPoint(scribbleId, x, y)
 
 		const minDist = HIT_TEST_MARGIN / editor.getZoomLevel()
 
@@ -302,5 +275,91 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 
 		// Remove the hit shapes
 		editor.setErasingShapes(Array.from(erasingShapeIds))
+	}
+
+	private startScribble() {
+		const {
+			memo,
+			config: { scribbleColor, scribbleSize },
+		} = this
+		const { scribbles } = memo
+		const scribble = new Scribble({
+			color: scribbleColor,
+			size: scribbleSize,
+		})
+		memo.scribbleId = scribble.id
+		scribbles.set(scribble.id, scribble)
+		this.setContext({
+			scribbles: Array.from(scribbles.values()).map((s) => ({ ...s.current })),
+		})
+	}
+
+	private updateScribbles(elapsed: number) {
+		const {
+			memo: { scribbleId, scribbles },
+			editor,
+		} = this
+
+		if (scribbles.size === 0) {
+			return
+		}
+
+		if (scribbleId) {
+			const { x, y } = editor.inputs.currentPagePoint
+			const scribble = scribbles.get(scribbleId)
+			if (!scribble) throw Error('Expected a scribble')
+			scribble.addPoint(x, y)
+		}
+
+		scribbles.forEach((scribble) => {
+			scribble.tick(elapsed)
+			if (scribble.state === 'stopped') {
+				scribbles.delete(scribble.id)
+			}
+		})
+
+		this.setContext({
+			scribbles: Array.from(scribbles.values()).map((s) => ({ ...s.current })),
+		})
+	}
+
+	private stopScribble() {
+		const { memo } = this
+		const { scribbleId, scribbles } = memo
+		if (scribbleId) {
+			const scribble = scribbles.get(scribbleId)
+			scribble?.stop()
+			memo.scribbleId = null
+		}
+	}
+
+	private cancel() {
+		const { memo, editor } = this
+
+		// Roll back the current
+		editor.bailToMark('erasing')
+
+		memo.erasingShapeIds.clear()
+		memo.excludedShapeIds.clear()
+
+		this.stopScribble()
+		this.setContext({ name: 'idle' })
+	}
+
+	private complete() {
+		const { memo, editor } = this
+
+		// Delete any shapes that were marked as erasing
+		const erasingShapeIds = editor.getErasingShapeIds()
+		if (erasingShapeIds.length) {
+			editor.deleteShapes(erasingShapeIds)
+			editor.setErasingShapes([])
+		}
+
+		memo.erasingShapeIds.clear()
+		memo.excludedShapeIds.clear()
+
+		this.stopScribble()
+		this.setContext({ name: 'idle' })
 	}
 }
