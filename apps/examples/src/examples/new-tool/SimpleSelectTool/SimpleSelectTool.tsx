@@ -17,7 +17,7 @@ import { HintedShapeIndicator } from './components/HintedShapeIndicators'
 import { SelectionBrush } from './components/SelectionBrush'
 import { ShapeIndicators } from './components/ShapeIndicators'
 
-type SimpleSelectContext = { scribbles: TLScribble[] } & (
+type SimpleSelectState = { scribbles: TLScribble[] } & (
 	| {
 			name: 'idle'
 	  }
@@ -87,10 +87,10 @@ simpleSelectStyles.applyValue(DefaultFillStyle, DefaultFillStyle.defaultValue)
 simpleSelectStyles.applyValue(DefaultDashStyle, DefaultDashStyle.defaultValue)
 simpleSelectStyles.applyValue(DefaultSizeStyle, DefaultSizeStyle.defaultValue)
 
-export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
+export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 	id = '@simple/select' as const
 
-	getDefaultContext(): SimpleSelectContext {
+	getDefaultContext(): SimpleSelectState {
 		return {
 			name: 'idle',
 			scribbles: [],
@@ -158,6 +158,20 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectContext> {
 		this.reactor?.()
 		if (this.editor.getCurrentPageState().editingShapeId) {
 			this.editor.setEditingShape(null)
+		}
+	}
+
+	override onStateChange(prev: SimpleSelectState['name'], next: SimpleSelectState['name']) {
+		switch (prev) {
+			case 'idle': {
+				break
+			}
+		}
+
+		switch (next) {
+			case 'idle': {
+				break
+			}
 		}
 	}
 

@@ -53,7 +53,11 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 	 * @param state - A partial of the tool's state.
 	 */
 	setState(state: Partial<State>) {
+		const prev = this._state.__unsafe__getWithoutCapture()
 		this._state.set({ ...this._state.__unsafe__getWithoutCapture(), ...state })
+		if (state.name && prev.name !== state.name) {
+			this.onStateChange(prev.name, state.name)
+		}
 	}
 
 	/**
@@ -110,6 +114,17 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 	 */
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	onEvent(event: TLEventInfo): void {
+		return
+	}
+
+	/**
+	 * An event fired when the tool's state changes
+	 *
+	 * @param prev - The previous state name.
+	 * @param next - The next state name.
+	 */
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	onStateChange(prev: string, next: string) {
 		return
 	}
 }
