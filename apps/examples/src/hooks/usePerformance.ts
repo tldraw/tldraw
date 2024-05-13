@@ -1,3 +1,4 @@
+/* eslint-disable local/no-at-internal -- this is only used for our internal develop endpoint */
 import { TLUiEventSource, TLUiOverrides, debugFlags, measureCbDuration, useValue } from 'tldraw'
 
 export function usePerformance(): TLUiOverrides {
