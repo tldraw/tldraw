@@ -8,12 +8,14 @@ export class EnvironmentManager {
 			this.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
 			this.isFirefox = /firefox/i.test(navigator.userAgent)
 			this.isAndroid = /android/i.test(navigator.userAgent)
+			this.isMac = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
 		} else {
 			this.isSafari = false
 			this.isIos = false
 			this.isChromeForIos = false
 			this.isFirefox = false
 			this.isAndroid = false
+			this.isMac = false
 		}
 	}
 
@@ -30,6 +32,13 @@ export class EnvironmentManager {
 	 * @public
 	 */
 	readonly isIos: boolean
+
+	/**
+	 * Whether the editor is running on a Mac.
+	 *
+	 * @public
+	 */
+	readonly isMac: boolean
 
 	/**
 	 * Whether the editor is running on iOS.

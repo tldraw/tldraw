@@ -277,29 +277,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		this.bindingUtils = _bindingUtils
 
-		const toolMap: Record<string, ToolUtil<any>> = {}
-
-		for (const _tool of [...tools]) {
-			let ToolConstructor: TLToolUtilConstructor<any, any>
-			let config: object
-			if (Array.isArray(_tool)) {
-				ToolConstructor = _tool[0]
-				config = _tool[1]
-			} else {
-				ToolConstructor = _tool
-				config = {}
-			}
-
-			const tool = new ToolConstructor(this, config)
-			toolMap[tool.id] = tool
-			tool.setState(tool.getDefaultContext())
-		}
-
-		if (!initialTool) throw Error('No initial tool provided')
-
-		this._tools.set(toolMap)
-		this._currentToolId.set(initialTool)
-
 		// Cleanup
 
 		const invalidParents = new Set<TLShapeId>()
@@ -631,6 +608,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
+
+		const toolMap: Record<string, ToolUtil<any>> = {}
+
+		for (const _tool of [...tools]) {
+			let ToolConstructor: TLToolUtilConstructor<any, any>
+			let config: object
+			if (Array.isArray(_tool)) {
+				ToolConstructor = _tool[0]
+				config = _tool[1]
+			} else {
+				ToolConstructor = _tool
+				config = {}
+			}
+
+			const tool = new ToolConstructor(this, config)
+			toolMap[tool.id] = tool
+			tool.setState(tool.getDefaultContext())
+		}
+
+		if (!initialTool) throw Error('No initial tool provided')
+
+		this._tools.set(toolMap)
+		this._currentToolId.set(initialTool)
 
 		this.getCurrentTool().onEnter({})
 
