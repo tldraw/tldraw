@@ -1,6 +1,5 @@
 import {
 	AssetRecordType,
-	DEFAULT_ACCEPTED_IMG_TYPE,
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
@@ -23,7 +22,7 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 
 	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 
-	const isImageType = DEFAULT_ACCEPTED_IMG_TYPE.includes(file.type)
+	const isImageType = MediaHelpers.isImageType(file.type)
 
 	let size: {
 		w: number
@@ -33,7 +32,7 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 
 	if (isImageType) {
 		size = await MediaHelpers.getImageSize(file)
-		if (file.type === 'image/gif') {
+		if (MediaHelpers.isAnimatedImageType(file.type)) {
 			isAnimated = true // await getIsGifAnimated(file) todo export me from editor
 		} else {
 			isAnimated = false
