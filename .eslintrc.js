@@ -100,6 +100,7 @@ module.exports = {
 			files: ['apps/examples/**/*'],
 			rules: {
 				'no-restricted-syntax': 'off',
+				'local/no-at-internal': 'error',
 			},
 		},
 		{

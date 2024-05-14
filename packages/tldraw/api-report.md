@@ -1297,7 +1297,7 @@ export function serializeTldrawJson(store: TLStore): Promise<string>;
 // @public (undocumented)
 export function serializeTldrawJsonBlob(store: TLStore): Promise<Blob>;
 
-// @public (undocumented)
+// @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
 // @internal (undocumented)
