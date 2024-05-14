@@ -2566,7 +2566,7 @@ export function useCanUndo(): boolean;
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
-export const useCurrentTranslation: () => TLUiTranslation;
+export function useCurrentTranslation(): TLUiTranslation;
 
 // @public (undocumented)
 export function useDefaultColorTheme(): {

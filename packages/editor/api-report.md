@@ -1068,7 +1068,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 }
 
 // @internal (undocumented)
-export const EditorContext: React_2.Context<Editor>;
+export const EditorContext: React_2.Context<Editor | null>;
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
