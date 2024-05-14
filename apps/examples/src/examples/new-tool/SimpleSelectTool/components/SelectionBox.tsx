@@ -13,7 +13,7 @@ import {
 	useTransform,
 	useValue,
 } from 'tldraw'
-import { TldrawCropHandles } from 'tldraw/src/lib/canvas/TldrawCropHandles'
+import { TldrawCropHandles } from './TldrawCropHandles'
 
 /** @public */
 export const TldrawSelectionForeground = track(function TldrawSelectionForeground() {

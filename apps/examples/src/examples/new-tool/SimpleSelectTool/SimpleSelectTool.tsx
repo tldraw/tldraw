@@ -8,9 +8,12 @@ import {
 	DefaultSizeStyle,
 	Geometry2d,
 	Group2d,
+	HALF_PI,
 	HIT_TEST_MARGIN,
 	Mat,
 	RotateCorner,
+	SelectionCorner,
+	SelectionEdge,
 	SelectionHandle,
 	SharedStyleMap,
 	TLArrowShape,
@@ -40,6 +43,7 @@ import {
 	kickoutOccludedShapes,
 	moveCameraWhenCloseToEdge,
 	react,
+	rotateSelectionHandle,
 	structuredClone,
 } from 'tldraw'
 import { getArrowInfo } from 'tldraw/src/lib/shapes/arrow/shared'
@@ -62,6 +66,7 @@ import { getTextLabels } from './selection-logic/getTextLabels'
 import { isOverArrowLabel } from './selection-logic/isOverArrowLabel'
 import { isPointInRotatedSelectionBounds } from './selection-logic/isPointInRotatedSelectionBounds'
 import { NOTE_CENTER_OFFSET } from './selection-logic/noteHelpers'
+import { ResizingSnapshot, getResizingSnapshot } from './selection-logic/resizing'
 import { getRotationFromPointerPosition } from './selection-logic/rotating'
 import { startEditingShapeWithLabel } from './selection-logic/selectHelpers'
 import { selectOnCanvasPointerUp } from './selection-logic/selectOnCanvasPointerUp'
@@ -123,7 +128,13 @@ type SimpleSelectState =
 	| {
 			name: 'resizing'
 			handle: SelectionHandle
+			snapshot: ResizingSnapshot
+			isCreating: boolean
+			onCreate: (shape: TLShape | null) => void
+			creationCursorOffset: Vec
 			onInteractionEnd?: string
+			markId: string
+			didHoldCommand: boolean
 	  }
 	| {
 			name: 'pointing_rotate_handle'
@@ -234,10 +245,10 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 		initialSelectedIds: [] as TLShapeId[],
 	}
 
-	reactor?: () => void
+	cleanupReactor?: () => void
 
 	override onEnter() {
-		this.reactor = react('clean duplicate props', () => {
+		this.cleanupReactor = react('clean duplicate props', () => {
 			try {
 				this.cleanUpDuplicateProps()
 			} catch (e) {
@@ -252,7 +263,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 
 	override onExit = () => {
 		const { editor } = this
-		this.reactor?.()
+		this.cleanupReactor?.()
 		if (editor.getCurrentPageState().editingShapeId) {
 			editor.setEditingShape(null)
 		}
@@ -428,6 +439,31 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'resizing': {
+				// this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+				if (next.isCreating) {
+					editor.setCursor({ type: 'cross', rotation: 0 })
+				} else {
+					editor.mark('resizing')
+				}
+
+				const { shapeSnapshots } = next.snapshot
+
+				const changes: TLShapePartial[] = []
+
+				shapeSnapshots.forEach(({ shape }) => {
+					const util = editor.getShapeUtil(shape)
+					const change = util.onResizeStart?.(shape)
+					if (change) {
+						changes.push(change)
+					}
+				})
+
+				if (changes.length > 0) {
+					editor.updateShapes(changes)
+				}
+
+				this.updateResizingShapes(next)
+
 				break
 			}
 			case 'pointing_arrow_label': {
@@ -1079,7 +1115,16 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					(info.name === 'pointer_move' && editor.inputs.isDragging)
 				) {
 					if (editor.getInstanceState().isReadonly) return
-					this.setState({ name: 'resizing', handle: state.handle })
+					this.setState({
+						name: 'resizing',
+						handle: state.handle,
+						snapshot: getResizingSnapshot(editor, state.handle),
+						onCreate: () => void null,
+						isCreating: false,
+						markId: 'resizing',
+						didHoldCommand: false,
+						creationCursorOffset: new Vec(),
+					})
 				} else if (
 					info.name === 'complete' ||
 					info.name === 'interrupt' ||
@@ -1600,6 +1645,52 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'resizing': {
+				if (info.name === 'cancel') {
+					editor.bailToMark(state.markId)
+					if (state.onInteractionEnd) {
+						editor.setCurrentTool(state.onInteractionEnd, {})
+					} else {
+						this.setState({ name: 'idle' })
+					}
+				} else if (info.name === 'complete' || !editor.inputs.isPointing) {
+					kickoutOccludedShapes(editor, state.snapshot.selectedShapeIds)
+					const { shapeSnapshots } = state.snapshot
+
+					const changes: TLShapePartial[] = []
+
+					shapeSnapshots.forEach(({ shape }) => {
+						const current = editor.getShape(shape.id)!
+						const util = editor.getShapeUtil(shape)
+						const change = util.onResizeEnd?.(shape, current)
+						if (change) {
+							changes.push(change)
+						}
+					})
+
+					if (changes.length > 0) {
+						editor.updateShapes(changes)
+					}
+
+					if (state.isCreating && state.onCreate) {
+						state.onCreate?.(editor.getOnlySelectedShape())
+						return
+					}
+
+					if (editor.getInstanceState().isToolLocked && state.onInteractionEnd) {
+						editor.setCurrentTool(state.onInteractionEnd, {})
+						return
+					}
+
+					this.setState({ name: 'idle' })
+				} else if (
+					info.name === 'pointer_move' ||
+					info.name === 'key_down' ||
+					info.name === 'key_up'
+				) {
+					this.updateResizingShapes(state)
+				} else if (info.name === 'tick') {
+					moveCameraWhenCloseToEdge(editor)
+				}
 				break
 			}
 			case 'rotating': {
@@ -2202,6 +2293,237 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 
 		if (changes.length > 0) {
 			editor.updateShapes(changes)
+		}
+	}
+
+	private updateResizingShapes(state: SimpleSelectState & { name: 'resizing' }) {
+		const { editor } = this
+		const { altKey, shiftKey } = editor.inputs
+		const {
+			frames,
+			shapeSnapshots,
+			selectionBounds,
+			cursorHandleOffset,
+			selectedShapeIds,
+			selectionRotation,
+			canShapesDeform,
+		} = state.snapshot
+
+		let isAspectRatioLocked = shiftKey || !canShapesDeform
+
+		if (shapeSnapshots.size === 1) {
+			const onlySnapshot = [...shapeSnapshots.values()][0]!
+			if (editor.isShapeOfType<TLTextShape>(onlySnapshot.shape, 'text')) {
+				isAspectRatioLocked = !(state.handle === 'left' || state.handle === 'right')
+			}
+		}
+
+		// first negate the 'cursor handle offset'
+		// we need to do this because we do grid snapping based on the page point of the handle
+		// rather than the page point of the cursor, so it's easier to pretend that the cursor
+		// is really where the handle actually is
+		//
+		// *** Massively zoomed-in diagram of the initial mouseDown ***
+		//
+		//
+		//                         │
+		//                         │
+		//                         │
+		//                         │
+		//                         │
+		//                         │
+		//                         │
+		//                         │corner handle
+		//                     ┌───┴───┐
+		//   selection         │       │
+		//  ───────────────────┤   x◄──┼──── drag handle point   ▲
+		//                     │       │                         │
+		//                     └───────┘                         ├─ cursorHandleOffset.y
+		//                                                       │
+		//        originPagePoint───────►x─┐                     ▼
+		//                               │ └─┐
+		//                               │   └─┐
+		//                               │     │ mouse (sorry)
+		//                               └──┐ ┌┘
+		//                                  │ │
+		//                                  └─┘
+		//                         ◄──┬──►
+		//                            │
+		//                   cursorHandleOffset.x
+
+		const { ctrlKey } = editor.inputs
+
+		const currentPagePoint = editor.inputs.currentPagePoint
+			.clone()
+			.sub(cursorHandleOffset)
+			.sub(state.creationCursorOffset)
+
+		const originPagePoint = editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
+
+		if (editor.getInstanceState().isGridMode && !ctrlKey) {
+			const { gridSize } = editor.getDocumentSettings()
+			currentPagePoint.snapToGrid(gridSize)
+		}
+
+		const dragHandle = state.handle as SelectionCorner | SelectionEdge
+		const scaleOriginHandle = rotateSelectionHandle(dragHandle, Math.PI)
+
+		editor.snaps.clearIndicators()
+
+		const shouldSnap = editor.user.getIsSnapMode() ? !ctrlKey : ctrlKey
+
+		if (shouldSnap && selectionRotation % HALF_PI === 0) {
+			const { nudge } = editor.snaps.shapeBounds.snapResizeShapes({
+				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
+				initialSelectionPageBounds: state.snapshot.initialSelectionPageBounds,
+				handle: rotateSelectionHandle(dragHandle, selectionRotation),
+				isAspectRatioLocked,
+				isResizingFromCenter: altKey,
+			})
+
+			currentPagePoint.add(nudge)
+		}
+
+		// get the page point of the selection handle opposite to the drag handle
+		// or the center of the selection box if altKey is pressed
+		const scaleOriginPage = Vec.RotWith(
+			altKey ? selectionBounds.center : selectionBounds.getHandlePoint(scaleOriginHandle),
+			selectionBounds.point,
+			selectionRotation
+		)
+
+		// calculate the scale by measuring the current distance between the drag handle and the scale origin
+		// and dividing by the original distance between the drag handle and the scale origin
+
+		// bug: for edges, the page point doesn't matter, the
+
+		const distanceFromScaleOriginNow = Vec.Sub(currentPagePoint, scaleOriginPage).rot(
+			-selectionRotation
+		)
+
+		const distanceFromScaleOriginAtStart = Vec.Sub(originPagePoint, scaleOriginPage).rot(
+			-selectionRotation
+		)
+
+		const scale = Vec.DivV(distanceFromScaleOriginNow, distanceFromScaleOriginAtStart)
+
+		if (!Number.isFinite(scale.x)) scale.x = 1
+		if (!Number.isFinite(scale.y)) scale.y = 1
+
+		const isXLocked = dragHandle === 'top' || dragHandle === 'bottom'
+		const isYLocked = dragHandle === 'left' || dragHandle === 'right'
+
+		// lock an axis if required
+		if (isAspectRatioLocked) {
+			if (isYLocked) {
+				// holding shift and dragging either the left or the right edge
+				scale.y = Math.abs(scale.x)
+			} else if (isXLocked) {
+				// holding shift and dragging either the top or the bottom edge
+				scale.x = Math.abs(scale.y)
+			} else if (Math.abs(scale.x) > Math.abs(scale.y)) {
+				// holding shift and the drag has moved further in the x dimension
+				scale.y = Math.abs(scale.x) * (scale.y < 0 ? -1 : 1)
+			} else {
+				// holding shift and the drag has moved further in the y dimension
+				scale.x = Math.abs(scale.y) * (scale.x < 0 ? -1 : 1)
+			}
+		} else {
+			// not holding shift, but still need to lock axes if dragging an edge
+			if (isXLocked) {
+				scale.x = 1
+			}
+			if (isYLocked) {
+				scale.y = 1
+			}
+		}
+
+		if (!state.isCreating) {
+			const isFlippedX = scale.x < 0
+			const isFlippedY = scale.y < 0
+			const rotation = selectionRotation
+			const nextCursor = { ...editor.getInstanceState().cursor }
+
+			switch (dragHandle) {
+				case 'top_left':
+				case 'bottom_right': {
+					nextCursor.type = 'nwse-resize'
+					if (isFlippedX !== isFlippedY) {
+						nextCursor.type = 'nesw-resize'
+					}
+					break
+				}
+				case 'top_right':
+				case 'bottom_left': {
+					nextCursor.type = 'nesw-resize'
+					if (isFlippedX !== isFlippedY) {
+						nextCursor.type = 'nwse-resize'
+					}
+					break
+				}
+			}
+			nextCursor.rotation = rotation
+			editor.setCursor(nextCursor)
+		}
+
+		for (const id of shapeSnapshots.keys()) {
+			const snapshot = shapeSnapshots.get(id)!
+
+			editor.resizeShape(id, scale, {
+				initialShape: snapshot.shape,
+				initialBounds: snapshot.bounds,
+				initialPageTransform: snapshot.pageTransform,
+				dragHandle,
+				mode:
+					selectedShapeIds.length === 1 && id === selectedShapeIds[0]
+						? 'resize_bounds'
+						: 'scale_shape',
+				scaleOrigin: scaleOriginPage,
+				isAspectRatioLocked,
+				scaleAxisRotation: selectionRotation,
+			})
+		}
+
+		if (editor.inputs.ctrlKey) {
+			this.setState({ ...state, didHoldCommand: true })
+
+			for (const { id, children } of frames) {
+				if (!children.length) continue
+				const initial = shapeSnapshots.get(id)!.shape
+				const current = editor.getShape(id)!
+				if (!(initial && current)) continue
+
+				// If the user is holding ctrl, then preseve the position of the frame's children
+				const dx = current.x - initial.x
+				const dy = current.y - initial.y
+
+				const delta = new Vec(dx, dy).rot(-initial.rotation)
+
+				if (delta.x !== 0 || delta.y !== 0) {
+					for (const child of children) {
+						editor.updateShape({
+							id: child.id,
+							type: child.type,
+							x: child.x - delta.x,
+							y: child.y - delta.y,
+						})
+					}
+				}
+			}
+		} else if (state.didHoldCommand) {
+			this.setState({ ...state, didHoldCommand: false })
+
+			for (const { children } of frames) {
+				if (!children.length) continue
+				for (const child of children) {
+					editor.updateShape({
+						id: child.id,
+						type: child.type,
+						x: child.x,
+						y: child.y,
+					})
+				}
+			}
 		}
 	}
 }
