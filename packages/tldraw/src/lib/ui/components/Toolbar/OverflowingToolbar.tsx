@@ -36,8 +36,6 @@ export function OverflowingToolbar({ children }: { children: React.ReactNode }) 
 
 		if (lastActiveOverflowItem) {
 			showInMainSelectors.push(`[data-value="${lastActiveOverflowItem}"]`)
-		} else {
-			showInMainSelectors.push(`:nth-child(${overflowIndex + 1})`)
 		}
 
 		for (let i = 0; i < overflowIndex; i++) {
