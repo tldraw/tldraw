@@ -37,6 +37,7 @@ import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
+import { StoreSideEffects } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
@@ -238,6 +239,8 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
     // (undocumented)
     onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
+    // (undocumented)
+    onOperationComplete?(): void;
     // (undocumented)
     static props?: RecordProps<TLUnknownBinding>;
     static type: string;
@@ -1013,7 +1016,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
-    readonly sideEffects: SideEffectManager<this>;
+    readonly sideEffects: StoreSideEffects<TLRecord>;
     slideCamera(opts?: {
         direction: VecLike;
         friction: number;
@@ -1853,48 +1856,6 @@ export class SharedStyleMap extends ReadonlySharedStyleMap {
 // @public
 export function shortAngleDist(a0: number, a1: number): number;
 
-// @public
-export class SideEffectManager<CTX extends {
-    history: {
-        onBatchComplete: () => void;
-    };
-    store: TLStore;
-}> {
-    constructor(editor: CTX);
-    // (undocumented)
-    editor: CTX;
-    // @internal
-    register(handlersByType: {
-        [R in TLRecord as R['typeName']]?: {
-            afterChange?: TLAfterChangeHandler<R>;
-            afterCreate?: TLAfterCreateHandler<R>;
-            afterDelete?: TLAfterDeleteHandler<R>;
-            beforeChange?: TLBeforeChangeHandler<R>;
-            beforeCreate?: TLBeforeCreateHandler<R>;
-            beforeDelete?: TLBeforeDeleteHandler<R>;
-        };
-    }): () => void;
-    registerAfterChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterChangeHandler<TLRecord & {
-        typeName: T;
-    }>): () => void;
-    registerAfterCreateHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterCreateHandler<TLRecord & {
-        typeName: T;
-    }>): () => void;
-    registerAfterDeleteHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLAfterDeleteHandler<TLRecord & {
-        typeName: T;
-    }>): () => void;
-    registerBatchCompleteHandler(handler: TLBatchCompleteHandler): () => void;
-    registerBeforeChangeHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeChangeHandler<TLRecord & {
-        typeName: T;
-    }>): () => void;
-    registerBeforeCreateHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeCreateHandler<TLRecord & {
-        typeName: T;
-    }>): () => void;
-    registerBeforeDeleteHandler<T extends TLRecord['typeName']>(typeName: T, handler: TLBeforeDeleteHandler<TLRecord & {
-        typeName: T;
-    }>): () => void;
-}
-
 // @public (undocumented)
 export const SIDES: readonly ["top", "right", "bottom", "left"];
 
@@ -2059,15 +2020,6 @@ export interface SvgExportDef {
 export const TAB_ID: string;
 
 // @public (undocumented)
-export type TLAfterChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => void;
-
-// @public (undocumented)
-export type TLAfterCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void;
-
-// @public (undocumented)
-export type TLAfterDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void;
-
-// @public (undocumented)
 export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 
 // @public (undocumented)
@@ -2090,18 +2042,6 @@ export interface TLBaseEventInfo {
     // (undocumented)
     type: UiEventType;
 }
-
-// @public (undocumented)
-export type TLBatchCompleteHandler = () => void;
-
-// @public (undocumented)
-export type TLBeforeChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => R;
-
-// @public (undocumented)
-export type TLBeforeCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => R;
-
-// @public (undocumented)
-export type TLBeforeDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => false | void;
 
 // @public (undocumented)
 export interface TLBindingUtilConstructor<T extends TLUnknownBinding, U extends BindingUtil<T> = BindingUtil<T>> {

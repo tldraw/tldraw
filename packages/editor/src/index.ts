@@ -133,16 +133,6 @@ export {
 	type TLBindingUtilConstructor,
 } from './lib/editor/bindings/BindingUtil'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
-export type {
-	SideEffectManager,
-	TLAfterChangeHandler,
-	TLAfterCreateHandler,
-	TLAfterDeleteHandler,
-	TLBatchCompleteHandler,
-	TLBeforeChangeHandler,
-	TLBeforeCreateHandler,
-	TLBeforeDeleteHandler,
-} from './lib/editor/managers/SideEffectManager'
 export {
 	type BoundsSnapGeometry,
 	type BoundsSnapPoint,
