@@ -22,6 +22,7 @@ import {
 	TLKeyboardEventInfo,
 	TLNoteShape,
 	TLPointerEventInfo,
+	TLRotationSnapshot,
 	TLSelectionHandle,
 	TLShape,
 	TLShapeId,
@@ -29,10 +30,12 @@ import {
 	TLTextShape,
 	ToolUtil,
 	Vec,
+	applyRotationToSnapshotShapes,
 	createShapeId,
 	debugFlags,
 	getOwnProperty,
 	getPointInArcT,
+	getRotationSnapshot,
 	isPageId,
 	kickoutOccludedShapes,
 	moveCameraWhenCloseToEdge,
@@ -41,6 +44,7 @@ import {
 } from 'tldraw'
 import { getArrowInfo } from 'tldraw/src/lib/shapes/arrow/shared'
 import { HintedShapeIndicator } from './components/HintedShapeIndicators'
+import { TldrawSelectionForeground } from './components/SelectionBox'
 import { SelectionBrush } from './components/SelectionBrush'
 import { ShapeIndicators } from './components/ShapeIndicators'
 import { DragAndDropManager } from './selection-logic/DragAndDropManager'
@@ -58,6 +62,7 @@ import { getTextLabels } from './selection-logic/getTextLabels'
 import { isOverArrowLabel } from './selection-logic/isOverArrowLabel'
 import { isPointInRotatedSelectionBounds } from './selection-logic/isPointInRotatedSelectionBounds'
 import { NOTE_CENTER_OFFSET } from './selection-logic/noteHelpers'
+import { getRotationFromPointerPosition } from './selection-logic/rotating'
 import { startEditingShapeWithLabel } from './selection-logic/selectHelpers'
 import { selectOnCanvasPointerUp } from './selection-logic/selectOnCanvasPointerUp'
 import {
@@ -128,6 +133,7 @@ type SimpleSelectState =
 	| {
 			name: 'rotating'
 			handle: RotateCorner
+			snapshot: TLRotationSnapshot
 			onInteractionEnd?: string
 	  }
 	| {
@@ -217,6 +223,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 			<>
 				<ShapeIndicators />
 				<HintedShapeIndicator />
+				<TldrawSelectionForeground />
 				{state.name === 'brushing' && <SelectionBrush brush={state.brush} />}
 			</>
 		)
@@ -254,6 +261,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 	override onStateChange(prev: SimpleSelectState, next: SimpleSelectState, _info: any) {
 		const { editor, memo } = this
 		switch (prev.name) {
+			case 'rotating':
 			case 'pointing_crop_handle':
 			case 'pointing_arrow_label': {
 				editor.setCursor({ type: 'default', rotation: 0 })
@@ -341,6 +349,21 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'rotating': {
+				editor.mark('rotating')
+				const newSelectionRotation = getRotationFromPointerPosition(editor, next.snapshot, false)
+
+				applyRotationToSnapshotShapes({
+					editor: editor,
+					delta: getRotationFromPointerPosition(editor, next.snapshot, false),
+					snapshot: next.snapshot,
+					stage: 'start',
+				})
+
+				// Update cursor
+				editor.setCursor({
+					type: cursorTypeMap[next.handle],
+					rotation: newSelectionRotation + next.snapshot.initialSelectionRotation,
+				})
 				break
 			}
 			case 'brushing': {
@@ -1009,6 +1032,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 								name: 'translating',
 								isCloning: false,
 								isCreating: true,
+								didClone: false,
 								markId: 'creating note',
 								selectionSnapshot: snapshot,
 								snapshot: snapshot,
@@ -1075,7 +1099,15 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					(info.name === 'pointer_move' && editor.inputs.isDragging)
 				) {
 					if (editor.getInstanceState().isReadonly) return
-					this.setState({ name: 'rotating', handle: state.handle })
+
+					const snapshot = getRotationSnapshot({ editor: editor })
+					if (!snapshot) return
+
+					this.setState({
+						name: 'rotating',
+						handle: state.handle,
+						snapshot,
+					})
 				} else if (
 					info.name === 'complete' ||
 					info.name === 'interrupt' ||
@@ -1179,7 +1211,6 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					// Re-focus the editor, just in case the text label of the shape has stolen focus
 					editor.getContainer().focus()
 					const snapshot = getTranslatingSnapshot(editor)
-					console.log('creating snapshot', snapshot)
 					this.setState(
 						{
 							name: 'translating',
@@ -1572,6 +1603,49 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'rotating': {
+				if (info.name === 'cancel') {
+					editor.bailToMark('rotating')
+					if (state.onInteractionEnd) {
+						editor.setCurrentTool(state.onInteractionEnd)
+					} else {
+						this.setState({ name: 'idle' })
+					}
+				} else if (info.name === 'complete' || !editor.inputs.isPointing) {
+					applyRotationToSnapshotShapes({
+						editor,
+						delta: getRotationFromPointerPosition(editor, state.snapshot, true),
+						snapshot: state.snapshot,
+						stage: 'end',
+					})
+					kickoutOccludedShapes(
+						editor,
+						state.snapshot.shapeSnapshots.map((s) => s.shape.id)
+					)
+					if (state.onInteractionEnd) {
+						editor.setCurrentTool(state.onInteractionEnd)
+					} else {
+						this.setState({ name: 'idle' })
+					}
+				} else if (
+					info.name === 'pointer_move' ||
+					info.name === 'key_down' ||
+					info.name === 'key_up'
+				) {
+					const newSelectionRotation = getRotationFromPointerPosition(editor, state.snapshot, false)
+
+					applyRotationToSnapshotShapes({
+						editor,
+						delta: newSelectionRotation,
+						snapshot: state.snapshot,
+						stage: 'update',
+					})
+
+					// Update cursor
+					editor.setCursor({
+						type: cursorTypeMap[state.handle as RotateCorner],
+						rotation: newSelectionRotation + state.snapshot.initialSelectionRotation,
+					})
+				}
 				break
 			}
 			case 'translating': {
