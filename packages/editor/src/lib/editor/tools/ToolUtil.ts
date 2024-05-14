@@ -31,7 +31,7 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 	/**
 	 * The tool's default state, set when the tool is first registered in the Editor.
 	 */
-	abstract getDefaultContext(): State
+	abstract getDefaultState(): State
 
 	/**
 	 * The configuration passed in by the consumer.
@@ -52,7 +52,7 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 	 *
 	 * @param state - A partial of the tool's state.
 	 */
-	setState(state: State, info?: any) {
+	setState<P extends State['name']>(state: State & { name: P }, info?: any) {
 		const prev = this._state.__unsafe__getWithoutCapture()
 		this._state.set(state)
 		if (state.name && prev.name !== state.name) {

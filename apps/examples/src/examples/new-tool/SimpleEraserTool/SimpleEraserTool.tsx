@@ -10,6 +10,7 @@ import {
 	ToolUtil,
 	Vec,
 	pointInPolygon,
+	useEditorComponents,
 } from 'tldraw'
 
 type SimpleEraserContext =
@@ -41,32 +42,32 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 		}
 	}
 
-	getDefaultContext(): SimpleEraserContext {
+	getDefaultState(): SimpleEraserContext {
 		return {
 			name: 'idle',
 			scribbles: [],
 		}
 	}
 
-	// override overlay() {
-	// 	const { editor } = this
-	// 	const zoom = editor.getZoomLevel()
-	// 	const { Scribble } = useEditorComponents()
-	// 	if (!Scribble) return
+	override overlay() {
+		const { editor } = this
+		const zoom = editor.getZoomLevel()
+		const { Scribble } = useEditorComponents()
+		if (!Scribble) return
 
-	// 	return (
-	// 		<>
-	// 			{this.getState().scribbles.map((scribble) => (
-	// 				<Scribble
-	// 					key={scribble.id}
-	// 					className="tl-user-scribble"
-	// 					scribble={scribble}
-	// 					zoom={zoom}
-	// 				/>
-	// 			))}
-	// 		</>
-	// 	)
-	// }
+		return (
+			<>
+				{this.getState().scribbles.map((scribble) => (
+					<Scribble
+						key={scribble.id}
+						className="tl-user-scribble"
+						scribble={scribble}
+						zoom={zoom}
+					/>
+				))}
+			</>
+		)
+	}
 
 	override onEnter() {
 		const { editor } = this

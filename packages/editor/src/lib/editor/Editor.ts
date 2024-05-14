@@ -624,7 +624,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const tool = new ToolConstructor(this, config)
 			toolMap[tool.id] = tool
-			tool.setState(tool.getDefaultContext())
+			tool.setState(tool.getDefaultState())
 		}
 
 		if (!initialTool) throw Error('No initial tool provided')

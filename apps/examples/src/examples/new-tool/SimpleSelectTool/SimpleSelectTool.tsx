@@ -9,6 +9,7 @@ import {
 	Geometry2d,
 	Group2d,
 	HIT_TEST_MARGIN,
+	Mat,
 	RotateCorner,
 	SelectionHandle,
 	SharedStyleMap,
@@ -32,7 +33,9 @@ import {
 	debugFlags,
 	getOwnProperty,
 	getPointInArcT,
+	isPageId,
 	kickoutOccludedShapes,
+	moveCameraWhenCloseToEdge,
 	react,
 	structuredClone,
 } from 'tldraw'
@@ -40,6 +43,7 @@ import { getArrowInfo } from 'tldraw/src/lib/shapes/arrow/shared'
 import { HintedShapeIndicator } from './components/HintedShapeIndicators'
 import { SelectionBrush } from './components/SelectionBrush'
 import { ShapeIndicators } from './components/ShapeIndicators'
+import { DragAndDropManager } from './selection-logic/DragAndDropManager'
 import {
 	MIN_CROP_SIZE,
 	ShapeWithCrop,
@@ -56,6 +60,11 @@ import { isPointInRotatedSelectionBounds } from './selection-logic/isPointInRota
 import { NOTE_CENTER_OFFSET } from './selection-logic/noteHelpers'
 import { startEditingShapeWithLabel } from './selection-logic/selectHelpers'
 import { selectOnCanvasPointerUp } from './selection-logic/selectOnCanvasPointerUp'
+import {
+	TranslatingSnapshot,
+	getTranslatingSnapshot,
+	moveShapesToPoint,
+} from './selection-logic/translating'
 import { updateHoveredShapeId } from './selection-logic/updateHoveredShapeId'
 
 type SimpleSelectState =
@@ -91,7 +100,15 @@ type SimpleSelectState =
 	  }
 	| {
 			name: 'translating'
+			isCloning: boolean
+			didClone: boolean
+			isCreating: boolean
+			onCreate: (shape: TLShape | null) => void
+			selectionSnapshot: TranslatingSnapshot
+			snapshot: TranslatingSnapshot
 			onInteractionEnd?: string
+			markId: string
+			dragAndDropManager: DragAndDropManager
 	  }
 	| {
 			name: 'pointing_resize_handle'
@@ -163,14 +180,14 @@ simpleSelectStyles.applyValue(DefaultSizeStyle, DefaultSizeStyle.defaultValue)
 export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 	id = 'select' as const
 
-	getDefaultContext(): SimpleSelectState {
+	getDefaultConfig() {
+		return {}
+	}
+
+	getDefaultState(): SimpleSelectState {
 		return {
 			name: 'idle',
 		}
-	}
-
-	getDefaultConfig() {
-		return {}
 	}
 
 	override getStyles() {
@@ -323,9 +340,6 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				})
 				break
 			}
-			case 'translating': {
-				break
-			}
 			case 'rotating': {
 				break
 			}
@@ -397,6 +411,30 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				editor.setCursor({ type: 'grabbing', rotation: 0 })
 				editor.mark('label-drag start')
 				editor.setSelectedShapes([next.shapeId])
+				break
+			}
+			case 'translating': {
+				if (!editor.getSelectedShapeIds()?.length) {
+					this.setState({ name: 'idle' })
+					return
+				}
+
+				editor.mark('translating')
+
+				// this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+
+				editor.setCursor({ type: 'move', rotation: 0 })
+
+				// Don't clone on create; otherwise clone on altKey
+				if (!next.isCreating) {
+					if (editor.inputs.altKey) {
+						this.startCloningTranslatingShapes(next)
+						return
+					}
+				}
+
+				this.startTranslating(next)
+				this.updateTranslatingShapes(next)
 				break
 			}
 		}
@@ -964,20 +1002,23 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 							editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
 
 							// Then select and begin translating the shape
-							editor
-								.setHoveredShape(nextNote.id) // important!
-								.select(nextNote.id)
-								.setCurrentTool('select.translating', {
-									target: 'shape',
-									shape: editor.getShape(nextNote),
-									handle: state.handle,
-									onInteractionEnd: 'note',
-									isCreating: true,
-									onCreate: () => {
-										// When we're done, start editing it
-										startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
-									},
-								})
+							editor.setHoveredShape(nextNote.id) // important!
+							editor.select(nextNote.id)
+							const snapshot = getTranslatingSnapshot(editor)
+							this.setState({
+								name: 'translating',
+								isCloning: false,
+								isCreating: true,
+								markId: 'creating note',
+								selectionSnapshot: snapshot,
+								snapshot: snapshot,
+								dragAndDropManager: new DragAndDropManager(editor),
+								onInteractionEnd: 'note',
+								onCreate: () => {
+									// When we're done, start editing it
+									startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
+								},
+							})
 							return
 						}
 					}
@@ -1101,7 +1142,21 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					(info.name === 'pointer_move' && editor.inputs.isDragging)
 				) {
 					if (editor.getInstanceState().isReadonly) return
-					this.setState({ name: 'translating' }, info)
+					const snapshot = getTranslatingSnapshot(editor)
+					this.setState(
+						{
+							name: 'translating',
+							isCreating: false,
+							isCloning: false,
+							didClone: false,
+							onCreate: () => void null,
+							selectionSnapshot: snapshot,
+							snapshot: snapshot,
+							markId: 'translating',
+							dragAndDropManager: new DragAndDropManager(editor),
+						},
+						info
+					)
 				} else if (
 					info.name === 'cancel' ||
 					info.name === 'complete' ||
@@ -1123,7 +1178,22 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					if (editor.getInstanceState().isReadonly) return
 					// Re-focus the editor, just in case the text label of the shape has stolen focus
 					editor.getContainer().focus()
-					this.setState({ name: 'translating' }, info)
+					const snapshot = getTranslatingSnapshot(editor)
+					console.log('creating snapshot', snapshot)
+					this.setState(
+						{
+							name: 'translating',
+							isCreating: false,
+							isCloning: false,
+							didClone: false,
+							onCreate: () => void null,
+							selectionSnapshot: snapshot,
+							snapshot: snapshot,
+							markId: 'translating',
+							dragAndDropManager: new DragAndDropManager(editor),
+						},
+						info
+					)
 				} else if (info.name === 'pointer_up') {
 					const selectedShapeIds = editor.getSelectedShapeIds()
 					const focusedGroupId = editor.getFocusedGroupId()
@@ -1483,11 +1553,11 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					// Moved pointer or pressed/released modifier
 					const shape = state.shape
 					if (!shape) return
-					const { originPagePoint, currentPagePoint } = this.editor.inputs
+					const { originPagePoint, currentPagePoint } = editor.inputs
 					const delta = currentPagePoint.clone().sub(originPagePoint)
-					const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
+					const partial = getTranslateCroppedImageChange(editor, shape, delta)
 					if (partial) {
-						this.editor.updateShapes([partial])
+						editor.updateShapes([partial])
 					}
 				}
 				break
@@ -1505,6 +1575,87 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'translating': {
+				if (info.name === 'tick') {
+					state.dragAndDropManager.updateDroppingNode(state.snapshot.movingShapes, () =>
+						this.updateTranslatingParentTransforms(state)
+					)
+					moveCameraWhenCloseToEdge(editor)
+				} else if (info.name === 'cancel') {
+					editor.bailToMark(state.markId)
+					if (state.onInteractionEnd) {
+						editor.setCurrentTool(state.onInteractionEnd)
+					} else {
+						this.setState({ name: 'idle' })
+					}
+				} else if (info.name === 'pointer_move') {
+					this.updateTranslatingShapes(state)
+				} else if (info.name === 'key_down') {
+					if (editor.inputs.altKey && !state.isCloning) {
+						this.startCloningTranslatingShapes(state)
+					} else {
+						this.updateTranslatingShapes(state)
+					}
+				} else if (info.name === 'key_up') {
+					if (!editor.inputs.altKey && state.isCloning) {
+						this.stopCloningTranslatingShapes(state)
+					} else {
+						this.updateTranslatingShapes(state)
+					}
+				} else if (info.name === 'complete' || !editor.inputs.isPointing) {
+					const { movingShapes } = state.snapshot
+
+					this.updateTranslatingShapes(state)
+
+					state.dragAndDropManager.dropShapes(movingShapes)
+
+					kickoutOccludedShapes(
+						editor,
+						movingShapes.map((s) => s.id)
+					)
+
+					if (state.isCloning && movingShapes.length > 0) {
+						const currentAveragePagePoint = Vec.Average(
+							movingShapes.map((s) => editor.getShapePageTransform(s.id)!.point())
+						)
+						const offset = Vec.Sub(
+							currentAveragePagePoint,
+							state.selectionSnapshot.averagePagePoint
+						)
+						if (!Vec.IsNaN(offset)) {
+							editor.updateInstanceState({
+								duplicateProps: {
+									shapeIds: movingShapes.map((s) => s.id),
+									offset: { x: offset.x, y: offset.y },
+								},
+							})
+						}
+					}
+
+					const changes: TLShapePartial[] = []
+
+					movingShapes.forEach((shape) => {
+						const current = editor.getShape(shape.id)!
+						const util = editor.getShapeUtil(shape)
+						const change = util.onTranslateEnd?.(shape, current)
+						if (change) {
+							changes.push(change)
+						}
+					})
+
+					if (changes.length > 0) {
+						editor.updateShapes(changes)
+					}
+
+					if (editor.getInstanceState().isToolLocked && state.onInteractionEnd) {
+						editor.setCurrentTool(state.onInteractionEnd)
+					} else {
+						if (state.isCreating) {
+							state.onCreate?.(editor.getOnlySelectedShape())
+						} else {
+							this.setState({ name: 'idle' })
+						}
+					}
+				}
 				break
 			}
 			case 'brushing': {
@@ -1866,6 +2017,117 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 			}
 
 			editor.updateShapes<ShapeWithCrop>([partial])
+		}
+	}
+
+	private startCloningTranslatingShapes(state: SimpleSelectState & { name: 'translating' }) {
+		if (state.isCreating) return
+
+		const { editor } = this
+
+		if (state.didClone) {
+			editor.bailToMark('translating')
+		}
+
+		editor.mark('translating')
+
+		editor.duplicateShapes(state.selectionSnapshot.movingShapes.map((s) => s.id))
+		const snapshot = getTranslatingSnapshot(editor)
+
+		const next = {
+			...state,
+			isCloning: true,
+			didClone: true,
+			snapshot: snapshot,
+		}
+
+		this.setState<'translating'>(next)
+		this.startTranslating(next)
+		this.updateTranslatingShapes(next)
+	}
+
+	private stopCloningTranslatingShapes(state: SimpleSelectState & { name: 'translating' }) {
+		if (state.isCreating) return
+
+		const { editor } = this
+		editor.bailToMark('translating')
+		editor.mark('translating')
+
+		const next = {
+			...state,
+			isCloning: false,
+			snapshot: state.selectionSnapshot,
+		}
+
+		this.setState(next)
+		this.updateTranslatingShapes(next)
+	}
+
+	private startTranslating(state: SimpleSelectState & { name: 'translating' }) {
+		const { editor } = this
+
+		const changes: TLShapePartial[] = []
+
+		state.snapshot.movingShapes.forEach((shape) => {
+			const util = editor.getShapeUtil(shape)
+			const change = util.onTranslateStart?.(shape)
+			if (change) {
+				changes.push(change)
+			}
+		})
+
+		if (changes.length > 0) {
+			editor.updateShapes(changes)
+		}
+
+		editor.setHoveredShape(null)
+	}
+
+	private updateTranslatingParentTransforms(state: SimpleSelectState & { name: 'translating' }) {
+		const { editor } = this
+		const { shapeSnapshots } = state.snapshot
+
+		const movingShapes: TLShape[] = []
+
+		shapeSnapshots.forEach((shapeSnapshot) => {
+			const shape = editor.getShape(shapeSnapshot.shape.id)
+			if (shape) {
+				movingShapes.push(shape)
+				shapeSnapshot.parentTransform = isPageId(shape.parentId)
+					? null
+					: Mat.Inverse(editor.getShapePageTransform(shape.parentId)!)
+			}
+		})
+	}
+
+	private updateTranslatingShapes(state: SimpleSelectState & { name: 'translating' }) {
+		const { editor } = this
+		const { snapshot, dragAndDropManager } = state
+
+		const { movingShapes } = snapshot
+
+		dragAndDropManager.updateDroppingNode(movingShapes, () =>
+			this.updateTranslatingParentTransforms(state)
+		)
+
+		moveShapesToPoint({
+			editor,
+			snapshot,
+		})
+
+		const changes: TLShapePartial[] = []
+
+		movingShapes.forEach((initialShape) => {
+			const currentShape = editor.getShape(initialShape.id)
+			if (!currentShape) return
+			const change = editor.getShapeUtil(initialShape).onTranslate?.(initialShape, currentShape)
+			if (change) {
+				changes.push(change)
+			}
+		})
+
+		if (changes.length > 0) {
+			editor.updateShapes(changes)
 		}
 	}
 }

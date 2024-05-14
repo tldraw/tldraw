@@ -30,7 +30,6 @@ export class Translating extends StateNode {
 		target: 'shape'
 		isCreating?: boolean
 		onCreate?: () => void
-		didStartInPit?: boolean
 		onInteractionEnd?: string
 	}
 

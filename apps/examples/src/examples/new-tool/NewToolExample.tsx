@@ -57,25 +57,7 @@ export default function NewToolExample() {
 					e.createShapes([{ type: 'geo', x: 150, y: 625 }])
 				}}
 			>
-				<TldrawUi
-					overrides={{
-						tools: (editor, tools) => {
-							tools['select'] = {
-								...tools['select'],
-								onSelect() {
-									editor.setCurrentTool('select')
-								},
-							}
-							tools['eraser'] = {
-								...tools['eraser'],
-								onSelect() {
-									editor.setCurrentTool('eraser')
-								},
-							}
-							return tools
-						},
-					}}
-				>
+				<TldrawUi>
 					<ContextMenu>
 						<DefaultContextMenuContent />
 					</ContextMenu>
