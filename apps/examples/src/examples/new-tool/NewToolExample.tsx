@@ -41,7 +41,7 @@ export default function NewToolExample() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
-				initialState="@simple/eraser"
+				initialState="eraser"
 				shapeUtils={defaultShapeUtils}
 				bindingUtils={defaultBindingUtils}
 				tools={tools}
@@ -63,13 +63,13 @@ export default function NewToolExample() {
 							tools['select'] = {
 								...tools['select'],
 								onSelect() {
-									editor.setCurrentTool('@simple/select')
+									editor.setCurrentTool('select')
 								},
 							}
 							tools['eraser'] = {
 								...tools['eraser'],
 								onSelect() {
-									editor.setCurrentTool('@simple/eraser')
+									editor.setCurrentTool('eraser')
 								},
 							}
 							return tools

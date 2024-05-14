@@ -13,13 +13,11 @@ import {
 	SelectionHandle,
 	SharedStyleMap,
 	TLArrowShape,
-	TLBaseShape,
 	TLClickEventInfo,
 	TLEventInfo,
 	TLGroupShape,
 	TLHandle,
 	TLImageShape,
-	TLImageShapeCrop,
 	TLKeyboardEventInfo,
 	TLNoteShape,
 	TLPointerEventInfo,
@@ -39,10 +37,14 @@ import {
 	structuredClone,
 } from 'tldraw'
 import { getArrowInfo } from 'tldraw/src/lib/shapes/arrow/shared'
-import { MIN_CROP_SIZE } from 'tldraw/src/lib/tools/SelectTool/childStates/Crop/crop-constants'
 import { HintedShapeIndicator } from './components/HintedShapeIndicators'
 import { SelectionBrush } from './components/SelectionBrush'
 import { ShapeIndicators } from './components/ShapeIndicators'
+import {
+	MIN_CROP_SIZE,
+	ShapeWithCrop,
+	getTranslateCroppedImageChange,
+} from './selection-logic/cropping'
 import { cursorTypeMap } from './selection-logic/cursorTypeMap'
 import { getCroppingSnapshot } from './selection-logic/getCroppingSnapshot'
 import { getHitShapeOnCanvasPointerDown } from './selection-logic/getHitShapeOnCanvasPointerDown'
@@ -64,8 +66,13 @@ type SimpleSelectState =
 			name: 'pointing_canvas'
 	  }
 	| {
+			name: 'pointing_crop'
+			shape: TLShape
+	  }
+	| {
 			name: 'pointing_crop_handle'
 			handle: SelectionHandle
+			onInteractionEnd?: string
 	  }
 	| {
 			name: 'cropping'
@@ -138,9 +145,13 @@ type SimpleSelectState =
 	  }
 	| {
 			name: 'crop_translating'
+			shape: ShapeWithCrop
+			isCreating?: boolean
+			onInteractionEnd?: string
 	  }
 	| {
 			name: 'crop_pointing'
+			shape: ShapeWithCrop
 	  }
 
 const simpleSelectStyles = new SharedStyleMap()
@@ -150,7 +161,7 @@ simpleSelectStyles.applyValue(DefaultDashStyle, DefaultDashStyle.defaultValue)
 simpleSelectStyles.applyValue(DefaultSizeStyle, DefaultSizeStyle.defaultValue)
 
 export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
-	id = '@simple/select' as const
+	id = 'select' as const
 
 	getDefaultContext(): SimpleSelectState {
 		return {
@@ -230,6 +241,16 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 			case 'pointing_arrow_label': {
 				editor.setCursor({ type: 'default', rotation: 0 })
 				break
+			}
+			case 'crop_idle': {
+				editor.setCursor({ type: 'default', rotation: 0 })
+				const onlySelectedShape = editor.getOnlySelectedShape()
+				// it's possible for a user to enter cropping, then undo (which clears the cropping id) but still remain in this state.
+				editor.on('tick', this.cleanupCroppingState)
+				if (onlySelectedShape) {
+					editor.mark('crop')
+					editor.setCroppingShape(onlySelectedShape.id)
+				}
 			}
 		}
 
@@ -321,12 +342,17 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'crop_idle': {
+				editor.setCursor({ type: 'default', rotation: 0 })
+				editor.off('tick', this.cleanupCroppingState)
 				break
 			}
 			case 'crop_pointing': {
 				break
 			}
 			case 'crop_translating': {
+				editor.mark('translating crop')
+				editor.setCursor({ type: 'move', rotation: 0 })
+				// this.updateTranslatingCroppingShape(next)
 				break
 			}
 			case 'pointing_crop_handle': {
@@ -1313,12 +1339,157 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'crop_idle': {
+				if (info.name === 'cancel' || info.name === 'complete' || info.name === 'interrupt') {
+					this.cancelCrop()
+				} else if (info.name === 'pointer_down') {
+					if (editor.getIsMenuOpen()) {
+						return
+					}
+
+					if (info.ctrlKey) {
+						this.cancelCrop()
+						this.onEvent(info)
+						return
+					}
+
+					switch (info.target) {
+						case 'canvas': {
+							const hitShape = getHitShapeOnCanvasPointerDown(editor)
+							if (hitShape && !editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
+								this.onEvent({
+									...info,
+									shape: hitShape,
+									target: 'shape',
+								})
+								return
+							}
+							this.cancelCrop()
+							this.onEvent(info)
+							break
+						}
+						case 'shape': {
+							if (info.shape.id === editor.getCroppingShapeId()) {
+								this.setState({ name: 'pointing_crop', shape: info.shape }, info)
+							} else {
+								if (editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
+									editor.setCroppingShape(info.shape.id)
+									editor.setSelectedShapes([info.shape.id])
+									this.setState({ name: 'pointing_crop', shape: info.shape }, info)
+								} else {
+									this.cancelCrop()
+									this.onEvent(info)
+								}
+							}
+							break
+						}
+						case 'selection':
+							{
+								switch (info.handle) {
+									case 'mobile_rotate':
+									case 'top_left_rotate':
+									case 'top_right_rotate':
+									case 'bottom_left_rotate':
+									case 'bottom_right_rotate': {
+										this.setState({
+											name: 'pointing_rotate_handle',
+											handle: info.handle,
+											onInteractionEnd: 'select.crop',
+										})
+										break
+									}
+									case 'top':
+									case 'right':
+									case 'bottom':
+									case 'left':
+									case 'top_left':
+									case 'top_right':
+									case 'bottom_left':
+									case 'bottom_right': {
+										this.setState(
+											{
+												name: 'pointing_crop_handle',
+												handle: info.handle,
+												onInteractionEnd: 'crop_idle',
+											},
+											info
+										)
+										break
+									}
+									default: {
+										this.cancelCrop()
+									}
+								}
+							}
+							break
+					}
+				} else if (info.name === 'double_click') {
+					// Without this, the double click's "settle" would trigger the reset
+					// after the user double clicked the edge to begin cropping
+					if (editor.inputs.shiftKey || info.phase !== 'up') return
+
+					const croppingShapeId = editor.getCroppingShapeId()
+					if (!croppingShapeId) return
+					const shape = editor.getShape(croppingShapeId)
+					if (!shape) return
+
+					const util = editor.getShapeUtil(shape)
+					if (!util) return
+
+					if (info.target === 'selection') {
+						util.onDoubleClickEdge?.(shape)
+					}
+				} else if (info.name === 'key_down') {
+					this.nudgeCroppingImage(false)
+				} else if (info.name === 'key_up') {
+					this.nudgeCroppingImage(true)
+				}
 				break
 			}
 			case 'crop_pointing': {
+				if (
+					info.name === 'cancel' ||
+					info.name === 'complete' ||
+					info.name === 'interrupt' ||
+					!editor.inputs.isPointing
+				) {
+					// Completed / cancelled / stopped pointing
+					this.setState({ name: 'crop_idle' }, info)
+				} else if (
+					info.name === 'long_press' ||
+					(info.name === 'pointer_move' && editor.inputs.isDragging)
+				) {
+					this.setState({ name: 'crop_translating', shape: state.shape }, info)
+				}
 				break
 			}
 			case 'crop_translating': {
+				if (info.name === 'cancel') {
+					// Cancelled
+					editor.bailToMark('translating crop')
+					this.setState({ name: 'crop_idle' })
+				} else if (
+					info.name === 'complete' ||
+					info.name === 'interrupt' ||
+					(info.name === 'key_up' && info.key === 'Enter') ||
+					!editor.inputs.isPointing
+				) {
+					// Completed / cancelled / stopped pointing
+					this.setState({ name: 'crop_idle' })
+				} else if (
+					info.name === 'pointer_move' ||
+					(info.name === 'key_down' && (info.key === 'Alt' || info.key === 'Shift')) ||
+					(info.name === 'key_up' && (info.key === 'Alt' || info.key === 'Shift'))
+				) {
+					// Moved pointer or pressed/released modifier
+					const shape = state.shape
+					if (!shape) return
+					const { originPagePoint, currentPagePoint } = this.editor.inputs
+					const delta = currentPagePoint.clone().sub(originPagePoint)
+					const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
+					if (partial) {
+						this.editor.updateShapes([partial])
+					}
+				}
 				break
 			}
 			case 'dragging_handle': {
@@ -1629,9 +1800,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 
 		newPoint.add(pointDelta.rot(shape.rotation))
 
-		const partial: TLShapePartial<
-			TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>
-		> = {
+		const partial: TLShapePartial<TLShape> = {
 			id: shape.id,
 			type: shape.type,
 			x: newPoint.x,
@@ -1646,6 +1815,58 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 		editor.updateShapes([partial])
 		const cursorType = cursorTypeMap[state.handle]
 		editor.setCursor({ type: cursorType, rotation: editor.getSelectionRotation() })
+	}
+
+	private cleanupCroppingState() {
+		const { editor } = this
+		if (!editor.getCroppingShapeId()) {
+			editor.setCurrentTool('select.idle', {})
+		}
+	}
+
+	private cancelCrop() {
+		const { editor } = this
+		editor.setCroppingShape(null)
+		this.setState({ name: 'idle' }, {})
+	}
+
+	private nudgeCroppingImage(ephemeral = false) {
+		const { editor } = this
+		const {
+			editor: {
+				inputs: { keys },
+			},
+		} = this
+
+		// We want to use the "actual" shift key state,
+		// not the one that's in the editor.inputs.shiftKey,
+		// because that one uses a short timeout on release
+		const shiftKey = keys.has('ShiftLeft')
+
+		const delta = new Vec(0, 0)
+
+		if (keys.has('ArrowLeft')) delta.x += 1
+		if (keys.has('ArrowRight')) delta.x -= 1
+		if (keys.has('ArrowUp')) delta.y += 1
+		if (keys.has('ArrowDown')) delta.y -= 1
+
+		if (delta.equals(new Vec(0, 0))) return
+
+		if (shiftKey) delta.mul(10)
+
+		const shape = editor.getShape(editor.getCroppingShapeId()!) as ShapeWithCrop
+		if (!shape) return
+		const partial = getTranslateCroppedImageChange(editor, shape, delta)
+
+		if (partial) {
+			if (!ephemeral) {
+				// We don't want to create new marks if the user
+				// is just holding down the arrow keys
+				editor.mark('translate crop')
+			}
+
+			editor.updateShapes<ShapeWithCrop>([partial])
+		}
 	}
 }
 

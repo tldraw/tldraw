@@ -41,11 +41,11 @@ export class Cropping extends StateNode {
 		this.markId = 'cropping'
 		this.editor.mark(this.markId)
 		this.snapshot = this.createSnapshot()
-		this.updateShapes()
+		this.updateCroppingShapes()
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.updateShapes()
+		this.updateCroppingShapes()
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
@@ -73,7 +73,7 @@ export class Cropping extends StateNode {
 		bottomRight: { x: 1, y: 1 },
 	})
 
-	private updateShapes() {
+	private updateCroppingShapes() {
 		const { shape, cursorHandleOffset } = this.snapshot
 
 		if (!shape) return
@@ -201,7 +201,7 @@ export class Cropping extends StateNode {
 	}
 
 	private complete() {
-		this.updateShapes()
+		this.updateCroppingShapes()
 		kickoutOccludedShapes(this.editor, [this.snapshot.shape.id])
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)

@@ -32,7 +32,7 @@ type SimpleEraserToolConfig = {
 }
 
 export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEraserToolConfig> {
-	id = '@simple/eraser' as const
+	id = 'eraser' as const
 
 	getDefaultConfig(): SimpleEraserToolConfig {
 		return {

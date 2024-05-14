@@ -28,7 +28,7 @@ export class TranslatingCrop extends StateNode {
 
 		this.editor.mark(this.markId)
 		this.editor.setCursor({ type: 'move', rotation: 0 })
-		this.updateShapes()
+		this.updateTranslatingCroppingShapes()
 	}
 
 	override onExit = () => {
@@ -36,7 +36,7 @@ export class TranslatingCrop extends StateNode {
 	}
 
 	override onPointerMove = () => {
-		this.updateShapes()
+		this.updateTranslatingCroppingShapes()
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
@@ -55,7 +55,7 @@ export class TranslatingCrop extends StateNode {
 		switch (info.key) {
 			case 'Alt':
 			case 'Shift': {
-				this.updateShapes()
+				this.updateTranslatingCroppingShapes()
 				return
 			}
 		}
@@ -69,13 +69,13 @@ export class TranslatingCrop extends StateNode {
 			}
 			case 'Alt':
 			case 'Shift': {
-				this.updateShapes()
+				this.updateTranslatingCroppingShapes()
 			}
 		}
 	}
 
 	protected complete() {
-		this.updateShapes()
+		this.updateTranslatingCroppingShapes()
 		this.editor.setCurrentTool('select.crop.idle', this.info)
 	}
 
@@ -89,7 +89,7 @@ export class TranslatingCrop extends StateNode {
 		return { shape }
 	}
 
-	protected updateShapes() {
+	protected updateTranslatingCroppingShapes() {
 		const shape = this.snapshot.shape as ShapeWithCrop
 
 		if (!shape) return
