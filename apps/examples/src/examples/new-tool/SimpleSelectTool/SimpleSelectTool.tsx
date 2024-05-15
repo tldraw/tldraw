@@ -273,7 +273,6 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 
 	// This object is used for events, it's kept in memory and updated as the user interacts with the tool
 	private memo = {
-		initialSelectedIds: [] as TLShapeId[],
 		cleanupReactor: null as null | (() => void),
 	}
 
