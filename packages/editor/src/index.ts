@@ -128,9 +128,7 @@ export {
 	BindingUtil,
 	type BindingOnChangeOptions,
 	type BindingOnCreateOptions,
-	type BindingOnDeleteOptions,
 	type BindingOnShapeChangeOptions,
-	type BindingOnShapeDeleteOptions,
 	type BindingOnUnbindOptions,
 	type TLBindingUtilConstructor,
 } from './lib/editor/bindings/BindingUtil'

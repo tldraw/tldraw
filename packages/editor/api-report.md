@@ -188,12 +188,6 @@ export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
 }
 
 // @public (undocumented)
-export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
-    // (undocumented)
-    binding: Binding;
-}
-
-// @public (undocumented)
 export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
     // (undocumented)
     binding: Binding;
@@ -201,14 +195,6 @@ export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
     shapeAfter: TLShape;
     // (undocumented)
     shapeBefore: TLShape;
-}
-
-// @public (undocumented)
-export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
-    // (undocumented)
-    binding: Binding;
-    // (undocumented)
-    shape: TLShape;
 }
 
 // @public (undocumented)
@@ -246,21 +232,11 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     // (undocumented)
     onAfterCreate?(options: BindingOnCreateOptions<Binding>): void;
     // (undocumented)
-    onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void;
-    // (undocumented)
-    onAfterDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
-    // (undocumented)
-    onAfterDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
+    onAfterUnbind?(options: BindingOnUnbindOptions<Binding>): void;
     // (undocumented)
     onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void;
     // (undocumented)
     onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void;
-    // (undocumented)
-    onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): void;
-    // (undocumented)
-    onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
-    // (undocumented)
-    onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
     // (undocumented)
     onBeforeUnbind?(options: BindingOnUnbindOptions<Binding>): void;
     // (undocumented)

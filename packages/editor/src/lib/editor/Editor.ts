@@ -118,7 +118,12 @@ import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
-import { BindingUnbindReason, BindingUtil, TLBindingUtilConstructor } from './bindings/BindingUtil'
+import {
+	BindingOnUnbindOptions,
+	BindingUnbindReason,
+	BindingUtil,
+	TLBindingUtilConstructor,
+} from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
@@ -349,11 +354,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.sideEffects = this.store.sideEffects
 
-		const deletedShapes = new Map<TLShapeId, TLShape>()
+		let deletedBindings = new Map<TLBindingId, BindingOnUnbindOptions<any>>()
+		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<string>()
 		this.disposables.add(
 			this.sideEffects.registerOperationCompleteHandler(() => {
+				// this needs to be cleared here because further effects may delete more shapes
+				// and we want the next invocation of this handler to handle those separately
+				// TODO(david): test this behavior
+				deletedShapeIds.clear()
+
 				for (const parentId of invalidParents) {
 					invalidParents.delete(parentId)
 					const parent = this.getShape(parentId)
@@ -376,8 +387,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
-				if (deletedShapes.size) {
-					deletedShapes.clear()
+				if (deletedBindings.size) {
+					const t = deletedBindings
+					deletedBindings = new Map()
+					for (const opts of t.values()) {
+						this.getBindingUtil(opts.binding).onAfterUnbind?.(opts)
+					}
 				}
 
 				this.emit('update')
@@ -466,19 +481,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							invalidParents.add(shape.parentId)
 						}
 
-						deletedShapes.set(shape.id, shape)
+						deletedShapeIds.add(shape.id)
 
 						const deleteBindingIds: TLBindingId[] = []
 						for (const binding of this.getBindingsInvolvingShape(shape)) {
 							invalidBindingTypes.add(binding.type)
-							if (binding.fromId === shape.id) {
-								this.getBindingUtil(binding).onBeforeDeleteFromShape?.({ binding, shape })
-								deleteBindingIds.push(binding.id)
-							}
-							if (binding.toId === shape.id) {
-								this.getBindingUtil(binding).onBeforeDeleteToShape?.({ binding, shape })
-								deleteBindingIds.push(binding.id)
-							}
+							deleteBindingIds.push(binding.id)
 						}
 						this.deleteBindings(deleteBindingIds)
 
@@ -518,31 +526,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 					},
 					beforeDelete: (binding) => {
 						const util = this.getBindingUtil(binding)
-						if (util.onBeforeUnbind) {
-							const reason = deletedShapes.has(binding.fromId)
+						if (!util.onBeforeUnbind && !util.onAfterUnbind) return
+						if (deletedBindings.has(binding.id)) return
+						const opts: BindingOnUnbindOptions<any> = {
+							binding,
+							reason: deletedShapeIds.has(binding.fromId)
 								? BindingUnbindReason.DeletingFromShape
-								: deletedShapes.has(binding.toId)
+								: deletedShapeIds.has(binding.toId)
 									? BindingUnbindReason.DeletingToShape
-									: BindingUnbindReason.DeletingBinding
-							util.onBeforeUnbind({ binding, reason })
+									: BindingUnbindReason.DeletingBinding,
 						}
-						util.onBeforeDelete?.({ binding })
+						deletedBindings.set(binding.id, opts)
+						this.getBindingUtil(binding).onBeforeUnbind?.(opts)
 					},
 					afterDelete: (binding) => {
 						invalidBindingTypes.add(binding.type)
-						this.getBindingUtil(binding).onAfterDelete?.({ binding })
-						if (deletedShapes.has(binding.fromId)) {
-							this.getBindingUtil(binding).onAfterDeleteFromShape?.({
-								binding,
-								shape: deletedShapes.get(binding.fromId)!,
-							})
-						}
-						if (deletedShapes.has(binding.toId)) {
-							this.getBindingUtil(binding).onAfterDeleteToShape?.({
-								binding,
-								shape: deletedShapes.get(binding.toId)!,
-							})
-						}
 					},
 				},
 				page: {
@@ -8756,8 +8754,6 @@ function withoutBindingsToUnrelatedShapes<T>(
 
 	editor.history.ignore(() => {
 		const changes = editor.store.extractingChanges(() => {
-			const bindingsToRemove: TLBindingId[] = []
-
 			editor.deleteBindings([...bindingsToRemove])
 
 			try {
