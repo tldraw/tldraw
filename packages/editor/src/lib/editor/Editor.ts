@@ -723,7 +723,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * A manager for ensuring correct focus. See FocusManager for details.
 	 *
-	 * @public
+	 * @internal
 	 */
 	readonly focusManager: FocusManager
 

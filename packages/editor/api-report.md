@@ -772,6 +772,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     focus(): this;
+    // @internal
     readonly focusManager: FocusManager;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
