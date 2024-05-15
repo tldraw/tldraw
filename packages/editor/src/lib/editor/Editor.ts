@@ -725,7 +725,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	readonly focusManager: FocusManager
+	private focusManager: FocusManager
 
 	/**
 	 * The current HTML element containing the editor.
