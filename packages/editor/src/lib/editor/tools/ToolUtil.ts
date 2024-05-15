@@ -54,9 +54,24 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 	 */
 	setState<P extends State['name']>(state: State & { name: P }, info?: any) {
 		const prev = this._state.__unsafe__getWithoutCapture()
-		this._state.set(state)
 		if (state.name && prev.name !== state.name) {
-			this.onStateChange(prev, state, info)
+			this.onEvent({
+				type: 'misc',
+				name: 'state_change',
+				from: prev.name,
+				to: state.name,
+				info,
+			})
+			this._state.set(state)
+			this.onEvent({
+				type: 'misc',
+				name: 'state_change',
+				from: prev.name,
+				to: state.name,
+				info,
+			})
+		} else {
+			this._state.set(state)
 		}
 	}
 
@@ -68,9 +83,8 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 	}
 
 	/**
-	 * A react component to be displayed when the tool is active behind the shapes.
+	 * A react component to be displayed on the canvas but behind the shapes when the tool is active.
 	 *
-	 * @param shape - The shape.
 	 * @public
 	 */
 	underlay(): ReactNode {
@@ -78,12 +92,29 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 	}
 
 	/**
-	 * A react component to be displayed when the tool is active in front of the shapes.
+	 * A react component to be displayed on the canvas but in front of the shapes when the tool is active.
 	 *
-	 * @param shape - The shape.
 	 * @public
 	 */
 	overlay(): ReactNode {
+		return null
+	}
+
+	/**
+	 * A react component to be displayed behind the canvas when the tool is active.
+	 *
+	 * @public
+	 */
+	background(): ReactNode {
+		return null
+	}
+
+	/**
+	 * A react component to be displayed in front of the canvas when the tool is active.
+	 *
+	 * @public
+	 */
+	ui(): ReactNode {
 		return null
 	}
 
@@ -114,17 +145,6 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 	 */
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	onEvent(event: TLEventInfo): void {
-		return
-	}
-
-	/**
-	 * An event fired when the tool's state changes
-	 *
-	 * @param prev - The previous state name.
-	 * @param next - The next state name.
-	 */
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	onStateChange(prev: State, next: State, info: any) {
 		return
 	}
 }

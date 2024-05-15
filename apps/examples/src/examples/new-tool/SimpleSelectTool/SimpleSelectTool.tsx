@@ -23,10 +23,9 @@ import {
 	TLHandle,
 	TLImageShape,
 	TLKeyboardEventInfo,
+	TLLineShape,
 	TLNoteShape,
-	TLPointerEventInfo,
 	TLRotationSnapshot,
-	TLSelectionHandle,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -44,9 +43,11 @@ import {
 	moveCameraWhenCloseToEdge,
 	react,
 	rotateSelectionHandle,
+	snapAngle,
+	sortByIndex,
 	structuredClone,
 } from 'tldraw'
-import { getArrowInfo } from 'tldraw/src/lib/shapes/arrow/shared'
+import { getArrowBindings, getArrowInfo } from 'tldraw/src/lib/shapes/arrow/shared'
 import { HintedShapeIndicator } from './components/HintedShapeIndicators'
 import { TldrawSelectionForeground } from './components/SelectionBox'
 import { SelectionBrush } from './components/SelectionBrush'
@@ -91,7 +92,7 @@ type SimpleSelectState =
 	| {
 			name: 'pointing_crop_handle'
 			handle: SelectionHandle
-			onInteractionEnd?: string
+			onInteractionEnd?: () => void
 	  }
 	| {
 			name: 'cropping'
@@ -113,39 +114,37 @@ type SimpleSelectState =
 			isCloning: boolean
 			didClone: boolean
 			isCreating: boolean
-			onCreate: (shape: TLShape | null) => void
 			selectionSnapshot: TranslatingSnapshot
 			snapshot: TranslatingSnapshot
-			onInteractionEnd?: string
 			markId: string
 			dragAndDropManager: DragAndDropManager
+			onInteractionEnd?: (state: { isCreating: boolean }) => void
 	  }
 	| {
 			name: 'pointing_resize_handle'
 			handle: SelectionHandle
-			onInteractionEnd?: string
+			onInteractionEnd?: () => void
 	  }
 	| {
 			name: 'resizing'
 			handle: SelectionHandle
 			snapshot: ResizingSnapshot
 			isCreating: boolean
-			onCreate: (shape: TLShape | null) => void
 			creationCursorOffset: Vec
-			onInteractionEnd?: string
 			markId: string
 			didHoldCommand: boolean
+			onInteractionEnd?: (state: { isCreating: boolean }) => void
 	  }
 	| {
 			name: 'pointing_rotate_handle'
 			handle: RotateCorner
-			onInteractionEnd?: string
+			onInteractionEnd?: () => void
 	  }
 	| {
 			name: 'rotating'
 			handle: RotateCorner
 			snapshot: TLRotationSnapshot
-			onInteractionEnd?: string
+			onInteractionEnd?: () => void
 	  }
 	| {
 			name: 'pointing_handle'
@@ -156,6 +155,17 @@ type SimpleSelectState =
 			name: 'dragging_handle'
 			shape: TLShape
 			handle: TLHandle
+			isPrecise: boolean
+			isPreciseId: TLShapeId | null
+			pointingId: TLShapeId | null
+			markId: string
+			isCreating: boolean
+			initialHandle: TLHandle
+			initialAdjacentHandle: TLHandle | null
+			initialPagePoint: Vec
+			initialPageTransform: Mat
+			initialPageRotation: number
+			onInteractionEnd?: (state: { isCreating: boolean }) => void
 	  }
 	| {
 			name: 'pointing_arrow_label'
@@ -181,7 +191,7 @@ type SimpleSelectState =
 			name: 'crop_translating'
 			shape: ShapeWithCrop
 			isCreating?: boolean
-			onInteractionEnd?: string
+			onInteractionEnd?: () => void
 	  }
 	| {
 			name: 'crop_pointing'
@@ -243,12 +253,11 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 	// This object is used for events, it's kept in memory and updated as the user interacts with the tool
 	private memo = {
 		initialSelectedIds: [] as TLShapeId[],
+		cleanupReactor: null as null | (() => void),
 	}
 
-	cleanupReactor?: () => void
-
 	override onEnter() {
-		this.cleanupReactor = react('clean duplicate props', () => {
+		this.memo.cleanupReactor = react('clean duplicate props', () => {
 			try {
 				this.cleanUpDuplicateProps()
 			} catch (e) {
@@ -263,239 +272,9 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 
 	override onExit = () => {
 		const { editor } = this
-		this.cleanupReactor?.()
+		this.memo.cleanupReactor?.()
 		if (editor.getCurrentPageState().editingShapeId) {
 			editor.setEditingShape(null)
-		}
-	}
-
-	override onStateChange(prev: SimpleSelectState, next: SimpleSelectState, _info: any) {
-		const { editor, memo } = this
-		switch (prev.name) {
-			case 'rotating':
-			case 'pointing_crop_handle':
-			case 'pointing_arrow_label': {
-				editor.setCursor({ type: 'default', rotation: 0 })
-				break
-			}
-			case 'crop_idle': {
-				editor.setCursor({ type: 'default', rotation: 0 })
-				const onlySelectedShape = editor.getOnlySelectedShape()
-				// it's possible for a user to enter cropping, then undo (which clears the cropping id) but still remain in this state.
-				editor.on('tick', this.cleanupCroppingState)
-				if (onlySelectedShape) {
-					editor.mark('crop')
-					editor.setCroppingShape(onlySelectedShape.id)
-				}
-			}
-		}
-
-		switch (next.name) {
-			case 'idle': {
-				updateHoveredShapeId(editor)
-				editor.setCursor({ type: 'default', rotation: 0 })
-				break
-			}
-			case 'pointing_canvas': {
-				if (!editor.inputs.shiftKey) {
-					if (editor.getSelectedShapeIds().length > 0) {
-						editor.mark('selecting none')
-						editor.selectNone()
-					}
-				}
-				break
-			}
-			case 'pointing_shape': {
-				const info = _info as TLPointerEventInfo & { target: 'shape' }
-				let didSelectOnEnter = false
-				let hitShapeForPointerUp = null as null | TLShape
-				const selectedShapeIds = editor.getSelectedShapeIds()
-				const selectionBounds = editor.getSelectionRotatedPageBounds()
-				const focusedGroupId = editor.getFocusedGroupId()
-				const outermostSelectingShape = editor.getOutermostSelectableShape(info.shape)
-				const selectedAncestor = editor.findShapeAncestor(outermostSelectingShape, (parent) =>
-					selectedShapeIds.includes(parent.id)
-				)
-				const {
-					inputs: { currentPagePoint, shiftKey, altKey },
-				} = editor
-
-				if (
-					// If the shape has an onClick handler
-					editor.getShapeUtil(info.shape).onClick ||
-					// ...or if the shape is the focused layer (e.g. group)
-					outermostSelectingShape.id === focusedGroupId ||
-					// ...or if the shape is within the selection
-					selectedShapeIds.includes(outermostSelectingShape.id) ||
-					// ...or if an ancestor of the shape is selected
-					selectedAncestor ||
-					// ...or if the current point is NOT within the selection bounds
-					(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
-				) {
-					// We won't select the shape on enter, though we might select it on pointer up!
-					didSelectOnEnter = false
-					hitShapeForPointerUp = outermostSelectingShape
-					return
-				} else {
-					didSelectOnEnter = true
-					if (shiftKey && !altKey) {
-						editor.cancelDoubleClick()
-						if (!selectedShapeIds.includes(outermostSelectingShape.id)) {
-							editor.mark('shift selecting shape')
-							editor.setSelectedShapes([...selectedShapeIds, outermostSelectingShape.id])
-						}
-					} else {
-						editor.mark('selecting shape')
-						editor.setSelectedShapes([outermostSelectingShape.id])
-					}
-				}
-
-				this.setState({
-					name: 'pointing_shape',
-					hitShape: info.shape,
-					hitShapeForPointerUp,
-					didSelectOnEnter,
-					isDoubleClick: false,
-				})
-				break
-			}
-			case 'rotating': {
-				editor.mark('rotating')
-				const newSelectionRotation = getRotationFromPointerPosition(editor, next.snapshot, false)
-
-				applyRotationToSnapshotShapes({
-					editor: editor,
-					delta: getRotationFromPointerPosition(editor, next.snapshot, false),
-					snapshot: next.snapshot,
-					stage: 'start',
-				})
-
-				// Update cursor
-				editor.setCursor({
-					type: cursorTypeMap[next.handle],
-					rotation: newSelectionRotation + next.snapshot.initialSelectionRotation,
-				})
-				break
-			}
-			case 'brushing': {
-				const { originPagePoint, currentPagePoint } = editor.inputs
-				const box = Box.FromPoints([originPagePoint, currentPagePoint])
-				this.setState({
-					name: 'brushing',
-					brush: box.toJson(),
-				})
-
-				// Stash the selected ids so we can restore them later
-				memo.initialSelectedIds = editor.getSelectedShapeIds()
-				break
-			}
-			case 'crop_idle': {
-				editor.setCursor({ type: 'default', rotation: 0 })
-				editor.off('tick', this.cleanupCroppingState)
-				break
-			}
-			case 'crop_pointing': {
-				break
-			}
-			case 'crop_translating': {
-				editor.mark('translating crop')
-				editor.setCursor({ type: 'move', rotation: 0 })
-				// this.updateTranslatingCroppingShape(next)
-				break
-			}
-			case 'pointing_crop_handle': {
-				const selectedShape = editor.getSelectedShapes()[0]
-				if (!selectedShape) return
-
-				const info = _info as TLPointerEventInfo & {
-					target: 'selection'
-					handle: TLSelectionHandle
-				}
-
-				const cursorType = cursorTypeMap[info.handle]
-				editor.setCursor({ type: cursorType, rotation: editor.getSelectionRotation() })
-				editor.setCroppingShape(selectedShape.id)
-
-				break
-			}
-			case 'cropping': {
-				const cursorType = cursorTypeMap[next.handle]
-				editor.setCursor({ type: cursorType, rotation: editor.getSelectionRotation() })
-				editor.mark('cropping')
-				break
-			}
-			case 'pointing_resize_handle': {
-				const info = _info as TLPointerEventInfo & {
-					target: 'selection'
-					handle: TLSelectionHandle
-				}
-
-				const selected = editor.getSelectedShapes()
-				const cursorType = cursorTypeMap[info.handle]
-				editor.setCursor({
-					type: cursorType,
-					rotation: selected.length === 1 ? editor.getSelectionRotation() : 0,
-				})
-				break
-			}
-			case 'resizing': {
-				// this.parent.setCurrentToolIdMask(info.onInteractionEnd)
-				if (next.isCreating) {
-					editor.setCursor({ type: 'cross', rotation: 0 })
-				} else {
-					editor.mark('resizing')
-				}
-
-				const { shapeSnapshots } = next.snapshot
-
-				const changes: TLShapePartial[] = []
-
-				shapeSnapshots.forEach(({ shape }) => {
-					const util = editor.getShapeUtil(shape)
-					const change = util.onResizeStart?.(shape)
-					if (change) {
-						changes.push(change)
-					}
-				})
-
-				if (changes.length > 0) {
-					editor.updateShapes(changes)
-				}
-
-				this.updateResizingShapes(next)
-
-				break
-			}
-			case 'pointing_arrow_label': {
-				editor.setCursor({ type: 'grabbing', rotation: 0 })
-				editor.mark('label-drag start')
-				editor.setSelectedShapes([next.shapeId])
-				break
-			}
-			case 'translating': {
-				if (!editor.getSelectedShapeIds()?.length) {
-					this.setState({ name: 'idle' })
-					return
-				}
-
-				editor.mark('translating')
-
-				// this.parent.setCurrentToolIdMask(info.onInteractionEnd)
-
-				editor.setCursor({ type: 'move', rotation: 0 })
-
-				// Don't clone on create; otherwise clone on altKey
-				if (!next.isCreating) {
-					if (editor.inputs.altKey) {
-						this.startCloningTranslatingShapes(next)
-						return
-					}
-				}
-
-				this.startTranslating(next)
-				this.updateTranslatingShapes(next)
-				break
-			}
 		}
 	}
 
@@ -505,7 +284,15 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 
 		switch (state.name) {
 			case 'idle': {
-				if (info.name === 'pointer_move') {
+				if (info.name === 'state_change') {
+					if (info.from === 'idle') {
+						// exit
+					} else if (info.to === 'idle') {
+						// enter
+						updateHoveredShapeId(editor)
+						editor.setCursor({ type: 'default', rotation: 0 })
+					}
+				} else if (info.name === 'pointer_move') {
 					updateHoveredShapeId(editor)
 				} else if (info.name === 'pointer_down') {
 					if (editor.getIsMenuOpen()) return
@@ -1023,7 +810,19 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'pointing_canvas': {
-				if (editor.inputs.isDragging) {
+				if (info.name === 'state_change') {
+					if (info.from === 'pointing_canvas') {
+						// exit
+					} else if (info.to === 'pointing_canvas') {
+						// enter
+						if (!editor.inputs.shiftKey) {
+							if (editor.getSelectedShapeIds().length > 0) {
+								editor.mark('selecting none')
+								editor.selectNone()
+							}
+						}
+					}
+				} else if (editor.inputs.isDragging) {
 					this.setState(
 						{
 							name: 'brushing',
@@ -1044,7 +843,13 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'pointing_handle': {
-				if (
+				if (info.name === 'state_change') {
+					if (info.from === 'pointing_handle') {
+						// exit
+					} else if (info.to === 'pointing_handle') {
+						// enter
+					}
+				} else if (
 					info.name === 'long_press' ||
 					(info.name === 'pointer_move' && editor.inputs.isDragging)
 				) {
@@ -1073,9 +878,8 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 								selectionSnapshot: snapshot,
 								snapshot: snapshot,
 								dragAndDropManager: new DragAndDropManager(editor),
-								onInteractionEnd: 'note',
-								onCreate: () => {
-									// When we're done, start editing it
+								onInteractionEnd: () => {
+									editor.setCurrentTool('note')
 									startEditingShapeWithLabel(editor, nextNote, true /* selectAll */)
 								},
 							})
@@ -1083,8 +887,99 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 						}
 					}
 
+					let initialHandle = structuredClone(handle)
+
+					if (editor.isShapeOfType<TLLineShape>(shape, 'line') && initialHandle.type === 'create') {
+						// For line shapes, if we're dragging a "create" handle, then
+						// create a new vertex handle at that point; and make this handle
+						// the handle that we're dragging.
+						editor.updateShape({
+							...shape,
+							props: {
+								points: {
+									...shape.props.points,
+									[handle.index]: {
+										id: handle.index,
+										index: handle.index,
+										x: handle.x,
+										y: handle.y,
+									},
+								},
+							},
+						})
+						const handlesAfter = editor.getShapeHandles(shape)!
+						const handleAfter = handlesAfter.find((h) => h.index === handle.index)!
+						initialHandle = structuredClone(handleAfter)
+					}
+
+					const initialPageTransform = editor.getShapePageTransform(shape)!
+					const initialPageRotation = initialPageTransform.rotation()
+					const initialPagePoint = editor.inputs.originPagePoint.clone()
+
+					const handles = editor.getShapeHandles(shape)!.sort(sortByIndex)
+					const index = handles.findIndex((h) => h.id === handle.id)
+
+					// Find the adjacent handle
+					let initialAdjacentHandle = null
+
+					// Start from the handle and work forward
+					for (let i = index + 1; i < handles.length; i++) {
+						const handle = handles[i]
+						if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== handle.id) {
+							initialAdjacentHandle = handle
+							break
+						}
+					}
+
+					// If still no handle, start from the end and work backward
+					if (!initialAdjacentHandle) {
+						for (let i = handles.length - 1; i >= 0; i--) {
+							const handle = handles[i]
+							if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== handle.id) {
+								initialAdjacentHandle = handle
+								break
+							}
+						}
+					}
+
+					let isPrecise = false
+					let isPreciseId = null as TLShapeId | null
+
+					if (editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+						const initialBinding = getArrowBindings(editor, shape)[handle.id as 'start' | 'end']
+
+						isPrecise = false
+
+						if (initialBinding) {
+							editor.setHintingShapes([initialBinding.toId])
+
+							isPrecise = initialBinding.props.isPrecise
+							if (isPrecise) {
+								isPreciseId = initialBinding.toId
+							} else {
+								this.resetHandleExactTimeout()
+							}
+						} else {
+							editor.setHintingShapes([])
+						}
+					}
+
 					this.setState(
-						{ name: 'dragging_handle', shape: state.shape, handle: state.handle },
+						{
+							name: 'dragging_handle',
+							shape: state.shape,
+							handle: state.handle,
+							initialHandle: structuredClone(state.handle),
+							markId: 'dragging handle',
+							initialPageTransform,
+							initialPageRotation,
+							initialPagePoint,
+							initialAdjacentHandle,
+							isPrecise,
+							isCreating: false,
+							isPreciseId,
+							pointingId: null,
+						},
 						{ shape: state.shape, handle: state.handle }
 					)
 				} else if (info.name === 'pointer_up') {
@@ -1110,7 +1005,19 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'pointing_resize_handle': {
-				if (
+				if (info.name === 'state_change') {
+					if (info.from === 'pointing_resize_handle') {
+						// exit
+					} else if (info.to === 'pointing_resize_handle') {
+						// enter
+						const selected = editor.getSelectedShapes()
+						const cursorType = cursorTypeMap[state.handle]
+						editor.setCursor({
+							type: cursorType,
+							rotation: selected.length === 1 ? editor.getSelectionRotation() : 0,
+						})
+					}
+				} else if (
 					info.name === 'long_press' ||
 					(info.name === 'pointer_move' && editor.inputs.isDragging)
 				) {
@@ -1119,7 +1026,6 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 						name: 'resizing',
 						handle: state.handle,
 						snapshot: getResizingSnapshot(editor, state.handle),
-						onCreate: () => void null,
 						isCreating: false,
 						markId: 'resizing',
 						didHoldCommand: false,
@@ -1131,7 +1037,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					info.name === 'cancel'
 				) {
 					if (state.onInteractionEnd) {
-						editor.setCurrentTool(state.onInteractionEnd, {})
+						state.onInteractionEnd()
 					} else {
 						this.setState({ name: 'idle' })
 					}
@@ -1139,7 +1045,13 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'pointing_rotate_handle': {
-				if (
+				if (info.name === 'state_change') {
+					if (info.from === 'pointing_rotate_handle') {
+						// exit
+					} else if (info.to === 'pointing_rotate_handle') {
+						// enter
+					}
+				} else if (
 					info.name === 'long_press' ||
 					(info.name === 'pointer_move' && editor.inputs.isDragging)
 				) {
@@ -1159,7 +1071,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					info.name === 'cancel'
 				) {
 					if (state.onInteractionEnd) {
-						editor.setCurrentTool(state.onInteractionEnd, {})
+						state.onInteractionEnd()
 					} else {
 						this.setState({ name: 'idle' })
 					}
@@ -1167,7 +1079,20 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'pointing_crop_handle': {
-				if (info.name === 'pointer_up') {
+				if (info.name === 'state_change') {
+					if (info.from === 'pointing_crop_handle') {
+						// exit
+						editor.setCursor({ type: 'default', rotation: 0 })
+					} else if (info.to === 'pointing_crop_handle') {
+						// enter
+						const selectedShape = editor.getSelectedShapes()[0]
+						if (!selectedShape) return
+
+						const cursorType = cursorTypeMap[state.handle]
+						editor.setCursor({ type: cursorType, rotation: editor.getSelectionRotation() })
+						editor.setCroppingShape(selectedShape.id)
+					}
+				} else if (info.name === 'pointer_up') {
 					editor.setCroppingShape(null)
 					this.setState({ name: 'idle' })
 				} else if (
@@ -1190,7 +1115,13 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'pointing_selection': {
-				if (info.name === 'pointer_up') {
+				if (info.name === 'state_change') {
+					if (info.from === 'pointing_selection') {
+						// exit
+					} else if (info.to === 'pointing_selection') {
+						// enter
+					}
+				} else if (info.name === 'pointer_up') {
 					selectOnCanvasPointerUp(editor)
 					this.setState({ name: 'idle' }, info)
 				} else if (info.name === 'double_click') {
@@ -1226,7 +1157,6 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 							isCreating: false,
 							isCloning: false,
 							didClone: false,
-							onCreate: () => void null,
 							selectionSnapshot: snapshot,
 							snapshot: snapshot,
 							markId: 'translating',
@@ -1244,7 +1174,68 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'pointing_shape': {
-				if (info.name === 'cancel' || info.name === 'interrupt' || info.name === 'complete') {
+				if (info.name === 'state_change') {
+					if (info.from === 'pointing_shape') {
+						// exit
+					} else if (info.to === 'pointing_shape') {
+						// enter
+						const { hitShape } = state
+						let didSelectOnEnter = false
+						let hitShapeForPointerUp = null as null | TLShape
+						const selectedShapeIds = editor.getSelectedShapeIds()
+						const selectionBounds = editor.getSelectionRotatedPageBounds()
+						const focusedGroupId = editor.getFocusedGroupId()
+						const outermostSelectingShape = editor.getOutermostSelectableShape(hitShape)
+						const selectedAncestor = editor.findShapeAncestor(outermostSelectingShape, (parent) =>
+							selectedShapeIds.includes(parent.id)
+						)
+						const {
+							inputs: { currentPagePoint, shiftKey, altKey },
+						} = editor
+
+						if (
+							// If the shape has an onClick handler
+							editor.getShapeUtil(state.hitShape).onClick ||
+							// ...or if the shape is the focused layer (e.g. group)
+							outermostSelectingShape.id === focusedGroupId ||
+							// ...or if the shape is within the selection
+							selectedShapeIds.includes(outermostSelectingShape.id) ||
+							// ...or if an ancestor of the shape is selected
+							selectedAncestor ||
+							// ...or if the current point is NOT within the selection bounds
+							(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
+						) {
+							// We won't select the shape on enter, though we might select it on pointer up!
+							didSelectOnEnter = false
+							hitShapeForPointerUp = outermostSelectingShape
+							return
+						} else {
+							didSelectOnEnter = true
+							if (shiftKey && !altKey) {
+								editor.cancelDoubleClick()
+								if (!selectedShapeIds.includes(outermostSelectingShape.id)) {
+									editor.mark('shift selecting shape')
+									editor.setSelectedShapes([...selectedShapeIds, outermostSelectingShape.id])
+								}
+							} else {
+								editor.mark('selecting shape')
+								editor.setSelectedShapes([outermostSelectingShape.id])
+							}
+						}
+
+						this.setState({
+							name: 'pointing_shape',
+							hitShape: hitShape,
+							hitShapeForPointerUp,
+							didSelectOnEnter,
+							isDoubleClick: false,
+						})
+					}
+				} else if (
+					info.name === 'cancel' ||
+					info.name === 'interrupt' ||
+					info.name === 'complete'
+				) {
 					this.setState({ name: 'idle' })
 				} else if (info.name === 'double_click') {
 					this.setState({ ...state, isDoubleClick: true })
@@ -1262,7 +1253,6 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 							isCreating: false,
 							isCloning: false,
 							didClone: false,
-							onCreate: () => void null,
 							selectionSnapshot: snapshot,
 							snapshot: snapshot,
 							markId: 'translating',
@@ -1406,7 +1396,17 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'pointing_arrow_label': {
-				if (info.name === 'pointer_move' && editor.inputs.isDragging) {
+				if (info.name === 'state_change') {
+					if (info.from === 'pointing_arrow_label') {
+						// exit
+						editor.setCursor({ type: 'default', rotation: 0 })
+					} else if (info.to === 'pointing_arrow_label') {
+						// enter
+						editor.setCursor({ type: 'grabbing', rotation: 0 })
+						editor.mark('label-drag start')
+						editor.setSelectedShapes([state.shapeId])
+					}
+				} else if (info.name === 'pointer_move' && editor.inputs.isDragging) {
 					const shape = editor.getShape<TLArrowShape>(state.shapeId)
 					if (!shape) return
 
@@ -1470,7 +1470,16 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'cropping': {
-				if (info.name === 'cancel' || info.name === 'interrupt') {
+				if (info.name === 'state_change') {
+					if (info.from === 'cropping') {
+						// exit
+					} else if (info.to === 'cropping') {
+						// enter
+						const cursorType = cursorTypeMap[state.handle]
+						editor.setCursor({ type: cursorType, rotation: editor.getSelectionRotation() })
+						editor.mark('cropping')
+					}
+				} else if (info.name === 'cancel' || info.name === 'interrupt') {
 					editor.bailToMark('cropping')
 					editor.setCroppingShape(null)
 					this.setState({ name: 'idle' })
@@ -1485,7 +1494,27 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'crop_idle': {
-				if (info.name === 'cancel' || info.name === 'complete' || info.name === 'interrupt') {
+				if (info.name === 'state_change') {
+					if (info.from === 'crop_idle') {
+						// exit
+						editor.setCursor({ type: 'default', rotation: 0 })
+						const onlySelectedShape = editor.getOnlySelectedShape()
+						// it's possible for a user to enter cropping, then undo (which clears the cropping id) but still remain in this state.
+						editor.on('tick', this.cleanupCroppingState)
+						if (onlySelectedShape) {
+							editor.mark('crop')
+							editor.setCroppingShape(onlySelectedShape.id)
+						}
+					} else if (info.to === 'crop_idle') {
+						// enter
+						editor.setCursor({ type: 'default', rotation: 0 })
+						editor.off('tick', this.cleanupCroppingState)
+					}
+				} else if (
+					info.name === 'cancel' ||
+					info.name === 'complete' ||
+					info.name === 'interrupt'
+				) {
 					this.cancelCrop()
 				} else if (info.name === 'pointer_down') {
 					if (editor.getIsMenuOpen()) {
@@ -1539,7 +1568,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 										this.setState({
 											name: 'pointing_rotate_handle',
 											handle: info.handle,
-											onInteractionEnd: 'select.crop',
+											onInteractionEnd: () => this.setState({ name: 'crop_idle' }),
 										})
 										break
 									}
@@ -1555,7 +1584,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 											{
 												name: 'pointing_crop_handle',
 												handle: info.handle,
-												onInteractionEnd: 'crop_idle',
+												onInteractionEnd: () => this.setState({ name: 'crop_idle' }),
 											},
 											info
 										)
@@ -1592,7 +1621,13 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'crop_pointing': {
-				if (
+				if (info.name === 'state_change') {
+					if (info.from === 'crop_pointing') {
+						// exit
+					} else if (info.to === 'crop_pointing') {
+						// enter
+					}
+				} else if (
 					info.name === 'cancel' ||
 					info.name === 'complete' ||
 					info.name === 'interrupt' ||
@@ -1609,7 +1644,15 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'crop_translating': {
-				if (info.name === 'cancel') {
+				if (info.name === 'state_change') {
+					if (info.from === 'crop_translating') {
+						// exit
+					} else if (info.to === 'crop_translating') {
+						// enter
+						editor.mark('translating crop')
+						editor.setCursor({ type: 'move', rotation: 0 })
+					}
+				} else if (info.name === 'cancel') {
 					// Cancelled
 					editor.bailToMark('translating crop')
 					this.setState({ name: 'crop_idle' })
@@ -1639,16 +1682,85 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'dragging_handle': {
+				if (info.name === 'state_change') {
+					if (info.from === 'dragging_handle') {
+						// exit
+					} else if (info.to === 'dragging_handle') {
+						// enter
+					}
+				} else if (info.name === 'cancel') {
+					this.editor.bailToMark(state.markId)
+					this.editor.snaps.clearIndicators()
+
+					const { onInteractionEnd } = state
+					if (onInteractionEnd) {
+						onInteractionEnd(state)
+						return
+					}
+
+					this.setState({ name: 'idle' })
+				} else if (info.name === 'complete' || !editor.inputs.isPointing) {
+					this.editor.snaps.clearIndicators()
+					kickoutOccludedShapes(this.editor, [state.shape.id])
+
+					const { onInteractionEnd } = state
+					if (onInteractionEnd) {
+						onInteractionEnd(state)
+						return
+					}
+
+					this.setState({ name: 'idle' })
+				} else if (
+					info.name === 'pointer_move' ||
+					info.name === 'key_down' ||
+					info.name === 'key_up'
+				) {
+					this.updateDraggingHandle(state)
+				}
 				break
 			}
 			case 'editing_shape': {
+				if (info.name === 'state_change') {
+					if (info.from === 'editing_shape') {
+						// exit
+					} else if (info.to === 'editing_shape') {
+						// enter
+					}
+				}
 				break
 			}
 			case 'resizing': {
-				if (info.name === 'cancel') {
+				if (info.name === 'state_change') {
+					if (info.from === 'resizing') {
+						// exit
+					} else if (info.to === 'resizing') {
+						// enter
+						// this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+						if (state.isCreating) {
+							editor.setCursor({ type: 'cross', rotation: 0 })
+						} else {
+							editor.mark('resizing')
+						}
+
+						const { shapeSnapshots } = state.snapshot
+						const changes: TLShapePartial[] = []
+						shapeSnapshots.forEach(({ shape }) => {
+							const util = editor.getShapeUtil(shape)
+							const change = util.onResizeStart?.(shape)
+							if (change) {
+								changes.push(change)
+							}
+						})
+						if (changes.length > 0) {
+							editor.updateShapes(changes)
+						}
+
+						this.updateResizingShapes(state)
+					}
+				} else if (info.name === 'cancel') {
 					editor.bailToMark(state.markId)
 					if (state.onInteractionEnd) {
-						editor.setCurrentTool(state.onInteractionEnd, {})
+						state.onInteractionEnd(state)
 					} else {
 						this.setState({ name: 'idle' })
 					}
@@ -1671,17 +1783,11 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 						editor.updateShapes(changes)
 					}
 
-					if (state.isCreating && state.onCreate) {
-						state.onCreate?.(editor.getOnlySelectedShape())
-						return
+					if (state.onInteractionEnd) {
+						state.onInteractionEnd(state)
+					} else {
+						this.setState({ name: 'idle' })
 					}
-
-					if (editor.getInstanceState().isToolLocked && state.onInteractionEnd) {
-						editor.setCurrentTool(state.onInteractionEnd, {})
-						return
-					}
-
-					this.setState({ name: 'idle' })
 				} else if (
 					info.name === 'pointer_move' ||
 					info.name === 'key_down' ||
@@ -1694,10 +1800,37 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'rotating': {
+				if (info.name === 'state_change') {
+					if (info.from === 'rotating') {
+						editor.setCursor({ type: 'default', rotation: 0 })
+						// exit
+					} else if (info.to === 'rotating') {
+						// enter
+						editor.mark('rotating')
+						const newSelectionRotation = getRotationFromPointerPosition(
+							editor,
+							state.snapshot,
+							false
+						)
+
+						applyRotationToSnapshotShapes({
+							editor: editor,
+							delta: getRotationFromPointerPosition(editor, state.snapshot, false),
+							snapshot: state.snapshot,
+							stage: 'start',
+						})
+
+						// Update cursor
+						editor.setCursor({
+							type: cursorTypeMap[state.handle],
+							rotation: newSelectionRotation + state.snapshot.initialSelectionRotation,
+						})
+					}
+				}
 				if (info.name === 'cancel') {
 					editor.bailToMark('rotating')
 					if (state.onInteractionEnd) {
-						editor.setCurrentTool(state.onInteractionEnd)
+						state.onInteractionEnd()
 					} else {
 						this.setState({ name: 'idle' })
 					}
@@ -1713,7 +1846,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 						state.snapshot.shapeSnapshots.map((s) => s.shape.id)
 					)
 					if (state.onInteractionEnd) {
-						editor.setCurrentTool(state.onInteractionEnd)
+						state.onInteractionEnd()
 					} else {
 						this.setState({ name: 'idle' })
 					}
@@ -1740,7 +1873,34 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'translating': {
-				if (info.name === 'tick') {
+				if (info.name === 'state_change') {
+					if (info.from === 'translating') {
+						// exit
+					} else if (info.to === 'translating') {
+						// enter
+						if (!editor.getSelectedShapeIds()?.length) {
+							this.setState({ name: 'idle' })
+							return
+						}
+
+						editor.mark('translating')
+
+						// this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+
+						editor.setCursor({ type: 'move', rotation: 0 })
+
+						// Don't clone on create; otherwise clone on altKey
+						if (!state.isCreating) {
+							if (editor.inputs.altKey) {
+								this.startCloningTranslatingShapes(state)
+								return
+							}
+						}
+
+						this.startTranslating(state)
+						this.updateTranslatingShapes(state)
+					}
+				} else if (info.name === 'tick') {
 					state.dragAndDropManager.updateDroppingNode(state.snapshot.movingShapes, () =>
 						this.updateTranslatingParentTransforms(state)
 					)
@@ -1748,7 +1908,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				} else if (info.name === 'cancel') {
 					editor.bailToMark(state.markId)
 					if (state.onInteractionEnd) {
-						editor.setCurrentTool(state.onInteractionEnd)
+						state.onInteractionEnd(state)
 					} else {
 						this.setState({ name: 'idle' })
 					}
@@ -1811,20 +1971,31 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 						editor.updateShapes(changes)
 					}
 
-					if (editor.getInstanceState().isToolLocked && state.onInteractionEnd) {
-						editor.setCurrentTool(state.onInteractionEnd)
+					if (state.onInteractionEnd) {
+						state.onInteractionEnd(state)
 					} else {
-						if (state.isCreating) {
-							state.onCreate?.(editor.getOnlySelectedShape())
-						} else {
-							this.setState({ name: 'idle' })
-						}
+						this.setState({ name: 'idle' })
 					}
 				}
 				break
 			}
 			case 'brushing': {
-				if (!editor.inputs.isPointing) {
+				if (info.name === 'state_change') {
+					if (info.from === 'brushing') {
+						// exit
+					} else if (info.to === 'brushing') {
+						// enter
+						const { originPagePoint, currentPagePoint } = editor.inputs
+						const box = Box.FromPoints([originPagePoint, currentPagePoint])
+						this.setState({
+							name: 'brushing',
+							brush: box.toJson(),
+						})
+
+						// Stash the selected ids so we can restore them later
+						memo.initialSelectedIds = editor.getSelectedShapeIds()
+					}
+				} else if (!editor.inputs.isPointing) {
 					// Stopped pointing
 					this.setState({
 						name: 'idle',
@@ -1879,10 +2050,19 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 				break
 			}
 			case 'scribble_brushing': {
+				if (info.name === 'state_change') {
+					if (info.from === 'scribble_brushing') {
+						// exit
+					} else if (info.to === 'scribble_brushing') {
+						// enter
+					}
+				}
 				break
 			}
 		}
 	}
+
+	/* ---------------------- Idle ---------------------- */
 
 	private cleanUpDuplicateProps = () => {
 		const { editor } = this
@@ -2003,6 +2183,8 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 		editor.nudgeShapes(selectedShapeIds, delta.mul(step))
 		kickoutOccludedShapes(editor, selectedShapeIds)
 	}
+
+	/* -------------------- Cropping -------------------- */
 
 	private updateCroppingShapes(state: SimpleSelectState & { name: 'cropping' }) {
 		const { editor } = this
@@ -2185,6 +2367,8 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 		}
 	}
 
+	/* ------------------- Translating ------------------ */
+
 	private startCloningTranslatingShapes(state: SimpleSelectState & { name: 'translating' }) {
 		if (state.isCreating) return
 
@@ -2295,6 +2479,8 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 			editor.updateShapes(changes)
 		}
 	}
+
+	/* -------------------- Resizing -------------------- */
 
 	private updateResizingShapes(state: SimpleSelectState & { name: 'resizing' }) {
 		const { editor } = this
@@ -2524,6 +2710,123 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					})
 				}
 			}
+		}
+	}
+
+	/* ----------------- Dragging Handle ---------------- */
+
+	// Only relevant to arrows
+	private handleExactTimeout = -1 as any
+	private resetHandleExactTimeout() {
+		if (this.handleExactTimeout !== -1) {
+			this.clearHandleExactTimeout()
+		}
+
+		this.handleExactTimeout = setTimeout(() => {
+			const state = this.getState()
+			if (state.name === 'dragging_handle' && !state.isPrecise) {
+				const next = { ...state, isPrecise: true, isPreciseId: state.pointingId }
+				this.setState(next)
+				this.updateDraggingHandle(next)
+			}
+			this.handleExactTimeout = -1
+		}, 750)
+	}
+
+	// Only relevant to arrows
+	private clearHandleExactTimeout() {
+		if (this.handleExactTimeout !== -1) {
+			clearTimeout(this.handleExactTimeout)
+			this.handleExactTimeout = -1
+		}
+	}
+
+	private updateDraggingHandle(state: SimpleSelectState & { name: 'dragging_handle' }) {
+		const { editor } = this
+		const { shape: initialShape, initialPagePoint } = state
+		const { initialHandle, initialPageRotation, initialAdjacentHandle } = state
+		const hintingShapeIds = editor.getHintingShapeIds()
+		const isSnapMode = editor.user.getIsSnapMode()
+		const {
+			snaps,
+			inputs: { currentPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
+		} = editor
+
+		const shape = editor.getShape(initialShape.id)
+		if (!shape) return
+		const util = editor.getShapeUtil(shape)
+
+		let point = currentPagePoint
+			.clone()
+			.sub(initialPagePoint)
+			.rot(-initialPageRotation)
+			.add(initialHandle)
+
+		if (shiftKey && initialAdjacentHandle && initialHandle.id !== 'middle') {
+			const angle = Vec.Angle(initialAdjacentHandle, point)
+			const snappedAngle = snapAngle(angle, 24)
+			const angleDifference = snappedAngle - angle
+			point = Vec.RotWith(point, initialAdjacentHandle, angleDifference)
+		}
+
+		// Clear any existing snaps
+		editor.snaps.clearIndicators()
+
+		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
+
+		if (initialHandle.canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
+			// We're snapping
+			const pageTransform = editor.getShapePageTransform(shape.id)
+			if (!pageTransform) throw Error('Expected a page transform')
+
+			const snap = snaps.handles.snapHandle({ currentShapeId: shape.id, handle: nextHandle })
+
+			if (snap) {
+				snap.nudge.rot(-editor.getShapeParentTransform(shape)!.rotation())
+				point.add(snap.nudge)
+				nextHandle = { ...initialHandle, x: point.x, y: point.y }
+			}
+		}
+
+		const changes = util.onHandleDrag?.(shape, {
+			handle: nextHandle,
+			isPrecise: state.isPrecise || altKey,
+			initial: initialShape,
+		})
+
+		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
+
+		// Arrows
+		if (initialHandle.canBind && editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
+
+			if (bindingAfter) {
+				if (hintingShapeIds[0] !== bindingAfter.toId) {
+					editor.setHintingShapes([bindingAfter.toId])
+					this.setState({
+						...state,
+						pointingId: bindingAfter.toId,
+						isPrecise: pointerVelocity.len() < 0.5 || altKey,
+						isPreciseId: state.isPrecise ? bindingAfter.toId : null,
+					})
+					this.resetHandleExactTimeout()
+				}
+			} else {
+				if (hintingShapeIds.length > 0) {
+					editor.setHintingShapes([])
+					this.setState({
+						...state,
+						pointingId: null,
+						isPrecise: false,
+						isPreciseId: null,
+					})
+					this.resetHandleExactTimeout()
+				}
+			}
+		}
+
+		if (changes) {
+			editor.updateShapes([next])
 		}
 	}
 }

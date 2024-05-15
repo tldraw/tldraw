@@ -103,6 +103,14 @@ export type TLCompleteEventInfo = { type: 'misc'; name: 'complete' }
 export type TLInterruptEventInfo = { type: 'misc'; name: 'interrupt' }
 /** @public */
 export type TLTickEventInfo = { type: 'misc'; name: 'tick'; elapsed: number }
+/** @public */
+export type TLToolStateChangeInfo<T extends { name: string } = any> = {
+	type: 'misc'
+	name: 'state_change'
+	from: T['name']
+	to: T['name']
+	info: any
+}
 
 /** @public */
 export type TLEventInfo =
@@ -115,6 +123,7 @@ export type TLEventInfo =
 	| TLCompleteEventInfo
 	| TLInterruptEventInfo
 	| TLTickEventInfo
+	| TLToolStateChangeInfo
 
 /** @public */
 export type TLPointerEvent = (info: TLPointerEventInfo) => void

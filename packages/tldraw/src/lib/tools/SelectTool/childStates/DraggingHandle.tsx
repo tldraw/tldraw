@@ -131,7 +131,7 @@ export class DraggingHandle extends StateNode {
 		}
 		// -->
 
-		this.update()
+		this.updateDraggingHandle()
 
 		this.editor.select(this.shapeId)
 	}
@@ -149,7 +149,7 @@ export class DraggingHandle extends StateNode {
 			if (this.getIsActive() && !this.isPrecise) {
 				this.isPrecise = true
 				this.isPreciseId = this.pointingId
-				this.update()
+				this.updateDraggingHandle()
 			}
 			this.exactTimeout = -1
 		}, 750)
@@ -164,15 +164,15 @@ export class DraggingHandle extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.update()
+		this.updateDraggingHandle()
 	}
 
 	override onKeyDown: TLKeyboardEvent | undefined = () => {
-		this.update()
+		this.updateDraggingHandle()
 	}
 
 	override onKeyUp: TLKeyboardEvent | undefined = () => {
-		this.update()
+		this.updateDraggingHandle()
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
@@ -180,7 +180,7 @@ export class DraggingHandle extends StateNode {
 	}
 
 	override onComplete: TLEventHandlers['onComplete'] = () => {
-		this.update()
+		this.updateDraggingHandle()
 		this.complete()
 	}
 
@@ -226,7 +226,7 @@ export class DraggingHandle extends StateNode {
 		this.parent.transition('idle')
 	}
 
-	private update() {
+	private updateDraggingHandle() {
 		const { editor, shapeId, initialPagePoint } = this
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
 		const hintingShapeIds = this.editor.getHintingShapeIds()
