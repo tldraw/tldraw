@@ -25,6 +25,7 @@ const tools: TLEditorOptions['tools'] = [
 
 const components: TLComponents = {
 	Scribble: TldrawScribble,
+	SelectionForeground: null,
 }
 
 export default function NewToolExample() {
