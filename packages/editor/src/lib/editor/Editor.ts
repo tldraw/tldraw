@@ -349,6 +349,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.sideEffects = this.store.sideEffects
 
+		const deletedShapes = new Map<TLShapeId, TLShape>()
 		const invalidParents = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<string>()
 		this.disposables.add(
@@ -373,6 +374,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const util = this.getBindingUtil(type)
 						util.onOperationComplete?.()
 					}
+				}
+
+				if (deletedShapes.size) {
+					deletedShapes.clear()
 				}
 
 				this.emit('update')
@@ -461,6 +466,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 							invalidParents.add(shape.parentId)
 						}
 
+						deletedShapes.set(shape.id, shape)
+
 						const deleteBindingIds: TLBindingId[] = []
 						for (const binding of this.getBindingsInvolvingShape(shape)) {
 							invalidBindingTypes.add(binding.type)
@@ -515,6 +522,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 					afterDelete: (binding) => {
 						invalidBindingTypes.add(binding.type)
 						this.getBindingUtil(binding).onAfterDelete?.({ binding })
+						if (deletedShapes.has(binding.fromId)) {
+							this.getBindingUtil(binding).onAfterDeleteFromShape?.({
+								binding,
+								shape: deletedShapes.get(binding.fromId)!,
+							})
+						}
+						if (deletedShapes.has(binding.toId)) {
+							this.getBindingUtil(binding).onAfterDeleteToShape?.({
+								binding,
+								shape: deletedShapes.get(binding.toId)!,
+							})
+						}
 					},
 				},
 				page: {

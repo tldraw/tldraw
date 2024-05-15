@@ -76,4 +76,7 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 
 	onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void
 	onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void
+
+	onAfterDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void
+	onAfterDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void
 }

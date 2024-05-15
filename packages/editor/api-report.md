@@ -230,6 +230,10 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     // (undocumented)
     onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void;
     // (undocumented)
+    onAfterDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
+    // (undocumented)
+    onAfterDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
+    // (undocumented)
     onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void;
     // (undocumented)
     onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void;
