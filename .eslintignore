@@ -28,6 +28,7 @@ apps/vscode/extension/editor/tldraw-assets.json
 **/scripts/upload-sourcemaps.js
 **/coverage/**/*
 
+apps/apps-script/main.js
 apps/dotcom/public/sw.js
 
 patchedJestJsDom.js

@@ -1,0 +1,23 @@
+{
+	"addOns": {
+		"common": {
+			"layoutProperties": {
+				"primaryColor": "#000",
+				"secondaryColor": "#fff"
+			},
+			"logoUrl": "https://www.tldraw.com/android-chrome-maskable-512x512.png",
+			"name": "tldraw"
+		}
+	},
+	"timeZone": "Europe/London",
+	"dependencies": {},
+	"exceptionLogging": "STACKDRIVER",
+	"runtimeVersion": "V8",
+	"oauthScopes": [
+		"https://www.googleapis.com/auth/userinfo.email",
+		"https://www.googleapis.com/auth/userinfo.profile",
+		"https://www.googleapis.com/auth/documents.currentonly",
+		"https://www.googleapis.com/auth/script.external_request",
+		"https://www.googleapis.com/auth/workspace.linkpreview"
+	]
+}
