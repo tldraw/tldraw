@@ -26,6 +26,7 @@ import {
 	TLKeyboardEventInfo,
 	TLLineShape,
 	TLNoteShape,
+	TLPageId,
 	TLRotationSnapshot,
 	TLShape,
 	TLShapeId,
@@ -39,19 +40,23 @@ import {
 	getOwnProperty,
 	getPointInArcT,
 	getRotationSnapshot,
+	intersectLineSegmentPolygon,
 	isPageId,
 	kickoutOccludedShapes,
 	moveCameraWhenCloseToEdge,
+	pointInPolygon,
+	polygonsIntersect,
 	react,
 	rotateSelectionHandle,
 	snapAngle,
 	sortByIndex,
 	structuredClone,
+	uniqueId,
 } from 'tldraw'
 import { getArrowBindings, getArrowInfo } from 'tldraw/src/lib/shapes/arrow/shared'
+import { BrushWrapper } from './components/Brush'
 import { HintedShapeIndicator } from './components/HintedShapeIndicators'
 import { TldrawSelectionForeground } from './components/SelectionBox'
-import { SelectionBrush } from './components/SelectionBrush'
 import { ShapeIndicators } from './components/ShapeIndicators'
 import { DragAndDropManager } from './selection-logic/DragAndDropManager'
 import {
@@ -183,9 +188,18 @@ type SimpleSelectState =
 	| {
 			name: 'brushing'
 			brush: BoxLike | null
+			initialSelectedShapeIds: TLShapeId[]
+			excludedShapeIds: Set<TLShapeId>
+			isWrapMode: boolean
+			initialStartShape: TLShape | null
 	  }
 	| {
 			name: 'scribble_brushing'
+			size: number
+			hits: Set<TLShapeId>
+			scribbleId: string
+			initialSelectedShapeIds: Set<TLShapeId>
+			newlySelectedShapeIds: Set<TLShapeId>
 	  }
 	| {
 			name: 'crop_idle'
@@ -247,14 +261,12 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 	}
 
 	override overlay() {
-		const state = this.getState()
-
 		return (
 			<>
+				<BrushWrapper />
 				<ShapeIndicators />
 				<HintedShapeIndicator />
 				<TldrawSelectionForeground />
-				{state.name === 'brushing' && <SelectionBrush brush={state.brush} />}
 			</>
 		)
 	}
@@ -410,7 +422,8 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 						return
 					}
 				}
-				this.setState({ name: 'brushing', brush: null })
+
+				this.startBrushing(state)
 				return
 			}
 
@@ -907,10 +920,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 				}
 			}
 		} else if (editor.inputs.isDragging) {
-			this.setState({
-				name: 'brushing',
-				brush: null,
-			})
+			this.startBrushing(state)
 		} else if (info.name === 'pointer_up') {
 			selectOnCanvasPointerUp(editor)
 			this.setState({ name: 'idle' })
@@ -2047,72 +2057,34 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 	}
 
 	handleBrushingStateEvent(state: SimpleSelectState & { name: 'brushing' }, info: TLEventInfo) {
-		const { editor, memo } = this
+		const { editor } = this
 		if (info.name === 'state_change') {
 			if (info.from === state.name) {
 				// exit
+				editor.updateInstanceState({ brush: null })
 			} else if (info.to === state.name) {
 				// enter
-				const { originPagePoint, currentPagePoint } = editor.inputs
-				const box = Box.FromPoints([originPagePoint, currentPagePoint])
-				this.setState({
-					name: 'brushing',
-					brush: box.toJson(),
-				})
-
-				// Stash the selected ids so we can restore them later
-				memo.initialSelectedIds = editor.getSelectedShapeIds()
+				this.hitTestBrushingShapes(state)
 			}
 		} else if (!editor.inputs.isPointing) {
 			// Stopped pointing
-			this.setState({
-				name: 'idle',
-			})
-			return
-		}
-
-		if (
-			info.name === 'pointer_move' ||
-			// for modifiers
-			info.name === 'key_down' ||
-			info.name === 'key_up'
-		) {
-			const { originPagePoint, currentPagePoint } = editor.inputs
-			const box = Box.FromPoints([originPagePoint, currentPagePoint])
-
-			// update the box in the state
-			this.setState({
-				name: 'brushing',
-				brush: box.toJson(),
-			})
-
-			const hitIds = new Set<TLShapeId>()
-
-			// If we're holding shift, add the initial selected ids to the hitIds set
-			if (editor.inputs.shiftKey) {
-				for (const id of memo.initialSelectedIds) {
-					hitIds.add(id)
-				}
+			this.hitTestBrushingShapes(state)
+			this.setState({ name: 'idle' })
+		} else if (info.name === 'interrupt') {
+			editor.updateInstanceState({ brush: null })
+		} else if (info.name === 'tick') {
+			moveCameraWhenCloseToEdge(editor)
+		} else if (info.name === 'pointer_move' || info.name === 'key_up') {
+			this.hitTestBrushingShapes(state)
+		} else if (info.name === 'key_down') {
+			if (editor.inputs.altKey) {
+				this.startScribbleBrushing(state)
+			} else {
+				this.hitTestBrushingShapes(state)
 			}
-
-			// Test the rest of the shapes on the page (broad phase only for simplifity)
-			for (const shape of editor.getCurrentPageShapes()) {
-				if (hitIds.has(shape.id)) continue
-				const pageBounds = editor.getShapePageBounds(shape.id)
-				if (!pageBounds) continue
-				if (box.collides(pageBounds)) {
-					hitIds.add(shape.id)
-				}
-			}
-
-			// If the selected ids have changed, update the selection
-			const currentSelectedIds = editor.getSelectedShapeIds()
-			if (
-				currentSelectedIds.length !== hitIds.size ||
-				currentSelectedIds.some((id) => !hitIds.has(id))
-			) {
-				editor.setSelectedShapes(Array.from(hitIds))
-			}
+		} else if (info.name === 'complete' || !editor.inputs.isPointing) {
+			this.hitTestBrushingShapes(state)
+			this.setState({ name: 'idle' })
 		}
 	}
 
@@ -2284,12 +2256,98 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 		info: TLEventInfo
 	) {
 		const { editor } = this
+		if (info.name === 'state_change') {
+			if (info.from === state.name) {
+				// exit
+				editor.scribbles.stop(state.scribbleId)
+			} else if (info.to === state.name) {
+				editor.updateInstanceState({ brush: null })
+				// enter
+				editor.scribbles.addScribble(
+					{
+						color: 'selection-stroke',
+						opacity: 0.32,
+						size: 12,
+					},
+					state.scribbleId
+				)
+			}
+
+			this.hitTestScribbleBrushingShapes(state, true)
+		} else if (info.name === 'pointer_move') {
+			this.hitTestScribbleBrushingShapes(state, true)
+		} else if (info.name === 'key_down') {
+			this.hitTestScribbleBrushingShapes(state, false)
+		} else if (info.name === 'key_up') {
+			if (!editor.inputs.altKey) {
+				this.startBrushing(state)
+			} else {
+				this.hitTestScribbleBrushingShapes(state, false)
+			}
+		} else if (info.name === 'complete' || !editor.inputs.isPointing) {
+			this.hitTestScribbleBrushingShapes(state, true)
+			this.setState({ name: 'idle' })
+		} else if (info.name === 'cancel') {
+			editor.setSelectedShapes([...state.initialSelectedShapeIds])
+			this.setState({ name: 'idle' })
+		}
 		return
 	}
 
 	/* ---------------------- Idle ---------------------- */
 
-	private cleanUpDuplicateProps = () => {
+	private startBrushing(state: SimpleSelectState) {
+		const { editor } = this
+
+		const isWrapMode = editor.user.getIsWrapMode()
+		const excludedShapeIds = new Set(
+			editor
+				.getCurrentPageShapes()
+				.filter(
+					(shape) =>
+						editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+						editor.isShapeOrAncestorLocked(shape)
+				)
+				.map((shape) => shape.id)
+		)
+		const initialSelectedShapeIds =
+			state.name === 'scribble_brushing'
+				? Array.from(state.initialSelectedShapeIds.values())
+				: editor.getSelectedShapeIds().slice()
+		const initialStartShape = editor.getShapesAtPoint(editor.inputs.currentPagePoint)[0]
+		const next: SimpleSelectState = {
+			name: 'brushing',
+			brush: null,
+			isWrapMode,
+			excludedShapeIds,
+			initialSelectedShapeIds,
+			initialStartShape,
+		}
+
+		if (editor.inputs.altKey) {
+			this.startScribbleBrushing(next)
+			return
+		} else {
+			this.setState(next)
+		}
+	}
+
+	private startScribbleBrushing(state: SimpleSelectState) {
+		const { editor } = this
+		this.setState({
+			name: 'scribble_brushing',
+			size: 0,
+			hits: new Set(),
+			scribbleId: uniqueId(),
+			newlySelectedShapeIds: new Set(),
+			initialSelectedShapeIds:
+				state.name === 'brushing'
+					? new Set(state.initialSelectedShapeIds)
+					: new Set<TLShapeId>(editor.inputs.shiftKey ? editor.getSelectedShapeIds() : []),
+		})
+	}
+
+	private cleanUpDuplicateProps() {
 		const { editor } = this
 		// Clean up the duplicate props when the selection changes
 		const selectedShapeIds = editor.getSelectedShapeIds()
@@ -3062,6 +3120,209 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 
 		if (changes) {
 			editor.updateShapes([next])
+		}
+	}
+
+	/* -------------------- Brushing -------------------- */
+
+	private hitTestBrushingShapes(state: SimpleSelectState & { name: 'brushing' }) {
+		const { editor } = this
+		const { excludedShapeIds, initialSelectedShapeIds, isWrapMode } = state
+
+		const {
+			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
+		} = editor
+
+		// We'll be collecting shape ids of selected shapes; if we're holding shift key, we start from our initial shapes
+		const results = new Set(shiftKey ? initialSelectedShapeIds : [])
+
+		// In wrap mode, we need to completely enclose a shape to select it
+		const isWrapping = isWrapMode ? !ctrlKey : ctrlKey
+
+		// Set the brush to contain the current and origin points
+		const brush = Box.FromPoints([originPagePoint, currentPagePoint])
+
+		// We'll be testing the corners of the brush against the shapes
+		const { corners } = brush
+
+		let A: Vec,
+			B: Vec,
+			shape: TLShape,
+			pageBounds: Box | undefined,
+			pageTransform: Mat | undefined,
+			localCorners: Vec[]
+
+		const currentPageShapes = editor.getCurrentPageShapes()
+		const currentPageId = editor.getCurrentPageId()
+
+		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
+			shape = currentPageShapes[i]
+			if (excludedShapeIds.has(shape.id) || results.has(shape.id)) continue testAllShapes
+
+			pageBounds = editor.getShapePageBounds(shape)
+			if (!pageBounds) continue testAllShapes
+
+			// If the brush fully wraps a shape, it's almost certainly a hit
+			if (brush.contains(pageBounds)) {
+				this.handleBrushingHit(shape, currentPagePoint, currentPageId, results, corners)
+				continue testAllShapes
+			}
+
+			// If we're in wrap mode and the brush did not fully encloses the shape, it's a miss
+			// We also skip frames unless we've completely selected the frame.
+			if (isWrapping || editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+				continue testAllShapes
+			}
+
+			// If the brush collides the page bounds, then do hit tests against
+			// each of the brush's four sides.
+			if (brush.collides(pageBounds)) {
+				// Shapes expect to hit test line segments in their own coordinate system,
+				// so we first need to get the brush corners in the shape's local space.
+				pageTransform = editor.getShapePageTransform(shape)
+				if (!pageTransform) continue testAllShapes
+				localCorners = pageTransform.clone().invert().applyToPoints(corners)
+				// See if any of the edges intersect the shape's geometry
+				const geometry = editor.getShapeGeometry(shape)
+				hitTestBrushEdges: for (let i = 0; i < 4; i++) {
+					A = localCorners[i]
+					B = localCorners[(i + 1) % 4]
+					if (geometry.hitTestLineSegment(A, B, 0)) {
+						this.handleBrushingHit(shape, currentPagePoint, currentPageId, results, corners)
+						break hitTestBrushEdges
+					}
+				}
+			}
+		}
+
+		editor.getInstanceState().isCoarsePointer
+
+		const currentBrush = editor.getInstanceState().brush
+		if (!currentBrush || !brush.equals(currentBrush)) {
+			editor.updateInstanceState({ brush: { ...brush.toJson() } })
+		}
+
+		const current = editor.getSelectedShapeIds()
+		if (current.length !== results.size || current.some((id) => !results.has(id))) {
+			editor.setSelectedShapes(Array.from(results))
+		}
+	}
+
+	private handleBrushingHit(
+		shape: TLShape,
+		currentPagePoint: Vec,
+		currentPageId: TLPageId,
+		results: Set<TLShapeId>,
+		corners: Vec[]
+	) {
+		const { editor } = this
+		if (shape.parentId === currentPageId) {
+			results.add(shape.id)
+			return
+		}
+
+		// Find the outermost selectable shape, check to see if it has a
+		// page mask; and if so, check to see if the brush intersects it
+		const selectedShape = editor.getOutermostSelectableShape(shape)
+		const pageMask = editor.getShapeMask(selectedShape.id)
+		if (
+			pageMask &&
+			!polygonsIntersect(pageMask, corners) &&
+			!pointInPolygon(currentPagePoint, pageMask)
+		) {
+			return
+		}
+		results.add(selectedShape.id)
+	}
+
+	private hitTestScribbleBrushingShapes(
+		state: SimpleSelectState & { name: 'scribble_brushing' },
+		addPoint: boolean
+	) {
+		const { editor } = this
+		// const zoomLevel = editor.getZoomLevel()
+		const currentPageShapes = editor.getCurrentPageShapes()
+		const {
+			inputs: { shiftKey, originPagePoint, previousPagePoint, currentPagePoint },
+		} = editor
+
+		const { newlySelectedShapeIds, initialSelectedShapeIds } = state
+
+		if (addPoint) {
+			const { x, y } = editor.inputs.currentPagePoint
+			editor.scribbles.addPoint(state.scribbleId, x, y)
+		}
+
+		const shapes = currentPageShapes
+		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
+
+		const minDist = 0 // HIT_TEST_MARGIN / zoomLevel
+
+		for (let i = 0, n = shapes.length; i < n; i++) {
+			shape = shapes[i]
+
+			// If the shape is a group or is already selected or locked, don't select it
+			if (
+				editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+				newlySelectedShapeIds.has(shape.id) ||
+				editor.isShapeOrAncestorLocked(shape)
+			) {
+				continue
+			}
+
+			geometry = editor.getShapeGeometry(shape)
+
+			// If the scribble started inside of the frame, don't select it
+			if (
+				editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
+				geometry.bounds.containsPoint(editor.getPointInShapeSpace(shape, originPagePoint))
+			) {
+				continue
+			}
+
+			// Hit test the shape using a line segment
+			const pageTransform = editor.getShapePageTransform(shape)
+			if (!geometry || !pageTransform) continue
+			const pt = pageTransform.clone().invert()
+			A = pt.applyToPoint(previousPagePoint)
+			B = pt.applyToPoint(currentPagePoint)
+
+			// If the line segment is entirely above / below / left / right of the shape's bounding box, skip the hit test
+			const { bounds } = geometry
+			if (
+				bounds.minX - minDist > Math.max(A.x, B.x) ||
+				bounds.minY - minDist > Math.max(A.y, B.y) ||
+				bounds.maxX + minDist < Math.min(A.x, B.x) ||
+				bounds.maxY + minDist < Math.min(A.y, B.y)
+			) {
+				continue
+			}
+
+			if (geometry.hitTestLineSegment(A, B, minDist)) {
+				const outermostShape = editor.getOutermostSelectableShape(shape)
+				const pageMask = editor.getShapeMask(outermostShape.id)
+				if (pageMask) {
+					const intersection = intersectLineSegmentPolygon(
+						previousPagePoint,
+						currentPagePoint,
+						pageMask
+					)
+					if (intersection !== null) {
+						const isInMask = pointInPolygon(currentPagePoint, pageMask)
+						if (!isInMask) continue
+					}
+				}
+
+				newlySelectedShapeIds.add(outermostShape.id)
+			}
+		}
+
+		const current = editor.getSelectedShapeIds()
+		const next = new Set<TLShapeId>(
+			shiftKey ? [...newlySelectedShapeIds, ...initialSelectedShapeIds] : [...newlySelectedShapeIds]
+		)
+		if (current.length !== next.size || current.some((id) => !next.has(id))) {
+			editor.setSelectedShapes(Array.from(next))
 		}
 	}
 }

@@ -95,6 +95,10 @@ export class Brushing extends StateNode {
 		this.hitTestShapes()
 	}
 
+	override onInterrupt: TLInterruptEvent = () => {
+		this.editor.updateInstanceState({ brush: null })
+	}
+
 	private complete() {
 		this.hitTestShapes()
 		this.parent.transition('idle')
@@ -178,10 +182,6 @@ export class Brushing extends StateNode {
 		if (current.length !== results.size || current.some((id) => !results.has(id))) {
 			editor.setSelectedShapes(Array.from(results))
 		}
-	}
-
-	override onInterrupt: TLInterruptEvent = () => {
-		this.editor.updateInstanceState({ brush: null })
 	}
 
 	private handleHit(
