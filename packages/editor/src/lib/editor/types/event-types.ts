@@ -109,7 +109,6 @@ export type TLToolStateChangeInfo<T extends { name: string } = any> = {
 	name: 'state_change'
 	from: T['name']
 	to: T['name']
-	info: any
 }
 
 /** @public */

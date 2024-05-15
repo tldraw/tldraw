@@ -115,21 +115,6 @@ export function getOccludedChildren(editor: Editor, parent: TLShape) {
 	return results
 }
 
-/** @internal */
-export function startEditingShapeWithLabel(editor: Editor, shape: TLShape, selectAll = false) {
-	// Finish this shape and start editing the next one
-	editor.select(shape)
-	editor.setEditingShape(shape)
-	editor.setCurrentTool('select.editing_shape', {
-		target: 'shape',
-		shape: shape,
-	})
-	if (selectAll) {
-		editor.emit('select-all-text', { shapeId: shape.id })
-	}
-	zoomToShapeIfOffscreen(editor)
-}
-
 const ZOOM_TO_SHAPE_PADDING = 16
 export function zoomToShapeIfOffscreen(editor: Editor) {
 	const selectionPageBounds = editor.getSelectionPageBounds()

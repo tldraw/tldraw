@@ -43,8 +43,8 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 	/**
 	 * Get the tool's state. This data is used to keep track of the tool's state as the user interacts with it.
 	 */
-	@computed getState() {
-		return this._state.get()
+	@computed getState<P extends State['name']>() {
+		return this._state.get() as State & { name: P }
 	}
 
 	/**
@@ -52,15 +52,14 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 	 *
 	 * @param state - A partial of the tool's state.
 	 */
-	setState<P extends State['name']>(state: State & { name: P }, info?: any) {
+	setState<P extends State['name']>(state: State & { name: P }) {
 		const prev = this._state.__unsafe__getWithoutCapture()
-		if (state.name && prev.name !== state.name) {
+		if (prev.name !== state.name) {
 			this.onEvent({
 				type: 'misc',
 				name: 'state_change',
 				from: prev.name,
 				to: state.name,
-				info,
 			})
 			this._state.set(state)
 			this.onEvent({
@@ -68,7 +67,6 @@ export abstract class ToolUtil<State extends TLToolState, Config extends object 
 				name: 'state_change',
 				from: prev.name,
 				to: state.name,
-				info,
 			})
 		} else {
 			this._state.set(state)

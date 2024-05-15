@@ -83,9 +83,12 @@ export class SimpleEraserToolUtil extends ToolUtil<SimpleEraserContext, SimpleEr
 		const { editor } = this
 		const state = this.getState()
 
+		if (event.name === 'state_change') {
+			return
+		}
+
 		if (event.name === 'cancel') {
 			this.cancel()
-			return
 		}
 
 		if (event.name === 'complete') {
