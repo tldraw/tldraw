@@ -18,6 +18,19 @@ export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
 }
 
 /** @public */
+export enum BindingUnbindReason {
+	DeletingFromShape = 'deleting_from_shape',
+	DeletingToShape = 'deleting_to_shape',
+	DeletingBinding = 'deleting_binding',
+}
+
+/** @public */
+export interface BindingOnUnbindOptions<Binding extends TLUnknownBinding> {
+	binding: Binding
+	reason: BindingUnbindReason
+}
+
+/** @public */
 export interface BindingOnChangeOptions<Binding extends TLUnknownBinding> {
 	bindingBefore: Binding
 	bindingAfter: Binding
@@ -62,6 +75,8 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	abstract getDefaultProps(): Partial<Binding['props']>
 
 	onOperationComplete?(): void
+
+	onBeforeUnbind?(options: BindingOnUnbindOptions<Binding>): void
 
 	// self lifecycle hooks
 	onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void

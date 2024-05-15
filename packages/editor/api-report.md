@@ -212,6 +212,24 @@ export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
 }
 
 // @public (undocumented)
+export interface BindingOnUnbindOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    binding: Binding;
+    // (undocumented)
+    reason: BindingUnbindReason;
+}
+
+// @public (undocumented)
+export enum BindingUnbindReason {
+    // (undocumented)
+    DeletingBinding = "deleting_binding",
+    // (undocumented)
+    DeletingFromShape = "deleting_from_shape",
+    // (undocumented)
+    DeletingToShape = "deleting_to_shape"
+}
+
+// @public (undocumented)
 export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBinding> {
     constructor(editor: Editor);
     // (undocumented)
@@ -243,6 +261,8 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
     // (undocumented)
     onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
+    // (undocumented)
+    onBeforeUnbind?(options: BindingOnUnbindOptions<Binding>): void;
     // (undocumented)
     onOperationComplete?(): void;
     // (undocumented)

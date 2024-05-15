@@ -118,7 +118,7 @@ import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
-import { BindingUtil, TLBindingUtilConstructor } from './bindings/BindingUtil'
+import { BindingUnbindReason, BindingUtil, TLBindingUtilConstructor } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
@@ -517,7 +517,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.getBindingUtil(bindingAfter).onAfterChange?.({ bindingBefore, bindingAfter })
 					},
 					beforeDelete: (binding) => {
-						this.getBindingUtil(binding).onBeforeDelete?.({ binding })
+						const util = this.getBindingUtil(binding)
+						if (util.onBeforeUnbind) {
+							const reason = deletedShapes.has(binding.fromId)
+								? BindingUnbindReason.DeletingFromShape
+								: deletedShapes.has(binding.toId)
+									? BindingUnbindReason.DeletingToShape
+									: BindingUnbindReason.DeletingBinding
+							util.onBeforeUnbind({ binding, reason })
+						}
+						util.onBeforeDelete?.({ binding })
 					},
 					afterDelete: (binding) => {
 						invalidBindingTypes.add(binding.type)
@@ -8724,8 +8733,7 @@ function withoutBindingsToUnrelatedShapes<T>(
 	callback: (bindingsWithBoth: Set<TLBindingId>) => T
 ): T {
 	const bindingsWithBoth = new Set<TLBindingId>()
-	const bindingsWithoutFrom = new Set<TLBindingId>()
-	const bindingsWithoutTo = new Set<TLBindingId>()
+	const bindingsToRemove = new Set<TLBindingId>()
 
 	for (const shapeId of shapeIds) {
 		const shape = editor.getShape(shapeId)
@@ -8738,11 +8746,8 @@ function withoutBindingsToUnrelatedShapes<T>(
 				bindingsWithBoth.add(binding.id)
 				continue
 			}
-			if (!hasFrom) {
-				bindingsWithoutFrom.add(binding.id)
-			}
-			if (!hasTo) {
-				bindingsWithoutTo.add(binding.id)
+			if (!hasFrom || !hasTo) {
+				bindingsToRemove.add(binding.id)
 			}
 		}
 	}
@@ -8753,29 +8758,7 @@ function withoutBindingsToUnrelatedShapes<T>(
 		const changes = editor.store.extractingChanges(() => {
 			const bindingsToRemove: TLBindingId[] = []
 
-			for (const bindingId of bindingsWithoutFrom) {
-				const binding = editor.getBinding(bindingId)
-				if (!binding) continue
-
-				const shape = editor.getShape(binding.fromId)
-				if (!shape) continue
-
-				editor.getBindingUtil(binding).onBeforeDeleteFromShape?.({ binding, shape })
-				bindingsToRemove.push(binding.id)
-			}
-
-			for (const bindingId of bindingsWithoutTo) {
-				const binding = editor.getBinding(bindingId)
-				if (!binding) continue
-
-				const shape = editor.getShape(binding.toId)
-				if (!shape) continue
-
-				editor.getBindingUtil(binding).onBeforeDeleteToShape?.({ binding, shape })
-				bindingsToRemove.push(binding.id)
-			}
-
-			editor.deleteBindings(bindingsToRemove)
+			editor.deleteBindings([...bindingsToRemove])
 
 			try {
 				result = Result.ok(callback(bindingsWithBoth))

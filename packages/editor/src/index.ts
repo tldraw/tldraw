@@ -124,12 +124,14 @@ export {
 } from './lib/constants'
 export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
 export {
+	BindingUnbindReason,
 	BindingUtil,
 	type BindingOnChangeOptions,
 	type BindingOnCreateOptions,
 	type BindingOnDeleteOptions,
 	type BindingOnShapeChangeOptions,
 	type BindingOnShapeDeleteOptions,
+	type BindingOnUnbindOptions,
 	type TLBindingUtilConstructor,
 } from './lib/editor/bindings/BindingUtil'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
