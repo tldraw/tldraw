@@ -132,7 +132,6 @@ export {
 	type BindingOnShapeDeleteOptions,
 	type TLBindingUtilConstructor,
 } from './lib/editor/bindings/BindingUtil'
-export type { FocusManager } from './lib/editor/managers/FocusManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export type {
 	SideEffectManager,

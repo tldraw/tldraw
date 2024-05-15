@@ -721,7 +721,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly sideEffects: SideEffectManager<this>
 
 	/**
-	 * A manager for ensuring correct focus. See {@link FocusManager} for details.
+	 * A manager for ensuring correct focus. See FocusManager for details.
 	 *
 	 * @public
 	 */

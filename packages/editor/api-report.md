@@ -1128,19 +1128,6 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 // @internal (undocumented)
 export const featureFlags: Record<string, DebugFlag<boolean>>;
 
-// @public
-export class FocusManager {
-    constructor(editor: Editor, autoFocus?: boolean);
-    // (undocumented)
-    blur(): void;
-    // (undocumented)
-    dispose(): void;
-    // (undocumented)
-    editor: Editor;
-    // (undocumented)
-    focus(): void;
-}
-
 // @public (undocumented)
 export type GapsSnapIndicator = {
     direction: 'horizontal' | 'vertical';

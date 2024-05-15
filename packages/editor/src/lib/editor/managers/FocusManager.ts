@@ -7,7 +7,7 @@ import type { Editor } from '../Editor'
  * Also, it will make sure that the focus is on things like text
  * labels when the editor is in editing mode.
  *
- * @public
+ * @internal
  */
 export class FocusManager {
 	private disposeSideEffectListener?: () => void
