@@ -1727,7 +1727,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					this.setState({ ...state, hitShapeForPointerUp: null })
 					switch (info.target) {
 						case 'canvas': {
-							const hitShape = getHitShapeOnCanvasPointerDown(this.editor, true /* hitLabels */)
+							const hitShape = getHitShapeOnCanvasPointerDown(editor, true /* hitLabels */)
 							if (hitShape) {
 								this.onEvent({
 									...info,
@@ -1740,24 +1740,24 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 						}
 						case 'shape': {
 							const { shape: selectingShape } = info
-							const editingShape = this.editor.getEditingShape()
+							const editingShape = editor.getEditingShape()
 
 							if (!editingShape) {
 								throw Error('Expected an editing shape!')
 							}
 
 							// for shapes with labels, check to see if the click was inside of the shape's label
-							const geometry = this.editor.getShapeUtil(selectingShape).getGeometry(selectingShape)
+							const geometry = editor.getShapeUtil(selectingShape).getGeometry(selectingShape)
 							const textLabels = getTextLabels(geometry)
 							const textLabel = textLabels.length === 1 ? textLabels[0] : undefined
 							// N.B. One nuance here is that we want empty text fields to be removed from the canvas when the user clicks away from them.
 							const isEmptyTextShape =
-								this.editor.isShapeOfType<TLTextShape>(editingShape, 'text') &&
+								editor.isShapeOfType<TLTextShape>(editingShape, 'text') &&
 								editingShape.props.text.trim() === ''
 							if (textLabel && !isEmptyTextShape) {
-								const pointInShapeSpace = this.editor.getPointInShapeSpace(
+								const pointInShapeSpace = editor.getPointInShapeSpace(
 									selectingShape,
-									this.editor.inputs.currentPagePoint
+									editor.inputs.currentPagePoint
 								)
 								if (
 									textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
@@ -1769,16 +1769,16 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 										return
 									} else {
 										this.setState({ ...state, hitShapeForPointerUp: selectingShape })
-										this.editor.mark('editing on pointer up')
-										this.editor.select(selectingShape.id)
+										editor.mark('editing on pointer up')
+										editor.select(selectingShape.id)
 										return
 									}
 								}
 							} else {
 								if (selectingShape.id === editingShape.id) {
 									// If we clicked on a frame, while editing its heading, cancel editing
-									if (this.editor.isShapeOfType<TLFrameShape>(selectingShape, 'frame')) {
-										this.editor.setEditingShape(null)
+									if (editor.isShapeOfType<TLFrameShape>(selectingShape, 'frame')) {
+										editor.setEditingShape(null)
 									}
 									// If we clicked on the editing shape (which isn't a shape with a label), do nothing
 								} else {
@@ -1809,8 +1809,8 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					this.setState({ ...state, hitShapeForPointerUp: null })
 
 					// Stay in edit mode to maintain flow of editing.
-					const util = this.editor.getShapeUtil(hitShape)
-					if (this.editor.getInstanceState().isReadonly) {
+					const util = editor.getShapeUtil(hitShape)
+					if (editor.getInstanceState().isReadonly) {
 						if (!util.canEditInReadOnly(hitShape)) {
 							this.setState({
 								name: 'pointing_shape',
@@ -1824,9 +1824,9 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState> {
 					}
 
 					// Select and begin editing the shape
-					this.editor.select(hitShape.id)
-					this.editor.setEditingShape(hitShape.id)
-					updateHoveredShapeId(this.editor)
+					editor.select(hitShape.id)
+					editor.setEditingShape(hitShape.id)
+					updateHoveredShapeId(editor)
 				} else if (info.name === 'pointer_move') {
 					// In the case where on pointer down we hit a shape's label, we need to check if the user is dragging.
 					// and if they are, we need to transition to translating instead.
