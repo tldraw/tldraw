@@ -1,9 +1,42 @@
-import { Editor, TLBaseShape, TLImageShapeCrop, TLShapePartial, Vec, structuredClone } from 'tldraw'
+import {
+	Editor,
+	SelectionHandle,
+	TLBaseShape,
+	TLImageShape,
+	TLImageShapeCrop,
+	TLShapePartial,
+	Vec,
+	structuredClone,
+} from 'tldraw'
 
 /** @internal */
 export const MIN_CROP_SIZE = 8
 
 export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>
+
+export function getCroppingSnapshot(editor: Editor, handle: SelectionHandle) {
+	const selectionRotation = editor.getSelectionRotation()
+	const {
+		inputs: { originPagePoint },
+	} = editor
+
+	const shape = editor.getOnlySelectedShape() as TLImageShape
+
+	const selectionBounds = editor.getSelectionRotatedPageBounds()!
+
+	const dragHandlePoint = Vec.RotWith(
+		selectionBounds.getHandlePoint(handle),
+		selectionBounds.point,
+		selectionRotation
+	)
+
+	const cursorHandleOffset = Vec.Sub(originPagePoint, dragHandlePoint)
+
+	return {
+		shape,
+		cursorHandleOffset,
+	}
+}
 
 export function getTranslateCroppedImageChange(
 	editor: Editor,

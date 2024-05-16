@@ -1,4 +1,13 @@
-import { Editor, IndexKey, TLNoteShape, TLShape, Vec, compact, createShapeId } from 'tldraw'
+import {
+	Editor,
+	IndexKey,
+	TLHandle,
+	TLNoteShape,
+	TLShape,
+	Vec,
+	compact,
+	createShapeId,
+} from 'tldraw'
 import { zoomToShapeIfOffscreen } from './selectHelpers'
 
 /** @internal */
@@ -200,4 +209,21 @@ export function getNoteShapeForAdjacentPosition(
 
 	zoomToShapeIfOffscreen(editor)
 	return nextNote
+}
+
+export function getNoteForPit(
+	editor: Editor,
+	shape: TLNoteShape,
+	handle: TLHandle,
+	forceNew: boolean
+) {
+	const pageTransform = editor.getShapePageTransform(shape.id)!
+	const pagePoint = pageTransform.point()
+	const pageRotation = pageTransform.rotation()
+	const pits = getNoteAdjacentPositions(pagePoint, pageRotation, shape.props.growY, 0)
+	const pit = pits[handle.index]
+	if (pit) {
+		return getNoteShapeForAdjacentPosition(editor, shape, pit, pageRotation, forceNew)
+	}
+	return
 }

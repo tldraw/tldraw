@@ -18,6 +18,7 @@ import {
 	SharedStyleMap,
 	TLArrowShape,
 	TLClickEventInfo,
+	TLCursorType,
 	TLEventInfo,
 	TLFrameShape,
 	TLGroupShape,
@@ -28,12 +29,14 @@ import {
 	TLNoteShape,
 	TLPageId,
 	TLRotationSnapshot,
+	TLSelectionHandle,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
 	ToolUtil,
 	Vec,
+	VecLike,
 	applyRotationToSnapshotShapes,
 	createShapeId,
 	debugFlags,
@@ -42,6 +45,7 @@ import {
 	getRotationSnapshot,
 	intersectLineSegmentPolygon,
 	isPageId,
+	isShapeId,
 	kickoutOccludedShapes,
 	moveCameraWhenCloseToEdge,
 	pointInPolygon,
@@ -62,21 +66,13 @@ import { DragAndDropManager } from './selection-logic/DragAndDropManager'
 import {
 	MIN_CROP_SIZE,
 	ShapeWithCrop,
+	getCroppingSnapshot,
 	getTranslateCroppedImageChange,
 } from './selection-logic/cropping'
-import { cursorTypeMap } from './selection-logic/cursorTypeMap'
-import { getCroppingSnapshot } from './selection-logic/getCroppingSnapshot'
-import { getHitShapeOnCanvasPointerDown } from './selection-logic/getHitShapeOnCanvasPointerDown'
-import { getNoteForPit } from './selection-logic/getNoteForPits'
-import { getShouldEnterCropMode } from './selection-logic/getShouldEnterCropModeOnPointerDown'
-import { getTextLabels } from './selection-logic/getTextLabels'
-import { isOverArrowLabel } from './selection-logic/isOverArrowLabel'
-import { isPointInRotatedSelectionBounds } from './selection-logic/isPointInRotatedSelectionBounds'
-import { NOTE_CENTER_OFFSET } from './selection-logic/noteHelpers'
+import { NOTE_CENTER_OFFSET, getNoteForPit } from './selection-logic/noteHelpers'
 import { ResizingSnapshot, getResizingSnapshot } from './selection-logic/resizing'
 import { getRotationFromPointerPosition } from './selection-logic/rotating'
 import { zoomToShapeIfOffscreen } from './selection-logic/selectHelpers'
-import { selectOnCanvasPointerUp } from './selection-logic/selectOnCanvasPointerUp'
 import {
 	TranslatingSnapshot,
 	getTranslatingSnapshot,
@@ -401,7 +397,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 		} else if (info.name === 'pointer_down') {
 			if (editor.getIsMenuOpen()) return
 
-			const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(editor)
+			const shouldEnterCropMode = info.ctrlKey && this.getShouldEnterCropMode()
 
 			if (info.ctrlKey && !shouldEnterCropMode) {
 				// On Mac, you can right click using the Control keys + Click.
@@ -430,7 +426,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 				case 'canvas': {
 					// Check to see if we hit any shape under the pointer; if so,
 					// handle this as a pointer down on the shape instead of the canvas
-					const hitShape = getHitShapeOnCanvasPointerDown(editor)
+					const hitShape = this.getHitShapeOnCanvasPointerDown()
 					if (hitShape && !hitShape.isLocked) {
 						this.onEvent({
 							...info,
@@ -451,7 +447,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 						(onlySelectedShape &&
 							!editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
 					) {
-						if (isPointInRotatedSelectionBounds(editor, currentPagePoint)) {
+						if (this.isPointInRotatedSelectionBounds(currentPagePoint)) {
 							this.onEvent({
 								...info,
 								target: 'selection',
@@ -465,24 +461,32 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 				}
 				case 'shape': {
 					const { shape } = info
-					if (isOverArrowLabel(editor, shape)) {
-						// We're moving the label on a shape.
-						const geometry = editor.getShapeGeometry<Group2d>(shape)
-						const labelGeometry = geometry.children[1]
-						if (!labelGeometry) {
-							throw Error(`Expected to find an arrow label geometry for shape: ${shape.id}`)
-						}
-						const { currentPagePoint } = editor.inputs
-						const pointInShapeSpace = editor.getPointInShapeSpace(shape, currentPagePoint)
 
-						this.setState({
-							name: 'pointing_arrow_label',
-							shapeId: shape.id,
-							wasAlreadySelected: editor.getOnlySelectedShapeId() === shape.id,
-							didDrag: false,
-							labelDragOffset: Vec.Sub(labelGeometry.center, pointInShapeSpace),
-						})
-						break
+					// Check if we're over an arrow label.
+					// How should we handle multiple labels? Do shapes ever have multiple labels?
+					// Knowing what we know about arrows... if the shape has no text in its label,
+					// then the label geometry should not be there.
+					if (editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+						const labelGeometry = editor.getShapeGeometry<Group2d>(shape).children[1]
+						const pointInShapeSpace = editor.getPointInShapeSpace(
+							shape,
+							editor.inputs.currentPagePoint
+						)
+						if (labelGeometry && pointInPolygon(pointInShapeSpace, labelGeometry.vertices)) {
+							// We're moving the label on a shape.
+							const labelGeometry = editor.getShapeGeometry<Group2d>(shape).children[1]
+							if (!labelGeometry) {
+								throw Error(`Expected to find an arrow label geometry for shape: ${shape.id}`)
+							}
+							this.setState({
+								name: 'pointing_arrow_label',
+								shapeId: shape.id,
+								wasAlreadySelected: editor.getOnlySelectedShapeId() === shape.id,
+								didDrag: false,
+								labelDragOffset: Vec.Sub(labelGeometry.center, pointInShapeSpace),
+							})
+							break
+						}
 					}
 
 					if (editor.isShapeOrAncestorLocked(shape)) {
@@ -598,7 +602,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 					if (hitShape) {
 						if (editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
 							// Probably select the shape
-							selectOnCanvasPointerUp(editor)
+							this.selectOnCanvasPointerUp()
 							return
 						} else {
 							const parent = editor.getShape(hitShape.parentId)
@@ -611,7 +615,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 								} else {
 									// The shape is the child of some group other than our current
 									// focus layer. We should probably select the group instead.
-									selectOnCanvasPointerUp(editor)
+									this.selectOnCanvasPointerUp()
 									return
 								}
 							}
@@ -777,7 +781,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 						(onlySelectedShape &&
 							!editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
 					) {
-						if (isPointInRotatedSelectionBounds(editor, currentPagePoint)) {
+						if (this.isPointInRotatedSelectionBounds(currentPagePoint)) {
 							this.onEvent({
 								...info,
 								target: 'selection',
@@ -892,7 +896,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 					}
 
 					// If the only selected shape is croppable, then begin cropping it
-					if (getShouldEnterCropMode(editor)) {
+					if (this.getShouldEnterCropMode()) {
 						this.setState({ name: 'crop_idle' })
 					}
 					break
@@ -921,7 +925,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 		} else if (editor.inputs.isDragging) {
 			this.startBrushing(state)
 		} else if (info.name === 'pointer_up') {
-			selectOnCanvasPointerUp(editor)
+			this.selectOnCanvasPointerUp()
 			this.setState({ name: 'idle' })
 		} else if (info.name === 'cancel' || info.name === 'complete' || info.name === 'interrupt') {
 			this.setState({ name: 'idle' })
@@ -1220,7 +1224,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 				// enter
 			}
 		} else if (info.name === 'pointer_up') {
-			selectOnCanvasPointerUp(editor)
+			this.selectOnCanvasPointerUp()
 			this.setState({ name: 'idle' })
 		} else if (info.name === 'double_click') {
 			const hoveredShape = editor.getHoveredShape()
@@ -1614,7 +1618,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 
 			switch (info.target) {
 				case 'canvas': {
-					const hitShape = getHitShapeOnCanvasPointerDown(editor)
+					const hitShape = this.getHitShapeOnCanvasPointerDown()
 					if (hitShape && !editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
 						this.onEvent({
 							...info,
@@ -2119,7 +2123,7 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 			this.setState({ ...state, hitShapeForPointerUp: null })
 			switch (info.target) {
 				case 'canvas': {
-					const hitShape = getHitShapeOnCanvasPointerDown(editor, true /* hitLabels */)
+					const hitShape = this.getHitShapeOnCanvasPointerDown(true /* hitLabels */)
 					if (hitShape) {
 						this.onEvent({
 							...info,
@@ -2344,6 +2348,102 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 					? new Set(state.initialSelectedShapeIds)
 					: new Set<TLShapeId>(editor.inputs.shiftKey ? editor.getSelectedShapeIds() : []),
 		})
+	}
+
+	private selectOnCanvasPointerUp() {
+		const { editor } = this
+		const selectedShapeIds = editor.getSelectedShapeIds()
+		const { shiftKey, altKey, currentPagePoint } = editor.inputs
+
+		const hitShape = editor.getShapeAtPoint(currentPagePoint, {
+			hitInside: false,
+			margin: HIT_TEST_MARGIN / editor.getZoomLevel(),
+			hitLabels: true,
+			renderingOnly: true,
+			filter: (shape) => !shape.isLocked,
+		})
+
+		// Note at the start: if we select a shape that is inside of a group,
+		// the editor will automatically adjust the selection to the outermost
+		// selectable shape (the group)
+
+		// If the shape's outermost selected id (e.g. the group that contains
+		// the shape) is not the same as the editor's only selected shape, then
+		// we want to select the outermost selected shape instead of the shape
+
+		if (hitShape) {
+			const outermostSelectableShape = editor.getOutermostSelectableShape(hitShape)
+			// If the user is holding shift, they're either adding to or removing from
+			// their selection.
+			if (shiftKey && !altKey) {
+				editor.cancelDoubleClick() // fuckin eh
+
+				if (selectedShapeIds.includes(outermostSelectableShape.id)) {
+					// Remove it from selected shapes
+					editor.mark('deselecting shape')
+					editor.deselect(outermostSelectableShape)
+				} else {
+					// Add it to selected shapes
+					editor.mark('shift selecting shape')
+					editor.setSelectedShapes([...selectedShapeIds, outermostSelectableShape.id])
+				}
+			} else {
+				let shapeToSelect: TLShape | undefined = undefined
+
+				if (outermostSelectableShape === hitShape) {
+					// There's no group around the shape, so we can select it.
+					shapeToSelect = hitShape
+				} else {
+					// There's a group around the hit shape.
+					// If the group is the current focus layer, OR if the group is
+					// already selected, then we can select the shape inside the group.
+					// Otherwise, if the group isn't selected and isn't our current
+					// focus layer, then we need to select the group instead.
+					if (
+						outermostSelectableShape.id === editor.getFocusedGroupId() ||
+						selectedShapeIds.includes(outermostSelectableShape.id)
+					) {
+						shapeToSelect = hitShape
+					} else {
+						shapeToSelect = outermostSelectableShape
+					}
+				}
+
+				if (shapeToSelect && !selectedShapeIds.includes(shapeToSelect.id)) {
+					editor.mark('selecting shape')
+					editor.select(shapeToSelect.id)
+				}
+			}
+		} else {
+			// We didn't hit anything...
+			if (shiftKey) {
+				// If we were holding shift, then it's a noop. We keep the
+				// current selection because we didn't add anything to it
+				return
+			} else {
+				// Otherwise, we clear the selction because the user selected
+				// nothing instead of their current selection.
+
+				if (selectedShapeIds.length > 0) {
+					editor.mark('selecting none')
+					editor.selectNone()
+				}
+
+				// If the click was inside of the current focused group, then
+				// we keep that focused group; otherwise we clear the focused
+				// group (reset it to the page)
+				const focusedGroupId = editor.getFocusedGroupId()
+
+				if (isShapeId(focusedGroupId)) {
+					const groupShape = editor.getShape(focusedGroupId)!
+					if (
+						!editor.isPointInShape(groupShape, currentPagePoint, { margin: 0, hitInside: true })
+					) {
+						editor.setFocusedGroup(null)
+					}
+				}
+			}
+		}
 	}
 
 	private cleanUpDuplicateProps() {
@@ -3324,6 +3424,62 @@ export class SimpleSelectToolUtil extends ToolUtil<SimpleSelectState, SimpleSele
 			editor.setSelectedShapes(Array.from(next))
 		}
 	}
+
+	isPointInRotatedSelectionBounds(point: VecLike) {
+		const { editor } = this
+		const selectionBounds = editor.getSelectionRotatedPageBounds()
+		if (!selectionBounds) return false
+
+		const selectionRotation = editor.getSelectionRotation()
+		if (!selectionRotation) return selectionBounds.containsPoint(point)
+
+		return pointInPolygon(
+			point,
+			selectionBounds.corners.map((c) => Vec.RotWith(c, selectionBounds.point, selectionRotation))
+		)
+	}
+
+	getShouldEnterCropMode(): boolean {
+		const { editor } = this
+		const onlySelectedShape = editor.getOnlySelectedShape()
+		return !!(
+			onlySelectedShape &&
+			!editor.isShapeOrAncestorLocked(onlySelectedShape) &&
+			editor.getShapeUtil(onlySelectedShape).canCrop(onlySelectedShape)
+		)
+	}
+
+	getHitShapeOnCanvasPointerDown(hitLabels = false): TLShape | undefined {
+		const { editor } = this
+		const zoomLevel = editor.getZoomLevel()
+		const {
+			inputs: { currentPagePoint },
+		} = editor
+
+		return (
+			// hovered shape at point
+			editor.getShapeAtPoint(currentPagePoint, {
+				hitInside: false,
+				hitLabels,
+				margin: HIT_TEST_MARGIN / zoomLevel,
+				renderingOnly: true,
+			}) ??
+			// selected shape at point
+			editor.getSelectedShapeAtPoint(currentPagePoint)
+		)
+	}
+}
+
+function getTextLabels(geometry: Geometry2d) {
+	if (geometry.isLabel) {
+		return [geometry]
+	}
+
+	if (geometry instanceof Group2d) {
+		return geometry.children.filter((child) => child.isLabel)
+	}
+
+	return []
 }
 
 const MAJOR_NUDGE_FACTOR = 10
@@ -3340,3 +3496,19 @@ const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Shift',
 	'Tab',
 ]
+
+const cursorTypeMap: Record<TLSelectionHandle, TLCursorType> = {
+	bottom: 'ns-resize',
+	top: 'ns-resize',
+	left: 'ew-resize',
+	right: 'ew-resize',
+	bottom_left: 'nesw-resize',
+	bottom_right: 'nwse-resize',
+	top_left: 'nwse-resize',
+	top_right: 'nesw-resize',
+	bottom_left_rotate: 'swne-rotate',
+	bottom_right_rotate: 'senw-rotate',
+	top_left_rotate: 'nwse-rotate',
+	top_right_rotate: 'nesw-rotate',
+	mobile_rotate: 'grabbing',
+}
