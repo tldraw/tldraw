@@ -526,7 +526,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 					},
 					beforeDelete: (binding) => {
 						const util = this.getBindingUtil(binding)
+						// No need to track this binding if it's util doesn't care about the unbind operation
 						if (!util.onBeforeUnbind && !util.onAfterUnbind) return
+						// We only want to call this once per binding and it might be possible that the onBeforeUnbind
+						// callback will trigger a nested delete operation on the same binding so let's bail out if
+						// that is happening
 						if (deletedBindings.has(binding.id)) return
 						const opts: BindingOnUnbindOptions<any> = {
 							binding,
@@ -2339,7 +2343,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const { currentScreenPoint, currentPagePoint } = this.inputs
 			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
-			// compare the next page point (derived from the curent camera) to the current page point
+			// compare the next page point (derived from the current camera) to the current page point
 			if (
 				currentScreenPoint.x / z - x !== currentPagePoint.x ||
 				currentScreenPoint.y / z - y !== currentPagePoint.y
@@ -2835,7 +2839,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomToUser(myUserId, { animation: { duration: 200 } })
 	 * ```
 	 *
-	 * @param userId - The id of the user to aniamte to.
+	 * @param userId - The id of the user to animate to.
 	 * @param opts - The camera move options.
 	 * @public
 	 */
@@ -4261,7 +4265,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const selectedShapeIds = this.getSelectedShapeIds()
 		return this.getCurrentPageShapesSorted()
 			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
-			.reverse() // findlast
+			.reverse() // find last
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
 
@@ -4340,7 +4344,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (this.isShapeOfType(shape, 'frame')) {
 				// On the rare case that we've hit a frame, test again hitInside to be forced true;
-				// this prevents clicks from passing through the body of a frame to shapes behhind it.
+				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
 				// If the hit is within the frame's outer margin, then select the frame
 				const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
@@ -4422,7 +4426,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								inMarginClosestToEdgeHit = shape
 							}
 						} else if (!inMarginClosestToEdgeHit) {
-							// If we're not within margin distnce to any edge, and if the
+							// If we're not within margin distance to any edge, and if the
 							// shape is hollow, then we want to hit the shape with the
 							// smallest area. (There's a bug here with self-intersecting
 							// shapes, like a closed drawing of an "8", but that's a bigger
@@ -4498,7 +4502,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { hitInside = false, margin = 0 } = opts
 		const id = typeof shape === 'string' ? shape : shape.id
 		// If the shape is masked, and if the point falls outside of that
-		// mask, then it's defintely a miss—we don't need to test further.
+		// mask, then it's definitely a miss—we don't need to test further.
 		const pageMask = this.getShapeMask(id)
 		if (pageMask && !pointInPolygon(point, pageMask)) return false
 
@@ -4818,7 +4822,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapesToReparent = compact(ids.map((id) => this.getShape(id)))
 
-		// The user is allowed to re-parent locked shapes. Unintutive? Yeah! But there are plenty of
+		// The user is allowed to re-parent locked shapes. Unintuitive? Yeah! But there are plenty of
 		// times when a locked shape's parent is deleted... and we need to put that shape somewhere!
 		const lockedShapes = shapesToReparent.filter((shape) => shape.isLocked)
 
@@ -4926,7 +4930,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param ids - The ids of the shapes to get descendants of.
 	 *
-	 * @returns The decscendant ids.
+	 * @returns The descendant ids.
 	 *
 	 * @public
 	 */
@@ -8373,7 +8377,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						let behavior = wheelBehavior
 
-						// If the camera behavior is "zoom" and the ctrl key is presssed, then pan;
+						// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
 						// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
 						if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
