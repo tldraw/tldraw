@@ -188,12 +188,6 @@ export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
 }
 
 // @public (undocumented)
-export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
-    // (undocumented)
-    binding: Binding;
-}
-
-// @public (undocumented)
 export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
     // (undocumented)
     binding: Binding;
@@ -204,11 +198,21 @@ export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
 }
 
 // @public (undocumented)
-export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnUnbindOptions<Binding extends TLUnknownBinding> {
     // (undocumented)
     binding: Binding;
     // (undocumented)
-    shape: TLShape;
+    reason: BindingUnbindReason;
+}
+
+// @public (undocumented)
+export enum BindingUnbindReason {
+    // (undocumented)
+    DeletingBinding = "deleting_binding",
+    // (undocumented)
+    DeletingFromShape = "deleting_from_shape",
+    // (undocumented)
+    DeletingToShape = "deleting_to_shape"
 }
 
 // @public (undocumented)
@@ -228,17 +232,13 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     // (undocumented)
     onAfterCreate?(options: BindingOnCreateOptions<Binding>): void;
     // (undocumented)
-    onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void;
+    onAfterUnbind?(options: BindingOnUnbindOptions<Binding>): void;
     // (undocumented)
     onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void;
     // (undocumented)
     onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void;
     // (undocumented)
-    onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): void;
-    // (undocumented)
-    onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
-    // (undocumented)
-    onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
+    onBeforeUnbind?(options: BindingOnUnbindOptions<Binding>): void;
     // (undocumented)
     onOperationComplete?(): void;
     // (undocumented)

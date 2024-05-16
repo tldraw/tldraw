@@ -118,7 +118,12 @@ import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
-import { BindingUtil, TLBindingUtilConstructor } from './bindings/BindingUtil'
+import {
+	BindingOnUnbindOptions,
+	BindingUnbindReason,
+	BindingUtil,
+	TLBindingUtilConstructor,
+} from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
@@ -349,10 +354,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.sideEffects = this.store.sideEffects
 
+		let deletedBindings = new Map<TLBindingId, BindingOnUnbindOptions<any>>()
+		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<string>()
 		this.disposables.add(
 			this.sideEffects.registerOperationCompleteHandler(() => {
+				// this needs to be cleared here because further effects may delete more shapes
+				// and we want the next invocation of this handler to handle those separately
+				deletedShapeIds.clear()
+
 				for (const parentId of invalidParents) {
 					invalidParents.delete(parentId)
 					const parent = this.getShape(parentId)
@@ -372,6 +383,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 					for (const type of t) {
 						const util = this.getBindingUtil(type)
 						util.onOperationComplete?.()
+					}
+				}
+
+				if (deletedBindings.size) {
+					const t = deletedBindings
+					deletedBindings = new Map()
+					for (const opts of t.values()) {
+						this.getBindingUtil(opts.binding).onAfterUnbind?.(opts)
 					}
 				}
 
@@ -461,17 +480,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 							invalidParents.add(shape.parentId)
 						}
 
+						deletedShapeIds.add(shape.id)
+
 						const deleteBindingIds: TLBindingId[] = []
 						for (const binding of this.getBindingsInvolvingShape(shape)) {
 							invalidBindingTypes.add(binding.type)
-							if (binding.fromId === shape.id) {
-								this.getBindingUtil(binding).onBeforeDeleteFromShape?.({ binding, shape })
-								deleteBindingIds.push(binding.id)
-							}
-							if (binding.toId === shape.id) {
-								this.getBindingUtil(binding).onBeforeDeleteToShape?.({ binding, shape })
-								deleteBindingIds.push(binding.id)
-							}
+							deleteBindingIds.push(binding.id)
 						}
 						this.deleteBindings(deleteBindingIds)
 
@@ -510,11 +524,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.getBindingUtil(bindingAfter).onAfterChange?.({ bindingBefore, bindingAfter })
 					},
 					beforeDelete: (binding) => {
-						this.getBindingUtil(binding).onBeforeDelete?.({ binding })
+						const util = this.getBindingUtil(binding)
+						// No need to track this binding if it's util doesn't care about the unbind operation
+						if (!util.onBeforeUnbind && !util.onAfterUnbind) return
+						// We only want to call this once per binding and it might be possible that the onBeforeUnbind
+						// callback will trigger a nested delete operation on the same binding so let's bail out if
+						// that is happening
+						if (deletedBindings.has(binding.id)) return
+						const opts: BindingOnUnbindOptions<any> = {
+							binding,
+							reason: deletedShapeIds.has(binding.fromId)
+								? BindingUnbindReason.DeletingFromShape
+								: deletedShapeIds.has(binding.toId)
+									? BindingUnbindReason.DeletingToShape
+									: BindingUnbindReason.DeletingBinding,
+						}
+						deletedBindings.set(binding.id, opts)
+						this.getBindingUtil(binding).onBeforeUnbind?.(opts)
 					},
 					afterDelete: (binding) => {
 						invalidBindingTypes.add(binding.type)
-						this.getBindingUtil(binding).onAfterDelete?.({ binding })
 					},
 				},
 				page: {
@@ -2313,7 +2342,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const { currentScreenPoint, currentPagePoint } = this.inputs
 			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
-			// compare the next page point (derived from the curent camera) to the current page point
+			// compare the next page point (derived from the current camera) to the current page point
 			if (
 				currentScreenPoint.x / z - x !== currentPagePoint.x ||
 				currentScreenPoint.y / z - y !== currentPagePoint.y
@@ -2809,7 +2838,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomToUser(myUserId, { animation: { duration: 200 } })
 	 * ```
 	 *
-	 * @param userId - The id of the user to aniamte to.
+	 * @param userId - The id of the user to animate to.
 	 * @param opts - The camera move options.
 	 * @public
 	 */
@@ -4235,7 +4264,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const selectedShapeIds = this.getSelectedShapeIds()
 		return this.getCurrentPageShapesSorted()
 			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
-			.reverse() // findlast
+			.reverse() // find last
 			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
 
@@ -4314,7 +4343,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (this.isShapeOfType(shape, 'frame')) {
 				// On the rare case that we've hit a frame, test again hitInside to be forced true;
-				// this prevents clicks from passing through the body of a frame to shapes behhind it.
+				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
 				// If the hit is within the frame's outer margin, then select the frame
 				const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
@@ -4396,7 +4425,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								inMarginClosestToEdgeHit = shape
 							}
 						} else if (!inMarginClosestToEdgeHit) {
-							// If we're not within margin distnce to any edge, and if the
+							// If we're not within margin distance to any edge, and if the
 							// shape is hollow, then we want to hit the shape with the
 							// smallest area. (There's a bug here with self-intersecting
 							// shapes, like a closed drawing of an "8", but that's a bigger
@@ -4472,7 +4501,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { hitInside = false, margin = 0 } = opts
 		const id = typeof shape === 'string' ? shape : shape.id
 		// If the shape is masked, and if the point falls outside of that
-		// mask, then it's defintely a miss—we don't need to test further.
+		// mask, then it's definitely a miss—we don't need to test further.
 		const pageMask = this.getShapeMask(id)
 		if (pageMask && !pointInPolygon(point, pageMask)) return false
 
@@ -4792,7 +4821,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapesToReparent = compact(ids.map((id) => this.getShape(id)))
 
-		// The user is allowed to re-parent locked shapes. Unintutive? Yeah! But there are plenty of
+		// The user is allowed to re-parent locked shapes. Unintuitive? Yeah! But there are plenty of
 		// times when a locked shape's parent is deleted... and we need to put that shape somewhere!
 		const lockedShapes = shapesToReparent.filter((shape) => shape.isLocked)
 
@@ -4900,7 +4929,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param ids - The ids of the shapes to get descendants of.
 	 *
-	 * @returns The decscendant ids.
+	 * @returns The descendant ids.
 	 *
 	 * @public
 	 */
@@ -8347,7 +8376,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						let behavior = wheelBehavior
 
-						// If the camera behavior is "zoom" and the ctrl key is presssed, then pan;
+						// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
 						// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
 						if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
@@ -8705,8 +8734,7 @@ function withoutBindingsToUnrelatedShapes<T>(
 	callback: (bindingsWithBoth: Set<TLBindingId>) => T
 ): T {
 	const bindingsWithBoth = new Set<TLBindingId>()
-	const bindingsWithoutFrom = new Set<TLBindingId>()
-	const bindingsWithoutTo = new Set<TLBindingId>()
+	const bindingsToRemove = new Set<TLBindingId>()
 
 	for (const shapeId of shapeIds) {
 		const shape = editor.getShape(shapeId)
@@ -8719,11 +8747,8 @@ function withoutBindingsToUnrelatedShapes<T>(
 				bindingsWithBoth.add(binding.id)
 				continue
 			}
-			if (!hasFrom) {
-				bindingsWithoutFrom.add(binding.id)
-			}
-			if (!hasTo) {
-				bindingsWithoutTo.add(binding.id)
+			if (!hasFrom || !hasTo) {
+				bindingsToRemove.add(binding.id)
 			}
 		}
 	}
@@ -8732,31 +8757,7 @@ function withoutBindingsToUnrelatedShapes<T>(
 
 	editor.history.ignore(() => {
 		const changes = editor.store.extractingChanges(() => {
-			const bindingsToRemove: TLBindingId[] = []
-
-			for (const bindingId of bindingsWithoutFrom) {
-				const binding = editor.getBinding(bindingId)
-				if (!binding) continue
-
-				const shape = editor.getShape(binding.fromId)
-				if (!shape) continue
-
-				editor.getBindingUtil(binding).onBeforeDeleteFromShape?.({ binding, shape })
-				bindingsToRemove.push(binding.id)
-			}
-
-			for (const bindingId of bindingsWithoutTo) {
-				const binding = editor.getBinding(bindingId)
-				if (!binding) continue
-
-				const shape = editor.getShape(binding.toId)
-				if (!shape) continue
-
-				editor.getBindingUtil(binding).onBeforeDeleteToShape?.({ binding, shape })
-				bindingsToRemove.push(binding.id)
-			}
-
-			editor.deleteBindings(bindingsToRemove)
+			editor.deleteBindings([...bindingsToRemove])
 
 			try {
 				result = Result.ok(callback(bindingsWithBoth))
