@@ -55,7 +55,7 @@ beforeEach(() => {
 })
 
 function bindShapes(fromId: TLShapeId, toId: TLShapeId) {
-	const bindingId = createBindingId('test')
+	const bindingId = createBindingId()
 	editor.createBinding({
 		id: bindingId,
 		type: 'test',
@@ -141,10 +141,46 @@ test('copying the to shape on its own does trigger the unbind operation', () => 
 	)
 })
 
-// test('cascading deletes in ', () => {
-// 	mockOnAfterUnbind.mockImplementation((options) => {
-// 		if (options.reason === BindingUnbindReason.DeletingToShape) {
-// 			editor.deleteShape(options.binding.fromId)
-// 		}
-// 	})
-// })
+test('cascading deletes in afterUnbind are handled correctly', () => {
+	mockOnAfterUnbind.mockImplementation((options) => {
+		if (options.reason === BindingUnbindReason.DeletingFromShape) {
+			editor.deleteShape(options.binding.toId)
+		}
+	})
+
+	bindShapes(ids.box1, ids.box2)
+	bindShapes(ids.box2, ids.box3)
+	bindShapes(ids.box3, ids.box4)
+
+	editor.deleteShape(ids.box1)
+
+	expect(editor.getShape(ids.box1)).toBeUndefined()
+	expect(editor.getShape(ids.box2)).toBeUndefined()
+	expect(editor.getShape(ids.box3)).toBeUndefined()
+	expect(editor.getShape(ids.box4)).toBeUndefined()
+
+	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(3)
+	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(3)
+})
+
+test('cascading deletes in beforeUnbind are handled correctly', () => {
+	mockOnBeforeUnbind.mockImplementation((options) => {
+		if (options.reason === BindingUnbindReason.DeletingFromShape) {
+			editor.deleteShape(options.binding.toId)
+		}
+	})
+
+	bindShapes(ids.box1, ids.box2)
+	bindShapes(ids.box2, ids.box3)
+	bindShapes(ids.box3, ids.box4)
+
+	editor.deleteShape(ids.box1)
+
+	expect(editor.getShape(ids.box1)).toBeUndefined()
+	expect(editor.getShape(ids.box2)).toBeUndefined()
+	expect(editor.getShape(ids.box3)).toBeUndefined()
+	expect(editor.getShape(ids.box4)).toBeUndefined()
+
+	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(3)
+	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(3)
+})

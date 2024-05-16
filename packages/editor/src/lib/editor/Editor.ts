@@ -362,7 +362,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.sideEffects.registerOperationCompleteHandler(() => {
 				// this needs to be cleared here because further effects may delete more shapes
 				// and we want the next invocation of this handler to handle those separately
-				// TODO(david): test this behavior
 				deletedShapeIds.clear()
 
 				for (const parentId of invalidParents) {
