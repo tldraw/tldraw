@@ -184,3 +184,27 @@ test('cascading deletes in beforeUnbind are handled correctly', () => {
 	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(3)
 	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(3)
 })
+
+test('beforeUnbind is called before the from shape is deleted or the binding is deleted', () => {
+	mockOnBeforeUnbind.mockImplementationOnce(() => {
+		expect(editor.getShape(ids.box1)).toBeDefined()
+		expect(editor.getShape(ids.box2)).toBeDefined()
+		expect(editor.getBindingsFromShape(ids.box1, 'test')).toHaveLength(1)
+	})
+	bindShapes(ids.box1, ids.box2)
+	editor.deleteShape(ids.box1)
+
+	expect.assertions(3)
+})
+
+test('beforeUnbind is called before the to shape is deleted or the binding is deleted', () => {
+	mockOnBeforeUnbind.mockImplementationOnce(() => {
+		expect(editor.getShape(ids.box1)).toBeDefined()
+		expect(editor.getShape(ids.box2)).toBeDefined()
+		expect(editor.getBindingsToShape(ids.box2, 'test')).toHaveLength(1)
+	})
+	bindShapes(ids.box1, ids.box2)
+	editor.deleteShape(ids.box2)
+
+	expect.assertions(3)
+})
