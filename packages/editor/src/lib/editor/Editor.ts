@@ -131,6 +131,7 @@ import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage
 import { getSvgJsx } from './getSvgJsx'
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
+import { FocusManager } from './managers/FocusManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
@@ -204,6 +205,10 @@ export interface TLEditorOptions {
 	 */
 	initialState?: string
 	/**
+	 * Whether to automatically focus the editor when it mounts.
+	 */
+	autoFocus?: boolean
+	/**
 	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
 	 */
 	inferDarkMode?: boolean
@@ -224,6 +229,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		getContainer,
 		cameraOptions,
 		initialState,
+		autoFocus,
 		inferDarkMode,
 	}: TLEditorOptions) {
 		super()
@@ -677,6 +683,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root.enter(undefined, 'initial')
 
+		this.focusManager = new FocusManager(this, autoFocus)
+		this.disposables.add(this.focusManager.dispose.bind(this.focusManager))
+
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
@@ -755,6 +764,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly sideEffects: StoreSideEffects<TLRecord>
+
+	/**
+	 * A manager for ensuring correct focus. See FocusManager for details.
+	 *
+	 * @internal
+	 */
+	private focusManager: FocusManager
 
 	/**
 	 * The current HTML element containing the editor.
@@ -8063,6 +8079,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	complete(): this {
 		this.dispatch({ type: 'misc', name: 'complete' })
+		return this
+	}
+
+	/**
+	 * Dispatch a focus event.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.focus()
+	 * ```
+	 *
+	 * @public
+	 */
+	focus(): this {
+		this.focusManager.focus()
 		return this
 	}
 

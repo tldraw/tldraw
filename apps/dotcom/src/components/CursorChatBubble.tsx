@@ -9,7 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { preventDefault, track, useContainer, useEditor, useTranslation } from 'tldraw'
+import { preventDefault, track, useEditor, useTranslation } from 'tldraw'
 
 // todo:
 // - not cleaning up
@@ -18,7 +18,6 @@ const CHAT_MESSAGE_TIMEOUT_CHATTING = 5000
 
 export const CursorChatBubble = track(function CursorChatBubble() {
 	const editor = useEditor()
-	const container = useContainer()
 	const { isChatting, chatMessage } = editor.getInstanceState()
 
 	const rTimeout = useRef<any>(-1)
@@ -31,14 +30,14 @@ export const CursorChatBubble = track(function CursorChatBubble() {
 			rTimeout.current = setTimeout(() => {
 				editor.updateInstanceState({ chatMessage: '', isChatting: false })
 				setValue('')
-				container.focus()
+				editor.focus()
 			}, duration)
 		}
 
 		return () => {
 			clearTimeout(rTimeout.current)
 		}
-	}, [container, editor, chatMessage, isChatting])
+	}, [editor, chatMessage, isChatting])
 
 	if (isChatting)
 		return <CursorChatInput value={value} setValue={setValue} chatMessage={chatMessage} />
@@ -101,7 +100,6 @@ const CursorChatInput = track(function CursorChatInput({
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const container = useContainer()
 
 	const ref = useRef<HTMLInputElement>(null)
 	const placeholder = chatMessage || msg('cursor-chat.type-to-chat')
@@ -126,11 +124,9 @@ const CursorChatInput = track(function CursorChatInput({
 	}, [editor, value, placeholder])
 
 	useLayoutEffect(() => {
-		// Focus the editor
-		let raf = requestAnimationFrame(() => {
-			raf = requestAnimationFrame(() => {
-				ref.current?.focus()
-			})
+		// Focus the input
+		const raf = requestAnimationFrame(() => {
+			ref.current?.focus()
 		})
 
 		return () => {
@@ -140,8 +136,8 @@ const CursorChatInput = track(function CursorChatInput({
 
 	const stopChatting = useCallback(() => {
 		editor.updateInstanceState({ isChatting: false })
-		container.focus()
-	}, [editor, container])
+		editor.focus()
+	}, [editor])
 
 	// Update the chat message as the user types
 	const handleChange = useCallback(

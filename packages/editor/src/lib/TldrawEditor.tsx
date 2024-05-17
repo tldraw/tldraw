@@ -30,10 +30,8 @@ import {
 	useEditorComponents,
 } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
-import { useFocusEvents } from './hooks/useFocusEvents'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
-import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
 import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
@@ -305,6 +303,7 @@ function TldrawEditorWithReadyStore({
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
 	const [editor, setEditor] = useState<Editor | null>(null)
+	const [initialAutoFocus] = useState(autoFocus)
 
 	useLayoutEffect(() => {
 		const editor = new Editor({
@@ -315,6 +314,7 @@ function TldrawEditorWithReadyStore({
 			getContainer: () => container,
 			user,
 			initialState,
+			autoFocus: initialAutoFocus,
 			inferDarkMode,
 			cameraOptions,
 		})
@@ -331,6 +331,7 @@ function TldrawEditorWithReadyStore({
 		store,
 		user,
 		initialState,
+		initialAutoFocus,
 		inferDarkMode,
 		cameraOptions,
 	])
@@ -374,30 +375,18 @@ function TldrawEditorWithReadyStore({
 				<Crash crashingError={crashingError} />
 			) : (
 				<EditorContext.Provider value={editor}>
-					<Layout autoFocus={autoFocus} onMount={onMount}>
-						{children ?? (Canvas ? <Canvas /> : null)}
-					</Layout>
+					<Layout onMount={onMount}>{children ?? (Canvas ? <Canvas /> : null)}</Layout>
 				</EditorContext.Provider>
 			)}
 		</OptionalErrorBoundary>
 	)
 }
 
-function Layout({
-	children,
-	onMount,
-	autoFocus,
-}: {
-	children: ReactNode
-	autoFocus: boolean
-	onMount?: TLOnMountHandler
-}) {
+function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMountHandler }) {
 	useZoomCss()
 	useCursor()
 	useDarkMode()
-	useSafariFocusOutFix()
 	useForceUpdate()
-	useFocusEvents(autoFocus)
 	useOnMount(onMount)
 
 	return (

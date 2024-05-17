@@ -40,6 +40,7 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 	const msg = useTranslation()
 
 	const rPointing = useRef(false)
+	const rPointingOriginalActiveElement = useRef<HTMLElement | null>(null)
 
 	const {
 		handleButtonClick,
@@ -50,6 +51,15 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 		const handlePointerUp = () => {
 			rPointing.current = false
 			window.removeEventListener('pointerup', handlePointerUp)
+
+			// This is fun little micro-optimization to make sure that the focus
+			// is retained on a text label. That way, you can continue typing
+			// after selecting a style.
+			const origActiveEl = rPointingOriginalActiveElement.current
+			if (origActiveEl && ['TEXTAREA', 'INPUT'].includes(origActiveEl.nodeName)) {
+				origActiveEl.focus()
+			}
+			rPointingOriginalActiveElement.current = null
 		}
 
 		const handleButtonClick = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -67,6 +77,7 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 			onValueChange(style, id as T)
 
 			rPointing.current = true
+			rPointingOriginalActiveElement.current = document.activeElement as HTMLElement
 			window.addEventListener('pointerup', handlePointerUp) // see TLD-658
 		}
 

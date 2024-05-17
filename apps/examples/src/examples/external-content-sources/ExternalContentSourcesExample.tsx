@@ -67,7 +67,7 @@ export default function ExternalContentSourcesExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw autoFocus onMount={handleMount} shapeUtils={[DangerousHtmlExample]} />
+			<Tldraw onMount={handleMount} shapeUtils={[DangerousHtmlExample]} />
 		</div>
 	)
 }

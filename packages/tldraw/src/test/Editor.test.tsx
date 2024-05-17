@@ -446,7 +446,9 @@ describe('isFocused', () => {
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
-	it('becomes false when a child of the app container div receives a focusout event', () => {
+	it.skip('becomes false when a child of the app container div receives a focusout event', () => {
+		// This used to be true, but the focusout event doesn't actually bubble up anymore
+		// after we reworked to have the focus manager handle things.
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 

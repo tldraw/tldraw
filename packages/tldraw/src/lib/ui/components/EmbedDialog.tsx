@@ -51,7 +51,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							className="tlui-embed-dialog__input"
 							label="embed-dialog.url"
 							placeholder="http://example.com"
-							autofocus
+							autoFocus
 							onValueChange={(value) => {
 								// Set the url that the user has typed into the input
 								setUrl(value)
