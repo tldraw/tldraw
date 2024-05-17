@@ -3537,6 +3537,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.stopFollowingUser()
+		// cancel any in-progress interactions
+		this.cancel()
 
 		return this.batch(
 			() => this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }]),
