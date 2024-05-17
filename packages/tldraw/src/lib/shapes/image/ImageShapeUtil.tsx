@@ -8,12 +8,15 @@ import {
 	TLOnDoubleClickHandler,
 	TLShapePartial,
 	Vec,
+	debounce,
 	imageShapeMigrations,
 	imageShapeProps,
 	structuredClone,
 	toDomPrecision,
+	useEditorHooks,
+	useValue,
 } from '@tldraw/editor'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
@@ -59,16 +62,51 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
+		const [loadedSrc, setLoadedSrc] = useState('')
+		const { useAssetHandler } = useEditorHooks()
+		const { handleAsset } = useAssetHandler()
 
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
+		// We debounce the zoom level to reduce the number of times we fetch a new image and,
+		// more importantly, to not cause zooming in and out to feel janky.
+		const [debouncedZoom, setDebouncedZoom] = useState(this.editor.getZoomLevel())
+		const zoomUpdater = useRef(debounce((zoom: number) => setDebouncedZoom(zoom), 500))
+		useValue('zoom level', () => zoomUpdater.current(this.editor.getZoomLevel()), [this.editor])
+		const networkEffectiveType: string | null =
+			'connection' in navigator ? (navigator as any).connection.effectiveType : null
+		const dpr = window.devicePixelRatio
+		const src = handleAsset(asset, { zoom: debouncedZoom, dpr, networkEffectiveType })
+
 		useEffect(() => {
-			if (asset?.props.src && this.isAnimated(shape)) {
+			// If an image is not animated (that's handled below), then we preload the image
+			// because we might have different source urls for different zoom levels.
+			// Preloading the image ensures that the browser caches the image and doesn't
+			// cause visual flickering when the image is loaded.
+			if (src && !this.isAnimated(shape)) {
 				let cancelled = false
-				const url = asset.props.src
-				if (!url) return
+				if (!src) return
+
+				const image = new Image()
+				image.onload = () => {
+					if (cancelled) return
+					setLoadedSrc(src)
+				}
+				image.crossOrigin = 'anonymous'
+				image.src = src
+
+				return () => {
+					cancelled = true
+				}
+			}
+		}, [src, shape])
+
+		useEffect(() => {
+			if (src && this.isAnimated(shape)) {
+				let cancelled = false
+				if (!src) return
 
 				const image = new Image()
 				image.onload = () => {
@@ -85,13 +123,13 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					setStaticFrameSrc(canvas.toDataURL())
 				}
 				image.crossOrigin = 'anonymous'
-				image.src = url
+				image.src = src
 
 				return () => {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, asset?.props, shape])
+		}, [prefersReducedMotion, src, shape])
 
 		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")
@@ -108,7 +146,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
-		if (!asset?.props.src) {
+		if (!src) {
 			return (
 				<HTMLContainer
 					id={shape.id}
@@ -141,7 +179,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							style={{
 								opacity: 0.1,
 								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+									!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc
 								})`,
 							}}
 							draggable={false}
@@ -157,7 +195,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							className="tl-image"
 							style={{
 								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+									!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc
 								})`,
 							}}
 							draggable={false}

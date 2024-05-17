@@ -8,6 +8,7 @@ import {
 	MigrationSequence,
 	StoreSnapshot,
 	TLEditorComponents,
+	TLEditorHooks,
 	TLOnMountHandler,
 	TLRecord,
 	TLStore,
@@ -43,6 +44,9 @@ import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/asset
 
 /**@public */
 export type TLComponents = Expand<TLEditorComponents & TLUiComponents>
+
+/**@public */
+export type TLHooks = Expand<TLEditorHooks>
 
 /** @public */
 export type TldrawProps = Expand<

@@ -3,8 +3,11 @@ import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
 	TLVideoShape,
+	debounce,
 	toDomPrecision,
+	useEditorHooks,
 	useIsEditing,
+	useValue,
 	videoShapeMigrations,
 	videoShapeProps,
 } from '@tldraw/editor'
@@ -40,6 +43,8 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const { time, playing } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
+		const { useAssetHandler } = useEditorHooks()
+		const { handleAsset } = useAssetHandler()
 
 		const rVideo = useRef<HTMLVideoElement>(null!)
 
@@ -145,6 +150,19 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			}
 		}, [rVideo, prefersReducedMotion])
 
+		// We debounce the zoom level to reduce the number of times we fetch a new image and,
+		// more importantly, to not cause zooming in and out to feel janky.
+		const [debouncedZoom, setDebouncedZoom] = useState(this.editor.getZoomLevel())
+		const zoomUpdater = useRef(debounce((zoom: number) => setDebouncedZoom(zoom), 500))
+		useValue('zoom level', () => zoomUpdater.current(editor.getZoomLevel()), [editor])
+		const networkEffectiveType: string | null =
+			'connection' in navigator ? (navigator as any).connection.effectiveType : null
+		const dpr = window.devicePixelRatio
+
+		// N.B. on dotcom, we don't currently actually change the quality of the video at the moment.
+		// But theoretically, someone could take advantage of this capability for videos.
+		const src = handleAsset(asset, { zoom: debouncedZoom, dpr, networkEffectiveType })
+
 		return (
 			<>
 				<HTMLContainer
@@ -157,7 +175,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 				>
 					<div className="tl-counter-scaled">
 						<div className="tl-video-container">
-							{asset?.props.src ? (
+							{src ? (
 								<video
 									ref={rVideo}
 									style={isEditing ? { pointerEvents: 'all' } : undefined}
@@ -178,7 +196,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 									onLoadedData={handleLoadedData}
 									hidden={!isLoaded}
 								>
-									<source src={asset.props.src} />
+									<source src={src} />
 								</video>
 							) : (
 								<BrokenAssetIcon />

@@ -13,6 +13,7 @@ import {
 	ExtrasGroup,
 	PreferencesGroup,
 	TLComponents,
+	TLHooks,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -25,6 +26,7 @@ import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../utils/migration/LocalMigration'
 import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
+import { useAssetHandler } from '../utils/useAssetHandler'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { LocalFileMenu } from './FileMenu'
@@ -85,6 +87,10 @@ const components: TLComponents = {
 	},
 }
 
+const hooks: TLHooks = {
+	useAssetHandler,
+}
+
 export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
@@ -106,6 +112,7 @@ export function LocalEditor() {
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
+				hooks={hooks}
 				inferDarkMode
 			>
 				<LocalMigration />

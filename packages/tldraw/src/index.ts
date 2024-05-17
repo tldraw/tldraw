@@ -292,7 +292,7 @@ export {
 	FeatureFlags,
 } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
 
-export { type TLComponents } from './lib/Tldraw'
+export { type TLComponents, type TLHooks } from './lib/Tldraw'
 
 /* ------------------- Primitives ------------------- */
 

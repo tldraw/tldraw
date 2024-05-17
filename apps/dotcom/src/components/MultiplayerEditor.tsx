@@ -14,6 +14,7 @@ import {
 	ExtrasGroup,
 	PreferencesGroup,
 	TLComponents,
+	TLHooks,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -30,6 +31,7 @@ import { CursorChatMenuItem } from '../utils/context-menu/CursorChatMenuItem'
 import { createAssetFromFile } from '../utils/createAssetFromFile'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { useSharing } from '../utils/sharing'
+import { useAssetHandler } from '../utils/useAssetHandler'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
@@ -103,6 +105,10 @@ const components: TLComponents = {
 	},
 }
 
+const hooks: TLHooks = {
+	useAssetHandler,
+}
+
 export function MultiplayerEditor({
 	roomOpenMode,
 	roomSlug,
@@ -158,6 +164,7 @@ export function MultiplayerEditor({
 				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
+				hooks={hooks}
 				autoFocus
 				inferDarkMode
 			>
