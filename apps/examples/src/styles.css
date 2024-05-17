@@ -87,7 +87,7 @@ html,
 	margin: 8px;
 	padding: 8px;
 	border-radius: 6px;
-	border: 1px solid #e8e8e8;
+	border: 1px solid var(--gray-dark);
 	font-size: 14px;
 }
 
@@ -238,7 +238,7 @@ li.examples__sidebar__item {
 	font-size: 13px;
 	font-weight: 400;
 	padding: 8px;
-	border-top: 1px solid #e8e8e8;
+	border-top: 1px solid var(--gray-dark);
 }
 
 .example__sidebar__header-link,
@@ -263,9 +263,9 @@ a.example__sidebar__header-link {
 }
 
 .example__sidebar__footer-link--grey {
-	background-color: #f5f5f5;
+	background-color: var(--gray-light);
 	color: black;
-	border: 1px solid #e8e8e8;
+	border: 1px solid var(--gray-dark);
 	font-size: 14px;
 }
 
@@ -410,9 +410,9 @@ a.example__sidebar__header-link {
 	justify-content: center;
 	text-decoration: none;
 	gap: 8px;
-	background-color: #f5f5f5;
+	background-color: var(--gray-light);
 	color: black;
-	border: 1px solid #e8e8e8;
+	border: 1px solid var(--gray-dark);
 	font-size: 14px;
 }
 
