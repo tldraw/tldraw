@@ -382,6 +382,9 @@ export function DefaultMainMenuContent(): JSX_2.Element;
 export function DefaultMinimap(): JSX_2.Element;
 
 // @public (undocumented)
+export const DefaultNavigationPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
 
 // @public (undocumented)

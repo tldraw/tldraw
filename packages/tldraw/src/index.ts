@@ -156,6 +156,8 @@ export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
 export { PageItemInput } from './lib/ui/components/PageMenu/PageItemInput'
 export { PageItemSubmenu } from './lib/ui/components/PageMenu/PageItemSubmenu'
 
+export { DefaultNavigationPanel } from './lib/ui/components/NavigationPanel/DefaultNavigationPanel'
+
 export {
 	DefaultStylePanel,
 	type TLUiStylePanelProps,
