@@ -52,8 +52,10 @@ export class TextBindingUtil extends BindingUtil<TLTextBinding> {
 			!this.editor.isIn('text.idle') &&
 			(!this.editor.isIn('select.translating') ||
 				!this.editor.getSelectedShapeIds().includes(shapeAfter.id))
-		)
+		) {
+			makeTextGood(this.editor, shapeAfter.id)
 			return
+		}
 		const edgeSlop = 25
 		if (shapeBefore.x !== shapeAfter.x || shapeBefore.y !== shapeAfter.y) {
 			const textShapeTransform = this.editor.getShapePageTransform(shapeAfter)
@@ -206,7 +208,7 @@ function makeTextGood(editor: Editor, textId: TLShapeId) {
 		return
 	}
 
-	if (textShape.rotation !== boundShape.rotation) {
+	if (!approximately(textShape.rotation, boundShape.rotation)) {
 		editor.updateShape({ ...textShape, rotation: boundShape.rotation })
 		return
 	}
