@@ -15,7 +15,7 @@ describe(SelectTool, () => {
 	describe('pointer down while shape is being edited', () => {
 		it('captures the pointer down event if it is on the shape', () => {
 			editor.setCurrentTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)
-			const shapeId = editor.getOnlySelectedShape()?.id
+			const shapeId = editor.getLastCreatedShape().id
 			editor._transformPointerDownSpy.mockRestore()
 			editor._transformPointerUpSpy.mockRestore()
 			editor.setCurrentTool('select')
@@ -42,7 +42,7 @@ describe(SelectTool, () => {
 	})
 	it('does not allow pressing undo to end up in the editing state', () => {
 		editor.setCurrentTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)
-		const shapeId = editor.getOnlySelectedShape()?.id
+		const shapeId = editor.getLastCreatedShape().id
 		editor._transformPointerDownSpy.mockRestore()
 		editor._transformPointerUpSpy.mockRestore()
 		editor.setCurrentTool('select')
@@ -136,8 +136,8 @@ describe('When brushing arrows', () => {
 					ref="arrow1"
 					x={0}
 					y={0}
-					start={{ type: 'point', x: 0, y: 0 }}
-					end={{ type: 'point', x: 100, y: 100 }}
+					start={{ x: 0, y: 0 }}
+					end={{ x: 100, y: 100 }}
 					bend={0}
 				/>,
 			])
@@ -158,8 +158,8 @@ describe('When brushing arrows', () => {
 					ref="arrow1"
 					x={0}
 					y={0}
-					start={{ type: 'point', x: 0, y: 0 }}
-					end={{ type: 'point', x: 100, y: 100 }}
+					start={{ x: 0, y: 0 }}
+					end={{ x: 100, y: 100 }}
 					bend={40}
 				/>,
 			])

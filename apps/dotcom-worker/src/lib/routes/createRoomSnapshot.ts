@@ -1,16 +1,14 @@
-import { SerializedSchema, SerializedStore } from '@tldraw/store'
-import { TLRecord } from '@tldraw/tlschema'
+import { CreateSnapshotRequestBody } from '@tldraw/dotcom-shared'
+import { RoomSnapshot } from '@tldraw/tlsync'
 import { IRequest } from 'itty-router'
 import { nanoid } from 'nanoid'
+import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
-import { createSupabaseClient, noSupabaseSorry } from '../utils/createSupabaseClient'
-import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { validateSnapshot } from '../utils/validateSnapshot'
 
-type CreateSnapshotRequestBody = {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | string[] | undefined
+export type R2Snapshot = {
+	parent_slug: CreateSnapshotRequestBody['parent_slug']
+	drawing: RoomSnapshot
 }
 
 export async function createRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
@@ -25,7 +23,6 @@ export async function createRoomSnapshot(request: IRequest, env: Environment): P
 
 	const persistedRoomSnapshot = {
 		parent_slug: data.parent_slug,
-		slug: roomId,
 		drawing: {
 			schema: data.schema,
 			clock: 0,
@@ -35,13 +32,16 @@ export async function createRoomSnapshot(request: IRequest, env: Environment): P
 			})),
 			tombstones: {},
 		},
+	} satisfies R2Snapshot
+
+	const parentSlug = data.parent_slug
+	if (parentSlug) {
+		await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(roomId, parentSlug)
 	}
-
-	const supabase = createSupabaseClient(env)
-	if (!supabase) return noSupabaseSorry()
-
-	const supabaseTable = getSnapshotsTable(env)
-	await supabase.from(supabaseTable).insert(persistedRoomSnapshot)
+	await env.ROOM_SNAPSHOTS.put(
+		getR2KeyForSnapshot(parentSlug, roomId),
+		JSON.stringify(persistedRoomSnapshot)
+	)
 
 	return new Response(JSON.stringify({ error: false, roomId }))
 }

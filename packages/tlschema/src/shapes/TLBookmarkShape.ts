@@ -1,7 +1,8 @@
-import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import { ShapePropsType, TLBaseShape } from './TLBaseShape'
+import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
+import { RETIRED_DOWN_MIGRATION, RecordPropsType } from '../recordsWithProps'
+import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export const bookmarkShapeProps = {
@@ -12,44 +13,40 @@ export const bookmarkShapeProps = {
 }
 
 /** @public */
-export type TLBookmarkShapeProps = ShapePropsType<typeof bookmarkShapeProps>
+export type TLBookmarkShapeProps = RecordPropsType<typeof bookmarkShapeProps>
 
 /** @public */
 export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>
 
-const Versions = {
+const Versions = createShapePropsMigrationIds('bookmark', {
 	NullAssetId: 1,
 	MakeUrlsValid: 2,
-} as const
+})
 
-/** @internal */
-export const bookmarkShapeMigrations = defineMigrations({
-	currentVersion: Versions.MakeUrlsValid,
-	migrators: {
-		[Versions.NullAssetId]: {
-			up: (shape: TLBookmarkShape) => {
-				if (shape.props.assetId === undefined) {
-					return { ...shape, props: { ...shape.props, assetId: null } } as typeof shape
+export { Versions as bookmarkShapeVersions }
+
+/** @public */
+export const bookmarkShapeMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: Versions.NullAssetId,
+			up: (props) => {
+				if (props.assetId === undefined) {
+					props.assetId = null
 				}
-				return shape
 			},
-			down: (shape: TLBookmarkShape) => {
-				if (shape.props.assetId === null) {
-					const { assetId: _, ...props } = shape.props
-					return { ...shape, props } as typeof shape
+			down: RETIRED_DOWN_MIGRATION,
+		},
+		{
+			id: Versions.MakeUrlsValid,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
 				}
-				return shape
+			},
+			down: (_props) => {
+				// noop
 			},
 		},
-		[Versions.MakeUrlsValid]: {
-			up: (shape) => {
-				const url = shape.props.url
-				if (url !== '' && !T.linkUrl.isValid(shape.props.url)) {
-					return { ...shape, props: { ...shape.props, url: '' } }
-				}
-				return shape
-			},
-			down: (shape) => shape,
-		},
-	},
+	],
 })

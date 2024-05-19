@@ -1,8 +1,11 @@
 import {
+	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORT_VIDEO_TYPES,
 	Editor,
 	ErrorScreen,
 	Expand,
 	LoadingScreen,
+	MigrationSequence,
 	StoreSnapshot,
 	TLEditorComponents,
 	TLOnMountHandler,
@@ -19,10 +22,10 @@ import {
 } from '@tldraw/editor'
 import { useLayoutEffect, useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
-import { TldrawHoveredShapeIndicator } from './canvas/TldrawHoveredShapeIndicator'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
+import { defaultBindingUtils } from './defaultBindingUtils'
 import {
 	TLExternalContentProps,
 	registerDefaultExternalContentHandlers,
@@ -57,6 +60,7 @@ export type TldrawProps = Expand<
 			  }
 			| {
 					store?: undefined
+					migrations?: readonly MigrationSequence[]
 					persistenceKey?: string
 					sessionId?: string
 					defaultName?: string
@@ -79,6 +83,7 @@ export function Tldraw(props: TldrawProps) {
 		onMount,
 		components = {},
 		shapeUtils = [],
+		bindingUtils = [],
 		tools = [],
 		...rest
 	} = props
@@ -91,7 +96,6 @@ export function Tldraw(props: TldrawProps) {
 			SelectionForeground: TldrawSelectionForeground,
 			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
-			HoveredShapeIndicator: TldrawHoveredShapeIndicator,
 			TextLabel: TldrawTextLabel,
 			..._components,
 		}),
@@ -104,6 +108,12 @@ export function Tldraw(props: TldrawProps) {
 		[_shapeUtils]
 	)
 
+	const _bindingUtils = useShallowArrayIdentity(bindingUtils)
+	const bindingUtilsWithDefaults = useMemo(
+		() => [...defaultBindingUtils, ..._bindingUtils],
+		[_bindingUtils]
+	)
+
 	const _tools = useShallowArrayIdentity(tools)
 	const toolsWithDefaults = useMemo(
 		() => [...defaultTools, ...defaultShapeTools, ..._tools],
@@ -111,13 +121,10 @@ export function Tldraw(props: TldrawProps) {
 	)
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
-
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
-
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
-
 	if (!preloadingComplete) {
 		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
@@ -128,6 +135,7 @@ export function Tldraw(props: TldrawProps) {
 			{...rest}
 			components={componentsWithDefault}
 			shapeUtils={shapeUtilsWithDefaults}
+			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault}>
@@ -144,21 +152,12 @@ export function Tldraw(props: TldrawProps) {
 	)
 }
 
-const defaultAcceptedImageMimeTypes = Object.freeze([
-	'image/jpeg',
-	'image/png',
-	'image/gif',
-	'image/svg+xml',
-])
-
-const defaultAcceptedVideoMimeTypes = Object.freeze(['video/mp4', 'video/quicktime'])
-
 // We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor and TldrawUi.
 function InsideOfEditorAndUiContext({
 	maxImageDimension = 1000,
 	maxAssetSize = 10 * 1024 * 1024, // 10mb
-	acceptedImageMimeTypes = defaultAcceptedImageMimeTypes,
-	acceptedVideoMimeTypes = defaultAcceptedVideoMimeTypes,
+	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
+	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
 }: Partial<TLExternalContentProps & { onMount: TLOnMountHandler }>) {
 	const editor = useEditor()

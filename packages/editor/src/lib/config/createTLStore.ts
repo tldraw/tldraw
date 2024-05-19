@@ -1,21 +1,19 @@
-import { HistoryEntry, SerializedStore, Store, StoreSchema } from '@tldraw/store'
-import {
-	SchemaShapeInfo,
-	TLRecord,
-	TLStore,
-	TLStoreProps,
-	TLUnknownShape,
-	createTLSchema,
-} from '@tldraw/tlschema'
-import { TLShapeUtilConstructor } from '../editor/shapes/ShapeUtil'
+import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
+import { SchemaPropsInfo, TLRecord, TLStore, TLStoreProps, createTLSchema } from '@tldraw/tlschema'
+import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
 /** @public */
 export type TLStoreOptions = {
 	initialData?: SerializedStore<TLRecord>
 	defaultName?: string
+	id?: string
 } & (
-	| { shapeUtils?: readonly TLAnyShapeUtilConstructor[] }
+	| {
+			shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+			migrations?: readonly MigrationSequence[]
+			bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+	  }
 	| { schema?: StoreSchema<TLRecord, TLStoreProps> }
 )
 
@@ -28,19 +26,29 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>
  * @param opts - Options for creating the store.
  *
  * @public */
-export function createTLStore({ initialData, defaultName = '', ...rest }: TLStoreOptions): TLStore {
+export function createTLStore({
+	initialData,
+	defaultName = '',
+	id,
+	...rest
+}: TLStoreOptions): TLStore {
 	const schema =
 		'schema' in rest && rest.schema
 			? // we have a schema
 				rest.schema
 			: // we need a schema
 				createTLSchema({
-					shapes: currentPageShapesToShapeMap(
+					shapes: utilsToMap(
 						checkShapesAndAddCore('shapeUtils' in rest && rest.shapeUtils ? rest.shapeUtils : [])
 					),
+					bindings: utilsToMap(
+						checkBindings('bindingUtils' in rest && rest.bindingUtils ? rest.bindingUtils : [])
+					),
+					migrations: 'migrations' in rest ? rest.migrations : [],
 				})
 
 	return new Store({
+		id,
 		schema,
 		initialData,
 		props: {
@@ -49,9 +57,9 @@ export function createTLStore({ initialData, defaultName = '', ...rest }: TLStor
 	})
 }
 
-function currentPageShapesToShapeMap(shapeUtils: TLShapeUtilConstructor<TLUnknownShape>[]) {
+function utilsToMap<T extends SchemaPropsInfo & { type: string }>(utils: T[]) {
 	return Object.fromEntries(
-		shapeUtils.map((s): [string, SchemaShapeInfo] => [
+		utils.map((s): [string, SchemaPropsInfo] => [
 			s.type,
 			{
 				props: s.props,

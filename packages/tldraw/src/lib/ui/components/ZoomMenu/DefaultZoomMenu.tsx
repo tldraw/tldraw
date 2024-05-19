@@ -55,7 +55,9 @@ const ZoomTriggerButton = forwardRef<HTMLButtonElement, any>(
 		const msg = useTranslation()
 
 		const handleDoubleClick = useCallback(() => {
-			editor.resetZoom(editor.getViewportScreenCenter(), { duration: ANIMATION_MEDIUM_MS })
+			editor.resetZoom(editor.getViewportScreenCenter(), {
+				animation: { duration: ANIMATION_MEDIUM_MS },
+			})
 		}, [editor])
 
 		return (

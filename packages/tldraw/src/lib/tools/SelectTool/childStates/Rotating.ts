@@ -10,6 +10,7 @@ import {
 	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
+import { kickoutOccludedShapes } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 const ONE_DEGREE = Math.PI / 180
@@ -50,11 +51,9 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-			},
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle as RotateCorner],
+			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
 		})
 	}
 
@@ -104,11 +103,9 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.updateInstanceState({
-			cursor: {
-				type: CursorTypeMap[this.info.handle as RotateCorner],
-				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-			},
+		this.editor.setCursor({
+			type: CursorTypeMap[this.info.handle as RotateCorner],
+			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
 		})
 	}
 
@@ -128,6 +125,10 @@ export class Rotating extends StateNode {
 			snapshot: this.snapshot,
 			stage: 'end',
 		})
+		kickoutOccludedShapes(
+			this.editor,
+			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
+		)
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {

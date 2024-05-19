@@ -1,10 +1,17 @@
-import { createRecordType, defineMigrations, RecordId, UnknownRecord } from '@tldraw/store'
+import {
+	RecordId,
+	UnknownRecord,
+	createMigrationIds,
+	createRecordMigrationSequence,
+	createRecordType,
+} from '@tldraw/store'
 import { mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { nanoid } from 'nanoid'
-import { SchemaShapeInfo } from '../createTLSchema'
+import { SchemaPropsInfo } from '../createTLSchema'
+import { TLPropsMigrations } from '../recordsWithProps'
 import { TLArrowShape } from '../shapes/TLArrowShape'
-import { createShapeValidator, TLBaseShape } from '../shapes/TLBaseShape'
+import { TLBaseShape, createShapeValidator } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
@@ -66,88 +73,70 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 /** @public */
 export type TLShapeId = RecordId<TLUnknownShape>
 
-// evil type shit that will get deleted in the next PR
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
-	? I
-	: never
-
-type Identity<T> = { [K in keyof T]: T[K] }
-
-/** @public */
-export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>
-
-/** @public */
-export type TLShapeProp = keyof TLShapeProps
-
 /** @public */
 export type TLParentId = TLPageId | TLShapeId
 
-/** @internal */
-export const rootShapeVersions = {
+/** @public */
+export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	AddIsLocked: 1,
 	HoistOpacity: 2,
 	AddMeta: 3,
-} as const
+	AddWhite: 4,
+} as const)
 
-/** @internal */
-export const rootShapeMigrations = defineMigrations({
-	currentVersion: rootShapeVersions.AddMeta,
-	migrators: {
-		[rootShapeVersions.AddIsLocked]: {
-			up: (record) => {
-				return {
-					...record,
-					isLocked: false,
-				}
+/** @public */
+export const rootShapeMigrations = createRecordMigrationSequence({
+	sequenceId: 'com.tldraw.shape',
+	recordType: 'shape',
+	sequence: [
+		{
+			id: rootShapeVersions.AddIsLocked,
+			up: (record: any) => {
+				record.isLocked = false
 			},
-			down: (record) => {
-				const { isLocked: _, ...rest } = record
-				return {
-					...rest,
+			down: (record: any) => {
+				delete record.isLocked
+			},
+		},
+		{
+			id: rootShapeVersions.HoistOpacity,
+			up: (record: any) => {
+				record.opacity = Number(record.props.opacity ?? '1')
+				delete record.props.opacity
+			},
+			down: (record: any) => {
+				const opacity = record.opacity
+				delete record.opacity
+				record.props.opacity =
+					opacity < 0.175
+						? '0.1'
+						: opacity < 0.375
+							? '0.25'
+							: opacity < 0.625
+								? '0.5'
+								: opacity < 0.875
+									? '0.75'
+									: '1'
+			},
+		},
+		{
+			id: rootShapeVersions.AddMeta,
+			up: (record: any) => {
+				record.meta = {}
+			},
+		},
+		{
+			id: rootShapeVersions.AddWhite,
+			up: (_record) => {
+				// noop
+			},
+			down: (record: any) => {
+				if (record.props.color === 'white') {
+					record.props.color = 'black'
 				}
 			},
 		},
-		[rootShapeVersions.HoistOpacity]: {
-			up: ({ props: { opacity, ...props }, ...record }) => {
-				return {
-					...record,
-					opacity: Number(opacity ?? '1'),
-					props,
-				}
-			},
-			down: ({ opacity, ...record }) => {
-				return {
-					...record,
-					props: {
-						...record.props,
-						opacity:
-							opacity < 0.175
-								? '0.1'
-								: opacity < 0.375
-									? '0.25'
-									: opacity < 0.625
-										? '0.5'
-										: opacity < 0.875
-											? '0.75'
-											: '1',
-					},
-				}
-			},
-		},
-		[rootShapeVersions.AddMeta]: {
-			up: (record) => {
-				return {
-					...record,
-					meta: {},
-				}
-			},
-			down: ({ meta: _, ...record }) => {
-				return {
-					...record,
-				}
-			},
-		},
-	},
+	],
 })
 
 /** @public */
@@ -183,16 +172,28 @@ export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>
 	return propKeysByStyle
 }
 
+/**
+ * @public
+ */
+export function createShapePropsMigrationSequence(
+	migrations: TLPropsMigrations
+): TLPropsMigrations {
+	return migrations
+}
+
+/**
+ * @public
+ */
+export function createShapePropsMigrationIds<
+	const S extends string,
+	const T extends Record<string, number>,
+>(shapeType: S, ids: T): { [k in keyof T]: `com.tldraw.shape.${S}/${T[k]}` } {
+	return mapObjectMapValues(ids, (_k, v) => `com.tldraw.shape.${shapeType}/${v}`) as any
+}
+
 /** @internal */
-export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
+export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 	return createRecordType<TLShape>('shape', {
-		migrations: defineMigrations({
-			currentVersion: rootShapeMigrations.currentVersion,
-			firstVersion: rootShapeMigrations.firstVersion,
-			migrators: rootShapeMigrations.migrators,
-			subTypeKey: 'type',
-			subTypeMigrations: mapObjectMapValues(shapes, (_, v) => v.migrations ?? defineMigrations({})),
-		}),
 		scope: 'document',
 		validator: T.model(
 			'shape',

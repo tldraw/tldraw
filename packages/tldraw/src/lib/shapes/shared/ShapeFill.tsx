@@ -1,5 +1,4 @@
 import {
-	HASH_PATTERN_ZOOM_NAMES,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
@@ -10,6 +9,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
+import { HASH_PATTERN_ZOOM_NAMES } from './defaultStyleDefs'
 
 export interface ShapeFillProps {
 	d: string
@@ -18,6 +18,7 @@ export interface ShapeFillProps {
 	theme: TLDefaultColorTheme
 }
 
+/** @public */
 export function useDefaultColorTheme() {
 	return getDefaultColorTheme({ isDarkMode: useIsDarkMode() })
 }
@@ -39,7 +40,7 @@ export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }
 	}
 })
 
-const PatternFill = function PatternFill({ d, color, theme }: ShapeFillProps) {
+export function PatternFill({ d, color, theme }: ShapeFillProps) {
 	const editor = useEditor()
 	const svgExport = useSvgExportContext()
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])

@@ -1,4 +1,4 @@
-import { ZOOMS } from '@tldraw/editor'
+import { DEFAULT_CAMERA_OPTIONS } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -8,21 +8,28 @@ beforeEach(() => {
 })
 
 it('zooms by increments', () => {
-	// Starts at 1
-	expect(editor.getZoomLevel()).toBe(1)
-	expect(editor.getZoomLevel()).toBe(ZOOMS[3])
-	// zooms in
-	expect(editor.getZoomLevel()).toBe(ZOOMS[3])
-	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[4])
-	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[5])
-	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[6])
+	const cameraOptions = DEFAULT_CAMERA_OPTIONS
 
-	// does not zoom in past max
+	// Starts at 1
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
 	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[6])
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[4])
+	editor.zoomIn()
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[5])
+	editor.zoomIn()
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[6])
+	// does not zoom out past min
+	editor.zoomIn()
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[6])
+})
+
+it('is ignored by undo/redo', () => {
+	const cameraOptions = editor.getCameraOptions()
+
+	editor.mark()
+	editor.zoomIn()
+	editor.undo()
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[4])
 })
 
 it('preserves the screen center', () => {
@@ -48,18 +55,24 @@ it('preserves the screen center when offset', () => {
 })
 
 it('zooms to from B to D when B >= (C - A)/2, else zooms from B to C', () => {
-	editor.setCamera({ x: 0, y: 0, z: (ZOOMS[2] + ZOOMS[3]) / 2 })
+	const cameraOptions = DEFAULT_CAMERA_OPTIONS
+
+	editor.setCamera({ x: 0, y: 0, z: (cameraOptions.zoomSteps[2] + cameraOptions.zoomSteps[3]) / 2 })
 	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[4])
-	editor.setCamera({ x: 0, y: 0, z: (ZOOMS[2] + ZOOMS[3]) / 2 - 0.1 })
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[4])
+	editor.setCamera({
+		x: 0,
+		y: 0,
+		z: (cameraOptions.zoomSteps[2] + cameraOptions.zoomSteps[3]) / 2 - 0.1,
+	})
 	editor.zoomIn()
-	expect(editor.getZoomLevel()).toBe(ZOOMS[3])
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
 })
 
 it('does not zoom when camera is frozen', () => {
 	editor.setCamera({ x: 0, y: 0, z: 1 })
 	expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
-	editor.updateInstanceState({ canMoveCamera: false })
+	editor.setCameraOptions({ isLocked: true })
 	editor.zoomIn()
 	expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 })

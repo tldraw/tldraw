@@ -1,7 +1,6 @@
 import {
 	Box,
 	DefaultFontFamilies,
-	TLDefaultColorStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
@@ -30,7 +29,7 @@ export function SvgTextLabel({
 	verticalAlign: TLDefaultVerticalAlignStyle
 	wrap?: boolean
 	text: string
-	labelColor: TLDefaultColorStyle
+	labelColor: string
 	bounds: Box
 	padding?: number
 	stroke?: boolean
@@ -52,7 +51,7 @@ export function SvgTextLabel({
 		overflow: 'wrap' as const,
 		offsetX: 0,
 		offsetY: 0,
-		fill: theme[labelColor].solid,
+		fill: labelColor,
 		stroke: undefined as string | undefined,
 		strokeWidth: undefined as number | undefined,
 	}

@@ -1,4 +1,6 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
+import { PerformanceTracker } from '@tldraw/utils'
+import { debugFlags } from '../../utils/debug-flags'
 import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,
@@ -10,6 +12,19 @@ import {
 } from '../types/event-types'
 
 type TLStateNodeType = 'branch' | 'leaf' | 'root'
+const STATE_NODES_TO_MEASURE = [
+	'brushing',
+	'cropping',
+	'dragging',
+	'dragging_handle',
+	'drawing',
+	'erasing',
+	'lasering',
+	'resizing',
+	'rotating',
+	'scribble_brushing',
+	'translating',
+]
 
 /** @public */
 export interface TLStateNodeConstructor {
@@ -21,6 +36,7 @@ export interface TLStateNodeConstructor {
 
 /** @public */
 export abstract class StateNode implements Partial<TLEventHandlers> {
+	performanceTracker: PerformanceTracker
 	constructor(
 		public editor: Editor,
 		parent?: StateNode
@@ -60,6 +76,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				this._current.set(this.children[this.initial])
 			}
 		}
+		this.performanceTracker = new PerformanceTracker()
 	}
 
 	static id: string
@@ -146,15 +163,23 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
-		const x = this.getCurrent()
+		const currentActiveChild = this._current.__unsafe__getWithoutCapture()
 		this[cbName]?.(info as any)
-		if (this.getCurrent() === x && this.getIsActive()) {
-			x?.handleEvent(info)
+		if (
+			this._isActive.__unsafe__getWithoutCapture() &&
+			currentActiveChild &&
+			currentActiveChild === this._current.__unsafe__getWithoutCapture()
+		) {
+			currentActiveChild.handleEvent(info)
 		}
 	}
 
 	// todo: move this logic into transition
 	enter = (info: any, from: string) => {
+		if (debugFlags.measurePerformance.get() && STATE_NODES_TO_MEASURE.includes(this.id)) {
+			this.performanceTracker.start(this.id)
+		}
+
 		this._isActive.set(true)
 		this.onEnter?.(info, from)
 
@@ -167,6 +192,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	// todo: move this logic into transition
 	exit = (info: any, from: string) => {
+		if (debugFlags.measurePerformance.get() && this.performanceTracker.isStarted()) {
+			this.performanceTracker.stop()
+		}
 		this._isActive.set(false)
 		this.onExit?.(info, from)
 
@@ -198,6 +226,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onWheel?: TLEventHandlers['onWheel']
 	onPointerDown?: TLEventHandlers['onPointerDown']
 	onPointerMove?: TLEventHandlers['onPointerMove']
+	onLongPress?: TLEventHandlers['onLongPress']
 	onPointerUp?: TLEventHandlers['onPointerUp']
 	onDoubleClick?: TLEventHandlers['onDoubleClick']
 	onTripleClick?: TLEventHandlers['onTripleClick']

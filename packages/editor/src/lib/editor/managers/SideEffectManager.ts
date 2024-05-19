@@ -88,25 +88,13 @@ export class SideEffectManager<
 			return next
 		}
 
-		let updateDepth = 0
-
 		editor.store.onAfterChange = (prev, next, source) => {
-			updateDepth++
-
-			if (updateDepth > 1000) {
-				console.error('[CleanupManager.onAfterChange] Maximum update depth exceeded, bailing out.')
-			} else {
-				const handlers = this._afterChangeHandlers[
-					next.typeName
-				] as TLAfterChangeHandler<TLRecord>[]
-				if (handlers) {
-					for (const handler of handlers) {
-						handler(prev, next, source)
-					}
+			const handlers = this._afterChangeHandlers[next.typeName] as TLAfterChangeHandler<TLRecord>[]
+			if (handlers) {
+				for (const handler of handlers) {
+					handler(prev, next, source)
 				}
 			}
-
-			updateDepth--
 		}
 
 		editor.store.onBeforeDelete = (record, source) => {
@@ -160,6 +148,46 @@ export class SideEffectManager<
 	}> = {}
 
 	private _batchCompleteHandlers: TLBatchCompleteHandler[] = []
+
+	/**
+	 * Internal helper for registering a bunch of side effects at once and keeping them organized.
+	 * @internal
+	 */
+	register(handlersByType: {
+		[R in TLRecord as R['typeName']]?: {
+			beforeCreate?: TLBeforeCreateHandler<R>
+			afterCreate?: TLAfterCreateHandler<R>
+			beforeChange?: TLBeforeChangeHandler<R>
+			afterChange?: TLAfterChangeHandler<R>
+			beforeDelete?: TLBeforeDeleteHandler<R>
+			afterDelete?: TLAfterDeleteHandler<R>
+		}
+	}) {
+		const disposes: (() => void)[] = []
+		for (const [type, handlers] of Object.entries(handlersByType) as any) {
+			if (handlers?.beforeCreate) {
+				disposes.push(this.registerBeforeCreateHandler(type, handlers.beforeCreate))
+			}
+			if (handlers?.afterCreate) {
+				disposes.push(this.registerAfterCreateHandler(type, handlers.afterCreate))
+			}
+			if (handlers?.beforeChange) {
+				disposes.push(this.registerBeforeChangeHandler(type, handlers.beforeChange))
+			}
+			if (handlers?.afterChange) {
+				disposes.push(this.registerAfterChangeHandler(type, handlers.afterChange))
+			}
+			if (handlers?.beforeDelete) {
+				disposes.push(this.registerBeforeDeleteHandler(type, handlers.beforeDelete))
+			}
+			if (handlers?.afterDelete) {
+				disposes.push(this.registerAfterDeleteHandler(type, handlers.afterDelete))
+			}
+		}
+		return () => {
+			for (const dispose of disposes) dispose()
+		}
+	}
 
 	/**
 	 * Register a handler to be called before a record of a certain type is created. Return a

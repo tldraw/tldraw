@@ -1,4 +1,4 @@
-import { SerializedSchema } from '@tldraw/store'
+import { SerializedSchemaV2 } from '@tldraw/store'
 import {
 	CameraRecordType,
 	DocumentRecordType,
@@ -50,8 +50,8 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 		fill: 'none',
 		color: 'black',
 		bend: 0,
-		start: { type: 'point', x: 0, y: 0 },
-		end: { type: 'point', x: 0, y: 0 },
+		start: { x: 0, y: 0 },
+		end: { x: 0, y: 0 },
 		arrowheadStart: 'none',
 		arrowheadEnd: 'arrow',
 		text: '',
@@ -98,20 +98,11 @@ describe('TLSyncRoom', () => {
 
 	it('migrates the snapshot if it is dealing with old data', () => {
 		const serializedSchema = schema.serialize()
-		const oldSerializedSchema: SerializedSchema = {
-			...serializedSchema,
-			recordVersions: {
-				...serializedSchema.recordVersions,
-				shape: {
-					...serializedSchema.recordVersions.shape,
-					subTypeVersions: {
-						...('subTypeVersions' in serializedSchema.recordVersions.shape
-							? serializedSchema.recordVersions.shape.subTypeVersions
-							: {}),
-						// we add a labelColor to arrow in v1
-						arrow: 0,
-					},
-				},
+		const oldSerializedSchema: SerializedSchemaV2 = {
+			schemaVersion: 2,
+			sequences: {
+				...serializedSchema.sequences,
+				'com.tldraw.shape.arrow': 0,
 			},
 		}
 

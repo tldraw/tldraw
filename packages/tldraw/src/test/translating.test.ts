@@ -4,11 +4,13 @@ import {
 	SnapIndicator,
 	TLArrowShape,
 	TLGeoShape,
+	TLNoteShape,
 	TLShapeId,
 	TLShapePartial,
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 
@@ -1630,84 +1632,115 @@ describe('translating a shape with a bound shape', () => {
 
 	it('should preserve arrow bindings', () => {
 		const arrow1 = createShapeId('arrow1')
-		editor.createShapes([
-			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
-			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
-			{
-				id: arrow1,
-				type: 'arrow',
-				x: 150,
-				y: 150,
-				props: {
-					start: {
-						type: 'binding',
-						isExact: false,
-						boundShapeId: ids.box1,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
+				{
+					id: arrow1,
+					type: 'arrow',
+					x: 150,
+					y: 150,
+					props: {
+						start: { x: 0, y: 0 },
+						end: { x: 0, y: 0 },
 					},
-					end: {
-						type: 'binding',
+				},
+			])
+			.createBindings([
+				{
+					type: 'arrow',
+					fromId: arrow1,
+					toId: ids.box1,
+					props: {
+						terminal: 'start',
 						isExact: false,
-						boundShapeId: ids.box2,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
 						isPrecise: false,
 					},
 				},
-			},
-		])
+				{
+					type: 'arrow',
+					fromId: arrow1,
+					toId: ids.box2,
+					props: {
+						terminal: 'end',
+						isExact: false,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
+					},
+				},
+			])
 
 		editor.select(ids.box1, arrow1)
 		editor.pointerDown(150, 150, ids.box1).pointerMove(0, 0)
 
 		expect(editor.getShape(ids.box1)).toMatchObject({ x: -50, y: -50 })
-		expect(editor.getShape(arrow1)).toMatchObject({
-			props: { start: { type: 'binding' }, end: { type: 'binding' } },
+		expect(getArrowBindings(editor, editor.getShape(arrow1) as TLArrowShape)).toMatchObject({
+			start: { type: 'arrow' },
+			end: { type: 'arrow' },
 		})
 	})
 
 	it('breaks arrow bindings when cloning', () => {
 		const arrow1 = createShapeId('arrow1')
-		editor.createShapes([
-			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
-			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
-			{
-				id: arrow1,
-				type: 'arrow',
-				x: 150,
-				y: 150,
-				props: {
-					start: {
-						type: 'binding',
-						isExact: false,
-						boundShapeId: ids.box1,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
+				{
+					id: arrow1,
+					type: 'arrow',
+					x: 150,
+					y: 150,
+					props: {
+						start: { x: 0, y: 0 },
+						end: { x: 0, y: 0 },
 					},
-					end: {
-						type: 'binding',
+				},
+			])
+			.createBindings([
+				{
+					type: 'arrow',
+					fromId: arrow1,
+					toId: ids.box1,
+					props: {
+						terminal: 'start',
 						isExact: false,
-						boundShapeId: ids.box2,
 						normalizedAnchor: { x: 0.5, y: 0.5 },
 						isPrecise: false,
 					},
 				},
-			},
-		])
+				{
+					type: 'arrow',
+					fromId: arrow1,
+					toId: ids.box2,
+					props: {
+						terminal: 'end',
+						isExact: false,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
+					},
+				},
+			])
 
 		editor.select(ids.box1, arrow1)
 		editor.pointerDown(150, 150, ids.box1).pointerMove(0, 0, { altKey: true })
 
 		expect(editor.getShape(ids.box1)).toMatchObject({ x: 100, y: 100 })
-		expect(editor.getShape(arrow1)).toMatchObject({
-			props: { start: { type: 'binding' }, end: { type: 'binding' } },
+		expect(getArrowBindings(editor, editor.getShape(arrow1) as TLArrowShape)).toMatchObject({
+			start: { type: 'arrow' },
+			end: { type: 'arrow' },
 		})
 
 		const newArrow = editor
 			.getCurrentPageShapes()
-			.find((s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow') && s.id !== arrow1)
-		expect(newArrow).toMatchObject({
-			props: { start: { type: 'binding' }, end: { type: 'point' } },
+			.find(
+				(s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow') && s.id !== arrow1
+			)! as TLArrowShape
+		expect(getArrowBindings(editor, newArrow)).toMatchObject({
+			start: { type: 'arrow' },
+			end: undefined,
 		})
 	})
 })
@@ -1941,5 +1974,191 @@ describe('Moving the camera while panning', () => {
 
 			// Screen bounds / point is still the same as it was before
 			.expectScreenBoundsToBe(ids.box1, { x: 10, y: 10 })
+	})
+})
+
+const defaultPitLocations = [
+	{ x: 100, y: -120 },
+	{ x: 320, y: 100 },
+	{ x: 100, y: 320 },
+	{ x: -120, y: 100 },
+]
+
+describe('Note shape grid helper positions / pits', () => {
+	it('Snaps to pits', () => {
+		editor
+			.createShape({ type: 'note' })
+			.createShape({ type: 'note', x: 500, y: 500 })
+			.pointerMove(600, 600)
+			// start translating
+			.pointerDown()
+
+		const shape = editor.getLastCreatedShape<TLNoteShape>()
+
+		for (const pit of defaultPitLocations) {
+			editor
+				.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
+				.expectShapeToMatch({ ...shape, x: pit.x - 100, y: pit.y - 100 }) // but it's in the pit!
+		}
+	})
+
+	it('Does not snap to pit if shape has a different rotation', () => {
+		editor
+			.createShape({ type: 'note', rotation: 0.001 })
+			.createShape({ type: 'note', x: 500, y: 500 })
+			.pointerMove(600, 600)
+			// start translating
+			.pointerDown()
+
+		const shape = editor.getLastCreatedShape<TLNoteShape>()
+
+		for (const pit of defaultPitLocations) {
+			const rotatedPit = new Vec(pit.x, pit.y).rot(0.001)
+			editor
+				.pointerMove(rotatedPit.x - 4, rotatedPit.y - 4) // not exactly in the pit...
+				.expectShapeToMatch({ ...shape, x: rotatedPit.x - 104, y: rotatedPit.y - 104 }) // and NOT in the pit
+		}
+	})
+
+	it('Snaps to pit if shape has the same rotation', () => {
+		editor
+			.createShape({ type: 'note', rotation: 0.001 })
+			.createShape({ type: 'note', x: 500, y: 500, rotation: 0.001 })
+			.pointerMove(600, 600)
+			// start translating
+			.pointerDown()
+
+		const shape = editor.getLastCreatedShape<TLNoteShape>()
+
+		for (const pit of defaultPitLocations) {
+			const rotatedPit = new Vec(pit.x, pit.y).rot(0.001)
+			const rotatedPointPosition = new Vec(pit.x - 100, pit.y - 100).rot(0.001)
+			editor
+				.pointerMove(rotatedPit.x - 4, rotatedPit.y - 4) // not exactly in the pit...
+				.expectShapeToMatch({ ...shape, x: rotatedPointPosition.x, y: rotatedPointPosition.y }) // and in the pit
+		}
+	})
+
+	it('Snaps correctly to the top when the translating shape has growY', () => {
+		editor
+			.createShape({ type: 'note' })
+			.createShape({ type: 'note', x: 500, y: 500 })
+			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+			.pointerMove(600, 600)
+			// start translating
+			.pointerDown()
+
+		const shape = editor.getLastCreatedShape<TLNoteShape>()
+		expect(shape.props.growY).toBe(100)
+
+		const pit = defaultPitLocations[0] // top
+		editor
+			.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
+			.expectShapeToMatch({ ...shape, x: pit.x - 104, y: pit.y - 104 }) // not in the pit — the pit is further up!
+			.pointerMove(pit.x - 4, pit.y - 4 - 100) // account for the translating shape's growY
+			.expectShapeToMatch({ ...shape, x: pit.x - 100, y: pit.y - 200 }) // and we're in the pit
+	})
+
+	it('Snaps correctly to the bottom when the not-translating shape has growY', () => {
+		editor
+			.createShape({ type: 'note' })
+			.updateShape({ ...editor.getLastCreatedShape(), props: { growY: 100 } })
+			.createShape({ type: 'note', x: 500, y: 500 })
+			.pointerMove(600, 600)
+			// start translating
+			.pointerDown()
+
+		const shape = editor.getLastCreatedShape<TLNoteShape>()
+
+		editor
+			.pointerMove(104, 324) // not exactly in the pit...
+			.expectShapeToMatch({ ...shape, x: 4, y: 224 }) // not in the pit — the pit is further down!
+			.pointerMove(104, 424) // account for the shape's growY
+			.expectShapeToMatch({ ...shape, x: 0, y: 320 }) // and we're in the pit (420 - 100 = 320)
+	})
+
+	it('Snaps multiple notes to the pit using the note under the cursor', () => {
+		editor.createShape({ type: 'note' })
+		editor.createShape({ type: 'note', x: 500, y: 500 })
+		editor.createShape({ type: 'note', x: 700, y: 500, parentId: editor.getCurrentPageId() })
+		const [shapeB, shapeC] = editor.getLastCreatedShapes(2)
+
+		const pit = { x: 320, y: 100 } // right of shapeA
+
+		editor.select(shapeB, shapeC)
+
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 500, y: 500, w: 400, h: 200 })
+
+		editor
+			.pointerMove(600, 600) // center of b
+			.pointerDown()
+			.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
+
+		// B snaps the selection to the pit
+		// (index is manually set because the sticky gets brought to front)
+		editor.expectShapeToMatch({ ...shapeB, x: 220, y: 0 })
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 220, y: 0, w: 400, h: 200 })
+
+		editor.cancel()
+		editor
+			.pointerMove(800, 600) // center of c
+			.pointerDown()
+			.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
+
+		// C snaps the selection to the pit
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 20, y: 0, w: 400, h: 200 })
+
+		editor.cancel()
+		editor
+			.pointerMove(800, 600) // center of c
+			.pointerDown()
+			.pointerMove(pit.x - 4 + 200, pit.y - 4) // B is almost in the pit...
+
+		// Even though B is in the same place as it was when it snapped (while dragging over B),
+		// because our cursor is over C it won't fall into the pit—because it's not hovered
+		// (index is manually set because the sticky gets brought to front)
+		editor.expectShapeToMatch({ ...shapeB, x: 216, y: -4 })
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 216, y: -4, w: 400, h: 200 })
+	})
+
+	it('When multiple notes are under the cursor, uses the top-most one', () => {
+		editor.createShape({ type: 'note' })
+		editor.createShape({ type: 'note', x: 500, y: 500 })
+		editor.createShape({ type: 'note', x: 501, y: 501 })
+		const [shapeB, shapeC] = editor.getLastCreatedShapes(2)
+
+		// For the purposes of this test, let's leave the stickies unparented
+		editor.reparentShapes([shapeC], editor.getCurrentPageId())
+
+		const pit = { x: 320, y: 100 } // right of shapeA
+
+		editor.select(shapeB, shapeC)
+
+		expect(editor.getSelectionPageBounds()).toMatchObject({ x: 500, y: 500, w: 201, h: 201 })
+
+		// First we do it with C in front
+		editor.bringToFront([shapeC])
+		editor
+			.pointerMove(600, 600) // center of b but overlapping C
+			.pointerDown()
+			.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
+
+		// B snaps the selection to the pit
+		editor.expectShapeToMatch({ id: shapeB.id, x: 219, y: -1 }) // not snapped
+		editor.expectShapeToMatch({ id: shapeC.id, x: 220, y: 0 }) // snapped
+
+		editor.cancel()
+
+		// Now let's do it with B in front
+		editor.bringToFront([shapeB])
+
+		editor
+			.pointerMove(600, 600) // center of b but overlapping C
+			.pointerDown()
+			.pointerMove(pit.x - 4, pit.y - 4) // not exactly in the pit...
+
+		// B snaps the selection to the pit
+		editor.expectShapeToMatch({ id: shapeB.id, x: 220, y: 0 }) // snapped
+		editor.expectShapeToMatch({ id: shapeC.id, x: 221, y: 1 }) // not snapped
 	})
 })

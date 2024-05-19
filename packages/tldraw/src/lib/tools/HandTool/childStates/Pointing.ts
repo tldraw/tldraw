@@ -5,16 +5,21 @@ export class Pointing extends StateNode {
 
 	override onEnter = () => {
 		this.editor.stopCameraAnimation()
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'grabbing', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+		this.startDragging()
+	}
+
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
-			this.parent.transition('dragging', info)
+			this.startDragging()
 		}
+	}
+
+	private startDragging() {
+		this.parent.transition('dragging')
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

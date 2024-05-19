@@ -1,0 +1,26 @@
+{
+	"name": "@tldraw/dotcom-shared",
+	"version": "2.0.0",
+	"private": true,
+	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
+	"files": [],
+	"dependencies": {
+		"tldraw": "workspace:*"
+	},
+	"peerDependencies": {
+		"react": "^18",
+		"react-dom": "^18"
+	},
+	"scripts": {
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
+		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+	},
+	"jest": {
+		"preset": "config/jest/node",
+		"testEnvironment": "jsdom"
+	}
+}

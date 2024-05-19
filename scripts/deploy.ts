@@ -6,7 +6,7 @@ import { execSync } from 'child_process'
 import { appendFileSync, existsSync, readdirSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { PassThrough } from 'stream'
-import tar from 'tar'
+import * as tar from 'tar'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
@@ -515,7 +515,7 @@ async function coalesceWithPreviousAssets(assetsDir: string) {
 		// and it will mess up the inline source viewer on sentry errors.
 		const out = tar.x({ cwd: assetsDir, 'keep-existing': true })
 		for await (const chunk of Body?.transformToWebStream() as any as AsyncIterable<Uint8Array>) {
-			out.write(chunk)
+			out.write(Buffer.from(chunk.buffer))
 		}
 		out.end()
 	}

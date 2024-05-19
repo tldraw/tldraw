@@ -6,6 +6,7 @@ import {
 	useEditorComponents,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { useDefaultColorTheme } from '../../shared/ShapeFill'
 import { ARROW_LABEL_FONT_SIZES, TEXT_PROPS } from '../../shared/default-shape-constants'
 
 export const ArrowTextLabel = React.memo(function ArrowTextLabel({
@@ -15,11 +16,16 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	font,
 	position,
 	width,
+	isSelected,
 	labelColor,
-}: { id: TLShapeId; position: VecLike; width?: number; labelColor: TLDefaultColorStyle } & Pick<
-	TLArrowShape['props'],
-	'text' | 'size' | 'font'
->) {
+}: {
+	id: TLShapeId
+	position: VecLike
+	width?: number
+	labelColor: TLDefaultColorStyle
+	isSelected: boolean
+} & Pick<TLArrowShape['props'], 'text' | 'size' | 'font'>) {
+	const theme = useDefaultColorTheme()
 	const { TextLabel } = useEditorComponents()
 
 	return (
@@ -34,8 +40,9 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 				align="middle"
 				verticalAlign="middle"
 				text={text}
-				labelColor={labelColor}
+				labelColor={theme[labelColor].solid}
 				textWidth={width}
+				isSelected={isSelected}
 				style={{
 					transform: `translate(${position.x}px, ${position.y}px)`,
 				}}

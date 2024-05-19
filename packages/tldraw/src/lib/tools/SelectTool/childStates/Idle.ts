@@ -13,27 +13,37 @@ import {
 	Vec,
 	VecLike,
 	createShapeId,
+	debugFlags,
 	pointInPolygon,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
-import { updateHoveredId } from '../../selection-logic/updateHoveredId'
+import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
+import { kickoutOccludedShapes, startEditingShapeWithLabel } from '../selectHelpers'
+
+const SKIPPED_KEYS_FOR_AUTO_EDITING = [
+	'Delete',
+	'Backspace',
+	'[',
+	']',
+	'Enter',
+	' ',
+	'Shift',
+	'Tab',
+]
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onEnter = () => {
 		this.parent.setCurrentToolIdMask(undefined)
-		updateHoveredId(this.editor)
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true }
-		)
+		updateHoveredShapeId(this.editor)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		updateHoveredId(this.editor)
+		updateHoveredShapeId(this.editor)
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
@@ -257,6 +267,7 @@ export class Idle extends StateNode {
 						if (change) {
 							this.editor.mark('double click edge')
 							this.editor.updateShapes([change])
+							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
 							return
 						}
 					}
@@ -271,7 +282,7 @@ export class Idle extends StateNode {
 					}
 
 					if (this.shouldStartEditingShape(onlySelectedShape)) {
-						this.startEditingShape(onlySelectedShape, info)
+						this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					}
 				}
 				break
@@ -305,7 +316,7 @@ export class Idle extends StateNode {
 
 				// If the shape can edit, then begin editing
 				if (this.shouldStartEditingShape(shape)) {
-					this.startEditingShape(shape, info)
+					this.startEditingShape(shape, info, true /* select all */)
 				} else {
 					// If the shape's double click handler has not created a change,
 					// and if the shape cannot edit, then create a text shape and
@@ -327,7 +338,7 @@ export class Idle extends StateNode {
 					// If the shape's double click handler has not created a change,
 					// and if the shape can edit, then begin editing the shape.
 					if (this.shouldStartEditingShape(shape)) {
-						this.startEditingShape(shape, info)
+						this.startEditingShape(shape, info, true /* select all */)
 					}
 				}
 			}
@@ -345,6 +356,7 @@ export class Idle extends StateNode {
 								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
 								hitInside: false,
 								hitLabels: true,
+								hitLocked: true,
 								hitFrameInside: false,
 								renderingOnly: true,
 							})
@@ -418,7 +430,35 @@ export class Idle extends StateNode {
 			case 'ArrowUp':
 			case 'ArrowDown': {
 				this.nudgeSelectedShapes(false)
-				break
+				return
+			}
+		}
+
+		if (debugFlags['editOnType'].get()) {
+			// This feature flag lets us start editing a note shape's label when a key is pressed.
+			// We exclude certain keys to avoid conflicting with modifiers, but there are conflicts
+			// with other action kbds, hence why this is kept behind a feature flag.
+			if (!SKIPPED_KEYS_FOR_AUTO_EDITING.includes(info.key) && !info.altKey && !info.ctrlKey) {
+				// If the only selected shape is editable, then begin editing it
+				const onlySelectedShape = this.editor.getOnlySelectedShape()
+				if (
+					onlySelectedShape &&
+					// If it's a note shape, then edit on type
+					this.editor.isShapeOfType(onlySelectedShape, 'note') &&
+					// If it's not locked or anything
+					this.shouldStartEditingShape(onlySelectedShape)
+				) {
+					this.startEditingShape(
+						onlySelectedShape,
+						{
+							...info,
+							target: 'shape',
+							shape: onlySelectedShape,
+						},
+						true /* select all */
+					)
+					return
+				}
 			}
 		}
 	}
@@ -453,11 +493,15 @@ export class Idle extends StateNode {
 				// If the only selected shape is editable, then begin editing it
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				if (onlySelectedShape && this.shouldStartEditingShape(onlySelectedShape)) {
-					this.startEditingShape(onlySelectedShape, {
-						...info,
-						target: 'shape',
-						shape: onlySelectedShape,
-					})
+					this.startEditingShape(
+						onlySelectedShape,
+						{
+							...info,
+							target: 'shape',
+							shape: onlySelectedShape,
+						},
+						true /* select all */
+					)
 					return
 				}
 
@@ -479,10 +523,14 @@ export class Idle extends StateNode {
 		return this.editor.getShapeUtil(shape).canEdit(shape)
 	}
 
-	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
+	private startEditingShape(
+		shape: TLShape,
+		info: TLClickEventInfo | TLKeyboardEventInfo,
+		shouldSelectAll?: boolean
+	) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.editor.mark('editing shape')
-		this.editor.setEditingShape(shape.id)
+		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll)
 		this.parent.transition('editing_shape', info)
 	}
 
@@ -581,7 +629,9 @@ export class Idle extends StateNode {
 				? MAJOR_NUDGE_FACTOR
 				: MINOR_NUDGE_FACTOR
 
-		this.editor.nudgeShapes(this.editor.getSelectedShapeIds(), delta.mul(step))
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
+		this.editor.nudgeShapes(selectedShapeIds, delta.mul(step))
+		kickoutOccludedShapes(this.editor, selectedShapeIds)
 	}
 
 	private canInteractWithShapeInReadOnly(shape: TLShape) {

@@ -2,10 +2,14 @@ import path from 'path'
 import { open } from 'sqlite'
 import sqlite3 from 'sqlite3'
 
-export async function connect(opts = {} as { reset?: boolean }) {
+export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readwrite' }) {
 	const db = await open({
 		filename: path.join(process.cwd(), 'content.db'),
 		driver: sqlite3.Database,
+		mode:
+			opts.mode === 'readonly'
+				? sqlite3.OPEN_READONLY
+				: sqlite3.OPEN_CREATE | sqlite3.OPEN_READWRITE,
 	})
 
 	if (opts.reset) {

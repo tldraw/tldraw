@@ -1,6 +1,4 @@
-/* eslint-disable no-inner-declarations */
 import {
-	TLShape,
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
@@ -14,43 +12,77 @@ import { INDENT, TextHelpers } from './TextHelpers'
 /** @public */
 export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const editor = useEditor()
-
 	const rInput = useRef<HTMLTextAreaElement>(null)
-	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()
+	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor])
+	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
+		editor,
+	])
 
-	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
-
-	// If the shape is editing but the input element not focused, focus the element
 	useEffect(() => {
-		const elm = rInput.current
-		if (elm && isEditing && document.activeElement !== elm) {
-			elm.focus()
-		}
-	}, [isEditing])
-
-	// When the label receives focus, set the value to the most  recent text value and select all of the text
-	const handleFocus = useCallback(() => {
-		// Store and turn off the skipSelectOnFocus flag
-		const skipSelect = rSkipSelectOnFocus.current
-		rSkipSelectOnFocus.current = false
-
-		// On the next frame, if we're not skipping select AND we have text in the element, then focus the text
-		requestAnimationFrame(() => {
-			const elm = rInput.current
-			if (!elm) return
-
-			const shape = editor.getShape<TLShape & { props: { text: string } }>(id)
-
-			if (shape) {
-				elm.value = shape.props.text
-				if (elm.value.length && !skipSelect) {
-					elm.select()
+		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
+			// We wait a tick, because on iOS, the keyboard will not show if we focus immediately.
+			requestAnimationFrame(() => {
+				if (shapeId === id) {
+					const elm = rInput.current
+					if (elm) {
+						if (document.activeElement !== elm) {
+							elm.focus()
+						}
+						elm.select()
+					}
 				}
-			}
-		})
+			})
+		}
+
+		editor.on('select-all-text', selectAllIfEditing)
+		return () => {
+			editor.off('select-all-text', selectAllIfEditing)
+		}
 	}, [editor, id])
 
+	useEffect(() => {
+		if (!isEditing) return
+
+		const elm = rInput.current
+		if (!elm) return
+
+		// Focus if we're not already focused
+		if (document.activeElement !== elm) {
+			elm.focus()
+
+			// On mobile etc, just select all the text when we start focusing
+			if (editor.getInstanceState().isCoarsePointer) {
+				elm.select()
+			}
+		} else {
+			// This fixes iOS not showing the cursor sometimes. This "shakes" the cursor
+			// awake.
+			if (editor.environment.isSafari) {
+				elm.blur()
+				elm.focus()
+			}
+		}
+
+		// When the selection changes, save the selection ranges
+		function updateSelection() {
+			const selection = window.getSelection?.()
+			if (selection && selection.type !== 'None') {
+				const ranges: Range[] = []
+				for (let i = 0; i < selection.rangeCount; i++) {
+					ranges.push(selection.getRangeAt?.(i))
+				}
+				rSelectionRanges.current = ranges
+			}
+		}
+
+		document.addEventListener('selectionchange', updateSelection)
+		return () => {
+			document.removeEventListener('selectionchange', updateSelection)
+		}
+	}, [editor, isEditing])
+
+	// 2. Restore the selection changes (and focus) if the element blurs
 	// When the label blurs, deselect all of the text and complete.
 	// This makes it so that the canvas does not have to be focused
 	// in order to exit the editing state and complete the editing state
@@ -60,42 +92,31 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		requestAnimationFrame(() => {
 			const elm = rInput.current
 			const editingShapeId = editor.getEditingShapeId()
+
 			// Did we move to a different shape?
-			if (elm && editingShapeId) {
+			if (editingShapeId) {
 				// important! these ^v are two different things
 				// is that shape OUR shape?
-				if (editingShapeId === id) {
-					if (ranges) {
-						if (!ranges.length) {
-							// If we don't have any ranges, restore selection
-							// and select all of the text
-							elm.focus()
-						} else {
-							// Otherwise, skip the select-all-on-focus behavior
-							// and restore the selection
-							rSkipSelectOnFocus.current = true
-							elm.focus()
-							const selection = window.getSelection()
-							if (selection) {
-								ranges.forEach((range) => selection.addRange(range))
-							}
+				if (elm && editingShapeId === id) {
+					elm.focus()
+
+					if (ranges && ranges.length) {
+						const selection = window.getSelection()
+						if (selection) {
+							ranges.forEach((range) => selection.addRange(range))
 						}
-					} else {
-						elm.focus()
 					}
 				}
 			} else {
 				window.getSelection()?.removeAllRanges()
-				editor.complete()
 			}
 		})
 	}, [editor, id])
 
 	// When the user presses ctrl / meta enter, complete the editing state.
-	// When the user presses tab, indent or unindent the text.
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-			if (!isEditing) return
+			if (editor.getEditingShapeId() !== id) return
 
 			switch (e.key) {
 				case 'Enter': {
@@ -106,13 +127,13 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				}
 			}
 		},
-		[editor, isEditing]
+		[editor, id]
 	)
 
 	// When the text changes, update the text value.
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			if (!isEditing) return
+			if (editor.getEditingShapeId() !== id) return
 
 			let text = TextHelpers.normalizeTextForDom(e.currentTarget.value)
 
@@ -128,45 +149,27 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 			}
 			// ----------------------------
 
-			editor.updateShapes<TLUnknownShape & { props: { text: string } }>([
-				{ id, type, props: { text } },
-			])
+			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
+				id,
+				type,
+				props: { text },
+			})
 		},
-		[editor, id, type, isEditing]
+		[editor, id, type]
 	)
-
-	const isEmpty = text.trim().length === 0
-
-	useEffect(() => {
-		if (!isEditing) return
-
-		const elm = rInput.current
-		if (elm) {
-			function updateSelection() {
-				const selection = window.getSelection?.()
-				if (selection && selection.type !== 'None') {
-					const ranges: Range[] = []
-
-					if (selection) {
-						for (let i = 0; i < selection.rangeCount; i++) {
-							ranges.push(selection.getRangeAt?.(i))
-						}
-					}
-
-					rSelectionRanges.current = ranges
-				}
-			}
-
-			document.addEventListener('selectionchange', updateSelection)
-
-			return () => {
-				document.removeEventListener('selectionchange', updateSelection)
-			}
-		}
-	}, [isEditing])
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
+			// N.B. We used to only do this only when isEditing to help
+			// prevent an issue where you could drag a selected shape
+			// behind another shape. That is addressed now by the CSS logic
+			// looking at data-isselectinganything.
+			//
+			// We still need to follow this logic even if not isEditing
+			// because otherwise there is some flakiness in selection.
+			// When selecting text, it would sometimes select some text
+			// partially if we didn't dispatch/stop below.
+
 			editor.dispatch({
 				...getPointerInfo(e),
 				type: 'pointer',
@@ -180,17 +183,20 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		[editor, id]
 	)
 
-	const handleDoubleClick = stopEventPropagation
-
 	return {
 		rInput,
-		isEditing,
-		handleFocus,
+		handleFocus: noop,
 		handleBlur,
 		handleKeyDown,
 		handleChange,
 		handleInputPointerDown,
-		handleDoubleClick,
-		isEmpty,
+		handleDoubleClick: stopEventPropagation,
+		isEmpty: text.trim().length === 0,
+		isEditing,
+		isEditingAnything,
 	}
+}
+
+function noop() {
+	return
 }

@@ -38,7 +38,7 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 			<TldrawUiButton
 				type="menu"
 				className="tlui-people-menu__item__button"
-				onClick={() => editor.animateToUser(userId)}
+				onClick={() => editor.zoomToUser(userId)}
 				onDoubleClick={handleFollowClick}
 			>
 				<TldrawUiIcon icon="color" color={presence.color} />

@@ -52,7 +52,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md). This license does not permit commercial use.
 
-If you wish to use this project in commercial product, you need to purchase a commercial license. Please contact us at [sales@tldraw.com](mailto:sales@tldraw.com) for more inforion about obtaining a commercial license.
+If you wish to use this project in commercial product, you need to purchase a commercial license. To obtain a commercial license or learn more, please fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
 
 ## Trademarks
 
@@ -60,4 +60,4 @@ Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks o
 
 ## Contact
 
-Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [sales@tldraw.com](mailto://sales@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.
+Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support and to connect with the wider tldraw verse.

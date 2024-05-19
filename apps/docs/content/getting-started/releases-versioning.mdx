@@ -1,0 +1,270 @@
+---
+title: Releases
+status: published
+author: steveruizok
+order: 3
+---
+
+## How tldraw is versioned
+
+**We do not follow SemVer**.
+
+- Major version bumps are very rare and we reserve them for special changes that signify a paradigm shift of some kind.
+- Minor version bumps are released on a regular cadence - approximately monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible, but tldraw is actively evolving as we add new features. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
+- Patch version bumps are for bugfixes and hotfixes that can't wait for the next cadence release.
+
+## Changelog
+
+{/* START AUTO-GENERATED CHANGELOG */}
+
+### [v2.1.4](/releases/v2.1.4)
+
+### Release Notes
+
+#### textfields: fix up flakiness in text selection and for unfilled geo shapes fix edit->edit (#3577) ([#3643](https://github.com/tldraw/tldraw/pull/3643))
+
+- Text labels: fix up regression to selection when clicking into a text shape. (was causing flaky selections)
+- Text labels: fix edit→edit not working as expected when unfilled geo shapes are on 'top' of other shapes.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `tldraw`
+  - textfields: fix up flakiness in text selection (#3578)
+  - textfields: for unfilled geo shapes fix edit->edit (#3577) [#3643](https://github.com/tldraw/tldraw/pull/3643) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+### [v2.1.3](/releases/v2.1.3)
+
+#### Expose migrations, validators, and versions from tlschema ([#3613](https://github.com/tldraw/tldraw/pull/3613))
+
+Previously, we weren't exporting migrations & validators for our default shapes. This meant that it wasn't possible to make your own tlschema with both our default shapes and some of your own (e.g. for custom multiplayer). This fixes that by exposing all the migrations, validators, and versions from tlschema, plus `defaultShapeSchemas` which can be passed directly to `createTLSchema`
+
+---
+
+#### 📚 SDK Changes
+
+- `@tldraw/tlschema`
+  - Expose migrations, validators, and versions from tlschema [#3613](https://github.com/tldraw/tldraw/pull/3613) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+### [v2.1.2](/releases/v2.1.2)
+
+#### Revert "[signia] Smart dirty checking of active computeds (#3516)" ([#3611](https://github.com/tldraw/tldraw/pull/3611))
+
+This performance optimisation introduced a regression where sometimes computed caches wouldn't get invalidated at the correct time, leading to stale data causing crashes. We're reverting the change for now.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/state`
+  - Revert "[signia] Smart dirty checking of active computeds (#3516)" [#3611](https://github.com/tldraw/tldraw/pull/3611) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🏠 Internal
+
+- increase publish script timeouts [#3570](https://github.com/tldraw/tldraw/pull/3570) ([@SomeHats](https://github.com/SomeHats))
+- longer retries for package publishing [#3567](https://github.com/tldraw/tldraw/pull/3567) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+### [v2.1.1](/releases/v2.1.1)
+
+#### fix migration exports ([#3594](https://github.com/tldraw/tldraw/pull/3594))
+
+We were missing an export `createShapePropsMigrationIds`, part of the new migrations API introduced in [v2.1.0](https://tldraw.dev/releases/v2.1.0). This release fixes that, and also adds exports for a few extra APIs that we were using in our examples, but weren't exporting properly: `defaultEditorAssetUrls`, `PORTRAIT_BREAKPOINT`, `useDefaultColorTheme`, & `getPerfectDashProps`
+
+---
+
+#### 🐛 Bug Fix
+
+- `tldraw`, `@tldraw/tlschema`
+  - fix migration exports [#3594](https://github.com/tldraw/tldraw/pull/3594) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `v2.1.x`
+
+- v2.1.x: fix ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+### [v2.1.0](/releases/v2.1.0)
+
+#### New stickies & performance improvements
+
+This tldraw release has loads of performance improvements, plus completely redesigned sticky notes. Check out our [release notes for tldraw.com](https://tldraw.substack.com/p/release-notes-april-18th-2024) for more details on those.
+
+#### Breaking changes
+
+##### New migrations ([#3220](https://github.com/tldraw/tldraw/pull/3220))
+
+- The `Migrations` type is now called `LegacyMigrations`.
+- The serialized schema format (e.g. returned by `StoreSchema.serialize()` and `Store.getSnapshot()`) has changed. You don't need to do anything about it unless you were reading data directly from the schema for some reason. In which case it'd be best to avoid that in the future! We have no plans to change the schema format again (this time was traumatic enough) but you never know.
+- `compareRecordVersions` and the `RecordVersion` type have both disappeared. There is no replacement. These were public by mistake anyway, so hopefully nobody had been using it.
+- `compareSchemas` is gone. Comparing the schemas directly is no longer really possible since we introduced some fuzziness. The best thing to do now to check compatibility is to call `schema.getMigraitonsSince(prevSchema)` and it will return an error if the schemas are not compatible, an empty array if there are no migrations to apply since the prev schema, and a nonempty array otherwise.
+
+  Generally speaking, the best way to check schema compatibility now is to call `store.schema.getMigrationsSince(persistedSchema)`. This will throw an error if there is no upgrade path from the `persistedSchema` to the current version.
+
+- `defineMigrations` has been deprecated and will be removed in a future release. For upgrade instructions see [updating legacy shape migrations](https://tldraw.dev/docs/persistence#Updating-legacy-shape-migrations-defineMigrations)
+
+- `migrate` has been removed. Nobody should have been using this but if you were you'll need to find an alternative. For migrating tldraw data, you should stick to using `schema.migrateStoreSnapshot` and, if you are building a nuanced sync engine that supports some amount of backwards compatibility, also feel free to use `schema.migratePersistedRecord`.
+- the `Migration` type has changed. If you need the old one for some reason it has been renamed to `LegacyMigration`. It will be removed in a future release.
+- the `Migrations` type has been renamed to `LegacyMigrations` and will be removed in a future release.
+- the `SerializedSchema` type has been augmented. If you need the old version specifically you can use `SerializedSchemaV1`
+
+##### Input buffering ([#3223](https://github.com/tldraw/tldraw/pull/3223))
+
+Events are now buffered and sent to state nodes every tick, instead of immediately. This unlocks some big performance improvements, but could introduce some subtle issues with any custom tools you might have. Make sure you test any custom tools thoroughly!
+
+##### React-powered SVG exports ([#3117](https://github.com/tldraw/tldraw/pull/3117))
+
+1. If any of your shapes implement `toSvg` for exports, you'll need to replace your implementation with a new version that returns JSX instead of manually constructing SVG DOM nodes.
+2. `editor.getSvg` is deprecated. It still works, but will be going away in a future release. Instead, use `editor.getSvgElement` or `editor.getSvgString`.
+
+##### Component-based toolbar customisation API ([#3067](https://github.com/tldraw/tldraw/pull/3067))
+
+If you're using the `toolbar` callback to override the items in the toolbar at the bottom of the default tldraw UI, you need to switch to using the new `Toolbar` component override.
+
+See the [custom toolbar example](https://tldraw.dev/examples/ui/custom-toolbar) for more details.
+
+#### Improvements
+
+- All-new sticky notes! ([#3249](https://github.com/tldraw/tldraw/pull/3249))
+- Improve color contrast. ([#3486](https://github.com/tldraw/tldraw/pull/3486))
+- Add long press event. ([#3275](https://github.com/tldraw/tldraw/pull/3275))
+- Add white. It's a secret! ([#3321](https://github.com/tldraw/tldraw/pull/3321))
+- Add severity colors and icons to toasts. ([#2988](https://github.com/tldraw/tldraw/pull/2988))
+- Better handling of broken images / videos. ([#2990](https://github.com/tldraw/tldraw/pull/2990))
+
+#### API changes
+
+- Expose `Editor.getStyleForNextShape` - previously marked as internal. ([#3039](https://github.com/tldraw/tldraw/pull/3039))
+- Expose `usePreloadAssets`. ([#3545](https://github.com/tldraw/tldraw/pull/3545))
+- `getRenderingShapes` no longer returns `isCulled`. Instead, use `getCulledShapes`.
+
+#### Bug fixes
+
+- Prevent copy error sound in safari. ([#3536](https://github.com/tldraw/tldraw/pull/3536))
+- Fix arrow label positioning overlapping the shape the arrow is bound to. ([#3512](https://github.com/tldraw/tldraw/pull/3512))
+- Fix cursor chat button appearing when not in select tool. ([#3485](https://github.com/tldraw/tldraw/pull/3485))
+- Fix alt-duplicating shapes sometimes not working. ([#3488](https://github.com/tldraw/tldraw/pull/3488))
+- Fix camera sliding after pinch. ([#3462](https://github.com/tldraw/tldraw/pull/3462))
+- Hide edit link context menu option for locked shapes. ([#3457](https://github.com/tldraw/tldraw/pull/3457))
+- Fix text shapes overflowing their bounds when resized ([#3327](https://github.com/tldraw/tldraw/pull/3327))
+- Allow fully hiding the debug panel. ([#3261](https://github.com/tldraw/tldraw/pull/3261))
+- Fix missing title attributes on toolbar items. ([#3244](https://github.com/tldraw/tldraw/pull/3244))
+- Fix incorrectly rotated handles on rotated cropping images. ([#3093](https://github.com/tldraw/tldraw/pull/3093))
+- Fix videos not being sized correctly. ([#3047](https://github.com/tldraw/tldraw/pull/3047))
+- Fix autocomplete, autocapitalize, and autocorrect tags on text inputs. ([#3038](https://github.com/tldraw/tldraw/pull/3038))
+- Fix cursor chat bubble position. ([#3042](https://github.com/tldraw/tldraw/pull/3042))
+- Prevent `localStorage` crash in React Native webviews. ([#3043](https://github.com/tldraw/tldraw/pull/3043))
+- Fix a rare crash with video shapes. ([#3037](https://github.com/tldraw/tldraw/pull/3037))
+
+#### Performance improvements
+
+- Improve performance of draw shapes. ([#3464](https://github.com/tldraw/tldraw/pull/3464))
+- Improve icon preloading. ([#3507](https://github.com/tldraw/tldraw/pull/3507))
+- Use WebGL to draw the minimap. ([#3510](https://github.com/tldraw/tldraw/pull/3510))
+- Faster reactivity bookkeeping. ([#3471](https://github.com/tldraw/tldraw/pull/3471), [#3487](https://github.com/tldraw/tldraw/pull/3487))
+- Faster selection / erasing ([#3454](https://github.com/tldraw/tldraw/pull/3454))
+- Improve performance of text shapes on iOS / Safari. ([#3429](https://github.com/tldraw/tldraw/pull/3429))
+- Throttle updates to the hovered shape ID. ([#3419](https://github.com/tldraw/tldraw/pull/3419))
+- Block browser hit tests while moving camera. ([#3418](https://github.com/tldraw/tldraw/pull/3418))
+- Faster minimum distance checks. ([#3401](https://github.com/tldraw/tldraw/pull/3401))
+- Don't trigger pointer move on zoom. ([#3305](https://github.com/tldraw/tldraw/pull/3305))
+- Reduce rendered dom nodes for geo shape and arrows. ([#3283](https://github.com/tldraw/tldraw/pull/3283))
+- Don't double squash undo/redo history entries. ([#3182](https://github.com/tldraw/tldraw/pull/3182))
+- Batch tick events. ([#3181](https://github.com/tldraw/tldraw/pull/3181))
+- Faster shape rendering. ([#3176](https://github.com/tldraw/tldraw/pull/3176))
+- Faster selection rotated page bounds / page bounds. ([#3178](https://github.com/tldraw/tldraw/pull/3178))
+- Prevent unnecessary handles renders. ([#3172](https://github.com/tldraw/tldraw/pull/3172))
+- Faster rendering. ([#2977](https://github.com/tldraw/tldraw/pull/2977))
+
+#### Translations
+
+- Update Romanian translations. ([#3269](https://github.com/tldraw/tldraw/pull/3269))
+- Update Hungarian translations. ([#3049](https://github.com/tldraw/tldraw/pull/3049))
+
+#### Authors
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Caleb Eby ([@calebeby](https://github.com/calebeby))
+- Dan Groshev ([@si14](https://github.com/si14))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- ds300 (huppy+ds300@tldraw.com)
+- hirano ([@bubweiser](https://github.com/bubweiser))
+- Kesavaraja Krishnan ([@Kesavaraja](https://github.com/Kesavaraja))
+- Lorenzo Lewis ([@lorenzolewis](https://github.com/lorenzolewis))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- mimecuvalo (huppy+mimecuvalo@tldraw.com)
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Orion Reed ([@OrionReed](https://github.com/OrionReed))
+- Slowhand ([@Slowhand0309](https://github.com/Slowhand0309))
+- SomeHats (huppy+SomeHats@tldraw.com)
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- steveruizok (huppy+steveruizok@tldraw.com)
+- Sunny Zanchi ([@sunnyzanchi](https://github.com/sunnyzanchi))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+### [v2.0.2](/releases/v2.0.2)
+
+#### 🐛 Bug Fix
+
+- [docs] Sync docs deploy with npm deploy [#3153](https://github.com/tldraw/tldraw/pull/3153) ([@ds300](https://github.com/ds300))
+- `tldraw`
+  - Fix jpg export and tests (#3198) [#3199](https://github.com/tldraw/tldraw/pull/3199) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `v2.0.x`
+
+- empty commit ([@SomeHats](https://github.com/SomeHats))
+- fix release eliding ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+### [v2.0.1](/releases/v2.0.1)
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`
+  - [patch 2.0.1] Cherry-pick 'Avoid randomness at init time...' [#3076](https://github.com/tldraw/tldraw/pull/3076) ([@ds300](https://github.com/ds300))
+
+#### ⚠️ Pushed to `v2.0.x`
+
+- fetch main during patch publish ([@ds300](https://github.com/ds300))
+- cherry-pick tooling changes too i guess ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+### [v2.0.0](/releases/v2.0.0)
+
+#### ⚠️ Pushed to `main`
+
+- `@tldraw/tldraw`, `tldraw`
+  - updatereadmes ([@steveruizok](https://github.com/steveruizok))
+
+#### 📝 Documentation
+
+- `@tldraw/tldraw`
+  - Update readmes / docs for 2.0 [#3011](https://github.com/tldraw/tldraw/pull/3011) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+{/* END AUTO-GENERATED CHANGELOG */}

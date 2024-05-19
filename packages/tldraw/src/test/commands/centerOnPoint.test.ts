@@ -12,10 +12,17 @@ it('centers on the point', () => {
 })
 
 it('centers on the point with animation', () => {
-	editor.centerOnPoint({ x: 400, y: 400 }, { duration: 200 })
+	editor.centerOnPoint({ x: 400, y: 400 }, { animation: { duration: 200 } })
 	expect(editor.getViewportPageCenter()).not.toMatchObject({ x: 400, y: 400 })
 	jest.advanceTimersByTime(100)
 	expect(editor.getViewportPageCenter()).not.toMatchObject({ x: 400, y: 400 })
 	jest.advanceTimersByTime(200)
+	expect(editor.getViewportPageCenter()).toMatchObject({ x: 400, y: 400 })
+})
+
+it('is not undoable', () => {
+	editor.mark()
+	editor.centerOnPoint({ x: 400, y: 400 })
+	editor.undo()
 	expect(editor.getViewportPageCenter()).toMatchObject({ x: 400, y: 400 })
 })

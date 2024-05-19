@@ -1,6 +1,5 @@
 import {
 	Geometry2d,
-	HIT_TEST_MARGIN,
 	StateNode,
 	TLEventHandlers,
 	TLFrameShape,
@@ -8,7 +7,7 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
-	intersectLineSegmentPolyline,
+	intersectLineSegmentPolygon,
 	pointInPolygon,
 } from '@tldraw/editor'
 
@@ -42,9 +41,7 @@ export class ScribbleBrushing extends StateNode {
 
 		this.updateScribbleSelection(true)
 
-		requestAnimationFrame(() => {
-			this.editor.updateInstanceState({ brush: null })
-		})
+		this.editor.updateInstanceState({ brush: null })
 	}
 
 	override onExit = () => {
@@ -85,7 +82,8 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private updateScribbleSelection(addPoint: boolean) {
-		const zoomLevel = this.editor.getZoomLevel()
+		const { editor } = this
+		// const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapes = this.editor.getCurrentPageShapes()
 		const {
 			inputs: { shiftKey, originPagePoint, previousPagePoint, currentPagePoint },
@@ -100,36 +98,53 @@ export class ScribbleBrushing extends StateNode {
 		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
 
+		const minDist = 0 // HIT_TEST_MARGIN / zoomLevel
+
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
-			geometry = this.editor.getShapeGeometry(shape)
 
 			// If the shape is a group or is already selected or locked, don't select it
 			if (
-				this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+				editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
 				newlySelectedShapeIds.has(shape.id) ||
-				this.editor.isShapeOrAncestorLocked(shape)
+				editor.isShapeOrAncestorLocked(shape)
 			) {
 				continue
 			}
 
+			geometry = editor.getShapeGeometry(shape)
+
 			// If the scribble started inside of the frame, don't select it
-			if (this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
-				const point = this.editor.getPointInShapeSpace(shape, originPagePoint)
-				if (geometry.bounds.containsPoint(point)) {
-					continue
-				}
+			if (
+				editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
+				geometry.bounds.containsPoint(editor.getPointInShapeSpace(shape, originPagePoint))
+			) {
+				continue
 			}
 
-			A = this.editor.getPointInShapeSpace(shape, previousPagePoint)
-			B = this.editor.getPointInShapeSpace(shape, currentPagePoint)
-			if (geometry.hitTestLineSegment(A, B, HIT_TEST_MARGIN / zoomLevel)) {
+			// Hit test the shape using a line segment
+			const pageTransform = editor.getShapePageTransform(shape)
+			if (!geometry || !pageTransform) continue
+			const pt = pageTransform.clone().invert()
+			A = pt.applyToPoint(previousPagePoint)
+			B = pt.applyToPoint(currentPagePoint)
+
+			// If the line segment is entirely above / below / left / right of the shape's bounding box, skip the hit test
+			const { bounds } = geometry
+			if (
+				bounds.minX - minDist > Math.max(A.x, B.x) ||
+				bounds.minY - minDist > Math.max(A.y, B.y) ||
+				bounds.maxX + minDist < Math.min(A.x, B.x) ||
+				bounds.maxY + minDist < Math.min(A.y, B.y)
+			) {
+				continue
+			}
+
+			if (geometry.hitTestLineSegment(A, B, minDist)) {
 				const outermostShape = this.editor.getOutermostSelectableShape(shape)
-
 				const pageMask = this.editor.getShapeMask(outermostShape.id)
-
 				if (pageMask) {
-					const intersection = intersectLineSegmentPolyline(
+					const intersection = intersectLineSegmentPolygon(
 						previousPagePoint,
 						currentPagePoint,
 						pageMask
@@ -144,16 +159,13 @@ export class ScribbleBrushing extends StateNode {
 			}
 		}
 
-		this.editor.setSelectedShapes(
-			[
-				...new Set<TLShapeId>(
-					shiftKey
-						? [...newlySelectedShapeIds, ...initialSelectedShapeIds]
-						: [...newlySelectedShapeIds]
-				),
-			],
-			{ squashing: true }
+		const current = editor.getSelectedShapeIds()
+		const next = new Set<TLShapeId>(
+			shiftKey ? [...newlySelectedShapeIds, ...initialSelectedShapeIds] : [...newlySelectedShapeIds]
 		)
+		if (current.length !== next.size || current.some((id) => !next.has(id))) {
+			this.editor.setSelectedShapes(Array.from(next))
+		}
 	}
 
 	private complete() {
@@ -162,7 +174,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private cancel() {
-		this.editor.setSelectedShapes([...this.initialSelectedShapeIds], { squashing: true })
+		this.editor.setSelectedShapes([...this.initialSelectedShapeIds])
 		this.parent.transition('idle')
 	}
 }

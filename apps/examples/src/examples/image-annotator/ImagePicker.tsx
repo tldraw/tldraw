@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileHelpers, MediaHelpers } from 'tldraw'
+import { DEFAULT_SUPPORTED_MEDIA_TYPE_LIST, FileHelpers, MediaHelpers } from 'tldraw'
 import anakin from './assets/anakin.jpeg'
 import distractedBf from './assets/distracted-bf.jpeg'
 import expandingBrain from './assets/expanding-brain.png'
@@ -13,7 +13,7 @@ export function ImagePicker({
 	function onClickChooseImage() {
 		const input = window.document.createElement('input')
 		input.type = 'file'
-		input.accept = 'image/jpeg,image/png,image/gif,image/svg+xml,video/mp4,video/quicktime'
+		input.accept = DEFAULT_SUPPORTED_MEDIA_TYPE_LIST
 		input.addEventListener('change', async (e) => {
 			const fileList = (e.target as HTMLInputElement).files
 			if (!fileList || fileList.length === 0) return

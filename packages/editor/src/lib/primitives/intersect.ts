@@ -316,3 +316,19 @@ export function polygonsIntersect(a: VecLike[], b: VecLike[]) {
 	}
 	return false
 }
+
+/** @public */
+export function polygonIntersectsPolyline(polygon: VecLike[], polyline: VecLike[]) {
+	let a: VecLike, b: VecLike, c: VecLike, d: VecLike
+	for (let i = 0, n = polygon.length; i < n; i++) {
+		a = polygon[i]
+		b = polygon[(i + 1) % n]
+
+		for (let j = 1, m = polyline.length; j < m; j++) {
+			c = polyline[j - 1]
+			d = polyline[j]
+			if (linesIntersect(a, b, c, d)) return true
+		}
+	}
+	return false
+}
