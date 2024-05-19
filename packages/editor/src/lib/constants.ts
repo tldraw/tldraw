@@ -20,15 +20,8 @@ export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions = {
 	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
 }
 
-export const FOLLOW_CHASE_PROPORTION = 0.5
 /** @internal */
-export const FOLLOW_CHASE_PAN_SNAP = 0.1
-/** @internal */
-export const FOLLOW_CHASE_PAN_UNSNAP = 0.2
-/** @internal */
-export const FOLLOW_CHASE_ZOOM_SNAP = 0.005
-/** @internal */
-export const FOLLOW_CHASE_ZOOM_UNSNAP = 0.05
+export const FOLLOW_CHASE_VIEWPORT_SNAP = 2
 
 /** @internal */
 export const DOUBLE_CLICK_DURATION = 450
