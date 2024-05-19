@@ -1,4 +1,5 @@
 import { TLAsset } from './TLAsset'
+import { TLBinding } from './TLBinding'
 import { TLCamera } from './TLCamera'
 import { TLDocument } from './TLDocument'
 import { TLInstance } from './TLInstance'
@@ -11,6 +12,7 @@ import { TLShape } from './TLShape'
 /** @public */
 export type TLRecord =
 	| TLAsset
+	| TLBinding
 	| TLCamera
 	| TLDocument
 	| TLInstance

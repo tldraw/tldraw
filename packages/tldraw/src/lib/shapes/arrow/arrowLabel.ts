@@ -6,7 +6,6 @@ import {
 	Editor,
 	Geometry2d,
 	Polygon2d,
-	TLArrowInfo,
 	TLArrowShape,
 	Vec,
 	VecLike,
@@ -24,6 +23,8 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import { TLArrowInfo } from './arrow-types'
+import { getArrowInfo } from './shared'
 
 const labelSizeCache = new WeakMap<TLArrowShape, Vec>()
 
@@ -31,7 +32,7 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 	const cachedSize = labelSizeCache.get(shape)
 	if (cachedSize) return cachedSize
 
-	const info = editor.getArrowInfo(shape)!
+	const info = getArrowInfo(editor, shape)!
 	let width = 0
 	let height = 0
 
@@ -260,16 +261,18 @@ function getCurvedArrowLabelRange(
 export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 	let labelCenter
 	const debugGeom: Geometry2d[] = []
-	const info = editor.getArrowInfo(shape)!
+	const info = getArrowInfo(editor, shape)!
 
+	const hasStartBinding = !!info.bindings.start
+	const hasEndBinding = !!info.bindings.end
 	const hasStartArrowhead = info.start.arrowhead !== 'none'
 	const hasEndArrowhead = info.end.arrowhead !== 'none'
 	if (info.isStraight) {
 		const range = getStraightArrowLabelRange(editor, shape, info)
 		let clampedPosition = clamp(
 			shape.props.labelPosition,
-			hasStartArrowhead ? range.start : 0,
-			hasEndArrowhead ? range.end : 1
+			hasStartArrowhead || hasStartBinding ? range.start : 0,
+			hasEndArrowhead || hasEndBinding ? range.end : 1
 		)
 		// This makes the position snap in the middle.
 		clampedPosition = clampedPosition >= 0.48 && clampedPosition <= 0.52 ? 0.5 : clampedPosition
@@ -279,8 +282,8 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 		if (range.dbg) debugGeom.push(...range.dbg)
 		let clampedPosition = clamp(
 			shape.props.labelPosition,
-			hasStartArrowhead ? range.start : 0,
-			hasEndArrowhead ? range.end : 1
+			hasStartArrowhead || hasStartBinding ? range.start : 0,
+			hasEndArrowhead || hasEndBinding ? range.end : 1
 		)
 		// This makes the position snap in the middle.
 		clampedPosition = clampedPosition >= 0.48 && clampedPosition <= 0.52 ? 0.5 : clampedPosition

@@ -23,7 +23,7 @@ describe('when less than two shapes are selected', () => {
 		editor.setSelectedShapes([ids.boxB])
 
 		const fn = jest.fn()
-		editor.on('update', fn)
+		editor.store.listen(fn)
 		editor.alignShapes(editor.getSelectedShapeIds(), 'top')
 		jest.advanceTimersByTime(1000)
 		expect(fn).not.toHaveBeenCalled()

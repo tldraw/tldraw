@@ -11,10 +11,10 @@ import {
 	TLUnknownShape,
 	getPointerInfo,
 	stopEventPropagation,
+	useDefaultColorTheme,
 	useEditor as useTldrawEditor,
 	useValue,
 } from 'tldraw'
-import { useDefaultColorTheme } from 'tldraw/src/lib/shapes/shared/ShapeFill'
 import './TipTap.css'
 
 const extensions = [StarterKit]
@@ -36,7 +36,7 @@ const Tiptap = ({
 	id: TLShapeId
 	type: string
 	content: string
-	labelColor: TLDefaultColorStyle
+	labelColor: string
 	font: TLDefaultFontStyle
 	fontSize: number
 	lineHeight: number

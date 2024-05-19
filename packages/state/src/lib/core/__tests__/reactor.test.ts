@@ -17,7 +17,7 @@ describe('reactors', () => {
 		expect(r.scheduler.isActivelyListening).toBe(true)
 	})
 
-	it('can not set atom values directly yet', () => {
+	it('can not set atom values indefinitely', () => {
 		const a = atom('', 1)
 		const r = reactor('', () => {
 			if (a.get() < +Infinity) {
@@ -25,7 +25,7 @@ describe('reactors', () => {
 			}
 		})
 		expect(() => r.start()).toThrowErrorMatchingInlineSnapshot(
-			`"cannot change atoms during reaction cycle"`
+			`"Reaction update depth limit exceeded"`
 		)
 	})
 

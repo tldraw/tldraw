@@ -3,6 +3,7 @@
 
 /** @public */
 export const LANGUAGES = [
+	{ locale: 'id', label: 'Bahasa Indonesia' },
 	{ locale: 'ca', label: 'Català' },
 	{ locale: 'cs', label: 'Čeština' },
 	{ locale: 'da', label: 'Danish' },

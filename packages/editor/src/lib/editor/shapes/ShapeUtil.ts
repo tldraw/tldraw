@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Migrations } from '@tldraw/store'
-import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
+import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
+import {
+	RecordProps,
+	TLHandle,
+	TLPropsMigrations,
+	TLShape,
+	TLShapePartial,
+	TLUnknownShape,
+} from '@tldraw/tlschema'
 import { ReactElement } from 'react'
 import { Box } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
@@ -18,8 +25,8 @@ export interface TLShapeUtilConstructor<
 > {
 	new (editor: Editor): U
 	type: T['type']
-	props?: ShapeProps<T>
-	migrations?: Migrations
+	props?: RecordProps<T>
+	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 }
 
 /** @public */
@@ -34,8 +41,8 @@ export interface TLShapeUtilCanvasSvgDef {
 /** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
-	static props?: ShapeProps<TLUnknownShape>
-	static migrations?: Migrations
+	static props?: RecordProps<TLUnknownShape>
+	static migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 
 	/**
 	 * The type of the shape util, which should match the shape's type.
@@ -90,13 +97,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canScroll: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape should unmount when not visible in the editor. Consider keeping this to false if the shape's `component` has local state.
-	 *
-	 * @public
-	 */
-	canUnmount: TLShapeUtilFlag<Shape> = () => true
-
-	/**
 	 * Whether the shape can be bound to by an arrow.
 	 *
 	 * @param _otherShape - The other shape attempting to bind to this shape.
@@ -131,6 +131,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	canCrop: TLShapeUtilFlag<Shape> = () => false
+
+	/**
+	 * Whether the shape participates in stacking, aligning, and distributing.
+	 *
+	 * @public
+	 */
+	canBeLaidOut: TLShapeUtilFlag<Shape> = () => true
 
 	/**
 	 * Does this shape provide a background for its children? If this is true,
@@ -327,16 +334,15 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * ```ts
 	 * onDragShapesOver = (shape, shapes) => {
-	 * 	return { shouldHint: true }
+	 * 	this.editor.reparentShapes(shapes, shape.id)
 	 * }
 	 * ```
 	 *
 	 * @param shape - The shape.
 	 * @param shapes - The shapes that are being dragged over this one.
-	 * @returns An object specifying whether the shape should hint that it can receive the dragged shapes.
 	 * @public
 	 */
-	onDragShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
+	onDragShapesOver?: TLOnDragHandler<Shape>
 
 	/**
 	 * A callback called when some other shapes are dragged out of this one.

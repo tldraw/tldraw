@@ -1,3 +1,4 @@
+import { ArraySet } from './ArraySet'
 import { startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { attach, detach, haveParentsChanged, singleton } from './helpers'
@@ -63,9 +64,11 @@ class __EffectScheduler__<Result> {
 	}
 
 	/** @internal */
-	parentEpochs: number[] = []
+	readonly parentSet = new ArraySet<Signal<any, any>>()
 	/** @internal */
-	parents: Signal<any, any>[] = []
+	readonly parentEpochs: number[] = []
+	/** @internal */
+	readonly parents: Signal<any, any>[] = []
 	private readonly _scheduleEffect?: (execute: () => void) => void
 	constructor(
 		public readonly name: string,
@@ -141,8 +144,12 @@ class __EffectScheduler__<Result> {
 	execute(): Result {
 		try {
 			startCapturingParents(this)
+			// Important! We have to make a note of the current epoch before running the effect.
+			// We allow atoms to be updated during effects, which increments the global epoch,
+			// so if we were to wait until after the effect runs, the this.lastReactedEpoch value might get ahead of itself.
+			const currentEpoch = getGlobalEpoch()
 			const result = this.runEffect(this.lastReactedEpoch)
-			this.lastReactedEpoch = getGlobalEpoch()
+			this.lastReactedEpoch = currentEpoch
 			return result
 		} finally {
 			stopCapturingParents()

@@ -38,7 +38,8 @@ export async function getSvgJsx(
 	if (opts.bounds) {
 		bbox = opts.bounds
 	} else {
-		for (const { maskedPageBounds } of renderingShapes) {
+		for (const { id } of renderingShapes) {
+			const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
 			if (!maskedPageBounds) continue
 			if (bbox) {
 				bbox.union(maskedPageBounds)
@@ -183,7 +184,6 @@ export async function getSvgJsx(
 	const svg = (
 		<SvgExportContextProvider editor={editor} context={exportContext}>
 			<svg
-				xmlns="http://www.w3.org/2000/svg"
 				preserveAspectRatio={preserveAspectRatio ? preserveAspectRatio : undefined}
 				direction="ltr"
 				width={w}

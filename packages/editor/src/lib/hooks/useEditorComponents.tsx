@@ -17,10 +17,6 @@ import {
 import { DefaultGrid, TLGridProps } from '../components/default-components/DefaultGrid'
 import { DefaultHandle, TLHandleProps } from '../components/default-components/DefaultHandle'
 import { DefaultHandles, TLHandlesProps } from '../components/default-components/DefaultHandles'
-import {
-	DefaultHoveredShapeIndicator,
-	TLHoveredShapeIndicatorProps,
-} from '../components/default-components/DefaultHoveredShapeIndicator'
 import { DefaultScribble, TLScribbleProps } from '../components/default-components/DefaultScribble'
 import {
 	DefaultSelectionBackground,
@@ -72,7 +68,6 @@ export interface BaseEditorComponents {
 	Spinner: ComponentType
 	SelectionForeground: ComponentType<TLSelectionForegroundProps>
 	SelectionBackground: ComponentType<TLSelectionBackgroundProps>
-	HoveredShapeIndicator: ComponentType<TLHoveredShapeIndicatorProps>
 	OnTheCanvas: ComponentType
 	InFrontOfTheCanvas: ComponentType
 	LoadingScreen: ComponentType
@@ -131,7 +126,6 @@ export function EditorComponentsProvider({
 					Spinner: DefaultSpinner,
 					SelectionBackground: DefaultSelectionBackground,
 					SelectionForeground: DefaultSelectionForeground,
-					HoveredShapeIndicator: DefaultHoveredShapeIndicator,
 					ShapeIndicator: DefaultShapeIndicator,
 					OnTheCanvas: null,
 					InFrontOfTheCanvas: null,

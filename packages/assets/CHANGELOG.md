@@ -1,3 +1,23 @@
+# v2.1.0 (Tue Apr 23 2024)
+
+### Release Notes
+
+#### ui: make toasts look more toasty ([#2988](https://github.com/tldraw/tldraw/pull/2988))
+
+- UI: Add severity to toasts.
+
+---
+
+#### 🐛 Bug Fixes
+
+- ui: make toasts look more toasty [#2988](https://github.com/tldraw/tldraw/pull/2988) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v2.0.0-beta.5 (Thu Feb 29 2024)
 
 #### 🐛 Bug Fix

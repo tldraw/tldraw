@@ -24,7 +24,7 @@ interface DoubleDropdownPickerProps<T extends string> {
 	styleB: StyleProp<T>
 	valueA: SharedStyle<T>
 	valueB: SharedStyle<T>
-	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
+	onValueChange: (style: StyleProp<T>, value: T) => void
 }
 
 function _DoubleDropdownPicker<T extends string>({
@@ -80,7 +80,7 @@ function _DoubleDropdownPicker<T extends string>({
 							<TldrawUiButtonIcon icon={iconA} small invertIcon />
 						</TldrawUiButton>
 					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+					<TldrawUiDropdownMenuContent side="left" align="center" sideOffset={80} alignOffset={0}>
 						<div className="tlui-buttons__grid">
 							{itemsA.map((item, i) => {
 								return (
@@ -88,7 +88,7 @@ function _DoubleDropdownPicker<T extends string>({
 										<TldrawUiButton
 											type="icon"
 											key={item.value}
-											onClick={() => onValueChange(styleA, item.value, false)}
+											onClick={() => onValueChange(styleA, item.value)}
 											title={`${msg(labelA)} — ${msg(`${uiTypeA}-style.${item.value}`)}`}
 										>
 											<TldrawUiButtonIcon icon={item.icon} invertIcon />
@@ -115,7 +115,7 @@ function _DoubleDropdownPicker<T extends string>({
 							<TldrawUiButtonIcon icon={iconB} small />
 						</TldrawUiButton>
 					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+					<TldrawUiDropdownMenuContent side="left" align="center" sideOffset={116} alignOffset={0}>
 						<div className="tlui-buttons__grid">
 							{itemsB.map((item) => {
 								return (
@@ -124,7 +124,7 @@ function _DoubleDropdownPicker<T extends string>({
 											type="icon"
 											title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
 											data-testid={`style.${uiTypeB}.${item.value}`}
-											onClick={() => onValueChange(styleB, item.value, false)}
+											onClick={() => onValueChange(styleB, item.value)}
 										>
 											<TldrawUiButtonIcon icon={item.icon} />
 										</TldrawUiButton>

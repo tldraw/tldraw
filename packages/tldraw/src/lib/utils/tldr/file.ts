@@ -6,9 +6,10 @@ import {
 	RecordId,
 	Result,
 	SerializedSchema,
+	SerializedSchemaV1,
+	SerializedSchemaV2,
 	SerializedStore,
 	T,
-	TLAsset,
 	TLAssetId,
 	TLRecord,
 	TLSchema,
@@ -40,19 +41,29 @@ export interface TldrawFile {
 	records: UnknownRecord[]
 }
 
+const schemaV1 = T.object<SerializedSchemaV1>({
+	schemaVersion: T.literal(1),
+	storeVersion: T.positiveInteger,
+	recordVersions: T.dict(
+		T.string,
+		T.object({
+			version: T.positiveInteger,
+			subTypeVersions: T.dict(T.string, T.positiveInteger).optional(),
+			subTypeKey: T.string.optional(),
+		})
+	),
+})
+
+const schemaV2 = T.object<SerializedSchemaV2>({
+	schemaVersion: T.literal(2),
+	sequences: T.dict(T.string, T.positiveInteger),
+})
+
 const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 	tldrawFileFormatVersion: T.nonZeroInteger,
-	schema: T.object({
-		schemaVersion: T.positiveInteger,
-		storeVersion: T.positiveInteger,
-		recordVersions: T.dict(
-			T.string,
-			T.object({
-				version: T.positiveInteger,
-				subTypeVersions: T.dict(T.string, T.positiveInteger).optional(),
-				subTypeKey: T.string.optional(),
-			})
-		),
+	schema: T.numberUnion('schemaVersion', {
+		1: schemaV1,
+		2: schemaV2,
 	}),
 	records: T.arrayOf(
 		T.object({
@@ -123,7 +134,8 @@ export function parseTldrawJsonFile({
 	// latest version
 	let migrationResult: MigrationResult<SerializedStore<TLRecord>>
 	try {
-		const storeSnapshot = Object.fromEntries(data.records.map((r) => [r.id, r as TLRecord]))
+		const records = pruneUnusedAssets(data.records as TLRecord[])
+		const storeSnapshot = Object.fromEntries(records.map((r) => [r.id, r]))
 		migrationResult = schema.migrateStoreSnapshot({ store: storeSnapshot, schema: data.schema })
 	} catch (e) {
 		// junk data in the migration
@@ -152,11 +164,19 @@ export function parseTldrawJsonFile({
 	}
 }
 
+function pruneUnusedAssets(records: TLRecord[]) {
+	const usedAssets = new Set<TLAssetId>()
+	for (const record of records) {
+		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
+			usedAssets.add(record.props.assetId)
+		}
+	}
+	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id))
+}
+
 /** @public */
 export async function serializeTldrawJson(store: TLStore): Promise<string> {
 	const records: TLRecord[] = []
-	const usedAssets = new Set<TLAssetId | null>()
-	const assets: TLAsset[] = []
 	for (const record of store.allRecords()) {
 		switch (record.typeName) {
 			case 'asset':
@@ -176,7 +196,7 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 						assetSrcToSave = record.props.src
 					}
 
-					assets.push({
+					records.push({
 						...record,
 						props: {
 							...record.props,
@@ -184,26 +204,19 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 						},
 					})
 				} else {
-					assets.push(record)
+					records.push(record)
 				}
-				break
-			case 'shape':
-				if ('assetId' in record.props) {
-					usedAssets.add(record.props.assetId)
-				}
-				records.push(record)
 				break
 			default:
 				records.push(record)
 				break
 		}
 	}
-	const recordsToSave = records.concat(assets.filter((a) => usedAssets.has(a.id)))
 
 	return JSON.stringify({
 		tldrawFileFormatVersion: LATEST_TLDRAW_FILE_FORMAT_VERSION,
 		schema: store.schema.serialize(),
-		records: recordsToSave,
+		records: pruneUnusedAssets(records),
 	})
 }
 
@@ -293,7 +306,6 @@ export async function parseAndLoadDocument(
 		editor.history.clear()
 		// Put the old bounds back in place
 		editor.updateViewportScreenBounds(initialBounds)
-		editor.updateRenderingBounds()
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {

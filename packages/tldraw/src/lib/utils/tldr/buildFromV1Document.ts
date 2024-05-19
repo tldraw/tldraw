@@ -5,7 +5,6 @@ import {
 	PageRecordType,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
-	TLArrowShapeTerminal,
 	TLAsset,
 	TLAssetId,
 	TLDefaultColorStyle,
@@ -13,6 +12,7 @@ import {
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultSizeStyle,
+	TLDefaultTextAlignStyle,
 	TLDrawShape,
 	TLGeoShape,
 	TLImageShape,
@@ -25,7 +25,9 @@ import {
 	VecModel,
 	clamp,
 	createShapeId,
+	structuredClone,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../../shapes/arrow/shared'
 
 const TLDRAW_V1_VERSION = 15.5
 
@@ -410,12 +412,10 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 										arrowheadStart: getV2Arrowhead(v1Shape.decorations?.start),
 										arrowheadEnd: getV2Arrowhead(v1Shape.decorations?.end),
 										start: {
-											type: 'point',
 											x: coerceNumber(v1Shape.handles.start.point[0]),
 											y: coerceNumber(v1Shape.handles.start.point[1]),
 										},
 										end: {
-											type: 'point',
 											x: coerceNumber(v1Shape.handles.end.point[0]),
 											y: coerceNumber(v1Shape.handles.end.point[1]),
 										},
@@ -436,7 +436,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 										color: getV2Color(v1Shape.style.color),
 										size: getV2TextSize(v1Shape.style.size),
 										font: getV2Font(v1Shape.style.font),
-										align: getV2Align(v1Shape.style.textAlign),
+										textAlign: getV2TextAlign(v1Shape.style.textAlign),
 										scale: v1Shape.style.scale ?? 1,
 									},
 								},
@@ -563,19 +563,24 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								})
 
 								if (change) {
-									if (change.props?.[handleId]) {
-										const terminal = change.props?.[handleId] as TLArrowShapeTerminal
-										if (terminal.type === 'binding') {
-											terminal.isExact = binding.distance === 0
+									editor.updateShape(change)
+								}
 
-											if (terminal.boundShapeId !== targetId) {
-												console.warn('Hit the wrong shape!')
-												terminal.boundShapeId = targetId
-												terminal.normalizedAnchor = { x: 0.5, y: 0.5 }
-											}
-										}
+								const freshBinding = getArrowBindings(
+									editor,
+									editor.getShape<TLArrowShape>(v2ShapeId)!
+								)[handleId]
+								if (freshBinding) {
+									const updatedFreshBinding = structuredClone(freshBinding)
+									if (binding.distance === 0) {
+										updatedFreshBinding.props.isExact = true
 									}
-									editor.updateShapes([change])
+									if (updatedFreshBinding.toId !== targetId) {
+										updatedFreshBinding.toId = targetId
+										updatedFreshBinding.props.normalizedAnchor = { x: nx, y: ny }
+									}
+
+									editor.updateBinding(updatedFreshBinding)
 								}
 							}
 						}
@@ -1106,6 +1111,13 @@ const v1AlignsToV2Aligns: Record<AlignStyle, TLDefaultHorizontalAlignStyle> = {
 	[AlignStyle.Justify]: 'start',
 }
 
+const v1TextAlignsToV2TextAligns: Record<AlignStyle, TLDefaultTextAlignStyle> = {
+	[AlignStyle.Start]: 'start',
+	[AlignStyle.Middle]: 'middle',
+	[AlignStyle.End]: 'end',
+	[AlignStyle.Justify]: 'start',
+}
+
 const v1TextSizesToV2TextSizes: Record<SizeStyle, TLDefaultSizeStyle> = {
 	[SizeStyle.Small]: 's',
 	[SizeStyle.Medium]: 'l',
@@ -1135,6 +1147,10 @@ function getV2Font(font: FontStyle | undefined): TLDefaultFontStyle {
 
 function getV2Align(align: AlignStyle | undefined): TLDefaultHorizontalAlignStyle {
 	return align ? v1AlignsToV2Aligns[align] ?? 'middle' : 'middle'
+}
+
+function getV2TextAlign(align: AlignStyle | undefined): TLDefaultTextAlignStyle {
+	return align ? v1TextAlignsToV2TextAligns[align] ?? 'middle' : 'middle'
 }
 
 function getV2TextSize(size: SizeStyle | undefined): TLDefaultSizeStyle {

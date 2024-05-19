@@ -60,8 +60,9 @@ describe('Editor.moveShapesToPage', () => {
 
 	it('Adds undo items', () => {
 		editor.history.clear()
+		expect(editor.history.getNumUndos()).toBe(0)
 		editor.moveShapesToPage([ids.box1], ids.page2)
-		expect(editor.history.getNumUndos()).toBeGreaterThan(1)
+		expect(editor.history.getNumUndos()).toBe(1)
 	})
 
 	it('Does nothing on an empty ids array', () => {
@@ -220,7 +221,7 @@ describe('arrows', () => {
 		expect(editor.getShapePageBounds(arrow)).toCloselyMatchObject({
 			x: 300,
 			y: 250,
-			w: 150,
+			w: 86.5,
 			h: 0,
 		})
 	})

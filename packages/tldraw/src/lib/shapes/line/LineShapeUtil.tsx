@@ -10,7 +10,7 @@ import {
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
-	WeakMapCache,
+	WeakCache,
 	getIndexBetween,
 	getIndices,
 	lineShapeMigrations,
@@ -30,7 +30,7 @@ import {
 	getSvgPathForLineGeometry,
 } from './components/svg'
 
-const handlesCache = new WeakMapCache<TLLineShape['props'], TLHandle[]>()
+const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
 
 /** @public */
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {

@@ -1,28 +1,34 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Box,
 	Editor,
-	HTMLContainer,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
 	TLOnEditEndHandler,
 	TLOnResizeHandler,
+	TLShapeId,
 	TLShapeUtilFlag,
 	TLTextShape,
 	Vec,
-	WeakMapCache,
+	WeakCache,
+	getDefaultColorTheme,
+	preventDefault,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
 	useEditor,
 	useEditorComponents,
 } from '@tldraw/editor'
+import { useCallback } from 'react'
+import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
+import { TextHelpers } from '../shared/TextHelpers'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
 
-const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width: number }>()
+const sizeCache = new WeakCache<TLTextShape['props'], { height: number; width: number }>()
 
 /** @public */
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
@@ -37,7 +43,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			w: 8,
 			text: '',
 			font: 'draw',
-			align: 'middle',
+			textAlign: 'start',
 			autoSize: true,
 			scale: 1,
 		}
@@ -54,48 +60,51 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			width: width * scale,
 			height: height * scale,
 			isFilled: true,
+			isLabel: true,
 		})
 	}
 
 	override canEdit = () => true
 
-	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
+	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER
 
 	component(shape: TLTextShape) {
 		const {
 			id,
-			props: { font, size, text, color, scale, align },
+			props: { font, size, text, color, scale, textAlign },
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const theme = useDefaultColorTheme()
+		const handleKeyDown = useTextShapeKeydownHandler(id)
 
-		/* eslint-disable-next-line react-hooks/rules-of-hooks */
 		const { TextLabel } = useEditorComponents()
 
 		return (
-			<HTMLContainer id={shape.id}>
-				{TextLabel && (
-					<TextLabel
-						id={id}
-						classNamePrefix="tl-text-shape"
-						type="text"
-						font={font}
-						fontSize={FONT_SIZES[size]}
-						lineHeight={TEXT_PROPS.lineHeight}
-						align={align}
-						verticalAlign="middle"
-						text={text}
-						labelColor={color}
-						textWidth={width}
-						textHeight={height}
-						style={{
-							transform: `scale(${scale})`,
-							transformOrigin: 'top left',
-						}}
-						wrap
-					/>
-				)}
-			</HTMLContainer>
+			TextLabel && (
+				<TextLabel
+					id={id}
+					classNamePrefix="tl-text-shape"
+					type="text"
+					font={font}
+					fontSize={FONT_SIZES[size]}
+					lineHeight={TEXT_PROPS.lineHeight}
+					align={textAlign}
+					verticalAlign="middle"
+					text={text}
+					labelColor={theme[color].solid}
+					isSelected={isSelected}
+					textWidth={width}
+					textHeight={height}
+					style={{
+						transform: `scale(${scale})`,
+						transformOrigin: 'top left',
+					}}
+					wrap
+					onKeyDown={handleKeyDown}
+				/>
+			)
 		)
 	}
 
@@ -115,14 +124,16 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const width = bounds.width / (shape.props.scale ?? 1)
 		const height = bounds.height / (shape.props.scale ?? 1)
 
+		const theme = getDefaultColorTheme(ctx)
+
 		return (
 			<SvgTextLabel
 				fontSize={FONT_SIZES[shape.props.size]}
 				font={shape.props.font}
-				align={shape.props.align}
+				align={shape.props.textAlign}
 				verticalAlign="middle"
 				text={shape.props.text}
-				labelColor={shape.props.color}
+				labelColor={theme[shape.props.color].solid}
 				bounds={new Box(0, 0, width, height)}
 				padding={0}
 			/>
@@ -130,7 +141,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override onResize: TLOnResizeHandler<TLTextShape> = (shape, info) => {
-		const { initialBounds, initialShape, scaleX, handle } = info
+		const { newPoint, initialBounds, initialShape, scaleX, handle } = info
 
 		if (info.mode === 'scale_shape' || (handle !== 'right' && handle !== 'left')) {
 			return {
@@ -139,25 +150,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				...resizeScaled(shape, info),
 			}
 		} else {
-			const prevWidth = initialBounds.width
-			let nextWidth = prevWidth * scaleX
-
-			const offset = new Vec(0, 0)
-
-			nextWidth = Math.max(1, Math.abs(nextWidth))
-
-			if (handle === 'left') {
-				offset.x = prevWidth - nextWidth
-				if (scaleX < 0) {
-					offset.x += nextWidth
-				}
-			} else {
-				if (scaleX < 0) {
-					offset.x -= nextWidth
-				}
-			}
-
-			const { x, y } = offset.rot(shape.rotation).add(initialShape)
+			const nextWidth = Math.max(1, Math.abs(initialBounds.width * scaleX))
+			const { x, y } =
+				scaleX < 0 ? Vec.Sub(newPoint, Vec.FromAngle(shape.rotation).mul(nextWidth)) : newPoint
 
 			return {
 				id: shape.id,
@@ -221,7 +216,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const styleDidChange =
 			prev.props.size !== next.props.size ||
-			prev.props.align !== next.props.align ||
+			prev.props.textAlign !== next.props.textAlign ||
 			prev.props.font !== next.props.font ||
 			(prev.props.scale !== 1 && next.props.scale === 1)
 
@@ -243,7 +238,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		let delta: Vec | undefined
 
-		switch (next.props.align) {
+		switch (next.props.textAlign) {
 			case 'middle': {
 				delta = new Vec((wB - wA) / 2, textDidChange ? 0 : (hB - hA) / 2)
 				break
@@ -331,4 +326,33 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 		width: Math.max(minWidth, result.w),
 		height: Math.max(fontSize, result.h),
 	}
+}
+
+function useTextShapeKeydownHandler(id: TLShapeId) {
+	const editor = useEditor()
+
+	return useCallback(
+		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+			if (editor.getEditingShapeId() !== id) return
+
+			switch (e.key) {
+				case 'Enter': {
+					if (e.ctrlKey || e.metaKey) {
+						editor.complete()
+					}
+					break
+				}
+				case 'Tab': {
+					preventDefault(e)
+					if (e.shiftKey) {
+						TextHelpers.unindent(e.currentTarget)
+					} else {
+						TextHelpers.indent(e.currentTarget)
+					}
+					break
+				}
+			}
+		},
+		[editor, id]
+	)
 }

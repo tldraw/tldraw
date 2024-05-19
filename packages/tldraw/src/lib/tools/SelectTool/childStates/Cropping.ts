@@ -11,6 +11,7 @@ import {
 	Vec,
 	structuredClone,
 } from '@tldraw/editor'
+import { kickoutOccludedShapes } from '../selectHelpers'
 import { MIN_CROP_SIZE } from './Crop/crop-constants'
 import { CursorTypeMap } from './PointingResizeHandle'
 
@@ -64,12 +65,7 @@ export class Cropping extends StateNode {
 		if (!selectedShape) return
 
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.updateInstanceState({
-			cursor: {
-				type: cursorType,
-				rotation: this.editor.getSelectionRotation(),
-			},
-		})
+		this.editor.setCursor({ type: cursorType, rotation: this.editor.getSelectionRotation() })
 	}
 
 	private getDefaultCrop = (): TLImageShapeCrop => ({
@@ -200,12 +196,13 @@ export class Cropping extends StateNode {
 			},
 		}
 
-		this.editor.updateShapes([partial], { squashing: true })
+		this.editor.updateShapes([partial])
 		this.updateCursor()
 	}
 
 	private complete() {
 		this.updateShapes()
+		kickoutOccludedShapes(this.editor, [this.snapshot.shape.id])
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {

@@ -4,6 +4,7 @@ import {
 	Expand,
 	LoadingScreen,
 	StoreSnapshot,
+	TLAnyBindingUtilConstructor,
 	TLAnyShapeUtilConstructor,
 	TLPageId,
 	TLRecord,
@@ -12,6 +13,7 @@ import {
 	useTLStore,
 } from '@tldraw/editor'
 import { memo, useLayoutEffect, useMemo, useState } from 'react'
+import { defaultBindingUtils } from './defaultBindingUtils'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { getSvgAsImage } from './utils/export/export'
@@ -43,6 +45,10 @@ export type TldrawImageProps = Expand<
 		 * Additional shape utils to use.
 		 */
 		shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+		/**
+		 * Additional binding utils to use.
+		 */
+		bindingUtils?: readonly TLAnyBindingUtilConstructor[]
 	} & Partial<TLSvgOptions>
 >
 
@@ -69,6 +75,11 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 
 	const shapeUtils = useShallowArrayIdentity(props.shapeUtils ?? [])
 	const shapeUtilsWithDefaults = useMemo(() => [...defaultShapeUtils, ...shapeUtils], [shapeUtils])
+	const bindingUtils = useShallowArrayIdentity(props.bindingUtils ?? [])
+	const bindingUtilsWithDefaults = useMemo(
+		() => [...defaultBindingUtils, ...bindingUtils],
+		[bindingUtils]
+	)
 	const store = useTLStore({ snapshot: props.snapshot, shapeUtils: shapeUtilsWithDefaults })
 
 	const assets = useDefaultEditorAssetsWithOverrides()
@@ -98,7 +109,8 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 
 		const editor = new Editor({
 			store,
-			shapeUtils: shapeUtilsWithDefaults ?? [],
+			shapeUtils: shapeUtilsWithDefaults,
+			bindingUtils: bindingUtilsWithDefaults,
 			tools: [],
 			getContainer: () => tempElm,
 		})
@@ -152,6 +164,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		container,
 		store,
 		shapeUtilsWithDefaults,
+		bindingUtilsWithDefaults,
 		pageId,
 		bounds,
 		scale,

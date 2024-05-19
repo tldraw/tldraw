@@ -1,7 +1,9 @@
 import { Computed, react, RESET_VALUE, transact } from '@tldraw/state'
 import { BaseRecord, RecordId } from '../BaseRecord'
+import { createMigrationSequence } from '../migrate'
+import { RecordsDiff, reverseRecordsDiff } from '../RecordsDiff'
 import { createRecordType } from '../RecordType'
-import { CollectionDiff, RecordsDiff, Store } from '../Store'
+import { CollectionDiff, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
 interface Book extends BaseRecord<'book', RecordId<Book>> {
@@ -47,20 +49,11 @@ describe('Store', () => {
 	beforeEach(() => {
 		store = new Store({
 			props: {},
-			schema: StoreSchema.create<LibraryType>(
-				{
-					book: Book,
-					author: Author,
-					visit: Visit,
-				},
-				{
-					snapshotMigrations: {
-						currentVersion: 0,
-						firstVersion: 0,
-						migrators: {},
-					},
-				}
-			),
+			schema: StoreSchema.create<LibraryType>({
+				book: Book,
+				author: Author,
+				visit: Visit,
+			}),
 		})
 	})
 
@@ -762,19 +755,10 @@ describe('snapshots', () => {
 	beforeEach(() => {
 		store = new Store({
 			props: {},
-			schema: StoreSchema.create<Book | Author>(
-				{
-					book: Book,
-					author: Author,
-				},
-				{
-					snapshotMigrations: {
-						currentVersion: 0,
-						firstVersion: 0,
-						migrators: {},
-					},
-				}
-			),
+			schema: StoreSchema.create<Book | Author>({
+				book: Book,
+				author: Author,
+			}),
 		})
 
 		transact(() => {
@@ -808,19 +792,10 @@ describe('snapshots', () => {
 
 		const store2 = new Store({
 			props: {},
-			schema: StoreSchema.create<Book | Author>(
-				{
-					book: Book,
-					author: Author,
-				},
-				{
-					snapshotMigrations: {
-						currentVersion: 0,
-						firstVersion: 0,
-						migrators: {},
-					},
-				}
-			),
+			schema: StoreSchema.create<Book | Author>({
+				book: Book,
+				author: Author,
+			}),
 		})
 
 		store2.loadSnapshot(snapshot1)
@@ -839,25 +814,16 @@ describe('snapshots', () => {
 
 		const store2 = new Store({
 			props: {},
-			schema: StoreSchema.create<Book>(
-				{
-					book: Book,
-					// no author
-				},
-				{
-					snapshotMigrations: {
-						currentVersion: 0,
-						firstVersion: 0,
-						migrators: {},
-					},
-				}
-			),
+			schema: StoreSchema.create<Book>({
+				book: Book,
+				// no author
+			}),
 		})
 
 		expect(() => {
 			// @ts-expect-error
 			store2.loadSnapshot(snapshot1)
-		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: unknown-type"`)
+		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
 	})
 
 	it('throws errors when loading a snapshot with a different schema', () => {
@@ -865,28 +831,23 @@ describe('snapshots', () => {
 
 		const store2 = new Store({
 			props: {},
-			schema: StoreSchema.create<Book | Author>(
-				{
-					book: Book,
-					author: Author,
-				},
-				{
-					snapshotMigrations: {
-						currentVersion: -1,
-						firstVersion: 0,
-						migrators: {},
-					},
-				}
-			),
+			schema: StoreSchema.create<Book>({
+				book: Book,
+			}),
 		})
 
 		expect(() => {
-			store2.loadSnapshot(snapshot1)
-		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: target-version-too-old"`)
+			store2.loadSnapshot(snapshot1 as any)
+		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
 	})
 
 	it('migrates the snapshot', () => {
 		const snapshot1 = store.getSnapshot()
+		const up = jest.fn((s: any) => {
+			s['book:lotr'].numPages = 42
+		})
+
+		expect((snapshot1.store as any)['book:lotr'].numPages).toBe(1000)
 
 		const store2 = new Store({
 			props: {},
@@ -896,16 +857,19 @@ describe('snapshots', () => {
 					author: Author,
 				},
 				{
-					snapshotMigrations: {
-						currentVersion: 1,
-						firstVersion: 0,
-						migrators: {
-							1: {
-								up: (r) => r,
-								down: (r) => r,
-							},
-						},
-					},
+					migrations: [
+						createMigrationSequence({
+							sequenceId: 'com.tldraw',
+							retroactive: true,
+							sequence: [
+								{
+									id: `com.tldraw/1`,
+									scope: 'store',
+									up,
+								},
+							],
+						}),
+					],
 				}
 			),
 		})
@@ -913,5 +877,275 @@ describe('snapshots', () => {
 		expect(() => {
 			store2.loadSnapshot(snapshot1)
 		}).not.toThrow()
+
+		expect(up).toHaveBeenCalledTimes(1)
+		expect(store2.get(Book.createId('lotr'))!.numPages).toBe(42)
+	})
+})
+
+describe('diffs', () => {
+	let store: Store<LibraryType>
+	const authorId = Author.createId('tolkein')
+	const bookId = Book.createId('hobbit')
+
+	beforeEach(() => {
+		store = new Store({
+			props: {},
+			schema: StoreSchema.create<LibraryType>({
+				book: Book,
+				author: Author,
+				visit: Visit,
+			}),
+		})
+	})
+
+	it('produces diffs from `extractingChanges`', () => {
+		expect(
+			store.extractingChanges(() => {
+				store.put([Author.create({ name: 'J.R.R Tolkein', id: authorId })])
+				store.put([
+					Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
+				])
+			})
+		).toMatchInlineSnapshot(`
+		{
+		  "added": {
+		    "author:tolkein": {
+		      "id": "author:tolkein",
+		      "isPseudonym": false,
+		      "name": "J.R.R Tolkein",
+		      "typeName": "author",
+		    },
+		    "book:hobbit": {
+		      "author": "author:tolkein",
+		      "id": "book:hobbit",
+		      "numPages": 300,
+		      "title": "The Hobbit",
+		      "typeName": "book",
+		    },
+		  },
+		  "removed": {},
+		  "updated": {},
+		}
+	`)
+
+		expect(
+			store.extractingChanges(() => {
+				store.remove([authorId])
+				store.update(bookId, (book) => ({ ...book, title: 'The Hobbit: There and Back Again' }))
+			})
+		).toMatchInlineSnapshot(`
+		{
+		  "added": {},
+		  "removed": {
+		    "author:tolkein": {
+		      "id": "author:tolkein",
+		      "isPseudonym": false,
+		      "name": "J.R.R Tolkein",
+		      "typeName": "author",
+		    },
+		  },
+		  "updated": {
+		    "book:hobbit": [
+		      {
+		        "author": "author:tolkein",
+		        "id": "book:hobbit",
+		        "numPages": 300,
+		        "title": "The Hobbit",
+		        "typeName": "book",
+		      },
+		      {
+		        "author": "author:tolkein",
+		        "id": "book:hobbit",
+		        "numPages": 300,
+		        "title": "The Hobbit: There and Back Again",
+		        "typeName": "book",
+		      },
+		    ],
+		  },
+		}
+	`)
+	})
+	it('produces diffs from `addHistoryInterceptor`', () => {
+		const diffs: any[] = []
+		const interceptor = jest.fn((diff) => diffs.push(diff))
+		store.addHistoryInterceptor(interceptor)
+
+		store.put([
+			Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') }),
+			Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
+		])
+		expect(interceptor).toHaveBeenCalledTimes(1)
+
+		store.extractingChanges(() => {
+			store.remove([authorId])
+
+			store.update(bookId, (book) => ({ ...book, title: 'The Hobbit: There and Back Again' }))
+		})
+		expect(interceptor).toHaveBeenCalledTimes(3)
+
+		expect(diffs).toMatchInlineSnapshot(`
+		[
+		  {
+		    "changes": {
+		      "added": {
+		        "author:tolkein": {
+		          "id": "author:tolkein",
+		          "isPseudonym": false,
+		          "name": "J.R.R Tolkein",
+		          "typeName": "author",
+		        },
+		        "book:hobbit": {
+		          "author": "author:tolkein",
+		          "id": "book:hobbit",
+		          "numPages": 300,
+		          "title": "The Hobbit",
+		          "typeName": "book",
+		        },
+		      },
+		      "removed": {},
+		      "updated": {},
+		    },
+		    "source": "user",
+		  },
+		  {
+		    "changes": {
+		      "added": {},
+		      "removed": {
+		        "author:tolkein": {
+		          "id": "author:tolkein",
+		          "isPseudonym": false,
+		          "name": "J.R.R Tolkein",
+		          "typeName": "author",
+		        },
+		      },
+		      "updated": {},
+		    },
+		    "source": "user",
+		  },
+		  {
+		    "changes": {
+		      "added": {},
+		      "removed": {},
+		      "updated": {
+		        "book:hobbit": [
+		          {
+		            "author": "author:tolkein",
+		            "id": "book:hobbit",
+		            "numPages": 300,
+		            "title": "The Hobbit",
+		            "typeName": "book",
+		          },
+		          {
+		            "author": "author:tolkein",
+		            "id": "book:hobbit",
+		            "numPages": 300,
+		            "title": "The Hobbit: There and Back Again",
+		            "typeName": "book",
+		          },
+		        ],
+		      },
+		    },
+		    "source": "user",
+		  },
+		]
+	`)
+	})
+
+	it('can apply and invert diffs', () => {
+		store.put([
+			Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') }),
+			Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
+		])
+
+		const checkpoint1 = store.getSnapshot()
+
+		const forwardsDiff = store.extractingChanges(() => {
+			store.remove([authorId])
+			store.update(bookId, (book) => ({ ...book, title: 'The Hobbit: There and Back Again' }))
+		})
+
+		const checkpoint2 = store.getSnapshot()
+
+		store.applyDiff(reverseRecordsDiff(forwardsDiff))
+		expect(store.getSnapshot()).toEqual(checkpoint1)
+
+		store.applyDiff(forwardsDiff)
+		expect(store.getSnapshot()).toEqual(checkpoint2)
+	})
+})
+
+describe('after callbacks', () => {
+	let store: Store<LibraryType>
+	let callbacks: any[] = []
+
+	const authorId = Author.createId('tolkein')
+	const bookId = Book.createId('hobbit')
+
+	beforeEach(() => {
+		store = new Store({
+			props: {},
+			schema: StoreSchema.create<LibraryType>({
+				book: Book,
+				author: Author,
+				visit: Visit,
+			}),
+		})
+
+		store.onAfterCreate = jest.fn((record) => callbacks.push({ type: 'create', record }))
+		store.onAfterChange = jest.fn((from, to) => callbacks.push({ type: 'change', from, to }))
+		store.onAfterDelete = jest.fn((record) => callbacks.push({ type: 'delete', record }))
+		callbacks = []
+	})
+
+	it('fires callbacks at the end of an `atomic` op', () => {
+		store.atomic(() => {
+			expect(callbacks).toHaveLength(0)
+
+			store.put([
+				Author.create({ name: 'J.R.R Tolkein', id: authorId }),
+				Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
+			])
+
+			expect(callbacks).toHaveLength(0)
+		})
+
+		expect(callbacks).toMatchObject([
+			{ type: 'create', record: { id: authorId } },
+			{ type: 'create', record: { id: bookId } },
+		])
+	})
+
+	it('doesnt fire callback for a record created then deleted', () => {
+		store.atomic(() => {
+			store.put([Author.create({ name: 'J.R.R Tolkein', id: authorId })])
+			store.remove([authorId])
+		})
+		expect(callbacks).toHaveLength(0)
+	})
+
+	it('bails out if too many callbacks are fired', () => {
+		let limit = 10
+		store.onAfterCreate = (record) => {
+			if (record.typeName === 'book' && record.numPages < limit) {
+				store.put([{ ...record, numPages: record.numPages + 1 }])
+			}
+		}
+		store.onAfterChange = (from, to) => {
+			if (to.typeName === 'book' && to.numPages < limit) {
+				store.put([{ ...to, numPages: to.numPages + 1 }])
+			}
+		}
+
+		// this should be fine:
+		store.put([Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 0 })])
+		expect(store.get(bookId)!.numPages).toBe(limit)
+
+		// if we increase the limit thought, it should crash:
+		limit = 10000
+		store.clear()
+		expect(() => {
+			store.put([Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 0 })])
+		}).toThrowErrorMatchingInlineSnapshot(`"Maximum store update depth exceeded, bailing out"`)
 	})
 })

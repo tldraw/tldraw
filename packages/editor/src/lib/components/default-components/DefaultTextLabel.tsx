@@ -1,5 +1,4 @@
 import {
-	TLDefaultColorStyle,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
@@ -38,8 +37,12 @@ type TextLabelProps = {
 	verticalAlign: TLDefaultVerticalAlignStyle
 	wrap?: boolean
 	text: string
-	labelColor: TLDefaultColorStyle
+	labelColor: string
 	bounds?: Box
+	isNote?: boolean
+	isSelected: boolean
+	disableTab?: boolean
+	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 	classNamePrefix?: string
 	style?: React.CSSProperties
 	textWidth?: number

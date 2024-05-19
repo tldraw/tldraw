@@ -1,7 +1,7 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
-	ShapeProps,
+	RecordProps,
 	T,
 	TLBaseShape,
 	TLOnEditEndHandler,
@@ -23,7 +23,7 @@ type IMyEditableShape = TLBaseShape<
 
 export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 	static override type = 'my-editable-shape' as const
-	static override props: ShapeProps<IMyEditableShape> = {
+	static override props: RecordProps<IMyEditableShape> = {
 		w: T.number,
 		h: T.number,
 		animal: T.number,
@@ -90,7 +90,7 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 	override onEditEnd: TLOnEditEndHandler<IMyEditableShape> = (shape) => {
 		this.editor.animateShape(
 			{ ...shape, rotation: shape.rotation + Math.PI * 2 },
-			{ duration: 250 }
+			{ animation: { duration: 250 } }
 		)
 	}
 }

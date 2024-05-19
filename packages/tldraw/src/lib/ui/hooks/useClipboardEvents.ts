@@ -9,11 +9,13 @@ import {
 	TLTextShape,
 	VecLike,
 	isNonNull,
+	preventDefault,
+	stopEventPropagation,
 	uniq,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { compressToBase64, decompressFromBase64 } from 'lz-string'
+import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
@@ -326,7 +328,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 							if (tldrawHtmlComment) {
 								try {
 									// If we've found tldraw content in the html string, use that as JSON
-									const jsonComment = decompressFromBase64(tldrawHtmlComment)
+									const jsonComment = lz.decompressFromBase64(tldrawHtmlComment)
 									if (jsonComment === null) {
 										r({
 											type: 'error',
@@ -489,7 +491,7 @@ const handleNativeOrMenuCopy = (editor: Editor) => {
 		return
 	}
 
-	const stringifiedClipboard = compressToBase64(
+	const stringifiedClipboard = lz.compressToBase64(
 		JSON.stringify({
 			type: 'application/tldraw',
 			kind: 'content',
@@ -582,7 +584,7 @@ export function useMenuClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
+			if (editor.getEditingShapeId() !== null) return
 
 			if (Array.isArray(data) && data[0] instanceof ClipboardItem) {
 				handlePasteFromClipboardApi(editor, data, point)
@@ -615,24 +617,29 @@ export function useNativeClipboardEvents() {
 
 	useEffect(() => {
 		if (!appIsFocused) return
-		const copy = () => {
+		const copy = (e: ClipboardEvent) => {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
 				editor.getEditingShapeId() !== null ||
 				disallowClipboardEvents(editor)
-			)
+			) {
 				return
+			}
+
+			preventDefault(e)
 			handleNativeOrMenuCopy(editor)
 			trackEvent('copy', { source: 'kbd' })
 		}
 
-		function cut() {
+		function cut(e: ClipboardEvent) {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
 				editor.getEditingShapeId() !== null ||
 				disallowClipboardEvents(editor)
-			)
+			) {
 				return
+			}
+			preventDefault(e)
 			handleNativeOrMenuCopy(editor)
 			editor.deleteShapes(editor.getSelectedShapeIds())
 			trackEvent('cut', { source: 'kbd' })
@@ -641,6 +648,7 @@ export function useNativeClipboardEvents() {
 		let disablingMiddleClickPaste = false
 		const pointerUpHandler = (e: PointerEvent) => {
 			if (e.button === 1) {
+				// middle mouse button
 				disablingMiddleClickPaste = true
 				requestAnimationFrame(() => {
 					disablingMiddleClickPaste = false
@@ -648,9 +656,9 @@ export function useNativeClipboardEvents() {
 			}
 		}
 
-		const paste = (event: ClipboardEvent) => {
+		const paste = (e: ClipboardEvent) => {
 			if (disablingMiddleClickPaste) {
-				event.stopPropagation()
+				stopEventPropagation(e)
 				return
 			}
 
@@ -660,8 +668,8 @@ export function useNativeClipboardEvents() {
 			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
 
 			// First try to use the clipboard data on the event
-			if (event.clipboardData && !editor.inputs.shiftKey) {
-				handlePasteFromEventClipboardData(editor, event.clipboardData)
+			if (e.clipboardData && !editor.inputs.shiftKey) {
+				handlePasteFromEventClipboardData(editor, e.clipboardData)
 			} else {
 				// Or else use the clipboard API
 				navigator.clipboard.read().then((clipboardItems) => {
@@ -671,6 +679,7 @@ export function useNativeClipboardEvents() {
 				})
 			}
 
+			preventDefault(e)
 			trackEvent('paste', { source: 'kbd' })
 		}
 

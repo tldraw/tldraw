@@ -1,4 +1,3 @@
-import { ShapePropsType } from '@tldraw/tlschema/src/shapes/TLBaseShape'
 import {
 	DefaultColorStyle,
 	DefaultFontStyle,
@@ -9,6 +8,7 @@ import {
 	Geometry2d,
 	LABEL_FONT_SIZES,
 	Polygon2d,
+	RecordPropsType,
 	ShapeUtil,
 	T,
 	TEXT_PROPS,
@@ -19,9 +19,9 @@ import {
 	TLOnResizeHandler,
 	Vec,
 	ZERO_INDEX_KEY,
-	getDefaultColorTheme,
 	resizeBox,
 	structuredClone,
+	useDefaultColorTheme,
 	useEditorComponents,
 	vecModelValidator,
 } from 'tldraw'
@@ -52,7 +52,7 @@ export const speechBubbleShapeProps = {
 	tail: vecModelValidator,
 }
 
-export type SpeechBubbleShapeProps = ShapePropsType<typeof speechBubbleShapeProps>
+export type SpeechBubbleShapeProps = RecordPropsType<typeof speechBubbleShapeProps>
 export type SpeechBubbleShape = TLBaseShape<'speech-bubble', SpeechBubbleShapeProps>
 
 export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
@@ -176,11 +176,11 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 			type,
 			props: { color, font, size, align, text },
 		} = shape
-		const theme = getDefaultColorTheme({
-			isDarkMode: this.editor.user.getIsDarkMode(),
-		})
 		const vertices = getSpeechBubbleVertices(shape)
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const theme = useDefaultColorTheme()
 
 		/* eslint-disable-next-line react-hooks/rules-of-hooks */
 		const { TextLabel } = useEditorComponents()
@@ -195,7 +195,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 						fill={'none'}
 					/>
 				</svg>
-
 				{TextLabel && (
 					<TextLabel
 						id={id}
@@ -206,7 +205,8 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 						align={align}
 						verticalAlign="start"
 						text={text}
-						labelColor={color}
+						labelColor={theme[color].solid}
+						isSelected={isSelected}
 						wrap
 					/>
 				)}
