@@ -20,6 +20,8 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiKbd,
+	preventDefault,
+	stopEventPropagation,
 	track,
 	useActions,
 	useBreakpoint,
@@ -258,18 +260,20 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	const handleKeydownCapture = useCallback(
 		(e: KeyboardEvent) => {
 			if (e.key === 'Enter') {
-				e.preventDefault()
+				preventDefault(e)
 				// blur triggers save
 				inputRef.current?.blur()
 			} else if (e.key === 'Escape') {
-				e.preventDefault()
+				preventDefault(e)
+				stopEventPropagation(e)
 				// revert to original name instantly so that when we blur we don't
 				// trigger a save with the new one
 				setState((prev) => ({ ...prev, name: null }))
 				inputRef.current?.blur()
+				editor.getContainer().focus()
 			}
 		},
-		[setState]
+		[setState, editor]
 	)
 
 	const handleBlur = useCallback(() => {
