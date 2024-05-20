@@ -10,6 +10,7 @@ export const ROOM_CONTEXT = {
 	HISTORY_SNAPSHOT: 'history-snapshot',
 	HISTORY: 'history',
 	LOCAL: 'local',
+	PUBLIC_TOUCHSCREEN_APP: 'public-touchscreen-app',
 } as const
 type $ROOM_CONTEXT = (typeof ROOM_CONTEXT)[keyof typeof ROOM_CONTEXT]
 
@@ -24,6 +25,7 @@ const WHITELIST_CONTEXT: $ROOM_CONTEXT[] = [
 	ROOM_CONTEXT.PUBLIC_MULTIPLAYER,
 	ROOM_CONTEXT.PUBLIC_READONLY,
 	ROOM_CONTEXT.PUBLIC_SNAPSHOT,
+	ROOM_CONTEXT.PUBLIC_TOUCHSCREEN_APP,
 ]
 
 function getEmbeddedState(context: $ROOM_CONTEXT) {

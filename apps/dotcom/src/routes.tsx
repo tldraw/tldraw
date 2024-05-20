@@ -37,6 +37,8 @@ export const router = createRoutesFromElements(
 			<Route path="/" lazy={() => import('./pages/root')} />
 			<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
 			<Route path="/new" lazy={() => import('./pages/new')} />
+			<Route path={`/ts`} lazy={() => import('./pages/public-touchscreen-app')} />
+			<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />
 			<Route path={`/${ROOM_PREFIX}/:roomId`} lazy={() => import('./pages/public-multiplayer')} />
 			<Route path={`/${ROOM_PREFIX}/:boardId/history`} lazy={() => import('./pages/history')} />
 			<Route

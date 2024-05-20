@@ -35,6 +35,14 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/s/[^/]*/?$",
   },
   {
+    "reactRouterPattern": "/ts",
+    "vercelRouterPattern": "^/ts/?$",
+  },
+  {
+    "reactRouterPattern": "/ts-side",
+    "vercelRouterPattern": "^/ts-side/?$",
+  },
+  {
     "reactRouterPattern": "/v/:roomId",
     "vercelRouterPattern": "^/v/[^/]*/?$",
   },
