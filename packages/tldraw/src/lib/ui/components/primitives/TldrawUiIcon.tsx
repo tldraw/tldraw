@@ -14,7 +14,7 @@ export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
 }
 
 /** @public */
-export const TldrawUiIcon = memo(function TldrawUi({
+export const TldrawUiIcon = memo(function TldrawUiIcon({
 	small,
 	invertIcon,
 	icon,

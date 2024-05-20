@@ -389,22 +389,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useForceUpdate()
 	useOnMount(onMount)
 
-	return (
-		<>
-			{children}
-			<InFrontOfTheCanvasWrapper />
-		</>
-	)
-}
-
-function InFrontOfTheCanvasWrapper() {
-	const { InFrontOfTheCanvas } = useEditorComponents()
-	if (!InFrontOfTheCanvas) return null
-	return (
-		<div className="tl-front">
-			<InFrontOfTheCanvas />
-		</div>
-	)
+	return <>{children}</>
 }
 
 function Crash({ crashingError }: { crashingError: unknown }): null {
