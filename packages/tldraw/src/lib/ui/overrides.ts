@@ -1,12 +1,12 @@
 import { Editor, objectMapEntries } from '@tldraw/editor'
 import { useMemo } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../settings'
 import { ActionsProviderProps } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
 import { useDialogs } from './context/dialogs'
 import { useToasts } from './context/toasts'
 import { TLUiToolsProviderProps } from './hooks/useTools'
 import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
-import { PORTRAIT_BREAKPOINT } from './settings'
 
 /** @public */
 export function useDefaultHelpers() {

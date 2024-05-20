@@ -8,11 +8,11 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../../settings'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { PORTRAIT_BREAKPOINT } from '../../settings'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'

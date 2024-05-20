@@ -1,6 +1,6 @@
+import { PORTRAIT_BREAKPOINT } from '../../../settings'
 import { useBreakpoint } from '../../context/breakpoints'
 import { kbd } from '../../kbd-utils'
-import { PORTRAIT_BREAKPOINT } from '../../settings'
 
 /** @public */
 export interface TLUiKbdProps {

@@ -89,10 +89,7 @@ import { whyAmIRunning } from '@tldraw/state';
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
 // @internal (undocumented)
-export const ANIMATION_MEDIUM_MS = 320;
-
-// @internal (undocumented)
-export const ANIMATION_SHORT_MS = 80;
+export let ANIMATION_MEDIUM_MS: number;
 
 // @internal (undocumented)
 export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
@@ -386,7 +383,7 @@ export class Box {
 export type BoxLike = Box | BoxModel;
 
 // @internal (undocumented)
-export const CAMERA_SLIDE_FRICTION = 0.09;
+export let CAMERA_SLIDE_FRICTION: number;
 
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
@@ -534,13 +531,31 @@ export const debugFlags: {
 };
 
 // @internal (undocumented)
-export const DEFAULT_ANIMATION_OPTIONS: {
-    duration: number;
-    easing: (t: number) => number;
-};
-
-// @internal (undocumented)
 export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions;
+
+// @public (undocumented)
+export const DEFAULT_EDITOR_SETTINGS: {
+    readonly ANIMATION_MEDIUM_MS: number;
+    readonly CAMERA_MOVING_TIMEOUT: number;
+    readonly CAMERA_SLIDE_FRICTION: number;
+    readonly COARSE_HANDLE_RADIUS: number;
+    readonly COARSE_POINTER_WIDTH: number;
+    readonly DOUBLE_CLICK_DURATION: number;
+    readonly EDGE_SCROLL_DISTANCE: number;
+    readonly EDGE_SCROLL_SPEED: number;
+    readonly FOLLOW_CHASE_VIEWPORT_SNAP: number;
+    readonly GRID_STEPS: {
+        mid: number;
+        min: number;
+        step: number;
+    }[];
+    readonly HANDLE_RADIUS: number;
+    readonly HIT_TEST_MARGIN: number;
+    readonly LONG_PRESS_DURATION: number;
+    readonly MAX_PAGES: number;
+    readonly MAX_SHAPES_PER_PAGE: number;
+    readonly MULTI_CLICK_DURATION: number;
+};
 
 // @public (undocumented)
 export function DefaultBackground(): JSX_2.Element;
@@ -604,9 +619,6 @@ export const defaultUserPreferences: Readonly<{
 
 // @public
 export function degreesToRadians(d: number): number;
-
-// @internal (undocumented)
-export const DOUBLE_CLICK_DURATION = 450;
 
 // @internal (undocumented)
 export const DRAG_DISTANCE = 16;
@@ -1193,6 +1205,30 @@ export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcF
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
 
 // @public (undocumented)
+export function getEditorSettings(): {
+    ANIMATION_MEDIUM_MS: number;
+    CAMERA_MOVING_TIMEOUT: number;
+    CAMERA_SLIDE_FRICTION: number;
+    COARSE_HANDLE_RADIUS: number;
+    COARSE_POINTER_WIDTH: number;
+    DOUBLE_CLICK_DURATION: number;
+    EDGE_SCROLL_DISTANCE: number;
+    EDGE_SCROLL_SPEED: number;
+    FOLLOW_CHASE_VIEWPORT_SNAP: number;
+    GRID_STEPS: {
+        mid: number;
+        min: number;
+        step: number;
+    }[];
+    HANDLE_RADIUS: number;
+    HIT_TEST_MARGIN: number;
+    LONG_PRESS_DURATION: number;
+    MAX_PAGES: number;
+    MAX_SHAPES_PER_PAGE: number;
+    MULTI_CLICK_DURATION: number;
+};
+
+// @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
 
 // @public
@@ -1232,13 +1268,6 @@ export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): strin
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
-
-// @public (undocumented)
-export const GRID_STEPS: {
-    mid: number;
-    min: number;
-    step: number;
-}[];
 
 // @public (undocumented)
 export class Group2d extends Geometry2d {
@@ -1356,7 +1385,7 @@ export class HistoryManager<R extends UnknownRecord> {
 }
 
 // @public (undocumented)
-export const HIT_TEST_MARGIN = 8;
+export let HIT_TEST_MARGIN: number;
 
 // @public (undocumented)
 export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX_2.Element;
@@ -1536,16 +1565,13 @@ export interface MatModel {
 }
 
 // @internal (undocumented)
-export const MAX_PAGES = 40;
+export let MAX_PAGES: number;
 
 // @internal (undocumented)
-export const MAX_SHAPES_PER_PAGE = 4000;
+export let MAX_SHAPES_PER_PAGE: number;
 
 // @public
 export function moveCameraWhenCloseToEdge(editor: Editor): void;
-
-// @internal (undocumented)
-export const MULTI_CLICK_DURATION = 200;
 
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
@@ -1853,9 +1879,6 @@ export class SharedStyleMap extends ReadonlySharedStyleMap {
 
 // @public
 export function shortAngleDist(a0: number, a1: number): number;
-
-// @public (undocumented)
-export const SIDES: readonly ["top", "right", "bottom", "left"];
 
 export { Signal }
 
@@ -2774,6 +2797,26 @@ export function uniq<T>(array: {
 // @public
 export function uniqueId(): string;
 
+// @public (undocumented)
+export function updateEditorSettings(settings: {
+    ANIMATION_MEDIUM_MS?: typeof ANIMATION_MEDIUM_MS;
+    CAMERA_MOVING_TIMEOUT?: typeof CAMERA_MOVING_TIMEOUT;
+    CAMERA_SLIDE_FRICTION?: typeof CAMERA_SLIDE_FRICTION;
+    COARSE_HANDLE_RADIUS?: typeof COARSE_HANDLE_RADIUS;
+    COARSE_POINTER_WIDTH?: typeof COARSE_POINTER_WIDTH;
+    DOUBLE_CLICK_DURATION?: typeof DOUBLE_CLICK_DURATION;
+    EDGE_SCROLL_DISTANCE?: typeof EDGE_SCROLL_DISTANCE;
+    EDGE_SCROLL_SPEED?: typeof EDGE_SCROLL_SPEED;
+    FOLLOW_CHASE_VIEWPORT_SNAP?: typeof FOLLOW_CHASE_VIEWPORT_SNAP;
+    GRID_STEPS?: typeof GRID_STEPS;
+    HANDLE_RADIUS?: typeof HANDLE_RADIUS;
+    HIT_TEST_MARGIN?: typeof HIT_TEST_MARGIN;
+    LONG_PRESS_DURATION?: typeof LONG_PRESS_DURATION;
+    MAX_PAGES?: typeof MAX_PAGES;
+    MAX_SHAPES_PER_PAGE?: typeof MAX_SHAPES_PER_PAGE;
+    MULTI_CLICK_DURATION?: typeof MULTI_CLICK_DURATION;
+}): void;
+
 export { useComputed }
 
 // @public (undocumented)
@@ -3089,6 +3132,13 @@ export * from "@tldraw/store";
 export * from "@tldraw/tlschema";
 export * from "@tldraw/utils";
 export * from "@tldraw/validate";
+
+// Warnings were encountered during analysis:
+//
+// src/lib/settings.ts:152:2 - (ae-incompatible-release-tags) The symbol "ANIMATION_MEDIUM_MS" is marked as @public, but its signature references "ANIMATION_MEDIUM_MS" which is marked as @internal
+// src/lib/settings.ts:154:2 - (ae-incompatible-release-tags) The symbol "CAMERA_SLIDE_FRICTION" is marked as @public, but its signature references "CAMERA_SLIDE_FRICTION" which is marked as @internal
+// src/lib/settings.ts:165:2 - (ae-incompatible-release-tags) The symbol "MAX_PAGES" is marked as @public, but its signature references "MAX_PAGES" which is marked as @internal
+// src/lib/settings.ts:166:2 - (ae-incompatible-release-tags) The symbol "MAX_SHAPES_PER_PAGE" is marked as @public, but its signature references "MAX_SHAPES_PER_PAGE" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 

@@ -124,6 +124,7 @@ import { TLTextShape } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
+import { updateEditorSettings } from '@tldraw/editor';
 import { Validator } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
@@ -322,6 +323,33 @@ export function CutMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function DebugFlags(): JSX_2.Element | null;
+
+// @public (undocumented)
+export const DEFAULT_TLDRAW_SETTINGS: {
+    readonly ADJACENT_SHAPE_MARGIN: number;
+    readonly ANIMATION_MEDIUM_MS: number;
+    readonly CAMERA_MOVING_TIMEOUT: number;
+    readonly CAMERA_SLIDE_FRICTION: number;
+    readonly COARSE_HANDLE_RADIUS: number;
+    readonly COARSE_POINTER_WIDTH: number;
+    readonly DOUBLE_CLICK_DURATION: number;
+    readonly EDGE_SCROLL_DISTANCE: number;
+    readonly EDGE_SCROLL_SPEED: number;
+    readonly FOLLOW_CHASE_VIEWPORT_SNAP: number;
+    readonly GRID_STEPS: {
+        mid: number;
+        min: number;
+        step: number;
+    }[];
+    readonly HANDLE_RADIUS: number;
+    readonly HIT_TEST_MARGIN: number;
+    readonly LONG_PRESS_DURATION: number;
+    readonly MAX_PAGES: number;
+    readonly MAX_SHAPES_PER_PAGE: number;
+    readonly MULTI_CLICK_DURATION: number;
+    readonly PORTRAIT_BREAKPOINTS: number[];
+    readonly SHAPES_WHICH_ARROWS_CANNOT_BIND_TO: string[];
+};
 
 // @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
@@ -843,6 +871,33 @@ export function getSvgAsImage(svgString: string, isSafari: boolean, options: {
     type: 'jpeg' | 'png' | 'webp';
     width: number;
 }): Promise<Blob | null>;
+
+// @public (undocumented)
+export function getTldrawSettings(): {
+    ADJACENT_SHAPE_MARGIN: number;
+    ANIMATION_MEDIUM_MS: number;
+    CAMERA_MOVING_TIMEOUT: number;
+    CAMERA_SLIDE_FRICTION: number;
+    COARSE_HANDLE_RADIUS: number;
+    COARSE_POINTER_WIDTH: number;
+    DOUBLE_CLICK_DURATION: number;
+    EDGE_SCROLL_DISTANCE: number;
+    EDGE_SCROLL_SPEED: number;
+    FOLLOW_CHASE_VIEWPORT_SNAP: number;
+    GRID_STEPS: {
+        mid: number;
+        min: number;
+        step: number;
+    }[];
+    HANDLE_RADIUS: number;
+    HIT_TEST_MARGIN: number;
+    LONG_PRESS_DURATION: number;
+    MAX_PAGES: number;
+    MAX_SHAPES_PER_PAGE: number;
+    MULTI_CLICK_DURATION: number;
+    PORTRAIT_BREAKPOINTS: number[];
+    SHAPES_WHICH_ARROWS_CANNOT_BIND_TO: string[];
+};
 
 // @public (undocumented)
 export function GroupMenuItem(): JSX_2.Element | null;
@@ -2542,6 +2597,9 @@ export function UnlockAllMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
+
+// @public (undocumented)
+export function updateTldrawSettings(settings: Parameters<typeof _updateTldrawSettings>[0] & Parameters<typeof updateEditorSettings>[0]): void;
 
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;

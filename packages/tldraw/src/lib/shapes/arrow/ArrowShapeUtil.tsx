@@ -33,7 +33,7 @@ import {
 	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
-import { SHAPES_WHICH_ARROWS_CANNOT_BIND_TO } from '../../ui/settings'
+import { SHAPES_WHICH_ARROWS_CANNOT_BIND_TO } from '../../settings'
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES } from '../shared/default-shape-constants'

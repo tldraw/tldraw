@@ -52,6 +52,12 @@ export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { getOccludedChildren, kickoutOccludedShapes } from './lib/tools/SelectTool/selectHelpers'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 // UI
+export {
+	DEFAULT_TLDRAW_SETTINGS,
+	PORTRAIT_BREAKPOINT,
+	getTldrawSettings,
+	updateTldrawSettings,
+} from './lib/settings'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
@@ -114,7 +120,6 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
-export { PORTRAIT_BREAKPOINT } from './lib/ui/settings'
 export { containBoxSize, downsizeImage } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
 export { copyAs } from './lib/utils/export/copyAs'

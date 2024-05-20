@@ -2,6 +2,7 @@ import { ToastProvider } from '@radix-ui/react-toast'
 import { Expand, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../settings'
 import { TLUiAssetUrlOverrides } from './assetUrls'
 import { Dialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
@@ -20,7 +21,6 @@ import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useReadonly } from './hooks/useReadonly'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
-import { PORTRAIT_BREAKPOINT } from './settings'
 
 /**
  * Base props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.
