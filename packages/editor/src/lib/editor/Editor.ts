@@ -3596,6 +3596,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.stopFollowingUser()
+		// finish off any in-progress interactions
+		this.complete()
 
 		return this.batch(
 			() => this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }]),
