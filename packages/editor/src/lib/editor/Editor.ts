@@ -168,6 +168,7 @@ export type TLResizeShapeOptions = Partial<{
 	dragHandle: TLResizeHandle
 	isAspectRatioLocked: boolean
 	mode: TLResizeMode
+	skipStartAndEndCallbacks: boolean
 }>
 
 /** @public */
@@ -6321,27 +6322,42 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// need to adjust the shape's x and y points in case the parent has moved since start of resizing
 			const { x, y } = this.getPointInParentSpace(initialShape.id, initialPagePoint)
 
-			this.updateShapes([
-				{
-					id,
-					type: initialShape.type as any,
-					x: newLocalPoint.x,
-					y: newLocalPoint.y,
-					...util.onResize(
-						{ ...initialShape, x, y },
-						{
-							newPoint: newLocalPoint,
-							handle: options.dragHandle ?? 'bottom_right',
-							// don't set isSingle to true for children
-							mode: options.mode ?? 'scale_shape',
-							scaleX: myScale.x,
-							scaleY: myScale.y,
-							initialBounds,
-							initialShape,
-						}
-					),
-				},
-			])
+			let workingShape = initialShape
+			if (!options.skipStartAndEndCallbacks) {
+				workingShape = applyPartialToRecordWithProps(
+					initialShape,
+					util.onResizeStart?.(initialShape) ?? undefined
+				)
+			}
+
+			workingShape = applyPartialToRecordWithProps(workingShape, {
+				id,
+				type: initialShape.type as any,
+				x: newLocalPoint.x,
+				y: newLocalPoint.y,
+				...util.onResize(
+					{ ...initialShape, x, y },
+					{
+						newPoint: newLocalPoint,
+						handle: options.dragHandle ?? 'bottom_right',
+						// don't set isSingle to true for children
+						mode: options.mode ?? 'scale_shape',
+						scaleX: myScale.x,
+						scaleY: myScale.y,
+						initialBounds,
+						initialShape,
+					}
+				),
+			})
+
+			if (!options.skipStartAndEndCallbacks) {
+				workingShape = applyPartialToRecordWithProps(
+					workingShape,
+					util.onResizeEnd?.(initialShape, workingShape) ?? undefined
+				)
+			}
+
+			this.updateShapes([workingShape])
 		} else {
 			const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
 			// get the model changes from the shape util

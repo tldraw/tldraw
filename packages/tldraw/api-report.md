@@ -97,7 +97,6 @@ import { TLOnDoubleClickHandler } from '@tldraw/editor';
 import { TLOnEditEndHandler } from '@tldraw/editor';
 import { TLOnHandleDragHandler } from '@tldraw/editor';
 import { TLOnResizeHandler } from '@tldraw/editor';
-import { TLOnResizeStartHandler } from '@tldraw/editor';
 import { TLOnTranslateHandler } from '@tldraw/editor';
 import { TLOnTranslateStartHandler } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
@@ -129,6 +128,7 @@ import { Validator } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
+import { WeakCache } from '@tldraw/editor';
 
 // @public (undocumented)
 export type AlertSeverity = 'error' | 'info' | 'success' | 'warning';
@@ -206,8 +206,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLArrowShape>;
     // (undocumented)
-    onResizeStart?: TLOnResizeStartHandler<TLArrowShape>;
-    // (undocumented)
     onTranslate?: TLOnTranslateHandler<TLArrowShape>;
     // (undocumented)
     onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
@@ -227,6 +225,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         start: Validator<VecModel>;
         text: Validator<string>;
     };
+    // (undocumented)
+    readonly _resizeInitialBindings: WeakCache<TLArrowShape, TLArrowBindings>;
     // (undocumented)
     toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)

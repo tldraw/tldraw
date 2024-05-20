@@ -2543,6 +2543,7 @@ export type TLResizeShapeOptions = Partial<{
     mode: TLResizeMode;
     scaleAxisRotation: number;
     scaleOrigin: VecLike;
+    skipStartAndEndCallbacks: boolean;
 }>;
 
 // @public

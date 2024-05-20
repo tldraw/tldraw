@@ -15,13 +15,13 @@ import {
 	TLOnEditEndHandler,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
-	TLOnResizeStartHandler,
 	TLOnTranslateHandler,
 	TLOnTranslateStartHandler,
 	TLShapePartial,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec,
+	WeakCache,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	getDefaultColorTheme,
@@ -406,15 +406,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	// replace this with memo bag?
-	private _resizeInitialBindings: TLArrowBindings = { start: undefined, end: undefined }
-	override onResizeStart?: TLOnResizeStartHandler<TLArrowShape> = (shape) => {
-		this._resizeInitialBindings = getArrowBindings(this.editor, shape)
-	}
+	readonly _resizeInitialBindings = new WeakCache<TLArrowShape, TLArrowBindings>()
+
 	override onResize: TLOnResizeHandler<TLArrowShape> = (shape, info) => {
 		const { scaleX, scaleY } = info
 
-		const bindings = this._resizeInitialBindings
+		const bindings = this._resizeInitialBindings.get(shape, () =>
+			getArrowBindings(this.editor, shape)
+		)
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 
 		const { start, end } = structuredClone<TLArrowShape['props']>(shape.props)
