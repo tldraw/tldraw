@@ -9542,6 +9542,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"apps-scripts@workspace:apps/apps-script":
+  version: 0.0.0-use.local
+  resolution: "apps-scripts@workspace:apps/apps-script"
+  dependencies:
+    "@google/clasp": "npm:^2.4.2"
+    "@types/google-apps-script": "npm:^1.0.83"
+  languageName: unknown
+  linkType: soft
+
 "aproba@npm:^1.0.3 || ^2.0.0":
   version: 2.0.0
   resolution: "aproba@npm:2.0.0"
@@ -24210,15 +24219,6 @@ __metadata:
   peerDependencies:
     react: ^18
     react-dom: ^18
-  languageName: unknown
-  linkType: soft
-
-"tldraw.com@workspace:apps/apps-script":
-  version: 0.0.0-use.local
-  resolution: "tldraw.com@workspace:apps/apps-script"
-  dependencies:
-    "@google/clasp": "npm:^2.4.2"
-    "@types/google-apps-script": "npm:^1.0.83"
   languageName: unknown
   linkType: soft
 

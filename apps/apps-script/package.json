@@ -1,5 +1,5 @@
 {
-	"name": "tldraw.com",
+	"name": "apps-scripts",
 	"description": "tldraw for Google Apps",
 	"version": "2.0.0-beta.2",
 	"private": true,
@@ -26,6 +26,7 @@
 		"infinite"
 	],
 	"scripts": {
+		"lint": "yarn run -T tsx ../../scripts/lint.ts",
 		"glogin": "clasp login",
 		"glogout": "clasp logout",
 		"gcreate": "clasp create --type standalone --title \"tldraw.com\" --rootDir ./dist",
