@@ -1268,8 +1268,6 @@ export class Group2d extends Geometry2d {
 // @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
-    canBind: () => boolean;
-    // (undocumented)
     component(shape: TLGroupShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLGroupShape['props'];
@@ -1778,7 +1776,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // @internal
     backgroundComponent?(shape: Shape): any;
     canBeLaidOut: TLShapeUtilFlag<Shape>;
-    canBind: <K>(_shape: Shape, _otherShape?: K) => boolean;
     canCrop: TLShapeUtilFlag<Shape>;
     canDropShapes(shape: Shape, shapes: TLShape[]): boolean;
     canEdit: TLShapeUtilFlag<Shape>;

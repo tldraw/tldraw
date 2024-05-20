@@ -169,8 +169,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBeLaidOut: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
-    canBind: () => boolean;
-    // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
     canSnap: () => boolean;
@@ -616,8 +614,6 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
-    // (undocumented)
-    canBind: () => boolean;
     // (undocumented)
     canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
     // (undocumented)

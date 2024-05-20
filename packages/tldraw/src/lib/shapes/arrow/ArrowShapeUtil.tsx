@@ -33,6 +33,7 @@ import {
 	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
+import { SHAPES_WHICH_ARROWS_CANNOT_BIND_TO } from '../../ui/constants'
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES } from '../shared/default-shape-constants'
@@ -75,7 +76,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override migrations = arrowShapeMigrations
 
 	override canEdit = () => true
-	override canBind = () => false
 	override canSnap = () => false
 	override hideResizeHandles: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideRotateHandle: TLShapeUtilFlag<TLArrowShape> = () => true
@@ -153,7 +153,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a0',
 				x: info.start.handle.x,
 				y: info.start.handle.y,
-				canBind: true,
 			},
 			{
 				id: ARROW_HANDLES.MIDDLE,
@@ -161,7 +160,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a2',
 				x: info.middle.x,
 				y: info.middle.y,
-				canBind: false,
 			},
 			{
 				id: ARROW_HANDLES.END,
@@ -169,7 +167,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a3',
 				x: info.end.handle.x,
 				y: info.end.handle.y,
-				canBind: true,
 			},
 		].filter(Boolean) as TLHandle[]
 	}
@@ -223,7 +220,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			hitFrameInside: true,
 			margin: 0,
 			filter: (targetShape) => {
-				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+				return (
+					!targetShape.isLocked && !SHAPES_WHICH_ARROWS_CANNOT_BIND_TO.includes(targetShape.type)
+				)
 			},
 		})
 
@@ -384,7 +383,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				hitFrameInside: true,
 				margin: 0,
 				filter: (targetShape) => {
-					return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+					return (
+						!targetShape.isLocked && !SHAPES_WHICH_ARROWS_CANNOT_BIND_TO.includes(targetShape.type)
+					)
 				},
 			})
 

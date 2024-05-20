@@ -44,7 +44,6 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		return {}
 	}
 
-	override canBind = () => false
 	override canEdit = () => false
 	override canResize = () => false
 	override hideRotateHandle = () => true

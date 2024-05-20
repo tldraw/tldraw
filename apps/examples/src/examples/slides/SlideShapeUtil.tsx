@@ -29,7 +29,6 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 		h: T.number,
 	}
 
-	override canBind = () => false
 	override hideRotateHandle = () => true
 
 	getDefaultProps(): SlideShape['props'] {

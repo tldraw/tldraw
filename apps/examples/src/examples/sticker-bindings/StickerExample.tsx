@@ -40,7 +40,6 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		return {}
 	}
 
-	override canBind = () => false
 	override canEdit = () => false
 	override canResize = () => false
 	override hideRotateHandle = () => true

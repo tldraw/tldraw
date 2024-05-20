@@ -16,8 +16,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 	override hideSelectionBoundsFg = () => true
 
-	override canBind = () => false
-
 	getDefaultProps(): TLGroupShape['props'] {
 		return {}
 	}

@@ -97,14 +97,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canScroll: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape can be bound to by an arrow.
-	 *
-	 * @param _otherShape - The other shape attempting to bind to this shape.
-	 * @public
-	 */
-	canBind = <K>(_shape: Shape, _otherShape?: K) => true
-
-	/**
 	 * Whether the shape can be double clicked to edit.
 	 *
 	 * @public

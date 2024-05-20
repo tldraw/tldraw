@@ -1,4 +1,5 @@
 import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
+import { SHAPES_WHICH_ARROWS_CANNOT_BIND_TO } from '../../../ui/constants'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -12,7 +13,9 @@ export class Pointing extends StateNode {
 
 		const target = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 			filter: (targetShape) => {
-				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+				return (
+					!targetShape.isLocked && !SHAPES_WHICH_ARROWS_CANNOT_BIND_TO.includes(targetShape.type)
+				)
 			},
 			margin: 0,
 			hitInside: true,
@@ -47,7 +50,7 @@ export class Pointing extends StateNode {
 
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
-				handle: { id: 'end', type: 'vertex', index: 'a3', x: 0, y: 0, canBind: true },
+				handle: { id: 'end', type: 'vertex', index: 'a3', x: 0, y: 0 },
 				isCreating: true,
 				onInteractionEnd: 'arrow',
 			})

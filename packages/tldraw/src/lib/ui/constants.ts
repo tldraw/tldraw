@@ -15,3 +15,5 @@ export enum PORTRAIT_BREAKPOINT {
 }
 
 export const ADJACENT_SHAPE_MARGIN = 20
+
+export const SHAPES_WHICH_ARROWS_CANNOT_BIND_TO = ['arrow', 'group']
