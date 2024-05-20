@@ -1675,10 +1675,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (selectedShapeIds.length === 1) {
 			const bounds = this.getShapeGeometry(selectedShapeIds[0]).bounds.clone()
 			const pageTransform = this.getShapePageTransform(selectedShapeIds[0])!
-			const { x, y, scaleX, scaleY } = pageTransform.decompose()
 			bounds.point = pageTransform.applyToPoint(bounds.point)
-			bounds.width *= scaleX
-			bounds.height *= scaleY
 			return bounds
 		}
 
@@ -3994,8 +3991,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed private _getShapePageBoundsCache(): ComputedCache<Box, TLShape> {
 		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
-			const pageTransform = this.getShapePageTransform(shape.id)
-			// const pageTransform = this._getShapePageTransformCache().get(shape.id)
+			const pageTransform = this._getShapePageTransformCache().get(shape.id)
 
 			if (!pageTransform) return new Box()
 
@@ -4611,8 +4607,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec {
 		const id = typeof shape === 'string' ? shape : shape.id
-		// return this._getShapePageTransformCache().get(id)!.clone().invert().applyToPoint(point)
-		return this.getShapePageTransform(id)!.clone().invert().applyToPoint(point)
+		return this._getShapePageTransformCache().get(id)!.clone().invert().applyToPoint(point)
 	}
 
 	/**
