@@ -128,7 +128,6 @@ import { Validator } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
-import { WeakCache } from '@tldraw/editor';
 
 // @public (undocumented)
 export type AlertSeverity = 'error' | 'info' | 'success' | 'warning';
@@ -225,8 +224,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         start: Validator<VecModel>;
         text: Validator<string>;
     };
-    // (undocumented)
-    readonly _resizeInitialBindings: WeakCache<TLArrowShape, TLArrowBindings>;
     // (undocumented)
     toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)

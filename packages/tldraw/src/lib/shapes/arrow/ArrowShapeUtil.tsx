@@ -406,7 +406,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	readonly _resizeInitialBindings = new WeakCache<TLArrowShape, TLArrowBindings>()
+	private readonly _resizeInitialBindings = new WeakCache<TLArrowShape, TLArrowBindings>()
 
 	override onResize: TLOnResizeHandler<TLArrowShape> = (shape, info) => {
 		const { scaleX, scaleY } = info
