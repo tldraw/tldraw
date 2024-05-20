@@ -124,6 +124,8 @@ export function getAssetUrls(opts) {
 			'size-large': formatAssetUrl('./icons/icon/size-large.svg', opts),
 			'size-medium': formatAssetUrl('./icons/icon/size-medium.svg', opts),
 			'size-small': formatAssetUrl('./icons/icon/size-small.svg', opts),
+			'spline-cubic': formatAssetUrl('./icons/icon/spline-cubic.svg', opts),
+			'spline-line': formatAssetUrl('./icons/icon/spline-line.svg', opts),
 			'stack-horizontal': formatAssetUrl('./icons/icon/stack-horizontal.svg', opts),
 			'stack-vertical': formatAssetUrl('./icons/icon/stack-vertical.svg', opts),
 			'stretch-horizontal': formatAssetUrl('./icons/icon/stretch-horizontal.svg', opts),

@@ -367,6 +367,14 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/size-small.svg', import.meta.url).href,
 				opts
 			),
+			'spline-cubic': formatAssetUrl(
+				new URL('./icons/icon/spline-cubic.svg', import.meta.url).href,
+				opts
+			),
+			'spline-line': formatAssetUrl(
+				new URL('./icons/icon/spline-line.svg', import.meta.url).href,
+				opts
+			),
 			'stack-horizontal': formatAssetUrl(
 				new URL('./icons/icon/stack-horizontal.svg', import.meta.url).href,
 				opts
