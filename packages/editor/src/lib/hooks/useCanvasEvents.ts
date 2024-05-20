@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { RIGHT_MOUSE_BUTTON } from '../constants'
+import { RIGHT_MOUSE_BUTTON } from '../settings'
 import {
 	preventDefault,
 	releasePointerCapture,

@@ -81,6 +81,14 @@ import { createRoot } from 'react-dom/client'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkBindings } from '../config/defaultBindings'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
+import { Box, BoxLike } from '../primitives/Box'
+import { Mat, MatLike } from '../primitives/Mat'
+import { Vec, VecLike } from '../primitives/Vec'
+import { EASINGS } from '../primitives/easings'
+import { Geometry2d } from '../primitives/geometry/Geometry2d'
+import { Group2d } from '../primitives/geometry/Group2d'
+import { intersectPolygonPolygon } from '../primitives/intersect'
+import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import {
 	ANIMATION_MEDIUM_MS,
 	CAMERA_MOVING_TIMEOUT,
@@ -100,15 +108,7 @@ import {
 	MIDDLE_MOUSE_BUTTON,
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
-} from '../constants'
-import { Box, BoxLike } from '../primitives/Box'
-import { Mat, MatLike } from '../primitives/Mat'
-import { Vec, VecLike } from '../primitives/Vec'
-import { EASINGS } from '../primitives/easings'
-import { Geometry2d } from '../primitives/geometry/Geometry2d'
-import { Group2d } from '../primitives/geometry/Group2d'
-import { intersectPolygonPolygon } from '../primitives/intersect'
-import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
+} from '../settings'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
@@ -1675,7 +1675,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (selectedShapeIds.length === 1) {
 			const bounds = this.getShapeGeometry(selectedShapeIds[0]).bounds.clone()
 			const pageTransform = this.getShapePageTransform(selectedShapeIds[0])!
+			const { x, y, scaleX, scaleY } = pageTransform.decompose()
 			bounds.point = pageTransform.applyToPoint(bounds.point)
+			bounds.width *= scaleX
+			bounds.height *= scaleY
 			return bounds
 		}
 
@@ -3991,7 +3994,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed private _getShapePageBoundsCache(): ComputedCache<Box, TLShape> {
 		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
-			const pageTransform = this._getShapePageTransformCache().get(shape.id)
+			const pageTransform = this.getShapePageTransform(shape.id)
+			// const pageTransform = this._getShapePageTransformCache().get(shape.id)
 
 			if (!pageTransform) return new Box()
 
@@ -4607,7 +4611,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec {
 		const id = typeof shape === 'string' ? shape : shape.id
-		return this._getShapePageTransformCache().get(id)!.clone().invert().applyToPoint(point)
+		// return this._getShapePageTransformCache().get(id)!.clone().invert().applyToPoint(point)
+		return this.getShapePageTransform(id)!.clone().invert().applyToPoint(point)
 	}
 
 	/**

@@ -1,5 +1,5 @@
 import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
-import { SHAPES_WHICH_ARROWS_CANNOT_BIND_TO } from '../../../ui/constants'
+import { SHAPES_WHICH_ARROWS_CANNOT_BIND_TO } from '../../../ui/settings'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

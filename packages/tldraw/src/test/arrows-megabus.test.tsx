@@ -1,6 +1,6 @@
 import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
-import { SHAPES_WHICH_ARROWS_CANNOT_BIND_TO } from '../lib/ui/constants'
+import { SHAPES_WHICH_ARROWS_CANNOT_BIND_TO } from '../lib/ui/settings'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 

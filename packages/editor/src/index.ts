@@ -106,22 +106,6 @@ export {
 export { createTLUser } from './lib/config/createTLUser'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
-export {
-	ANIMATION_MEDIUM_MS,
-	ANIMATION_SHORT_MS,
-	CAMERA_SLIDE_FRICTION,
-	DEFAULT_ANIMATION_OPTIONS,
-	DEFAULT_CAMERA_OPTIONS,
-	DOUBLE_CLICK_DURATION,
-	DRAG_DISTANCE,
-	GRID_STEPS,
-	HIT_TEST_MARGIN,
-	MAX_PAGES,
-	MAX_SHAPES_PER_PAGE,
-	MULTI_CLICK_DURATION,
-	SIDES,
-	SVG_PADDING,
-} from './lib/constants'
 export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
 export {
 	BindingUnbindReason,
@@ -316,6 +300,21 @@ export {
 	toFixed,
 	toPrecision,
 } from './lib/primitives/utils'
+export {
+	ANIMATION_MEDIUM_MS,
+	CAMERA_SLIDE_FRICTION,
+	DEFAULT_ANIMATION_OPTIONS,
+	DEFAULT_CAMERA_OPTIONS,
+	DOUBLE_CLICK_DURATION,
+	DRAG_DISTANCE,
+	GRID_STEPS,
+	HIT_TEST_MARGIN,
+	MAX_PAGES,
+	MAX_SHAPES_PER_PAGE,
+	MULTI_CLICK_DURATION,
+	SIDES,
+	SVG_PADDING,
+} from './lib/settings'
 export {
 	ReadonlySharedStyleMap,
 	SharedStyleMap,

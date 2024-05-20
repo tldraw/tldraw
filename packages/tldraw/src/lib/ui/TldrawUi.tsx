@@ -8,7 +8,6 @@ import { FollowingIndicator } from './components/FollowingIndicator'
 import { ToastViewport, Toasts } from './components/Toasts'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
-import { PORTRAIT_BREAKPOINT } from './constants'
 import {
 	TldrawUiContextProvider,
 	TldrawUiContextProviderProps,
@@ -21,6 +20,7 @@ import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useReadonly } from './hooks/useReadonly'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
+import { PORTRAIT_BREAKPOINT } from './settings'
 
 /**
  * Base props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.

@@ -1,6 +1,6 @@
-import { COARSE_POINTER_WIDTH, EDGE_SCROLL_DISTANCE, EDGE_SCROLL_SPEED } from '../constants'
 import { Editor } from '../editor/Editor'
 import { Vec } from '../primitives/Vec'
+import { COARSE_POINTER_WIDTH, EDGE_SCROLL_DISTANCE, EDGE_SCROLL_SPEED } from '../settings'
 
 /**
  * Helper function to get the scroll proximity factor for a given position.

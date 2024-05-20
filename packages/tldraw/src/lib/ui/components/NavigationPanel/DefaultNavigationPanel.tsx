@@ -1,11 +1,11 @@
 import { memo, useCallback } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { unwrapLabel, useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../kbd-utils'
+import { PORTRAIT_BREAKPOINT } from '../../settings'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 

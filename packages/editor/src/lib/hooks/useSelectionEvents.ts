@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { RIGHT_MOUSE_BUTTON } from '../constants'
 import { TLSelectionHandle } from '../editor/types/selection-types'
+import { RIGHT_MOUSE_BUTTON } from '../settings'
 import {
 	loopToHtmlElement,
 	releasePointerCapture,

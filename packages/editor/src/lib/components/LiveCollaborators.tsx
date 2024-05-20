@@ -1,15 +1,15 @@
 import { track } from '@tldraw/state'
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { useEffect, useRef, useState } from 'react'
-import {
-	COLLABORATOR_CHECK_INTERVAL,
-	COLLABORATOR_IDLE_TIMEOUT,
-	COLLABORATOR_INACTIVE_TIMEOUT,
-} from '../constants'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { usePeerIds } from '../hooks/usePeerIds'
 import { usePresence } from '../hooks/usePresence'
+import {
+	COLLABORATOR_CHECK_INTERVAL,
+	COLLABORATOR_IDLE_TIMEOUT,
+	COLLABORATOR_INACTIVE_TIMEOUT,
+} from '../settings'
 
 export const LiveCollaborators = track(function Collaborators() {
 	const peerIds = usePeerIds()

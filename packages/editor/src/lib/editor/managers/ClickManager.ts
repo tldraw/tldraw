@@ -1,10 +1,10 @@
+import { Vec } from '../../primitives/Vec'
 import {
 	COARSE_DRAG_DISTANCE,
 	DOUBLE_CLICK_DURATION,
 	DRAG_DISTANCE,
 	MULTI_CLICK_DURATION,
-} from '../../constants'
-import { Vec } from '../../primitives/Vec'
+} from '../../settings'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../types/event-types'

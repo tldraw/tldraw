@@ -1,6 +1,6 @@
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, SIDES } from '../../constants'
+import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, SIDES } from '../../settings'
 
 /** @public */
 export type TLHandleProps = {

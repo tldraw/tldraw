@@ -1,5 +1,5 @@
 import { modulate } from '@tldraw/utils'
-import { GRID_STEPS } from '../../constants'
+import { GRID_STEPS } from '../../settings'
 
 /** @public */
 export type TLGridProps = {

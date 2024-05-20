@@ -1,9 +1,9 @@
 import classNames from 'classnames'
 import { ReactNode, memo } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiDialogProps } from '../../context/dialogs'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { PORTRAIT_BREAKPOINT } from '../../settings'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,

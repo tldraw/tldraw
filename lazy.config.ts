@@ -88,6 +88,8 @@ const config = {
 					`<rootDir>/scripts/refresh-assets.ts`,
 					`<rootDir>/assets/**/*`,
 					`<rootDir>/packages/*/package.json`,
+					`<rootDir>/packages/editor/src/lib/settings.ts`,
+					`<rootDir>/packages/tldraw/src/lib/ui/settings.ts`,
 				],
 			},
 		},

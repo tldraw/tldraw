@@ -1,7 +1,7 @@
 import { memo } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useBreakpoint } from '../context/breakpoints'
 import { useTldrawUiComponents } from '../context/components'
+import { PORTRAIT_BREAKPOINT } from '../settings'
 
 export const MenuZone = memo(function MenuZone() {
 	const breakpoint = useBreakpoint()

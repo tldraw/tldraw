@@ -36,7 +36,7 @@ import {
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-import { ADJACENT_SHAPE_MARGIN } from '../../ui/constants'
+import { ADJACENT_SHAPE_MARGIN } from '../../ui/settings'
 import { useForceSolid } from '../shared/useForceSolid'
 import {
 	CLONE_HANDLE_MARGIN,

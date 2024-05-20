@@ -1,5 +1,4 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import {
@@ -9,6 +8,7 @@ import {
 	useThreeStackableItems,
 	useUnlockedSelectedShapesCount,
 } from '../../hooks/menu-hooks'
+import { PORTRAIT_BREAKPOINT } from '../../settings'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 /** @public */
