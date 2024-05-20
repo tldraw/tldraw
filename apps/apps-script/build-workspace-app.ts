@@ -7,11 +7,9 @@ async function build() {
 	await exec('rm', ['-rf', 'dist'])
 	mkdirSync('dist')
 
-	const indexHtmlPath = './index.html'
+	const appsScriptPath = './appsscript.json'
 
-	await exec('cp', ['-r', './appsscript.json', 'dist'])
-	await exec('cp', ['-r', indexHtmlPath, 'dist'])
-	await exec('cp', ['-r', './main.js', 'dist'])
+	await exec('cp', ['-r', appsScriptPath, 'dist'])
 
 	const isProduction = process.env.IS_PRODUCTION === '1'
 	const scriptId = isProduction
@@ -19,12 +17,14 @@ async function build() {
 		: '1cJfZM0M_rGU-nYgG-4KR1DnERb7itkCsl1QmlqPxFvHnrz5n6Gfy8iht'
 	writeFileSync('./.clasp.json', `{"scriptId":"${scriptId}","rootDir":"./dist"}`)
 
-	let indexHtmlContents = (await readFileIfExists(path.join('dist', indexHtmlPath))) ?? ''
-	indexHtmlContents = indexHtmlContents.replace(
-		'TLDRAW_IFRAME_URL',
-		isProduction ? 'https://www.tldraw.com/tc' : 'https://staging.tldraw.com/tc'
-	)
-	writeFileSync(path.join('dist', indexHtmlPath), indexHtmlContents)
+	const host = isProduction ? 'https://www.tldraw.com' : 'https://staging.tldraw.com'
+	await replaceInFile(appsScriptPath, 'TLDRAW_HOST', host)
+}
+
+async function replaceInFile(filename: string, searchValue: string, replaceValue: string) {
+	let contents = (await readFileIfExists(path.join('dist', filename))) ?? ''
+	contents = contents.replaceAll(searchValue, replaceValue)
+	writeFileSync(path.join('dist', filename), contents)
 }
 
 build()

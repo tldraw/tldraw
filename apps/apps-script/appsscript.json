@@ -5,8 +5,17 @@
 				"primaryColor": "#000",
 				"secondaryColor": "#fff"
 			},
-			"logoUrl": "https://www.tldraw.com/android-chrome-maskable-512x512.png",
+			"logoUrl": "TLDRAW_HOST/android-chrome-maskable-512x512.png",
 			"name": "tldraw"
+		},
+		"meet": {
+			"web": {
+				"sidePanelUri": "TLDRAW_HOST/ts-side",
+				"mainStageUri": "TLDRAW_HOST/ts",
+				"supportsScreenSharing": true,
+				"logoUrl": "TLDRAW_HOST/android-chrome-maskable-512x512.png",
+				"addOnOrigins": ["TLDRAW_HOST"]
+			}
 		}
 	},
 	"timeZone": "Europe/London",
@@ -19,5 +28,6 @@
 		"https://www.googleapis.com/auth/documents.currentonly",
 		"https://www.googleapis.com/auth/script.external_request",
 		"https://www.googleapis.com/auth/workspace.linkpreview"
-	]
+	],
+	"urlFetchWhitelist": ["TLDRAW_HOST/"]
 }
