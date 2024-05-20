@@ -169,6 +169,16 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				},
 			},
 			{
+				id: 'code',
+				label: 'tool.code',
+				icon: 'tool-code',
+				kbd: 'c',
+				onSelect(source) {
+					editor.setCurrentTool('code')
+					trackEvent('select-tool', { source, id: 'code' })
+				},
+			},
+			{
 				id: 'laser',
 				label: 'tool.laser',
 				readonlyOk: true,

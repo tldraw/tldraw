@@ -11,6 +11,7 @@ import { LineShapeUtil } from './shapes/line/LineShapeUtil'
 import { NoteShapeUtil } from './shapes/note/NoteShapeUtil'
 import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { VideoShapeUtil } from './shapes/video/VideoShapeUtil'
+import { CodeShapeUtil } from './shapes/code/CodeShapeUtil'
 
 /** @public */
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[] = [
@@ -26,4 +27,5 @@ export const defaultShapeUtils: TLAnyShapeUtilConstructor[] = [
 	EmbedShapeUtil,
 	ImageShapeUtil,
 	VideoShapeUtil,
+	CodeShapeUtil,
 ]

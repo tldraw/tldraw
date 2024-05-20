@@ -134,6 +134,7 @@ export function getAssetUrls(opts) {
 			'toggle-off': formatAssetUrl('./icons/icon/toggle-off.svg', opts),
 			'toggle-on': formatAssetUrl('./icons/icon/toggle-on.svg', opts),
 			'tool-arrow': formatAssetUrl('./icons/icon/tool-arrow.svg', opts),
+			'tool-code': formatAssetUrl('./icons/icon/tool-code.svg', opts),
 			'tool-eraser': formatAssetUrl('./icons/icon/tool-eraser.svg', opts),
 			'tool-frame': formatAssetUrl('./icons/icon/tool-frame.svg', opts),
 			'tool-hand': formatAssetUrl('./icons/icon/tool-hand.svg', opts),

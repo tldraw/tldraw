@@ -24,6 +24,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem {...tools['frame']} />
 				<TldrawUiMenuItem {...tools['note']} />
 				<TldrawUiMenuItem {...tools['laser']} />
+				<TldrawUiMenuItem {...tools['code']} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.preferences" id="preferences">
 				<TldrawUiMenuItem {...actions['toggle-dark-mode']} />

@@ -34,6 +34,7 @@ export function DefaultToolbarContent() {
 			<HighlightToolbarItem />
 			<FrameToolbarItem />
 			<LaserToolbarItem />
+			<CodeToolbarItem />
 		</>
 	)
 }
@@ -100,6 +101,13 @@ export function NoteToolbarItem() {
 	const tools = useTools()
 	const isSelected = useIsToolSelected(tools['note'])
 	return <TldrawUiMenuItem {...tools['note']} isSelected={isSelected} />
+}
+
+/** @public */
+export function CodeToolbarItem() {
+	const tools = useTools()
+	const isSelected = useIsToolSelected(tools['code'])
+	return <TldrawUiMenuItem {...tools['code']} isSelected={isSelected} />
 }
 
 /** @public */

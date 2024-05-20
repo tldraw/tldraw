@@ -399,6 +399,7 @@ export {
 	LaserToolbarItem,
 	LineToolbarItem,
 	NoteToolbarItem,
+	CodeToolbarItem,
 	OvalToolbarItem,
 	RectangleToolbarItem,
 	RhombusToolbarItem,

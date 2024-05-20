@@ -7,7 +7,7 @@ import {
 	TLShapeId,
 } from '@tldraw/editor'
 import React, { useEffect, useState } from 'react'
-import { TextArea } from '../text/TextArea'
+import { TextArea } from './TextArea'
 import { TextHelpers } from './TextHelpers'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableText } from './useEditableText'
@@ -25,7 +25,6 @@ type TextLabelProps = {
 	text: string
 	labelColor: string
 	bounds?: Box
-	isNote?: boolean
 	isSelected: boolean
 	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 	classNamePrefix?: string
@@ -106,7 +105,7 @@ export const TextLabel = React.memo(function TextLabel({
 			>
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
 					{finalText.split('\n').map((lineOfText, index) => (
-						<div key={index} dir="auto">
+						<div key={index} dir="auto" data-line-number={index + 1}>
 							{lineOfText}
 						</div>
 					))}

@@ -140,6 +140,7 @@ import iconsTextAlignRight from './icons/icon/text-align-right.svg?url'
 import iconsToggleOff from './icons/icon/toggle-off.svg?url'
 import iconsToggleOn from './icons/icon/toggle-on.svg?url'
 import iconsToolArrow from './icons/icon/tool-arrow.svg?url'
+import iconsToolCode from './icons/icon/tool-code.svg?url'
 import iconsToolEraser from './icons/icon/tool-eraser.svg?url'
 import iconsToolFrame from './icons/icon/tool-frame.svg?url'
 import iconsToolHand from './icons/icon/tool-hand.svg?url'
@@ -329,6 +330,7 @@ export function getAssetUrlsByImport(opts) {
 			'toggle-off': formatAssetUrl(iconsToggleOff, opts),
 			'toggle-on': formatAssetUrl(iconsToggleOn, opts),
 			'tool-arrow': formatAssetUrl(iconsToolArrow, opts),
+			'tool-code': formatAssetUrl(iconsToolCode, opts),
 			'tool-eraser': formatAssetUrl(iconsToolEraser, opts),
 			'tool-frame': formatAssetUrl(iconsToolFrame, opts),
 			'tool-hand': formatAssetUrl(iconsToolHand, opts),

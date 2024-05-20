@@ -199,7 +199,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						align={align}
 						verticalAlign={verticalAlign}
 						text={text}
-						isNote
 						isSelected={isSelected}
 						labelColor={theme[color].note.text}
 						wrap

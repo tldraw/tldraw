@@ -1200,6 +1200,42 @@ input,
 	color: currentColor;
 }
 
+/* -------------------- CodeShape ------------------- */
+
+.tl-code__container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	pointer-events: all;
+	opacity: 1;
+	z-index: var(--layer-text-container);
+	border-radius: var(--radius-4);
+}
+
+.tl-code__container > .tl-text-label {
+	text-shadow: none;
+	color: currentColor;
+}
+
+.tl-code__container .tl-text-content div {
+	position: relative;
+	/* margin-left: 6px; */
+}
+
+/* .tl-code__container .tl-text-content div::before {
+	content: attr(data-line-number);
+	font-size: 10px;
+	opacity: 0.5;
+	position: absolute;
+	top: 2px;
+	left: -11px;
+	text-align: right;
+} */
+
+.ͼ1.cm-focused {
+	outline: none;
+}
+
 /* --------------------- Loading -------------------- */
 
 .tl-loading {

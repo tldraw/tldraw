@@ -407,6 +407,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/tool-arrow.svg', import.meta.url).href,
 				opts
 			),
+			'tool-code': formatAssetUrl(
+				new URL('./icons/icon/tool-code.svg', import.meta.url).href,
+				opts
+			),
 			'tool-eraser': formatAssetUrl(
 				new URL('./icons/icon/tool-eraser.svg', import.meta.url).href,
 				opts

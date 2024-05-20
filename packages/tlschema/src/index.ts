@@ -162,6 +162,7 @@ export {
 	type TLLineShape,
 } from './shapes/TLLineShape'
 export { noteShapeMigrations, noteShapeProps, type TLNoteShape } from './shapes/TLNoteShape'
+export { codeShapeMigrations, codeShapeProps, type TLCodeShape } from './shapes/TLCodeShape'
 export {
 	textShapeMigrations,
 	textShapeProps,

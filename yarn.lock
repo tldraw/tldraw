@@ -2331,6 +2331,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@codemirror/commands@npm:^6.0.0, @codemirror/commands@npm:^6.5.0":
+  version: 6.5.0
+  resolution: "@codemirror/commands@npm:6.5.0"
+  dependencies:
+    "@codemirror/language": "npm:^6.0.0"
+    "@codemirror/state": "npm:^6.4.0"
+    "@codemirror/view": "npm:^6.0.0"
+    "@lezer/common": "npm:^1.1.0"
+  checksum: 2fa3e42e02e50a02cbf55c48c3f3f7891453c841b6399834a2898f4f3a286074ef13646341a60a89b53bd8372ed5885740ced869b9482e115a73305f792971fe
+  languageName: node
+  linkType: hard
+
 "@codemirror/commands@npm:^6.1.3":
   version: 6.3.3
   resolution: "@codemirror/commands@npm:6.3.3"
@@ -2388,6 +2400,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@codemirror/lang-javascript@npm:^6.2.2":
+  version: 6.2.2
+  resolution: "@codemirror/lang-javascript@npm:6.2.2"
+  dependencies:
+    "@codemirror/autocomplete": "npm:^6.0.0"
+    "@codemirror/language": "npm:^6.6.0"
+    "@codemirror/lint": "npm:^6.0.0"
+    "@codemirror/state": "npm:^6.0.0"
+    "@codemirror/view": "npm:^6.17.0"
+    "@lezer/common": "npm:^1.0.0"
+    "@lezer/javascript": "npm:^1.0.0"
+  checksum: eac2e57a7a595cf0c93afd4bb42034902230c73e5525554ba925bad12aa544ca58014c017466288a2b34f1684d6efa5537507ed8b57e276d02665c2821c7a9d6
+  languageName: node
+  linkType: hard
+
 "@codemirror/language@npm:^6.0.0, @codemirror/language@npm:^6.3.2, @codemirror/language@npm:^6.4.0, @codemirror/language@npm:^6.6.0":
   version: 6.10.0
   resolution: "@codemirror/language@npm:6.10.0"
@@ -2413,10 +2440,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@codemirror/search@npm:^6.0.0":
+  version: 6.5.6
+  resolution: "@codemirror/search@npm:6.5.6"
+  dependencies:
+    "@codemirror/state": "npm:^6.0.0"
+    "@codemirror/view": "npm:^6.0.0"
+    crelt: "npm:^1.0.5"
+  checksum: 6668a34b4617e909617d3d831627d74b7a7985e8cd86d396bfcb3e86262f2310fc029fd6c846f1b8f1e6768e75985c9f1b0b18b31e05341f06b5b75c1ffde38d
+  languageName: node
+  linkType: hard
+
 "@codemirror/state@npm:^6.0.0, @codemirror/state@npm:^6.2.0, @codemirror/state@npm:^6.4.0":
   version: 6.4.0
   resolution: "@codemirror/state@npm:6.4.0"
   checksum: d9129c456d1589ca376594620bad10c51d3dcdb57950f34637cea0e2ea073a695d426dc1cfc9b909b07365c236a6312da1eaf740c384c853009742493b8c9935
+  languageName: node
+  linkType: hard
+
+"@codemirror/state@npm:^6.4.1":
+  version: 6.4.1
+  resolution: "@codemirror/state@npm:6.4.1"
+  checksum: a9ec56c7d7d52034ce8ebea3a9a4d216b9e972d701b32b5000e56c97790d0d46af129aeba0b80bed36648b4024b3ba3e4910cf5bfed11de4a9e89252e0707a70
   languageName: node
   linkType: hard
 
@@ -2428,6 +2473,17 @@ __metadata:
     style-mod: "npm:^4.1.0"
     w3c-keyname: "npm:^2.2.4"
   checksum: 42e6b73bcad6bf5d2e9578c54d166c63c4b1c7c7c7806b6f6b4bead8683dc7fcca52201a02a1f9b8ccf120a4ad87e7dcd68f09d9d3e416304dad41a75e20da82
+  languageName: node
+  linkType: hard
+
+"@codemirror/view@npm:^6.26.3":
+  version: 6.26.3
+  resolution: "@codemirror/view@npm:6.26.3"
+  dependencies:
+    "@codemirror/state": "npm:^6.4.0"
+    style-mod: "npm:^4.1.0"
+    w3c-keyname: "npm:^2.2.4"
+  checksum: fa7cb5aa37db2d252ffd7cdbfb858b23a525ce9835648070b3c99eaaa361f686fa1997576bb258b7c34b6d6bd7a251a2294158e952239616102f783da1025fe4
   languageName: node
   linkType: hard
 
@@ -10849,6 +10905,21 @@ __metadata:
   version: 10.1.1
   resolution: "code-block-writer@npm:10.1.1"
   checksum: 06c720f3216e59654868a63a9db5d89c8cafaf760ad57d8facff2463a2605a196fe0f1ab2fa8a4face5c3afa2cc1513363a712f8f3843fb9c7228a6fa781f62b
+  languageName: node
+  linkType: hard
+
+"codemirror@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "codemirror@npm:6.0.1"
+  dependencies:
+    "@codemirror/autocomplete": "npm:^6.0.0"
+    "@codemirror/commands": "npm:^6.0.0"
+    "@codemirror/language": "npm:^6.0.0"
+    "@codemirror/lint": "npm:^6.0.0"
+    "@codemirror/search": "npm:^6.0.0"
+    "@codemirror/state": "npm:^6.0.0"
+    "@codemirror/view": "npm:^6.0.0"
+  checksum: 4f858cde1cf8ce4670de9df4a64f4990bb8abdb8e13d3e437f278c40c86d841ef505aa1e5dc798582109ceaac8577a3bb4a1f026c0e5ce730465c89652ee6036
   languageName: node
   linkType: hard
 
@@ -23548,6 +23619,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw@workspace:packages/tldraw"
   dependencies:
+    "@codemirror/commands": "npm:^6.5.0"
+    "@codemirror/lang-javascript": "npm:^6.2.2"
+    "@codemirror/state": "npm:^6.4.1"
+    "@codemirror/view": "npm:^6.26.3"
     "@peculiar/webcrypto": "npm:^1.4.0"
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@radix-ui/react-context-menu": "npm:^2.1.5"
@@ -23567,6 +23642,7 @@ __metadata:
     canvas-size: "npm:^1.2.6"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.3.2"
+    codemirror: "npm:^6.0.1"
     hotkeys-js: "npm:^3.11.2"
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
