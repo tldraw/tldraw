@@ -424,9 +424,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private pushPresence(nextPresence: R | null) {
 		// make sure we push any document changes first
-		// TODO: need to send presence changes in the same push request as document changes
-		// in order to not get into weird states
 		this.store._flushHistory()
+
 		if (!this.isConnectedToRoom) {
 			// if we're offline, don't do anything
 			return
