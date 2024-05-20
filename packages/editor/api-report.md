@@ -2798,24 +2798,7 @@ export function uniq<T>(array: {
 export function uniqueId(): string;
 
 // @public (undocumented)
-export function updateEditorSettings(settings: {
-    ANIMATION_MEDIUM_MS?: typeof ANIMATION_MEDIUM_MS;
-    CAMERA_MOVING_TIMEOUT?: typeof CAMERA_MOVING_TIMEOUT;
-    CAMERA_SLIDE_FRICTION?: typeof CAMERA_SLIDE_FRICTION;
-    COARSE_HANDLE_RADIUS?: typeof COARSE_HANDLE_RADIUS;
-    COARSE_POINTER_WIDTH?: typeof COARSE_POINTER_WIDTH;
-    DOUBLE_CLICK_DURATION?: typeof DOUBLE_CLICK_DURATION;
-    EDGE_SCROLL_DISTANCE?: typeof EDGE_SCROLL_DISTANCE;
-    EDGE_SCROLL_SPEED?: typeof EDGE_SCROLL_SPEED;
-    FOLLOW_CHASE_VIEWPORT_SNAP?: typeof FOLLOW_CHASE_VIEWPORT_SNAP;
-    GRID_STEPS?: typeof GRID_STEPS;
-    HANDLE_RADIUS?: typeof HANDLE_RADIUS;
-    HIT_TEST_MARGIN?: typeof HIT_TEST_MARGIN;
-    LONG_PRESS_DURATION?: typeof LONG_PRESS_DURATION;
-    MAX_PAGES?: typeof MAX_PAGES;
-    MAX_SHAPES_PER_PAGE?: typeof MAX_SHAPES_PER_PAGE;
-    MULTI_CLICK_DURATION?: typeof MULTI_CLICK_DURATION;
-}): void;
+export function updateEditorSettings(settings: Partial<ReturnType<typeof getEditorSettings>>): void;
 
 export { useComputed }
 
@@ -3132,13 +3115,6 @@ export * from "@tldraw/store";
 export * from "@tldraw/tlschema";
 export * from "@tldraw/utils";
 export * from "@tldraw/validate";
-
-// Warnings were encountered during analysis:
-//
-// src/lib/settings.ts:156:2 - (ae-incompatible-release-tags) The symbol "ANIMATION_MEDIUM_MS" is marked as @public, but its signature references "ANIMATION_MEDIUM_MS" which is marked as @internal
-// src/lib/settings.ts:158:2 - (ae-incompatible-release-tags) The symbol "CAMERA_SLIDE_FRICTION" is marked as @public, but its signature references "CAMERA_SLIDE_FRICTION" which is marked as @internal
-// src/lib/settings.ts:169:2 - (ae-incompatible-release-tags) The symbol "MAX_PAGES" is marked as @public, but its signature references "MAX_PAGES" which is marked as @internal
-// src/lib/settings.ts:170:2 - (ae-incompatible-release-tags) The symbol "MAX_SHAPES_PER_PAGE" is marked as @public, but its signature references "MAX_SHAPES_PER_PAGE" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 

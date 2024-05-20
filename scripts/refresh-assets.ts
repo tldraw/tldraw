@@ -496,9 +496,7 @@ async function writeConstantSetters() {
 
 			shouldExport ? '/** @public */ export' : '',
 			`function ${updateFunctionName}(`,
-			'	settings: {',
-			...foundConstants.map((c) => `${c}?: typeof ${c},`),
-			'}',
+			`settings: Partial<ReturnType<typeof ${getFunctionName}>>`,
 			') {',
 			...foundConstants.map((c) => `if (settings.${c} !== undefined) { ${c} = settings.${c} }`),
 			'}',

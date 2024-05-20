@@ -39,11 +39,7 @@ function _getTldrawSettings() {
 	}
 }
 
-function _updateTldrawSettings(settings: {
-	PORTRAIT_BREAKPOINTS?: typeof PORTRAIT_BREAKPOINTS
-	ADJACENT_SHAPE_MARGIN?: typeof ADJACENT_SHAPE_MARGIN
-	SHAPES_WHICH_ARROWS_CANNOT_BIND_TO?: typeof SHAPES_WHICH_ARROWS_CANNOT_BIND_TO
-}) {
+function _updateTldrawSettings(settings: Partial<ReturnType<typeof _getTldrawSettings>>) {
 	if (settings.PORTRAIT_BREAKPOINTS !== undefined) {
 		PORTRAIT_BREAKPOINTS = settings.PORTRAIT_BREAKPOINTS
 	}
