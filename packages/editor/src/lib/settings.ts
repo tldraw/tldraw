@@ -45,7 +45,11 @@ export const DEFAULT_ANIMATION_OPTIONS = {
 export let CAMERA_SLIDE_FRICTION = 0.09
 
 /** @internal */
-export let GRID_STEPS = [
+export let GRID_STEPS: readonly {
+	readonly min: number
+	readonly mid: number
+	readonly step: number
+}[] = [
 	{ min: -1, mid: 0.15, step: 64 },
 	{ min: 0.05, mid: 0.375, step: 16 },
 	{ min: 0.15, mid: 1, step: 4 },

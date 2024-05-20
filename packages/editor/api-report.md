@@ -544,10 +544,10 @@ export const DEFAULT_EDITOR_SETTINGS: {
     readonly EDGE_SCROLL_DISTANCE: number;
     readonly EDGE_SCROLL_SPEED: number;
     readonly FOLLOW_CHASE_VIEWPORT_SNAP: number;
-    readonly GRID_STEPS: {
-        mid: number;
-        min: number;
-        step: number;
+    readonly GRID_STEPS: readonly {
+        readonly mid: number;
+        readonly min: number;
+        readonly step: number;
     }[];
     readonly HANDLE_RADIUS: number;
     readonly HIT_TEST_MARGIN: number;
@@ -1215,10 +1215,10 @@ export function getEditorSettings(): {
     EDGE_SCROLL_DISTANCE: number;
     EDGE_SCROLL_SPEED: number;
     FOLLOW_CHASE_VIEWPORT_SNAP: number;
-    GRID_STEPS: {
-        mid: number;
-        min: number;
-        step: number;
+    GRID_STEPS: readonly {
+        readonly mid: number;
+        readonly min: number;
+        readonly step: number;
     }[];
     HANDLE_RADIUS: number;
     HIT_TEST_MARGIN: number;
@@ -3135,10 +3135,10 @@ export * from "@tldraw/validate";
 
 // Warnings were encountered during analysis:
 //
-// src/lib/settings.ts:152:2 - (ae-incompatible-release-tags) The symbol "ANIMATION_MEDIUM_MS" is marked as @public, but its signature references "ANIMATION_MEDIUM_MS" which is marked as @internal
-// src/lib/settings.ts:154:2 - (ae-incompatible-release-tags) The symbol "CAMERA_SLIDE_FRICTION" is marked as @public, but its signature references "CAMERA_SLIDE_FRICTION" which is marked as @internal
-// src/lib/settings.ts:165:2 - (ae-incompatible-release-tags) The symbol "MAX_PAGES" is marked as @public, but its signature references "MAX_PAGES" which is marked as @internal
-// src/lib/settings.ts:166:2 - (ae-incompatible-release-tags) The symbol "MAX_SHAPES_PER_PAGE" is marked as @public, but its signature references "MAX_SHAPES_PER_PAGE" which is marked as @internal
+// src/lib/settings.ts:156:2 - (ae-incompatible-release-tags) The symbol "ANIMATION_MEDIUM_MS" is marked as @public, but its signature references "ANIMATION_MEDIUM_MS" which is marked as @internal
+// src/lib/settings.ts:158:2 - (ae-incompatible-release-tags) The symbol "CAMERA_SLIDE_FRICTION" is marked as @public, but its signature references "CAMERA_SLIDE_FRICTION" which is marked as @internal
+// src/lib/settings.ts:169:2 - (ae-incompatible-release-tags) The symbol "MAX_PAGES" is marked as @public, but its signature references "MAX_PAGES" which is marked as @internal
+// src/lib/settings.ts:170:2 - (ae-incompatible-release-tags) The symbol "MAX_SHAPES_PER_PAGE" is marked as @public, but its signature references "MAX_SHAPES_PER_PAGE" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 

@@ -469,7 +469,7 @@ async function writeConstantSetters() {
 		const foundConstants = relevantLines
 			.filter((line) => line.startsWith('export let '))
 			.map((line) => {
-				const match = /^export let (\w+) = (.+)$/.exec(line)
+				const match = /^export let (\w+)( |: )(.+)$/.exec(line)
 				if (!match) throw new Error(`Invalid constant line: ${line}`)
 				return match[1]
 			})

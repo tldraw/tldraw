@@ -8,7 +8,9 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	computed,
+	getTldrawSettings,
 	track,
+	updateTldrawSettings,
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
@@ -18,6 +20,13 @@ import { SlideShapeUtil } from './SlideShapeUtil'
 import { SlidesPanel } from './SlidesPanel'
 import './slides.css'
 import { $currentSlide, getSlides, moveToSlide } from './useSlides'
+
+updateTldrawSettings({
+	SHAPES_WHICH_ARROWS_CANNOT_BIND_TO: [
+		...getTldrawSettings().SHAPES_WHICH_ARROWS_CANNOT_BIND_TO,
+		'slide',
+	],
+})
 
 const components: TLComponents = {
 	HelperButtons: SlidesPanel,

@@ -336,10 +336,10 @@ export const DEFAULT_TLDRAW_SETTINGS: {
     readonly EDGE_SCROLL_DISTANCE: number;
     readonly EDGE_SCROLL_SPEED: number;
     readonly FOLLOW_CHASE_VIEWPORT_SNAP: number;
-    readonly GRID_STEPS: {
-        mid: number;
-        min: number;
-        step: number;
+    readonly GRID_STEPS: readonly {
+        readonly mid: number;
+        readonly min: number;
+        readonly step: number;
     }[];
     readonly HANDLE_RADIUS: number;
     readonly HIT_TEST_MARGIN: number;
@@ -347,8 +347,8 @@ export const DEFAULT_TLDRAW_SETTINGS: {
     readonly MAX_PAGES: number;
     readonly MAX_SHAPES_PER_PAGE: number;
     readonly MULTI_CLICK_DURATION: number;
-    readonly PORTRAIT_BREAKPOINTS: number[];
-    readonly SHAPES_WHICH_ARROWS_CANNOT_BIND_TO: string[];
+    readonly PORTRAIT_BREAKPOINTS: readonly number[];
+    readonly SHAPES_WHICH_ARROWS_CANNOT_BIND_TO: readonly string[];
 };
 
 // @public (undocumented)
@@ -884,10 +884,10 @@ export function getTldrawSettings(): {
     EDGE_SCROLL_DISTANCE: number;
     EDGE_SCROLL_SPEED: number;
     FOLLOW_CHASE_VIEWPORT_SNAP: number;
-    GRID_STEPS: {
-        mid: number;
-        min: number;
-        step: number;
+    GRID_STEPS: readonly {
+        readonly mid: number;
+        readonly min: number;
+        readonly step: number;
     }[];
     HANDLE_RADIUS: number;
     HIT_TEST_MARGIN: number;
@@ -895,8 +895,8 @@ export function getTldrawSettings(): {
     MAX_PAGES: number;
     MAX_SHAPES_PER_PAGE: number;
     MULTI_CLICK_DURATION: number;
-    PORTRAIT_BREAKPOINTS: number[];
-    SHAPES_WHICH_ARROWS_CANNOT_BIND_TO: string[];
+    PORTRAIT_BREAKPOINTS: readonly number[];
+    SHAPES_WHICH_ARROWS_CANNOT_BIND_TO: readonly string[];
 };
 
 // @public (undocumented)
