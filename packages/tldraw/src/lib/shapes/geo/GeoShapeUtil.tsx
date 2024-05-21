@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	Box,
 	Editor,
 	Ellipse2d,
 	Geometry2d,
@@ -47,6 +48,7 @@ import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../shared/po
 import { cloudOutline, cloudSvgPath } from './cloudOutline'
 import { getEllipseIndicatorPath } from './components/DrawStyleEllipse'
 import { GeoShapeBody } from './components/GeoShapeBody'
+import { getHeartIndicatorPath } from './components/SolidStyleHeart'
 import { getOvalIndicatorPath } from './components/SolidStyleOval'
 import { getLines } from './getLines'
 
@@ -292,6 +294,33 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				})
 				break
 			}
+			case 'heart': {
+				// Heart shape equation with 24 points
+				const points: Vec[] = []
+				let t: number, x: number, y: number
+				for (let i = 0; i < 24; i++) {
+					t = (i / (24 - 1)) * PI2
+					x = 16 * Math.sin(t) ** 3
+					y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)
+					points.push(new Vec(x, -y))
+				}
+
+				// Rescale points to fit within the bounds of the shape
+				const box = Box.FromPoints(points)
+				points.forEach((point) => {
+					point.x = ((point.x - box.minX) / box.w) * w
+					point.y = ((point.y - box.minY) / box.h) * h
+				})
+
+				body = new Polygon2d({
+					points,
+					isFilled,
+				})
+				break
+			}
+			default: {
+				exhaustiveSwitchError(shape.props.geo)
+			}
 		}
 
 		const labelSize = getLabelSize(this.editor, shape)
@@ -359,6 +388,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				return { outline: outline, points: [...outline.getVertices(), geometry.bounds.center] }
 			case 'cloud':
 			case 'ellipse':
+			case 'heart':
 			case 'oval':
 				// blobby shapes only have a snap point in their center
 				return { outline: outline, points: [geometry.bounds.center] }
@@ -445,6 +475,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				}
 
 				return <ellipse cx={w / 2} cy={h / 2} rx={w / 2} ry={h / 2} />
+			}
+			case 'heart': {
+				return <path d={getHeartIndicatorPath(w, h)} />
 			}
 			case 'oval': {
 				return <path d={getOvalIndicatorPath(w, h)} />

@@ -18,12 +18,12 @@ export function DefaultToolbarContent() {
 			<EllipseToolbarItem />
 			<DiamondToolbarItem />
 			<TriangleToolbarItem />
-			<TrapezoidToolbarItem />
-			<RhombusToolbarItem />
+			<PentagonToolbarItem />
 			<HexagonToolbarItem />
-			<CloudToolbarItem />
-			<StarToolbarItem />
 			<OvalToolbarItem />
+			<StarToolbarItem />
+			<CloudToolbarItem />
+			<HeartToolbarItem />
 			<XBoxToolbarItem />
 			<CheckBoxToolbarItem />
 			<ArrowLeftToolbarItem />
@@ -53,198 +53,159 @@ export function useIsToolSelected(tool: TLUiToolItem) {
 	)
 }
 
+function ToolbarItem({ tool }: { tool: string }) {
+	const tools = useTools()
+	const isSelected = useIsToolSelected(tools[tool])
+	return <TldrawUiMenuItem {...tools[tool]} isSelected={isSelected} />
+}
+
 /** @public */
 export function SelectToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['select'])
-	return <TldrawUiMenuItem {...tools['select']} isSelected={isSelected} />
+	return <ToolbarItem tool="select" />
 }
 
 /** @public */
 export function HandToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['hand'])
-	return <TldrawUiMenuItem {...tools['hand']} isSelected={isSelected} />
+	return <ToolbarItem tool="hand" />
 }
 
 /** @public */
 export function DrawToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['draw'])
-	return <TldrawUiMenuItem {...tools['draw']} isSelected={isSelected} />
+	return <ToolbarItem tool="draw" />
 }
 
 /** @public */
 export function EraserToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['eraser'])
-	return <TldrawUiMenuItem {...tools['eraser']} isSelected={isSelected} />
+	return <ToolbarItem tool="eraser" />
 }
 
 /** @public */
 export function ArrowToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['arrow'])
-	return <TldrawUiMenuItem {...tools['arrow']} isSelected={isSelected} />
+	return <ToolbarItem tool="arrow" />
 }
 
 /** @public */
 export function TextToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['text'])
-	return <TldrawUiMenuItem {...tools['text']} isSelected={isSelected} />
+	return <ToolbarItem tool="text" />
 }
 
 /** @public */
 export function NoteToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['note'])
-	return <TldrawUiMenuItem {...tools['note']} isSelected={isSelected} />
+	return <ToolbarItem tool="note" />
 }
 
 /** @public */
 export function AssetToolbarItem() {
 	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['asset'])
-	return <TldrawUiMenuItem {...tools['asset']} isSelected={isSelected} />
+	return <TldrawUiMenuItem {...tools['asset']} />
 }
 
 /** @public */
 export function RectangleToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['rectangle'])
-	return <TldrawUiMenuItem {...tools['rectangle']} isSelected={isSelected} />
+	return <ToolbarItem tool="rectangle" />
 }
 
 /** @public */
 export function EllipseToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['ellipse'])
-	return <TldrawUiMenuItem {...tools['ellipse']} isSelected={isSelected} />
+	return <ToolbarItem tool="ellipse" />
 }
 
 /** @public */
 export function DiamondToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['diamond'])
-	return <TldrawUiMenuItem {...tools['diamond']} isSelected={isSelected} />
+	return <ToolbarItem tool="diamond" />
 }
 
 /** @public */
 export function TriangleToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['triangle'])
-	return <TldrawUiMenuItem {...tools['triangle']} isSelected={isSelected} />
+	return <ToolbarItem tool="triangle" />
 }
 
 /** @public */
 export function TrapezoidToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['trapezoid'])
-	return <TldrawUiMenuItem {...tools['trapezoid']} isSelected={isSelected} />
+	return <ToolbarItem tool="trapezoid" />
 }
 
 /** @public */
 export function RhombusToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['rhombus'])
-	return <TldrawUiMenuItem {...tools['rhombus']} isSelected={isSelected} />
+	return <ToolbarItem tool="rhombus" />
+}
+
+/** @public */
+export function PentagonToolbarItem() {
+	return <ToolbarItem tool="pentagon" />
+}
+
+/** @public */
+export function HeartToolbarItem() {
+	return <ToolbarItem tool="heart" />
 }
 
 /** @public */
 export function HexagonToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['hexagon'])
-	return <TldrawUiMenuItem {...tools['hexagon']} isSelected={isSelected} />
+	return <ToolbarItem tool="hexagon" />
 }
 
 /** @public */
 export function CloudToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['cloud'])
-	return <TldrawUiMenuItem {...tools['cloud']} isSelected={isSelected} />
+	return <ToolbarItem tool="cloud" />
 }
 
 /** @public */
 export function StarToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['star'])
-	return <TldrawUiMenuItem {...tools['star']} isSelected={isSelected} />
+	return <ToolbarItem tool="star" />
 }
 
 /** @public */
 export function OvalToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['oval'])
-	return <TldrawUiMenuItem {...tools['oval']} isSelected={isSelected} />
+	return <ToolbarItem tool="oval" />
 }
 
 /** @public */
 export function XBoxToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['x-box'])
-	return <TldrawUiMenuItem {...tools['x-box']} isSelected={isSelected} />
+	return <ToolbarItem tool="x-box" />
 }
 
 /** @public */
 export function CheckBoxToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['check-box'])
-	return <TldrawUiMenuItem {...tools['check-box']} isSelected={isSelected} />
+	return <ToolbarItem tool="check-box" />
 }
 
 /** @public */
 export function ArrowLeftToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['arrow-left'])
-	return <TldrawUiMenuItem {...tools['arrow-left']} isSelected={isSelected} />
+	return <ToolbarItem tool="arrow-left" />
 }
 
 /** @public */
 export function ArrowUpToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['arrow-up'])
-	return <TldrawUiMenuItem {...tools['arrow-up']} isSelected={isSelected} />
+	return <ToolbarItem tool="arrow-up" />
 }
 
 /** @public */
 export function ArrowDownToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['arrow-down'])
-	return <TldrawUiMenuItem {...tools['arrow-down']} isSelected={isSelected} />
+	return <ToolbarItem tool="arrow-down" />
 }
 
 /** @public */
 export function ArrowRightToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['arrow-right'])
-	return <TldrawUiMenuItem {...tools['arrow-right']} isSelected={isSelected} />
+	return <ToolbarItem tool="arrow-right" />
 }
 
 /** @public */
 export function LineToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['line'])
-	return <TldrawUiMenuItem {...tools['line']} isSelected={isSelected} />
+	return <ToolbarItem tool="line" />
 }
 
 /** @public */
 export function HighlightToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['highlight'])
-	return <TldrawUiMenuItem {...tools['highlight']} isSelected={isSelected} />
+	return <ToolbarItem tool="highlight" />
 }
 
 /** @public */
 export function FrameToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['frame'])
-	return <TldrawUiMenuItem {...tools['frame']} isSelected={isSelected} />
+	return <ToolbarItem tool="frame" />
 }
 
 /** @public */
 export function LaserToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['laser'])
-	return <TldrawUiMenuItem {...tools['laser']} isSelected={isSelected} />
+	return <ToolbarItem tool="laser" />
 }

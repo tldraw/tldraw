@@ -9,6 +9,7 @@ import { DrawStyleCloud } from './DrawStyleCloud'
 import { DrawStylePolygon } from './DrawStylePolygon'
 import { SolidStyleCloud } from './SolidStyleCloud'
 import { SolidStyleEllipse } from './SolidStyleEllipse'
+import { SolidStyleHeart } from './SolidStyleHeart'
 import { SolidStyleOval } from './SolidStyleOval'
 import { SolidStylePolygon } from './SolidStylePolygon'
 
@@ -99,6 +100,26 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 				)
 			} else if (dash === 'draw') {
 				return <SolidStyleOval strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
+			}
+			break
+		}
+		case 'heart': {
+			if (dash === 'solid') {
+				return <SolidStyleHeart strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
+			} else if (dash === 'dashed' || dash === 'dotted') {
+				return (
+					<DashStyleOval
+						id={id}
+						strokeWidth={strokeWidth}
+						w={w}
+						h={h}
+						dash={dash}
+						color={color}
+						fill={fill}
+					/>
+				)
+			} else if (dash === 'draw') {
+				return <SolidStyleHeart strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
 			}
 			break
 		}
