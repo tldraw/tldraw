@@ -48,8 +48,7 @@ async function build() {
 	await exec('cp', ['-r', 'dist', '.vercel/output/static'])
 	await exec('rm', ['-rf', ...glob.sync('.vercel/output/static/**/*.js.map')])
 
-	const multiplayerServerUrl = getMultiplayerServerURL()
-	if (!multiplayerServerUrl) throw new Error('No multiplayer server URL found')
+	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 
 	writeFileSync(
 		'.vercel/output/config.json',
