@@ -7,7 +7,15 @@ config({
 })
 
 export const getMultiplayerServerURL = () => {
-	return process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http') ?? 'http://127.0.0.1:8787'
+	return process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http')
+}
+
+function urlOrLocalFallback(url: string | undefined, localFallbackPort: number) {
+	if (url) {
+		return JSON.stringify(url)
+	}
+
+	return '`http://${location.hostname}:${' + JSON.stringify(localFallbackPort) + '}`'
 }
 
 // https://vitejs.dev/config/
@@ -29,8 +37,8 @@ export default defineConfig({
 				.filter(([key]) => key.startsWith('NEXT_PUBLIC_'))
 				.map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
 		),
-		'process.env.MULTIPLAYER_SERVER': JSON.stringify(getMultiplayerServerURL()),
-		'process.env.ASSET_UPLOAD': JSON.stringify(process.env.ASSET_UPLOAD ?? 'http://127.0.0.1:8788'),
+		'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(getMultiplayerServerURL(), 8787),
+		'process.env.ASSET_UPLOAD': urlOrLocalFallback(process.env.ASSET_UPLOAD, 8788),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
 		// Fall back to staging DSN for local develeopment, although you still need to
 		// modify the env check in 'sentry.client.config.ts' to get it reporting errors
@@ -42,7 +50,7 @@ export default defineConfig({
 	server: {
 		proxy: {
 			'/api': {
-				target: getMultiplayerServerURL(),
+				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
 				rewrite: (path) => path.replace(/^\/api/, ''),
 				ws: false, // we talk to the websocket directly via workers.dev
 				// Useful for debugging proxy issues

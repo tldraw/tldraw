@@ -48,6 +48,9 @@ async function build() {
 	await exec('cp', ['-r', 'dist', '.vercel/output/static'])
 	await exec('rm', ['-rf', ...glob.sync('.vercel/output/static/**/*.js.map')])
 
+	const multiplayerServerUrl = getMultiplayerServerURL()
+	if (!multiplayerServerUrl) throw new Error('No multiplayer server URL found')
+
 	writeFileSync(
 		'.vercel/output/config.json',
 		JSON.stringify(
@@ -57,7 +60,7 @@ async function build() {
 					// rewrite api calls to the multiplayer server
 					{
 						src: '^/api(/(.*))?$',
-						dest: `${getMultiplayerServerURL()}$1`,
+						dest: `${multiplayerServerUrl}$1`,
 						check: true,
 					},
 					// cache static assets immutably
