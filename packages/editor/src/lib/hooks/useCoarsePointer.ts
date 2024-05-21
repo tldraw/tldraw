@@ -13,7 +13,6 @@ export function useCoarsePointer() {
 		// We'll use pointer events to detect coarse pointer.
 
 		const handlePointerDown = (e: PointerEvent) => {
-			if (!e.isPrimary) return
 			// when the user interacts with a mouse, we assume they have a fine pointer.
 			// otherwise, we assume they have a coarse pointer.
 			const isCoarseEvent = e.pointerType !== 'mouse'
@@ -22,6 +21,8 @@ export function useCoarsePointer() {
 			editor.updateInstanceState({ isCoarsePointer: isCoarseEvent })
 		}
 
+		// we need `capture: true` here because the tldraw component itself stops propagation on
+		// pointer events it receives.
 		window.addEventListener('pointerdown', handlePointerDown, { capture: true })
 
 		// 2.

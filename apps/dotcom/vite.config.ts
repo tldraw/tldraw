@@ -15,7 +15,9 @@ function urlOrLocalFallback(url: string | undefined, localFallbackPort: number) 
 		return JSON.stringify(url)
 	}
 
-	return '`http://${location.hostname}:${' + JSON.stringify(localFallbackPort) + '}`'
+	// vite lets us inline javascript expressions - so we return a template string that will be
+	// evaluated on the client
+	return '`http://${location.hostname}:' + localFallbackPort + '`'
 }
 
 // https://vitejs.dev/config/
