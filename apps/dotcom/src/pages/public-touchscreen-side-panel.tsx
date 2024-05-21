@@ -15,8 +15,8 @@ export function Component() {
 			})
 			const sidePanelClient = await session.createSidePanelClient()
 			await sidePanelClient.setCollaborationStartingState({
-				sidePanelUrl: `${window.location.origin}/tc-side`,
-				mainStageUrl: `${window.location.origin}/tc`,
+				sidePanelUrl: `${window.location.origin}/ts-side`,
+				mainStageUrl: `${window.location.origin}/ts`,
 				additionalData: undefined,
 			})
 		}
