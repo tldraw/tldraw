@@ -1,5 +1,4 @@
 /// <reference types="react" />
-import './lib/options'
 
 export { preloadFont } from './lib/utils/assets/preload-font'
 
