@@ -65,8 +65,6 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 
 	override canResize = (_shape: SpeechBubbleShape) => true
 
-	override canBind = (_shape: SpeechBubbleShape) => true
-
 	override canEdit = () => true
 
 	// [3]

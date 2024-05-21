@@ -32,6 +32,22 @@ export interface TLShapeUtilConstructor<
 /** @public */
 export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
+/**@public */
+export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
+	/** The shape from this util */
+	shape: Shape
+	/** The other shape being bound to. It may not exist yet, in which case it will be missing. */
+	otherShape?: TLShape
+	/**
+	 * The direction:
+	 * - `"to"` means the other shape is being bound to this shape.
+	 * - `"from"` means this shape is being bound to the other shape.
+	 */
+	direction: 'to' | 'from'
+	/** The type of binding, e.g. `"arrow"`. */
+	type: string
+}
+
 /** @public */
 export interface TLShapeUtilCanvasSvgDef {
 	key: string
@@ -97,12 +113,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canScroll: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape can be bound to by an arrow.
+	 * Whether the shape can be bound to. See {@link TLShapeUtilCanBindOpts} for details.
 	 *
-	 * @param _otherShape - The other shape attempting to bind to this shape.
 	 * @public
 	 */
-	canBind = <K>(_shape: Shape, _otherShape?: K) => true
+	canBind(opts: TLShapeUtilCanBindOpts<Shape>): boolean {
+		return true
+	}
 
 	/**
 	 * Whether the shape can be double clicked to edit.

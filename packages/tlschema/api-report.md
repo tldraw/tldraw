@@ -931,15 +931,29 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
 export type TLBinding = TLDefaultBinding | TLUnknownBinding;
 
 // @public (undocumented)
+export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
+    fromId: T['fromId'];
+    id?: TLBindingId;
+    meta?: Partial<T['meta']>;
+    props?: Partial<T['props']>;
+    toId: T['toId'];
+    type: T['type'];
+    typeName?: T['typeName'];
+}>;
+
+// @public (undocumented)
 export type TLBindingId = RecordId<TLUnknownBinding>;
 
 // @public (undocumented)
-export type TLBindingPartial<T extends TLBinding = TLBinding> = T extends T ? {
+export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
+    fromId?: T['fromId'];
     id: TLBindingId;
     meta?: Partial<T['meta']>;
     props?: Partial<T['props']>;
+    toId?: T['toId'];
     type: T['type'];
-} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
+    typeName?: T['typeName'];
+}>;
 
 // @public
 export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
@@ -1072,8 +1086,6 @@ export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
 
 // @public
 export interface TLHandle {
-    // (undocumented)
-    canBind?: boolean;
     // (undocumented)
     canSnap?: boolean;
     id: string;

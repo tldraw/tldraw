@@ -94,19 +94,16 @@ describe('Making an arrow on the page', () => {
 				x: 0,
 				y: 0,
 				type: 'vertex',
-				canBind: true,
 			},
 			{
 				x: 50,
 				y: 0,
 				type: 'virtual',
-				canBind: false,
 			},
 			{
 				x: 100,
 				y: 0,
 				type: 'vertex',
-				canBind: true,
 			},
 		])
 	})
@@ -488,7 +485,7 @@ describe('When starting an arrow inside of multiple shapes', () => {
 
 		expect(
 			editor.getShapeAtPoint(new Vec(25, 25), {
-				filter: (shape) => editor.getShapeUtil(shape).canBind(shape),
+				filter: (shape) => editor.canBindShapes(null, shape, 'arrow'),
 				hitInside: true,
 				hitFrameInside: true,
 				margin: 0,

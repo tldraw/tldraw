@@ -2,7 +2,7 @@ import {
 	createBindingId,
 	createShapeId,
 	TLArrowShape,
-	TLBindingPartial,
+	TLBindingCreate,
 	TLShapePartial,
 } from '@tldraw/editor'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
@@ -92,7 +92,7 @@ it('creates new bindings for arrows when pasting', async () => {
 // blood moat incoming
 describe('When duplicating shapes that include arrows', () => {
 	let shapes: TLShapePartial[]
-	let bindings: TLBindingPartial[]
+	let bindings: TLBindingCreate[]
 
 	beforeEach(() => {
 		const box1 = createShapeId()

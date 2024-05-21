@@ -1,3 +1,4 @@
+import { TLShapeUtilCanBindOpts } from '@tldraw/editor/src/lib/editor/shapes/ShapeUtil'
 import {
 	BindingOnShapeChangeOptions,
 	BindingOnUnbindOptions,
@@ -44,7 +45,10 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		return {}
 	}
 
-	override canBind = () => false
+	override canBind({ direction }: TLShapeUtilCanBindOpts<PinShape>) {
+		// bindings can go _from_ pins to other shapes, but not the other way round
+		return direction === 'from'
+	}
 	override canEdit = () => false
 	override canResize = () => false
 	override hideRotateHandle = () => true
@@ -93,7 +97,9 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 			.getShapesAtPoint(pageAnchor, { hitInside: true })
 			.filter(
 				(shape) =>
-					shape.type !== 'pin' && shape.parentId === pin.parentId && shape.index < pin.index
+					this.editor.canBindShapes(pin.id, shape.id, 'pin') &&
+					shape.parentId === pin.parentId &&
+					shape.index < pin.index
 			)
 
 		for (const target of targets) {

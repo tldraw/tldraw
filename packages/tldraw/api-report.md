@@ -115,6 +115,7 @@ import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLShapePartial } from '@tldraw/editor';
+import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
@@ -169,7 +170,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBeLaidOut: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
-    canBind: () => boolean;
+    canBind({ direction }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean;
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
@@ -616,8 +617,6 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
-    // (undocumented)
-    canBind: () => boolean;
     // (undocumented)
     canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
     // (undocumented)

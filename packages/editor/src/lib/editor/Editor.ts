@@ -18,8 +18,9 @@ import {
 	TLAssetId,
 	TLAssetPartial,
 	TLBinding,
+	TLBindingCreate,
 	TLBindingId,
-	TLBindingPartial,
+	TLBindingUpdate,
 	TLCamera,
 	TLCursor,
 	TLCursorType,
@@ -852,7 +853,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getBindingUtil<S extends TLUnknownBinding>(binding: S | TLBindingPartial<S>): BindingUtil<S>
+	getBindingUtil<S extends TLUnknownBinding>(binding: S | { type: S['type'] }): BindingUtil<S>
 	getBindingUtil<S extends TLUnknownBinding>(type: S['type']): BindingUtil<S>
 	getBindingUtil<T extends BindingUtil>(
 		type: T extends BindingUtil<infer R> ? R['type'] : string
@@ -3618,7 +3619,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updatePage(partial: RequiredKeys<TLPage, 'id'>): this {
+	updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this {
 		if (this.getInstanceState().isReadonly) return this
 
 		const prev = this.getPage(partial.id)
@@ -5145,27 +5146,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return result.filter((b) => b.type === type) as Binding[]
 	}
 
-	createBindings(partials: RequiredKeys<TLBindingPartial, 'type' | 'toId' | 'fromId'>[]) {
-		const bindings = partials.map((partial) => {
+	createBindings(partials: TLBindingCreate[]) {
+		const bindings: TLBinding[] = []
+		for (const partial of partials) {
+			if (!this.canBindShapes(partial.fromId, partial.toId, partial.type)) continue
+
 			const util = this.getBindingUtil<TLUnknownBinding>(partial.type)
 			const defaultProps = util.getDefaultProps()
-			return this.store.schema.types.binding.create({
+			const binding = this.store.schema.types.binding.create({
 				...partial,
 				id: partial.id ?? createBindingId(),
 				props: {
 					...defaultProps,
 					...partial.props,
 				},
-			})
-		})
+			}) as TLBinding
+
+			bindings.push(binding)
+		}
+
 		this.store.put(bindings)
 		return this
 	}
-	createBinding(partial: RequiredKeys<TLBindingPartial, 'type' | 'fromId' | 'toId'>) {
+	createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>) {
 		return this.createBindings([partial])
 	}
 
-	updateBindings(partials: (TLBindingPartial | null | undefined)[]) {
+	updateBindings(partials: (TLBindingUpdate | null | undefined)[]) {
 		const updated: TLBinding[] = []
 
 		for (const partial of partials) {
@@ -5175,7 +5182,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!current) continue
 
 			const updatedBinding = applyPartialToRecordWithProps(current, partial)
-			if (updatedBinding === current) continue
+
+			if (
+				updatedBinding === current ||
+				!this.canBindShapes(updatedBinding.fromId, updatedBinding.toId, updatedBinding.type)
+			) {
+				continue
+			}
 
 			updated.push(updatedBinding)
 		}
@@ -5185,7 +5198,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	updateBinding(partial: TLBindingPartial) {
+	updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>) {
 		return this.updateBindings([partial])
 	}
 
@@ -5196,6 +5209,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	deleteBinding(binding: TLBinding | TLBindingId) {
 		return this.deleteBindings([binding])
+	}
+	canBindShapes(
+		fromShape: TLShape | TLShapeId | undefined | null,
+		toShape: TLShape | TLShapeId,
+		type: string
+	): boolean
+	canBindShapes(
+		fromShape: TLShape | TLShapeId,
+		toShape: TLShape | TLShapeId | undefined | null,
+		type: string
+	): boolean
+	canBindShapes(
+		fromShape: TLShape | TLShapeId | undefined | null,
+		toShape: TLShape | TLShapeId | undefined | null,
+		type: string
+	): boolean {
+		const from = fromShape ? this.getShape(fromShape) : undefined
+		const to = toShape ? this.getShape(toShape) : undefined
+
+		const canBindFrom = from
+			? this.getShapeUtil(from).canBind({ shape: from, otherShape: to, direction: 'from', type })
+			: undefined
+		const canBindTo = to
+			? this.getShapeUtil(to).canBind({ shape: to, otherShape: from, direction: 'to', type })
+			: undefined
+
+		return canBindFrom !== false && canBindTo !== false
 	}
 
 	/* -------------------- Commands -------------------- */
