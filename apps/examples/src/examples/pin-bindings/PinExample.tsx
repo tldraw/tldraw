@@ -1,4 +1,3 @@
-import { TLShapeUtilCanBindOpts } from '@tldraw/editor/src/lib/editor/shapes/ShapeUtil'
 import {
 	BindingOnShapeChangeOptions,
 	BindingOnUnbindOptions,
@@ -19,6 +18,7 @@ import {
 	TLOnTranslateEndHandler,
 	TLOnTranslateStartHandler,
 	TLShapeId,
+	TLShapeUtilCanBindOpts,
 	TLUiComponents,
 	TLUiOverrides,
 	Tldraw,
