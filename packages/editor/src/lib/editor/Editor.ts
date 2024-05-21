@@ -8645,6 +8645,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						if (inputs.isPanning) {
+							if (!inputs.keys.has('Space')) {
+								inputs.isPanning = false
+							}
 							const slideDirection = this.inputs.pointerVelocity
 							const slideSpeed = Math.min(2, slideDirection.len())
 
