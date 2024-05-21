@@ -1,5 +1,4 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	Box,
 	DefaultColorStyle,
 	Editor,
@@ -1038,7 +1037,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
 					editor.zoomIn(undefined, {
-						animation: { duration: ANIMATION_MEDIUM_MS },
+						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
 			},
@@ -1050,7 +1049,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('zoom-out', { source })
 					editor.zoomOut(undefined, {
-						animation: { duration: ANIMATION_MEDIUM_MS },
+						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
 			},
@@ -1063,7 +1062,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
 					editor.resetZoom(undefined, {
-						animation: { duration: ANIMATION_MEDIUM_MS },
+						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
 			},
@@ -1074,7 +1073,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-fit', { source })
-					editor.zoomToFit({ animation: { duration: ANIMATION_MEDIUM_MS } })
+					editor.zoomToFit({ animation: { duration: editor.options.animationMediumMs } })
 				},
 			},
 			{
@@ -1087,7 +1086,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('zoom-to-selection', { source })
-					editor.zoomToSelection({ animation: { duration: ANIMATION_MEDIUM_MS } })
+					editor.zoomToSelection({ animation: { duration: editor.options.animationMediumMs } })
 				},
 			},
 			{

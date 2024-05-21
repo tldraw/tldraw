@@ -3,7 +3,6 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, TEXT_SHADOW_LOD } from '../../constants'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 import { useContainer } from '../../hooks/useContainer'
@@ -63,9 +62,9 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			// If we're below the lod distance for text shadows, turn them off
 			if (
 				rMemoizedStuff.current.allowTextOutline &&
-				z < TEXT_SHADOW_LOD !== rMemoizedStuff.current.lodDisableTextOutline
+				z < editor.options.textShadowLod !== rMemoizedStuff.current.lodDisableTextOutline
 			) {
-				const lodDisableTextOutline = z < TEXT_SHADOW_LOD
+				const lodDisableTextOutline = z < editor.options.textShadowLod
 				container.style.setProperty(
 					'--tl-text-outline',
 					lodDisableTextOutline
@@ -295,7 +294,8 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 			if (!handles) return null
 
 			const minDistBetweenVirtualHandlesAndRegularHandles =
-				((isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoomLevel) * 2
+				((isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoomLevel) *
+				2
 
 			return (
 				handles

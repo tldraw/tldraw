@@ -89,12 +89,6 @@ import { whyAmIRunning } from '@tldraw/state';
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
 // @internal (undocumented)
-export const ANIMATION_MEDIUM_MS = 320;
-
-// @internal (undocumented)
-export const ANIMATION_SHORT_MS = 80;
-
-// @internal (undocumented)
 export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
     delta: number;
     editor: Editor;
@@ -385,9 +379,6 @@ export class Box {
 // @public (undocumented)
 export type BoxLike = Box | BoxModel;
 
-// @internal (undocumented)
-export const CAMERA_SLIDE_FRICTION = 0.09;
-
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
@@ -591,6 +582,9 @@ export function DefaultSpinner(): JSX_2.Element;
 export const DefaultSvgDefs: () => null;
 
 // @public (undocumented)
+export const defaultTldrawOptions: TldrawOptions_2;
+
+// @public (undocumented)
 export const defaultUserPreferences: Readonly<{
     animationSpeed: 0 | 1;
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
@@ -604,12 +598,6 @@ export const defaultUserPreferences: Readonly<{
 
 // @public
 export function degreesToRadians(d: number): number;
-
-// @internal (undocumented)
-export const DOUBLE_CLICK_DURATION = 450;
-
-// @internal (undocumented)
-export const DRAG_DISTANCE = 16;
 
 // @public (undocumented)
 export const EASINGS: {
@@ -666,7 +654,7 @@ export class Edge2d extends Geometry2d {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
@@ -967,6 +955,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     mark(markId?: string): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
+    // (undocumented)
+    readonly options: TldrawOptions;
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
@@ -1020,7 +1010,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly sideEffects: StoreSideEffects<TLRecord>;
     slideCamera(opts?: {
         direction: VecLike;
-        friction: number;
+        friction?: number | undefined;
         speed: number;
         speedThreshold?: number | undefined;
     }): this;
@@ -1234,13 +1224,6 @@ export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): strin
 export function getUserPreferences(): TLUserPreferences;
 
 // @public (undocumented)
-export const GRID_STEPS: {
-    mid: number;
-    min: number;
-    step: number;
-}[];
-
-// @public (undocumented)
 export class Group2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         children: Geometry2d[];
@@ -1356,9 +1339,6 @@ export class HistoryManager<R extends UnknownRecord> {
     // (undocumented)
     undo: () => this;
 }
-
-// @public (undocumented)
-export const HIT_TEST_MARGIN = 8;
 
 // @public (undocumented)
 export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX_2.Element;
@@ -1537,17 +1517,8 @@ export interface MatModel {
     f: number;
 }
 
-// @internal (undocumented)
-export const MAX_PAGES = 40;
-
-// @internal (undocumented)
-export const MAX_SHAPES_PER_PAGE = 4000;
-
 // @public
 export function moveCameraWhenCloseToEdge(editor: Editor): void;
-
-// @internal (undocumented)
-export const MULTI_CLICK_DURATION = 200;
 
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
@@ -1994,9 +1965,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 // @public (undocumented)
 export const stopEventPropagation: (e: any) => any;
 
-// @internal (undocumented)
-export const SVG_PADDING = 32;
-
 // @public (undocumented)
 export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX_2.Element;
 
@@ -2177,6 +2145,8 @@ export interface TldrawEditorBaseProps {
     inferDarkMode?: boolean;
     initialState?: string;
     onMount?: TLOnMountHandler;
+    // (undocumented)
+    options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
@@ -2208,6 +2178,8 @@ export interface TLEditorOptions {
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
+    // (undocumented)
+    options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];

@@ -1,4 +1,4 @@
-import { DefaultDashStyle, SVG_PADDING, createShapeId } from '@tldraw/editor'
+import { DefaultDashStyle, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -73,7 +73,7 @@ it('Gets the bounding box at the correct size', async () => {
 	const svg = await editor.getSvgString(editor.getSelectedShapeIds())
 	const parsed = parseSvg(svg!)
 	const bbox = editor.getSelectionRotatedPageBounds()!
-	const expanded = bbox.expandBy(SVG_PADDING) // adds 32px padding
+	const expanded = bbox.expandBy(editor.options.defaultSvgPadding) // adds 32px padding
 
 	expect(parsed.getAttribute('width')).toMatch(expanded.width + '')
 	expect(parsed.getAttribute('height')).toMatch(expanded.height + '')

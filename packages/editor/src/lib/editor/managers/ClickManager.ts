@@ -1,9 +1,3 @@
-import {
-	COARSE_DRAG_DISTANCE,
-	DOUBLE_CLICK_DURATION,
-	DRAG_DISTANCE,
-	MULTI_CLICK_DURATION,
-} from '../../constants'
 import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
@@ -72,7 +66,9 @@ export class ClickManager {
 					this._clickState = 'idle'
 				}
 			},
-			state === 'idle' || state === 'pendingDouble' ? DOUBLE_CLICK_DURATION : MULTI_CLICK_DURATION
+			state === 'idle' || state === 'pendingDouble'
+				? this.editor.options.doubleClickDurationMs
+				: this.editor.options.multiClickDurationMs
 		)
 	}
 
@@ -199,7 +195,9 @@ export class ClickManager {
 					this._clickState !== 'idle' &&
 					this._clickScreenPoint &&
 					Vec.Dist2(this._clickScreenPoint, this.editor.inputs.currentScreenPoint) >
-						(this.editor.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
+						(this.editor.getInstanceState().isCoarsePointer
+							? this.editor.options.coarseDragDistanceSquared
+							: this.editor.options.dragDistanceSquared)
 				) {
 					this.cancelDoubleClickTimeout()
 				}
