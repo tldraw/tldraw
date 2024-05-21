@@ -1,4 +1,20 @@
-/** @public */
+/**
+ * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
+ *
+ * @example
+ * ```tsx
+ * const options: Partial<TldrawOptions> = {
+ *     maxPages: 3,
+ *     maxShapesPerPage: 1000,
+ * }
+ *
+ * function MyTldrawComponent() {
+ *     return <Tldraw options={options} />
+ * }
+ * ```
+ *
+ * @public
+ */
 export interface TldrawOptions {
 	readonly maxShapesPerPage: number
 	readonly maxPages: number

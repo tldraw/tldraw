@@ -2205,7 +2205,7 @@ export type TldrawEditorProps = Expand<TldrawEditorBaseProps & ({
     store: TLStore | TLStoreWithStatus;
 })>;
 
-// @public (undocumented)
+// @public
 export interface TldrawOptions {
     // (undocumented)
     readonly adjacentShapeMargin: number;
