@@ -8543,10 +8543,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Close any open menus
 						this.clearOpenMenus()
 
-						// Start a long press timeout
-						this._longPressTimeout = setTimeout(() => {
-							this.dispatch({ ...info, name: 'long_press' })
-						}, LONG_PRESS_DURATION)
+						if (!this.inputs.isPanning) {
+							// Start a long press timeout
+							this._longPressTimeout = setTimeout(() => {
+								this.dispatch({
+									...info,
+									point: this.inputs.currentScreenPoint,
+									name: 'long_press',
+								})
+							}, LONG_PRESS_DURATION)
+						}
 
 						// Save the selected ids at pointer down
 						this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
