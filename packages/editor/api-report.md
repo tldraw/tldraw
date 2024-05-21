@@ -582,7 +582,7 @@ export function DefaultSpinner(): JSX_2.Element;
 export const DefaultSvgDefs: () => null;
 
 // @public (undocumented)
-export const defaultTldrawEditorOptions: {
+export const defaultTldrawOptions: {
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
     readonly cameraMovingTimoutMs: 64;
@@ -997,7 +997,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
-    readonly options: TldrawEditorOptions;
+    readonly options: TldrawOptions;
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
@@ -2186,15 +2186,27 @@ export interface TldrawEditorBaseProps {
     inferDarkMode?: boolean;
     initialState?: string;
     onMount?: TLOnMountHandler;
-    // (undocumented)
-    options?: Partial<TldrawEditorOptions>;
+    options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
 
+// @public
+export type TldrawEditorProps = Expand<TldrawEditorBaseProps & ({
+    defaultName?: string;
+    initialData?: SerializedStore<TLRecord>;
+    migrations?: readonly MigrationSequence[];
+    persistenceKey?: string;
+    sessionId?: string;
+    snapshot?: StoreSnapshot<TLRecord>;
+    store?: undefined;
+} | {
+    store: TLStore | TLStoreWithStatus;
+})>;
+
 // @public (undocumented)
-export interface TldrawEditorOptions {
+export interface TldrawOptions {
     // (undocumented)
     readonly adjacentShapeMargin: number;
     // (undocumented)
@@ -2249,19 +2261,6 @@ export interface TldrawEditorOptions {
     readonly textShadowLod: number;
 }
 
-// @public
-export type TldrawEditorProps = Expand<TldrawEditorBaseProps & ({
-    defaultName?: string;
-    initialData?: SerializedStore<TLRecord>;
-    migrations?: readonly MigrationSequence[];
-    persistenceKey?: string;
-    sessionId?: string;
-    snapshot?: StoreSnapshot<TLRecord>;
-    store?: undefined;
-} | {
-    store: TLStore | TLStoreWithStatus;
-})>;
-
 // @public (undocumented)
 export type TLEditorComponents = Partial<{
     [K in keyof BaseEditorComponents]: BaseEditorComponents[K] | null;
@@ -2276,7 +2275,7 @@ export interface TLEditorOptions {
     inferDarkMode?: boolean;
     initialState?: string;
     // (undocumented)
-    options?: Partial<TldrawEditorOptions>;
+    options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];

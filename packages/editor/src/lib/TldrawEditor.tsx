@@ -126,6 +126,9 @@ export interface TldrawEditorBaseProps {
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
 
+	/**
+	 * Options for the editor.
+	 */
 	options?: Partial<TldrawOptions>
 }
 
