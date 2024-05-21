@@ -1,3 +1,4 @@
+import { ToastProvider } from '@radix-ui/react-toast'
 import { Editor, uniqueId } from '@tldraw/editor'
 import { ReactNode, createContext, useCallback, useContext, useState } from 'react'
 import { TLUiIconType } from '../icon-types'
@@ -61,9 +62,11 @@ export function ToastsProvider({ children }: ToastsProviderProps) {
 	}, [])
 
 	return (
-		<ToastsContext.Provider value={{ toasts, addToast, removeToast, clearToasts }}>
-			{children}
-		</ToastsContext.Provider>
+		<ToastProvider>
+			<ToastsContext.Provider value={{ toasts, addToast, removeToast, clearToasts }}>
+				{children}
+			</ToastsContext.Provider>
+		</ToastProvider>
 	)
 }
 
