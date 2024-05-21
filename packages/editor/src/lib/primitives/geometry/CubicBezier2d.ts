@@ -86,13 +86,14 @@ export class CubicBezier2d extends Polyline2d {
 
 	static GetLength(segment: CubicBezier2d, precision = 100) {
 		let n1: Vec,
-			p1 = segment.a
+			p1 = segment.a,
+			length = 0
 		for (let i = 1; i <= precision; i++) {
 			n1 = CubicBezier2d.GetAtT(segment, i / precision)
-			length += Vec.Dist2(p1, n1)
+			length += Vec.Dist(p1, n1)
 			p1 = n1
 		}
-		return Math.sqrt(length) * 2
+		return length
 	}
 
 	static GetSvgPath(segment: CubicBezier2d) {
