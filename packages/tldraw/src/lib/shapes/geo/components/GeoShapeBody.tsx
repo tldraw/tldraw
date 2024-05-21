@@ -3,6 +3,7 @@ import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { getLines } from '../getLines'
 import { DashStyleCloud } from './DashStyleCloud'
 import { DashStyleEllipse } from './DashStyleEllipse'
+import { DashStyleHeart } from './DashStyleHeart'
 import { DashStyleOval } from './DashStyleOval'
 import { DashStylePolygon } from './DashStylePolygon'
 import { DrawStyleCloud } from './DrawStyleCloud'
@@ -108,7 +109,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 				return <SolidStyleHeart strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
 			} else if (dash === 'dashed' || dash === 'dotted') {
 				return (
-					<DashStyleOval
+					<DashStyleHeart
 						id={id}
 						strokeWidth={strokeWidth}
 						w={w}
