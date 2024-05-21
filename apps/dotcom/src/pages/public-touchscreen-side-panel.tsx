@@ -11,7 +11,7 @@ export function Component() {
 			}
 
 			const session = await (window as any).meet.addon.createAddonSession({
-				cloudProjectNumber: `${process.env.GOOGLE_CLOUD_PROJECT_NUMBER || 745824656017}`,
+				cloudProjectNumber: `${process.env.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER}`,
 			})
 			const sidePanelClient = await session.createSidePanelClient()
 			await sidePanelClient.setCollaborationStartingState({
