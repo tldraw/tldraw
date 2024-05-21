@@ -1,5 +1,5 @@
 /** @public */
-export interface TldrawEditorOptions {
+export interface TldrawOptions {
 	readonly maxShapesPerPage: number
 	readonly maxPages: number
 	readonly animationMediumMs: number
@@ -23,10 +23,11 @@ export interface TldrawEditorOptions {
 	readonly handleRadius: number
 	readonly longPressDurationMs: number
 	readonly textShadowLod: number
+	readonly adjacentShapeMargin: number
 }
 
 /** @public */
-export const defaultTldrawEditorOptions = {
+export const defaultTldrawOptions = {
 	maxShapesPerPage: 4000,
 	maxPages: 40,
 	animationMediumMs: 320,
@@ -55,4 +56,5 @@ export const defaultTldrawEditorOptions = {
 	handleRadius: 12,
 	longPressDurationMs: 500,
 	textShadowLod: 0.35,
-} as const satisfies TldrawEditorOptions
+	adjacentShapeMargin: 10,
+} as const satisfies TldrawOptions

@@ -230,7 +230,10 @@ export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
-export { defaultTldrawEditorOptions, type TldrawEditorOptions } from './lib/options'
+export {
+	defaultTldrawOptions as defaultTldrawEditorOptions,
+	type TldrawOptions as TldrawEditorOptions,
+} from './lib/options'
 export {
 	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,

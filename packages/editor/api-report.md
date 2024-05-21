@@ -582,7 +582,48 @@ export function DefaultSpinner(): JSX_2.Element;
 export const DefaultSvgDefs: () => null;
 
 // @public (undocumented)
-export const defaultTldrawOptions: TldrawOptions_2;
+export const defaultTldrawEditorOptions: {
+    readonly adjacentShapeMargin: 10;
+    readonly animationMediumMs: 320;
+    readonly cameraMovingTimoutMs: 64;
+    readonly cameraSlideFriction: 0.09;
+    readonly coarseDragDistanceSquared: 36;
+    readonly coarseHandleRadius: 20;
+    readonly coarsePointerWidth: 12;
+    readonly collaboratorCheckIntervalMs: 1200;
+    readonly collaboratorIdleTimeoutMs: 3000;
+    readonly collaboratorInactiveTimeoutMs: 60000;
+    readonly defaultSvgPadding: 32;
+    readonly doubleClickDurationMs: 450;
+    readonly dragDistanceSquared: 16;
+    readonly edgeScrollDistance: 8;
+    readonly edgeScrollSpeed: 20;
+    readonly followChaseViewportSnap: 2;
+    readonly gridSteps: readonly [{
+        readonly mid: 0.15;
+        readonly min: -1;
+        readonly step: 64;
+    }, {
+        readonly mid: 0.375;
+        readonly min: 0.05;
+        readonly step: 16;
+    }, {
+        readonly mid: 1;
+        readonly min: 0.15;
+        readonly step: 4;
+    }, {
+        readonly mid: 2.5;
+        readonly min: 0.7;
+        readonly step: 1;
+    }];
+    readonly handleRadius: 12;
+    readonly hitTestMargin: 8;
+    readonly longPressDurationMs: 500;
+    readonly maxPages: 40;
+    readonly maxShapesPerPage: 4000;
+    readonly multiClickDurationMs: 200;
+    readonly textShadowLod: 0.35;
+};
 
 // @public (undocumented)
 export const defaultUserPreferences: Readonly<{
@@ -956,7 +997,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
-    readonly options: TldrawOptions;
+    readonly options: TldrawEditorOptions;
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
@@ -2146,10 +2187,66 @@ export interface TldrawEditorBaseProps {
     initialState?: string;
     onMount?: TLOnMountHandler;
     // (undocumented)
-    options?: Partial<TldrawOptions>;
+    options?: Partial<TldrawEditorOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
+}
+
+// @public (undocumented)
+export interface TldrawEditorOptions {
+    // (undocumented)
+    readonly adjacentShapeMargin: number;
+    // (undocumented)
+    readonly animationMediumMs: number;
+    // (undocumented)
+    readonly cameraMovingTimoutMs: number;
+    // (undocumented)
+    readonly cameraSlideFriction: number;
+    // (undocumented)
+    readonly coarseDragDistanceSquared: number;
+    // (undocumented)
+    readonly coarseHandleRadius: number;
+    // (undocumented)
+    readonly coarsePointerWidth: number;
+    // (undocumented)
+    readonly collaboratorCheckIntervalMs: number;
+    // (undocumented)
+    readonly collaboratorIdleTimeoutMs: number;
+    // (undocumented)
+    readonly collaboratorInactiveTimeoutMs: number;
+    // (undocumented)
+    readonly defaultSvgPadding: number;
+    // (undocumented)
+    readonly doubleClickDurationMs: number;
+    // (undocumented)
+    readonly dragDistanceSquared: number;
+    // (undocumented)
+    readonly edgeScrollDistance: number;
+    // (undocumented)
+    readonly edgeScrollSpeed: number;
+    // (undocumented)
+    readonly followChaseViewportSnap: number;
+    // (undocumented)
+    readonly gridSteps: readonly {
+        mid: number;
+        min: number;
+        step: number;
+    }[];
+    // (undocumented)
+    readonly handleRadius: number;
+    // (undocumented)
+    readonly hitTestMargin: number;
+    // (undocumented)
+    readonly longPressDurationMs: number;
+    // (undocumented)
+    readonly maxPages: number;
+    // (undocumented)
+    readonly maxShapesPerPage: number;
+    // (undocumented)
+    readonly multiClickDurationMs: number;
+    // (undocumented)
+    readonly textShadowLod: number;
 }
 
 // @public
@@ -2179,7 +2276,7 @@ export interface TLEditorOptions {
     inferDarkMode?: boolean;
     initialState?: string;
     // (undocumented)
-    options?: Partial<TldrawOptions>;
+    options?: Partial<TldrawEditorOptions>;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];

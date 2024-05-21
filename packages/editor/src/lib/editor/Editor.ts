@@ -90,7 +90,7 @@ import {
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
 } from '../constants'
-import { TldrawEditorOptions, defaultTldrawEditorOptions } from '../options'
+import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike } from '../primitives/Mat'
 import { Vec, VecLike } from '../primitives/Vec'
@@ -206,7 +206,7 @@ export interface TLEditorOptions {
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
 
-	options?: Partial<TldrawEditorOptions>
+	options?: Partial<TldrawOptions>
 }
 
 /** @public */
@@ -226,7 +226,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}: TLEditorOptions) {
 		super()
 
-		this.options = { ...defaultTldrawEditorOptions, ...options }
+		this.options = { ...defaultTldrawOptions, ...options }
 		this.store = store
 		this.history = new HistoryManager<TLRecord>({
 			store,
@@ -692,7 +692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.performanceTracker = new PerformanceTracker()
 	}
 
-	readonly options: TldrawEditorOptions
+	readonly options: TldrawOptions
 
 	/**
 	 * The editor's store

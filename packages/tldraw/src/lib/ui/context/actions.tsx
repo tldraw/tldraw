@@ -24,7 +24,6 @@ import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
-import { ADJACENT_SHAPE_MARGIN } from '../constants'
 import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
 import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
@@ -818,7 +817,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('pack-shapes', { source })
 					editor.mark('pack')
 					const selectedShapeIds = editor.getSelectedShapeIds()
-					editor.packShapes(selectedShapeIds, ADJACENT_SHAPE_MARGIN)
+					editor.packShapes(selectedShapeIds, editor.options.adjacentShapeMargin)
 					kickoutOccludedShapes(editor, selectedShapeIds)
 				},
 			},

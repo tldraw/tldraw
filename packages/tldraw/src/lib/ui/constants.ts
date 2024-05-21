@@ -13,5 +13,3 @@ export enum PORTRAIT_BREAKPOINT {
 	TABLET = 6,
 	DESKTOP = 7,
 }
-
-export const ADJACENT_SHAPE_MARGIN = 20

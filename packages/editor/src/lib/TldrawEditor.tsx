@@ -33,7 +33,7 @@ import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useZoomCss } from './hooks/useZoomCss'
-import { TldrawEditorOptions } from './options'
+import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -126,7 +126,7 @@ export interface TldrawEditorBaseProps {
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
 
-	options?: Partial<TldrawEditorOptions>
+	options?: Partial<TldrawOptions>
 }
 
 /**
