@@ -8545,7 +8545,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						// Start a long press timeout
 						this._longPressTimeout = setTimeout(() => {
-							this.dispatch({ ...info, name: 'long_press' })
+							this.dispatch({ ...info, point: this.inputs.currentScreenPoint, name: 'long_press' })
 						}, LONG_PRESS_DURATION)
 
 						// Save the selected ids at pointer down
