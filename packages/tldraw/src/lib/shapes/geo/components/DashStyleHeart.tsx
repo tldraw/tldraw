@@ -2,7 +2,7 @@ import { TLGeoShape, TLShapeId, toDomPrecision } from '@tldraw/editor'
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
-import { getHeartIndicatorPath } from './SolidStyleHeart'
+import { getHeartLength, getHeartPath } from './SolidStyleHeart'
 
 export const DashStyleHeart = React.memo(function DashStyleHeart({
 	w,
@@ -16,20 +16,16 @@ export const DashStyleHeart = React.memo(function DashStyleHeart({
 	id: TLShapeId
 }) {
 	const theme = useDefaultColorTheme()
-	const d = getHeartIndicatorPath(w, h)
-	const perimeter = w * h // todo: get actual curve path length
+	const d = getHeartPath(w, h)
+	const perimeter = getHeartLength(w, h)
 
-	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-		perimeter < 64 ? perimeter * 2 : perimeter,
-		sw,
-		{
-			style: dash,
-			snap: 4,
-			start: 'outset',
-			end: 'outset',
-			closed: true,
-		}
-	)
+	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(perimeter, sw, {
+		style: dash,
+		snap: 4,
+		start: 'outset',
+		end: 'outset',
+		closed: true,
+	})
 
 	return (
 		<>

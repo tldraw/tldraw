@@ -49,7 +49,7 @@ export class CubicBezier2d extends Polyline2d {
 	}
 
 	midPoint() {
-		return getAtT(this, 0.5)
+		return CubicBezier2d.GetAtT(this, 0.5)
 	}
 
 	nearestPoint(A: Vec): Vec {
@@ -69,18 +69,18 @@ export class CubicBezier2d extends Polyline2d {
 		if (!nearest) throw Error('nearest point not found')
 		return nearest
 	}
-}
 
-function getAtT(segment: CubicBezier2d, t: number) {
-	const { a, b, c, d } = segment
-	return new Vec(
-		(1 - t) * (1 - t) * (1 - t) * a.x +
-			3 * ((1 - t) * (1 - t)) * t * b.x +
-			3 * (1 - t) * (t * t) * c.x +
-			t * t * t * d.x,
-		(1 - t) * (1 - t) * (1 - t) * a.y +
-			3 * ((1 - t) * (1 - t)) * t * b.y +
-			3 * (1 - t) * (t * t) * c.y +
-			t * t * t * d.y
-	)
+	static GetAtT(segment: CubicBezier2d, t: number) {
+		const { a, b, c, d } = segment
+		return new Vec(
+			(1 - t) * (1 - t) * (1 - t) * a.x +
+				3 * ((1 - t) * (1 - t)) * t * b.x +
+				3 * (1 - t) * (t * t) * c.x +
+				t * t * t * d.x,
+			(1 - t) * (1 - t) * (1 - t) * a.y +
+				3 * ((1 - t) * (1 - t)) * t * b.y +
+				3 * (1 - t) * (t * t) * c.y +
+				t * t * t * d.y
+		)
+	}
 }

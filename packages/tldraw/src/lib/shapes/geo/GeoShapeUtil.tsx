@@ -48,7 +48,7 @@ import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../shared/po
 import { cloudOutline, cloudSvgPath } from './cloudOutline'
 import { getEllipseIndicatorPath } from './components/DrawStyleEllipse'
 import { GeoShapeBody } from './components/GeoShapeBody'
-import { getHeartIndicatorPath } from './components/SolidStyleHeart'
+import { getHeartPath } from './components/SolidStyleHeart'
 import { getOvalIndicatorPath } from './components/SolidStyleOval'
 import { getLines } from './getLines'
 
@@ -477,7 +477,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				return <ellipse cx={w / 2} cy={h / 2} rx={w / 2} ry={h / 2} />
 			}
 			case 'heart': {
-				return <path d={getHeartIndicatorPath(w, h)} />
+				return <path d={getHeartPath(w, h)} />
 			}
 			case 'oval': {
 				return <path d={getOvalIndicatorPath(w, h)} />

@@ -480,6 +480,8 @@ export class CubicBezier2d extends Polyline2d {
     // (undocumented)
     d: Vec;
     // (undocumented)
+    static GetAtT(segment: CubicBezier2d, t: number): Vec;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     midPoint(): Vec;
