@@ -484,7 +484,7 @@ export class CubicBezier2d extends Polyline2d {
     // (undocumented)
     static GetLength(segment: CubicBezier2d, precision?: number): number;
     // (undocumented)
-    static GetSvgPath(segment: CubicBezier2d): string;
+    static GetSvgPath(segment: CubicBezier2d, first?: boolean): string;
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)

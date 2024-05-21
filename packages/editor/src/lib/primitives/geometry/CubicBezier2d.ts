@@ -1,4 +1,5 @@
 import { Vec } from '../Vec'
+import { toDomPrecision } from '../utils'
 import { Geometry2dOptions } from './Geometry2d'
 import { Polyline2d } from './Polyline2d'
 
@@ -96,8 +97,8 @@ export class CubicBezier2d extends Polyline2d {
 		return length
 	}
 
-	static GetSvgPath(segment: CubicBezier2d) {
+	static GetSvgPath(segment: CubicBezier2d, first = true) {
 		const { a, b, c, d } = segment
-		return `M${a.x},${a.y} C${b.x},${b.y} ${c.x},${c.y} ${d.x},${d.y}`
+		return `${first ? `M ${toDomPrecision(a.x)},${toDomPrecision(a.y)} ` : ``}C${toDomPrecision(b.x)},${toDomPrecision(b.y)} ${toDomPrecision(c.x)},${toDomPrecision(c.y)} ${toDomPrecision(d.x)},${toDomPrecision(d.y)}`
 	}
 }

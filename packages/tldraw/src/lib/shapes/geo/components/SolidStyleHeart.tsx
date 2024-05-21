@@ -22,9 +22,24 @@ export const SolidStyleHeart = React.memo(function SolidStyleHeart({
 })
 
 export function getHeartPath(w: number, h: number) {
-	return getHeartCurves(w, h)
-		.map((c) => CubicBezier2d.GetSvgPath(c))
-		.join(' ')
+	return (
+		getHeartCurves(w, h)
+			.map((c, i) => CubicBezier2d.GetSvgPath(c, i === 0))
+			.join(' ') + ' Z'
+	)
+}
+
+export function getHeartPoints(w: number, h: number) {
+	const points = [] as Vec[]
+	const curves = getHeartCurves(w, h)
+	for (let i = 0; i < curves.length; i++) {
+		for (let j = 0; j < 20; j++) {
+			points.push(CubicBezier2d.GetAtT(curves[i], j / 20))
+		}
+		if (i === curves.length - 1) {
+			points.push(CubicBezier2d.GetAtT(curves[i], 1))
+		}
+	}
 }
 
 export function getHeartCurves(w: number, h: number) {
