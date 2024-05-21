@@ -20,7 +20,6 @@ export function DefaultToolbarContent() {
 			<DiamondToolbarItem />
 			<CloudToolbarItem />
 			<StarToolbarItem />
-			<PentagonToolbarItem />
 			<HexagonToolbarItem />
 			<OvalToolbarItem />
 			<TrapezoidToolbarItem />
