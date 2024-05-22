@@ -1,8 +1,8 @@
-import { TLGeoShape, TLShapeId, toDomPrecision } from '@tldraw/editor'
+import { TLGeoShape, TLShapeId } from '@tldraw/editor'
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
-import { getOvalPath, getOvalPerimeter } from '../helpers'
+import { getOvalPath, getOvalPerimeter } from '../geo-shape-helpers'
 
 export const DashStyleOval = React.memo(function DashStyleOval({
 	w,
@@ -37,13 +37,10 @@ export const DashStyleOval = React.memo(function DashStyleOval({
 			<path
 				d={d}
 				strokeWidth={sw}
-				width={toDomPrecision(w)}
-				height={toDomPrecision(h)}
 				fill="none"
 				stroke={theme[color].solid}
 				strokeDasharray={strokeDasharray}
 				strokeDashoffset={strokeDashoffset}
-				pointerEvents="all"
 			/>
 		</>
 	)

@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
-	Box,
 	Editor,
 	Ellipse2d,
 	Geometry2d,
@@ -48,9 +47,8 @@ import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../shared/po
 import { cloudOutline, getCloudPath } from './cloudOutline'
 import { getEllipseDrawIndicatorPath } from './components/DrawStyleEllipse'
 import { GeoShapeBody } from './components/GeoShapeBody'
-import { getHeartPath } from './components/SolidStyleHeart'
+import { getEllipsePath, getHeartParts, getHeartPath, getOvalPath } from './geo-shape-helpers'
 import { getLines } from './getLines'
-import { getEllipsePath, getOvalPath } from './helpers'
 
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
@@ -295,22 +293,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				break
 			}
 			case 'heart': {
-				// Heart shape equation with 24 points
-				const points: Vec[] = []
-				let t: number, x: number, y: number
-				for (let i = 0; i < 24; i++) {
-					t = (i / (24 - 1)) * PI2
-					x = 16 * Math.sin(t) ** 3
-					y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)
-					points.push(new Vec(x, -y))
-				}
-
-				// Rescale points to fit within the bounds of the shape
-				const box = Box.FromPoints(points)
-				points.forEach((point) => {
-					point.x = ((point.x - box.minX) / box.w) * w
-					point.y = ((point.y - box.minY) / box.h) * h
-				})
+				// kind of expensive (creating the primitives to create a different primitive) but hearts are rare and beautiful things
+				const parts = getHeartParts(w, h)
+				const points = parts.reduce<Vec[]>((acc, part) => {
+					acc.push(...part.vertices)
+					return acc
+				}, [])
 
 				body = new Polygon2d({
 					points,

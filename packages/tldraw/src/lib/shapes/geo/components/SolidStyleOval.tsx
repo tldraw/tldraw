@@ -1,7 +1,7 @@
 import { TLGeoShape } from '@tldraw/editor'
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
-import { getOvalPath } from '../helpers'
+import { getOvalPath } from '../geo-shape-helpers'
 
 export const SolidStyleOval = React.memo(function SolidStyleOval({
 	w,

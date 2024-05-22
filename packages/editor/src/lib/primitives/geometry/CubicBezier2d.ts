@@ -1,5 +1,4 @@
 import { Vec } from '../Vec'
-import { toDomPrecision } from '../utils'
 import { Geometry2dOptions } from './Geometry2d'
 import { Polyline2d } from './Polyline2d'
 
@@ -71,6 +70,11 @@ export class CubicBezier2d extends Polyline2d {
 		return nearest
 	}
 
+	toSvg(first = true) {
+		const { a, b, c, d } = this
+		return `${first ? `M ${a.toFixed()} ` : ``} C${b.toFixed()} ${c.toFixed()} ${d.toFixed()}`
+	}
+
 	static GetAtT(segment: CubicBezier2d, t: number) {
 		const { a, b, c, d } = segment
 		return new Vec(
@@ -85,20 +89,15 @@ export class CubicBezier2d extends Polyline2d {
 		)
 	}
 
-	static GetLength(segment: CubicBezier2d, precision = 100) {
+	override getLength(precision = 32) {
 		let n1: Vec,
-			p1 = segment.a,
+			p1 = this.a,
 			length = 0
 		for (let i = 1; i <= precision; i++) {
-			n1 = CubicBezier2d.GetAtT(segment, i / precision)
+			n1 = CubicBezier2d.GetAtT(this, i / precision)
 			length += Vec.Dist(p1, n1)
 			p1 = n1
 		}
 		return length
-	}
-
-	static GetSvgPath(segment: CubicBezier2d, first = true) {
-		const { a, b, c, d } = segment
-		return `${first ? `M ${toDomPrecision(a.x)},${toDomPrecision(a.y)} ` : ``}C${toDomPrecision(b.x)},${toDomPrecision(b.y)} ${toDomPrecision(c.x)},${toDomPrecision(c.y)} ${toDomPrecision(d.x)},${toDomPrecision(d.y)}`
 	}
 }

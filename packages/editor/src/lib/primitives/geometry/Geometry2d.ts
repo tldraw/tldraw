@@ -178,4 +178,26 @@ export abstract class Geometry2d {
 
 		return path
 	}
+
+	private _length?: number
+
+	// eslint-disable-next-line no-restricted-syntax
+	get length() {
+		if (this._length) return this._length
+		this._length = this.getLength()
+		return this._length
+	}
+
+	getLength() {
+		const { vertices } = this
+		let n1: Vec,
+			p1 = vertices[0],
+			length = 0
+		for (let i = 1; i < vertices.length; i++) {
+			n1 = vertices[i]
+			length += Vec.Dist2(p1, n1)
+			p1 = n1
+		}
+		return Math.sqrt(length)
+	}
 }

@@ -1,8 +1,8 @@
-import { CubicBezier2d, TLGeoShape, TLShapeId } from '@tldraw/editor'
+import { TLGeoShape, TLShapeId } from '@tldraw/editor'
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
-import { getHeartCurves, getHeartPath } from './SolidStyleHeart'
+import { getHeartParts, getHeartPath } from '../geo-shape-helpers'
 
 export const DashStyleHeart = React.memo(function DashStyleHeart({
 	w,
@@ -17,27 +17,23 @@ export const DashStyleHeart = React.memo(function DashStyleHeart({
 }) {
 	const theme = useDefaultColorTheme()
 	const d = getHeartPath(w, h)
-	const curves = getHeartCurves(w, h)
+	const curves = getHeartParts(w, h)
 
 	return (
 		<>
 			<ShapeFill theme={theme} d={d} color={color} fill={fill} />
 			{curves.map((c, i) => {
-				const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-					CubicBezier2d.GetLength(c),
-					sw,
-					{
-						style: dash,
-						snap: 4,
-						start: 'outset',
-						end: 'outset',
-						closed: true,
-					}
-				)
+				const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(c.length, sw, {
+					style: dash,
+					snap: 1,
+					start: 'outset',
+					end: 'outset',
+					closed: true,
+				})
 				return (
 					<path
 						key={`curve_${i}`}
-						d={CubicBezier2d.GetSvgPath(c)}
+						d={c.toSvg()}
 						strokeWidth={sw}
 						fill="none"
 						stroke={theme[color].solid}

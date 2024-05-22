@@ -3,18 +3,13 @@ import {
 	TLDefaultSizeStyle,
 	Vec,
 	VecModel,
-	clockwiseAngleDist,
+	centerOfCircleFromThreePoints,
 	getPointOnCircle,
+	getPointsOnArc,
 	rng,
 	toDomPrecision,
 } from '@tldraw/editor'
-
-function getPillCircumference(width: number, height: number) {
-	const radius = Math.min(width, height) / 2
-	const longSide = Math.max(width, height) - radius * 2
-
-	return Math.PI * (radius * 2) + 2 * longSide
-}
+import { getOvalPerimeter } from './geo-shape-helpers'
 
 type PillSection =
 	| {
@@ -31,9 +26,7 @@ type PillSection =
 function getPillPoints(width: number, height: number, numPoints: number) {
 	const radius = Math.min(width, height) / 2
 	const longSide = Math.max(width, height) - radius * 2
-
 	const circumference = Math.PI * (radius * 2) + 2 * longSide
-
 	const spacing = circumference / numPoints
 
 	const sections: PillSection[] =
@@ -107,18 +100,14 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 	return points
 }
 
-const switchSize = <T>(size: TLDefaultSizeStyle, s: T, m: T, l: T, xl: T) => {
-	switch (size) {
-		case 's':
-			return s
-		case 'm':
-			return m
-		case 'l':
-			return l
-		case 'xl':
-			return xl
-	}
+const SIZES: Record<TLDefaultSizeStyle, number> = {
+	s: 50,
+	m: 70,
+	l: 100,
+	xl: 130,
 }
+
+const BUMP_PROTRUSION = 0.2
 
 export function getCloudArcs(
 	width: number,
@@ -127,22 +116,23 @@ export function getCloudArcs(
 	size: TLDefaultSizeStyle
 ) {
 	const getRandom = rng(seed)
-	const pillCircumference = getPillCircumference(width, height)
+	const pillCircumference = getOvalPerimeter(width, height)
 	const numBumps = Math.max(
-		Math.ceil(pillCircumference / switchSize(size, 50, 70, 100, 130)),
+		Math.ceil(pillCircumference / SIZES[size]),
 		6,
 		Math.ceil(pillCircumference / Math.min(width, height))
 	)
-	const targetBumpProtrusion = (pillCircumference / numBumps) * 0.2
+	const targetBumpProtrusion = (pillCircumference / numBumps) * BUMP_PROTRUSION
 
 	// if the aspect ratio is high, innerWidth should be smaller
 	const innerWidth = Math.max(width - targetBumpProtrusion * 2, 1)
 	const innerHeight = Math.max(height - targetBumpProtrusion * 2, 1)
+	const innerCircumference = getOvalPerimeter(innerWidth, innerHeight)
+
+	const distanceBetweenPointsOnPerimeter = innerCircumference / numBumps
+
 	const paddingX = (width - innerWidth) / 2
 	const paddingY = (height - innerHeight) / 2
-
-	const distanceBetweenPointsOnPerimeter = getPillCircumference(innerWidth, innerHeight) / numBumps
-
 	const bumpPoints = getPillPoints(innerWidth, innerHeight, numBumps).map((p) => {
 		return p.addXY(paddingX, paddingY)
 	})
@@ -175,8 +165,6 @@ export function getCloudArcs(
 		const leftPoint = bumpPoints[i]
 		const rightPoint = bumpPoints[j]
 
-		const midPoint = Vec.Average([leftPoint, rightPoint])
-		const offsetAngle = Vec.Angle(leftPoint, rightPoint) - Math.PI / 2
 		// when the points are on the curvy part of a pill, there is a natural arc that we need to extends past
 		// otherwise it looks like the bumps get less bumpy on the curvy parts
 		const distanceBetweenOriginalPoints = Vec.Dist(leftPoint, rightPoint)
@@ -185,7 +173,9 @@ export function getCloudArcs(
 		const relativeSize = distanceBetweenWigglePoints / distanceBetweenOriginalPoints
 		const finalDistance = (Math.max(paddingX, paddingY) + curvatureOffset) * relativeSize
 
-		const arcPoint = Vec.Add(midPoint, Vec.FromAngle(offsetAngle, finalDistance))
+		const arcPoint = Vec.Lrp(leftPoint, rightPoint, 0.5).add(
+			Vec.Sub(rightPoint, leftPoint).uni().per().mul(finalDistance)
+		)
 		if (arcPoint.x < 0) {
 			arcPoint.x = 0
 		} else if (arcPoint.x > width) {
@@ -197,11 +187,13 @@ export function getCloudArcs(
 			arcPoint.y = height
 		}
 
-		const center = getCenterOfCircleGivenThreePoints(leftWigglePoint, rightWigglePoint, arcPoint)
+		const center = centerOfCircleFromThreePoints(leftWigglePoint, rightWigglePoint, arcPoint)
 		const radius = Vec.Dist(
 			center ? center : Vec.Average([leftWigglePoint, rightWigglePoint]),
 			leftWigglePoint
 		)
+
+		// todo: could use Arc2d here
 
 		arcs.push({
 			leftPoint: leftWigglePoint,
@@ -223,28 +215,6 @@ type Arc = {
 	radius: number
 }
 
-function getCenterOfCircleGivenThreePoints(a: Vec, b: Vec, c: Vec) {
-	const A = a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y
-	const B =
-		(a.x * a.x + a.y * a.y) * (c.y - b.y) +
-		(b.x * b.x + b.y * b.y) * (a.y - c.y) +
-		(c.x * c.x + c.y * c.y) * (b.y - a.y)
-	const C =
-		(a.x * a.x + a.y * a.y) * (b.x - c.x) +
-		(b.x * b.x + b.y * b.y) * (c.x - a.x) +
-		(c.x * c.x + c.y * c.y) * (a.x - b.x)
-
-	const x = -B / (2 * A)
-	const y = -C / (2 * A)
-
-	// handle situations where the points are colinear (this happens when the cloud is very small)
-	if (!Number.isFinite(x) || !Number.isFinite(y)) {
-		return null
-	}
-
-	return new Vec(x, y)
-}
-
 export function cloudOutline(
 	width: number,
 	height: number,
@@ -256,7 +226,7 @@ export function cloudOutline(
 	const arcs = getCloudArcs(width, height, seed, size)
 
 	for (const { center, radius, leftPoint, rightPoint } of arcs) {
-		path.push(...pointsOnArc(leftPoint, rightPoint, center, radius, 10))
+		path.push(...getPointsOnArc(leftPoint, rightPoint, center, radius, 10))
 	}
 
 	return path
@@ -298,6 +268,13 @@ export function getCloudPath(
 	return path
 }
 
+const DRAW_OFFSETS: Record<TLDefaultSizeStyle, number> = {
+	s: 0.5,
+	m: 0.7,
+	l: 0.9,
+	xl: 1.6,
+}
+
 export function inkyCloudSvgPath(
 	width: number,
 	height: number,
@@ -305,16 +282,14 @@ export function inkyCloudSvgPath(
 	size: TLDefaultSizeStyle
 ) {
 	const getRandom = rng(seed)
-	const mutMultiplier = size === 's' ? 0.5 : size === 'm' ? 0.7 : size === 'l' ? 0.9 : 1.6
-	const mut = (n: number) => {
-		return n + getRandom() * mutMultiplier * 2
-	}
+	const mutMultiplier = DRAW_OFFSETS[size]
 	const arcs = getCloudArcs(width, height, seed, size)
-	const avgArcLength =
+	const avgArcLengthSquared =
 		arcs.reduce((sum, arc) => sum + Vec.Dist2(arc.leftPoint, arc.rightPoint), 0) / arcs.length
-	const shouldMutatePoints = avgArcLength > (mutMultiplier * 15) ** 2
-
-	const mutPoint = shouldMutatePoints ? (p: Vec) => new Vec(mut(p.x), mut(p.y)) : (p: Vec) => p
+	const shouldMutatePoints = avgArcLengthSquared > (mutMultiplier * 15) ** 2
+	const mutPoint = shouldMutatePoints
+		? (p: Vec) => p.addXY(getRandom() * mutMultiplier * 2, getRandom() * mutMultiplier * 2)
+		: (p: Vec) => p
 	let pathA = `M${toDomPrecision(arcs[0].leftPoint.x)},${toDomPrecision(arcs[0].leftPoint.y)}`
 	let leftMutPoint = mutPoint(arcs[0].leftPoint)
 	let pathB = `M${toDomPrecision(leftMutPoint.x)},${toDomPrecision(leftMutPoint.y)}`
@@ -334,15 +309,17 @@ export function inkyCloudSvgPath(
 		)},${toDomPrecision(rightPoint.y)}`
 		const rightMutPoint = mutPoint(rightPoint)
 		const mutArcPoint = mutPoint(arcPoint)
-		const mutCenter = getCenterOfCircleGivenThreePoints(leftMutPoint, rightMutPoint, mutArcPoint)
-		if (!mutCenter) {
+		const mutCenter = centerOfCircleFromThreePoints(leftMutPoint, rightMutPoint, mutArcPoint)
+
+		// handle situations where the points are colinear (this happens when the cloud is very small)
+		if (!Number.isFinite(mutCenter.x) || !Number.isFinite(mutCenter.y)) {
 			// draw a line to rightMutPoint instead
 			pathB += ` L${toDomPrecision(rightMutPoint.x)},${toDomPrecision(rightMutPoint.y)}`
 			leftMutPoint = rightMutPoint
 			continue
 		}
-		const mutRadius = Math.abs(Vec.Dist(mutCenter, leftMutPoint))
 
+		const mutRadius = Math.abs(Vec.Dist(mutCenter, leftMutPoint))
 		pathB += ` A${toDomPrecision(mutRadius)},${toDomPrecision(
 			mutRadius
 		)} 0 ${arc},1 ${toDomPrecision(rightMutPoint.x)},${toDomPrecision(rightMutPoint.y)}`
@@ -350,31 +327,4 @@ export function inkyCloudSvgPath(
 	}
 
 	return pathA + pathB + ' Z'
-}
-
-function pointsOnArc(
-	startPoint: VecModel,
-	endPoint: VecModel,
-	center: VecModel | null,
-	radius: number,
-	numPoints: number
-): Vec[] {
-	if (center === null) {
-		return [Vec.From(startPoint), Vec.From(endPoint)]
-	}
-	const results: Vec[] = []
-
-	const startAngle = Vec.Angle(center, startPoint)
-	const endAngle = Vec.Angle(center, endPoint)
-
-	const l = clockwiseAngleDist(startAngle, endAngle)
-
-	for (let i = 0; i < numPoints; i++) {
-		const t = i / (numPoints - 1)
-		const angle = startAngle + l * t
-		const point = getPointOnCircle(center, radius, angle)
-		results.push(point)
-	}
-
-	return results
 }

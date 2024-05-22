@@ -426,3 +426,51 @@ export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcF
 	if (!largeArcFlag) return m
 	return (PI2 - Math.abs(m)) * (sweepFlag ? 1 : -1)
 }
+
+/**
+ * Get the center of a circle from three points.
+ *
+ * @param a - The first point
+ * @param b - The second point
+ * @param c - The third point
+ *
+ * @returns The center of the circle
+ *
+ * @public
+ */
+export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike) {
+	const u = -2 * (a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y)
+	return new Vec(
+		((a.x * a.x + a.y * a.y) * (c.y - b.y) +
+			(b.x * b.x + b.y * b.y) * (a.y - c.y) +
+			(c.x * c.x + c.y * c.y) * (b.y - a.y)) /
+			u,
+		((a.x * a.x + a.y * a.y) * (b.x - c.x) +
+			(b.x * b.x + b.y * b.y) * (c.x - a.x) +
+			(c.x * c.x + c.y * c.y) * (a.x - b.x)) /
+			u
+	)
+}
+
+export function getPointsOnArc(
+	startPoint: VecLike,
+	endPoint: VecLike,
+	center: VecLike | null,
+	radius: number,
+	numPoints: number
+): Vec[] {
+	if (center === null) {
+		return [Vec.From(startPoint), Vec.From(endPoint)]
+	}
+	const results: Vec[] = []
+	const startAngle = Vec.Angle(center, startPoint)
+	const endAngle = Vec.Angle(center, endPoint)
+	const l = clockwiseAngleDist(startAngle, endAngle)
+	for (let i = 0; i < numPoints; i++) {
+		const t = i / (numPoints - 1)
+		const angle = startAngle + l * t
+		const point = getPointOnCircle(center, radius, angle)
+		results.push(point)
+	}
+	return results
+}

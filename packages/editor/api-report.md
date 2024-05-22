@@ -111,7 +111,6 @@ export class Arc2d extends Geometry2d {
         center: Vec;
         end: Vec;
         largeArcFlag: number;
-        radius: number;
         start: Vec;
         sweepFlag: number;
     });
@@ -124,11 +123,13 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     end: Vec;
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec): boolean;
     // (undocumented)
-    length: number;
+    largeArcFlag: number;
     // (undocumented)
     measure: number;
     // (undocumented)
@@ -137,6 +138,10 @@ export class Arc2d extends Geometry2d {
     radius: number;
     // (undocumented)
     start: Vec;
+    // (undocumented)
+    sweepFlag: number;
+    // (undocumented)
+    toSvg(first?: boolean): string;
 }
 
 // @public
@@ -391,6 +396,9 @@ export const CAMERA_SLIDE_FRICTION = 0.09;
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
+// @public
+export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike): Vec;
+
 // @public (undocumented)
 export class Circle2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -482,15 +490,15 @@ export class CubicBezier2d extends Polyline2d {
     // (undocumented)
     static GetAtT(segment: CubicBezier2d, t: number): Vec;
     // (undocumented)
-    static GetLength(segment: CubicBezier2d, precision?: number): number;
-    // (undocumented)
-    static GetSvgPath(segment: CubicBezier2d, first?: boolean): string;
+    getLength(precision?: number): number;
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     midPoint(): Vec;
     // (undocumented)
     nearestPoint(A: Vec): Vec;
+    // (undocumented)
+    toSvg(first?: boolean): string;
 }
 
 // @public (undocumented)
@@ -499,13 +507,11 @@ export class CubicSpline2d extends Geometry2d {
         points: Vec[];
     });
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec): boolean;
-    // (undocumented)
-    get length(): number;
-    // (undocumented)
-    _length?: number;
     // (undocumented)
     nearestPoint(A: Vec): Vec;
     // (undocumented)
@@ -651,19 +657,19 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     end: Vec;
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
-    // (undocumented)
-    get length(): number;
-    // (undocumented)
-    _length?: number;
     // (undocumented)
     midPoint(): Vec;
     // (undocumented)
     nearestPoint(point: Vec): Vec;
     // (undocumented)
     start: Vec;
+    // (undocumented)
+    toSvg(first?: boolean): string;
     // (undocumented)
     u: Vec;
     // (undocumented)
@@ -1167,6 +1173,8 @@ export abstract class Geometry2d {
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
     abstract getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
@@ -1182,6 +1190,8 @@ export abstract class Geometry2d {
     isLabel: boolean;
     // (undocumented)
     isPointInBounds(point: Vec, margin?: number): boolean;
+    // (undocumented)
+    get length(): number;
     // (undocumented)
     abstract nearestPoint(point: Vec): Vec;
     // (undocumented)
@@ -1224,6 +1234,9 @@ export function getPointInArcT(mAB: number, A: number, B: number, P: number): nu
 
 // @public
 export function getPointOnCircle(center: VecLike, r: number, a: number): Vec;
+
+// @public (undocumented)
+export function getPointsOnArc(startPoint: VecLike, endPoint: VecLike, center: null | VecLike, radius: number, numPoints: number): Vec[];
 
 // @public (undocumented)
 export function getPolygonVertices(width: number, height: number, sides: number): Vec[];
@@ -1624,13 +1637,11 @@ export class Polyline2d extends Geometry2d {
         points: Vec[];
     });
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
-    // (undocumented)
-    get length(): number;
-    // (undocumented)
-    _length?: number;
     // (undocumented)
     nearestPoint(A: Vec): Vec;
     // (undocumented)
@@ -3062,9 +3073,13 @@ export class Vec {
     // (undocumented)
     toArray(): number[];
     // (undocumented)
-    static ToFixed(A: VecLike, n?: number): Vec;
+    static ToCss(A: VecLike): string;
+    // (undocumented)
+    static ToFixed(A: VecLike): Vec;
     // (undocumented)
     toFixed(): Vec;
+    // (undocumented)
+    static ToInt(A: VecLike): Vec;
     // (undocumented)
     static ToJson(A: VecLike): {
         x: number;

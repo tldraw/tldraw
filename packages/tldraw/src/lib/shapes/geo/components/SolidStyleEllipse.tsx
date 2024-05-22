@@ -1,7 +1,7 @@
 import { TLGeoShape } from '@tldraw/editor'
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
-import { getEllipsePath } from '../helpers'
+import { getEllipsePath } from '../geo-shape-helpers'
 
 export const SolidStyleEllipse = React.memo(function SolidStyleEllipse({
 	w,
