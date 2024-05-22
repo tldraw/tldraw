@@ -4,7 +4,7 @@ exports[`the_routes 1`] = `
 [
   {
     "reactRouterPattern": "/",
-    "vercelRouterPattern": "^//?$",
+    "vercelRouterPattern": "^/?$",
   },
   {
     "reactRouterPattern": "/new",

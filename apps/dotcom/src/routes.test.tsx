@@ -79,7 +79,7 @@ function convertReactToVercel(path: string): string {
 	}
 	// Wrap in explicit start and end of string anchors (^ and $)
 	// and replace :param with [^/]* to match any string of non-slash characters, including the empty string
-	return '^' + path.replace(/:[^/]+/g, '[^/]*') + '/?$'
+	return '^' + path.replace(/:[^/]+/g, '[^/]*') + (path === '/' ? '' : '/') + '?$'
 }
 
 const spaRoutes = router
