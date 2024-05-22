@@ -27,6 +27,12 @@ function loadSpaRoutes() {
 		check: true,
 		src: route.vercelRouterPattern,
 		dest: '/index.html',
+		headers: {
+			'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+			'X-Content-Type-Options': 'nosniff',
+			'Referrer-Policy': 'no-referrer-when-downgrade',
+			'Content-Security-Policy': 'default-src: *',
+		},
 	}))
 }
 
