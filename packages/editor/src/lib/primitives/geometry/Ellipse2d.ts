@@ -1,6 +1,6 @@
 import { Box } from '../Box'
 import { Vec } from '../Vec'
-import { PI, PI2 } from '../utils'
+import { PI, PI2, perimeterOfEllipse } from '../utils'
 import { Edge2d } from './Edge2d'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
@@ -96,6 +96,15 @@ export class Ellipse2d extends Geometry2d {
 
 	getBounds() {
 		return new Box(0, 0, this.w, this.h)
+	}
+
+	getLength(): number {
+		const { w, h } = this
+		const cx = w / 2
+		const cy = h / 2
+		const rx = Math.max(0, cx)
+		const ry = Math.max(0, cy)
+		return perimeterOfEllipse(rx, ry)
 	}
 
 	getSvgPathData(first = false) {

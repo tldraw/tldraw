@@ -97,6 +97,10 @@ export class Group2d extends Geometry2d {
 		return path
 	}
 
+	getLength(): number {
+		return this.children.reduce((a, c) => (c.isLabel ? a : a + c.length), 0)
+	}
+
 	getSvgPathData(): string {
 		return this.children.map((c, i) => (c.isLabel ? '' : c.getSvgPathData(i === 0))).join(' ')
 	}

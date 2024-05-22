@@ -1105,6 +1105,8 @@ export class Ellipse2d extends Geometry2d {
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
     getSvgPathData(first?: boolean): string;
     // (undocumented)
     getVertices(): any[];
@@ -1278,6 +1280,8 @@ export class Group2d extends Geometry2d {
     distanceToPoint(point: Vec, hitInside?: boolean): number;
     // (undocumented)
     getArea(): number;
+    // (undocumented)
+    getLength(): number;
     // (undocumented)
     getSvgPathData(): string;
     // (undocumented)
