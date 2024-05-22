@@ -800,6 +800,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanUndo(): boolean;
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
+    // (undocumented)
+    getConstrainedCamera(): void;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     // @internal

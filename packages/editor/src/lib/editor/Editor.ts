@@ -2233,6 +2233,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	// ??? naming
+	getConstrainedCamera() {
+		// todo, move _setCamera constraining logic here
+	}
+
 	/** @internal */
 	private _setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
 		const currentCamera = this.getCamera()
@@ -2473,6 +2478,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (opts?.animation) {
 			const { width, height } = this.getViewportScreenBounds()
+			// todo: we (may) need to constrain the target bounds to the camera options
+			// this means going from box -> camera -> constrained camera -> back to box
+			// provided box
+			// end camera position for provided box
+			// constrained camera position for end camera position
+			// box with constrained camera position
+			// UNLESS FORCE IS TRUE, IN WHICH CASE JUST USE THE PROVIDED BOX
 			this._animateToViewport(
 				new Box(-point.x, -point.y, width / _point.z, height / _point.z),
 				opts
