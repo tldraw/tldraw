@@ -1,6 +1,6 @@
 import { VecModel } from '@tldraw/tlschema'
 import { EASINGS } from './easings'
-import { toDomPrecision } from './utils'
+import { toFixed } from './utils'
 
 /** @public */
 export type VecLike = Vec | VecModel
@@ -506,7 +506,7 @@ export class Vec {
 	}
 
 	static ToFixed(A: VecLike) {
-		return new Vec(toDomPrecision(A.x), toDomPrecision(A.y))
+		return new Vec(toFixed(A.x), toFixed(A.y))
 	}
 
 	static ToInt(A: VecLike) {

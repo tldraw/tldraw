@@ -253,7 +253,6 @@ describe('Vec.IsClockwise', () => {
 
 describe('Vec.ToFixed', () => {
 	it('Rounds a vector to the a given precision.', () => {
-		expect(Vec.ToFixed(new Vec(1.2345, 5.678))).toMatchObject(new Vec(1.2, 5.7))
 		expect(Vec.ToFixed(new Vec(1.2345, 5.678))).toMatchObject(new Vec(1.23, 5.68))
 	})
 })
