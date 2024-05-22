@@ -5331,25 +5331,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const prevInstanceState = this.store.get(TLINSTANCE_ID)
 
 		this.store.atomic(() => {
+			// first load the document state (this will wipe the store if it happens)
 			if (snapshot.document) {
 				this.store.loadSnapshot(snapshot.document)
 			}
-			if (this instanceof Editor) {
-				if (prevInstanceState) {
-					const nextInstanceState: TLInstance = {
-						...prevInstanceState,
-						...this.store.get(TLINSTANCE_ID)!,
-					}
-					for (const [key, preserves] of objectMapEntries(shouldKeyBePreservedBetweenSessions)) {
-						if (preserves) {
-							// @ts-expect-error
-							nextInstanceState[key] = prevInstanceState[key]
-						}
-					}
-					this.updateInstanceState(nextInstanceState)
+
+			// then make sure we preserve those instance state properties that must be preserved
+			// this is a noop if the document state wasn't loaded above
+			if (prevInstanceState && this instanceof Editor) {
+				const nextInstanceState: TLInstance = {
+					...prevInstanceState,
+					...this.store.get(TLINSTANCE_ID)!,
 				}
+				for (const [key, preserves] of objectMapEntries(shouldKeyBePreservedBetweenSessions)) {
+					if (preserves) {
+						// @ts-expect-error
+						nextInstanceState[key] = prevInstanceState[key]
+					}
+				}
+				this.updateInstanceState(nextInstanceState)
 			}
 
+			// finally reinstate the UI state
 			if (snapshot.session) {
 				loadSessionStateSnapshotIntoStore(this.store, snapshot.session)
 			}
