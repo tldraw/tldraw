@@ -79,7 +79,7 @@ function convertReactToVercel(path: string): string {
 	}
 
 	if (path === '/') {
-		return '^$'
+		return '^/index.html$'
 	}
 
 	// Wrap in explicit start and end of string anchors (^ and $)
