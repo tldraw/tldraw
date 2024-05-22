@@ -32,20 +32,19 @@ export interface TLShapeUtilConstructor<
 /** @public */
 export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
-/**@public */
+/**
+ * Options passed to {@link ShapeUtil.canBind}. A binding that could be made. At least one of
+ * `fromShapeType` or `toShapeType` will belong to this shape util.
+ *
+ * @public
+ */
 export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
-	/** The shape from this util */
-	shape: Shape
-	/** The other shape being bound to. It may not exist yet, in which case it will be missing. */
-	otherShape?: TLShape
-	/**
-	 * The direction:
-	 * - `"to"` means the other shape is being bound to this shape.
-	 * - `"from"` means this shape is being bound to the other shape.
-	 */
-	direction: 'to' | 'from'
-	/** The type of binding, e.g. `"arrow"`. */
-	type: string
+	/** The type of shape referenced by the `fromId` of the binding. */
+	fromShapeType: string
+	/** The type of shape referenced by the `toId` of the binding. */
+	toShapeType: string
+	/** The type of binding. */
+	bindingType: string
 }
 
 /** @public */

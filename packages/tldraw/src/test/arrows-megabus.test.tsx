@@ -485,7 +485,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 
 		expect(
 			editor.getShapeAtPoint(new Vec(25, 25), {
-				filter: (shape) => editor.canBindShapes(null, shape, 'arrow'),
+				filter: (shape) =>
+					editor.canBindShapes({ fromShape: 'arrow', toShape: shape, binding: 'arrow' }),
 				hitInside: true,
 				hitFrameInside: true,
 				margin: 0,

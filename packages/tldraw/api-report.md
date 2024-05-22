@@ -170,7 +170,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBeLaidOut: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
-    canBind({ direction }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean;
+    canBind({ toShapeType }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean;
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)

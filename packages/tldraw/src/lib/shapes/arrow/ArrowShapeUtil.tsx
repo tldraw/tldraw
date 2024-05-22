@@ -76,9 +76,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override migrations = arrowShapeMigrations
 
 	override canEdit = () => true
-	override canBind({ direction }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean {
+	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean {
 		// bindings can go from arrows to shapes, but not from shapes to arrows
-		return direction === 'from'
+		return toShapeType !== 'arrow'
 	}
 	override canSnap = () => false
 	override hideResizeHandles: TLShapeUtilFlag<TLArrowShape> = () => true
@@ -224,7 +224,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			hitFrameInside: true,
 			margin: 0,
 			filter: (targetShape) => {
-				return !targetShape.isLocked && this.editor.canBindShapes(shape, targetShape, 'arrow')
+				return (
+					!targetShape.isLocked &&
+					this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
+				)
 			},
 		})
 
@@ -385,7 +388,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				hitFrameInside: true,
 				margin: 0,
 				filter: (targetShape) => {
-					return !targetShape.isLocked && this.editor.canBindShapes(shape, targetShape, 'arrow')
+					return (
+						!targetShape.isLocked &&
+						this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
+					)
 				},
 			})
 

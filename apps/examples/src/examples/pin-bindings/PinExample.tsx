@@ -45,9 +45,9 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		return {}
 	}
 
-	override canBind({ direction }: TLShapeUtilCanBindOpts<PinShape>) {
+	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<PinShape>) {
 		// bindings can go _from_ pins to other shapes, but not the other way round
-		return direction === 'from'
+		return toShapeType !== 'pin'
 	}
 	override canEdit = () => false
 	override canResize = () => false
@@ -97,7 +97,7 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 			.getShapesAtPoint(pageAnchor, { hitInside: true })
 			.filter(
 				(shape) =>
-					this.editor.canBindShapes(pin.id, shape.id, 'pin') &&
+					this.editor.canBindShapes({ fromShape: pin, toShape: shape, binding: 'pin' }) &&
 					shape.parentId === pin.parentId &&
 					shape.index < pin.index
 			)

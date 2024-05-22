@@ -704,9 +704,17 @@ export class Editor extends EventEmitter<TLEventMap> {
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
     // (undocumented)
-    canBindShapes(fromShape: null | TLShape | TLShapeId | undefined, toShape: TLShape | TLShapeId, type: string): boolean;
-    // (undocumented)
-    canBindShapes(fromShape: TLShape | TLShapeId, toShape: null | TLShape | TLShapeId | undefined, type: string): boolean;
+    canBindShapes({ fromShape, toShape, binding, }: {
+        binding: {
+            type: TLBinding['type'];
+        } | TLBinding | TLBinding['type'];
+        fromShape: {
+            type: TLShape['type'];
+        } | TLShape | TLShape['type'];
+        toShape: {
+            type: TLShape['type'];
+        } | TLShape | TLShape['type'];
+    }): boolean;
     cancel(): this;
     cancelDoubleClick(): void;
     // @internal (undocumented)
@@ -2626,12 +2634,11 @@ export type TLShapeIndicatorProps = {
     shapeId: TLShapeId;
 };
 
-// @public (undocumented)
+// @public
 export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
-    direction: 'from' | 'to';
-    otherShape?: TLShape;
-    shape: Shape;
-    type: string;
+    bindingType: string;
+    fromShapeType: string;
+    toShapeType: string;
 }
 
 // @public (undocumented)

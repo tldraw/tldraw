@@ -5149,7 +5149,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	createBindings(partials: TLBindingCreate[]) {
 		const bindings: TLBinding[] = []
 		for (const partial of partials) {
-			if (!this.canBindShapes(partial.fromId, partial.toId, partial.type)) continue
+			const fromShape = this.getShape(partial.fromId)
+			const toShape = this.getShape(partial.toId)
+			if (!fromShape || !toShape) continue
+			if (!this.canBindShapes({ fromShape, toShape, binding: partial })) continue
 
 			const util = this.getBindingUtil<TLUnknownBinding>(partial.type)
 			const defaultProps = util.getDefaultProps()
@@ -5182,13 +5185,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!current) continue
 
 			const updatedBinding = applyPartialToRecordWithProps(current, partial)
+			if (updatedBinding === current) continue
 
-			if (
-				updatedBinding === current ||
-				!this.canBindShapes(updatedBinding.fromId, updatedBinding.toId, updatedBinding.type)
-			) {
-				continue
-			}
+			const fromShape = this.getShape(updatedBinding.fromId)
+			const toShape = this.getShape(updatedBinding.toId)
+			if (!fromShape || !toShape) continue
+			if (!this.canBindShapes({ fromShape, toShape, binding: updatedBinding })) continue
 
 			updated.push(updatedBinding)
 		}
@@ -5210,32 +5212,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deleteBinding(binding: TLBinding | TLBindingId) {
 		return this.deleteBindings([binding])
 	}
-	canBindShapes(
-		fromShape: TLShape | TLShapeId | undefined | null,
-		toShape: TLShape | TLShapeId,
-		type: string
-	): boolean
-	canBindShapes(
-		fromShape: TLShape | TLShapeId,
-		toShape: TLShape | TLShapeId | undefined | null,
-		type: string
-	): boolean
-	canBindShapes(
-		fromShape: TLShape | TLShapeId | undefined | null,
-		toShape: TLShape | TLShapeId | undefined | null,
-		type: string
-	): boolean {
-		const from = fromShape ? this.getShape(fromShape) : undefined
-		const to = toShape ? this.getShape(toShape) : undefined
+	canBindShapes({
+		fromShape,
+		toShape,
+		binding,
+	}: {
+		fromShape: TLShape | { type: TLShape['type'] } | TLShape['type']
+		toShape: TLShape | { type: TLShape['type'] } | TLShape['type']
+		binding: TLBinding | { type: TLBinding['type'] } | TLBinding['type']
+	}): boolean {
+		const fromShapeType = typeof fromShape === 'string' ? fromShape : fromShape.type
+		const toShapeType = typeof toShape === 'string' ? toShape : toShape.type
+		const bindingType = typeof binding === 'string' ? binding : binding.type
 
-		const canBindFrom = from
-			? this.getShapeUtil(from).canBind({ shape: from, otherShape: to, direction: 'from', type })
-			: undefined
-		const canBindTo = to
-			? this.getShapeUtil(to).canBind({ shape: to, otherShape: from, direction: 'to', type })
-			: undefined
+		const canBindOpts = { fromShapeType, toShapeType, bindingType }
 
-		return canBindFrom !== false && canBindTo !== false
+		if (fromShapeType === toShapeType) {
+			return this.getShapeUtil(fromShapeType).canBind(canBindOpts)
+		}
+
+		return (
+			this.getShapeUtil(fromShapeType).canBind(canBindOpts) &&
+			this.getShapeUtil(toShapeType).canBind(canBindOpts)
+		)
 	}
 
 	/* -------------------- Commands -------------------- */

@@ -41,9 +41,9 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		return {}
 	}
 
-	override canBind(opts: TLShapeUtilCanBindOpts<StickerShape>) {
+	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<StickerShape>) {
 		// bindings can go _from_ stickers to other shapes, but not the other way round
-		return opts.direction === 'from'
+		return toShapeType !== 'sticker'
 	}
 	override canEdit = () => false
 	override canResize = () => false
@@ -90,7 +90,8 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		const pageAnchor = this.editor.getShapePageTransform(sticker).applyToPoint({ x: 0, y: 0 })
 		const target = this.editor.getShapeAtPoint(pageAnchor, {
 			hitInside: true,
-			filter: (shape) => this.editor.canBindShapes(sticker, shape, 'sticker'),
+			filter: (shape) =>
+				this.editor.canBindShapes({ fromShape: sticker, toShape: shape, binding: 'sticker' }),
 		})
 
 		if (!target) return
