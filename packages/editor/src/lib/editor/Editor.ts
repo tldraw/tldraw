@@ -43,6 +43,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLStore,
+	TLStoreSnapshot,
 	TLUnknownBinding,
 	TLUnknownShape,
 	TLVideoAsset,
@@ -51,6 +52,7 @@ import {
 	getShapePropKeysByStyle,
 	isPageId,
 	isShapeId,
+	shouldKeyBePreservedBetweenSessions,
 } from '@tldraw/tlschema'
 import {
 	IndexKey,
@@ -63,6 +65,7 @@ import {
 	compact,
 	dedupe,
 	exhaustiveSwitchError,
+	filterEntries,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -72,6 +75,7 @@ import {
 	hasOwnProperty,
 	last,
 	lerp,
+	objectMapEntries,
 	sortById,
 	sortByIndex,
 	structuredClone,
@@ -5304,11 +5308,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	// we constrain the type of `this` here so we can call it with only a store (before the editor is created)
-	loadSnapshot(
-		this: { store: TLStore },
-		snapshot: Partial<TLEditorSnapshot>,
-		opts?: { skipFocus?: boolean }
-	) {
+	loadSnapshot(this: { store: TLStore }, _snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot) {
+		let snapshot: Partial<TLEditorSnapshot> = {}
+		if ('store' in _snapshot) {
+			// regular old TLStoreSnapshot
+			// let's migrate it and then filter out the non-doc state to help folks out
+			const migrationResult = this.store.schema.migrateStoreSnapshot(_snapshot)
+			if (migrationResult.type !== 'success') {
+				throw new Error('Failed to migrate store snapshot: ' + migrationResult.reason)
+			}
+
+			snapshot.document = {
+				schema: this.store.schema.serialize(),
+				store: filterEntries(migrationResult.value, (_, { typeName }) =>
+					this.store.scopedTypes.document.has(typeName)
+				),
+			}
+		} else {
+			// TLEditorSnapshot
+			snapshot = _snapshot
+		}
+		const prevInstanceState = this.store.get(TLINSTANCE_ID)
+
 		this.store.atomic(() => {
 			if (snapshot.document) {
 				this.store.loadSnapshot(snapshot.document)
@@ -5318,8 +5339,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			if (this instanceof Editor) {
 				this.updateViewportScreenBounds()
-				if (!opts?.skipFocus) {
-					this.focus()
+				if (prevInstanceState) {
+					const nextInstanceState: TLInstance = {
+						...prevInstanceState,
+						...this.store.get(TLINSTANCE_ID)!,
+					}
+					for (const [key, preserves] of objectMapEntries(shouldKeyBePreservedBetweenSessions)) {
+						if (preserves) {
+							// @ts-expect-error
+							nextInstanceState[key] = prevInstanceState[key]
+						}
+					}
+					this.updateInstanceState(nextInstanceState)
 				}
 			}
 		})

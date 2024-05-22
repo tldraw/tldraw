@@ -1038,9 +1038,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     loadSnapshot(this: {
         store: TLStore;
-    }, snapshot: Partial<TLEditorSnapshot>, opts?: {
-        skipFocus?: boolean;
-    }): void;
+    }, _snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): void;
     mark(markId?: string): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;

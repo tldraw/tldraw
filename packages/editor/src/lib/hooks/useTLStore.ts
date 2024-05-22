@@ -14,13 +14,7 @@ type UseTLStoreOptions = TLStoreOptions & {
 function createStore(opts: UseTLStoreOptions) {
 	const store = createTLStore(opts)
 	if (opts.snapshot) {
-		if ('store' in opts.snapshot) {
-			// regular old StoreSnapshot
-			store.loadSnapshot(opts.snapshot)
-		} else {
-			// TLEditorSnapshot
-			Editor.prototype.loadSnapshot.call({ store }, opts.snapshot)
-		}
+		Editor.prototype.loadSnapshot.call({ store }, opts.snapshot)
 	}
 	return { store, opts }
 }

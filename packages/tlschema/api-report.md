@@ -806,6 +806,40 @@ export const scribbleValidator: T.Validator<TLScribble>;
 // @public (undocumented)
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
+// @internal (undocumented)
+export const shouldKeyBePreservedBetweenSessions: {
+    readonly brush: false;
+    readonly chatMessage: false;
+    readonly currentPageId: false;
+    readonly cursor: false;
+    readonly devicePixelRatio: true;
+    readonly duplicateProps: false;
+    readonly exportBackground: true;
+    readonly followingUserId: false;
+    readonly highlightedUserIds: false;
+    readonly id: false;
+    readonly insets: true;
+    readonly isChangingStyle: false;
+    readonly isChatting: false;
+    readonly isCoarsePointer: true;
+    readonly isDebugMode: true;
+    readonly isFocused: true;
+    readonly isFocusMode: true;
+    readonly isGridMode: true;
+    readonly isHoveringCanvas: false;
+    readonly isPenMode: false;
+    readonly isReadonly: true;
+    readonly isToolLocked: true;
+    readonly meta: false;
+    readonly opacityForNextShape: false;
+    readonly openMenus: false;
+    readonly screenBounds: true;
+    readonly scribbles: false;
+    readonly stylesForNextShape: false;
+    readonly typeName: false;
+    readonly zoomBrush: false;
+};
+
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal

@@ -69,6 +69,46 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	} | null
 }
 
+/** @internal */
+export const shouldKeyBePreservedBetweenSessions = {
+	// This object defines keys that should be preserved across calls to editor.loadSnapshot()
+
+	id: false, // meta
+	typeName: false, // meta
+
+	currentPageId: false, // does not preserve because who knows if the page still exists
+	opacityForNextShape: false, // does not preserve because it's a temporary state
+	stylesForNextShape: false, // does not preserve because it's a temporary state
+	followingUserId: false, // does not preserve because it's a temporary state
+	highlightedUserIds: false, // does not preserve because it's a temporary state
+	brush: false, // does not preserve because it's a temporary state
+	cursor: false, // does not preserve because it's a temporary state
+	scribbles: false, // does not preserve because it's a temporary state
+
+	isFocusMode: true, // preserves because it's a user preference
+	isDebugMode: true, // preserves because it's a user preference
+	isToolLocked: true, // preserves because it's a user preference
+	exportBackground: true, // preserves because it's a user preference
+	screenBounds: true, // preserves because it's capturing the user's screen state
+	insets: true, // preserves because it's capturing the user's screen state
+
+	zoomBrush: false, // does not preserve because it's a temporary state
+	chatMessage: false, // does not preserve because it's a temporary state
+	isChatting: false, // does not preserve because it's a temporary state
+	isPenMode: false, // does not preserve because it's a temporary state
+
+	isGridMode: true, // preserves because it's a user preference
+	isFocused: true, // preserves because obviously
+	devicePixelRatio: true, // preserves because it captures the user's screen state
+	isCoarsePointer: true, // preserves because it captures the user's screen state
+	isHoveringCanvas: false, // does not preserve because it's a temporary state
+	openMenus: false, // does not preserve because it's a temporary state
+	isChangingStyle: false, // does not preserve because it's a temporary state
+	isReadonly: true, // preserves because it's a config option
+	meta: false, // does not preserve because who knows what's in there, leave it up to sdk users to save and reinstate
+	duplicateProps: false, //
+} as const satisfies { [K in keyof TLInstance]: boolean }
+
 /** @public */
 export type TLInstanceId = RecordId<TLInstance>
 
