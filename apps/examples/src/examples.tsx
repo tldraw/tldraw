@@ -1,6 +1,6 @@
 import { ComponentType } from 'react'
 
-export type Example = {
+export interface Example {
 	title: string
 	description: string
 	details: string

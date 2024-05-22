@@ -26,11 +26,14 @@ type RecFromId<K extends RecordId<UnknownRecord>> = K extends RecordId<infer R> 
  *
  * @public
  */
-export type CollectionDiff<T> = { added?: Set<T>; removed?: Set<T> }
+export interface CollectionDiff<T> {
+	added?: Set<T>
+	removed?: Set<T>
+}
 
 export type ChangeSource = 'user' | 'remote'
 
-export type StoreListenerFilters = {
+export interface StoreListenerFilters {
 	source: ChangeSource | 'all'
 	scope: RecordScope | 'all'
 }
@@ -40,7 +43,7 @@ export type StoreListenerFilters = {
  *
  * @public
  */
-export type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
+export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
 	changes: RecordsDiff<R>
 	source: ChangeSource
 }
@@ -57,7 +60,7 @@ export type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) =>
  *
  * @public
  */
-export type ComputedCache<Data, R extends UnknownRecord> = {
+export interface ComputedCache<Data, R extends UnknownRecord> {
 	get(id: IdOf<R>): Data | undefined
 }
 
@@ -69,13 +72,13 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
 export type SerializedStore<R extends UnknownRecord> = Record<IdOf<R>, R>
 
 /** @public */
-export type StoreSnapshot<R extends UnknownRecord> = {
+export interface StoreSnapshot<R extends UnknownRecord> {
 	store: SerializedStore<R>
 	schema: SerializedSchema
 }
 
 /** @public */
-export type StoreValidator<R extends UnknownRecord> = {
+export interface StoreValidator<R extends UnknownRecord> {
 	validate: (record: unknown) => R
 	validateUsingKnownGoodVersion?: (knownGoodVersion: R, record: unknown) => R
 }
@@ -86,7 +89,7 @@ export type StoreValidators<R extends UnknownRecord> = {
 }
 
 /** @public */
-export type StoreError = {
+export interface StoreError {
 	error: Error
 	phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
 	recordBefore?: unknown

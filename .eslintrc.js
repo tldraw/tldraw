@@ -70,6 +70,7 @@ module.exports = {
 			'error',
 			{ name: 'structuredClone', message: 'Use structuredClone from @tldraw/util instead' },
 		],
+		'@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
 	},
 	parser: '@typescript-eslint/parser',
 	parserOptions: {

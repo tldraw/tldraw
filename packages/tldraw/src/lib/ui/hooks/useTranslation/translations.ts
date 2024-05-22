@@ -13,7 +13,7 @@ import { DEFAULT_TRANSLATION } from './defaultTranslation'
 export const RTL_LANGUAGES = new Set(['ar', 'fa', 'he', 'ur', 'ku'])
 
 /** @public */
-export type TLUiTranslation = {
+export interface TLUiTranslation {
 	readonly locale: string
 	readonly label: string
 	readonly messages: Record<TLUiTranslationKey, string>

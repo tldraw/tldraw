@@ -128,7 +128,7 @@ export function createRecordMigrationSequence(opts: {
 }
 
 /** @public */
-export type LegacyMigration<Before = any, After = any> = {
+export interface LegacyMigration<Before = any, After = any> {
 	up: (oldState: Before) => After
 	down: (newState: After) => Before
 }
@@ -137,7 +137,7 @@ export type LegacyMigration<Before = any, After = any> = {
 export type MigrationId = `${string}/${number}`
 
 /** @public */
-export type StandaloneDependsOn = {
+export interface StandaloneDependsOn {
 	readonly dependsOn: readonly MigrationId[]
 }
 

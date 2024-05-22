@@ -3,7 +3,7 @@ import ws from 'ws'
 import { TLRoomSocket } from './TLSyncRoom'
 import { TLSocketServerSentEvent } from './protocol'
 
-type ServerSocketAdapterOptions = {
+interface ServerSocketAdapterOptions {
 	readonly ws: WebSocket | ws.WebSocket
 	readonly logSendMessage: (type: string, size: number) => void
 }

@@ -3,7 +3,7 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { DefaultHelperButtonsContent } from './DefaultHelperButtonsContent'
 
 /** @public */
-export type TLUiHelperButtonsProps = {
+export interface TLUiHelperButtonsProps {
 	children?: ReactNode
 }
 

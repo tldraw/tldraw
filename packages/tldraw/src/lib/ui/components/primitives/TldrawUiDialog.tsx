@@ -5,7 +5,7 @@ import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 
 /** @public */
-export type TLUiDialogHeaderProps = {
+export interface TLUiDialogHeaderProps {
 	className?: string
 	children: ReactNode
 }
@@ -16,7 +16,7 @@ export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderPr
 }
 
 /** @public */
-export type TLUiDialogTitleProps = {
+export interface TLUiDialogTitleProps {
 	className?: string
 	children: ReactNode
 }
@@ -48,7 +48,7 @@ export function TldrawUiDialogCloseButton() {
 }
 
 /** @public */
-export type TLUiDialogBodyProps = {
+export interface TLUiDialogBodyProps {
 	className?: string
 	children: ReactNode
 	style?: React.CSSProperties
@@ -64,7 +64,7 @@ export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBod
 }
 
 /** @public */
-export type TLUiDialogFooterProps = {
+export interface TLUiDialogFooterProps {
 	className?: string
 	children: ReactNode
 }

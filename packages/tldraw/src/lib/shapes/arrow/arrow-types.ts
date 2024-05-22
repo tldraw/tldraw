@@ -2,7 +2,7 @@ import { TLArrowShapeArrowheadStyle, VecLike } from '@tldraw/editor'
 import { TLArrowBindings } from './shared'
 
 /** @public */
-export type TLArrowPoint = {
+export interface TLArrowPoint {
 	handle: VecLike
 	point: VecLike
 	arrowhead: TLArrowShapeArrowheadStyle

@@ -31,7 +31,7 @@ export type TLUiToolsContextType = Record<string, TLUiToolItem>
 export const ToolsContext = React.createContext<null | TLUiToolsContextType>(null)
 
 /** @public */
-export type TLUiToolsProviderProps = {
+export interface TLUiToolsProviderProps {
 	overrides?: (
 		editor: Editor,
 		tools: TLUiToolsContextType,

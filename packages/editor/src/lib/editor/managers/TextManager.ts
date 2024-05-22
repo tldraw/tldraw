@@ -21,7 +21,7 @@ const textAlignmentsForLtr = {
 }
 
 type TLOverflowMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
-type TLMeasureTextSpanOpts = {
+interface TLMeasureTextSpanOpts {
 	overflow: TLOverflowMode
 	width: number
 	height: number

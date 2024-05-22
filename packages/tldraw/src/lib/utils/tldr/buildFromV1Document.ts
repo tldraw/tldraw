@@ -884,7 +884,7 @@ enum FontStyle {
 	Mono = 'mono',
 }
 
-type ShapeStyles = {
+interface ShapeStyles {
 	color: ColorStyle
 	size: SizeStyle
 	dash: DashStyle
@@ -1010,7 +1010,7 @@ type TDShape =
 	| ImageShape
 	| VideoShape
 
-type TDPage = {
+interface TDPage {
 	id: string
 	name?: string
 	childIndex?: number

@@ -432,23 +432,38 @@ export const EMBED_DEFINITIONS: readonly [{
 }];
 
 // @public (undocumented)
-export type EmbedDefinition = {
+export interface EmbedDefinition {
+    // (undocumented)
     readonly backgroundColor?: string;
+    // (undocumented)
     readonly doesResize: boolean;
+    // (undocumented)
     readonly fromEmbedUrl: (url: string) => string | undefined;
+    // (undocumented)
     readonly height: number;
+    // (undocumented)
     readonly hostnames: readonly string[];
+    // (undocumented)
     readonly instructionLink?: string;
+    // (undocumented)
     readonly isAspectRatioLocked?: boolean;
+    // (undocumented)
     readonly minHeight?: number;
+    // (undocumented)
     readonly minWidth?: number;
+    // (undocumented)
     readonly overrideOutlineRadius?: number;
+    // (undocumented)
     readonly overridePermissions?: TLEmbedShapePermissions;
+    // (undocumented)
     readonly title: string;
+    // (undocumented)
     readonly toEmbedUrl: (url: string) => string | undefined;
+    // (undocumented)
     readonly type: string;
+    // (undocumented)
     readonly width: number;
-};
+}
 
 // @public (undocumented)
 export const embedShapeMigrations: TLPropsMigrations;
@@ -996,19 +1011,24 @@ export type TLDefaultColorTheme = Expand<{
 } & Record<(typeof colors)[number], TLDefaultColorThemeColor>>;
 
 // @public (undocumented)
-export type TLDefaultColorThemeColor = {
+export interface TLDefaultColorThemeColor {
+    // (undocumented)
     highlight: {
         p3: string;
         srgb: string;
     };
+    // (undocumented)
     note: {
         fill: string;
         text: string;
     };
+    // (undocumented)
     pattern: string;
+    // (undocumented)
     semi: string;
+    // (undocumented)
     solid: string;
-};
+}
 
 // @public (undocumented)
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
@@ -1301,17 +1321,26 @@ export type TLRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance 
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export type TLScribble = {
+export interface TLScribble {
+    // (undocumented)
     color: TLCanvasUiColor;
+    // (undocumented)
     delay: number;
+    // (undocumented)
     id: string;
+    // (undocumented)
     opacity: number;
+    // (undocumented)
     points: VecModel[];
+    // (undocumented)
     shrink: number;
+    // (undocumented)
     size: number;
+    // (undocumented)
     state: SetValue<typeof TL_SCRIBBLE_STATES>;
+    // (undocumented)
     taper: boolean;
-};
+}
 
 // @public (undocumented)
 export type TLSerializedStore = SerializedStore<TLRecord>;
@@ -1334,9 +1363,10 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
-export type TLStoreProps = {
+export interface TLStoreProps {
+    // (undocumented)
     defaultName: string;
-};
+}
 
 // @public (undocumented)
 export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;

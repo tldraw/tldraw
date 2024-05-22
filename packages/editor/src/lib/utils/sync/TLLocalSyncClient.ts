@@ -26,7 +26,7 @@ const UPDATE_INSTANCE_STATE = Symbol('UPDATE_INSTANCE_STATE')
  * once it has the db integrated
  */
 
-type SyncMessage = {
+interface SyncMessage {
 	type: 'diff'
 	storeId: string
 	changes: RecordsDiff<UnknownRecord>
@@ -36,7 +36,7 @@ type SyncMessage = {
 // Sent by new clients when they connect
 // If another client is on the channel with a newer schema version
 // It will
-type AnnounceMessage = {
+interface AnnounceMessage {
 	type: 'announce'
 	schema: SerializedSchema
 }

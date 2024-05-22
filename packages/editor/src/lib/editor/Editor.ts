@@ -6771,7 +6771,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let remaining = duration
 		let t: number
 
-		type ShapeAnimation = {
+		interface ShapeAnimation {
 			partial: TLShapePartial
 			values: { prop: string; from: number; to: number }[]
 		}

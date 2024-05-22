@@ -1,6 +1,6 @@
 import { exhaustiveSwitchError, hasOwnProperty } from '@tldraw/utils'
 
-type AlarmOpts = {
+interface AlarmOpts {
 	overwrite: 'always' | 'if-sooner'
 }
 

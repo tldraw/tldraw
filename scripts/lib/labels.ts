@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { REPO_ROOT, writeJsonFile } from './file'
 
-type Label = {
+interface Label {
 	// this is what the label is 'called' on github
 	name: string
 	// this is how we describe the label in our pull request template
