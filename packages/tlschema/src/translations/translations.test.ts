@@ -1,6 +1,6 @@
 import { _getDefaultTranslationLocale } from './translations'
 
-type DefaultLanguageTest = {
+interface DefaultLanguageTest {
 	name: string
 	input: string[]
 	output: string

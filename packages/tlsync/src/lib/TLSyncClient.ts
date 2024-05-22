@@ -44,7 +44,7 @@ export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
  *
  * @public
  */
-export type TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> = {
+export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
 	/** Whether there is currently an open connection to the server. */
 	connectionStatus: 'online' | 'offline' | 'error'
 	/** Send a message to the server */

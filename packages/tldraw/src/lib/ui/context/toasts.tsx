@@ -26,7 +26,7 @@ export interface TLUiToastAction {
 }
 
 /** @public */
-export type TLUiToastsContextType = {
+export interface TLUiToastsContextType {
 	addToast: (toast: Omit<TLUiToast, 'id'> & { id?: string }) => string
 	removeToast: (id: TLUiToast['id']) => string
 	clearToasts: () => void
@@ -37,7 +37,7 @@ export type TLUiToastsContextType = {
 export const ToastsContext = createContext<TLUiToastsContextType | null>(null)
 
 /** @internal */
-export type ToastsProviderProps = {
+export interface ToastsProviderProps {
 	overrides?: (editor: Editor) => TLUiToastsContextType
 	children: ReactNode
 }

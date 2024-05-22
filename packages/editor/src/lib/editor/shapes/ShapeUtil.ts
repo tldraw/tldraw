@@ -562,7 +562,7 @@ export type TLResizeMode = 'scale_shape' | 'resize_bounds'
  * @param initialShape - The shape at the start of the resize.
  * @public
  */
-export type TLResizeInfo<T extends TLShape> = {
+export interface TLResizeInfo<T extends TLShape> {
 	newPoint: Vec
 	handle: TLResizeHandle
 	mode: TLResizeMode

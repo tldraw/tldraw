@@ -6,7 +6,7 @@ import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
 import { validateSnapshot } from '../utils/validateSnapshot'
 
-export type R2Snapshot = {
+export interface R2Snapshot {
 	parent_slug: CreateSnapshotRequestBody['parent_slug']
 	drawing: RoomSnapshot
 }

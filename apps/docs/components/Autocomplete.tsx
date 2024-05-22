@@ -13,13 +13,13 @@ import './Autocomplete.css'
 import { Icon } from './Icon'
 import { Spinner } from './Spinner'
 
-export type DropdownOption = {
+export interface DropdownOption {
 	label: string
 	value: string
 	group?: string
 }
 
-type AutocompleteProps = {
+interface AutocompleteProps {
 	customUI?: React.ReactNode
 	groups?: string[]
 	groupsToIcon?: {

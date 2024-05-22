@@ -28,7 +28,7 @@ const SHARE_CURRENT_STATE = {
 } as const
 type ShareCurrentState = (typeof SHARE_CURRENT_STATE)[keyof typeof SHARE_CURRENT_STATE]
 
-type ShareState = {
+interface ShareState {
 	state: ShareCurrentState
 	qrCodeDataUrl: string
 	url: string

@@ -77,7 +77,7 @@ export const TldrawUi = React.memo(function TldrawUi({
 	)
 })
 
-type TldrawUiContentProps = {
+interface TldrawUiContentProps {
 	hideUi?: boolean
 	shareZone?: ReactNode
 	topZone?: ReactNode

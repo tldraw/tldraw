@@ -27,7 +27,7 @@ import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
 
 /** @public */
-export type TLExternalContentProps = {
+export interface TLExternalContentProps {
 	// The maximum dimension (width or height) of an image. Images larger than this will be rescaled to fit. Defaults to infinity.
 	maxImageDimension: number
 	// The maximum size (in bytes) of an asset. Assets larger than this will be rejected. Defaults to 10mb (10 * 1024 * 1024).

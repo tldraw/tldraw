@@ -8,7 +8,7 @@ export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 /** @public */
-export type TLSvgOptions = {
+export interface TLSvgOptions {
 	bounds: Box
 	scale: number
 	background: boolean
@@ -35,7 +35,7 @@ export type TLCameraMoveOptions = Partial<{
 }>
 
 /** @public */
-export type TLCameraOptions = {
+export interface TLCameraOptions {
 	/** Whether the camera is locked. */
 	isLocked: boolean
 	/** The speed of a scroll wheel / trackpad pan. Default is 1. */
@@ -52,74 +52,77 @@ export type TLCameraOptions = {
 	 */
 	wheelBehavior: 'zoom' | 'pan' | 'none'
 	/** The camera constraints. */
-	constraints?: {
-		/** The bounds (in page space) of the constrained space */
-		bounds: BoxModel
-		/** The padding inside of the viewport (in screen space) */
-		padding: VecLike
-		/** The origin for placement. Used to position the bounds within the viewport when an axis is fixed or contained and zoom is below the axis fit. */
-		origin: VecLike
-		/** The camera's initial zoom, used also when the camera is reset.
-		 *
-		 * - `default`: Sets the initial zoom to 100%.
-		 * - `fit-x`: The x axis will completely fill the viewport bounds.
-		 * - `fit-y`: The y axis will completely fill the viewport bounds.
-		 * - `fit-min`: The smaller axis will completely fill the viewport bounds.
-		 * - `fit-max`: The larger axis will completely fill the viewport bounds.
-		 * - `fit-x-100`: The x axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
-		 * - `fit-y-100`: The y axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
-		 * - `fit-min-100`: The smaller axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
-		 * - `fit-max-100`: The larger axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
-		 */
-		initialZoom:
-			| 'fit-min'
-			| 'fit-max'
-			| 'fit-x'
-			| 'fit-y'
-			| 'fit-min-100'
-			| 'fit-max-100'
-			| 'fit-x-100'
-			| 'fit-y-100'
-			| 'default'
-		/** The camera's base for its zoom steps.
-		 *
-		 * - `default`: Sets the initial zoom to 100%.
-		 * - `fit-x`: The x axis will completely fill the viewport bounds.
-		 * - `fit-y`: The y axis will completely fill the viewport bounds.
-		 * - `fit-min`: The smaller axis will completely fill the viewport bounds.
-		 * - `fit-max`: The larger axis will completely fill the viewport bounds.
-		 * - `fit-x-100`: The x axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
-		 * - `fit-y-100`: The y axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
-		 * - `fit-min-100`: The smaller axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
-		 * - `fit-max-100`: The larger axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
-		 */
-		baseZoom:
-			| 'fit-min'
-			| 'fit-max'
-			| 'fit-x'
-			| 'fit-y'
-			| 'fit-min-100'
-			| 'fit-max-100'
-			| 'fit-x-100'
-			| 'fit-y-100'
-			| 'default'
-		/** The behavior for the constraints for both axes or each axis individually.
-		 *
-		 * - `free`: The bounds are ignored when moving the camera.
-		 * - 'fixed': The bounds will be positioned within the viewport based on the origin
-		 * - `contain`: The 'fixed' behavior will be used when the zoom is below the zoom level at which the bounds would fill the viewport; and when above this zoom, the bounds will use the 'inside' behavior.
-		 * - `inside`: The bounds will stay completely within the viewport.
-		 * - `outside`: The bounds will stay touching the viewport.
-		 */
-		behavior:
-			| 'free'
-			| 'fixed'
-			| 'inside'
-			| 'outside'
-			| 'contain'
-			| {
-					x: 'free' | 'fixed' | 'inside' | 'outside' | 'contain'
-					y: 'free' | 'fixed' | 'inside' | 'outside' | 'contain'
-			  }
-	}
+	constraints?: TLCameraConstraints
+}
+
+/** @public */
+export interface TLCameraConstraints {
+	/** The bounds (in page space) of the constrained space */
+	bounds: BoxModel
+	/** The padding inside of the viewport (in screen space) */
+	padding: VecLike
+	/** The origin for placement. Used to position the bounds within the viewport when an axis is fixed or contained and zoom is below the axis fit. */
+	origin: VecLike
+	/** The camera's initial zoom, used also when the camera is reset.
+	 *
+	 * - `default`: Sets the initial zoom to 100%.
+	 * - `fit-x`: The x axis will completely fill the viewport bounds.
+	 * - `fit-y`: The y axis will completely fill the viewport bounds.
+	 * - `fit-min`: The smaller axis will completely fill the viewport bounds.
+	 * - `fit-max`: The larger axis will completely fill the viewport bounds.
+	 * - `fit-x-100`: The x axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
+	 * - `fit-y-100`: The y axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
+	 * - `fit-min-100`: The smaller axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
+	 * - `fit-max-100`: The larger axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
+	 */
+	initialZoom:
+		| 'fit-min'
+		| 'fit-max'
+		| 'fit-x'
+		| 'fit-y'
+		| 'fit-min-100'
+		| 'fit-max-100'
+		| 'fit-x-100'
+		| 'fit-y-100'
+		| 'default'
+	/** The camera's base for its zoom steps.
+	 *
+	 * - `default`: Sets the initial zoom to 100%.
+	 * - `fit-x`: The x axis will completely fill the viewport bounds.
+	 * - `fit-y`: The y axis will completely fill the viewport bounds.
+	 * - `fit-min`: The smaller axis will completely fill the viewport bounds.
+	 * - `fit-max`: The larger axis will completely fill the viewport bounds.
+	 * - `fit-x-100`: The x axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
+	 * - `fit-y-100`: The y axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
+	 * - `fit-min-100`: The smaller axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
+	 * - `fit-max-100`: The larger axis will completely fill the viewport bounds, or 100% zoom, whichever is smaller.
+	 */
+	baseZoom:
+		| 'fit-min'
+		| 'fit-max'
+		| 'fit-x'
+		| 'fit-y'
+		| 'fit-min-100'
+		| 'fit-max-100'
+		| 'fit-x-100'
+		| 'fit-y-100'
+		| 'default'
+	/** The behavior for the constraints for both axes or each axis individually.
+	 *
+	 * - `free`: The bounds are ignored when moving the camera.
+	 * - 'fixed': The bounds will be positioned within the viewport based on the origin
+	 * - `contain`: The 'fixed' behavior will be used when the zoom is below the zoom level at which the bounds would fill the viewport; and when above this zoom, the bounds will use the 'inside' behavior.
+	 * - `inside`: The bounds will stay completely within the viewport.
+	 * - `outside`: The bounds will stay touching the viewport.
+	 */
+	behavior:
+		| 'free'
+		| 'fixed'
+		| 'inside'
+		| 'outside'
+		| 'contain'
+		| {
+				x: 'free' | 'fixed' | 'inside' | 'outside' | 'contain'
+				y: 'free' | 'fixed' | 'inside' | 'outside' | 'contain'
+		  }
 }

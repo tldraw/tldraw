@@ -215,7 +215,7 @@ export function getCloudArcs(
 	return arcs
 }
 
-type Arc = {
+interface Arc {
 	leftPoint: Vec
 	rightPoint: Vec
 	arcPoint: Vec

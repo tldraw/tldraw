@@ -8,7 +8,7 @@ import { PageMenu } from './menus/PageMenu'
 import { StylePanel } from './menus/StylePanel'
 import { Toolbar } from './menus/Toolbar'
 
-type Fixtures = {
+interface Fixtures {
 	toolbar: Toolbar
 	stylePanel: StylePanel
 	actionsMenu: ActionsMenu

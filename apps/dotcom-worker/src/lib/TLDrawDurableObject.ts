@@ -35,7 +35,7 @@ const MAX_CONNECTIONS = 50
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 0
-type DocumentInfo = {
+interface DocumentInfo {
 	version: number
 	slug: string
 }

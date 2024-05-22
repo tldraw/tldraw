@@ -15,7 +15,7 @@ export interface TLUiDialog {
 }
 
 /** @public */
-export type TLUiDialogsContextType = {
+export interface TLUiDialogsContextType {
 	addDialog: (dialog: Omit<TLUiDialog, 'id'> & { id?: string }) => string
 	removeDialog: (id: string) => string
 	updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string
@@ -27,7 +27,7 @@ export type TLUiDialogsContextType = {
 export const DialogsContext = createContext<TLUiDialogsContextType | null>(null)
 
 /** @internal */
-export type DialogsProviderProps = {
+export interface DialogsProviderProps {
 	overrides?: (editor: Editor) => TLUiDialogsContextType
 	children: ReactNode
 }

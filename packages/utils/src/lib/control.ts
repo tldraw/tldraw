@@ -1,9 +1,15 @@
 import { omitFromStackTrace } from './function'
 
 /** @public */
-export type OkResult<T> = { readonly ok: true; readonly value: T }
+export interface OkResult<T> {
+	readonly ok: true
+	readonly value: T
+}
 /** @public */
-export type ErrorResult<E> = { readonly ok: false; readonly error: E }
+export interface ErrorResult<E> {
+	readonly ok: false
+	readonly error: E
+}
 /** @public */
 export type Result<T, E> = OkResult<T> | ErrorResult<E>
 
