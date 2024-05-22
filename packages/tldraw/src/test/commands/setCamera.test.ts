@@ -42,7 +42,7 @@ describe('With default options', () => {
 		editor.dispatch({
 			...pinchEvent,
 			name: 'pinch',
-			point: new Vec(100, -10),
+			delta: new Vec(100, -10),
 		})
 		editor.forceTick()
 		editor.dispatch({
@@ -50,7 +50,13 @@ describe('With default options', () => {
 			name: 'pinch_end',
 		})
 		editor.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.5 })
+		expect(editor.getCamera()).toMatchObject({ x: 100, y: -10, z: 1 })
+	})
+	it('pans with wheel', () => {
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		editor.dispatch({ ...wheelEvent, delta: new Vec(5, 10) })
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 	it('zooms with wheel', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
@@ -62,12 +68,6 @@ describe('With default options', () => {
 		editor.dispatch({ ...wheelEvent, delta: new Vec(0, 0, 0.1), ctrlKey: true })
 		editor.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.99 })
-	})
-	it('pans with wheel', () => {
-		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
-		editor.dispatch({ ...wheelEvent, delta: new Vec(5, 10) })
-		editor.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 	it('pinch zooms', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
