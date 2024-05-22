@@ -16,14 +16,14 @@ export function DefaultToolbarContent() {
 			<AssetToolbarItem />
 			<RectangleToolbarItem />
 			<EllipseToolbarItem />
-			<DiamondToolbarItem />
 			<TriangleToolbarItem />
-			<PentagonToolbarItem />
+			<DiamondToolbarItem />
+			<CloudToolbarItem />
+			<StarToolbarItem />
 			<HexagonToolbarItem />
 			<OvalToolbarItem />
-			<StarToolbarItem />
-			<CloudToolbarItem />
-			<HeartToolbarItem />
+			<TrapezoidToolbarItem />
+			<RhombusToolbarItem />
 			<XBoxToolbarItem />
 			<CheckBoxToolbarItem />
 			<ArrowLeftToolbarItem />
@@ -32,8 +32,8 @@ export function DefaultToolbarContent() {
 			<ArrowRightToolbarItem />
 			<LineToolbarItem />
 			<HighlightToolbarItem />
-			<FrameToolbarItem />
 			<LaserToolbarItem />
+			<FrameToolbarItem />
 		</>
 	)
 }
@@ -148,6 +148,13 @@ export function HexagonToolbarItem() {
 /** @public */
 export function CloudToolbarItem() {
 	return <ToolbarItem tool="cloud" />
+}
+
+/** @public */
+export function PentagonToolbarItem() {
+	const tools = useTools()
+	const isSelected = useIsToolSelected(tools['pentagon'])
+	return <TldrawUiMenuItem {...tools['pentagon']} isSelected={isSelected} />
 }
 
 /** @public */

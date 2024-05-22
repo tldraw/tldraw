@@ -646,3 +646,33 @@ describe('when the user prefers light UI', () => {
 		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
 })
+
+describe('middle-click panning', () => {
+	it('clears the isPanning state on mouse up', () => {
+		editor.pointerDown(0, 0, {
+			// middle mouse button
+			button: 1,
+		})
+		editor.pointerMove(100, 100)
+		expect(editor.inputs.isPanning).toBe(true)
+		editor.pointerUp(100, 100)
+		expect(editor.inputs.isPanning).toBe(false)
+	})
+
+	it('does not clear thee isPanning state if the space bar is down', () => {
+		editor.pointerDown(0, 0, {
+			// middle mouse button
+			button: 1,
+		})
+		editor.pointerMove(100, 100)
+		expect(editor.inputs.isPanning).toBe(true)
+		editor.keyDown(' ')
+		editor.pointerUp(100, 100, {
+			button: 1,
+		})
+		expect(editor.inputs.isPanning).toBe(true)
+
+		editor.keyUp(' ')
+		expect(editor.inputs.isPanning).toBe(false)
+	})
+})

@@ -31,25 +31,13 @@ export function OverflowingToolbar({ children }: { children: React.ReactNode }) 
 	const [lastActiveOverflowItem, setLastActiveOverflowItem] = useState<string | null>(null)
 
 	const css = useMemo(() => {
-		const showInMainSelectors = []
-		const hideFromOverflowSelectors = []
-
-		if (lastActiveOverflowItem) {
-			showInMainSelectors.push(`[data-value="${lastActiveOverflowItem}"]`)
-		} else {
-			showInMainSelectors.push(`:nth-child(${overflowIndex + 1})`)
-		}
-
-		for (let i = 0; i < overflowIndex; i++) {
-			showInMainSelectors.push(`:nth-child(${i + 1})`)
-			hideFromOverflowSelectors.push(`:nth-child(${i + 1})`)
-		}
+		const activeCss = lastActiveOverflowItem ? `:not([data-value="${lastActiveOverflowItem}"])` : ''
 
 		return `
-			#${id}_main > *:not(${showInMainSelectors.join(', ')}) {
+			#${id}_main > *:nth-child(n + ${overflowIndex + (lastActiveOverflowItem ? 1 : 2)})${activeCss} {
 				display: none;
 			}
-			${hideFromOverflowSelectors.map((s) => `#${id}_more > *${s}`).join(', ')} {
+			#${id}_more > *:nth-child(-n + ${overflowIndex}) {
 				display: none;
 			}
         `
@@ -156,7 +144,8 @@ export function OverflowingToolbar({ children }: { children: React.ReactNode }) 
 						{children}
 					</TldrawUiMenuContextProvider>
 				</div>
-				{totalItems > overflowIndex && (
+				{/* There is a +1 because if the menu is just one item, it's not necessary. */}
+				{totalItems > overflowIndex + 1 && (
 					<IsInOverflowContext.Provider value={true}>
 						<TldrawUiDropdownMenuRoot id="toolbar overflow" modal={false}>
 							<TldrawUiDropdownMenuTrigger>
