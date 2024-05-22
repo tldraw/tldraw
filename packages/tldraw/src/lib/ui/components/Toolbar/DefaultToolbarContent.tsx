@@ -18,12 +18,12 @@ export function DefaultToolbarContent() {
 			<EllipseToolbarItem />
 			<TriangleToolbarItem />
 			<DiamondToolbarItem />
-			<CloudToolbarItem />
-			<StarToolbarItem />
 			<HexagonToolbarItem />
 			<OvalToolbarItem />
-			<TrapezoidToolbarItem />
 			<RhombusToolbarItem />
+			<StarToolbarItem />
+			<CloudToolbarItem />
+			<HeartToolbarItem />
 			<XBoxToolbarItem />
 			<CheckBoxToolbarItem />
 			<ArrowLeftToolbarItem />
