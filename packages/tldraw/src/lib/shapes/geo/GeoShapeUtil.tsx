@@ -45,12 +45,12 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../shared/polygon-helpers'
-import { cloudOutline, cloudSvgPath } from './cloudOutline'
-import { getEllipseIndicatorPath } from './components/DrawStyleEllipse'
+import { cloudOutline, getCloudPath } from './cloudOutline'
+import { getEllipseDrawIndicatorPath } from './components/DrawStyleEllipse'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import { getHeartPath } from './components/SolidStyleHeart'
-import { getOvalIndicatorPath } from './components/SolidStyleOval'
 import { getLines } from './getLines'
+import { getEllipsePath, getOvalPath } from './helpers'
 
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
@@ -471,19 +471,19 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		switch (props.geo) {
 			case 'ellipse': {
 				if (props.dash === 'draw') {
-					return <path d={getEllipseIndicatorPath(id, w, h, strokeWidth)} />
+					return <path d={getEllipseDrawIndicatorPath(id, w, h, strokeWidth)} />
 				}
 
-				return <ellipse cx={w / 2} cy={h / 2} rx={w / 2} ry={h / 2} />
+				return <path d={getEllipsePath(w, h)} />
 			}
 			case 'heart': {
 				return <path d={getHeartPath(w, h)} />
 			}
 			case 'oval': {
-				return <path d={getOvalIndicatorPath(w, h)} />
+				return <path d={getOvalPath(w, h)} />
 			}
 			case 'cloud': {
-				return <path d={cloudSvgPath(w, h, id, size)} />
+				return <path d={getCloudPath(w, h, id, size)} />
 			}
 
 			default: {

@@ -1,7 +1,7 @@
 import { TLGeoShape, TLShapeId } from '@tldraw/editor'
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
-import { cloudSvgPath } from '../cloudOutline'
+import { getCloudPath } from '../cloudOutline'
 
 export const SolidStyleCloud = React.memo(function SolidStyleCloud({
 	fill,
@@ -16,7 +16,7 @@ export const SolidStyleCloud = React.memo(function SolidStyleCloud({
 	id: TLShapeId
 }) {
 	const theme = useDefaultColorTheme()
-	const path = cloudSvgPath(w, h, id, size)
+	const path = getCloudPath(w, h, id, size)
 
 	return (
 		<>

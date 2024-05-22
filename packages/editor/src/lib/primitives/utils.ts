@@ -86,8 +86,7 @@ export function approximately(a: number, b: number, precision = 0.000001) {
  */
 export function perimeterOfEllipse(rx: number, ry: number): number {
 	const h = Math.pow(rx - ry, 2) / Math.pow(rx + ry, 2)
-	const p = PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
-	return p
+	return PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
 }
 
 /**

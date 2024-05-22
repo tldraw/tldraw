@@ -262,7 +262,7 @@ export function cloudOutline(
 	return path
 }
 
-export function cloudSvgPath(
+export function getCloudPath(
 	width: number,
 	height: number,
 	seed: string,
@@ -288,7 +288,7 @@ export function cloudSvgPath(
 			continue
 		}
 		// use the large arc if the center of the circle is to the left of the line between the two points
-		const arc = isLeft(leftPoint, rightPoint, center) ? '0' : '1'
+		const arc = Vec.Clockwise(leftPoint, rightPoint, center) ? '0' : '1'
 		path += ` A${toDomPrecision(radius)},${toDomPrecision(radius)} 0 ${arc},1 ${toDomPrecision(
 			rightPoint.x
 		)},${toDomPrecision(rightPoint.y)}`
@@ -328,7 +328,7 @@ export function inkyCloudSvgPath(
 			leftMutPoint = rightMutPoint
 			continue
 		}
-		const arc = isLeft(leftPoint, rightPoint, center) ? '0' : '1'
+		const arc = Vec.Clockwise(leftPoint, rightPoint, center) ? '0' : '1'
 		pathA += ` A${toDomPrecision(radius)},${toDomPrecision(radius)} 0 ${arc},1 ${toDomPrecision(
 			rightPoint.x
 		)},${toDomPrecision(rightPoint.y)}`
@@ -377,8 +377,4 @@ function pointsOnArc(
 	}
 
 	return results
-}
-
-function isLeft(a: Vec, b: Vec, c: Vec) {
-	return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0
 }

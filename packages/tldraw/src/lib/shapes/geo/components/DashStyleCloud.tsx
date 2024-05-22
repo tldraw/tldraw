@@ -2,7 +2,7 @@ import { TLGeoShape, TLShapeId, Vec, canonicalizeRotation } from '@tldraw/editor
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
-import { cloudSvgPath, getCloudArcs } from '../cloudOutline'
+import { getCloudArcs, getCloudPath } from '../cloudOutline'
 
 export const DashStyleCloud = React.memo(function DashStylePolygon({
 	dash,
@@ -18,7 +18,7 @@ export const DashStyleCloud = React.memo(function DashStylePolygon({
 	id: TLShapeId
 }) {
 	const theme = useDefaultColorTheme()
-	const innerPath = cloudSvgPath(w, h, id, size)
+	const innerPath = getCloudPath(w, h, id, size)
 	const arcs = getCloudArcs(w, h, id, size)
 
 	return (

@@ -48,7 +48,7 @@ function getEllipseStrokePoints(id: string, width: number, height: number, strok
 	return getStrokePoints(points, getEllipseStrokeOptions(strokeWidth))
 }
 
-export function getEllipseIndicatorPath(
+export function getEllipseDrawIndicatorPath(
 	id: string,
 	width: number,
 	height: number,
