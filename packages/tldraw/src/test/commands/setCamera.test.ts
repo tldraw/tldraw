@@ -32,6 +32,26 @@ describe('With default options', () => {
 	beforeEach(() => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS })
 	})
+	it('pans', () => {
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch_start',
+		})
+		editor.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch',
+			point: new Vec(100, -10),
+		})
+		editor.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch_end',
+		})
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.5 })
+	})
 	it('zooms with wheel', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		// zoom in 10%
