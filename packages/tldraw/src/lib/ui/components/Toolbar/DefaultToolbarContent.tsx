@@ -151,13 +151,6 @@ export function CloudToolbarItem() {
 }
 
 /** @public */
-export function PentagonToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['pentagon'])
-	return <TldrawUiMenuItem {...tools['pentagon']} isSelected={isSelected} />
-}
-
-/** @public */
 export function StarToolbarItem() {
 	return <ToolbarItem tool="star" />
 }
