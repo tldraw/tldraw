@@ -1,5 +1,6 @@
 import { Atom, Computed, Reactor, atom, computed, reactor, transact } from '@tldraw/state'
 import {
+	WeakCache,
 	assert,
 	filterEntries,
 	getOwnProperty,
@@ -11,11 +12,11 @@ import {
 } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
-import { Cache } from './Cache'
 import { RecordScope } from './RecordType'
 import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
+import { StoreSideEffects } from './StoreSideEffects'
 import { devFreeze } from './devFreeze'
 
 type RecFromId<K extends RecordId<UnknownRecord>> = K extends RecordId<infer R> ? R : never
@@ -160,6 +161,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	public readonly scopedTypes: { readonly [K in RecordScope]: ReadonlySet<R['typeName']> }
 
+	public readonly sideEffects = new StoreSideEffects<R>(this)
+
 	constructor(config: {
 		id?: string
 		/** The store's initial data. */
@@ -296,55 +299,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * A callback fired after each record's change.
-	 *
-	 * @param prev - The previous value, if any.
-	 * @param next - The next value.
-	 */
-	onBeforeCreate?: (next: R, source: 'remote' | 'user') => R
-
-	/**
-	 * A callback fired after a record is created. Use this to perform related updates to other
-	 * records in the store.
-	 *
-	 * @param record - The record to be created
-	 */
-	onAfterCreate?: (record: R, source: 'remote' | 'user') => void
-
-	/**
-	 * A callback fired before each record's change.
-	 *
-	 * @param prev - The previous value, if any.
-	 * @param next - The next value.
-	 */
-	onBeforeChange?: (prev: R, next: R, source: 'remote' | 'user') => R
-
-	/**
-	 * A callback fired after each record's change.
-	 *
-	 * @param prev - The previous value, if any.
-	 * @param next - The next value.
-	 */
-	onAfterChange?: (prev: R, next: R, source: 'remote' | 'user') => void
-
-	/**
-	 * A callback fired before a record is deleted.
-	 *
-	 * @param prev - The record that will be deleted.
-	 */
-	onBeforeDelete?: (prev: R, source: 'remote' | 'user') => false | void
-
-	/**
-	 * A callback fired after a record is deleted.
-	 *
-	 * @param prev - The record that will be deleted.
-	 */
-	onAfterDelete?: (prev: R, source: 'remote' | 'user') => void
-
-	// used to avoid running callbacks when rolling back changes in sync client
-	private _runCallbacks = true
-
-	/**
 	 * Add some records to the store. It's an error if they already exist.
 	 *
 	 * @param records - The records to add.
@@ -367,8 +321,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// changes (e.g. additions, deletions, or updates that produce a new value).
 			let didChange = false
 
-			const beforeCreate = this.onBeforeCreate && this._runCallbacks ? this.onBeforeCreate : null
-			const beforeUpdate = this.onBeforeChange && this._runCallbacks ? this.onBeforeChange : null
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
 			for (let i = 0, n = records.length; i < n; i++) {
@@ -381,7 +333,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					const initialValue = recordAtom.__unsafe__getWithoutCapture()
 
 					// If we have a beforeUpdate callback, run it against the initial and next records
-					if (beforeUpdate) record = beforeUpdate(initialValue, record, source)
+					record = this.sideEffects.handleBeforeChange(initialValue, record, source)
 
 					// Validate the record
 					const validated = this.schema.validateRecord(
@@ -398,9 +350,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					didChange = true
 					const updated = recordAtom.__unsafe__getWithoutCapture()
 					updates[record.id] = [initialValue, updated]
-					this.addDiffForAfterEvent(initialValue, updated, source)
+					this.addDiffForAfterEvent(initialValue, updated)
 				} else {
-					if (beforeCreate) record = beforeCreate(record, source)
+					record = this.sideEffects.handleBeforeCreate(record, source)
 
 					didChange = true
 
@@ -416,7 +368,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 					// Mark the change as a new addition.
 					additions[record.id] = record
-					this.addDiffForAfterEvent(null, record, source)
+					this.addDiffForAfterEvent(null, record)
 
 					// Assign the atom to the map under the record's id.
 					if (!map) {
@@ -449,16 +401,16 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	remove = (ids: IdOf<R>[]): void => {
 		this.atomic(() => {
-			const cancelled = [] as IdOf<R>[]
+			const cancelled = new Set<IdOf<R>>()
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 
-			if (this.onBeforeDelete && this._runCallbacks) {
+			if (this.sideEffects.isEnabled()) {
 				for (const id of ids) {
 					const atom = this.atoms.__unsafe__getWithoutCapture()[id]
 					if (!atom) continue
 
-					if (this.onBeforeDelete(atom.get(), source) === false) {
-						cancelled.push(id)
+					if (this.sideEffects.handleBeforeDelete(atom.get(), source) === false) {
+						cancelled.add(id)
 					}
 				}
 			}
@@ -470,14 +422,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				let result: typeof atoms | undefined = undefined
 
 				for (const id of ids) {
-					if (cancelled.includes(id)) continue
+					if (cancelled.has(id)) continue
 					if (!(id in atoms)) continue
 					if (!result) result = { ...atoms }
 					if (!removed) removed = {} as Record<IdOf<R>, R>
 					delete result[id]
 					const record = atoms[id].get()
 					removed[id] = record
-					this.addDiffForAfterEvent(record, null, source)
+					this.addDiffForAfterEvent(record, null)
 				}
 
 				return result ?? atoms
@@ -587,16 +539,16 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			throw new Error(`Failed to migrate snapshot: ${migrationResult.reason}`)
 		}
 
-		const prevRunCallbacks = this._runCallbacks
+		const prevSideEffectsEnabled = this.sideEffects.isEnabled()
 		try {
-			this._runCallbacks = false
+			this.sideEffects.setIsEnabled(false)
 			this.atomic(() => {
 				this.clear()
 				this.put(Object.values(migrationResult.value))
 				this.ensureStoreIsUsable()
 			})
 		} finally {
-			this._runCallbacks = prevRunCallbacks
+			this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 		}
 	}
 
@@ -693,6 +645,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			return fn()
 		}
 
+		if (this._isInAtomicOp) {
+			throw new Error('Cannot merge remote changes while in atomic operation')
+		}
+
 		try {
 			this.isMergingRemoteChanges = true
 			transact(fn)
@@ -765,14 +721,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param derive - A function used to derive the value of the cache.
 	 * @public
 	 */
-	createComputedCache = <T, V extends R = R>(
+	createComputedCache = <Result, Record extends R = R>(
 		name: string,
-		derive: (record: V) => T | undefined,
-		isEqual?: (a: V, b: V) => boolean
-	): ComputedCache<T, V> => {
-		const cache = new Cache<Atom<any>, Computed<T | undefined>>()
+		derive: (record: Record) => Result | undefined,
+		isEqual?: (a: Record, b: Record) => boolean
+	): ComputedCache<Result, Record> => {
+		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
-			get: (id: IdOf<V>) => {
+			get: (id: IdOf<Record>) => {
 				const atom = this.atoms.get()[id]
 				if (!atom) {
 					return undefined
@@ -782,8 +738,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						const recordSignal = isEqual
 							? computed(atom.name + ':equals', () => atom.get(), { isEqual })
 							: atom
-						return computed<T | undefined>(name + ':' + id, () => {
-							return derive(recordSignal.get() as V)
+						return computed<Result | undefined>(name + ':' + id, () => {
+							return derive(recordSignal.get() as Record)
 						})
 					})
 					.get()
@@ -799,24 +755,26 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param derive - A function used to derive the value of the cache.
 	 * @public
 	 */
-	createSelectedComputedCache = <T, J, V extends R = R>(
+	createSelectedComputedCache = <Selection, Result, Record extends R = R>(
 		name: string,
-		selector: (record: V) => T | undefined,
-		derive: (input: T) => J | undefined
-	): ComputedCache<J, V> => {
-		const cache = new Cache<Atom<any>, Computed<J | undefined>>()
+		selector: (record: Record) => Selection | undefined,
+		derive: (input: Selection) => Result | undefined
+	): ComputedCache<Result, Record> => {
+		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
-			get: (id: IdOf<V>) => {
+			get: (id: IdOf<Record>) => {
 				const atom = this.atoms.get()[id]
 				if (!atom) {
 					return undefined
 				}
 
-				const d = computed<T | undefined>(name + ':' + id + ':selector', () =>
-					selector(atom.get() as V)
-				)
 				return cache
-					.get(atom, () => computed<J | undefined>(name + ':' + id, () => derive(d.get() as T)))
+					.get(atom, () => {
+						const d = computed<Selection | undefined>(name + ':' + id + ':selector', () =>
+							selector(atom.get() as Record)
+						)
+						return computed<Result | undefined>(name + ':' + id, () => derive(d.get() as Selection))
+					})
 					.get()
 			},
 		}
@@ -842,11 +800,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		return this._isPossiblyCorrupted
 	}
 
-	private pendingAfterEvents: Map<
-		IdOf<R>,
-		{ before: R | null; after: R | null; source: 'remote' | 'user' }
-	> | null = null
-	private addDiffForAfterEvent(before: R | null, after: R | null, source: 'remote' | 'user') {
+	private pendingAfterEvents: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
+	private addDiffForAfterEvent(before: R | null, after: R | null) {
 		assert(this.pendingAfterEvents, 'must be in event operation')
 		if (before === after) return
 		if (before && after) assert(before.id === after.id)
@@ -854,33 +809,37 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const id = (before || after)!.id
 		const existing = this.pendingAfterEvents.get(id)
 		if (existing) {
-			assert(existing.source === source, 'source cannot change within a single event operation')
 			existing.after = after
 		} else {
-			this.pendingAfterEvents.set(id, { before, after, source })
+			this.pendingAfterEvents.set(id, { before, after })
 		}
 	}
 	private flushAtomicCallbacks() {
 		let updateDepth = 0
+		const source = this.isMergingRemoteChanges ? 'remote' : 'user'
 		while (this.pendingAfterEvents) {
 			const events = this.pendingAfterEvents
 			this.pendingAfterEvents = null
 
-			if (!this._runCallbacks) continue
+			if (!this.sideEffects.isEnabled()) continue
 
 			updateDepth++
 			if (updateDepth > 100) {
 				throw new Error('Maximum store update depth exceeded, bailing out')
 			}
 
-			for (const { before, after, source } of events.values()) {
+			for (const { before, after } of events.values()) {
 				if (before && after) {
-					this.onAfterChange?.(before, after, source)
+					this.sideEffects.handleAfterChange(before, after, source)
 				} else if (before && !after) {
-					this.onAfterDelete?.(before, source)
+					this.sideEffects.handleAfterDelete(before, source)
 				} else if (!before && after) {
-					this.onAfterCreate?.(after, source)
+					this.sideEffects.handleAfterCreate(after, source)
 				}
+			}
+
+			if (!this.pendingAfterEvents) {
+				this.sideEffects.handleOperationComplete(source)
 			}
 		}
 	}
@@ -894,8 +853,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			}
 
 			this.pendingAfterEvents = new Map()
-			const prevRunCallbacks = this._runCallbacks
-			this._runCallbacks = runCallbacks ?? prevRunCallbacks
+			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
+			this.sideEffects.setIsEnabled(runCallbacks ?? prevSideEffectsEnabled)
 			this._isInAtomicOp = true
 			try {
 				const result = fn()
@@ -905,7 +864,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				return result
 			} finally {
 				this.pendingAfterEvents = null
-				this._runCallbacks = prevRunCallbacks
+				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 				this._isInAtomicOp = false
 			}
 		})
@@ -987,5 +946,44 @@ class HistoryAccumulator<T extends UnknownRecord> {
 
 	hasChanges() {
 		return this._history.length > 0
+	}
+}
+
+type StoreContext<R extends UnknownRecord> = Store<R> | { store: Store<R> }
+type ContextRecordType<Context extends StoreContext<any>> =
+	Context extends Store<infer R> ? R : Context extends { store: Store<infer R> } ? R : never
+
+/**
+ * Free version of {@link Store.createComputedCache}.
+ *
+ * @example
+ * ```ts
+ * const myCache = createComputedCache('myCache', (editor: Editor, shape: TLShape) => {
+ *     return editor.getSomethingExpensive(shape)
+ * })
+ *
+ * myCache.get(editor, shape.id)
+ * ```
+ *
+ * @public
+ */
+export function createComputedCache<
+	Context extends StoreContext<any>,
+	Result,
+	Record extends ContextRecordType<Context> = ContextRecordType<Context>,
+>(
+	name: string,
+	derive: (context: Context, record: Record) => Result | undefined,
+	isEqual?: (a: Record, b: Record) => boolean
+) {
+	const cache = new WeakCache<Context, ComputedCache<Result, Record>>()
+	return {
+		get(context: Context, id: IdOf<Record>) {
+			const computedCache = cache.get(context, () => {
+				const store = (context instanceof Store ? context : context.store) as Store<Record>
+				return store.createComputedCache(name, (record) => derive(context, record), isEqual)
+			})
+			return computedCache.get(id)
+		},
 	}
 }

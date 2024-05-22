@@ -3,16 +3,17 @@ import {
 	DefaultFontFamilies,
 	DefaultFontStyle,
 	FileHelpers,
-	HASH_PATTERN_ZOOM_NAMES,
-	MAX_ZOOM,
 	SvgExportDef,
+	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLShapeUtilCanvasSvgDef,
 	debugFlags,
+	last,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDefaultColorTheme } from './ShapeFill'
 
 /** @public */
@@ -72,7 +73,7 @@ function HashPatternForExport() {
 				</g>
 			</mask>
 			<pattern
-				id={HASH_PATTERN_ZOOM_NAMES[`1_${theme.id}`]}
+				id={getHashPatternZoomName(1, theme.id)}
 				width="8"
 				height="8"
 				patternUnits="userSpaceOnUse"
@@ -102,7 +103,9 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 		const ctx = canvasEl.getContext('2d')
 		if (!ctx) return
 
-		ctx.fillStyle = darkMode ? '#212529' : '#f8f9fa'
+		ctx.fillStyle = darkMode
+			? DefaultColorThemePalette.darkMode.solid
+			: DefaultColorThemePalette.lightMode.solid
 		ctx.fillRect(0, 0, size, size)
 
 		// This essentially generates an inverse of the pattern we're drawing.
@@ -144,39 +147,64 @@ const canvasBlob = (size: [number, number], fn: (ctx: CanvasRenderingContext2D) 
 	fn(ctx)
 	return canvas.toDataURL()
 }
-type PatternDef = { zoom: number; url: string; darkMode: boolean }
+type PatternDef = { zoom: number; url: string; theme: 'light' | 'dark' }
 
-const getDefaultPatterns = () => {
-	const defaultPatterns: PatternDef[] = []
-	for (let i = 1; i <= Math.ceil(MAX_ZOOM); i++) {
-		const whitePixelBlob = canvasBlob([1, 1], (ctx) => {
-			ctx.fillStyle = DefaultColorThemePalette.lightMode.black.semi
-			ctx.fillRect(0, 0, 1, 1)
-		})
-		const blackPixelBlob = canvasBlob([1, 1], (ctx) => {
-			ctx.fillStyle = DefaultColorThemePalette.darkMode.black.semi
-			ctx.fillRect(0, 0, 1, 1)
-		})
-		defaultPatterns.push({
-			zoom: i,
-			url: whitePixelBlob,
-			darkMode: false,
-		})
-		defaultPatterns.push({
-			zoom: i,
-			url: blackPixelBlob,
-			darkMode: true,
-		})
+let defaultPixels: { white: string; black: string } | null = null
+function getDefaultPixels() {
+	if (!defaultPixels) {
+		defaultPixels = {
+			white: canvasBlob([1, 1], (ctx) => {
+				ctx.fillStyle = '#f8f9fa'
+				ctx.fillRect(0, 0, 1, 1)
+			}),
+			black: canvasBlob([1, 1], (ctx) => {
+				ctx.fillStyle = '#212529'
+				ctx.fillRect(0, 0, 1, 1)
+			}),
+		}
 	}
-	return defaultPatterns
+	return defaultPixels
+}
+
+function getPatternLodForZoomLevel(zoom: number) {
+	return Math.ceil(Math.log2(Math.max(1, zoom)))
+}
+
+export function getHashPatternZoomName(zoom: number, theme: TLDefaultColorTheme['id']) {
+	const lod = getPatternLodForZoomLevel(zoom)
+	return `tldraw_hash_pattern_${theme}_${lod}`
+}
+
+function getPatternLodsToGenerate(maxZoom: number) {
+	const levels = []
+	const minLod = 0
+	const maxLod = getPatternLodForZoomLevel(maxZoom)
+	for (let i = minLod; i <= maxLod; i++) {
+		levels.push(Math.pow(2, i))
+	}
+	return levels
+}
+
+function getDefaultPatterns(maxZoom: number): PatternDef[] {
+	const defaultPixels = getDefaultPixels()
+	return getPatternLodsToGenerate(maxZoom).flatMap((zoom) => [
+		{ zoom, url: defaultPixels.white, theme: 'light' },
+		{ zoom, url: defaultPixels.black, theme: 'dark' },
+	])
 }
 
 function usePattern() {
 	const editor = useEditor()
-	const dpr = editor.getInstanceState().devicePixelRatio
+	const dpr = useValue('devicePixelRatio', () => editor.getInstanceState().devicePixelRatio, [
+		editor,
+	])
+	const maxZoom = useValue('maxZoom', () => Math.ceil(last(editor.getCameraOptions().zoomSteps)!), [
+		editor,
+	])
 	const [isReady, setIsReady] = useState(false)
-	const defaultPatterns = useMemo(() => getDefaultPatterns(), [])
-	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(defaultPatterns)
+	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
+		getDefaultPatterns(maxZoom)
+	)
 
 	useEffect(() => {
 		if (process.env.NODE_ENV === 'test') {
@@ -184,46 +212,46 @@ function usePattern() {
 			return
 		}
 
-		const promises: Promise<{ zoom: number; url: string; darkMode: boolean }>[] = []
-
-		for (let i = 1; i <= Math.ceil(MAX_ZOOM); i++) {
-			promises.push(
-				generateImage(dpr, i, false).then((blob) => ({
-					zoom: i,
+		const promise = Promise.all(
+			getPatternLodsToGenerate(maxZoom).flatMap<Promise<PatternDef>>((zoom) => [
+				generateImage(dpr, zoom, false).then((blob) => ({
+					zoom,
+					theme: 'light',
 					url: URL.createObjectURL(blob),
-					darkMode: false,
-				}))
-			)
-			promises.push(
-				generateImage(dpr, i, true).then((blob) => ({
-					zoom: i,
+				})),
+				generateImage(dpr, zoom, true).then((blob) => ({
+					zoom,
+					theme: 'dark',
 					url: URL.createObjectURL(blob),
-					darkMode: true,
-				}))
-			)
-		}
+				})),
+			])
+		)
 
 		let isCancelled = false
-		Promise.all(promises).then((urls) => {
+		promise.then((urls) => {
 			if (isCancelled) return
 			setBackgroundUrls(urls)
 			setIsReady(true)
 		})
-
 		return () => {
 			isCancelled = true
 			setIsReady(false)
+			promise.then((patterns) => {
+				for (const { url } of patterns) {
+					URL.revokeObjectURL(url)
+				}
+			})
 		}
-	}, [dpr])
+	}, [dpr, maxZoom])
 
 	const defs = (
 		<>
 			{backgroundUrls.map((item) => {
-				const key = item.zoom + (item.darkMode ? '_dark' : '_light')
+				const id = getHashPatternZoomName(item.zoom, item.theme)
 				return (
 					<pattern
-						key={key}
-						id={HASH_PATTERN_ZOOM_NAMES[key]}
+						key={id}
+						id={id}
 						width={TILE_PATTERN_SIZE}
 						height={TILE_PATTERN_SIZE}
 						patternUnits="userSpaceOnUse"

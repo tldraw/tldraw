@@ -24,7 +24,7 @@ export type TLUiDialogsContextType = {
 }
 
 /** @internal */
-export const DialogsContext = createContext({} as TLUiDialogsContextType)
+export const DialogsContext = createContext<TLUiDialogsContextType | null>(null)
 
 /** @internal */
 export type DialogsProviderProps = {

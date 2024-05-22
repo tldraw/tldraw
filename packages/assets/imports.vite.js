@@ -130,6 +130,8 @@ import iconsSizeExtraLarge from './icons/icon/size-extra-large.svg?url'
 import iconsSizeLarge from './icons/icon/size-large.svg?url'
 import iconsSizeMedium from './icons/icon/size-medium.svg?url'
 import iconsSizeSmall from './icons/icon/size-small.svg?url'
+import iconsSplineCubic from './icons/icon/spline-cubic.svg?url'
+import iconsSplineLine from './icons/icon/spline-line.svg?url'
 import iconsStackHorizontal from './icons/icon/stack-horizontal.svg?url'
 import iconsStackVertical from './icons/icon/stack-vertical.svg?url'
 import iconsStretchHorizontal from './icons/icon/stretch-horizontal.svg?url'
@@ -319,6 +321,8 @@ export function getAssetUrlsByImport(opts) {
 			'size-large': formatAssetUrl(iconsSizeLarge, opts),
 			'size-medium': formatAssetUrl(iconsSizeMedium, opts),
 			'size-small': formatAssetUrl(iconsSizeSmall, opts),
+			'spline-cubic': formatAssetUrl(iconsSplineCubic, opts),
+			'spline-line': formatAssetUrl(iconsSplineLine, opts),
 			'stack-horizontal': formatAssetUrl(iconsStackHorizontal, opts),
 			'stack-vertical': formatAssetUrl(iconsStackVertical, opts),
 			'stretch-horizontal': formatAssetUrl(iconsStretchHorizontal, opts),

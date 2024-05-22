@@ -13,7 +13,7 @@ export type CreateRoomRequestBody = {
 export type CreateSnapshotRequestBody = {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | string[] | undefined
+	parent_slug?: string | undefined
 }
 
 export type CreateSnapshotResponseBody =

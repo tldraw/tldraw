@@ -7,6 +7,7 @@ import {
 	exhaustiveSwitchError,
 } from '@tldraw/editor'
 import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
+import { TLExportType } from './exportAs'
 
 /** @public */
 export async function getSvgAsImage(
@@ -143,7 +144,7 @@ export async function exportToBlob({
 }: {
 	editor: Editor
 	ids: TLShapeId[]
-	format: 'svg' | 'png' | 'jpeg' | 'webp' | 'json'
+	format: TLExportType
 	opts?: Partial<TLSvgOptions>
 }): Promise<Blob> {
 	switch (format) {
@@ -185,7 +186,7 @@ const mimeTypeByFormat = {
 export function exportToBlobPromise(
 	editor: Editor,
 	ids: TLShapeId[],
-	format: 'svg' | 'png' | 'jpeg' | 'webp' | 'json',
+	format: TLExportType,
 	opts = {} as Partial<TLSvgOptions>
 ): { blobPromise: Promise<Blob>; mimeType: string } {
 	return {

@@ -2,6 +2,18 @@ import { Migration, MigrationId, Store, UnknownRecord } from '@tldraw/store'
 import { structuredClone } from '@tldraw/utils'
 import { createTLSchema } from '../createTLSchema'
 
+let nextNanoId = 0
+jest.mock('nanoid', () => {
+	const nanoid = () => {
+		nextNanoId++
+		return `nanoid_${nextNanoId}`
+	}
+	return {
+		nanoid,
+		default: nanoid,
+	}
+})
+
 export const testSchema = createTLSchema()
 
 // mock all migrator fns
@@ -43,10 +55,12 @@ export function getTestMigration(migrationId: MigrationId) {
 	return {
 		id: migrationId,
 		up: (stuff: any) => {
+			nextNanoId = 0
 			const result = structuredClone(stuff)
 			return migration.up(result) ?? result
 		},
 		down: (stuff: any) => {
+			nextNanoId = 0
 			if (typeof migration.down !== 'function') {
 				throw new Error(`Migration ${migrationId} does not have a down function`)
 			}

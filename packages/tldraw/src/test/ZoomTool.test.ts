@@ -157,13 +157,15 @@ describe('TLSelectTool.Zooming', () => {
 		})
 		editor.pointerUp(newBoundsX + newBoundsWidth, newBoundsY + newBoundsHeight)
 		jest.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).toBeCloseTo(1.2888)
-		expect(editor.getViewportPageBounds()).toMatchObject({
-			x: -48.9655172413793,
-			y: 100.68965517241382,
-			w: 837.9310344827586,
-			h: 558.6206896551723,
-		})
+		expect(editor.getZoomLevel()).toBeCloseTo(1.64)
+		expect(editor.getViewportPageBounds()).toMatchInlineSnapshot(`
+		Box {
+		  "h": 437.83783783783787,
+		  "w": 656.7567567567568,
+		  "x": 41.62162162162162,
+		  "y": 161.0810810810811,
+		}
+	`)
 		expect(editor.getViewportPageCenter()).toMatchObject({
 			x: newBoundsX + newBoundsWidth / 2,
 			y: newBoundsY + newBoundsHeight / 2,

@@ -106,6 +106,8 @@ export type TLUiIconType =
 	| 'size-large'
 	| 'size-medium'
 	| 'size-small'
+	| 'spline-cubic'
+	| 'spline-line'
 	| 'stack-horizontal'
 	| 'stack-vertical'
 	| 'stretch-horizontal'
@@ -245,6 +247,8 @@ export const iconTypes = [
 	'size-large',
 	'size-medium',
 	'size-small',
+	'spline-cubic',
+	'spline-line',
 	'stack-horizontal',
 	'stack-vertical',
 	'stretch-horizontal',

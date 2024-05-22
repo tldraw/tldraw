@@ -2,8 +2,8 @@ import {
 	BaseBoxShapeUtil,
 	BoundsSnapGeometry,
 	HTMLContainer,
+	RecordProps,
 	Rectangle2d,
-	ShapeProps,
 	T,
 	TLBaseShape,
 } from 'tldraw'
@@ -23,7 +23,7 @@ type IPlayingCard = TLBaseShape<
 export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 	// [2]
 	static override type = 'PlayingCard' as const
-	static override props: ShapeProps<IPlayingCard> = {
+	static override props: RecordProps<IPlayingCard> = {
 		w: T.number,
 		h: T.number,
 		suit: T.string,

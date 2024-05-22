@@ -1,4 +1,5 @@
-import { HALF_PI, PI, TLArrowInfo, Vec, VecLike, intersectCircleCircle } from '@tldraw/editor'
+import { HALF_PI, PI, Vec, VecLike, intersectCircleCircle } from '@tldraw/editor'
+import { TLArrowInfo } from './arrow-types'
 
 type TLArrowPointsInfo = {
 	point: VecLike

@@ -206,40 +206,41 @@ describe('Store', () => {
 
 	it('allows adding onAfterChange callbacks that see the final state of the world', () => {
 		/* ADDING */
-		store.onAfterCreate = jest.fn((current) => {
+		const onAfterCreate = jest.fn((current) => {
 			expect(current).toEqual(
 				Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })
 			)
 			expect([...store.query.ids('author').get()]).toEqual([Author.createId('tolkein')])
 		})
+		store.sideEffects.registerAfterCreateHandler('author', onAfterCreate)
 		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
-		expect(store.onAfterCreate).toHaveBeenCalledTimes(1)
+		expect(onAfterCreate).toHaveBeenCalledTimes(1)
 
 		/* UPDATING */
-		store.onAfterChange = jest.fn((prev, current) => {
-			if (prev.typeName === 'author' && current.typeName === 'author') {
-				expect(prev.name).toBe('J.R.R Tolkein')
-				expect(current.name).toBe('Butch Cassidy')
+		const onAfterChange = jest.fn((prev, current) => {
+			expect(prev.name).toBe('J.R.R Tolkein')
+			expect(current.name).toBe('Butch Cassidy')
 
-				expect(store.get(Author.createId('tolkein'))!.name).toBe('Butch Cassidy')
-			}
+			expect(store.get(Author.createId('tolkein'))!.name).toBe('Butch Cassidy')
 		})
+		store.sideEffects.registerAfterChangeHandler('author', onAfterChange)
 
 		store.update(Author.createId('tolkein'), (r) => ({ ...r, name: 'Butch Cassidy' }))
 
-		expect(store.onAfterChange).toHaveBeenCalledTimes(1)
+		expect(onAfterChange).toHaveBeenCalledTimes(1)
 
 		/* REMOVING */
-		store.onAfterDelete = jest.fn((prev) => {
+		const onAfterDelete = jest.fn((prev) => {
 			if (prev.typeName === 'author') {
 				expect(prev.name).toBe('Butch Cassidy')
 			}
 		})
+		store.sideEffects.registerAfterDeleteHandler('author', onAfterDelete)
 
 		store.remove([Author.createId('tolkein')])
 
-		expect(store.onAfterDelete).toHaveBeenCalledTimes(1)
+		expect(onAfterDelete).toHaveBeenCalledTimes(1)
 	})
 
 	it('allows finding and filtering records with a predicate', () => {
@@ -1076,76 +1077,137 @@ describe('diffs', () => {
 })
 
 describe('after callbacks', () => {
-	let store: Store<LibraryType>
+	let store: Store<Book>
 	let callbacks: any[] = []
 
-	const authorId = Author.createId('tolkein')
-	const bookId = Book.createId('hobbit')
+	const book1Id = Book.createId('darkness')
+	const book1 = Book.create({
+		title: 'the left hand of darkness',
+		id: book1Id,
+		author: Author.createId('ursula'),
+		numPages: 1,
+	})
+	const book2Id = Book.createId('dispossessed')
+	const book2 = Book.create({
+		title: 'the dispossessed',
+		id: book2Id,
+		author: Author.createId('ursula'),
+		numPages: 1,
+	})
+
+	let onAfterCreate: jest.Mock
+	let onAfterChange: jest.Mock
+	let onAfterDelete: jest.Mock
+	let onOperationComplete: jest.Mock
 
 	beforeEach(() => {
 		store = new Store({
 			props: {},
-			schema: StoreSchema.create<LibraryType>({
+			schema: StoreSchema.create<Book>({
 				book: Book,
-				author: Author,
-				visit: Visit,
 			}),
 		})
 
-		store.onAfterCreate = jest.fn((record) => callbacks.push({ type: 'create', record }))
-		store.onAfterChange = jest.fn((from, to) => callbacks.push({ type: 'change', from, to }))
-		store.onAfterDelete = jest.fn((record) => callbacks.push({ type: 'delete', record }))
+		onAfterCreate = jest.fn((record) => callbacks.push({ type: 'create', record }))
+		onAfterChange = jest.fn((from, to) => callbacks.push({ type: 'change', from, to }))
+		onAfterDelete = jest.fn((record) => callbacks.push({ type: 'delete', record }))
+		onOperationComplete = jest.fn(() => callbacks.push({ type: 'complete' }))
 		callbacks = []
+
+		store.sideEffects.registerAfterCreateHandler('book', onAfterCreate)
+		store.sideEffects.registerAfterChangeHandler('book', onAfterChange)
+		store.sideEffects.registerAfterDeleteHandler('book', onAfterDelete)
+		store.sideEffects.registerOperationCompleteHandler(onOperationComplete)
 	})
 
 	it('fires callbacks at the end of an `atomic` op', () => {
 		store.atomic(() => {
 			expect(callbacks).toHaveLength(0)
 
-			store.put([
-				Author.create({ name: 'J.R.R Tolkein', id: authorId }),
-				Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
-			])
+			store.put([book1, book2])
 
 			expect(callbacks).toHaveLength(0)
 		})
 
 		expect(callbacks).toMatchObject([
-			{ type: 'create', record: { id: authorId } },
-			{ type: 'create', record: { id: bookId } },
+			{ type: 'create', record: { id: book1Id } },
+			{ type: 'create', record: { id: book2Id } },
+			{ type: 'complete' },
 		])
 	})
 
 	it('doesnt fire callback for a record created then deleted', () => {
 		store.atomic(() => {
-			store.put([Author.create({ name: 'J.R.R Tolkein', id: authorId })])
-			store.remove([authorId])
+			store.put([book1])
+			store.remove([book1Id])
 		})
-		expect(callbacks).toHaveLength(0)
+		expect(callbacks).toMatchObject([{ type: 'complete' }])
 	})
 
 	it('bails out if too many callbacks are fired', () => {
 		let limit = 10
-		store.onAfterCreate = (record) => {
-			if (record.typeName === 'book' && record.numPages < limit) {
+		onAfterCreate.mockImplementation((record) => {
+			if (record.numPages < limit) {
 				store.put([{ ...record, numPages: record.numPages + 1 }])
 			}
-		}
-		store.onAfterChange = (from, to) => {
-			if (to.typeName === 'book' && to.numPages < limit) {
+		})
+		onAfterChange.mockImplementation((from, to) => {
+			if (to.numPages < limit) {
 				store.put([{ ...to, numPages: to.numPages + 1 }])
 			}
-		}
+		})
 
 		// this should be fine:
-		store.put([Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 0 })])
-		expect(store.get(bookId)!.numPages).toBe(limit)
+		store.put([book1])
+		expect(store.get(book1Id)!.numPages).toBe(limit)
 
 		// if we increase the limit thought, it should crash:
 		limit = 10000
 		store.clear()
 		expect(() => {
-			store.put([Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 0 })])
+			store.put([book2])
 		}).toThrowErrorMatchingInlineSnapshot(`"Maximum store update depth exceeded, bailing out"`)
+	})
+
+	it('keeps firing operation complete callbacks until all are cleared', () => {
+		// steps:
+		// 0, 1, 2: after change increment pages
+		// 3: after change, do nothing
+		// 4: operation complete, increment pages by 1000
+		// 5, 6: after change increment pages
+		// 7: after change, do nothing
+		// 8: operation complete, do nothing
+		// 9: done!
+		let step = 0
+
+		store.put([book1])
+
+		onAfterChange.mockImplementation((prev, next) => {
+			if ([0, 1, 2, 5, 6].includes(step)) {
+				step++
+				store.put([{ ...next, numPages: next.numPages + 1 }])
+			} else if ([3, 7].includes(step)) {
+				step++
+			} else {
+				throw new Error(`Wrong step: ${step}`)
+			}
+		})
+
+		onOperationComplete.mockImplementation(() => {
+			if (step === 4) {
+				step++
+				const book = store.get(book1Id)!
+				store.put([{ ...book, numPages: book.numPages + 1000 }])
+			} else if (step === 8) {
+				step++
+			} else {
+				throw new Error(`Wrong step: ${step}`)
+			}
+		})
+
+		store.put([{ ...book1, numPages: 2 }])
+
+		expect(store.get(book1Id)!.numPages).toBe(1007)
+		expect(step).toBe(9)
 	})
 })

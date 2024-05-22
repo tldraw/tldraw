@@ -1,7 +1,8 @@
+import { TLCameraOptions } from './editor/types/misc-types'
 import { EASINGS } from './primitives/easings'
 
 /** @internal */
-export const MAX_SHAPES_PER_PAGE = 2000
+export const MAX_SHAPES_PER_PAGE = 4000
 /** @internal */
 export const MAX_PAGES = 40
 
@@ -11,22 +12,16 @@ export const ANIMATION_SHORT_MS = 80
 export const ANIMATION_MEDIUM_MS = 320
 
 /** @internal */
-export const ZOOMS = [0.1, 0.25, 0.5, 1, 2, 4, 8]
-/** @internal */
-export const MIN_ZOOM = 0.1
-/** @internal */
-export const MAX_ZOOM = 8
+export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions = {
+	isLocked: false,
+	wheelBehavior: 'pan',
+	panSpeed: 1,
+	zoomSpeed: 1,
+	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
+}
 
 /** @internal */
-export const FOLLOW_CHASE_PROPORTION = 0.5
-/** @internal */
-export const FOLLOW_CHASE_PAN_SNAP = 0.1
-/** @internal */
-export const FOLLOW_CHASE_PAN_UNSNAP = 0.2
-/** @internal */
-export const FOLLOW_CHASE_ZOOM_SNAP = 0.005
-/** @internal */
-export const FOLLOW_CHASE_ZOOM_UNSNAP = 0.05
+export const FOLLOW_CHASE_VIEWPORT_SNAP = 2
 
 /** @internal */
 export const DOUBLE_CLICK_DURATION = 450
@@ -41,14 +36,6 @@ export const DRAG_DISTANCE = 16 // 4 squared
 
 /** @internal */
 export const SVG_PADDING = 32
-
-/** @internal */
-export const HASH_PATTERN_ZOOM_NAMES: Record<string, string> = {}
-
-for (let zoom = 1; zoom <= Math.ceil(MAX_ZOOM); zoom++) {
-	HASH_PATTERN_ZOOM_NAMES[zoom + '_dark'] = `hash_pattern_zoom_${zoom}_dark`
-	HASH_PATTERN_ZOOM_NAMES[zoom + '_light'] = `hash_pattern_zoom_${zoom}_light`
-}
 
 /** @internal */
 export const DEFAULT_ANIMATION_OPTIONS = {
@@ -113,3 +100,10 @@ export const LONG_PRESS_DURATION = 500
 
 /** @internal */
 export const TEXT_SHADOW_LOD = 0.35
+
+export const LEFT_MOUSE_BUTTON = 0
+export const RIGHT_MOUSE_BUTTON = 2
+export const MIDDLE_MOUSE_BUTTON = 1
+export const STYLUS_ERASER_BUTTON = 5
+
+export const ZOOM_TO_FIT_PADDING = 128

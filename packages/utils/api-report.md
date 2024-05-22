@@ -37,6 +37,15 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 // @public
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
+// @public (undocumented)
+export const DEFAULT_SUPPORT_VIDEO_TYPES: readonly string[];
+
+// @public (undocumented)
+export const DEFAULT_SUPPORTED_IMAGE_TYPES: readonly string[];
+
+// @public (undocumented)
+export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST: string;
+
 // @internal
 export function deleteFromLocalStorage(key: string): void;
 
@@ -97,22 +106,22 @@ export function getHashForObject(obj: any): string;
 export function getHashForString(string: string): string;
 
 // @public
-export function getIndexAbove(below: IndexKey): IndexKey;
+export function getIndexAbove(below?: IndexKey | undefined): IndexKey;
 
 // @public
-export function getIndexBelow(above: IndexKey): IndexKey;
+export function getIndexBelow(above?: IndexKey | undefined): IndexKey;
 
 // @public
-export function getIndexBetween(below: IndexKey, above?: IndexKey): IndexKey;
+export function getIndexBetween(below: IndexKey | undefined, above: IndexKey | undefined): IndexKey;
 
 // @public
 export function getIndices(n: number, start?: IndexKey): IndexKey[];
 
 // @public
-export function getIndicesAbove(below: IndexKey, n: number): IndexKey[];
+export function getIndicesAbove(below: IndexKey | undefined, n: number): IndexKey[];
 
 // @public
-export function getIndicesBelow(above: IndexKey, n: number): IndexKey[];
+export function getIndicesBelow(above: IndexKey | undefined, n: number): IndexKey[];
 
 // @public
 export function getIndicesBetween(below: IndexKey | undefined, above: IndexKey | undefined, n: number): IndexKey[];
@@ -195,6 +204,14 @@ export class MediaHelpers {
         h: number;
         w: number;
     }>;
+    // (undocumented)
+    static isAnimated(file: Blob): Promise<boolean>;
+    // (undocumented)
+    static isAnimatedImageType(mimeType: null | string): boolean;
+    // (undocumented)
+    static isImageType(mimeType: string): boolean;
+    // (undocumented)
+    static isStaticImageType(mimeType: null | string): boolean;
     static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
     // (undocumented)
@@ -241,6 +258,18 @@ export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...
 
 // @internal
 export function partition<T>(arr: T[], predicate: (item: T) => boolean): [T[], T[]];
+
+// @public (undocumented)
+export class PerformanceTracker {
+    // (undocumented)
+    isStarted(): boolean;
+    // (undocumented)
+    recordFrame: () => void;
+    // (undocumented)
+    start(name: string): void;
+    // (undocumented)
+    stop(): void;
+}
 
 // @public (undocumented)
 export class PngHelpers {
@@ -334,6 +363,12 @@ export function validateIndexKey(key: string): asserts key is IndexKey;
 
 // @internal (undocumented)
 export function warnDeprecatedGetter(name: string): void;
+
+// @public
+export class WeakCache<K extends object, V> {
+    get<P extends K>(item: P, cb: (item: P) => V): NonNullable<V>;
+    items: WeakMap<K, V>;
+}
 
 // @public
 export const ZERO_INDEX_KEY: IndexKey;

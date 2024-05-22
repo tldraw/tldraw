@@ -1,6 +1,6 @@
 import { PDFDocument } from 'pdf-lib'
 import { useState } from 'react'
-import { Editor, assert, exportToBlob, useEditor } from 'tldraw'
+import { Editor, exportToBlob, useEditor } from 'tldraw'
 import { Pdf } from './PdfPicker'
 
 export function ExportPdfButton({ pdf }: { pdf: Pdf }) {
@@ -40,7 +40,9 @@ async function exportPdf(
 	tickProgress()
 
 	const pdfPages = pdf.getPages()
-	assert(pdfPages.length === pages.length, 'PDF page count mismatch')
+	if (pdfPages.length !== pages.length) {
+		throw new Error('PDF page count mismatch')
+	}
 
 	const pageShapeIds = new Set(pages.map((page) => page.shapeId))
 	const allIds = Array.from(editor.getCurrentPageShapeIds()).filter((id) => !pageShapeIds.has(id))

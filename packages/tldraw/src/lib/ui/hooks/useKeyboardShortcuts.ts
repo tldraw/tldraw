@@ -26,8 +26,6 @@ export function useKeyboardShortcuts() {
 	useEffect(() => {
 		if (!isFocused) return
 
-		const container = editor.getContainer()
-
 		hotkeys.setScope(editor.store.id)
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
@@ -78,7 +76,7 @@ export function useKeyboardShortcuts() {
 			if (editor.inputs.keys.has('Comma')) return
 
 			preventDefault(e) // prevent whatever would normally happen
-			container.focus() // Focus if not already focused
+			editor.focus() // Focus if not already focused
 
 			editor.inputs.keys.add('Comma')
 

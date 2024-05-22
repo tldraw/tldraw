@@ -8,6 +8,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../../shapes/arrow/shared'
 
 function shapesWithUnboundArrows(editor: Editor) {
 	const selectedShapeIds = editor.getSelectedShapeIds()
@@ -17,14 +18,9 @@ function shapesWithUnboundArrows(editor: Editor) {
 
 	return selectedShapes.filter((shape) => {
 		if (!shape) return false
-		if (
-			editor.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
-			shape.props.start.type === 'binding'
-		) {
-			return false
-		}
-		if (editor.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.end.type === 'binding') {
-			return false
+		if (editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			const bindings = getArrowBindings(editor, shape)
+			if (bindings.start || bindings.end) return false
 		}
 		return true
 	})
@@ -50,16 +46,16 @@ export const useAllowGroup = () => {
 
 			for (const shape of selectedShapes) {
 				if (editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-					const { start, end } = shape.props
-					if (start.type === 'binding') {
+					const bindings = getArrowBindings(editor, shape)
+					if (bindings.start) {
 						// if the other shape is not among the selected shapes...
-						if (!selectedShapes.some((s) => s.id === start.boundShapeId)) {
+						if (!selectedShapes.some((s) => s.id === bindings.start!.toId)) {
 							return false
 						}
 					}
-					if (end.type === 'binding') {
+					if (bindings.end) {
 						// if the other shape is not among the selected shapes...
-						if (!selectedShapes.some((s) => s.id === end.boundShapeId)) {
+						if (!selectedShapes.some((s) => s.id === bindings.end!.toId)) {
 							return false
 						}
 					}

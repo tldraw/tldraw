@@ -158,7 +158,6 @@ export function MultiplayerEditor({
 				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
-				autoFocus
 				inferDarkMode
 			>
 				<UrlStateSync />

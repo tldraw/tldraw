@@ -51,7 +51,7 @@ export default function ExternalContentSourcesExample() {
 			const htmlSource = sources?.find((s) => s.type === 'text' && s.subtype === 'html')
 
 			if (htmlSource) {
-				const center = point ?? editor.getViewportPageCenter()
+				const center = point ?? editor.getViewportPageBounds().center
 
 				editor.createShape({
 					type: 'html',
@@ -67,7 +67,7 @@ export default function ExternalContentSourcesExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw autoFocus onMount={handleMount} shapeUtils={[DangerousHtmlExample]} />
+			<Tldraw onMount={handleMount} shapeUtils={[DangerousHtmlExample]} />
 		</div>
 	)
 }

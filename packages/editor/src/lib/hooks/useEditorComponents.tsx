@@ -86,7 +86,7 @@ export type TLEditorComponents = Partial<
 	} & ErrorComponents
 >
 
-const EditorComponentsContext = createContext({} as TLEditorComponents & ErrorComponents)
+const EditorComponentsContext = createContext<null | (TLEditorComponents & ErrorComponents)>(null)
 
 type ComponentsContextProviderProps = {
 	overrides?: TLEditorComponents
@@ -140,5 +140,9 @@ export function EditorComponentsProvider({
 
 /** @public */
 export function useEditorComponents() {
-	return useContext(EditorComponentsContext)
+	const components = useContext(EditorComponentsContext)
+	if (!components) {
+		throw new Error('useEditorComponents must be used inside of <EditorComponentsProvider />')
+	}
+	return components
 }

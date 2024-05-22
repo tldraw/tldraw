@@ -89,7 +89,6 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 				}}
 				components={components}
 				renderDebugMenuItems={() => <DebugMenuItems />}
-				autoFocus
 				inferDarkMode
 			>
 				<UrlStateSync />

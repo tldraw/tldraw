@@ -43,7 +43,6 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isChatting: boolean
 	isPenMode: boolean
 	isGridMode: boolean
-	canMoveCamera: boolean
 	isFocused: boolean
 	devicePixelRatio: number
 	/**
@@ -106,7 +105,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			chatMessage: T.string,
 			isChatting: T.boolean,
 			highlightedUserIds: T.arrayOf(T.string),
-			canMoveCamera: T.boolean,
 			isFocused: T.boolean,
 			devicePixelRatio: T.number,
 			isCoarsePointer: T.boolean,
@@ -150,7 +148,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			chatMessage: true,
 			isChatting: true,
 			highlightedUserIds: true,
-			canMoveCamera: true,
 			isFocused: true,
 			devicePixelRatio: true,
 			isCoarsePointer: true,
@@ -183,7 +180,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			chatMessage: '',
 			isChatting: false,
 			highlightedUserIds: [],
-			canMoveCamera: true,
 			isFocused: false,
 			devicePixelRatio: typeof window === 'undefined' ? 1 : window.devicePixelRatio,
 			isCoarsePointer: false,
@@ -223,6 +219,7 @@ export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 	AddScribbles: 22,
 	AddInset: 23,
 	AddDuplicateProps: 24,
+	RemoveCanMoveCamera: 25,
 } as const)
 
 // TODO: rewrite these to use mutation
@@ -463,6 +460,17 @@ export const instanceMigrations = createRecordMigrationSequence({
 				return {
 					...record,
 				}
+			},
+		},
+		{
+			id: instanceVersions.RemoveCanMoveCamera,
+			up: ({ canMoveCamera: _, ...record }: any) => {
+				return {
+					...record,
+				}
+			},
+			down: (instance) => {
+				return { ...instance, canMoveCamera: true }
 			},
 		},
 	],

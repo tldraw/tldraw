@@ -1,5 +1,4 @@
-import { ToastProvider } from '@radix-ui/react-toast'
-import { Expand, useEditor, useValue } from '@tldraw/editor'
+import { Expand, useEditor, useEditorComponents, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
@@ -98,9 +97,20 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 		<>
 			{children}
 			{hideUi ? null : <TldrawUiContent {...rest} />}
+			<InFrontOfTheCanvasWrapper />
 		</>
 	)
 })
+
+function InFrontOfTheCanvasWrapper() {
+	const { InFrontOfTheCanvas } = useEditorComponents()
+	if (!InFrontOfTheCanvas) return null
+	return (
+		<div className="tl-front">
+			<InFrontOfTheCanvas />
+		</div>
+	)
+}
 
 const TldrawUiContent = React.memo(function TldrawUI() {
 	const editor = useEditor()
@@ -129,54 +139,52 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
 	return (
-		<ToastProvider>
-			<div
-				className={classNames('tlui-layout', {
-					'tlui-layout__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
-				})}
-				data-breakpoint={breakpoint}
-			>
-				{isFocusMode ? (
+		<div
+			className={classNames('tlui-layout', {
+				'tlui-layout__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
+			})}
+			data-breakpoint={breakpoint}
+		>
+			{isFocusMode ? (
+				<div className="tlui-layout__top">
+					<TldrawUiButton
+						type="icon"
+						className="tlui-focus-button"
+						title={msg('focus-mode.toggle-focus-mode')}
+						onClick={() => toggleFocus.onSelect('menu')}
+					>
+						<TldrawUiButtonIcon icon="dot" />
+					</TldrawUiButton>
+				</div>
+			) : (
+				<>
 					<div className="tlui-layout__top">
-						<TldrawUiButton
-							type="icon"
-							className="tlui-focus-button"
-							title={msg('focus-mode.toggle-focus-mode')}
-							onClick={() => toggleFocus.onSelect('menu')}
-						>
-							<TldrawUiButtonIcon icon="dot" />
-						</TldrawUiButton>
+						<div className="tlui-layout__top__left">
+							{MenuPanel && <MenuPanel />}
+							{HelperButtons && <HelperButtons />}
+						</div>
+						<div className="tlui-layout__top__center">{TopPanel && <TopPanel />}</div>
+						<div className="tlui-layout__top__right">
+							{SharePanel && <SharePanel />}
+							{StylePanel && breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
+								<StylePanel />
+							)}
+						</div>
 					</div>
-				) : (
-					<>
-						<div className="tlui-layout__top">
-							<div className="tlui-layout__top__left">
-								{MenuPanel && <MenuPanel />}
-								{HelperButtons && <HelperButtons />}
-							</div>
-							<div className="tlui-layout__top__center">{TopPanel && <TopPanel />}</div>
-							<div className="tlui-layout__top__right">
-								{SharePanel && <SharePanel />}
-								{StylePanel && breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
-									<StylePanel />
-								)}
-							</div>
+					<div className="tlui-layout__bottom">
+						<div className="tlui-layout__bottom__main">
+							{NavigationPanel && <NavigationPanel />}
+							{Toolbar && <Toolbar />}
+							{HelpMenu && <HelpMenu />}
 						</div>
-						<div className="tlui-layout__bottom">
-							<div className="tlui-layout__bottom__main">
-								{NavigationPanel && <NavigationPanel />}
-								{Toolbar && <Toolbar />}
-								{HelpMenu && <HelpMenu />}
-							</div>
-							{isDebugMode && DebugPanel && <DebugPanel />}
-						</div>
-					</>
-				)}
-				<Toasts />
-				<Dialogs />
-				<ToastViewport />
-				<FollowingIndicator />
-			</div>
-		</ToastProvider>
+						{isDebugMode && DebugPanel && <DebugPanel />}
+					</div>
+				</>
+			)}
+			<Toasts />
+			<Dialogs />
+			<ToastViewport />
+			<FollowingIndicator />
+		</div>
 	)
 })

@@ -2,16 +2,6 @@ import { Editor } from '@tldraw/editor'
 
 export function registerDefaultSideEffects(editor: Editor) {
 	return [
-		editor.sideEffects.registerAfterChangeHandler('instance', (prev, next) => {
-			if (prev.isFocused !== next.isFocused) {
-				if (next.isFocused) {
-					editor.getContainer().focus()
-				} else {
-					editor.complete() // stop any interaction
-					editor.getContainer().blur() // blur the container
-				}
-			}
-		}),
 		editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {
 			if (prev.croppingShapeId !== next.croppingShapeId) {
 				const isInCroppingState = editor.isInAny(

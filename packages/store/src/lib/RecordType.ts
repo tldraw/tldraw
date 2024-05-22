@@ -8,7 +8,7 @@ export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['cre
 /**
  * Defines the scope of the record
  *
- * instance: The record belongs to a single instance of the store. It should not be synced, and any persistence logic should 'de-instance-ize' the record before persisting it, and apply the reverse when rehydrating.
+ * session: The record belongs to a single instance of the store. It should not be synced, and any persistence logic should 'de-instance-ize' the record before persisting it, and apply the reverse when rehydrating.
  * document: The record is persisted and synced. It is available to all store instances.
  * presence: The record belongs to a single instance of the store. It may be synced to other instances, but other instances should not make changes to it. It should not be persisted.
  *

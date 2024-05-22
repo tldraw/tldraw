@@ -14,20 +14,22 @@
 
 > **Tip:** The `.tldr` files you create with this extension can also be opened in the tldraw [web app](https://tldraw.com). You can also use this extension to open `.tldr` files saved from the web app.
 
-## Community
-
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new).
-
 ## Contribution
 
 Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## License
 
-The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). This license does not permit commercial use.
+The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). This license does not permit commercial use. To purchase a commercial license or learn more, please fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
 
-If you wish to use this project in commercial product, you need to purchase a commercial license. Please contact us at [hello@tldraw.com](mailto:hello@tldraw.com) for more inforion about obtaining a commercial license.
+## Trademarks
+
+Copyright (c) 2023-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
 
 ## Contact
 
-Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [hello@tldraw.com](mailto://hello@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.
+Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
+
+## Community
+
+Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, check out our [Substack](https://tldraw.substack.com/).

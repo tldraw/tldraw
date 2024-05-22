@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid'
 import {
 	Editor,
+	TLArrowBinding,
 	TLArrowShape,
 	TLRecord,
 	TLStore,
@@ -117,10 +118,18 @@ let totalNumShapes = 0
 let totalNumPages = 0
 
 function arrowsAreSound(editor: Editor) {
-	const arrows = editor.getCurrentPageShapes().filter((s) => s.type === 'arrow') as TLArrowShape[]
+	const arrows = editor.getCurrentPageShapes().filter((s): s is TLArrowShape => s.type === 'arrow')
 	for (const arrow of arrows) {
-		for (const terminal of [arrow.props.start, arrow.props.end]) {
-			if (terminal.type === 'binding' && !editor.store.has(terminal.boundShapeId)) {
+		const bindings = editor.getBindingsFromShape<TLArrowBinding>(arrow, 'arrow')
+		const terminalsSeen = new Set()
+		for (const binding of bindings) {
+			if (terminalsSeen.has(binding.props.terminal)) {
+				return false
+			}
+
+			terminalsSeen.add(binding.props.terminal)
+
+			if (!editor.store.has(binding.toId)) {
 				return false
 			}
 		}
