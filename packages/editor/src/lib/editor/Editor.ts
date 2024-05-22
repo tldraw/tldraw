@@ -5334,11 +5334,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (snapshot.document) {
 				this.store.loadSnapshot(snapshot.document)
 			}
-			if (snapshot.session) {
-				loadSessionStateSnapshotIntoStore(this.store, snapshot.session)
-			}
 			if (this instanceof Editor) {
-				this.updateViewportScreenBounds()
 				if (prevInstanceState) {
 					const nextInstanceState: TLInstance = {
 						...prevInstanceState,
@@ -5352,6 +5348,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 					this.updateInstanceState(nextInstanceState)
 				}
+			}
+
+			if (snapshot.session) {
+				loadSessionStateSnapshotIntoStore(this.store, snapshot.session)
 			}
 		})
 	}
