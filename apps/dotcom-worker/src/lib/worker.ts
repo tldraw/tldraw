@@ -90,6 +90,7 @@ export function isAllowedOrigin(origin: string) {
 	if (env.IS_LOCAL === 'true') return true
 	if (origin === 'http://localhost:3000') return true
 	if (origin === 'http://localhost:5420') return true
+	if (origin === 'https://meet.google.com') return true
 	if (origin.endsWith('.tldraw.com')) return true
 	if (origin.endsWith('-tldraw.vercel.app')) return true
 	return false
