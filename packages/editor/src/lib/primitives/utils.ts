@@ -452,6 +452,7 @@ export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike
 	)
 }
 
+/** @public */
 export function getPointsOnArc(
 	startPoint: VecLike,
 	endPoint: VecLike,
