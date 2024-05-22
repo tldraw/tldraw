@@ -7,7 +7,6 @@ import {
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { Router, createCors } from 'itty-router'
-import { env } from 'process'
 import Toucan from 'toucan-js'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -87,7 +86,6 @@ const Worker = {
 }
 
 export function isAllowedOrigin(origin: string) {
-	if (env.IS_LOCAL === 'true') return true
 	if (origin === 'http://localhost:3000') return true
 	if (origin === 'http://localhost:5420') return true
 	if (origin === 'https://meet.google.com') return true
