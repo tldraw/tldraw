@@ -33,7 +33,6 @@ export class Polyline2d extends Geometry2d {
 		return this._segments
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
 	override getLength() {
 		return this.segments.reduce((acc, segment) => acc + segment.length, 0)
 	}
