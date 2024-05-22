@@ -124,7 +124,6 @@ export {
 } from './lib/constants'
 export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
 export {
-	BindingUnbindReason,
 	BindingUtil,
 	type BindingOnChangeOptions,
 	type BindingOnCreateOptions,

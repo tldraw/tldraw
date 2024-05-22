@@ -1,7 +1,6 @@
 import {
 	BindingOnShapeChangeOptions,
 	BindingOnUnbindOptions,
-	BindingUnbindReason,
 	BindingUtil,
 	Box,
 	DefaultToolbar,
@@ -154,7 +153,7 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 
 	// when the thing we're stuck to is deleted, delete the sticker too
 	override onBeforeUnbind({ binding, reason }: BindingOnUnbindOptions<StickerBinding>): void {
-		if (reason === BindingUnbindReason.DeletingToShape) {
+		if (reason === 'delete_to_shape') {
 			this.editor.deleteShape(binding.fromId)
 		}
 	}

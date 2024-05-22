@@ -119,7 +119,6 @@ import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rot
 import { uniqueId } from '../utils/uniqueId'
 import {
 	BindingOnUnbindOptions,
-	BindingUnbindReason,
 	BindingUtil,
 	TLBindingUtilConstructor,
 } from './bindings/BindingUtil'
@@ -540,10 +539,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const opts: BindingOnUnbindOptions<any> = {
 							binding,
 							reason: deletedShapeIds.has(binding.fromId)
-								? BindingUnbindReason.DeletingFromShape
+								? 'delete_from_shape'
 								: deletedShapeIds.has(binding.toId)
-									? BindingUnbindReason.DeletingToShape
-									: BindingUnbindReason.DeletingBinding,
+									? 'delete_to_shape'
+									: 'delete_binding',
 						}
 						deletedBindings.set(binding.id, opts)
 						this.getBindingUtil(binding).onBeforeUnbind?.(opts)
@@ -5114,10 +5113,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
+	/**
+	 * Get a binding from the store by its ID if it exists.
+	 */
 	getBinding(id: TLBindingId): TLBinding | undefined {
 		return this.store.get(id) as TLBinding | undefined
 	}
 
+	/**
+	 * Get all bindings of a certain type _from_ a particular shape. These are the bindings whose
+	 * `fromId` matched the shape's ID.
+	 */
 	getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
@@ -5127,6 +5133,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			(b) => b.fromId === id && b.type === type
 		) as Binding[]
 	}
+
+	/**
+	 * Get all bindings of a certain type _to_ a particular shape. These are the bindings whose
+	 * `toId` matches the shape's ID.
+	 */
 	getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
@@ -5136,6 +5147,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			(b) => b.toId === id && b.type === type
 		) as Binding[]
 	}
+
+	/**
+	 * Get all bindings involving a particular shape. This includes bindings where the shape is the
+	 * `fromId` or `toId`. If a type is provided, only bindings of that type are returned.
+	 */
 	getBindingsInvolvingShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type?: Binding['type']
@@ -5146,6 +5162,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return result.filter((b) => b.type === type) as Binding[]
 	}
 
+	/**
+	 * Create bindings from a list of partial bindings. You can omit the ID and most props of a
+	 * binding, but the `type`, `toId`, and `fromId` must all be provided.
+	 */
 	createBindings(partials: RequiredKeys<TLBindingPartial, 'type' | 'toId' | 'fromId'>[]) {
 		const bindings = partials.map((partial) => {
 			const util = this.getBindingUtil<TLUnknownBinding>(partial.type)
@@ -5162,10 +5182,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.put(bindings)
 		return this
 	}
+
+	/**
+	 * Create a single binding from a partial. You can omit the ID and most props of a binding, but
+	 * the `type`, `toId`, and `fromId` must all be provided.
+	 */
 	createBinding(partial: RequiredKeys<TLBindingPartial, 'type' | 'fromId' | 'toId'>) {
 		return this.createBindings([partial])
 	}
 
+	/**
+	 * Update bindings from a list of partial bindings. Each partial must include an ID, which will
+	 * be used to match the binding to it's existing record. If there is no existing record, that
+	 * binding is skipped. The changes from the partial are merged into the existing record.
+	 */
 	updateBindings(partials: (TLBindingPartial | null | undefined)[]) {
 		const updated: TLBinding[] = []
 
@@ -5186,15 +5216,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Update a binding from a partial binding. Each partial must include an ID, which will be used
+	 * to match the binding to it's existing record. If there is no existing record, that binding is
+	 * skipped. The changes from the partial are merged into the existing record.
+	 */
 	updateBinding(partial: TLBindingPartial) {
 		return this.updateBindings([partial])
 	}
 
+	/**
+	 * Delete several bindings by their IDs. If a binding ID doesn't exist, it's ignored.
+	 */
 	deleteBindings(bindings: (TLBinding | TLBindingId)[]) {
 		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
 		this.store.remove(ids)
 		return this
 	}
+	/**
+	 * Delete a binding by its ID. If the binding doesn't exist, it's ignored.
+	 */
 	deleteBinding(binding: TLBinding | TLBindingId) {
 		return this.deleteBindings([binding])
 	}

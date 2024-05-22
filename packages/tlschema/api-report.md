@@ -945,7 +945,7 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
 // @public
 export type TLBinding = TLDefaultBinding | TLUnknownBinding;
 
-// @public (undocumented)
+// @public
 export type TLBindingId = RecordId<TLUnknownBinding>;
 
 // @public (undocumented)

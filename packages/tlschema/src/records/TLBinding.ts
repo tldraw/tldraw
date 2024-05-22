@@ -43,7 +43,11 @@ export type TLBindingPartial<T extends TLBinding = TLBinding> = T extends T
 		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
 	: never
 
-/** @public */
+/**
+ * An ID for a {@link TLBinding}.
+ *
+ * @public
+ */
 export type TLBindingId = RecordId<TLUnknownBinding>
 
 /** @public */

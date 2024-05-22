@@ -3,7 +3,6 @@ import {
 	BindingOnCreateOptions,
 	BindingOnShapeChangeOptions,
 	BindingOnUnbindOptions,
-	BindingUnbindReason,
 	BindingUtil,
 	Editor,
 	IndexKey,
@@ -63,7 +62,7 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 	// when the shape the arrow is pointing to is deleted
 	override onBeforeUnbind({ binding, reason }: BindingOnUnbindOptions<TLArrowBinding>): void {
 		// don't need to do anything if the arrow is being deleted
-		if (reason === BindingUnbindReason.DeletingFromShape) return
+		if (reason === 'delete_from_shape') return
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
 		if (!arrow) return
 		unbindArrowTerminal(this.editor, arrow, binding.props.terminal)

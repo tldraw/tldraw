@@ -1,6 +1,5 @@
 import {
 	BindingOnUnbindOptions,
-	BindingUnbindReason,
 	BindingUtil,
 	TLShapeId,
 	TLUnknownBinding,
@@ -65,43 +64,43 @@ function bindShapes(fromId: TLShapeId, toId: TLShapeId) {
 	return bindingId
 }
 
-test('deleting the from shape causes the reason to be "deleting_from_shape"', () => {
+test('deleting the from shape causes the reason to be "delete_from_shape"', () => {
 	bindShapes(ids.box1, ids.box2)
 	editor.deleteShape(ids.box1)
 	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(1)
 	expect(mockOnBeforeUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingFromShape })
+		expect.objectContaining({ reason: 'delete_from_shape' })
 	)
 	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(1)
 	expect(mockOnAfterUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingFromShape })
+		expect.objectContaining({ reason: 'delete_from_shape' })
 	)
 })
 
-test('deleting the to shape causes the reason to be "deleting_to_shape"', () => {
+test('deleting the to shape causes the reason to be "delete_to_shape"', () => {
 	bindShapes(ids.box1, ids.box2)
 	editor.deleteShape(ids.box2)
 	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(1)
 	expect(mockOnBeforeUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingToShape })
+		expect.objectContaining({ reason: 'delete_to_shape' })
 	)
 	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(1)
 	expect(mockOnAfterUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingToShape })
+		expect.objectContaining({ reason: 'delete_to_shape' })
 	)
 })
 
-test('deleting the binding itself causes the reason to be "deleting_binding"', () => {
+test('deleting the binding itself causes the reason to be "delete_binding"', () => {
 	const bindingId = bindShapes(ids.box1, ids.box2)
 	editor.deleteBinding(bindingId)
 
 	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(1)
 	expect(mockOnBeforeUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
+		expect.objectContaining({ reason: 'delete_binding' })
 	)
 	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(1)
 	expect(mockOnAfterUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
+		expect.objectContaining({ reason: 'delete_binding' })
 	)
 })
 
@@ -119,11 +118,11 @@ test('copying the from shape on its own does trigger the unbind operation', () =
 	editor.copy()
 	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(1)
 	expect(mockOnBeforeUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
+		expect.objectContaining({ reason: 'delete_binding' })
 	)
 	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(1)
 	expect(mockOnAfterUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
+		expect.objectContaining({ reason: 'delete_binding' })
 	)
 })
 
@@ -133,17 +132,17 @@ test('copying the to shape on its own does trigger the unbind operation', () => 
 	editor.copy()
 	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(1)
 	expect(mockOnBeforeUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
+		expect.objectContaining({ reason: 'delete_binding' })
 	)
 	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(1)
 	expect(mockOnAfterUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
+		expect.objectContaining({ reason: 'delete_binding' })
 	)
 })
 
 test('cascading deletes in afterUnbind are handled correctly', () => {
 	mockOnAfterUnbind.mockImplementation((options) => {
-		if (options.reason === BindingUnbindReason.DeletingFromShape) {
+		if (options.reason === 'delete_from_shape') {
 			editor.deleteShape(options.binding.toId)
 		}
 	})
@@ -165,7 +164,7 @@ test('cascading deletes in afterUnbind are handled correctly', () => {
 
 test('cascading deletes in beforeUnbind are handled correctly', () => {
 	mockOnBeforeUnbind.mockImplementation((options) => {
-		if (options.reason === BindingUnbindReason.DeletingFromShape) {
+		if (options.reason === 'delete_from_shape') {
 			editor.deleteShape(options.binding.toId)
 		}
 	})
