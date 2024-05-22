@@ -5,6 +5,7 @@ import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 import {
 	getCloudArcs,
 	getCloudPath,
+	getDrawHeartPath,
 	getHeartParts,
 	getHeartPath,
 	getRoundedInkyPolygonPath,
@@ -204,7 +205,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 					</>
 				)
 			} else {
-				const d = getHeartPath(w, h)
+				const d = getDrawHeartPath(w, h, strokeWidth, shape.id)
 				return (
 					<>
 						<ShapeFill d={d} color={color} fill={fill} theme={theme} />

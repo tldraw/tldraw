@@ -34,6 +34,77 @@ export function getHeartPath(w: number, h: number) {
 	)
 }
 
+export function getDrawHeartPath(w: number, h: number, sw: number, id: string) {
+	const o = w / 4
+	const k = h / 4
+	const random = rng(id)
+	const mutDistance = sw * 0.75
+	const mut = (v: Vec) => v.addXY(random() * mutDistance, random() * mutDistance)
+
+	const A = new Vec(w / 2, h)
+	const B = new Vec(0, k * 1.2)
+	const C = new Vec(w / 2, k * 0.9)
+	const D = new Vec(w, k * 1.2)
+
+	const Am = mut(new Vec(w / 2, h))
+	const Bm = mut(new Vec(0, k * 1.2))
+	const Cm = mut(new Vec(w / 2, k * 0.9))
+	const Dm = mut(new Vec(w, k * 1.2))
+
+	const parts = [
+		new CubicBezier2d({
+			start: A,
+			cp1: new Vec(o * 1.5, k * 3),
+			cp2: new Vec(0, k * 2.5),
+			end: B,
+		}),
+		new CubicBezier2d({
+			start: B,
+			cp1: new Vec(0, -k * 0.32),
+			cp2: new Vec(o * 1.85, -k * 0.32),
+			end: C,
+		}),
+		new CubicBezier2d({
+			start: C,
+			cp1: new Vec(o * 2.15, -k * 0.32),
+			cp2: new Vec(w, -k * 0.32),
+			end: D,
+		}),
+		new CubicBezier2d({
+			start: D,
+			cp1: new Vec(w, k * 2.5),
+			cp2: new Vec(o * 2.5, k * 3),
+			end: Am,
+		}),
+		new CubicBezier2d({
+			start: Am,
+			cp1: new Vec(o * 1.5, k * 3),
+			cp2: new Vec(0, k * 2.5),
+			end: Bm,
+		}),
+		new CubicBezier2d({
+			start: Bm,
+			cp1: new Vec(0, -k * 0.32),
+			cp2: new Vec(o * 1.85, -k * 0.32),
+			end: Cm,
+		}),
+		new CubicBezier2d({
+			start: Cm,
+			cp1: new Vec(o * 2.15, -k * 0.32),
+			cp2: new Vec(w, -k * 0.32),
+			end: Dm,
+		}),
+		new CubicBezier2d({
+			start: Dm,
+			cp1: new Vec(w, k * 2.5),
+			cp2: new Vec(o * 2.5, k * 3),
+			end: A,
+		}),
+	]
+
+	return parts.map((c, i) => c.getSvgPathData(i === 0)).join(' ') + ' Z'
+}
+
 export function getHeartPoints(w: number, h: number) {
 	const points = [] as Vec[]
 	const curves = getHeartParts(w, h)
@@ -327,16 +398,24 @@ export function getCloudArcs(
 	const bumpPoints = getPillPoints(innerWidth, innerHeight, numBumps).map((p) => {
 		return p.addXY(paddingX, paddingY)
 	})
-
 	const maxWiggleX = width < 20 ? 0 : targetBumpProtrusion * 0.3
 	const maxWiggleY = height < 20 ? 0 : targetBumpProtrusion * 0.3
 
 	// wiggle the points from either end so that the bumps 'pop'
 	// in at the bottom-right and the top-left looks relatively stable
+	// note: it's important that we don't mutate here! these points are also the bump points
 	const wiggledPoints = bumpPoints.slice(0)
 	for (let i = 0; i < Math.floor(numBumps / 2); i++) {
-		wiggledPoints[i].addXY(getRandom() * maxWiggleX, getRandom() * maxWiggleY)
-		wiggledPoints[numBumps - i - 1].addXY(getRandom() * maxWiggleX, getRandom() * maxWiggleY)
+		wiggledPoints[i] = Vec.AddXY(
+			wiggledPoints[i],
+			getRandom() * maxWiggleX,
+			getRandom() * maxWiggleY
+		)
+		wiggledPoints[numBumps - i - 1] = Vec.AddXY(
+			wiggledPoints[numBumps - i - 1],
+			getRandom() * maxWiggleX,
+			getRandom() * maxWiggleY
+		)
 	}
 
 	const arcs: Arc[] = []
