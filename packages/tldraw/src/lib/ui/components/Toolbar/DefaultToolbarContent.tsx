@@ -53,7 +53,8 @@ export function useIsToolSelected(tool: TLUiToolItem) {
 	)
 }
 
-function ToolbarItem({ tool }: { tool: string }) {
+/** @public */
+export function ToolbarItem({ tool }: { tool: string }) {
 	const tools = useTools()
 	const isSelected = useIsToolSelected(tools[tool])
 	return <TldrawUiMenuItem {...tools[tool]} isSelected={isSelected} />

@@ -2524,6 +2524,11 @@ export function ToggleTransparentBgMenuItem(): JSX_2.Element;
 export function ToggleWrapModeItem(): JSX_2.Element;
 
 // @public (undocumented)
+export function ToolbarItem({ tool }: {
+    tool: string;
+}): JSX_2.Element;
+
+// @public (undocumented)
 export function TrapezoidToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
