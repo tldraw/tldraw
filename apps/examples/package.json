@@ -26,7 +26,7 @@
 		"infinite"
 	],
 	"scripts": {
-		"dev": "vite --host --debug plugin-transform",
+		"dev": "vite --host",
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",
 		"e2e": "playwright test -c ./e2e/playwright.config.ts",
