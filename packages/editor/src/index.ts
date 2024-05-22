@@ -212,6 +212,7 @@ export {
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
+	type TLEditorSnapshot,
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'

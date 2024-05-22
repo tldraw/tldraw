@@ -76,6 +76,7 @@ import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
+import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLEnterEventHandler } from '@tldraw/editor';
 import { TLEventHandlers } from '@tldraw/editor';
@@ -119,6 +120,7 @@ import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
+import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLStoreWithStatus } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
@@ -1545,7 +1547,7 @@ pageId?: TLPageId | undefined;
 preserveAspectRatio?: string | undefined;
 scale?: number | undefined;
 shapeUtils?: readonly TLAnyShapeUtilConstructor[] | undefined;
-snapshot: StoreSnapshot<TLRecord>;
+snapshot: TLEditorSnapshot | TLStoreSnapshot;
 }>;
 
 // @public
@@ -1554,14 +1556,14 @@ export type TldrawImageProps = Expand<{
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     format?: 'png' | 'svg';
     pageId?: TLPageId;
-    snapshot: StoreSnapshot<TLRecord>;
+    snapshot: TLEditorSnapshot | TLStoreSnapshot;
 } & Partial<TLSvgOptions>>;
 
 // @public (undocumented)
 export type TldrawProps = Expand<(Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
     components?: TLComponents;
 }) & Partial<TLExternalContentProps> & ({
-    snapshot?: StoreSnapshot<TLRecord>;
+    snapshot?: StoreSnapshot<TLRecord> | TLEditorSnapshot;
     defaultName?: string;
     migrations?: readonly MigrationSequence[];
     persistenceKey?: string;

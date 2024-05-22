@@ -79,6 +79,10 @@ import {
 import EventEmitter from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
+import {
+	createSessionStateSnapshotSignal,
+	loadSessionStateSnapshotIntoStore,
+} from '../config/TLSessionStateSnapshot'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkBindings } from '../config/defaultBindings'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
@@ -146,6 +150,7 @@ import {
 	RequiredKeys,
 	TLCameraMoveOptions,
 	TLCameraOptions,
+	TLEditorSnapshot,
 	TLSvgOptions,
 } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
@@ -2982,14 +2987,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.updateViewportScreenBounds()
-	 * editor.updateViewportScreenBounds(true)
+	 * editor.updateViewportScreenBounds(undefined, true)
 	 * ```
 	 *
 	 * @param center - Whether to preserve the viewport page center as the viewport changes.
 	 *
 	 * @public
 	 */
-	updateViewportScreenBounds(screenBounds: Box, center = false): this {
+	updateViewportScreenBounds(screenBounds?: Box, center = false): this {
+		const current = this.getViewportScreenBounds()
+		if (!screenBounds) {
+			const rect = this.getContainer().getBoundingClientRect()
+
+			screenBounds = new Box(
+				rect.left || rect.x,
+				rect.top || rect.y,
+				Math.max(rect.width, 1),
+				Math.max(rect.height, 1)
+			)
+		}
+		if (current.equals(screenBounds)) return this
+
 		screenBounds.width = Math.max(screenBounds.width, 1)
 		screenBounds.height = Math.max(screenBounds.height, 1)
 
@@ -5265,6 +5283,46 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.getShapeUtil(fromShapeType).canBind(canBindOpts) &&
 			this.getShapeUtil(toShapeType).canBind(canBindOpts)
 		)
+	}
+
+	/* -------------------- Snapshots ------------------- */
+
+	@computed
+	private _getSessionStateSnapshotSignal() {
+		return createSessionStateSnapshotSignal(this.store)
+	}
+
+	getSnapshot(): TLEditorSnapshot {
+		const session = this._getSessionStateSnapshotSignal().get()
+		if (!session) {
+			throw new Error('Session state snapshot is not available.')
+		}
+		return {
+			document: this.store.getSnapshot('document'),
+			session,
+		} satisfies TLEditorSnapshot
+	}
+
+	// we constrain the type of `this` here so we can call it with only a store (before the editor is created)
+	loadSnapshot(
+		this: { store: TLStore },
+		snapshot: Partial<TLEditorSnapshot>,
+		opts?: { skipFocus?: boolean }
+	) {
+		this.store.atomic(() => {
+			if (snapshot.document) {
+				this.store.loadSnapshot(snapshot.document)
+			}
+			if (snapshot.session) {
+				loadSessionStateSnapshotIntoStore(this.store, snapshot.session)
+			}
+			if (this instanceof Editor) {
+				this.updateViewportScreenBounds()
+				if (!opts?.skipFocus) {
+					this.focus()
+				}
+			}
+		})
 	}
 
 	/* -------------------- Commands -------------------- */

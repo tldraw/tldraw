@@ -1,28 +1,54 @@
-import { TLStoreSnapshot, Tldraw } from 'tldraw'
+import { useCallback, useRef } from 'react'
+import { Editor, TLEditorSnapshot, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import _jsonSnapshot from './snapshot.json'
 
-const jsonSnapshot = _jsonSnapshot as TLStoreSnapshot
+const jsonSnapshot = _jsonSnapshot as any as TLEditorSnapshot
 
 // There's a guide at the bottom of this file!
 
-const LOAD_SNAPSHOT_WITH_INITIAL_DATA = true
-
-//[1]
 export default function SnapshotExample() {
-	if (LOAD_SNAPSHOT_WITH_INITIAL_DATA) {
-		return (
-			<div className="tldraw__editor">
-				<Tldraw snapshot={jsonSnapshot} />
-			</div>
-		)
-	}
+	const editorRef = useRef<Editor | null>(null)
+
+	const save = useCallback(() => {
+		if (!editorRef.current) return
+		const { document, session } = editorRef.current.getSnapshot()
+		// The 'document' state is the list of shapes and pages etc
+		// The 'session' state is the state of the editor like the current page, camera positions, zoom level, etc
+		// You probably need to store these separately if you're building a multi-user app.
+		localStorage.setItem('snapshot', JSON.stringify({ document, session }))
+	}, [])
+
+	const load = useCallback(() => {
+		const snapshot = localStorage.getItem('snapshot')
+		if (!snapshot) return
+		editorRef.current?.loadSnapshot(JSON.parse(snapshot))
+		// You can combine the `document` and `session` states into a single snapshot object to load it back into the editor.
+		// Alternatively you can call loadSnapshot on the editor instance with the `document` and `session` states separately, but
+		// make sure you pass the `document` state first
+		// e.g.
+		//   editorRef.current?.loadSnapshot({ document })
+		// then later
+		//   editorRef.current?.loadSnapshot({ session })
+	}, [])
+
 	//[2]
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				snapshot={jsonSnapshot}
 				onMount={(editor) => {
-					editor.store.loadSnapshot(jsonSnapshot)
+					editorRef.current = editor
+				}}
+				components={{
+					SharePanel: () => {
+						return (
+							<div style={{ padding: 20, pointerEvents: 'all' }}>
+								<button onClick={save}>Save</button>
+								<button onClick={load}>Load</button>
+							</div>
+						)
+					},
 				}}
 			/>
 		</div>

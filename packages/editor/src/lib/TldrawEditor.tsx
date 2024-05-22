@@ -19,7 +19,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { TLCameraOptions } from './editor/types/misc-types'
+import { TLCameraOptions, TLEditorSnapshot } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -51,7 +51,7 @@ export type TldrawEditorProps = Expand<
 			| {
 					store?: undefined
 					migrations?: readonly MigrationSequence[]
-					snapshot?: StoreSnapshot<TLRecord>
+					snapshot?: TLEditorSnapshot | StoreSnapshot<TLRecord>
 					initialData?: SerializedStore<TLRecord>
 					persistenceKey?: string
 					sessionId?: string

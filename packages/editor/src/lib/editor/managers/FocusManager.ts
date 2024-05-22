@@ -33,6 +33,7 @@ export class FocusManager {
 
 	focus() {
 		this.editor.getContainer().focus()
+		this.editor.updateInstanceState({ isFocused: true })
 	}
 
 	blur() {
