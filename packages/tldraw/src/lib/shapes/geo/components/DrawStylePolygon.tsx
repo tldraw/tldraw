@@ -1,7 +1,7 @@
-import { TLGeoShape, VecLike } from '@tldraw/editor'
+import { TLGeoShape, Vec } from '@tldraw/editor'
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
-import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../../shared/polygon-helpers'
+import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../geo-shape-helpers'
 
 export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	id,
@@ -12,9 +12,9 @@ export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	strokeWidth,
 }: Pick<TLGeoShape['props'], 'fill' | 'color'> & {
 	id: TLGeoShape['id']
-	outline: VecLike[]
+	outline: Vec[]
 	strokeWidth: number
-	lines?: VecLike[][]
+	lines?: Vec[][]
 }) {
 	const theme = useDefaultColorTheme()
 	const polygonPoints = getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
@@ -22,7 +22,7 @@ export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 
 	if (lines) {
 		for (const [A, B] of lines) {
-			strokePathData += `M${A.x},${A.y}L${B.x},${B.y}`
+			strokePathData += `M${A.toFixed()}L${B.toFixed()}`
 		}
 	}
 

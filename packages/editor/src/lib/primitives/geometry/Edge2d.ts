@@ -53,7 +53,7 @@ export class Edge2d extends Geometry2d {
 		)
 	}
 
-	toSvg(first = true) {
+	getSvgPathData(first = true) {
 		const { start, end } = this
 		return `${first ? `M${start.toFixed()}` : ``} L${end.toFixed()}`
 	}

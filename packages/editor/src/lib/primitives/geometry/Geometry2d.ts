@@ -200,4 +200,6 @@ export abstract class Geometry2d {
 		}
 		return Math.sqrt(length)
 	}
+
+	abstract getSvgPathData(first: boolean): string
 }

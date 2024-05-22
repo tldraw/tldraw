@@ -1,21 +1,18 @@
 import { Group2d, TLGeoShape, useEditor } from '@tldraw/editor'
+import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
+import { getCloudPath, getHeartPath, inkyCloudSvgPath } from '../geo-shape-helpers'
 import { getLines } from '../getLines'
 import { DashStyleCloud } from './DashStyleCloud'
 import { DashStyleEllipse } from './DashStyleEllipse'
 import { DashStyleHeart } from './DashStyleHeart'
 import { DashStyleOval } from './DashStyleOval'
 import { DashStylePolygon } from './DashStylePolygon'
-import { DrawStyleCloud } from './DrawStyleCloud'
 import { DrawStylePolygon } from './DrawStylePolygon'
-import { SolidStyleCloud } from './SolidStyleCloud'
-import { SolidStyleEllipse } from './SolidStyleEllipse'
-import { SolidStyleHeart } from './SolidStyleHeart'
-import { SolidStyleOval } from './SolidStyleOval'
-import { SolidStylePolygon } from './SolidStylePolygon'
 
 export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 	const editor = useEditor()
+	const theme = useDefaultColorTheme()
 	const { id, props } = shape
 	const { w, color, fill, dash, growY, size } = props
 	const strokeWidth = STROKE_SIZES[size]
@@ -24,18 +21,22 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 	switch (props.geo) {
 		case 'cloud': {
 			if (dash === 'solid') {
+				const d = getCloudPath(w, h, id, size)
 				return (
-					<SolidStyleCloud
-						color={color}
-						fill={fill}
-						strokeWidth={strokeWidth}
-						w={w}
-						h={h}
-						id={id}
-						size={size}
-					/>
+					<>
+						<ShapeFill d={d} color={color} fill={fill} theme={theme} />
+						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
+					</>
 				)
-			} else if (dash === 'dashed' || dash === 'dotted') {
+			} else if (dash === 'draw') {
+				const d = inkyCloudSvgPath(w, h, id, size)
+				return (
+					<>
+						<ShapeFill theme={theme} d={d} fill={fill} color={color} />
+						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
+					</>
+				)
+			} else {
 				return (
 					<DashStyleCloud
 						color={color}
@@ -48,26 +49,12 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 						dash={dash}
 					/>
 				)
-			} else if (dash === 'draw') {
-				return (
-					<DrawStyleCloud
-						color={color}
-						fill={fill}
-						strokeWidth={strokeWidth}
-						w={w}
-						h={h}
-						id={id}
-						size={size}
-					/>
-				)
 			}
 
 			break
 		}
 		case 'ellipse': {
-			if (dash === 'solid') {
-				return <SolidStyleEllipse strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
-			} else if (dash === 'dashed' || dash === 'dotted') {
+			if (dash === 'dashed' || dash === 'dotted') {
 				return (
 					<DashStyleEllipse
 						id={id}
@@ -79,15 +66,21 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 						fill={fill}
 					/>
 				)
-			} else if (dash === 'draw') {
-				return <SolidStyleEllipse strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
+			} else {
+				const geometry = editor.getShapeGeometry(shape)
+				const d = geometry.getSvgPathData(true)
+				return (
+					<>
+						<ShapeFill d={d} color={color} fill={fill} theme={theme} />
+						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
+					</>
+				)
 			}
-			break
 		}
 		case 'oval': {
-			if (dash === 'solid') {
-				return <SolidStyleOval strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
-			} else if (dash === 'dashed' || dash === 'dotted') {
+			const geometry = editor.getShapeGeometry(shape)
+			const d = geometry.getSvgPathData(true)
+			if (dash === 'dashed' || dash === 'dotted') {
 				return (
 					<DashStyleOval
 						id={id}
@@ -99,15 +92,17 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 						fill={fill}
 					/>
 				)
-			} else if (dash === 'draw') {
-				return <SolidStyleOval strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
+			} else {
+				return (
+					<>
+						<ShapeFill d={d} color={color} fill={fill} theme={theme} />
+						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
+					</>
+				)
 			}
-			break
 		}
 		case 'heart': {
-			if (dash === 'solid') {
-				return <SolidStyleHeart strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
-			} else if (dash === 'dashed' || dash === 'dotted') {
+			if (dash === 'dashed' || dash === 'dotted') {
 				return (
 					<DashStyleHeart
 						id={id}
@@ -120,7 +115,13 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 					/>
 				)
 			} else if (dash === 'draw') {
-				return <SolidStyleHeart strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
+				const d = getHeartPath(w, h)
+				return (
+					<>
+						<ShapeFill d={d} color={color} fill={fill} theme={theme} />
+						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
+					</>
+				)
 			}
 			break
 		}
@@ -131,14 +132,19 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 			const lines = getLines(shape.props, strokeWidth)
 
 			if (dash === 'solid') {
+				let path = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
+
+				if (lines) {
+					for (const [A, B] of lines) {
+						path += `M${A.x},${A.y}L${B.x},${B.y}`
+					}
+				}
+
 				return (
-					<SolidStylePolygon
-						fill={fill}
-						color={color}
-						strokeWidth={strokeWidth}
-						outline={outline}
-						lines={lines}
-					/>
+					<>
+						<ShapeFill d={path} fill={fill} color={color} theme={theme} />
+						<path d={path} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
+					</>
 				)
 			} else if (dash === 'dashed' || dash === 'dotted') {
 				return (

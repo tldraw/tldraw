@@ -78,4 +78,16 @@ export class CubicSpline2d extends Geometry2d {
 	hitTestLineSegment(A: Vec, B: Vec): boolean {
 		return this.segments.some((segment) => segment.hitTestLineSegment(A, B))
 	}
+
+	getSvgPathData() {
+		let d = this.segments.reduce((d, segment, i) => {
+			return d + segment.getSvgPathData(i === 0)
+		}, '')
+
+		if (this.isClosed) {
+			d += 'Z'
+		}
+
+		return d
+	}
 }

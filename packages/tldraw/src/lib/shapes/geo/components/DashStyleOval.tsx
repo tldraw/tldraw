@@ -1,8 +1,7 @@
-import { TLGeoShape, TLShapeId } from '@tldraw/editor'
+import { Stadium2d, TLGeoShape, TLShapeId } from '@tldraw/editor'
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
-import { getOvalPath, getOvalPerimeter } from '../geo-shape-helpers'
 
 export const DashStyleOval = React.memo(function DashStyleOval({
 	w,
@@ -16,8 +15,9 @@ export const DashStyleOval = React.memo(function DashStyleOval({
 	id: TLShapeId
 }) {
 	const theme = useDefaultColorTheme()
-	const d = getOvalPath(w, h)
-	const perimeter = getOvalPerimeter(w, h)
+	const geometry = new Stadium2d({ width: w, height: h, isFilled: false })
+	const d = geometry.getSvgPathData()
+	const perimeter = geometry.getLength()
 
 	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 		perimeter < 64 ? perimeter * 2 : perimeter,

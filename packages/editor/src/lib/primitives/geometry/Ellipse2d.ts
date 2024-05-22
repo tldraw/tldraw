@@ -97,4 +97,13 @@ export class Ellipse2d extends Geometry2d {
 	getBounds() {
 		return new Box(0, 0, this.w, this.h)
 	}
+
+	getSvgPathData(first = false) {
+		const { w, h } = this
+		const cx = w / 2
+		const cy = h / 2
+		const rx = Math.max(0, cx)
+		const ry = Math.max(0, cy)
+		return `${first ? `M${cx - rx},${cy}` : ``} a${rx},${ry},0,1,1,${rx * 2},0a${rx},${ry},0,1,1,-${rx * 2},0`
+	}
 }

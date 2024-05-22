@@ -1,4 +1,4 @@
-import { TLGeoShape, TLShapeId, perimeterOfEllipse, toDomPrecision } from '@tldraw/editor'
+import { TLGeoShape, TLShapeId, perimeterOfEllipse } from '@tldraw/editor'
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
@@ -40,13 +40,10 @@ export const DashStyleEllipse = React.memo(function DashStyleEllipse({
 			<path
 				d={d}
 				strokeWidth={sw}
-				width={toDomPrecision(w)}
-				height={toDomPrecision(h)}
 				fill="none"
 				stroke={theme[color].solid}
 				strokeDasharray={strokeDasharray}
 				strokeDashoffset={strokeDashoffset}
-				pointerEvents="all"
 			/>
 		</>
 	)

@@ -3,7 +3,6 @@ import { getStrokeOutlinePoints } from '../../shared/freehand/getStrokeOutlinePo
 import { getStrokePoints } from '../../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../../shared/freehand/svg'
-import { getSvgPathForLineGeometry } from './svg'
 
 function getLineDrawFreehandOptions(strokeWidth: number) {
 	return {
@@ -58,5 +57,5 @@ export function getLineIndicatorPath(
 		return getSvgPathFromStrokePoints(strokePoints)
 	}
 
-	return getSvgPathForLineGeometry(spline)
+	return spline.getSvgPathData()
 }

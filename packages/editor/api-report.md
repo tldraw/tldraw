@@ -125,6 +125,8 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     getLength(): number;
     // (undocumented)
+    getSvgPathData(first?: boolean): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec): boolean;
@@ -140,8 +142,6 @@ export class Arc2d extends Geometry2d {
     start: Vec;
     // (undocumented)
     sweepFlag: number;
-    // (undocumented)
-    toSvg(first?: boolean): string;
 }
 
 // @public
@@ -419,6 +419,8 @@ export class Circle2d extends Geometry2d {
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
@@ -492,13 +494,13 @@ export class CubicBezier2d extends Polyline2d {
     // (undocumented)
     getLength(precision?: number): number;
     // (undocumented)
+    getSvgPathData(first?: boolean): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     midPoint(): Vec;
     // (undocumented)
     nearestPoint(A: Vec): Vec;
-    // (undocumented)
-    toSvg(first?: boolean): string;
 }
 
 // @public (undocumented)
@@ -508,6 +510,8 @@ export class CubicSpline2d extends Geometry2d {
     });
     // (undocumented)
     getLength(): number;
+    // (undocumented)
+    getSvgPathData(): string;
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
@@ -659,6 +663,8 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     getLength(): number;
     // (undocumented)
+    getSvgPathData(first?: boolean): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
@@ -668,8 +674,6 @@ export class Edge2d extends Geometry2d {
     nearestPoint(point: Vec): Vec;
     // (undocumented)
     start: Vec;
-    // (undocumented)
-    toSvg(first?: boolean): string;
     // (undocumented)
     u: Vec;
     // (undocumented)
@@ -1101,6 +1105,8 @@ export class Ellipse2d extends Geometry2d {
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
+    getSvgPathData(first?: boolean): string;
+    // (undocumented)
     getVertices(): any[];
     // (undocumented)
     h: number;
@@ -1174,6 +1180,8 @@ export abstract class Geometry2d {
     getBounds(): Box;
     // (undocumented)
     getLength(): number;
+    // (undocumented)
+    abstract getSvgPathData(first: boolean): string;
     // (undocumented)
     abstract getVertices(): Vec[];
     // (undocumented)
@@ -1270,6 +1278,8 @@ export class Group2d extends Geometry2d {
     distanceToPoint(point: Vec, hitInside?: boolean): number;
     // (undocumented)
     getArea(): number;
+    // (undocumented)
+    getSvgPathData(): string;
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
@@ -1599,6 +1609,8 @@ export class Point2d extends Geometry2d {
         point: Vec;
     });
     // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, margin: number): boolean;
@@ -1638,6 +1650,8 @@ export class Polyline2d extends Geometry2d {
     });
     // (undocumented)
     getLength(): number;
+    // (undocumented)
+    getSvgPathData(): string;
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
@@ -1699,6 +1713,8 @@ export class Rectangle2d extends Polygon2d {
     });
     // (undocumented)
     getBounds(): Box;
+    // (undocumented)
+    getSvgPathData(): string;
     // (undocumented)
     h: number;
     // (undocumented)
@@ -1912,18 +1928,40 @@ export class SnapManager {
 }
 
 // @public (undocumented)
-export class Stadium2d extends Ellipse2d {
+export class Stadium2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
         height: number;
         width: number;
     });
+    // (undocumented)
+    a: Arc2d;
+    // (undocumented)
+    b: Edge2d;
+    // (undocumented)
+    c: Arc2d;
     // (undocumented)
     config: Omit<Geometry2dOptions, 'isClosed'> & {
         height: number;
         width: number;
     };
     // (undocumented)
+    d: Edge2d;
+    // (undocumented)
+    getBounds(): Box;
+    // (undocumented)
+    getLength(): number;
+    // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
     getVertices(): Vec[];
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    hitTestLineSegment(A: Vec, B: Vec): boolean;
+    // (undocumented)
+    nearestPoint(A: Vec): Vec;
+    // (undocumented)
+    w: number;
 }
 
 // @public (undocumented)

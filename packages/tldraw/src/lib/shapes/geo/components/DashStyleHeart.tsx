@@ -33,7 +33,7 @@ export const DashStyleHeart = React.memo(function DashStyleHeart({
 				return (
 					<path
 						key={`curve_${i}`}
-						d={c.toSvg()}
+						d={c.getSvgPathData()}
 						strokeWidth={sw}
 						fill="none"
 						stroke={theme[color].solid}

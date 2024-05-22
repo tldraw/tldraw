@@ -69,4 +69,13 @@ export class Polyline2d extends Geometry2d {
 		}
 		return false
 	}
+
+	getSvgPathData(): string {
+		const { vertices } = this
+		if (vertices.length < 2) return ''
+		return vertices.reduce((acc, vertex, i) => {
+			if (i === 0) return `M ${vertex.x} ${vertex.y}`
+			return `${acc} L ${vertex.x} ${vertex.y}`
+		}, '')
+	}
 }

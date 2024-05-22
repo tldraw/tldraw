@@ -37,4 +37,9 @@ export class Rectangle2d extends Polygon2d {
 	getBounds() {
 		return new Box(this.x, this.y, this.w, this.h)
 	}
+
+	getSvgPathData(): string {
+		const { x, y, w, h } = this
+		return `M${x},${y} h${w} v${h} h-${w}z`
+	}
 }

@@ -2,7 +2,7 @@ import { TLGeoShape, TLShapeId, Vec, canonicalizeRotation } from '@tldraw/editor
 import * as React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
-import { getCloudArcs, getCloudPath } from '../cloudOutline'
+import { getCloudArcs, getCloudPath } from '../geo-shape-helpers'
 
 export const DashStyleCloud = React.memo(function DashStylePolygon({
 	dash,

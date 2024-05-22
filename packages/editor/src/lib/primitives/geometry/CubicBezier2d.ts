@@ -70,7 +70,7 @@ export class CubicBezier2d extends Polyline2d {
 		return nearest
 	}
 
-	toSvg(first = true) {
+	getSvgPathData(first = true) {
 		const { a, b, c, d } = this
 		return `${first ? `M ${a.toFixed()} ` : ``} C${b.toFixed()} ${c.toFixed()} ${d.toFixed()}`
 	}

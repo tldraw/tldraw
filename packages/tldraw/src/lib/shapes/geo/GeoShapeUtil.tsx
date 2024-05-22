@@ -43,11 +43,16 @@ import {
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
-import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../shared/polygon-helpers'
-import { cloudOutline, getCloudPath } from './cloudOutline'
-import { getEllipseDrawIndicatorPath } from './components/DrawStyleEllipse'
 import { GeoShapeBody } from './components/GeoShapeBody'
-import { getEllipsePath, getHeartParts, getHeartPath, getOvalPath } from './geo-shape-helpers'
+import {
+	cloudOutline,
+	getCloudPath,
+	getEllipseDrawIndicatorPath,
+	getHeartParts,
+	getHeartPath,
+	getRoundedInkyPolygonPath,
+	getRoundedPolygonPoints,
+} from './geo-shape-helpers'
 import { getLines } from './getLines'
 
 const MIN_SIZE_WITH_LABEL = 17 * 3
@@ -456,19 +461,21 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const strokeWidth = STROKE_SIZES[size]
 
+		const geometry = this.editor.getShapeGeometry(shape)
+
 		switch (props.geo) {
 			case 'ellipse': {
 				if (props.dash === 'draw') {
 					return <path d={getEllipseDrawIndicatorPath(id, w, h, strokeWidth)} />
 				}
 
-				return <path d={getEllipsePath(w, h)} />
+				return <path d={geometry.getSvgPathData(true)} />
 			}
 			case 'heart': {
 				return <path d={getHeartPath(w, h)} />
 			}
 			case 'oval': {
-				return <path d={getOvalPath(w, h)} />
+				return <path d={geometry.getSvgPathData(true)} />
 			}
 			case 'cloud': {
 				return <path d={getCloudPath(w, h, id, size)} />
