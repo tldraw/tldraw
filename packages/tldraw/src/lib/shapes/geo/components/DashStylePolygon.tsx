@@ -23,11 +23,9 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 			<ShapeFill theme={theme} d={innerPath} fill={fill} color={color} />
 			<g strokeWidth={strokeWidth} stroke={theme[color].solid} fill="none" pointerEvents="all">
 				{Array.from(Array(outline.length)).map((_, i) => {
-					const A = outline[i]
-					const B = outline[(i + 1) % outline.length]
-
+					const A = Vec.ToFixed(outline[i])
+					const B = Vec.ToFixed(outline[(i + 1) % outline.length])
 					const dist = Vec.Dist(A, B)
-
 					const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, strokeWidth, {
 						style: dash,
 						start: 'outset',
@@ -53,7 +51,7 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 						const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, strokeWidth, {
 							style: dash,
 							start: 'skip',
-							end: 'outset',
+							end: 'skip',
 							snap: dash === 'dotted' ? 4 : undefined,
 						})
 
