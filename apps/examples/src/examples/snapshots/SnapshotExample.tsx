@@ -1,73 +1,83 @@
-import { useCallback, useRef } from 'react'
-import { Editor, TLEditorSnapshot, Tldraw } from 'tldraw'
+import { useCallback, useEffect, useState } from 'react'
+import { TLEditorSnapshot, Tldraw, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import _jsonSnapshot from './snapshot.json'
 
 const jsonSnapshot = _jsonSnapshot as any as TLEditorSnapshot
 
-// There's a guide at the bottom of this file!
-
-export default function SnapshotExample() {
-	const editorRef = useRef<Editor | null>(null)
+// We'll add a toolbar to the top-right of the editor viewport that allows the user to save and load snapshots.
+function SnapshotToolbar() {
+	const editor = useEditor()
 
 	const save = useCallback(() => {
-		if (!editorRef.current) return
-		const { document, session } = editorRef.current.getSnapshot()
-		// The 'document' state is the list of shapes and pages etc
-		// The 'session' state is the state of the editor like the current page, camera positions, zoom level, etc
-		// You probably need to store these separately if you're building a multi-user app.
+		// Call `editor.getSnapshot()` to get the current state of the editor
+		const { document, session } = editor.getSnapshot()
+		// The 'document' state is the set of shapes and pages and images etc.
+		// The 'session' state is the state of the editor like the current page, camera positions, zoom level, etc.
+		// You probably need to store these separately if you're building a multi-user app, so that you can store per-user session state.
+		// For this example we'll just store them together in localStorage.
 		localStorage.setItem('snapshot', JSON.stringify({ document, session }))
-	}, [])
+	}, [editor])
 
 	const load = useCallback(() => {
 		const snapshot = localStorage.getItem('snapshot')
 		if (!snapshot) return
-		editorRef.current?.loadSnapshot(JSON.parse(snapshot))
-		// You can combine the `document` and `session` states into a single snapshot object to load it back into the editor.
-		// Alternatively you can call loadSnapshot on the editor instance with the `document` and `session` states separately, but
-		// make sure you pass the `document` state first
-		// e.g.
-		//   editorRef.current?.loadSnapshot({ document })
-		// then later
-		//   editorRef.current?.loadSnapshot({ session })
-	}, [])
 
-	//[2]
+		// Call `editor.loadSnapshot()` to load a snapshot into the editor
+		editor.loadSnapshot(JSON.parse(snapshot))
+		// You can omit the `session` state, or load it later on it's own.
+		// e.g.
+		//   editor.loadSnapshot({ document })
+		// then optionally later
+		//   editor.loadSnapshot({ session })
+	}, [editor])
+
+	const [showCheckMark, setShowCheckMark] = useState(false)
+	useEffect(() => {
+		if (showCheckMark) {
+			const timeout = setTimeout(() => {
+				setShowCheckMark(false)
+			}, 1000)
+			return () => clearTimeout(timeout)
+		}
+		return
+	})
+
+	return (
+		<div style={{ padding: 20, pointerEvents: 'all', display: 'flex', gap: '10px' }}>
+			<span
+				style={{
+					display: 'inline-block',
+					transition: 'transform 0.2s ease, opacity 0.2s ease',
+					transform: showCheckMark ? `scale(1)` : `scale(0.5)`,
+					opacity: showCheckMark ? 1 : 0,
+				}}
+			>
+				Saved ✅
+			</span>
+			<button
+				onClick={() => {
+					save()
+					setShowCheckMark(true)
+				}}
+			>
+				Save Snapshot
+			</button>
+			<button onClick={load}>Load Snapshot</button>
+		</div>
+	)
+}
+
+export default function SnapshotExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				// You can load an initial snapshot into the editor by passing it to the `snapshot` prop
 				snapshot={jsonSnapshot}
-				onMount={(editor) => {
-					editorRef.current = editor
-				}}
 				components={{
-					SharePanel: () => {
-						return (
-							<div style={{ padding: 20, pointerEvents: 'all' }}>
-								<button onClick={save}>Save</button>
-								<button onClick={load}>Load</button>
-							</div>
-						)
-					},
+					SharePanel: SnapshotToolbar,
 				}}
 			/>
 		</div>
 	)
 }
-/*
-This example shows how to load a snapshot into the editor. Thanks to our 
-migration system, you can load snapshots from any version of Tldraw. The
-snapshot we're using can be found in the snapshot.json file in this folder.
-You can generate a snapshot by using editor.store.getSnapshot().
-
-There are two ways to load a snapshot:
-
-[1] Via the `snapshot` prop of the Tldraw component.
-
-[2] Using editor.store.loadSnapshot() in the callback of the onMount prop of the
-	Tldraw component.
-
-
-Tips:
-Want to migrate a snapshot but not load it? Use `editor.store.migrateSnapshot()`
- */
