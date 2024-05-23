@@ -169,7 +169,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 					break
 				}
 				const indices = getIndices(element.points.length)
-				console.log('LINWWWW', element.points, indices)
 
 				tldrawContent.shapes.push({
 					...base,
@@ -190,7 +189,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 					},
 				})
 
-				console.log('line', tldrawContent.shapes[tldrawContent.shapes.length - 1])
 				break
 			}
 			case 'arrow': {
