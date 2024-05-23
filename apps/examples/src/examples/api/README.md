@@ -3,6 +3,7 @@ title: Controlling the editor
 component: ./APIExample.tsx
 category: editor-api
 priority: 1
+keywords: [api]
 ---
 
 Manipulate the contents of the canvas using the editor API.

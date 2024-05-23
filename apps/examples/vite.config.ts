@@ -70,6 +70,7 @@ function exampleReadmePlugin(): PluginOption {
 				`export const loadComponent = async () => {`,
 				`    return (await import(${JSON.stringify(frontmatter.component)})).default;`,
 				`};`,
+				`export const keywords = ${JSON.stringify(frontmatter.keywords)};`,
 			]
 
 			return result.join('\n')
@@ -105,11 +106,17 @@ function parseFrontMatter(data: unknown, fileName: string) {
 		throw new Error(`Frontmatter key 'hide' must be boolean in ${fileName}`)
 	}
 
+	const keywords = 'keywords' in data ? data.keywords : []
+	if (!Array.isArray(keywords)) {
+		throw new Error(`Frontmatter key 'keywords' must be array in ${fileName}`)
+	}
+
 	return {
 		title: data.title,
 		component: data.component,
 		priority,
 		category,
 		hide,
+		keywords,
 	}
 }

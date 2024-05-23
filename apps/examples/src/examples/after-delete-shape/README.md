@@ -3,6 +3,7 @@ title: After delete shape
 component: ./AfterDeleteShapeExample.tsx
 category: editor-api
 priority: 5
+keywords: [handler, register, side effects, records]
 ---
 
 Register a handler to run after shapes are deleted.

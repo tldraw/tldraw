@@ -2,6 +2,7 @@
 title: Camera options
 component: ./CameraOptionsExample.tsx
 category: basic
+keywords: [camera, api, zoom, constrain, fixed, pan]
 ---
 
 You can set the camera's options and constraints.

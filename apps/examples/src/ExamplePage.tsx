@@ -32,7 +32,7 @@ export function ExamplePage({
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
 	}
-
+	console.log(examples[6].value[0].keywords)
 	return (
 		<DialogContextProvider>
 			<div className="example">
@@ -86,8 +86,13 @@ export function ExamplePage({
 								<ul className="example__sidebar__category__items">
 									{examples
 										.find((category) => category.id === currentCategory)
-										?.value.filter((example) =>
-											example.title.toLowerCase().includes(filterValue.toLowerCase())
+										?.value.filter(
+											(example) =>
+												// Filter by title and keywords
+												example.title.toLowerCase().includes(filterValue.toLowerCase()) ||
+												example.keywords.some((keyword) =>
+													keyword.toLowerCase().includes(filterValue.toLowerCase())
+												)
 										)
 										.map((sidebarExample) => (
 											<ExampleSidebarListItem

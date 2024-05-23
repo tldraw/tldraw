@@ -10,6 +10,7 @@ export type Example = {
 	category: Category
 	priority: number
 	componentFile: string
+	keywords: string[]
 	loadComponent: () => Promise<ComponentType>
 }
 

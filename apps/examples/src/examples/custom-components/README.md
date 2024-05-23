@@ -3,6 +3,7 @@ title: Canvas components
 component: ./CustomComponentsExample.tsx
 category: ui
 priority: 2
+keywords: [custom]
 ---
 
 Replace tldraw's on-canvas UI with your own.
