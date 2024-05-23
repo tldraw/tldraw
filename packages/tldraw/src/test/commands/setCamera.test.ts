@@ -108,7 +108,6 @@ describe('With default options', () => {
 		editor.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 	})
-	it.todo('resets zoom')
 })
 
 it('Sets the camera options', () => {
