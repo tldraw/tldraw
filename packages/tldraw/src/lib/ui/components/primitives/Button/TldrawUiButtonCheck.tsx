@@ -1,7 +1,9 @@
 import { TldrawUiIcon } from '../TldrawUiIcon'
 
 /** @public */
-export type TLUiButtonCheckProps = { checked: boolean }
+export interface TLUiButtonCheckProps {
+	checked: boolean
+}
 
 /** @public */
 export function TldrawUiButtonCheck({ checked }: TLUiButtonCheckProps) {

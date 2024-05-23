@@ -18,16 +18,96 @@ const wheelEvent = {
 	ctrlKey: false,
 } as const
 
+const pinchEvent = {
+	type: 'pinch',
+	name: 'pinch',
+	delta: new Vec(0, 0, 1),
+	point: new Vec(0, 0),
+	shiftKey: false,
+	altKey: false,
+	ctrlKey: false,
+} as const
+
 describe('With default options', () => {
 	beforeEach(() => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS })
 	})
-
-	it.todo('pans')
-	it.todo('zooms in')
-	it.todo('zooms out')
-	it.todo('resets zoom')
-	it.todo('pans with wheel')
+	it('pans', () => {
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch_start',
+		})
+		editor.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch',
+			delta: new Vec(100, -10),
+		})
+		editor.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch_end',
+		})
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 100, y: -10, z: 1 })
+	})
+	it('pans with wheel', () => {
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		editor.dispatch({ ...wheelEvent, delta: new Vec(5, 10) })
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
+	})
+	it('zooms with wheel', () => {
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		// zoom in 10%
+		editor.dispatch({ ...wheelEvent, delta: new Vec(0, 0, -0.1), ctrlKey: true })
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.9 })
+		// zoom out 10%
+		editor.dispatch({ ...wheelEvent, delta: new Vec(0, 0, 0.1), ctrlKey: true })
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.99 })
+	})
+	it('pinch zooms', () => {
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		// zoom in
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch_start',
+		})
+		editor.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch',
+			point: new Vec(0, 0, 0.5),
+		})
+		editor.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch_end',
+		})
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.5 })
+		// zoom out
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch_start',
+		})
+		editor.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch',
+			point: new Vec(0, 0, 1),
+		})
+		editor.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch_end',
+		})
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+	})
 })
 
 it('Sets the camera options', () => {

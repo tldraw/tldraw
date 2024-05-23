@@ -6,14 +6,14 @@ import { BoundsSnaps } from './BoundsSnaps'
 import { HandleSnaps } from './HandleSnaps'
 
 /** @public */
-export type PointsSnapIndicator = {
+export interface PointsSnapIndicator {
 	id: string
 	type: 'points'
 	points: VecLike[]
 }
 
 /** @public */
-export type GapsSnapIndicator = {
+export interface GapsSnapIndicator {
 	id: string
 	type: 'gaps'
 	direction: 'horizontal' | 'vertical'

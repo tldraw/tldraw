@@ -224,6 +224,7 @@ export {
 } from './lib/editor/types/external-content'
 export {
 	type RequiredKeys,
+	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
 	type TLSvgOptions,

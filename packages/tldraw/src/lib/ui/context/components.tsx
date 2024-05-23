@@ -61,7 +61,7 @@ export type TLUiComponents = Partial<{
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
 
 /** @public */
-export type TLUiComponentsProviderProps = {
+export interface TLUiComponentsProviderProps {
 	overrides?: TLUiComponents
 	children: ReactNode
 }

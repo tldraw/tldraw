@@ -194,10 +194,11 @@ const unknown: Validator<unknown>;
 const unknownObject: Validator<Record<string, unknown>>;
 
 // @public (undocumented)
-type Validatable<T> = {
-    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;
+interface Validatable<T> {
+    // (undocumented)
     validate: (value: unknown) => T;
-};
+    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;
+}
 
 // @public (undocumented)
 class ValidationError extends Error {

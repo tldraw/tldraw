@@ -59,7 +59,7 @@ export type TLUiActionsContextType = Record<string, TLUiActionItem>
 export const ActionsContext = React.createContext<TLUiActionsContextType | null>(null)
 
 /** @public */
-export type ActionsProviderProps = {
+export interface ActionsProviderProps {
 	overrides?: (
 		editor: Editor,
 		actions: TLUiActionsContextType,

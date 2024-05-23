@@ -96,13 +96,26 @@ export type TLWheelEventInfo = TLBaseEventInfo & {
 }
 
 /** @public */
-export type TLCancelEventInfo = { type: 'misc'; name: 'cancel' }
+export interface TLCancelEventInfo {
+	type: 'misc'
+	name: 'cancel'
+}
 /** @public */
-export type TLCompleteEventInfo = { type: 'misc'; name: 'complete' }
+export interface TLCompleteEventInfo {
+	type: 'misc'
+	name: 'complete'
+}
 /** @public */
-export type TLInterruptEventInfo = { type: 'misc'; name: 'interrupt' }
+export interface TLInterruptEventInfo {
+	type: 'misc'
+	name: 'interrupt'
+}
 /** @public */
-export type TLTickEventInfo = { type: 'misc'; name: 'tick'; elapsed: number }
+export interface TLTickEventInfo {
+	type: 'misc'
+	name: 'tick'
+	elapsed: number
+}
 
 /** @public */
 export type TLEventInfo =

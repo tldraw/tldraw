@@ -11,7 +11,7 @@ import { Editor, TLContent, VecLike } from '@tldraw/editor'
 export function pasteTldrawContent(editor: Editor, clipboard: TLContent, point?: VecLike) {
 	const p = point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : undefined)
 
-	const seletionBoundsBefore = editor.getSelectionPageBounds()
+	const selectionBoundsBefore = editor.getSelectionPageBounds()
 	editor.mark('paste')
 	editor.putContentOntoCurrentPage(clipboard, {
 		point: p,
@@ -19,9 +19,9 @@ export function pasteTldrawContent(editor: Editor, clipboard: TLContent, point?:
 	})
 	const selectedBoundsAfter = editor.getSelectionPageBounds()
 	if (
-		seletionBoundsBefore &&
+		selectionBoundsBefore &&
 		selectedBoundsAfter &&
-		seletionBoundsBefore?.collides(selectedBoundsAfter)
+		selectionBoundsBefore?.collides(selectedBoundsAfter)
 	) {
 		// Creates a 'puff' to show a paste has happened.
 		editor.updateInstanceState({ isChangingStyle: true })

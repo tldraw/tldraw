@@ -6,7 +6,7 @@ import { IdOf, UnknownRecord } from './BaseRecord'
  *
  * @public
  */
-export type RecordsDiff<R extends UnknownRecord> = {
+export interface RecordsDiff<R extends UnknownRecord> {
 	added: Record<IdOf<R>, R>
 	updated: Record<IdOf<R>, [from: R, to: R]>
 	removed: Record<IdOf<R>, R>

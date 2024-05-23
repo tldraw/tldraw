@@ -45,7 +45,7 @@ export type TLSerializedStore = SerializedStore<TLRecord>
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>
 
 /** @public */
-export type TLStoreProps = {
+export interface TLStoreProps {
 	defaultName: string
 }
 
