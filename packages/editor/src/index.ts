@@ -168,6 +168,7 @@ export {
 	type TLOnTranslateStartHandler,
 	type TLResizeInfo,
 	type TLResizeMode,
+	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
