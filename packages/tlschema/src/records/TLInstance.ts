@@ -5,7 +5,7 @@ import {
 	createRecordType,
 	RecordId,
 } from '@tldraw/store'
-import { JsonObject } from '@tldraw/utils'
+import { filterEntries, JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { BoxModel, boxModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
@@ -108,6 +108,14 @@ export const shouldKeyBePreservedBetweenSessions = {
 	meta: false, // does not preserve because who knows what's in there, leave it up to sdk users to save and reinstate
 	duplicateProps: false, //
 } as const satisfies { [K in keyof TLInstance]: boolean }
+
+/** @internal */
+export const pluckPreservingValues = (val?: TLInstance | null): null | Partial<TLInstance> =>
+	val
+		? (filterEntries(val, (key) => {
+				return shouldKeyBePreservedBetweenSessions[key as keyof TLInstance]
+			}) as Partial<TLInstance>)
+		: null
 
 /** @public */
 export type TLInstanceId = RecordId<TLInstance>
