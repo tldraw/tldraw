@@ -78,6 +78,15 @@ async function build() {
 							'X-Content-Type-Options': 'nosniff',
 						},
 					},
+					// server up index.html specifically because we want to include
+					// security headers. otherwise, it goes to the handle: 'miss'
+					// part below (and _not_ to the spaRoutes as maybe expected!)
+					{
+						check: true,
+						src: '/',
+						dest: '/index.html',
+						headers: commonSecurityHeaders,
+					},
 					// serve static files
 					{
 						handle: 'miss',
