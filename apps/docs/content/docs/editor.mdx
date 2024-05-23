@@ -350,6 +350,60 @@ The camera may be in two states, `idle` or `moving`.
 
 You can get the current camera state with [Editor#getCameraState](?).
 
+# Bindings
+
+A binding is a relationship from one [shape](/docs/shapes) to another. They're used to connect
+shapes so they can update together or depend on one and other. For example: tldraw's default arrow
+shape uses bindings to connect the ends of the arrows to the shapes they're pointing to, one binding
+for each end of the arrow.
+
+You can create different types of binding that do all sorts of different things with relationships
+between shapes. For example, you could create a [sticker
+shape](/examples/shapes/tools/sticker-bindings) that sticks to any other shape it's dropped onto.
+
+## The binding object
+
+Bindings are records (JSON objects) that live in the [store](/docs/editor#store). For example,
+here's a binding record for one end of an arrow shape:
+
+```json
+{
+    "id": "binding:someId",
+    "typeName": "binding"
+    "type": "arrow",
+    "fromId": "shape:arrowId",
+    "toId": "shape:someOtherShapeId",
+    "props": {
+        "terminal": "end"
+        "isPrecise": true,
+        "isExact": false,
+        "normalizedAnchor": {
+            "x": 0.5,
+            "y": 0.5
+        },
+    },
+    "meta": {},
+}
+```
+
+Every binding contains some base information - its ID & the type of binding, as well as the ID of
+the shape that a binding comes _from_ and the ID of the shape that the binding goes _to_. These two
+properties work the same way, but it's often useful to have an explicit direction in a binding
+relationship. For example, an arrow binding always goes _from_ an arrow _to_ the shape it's bound
+to.
+
+Bindings contain their own type-specific information in the `props` object. Each type of binding can
+have different props.
+
+Bindings also have a `meta` property which can be used by your application to add data to bindings
+you haven't built yourself. You can read more about the meta property
+[here](/docs/shapes#Meta-information).
+
+## The `BindingUtil` class
+
+While bindings themselves are plain JSON objects, we use
+[`BindingUtil`](/reference/editor/BindingUtil) classes to define how bindings should work.
+
 # Common things to do with the editor
 
 ### Create a shape id
