@@ -54,19 +54,21 @@ export default function () {
 
 In the example above, both editors would synchronize their document locally. They would still have two independent instance states (e.g. selections) but the document would be kept in sync and persisted under the same key.
 
-## Document Snapshots
+## State Snapshots
 
-You can get a JSON snapshot of the editor's content using the [Editor#store](?)'s [Store#getSnapshot](?) method.
+You can get a JSON snapshot of the document content and UI 'session' state using the [Editor#getSnapshot](?) method.
 
 ```tsx
-function SaveButton() {
+function SaveButton({ documentId, userId }) {
 	const editor = useEditor()
 	return (
 		<button
 			onClick={() => {
-				const snapshot = editor.store.getSnapshot()
-				const stringified = JSON.stringify(snapshot)
-				localStorage.setItem('my-editor-snapshot', stringified)
+				const { document, session } = editor.getSnapshot()
+				// If you are building a multi-user app, you probably want to store the document and session separately
+				// because the session is user-specific.
+				await saveDocumentState(documentId, document)
+				await saveSessionState(documentId, userId, session)
 			}}
 		>
 			Save
@@ -75,7 +77,27 @@ function SaveButton() {
 }
 ```
 
-You can load the snapshot into a new editor with [Store#loadSnapshot](?).
+You can load the snapshot into a new editor with the `snapshot` prop.
+
+```tsx
+function MyApp({ userId, documentId }) {
+	const [snapshot, setSnapshot] = useState(null)
+
+	useEffect(() => {
+		async function loadSnapshot() {
+			const document = await getDocumentState(documentId)
+			const session = await getSessionState(documentId, userId)
+			setSnapshot({ document, session })
+		}
+
+		loadSnapshot()
+	}, [documentId, userId])
+
+	return snapshot ? <Tldraw snapshot={snapshot} /> : null
+}
+```
+
+You can load the snapshot into an existing editor with [Editor#loadSnapshot](?).
 
 ```tsx
 function LoadButton() {
@@ -85,7 +107,7 @@ function LoadButton() {
 			onClick={() => {
 				const stringified = localStorage.getItem('my-editor-snapshot')
 				const snapshot = JSON.parse(stringified)
-				editor.store.loadSnapshot(snapshot)
+				editor.loadSnapshot(snapshot)
 			}}
 		>
 			Load
