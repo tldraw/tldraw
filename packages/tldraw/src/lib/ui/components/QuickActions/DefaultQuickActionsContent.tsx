@@ -1,6 +1,11 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
-import { useCanRedo, useCanUndo, useUnlockedSelectedShapesCount } from '../../hooks/menu-hooks'
+import {
+	useCanRedo,
+	useCanUndo,
+	useIsInSelectState,
+	useUnlockedSelectedShapesCount,
+} from '../../hooks/menu-hooks'
 import { useReadonly } from '../../hooks/useReadonly'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
@@ -21,6 +26,7 @@ export function DefaultQuickActionsContent() {
 		() => editor.isInAny('select', 'hand', 'zoom'),
 		[editor]
 	)
+	const isInSelectState = useIsInSelectState()
 
 	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
@@ -28,8 +34,8 @@ export function DefaultQuickActionsContent() {
 		<>
 			<TldrawUiMenuItem {...actions['undo']} disabled={!canUndo} />
 			<TldrawUiMenuItem {...actions['redo']} disabled={!canRedo} />
-			<TldrawUiMenuItem {...actions['delete']} disabled={!oneSelected} />
-			<TldrawUiMenuItem {...actions['duplicate']} disabled={!oneSelected} />
+			<TldrawUiMenuItem {...actions['delete']} disabled={!oneSelected || !isInSelectState} />
+			<TldrawUiMenuItem {...actions['duplicate']} disabled={!oneSelected || !isInSelectState} />
 		</>
 	)
 }

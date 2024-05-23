@@ -6,6 +6,7 @@ import {
 	useAllowGroup,
 	useAllowUngroup,
 	useHasLinkShapeSelected,
+	useIsInSelectState,
 	useThreeStackableItems,
 	useUnlockedSelectedShapesCount,
 } from '../../hooks/menu-hooks'
@@ -31,17 +32,19 @@ export function DefaultActionsMenuContent() {
 export function AlignMenuItems() {
 	const actions = useActions()
 	const twoSelected = useUnlockedSelectedShapesCount(2)
+	const isInSelectState = useIsInSelectState()
+	const disabled = !twoSelected || !isInSelectState
 
 	return (
 		<>
-			<TldrawUiMenuItem {...actions['align-left']} disabled={!twoSelected} />
-			<TldrawUiMenuItem {...actions['align-center-horizontal']} disabled={!twoSelected} />
-			<TldrawUiMenuItem {...actions['align-right']} disabled={!twoSelected} />
-			<TldrawUiMenuItem {...actions['stretch-horizontal']} disabled={!twoSelected} />
-			<TldrawUiMenuItem {...actions['align-top']} disabled={!twoSelected} />
-			<TldrawUiMenuItem {...actions['align-center-vertical']} disabled={!twoSelected} />
-			<TldrawUiMenuItem {...actions['align-bottom']} disabled={!twoSelected} />
-			<TldrawUiMenuItem {...actions['stretch-vertical']} disabled={!twoSelected} />
+			<TldrawUiMenuItem {...actions['align-left']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['align-center-horizontal']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['align-right']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['stretch-horizontal']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['align-top']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['align-center-vertical']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['align-bottom']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['stretch-vertical']} disabled={disabled} />
 		</>
 	)
 }
@@ -50,11 +53,13 @@ export function AlignMenuItems() {
 export function DistributeMenuItems() {
 	const actions = useActions()
 	const threeSelected = useUnlockedSelectedShapesCount(3)
+	const isInSelectState = useIsInSelectState()
+	const disabled = !threeSelected || !isInSelectState
 
 	return (
 		<>
-			<TldrawUiMenuItem {...actions['distribute-horizontal']} disabled={!threeSelected} />
-			<TldrawUiMenuItem {...actions['distribute-vertical']} disabled={!threeSelected} />
+			<TldrawUiMenuItem {...actions['distribute-horizontal']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['distribute-vertical']} disabled={disabled} />
 		</>
 	)
 }
@@ -63,11 +68,13 @@ export function DistributeMenuItems() {
 export function StackMenuItems() {
 	const actions = useActions()
 	const threeStackableItems = useThreeStackableItems()
+	const isInSelectState = useIsInSelectState()
+	const disabled = !threeStackableItems || !isInSelectState
 
 	return (
 		<>
-			<TldrawUiMenuItem {...actions['stack-horizontal']} disabled={!threeStackableItems} />
-			<TldrawUiMenuItem {...actions['stack-vertical']} disabled={!threeStackableItems} />
+			<TldrawUiMenuItem {...actions['stack-horizontal']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['stack-vertical']} disabled={disabled} />
 		</>
 	)
 }
@@ -76,13 +83,15 @@ export function StackMenuItems() {
 export function ReorderMenuItems() {
 	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
+	const isInSelectState = useIsInSelectState()
+	const disabled = !oneSelected || !isInSelectState
 
 	return (
 		<>
-			<TldrawUiMenuItem {...actions['send-to-back']} disabled={!oneSelected} />
-			<TldrawUiMenuItem {...actions['send-backward']} disabled={!oneSelected} />
-			<TldrawUiMenuItem {...actions['bring-forward']} disabled={!oneSelected} />
-			<TldrawUiMenuItem {...actions['bring-to-front']} disabled={!oneSelected} />
+			<TldrawUiMenuItem {...actions['send-to-back']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['send-backward']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['bring-forward']} disabled={disabled} />
+			<TldrawUiMenuItem {...actions['bring-to-front']} disabled={disabled} />
 		</>
 	)
 }
@@ -107,24 +116,30 @@ export function ZoomTo100MenuItem() {
 export function RotateCCWMenuItem() {
 	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
+	const isInSelectState = useIsInSelectState()
+	const disabled = !oneSelected || !isInSelectState
 
-	return <TldrawUiMenuItem {...actions['rotate-ccw']} disabled={!oneSelected} />
+	return <TldrawUiMenuItem {...actions['rotate-ccw']} disabled={disabled} />
 }
 /** @public */
 
 export function RotateCWMenuItem() {
 	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
+	const isInSelectState = useIsInSelectState()
+	const disabled = !oneSelected || !isInSelectState
 
-	return <TldrawUiMenuItem {...actions['rotate-cw']} disabled={!oneSelected} />
+	return <TldrawUiMenuItem {...actions['rotate-cw']} disabled={disabled} />
 }
 /** @public */
 
 export function EditLinkMenuItem() {
 	const actions = useActions()
 	const showEditLink = useHasLinkShapeSelected()
+	const isInSelectState = useIsInSelectState()
+	const disabled = !showEditLink || !isInSelectState
 
-	return <TldrawUiMenuItem {...actions['edit-link']} disabled={!showEditLink} />
+	return <TldrawUiMenuItem {...actions['edit-link']} disabled={disabled} />
 }
 /** @public */
 
