@@ -18,11 +18,11 @@ import {
 	VecLike,
 	ZERO_INDEX_KEY,
 	compact,
+	createBindingId,
 	createShapeId,
 	getIndexAbove,
 	getIndices,
 	isShapeId,
-	uniqueId,
 } from '@tldraw/editor'
 
 /**
@@ -38,7 +38,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 
 	const tldrawContent: TLContent = {
 		shapes: [],
-		// todo(alex) #write these properly
 		bindings: [],
 		rootShapeIds: [],
 		assets: [],
@@ -165,9 +164,12 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 				break
 			}
 			case 'line': {
-				const start = element.points[0]
-				const end = element.points[element.points.length - 1]
+				const points = element.points.slice()
+				if (points.length < 2) {
+					break
+				}
 				const indices = getIndices(element.points.length)
+				console.log('LINWWWW', element.points, indices)
 
 				tldrawContent.shapes.push({
 					...base,
@@ -177,39 +179,18 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						size: strokeWidthsToSizes[element.strokeWidth],
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						spline: element.roundness ? 'cubic' : 'line',
-						handles: {
-							start: {
-								id: 'start',
-								type: 'vertex',
-								index: indices[0],
-								x: start[0],
-								y: start[1],
-							},
-							end: {
-								id: 'end',
-								type: 'vertex',
-								index: indices[indices.length - 1],
-								x: end[0],
-								y: end[1],
-							},
+						points: {
 							...Object.fromEntries(
-								element.points.slice(1, -1).map(([x, y]: number[], i: number) => {
-									const id = uniqueId()
-									return [
-										id,
-										{
-											id,
-											type: 'vertex',
-											index: indices[i + 1],
-											x,
-											y,
-										},
-									]
+								element.points.map(([x, y]: number[], i: number) => {
+									const index = indices[i]
+									return [index, { id: index, index, x, y }]
 								})
 							),
 						},
 					},
 				})
+
+				console.log('line', tldrawContent.shapes[tldrawContent.shapes.length - 1])
 				break
 			}
 			case 'arrow': {
@@ -241,36 +222,45 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth] ?? 'm',
 						color: colorsToColors[element.strokeColor] ?? 'black',
-						start: startTargetId
-							? {
-									type: 'binding',
-									boundShapeId: startTargetId,
-									normalizedAnchor: { x: 0.5, y: 0.5 },
-									isPrecise: false,
-									isExact: false,
-								}
-							: {
-									type: 'point',
-									x: start[0],
-									y: start[1],
-								},
-						end: endTargetId
-							? {
-									type: 'binding',
-									boundShapeId: endTargetId,
-									normalizedAnchor: { x: 0.5, y: 0.5 },
-									isPrecise: false,
-									isExact: false,
-								}
-							: {
-									type: 'point',
-									x: end[0],
-									y: end[1],
-								},
+						start: { x: start[0], y: start[1] },
+						end: { x: end[0], y: end[1] },
 						arrowheadEnd: arrowheadsToArrowheadTypes[element.endArrowhead] ?? 'none',
 						arrowheadStart: arrowheadsToArrowheadTypes[element.startArrowhead] ?? 'none',
 					},
 				})
+
+				if (startTargetId) {
+					tldrawContent.bindings!.push({
+						id: createBindingId(),
+						typeName: 'binding',
+						type: 'arrow',
+						fromId: id,
+						toId: startTargetId,
+						props: {
+							terminal: 'start',
+							normalizedAnchor: { x: 0.5, y: 0.5 },
+							isPrecise: false,
+							isExact: false,
+						},
+						meta: {},
+					})
+				}
+				if (endTargetId) {
+					tldrawContent.bindings!.push({
+						id: createBindingId(),
+						typeName: 'binding',
+						type: 'arrow',
+						fromId: id,
+						toId: endTargetId,
+						props: {
+							terminal: 'end',
+							normalizedAnchor: { x: 0.5, y: 0.5 },
+							isPrecise: false,
+							isExact: false,
+						},
+						meta: {},
+					})
+				}
 				break
 			}
 			case 'text': {
