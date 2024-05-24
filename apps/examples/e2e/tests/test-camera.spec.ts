@@ -137,6 +137,9 @@ test.describe('camera', () => {
 			zoomDirection: 'out',
 			steps: 3,
 		})
+
+		await page.waitForTimeout(1000)
+
 		expect(await page.evaluate(() => editor.getZoomLevel())).toBeCloseTo(expectedZoomLevel, 1)
 	})
 
