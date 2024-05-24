@@ -3,7 +3,7 @@ import { TLRecord } from '@tldraw/tlschema'
 import { schema } from '@tldraw/tlsync'
 import { Result, objectMapEntries } from '@tldraw/utils'
 
-type SnapshotRequestBody = {
+interface SnapshotRequestBody {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>
 }

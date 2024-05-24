@@ -18,8 +18,9 @@ import {
 	TLAssetId,
 	TLAssetPartial,
 	TLBinding,
+	TLBindingCreate,
 	TLBindingId,
-	TLBindingPartial,
+	TLBindingUpdate,
 	TLCamera,
 	TLCursor,
 	TLCursorType,
@@ -853,7 +854,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getBindingUtil<S extends TLUnknownBinding>(binding: S | TLBindingPartial<S>): BindingUtil<S>
+	getBindingUtil<S extends TLUnknownBinding>(binding: S | { type: S['type'] }): BindingUtil<S>
 	getBindingUtil<S extends TLUnknownBinding>(type: S['type']): BindingUtil<S>
 	getBindingUtil<T extends BindingUtil>(
 		type: T extends BindingUtil<infer R> ? R['type'] : string
@@ -3619,7 +3620,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updatePage(partial: RequiredKeys<TLPage, 'id'>): this {
+	updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this {
 		if (this.getInstanceState().isReadonly) return this
 
 		const prev = this.getPage(partial.id)
@@ -5146,27 +5147,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return result.filter((b) => b.type === type) as Binding[]
 	}
 
-	createBindings(partials: RequiredKeys<TLBindingPartial, 'type' | 'toId' | 'fromId'>[]) {
-		const bindings = partials.map((partial) => {
+	createBindings(partials: TLBindingCreate[]) {
+		const bindings: TLBinding[] = []
+		for (const partial of partials) {
+			const fromShape = this.getShape(partial.fromId)
+			const toShape = this.getShape(partial.toId)
+			if (!fromShape || !toShape) continue
+			if (!this.canBindShapes({ fromShape, toShape, binding: partial })) continue
+
 			const util = this.getBindingUtil<TLUnknownBinding>(partial.type)
 			const defaultProps = util.getDefaultProps()
-			return this.store.schema.types.binding.create({
+			const binding = this.store.schema.types.binding.create({
 				...partial,
 				id: partial.id ?? createBindingId(),
 				props: {
 					...defaultProps,
 					...partial.props,
 				},
-			})
-		})
+			}) as TLBinding
+
+			bindings.push(binding)
+		}
+
 		this.store.put(bindings)
 		return this
 	}
-	createBinding(partial: RequiredKeys<TLBindingPartial, 'type' | 'fromId' | 'toId'>) {
+	createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>) {
 		return this.createBindings([partial])
 	}
 
-	updateBindings(partials: (TLBindingPartial | null | undefined)[]) {
+	updateBindings(partials: (TLBindingUpdate | null | undefined)[]) {
 		const updated: TLBinding[] = []
 
 		for (const partial of partials) {
@@ -5178,6 +5188,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const updatedBinding = applyPartialToRecordWithProps(current, partial)
 			if (updatedBinding === current) continue
 
+			const fromShape = this.getShape(updatedBinding.fromId)
+			const toShape = this.getShape(updatedBinding.toId)
+			if (!fromShape || !toShape) continue
+			if (!this.canBindShapes({ fromShape, toShape, binding: updatedBinding })) continue
+
 			updated.push(updatedBinding)
 		}
 
@@ -5186,7 +5201,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	updateBinding(partial: TLBindingPartial) {
+	updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>) {
 		return this.updateBindings([partial])
 	}
 
@@ -5197,6 +5212,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	deleteBinding(binding: TLBinding | TLBindingId) {
 		return this.deleteBindings([binding])
+	}
+	canBindShapes({
+		fromShape,
+		toShape,
+		binding,
+	}: {
+		fromShape: TLShape | { type: TLShape['type'] } | TLShape['type']
+		toShape: TLShape | { type: TLShape['type'] } | TLShape['type']
+		binding: TLBinding | { type: TLBinding['type'] } | TLBinding['type']
+	}): boolean {
+		const fromShapeType = typeof fromShape === 'string' ? fromShape : fromShape.type
+		const toShapeType = typeof toShape === 'string' ? toShape : toShape.type
+		const bindingType = typeof binding === 'string' ? binding : binding.type
+
+		const canBindOpts = { fromShapeType, toShapeType, bindingType }
+
+		if (fromShapeType === toShapeType) {
+			return this.getShapeUtil(fromShapeType).canBind(canBindOpts)
+		}
+
+		return (
+			this.getShapeUtil(fromShapeType).canBind(canBindOpts) &&
+			this.getShapeUtil(toShapeType).canBind(canBindOpts)
+		)
 	}
 
 	/* -------------------- Commands -------------------- */
@@ -6771,7 +6810,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let remaining = duration
 		let t: number
 
-		type ShapeAnimation = {
+		interface ShapeAnimation {
 			partial: TLShapePartial
 			values: { prop: string; from: number; to: number }[]
 		}

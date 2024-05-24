@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { version } from '../../ui/version'
 
 /** @public */
-export type TLEditorAssetUrls = {
+export interface TLEditorAssetUrls {
 	fonts: {
 		monospace: string
 		serif: string

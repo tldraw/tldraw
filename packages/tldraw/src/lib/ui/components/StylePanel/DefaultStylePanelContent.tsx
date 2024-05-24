@@ -35,7 +35,7 @@ import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
 
 /** @public */
-export type TLUiStylePanelContentProps = {
+export interface TLUiStylePanelContentProps {
 	styles: ReturnType<typeof useRelevantStyles>
 }
 

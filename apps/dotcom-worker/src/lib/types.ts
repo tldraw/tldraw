@@ -1,7 +1,7 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 // This type isn't available in @cloudflare/workers-types yet
-export type Analytics = {
+export interface Analytics {
 	writeDataPoint(data: {
 		blobs?: string[]
 		doubles?: number[]

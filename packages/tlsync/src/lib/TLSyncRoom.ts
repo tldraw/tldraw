@@ -48,7 +48,7 @@ import {
 } from './protocol'
 
 /** @public */
-export type TLRoomSocket<R extends UnknownRecord> = {
+export interface TLRoomSocket<R extends UnknownRecord> {
 	isOpen: boolean
 	sendMessage: (msg: TLSocketServerSentEvent<R>) => void
 	close: () => void
@@ -120,7 +120,7 @@ class DocumentState<R extends UnknownRecord> {
 }
 
 /** @public */
-export type RoomSnapshot = {
+export interface RoomSnapshot {
 	clock: number
 	documents: Array<{ state: UnknownRecord; lastChangedClock: number }>
 	tombstones?: Record<string, number>
@@ -814,7 +814,9 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		transaction((rollback) => {
 			// collect actual ops that resulted from the push
 			// these will be broadcast to other users
-			type ActualChanges = { diff: NetworkDiff<R> | null }
+			interface ActualChanges {
+				diff: NetworkDiff<R> | null
+			}
 			const docChanges: ActualChanges = { diff: null }
 			const presenceChanges: ActualChanges = { diff: null }
 

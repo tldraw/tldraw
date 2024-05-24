@@ -15,7 +15,7 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
 /** @public */
-export type TLUiActionsMenuProps = {
+export interface TLUiActionsMenuProps {
 	children?: ReactNode
 }
 

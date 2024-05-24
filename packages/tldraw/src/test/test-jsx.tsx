@@ -20,7 +20,7 @@ const createElement = (tag: string) => {
 	return component
 }
 
-type CommonProps = {
+interface CommonProps {
 	x: number
 	y: number
 	id?: TLShapeId

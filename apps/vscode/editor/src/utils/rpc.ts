@@ -2,7 +2,7 @@ import { uniqueId } from 'tldraw'
 import type { VscodeMessagePairs } from '../../../messages'
 import { vscode } from './vscode'
 
-type SimpleRpcOpts = {
+interface SimpleRpcOpts {
 	timeout: number
 }
 class SimpleRpcError extends Error {

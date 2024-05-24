@@ -3,7 +3,7 @@ import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import { Editor } from '../Editor'
 
-type ScribbleItem = {
+interface ScribbleItem {
 	id: string
 	scribble: TLScribble
 	timeoutMs: number

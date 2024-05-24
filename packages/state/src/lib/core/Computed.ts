@@ -53,7 +53,10 @@ export const WithDiff = singleton(
 			) {}
 		}
 )
-export type WithDiff<Value, Diff> = { value: Value; diff: Diff }
+export interface WithDiff<Value, Diff> {
+	value: Value
+	diff: Diff
+}
 
 /**
  * When writing incrementally-computed signals it is convenient (and usually more performant) to incrementally compute the diff too.

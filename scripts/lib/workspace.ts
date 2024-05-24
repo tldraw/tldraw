@@ -6,7 +6,7 @@ export type PackageJson = { name: string; private?: boolean; workspaces?: string
 	string,
 	any
 >
-export type Package = {
+export interface Package {
 	packageJson: PackageJson
 	relativePath: string
 	path: string

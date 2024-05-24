@@ -46,7 +46,7 @@
 		"@ariakit/react": "^0.4.1",
 		"@codesandbox/sandpack-react": "^2.11.3",
 		"@microsoft/api-extractor-model": "^7.26.4",
-		"@microsoft/tsdoc": "^0.14.2",
+		"@microsoft/tsdoc": "patch:@microsoft/tsdoc@npm%3A0.14.2#~/.yarn/patches/@microsoft-tsdoc-npm-0.14.2-9988282153.patch",
 		"@radix-ui/react-accordion": "^1.1.2",
 		"@radix-ui/react-navigation-menu": "^1.1.4",
 		"@tldraw/utils": "workspace:*",

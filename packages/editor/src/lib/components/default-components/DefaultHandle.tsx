@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, SIDES } from '../../constants'
 
 /** @public */
-export type TLHandleProps = {
+export interface TLHandleProps {
 	shapeId: TLShapeId
 	handle: TLHandle
 	zoom: number

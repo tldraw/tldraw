@@ -60,8 +60,9 @@ export {
 	isBindingId,
 	rootBindingMigrations,
 	type TLBinding,
+	type TLBindingCreate,
 	type TLBindingId,
-	type TLBindingPartial,
+	type TLBindingUpdate,
 	type TLDefaultBinding,
 	type TLUnknownBinding,
 } from './records/TLBinding'

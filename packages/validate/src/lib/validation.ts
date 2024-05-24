@@ -17,7 +17,7 @@ export type ValidatorUsingKnownGoodVersionFn<In, Out = In> = (
 ) => Out
 
 /** @public */
-export type Validatable<T> = {
+export interface Validatable<T> {
 	validate: (value: unknown) => T
 	/**
 	 * This is a performance optimizing version of validate that can use a previous

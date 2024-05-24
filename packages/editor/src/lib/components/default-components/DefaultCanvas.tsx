@@ -26,7 +26,9 @@ import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
 
 /** @public */
-export type TLCanvasComponentProps = { className?: string }
+export interface TLCanvasComponentProps {
+	className?: string
+}
 
 /** @public */
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {

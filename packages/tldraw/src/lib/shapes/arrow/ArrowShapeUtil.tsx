@@ -18,6 +18,7 @@ import {
 	TLOnTranslateHandler,
 	TLOnTranslateStartHandler,
 	TLShapePartial,
+	TLShapeUtilCanBindOpts,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec,
@@ -75,7 +76,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override migrations = arrowShapeMigrations
 
 	override canEdit = () => true
-	override canBind = () => false
+	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean {
+		// bindings can go from arrows to shapes, but not from shapes to arrows
+		return toShapeType !== 'arrow'
+	}
 	override canSnap = () => false
 	override hideResizeHandles: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideRotateHandle: TLShapeUtilFlag<TLArrowShape> = () => true
@@ -152,7 +156,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a0',
 				x: info.start.handle.x,
 				y: info.start.handle.y,
-				canBind: true,
 			},
 			{
 				id: ARROW_HANDLES.MIDDLE,
@@ -160,7 +163,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a2',
 				x: info.middle.x,
 				y: info.middle.y,
-				canBind: false,
 			},
 			{
 				id: ARROW_HANDLES.END,
@@ -168,7 +170,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a3',
 				x: info.end.handle.x,
 				y: info.end.handle.y,
-				canBind: true,
 			},
 		].filter(Boolean) as TLHandle[]
 	}
@@ -222,7 +223,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			hitFrameInside: true,
 			margin: 0,
 			filter: (targetShape) => {
-				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+				return (
+					!targetShape.isLocked &&
+					this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
+				)
 			},
 		})
 
@@ -383,7 +387,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				hitFrameInside: true,
 				margin: 0,
 				filter: (targetShape) => {
-					return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+					return (
+						!targetShape.isLocked &&
+						this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
+					)
 				},
 			})
 

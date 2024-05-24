@@ -53,10 +53,12 @@ export function deleteFromLocalStorage(key: string): void;
 export function deleteFromSessionStorage(key: string): void;
 
 // @public (undocumented)
-export type ErrorResult<E> = {
+export interface ErrorResult<E> {
+    // (undocumented)
     readonly error: E;
+    // (undocumented)
     readonly ok: false;
-};
+}
 
 // @internal (undocumented)
 export function exhaustiveSwitchError(value: never, property?: string): never;
@@ -159,9 +161,10 @@ export function isNonNullish<T>(value: T): value is typeof value extends undefin
 export type JsonArray = JsonValue[];
 
 // @public (undocumented)
-export type JsonObject = {
+export interface JsonObject {
+    // (undocumented)
     [key: string]: JsonValue | undefined;
-};
+}
 
 // @public (undocumented)
 export type JsonPrimitive = boolean | null | number | string;
@@ -248,10 +251,12 @@ export function objectMapValues<Key extends string, Value>(object: {
 }): Array<Value>;
 
 // @public (undocumented)
-export type OkResult<T> = {
+export interface OkResult<T> {
+    // (undocumented)
     readonly ok: true;
+    // (undocumented)
     readonly value: T;
-};
+}
 
 // @internal
 export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...args: Args) => Return): (...args: Args) => Return;

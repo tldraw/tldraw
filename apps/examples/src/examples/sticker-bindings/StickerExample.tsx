@@ -15,6 +15,7 @@ import {
 	TLEventHandlers,
 	TLOnTranslateEndHandler,
 	TLOnTranslateStartHandler,
+	TLShapeUtilCanBindOpts,
 	TLUiComponents,
 	TLUiOverrides,
 	Tldraw,
@@ -40,7 +41,10 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		return {}
 	}
 
-	override canBind = () => false
+	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<StickerShape>) {
+		// bindings can go _from_ stickers to other shapes, but not the other way round
+		return toShapeType !== 'sticker'
+	}
 	override canEdit = () => false
 	override canResize = () => false
 	override hideRotateHandle = () => true
@@ -86,7 +90,8 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		const pageAnchor = this.editor.getShapePageTransform(sticker).applyToPoint({ x: 0, y: 0 })
 		const target = this.editor.getShapeAtPoint(pageAnchor, {
 			hitInside: true,
-			filter: (shape) => shape.id !== sticker.id,
+			filter: (shape) =>
+				this.editor.canBindShapes({ fromShape: sticker, toShape: shape, binding: 'sticker' }),
 		})
 
 		if (!target) return
