@@ -86,6 +86,7 @@ export function getAssetUrls(opts) {
 			'geo-cloud': formatAssetUrl('./icons/icon/geo-cloud.svg', opts),
 			'geo-diamond': formatAssetUrl('./icons/icon/geo-diamond.svg', opts),
 			'geo-ellipse': formatAssetUrl('./icons/icon/geo-ellipse.svg', opts),
+			'geo-heart': formatAssetUrl('./icons/icon/geo-heart.svg', opts),
 			'geo-hexagon': formatAssetUrl('./icons/icon/geo-hexagon.svg', opts),
 			'geo-octagon': formatAssetUrl('./icons/icon/geo-octagon.svg', opts),
 			'geo-oval': formatAssetUrl('./icons/icon/geo-oval.svg', opts),

@@ -92,6 +92,7 @@ import iconsGeoCheckBox from './icons/icon/geo-check-box.svg'
 import iconsGeoCloud from './icons/icon/geo-cloud.svg'
 import iconsGeoDiamond from './icons/icon/geo-diamond.svg'
 import iconsGeoEllipse from './icons/icon/geo-ellipse.svg'
+import iconsGeoHeart from './icons/icon/geo-heart.svg'
 import iconsGeoHexagon from './icons/icon/geo-hexagon.svg'
 import iconsGeoOctagon from './icons/icon/geo-octagon.svg'
 import iconsGeoOval from './icons/icon/geo-oval.svg'
@@ -283,6 +284,7 @@ export function getAssetUrlsByImport(opts) {
 			'geo-cloud': formatAssetUrl(iconsGeoCloud, opts),
 			'geo-diamond': formatAssetUrl(iconsGeoDiamond, opts),
 			'geo-ellipse': formatAssetUrl(iconsGeoEllipse, opts),
+			'geo-heart': formatAssetUrl(iconsGeoHeart, opts),
 			'geo-hexagon': formatAssetUrl(iconsGeoHexagon, opts),
 			'geo-octagon': formatAssetUrl(iconsGeoOctagon, opts),
 			'geo-oval': formatAssetUrl(iconsGeoOval, opts),
