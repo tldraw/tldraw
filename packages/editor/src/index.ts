@@ -83,6 +83,7 @@ export {
 } from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
+export { loadSnapshot, type TLEditorSnapshot } from './lib/config/TLEditorSnapshot'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
@@ -212,7 +213,6 @@ export {
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
-	type TLEditorSnapshot,
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
@@ -334,6 +334,7 @@ export {
 	type TLRotationSnapshot,
 } from './lib/utils/rotation'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
+export { type TLSnapshotWithStatus } from './lib/utils/sync/SnapshotWithStatus'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'

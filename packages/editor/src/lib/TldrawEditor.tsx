@@ -1,5 +1,5 @@
-import { MigrationSequence, SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
-import { TLRecord, TLStore } from '@tldraw/tlschema'
+import { MigrationSequence, Store } from '@tldraw/store'
+import { TLSerializedStore, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
@@ -14,12 +14,13 @@ import React, {
 import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
+import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { TLCameraOptions, TLEditorSnapshot } from './editor/types/misc-types'
+import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -35,6 +36,7 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { useZoomCss } from './hooks/useZoomCss'
 import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
+import { TLSnapshotWithStatus } from './utils/sync/SnapshotWithStatus'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
@@ -51,8 +53,8 @@ export type TldrawEditorProps = Expand<
 			| {
 					store?: undefined
 					migrations?: readonly MigrationSequence[]
-					snapshot?: TLEditorSnapshot | StoreSnapshot<TLRecord>
-					initialData?: SerializedStore<TLRecord>
+					snapshot?: TLSnapshotWithStatus | TLEditorSnapshot | TLStoreSnapshot
+					initialData?: TLSerializedStore
 					persistenceKey?: string
 					sessionId?: string
 					defaultName?: string

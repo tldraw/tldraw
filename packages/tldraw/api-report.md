@@ -49,7 +49,6 @@ import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
-import { StoreSnapshot } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
 import { T } from '@tldraw/editor';
@@ -106,7 +105,6 @@ import { TLPointerEvent } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPointerEventName } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/editor';
-import { TLRecord } from '@tldraw/editor';
 import { TLRotationSnapshot } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
@@ -119,6 +117,7 @@ import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilFlag } from '@tldraw/editor';
+import { TLSnapshotWithStatus } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLStoreWithStatus } from '@tldraw/editor';
@@ -1563,7 +1562,7 @@ export type TldrawImageProps = Expand<{
 export type TldrawProps = Expand<(Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
     components?: TLComponents;
 }) & Partial<TLExternalContentProps> & ({
-    snapshot?: StoreSnapshot<TLRecord> | TLEditorSnapshot;
+    snapshot?: TLEditorSnapshot | TLSnapshotWithStatus | TLStoreSnapshot;
     defaultName?: string;
     migrations?: readonly MigrationSequence[];
     persistenceKey?: string;

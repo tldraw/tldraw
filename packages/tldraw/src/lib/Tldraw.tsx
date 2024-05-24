@@ -6,12 +6,12 @@ import {
 	Expand,
 	LoadingScreen,
 	MigrationSequence,
-	StoreSnapshot,
 	TLEditorComponents,
 	TLEditorSnapshot,
 	TLOnMountHandler,
-	TLRecord,
+	TLSnapshotWithStatus,
 	TLStore,
+	TLStoreSnapshot,
 	TLStoreWithStatus,
 	TldrawEditor,
 	TldrawEditorBaseProps,
@@ -67,7 +67,7 @@ export type TldrawProps = Expand<
 					/**
 					 * A snapshot to load for the store's initial data / schema.
 					 */
-					snapshot?: TLEditorSnapshot | StoreSnapshot<TLRecord>
+					snapshot?: TLSnapshotWithStatus | TLEditorSnapshot | TLStoreSnapshot
 			  }
 		)
 >

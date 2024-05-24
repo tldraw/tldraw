@@ -2,9 +2,9 @@ import { StoreSnapshot } from '@tldraw/store'
 import { TLRecord } from '@tldraw/tlschema'
 import { areObjectsShallowEqual } from '@tldraw/utils'
 import { useState } from 'react'
+import { TLEditorSnapshot } from '../..'
+import { loadSnapshot } from '../config/TLEditorSnapshot'
 import { TLStoreOptions, createTLStore } from '../config/createTLStore'
-import { Editor } from '../editor/Editor'
-import { TLEditorSnapshot } from '../editor/types/misc-types'
 
 /** @public */
 type UseTLStoreOptions = TLStoreOptions & {
@@ -14,7 +14,7 @@ type UseTLStoreOptions = TLStoreOptions & {
 function createStore(opts: UseTLStoreOptions) {
 	const store = createTLStore(opts)
 	if (opts.snapshot) {
-		Editor.prototype.loadSnapshot.call({ store }, opts.snapshot)
+		loadSnapshot(store, opts.snapshot)
 	}
 	return { store, opts }
 }

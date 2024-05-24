@@ -67,6 +67,7 @@ import { TLParentId } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
+import { TLSerializedStore } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
@@ -1036,9 +1037,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
     // (undocumented)
-    loadSnapshot(this: {
-        store: TLStore;
-    }, _snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): void;
+    loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): void;
     mark(markId?: string): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
@@ -1498,6 +1497,9 @@ export function LoadingScreen({ children }: {
 
 // @public
 export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
+
+// @public (undocumented)
+export function loadSnapshot(store: TLStore, _snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): void;
 
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
@@ -2318,11 +2320,11 @@ export interface TldrawEditorBaseProps {
 // @public
 export type TldrawEditorProps = Expand<TldrawEditorBaseProps & ({
     defaultName?: string;
-    initialData?: SerializedStore<TLRecord>;
+    initialData?: TLSerializedStore;
     migrations?: readonly MigrationSequence[];
     persistenceKey?: string;
     sessionId?: string;
-    snapshot?: StoreSnapshot<TLRecord> | TLEditorSnapshot;
+    snapshot?: TLEditorSnapshot | TLSnapshotWithStatus | TLStoreSnapshot;
     store?: undefined;
 } | {
     store: TLStore | TLStoreWithStatus;
@@ -2896,6 +2898,21 @@ export interface TLSnapIndicatorProps {
 }
 
 // @public (undocumented)
+export type TLSnapshotWithStatus = {
+    readonly error: Error;
+    readonly snapshot?: undefined;
+    readonly status: 'error';
+} | {
+    readonly error?: undefined;
+    readonly snapshot: TLEditorSnapshot | TLStoreSnapshot;
+    readonly status: 'ready';
+} | {
+    readonly error?: undefined;
+    readonly snapshot?: undefined;
+    readonly status: 'loading';
+};
+
+// @public (undocumented)
 export interface TLStateNodeConstructor {
     // (undocumented)
     new (editor: Editor, parent?: StateNode): StateNode;
@@ -3077,10 +3094,10 @@ export function useIsDarkMode(): boolean;
 export function useIsEditing(shapeId: TLShapeId): boolean;
 
 // @internal (undocumented)
-export function useLocalStore({ persistenceKey, sessionId, ...rest }: {
+export function useLocalStore({ persistenceKey, sessionId, snapshot, ...rest }: {
     persistenceKey?: string;
     sessionId?: string;
-    snapshot?: StoreSnapshot<TLRecord> | TLEditorSnapshot;
+    snapshot?: TLEditorSnapshot | TLSnapshotWithStatus | TLStoreSnapshot;
 } & TLStoreOptions): TLStoreWithStatus;
 
 // @internal (undocumented)
