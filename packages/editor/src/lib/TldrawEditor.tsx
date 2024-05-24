@@ -19,7 +19,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { TLCameraOptions } from './editor/types/misc-types'
+import { TLAssetOptions, TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -124,6 +124,11 @@ export interface TldrawEditorBaseProps {
 	 * Camera options for the editor.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
+
+	/**
+	 * Asset options for the editor.
+	 */
+	assetOptions?: Partial<TLAssetOptions>
 }
 
 /**
@@ -293,6 +298,7 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
+	assetOptions,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -317,6 +323,7 @@ function TldrawEditorWithReadyStore({
 			autoFocus: initialAutoFocus,
 			inferDarkMode,
 			cameraOptions,
+			assetOptions,
 		})
 		setEditor(editor)
 
@@ -334,6 +341,7 @@ function TldrawEditorWithReadyStore({
 		initialAutoFocus,
 		inferDarkMode,
 		cameraOptions,
+		assetOptions,
 	])
 
 	const crashingError = useSyncExternalStore(

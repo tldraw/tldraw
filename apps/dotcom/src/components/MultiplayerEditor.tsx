@@ -24,6 +24,7 @@ import {
 } from 'tldraw'
 import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
+import { resolveAsset } from '../utils/assetHandler'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
 import { CursorChatMenuItem } from '../utils/context-menu/CursorChatMenuItem'
@@ -158,6 +159,7 @@ export function MultiplayerEditor({
 				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
+				assetOptions={{ onResolveAsset: resolveAsset }}
 				inferDarkMode
 			>
 				<UrlStateSync />

@@ -88,6 +88,7 @@ import {
 	COARSE_DRAG_DISTANCE,
 	COLLABORATOR_IDLE_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
+	DEFAULT_ASSET_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
 	DRAG_DISTANCE,
 	FOLLOW_CHASE_VIEWPORT_SNAP,
@@ -153,6 +154,7 @@ import { TLHistoryBatchOptions } from './types/history-types'
 import {
 	OptionalKeys,
 	RequiredKeys,
+	TLAssetOptions,
 	TLCameraMoveOptions,
 	TLCameraOptions,
 	TLSvgOptions,
@@ -216,6 +218,10 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
+	/**
+	 * Options for the editor's assets.
+	 */
+	assetOptions?: Partial<TLAssetOptions>
 }
 
 /** @public */
@@ -228,6 +234,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools,
 		getContainer,
 		cameraOptions,
+		assetOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
@@ -246,6 +253,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.snaps = new SnapManager(this)
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
+
+		this._assetOptions.set({ ...DEFAULT_ASSET_OPTIONS, ...assetOptions })
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
@@ -3761,6 +3770,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Assets --------------------- */
 
+	private _assetOptions = atom('asset options', DEFAULT_ASSET_OPTIONS)
+
 	/** @internal */
 	@computed private _getAllAssetsQuery() {
 		return this.store.query.records('asset')
@@ -3856,6 +3867,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getAsset(asset: TLAssetId | TLAsset): TLAsset | undefined {
 		return this.store.get(typeof asset === 'string' ? asset : asset.id) as TLAsset | undefined
+	}
+
+	async resolveAssetUrl(assetId: TLAssetId | null, context: { zoom: number }): Promise<string> {
+		if (!assetId) return ''
+		const asset = this.getAsset(assetId)
+		if (!asset) return ''
+
+		const networkEffectiveType: string | null =
+			'connection' in navigator ? (navigator as any).connection.effectiveType : null
+		const dpr = this.getInstanceState().devicePixelRatio
+
+		return await this._assetOptions
+			.get()
+			.onResolveAsset(asset!, { zoom: context.zoom, dpr, networkEffectiveType })
 	}
 
 	/* --------------------- Shapes --------------------- */
