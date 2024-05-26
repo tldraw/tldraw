@@ -268,6 +268,7 @@ export class Drawing extends StateNode {
 				y: originPagePoint.y,
 				props: {
 					isPen: this.isPenOrStylus,
+					scale: 1 / this.editor.getZoomLevel(),
 					segments: [
 						{
 							type: this.segmentMode,

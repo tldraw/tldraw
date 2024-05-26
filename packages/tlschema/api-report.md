@@ -223,6 +223,7 @@ export const drawShapeProps: {
     isClosed: T.Validator<boolean>;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
+    scale: T.Validator<number>;
     segments: T.ArrayOfValidator<{
         points: VecModel[];
         type: "free" | "straight";

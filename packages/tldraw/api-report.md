@@ -481,6 +481,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         isClosed: Validator<boolean>;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
+        scale: Validator<number>;
         segments: ArrayOfValidator<    {
         points: VecModel[];
         type: "free" | "straight";

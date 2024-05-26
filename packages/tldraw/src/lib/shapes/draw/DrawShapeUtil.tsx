@@ -24,7 +24,6 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
-import { useForceSolid } from '../shared/useForceSolid'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
 /** @public */
@@ -47,21 +46,23 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			isComplete: false,
 			isClosed: false,
 			isPen: false,
+			scale: 1,
 		}
 	}
 
 	getGeometry(shape: TLDrawShape) {
 		const points = getPointsFromSegments(shape.props.segments)
-		const strokeWidth = STROKE_SIZES[shape.props.size]
+
+		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
 		// A dot
 		if (shape.props.segments.length === 1) {
 			const box = Box.FromPoints(points)
-			if (box.width < strokeWidth * 2 && box.height < strokeWidth * 2) {
+			if (box.width < sw * 2 && box.height < sw * 2) {
 				return new Circle2d({
-					x: -strokeWidth,
-					y: -strokeWidth,
-					radius: strokeWidth,
+					x: -sw,
+					y: -sw,
+					radius: sw,
 					isFilled: true,
 				})
 			}
@@ -69,7 +70,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 		const strokePoints = getStrokePoints(
 			points,
-			getFreehandOptions(shape.props, strokeWidth, true, true)
+			getFreehandOptions(shape.props, sw, shape.props.isPen, true)
 		).map((p) => p.point)
 
 		// A closed draw stroke
@@ -89,24 +90,24 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	component(shape: TLDrawShape) {
 		return (
 			<SVGContainer id={shape.id}>
-				<DrawShapeSvg shape={shape} forceSolid={useForceSolid()} />
+				<DrawShapeSvg shape={shape} zoomLevel={this.editor.getZoomLevel()} />
 			</SVGContainer>
 		)
 	}
 
 	indicator(shape: TLDrawShape) {
-		const forceSolid = useForceSolid()
-		const strokeWidth = STROKE_SIZES[shape.props.size]
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
-		let sw = strokeWidth
+		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		const forceSolid = sw * this.editor.getZoomLevel() < 1.5
+
 		if (
 			!forceSolid &&
 			!shape.props.isPen &&
 			shape.props.dash === 'draw' &&
 			allPointsFromSegments.length === 1
 		) {
-			sw += rng(shape.id)() * (strokeWidth / 6)
+			sw += rng(shape.id)() * (sw / 6)
 		}
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
@@ -122,7 +123,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		return <DrawShapeSvg shape={shape} forceSolid={false} />
+		return <DrawShapeSvg shape={shape} zoomLevel={1} />
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
@@ -171,21 +172,23 @@ function getIsDot(shape: TLDrawShape) {
 	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
 }
 
-function DrawShapeSvg({ shape, forceSolid }: { shape: TLDrawShape; forceSolid: boolean }) {
+function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel: number }) {
 	const theme = useDefaultColorTheme()
-	const strokeWidth = STROKE_SIZES[shape.props.size]
+
 	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
-	let sw = strokeWidth
+	let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+	const forceSolid = sw * zoomLevel < 1.5
+
 	if (
 		!forceSolid &&
 		!shape.props.isPen &&
 		shape.props.dash === 'draw' &&
 		allPointsFromSegments.length === 1
 	) {
-		sw += rng(shape.id)() * (strokeWidth / 6)
+		sw += rng(shape.id)() * (sw / 6)
 	}
 
 	const options = getFreehandOptions(shape.props, sw, showAsComplete, forceSolid)
@@ -232,8 +235,8 @@ function DrawShapeSvg({ shape, forceSolid }: { shape: TLDrawShape; forceSolid: b
 				strokeLinecap="round"
 				fill={isDot ? theme[shape.props.color].solid : 'none'}
 				stroke={theme[shape.props.color].solid}
-				strokeWidth={strokeWidth}
-				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, strokeWidth)}
+				strokeWidth={sw}
+				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw)}
 				strokeDashoffset="0"
 			/>
 		</>
