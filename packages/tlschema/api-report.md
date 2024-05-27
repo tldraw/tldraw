@@ -561,6 +561,7 @@ export const highlightShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
+    scale: T.Validator<number>;
     segments: T.ArrayOfValidator<{
         points: VecModel[];
         type: "free" | "straight";

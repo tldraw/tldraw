@@ -17,6 +17,7 @@ import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
 import { drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
 import { geoShapeVersions } from './shapes/TLGeoShape'
+import { highlightShapeVersions } from './shapes/TLHighlightShape'
 import { imageShapeVersions } from './shapes/TLImageShape'
 import { lineShapeVersions } from './shapes/TLLineShape'
 import { noteShapeVersions } from './shapes/TLNoteShape'
@@ -1800,6 +1801,30 @@ describe('Extract bindings from arrows', () => {
 		  },
 		}
 	`)
+	})
+})
+
+describe('Add scale to draw shape', () => {
+	const { up, down } = getTestMigration(drawShapeVersions.AddScale)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { scale: 1 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { scale: 1 } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add scale to highlight shape', () => {
+	const { up, down } = getTestMigration(highlightShapeVersions.AddScale)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { scale: 1 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { scale: 1 } })).toEqual({ props: {} })
 	})
 })
 

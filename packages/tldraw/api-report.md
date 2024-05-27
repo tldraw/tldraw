@@ -919,6 +919,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
         color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
+        scale: Validator<number>;
         segments: ArrayOfValidator<    {
         points: VecModel[];
         type: "free" | "straight";
