@@ -21,6 +21,7 @@ export interface TLUserPreferences {
 	isDarkMode?: boolean | null
 	isSnapMode?: boolean | null
 	isWrapMode?: boolean | null
+	isDynamicSizeMode?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -39,11 +40,12 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPrefere
 	name: T.string.nullable().optional(),
 	locale: T.string.nullable().optional(),
 	color: T.string.nullable().optional(),
-	isDarkMode: T.boolean.nullable().optional(),
 	animationSpeed: T.number.nullable().optional(),
 	edgeScrollSpeed: T.number.nullable().optional(),
+	isDarkMode: T.boolean.nullable().optional(),
 	isSnapMode: T.boolean.nullable().optional(),
 	isWrapMode: T.boolean.nullable().optional(),
+	isDynamicSizeMode: T.boolean.nullable().optional(),
 })
 
 const Versions = {
@@ -52,6 +54,7 @@ const Versions = {
 	MakeFieldsNullable: 3,
 	AddEdgeScrollSpeed: 4,
 	AddExcalidrawSelectMode: 5,
+	AddDynamicSizeMode: 6,
 } as const
 
 const CURRENT_VERSION = Math.max(...Object.values(Versions))
@@ -71,6 +74,10 @@ function migrateSnapshot(data: { version: number; user: any }) {
 	}
 	if (data.version < Versions.AddExcalidrawSelectMode) {
 		data.user.isWrapMode = false
+	}
+
+	if (data.version < Versions.AddDynamicSizeMode) {
+		data.user.isDynamicSizeMode = false
 	}
 
 	// finally
@@ -123,6 +130,7 @@ export const defaultUserPreferences = Object.freeze({
 	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
 	isSnapMode: false,
 	isWrapMode: false,
+	isDynamicSizeMode: false,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */

@@ -1132,6 +1132,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-dynamic-size-mode',
+				label: {
+					default: 'action.toggle-dynamic-size-mode',
+					menu: 'action.toggle-dynamic-size-mode.menu',
+				},
+				readonlyOk: false,
+				onSelect(source) {
+					trackEvent('toggle-dynamic-size-mode', { source })
+					editor.user.updateUserPreferences({
+						isDynamicSizeMode: !editor.user.getIsDynamicResizeMode(),
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-reduce-motion',
 				label: {
 					default: 'action.toggle-reduce-motion',

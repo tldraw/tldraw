@@ -558,12 +558,30 @@ export function ToggleReduceMotionItem() {
 		<TldrawUiMenuCheckboxItem {...actions['toggle-reduce-motion']} checked={animationSpeed === 0} />
 	)
 }
+
 /** @public */
 export function ToggleDebugModeItem() {
 	const actions = useActions()
 	const editor = useEditor()
 	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
 	return <TldrawUiMenuCheckboxItem {...actions['toggle-debug-mode']} checked={isDebugMode} />
+}
+
+/** @public */
+export function ToggleDynamicSizeModeItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const isDynamicResizeMode = useValue(
+		'dynamic resize',
+		() => editor.user.getIsDynamicResizeMode(),
+		[editor]
+	)
+	return (
+		<TldrawUiMenuCheckboxItem
+			{...actions['toggle-dynamic-size-mode']}
+			checked={isDynamicResizeMode}
+		/>
+	)
 }
 
 /* ---------------------- Print --------------------- */

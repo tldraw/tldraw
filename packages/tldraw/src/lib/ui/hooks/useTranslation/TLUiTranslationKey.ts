@@ -97,6 +97,8 @@ export type TLUiTranslationKey =
 	| 'action.toggle-debug-mode'
 	| 'action.toggle-focus-mode.menu'
 	| 'action.toggle-focus-mode'
+	| 'action.toggle-dynamic-size-mode.menu'
+	| 'action.toggle-dynamic-size-mode'
 	| 'action.toggle-grid.menu'
 	| 'action.toggle-grid'
 	| 'action.toggle-lock'

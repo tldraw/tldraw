@@ -15,6 +15,7 @@ import {
 	ToggleAutoSizeMenuItem,
 	ToggleDarkModeItem,
 	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
@@ -171,6 +172,7 @@ export function PreferencesGroup() {
 					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
 					<ToggleReduceMotionItem />
+					<ToggleDynamicSizeModeItem />
 					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="language">
