@@ -81,6 +81,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
+			scale: 1,
 		}
 	}
 
@@ -90,7 +91,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const cx = w / 2
 		const cy = h / 2
 
-		const strokeWidth = STROKE_SIZES[shape.props.size]
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
 		const isFilled = shape.props.fill !== 'none' // || shape.props.text.trim().length > 0
 
 		let body: Geometry2d
@@ -318,12 +319,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const labelSize = getLabelSize(this.editor, shape)
 		const minWidth = Math.min(100, w / 2)
-		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(minWidth, Math.max(1, w - 8))))
 		const minHeight = Math.min(
-			LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
+			LABEL_FONT_SIZES[shape.props.size] * shape.props.scale * TEXT_PROPS.lineHeight +
+				LABEL_PADDING * 2,
 			h / 2
 		)
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(minHeight, Math.max(1, w - 8)))) // not sure if bug
+
+		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(minWidth, Math.max(1, w - 8))))
+		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(minHeight, Math.max(1, w - 8))))
+
+		// not sure if bug
 
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
@@ -435,7 +440,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							id={id}
 							type={type}
 							font={font}
-							fontSize={LABEL_FONT_SIZES[size]}
+							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
 							lineHeight={TEXT_PROPS.lineHeight}
 							fill={fill}
 							align={align}
@@ -519,7 +524,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			const bounds = this.editor.getShapeGeometry(shape).bounds
 			textEl = (
 				<SvgTextLabel
-					fontSize={LABEL_FONT_SIZES[props.size]}
+					fontSize={LABEL_FONT_SIZES[props.size] * shape.props.scale}
 					font={props.font}
 					align={props.align}
 					verticalAlign={props.verticalAlign}
@@ -782,8 +787,8 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 	const minSize = editor.textMeasure.measureText('w', {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
-		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		maxWidth: 100,
+		fontSize: LABEL_FONT_SIZES[shape.props.size] * shape.props.scale,
+		maxWidth: 100, // ?
 	})
 
 	// TODO: Can I get these from somewhere?
@@ -797,7 +802,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 	const size = editor.textMeasure.measureText(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
-		fontSize: LABEL_FONT_SIZES[shape.props.size],
+		fontSize: LABEL_FONT_SIZES[shape.props.size] * shape.props.scale,
 		minWidth: minSize.w,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0

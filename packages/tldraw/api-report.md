@@ -707,6 +707,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
             url: string;
@@ -737,6 +738,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
             url: string;
@@ -796,6 +798,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         growY: Validator<number>;
         h: Validator<number>;
         labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+        scale: Validator<number>;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         text: Validator<string>;
         url: Validator<string>;

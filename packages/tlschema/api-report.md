@@ -529,6 +529,7 @@ export const geoShapeProps: {
     growY: T.Validator<number>;
     h: T.Validator<number>;
     labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+    scale: T.Validator<number>;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     text: T.Validator<string>;
     url: T.Validator<string>;

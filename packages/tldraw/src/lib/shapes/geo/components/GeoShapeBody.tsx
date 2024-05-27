@@ -18,8 +18,8 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const { id, props } = shape
-	const { w, color, fill, dash, growY, size } = props
-	const strokeWidth = STROKE_SIZES[size]
+	const { w, color, fill, dash, growY, size, scale } = props
+	const strokeWidth = STROKE_SIZES[size] * scale
 	const h = props.h + growY
 
 	switch (props.geo) {

@@ -37,6 +37,7 @@ export class Pointing extends StateNode {
 							w: 1,
 							h: 1,
 							geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
+							scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 						},
 					},
 				])
@@ -83,6 +84,7 @@ export class Pointing extends StateNode {
 					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
 					w: 1,
 					h: 1,
+					scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 				},
 			},
 		])
@@ -112,6 +114,7 @@ export class Pointing extends StateNode {
 					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
 					w: bounds.width,
 					h: bounds.height,
+					scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 				},
 			},
 		])
