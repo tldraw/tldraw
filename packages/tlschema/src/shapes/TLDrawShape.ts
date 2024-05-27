@@ -26,7 +26,7 @@ export const drawShapeProps = {
 	isComplete: T.boolean,
 	isClosed: T.boolean,
 	isPen: T.boolean,
-	scale: T.number,
+	scale: T.nonZeroNumber,
 }
 
 /** @public */
