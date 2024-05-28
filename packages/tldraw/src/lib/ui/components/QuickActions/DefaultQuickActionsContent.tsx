@@ -27,6 +27,7 @@ export function DefaultQuickActionsContent() {
 		[editor]
 	)
 	const isInSelectState = useIsInSelectState()
+	const selectDependentActionsEnabled = oneSelected && isInSelectState
 
 	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
@@ -34,8 +35,8 @@ export function DefaultQuickActionsContent() {
 		<>
 			<TldrawUiMenuItem {...actions['undo']} disabled={!canUndo} />
 			<TldrawUiMenuItem {...actions['redo']} disabled={!canRedo} />
-			<TldrawUiMenuItem {...actions['delete']} disabled={!oneSelected || !isInSelectState} />
-			<TldrawUiMenuItem {...actions['duplicate']} disabled={!oneSelected || !isInSelectState} />
+			<TldrawUiMenuItem {...actions['delete']} disabled={!selectDependentActionsEnabled} />
+			<TldrawUiMenuItem {...actions['duplicate']} disabled={!selectDependentActionsEnabled} />
 		</>
 	)
 }
