@@ -1,4 +1,4 @@
-import { MAX_PAGES, createShapeId } from '@tldraw/editor'
+import { createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -48,8 +48,8 @@ it('Duplicates a page', () => {
 })
 
 it("Doesn't duplicate the page if max pages is reached", () => {
-	for (let i = 0; i < MAX_PAGES; i++) {
+	for (let i = 0; i < editor.options.maxPages; i++) {
 		editor.duplicatePage(editor.getCurrentPageId())
 	}
-	expect(editor.getPages().length).toBe(MAX_PAGES)
+	expect(editor.getPages().length).toBe(editor.options.maxPages)
 })
