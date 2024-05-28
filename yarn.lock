@@ -4253,10 +4253,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/tsdoc@npm:0.14.2, @microsoft/tsdoc@npm:^0.14.2":
+"@microsoft/tsdoc@npm:0.14.2":
   version: 0.14.2
   resolution: "@microsoft/tsdoc@npm:0.14.2"
   checksum: 00c3d4fc184e8e09e17aef57e4a990402bd9752607a5d50bd62a9e85bc4b8791c985a51e238affa6b9a2d23110f24d373becbfc84e1e6e9a84cf977822e3b00a
+  languageName: node
+  linkType: hard
+
+"@microsoft/tsdoc@patch:@microsoft/tsdoc@npm%3A0.14.2#~/.yarn/patches/@microsoft-tsdoc-npm-0.14.2-9988282153.patch":
+  version: 0.14.2
+  resolution: "@microsoft/tsdoc@patch:@microsoft/tsdoc@npm%3A0.14.2#~/.yarn/patches/@microsoft-tsdoc-npm-0.14.2-9988282153.patch::version=0.14.2&hash=86fc72"
+  checksum: a92a4f7a3382f8a188107e69b0d8e4c726aed8ddb9425565218c45b8bfca43cdeb7e3f22cbdef228fd62d4ab7a1a97f1b98b6cfb7601562faf633e8800925a85
   languageName: node
   linkType: hard
 
@@ -7430,7 +7437,7 @@ __metadata:
     "@ariakit/react": "npm:^0.4.1"
     "@codesandbox/sandpack-react": "npm:^2.11.3"
     "@microsoft/api-extractor-model": "npm:^7.26.4"
-    "@microsoft/tsdoc": "npm:^0.14.2"
+    "@microsoft/tsdoc": "patch:@microsoft/tsdoc@npm%3A0.14.2#~/.yarn/patches/@microsoft-tsdoc-npm-0.14.2-9988282153.patch"
     "@radix-ui/react-accordion": "npm:^1.1.2"
     "@radix-ui/react-navigation-menu": "npm:^1.1.4"
     "@tldraw/utils": "workspace:*"

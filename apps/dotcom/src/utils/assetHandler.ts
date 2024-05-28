@@ -4,13 +4,13 @@ import { ASSET_UPLOADER_URL } from './config'
 export const resolveAsset =
 	(persistenceKey?: string) =>
 	async (asset: TLAsset | null | undefined, context: AssetContextProps) => {
-		if (!asset || !asset.props.src) return ''
+		if (!asset || !asset.props.src) return null
 
 		// We don't deal with videos at the moment.
 		if (asset.type === 'video') return asset.props.src
 
 		// Assert it's an image to make TS happy.
-		if (asset.type !== 'image') return ''
+		if (asset.type !== 'image') return null
 
 		// Retrieve a local image from the DB.
 		if (persistenceKey && asset.props.src.startsWith('asset:')) {
@@ -21,7 +21,7 @@ export const resolveAsset =
 			if (blob) {
 				return URL.createObjectURL(blob)
 			}
-			return ''
+			return null
 		}
 
 		// Don't try to transform data: URLs, yikes.
@@ -37,11 +37,7 @@ export const resolveAsset =
 		const networkCompensation =
 			!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
-		// We only look at the zoom level to the nearest 0.25
-		const zoomStepFunction = (zoom: number) => Math.floor(zoom * 4) / 4
-		const steppedZoom = Math.max(0.25, zoomStepFunction(context.zoom))
-
-		const width = Math.ceil(asset.props.w * steppedZoom * networkCompensation)
+		const width = Math.ceil(asset.props.w * context.steppedZoom * networkCompensation)
 
 		if (process.env.NODE_ENV === 'development') {
 			return asset.props.src

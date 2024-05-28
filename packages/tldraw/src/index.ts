@@ -408,6 +408,7 @@ export {
 	SelectToolbarItem,
 	StarToolbarItem,
 	TextToolbarItem,
+	ToolbarItem,
 	TrapezoidToolbarItem,
 	TriangleToolbarItem,
 	XBoxToolbarItem,

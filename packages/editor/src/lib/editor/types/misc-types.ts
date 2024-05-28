@@ -3,7 +3,7 @@ import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
 
 /** @public */
-export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>
+export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>
 /** @public */
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
@@ -57,7 +57,8 @@ export interface TLCameraOptions {
 
 /** @public */
 export interface AssetContextProps {
-	zoom: number
+	rawZoom: number
+	steppedZoom: number
 	dpr: number
 	networkEffectiveType: string | null
 	shouldResolveToOriginalImage?: boolean
@@ -65,7 +66,10 @@ export interface AssetContextProps {
 
 /** @public */
 export interface TLAssetOptions {
-	onResolveAsset: (asset: TLAsset | null | undefined, ctx: AssetContextProps) => Promise<string>
+	onResolveAsset: (
+		asset: TLAsset | null | undefined,
+		ctx: AssetContextProps
+	) => Promise<string | null>
 }
 
 /** @public */

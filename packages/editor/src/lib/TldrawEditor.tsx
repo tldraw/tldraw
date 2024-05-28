@@ -33,6 +33,7 @@ import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useZoomCss } from './hooks/useZoomCss'
+import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -129,6 +130,11 @@ export interface TldrawEditorBaseProps {
 	 * Asset options for the editor.
 	 */
 	assetOptions?: Partial<TLAssetOptions>
+
+	/**
+	 * Options for the editor.
+	 */
+	options?: Partial<TldrawOptions>
 }
 
 /**
@@ -299,6 +305,7 @@ function TldrawEditorWithReadyStore({
 	inferDarkMode,
 	cameraOptions,
 	assetOptions,
+	options,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -324,6 +331,7 @@ function TldrawEditorWithReadyStore({
 			inferDarkMode,
 			cameraOptions,
 			assetOptions,
+			options,
 		})
 		setEditor(editor)
 
@@ -342,6 +350,7 @@ function TldrawEditorWithReadyStore({
 		inferDarkMode,
 		cameraOptions,
 		assetOptions,
+		options,
 	])
 
 	const crashingError = useSyncExternalStore(

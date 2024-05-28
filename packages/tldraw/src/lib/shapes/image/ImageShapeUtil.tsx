@@ -62,7 +62,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedSrc, setLoadedSrc] = useState('')
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url } = useAsset(shape.props.assetId)
+		const { asset, url } = useAsset(shape.id, shape.props.assetId)
 
 		useEffect(() => {
 			// We preload the image because we might have different source urls for different
@@ -213,6 +213,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		let src = await this.editor.resolveAssetUrl(shape.props.assetId, {
 			shouldResolveToOriginalImage: true,
 		})
+		if (!src) return null
 		if (src.startsWith('http') || src.startsWith('/') || src.startsWith('./')) {
 			// If it's a remote image, we need to fetch it and convert it to a data URI
 			src = (await getDataURIFromURL(src)) || ''
@@ -240,7 +241,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
 						</clipPath>
 					</defs>
-					<g clipPath="url(#{cropClipId})">
+					<g clipPath={`url(#${cropClipId})`}>
 						<image href={src} width={width} height={height} style={{ transform }} />
 					</g>
 				</>

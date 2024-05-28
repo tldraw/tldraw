@@ -1,5 +1,4 @@
 import {
-	DRAG_DISTANCE,
 	Mat,
 	StateNode,
 	TLDefaultSizeStyle,
@@ -317,7 +316,8 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
+					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) >
+					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
 				// where it is now; if it's far enough away, then update the page point where
@@ -388,7 +388,8 @@ export class Drawing extends StateNode {
 				}
 
 				const hasMovedFarEnough =
-					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) > DRAG_DISTANCE
+					Vec.Dist2(pagePointWhereNextSegmentChanged, inputs.currentPagePoint) >
+					this.editor.options.dragDistanceSquared
 
 				// Find the distance from where the pointer was when shift was released and
 				// where it is now; if it's far enough away, then update the page point where
