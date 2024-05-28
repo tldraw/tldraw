@@ -334,7 +334,6 @@ export {
 	type TLRotationSnapshot,
 } from './lib/utils/rotation'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
-export { type TLSnapshotWithStatus } from './lib/utils/sync/SnapshotWithStatus'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'

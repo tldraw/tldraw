@@ -36,7 +36,6 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { useZoomCss } from './hooks/useZoomCss'
 import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
-import { TLSnapshotWithStatus } from './utils/sync/SnapshotWithStatus'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
@@ -53,7 +52,7 @@ export type TldrawEditorProps = Expand<
 			| {
 					store?: undefined
 					migrations?: readonly MigrationSequence[]
-					snapshot?: TLSnapshotWithStatus | TLEditorSnapshot | TLStoreSnapshot
+					snapshot?: TLEditorSnapshot | TLStoreSnapshot
 					initialData?: TLSerializedStore
 					persistenceKey?: string
 					sessionId?: string

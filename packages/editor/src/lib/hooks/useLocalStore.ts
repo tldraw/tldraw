@@ -1,8 +1,7 @@
 import { TLStoreSnapshot } from '@tldraw/tlschema'
-import { useEffect, useRef, useState } from 'react'
-import { TLEditorSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
+import { useEffect, useState } from 'react'
+import { TLEditorSnapshot } from '../config/TLEditorSnapshot'
 import { TLStoreOptions } from '../config/createTLStore'
-import { TLSnapshotWithStatus } from '../utils/sync/SnapshotWithStatus'
 import { TLStoreWithStatus } from '../utils/sync/StoreWithStatus'
 import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
 import { uniqueId } from '../utils/uniqueId'
@@ -12,40 +11,19 @@ import { useTLStore } from './useTLStore'
 export function useLocalStore({
 	persistenceKey,
 	sessionId,
-	snapshot,
 	...rest
 }: {
 	persistenceKey?: string
 	sessionId?: string
-	snapshot?: TLSnapshotWithStatus | TLEditorSnapshot | TLStoreSnapshot
+	snapshot?: TLEditorSnapshot | TLStoreSnapshot
 } & TLStoreOptions): TLStoreWithStatus {
 	const [state, setState] = useState<{ id: string; storeWithStatus: TLStoreWithStatus } | null>(
 		null
 	)
 	const store = useTLStore(rest)
-	const didLoadSnapshot = useRef(false)
 
 	useEffect(() => {
 		const id = uniqueId()
-
-		// wait for snapshot to load if there is a snapshot
-		if (snapshot && !didLoadSnapshot.current) {
-			if ('status' in snapshot) {
-				if (snapshot.status === 'ready') {
-					loadSnapshot(store, snapshot.snapshot)
-					didLoadSnapshot.current = true
-				} else {
-					setState({
-						id,
-						storeWithStatus: { status: 'loading' },
-					})
-					return
-				}
-			} else {
-				loadSnapshot(store, snapshot)
-				didLoadSnapshot.current = true
-			}
-		}
 
 		if (!persistenceKey) {
 			setState({
@@ -84,7 +62,7 @@ export function useLocalStore({
 			setState((prevState) => (prevState?.id === id ? null : prevState))
 			client.close()
 		}
-	}, [persistenceKey, store, sessionId, snapshot])
+	}, [persistenceKey, store, sessionId])
 
 	return state?.storeWithStatus ?? { status: 'loading' }
 }
