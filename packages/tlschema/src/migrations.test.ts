@@ -1840,6 +1840,18 @@ describe('Add scale to geo shape', () => {
 	})
 })
 
+describe('Add scale to arrow shape', () => {
+	const { up, down } = getTestMigration(arrowShapeVersions.AddScale)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { scale: 1 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { scale: 1 } })).toEqual({ props: {} })
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once

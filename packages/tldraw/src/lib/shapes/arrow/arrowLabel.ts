@@ -55,7 +55,7 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 		const { w, h } = editor.textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+			fontSize: getArrowLabelFontSize(shape),
 			maxWidth: null,
 		})
 
@@ -70,7 +70,7 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 				{
 					...TEXT_PROPS,
 					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+					fontSize: getArrowLabelFontSize(shape),
 					maxWidth: width,
 				}
 			)
@@ -79,15 +79,15 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 			height = squishedHeight
 		}
 
-		if (width > 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]) {
-			width = 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]
+		if (width > 16 * getArrowLabelFontSize(shape)) {
+			width = 16 * getArrowLabelFontSize(shape)
 
 			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
 				shape.props.text,
 				{
 					...TEXT_PROPS,
 					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+					fontSize: getArrowLabelFontSize(shape),
 					maxWidth: width,
 				}
 			)
@@ -102,12 +102,13 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 	return size
 }
 
-function getLabelToArrowPadding(editor: Editor, shape: TLArrowShape) {
+function getLabelToArrowPadding(shape: TLArrowShape) {
 	const strokeWidth = STROKE_SIZES[shape.props.size]
 	const labelToArrowPadding =
-		LABEL_TO_ARROW_PADDING +
-		(strokeWidth - STROKE_SIZES.s) * 2 +
-		(strokeWidth === STROKE_SIZES.xl ? 20 : 0)
+		(LABEL_TO_ARROW_PADDING +
+			(strokeWidth - STROKE_SIZES.s) * 2 +
+			(strokeWidth === STROKE_SIZES.xl ? 20 : 0)) *
+		shape.props.scale
 
 	return labelToArrowPadding
 }
@@ -122,7 +123,7 @@ function getStraightArrowLabelRange(
 	info: Extract<TLArrowInfo, { isStraight: true }>
 ): { start: number; end: number } {
 	const labelSize = getArrowLabelSize(editor, shape)
-	const labelToArrowPadding = getLabelToArrowPadding(editor, shape)
+	const labelToArrowPadding = getLabelToArrowPadding(shape)
 
 	// take the start and end points of the arrow, and nudge them in a bit to give some spare space:
 	const startOffset = Vec.Nudge(info.start.point, info.end.point, labelToArrowPadding)
@@ -165,7 +166,7 @@ function getCurvedArrowLabelRange(
 	info: Extract<TLArrowInfo, { isStraight: false }>
 ): { start: number; end: number; dbg?: Geometry2d[] } {
 	const labelSize = getArrowLabelSize(editor, shape)
-	const labelToArrowPadding = getLabelToArrowPadding(editor, shape)
+	const labelToArrowPadding = getLabelToArrowPadding(shape)
 	const direction = Math.sign(shape.props.bend)
 
 	// take the start and end points of the arrow, and nudge them in a bit to give some spare space:
@@ -350,4 +351,8 @@ function furthest(from: VecLike, candidates: VecLike[]): VecLike | null {
 function interpolateArcAngles(angleStart: number, angleEnd: number, direction: number, t: number) {
 	const dist = angleDistance(angleStart, angleEnd, direction)
 	return angleStart + dist * t * direction * -1
+}
+
+export function getArrowLabelFontSize(shape: TLArrowShape) {
+	return ARROW_LABEL_FONT_SIZES[shape.props.size] * shape.props.scale
 }

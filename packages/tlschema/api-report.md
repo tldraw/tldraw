@@ -49,6 +49,7 @@ export const arrowShapeProps: {
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     labelPosition: T.Validator<number>;
+    scale: T.Validator<number>;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     start: T.Validator<VecModel>;
     text: T.Validator<string>;

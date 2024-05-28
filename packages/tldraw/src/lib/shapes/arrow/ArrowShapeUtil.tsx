@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Arc2d,
 	Box,
@@ -36,14 +37,15 @@ import {
 import React from 'react'
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES } from '../shared/default-shape-constants'
+import { TextLabel } from '../shared/TextLabel'
+import { STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getArrowLabelPosition } from './arrowLabel'
+import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
 import {
 	getCurvedArrowHandlePath,
@@ -51,7 +53,6 @@ import {
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
 } from './arrowpaths'
-import { ArrowTextLabel } from './components/ArrowTextLabel'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
@@ -106,6 +107,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			text: '',
 			labelPosition: 0.5,
 			font: 'draw',
+			scale: 1,
 		}
 	}
 
@@ -547,6 +549,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	component(shape: TLArrowShape) {
+		const theme = useDefaultColorTheme()
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
 		const shouldDisplayHandles =
 			this.editor.isInAny(
@@ -574,15 +577,22 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					/>
 				</SVGContainer>
 				{showArrowLabel && (
-					<ArrowTextLabel
+					<TextLabel
 						id={shape.id}
-						text={shape.props.text}
+						classNamePrefix="tl-arrow"
+						type="arrow"
 						font={shape.props.font}
-						size={shape.props.size}
-						position={labelPosition.box.center}
-						width={labelPosition.box.w}
+						fontSize={getArrowLabelFontSize(shape)}
+						lineHeight={TEXT_PROPS.lineHeight}
+						align="middle"
+						verticalAlign="middle"
+						text={shape.props.text}
+						labelColor={theme[shape.props.labelColor].solid}
+						textWidth={labelPosition.box.w}
 						isSelected={isSelected}
-						labelColor={shape.props.labelColor}
+						style={{
+							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px)`,
+						}}
 					/>
 				)}
 			</>
@@ -604,7 +614,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (Vec.Equals(start, end)) return null
 
-		const strokeWidth = STROKE_SIZES[shape.props.size]
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -731,14 +741,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			<>
 				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
 				<SvgTextLabel
-					fontSize={ARROW_LABEL_FONT_SIZES[shape.props.size]}
+					fontSize={getArrowLabelFontSize(shape)}
 					font={shape.props.font}
 					align="middle"
 					verticalAlign="middle"
 					text={shape.props.text}
 					labelColor={theme[shape.props.labelColor].solid}
 					bounds={getArrowLabelPosition(this.editor, shape).box}
-					padding={4}
+					padding={4 * shape.props.scale}
 				/>
 			</>
 		)
@@ -787,7 +797,7 @@ const ArrowSvg = track(function ArrowSvg({
 
 	if (!info?.isValid) return null
 
-	const strokeWidth = STROKE_SIZES[shape.props.size]
+	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
 
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)

@@ -97,7 +97,7 @@ export const TextLabel = React.memo(function TextLabel({
 				style={{
 					fontSize,
 					lineHeight: fontSize * lineHeight + 'px',
-					minHeight: lineHeight + 32,
+					minHeight: fontSize * lineHeight + 'px',
 					minWidth: textWidth || 0,
 					color: labelColor,
 					width: textWidth,

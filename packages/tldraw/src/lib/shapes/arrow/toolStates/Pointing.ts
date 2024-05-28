@@ -90,14 +90,15 @@ export class Pointing extends StateNode {
 		this.markId = `creating:${id}`
 		this.editor.mark(this.markId)
 
-		this.editor.createShapes<TLArrowShape>([
-			{
-				id,
-				type: 'arrow',
-				x: originPagePoint.x,
-				y: originPagePoint.y,
+		this.editor.createShape<TLArrowShape>({
+			id,
+			type: 'arrow',
+			x: originPagePoint.x,
+			y: originPagePoint.y,
+			props: {
+				scale: 1 / this.editor.getZoomLevel(),
 			},
-		])
+		})
 
 		const shape = this.editor.getShape<TLArrowShape>(id)
 		if (!shape) throw Error(`expected shape`)

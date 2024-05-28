@@ -221,6 +221,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
         labelPosition: Validator<number>;
+        scale: Validator<number>;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         start: Validator<VecModel>;
         text: Validator<string>;
