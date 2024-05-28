@@ -58,7 +58,10 @@ export class DraggingHandle extends StateNode {
 
 		this.initialHandle = structuredClone(handle)
 
-		if (this.editor.isShapeOfType<TLLineShape>(shape, 'line')) {
+		if (
+			this.editor.isShapeOfType<TLLineShape>(shape, 'line') ||
+			this.editor.isShapeOfType(shape, 'shape-line')
+		) {
 			// For line shapes, if we're dragging a "create" handle, then
 			// create a new vertex handle at that point; and make this handle
 			// the handle that we're dragging.
@@ -67,6 +70,7 @@ export class DraggingHandle extends StateNode {
 					...shape,
 					props: {
 						points: {
+							//@ts-expect-error
 							...shape.props.points,
 							[handle.index]: { id: handle.index, index: handle.index, x: handle.x, y: handle.y },
 						},
