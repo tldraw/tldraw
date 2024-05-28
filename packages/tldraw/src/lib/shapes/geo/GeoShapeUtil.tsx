@@ -442,6 +442,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							font={font}
 							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
 							lineHeight={TEXT_PROPS.lineHeight}
+							padding={16 * shape.props.scale}
 							fill={fill}
 							align={align}
 							verticalAlign={verticalAlign}
@@ -531,6 +532,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					text={props.text}
 					labelColor={theme[props.labelColor].solid}
 					bounds={bounds}
+					padding={16 * shape.props.scale}
 				/>
 			)
 		}
