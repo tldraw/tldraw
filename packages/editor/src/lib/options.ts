@@ -26,7 +26,11 @@ export interface TldrawOptions {
 	readonly dragDistanceSquared: number
 	readonly defaultSvgPadding: number
 	readonly cameraSlideFriction: number
-	readonly gridSteps: readonly { min: number; mid: number; step: number }[]
+	readonly gridSteps: readonly {
+		readonly min: number
+		readonly mid: number
+		readonly step: number
+	}[]
 	readonly collaboratorInactiveTimeoutMs: number
 	readonly collaboratorIdleTimeoutMs: number
 	readonly collaboratorCheckIntervalMs: number

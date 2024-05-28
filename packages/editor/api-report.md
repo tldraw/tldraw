@@ -2345,9 +2345,9 @@ export interface TldrawOptions {
     readonly followChaseViewportSnap: number;
     // (undocumented)
     readonly gridSteps: readonly {
-        mid: number;
-        min: number;
-        step: number;
+        readonly mid: number;
+        readonly min: number;
+        readonly step: number;
     }[];
     // (undocumented)
     readonly handleRadius: number;
