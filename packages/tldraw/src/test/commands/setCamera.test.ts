@@ -1,4 +1,4 @@
-import { Box, DEFAULT_CAMERA_OPTIONS, Vec } from '@tldraw/editor'
+import { Box, DEFAULT_CAMERA_OPTIONS, Vec, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -28,84 +28,100 @@ const pinchEvent = {
 	ctrlKey: false,
 } as const
 
+const keyBoardEvent = {
+	type: 'keyboard',
+	name: 'key_down',
+	key: ' ',
+	code: 'Space',
+	shiftKey: false,
+	altKey: false,
+	ctrlKey: false,
+} as const
+
 describe('With default options', () => {
 	beforeEach(() => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS })
 	})
 	it('pans', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
-		editor.dispatch({
-			...pinchEvent,
-			name: 'pinch_start',
-		})
-		editor.forceTick()
-		editor.dispatch({
-			...pinchEvent,
-			name: 'pinch',
-			delta: new Vec(100, -10),
-		})
-		editor.forceTick()
-		editor.dispatch({
-			...pinchEvent,
-			name: 'pinch_end',
-		})
-		editor.forceTick()
+		editor
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch_start',
+			})
+			.forceTick()
+		editor
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch',
+				delta: new Vec(100, -10),
+			})
+			.forceTick()
+		editor
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch_end',
+			})
+			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 100, y: -10, z: 1 })
 	})
 	it('pans with wheel', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
-		editor.dispatch({ ...wheelEvent, delta: new Vec(5, 10) })
-		editor.forceTick()
+		editor.dispatch({ ...wheelEvent, delta: new Vec(5, 10) }).forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 	it('zooms with wheel', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		// zoom in 10%
-		editor.dispatch({ ...wheelEvent, delta: new Vec(0, 0, -0.1), ctrlKey: true })
-		editor.forceTick()
+		editor.dispatch({ ...wheelEvent, delta: new Vec(0, 0, -0.1), ctrlKey: true }).forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.9 })
 		// zoom out 10%
-		editor.dispatch({ ...wheelEvent, delta: new Vec(0, 0, 0.1), ctrlKey: true })
-		editor.forceTick()
+		editor.dispatch({ ...wheelEvent, delta: new Vec(0, 0, 0.1), ctrlKey: true }).forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.99 })
 	})
 	it('pinch zooms', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		// zoom in
-		editor.dispatch({
-			...pinchEvent,
-			name: 'pinch_start',
-		})
-		editor.forceTick()
-		editor.dispatch({
-			...pinchEvent,
-			name: 'pinch',
-			point: new Vec(0, 0, 0.5),
-		})
-		editor.forceTick()
-		editor.dispatch({
-			...pinchEvent,
-			name: 'pinch_end',
-		})
-		editor.forceTick()
+		editor
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch_start',
+			})
+			.forceTick()
+		editor
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch',
+				point: new Vec(0, 0, 0.5),
+			})
+			.forceTick()
+		editor
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch_end',
+			})
+			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.5 })
 		// zoom out
-		editor.dispatch({
-			...pinchEvent,
-			name: 'pinch_start',
-		})
-		editor.forceTick()
-		editor.dispatch({
-			...pinchEvent,
-			name: 'pinch',
-			point: new Vec(0, 0, 1),
-		})
-		editor.forceTick()
-		editor.dispatch({
-			...pinchEvent,
-			name: 'pinch_end',
-		})
-		editor.forceTick()
+		editor
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch_start',
+			})
+			.forceTick()
+		editor
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch',
+				point: new Vec(0, 0, 1),
+			})
+			.forceTick()
+		editor
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch_end',
+			})
+			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 	})
 })
@@ -211,10 +227,50 @@ describe('CameraOptions.panSpeed', () => {
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1.01 }) // 1 + 1
 	})
-
-	it.todo('hand tool panning')
-	it.todo('spacebar panning')
-	it.todo('edge scroll panning')
+	it('Does not effect hand tool panning', () => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 })
+		editor.setCurrentTool('hand').pointerDown(0, 0).pointerMove(5, 10).forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
+	})
+	it('Effects spacebar panning (2x)', () => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 })
+		editor
+			.dispatch({ ...keyBoardEvent, key: ' ', code: 'Space' })
+			.pointerDown(0, 0)
+			.pointerMove(5, 10)
+			.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 10, y: 20, z: 1 })
+	})
+	it('Effects spacebar panning (0.5x)', () => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 0.5 })
+		editor
+			.dispatch({ ...keyBoardEvent, key: ' ', code: 'Space' })
+			.pointerDown(0, 0)
+			.pointerMove(5, 10)
+			.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 2.5, y: 5, z: 1 })
+	})
+	it('Does not effect edge scroll panning', () => {
+		const shapeId = createShapeId()
+		const viewportScreenBounds = editor.getViewportScreenBounds()
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+		editor
+			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 })
+			.createShape({ id: shapeId, type: 'geo', x: 10, y: 10 })
+			.select(shapeId)
+		const shape = editor.getSelectedShapes()[0]
+		editor.selectNone()
+		// Move shape far beyond bounds to trigger edge scrolling at maximum speed
+		editor.pointerDown(shape.x, shape.y).pointerMove(-5000, -5000).forceTick()
+		// At maximum speed and a zoom level of 1, the camera should move by 20px per tick if the screen
+		// is wider than 1000 pixels, or by 20 * 0.612px if it is smaller.
+		// Even though the pan speed is set to 2, the edge scrolling speed should remain unaffected.
+		const newX = viewportScreenBounds.w < 1000 ? 20 * 0.612 : 20
+		const newY = viewportScreenBounds.h < 1000 ? 20 * 0.612 : 20
+		expect(editor.getCamera()).toMatchObject({ x: newX, y: newY, z: 1 })
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: newX * 2, y: newY * 2, z: 1 })
+	})
 })
 
 describe('CameraOptions.zoomSpeed', () => {
@@ -251,8 +307,33 @@ describe('CameraOptions.zoomSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
-	it.todo('zoom method')
-	it.todo('zoom tool zooming')
+	it('Effects pinch zooming', () => {
+		editor
+			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch_start',
+			})
+			.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch',
+			delta: new Vec(0, 0, 1),
+		})
+		editor.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch_end',
+		})
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
+	})
+	it('zoom tool zooming', () => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })
+		editor.setCurrentTool('zoom').click()
+		jest.advanceTimersByTime(300)
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
+	})
 	it.todo('pinch zooming')
 })
 
