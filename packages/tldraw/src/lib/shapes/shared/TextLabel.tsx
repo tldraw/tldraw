@@ -32,6 +32,7 @@ interface TextLabelProps {
 	style?: React.CSSProperties
 	textWidth?: number
 	textHeight?: number
+	padding?: number
 }
 
 /** @public */
@@ -47,6 +48,7 @@ export const TextLabel = React.memo(function TextLabel({
 	verticalAlign,
 	wrap,
 	isSelected,
+	padding = 0,
 	onKeyDown: handleKeyDownCustom,
 	classNamePrefix,
 	style,
@@ -89,6 +91,7 @@ export const TextLabel = React.memo(function TextLabel({
 			style={{
 				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
 				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+				padding,
 				...style,
 			}}
 		>

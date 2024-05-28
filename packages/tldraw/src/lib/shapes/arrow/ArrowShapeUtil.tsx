@@ -590,6 +590,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						labelColor={theme[shape.props.labelColor].solid}
 						textWidth={labelPosition.box.w}
 						isSelected={isSelected}
+						padding={0}
 						style={{
 							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px)`,
 						}}
@@ -635,8 +636,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					y={toDomPrecision(labelGeometry.y)}
 					width={labelGeometry.w}
 					height={labelGeometry.h}
-					rx={3.5}
-					ry={3.5}
+					rx={3.5 * shape.props.scale}
+					ry={3.5 * shape.props.scale}
 				/>
 			)
 		}
@@ -660,8 +661,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 									width={labelGeometry.w}
 									height={labelGeometry.h}
 									fill="black"
-									rx={3.5}
-									ry={3.5}
+									rx={3.5 * shape.props.scale}
+									ry={3.5 * shape.props.scale}
 								/>
 							)}
 							{as && (

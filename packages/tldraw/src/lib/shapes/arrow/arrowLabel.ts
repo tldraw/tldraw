@@ -52,10 +52,12 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 	if (shape.props.text.trim()) {
 		const bodyBounds = bodyGeom.bounds
 
+		const fontSize = getArrowLabelFontSize(shape)
+
 		const { w, h } = editor.textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: getArrowLabelFontSize(shape),
+			fontSize,
 			maxWidth: null,
 		})
 
@@ -70,7 +72,7 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 				{
 					...TEXT_PROPS,
 					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize: getArrowLabelFontSize(shape),
+					fontSize,
 					maxWidth: width,
 				}
 			)
@@ -79,15 +81,15 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 			height = squishedHeight
 		}
 
-		if (width > 16 * getArrowLabelFontSize(shape)) {
-			width = 16 * getArrowLabelFontSize(shape)
+		if (width > 16 * fontSize) {
+			width = 16 * fontSize
 
 			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
 				shape.props.text,
 				{
 					...TEXT_PROPS,
 					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize: getArrowLabelFontSize(shape),
+					fontSize,
 					maxWidth: width,
 				}
 			)
@@ -97,7 +99,7 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 		}
 	}
 
-	const size = new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2)
+	const size = new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
 	labelSizeCache.set(shape, size)
 	return size
 }

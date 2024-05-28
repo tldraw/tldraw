@@ -279,16 +279,20 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			}
 		}
 
-		// If the shape is scaled, reset the scale to 1.
-		if (shape.props.scale !== 1) {
-			return {
-				id: shape.id,
-				type: shape.type,
-				props: {
-					scale: 1,
-				},
-			}
-		}
+		// todo: This feels like a mistake more often than not, maybe
+		// instead we should have a reset scale option in a menu
+		// or a special shortcut.
+
+		// // If the shape is scaled, reset the scale to 1.
+		// if (shape.props.scale !== 1) {
+		// 	return {
+		// 		id: shape.id,
+		// 		type: shape.type,
+		// 		props: {
+		// 			scale: 1,
+		// 		},
+		// 	}
+		// }
 	}
 }
 

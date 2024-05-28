@@ -1422,14 +1422,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         id: TLShapeId;
         props: {
             autoSize: boolean;
-            scale?: undefined;
-        };
-        type: "text";
-    } | {
-        id: TLShapeId;
-        props: {
-            autoSize?: undefined;
-            scale: number;
         };
         type: "text";
     } | undefined;

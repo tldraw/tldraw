@@ -1075,7 +1075,7 @@ input,
 	position: relative;
 	top: 0px;
 	left: 0px;
-	padding: 16px;
+	padding: inherit;
 	height: fit-content;
 	width: fit-content;
 	border-radius: var(--radius-1);
@@ -1087,7 +1087,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	padding: 16px;
+	padding: inherit;
 }
 
 .tl-text-wrapper[data-isselected='true'] .tl-text-input {
@@ -1173,12 +1173,12 @@ input,
 .tl-arrow-label .tl-arrow {
 	position: relative;
 	height: max-content;
-	padding: 4px;
+	padding: inherit;
 	overflow: visible;
 }
 
 .tl-arrow-label textarea {
-	padding: 4px;
+	padding: inherit;
 	/* Don't allow textarea to be zero width */
 	min-width: 4px;
 }
