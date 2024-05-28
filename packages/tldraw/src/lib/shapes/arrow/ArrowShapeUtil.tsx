@@ -506,15 +506,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				normalizedAnchor: endNormalizedAnchor.toJson(),
 			})
 		}
-
 		const next = {
+			...shape,
 			props: {
 				start,
 				end,
 				bend,
 			},
 		}
-
 		return next
 	}
 
