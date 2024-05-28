@@ -15755,13 +15755,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"idb@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "idb@npm:8.0.0"
-  checksum: 6ff47b46ead4bf02ac3a9145bb2f48bac707b950cf33282a72eec8efcda610ffb0a09aab6eea58450f6c87373060bf50998d307085830a302e9e231eee6cd37d
-  languageName: node
-  linkType: hard
-
 "ieee754@npm:^1.1.13, ieee754@npm:^1.1.4, ieee754@npm:^1.2.1":
   version: 1.2.1
   resolution: "ieee754@npm:1.2.1"
@@ -24257,7 +24250,7 @@ __metadata:
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.3.2"
     hotkeys-js: "npm:^3.11.2"
-    idb: "npm:^8.0.0"
+    idb: "npm:^7.1.1"
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
