@@ -1,33 +1,51 @@
-import { AssetContextProps, TLAsset } from 'tldraw'
+import { AssetContextProps, TLAsset, getAssetFromIndexedDb } from 'tldraw'
 import { ASSET_UPLOADER_URL } from './config'
 
-export async function resolveAsset(asset: TLAsset | null | undefined, context: AssetContextProps) {
-	if (!asset || !asset.props.src) return ''
+export const resolveAsset =
+	(persistenceKey?: string) =>
+	async (asset: TLAsset | null | undefined, context: AssetContextProps) => {
+		if (!asset || !asset.props.src) return ''
 
-	// We don't deal with videos at the moment.
-	if (asset.type === 'video') return asset.props.src
+		// We don't deal with videos at the moment.
+		if (asset.type === 'video') return asset.props.src
 
-	// Assert it's an image to make TS happy.
-	if (asset.type !== 'image') return ''
+		// Assert it's an image to make TS happy.
+		if (asset.type !== 'image') return ''
 
-	// Don't try to transform data: URLs, yikes.
-	if (!asset.props.src.startsWith('http:') && !asset.props.src.startsWith('https:'))
-		return asset.props.src
+		// Retrieve a local image from the DB.
+		if (persistenceKey && asset.props.src.startsWith('asset:')) {
+			const blob = await getAssetFromIndexedDb({
+				assetId: asset.id,
+				persistenceKey: persistenceKey || '',
+			})
+			if (blob) {
+				return URL.createObjectURL(blob)
+			}
+			return ''
+		}
 
-	// N.B. navigator.connection is only available in certain browsers (mainly Blink-based browsers)
-	// 4g is as high the 'effectiveType' goes and we can pick a lower effective image quality for slower connections.
-	const networkCompensation =
-		!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
+		// Don't try to transform data: URLs, yikes.
+		if (!asset.props.src.startsWith('http:') && !asset.props.src.startsWith('https:'))
+			return asset.props.src
 
-	// We only look at the zoom level to the nearest 0.25
-	const zoomStepFunction = (zoom: number) => Math.floor(zoom * 4) / 4
-	const steppedZoom = Math.max(0.25, zoomStepFunction(context.zoom))
+		if (context.shouldResolveToOriginalImage) {
+			return asset.props.src
+		}
 
-	const width = Math.ceil(asset.props.w * steppedZoom * networkCompensation)
+		// N.B. navigator.connection is only available in certain browsers (mainly Blink-based browsers)
+		// 4g is as high the 'effectiveType' goes and we can pick a lower effective image quality for slower connections.
+		const networkCompensation =
+			!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
-	if (process.env.NODE_ENV === 'development') {
-		return asset.props.src
+		// We only look at the zoom level to the nearest 0.25
+		const zoomStepFunction = (zoom: number) => Math.floor(zoom * 4) / 4
+		const steppedZoom = Math.max(0.25, zoomStepFunction(context.zoom))
+
+		const width = Math.ceil(asset.props.w * steppedZoom * networkCompensation)
+
+		if (process.env.NODE_ENV === 'development') {
+			return asset.props.src
+		}
+
+		return `${ASSET_UPLOADER_URL}/cdn-cgi/image/width=${width},dpr=${context.dpr},fit=scale-down,quality=92/${asset.props.src}`
 	}
-
-	return `${ASSET_UPLOADER_URL}/cdn-cgi/image/width=${width},dpr=${context.dpr},fit=scale-down,quality=92/${asset.props.src}`
-}

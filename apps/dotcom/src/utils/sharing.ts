@@ -46,10 +46,11 @@ async function getSnapshotLink(
 	addToast: TLUiToastsContextType['addToast'],
 	msg: (id: TLUiTranslationKey) => string,
 	uploadFileToAsset: (file: File) => Promise<TLAsset>,
-	parentSlug: string | undefined
+	parentSlug: string | undefined,
+	persistenceKey: string
 ) {
 	handleUiEvent('share-snapshot' as UI_OVERRIDE_TODO_EVENT, { source } as UI_OVERRIDE_TODO_EVENT)
-	const data = await getRoomData(editor, addToast, msg, uploadFileToAsset)
+	const data = await getRoomData(editor, addToast, msg, uploadFileToAsset, persistenceKey)
 	if (!data) return ''
 
 	const res = await fetch(CREATE_SNAPSHOT_ENDPOINT, {
@@ -94,7 +95,7 @@ export async function getNewRoomResponse(snapshot: Snapshot) {
 	})
 }
 
-export function useSharing(): TLUiOverrides {
+export function useSharing(persistenceKey?: string): TLUiOverrides {
 	const navigate = useNavigate()
 	const params = useParams()
 	const roomId = params.roomId
@@ -125,7 +126,13 @@ export function useSharing(): TLUiOverrides {
 					onSelect: async (source) => {
 						try {
 							handleUiEvent('share-project', { source })
-							const data = await getRoomData(editor, addToast, msg, uploadFileToAsset)
+							const data = await getRoomData(
+								editor,
+								addToast,
+								msg,
+								uploadFileToAsset,
+								persistenceKey || ''
+							)
 							if (!data) return
 
 							const res = await getNewRoomResponse({
@@ -174,7 +181,8 @@ export function useSharing(): TLUiOverrides {
 							addToast,
 							msg,
 							uploadFileToAsset,
-							roomId
+							roomId,
+							persistenceKey || ''
 						)
 						if (navigator?.clipboard?.write) {
 							await navigator.clipboard.write([
@@ -197,7 +205,7 @@ export function useSharing(): TLUiOverrides {
 				return actions
 			},
 		}),
-		[handleUiEvent, navigate, uploadFileToAsset, roomId, runningInIFrame]
+		[handleUiEvent, navigate, uploadFileToAsset, roomId, runningInIFrame, persistenceKey]
 	)
 }
 
@@ -205,7 +213,8 @@ async function getRoomData(
 	editor: Editor,
 	addToast: TLUiToastsContextType['addToast'],
 	msg: (id: TLUiTranslationKey) => string,
-	uploadFileToAsset: (file: File) => Promise<TLAsset>
+	uploadFileToAsset: (file: File) => Promise<TLAsset>,
+	persistenceKey: string
 ) {
 	const rawData = editor.store.serialize()
 
@@ -241,7 +250,7 @@ async function getRoomData(
 			// processed it
 			if (!asset) continue
 
-			data[asset.id] = await cloneAssetForShare(asset, uploadFileToAsset)
+			data[asset.id] = await cloneAssetForShare(asset, uploadFileToAsset, persistenceKey)
 			// remove the asset after processing so we don't clone it multiple times
 			assets.delete(asset.id)
 		}

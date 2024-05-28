@@ -822,6 +822,12 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
     start: Vec;
 };
 
+// @public (undocumented)
+export function getAssetFromIndexedDb({ persistenceKey, assetId, }: {
+    assetId: string;
+    persistenceKey: string;
+}): Promise<Blob | undefined>;
+
 // @public
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
@@ -1318,6 +1324,13 @@ export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function storeAssetInIndexedDb({ persistenceKey, assetId, blob, }: {
+    assetId: string;
+    blob: Blob;
+    persistenceKey: string;
+}): Promise<void>;
 
 // @public (undocumented)
 export const TEXT_PROPS: {

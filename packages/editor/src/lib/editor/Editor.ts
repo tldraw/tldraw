@@ -3869,7 +3869,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.get(typeof asset === 'string' ? asset : asset.id) as TLAsset | undefined
 	}
 
-	async resolveAssetUrl(assetId: TLAssetId | null, context: { zoom: number }): Promise<string> {
+	async resolveAssetUrl(
+		assetId: TLAssetId | null,
+		context: { zoom?: number; shouldResolveToOriginalImage?: boolean }
+	): Promise<string> {
 		if (!assetId) return ''
 		const asset = this.getAsset(assetId)
 		if (!asset) return ''
@@ -3877,10 +3880,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const networkEffectiveType: string | null =
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
 		const dpr = this.getInstanceState().devicePixelRatio
+		const { zoom, shouldResolveToOriginalImage } = context
 
 		return await this._assetOptions
 			.get()
-			.onResolveAsset(asset!, { zoom: context.zoom, dpr, networkEffectiveType })
+			.onResolveAsset(asset!, {
+				zoom: zoom || 1,
+				dpr,
+				networkEffectiveType,
+				shouldResolveToOriginalImage,
+			})
 	}
 
 	/* --------------------- Shapes --------------------- */
@@ -7466,6 +7475,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	} = {
 		file: null,
 		url: null,
+		blob: null,
 	}
 
 	/**
@@ -7505,6 +7515,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	async getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined> {
 		return await this.externalAssetContentHandlers[info.type]?.(info as any)
+	}
+
+	hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean {
+		return !!this.externalAssetContentHandlers[type]
 	}
 
 	/** @internal */

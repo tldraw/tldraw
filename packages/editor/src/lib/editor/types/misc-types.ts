@@ -60,6 +60,7 @@ export interface AssetContextProps {
 	zoom: number
 	dpr: number
 	networkEffectiveType: string | null
+	shouldResolveToOriginalImage?: boolean
 }
 
 /** @public */

@@ -159,7 +159,7 @@ export function MultiplayerEditor({
 				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
-				assetOptions={{ onResolveAsset: resolveAsset }}
+				assetOptions={{ onResolveAsset: resolveAsset() }}
 				inferDarkMode
 			>
 				<UrlStateSync />

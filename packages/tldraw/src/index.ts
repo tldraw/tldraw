@@ -6,6 +6,7 @@ export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
+export { getAssetFromIndexedDb, storeAssetInIndexedDb } from './lib/AssetBlobStore'
 export { Tldraw, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'

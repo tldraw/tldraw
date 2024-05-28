@@ -149,6 +149,8 @@ export interface AssetContextProps {
     // (undocumented)
     networkEffectiveType: null | string;
     // (undocumented)
+    shouldResolveToOriginalImage?: boolean;
+    // (undocumented)
     zoom: number;
 }
 
@@ -938,6 +940,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getZoomLevel(): number;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
+    // (undocumented)
+    hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean;
     readonly history: HistoryManager<TLRecord>;
     inputs: {
         buttons: Set<number>;
@@ -1001,7 +1005,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     // (undocumented)
     resolveAssetUrl(assetId: null | TLAssetId, context: {
-        zoom: number;
+        shouldResolveToOriginalImage?: boolean;
+        zoom?: number;
     }): Promise<string>;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
@@ -2365,6 +2370,10 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExternalAssetContent = {
+    assetInfo: TLAsset;
+    blob: Blob;
+    type: 'blob';
+} | {
     file: File;
     type: 'file';
 } | {
