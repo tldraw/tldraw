@@ -23,6 +23,7 @@ import {
 	intersectLineSegmentCircle,
 } from '@tldraw/editor'
 import { getArrowBindings, getArrowInfo, removeArrowBinding } from '../../shapes/arrow/shared'
+import { DraggingHandle } from '../../tools/SelectTool/childStates/DraggingHandle'
 
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 	static override type = 'arrow'
@@ -64,6 +65,14 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 	override onBeforeUnbind({ binding, reason }: BindingOnUnbindOptions<TLArrowBinding>): void {
 		// don't need to do anything if the arrow is being deleted
 		if (reason === BindingUnbindReason.DeletingFromShape) return
+		// don't need to do anything if the arrow terminal is being directly manipulated
+		if (
+			this.editor.isIn('select.dragging_handle') &&
+			this.editor.getOnlySelectedShapeId() === binding.fromId &&
+			(this.editor.root.getCurrent()!.getCurrent()! as DraggingHandle).initialHandle.id ===
+				binding.props.terminal
+		)
+			return
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
 		if (!arrow) return
 		unbindArrowTerminal(this.editor, arrow, binding.props.terminal)
