@@ -1,7 +1,6 @@
 import {
 	AssetRecordType,
 	Editor,
-	MAX_SHAPES_PER_PAGE,
 	PageRecordType,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
@@ -130,7 +129,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 				const v1Shapes = Object.values(v1Page.shapes ?? {})
 					.sort((a, b) => (a.childIndex < b.childIndex ? -1 : 1))
-					.slice(0, MAX_SHAPES_PER_PAGE)
+					.slice(0, editor.options.maxShapesPerPage)
 
 				// Groups only
 				v1Shapes.forEach((v1Shape) => {

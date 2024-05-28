@@ -1,5 +1,4 @@
 import {
-	HIT_TEST_MARGIN,
 	StateNode,
 	TLEventHandlers,
 	TLFrameShape,
@@ -90,7 +89,7 @@ export class Erasing extends StateNode {
 		this.pushPointToScribble()
 
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
-		const minDist = HIT_TEST_MARGIN / zoomLevel
+		const minDist = this.editor.options.hitTestMargin / zoomLevel
 
 		for (const shape of currentPageShapes) {
 			if (editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue

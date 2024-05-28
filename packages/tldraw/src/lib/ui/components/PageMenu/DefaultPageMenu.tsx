@@ -1,5 +1,4 @@
 import {
-	MAX_PAGES,
 	PageRecordType,
 	TLPageId,
 	releasePointerCapture,
@@ -50,7 +49,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	// If the user has reached the max page count, we disable the "add page" button
 	const maxPageCountReached = useValue(
 		'maxPageCountReached',
-		() => editor.getPages().length >= MAX_PAGES,
+		() => editor.getPages().length >= editor.options.maxPages,
 		[editor]
 	)
 

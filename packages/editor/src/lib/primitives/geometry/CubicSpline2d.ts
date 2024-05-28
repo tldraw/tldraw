@@ -46,14 +46,8 @@ export class CubicSpline2d extends Geometry2d {
 		return this._segments
 	}
 
-	_length?: number
-
-	// eslint-disable-next-line no-restricted-syntax
-	get length() {
-		if (!this._length) {
-			this._length = this.segments.reduce((acc, segment) => acc + segment.length, 0)
-		}
-		return this._length
+	override getLength() {
+		return this.segments.reduce((acc, segment) => acc + segment.length, 0)
 	}
 
 	getVertices() {
@@ -83,5 +77,17 @@ export class CubicSpline2d extends Geometry2d {
 
 	hitTestLineSegment(A: Vec, B: Vec): boolean {
 		return this.segments.some((segment) => segment.hitTestLineSegment(A, B))
+	}
+
+	getSvgPathData() {
+		let d = this.segments.reduce((d, segment, i) => {
+			return d + segment.getSvgPathData(i === 0)
+		}, '')
+
+		if (this.isClosed) {
+			d += 'Z'
+		}
+
+		return d
 	}
 }
