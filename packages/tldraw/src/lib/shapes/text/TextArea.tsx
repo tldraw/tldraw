@@ -1,7 +1,7 @@
 import { preventDefault, stopEventPropagation } from '@tldraw/editor'
 import { forwardRef } from 'react'
 
-type TextAreaProps = {
+interface TextAreaProps {
 	isEditing: boolean
 	text: string
 	handleFocus: () => void

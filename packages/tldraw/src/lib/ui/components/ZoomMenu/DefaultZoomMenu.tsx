@@ -10,7 +10,7 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
 
 /** @public */
-export type TLUiZoomMenuProps = {
+export interface TLUiZoomMenuProps {
 	children?: ReactNode
 }
 

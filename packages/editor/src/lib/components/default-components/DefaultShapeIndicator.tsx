@@ -33,7 +33,7 @@ const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
 }
 
 /** @public */
-export type TLShapeIndicatorProps = {
+export interface TLShapeIndicatorProps {
 	shapeId: TLShapeId
 	color?: string | undefined
 	opacity?: number

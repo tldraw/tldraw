@@ -1,5 +1,6 @@
 import { VecModel } from '@tldraw/tlschema'
 import { EASINGS } from './easings'
+import { toFixed } from './utils'
 
 /** @public */
 export type VecLike = Vec | VecModel
@@ -504,8 +505,20 @@ export class Vec {
 		return Vec.Sub(A, origin).mul(scale).add(origin)
 	}
 
-	static ToFixed(A: VecLike, n = 2) {
-		return new Vec(+A.x.toFixed(n), +A.y.toFixed(n), +A.z!.toFixed(n))
+	static ToFixed(A: VecLike) {
+		return new Vec(toFixed(A.x), toFixed(A.y))
+	}
+
+	static ToInt(A: VecLike) {
+		return new Vec(
+			parseInt(A.x.toFixed(0)),
+			parseInt(A.y.toFixed(0)),
+			parseInt((A.z ?? 0).toFixed(0))
+		)
+	}
+
+	static ToCss(A: VecLike) {
+		return `${A.x},${A.y}`
 	}
 
 	static Nudge(A: VecLike, B: VecLike, distance: number) {

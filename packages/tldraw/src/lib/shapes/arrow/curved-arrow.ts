@@ -6,6 +6,7 @@ import {
 	TLArrowShape,
 	Vec,
 	VecLike,
+	centerOfCircleFromThreePoints,
 	clockwiseAngleDist,
 	counterClockwiseAngleDist,
 	intersectCirclePolygon,
@@ -373,20 +374,7 @@ export function getCurvedArrowInfo(
  */
 function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 	// find a circle from the three points
-	const u = -2 * (a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y)
-
-	const center = {
-		x:
-			((a.x * a.x + a.y * a.y) * (c.y - b.y) +
-				(b.x * b.x + b.y * b.y) * (a.y - c.y) +
-				(c.x * c.x + c.y * c.y) * (b.y - a.y)) /
-			u,
-		y:
-			((a.x * a.x + a.y * a.y) * (b.x - c.x) +
-				(b.x * b.x + b.y * b.y) * (c.x - a.x) +
-				(c.x * c.x + c.y * c.y) * (a.x - b.x)) /
-			u,
-	}
+	const center = centerOfCircleFromThreePoints(a, b, c)
 
 	const radius = Vec.Dist(center, a)
 

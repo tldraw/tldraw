@@ -1,6 +1,6 @@
 import { App, Octokit } from 'octokit'
 
-export type Ctx = {
+export interface Ctx {
 	app: App
 	octokit: Octokit
 	installationToken: string

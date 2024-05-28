@@ -63,7 +63,7 @@ const components: TLComponents = {
 	},
 }
 
-type SnapshotEditorProps = {
+interface SnapshotEditorProps {
 	schema: SerializedSchema
 	records: TLRecord[]
 }

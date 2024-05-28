@@ -18,8 +18,9 @@ import {
 	TLAssetId,
 	TLAssetPartial,
 	TLBinding,
+	TLBindingCreate,
 	TLBindingId,
-	TLBindingPartial,
+	TLBindingUpdate,
 	TLCamera,
 	TLCursor,
 	TLCursorType,
@@ -89,6 +90,7 @@ import {
 	MIDDLE_MOUSE_BUTTON,
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
+	ZOOM_TO_FIT_PADDING,
 } from '../constants'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
@@ -848,7 +850,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getBindingUtil<S extends TLUnknownBinding>(binding: S | TLBindingPartial<S>): BindingUtil<S>
+	getBindingUtil<S extends TLUnknownBinding>(binding: S | { type: S['type'] }): BindingUtil<S>
 	getBindingUtil<S extends TLUnknownBinding>(type: S['type']): BindingUtil<S>
 	getBindingUtil<T extends BindingUtil>(
 		type: T extends BindingUtil<infer R> ? R['type'] : string
@@ -2229,7 +2231,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
+	private getConstrainedCamera(
+		point: VecLike,
+		opts?: TLCameraMoveOptions
+	): {
+		x: number
+		y: number
+		z: number
+	} {
 		const currentCamera = this.getCamera()
 
 		let { x, y, z = currentCamera.z } = point
@@ -2385,6 +2394,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
+		return { x, y, z }
+	}
+
+	/** @internal */
+	private _setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
+		const currentCamera = this.getCamera()
+
+		const { x, y, z } = this.getConstrainedCamera(point, opts)
+
 		if (currentCamera.x === x && currentCamera.y === y && currentCamera.z === z) {
 			return this
 		}
@@ -2466,14 +2484,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!Number.isFinite(_point.y)) _point.y = 0
 		if (_point.z === undefined || !Number.isFinite(_point.z)) point.z = this.getZoomLevel()
 
+		const camera = this.getConstrainedCamera(_point, opts)
+
 		if (opts?.animation) {
 			const { width, height } = this.getViewportScreenBounds()
 			this._animateToViewport(
-				new Box(-point.x, -point.y, width / _point.z, height / _point.z),
+				new Box(-camera.x, -camera.y, width / camera.z, height / camera.z),
 				opts
 			)
 		} else {
-			this._setCamera(_point, opts)
+			this._setCamera(camera, {
+				...opts,
+				// we already did the constraining, so we don't need to do it again
+				force: true,
+			})
 		}
 
 		return this
@@ -2699,7 +2723,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
-		const inset = opts?.inset ?? Math.min(256, viewportScreenBounds.width * 0.28)
+		const inset = opts?.inset ?? Math.min(ZOOM_TO_FIT_PADDING, viewportScreenBounds.width * 0.28)
 
 		const baseZoom = this.getBaseZoom()
 		const zoomMin = cameraOptions.zoomSteps[0]
@@ -3622,7 +3646,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updatePage(partial: RequiredKeys<TLPage, 'id'>): this {
+	updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this {
 		if (this.getInstanceState().isReadonly) return this
 
 		const prev = this.getPage(partial.id)
@@ -5149,27 +5173,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return result.filter((b) => b.type === type) as Binding[]
 	}
 
-	createBindings(partials: RequiredKeys<TLBindingPartial, 'type' | 'toId' | 'fromId'>[]) {
-		const bindings = partials.map((partial) => {
+	createBindings(partials: TLBindingCreate[]) {
+		const bindings: TLBinding[] = []
+		for (const partial of partials) {
+			const fromShape = this.getShape(partial.fromId)
+			const toShape = this.getShape(partial.toId)
+			if (!fromShape || !toShape) continue
+			if (!this.canBindShapes({ fromShape, toShape, binding: partial })) continue
+
 			const util = this.getBindingUtil<TLUnknownBinding>(partial.type)
 			const defaultProps = util.getDefaultProps()
-			return this.store.schema.types.binding.create({
+			const binding = this.store.schema.types.binding.create({
 				...partial,
 				id: partial.id ?? createBindingId(),
 				props: {
 					...defaultProps,
 					...partial.props,
 				},
-			})
-		})
+			}) as TLBinding
+
+			bindings.push(binding)
+		}
+
 		this.store.put(bindings)
 		return this
 	}
-	createBinding(partial: RequiredKeys<TLBindingPartial, 'type' | 'fromId' | 'toId'>) {
+	createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>) {
 		return this.createBindings([partial])
 	}
 
-	updateBindings(partials: (TLBindingPartial | null | undefined)[]) {
+	updateBindings(partials: (TLBindingUpdate | null | undefined)[]) {
 		const updated: TLBinding[] = []
 
 		for (const partial of partials) {
@@ -5181,6 +5214,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const updatedBinding = applyPartialToRecordWithProps(current, partial)
 			if (updatedBinding === current) continue
 
+			const fromShape = this.getShape(updatedBinding.fromId)
+			const toShape = this.getShape(updatedBinding.toId)
+			if (!fromShape || !toShape) continue
+			if (!this.canBindShapes({ fromShape, toShape, binding: updatedBinding })) continue
+
 			updated.push(updatedBinding)
 		}
 
@@ -5189,7 +5227,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	updateBinding(partial: TLBindingPartial) {
+	updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>) {
 		return this.updateBindings([partial])
 	}
 
@@ -5200,6 +5238,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	deleteBinding(binding: TLBinding | TLBindingId) {
 		return this.deleteBindings([binding])
+	}
+	canBindShapes({
+		fromShape,
+		toShape,
+		binding,
+	}: {
+		fromShape: TLShape | { type: TLShape['type'] } | TLShape['type']
+		toShape: TLShape | { type: TLShape['type'] } | TLShape['type']
+		binding: TLBinding | { type: TLBinding['type'] } | TLBinding['type']
+	}): boolean {
+		const fromShapeType = typeof fromShape === 'string' ? fromShape : fromShape.type
+		const toShapeType = typeof toShape === 'string' ? toShape : toShape.type
+		const bindingType = typeof binding === 'string' ? binding : binding.type
+
+		const canBindOpts = { fromShapeType, toShapeType, bindingType }
+
+		if (fromShapeType === toShapeType) {
+			return this.getShapeUtil(fromShapeType).canBind(canBindOpts)
+		}
+
+		return (
+			this.getShapeUtil(fromShapeType).canBind(canBindOpts) &&
+			this.getShapeUtil(toShapeType).canBind(canBindOpts)
+		)
 	}
 
 	/* -------------------- Commands -------------------- */
@@ -6775,7 +6837,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let remaining = duration
 		let t: number
 
-		type ShapeAnimation = {
+		interface ShapeAnimation {
 			partial: TLShapePartial
 			values: { prop: string; from: number; to: number }[]
 		}
@@ -8548,10 +8610,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Close any open menus
 						this.clearOpenMenus()
 
-						// Start a long press timeout
-						this._longPressTimeout = setTimeout(() => {
-							this.dispatch({ ...info, name: 'long_press' })
-						}, this.options.longPressDurationMs)
+						if (!this.inputs.isPanning) {
+							// Start a long press timeout
+							this._longPressTimeout = setTimeout(() => {
+								this.dispatch({
+									...info,
+									point: this.inputs.currentScreenPoint,
+									name: 'long_press',
+								})
+							}, this.options.longPressDurationMs)
+						}
 
 						// Save the selected ids at pointer down
 						this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
@@ -8653,6 +8721,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 
 						if (inputs.isPanning) {
+							if (!inputs.keys.has('Space')) {
+								inputs.isPanning = false
+							}
 							const slideDirection = this.inputs.pointerVelocity
 							const slideSpeed = Math.min(2, slideDirection.len())
 

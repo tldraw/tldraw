@@ -4,7 +4,7 @@ import { SIDES } from '../../constants'
 import { useEditor } from '../../hooks/useEditor'
 
 /** @public */
-export type TLHandleProps = {
+export interface TLHandleProps {
 	shapeId: TLShapeId
 	handle: TLHandle
 	zoom: number

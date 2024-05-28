@@ -4,7 +4,7 @@ import { useTransform } from '../../hooks/useTransform'
 import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
-export type TLBrushProps = {
+export interface TLBrushProps {
 	brush: BoxModel
 	color?: string
 	opacity?: number

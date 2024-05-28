@@ -214,7 +214,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
 						</clipPath>
 					</defs>
-					<g clipPath="url(#{cropClipId})">
+					<g clipPath={`url(#${cropClipId})`}>
 						<image href={src} width={width} height={height} style={{ transform }} />
 					</g>
 				</>

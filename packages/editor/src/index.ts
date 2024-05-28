@@ -153,6 +153,7 @@ export {
 	type TLOnTranslateStartHandler,
 	type TLResizeInfo,
 	type TLResizeMode,
+	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
@@ -208,6 +209,7 @@ export {
 } from './lib/editor/types/external-content'
 export {
 	type RequiredKeys,
+	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
 	type TLSvgOptions,
@@ -281,6 +283,7 @@ export {
 	areAnglesCompatible,
 	average,
 	canonicalizeRotation,
+	centerOfCircleFromThreePoints,
 	clamp,
 	clampRadians,
 	clockwiseAngleDist,
@@ -289,6 +292,7 @@ export {
 	getArcMeasure,
 	getPointInArcT,
 	getPointOnCircle,
+	getPointsOnArc,
 	getPolygonVertices,
 	isSafeFloat,
 	perimeterOfEllipse,

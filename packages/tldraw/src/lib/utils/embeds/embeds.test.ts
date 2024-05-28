@@ -1,6 +1,6 @@
 import { getEmbedInfo, matchEmbedUrl, matchUrl } from './embeds'
 
-type MatchUrlTestMatchDef = {
+interface MatchUrlTestMatchDef {
 	url: string
 	match: true
 	output: {
@@ -8,7 +8,7 @@ type MatchUrlTestMatchDef = {
 		embedUrl: string
 	}
 }
-type MatchUrlTestNoMatchDef = {
+interface MatchUrlTestNoMatchDef {
 	url: string
 	match: false
 }
@@ -310,7 +310,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 	},
 ]
 
-type MatchEmbedTestMatchDef = {
+interface MatchEmbedTestMatchDef {
 	embedUrl: string
 	match: true
 	output: {
@@ -318,7 +318,7 @@ type MatchEmbedTestMatchDef = {
 		url: string
 	}
 }
-type MatchEmbedTestNoMatchDef = {
+interface MatchEmbedTestNoMatchDef {
 	embedUrl: string
 	match: false
 }

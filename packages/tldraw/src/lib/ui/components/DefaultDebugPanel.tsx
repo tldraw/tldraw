@@ -41,13 +41,12 @@ const CurrentState = track(function CurrentState() {
 		shape && path.includes('select.')
 			? ` / ${shape.type || ''}${
 					'geo' in shape.props ? ' / ' + shape.props.geo : ''
-				} / [${Vec.ToFixed(editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint), 0)}]`
+				} / [${Vec.ToInt(editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint))}]`
 			: ''
 	const ruler =
 		path.startsWith('select.') && !path.includes('.idle')
-			? ` / [${Vec.ToFixed(editor.inputs.originPagePoint, 0)}] → [${Vec.ToFixed(
-					editor.inputs.currentPagePoint,
-					0
+			? ` / [${Vec.ToInt(editor.inputs.originPagePoint)}] → [${Vec.ToInt(
+					editor.inputs.currentPagePoint
 				)}] = ${Vec.Dist(editor.inputs.originPagePoint, editor.inputs.currentPagePoint).toFixed(0)}`
 			: ''
 

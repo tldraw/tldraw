@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { AssetRecordType, Box, TLAssetId, TLShapeId, createShapeId } from 'tldraw'
 import tldrawPdf from './assets/tldraw.pdf'
 
-export type PdfPage = {
+export interface PdfPage {
 	src: string
 	bounds: Box
 	assetId: TLAssetId
 	shapeId: TLShapeId
 }
 
-export type Pdf = {
+export interface Pdf {
 	name: string
 	pages: PdfPage[]
 	source: string | ArrayBuffer

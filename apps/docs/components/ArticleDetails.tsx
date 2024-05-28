@@ -1,7 +1,7 @@
 import { Article } from '@/types/content-types'
 import { Icon } from './Icon'
 
-type ArticleDetailsProps = {
+interface ArticleDetailsProps {
 	article: Article
 }
 

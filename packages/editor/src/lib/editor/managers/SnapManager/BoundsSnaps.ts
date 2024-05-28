@@ -44,9 +44,12 @@ export interface BoundsSnapPoint {
 	handle?: SelectionCorner
 }
 
-type SnapPair = { thisPoint: BoundsSnapPoint; otherPoint: BoundsSnapPoint }
+interface SnapPair {
+	thisPoint: BoundsSnapPoint
+	otherPoint: BoundsSnapPoint
+}
 
-type NearestPointsSnap = {
+interface NearestPointsSnap {
 	// selection snaps to a nearby snap point
 	type: 'points'
 	points: SnapPair
@@ -70,12 +73,12 @@ type NearestSnap =
 			nudge: number
 	  }
 
-type GapNode = {
+interface GapNode {
 	id: TLShapeId
 	pageBounds: Box
 }
 
-type Gap = {
+interface Gap {
 	// e.g.
 	//      start
 	//      edge     │         breadth

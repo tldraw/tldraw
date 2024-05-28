@@ -43,11 +43,16 @@ import {
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
-import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../shared/polygon-helpers'
-import { cloudOutline, cloudSvgPath } from './cloudOutline'
-import { getEllipseIndicatorPath } from './components/DrawStyleEllipse'
 import { GeoShapeBody } from './components/GeoShapeBody'
-import { getOvalIndicatorPath } from './components/SolidStyleOval'
+import {
+	cloudOutline,
+	getCloudPath,
+	getEllipseDrawIndicatorPath,
+	getHeartParts,
+	getHeartPath,
+	getRoundedInkyPolygonPath,
+	getRoundedPolygonPoints,
+} from './geo-shape-helpers'
 import { getLines } from './getLines'
 
 const MIN_SIZE_WITH_LABEL = 17 * 3
@@ -292,6 +297,23 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				})
 				break
 			}
+			case 'heart': {
+				// kind of expensive (creating the primitives to create a different primitive) but hearts are rare and beautiful things
+				const parts = getHeartParts(w, h)
+				const points = parts.reduce<Vec[]>((acc, part) => {
+					acc.push(...part.vertices)
+					return acc
+				}, [])
+
+				body = new Polygon2d({
+					points,
+					isFilled,
+				})
+				break
+			}
+			default: {
+				exhaustiveSwitchError(shape.props.geo)
+			}
 		}
 
 		const labelSize = getLabelSize(this.editor, shape)
@@ -359,6 +381,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				return { outline: outline, points: [...outline.getVertices(), geometry.bounds.center] }
 			case 'cloud':
 			case 'ellipse':
+			case 'heart':
 			case 'oval':
 				// blobby shapes only have a snap point in their center
 				return { outline: outline, points: [geometry.bounds.center] }
@@ -438,19 +461,24 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const strokeWidth = STROKE_SIZES[size]
 
+		const geometry = this.editor.getShapeGeometry(shape)
+
 		switch (props.geo) {
 			case 'ellipse': {
 				if (props.dash === 'draw') {
-					return <path d={getEllipseIndicatorPath(id, w, h, strokeWidth)} />
+					return <path d={getEllipseDrawIndicatorPath(id, w, h, strokeWidth)} />
 				}
 
-				return <ellipse cx={w / 2} cy={h / 2} rx={w / 2} ry={h / 2} />
+				return <path d={geometry.getSvgPathData(true)} />
+			}
+			case 'heart': {
+				return <path d={getHeartPath(w, h)} />
 			}
 			case 'oval': {
-				return <path d={getOvalIndicatorPath(w, h)} />
+				return <path d={geometry.getSvgPathData(true)} />
 			}
 			case 'cloud': {
-				return <path d={cloudSvgPath(w, h, id, size)} />
+				return <path d={getCloudPath(w, h, id, size)} />
 			}
 
 			default: {

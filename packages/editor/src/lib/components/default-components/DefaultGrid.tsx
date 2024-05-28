@@ -2,7 +2,7 @@ import { modulate } from '@tldraw/utils'
 import { useEditor } from '../../hooks/useEditor'
 
 /** @public */
-export type TLGridProps = {
+export interface TLGridProps {
 	x: number
 	y: number
 	z: number

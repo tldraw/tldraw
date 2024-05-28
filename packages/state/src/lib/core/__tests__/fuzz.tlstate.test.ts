@@ -72,7 +72,7 @@ const unpack = (value: unknown): Letter => {
 	return value as Letter
 }
 
-type FuzzSystemState = {
+interface FuzzSystemState {
 	atoms: Record<string, Atom<Letter>>
 	atomsInAtoms: Record<string, Atom<Atom<Letter>>>
 	derivations: Record<string, { derivation: Computed<Letter>; sneakyGet: () => Letter }>
