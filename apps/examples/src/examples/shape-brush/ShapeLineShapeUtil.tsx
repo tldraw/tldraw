@@ -287,7 +287,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 	if (shape.props.spline === 'cubic') {
 		const splinePath = getSvgPathForLineGeometry(spline)
 		const vertices = spline.getVertices()
-		console.log(vertices)
+		// console.log(vertices)
 
 		const text = 'tldraw is a very good whiteboard'
 
