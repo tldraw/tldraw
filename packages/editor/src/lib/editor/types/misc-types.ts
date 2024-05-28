@@ -64,7 +64,10 @@ export interface AssetContextProps {
 
 /** @public */
 export interface TLAssetOptions {
-	onResolveAsset: (asset: TLAsset | null | undefined, ctx: AssetContextProps) => Promise<string>
+	onResolveAsset: (
+		asset: TLAsset | null | undefined,
+		ctx: AssetContextProps
+	) => Promise<string | null>
 }
 
 /** @public */

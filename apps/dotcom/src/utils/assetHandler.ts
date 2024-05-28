@@ -2,13 +2,13 @@ import { AssetContextProps, TLAsset } from 'tldraw'
 import { ASSET_UPLOADER_URL } from './config'
 
 export async function resolveAsset(asset: TLAsset | null | undefined, context: AssetContextProps) {
-	if (!asset || !asset.props.src) return ''
+	if (!asset || !asset.props.src) return null
 
 	// We don't deal with videos at the moment.
 	if (asset.type === 'video') return asset.props.src
 
 	// Assert it's an image to make TS happy.
-	if (asset.type !== 'image') return ''
+	if (asset.type !== 'image') return null
 
 	// Don't try to transform data: URLs, yikes.
 	if (!asset.props.src.startsWith('http:') && !asset.props.src.startsWith('https:'))
@@ -19,8 +19,8 @@ export async function resolveAsset(asset: TLAsset | null | undefined, context: A
 	const networkCompensation =
 		!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
-	// We only look at the zoom level to the nearest 0.25
-	const zoomStepFunction = (zoom: number) => Math.floor(zoom * 4) / 4
+	// We only look at the zoom level at powers of 2.
+	const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
 	const steppedZoom = Math.max(0.25, zoomStepFunction(context.zoom))
 
 	const width = Math.ceil(asset.props.w * steppedZoom * networkCompensation)

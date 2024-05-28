@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 /** @internal */
 export function useAsset(assetId: TLAssetId | null) {
 	const editor = useEditor()
-	const [url, setUrl] = useState('')
+	const [url, setUrl] = useState<string | null>(null)
 	const asset = assetId ? editor.getAsset(assetId) : null
 
 	// We debounce the zoom level to reduce the number of times we fetch a new image and,

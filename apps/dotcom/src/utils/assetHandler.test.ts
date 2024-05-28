@@ -2,19 +2,21 @@ import { TLAsset } from 'tldraw'
 import { resolveAsset } from './assetHandler'
 
 describe('resolveAsset', () => {
-	it('should return an empty string if the asset is null', async () => {
-		expect(await resolveAsset(null, { zoom: 1, dpr: 1, networkEffectiveType: '4g' })).toBe('')
+	it('should return null if the asset is null', async () => {
+		expect(await resolveAsset(null, { zoom: 1, dpr: 1, networkEffectiveType: '4g' })).toBe(null)
 	})
 
-	it('should return an empty string if the asset is undefined', async () => {
-		expect(await resolveAsset(undefined, { zoom: 1, dpr: 1, networkEffectiveType: '4g' })).toBe('')
+	it('should return null if the asset is undefined', async () => {
+		expect(await resolveAsset(undefined, { zoom: 1, dpr: 1, networkEffectiveType: '4g' })).toBe(
+			null
+		)
 	})
 
-	it('should return an empty string if the asset has no src', async () => {
+	it('should return null if the asset has no src', async () => {
 		const asset = { type: 'image', props: { w: 100 } }
 		expect(
 			await resolveAsset(asset as TLAsset, { zoom: 1, dpr: 1, networkEffectiveType: '4g' })
-		).toBe('')
+		).toBe(null)
 	})
 
 	it('should return the original src for video types', async () => {
@@ -31,11 +33,11 @@ describe('resolveAsset', () => {
 		).toBe('data:somedata')
 	})
 
-	it("should return an empty string if the asset type is not 'image'", async () => {
+	it("should return null if the asset type is not 'image'", async () => {
 		const asset = { type: 'document', props: { src: 'http://example.com/doc.pdf', w: 100 } }
 		expect(
 			await resolveAsset(asset as TLAsset, { zoom: 1, dpr: 1, networkEffectiveType: '4g' })
-		).toBe('')
+		).toBe(null)
 	})
 
 	it('should handle if network compensation is not available and zoom correctly', async () => {
@@ -56,12 +58,21 @@ describe('resolveAsset', () => {
 		)
 	})
 
+	it('should round zoom to powers of 2', async () => {
+		const asset = { type: 'image', props: { src: 'https://example.com/image.jpg', w: 100 } }
+		expect(
+			await resolveAsset(asset as TLAsset, { zoom: 3, dpr: 1, networkEffectiveType: '4g' })
+		).toBe(
+			'https://localhost:8788/cdn-cgi/image/width=400,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
+		)
+	})
+
 	it('should round zoom to the nearest 0.25 and apply network compensation', async () => {
 		const asset = { type: 'image', props: { src: 'https://example.com/image.jpg', w: 100 } }
 		expect(
 			await resolveAsset(asset as TLAsset, { zoom: 0.33, dpr: 1, networkEffectiveType: '2g' })
 		).toBe(
-			'https://localhost:8788/cdn-cgi/image/width=13,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
+			'https://localhost:8788/cdn-cgi/image/width=25,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
 		)
 	})
 

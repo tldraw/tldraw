@@ -1002,7 +1002,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     resolveAssetUrl(assetId: null | TLAssetId, context: {
         zoom: number;
-    }): Promise<string>;
+    }): Promise<null | string>;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
     screenToPage(point: VecLike): Vec;
@@ -2050,7 +2050,7 @@ export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 // @public (undocumented)
 export interface TLAssetOptions {
     // (undocumented)
-    onResolveAsset: (asset: null | TLAsset | undefined, ctx: AssetContextProps) => Promise<string>;
+    onResolveAsset: (asset: null | TLAsset | undefined, ctx: AssetContextProps) => Promise<null | string>;
 }
 
 // @public (undocumented)

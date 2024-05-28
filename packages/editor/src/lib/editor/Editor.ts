@@ -3869,7 +3869,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.get(typeof asset === 'string' ? asset : asset.id) as TLAsset | undefined
 	}
 
-	async resolveAssetUrl(assetId: TLAssetId | null, context: { zoom: number }): Promise<string> {
+	async resolveAssetUrl(
+		assetId: TLAssetId | null,
+		context: { zoom: number }
+	): Promise<string | null> {
 		if (!assetId) return ''
 		const asset = this.getAsset(assetId)
 		if (!asset) return ''
