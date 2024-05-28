@@ -83,6 +83,7 @@ import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
+import { useValueDebounced } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
@@ -149,7 +150,9 @@ export interface AssetContextProps {
     // (undocumented)
     networkEffectiveType: null | string;
     // (undocumented)
-    zoom: number;
+    rawZoom: number;
+    // (undocumented)
+    steppedZoom: number;
 }
 
 export { Atom }
@@ -1063,7 +1066,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     // (undocumented)
     resolveAssetUrl(assetId: null | TLAssetId, context: {
-        zoom: number;
+        rawZoom: number;
+        steppedZoom: number;
     }): Promise<null | string>;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
@@ -3121,6 +3125,8 @@ export function useTLStore(opts: TLStoreOptions & {
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 export { useValue }
+
+export { useValueDebounced }
 
 // @public (undocumented)
 export class Vec {

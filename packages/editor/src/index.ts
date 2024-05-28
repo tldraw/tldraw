@@ -13,6 +13,7 @@ export {
 	useQuickReactor,
 	useReactor,
 	useValue,
+	useValueDebounced,
 	whyAmIRunning,
 	type Atom,
 	type Signal,

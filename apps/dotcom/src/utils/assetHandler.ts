@@ -19,11 +19,7 @@ export async function resolveAsset(asset: TLAsset | null | undefined, context: A
 	const networkCompensation =
 		!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
-	// We only look at the zoom level at powers of 2.
-	const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
-	const steppedZoom = Math.max(0.25, zoomStepFunction(context.zoom))
-
-	const width = Math.ceil(asset.props.w * steppedZoom * networkCompensation)
+	const width = Math.ceil(asset.props.w * context.steppedZoom * networkCompensation)
 
 	if (process.env.NODE_ENV === 'development') {
 		return asset.props.src

@@ -62,7 +62,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedSrc, setLoadedSrc] = useState('')
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url } = useAsset(shape.props.assetId)
+		const { asset, url } = useAsset(shape.id, shape.props.assetId)
 
 		useEffect(() => {
 			// If an image is not animated (that's handled below), then we preload the image
