@@ -1,4 +1,5 @@
-import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
+import { IndexKey, TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
+import { ArrowBindingUtil } from '../lib/bindings/arrow/ArrowBindingUtil'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
@@ -714,4 +715,48 @@ describe('Moving a bound arrow', () => {
 		expectBound('start', ids.box1)
 		expectBound('end', ids.box2)
 	})
+})
+
+test('unbinding while dragging the handle does not trigger the unbind behavior', () => {
+	editor.createShapesFromJsx([
+		<TL.geo id={ids.box1} x={0} y={0} w={200} h={200} />,
+		<TL.geo id={ids.box2} x={300} y={0} w={200} h={200} />,
+	])
+
+	// draw an arrow pointing from box1 to box2
+	editor.setCurrentTool('arrow').pointerDown(100, 100).pointerMove(400, 100).pointerUp(400, 100)
+
+	const unbindSpy = jest.spyOn(editor.getBindingUtil('arrow') as ArrowBindingUtil, 'onBeforeUnbind')
+
+	let arrow = editor.getOnlySelectedShape()!
+
+	editor.updateShape({ ...arrow, props: { bend: 100 } })
+
+	arrow = editor.getOnlySelectedShape()!
+
+	editor.pointerDown(100, 100, {
+		target: 'handle',
+		handle: { id: 'start', type: 'vertex', index: 'a0' as IndexKey, x: 0, y: 0 },
+		shape: arrow,
+	})
+	editor.expectToBeIn('select.pointing_handle')
+	expect(editor.getBindingsFromShape(arrow, 'arrow')).toHaveLength(2)
+	expect(unbindSpy).not.toHaveBeenCalled()
+
+	editor.pointerMove(250, 100) // move between the boxes to unbind
+
+	expect(editor.getBindingsFromShape(arrow, 'arrow')).toHaveLength(1)
+
+	// it should have trigger onUnbind, but the bend should not have changed
+	expect(unbindSpy).toHaveBeenCalledTimes(1)
+	expect((editor.getOnlySelectedShape()! as TLArrowShape).props.bend).toBe(100)
+
+	// and then if we delete the other shape that the pointy end is still bound to,
+	// like may happen in multiplayer situations, then the bend does indeed get updated
+
+	editor.deleteShape(ids.box2)
+
+	expect(editor.getBindingsFromShape(arrow, 'arrow')).toHaveLength(0)
+	expect(unbindSpy).toHaveBeenCalledTimes(2)
+	expect((editor.getOnlySelectedShape()! as TLArrowShape).props.bend).not.toBe(100)
 })
