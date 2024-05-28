@@ -80,8 +80,7 @@ import {
 import EventEmitter from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { TLEditorSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
-import { createSessionStateSnapshotSignal } from '../config/TLSessionStateSnapshot'
+import { TLEditorSnapshot, getSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkBindings } from '../config/defaultBindings'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
@@ -5285,20 +5284,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* -------------------- Snapshots ------------------- */
 
-	@computed
-	private _getSessionStateSnapshotSignal() {
-		return createSessionStateSnapshotSignal(this.store)
-	}
-
 	getSnapshot(): TLEditorSnapshot {
-		const session = this._getSessionStateSnapshotSignal().get()
-		if (!session) {
-			throw new Error('Session state snapshot is not available.')
-		}
-		return {
-			document: this.store.getSnapshot('document'),
-			session,
-		} satisfies TLEditorSnapshot
+		return getSnapshot(this.store)
 	}
 
 	loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot) {

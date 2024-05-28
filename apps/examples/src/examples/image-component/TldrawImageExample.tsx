@@ -38,7 +38,7 @@ export default function TldrawImageExample() {
 							setShowBackground(editor.getInstanceState().exportBackground)
 							setViewportPageBounds(editor.getViewportPageBounds())
 							setCurrentPageId(editor.getCurrentPageId())
-							setSnapshot(editor.store.getSnapshot())
+							setSnapshot(editor.getSnapshot().document)
 							setIsEditing(false)
 						} else {
 							setIsEditing(true)

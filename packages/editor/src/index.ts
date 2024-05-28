@@ -83,7 +83,7 @@ export {
 } from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
-export { loadSnapshot, type TLEditorSnapshot } from './lib/config/TLEditorSnapshot'
+export { getSnapshot, loadSnapshot, type TLEditorSnapshot } from './lib/config/TLEditorSnapshot'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,

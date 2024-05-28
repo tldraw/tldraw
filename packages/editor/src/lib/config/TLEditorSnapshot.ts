@@ -1,6 +1,11 @@
+import { Signal } from '@tldraw/state'
 import { TLINSTANCE_ID, TLStore, TLStoreSnapshot, pluckPreservingValues } from '@tldraw/tlschema'
-import { filterEntries } from '@tldraw/utils'
-import { TLSessionStateSnapshot, loadSessionStateSnapshotIntoStore } from './TLSessionStateSnapshot'
+import { WeakCache, filterEntries } from '@tldraw/utils'
+import {
+	TLSessionStateSnapshot,
+	createSessionStateSnapshotSignal,
+	loadSessionStateSnapshotIntoStore,
+} from './TLSessionStateSnapshot'
 
 /** @public */
 export interface TLEditorSnapshot {
@@ -37,7 +42,7 @@ export function loadSnapshot(
 	store.atomic(() => {
 		// first load the document state (this will wipe the store if it happens)
 		if (snapshot.document) {
-			store.loadSnapshot(snapshot.document)
+			store.loadStoreSnapshot(snapshot.document)
 		}
 
 		// then make sure we preserve those instance state properties that must be preserved
@@ -51,4 +56,23 @@ export function loadSnapshot(
 			loadSessionStateSnapshotIntoStore(store, snapshot.session)
 		}
 	})
+}
+
+const sessionStateCache = new WeakCache<
+	TLStore,
+	Signal<TLSessionStateSnapshot | undefined | null>
+>()
+
+/** @public */
+export function getSnapshot(store: TLStore): TLEditorSnapshot {
+	const sessionState$ = sessionStateCache.get(store, createSessionStateSnapshotSignal)
+	const session = sessionState$.get()
+	if (!session) {
+		throw new Error('Session state is not ready yet')
+	}
+
+	return {
+		document: store.getStoreSnapshot(),
+		session,
+	}
 }

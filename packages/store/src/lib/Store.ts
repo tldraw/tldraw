@@ -493,11 +493,21 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @public
 	 */
-	getSnapshot(scope: RecordScope | 'all' = 'document'): StoreSnapshot<R> {
+	getStoreSnapshot(scope: RecordScope | 'all' = 'document'): StoreSnapshot<R> {
 		return {
 			store: this.serialize(scope),
 			schema: this.schema.serialize(),
 		}
+	}
+
+	/**
+	 * @deprecated use `getSnapshot` from the 'tldraw' package instead or `getStoreSnapshot` if you know what you are doing.
+	 */
+	getSnapshot() {
+		console.warn(
+			'[tldraw] `Store.getSnapshot` is deprecated. Use `getSnapshot` from the `@tldraw/state` package instead.'
+		)
+		return this.getStoreSnapshot()
 	}
 
 	/**
@@ -535,7 +545,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param snapshot - The snapshot to load.
 	 * @public
 	 */
-	loadSnapshot(snapshot: StoreSnapshot<R>): void {
+	loadStoreSnapshot(snapshot: StoreSnapshot<R>): void {
 		const migrationResult = this.schema.migrateStoreSnapshot(snapshot)
 
 		if (migrationResult.type === 'error') {
@@ -553,6 +563,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		} finally {
 			this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 		}
+	}
+
+	/**
+	 * @public
+	 * @deprecated use `loadSnapshot` from the 'tldraw' package instead.
+	 */
+	loadSnapshot(snapshot: StoreSnapshot<R>) {
+		console.warn(
+			"[tldraw] `Store.loadSnapshot` is deprecated. Use `loadSnapshot` from the 'tldraw' package instead."
+		)
+		this.loadStoreSnapshot(snapshot)
 	}
 
 	/**
