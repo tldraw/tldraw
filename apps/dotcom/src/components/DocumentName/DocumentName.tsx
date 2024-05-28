@@ -270,7 +270,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 				// trigger a save with the new one
 				setState((prev) => ({ ...prev, name: null }))
 				inputRef.current?.blur()
-				editor.getContainer().focus()
+				editor.focus()
 			}
 		},
 		[setState, editor]
