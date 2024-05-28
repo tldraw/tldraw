@@ -512,7 +512,7 @@ export const frameShapeProps: {
 };
 
 // @public (undocumented)
-export const GeoShapeGeoStyle: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+export const GeoShapeGeoStyle: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
 export const geoShapeMigrations: TLPropsMigrations;
@@ -524,7 +524,7 @@ export const geoShapeProps: {
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-    geo: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+    geo: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
     growY: T.Validator<number>;
     h: T.Validator<number>;
     labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
@@ -945,16 +945,30 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
 // @public
 export type TLBinding = TLDefaultBinding | TLUnknownBinding;
 
+// @public (undocumented)
+export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
+    fromId: T['fromId'];
+    id?: TLBindingId;
+    meta?: Partial<T['meta']>;
+    props?: Partial<T['props']>;
+    toId: T['toId'];
+    type: T['type'];
+    typeName?: T['typeName'];
+}>;
+
 // @public
 export type TLBindingId = RecordId<TLUnknownBinding>;
 
 // @public (undocumented)
-export type TLBindingPartial<T extends TLBinding = TLBinding> = T extends T ? {
+export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
+    fromId?: T['fromId'];
     id: TLBindingId;
     meta?: Partial<T['meta']>;
     props?: Partial<T['props']>;
+    toId?: T['toId'];
     type: T['type'];
-} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
+    typeName?: T['typeName'];
+}>;
 
 // @public
 export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
@@ -1092,8 +1106,6 @@ export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
 
 // @public
 export interface TLHandle {
-    // (undocumented)
-    canBind?: boolean;
     // (undocumented)
     canSnap?: boolean;
     id: string;

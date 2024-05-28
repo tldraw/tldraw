@@ -283,7 +283,10 @@ export class DraggingHandle extends StateNode {
 		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
 
 		// Arrows
-		if (initialHandle.canBind && this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+		if (
+			initialHandle.type === 'vertex' &&
+			this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+		) {
 			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 
 			if (bindingAfter) {

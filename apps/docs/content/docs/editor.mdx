@@ -399,10 +399,59 @@ Bindings also have a `meta` property which can be used by your application to ad
 you haven't built yourself. You can read more about the meta property
 [here](/docs/shapes#Meta-information).
 
-## The `BindingUtil` class
+## Custom bindings
+
+To create a binding of your own, you can define a custom binding.
+
+### The binding type
+
+First, you need to create a type that describes what the binding object will look like:
+
+```ts
+import { TLBaseBinding } from 'tldraw'
+
+type StickerBinding = TLBaseBinding<'sticker', { x: number; y: number }>
+```
+
+With [TLBaseBinding](?) we define the binding's type (`sticker`) and `props` property (`{x: number,
+y: number}`). The type can be any string, and the props must be a plain JSON object (ie not a class
+instance).
+
+The [TLBaseBinding](?) helper adds the other base properties like `id`, `toId`, and `fromId`.
+
+### The `BindingUtil` class
 
 While bindings themselves are plain JSON objects, we use
-[`BindingUtil`](/reference/editor/BindingUtil) classes to define how bindings should work.
+[`BindingUtil`](/reference/editor/BindingUtil) classes to define how bindings should work. They tell
+tldraw the structure of a binding, and what to do when it or the shapes it involves are created,
+updated, or deleted.
+
+```ts
+import { BindingUtil } from 'tldraw'
+
+class StickerBindingUtil extends BindingUtil<StickerBinding> {
+	static override type = 'sticker' as const
+
+	override getDefaultProps() {
+		return { x: 0.5, y: 0.5 }
+	}
+
+	override onAfterChangeToShape({ binding }) {
+		const sticker = this.editor.getShape(binding.fromShape)
+
+		// move the sticker so it stays attached to the to shape
+	}
+}
+```
+
+Each binding util needs a `type` and `getDefaultProps` to define its basic structure. You can also
+define a number of different callbacks describing how the binding should behave. See the
+[BindingUtil](?) reference or a [complete example of a
+binding](/examples/shapes/tools/sticker-bindings) for details.
+
+If the strucutre of your binding needs to change over time, you can provide
+[migrations](/docs/persistence#Shape-props-migrations) describing how old stored bindings can be
+brought up to date.
 
 # Common things to do with the editor
 

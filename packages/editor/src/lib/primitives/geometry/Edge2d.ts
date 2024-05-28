@@ -22,14 +22,8 @@ export class Edge2d extends Geometry2d {
 		this.ul = this.u.len() // the length of the unit vector
 	}
 
-	_length?: number
-
-	// eslint-disable-next-line no-restricted-syntax
-	get length() {
-		if (!this._length) {
-			return this.d.len()
-		}
-		return this._length
+	override getLength() {
+		return this.d.len()
 	}
 
 	midPoint(): Vec {
@@ -57,5 +51,10 @@ export class Edge2d extends Geometry2d {
 		return (
 			linesIntersect(A, B, this.start, this.end) || this.distanceToLineSegment(A, B) <= distance
 		)
+	}
+
+	getSvgPathData(first = true) {
+		const { start, end } = this
+		return `${first ? `M${start.toFixed()}` : ``} L${end.toFixed()}`
 	}
 }

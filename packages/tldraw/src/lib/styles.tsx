@@ -78,6 +78,7 @@ export const STYLES = {
 		{ value: 'cloud', icon: 'geo-cloud' },
 		{ value: 'x-box', icon: 'geo-x-box' },
 		{ value: 'check-box', icon: 'geo-check-box' },
+		{ value: 'heart', icon: 'geo-heart' },
 	],
 	arrowheadStart: [
 		{ value: 'none', icon: 'arrowhead-none' },

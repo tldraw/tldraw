@@ -46,8 +46,9 @@ import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBinding } from '@tldraw/tlschema';
+import { TLBindingCreate } from '@tldraw/tlschema';
 import { TLBindingId } from '@tldraw/tlschema';
-import { TLBindingPartial } from '@tldraw/tlschema';
+import { TLBindingUpdate } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
@@ -111,7 +112,6 @@ export class Arc2d extends Geometry2d {
         center: Vec;
         end: Vec;
         largeArcFlag: number;
-        radius: number;
         start: Vec;
         sweepFlag: number;
     });
@@ -124,11 +124,15 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     end: Vec;
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
+    getSvgPathData(first?: boolean): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec): boolean;
     // (undocumented)
-    length: number;
+    largeArcFlag: number;
     // (undocumented)
     measure: number;
     // (undocumented)
@@ -137,6 +141,8 @@ export class Arc2d extends Geometry2d {
     radius: number;
     // (undocumented)
     start: Vec;
+    // (undocumented)
+    sweepFlag: number;
 }
 
 // @public
@@ -364,6 +370,9 @@ export const CAMERA_SLIDE_FRICTION = 0.09;
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
+// @public
+export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike): Vec;
+
 // @public (undocumented)
 export class Circle2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
@@ -383,6 +392,8 @@ export class Circle2d extends Geometry2d {
     };
     // (undocumented)
     getBounds(): Box;
+    // (undocumented)
+    getSvgPathData(): string;
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
@@ -453,6 +464,12 @@ export class CubicBezier2d extends Polyline2d {
     // (undocumented)
     d: Vec;
     // (undocumented)
+    static GetAtT(segment: CubicBezier2d, t: number): Vec;
+    // (undocumented)
+    getLength(precision?: number): number;
+    // (undocumented)
+    getSvgPathData(first?: boolean): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     midPoint(): Vec;
@@ -466,13 +483,13 @@ export class CubicSpline2d extends Geometry2d {
         points: Vec[];
     });
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec): boolean;
-    // (undocumented)
-    get length(): number;
-    // (undocumented)
-    _length?: number;
     // (undocumented)
     nearestPoint(A: Vec): Vec;
     // (undocumented)
@@ -618,13 +635,13 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     end: Vec;
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
+    getSvgPathData(first?: boolean): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
-    // (undocumented)
-    get length(): number;
-    // (undocumented)
-    _length?: number;
     // (undocumented)
     midPoint(): Vec;
     // (undocumented)
@@ -675,6 +692,18 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    // (undocumented)
+    canBindShapes({ fromShape, toShape, binding, }: {
+        binding: {
+            type: TLBinding['type'];
+        } | TLBinding | TLBinding['type'];
+        fromShape: {
+            type: TLShape['type'];
+        } | TLShape | TLShape['type'];
+        toShape: {
+            type: TLShape['type'];
+        } | TLShape | TLShape['type'];
+    }): boolean;
     cancel(): this;
     cancelDoubleClick(): void;
     // @internal (undocumented)
@@ -687,8 +716,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     crash(error: unknown): this;
     createAssets(assets: TLAsset[]): this;
-    createBinding(partial: RequiredKeys<TLBindingPartial, 'fromId' | 'toId' | 'type'>): this;
-    createBindings(partials: RequiredKeys<TLBindingPartial, 'fromId' | 'toId' | 'type'>[]): this;
+    createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>): this;
+    createBindings(partials: TLBindingCreate[]): this;
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
         extras: {
@@ -753,7 +782,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
     getBindingsInvolvingShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type?: Binding['type']): Binding[];
     getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
-    getBindingUtil<S extends TLUnknownBinding>(binding: S | TLBindingPartial<S>): BindingUtil<S>;
+    getBindingUtil<S extends TLUnknownBinding>(binding: {
+        type: S['type'];
+    } | S): BindingUtil<S>;
     // (undocumented)
     getBindingUtil<S extends TLUnknownBinding>(type: S['type']): BindingUtil<S>;
     // (undocumented)
@@ -1007,14 +1038,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
-    updateBinding(partial: TLBindingPartial): this;
-    updateBindings(partials: (null | TLBindingPartial | undefined)[]): this;
+    updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>): this;
+    updateBindings(partials: (null | TLBindingUpdate | undefined)[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions): this;
     // (undocumented)
     _updateCurrentPageState: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions) => void;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: TLHistoryBatchOptions): this;
-    updatePage(partial: RequiredKeys<TLPage, 'id'>): this;
+    updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
@@ -1051,6 +1082,10 @@ export class Ellipse2d extends Geometry2d {
     _edges?: Edge2d[];
     // (undocumented)
     getBounds(): Box;
+    // (undocumented)
+    getLength(): number;
+    // (undocumented)
+    getSvgPathData(first?: boolean): string;
     // (undocumented)
     getVertices(): any[];
     // (undocumented)
@@ -1128,6 +1163,10 @@ export abstract class Geometry2d {
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
+    abstract getSvgPathData(first: boolean): string;
+    // (undocumented)
     abstract getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
@@ -1143,6 +1182,8 @@ export abstract class Geometry2d {
     isLabel: boolean;
     // (undocumented)
     isPointInBounds(point: Vec, margin?: number): boolean;
+    // (undocumented)
+    get length(): number;
     // (undocumented)
     abstract nearestPoint(point: Vec): Vec;
     // (undocumented)
@@ -1187,6 +1228,9 @@ export function getPointInArcT(mAB: number, A: number, B: number, P: number): nu
 export function getPointOnCircle(center: VecLike, r: number, a: number): Vec;
 
 // @public (undocumented)
+export function getPointsOnArc(startPoint: VecLike, endPoint: VecLike, center: null | VecLike, radius: number, numPoints: number): Vec[];
+
+// @public (undocumented)
 export function getPolygonVertices(width: number, height: number, sides: number): Vec[];
 
 // @internal (undocumented)
@@ -1218,6 +1262,10 @@ export class Group2d extends Geometry2d {
     distanceToPoint(point: Vec, hitInside?: boolean): number;
     // (undocumented)
     getArea(): number;
+    // (undocumented)
+    getLength(): number;
+    // (undocumented)
+    getSvgPathData(): string;
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
@@ -1547,6 +1595,8 @@ export class Point2d extends Geometry2d {
         point: Vec;
     });
     // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, margin: number): boolean;
@@ -1588,13 +1638,13 @@ export class Polyline2d extends Geometry2d {
         points: Vec[];
     });
     // (undocumented)
+    getLength(): number;
+    // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
     hitTestLineSegment(A: Vec, B: Vec, distance?: number): boolean;
-    // (undocumented)
-    get length(): number;
-    // (undocumented)
-    _length?: number;
     // (undocumented)
     nearestPoint(A: Vec): Vec;
     // (undocumented)
@@ -1653,6 +1703,8 @@ export class Rectangle2d extends Polygon2d {
     // (undocumented)
     getBounds(): Box;
     // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
     h: number;
     // (undocumented)
     w: number;
@@ -1669,7 +1721,7 @@ export function refreshPage(): void;
 export function releasePointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 
 // @public (undocumented)
-export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>;
+export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>;
 
 // @public (undocumented)
 export function resizeBox(shape: TLBaseBoxShape, info: {
@@ -1748,7 +1800,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // @internal
     backgroundComponent?(shape: Shape): any;
     canBeLaidOut: TLShapeUtilFlag<Shape>;
-    canBind: <K>(_shape: Shape, _otherShape?: K) => boolean;
+    canBind(opts: TLShapeUtilCanBindOpts<Shape>): boolean;
     canCrop: TLShapeUtilFlag<Shape>;
     canDropShapes(shape: Shape, shapes: TLShape[]): boolean;
     canEdit: TLShapeUtilFlag<Shape>;
@@ -1865,18 +1917,40 @@ export class SnapManager {
 }
 
 // @public (undocumented)
-export class Stadium2d extends Ellipse2d {
+export class Stadium2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
         height: number;
         width: number;
     });
+    // (undocumented)
+    a: Arc2d;
+    // (undocumented)
+    b: Edge2d;
+    // (undocumented)
+    c: Arc2d;
     // (undocumented)
     config: Omit<Geometry2dOptions, 'isClosed'> & {
         height: number;
         width: number;
     };
     // (undocumented)
+    d: Edge2d;
+    // (undocumented)
+    getBounds(): Box;
+    // (undocumented)
+    getLength(): number;
+    // (undocumented)
+    getSvgPathData(): string;
+    // (undocumented)
     getVertices(): Vec[];
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    hitTestLineSegment(A: Vec, B: Vec): boolean;
+    // (undocumented)
+    nearestPoint(A: Vec): Vec;
+    // (undocumented)
+    w: number;
 }
 
 // @public (undocumented)
@@ -2647,6 +2721,13 @@ export interface TLShapeIndicatorProps {
     shapeId: TLShapeId;
 }
 
+// @public
+export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
+    bindingType: string;
+    fromShapeType: string;
+    toShapeType: string;
+}
+
 // @public (undocumented)
 export interface TLShapeUtilCanvasSvgDef {
     // (undocumented)
@@ -3093,9 +3174,13 @@ export class Vec {
     // (undocumented)
     toArray(): number[];
     // (undocumented)
-    static ToFixed(A: VecLike, n?: number): Vec;
+    static ToCss(A: VecLike): string;
+    // (undocumented)
+    static ToFixed(A: VecLike): Vec;
     // (undocumented)
     toFixed(): Vec;
+    // (undocumented)
+    static ToInt(A: VecLike): Vec;
     // (undocumented)
     static ToJson(A: VecLike): {
         x: number;

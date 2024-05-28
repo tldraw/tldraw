@@ -44,7 +44,6 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	}
 
 	// [c]
-	override canBind = () => true
 	override canEdit = () => false
 	override canResize = () => true
 	override isAspectRatioLocked = () => false
