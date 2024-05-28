@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { TLEditorSnapshot, Tldraw, useEditor } from 'tldraw'
+import { TLEditorSnapshot, Tldraw, getSnapshot, loadSnapshot, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import _jsonSnapshot from './snapshot.json'
 
@@ -10,8 +10,8 @@ function SnapshotToolbar() {
 	const editor = useEditor()
 
 	const save = useCallback(() => {
-		// Call `editor.getSnapshot()` to get the current state of the editor
-		const { document, session } = editor.getSnapshot()
+		// Call `getSnapshot(editor.store)` to get the current state of the editor
+		const { document, session } = getSnapshot(editor.store)
 		// The 'document' state is the set of shapes and pages and images etc.
 		// The 'session' state is the state of the editor like the current page, camera positions, zoom level, etc.
 		// You probably need to store these separately if you're building a multi-user app, so that you can store per-user session state.
@@ -23,13 +23,13 @@ function SnapshotToolbar() {
 		const snapshot = localStorage.getItem('snapshot')
 		if (!snapshot) return
 
-		// Call `editor.loadSnapshot()` to load a snapshot into the editor
-		editor.loadSnapshot(JSON.parse(snapshot))
+		// Call `loadSnapshot()` to load a snapshot into the editor
+		loadSnapshot(editor.store, JSON.parse(snapshot))
 		// You can omit the `session` state, or load it later on it's own.
 		// e.g.
-		//   editor.loadSnapshot({ document })
+		//   loadSnapshot(editor.store, { document })
 		// then optionally later
-		//   editor.loadSnapshot({ session })
+		//   loadSnapshot(editor.store, { session })
 	}, [editor])
 
 	const [showCheckMark, setShowCheckMark] = useState(false)

@@ -485,8 +485,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * Get a serialized snapshot of the store and its schema.
 	 *
 	 * ```ts
-	 * const snapshot = store.getSnapshot()
-	 * store.loadSnapshot(snapshot)
+	 * const snapshot = store.getStoreSnapshot()
+	 * store.loadStoreSnapshot(snapshot)
 	 * ```
 	 *
 	 * @param scope - The scope of records to serialize. Defaults to 'document'.
@@ -501,11 +501,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * @deprecated use `getSnapshot` from the 'tldraw' package instead or `getStoreSnapshot` if you know what you are doing.
+	 * @deprecated use `getSnapshot` from the 'tldraw' package instead.
 	 */
 	getSnapshot() {
 		console.warn(
-			'[tldraw] `Store.getSnapshot` is deprecated. Use `getSnapshot` from the `@tldraw/state` package instead.'
+			'[tldraw] `Store.getSnapshot` is deprecated and will be removed in a future release. Use `getSnapshot` from the `@tldraw` package instead.'
 		)
 		return this.getStoreSnapshot()
 	}
@@ -538,8 +538,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * Load a serialized snapshot.
 	 *
 	 * ```ts
-	 * const snapshot = store.getSnapshot()
-	 * store.loadSnapshot(snapshot)
+	 * const snapshot = store.getStoreSnapshot()
+	 * store.loadStoreSnapshot(snapshot)
 	 * ```
 	 *
 	 * @param snapshot - The snapshot to load.
@@ -571,7 +571,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	loadSnapshot(snapshot: StoreSnapshot<R>) {
 		console.warn(
-			"[tldraw] `Store.loadSnapshot` is deprecated. Use `loadSnapshot` from the 'tldraw' package instead."
+			"[tldraw] `Store.loadSnapshot` is deprecated and will be removed in a future release. Use `loadSnapshot` from the 'tldraw' package instead."
 		)
 		this.loadStoreSnapshot(snapshot)
 	}

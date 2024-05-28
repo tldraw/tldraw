@@ -8,6 +8,7 @@ import {
 	TLStoreSnapshot,
 	Tldraw,
 	TldrawImage,
+	getSnapshot,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import initialSnapshot from './snapshot.json'
@@ -38,7 +39,7 @@ export default function TldrawImageExample() {
 							setShowBackground(editor.getInstanceState().exportBackground)
 							setViewportPageBounds(editor.getViewportPageBounds())
 							setCurrentPageId(editor.getCurrentPageId())
-							setSnapshot(editor.getSnapshot().document)
+							setSnapshot(getSnapshot(editor.store).document)
 							setIsEditing(false)
 						} else {
 							setIsEditing(true)

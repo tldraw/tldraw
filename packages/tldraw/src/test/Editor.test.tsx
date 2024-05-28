@@ -5,6 +5,8 @@ import {
 	TLShape,
 	createShapeId,
 	debounce,
+	getSnapshot,
+	loadSnapshot,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
@@ -583,11 +585,11 @@ describe('snapshots', () => {
 
 		// now serialize
 
-		const snapshot = editor.getSnapshot()
+		const snapshot = getSnapshot(editor.store)
 
 		const newEditor = new TestEditor()
 
-		newEditor.loadSnapshot(snapshot)
+		loadSnapshot(newEditor.store, snapshot)
 
 		expect(editor.store.serialize()).toEqual(newEditor.store.serialize())
 	})

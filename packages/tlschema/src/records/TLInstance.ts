@@ -71,7 +71,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 
 /** @internal */
 export const shouldKeyBePreservedBetweenSessions = {
-	// This object defines keys that should be preserved across calls to editor.loadSnapshot()
+	// This object defines keys that should be preserved across calls to loadSnapshot()
 
 	id: false, // meta
 	typeName: false, // meta

@@ -960,8 +960,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
     getSharedOpacity(): SharedStyle<number>;
     getSharedStyles(): ReadonlySharedStyleMap;
-    // (undocumented)
-    getSnapshot(): TLEditorSnapshot;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
@@ -1036,8 +1034,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
-    // (undocumented)
-    loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): void;
     mark(markId?: string): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
@@ -1501,7 +1497,7 @@ export function LoadingScreen({ children }: {
 // @public
 export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
 
-// @public (undocumented)
+// @public
 export function loadSnapshot(store: TLStore, _snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): void;
 
 // @public (undocumented)

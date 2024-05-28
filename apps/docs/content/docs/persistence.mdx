@@ -56,7 +56,7 @@ In the example above, both editors would synchronize their document locally. The
 
 ## State Snapshots
 
-You can get a JSON snapshot of the document content and UI 'session' state using the [Editor#getSnapshot](?) method.
+You can get a JSON snapshot of the document content and UI 'session' state using the [getSnapshot](?) function.
 
 ```tsx
 function SaveButton({ documentId, userId }) {
@@ -64,7 +64,7 @@ function SaveButton({ documentId, userId }) {
 	return (
 		<button
 			onClick={() => {
-				const { document, session } = editor.getSnapshot()
+				const { document, session } = getSnapshot(editor.store)
 				// If you are building a multi-user app, you probably want to store the document and session separately
 				// because the session is user-specific.
 				await saveDocumentState(documentId, document)
@@ -84,20 +84,20 @@ function MyApp({ userId, documentId }) {
 	const [snapshot, setSnapshot] = useState(null)
 
 	useEffect(() => {
-		async function loadSnapshot() {
+		async function load() {
 			const document = await getDocumentState(documentId)
 			const session = await getSessionState(documentId, userId)
 			setSnapshot({ document, session })
 		}
 
-		loadSnapshot()
+		load()
 	}, [documentId, userId])
 
 	return snapshot ? <Tldraw snapshot={snapshot} /> : null
 }
 ```
 
-You can load the snapshot into an existing editor with [Editor#loadSnapshot](?).
+You can load the snapshot into an existing editor with [loadSnapshot](?).
 
 ```tsx
 function LoadButton() {
@@ -107,7 +107,7 @@ function LoadButton() {
 			onClick={() => {
 				const stringified = localStorage.getItem('my-editor-snapshot')
 				const snapshot = JSON.parse(stringified)
-				editor.loadSnapshot(snapshot)
+				loadSnapshot(editor.store, snapshot)
 			}}
 		>
 			Load
@@ -118,9 +118,7 @@ function LoadButton() {
 
 A [snapshot](/reference/store/StoreSnapshot) includes both the store's [serialized records](/reference/store/SerializedStore) and its [serialized schema](/reference/store/SerializedSchema), which is used for migrations.
 
-> By default, the `getSnapshot` method returns only the editor's document data. If you want to get records from a different scope, you can pass in `session`, `document`, `presence`, or else `all` for all scopes.
-
-Note that loading a snapshot does not reset the editor's in memory state or UI state. For example, loading a snapshot during a resizing operation may lead to a crash. This is because the resizing state maintains its own cache of information about which shapes it is resizing, and its possible that those shapes may no longer exist!
+Note that loading a snapshot does not reset the editor's tool state. For example, loading a snapshot during a resizing operation may lead to a crash. This is because the resizing state maintains its own cache of information about which shapes it is resizing, and its possible that those shapes may no longer exist! If you need to reset the editor's tool state, you can call `editor.complete()` before loading the snapshot.
 
 ## The `"store"` prop
 
@@ -141,7 +139,7 @@ export default function () {
 		const snapshot = JSON.parse(stringified)
 
 		// Load the snapshot
-		newStore.loadSnapshot(snapshot)
+		loadSnapshot(newStore, snapshot)
 
 		return newStore
 	})
@@ -171,7 +169,7 @@ export default function () {
 			})
 
 			// Load the snapshot
-			newStore.loadSnapshot(snapshot)
+			loadSnapshot(newStore, snapshot)
 
 			// Update the store with status
 			setStoreWithStatus({
@@ -233,7 +231,7 @@ myRemoteSource.on('change', (changes) => {
 
 ## Migrations
 
-Tldraw uses migrations to bring data from old snapshots up to date. These run automatically when calling `editor.store.loadSnapshot`.
+Tldraw uses migrations to bring data from old snapshots up to date. These run automatically when calling `loadSnapshot`.
 
 ### Running migrations manually
 

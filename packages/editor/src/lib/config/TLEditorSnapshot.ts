@@ -13,7 +13,10 @@ export interface TLEditorSnapshot {
 	session: TLSessionStateSnapshot
 }
 
-/** @public */
+/**
+ * Loads a snapshot into a store.
+ * @public
+ */
 export function loadSnapshot(
 	store: TLStore,
 	_snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot
@@ -37,6 +40,9 @@ export function loadSnapshot(
 		// TLEditorSnapshot
 		snapshot = _snapshot
 	}
+
+	// We need to preserve a bunch of instance state properties that the Editor sets
+	// to avoid breaking the editor or causing jarring changes when loading a snapshot.
 	const preservingInstanceState = pluckPreservingValues(store.get(TLINSTANCE_ID))
 
 	store.atomic(() => {
