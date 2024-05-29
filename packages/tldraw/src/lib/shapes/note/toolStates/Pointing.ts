@@ -36,11 +36,11 @@ export class Pointing extends StateNode {
 
 			// Check for note pits; if the pointer is close to one, place the note centered on the pit
 			const center = this.editor.inputs.originPagePoint.clone()
-			const offset = getNotePitOffset(this.editor, center)
+			const offset = getNoteShapePitOffset(this.editor, center)
 			if (offset) {
 				center.sub(offset)
 			}
-			this.shape = createSticky(this.editor, id, center)
+			this.shape = createNoteShape(this.editor, id, center)
 		}
 	}
 
@@ -49,11 +49,11 @@ export class Pointing extends StateNode {
 			if (!this.wasFocusedOnEnter) {
 				const id = createShapeId()
 				const center = this.editor.inputs.originPagePoint.clone()
-				const offset = getNotePitOffset(this.editor, center)
+				const offset = getNoteShapePitOffset(this.editor, center)
 				if (offset) {
 					center.sub(offset)
 				}
-				this.shape = createSticky(this.editor, id, center)
+				this.shape = createNoteShape(this.editor, id, center)
 			}
 
 			this.editor.setCurrentTool('select.translating', {
@@ -107,7 +107,7 @@ export class Pointing extends StateNode {
 	}
 }
 
-export function getNotePitOffset(editor: Editor, center: Vec) {
+export function getNoteShapePitOffset(editor: Editor, center: Vec) {
 	let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
 	let offset: Vec | undefined
 	for (const pit of getAvailableNoteAdjacentPositions(editor, 0, 0)) {
@@ -122,13 +122,16 @@ export function getNotePitOffset(editor: Editor, center: Vec) {
 	return offset
 }
 
-export function createSticky(editor: Editor, id: TLShapeId, center: Vec) {
+export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 	editor
 		.createShape({
 			id,
 			type: 'note',
 			x: center.x,
 			y: center.y,
+			props: {
+				scale: editor.user.getIsDynamicResizeMode() ? editor.getZoomLevel() : 1,
+			},
 		})
 		.select(id)
 

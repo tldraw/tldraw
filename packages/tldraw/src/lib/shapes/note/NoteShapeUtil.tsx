@@ -66,6 +66,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			growY: 0,
 			fontSizeAdjustment: 0,
 			url: '',
+			scale: 1,
 		}
 	}
 

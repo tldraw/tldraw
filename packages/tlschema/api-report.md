@@ -755,6 +755,7 @@ export const noteShapeProps: {
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     fontSizeAdjustment: T.Validator<number>;
     growY: T.Validator<number>;
+    scale: T.Validator<number>;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     text: T.Validator<string>;
     url: T.Validator<string>;

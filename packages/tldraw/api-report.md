@@ -1136,6 +1136,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             font: "draw" | "mono" | "sans" | "serif";
             fontSizeAdjustment: number;
             growY: number;
+            scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
             url: string;
@@ -1161,6 +1162,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             font: "draw" | "mono" | "sans" | "serif";
             fontSizeAdjustment: number;
             growY: number;
+            scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
             url: string;
@@ -1181,6 +1183,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         fontSizeAdjustment: Validator<number>;
         growY: Validator<number>;
+        scale: Validator<number>;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         text: Validator<string>;
         url: Validator<string>;
