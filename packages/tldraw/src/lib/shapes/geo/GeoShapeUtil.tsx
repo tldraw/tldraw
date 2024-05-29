@@ -494,7 +494,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				let path: string
 
 				if (props.dash === 'draw') {
-					const polygonPoints = getRoundedPolygonPoints(id, outline, 0, strokeWidth * 2, 1)
+					const polygonPoints = getRoundedPolygonPoints(
+						id,
+						outline,
+						0,
+						strokeWidth * 2 * shape.props.scale,
+						1
+					)
 					path = getRoundedInkyPolygonPath(polygonPoints)
 				} else {
 					path = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
