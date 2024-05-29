@@ -1,5 +1,5 @@
 /** @public */
-export type TLTypeFace = {
+export interface TLTypeFace {
 	url: string
 	display?: any // FontDisplay
 	featureSettings?: string

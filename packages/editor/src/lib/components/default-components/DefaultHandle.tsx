@@ -1,9 +1,10 @@
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, SIDES } from '../../constants'
+import { SIDES } from '../../constants'
+import { useEditor } from '../../hooks/useEditor'
 
 /** @public */
-export type TLHandleProps = {
+export interface TLHandleProps {
 	shapeId: TLShapeId
 	handle: TLHandle
 	zoom: number
@@ -13,7 +14,8 @@ export type TLHandleProps = {
 
 /** @public */
 export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps) {
-	const br = (isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoom
+	const editor = useEditor()
+	const br = (isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom
 
 	if (handle.type === 'clone') {
 		// bouba

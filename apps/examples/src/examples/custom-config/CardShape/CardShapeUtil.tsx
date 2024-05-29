@@ -23,7 +23,6 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	// [3]
 	override isAspectRatioLocked = (_shape: ICardShape) => false
 	override canResize = (_shape: ICardShape) => true
-	override canBind = (_shape: ICardShape) => true
 
 	// [4]
 	getDefaultProps(): ICardShape['props'] {

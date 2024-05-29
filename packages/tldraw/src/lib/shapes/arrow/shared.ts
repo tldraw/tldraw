@@ -17,7 +17,7 @@ export function getIsArrowStraight(shape: TLArrowShape) {
 	return Math.abs(shape.props.bend) < 8 // snap to +-8px
 }
 
-export type BoundShapeInfo<T extends TLShape = TLShape> = {
+export interface BoundShapeInfo<T extends TLShape = TLShape> {
 	shape: T
 	didIntersect: boolean
 	isExact: boolean

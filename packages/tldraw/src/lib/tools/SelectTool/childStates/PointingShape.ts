@@ -1,10 +1,4 @@
-import {
-	HIT_TEST_MARGIN,
-	StateNode,
-	TLEventHandlers,
-	TLPointerEventInfo,
-	TLShape,
-} from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 
 export class PointingShape extends StateNode {
@@ -73,7 +67,7 @@ export class PointingShape extends StateNode {
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {
-				margin: HIT_TEST_MARGIN / zoomLevel,
+				margin: this.editor.options.hitTestMargin / zoomLevel,
 				hitInside: true,
 				renderingOnly: true,
 			}) ?? this.hitShape

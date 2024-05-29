@@ -257,6 +257,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/geo-ellipse.svg', import.meta.url).href,
 				opts
 			),
+			'geo-heart': formatAssetUrl(
+				new URL('./icons/icon/geo-heart.svg', import.meta.url).href,
+				opts
+			),
 			'geo-hexagon': formatAssetUrl(
 				new URL('./icons/icon/geo-hexagon.svg', import.meta.url).href,
 				opts

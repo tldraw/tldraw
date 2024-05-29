@@ -43,7 +43,6 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 			})
 		: new Arc2d({
 				center: Vec.Cast(info.handleArc.center),
-				radius: info.handleArc.radius,
 				start: Vec.Cast(info.start.point),
 				end: Vec.Cast(info.end.point),
 				sweepFlag: info.bodyArc.sweepFlag,

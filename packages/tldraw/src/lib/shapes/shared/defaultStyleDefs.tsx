@@ -147,7 +147,11 @@ const canvasBlob = (size: [number, number], fn: (ctx: CanvasRenderingContext2D) 
 	fn(ctx)
 	return canvas.toDataURL()
 }
-type PatternDef = { zoom: number; url: string; theme: 'light' | 'dark' }
+interface PatternDef {
+	zoom: number
+	url: string
+	theme: 'light' | 'dark'
+}
 
 let defaultPixels: { white: string; black: string } | null = null
 function getDefaultPixels() {

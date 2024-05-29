@@ -1,4 +1,4 @@
-export type SearchResult = {
+export interface SearchResult {
 	type: 'article' | 'category' | 'section' | 'heading'
 	id: string
 	subtitle: string

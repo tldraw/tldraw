@@ -96,7 +96,7 @@ export const TldrawWrapper = () => {
 	)
 }
 
-export type TLDrawInnerProps = {
+export interface TLDrawInnerProps {
 	assetSrc: string
 	fileContents: string
 	uri: string

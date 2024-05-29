@@ -8,7 +8,9 @@ export interface TLErrorBoundaryProps {
 	fallback: TLErrorFallbackComponent
 }
 
-type TLErrorBoundaryState = { error: Error | null }
+interface TLErrorBoundaryState {
+	error: Error | null
+}
 
 const initialState: TLErrorBoundaryState = { error: null }
 

@@ -73,7 +73,7 @@ export interface BaseEditorComponents {
 }
 
 // These will always have defaults
-type ErrorComponents = {
+interface ErrorComponents {
 	ErrorFallback: TLErrorFallbackComponent
 	ShapeErrorFallback: TLShapeErrorFallbackComponent
 	ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent
@@ -88,7 +88,7 @@ export type TLEditorComponents = Partial<
 
 const EditorComponentsContext = createContext<null | (TLEditorComponents & ErrorComponents)>(null)
 
-type ComponentsContextProviderProps = {
+interface ComponentsContextProviderProps {
 	overrides?: TLEditorComponents
 	children: ReactNode
 }

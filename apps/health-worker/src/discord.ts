@@ -8,7 +8,7 @@ const RED = 14692657
 const ORANGE = 16213767
 
 // docs: https://birdie0.github.io/discord-webhooks-guide/index.html
-export type DiscordPayload = {
+export interface DiscordPayload {
 	username: string
 	content: string
 	embeds: APIEmbed[]

@@ -74,7 +74,7 @@ export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchema
 }
 
 /** @public */
-export type StoreSchemaOptions<R extends UnknownRecord, P> = {
+export interface StoreSchemaOptions<R extends UnknownRecord, P> {
 	migrations?: MigrationSequence[]
 	/** @public */
 	onValidationFailure?: (data: {

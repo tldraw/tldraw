@@ -1,5 +1,4 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	Editor,
 	Geometry2d,
 	Mat,
@@ -149,7 +148,7 @@ export function zoomToShapeIfOffscreen(editor: Editor) {
 		})
 		editor.zoomToBounds(nextBounds, {
 			animation: {
-				duration: ANIMATION_MEDIUM_MS,
+				duration: editor.options.animationMediumMs,
 			},
 			inset: 0,
 		})

@@ -14,13 +14,13 @@ const CLA_SIGNATURES_BRANCH = 'cla-signees'
 
 const pullRequestActionsToCheck = ['opened', 'synchronize', 'reopened', 'edited']
 
-type Signing = {
+interface Signing {
 	githubId: number
 	signedAt: string
 	signedVersion: 1
 	signingComment: string
 }
-type SigneeInfo = {
+interface SigneeInfo {
 	unsigned: Set<string>
 	signees: Map<string, { signing: Signing; fileSha: string }>
 	total: number

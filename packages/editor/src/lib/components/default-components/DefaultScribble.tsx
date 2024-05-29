@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { getSvgPathFromPoints } from '../../utils/getSvgPathFromPoints'
 
 /** @public */
-export type TLScribbleProps = {
+export interface TLScribbleProps {
 	scribble: TLScribble
 	zoom: number
 	color?: string

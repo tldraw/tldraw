@@ -1,6 +1,6 @@
 import canvasSize from 'canvas-size'
 
-export type CanvasMaxSize = {
+export interface CanvasMaxSize {
 	maxWidth: number
 	maxHeight: number
 	maxArea: number

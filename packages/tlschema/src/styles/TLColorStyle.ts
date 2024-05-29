@@ -19,7 +19,7 @@ const colors = [
 ] as const
 
 /** @public */
-export type TLDefaultColorThemeColor = {
+export interface TLDefaultColorThemeColor {
 	solid: string
 	semi: string
 	pattern: string

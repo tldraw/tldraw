@@ -1,7 +1,7 @@
 import { TldrawUiIcon } from '../TldrawUiIcon'
 
 /** @public */
-export type TLUiButtonIconProps = {
+export interface TLUiButtonIconProps {
 	icon: string
 	small?: boolean
 	invertIcon?: boolean
