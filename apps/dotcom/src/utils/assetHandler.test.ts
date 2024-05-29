@@ -59,8 +59,9 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
+				shouldResolveToOriginalImage: true,
 			})
-		).toBe('http://example.com/video.mp4')
+		).toBe('http://example.com/image.jpg')
 	})
 
 	it('should return the original src if it does not start with http or https', async () => {
