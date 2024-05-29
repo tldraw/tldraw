@@ -3897,7 +3897,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	async resolveAssetUrl(
 		assetId: TLAssetId | null,
-		context: { rawZoom: number; steppedZoom: number }
+		context: { screenScale: number; steppedScreenScale: number }
 	): Promise<string | null> {
 		if (!assetId) return ''
 		const asset = this.getAsset(assetId)
@@ -3907,10 +3907,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
 		const dpr = this.getInstanceState().devicePixelRatio
 
-		const { rawZoom, steppedZoom } = context
+		const { screenScale, steppedScreenScale } = context
 		return await this._assetOptions
 			.get()
-			.onResolveAsset(asset!, { rawZoom, steppedZoom, dpr, networkEffectiveType })
+			.onResolveAsset(asset!, { screenScale, steppedScreenScale, dpr, networkEffectiveType })
 	}
 
 	/* --------------------- Shapes --------------------- */

@@ -57,8 +57,8 @@ export interface TLCameraOptions {
 
 /** @public */
 export interface AssetContextProps {
-	rawZoom: number
-	steppedZoom: number
+	screenScale: number
+	steppedScreenScale: number
 	dpr: number
 	networkEffectiveType: string | null
 }

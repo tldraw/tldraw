@@ -150,9 +150,9 @@ export interface AssetContextProps {
     // (undocumented)
     networkEffectiveType: null | string;
     // (undocumented)
-    rawZoom: number;
+    screenScale: number;
     // (undocumented)
-    steppedZoom: number;
+    steppedScreenScale: number;
 }
 
 export { Atom }
@@ -1066,8 +1066,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     // (undocumented)
     resolveAssetUrl(assetId: null | TLAssetId, context: {
-        rawZoom: number;
-        steppedZoom: number;
+        screenScale: number;
+        steppedScreenScale: number;
     }): Promise<null | string>;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
