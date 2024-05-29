@@ -105,14 +105,14 @@ export function getStraightArrowInfo(
 			// a short arrow ending at the end shape intersection.
 
 			if (startShapeInfo.isClosed) {
-				a.setTo(b.clone().add(uAB.clone().mul(MIN_ARROW_LENGTH)))
+				a.setTo(b.clone().add(uAB.clone().mul(MIN_ARROW_LENGTH * shape.props.scale)))
 			}
 		} else if (!endShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, or if neither
 			// shape intersected, then make it a short arrow starting
 			// at the start shape intersection.
 			if (endShapeInfo.isClosed) {
-				b.setTo(a.clone().sub(uAB.clone().mul(MIN_ARROW_LENGTH)))
+				b.setTo(a.clone().sub(uAB.clone().mul(MIN_ARROW_LENGTH * shape.props.scale)))
 			}
 		}
 	}
@@ -136,7 +136,7 @@ export function getStraightArrowInfo(
 				('size' in startShapeInfo.shape.props
 					? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 					: 0)
-			offsetA = BOUND_ARROW_OFFSET + strokeOffsetA
+			offsetA = (BOUND_ARROW_OFFSET + strokeOffsetA) * shape.props.scale
 			minLength += strokeOffsetA
 		}
 
@@ -151,7 +151,7 @@ export function getStraightArrowInfo(
 			strokeOffsetB =
 				STROKE_SIZES[shape.props.size] / 2 +
 				('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
-			offsetB = BOUND_ARROW_OFFSET + strokeOffsetB
+			offsetB = (BOUND_ARROW_OFFSET + strokeOffsetB) * shape.props.scale
 			minLength += strokeOffsetB
 		}
 	}
@@ -187,7 +187,7 @@ export function getStraightArrowInfo(
 		if (startShapeInfo && endShapeInfo) {
 			// If we have two bound shapes...then make the arrow a short arrow from
 			// the start point towards where the end point should be.
-			b.setTo(Vec.Add(a, u.clone().mul(-MIN_ARROW_LENGTH)))
+			b.setTo(Vec.Add(a, u.clone().mul(-MIN_ARROW_LENGTH * shape.props.scale)))
 		}
 		c.setTo(Vec.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end))
 	} else {
