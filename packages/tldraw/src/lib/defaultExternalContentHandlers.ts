@@ -121,17 +121,19 @@ export function registerDefaultExternalContentHandlers(
 		return AssetRecordType.create(assetInfo)
 	})
 
-	editor.registerExternalAssetHandler('blob', async ({ assetInfo, blob }) => {
-		const asset = AssetRecordType.create(assetInfo)
+	if (persistenceKey) {
+		editor.registerExternalAssetHandler('blob', async ({ assetInfo, blob }) => {
+			const asset = AssetRecordType.create(assetInfo)
 
-		await storeAssetInIndexedDb({
-			persistenceKey: persistenceKey || '',
-			assetId: asset.id,
-			blob,
+			await storeAssetInIndexedDb({
+				persistenceKey,
+				assetId: asset.id,
+				blob,
+			})
+
+			return asset
 		})
-
-		return asset
-	})
+	}
 
 	// urls -> bookmark asset
 	editor.registerExternalAssetHandler('url', async ({ url }) => {
@@ -592,9 +594,9 @@ export const defaultResolveAsset =
 		if (asset.type !== 'image') return ''
 
 		// Retrieve a local image from the DB.
-		if (asset.props.src.startsWith('asset:')) {
+		if (persistenceKey && asset.props.src.startsWith('asset:')) {
 			const blob = await getAssetFromIndexedDb({
-				persistenceKey: persistenceKey || '',
+				persistenceKey,
 				assetId: asset.id,
 			})
 			if (blob) {

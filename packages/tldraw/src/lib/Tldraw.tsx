@@ -121,7 +121,10 @@ export function Tldraw(props: TldrawProps) {
 
 	const persistenceKey = 'persistenceKey' in rest ? rest.persistenceKey : undefined
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
-	const assetOptions = { onResolveAsset: defaultResolveAsset(persistenceKey), ...rest.assetOptions }
+	const assetOptions = useMemo(
+		() => ({ onResolveAsset: defaultResolveAsset(persistenceKey), ...rest.assetOptions }),
+		[persistenceKey, rest.assetOptions]
+	)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>

@@ -16,7 +16,7 @@ export const resolveAsset =
 		if (persistenceKey && asset.props.src.startsWith('asset:')) {
 			const blob = await getAssetFromIndexedDb({
 				assetId: asset.id,
-				persistenceKey: persistenceKey || '',
+				persistenceKey,
 			})
 			if (blob) {
 				return URL.createObjectURL(blob)
