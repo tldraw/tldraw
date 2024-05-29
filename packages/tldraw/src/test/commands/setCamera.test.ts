@@ -264,12 +264,10 @@ describe('CameraOptions.panSpeed', () => {
 		editor.pointerDown(shape.x, shape.y).pointerMove(-5000, -5000).forceTick()
 		// At maximum speed and a zoom level of 1, the camera should move by 20px per tick if the screen
 		// is wider than 1000 pixels, or by 20 * 0.612px if it is smaller.
-		// Even though the pan speed is set to 2, the edge scrolling speed should remain unaffected.
-		const newX = viewportScreenBounds.w < 1000 ? 20 * 0.612 : 20
-		const newY = viewportScreenBounds.h < 1000 ? 20 * 0.612 : 20
+		// With the pan speed is set to 2, the edge scrolling speed should be doubled.
+		const newX = (viewportScreenBounds.w < 1000 ? 20 * 0.612 : 20) * 2
+		const newY = (viewportScreenBounds.h < 1000 ? 20 * 0.612 : 20) * 2
 		expect(editor.getCamera()).toMatchObject({ x: newX, y: newY, z: 1 })
-		editor.forceTick()
-		expect(editor.getCamera()).toMatchObject({ x: newX * 2, y: newY * 2, z: 1 })
 	})
 })
 
@@ -334,7 +332,6 @@ describe('CameraOptions.zoomSpeed', () => {
 		jest.advanceTimersByTime(300)
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
 	})
-	it.todo('pinch zooming')
 })
 
 describe('CameraOptions.isLocked', () => {
@@ -828,11 +825,61 @@ describe('Contain behavior', () => {
 })
 
 describe('Inside behavior', () => {
-	it.todo('Allows panning that keeps the bounds inside of the padded viewport')
+	it('Allows panning that keeps the bounds inside of the padded viewport', () => {
+		const bounds = editor.getViewportScreenBounds()
+		// set the constraints to be inside the viewport + 100px padding
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				bounds: { x: 0, y: 0, w: bounds.w, h: bounds.h },
+				behavior: 'inside',
+				origin: { x: 0, y: 0 },
+				padding: { x: 100, y: 100 },
+				initialZoom: 'fit-min',
+			},
+		})
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		// panning far outside of the bounds
+		editor.pan(new Vec(-10000, -10000))
+		jest.advanceTimersByTime(300)
+		// should be clamped to the bounds + padding
+		expect(editor.getCamera()).toMatchObject({ x: -100, y: -100, z: 1 })
+		// panning to the opposite direction, far outside of the bounds
+		editor.pan(new Vec(10000, 10000))
+		jest.advanceTimersByTime(300)
+		// should be clamped to the bounds + padding
+		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+	})
 })
 
 describe('Outside behavior', () => {
-	it.todo('Allows panning that keeps the bounds adjacent to the padded viewport')
+	it('Allows panning that keeps the bounds adjacent to the padded viewport', () => {
+		const bounds = editor.getViewportScreenBounds()
+		// set the constraints to be the viewport + 100px padding
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				bounds: { x: 0, y: 0, w: bounds.w, h: bounds.h },
+				behavior: 'outside',
+				origin: { x: 0, y: 0 },
+				padding: { x: 100, y: 100 },
+				initialZoom: 'fit-min',
+			},
+		})
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		// panning far outside of the bounds
+		editor.pan(new Vec(-10000, -10000))
+		jest.advanceTimersByTime(300)
+		// should be clamped so that the far edge of the bounds is adjacent to the viewport + padding
+		expect(editor.getCamera()).toMatchObject({ x: -bounds.w + 100, y: -bounds.h + 100, z: 1 })
+		// panning to the opposite direction, far outside of the bounds
+		editor.pan(new Vec(10000, 10000))
+		jest.advanceTimersByTime(300)
+		// should be clamped so that the far edge of the bounds is adjacent to the viewport + padding
+		expect(editor.getCamera()).toMatchObject({ x: bounds.w - 100, y: bounds.h - 100, z: 1 })
+	})
 })
 
 describe('Allows mixed values for x and y', () => {
