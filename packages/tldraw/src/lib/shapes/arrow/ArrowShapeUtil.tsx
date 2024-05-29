@@ -808,7 +808,7 @@ const ArrowSvg = track(function ArrowSvg({
 	let handlePath: null | React.JSX.Element = null
 
 	if (shouldDisplayHandles) {
-		const sw = 2
+		const sw = 2 / editor.getZoomLevel()
 		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 			getLength(editor, shape),
 			sw,
