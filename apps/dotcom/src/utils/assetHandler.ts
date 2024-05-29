@@ -37,7 +37,7 @@ export const resolveAsset =
 		const networkCompensation =
 			!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
-		const width = Math.ceil(asset.props.w * context.steppedZoom * networkCompensation)
+		const width = Math.ceil(asset.props.w * context.steppedScreenScale * networkCompensation)
 
 		if (process.env.NODE_ENV === 'development') {
 			return asset.props.src

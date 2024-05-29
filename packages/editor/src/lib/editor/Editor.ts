@@ -3897,7 +3897,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	async resolveAssetUrl(
 		assetId: TLAssetId | null,
-		context: { rawZoom?: number; steppedZoom?: number; shouldResolveToOriginalImage?: boolean }
+		context: {
+			screenScale?: number
+			steppedScreenScale?: number
+			shouldResolveToOriginalImage?: boolean
+		}
 	): Promise<string | null> {
 		if (!assetId) return ''
 		const asset = this.getAsset(assetId)
@@ -3907,16 +3911,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
 		const dpr = this.getInstanceState().devicePixelRatio
 
-		const { rawZoom, steppedZoom, shouldResolveToOriginalImage } = context
-		return await this._assetOptions
-			.get()
-			.onResolveAsset(asset!, {
-				rawZoom: rawZoom || 1,
-				steppedZoom: steppedZoom || 1,
-				dpr,
-				networkEffectiveType,
-				shouldResolveToOriginalImage,
-			})
+		const { screenScale, steppedScreenScale, shouldResolveToOriginalImage } = context
+		return await this._assetOptions.get().onResolveAsset(asset!, {
+			screenScale: screenScale || 1,
+			steppedScreenScale: steppedScreenScale || 1,
+			dpr,
+			networkEffectiveType,
+			shouldResolveToOriginalImage,
+		})
 	}
 
 	/* --------------------- Shapes --------------------- */

@@ -7,15 +7,20 @@ const resolver = resolveAsset(PERSISTENCE_KEY)
 describe('resolveAsset', () => {
 	it('should return null if the asset is null', async () => {
 		expect(
-			await resolver(null, { rawZoom: -1, steppedZoom: 1, dpr: 1, networkEffectiveType: '4g' })
+			await resolver(null, {
+				screenScale: -1,
+				steppedScreenScale: 1,
+				dpr: 1,
+				networkEffectiveType: '4g',
+			})
 		).toBe(null)
 	})
 
 	it('should return null if the asset is undefined', async () => {
 		expect(
 			await resolver(undefined, {
-				rawZoom: -1,
-				steppedZoom: 1,
+				screenScale: -1,
+				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
@@ -26,8 +31,8 @@ describe('resolveAsset', () => {
 		const asset = { type: 'image', props: { w: 100 } }
 		expect(
 			await resolver(asset as TLAsset, {
-				rawZoom: -1,
-				steppedZoom: 1,
+				screenScale: -1,
+				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
@@ -38,8 +43,8 @@ describe('resolveAsset', () => {
 		const asset = { type: 'video', props: { src: 'http://example.com/video.mp4' } }
 		expect(
 			await resolver(asset as TLAsset, {
-				rawZoom: -1,
-				steppedZoom: 1,
+				screenScale: -1,
+				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
@@ -50,8 +55,8 @@ describe('resolveAsset', () => {
 		const asset = { type: 'image', props: { src: 'http://example.com/image.jpg', w: 100 } }
 		expect(
 			await resolver(asset as TLAsset, {
-				rawZoom: -1,
-				steppedZoom: 1,
+				screenScale: -1,
+				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
@@ -62,8 +67,8 @@ describe('resolveAsset', () => {
 		const asset = { type: 'image', props: { src: 'data:somedata', w: 100 } }
 		expect(
 			await resolver(asset as TLAsset, {
-				rawZoom: -1,
-				steppedZoom: 1,
+				screenScale: -1,
+				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
@@ -74,8 +79,8 @@ describe('resolveAsset', () => {
 		const asset = { type: 'document', props: { src: 'http://example.com/doc.pdf', w: 100 } }
 		expect(
 			await resolver(asset as TLAsset, {
-				rawZoom: -1,
-				steppedZoom: 1,
+				screenScale: -1,
+				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
@@ -86,8 +91,8 @@ describe('resolveAsset', () => {
 		const asset = { type: 'image', props: { src: 'http://example.com/image.jpg', w: 100 } }
 		expect(
 			await resolver(asset as TLAsset, {
-				rawZoom: -1,
-				steppedZoom: 0.5,
+				screenScale: -1,
+				steppedScreenScale: 0.5,
 				dpr: 2,
 				networkEffectiveType: null,
 			})
@@ -100,8 +105,8 @@ describe('resolveAsset', () => {
 		const asset = { type: 'image', props: { src: 'http://example.com/image.jpg', w: 100 } }
 		expect(
 			await resolver(asset as TLAsset, {
-				rawZoom: -1,
-				steppedZoom: 0.5,
+				screenScale: -1,
+				steppedScreenScale: 0.5,
 				dpr: 2,
 				networkEffectiveType: '3g',
 			})
@@ -114,8 +119,8 @@ describe('resolveAsset', () => {
 		const asset = { type: 'image', props: { src: 'https://example.com/image.jpg', w: 100 } }
 		expect(
 			await resolver(asset as TLAsset, {
-				rawZoom: -1,
-				steppedZoom: 4,
+				screenScale: -1,
+				steppedScreenScale: 4,
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
@@ -128,8 +133,8 @@ describe('resolveAsset', () => {
 		const asset = { type: 'image', props: { src: 'https://example.com/image.jpg', w: 100 } }
 		expect(
 			await resolver(asset as TLAsset, {
-				rawZoom: -1,
-				steppedZoom: 0.5,
+				screenScale: -1,
+				steppedScreenScale: 0.5,
 				dpr: 1,
 				networkEffectiveType: '2g',
 			})
@@ -142,8 +147,8 @@ describe('resolveAsset', () => {
 		const asset = { type: 'image', props: { src: 'https://example.com/image.jpg', w: 100 } }
 		expect(
 			await resolver(asset as TLAsset, {
-				rawZoom: -1,
-				steppedZoom: 0.25,
+				screenScale: -1,
+				steppedScreenScale: 0.25,
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})

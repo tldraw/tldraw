@@ -12,7 +12,7 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 		asset && shape && 'w' in shape.props && 'w' in asset.props ? shape.props.w / asset.props.w : 1
 	// We debounce the zoom level to reduce the number of times we fetch a new image and,
 	// more importantly, to not cause zooming in and out to feel janky.
-	const debouncedZoom = useValueDebounced(
+	const debouncedScreenScale = useValueDebounced(
 		'zoom level',
 		() => editor.getZoomLevel() * shapeScale,
 		[editor, shapeScale],
@@ -21,18 +21,18 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 
 	// We only look at the zoom level at powers of 2.
 	const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
-	const steppedZoom = Math.max(0.25, zoomStepFunction(debouncedZoom))
+	const steppedScreenScale = Math.max(0.25, zoomStepFunction(debouncedScreenScale))
 
 	useEffect(() => {
 		async function resolve() {
 			const resolvedUrl = await editor.resolveAssetUrl(assetId, {
-				rawZoom: debouncedZoom,
-				steppedZoom,
+				screenScale: debouncedScreenScale,
+				steppedScreenScale,
 			})
 			setUrl(resolvedUrl)
 		}
 		resolve()
-	}, [assetId, debouncedZoom, steppedZoom, editor])
+	}, [assetId, debouncedScreenScale, steppedScreenScale, editor])
 
 	return { asset, url }
 }
