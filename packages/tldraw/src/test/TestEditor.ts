@@ -253,10 +253,10 @@ export class TestEditor extends Editor {
 	}
 
 	expectShapeToMatch = <T extends TLShape = TLShape>(
-		...model: RequiredKeys<TLShapePartial<T>, 'id'>[]
+		...model: RequiredKeys<Partial<TLShapePartial<T>>, 'id'>[]
 	) => {
 		model.forEach((model) => {
-			const shape = this.getShape(model.id)!
+			const shape = this.getShape(model.id!)!
 			const next = { ...shape, ...model }
 			expect(shape).toCloselyMatchObject(next)
 		})

@@ -70,16 +70,15 @@ export function getPerfectDashProps(
 	dashCount -= dashCount % snap
 
 	if (dashCount < 3 && style === 'dashed') {
-		if (totalLength / strokeWidth < 5) {
+		if (totalLength / strokeWidth < 4) {
 			dashLength = totalLength
 			dashCount = 1
 			gapLength = 0
 		} else {
-			dashLength = totalLength * 0.333
-			gapLength = totalLength * 0.333
+			dashLength = totalLength * (1 / 3)
+			gapLength = totalLength * (1 / 3)
 		}
 	} else {
-		dashCount = Math.max(dashCount, 3)
 		dashLength = totalLength / dashCount / (2 * ratio)
 
 		if (closed) {

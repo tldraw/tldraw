@@ -3,7 +3,7 @@ import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
 
 /** @public */
-export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>
+export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>
 /** @public */
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
