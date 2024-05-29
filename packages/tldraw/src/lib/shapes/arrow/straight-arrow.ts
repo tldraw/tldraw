@@ -82,7 +82,7 @@ export function getStraightArrowInfo(
 	let offsetB = 0
 	let strokeOffsetA = 0
 	let strokeOffsetB = 0
-	let minLength = MIN_ARROW_LENGTH
+	let minLength = MIN_ARROW_LENGTH * shape.props.scale
 
 	const isSelfIntersection =
 		startShapeInfo && endShapeInfo && startShapeInfo.shape === endShapeInfo.shape
