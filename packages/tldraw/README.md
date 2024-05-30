@@ -6,6 +6,7 @@
 </div>
 
 # tldraw
+
 <div style="margin: -1.5rem 0 1.5rem 0; font-size: 12px;">a very good whiteboard</div>
 
 You can use the tldraw SDK to craft infinite canvas experiences for the web. It's perfect for collaborative whiteboards but you can use it for lots of other things, too.
@@ -34,7 +35,6 @@ export default function () {
 ```
 
 Visit or [docs site](https://tldraw.dev) to learn more. See our [examples folder](https://github.com/tldraw/tldraw/tree/main/apps/examples) for more examples.
-
 
 ## Package development
 
