@@ -304,7 +304,7 @@ describe('CameraOptions.zoomSpeed', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
 
-	it('Effects pinch zooming', () => {
+	it('Effects pinch zooming (2x)', () => {
 		editor
 			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })
 			.dispatch({
@@ -325,8 +325,37 @@ describe('CameraOptions.zoomSpeed', () => {
 		editor.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
 	})
-	it('zoom tool zooming', () => {
+	it('Effects pinch zooming (0.5x)', () => {
+		editor
+			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 0.5 })
+			.dispatch({
+				...pinchEvent,
+				name: 'pinch_start',
+			})
+			.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch',
+			delta: new Vec(0, 0, 1),
+		})
+		editor.forceTick()
+		editor.dispatch({
+			...pinchEvent,
+			name: 'pinch_end',
+		})
+		editor.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 0.5 })
+	})
+	it('Does not effect zoom tool zooming (2x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		editor.setCurrentTool('zoom').click()
+		jest.advanceTimersByTime(300)
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
+	})
+	it('Does not effect zoom tool zooming (0.5x)', () => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 0.5 })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		editor.setCurrentTool('zoom').click()
 		jest.advanceTimersByTime(300)
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
