@@ -39,6 +39,8 @@ function objectNotFound(objectName: string): Response {
 	})
 }
 
+const CACHE_CONTROL_SETTING = 's-maxage=604800'
+
 const router = Router()
 
 router
@@ -97,7 +99,7 @@ router
 
 		// Cache API respects Cache-Control headers. Setting s-max-age to 7 days
 		// Any changes made to the response here will be reflected in the cached value
-		headers.append('Cache-Control', 's-maxage=604800')
+		headers.append('Cache-Control', CACHE_CONTROL_SETTING)
 
 		const hasBody = 'body' in object && object.body
 		const status = hasBody ? (range ? 206 : 200) : 304
@@ -108,7 +110,10 @@ router
 
 		// Store the response in the cache for future access
 		if (!range) {
-			ctx.waitUntil(cache.put(cacheKey, response.clone()))
+			const clonedResponse = response.clone()
+			// If the request was made with no-cache, we should not cache that in the headers.
+			clonedResponse?.headers.set('Cache-Control', CACHE_CONTROL_SETTING)
+			ctx.waitUntil(cache.put(cacheKey, clonedResponse))
 		}
 
 		return response
