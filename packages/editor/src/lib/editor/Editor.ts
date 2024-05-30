@@ -57,6 +57,7 @@ import {
 	JsonObject,
 	PerformanceTracker,
 	Result,
+	Timers,
 	annotateError,
 	assert,
 	assertExists,
@@ -239,6 +240,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.snaps = new SnapManager(this)
+
+		this.timers = new Timers()
+		this.disposables.add(this.timers.dispose.bind(this.timers))
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
@@ -687,7 +691,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.on('tick', this._flushEventsForTick)
 
-		requestAnimationFrame(() => {
+		this.timers.requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
 
@@ -726,6 +730,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly snaps: SnapManager
+
+	/**
+	 * A manager for the any asynchronous events and making sure they're
+	 * cleaned up upon disposal.
+	 *
+	 * @public
+	 */
+	readonly timers: Timers
 
 	/**
 	 * A manager for the user and their preferences.
@@ -1246,7 +1258,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			clearTimeout(this._isChangingStyleTimeout)
 			if (partial.isChangingStyle === true) {
 				// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
-				this._isChangingStyleTimeout = setTimeout(() => {
+				this._isChangingStyleTimeout = this.timers.setTimeout(() => {
 					this._updateInstanceState({ isChangingStyle: false }, { history: 'ignore' })
 				}, 2000)
 			}
@@ -2958,7 +2970,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.updateInstanceState({ highlightedUserIds: [...highlightedUserIds, userId] })
 
 			// Unhighlight the user's cursor after a few seconds
-			setTimeout(() => {
+			this.timers.setTimeout(() => {
 				const highlightedUserIds = [...this.getInstanceState().highlightedUserIds]
 				const index = highlightedUserIds.indexOf(userId)
 				if (index < 0) return
@@ -8407,27 +8419,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		if (info.shiftKey) {
-			clearInterval(this._shiftKeyTimeout)
+			clearTimeout(this._shiftKeyTimeout)
 			this._shiftKeyTimeout = -1
 			inputs.shiftKey = true
 		} else if (!info.shiftKey && inputs.shiftKey && this._shiftKeyTimeout === -1) {
-			this._shiftKeyTimeout = setTimeout(this._setShiftKeyTimeout, 150)
+			this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
 		}
 
 		if (info.altKey) {
-			clearInterval(this._altKeyTimeout)
+			clearTimeout(this._altKeyTimeout)
 			this._altKeyTimeout = -1
 			inputs.altKey = true
 		} else if (!info.altKey && inputs.altKey && this._altKeyTimeout === -1) {
-			this._altKeyTimeout = setTimeout(this._setAltKeyTimeout, 150)
+			this._altKeyTimeout = this.timers.setTimeout(this._setAltKeyTimeout, 150)
 		}
 
 		if (info.ctrlKey) {
-			clearInterval(this._ctrlKeyTimeout)
+			clearTimeout(this._ctrlKeyTimeout)
 			this._ctrlKeyTimeout = -1
 			inputs.ctrlKey = true
 		} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === -1) {
-			this._ctrlKeyTimeout = setTimeout(this._setCtrlKeyTimeout, 150)
+			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
 		}
 
 		const { originPagePoint, currentPagePoint } = inputs
@@ -8612,7 +8624,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (!this.inputs.isPanning) {
 							// Start a long press timeout
-							this._longPressTimeout = setTimeout(() => {
+							this._longPressTimeout = this.timers.setTimeout(() => {
 								this.dispatch({
 									...info,
 									point: this.inputs.currentScreenPoint,
@@ -8846,7 +8858,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			} else {
 				this.performanceTracker.start(name)
 			}
-			this.performanceTrackerTimeout = setTimeout(() => {
+			this.performanceTrackerTimeout = this.timers.setTimeout(() => {
 				this.performanceTracker.stop()
 			}, 50)
 		}

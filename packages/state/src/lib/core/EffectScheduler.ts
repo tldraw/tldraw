@@ -35,7 +35,7 @@ interface EffectSchedulerOptions {
 	 * @param execute - A function that will execute the effect.
 	 * @returns
 	 */
-	scheduleEffect?: (execute: () => void) => void
+	scheduleEffect?: (execute: () => void) => number | void | (() => void)
 }
 
 class __EffectScheduler__<Result> {
@@ -64,12 +64,14 @@ class __EffectScheduler__<Result> {
 	}
 
 	/** @internal */
+	private maybeRaf: number | void | (() => void) = -1
+	/** @internal */
 	readonly parentSet = new ArraySet<Signal<any, any>>()
 	/** @internal */
 	readonly parentEpochs: number[] = []
 	/** @internal */
 	readonly parents: Signal<any, any>[] = []
-	private readonly _scheduleEffect?: (execute: () => void) => void
+	private readonly _scheduleEffect?: (execute: () => void) => number | void | (() => void)
 	constructor(
 		public readonly name: string,
 		private readonly runEffect: (lastReactedEpoch: number) => Result,
@@ -99,7 +101,7 @@ class __EffectScheduler__<Result> {
 		this._scheduleCount++
 		if (this._scheduleEffect) {
 			// if the effect should be deferred (e.g. until a react render), do so
-			this._scheduleEffect(this.maybeExecute)
+			this.maybeRaf = this._scheduleEffect(this.maybeExecute)
 		} else {
 			// otherwise execute right now!
 			this.execute()
@@ -135,6 +137,7 @@ class __EffectScheduler__<Result> {
 		for (let i = 0, n = this.parents.length; i < n; i++) {
 			detach(this.parents[i], this)
 		}
+		typeof this.maybeRaf === 'number' && cancelAnimationFrame(this.maybeRaf)
 	}
 
 	/**

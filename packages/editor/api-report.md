@@ -41,6 +41,7 @@ import { StoreSideEffects } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
+import { Timers } from '@tldraw/utils';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
@@ -1098,6 +1099,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
+    readonly timers: Timers;
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
     undo(): this;
     ungroupShapes(ids: TLShapeId[]): this;
