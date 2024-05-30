@@ -360,6 +360,22 @@ describe('CameraOptions.zoomSpeed', () => {
 		jest.advanceTimersByTime(300)
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
 	})
+	it('Does not effect editor zoom method (2x)', () => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		editor.zoomIn(new Vec(0, 0), { immediate: true })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
+		editor.zoomOut(new Vec(0, 0), { immediate: true })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+	})
+	it('Does not effect editor zoom method (0.5x)', () => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 0.5 })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		editor.zoomIn(new Vec(0, 0), { immediate: true })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
+		editor.zoomOut(new Vec(0, 0), { immediate: true })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+	})
 })
 
 describe('CameraOptions.isLocked', () => {
