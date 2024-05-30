@@ -262,11 +262,10 @@ describe('CameraOptions.panSpeed', () => {
 		editor.selectNone()
 		// Move shape far beyond bounds to trigger edge scrolling at maximum speed
 		editor.pointerDown(shape.x, shape.y).pointerMove(-5000, -5000).forceTick()
-		// At maximum speed and a zoom level of 1, the camera should move by 20px per tick if the screen
-		// is wider than 1000 pixels, or by 20 * 0.612px if it is smaller.
-		// With the pan speed is set to 2, the edge scrolling speed should be doubled.
-		const newX = (viewportScreenBounds.w < 1000 ? 20 * 0.612 : 20) * 2
-		const newY = (viewportScreenBounds.h < 1000 ? 20 * 0.612 : 20) * 2
+		// At maximum speed and a zoom level of 1, the camera should move by 40px per tick if the screen
+		// is wider than 1000 pixels, or by 40 * 0.612px if it is smaller.
+		const newX = viewportScreenBounds.w < 1000 ? 40 * 0.612 : 40
+		const newY = viewportScreenBounds.h < 1000 ? 40 * 0.612 : 40
 		expect(editor.getCamera()).toMatchObject({ x: newX, y: newY, z: 1 })
 	})
 })
