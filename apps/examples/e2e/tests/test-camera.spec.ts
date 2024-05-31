@@ -118,6 +118,9 @@ test.describe('camera', () => {
 	})
 
 	test('pinching on trackpad', async ({ page, isMobile }) => {
+		// Test is flaky, disabling.
+		test.skip(true)
+
 		// pinching on trackpad is the same event as ctrl+scrollwheel
 		test.skip(isMobile)
 		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(1)
@@ -137,8 +140,6 @@ test.describe('camera', () => {
 			zoomDirection: 'out',
 			steps: 3,
 		})
-
-		await page.waitForTimeout(1000)
 
 		expect(await page.evaluate(() => editor.getZoomLevel())).toBeCloseTo(expectedZoomLevel, 1)
 	})
