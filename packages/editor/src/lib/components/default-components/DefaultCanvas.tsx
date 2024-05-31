@@ -69,11 +69,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				const lodDisableTextOutline = z < editor.options.textShadowLod
 				container.style.setProperty(
 					'--tl-text-outline',
-					lodDisableTextOutline
-						? 'none'
-						: `0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
-				var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
-				var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background)`
+					lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
 				)
 				rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
 			}
