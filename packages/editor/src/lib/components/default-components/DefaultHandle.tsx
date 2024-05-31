@@ -17,11 +17,8 @@ export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandlePro
 
 	if (handle.type === 'clone') {
 		// bouba
-		const fr = 3 / Math.max(zoom, 0.35)
+		const fr = 3 / zoom
 		const path = `M0,${-fr} A${fr},${fr} 0 0,1 0,${fr}`
-		// kiki
-		// const fr = 4 / Math.max(zoom, 0.35)
-		// const path = `M0,${-fr} L${fr},0 L0,${fr} Z`
 
 		const index = SIDES.indexOf(handle.id as (typeof SIDES)[number])
 		return (

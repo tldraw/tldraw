@@ -16,8 +16,8 @@ import {
 	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 import {
-	NOTE_PIT_RADIUS,
-	NOTE_SIZE,
+	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
+	NOTE_CENTER_OFFSET,
 	getAvailableNoteAdjacentPositions,
 } from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
@@ -353,7 +353,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	}
 
 	let noteAdjacentPositions: Vec[] | undefined
-	let noteSnapshot: MovingShapeSnapshot | undefined
+	let noteSnapshot: (MovingShapeSnapshot & { shape: TLNoteShape }) | undefined
 
 	const { originPagePoint } = editor.inputs
 
@@ -361,7 +361,7 @@ function getTranslatingSnapshot(editor: Editor) {
 		(s) =>
 			editor.isShapeOfType<TLNoteShape>(s.shape, 'note') &&
 			editor.isPointInShape(s.shape, originPagePoint)
-	)
+	) as (MovingShapeSnapshot & { shape: TLNoteShape })[]
 
 	if (allHoveredNotes.length === 0) {
 		// noop
@@ -383,7 +383,8 @@ function getTranslatingSnapshot(editor: Editor) {
 		noteAdjacentPositions = getAvailableNoteAdjacentPositions(
 			editor,
 			noteSnapshot.pageRotation,
-			(noteSnapshot.shape as TLNoteShape).props.growY ?? 0
+			noteSnapshot.shape.props.scale,
+			noteSnapshot.shape.props.growY ?? 0
 		)
 	}
 
@@ -461,14 +462,16 @@ export function moveShapesToPoint({
 	} else {
 		// for sticky notes, snap to grid position next to other notes
 		if (noteSnapshot && noteAdjacentPositions) {
-			let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
+			const { scale } = noteSnapshot.shape.props
+			const pageCenter = noteSnapshot.pagePoint
+				.clone()
+				.add(delta)
+				// use the middle of the note, disregarding extra height
+				.add(NOTE_CENTER_OFFSET.clone().mul(scale).rot(noteSnapshot.pageRotation))
+
+			// Find the pit with the center closest to the put center
+			let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / editor.getZoomLevel() // in screen space
 			let offset = new Vec(0, 0)
-
-			const pageCenter = Vec.Add(
-				Vec.Add(noteSnapshot.pagePoint, delta),
-				new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2).rot(noteSnapshot.pageRotation)
-			)
-
 			for (const pit of noteAdjacentPositions) {
 				// We've already filtered pits with the same page rotation
 				const deltaToPit = Vec.Sub(pageCenter, pit)
