@@ -1,9 +1,9 @@
 import {
-	Box,
 	GeoShapeGeoStyle,
 	StateNode,
 	TLEventHandlers,
 	TLGeoShape,
+	Vec,
 	createShapeId,
 } from '@tldraw/editor'
 
@@ -74,6 +74,8 @@ export class Pointing extends StateNode {
 
 		this.editor.mark(this.markId)
 
+		const scale = this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
+
 		this.editor.createShapes<TLGeoShape>([
 			{
 				id,
@@ -82,9 +84,7 @@ export class Pointing extends StateNode {
 				y: originPagePoint.y,
 				props: {
 					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
-					w: 1,
-					h: 1,
-					scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+					scale,
 				},
 			},
 		])
@@ -92,32 +92,24 @@ export class Pointing extends StateNode {
 		const shape = this.editor.getShape<TLGeoShape>(id)!
 		if (!shape) return
 
-		const bounds =
-			shape.props.geo === 'star'
-				? new Box(0, 0, 200, 190)
-				: shape.props.geo === 'cloud'
-					? new Box(0, 0, 300, 180)
-					: new Box(0, 0, 200, 200)
+		const { w, h } = shape.props
 
-		const delta = bounds.center
+		const delta = new Vec(w / 2, h / 2).mul(scale)
 		const parentTransform = this.editor.getShapeParentTransform(shape)
 		if (parentTransform) delta.rot(-parentTransform.rotation())
 
 		this.editor.select(id)
-		this.editor.updateShapes<TLGeoShape>([
-			{
-				id: shape.id,
-				type: 'geo',
-				x: shape.x - delta.x,
-				y: shape.y - delta.y,
-				props: {
-					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
-					w: bounds.width,
-					h: bounds.height,
-					scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
-				},
+		this.editor.updateShape<TLGeoShape>({
+			id: shape.id,
+			type: 'geo',
+			x: shape.x - delta.x,
+			y: shape.y - delta.y,
+			props: {
+				geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
+				w: w * scale,
+				h: h * scale,
 			},
-		])
+		})
 
 		if (this.editor.getInstanceState().isToolLocked) {
 			this.parent.transition('idle')
