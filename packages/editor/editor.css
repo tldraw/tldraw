@@ -22,13 +22,31 @@
 	--radius-3: 9px;
 	--radius-4: 11px;
 	/* Z Index */
+	--layer-hidden: -999999;
+	--layer-behind: -1;
+	--layer-culled-shape: 0;
+	--layer-text-label: 10;
+	--layer-collaborator-scribble: 10;
+	--layer-collaborator-brush: 20;
+	--layer-collaborator-shape-indicator: 30;
+	--layer-user-scribble: 40;
+	--layer-user-brush: 50;
+	--layer-user-indicator-selected: 60;
+	--layer-user-indicator-hovered: 70;
+	--layer-user-handles: 80;
+	--layer-user-snapline: 90;
 	--layer-background: 100;
+	--layer-user-indicator-hint: 110;
+	--layer-collaborator-cursor-hint: 120;
+	--layer-collaborator-cursor: 130;
 	--layer-grid: 150;
 	--layer-culled-shapes: 175;
 	--layer-canvas: 200;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
-	--layer-in-front: 500;
+	--layer-in-front-overlay: 500;
+	--layer-in-front: 600;
+	--layer-bookmark-link: 999;
 	--layer-following-indicator: 1000;
 	--layer-blocker: 10000;
 
@@ -294,7 +312,7 @@ input,
 }
 
 .tl-front {
-	z-index: 600;
+	z-index: var(--layer-in-front);
 	position: absolute;
 	inset: 0px;
 	height: 100%;
@@ -386,7 +404,7 @@ input,
 	transform-origin: top left;
 	contain: size layout;
 	background-color: var(--color-culled);
-	z-index: 0;
+	z-index: var(--layer-culled-shape);
 }
 
 /* ---------------- Shape Containers ---------------- */
@@ -420,58 +438,58 @@ input,
 
 /* back of the stack, behind user's stuff */
 .tl-collaborator__scribble {
-	z-index: 10;
+	z-index: var(--layer-collaborator-scribble);
 }
 
 .tl-collaborator__brush {
-	z-index: 20;
+	z-index: var(--layer-collaborator-brush);
 }
 
 .tl-collaborator__shape-indicator {
-	z-index: 30;
+	z-index: var(--layer-collaborator-shape-indicator);
 }
 
 .tl-user-scribble {
-	z-index: 40;
+	z-index: var(--layer-user-scribble);
 }
 
 .tl-user-brush {
-	z-index: 50;
+	z-index: var(--layer-user-brush);
 }
 
 .tl-user-indicator__selected {
-	z-index: 60;
+	z-index: var(--layer-user-indicator-selected);
 }
 
 .tl-user-indicator__hovered {
-	z-index: 70;
+	z-index: var(--layer-user-indicator-hovered);
 }
 
 .tl-user-handles {
-	z-index: 80;
+	z-index: var(--layer-user-handles);
 }
 
 .tl-user-snapline {
-	z-index: 90;
+	z-index: var(--layer-user-snapline);
 }
 
 .tl-selection__fg {
 	pointer-events: none;
-	z-index: 100;
+	z-index: var(--layer-background);
 }
 
 .tl-user-indicator__hint {
-	z-index: 110;
+	z-index: var(--layer-user-indicator-hint);
 	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
 /* behind collaborator cursor */
 .tl-collaborator__cursor-hint {
-	z-index: 120;
+	z-index: var(--layer-collaborator-cursor-hint);
 }
 
 .tl-collaborator__cursor {
-	z-index: 130;
+	z-index: var(--layer-collaborator-cursor);
 }
 
 .tl-cursor {
@@ -818,7 +836,7 @@ input,
 
 .tl-text-measure {
 	position: absolute;
-	z-index: -999999;
+	z-index: var(--layer-hidden);
 	top: 0px;
 	left: 0px;
 	opacity: 0;
@@ -978,7 +996,7 @@ input,
 .tl-bookmark__link {
 	font-size: 14px;
 	pointer-events: all;
-	z-index: 999;
+	z-index: var(--layer-bookmark-link);
 	overflow: hidden;
 	display: block;
 	color: var(--color-text);
@@ -1001,7 +1019,7 @@ input,
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	z-index: 200;
+	z-index: var(--layer-canvas);
 	font-size: 12px;
 	font-weight: 400;
 	color: var(--color-text-1);
@@ -1014,7 +1032,7 @@ input,
 
 .tl-hyperlink-button::after {
 	content: '';
-	z-index: -1;
+	z-index: var(--layer-behind);
 	position: absolute;
 	right: 6px;
 	bottom: 6px;
@@ -1054,7 +1072,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: 10;
+	z-index: var(--layer-text-label);
 }
 
 .tl-text-label[data-hastext='false'][data-isediting='false'] > .tl-text-label__inner {
@@ -1364,7 +1382,7 @@ input,
 	background-color: var(--color-background);
 	color: var(--color-text-1);
 	position: absolute;
-	z-index: 600;
+	z-index: var(--layer-in-front);
 }
 
 .tl-error-boundary__overlay {
@@ -1372,7 +1390,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: 500;
+	z-index: var(--layer-in-front-overlay);
 	background-color: var(--color-overlay);
 }
 
@@ -1388,7 +1406,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: -1;
+	z-index: var(--layer-behind);
 }
 /* some browsers seem to have some weird interactions between stacking contexts
 and pointer-events. this ::after pseudo element covers the canvas and prevents
@@ -1400,7 +1418,7 @@ it from receiving any pointer events or affecting the cursor. */
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: 600;
+	z-index: var(--layer-in-front);
 	pointer-events: all;
 }
 
@@ -1419,7 +1437,7 @@ it from receiving any pointer events or affecting the cursor. */
 	display: flex;
 	flex-direction: column;
 	overflow: auto;
-	z-index: 600;
+	z-index: var(--layer-in-front);
 	gap: 12px;
 }
 
