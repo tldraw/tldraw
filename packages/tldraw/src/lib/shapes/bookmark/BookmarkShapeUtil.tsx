@@ -7,7 +7,6 @@ import {
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
-	TLOnBeforeCreateHandler,
 	TLOnBeforeUpdateHandler,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
@@ -106,10 +105,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 				ry="6"
 			/>
 		)
-	}
-
-	override onBeforeCreate?: TLOnBeforeCreateHandler<TLBookmarkShape> = (shape) => {
-		updateBookmarkAssetOnUrlChange(this.editor, shape)
 	}
 
 	override onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape> = (prev, shape) => {

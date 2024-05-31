@@ -5,6 +5,7 @@ interface ResponseBody {
 	title?: string
 	description?: string
 	image?: string
+	favicon?: string
 }
 
 export async function createAssetFromUrl({ url }: { type: 'url'; url: string }): Promise<TLAsset> {
@@ -29,7 +30,7 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 			props: {
 				src: url,
 				description: meta.description ?? '',
-				image: meta.image ?? '',
+				image: meta.image ?? meta.favicon ?? '',
 				title: meta.title ?? truncateStringWithEllipsis(url, 32),
 			},
 			meta: {},
@@ -44,12 +45,21 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 			const html = await resp.text()
 			const doc = new DOMParser().parseFromString(html, 'text/html')
 			meta = {
-				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
+				image:
+					doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ??
+					doc.head.querySelector('rel="apple-touch-icon"')?.getAttribute('href') ??
+					doc.head.querySelector('rel="icon"')?.getAttribute('href') ??
+					'',
 				title:
 					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
 					truncateStringWithEllipsis(url, 32),
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
+			}
+			// Resolve relative URLs
+			if (meta.image.startsWith('/')) {
+				const urlObj = new URL(url)
+				meta.image = `${urlObj.origin}${meta.image}`
 			}
 		} catch (error) {
 			console.error(error)
