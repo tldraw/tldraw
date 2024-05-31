@@ -157,7 +157,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return (STROKE_SIZES[shape.props.size] * multiplier) / 2
+		return ((STROKE_SIZES[shape.props.size] * multiplier) / 2) * shape.props.scale
 	}
 }
 

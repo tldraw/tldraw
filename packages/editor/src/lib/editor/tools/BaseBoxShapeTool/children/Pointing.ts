@@ -85,6 +85,8 @@ export class Pointing extends StateNode {
 
 		this.editor.mark(this.markId)
 
+		// todo: add scale here when dynamic size is enabled
+
 		this.editor.createShapes<TLBaseBoxShape>([
 			{
 				id,
