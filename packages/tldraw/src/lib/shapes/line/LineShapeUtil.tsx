@@ -49,6 +49,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				[start]: { id: start, index: start, x: 0, y: 0 },
 				[end]: { id: end, index: end, x: 0.1, y: 0.1 },
 			},
+			scale: 1,
 		}
 	}
 
@@ -129,7 +130,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = STROKE_SIZES[shape.props.size]
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
 		const spline = getGeometryForLineShape(shape)
 		const { dash } = shape.props
 
@@ -207,9 +208,8 @@ export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Pol
 function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 	const theme = useDefaultColorTheme()
 	const spline = getGeometryForLineShape(shape)
-	const strokeWidth = STROKE_SIZES[shape.props.size]
-
-	const { dash, color } = shape.props
+	const { dash, color, scale, size } = shape.props
+	const strokeWidth = STROKE_SIZES[size] * scale
 
 	// Line style lines
 	if (shape.props.spline === 'line') {

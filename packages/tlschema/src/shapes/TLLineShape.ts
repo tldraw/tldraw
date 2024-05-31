@@ -31,6 +31,7 @@ export const lineShapeProps = {
 	size: DefaultSizeStyle,
 	spline: LineShapeSplineStyle,
 	points: T.dict(T.string, lineShapePointValidator),
+	scale: T.nonZeroNumber,
 }
 
 /** @public */
@@ -45,6 +46,7 @@ export const lineShapeVersions = createShapePropsMigrationIds('line', {
 	RemoveExtraHandleProps: 2,
 	HandlesToPoints: 3,
 	PointIndexIds: 4,
+	AddScale: 5,
 })
 
 /** @public */
@@ -153,6 +155,15 @@ export const lineShapeMigrations = createShapePropsMigrationSequence({
 				).sort(sortByIndex)
 
 				props.points = sortedHandles.map(({ x, y }) => ({ x, y }))
+			},
+		},
+		{
+			id: lineShapeVersions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
 			},
 		},
 	],

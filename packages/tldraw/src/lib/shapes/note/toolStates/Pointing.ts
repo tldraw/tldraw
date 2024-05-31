@@ -39,7 +39,7 @@ export class Pointing extends StateNode {
 
 			// Check for note pits; if the pointer is close to one, place the note centered on the pit
 			const center = this.editor.inputs.originPagePoint.clone()
-			const offset = getNoteShapePitOffset(
+			const offset = getNoteShapeAdjacentPositionOffset(
 				this.editor,
 				center,
 				this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
@@ -56,7 +56,7 @@ export class Pointing extends StateNode {
 			if (!this.wasFocusedOnEnter) {
 				const id = createShapeId()
 				const center = this.editor.inputs.originPagePoint.clone()
-				const offset = getNoteShapePitOffset(
+				const offset = getNoteShapeAdjacentPositionOffset(
 					this.editor,
 					center,
 					this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
@@ -118,7 +118,7 @@ export class Pointing extends StateNode {
 	}
 }
 
-export function getNoteShapePitOffset(editor: Editor, center: Vec, scale: number) {
+export function getNoteShapeAdjacentPositionOffset(editor: Editor, center: Vec, scale: number) {
 	let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / editor.getZoomLevel() // in screen space
 	let offset: Vec | undefined
 	for (const pit of getAvailableNoteAdjacentPositions(editor, 0, scale, 0)) {

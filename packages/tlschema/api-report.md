@@ -738,6 +738,7 @@ export const lineShapeProps: {
         x: number;
         y: number;
     } & {}>;
+    scale: T.Validator<number>;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
 };

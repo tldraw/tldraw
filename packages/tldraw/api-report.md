@@ -1072,6 +1072,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         x: number;
         y: number;
         }>;
+        scale: Validator<number>;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         spline: EnumStyleProp<"cubic" | "line">;
     };

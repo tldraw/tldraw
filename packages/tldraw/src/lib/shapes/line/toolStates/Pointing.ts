@@ -95,6 +95,9 @@ export class Pointing extends StateNode {
 					type: 'line',
 					x: currentPagePoint.x,
 					y: currentPagePoint.y,
+					props: {
+						scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+					},
 				},
 			])
 
