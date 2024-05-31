@@ -33,6 +33,12 @@ export const useThreeStackableItems = () => {
 }
 
 /** @internal */
+export const useIsInSelectState = () => {
+	const editor = useEditor()
+	return useValue('isInSelectState', () => editor.isIn('select'), [editor])
+}
+
+/** @internal */
 export const useAllowGroup = () => {
 	const editor = useEditor()
 	return useValue(

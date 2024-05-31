@@ -43,18 +43,6 @@ const router = Router()
 
 router
 	.all('*', preflight)
-	.get('/uploads/list', async (request, env: Env) => {
-		// we need to protect this behind auth
-		const url = new URL(request.url)
-		const options: R2ListOptions = {
-			prefix: url.searchParams.get('prefix') ?? undefined,
-			delimiter: url.searchParams.get('delimiter') ?? undefined,
-			cursor: url.searchParams.get('cursor') ?? undefined,
-		}
-
-		const listing = await env.UPLOADS.list(options)
-		return Response.json(listing)
-	})
 	.get('/uploads/:objectName', async (request: Request, env: Env, ctx: ExecutionContext) => {
 		const url = new URL(request.url)
 
@@ -154,13 +142,6 @@ router
 				etag: object.httpEtag,
 			},
 		})
-	})
-	.delete('/uploads/:objectName', async (request: Request, env: Env) => {
-		// Not sure if this is necessary, might be dangerous to expose
-		// TODO: infer types from path
-		// @ts-expect-error
-		await env.UPLOADS.delete(request.params.objectName)
-		return new Response()
 	})
 	.get('*', () => new Response('Not found', { status: 404 }))
 

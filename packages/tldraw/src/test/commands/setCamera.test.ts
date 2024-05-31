@@ -757,3 +757,29 @@ describe('Outside behavior', () => {
 describe('Allows mixed values for x and y', () => {
 	it.todo('Allows different values to be set for x and y axes')
 })
+
+test('it animated towards the constrained viewport rather than the given viewport', () => {
+	// @ts-expect-error
+	const mockAnimateToViewport = (editor._animateToViewport = jest.fn())
+	editor.setCameraOptions({
+		...DEFAULT_CAMERA_OPTIONS,
+		constraints: {
+			...DEFAULT_CONSTRAINTS,
+			behavior: 'contain',
+			origin: { x: 0.5, y: 0.5 },
+			padding: { x: 100, y: 100 },
+			initialZoom: 'fit-max',
+		},
+	})
+
+	editor.setCamera(new Vec(-1000000, -1000000), { animation: { duration: 4000 } })
+	expect(mockAnimateToViewport).toHaveBeenCalledTimes(1)
+	expect(mockAnimateToViewport.mock.calls[0][0]).toMatchInlineSnapshot(`
+		Box {
+		  "h": 900,
+		  "w": 1600,
+		  "x": -200,
+		  "y": -0,
+		}
+	`)
+})

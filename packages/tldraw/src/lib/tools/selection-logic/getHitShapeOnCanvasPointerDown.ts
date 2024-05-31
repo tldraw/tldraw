@@ -1,4 +1,4 @@
-import { Editor, HIT_TEST_MARGIN, TLShape } from '@tldraw/editor'
+import { Editor, TLShape } from '@tldraw/editor'
 
 export function getHitShapeOnCanvasPointerDown(
 	editor: Editor,
@@ -14,7 +14,7 @@ export function getHitShapeOnCanvasPointerDown(
 		editor.getShapeAtPoint(currentPagePoint, {
 			hitInside: false,
 			hitLabels,
-			margin: HIT_TEST_MARGIN / zoomLevel,
+			margin: editor.options.hitTestMargin / zoomLevel,
 			renderingOnly: true,
 		}) ??
 		// selected shape at point

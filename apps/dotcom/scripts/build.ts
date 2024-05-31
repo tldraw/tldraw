@@ -10,6 +10,13 @@ import { nicelog } from '../../../scripts/lib/nicelog'
 import { T } from '@tldraw/validate'
 import { getMultiplayerServerURL } from '../vite.config'
 
+const commonSecurityHeaders = {
+	'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+	'X-Content-Type-Options': 'nosniff',
+	'Referrer-Policy': 'no-referrer-when-downgrade',
+	'Content-Security-Policy': 'default-src: *',
+}
+
 // We load the list of routes that should be forwarded to our SPA's index.html here.
 // It uses a jest snapshot file because deriving the set of routes from our
 // react-router config works fine in our test environment, but is tricky to get running in this
@@ -27,6 +34,7 @@ function loadSpaRoutes() {
 		check: true,
 		src: route.vercelRouterPattern,
 		dest: '/index.html',
+		headers: commonSecurityHeaders,
 	}))
 }
 
@@ -65,7 +73,19 @@ async function build() {
 					// cache static assets immutably
 					{
 						src: '^/assets/(.*)$',
-						headers: { 'Cache-Control': 'public, max-age=31536000, immutable' },
+						headers: {
+							'Cache-Control': 'public, max-age=31536000, immutable',
+							'X-Content-Type-Options': 'nosniff',
+						},
+					},
+					// server up index.html specifically because we want to include
+					// security headers. otherwise, it goes to the handle: 'miss'
+					// part below (and _not_ to the spaRoutes as maybe expected!)
+					{
+						check: true,
+						src: '/',
+						dest: '/index.html',
+						headers: commonSecurityHeaders,
 					},
 					// serve static files
 					{
@@ -79,6 +99,7 @@ async function build() {
 						src: '.*',
 						dest: '/index.html',
 						status: 404,
+						headers: commonSecurityHeaders,
 					},
 				],
 				overrides: {},
