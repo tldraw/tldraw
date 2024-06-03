@@ -88,6 +88,7 @@ function LoadButton({ documentId, userId }) {
 			onClick={() => {
 				const document = await loadDocumentState(documentId)
 				const session = await loadSessionState(documentId, userId)
+				editor.setCurrentTool('select') // need to reset tool state separately
 				loadSnapshot(editor.store, { document, session })
 			}}
 		>
@@ -118,10 +119,6 @@ function MyApp({ userId, documentId }) {
 ```
 
 When tldraw loads a snapshot, it will run any necessary migrations to bring the data up to the latest tldraw schema version.
-
-Note that loading a snapshot does not reset the editor's tool state. For example, loading a snapshot during a resizing operation may lead to a crash. This is because the resizing state maintains its own cache of information about which shapes it is resizing, and its possible that those shapes may no longer exist after the snapshot loads!
-
-To avoid this, you can call `editor.setCurrentTool('select')` to reset the tool state before loading a snapshot.
 
 ## The `"store"` prop
 
