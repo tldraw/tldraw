@@ -986,7 +986,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
     getZoomLevel(): number;
-    groupShapes(shapes: TLShape[] | TLShapeId[], options?: Partial<{
+    groupShapes(shapes: TLShape[], options?: Partial<{
+        groupId: TLShapeId;
+        select: boolean;
+    }>): this;
+    // (undocumented)
+    groupShapes(ids: TLShapeId[], options?: Partial<{
         groupId: TLShapeId;
         select: boolean;
     }>): this;
@@ -1107,7 +1112,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         select: boolean;
     }>): this;
     // (undocumented)
-    ungroupShapes(ids: TLShape[], options?: Partial<{
+    ungroupShapes(shapes: TLShape[], options?: Partial<{
         select: boolean;
     }>): this;
     updateAssets(assets: TLAssetPartial[]): this;
