@@ -2,7 +2,7 @@ import { PageRecordType, TLStore } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
-import { getSnapshot, loadSnapshot } from './TLEditorSnapshot'
+import { TLEditorSnapshot, getSnapshot, loadSnapshot } from './TLEditorSnapshot'
 import { createTLStore } from './createTLStore'
 
 const createEditor = (store: TLStore) => {
@@ -73,6 +73,19 @@ describe('getSnapshot', () => {
 	})
 })
 
+const page2Id = PageRecordType.createId('page2')
+function addPage2(snapshot: TLEditorSnapshot) {
+	// sneakily add a page
+	snapshot.document.store[page2Id] = PageRecordType.create({
+		id: page2Id,
+		name: 'my lovely page',
+		index: 'a4' as IndexKey,
+	})
+
+	// and set the current page id
+	snapshot.session.currentPageId = page2Id
+}
+
 describe('loadSnapshot', () => {
 	it('loads a snapshot into the store', () => {
 		const store = createTLStore({})
@@ -80,16 +93,7 @@ describe('loadSnapshot', () => {
 
 		const snapshot = getSnapshot(store)
 
-		// sneakily add a page
-		const pageId = PageRecordType.createId('page2')
-		snapshot.document.store[pageId] = PageRecordType.create({
-			id: pageId,
-			name: 'my lovely page',
-			index: 'a4' as IndexKey,
-		})
-
-		// and set the current page id
-		snapshot.session.currentPageId = pageId
+		addPage2(snapshot)
 
 		loadSnapshot(store, snapshot)
 
@@ -99,7 +103,7 @@ describe('loadSnapshot', () => {
 				.map((p) => p.id)
 				.sort()
 		).toEqual(['page:page', 'page:page2'])
-		expect(editor.getCurrentPageId()).toBe(pageId)
+		expect(editor.getCurrentPageId()).toBe(page2Id)
 	})
 
 	it('does not overwrite changes to the viewport page bounds', () => {
@@ -112,19 +116,70 @@ describe('loadSnapshot', () => {
 		editor.updateViewportScreenBounds(new Box(0, 0, 100, 100))
 		expect(editor.getViewportScreenBounds()).toEqual(new Box(0, 0, 100, 100))
 
-		// sneakily add a page
-		const pageId = PageRecordType.createId('page2')
-		snapshot.document.store[pageId] = PageRecordType.create({
-			id: pageId,
-			name: 'my lovely page',
-			index: 'a4' as IndexKey,
-		})
-
-		// and set the current page id
-		snapshot.session.currentPageId = pageId
+		addPage2(snapshot)
 
 		loadSnapshot(store, snapshot)
 
 		expect(editor.getViewportScreenBounds()).toEqual(new Box(0, 0, 100, 100))
+	})
+
+	it('works with just the document bits (1)', () => {
+		const store = createTLStore({})
+		const editor = createEditor(store)
+
+		const snapshot = getSnapshot(store)
+
+		addPage2(snapshot)
+
+		loadSnapshot(store, snapshot.document)
+
+		expect(
+			editor
+				.getPages()
+				.map((p) => p.id)
+				.sort()
+		).toEqual(['page:page', 'page:page2'])
+		expect(editor.getCurrentPageId()).toBe('page:page')
+	})
+
+	it('works with just the document bits (2)', () => {
+		const store = createTLStore({})
+		const editor = createEditor(store)
+
+		const snapshot = getSnapshot(store)
+
+		addPage2(snapshot)
+
+		loadSnapshot(store, { document: snapshot.document })
+
+		expect(
+			editor
+				.getPages()
+				.map((p) => p.id)
+				.sort()
+		).toEqual(['page:page', 'page:page2'])
+		expect(editor.getCurrentPageId()).toBe('page:page')
+	})
+
+	it('allows loading the session bits later', () => {
+		const store = createTLStore({})
+		const editor = createEditor(store)
+
+		const snapshot = getSnapshot(store)
+
+		addPage2(snapshot)
+
+		loadSnapshot(store, snapshot.document)
+
+		expect(
+			editor
+				.getPages()
+				.map((p) => p.id)
+				.sort()
+		).toEqual(['page:page', 'page:page2'])
+		expect(editor.getCurrentPageId()).toBe('page:page')
+
+		loadSnapshot(store, { session: snapshot.session })
+		expect(editor.getCurrentPageId()).toBe('page:page2')
 	})
 })
