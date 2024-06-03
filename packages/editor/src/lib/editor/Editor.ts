@@ -3027,7 +3027,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (_willSetInitialBounds) {
 			// If we have just received the initial bounds, don't center the camera.
-			this._willSetInitialBounds = false
 			this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
 			this.setCamera(this.getCamera())
 		} else {
