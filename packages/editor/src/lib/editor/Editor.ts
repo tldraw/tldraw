@@ -8282,6 +8282,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	focus(): this {
 		this.focusManager.focus()
+		this.updateInstanceState({ isFocused: true }, { history: 'ignore' })
 		return this
 	}
 
