@@ -503,11 +503,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	/**
 	 * @deprecated use `getSnapshot` from the 'tldraw' package instead.
 	 */
-	getSnapshot() {
+	getSnapshot(scope: RecordScope | 'all' = 'document') {
 		console.warn(
 			'[tldraw] `Store.getSnapshot` is deprecated and will be removed in a future release. Use `getSnapshot` from the `tldraw` package instead.'
 		)
-		return this.getStoreSnapshot()
+		return this.getStoreSnapshot(scope)
 	}
 
 	/**

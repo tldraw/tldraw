@@ -319,7 +319,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     _flushHistory(): void;
     get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
     // @deprecated (undocumented)
-    getSnapshot(): StoreSnapshot<R>;
+    getSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     getStoreSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has: <K extends IdOf<R>>(id: K) => boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
