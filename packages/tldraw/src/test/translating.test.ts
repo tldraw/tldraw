@@ -323,7 +323,7 @@ describe('When cloning...', () => {
 
 	it('Clones twice', () => {
 		const groupId = createShapeId('g')
-		editor.groupShapes([ids.box1, ids.box2], groupId)
+		editor.groupShapes([ids.box1, ids.box2], { groupId: groupId })
 		const count1 = editor.getCurrentPageShapes().length
 
 		editor.pointerDown(50, 50, { shape: editor.getShape(groupId)!, target: 'shape' })
