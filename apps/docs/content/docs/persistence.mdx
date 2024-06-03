@@ -65,8 +65,9 @@ function SaveButton({ documentId, userId }) {
 		<button
 			onClick={() => {
 				const { document, session } = getSnapshot(editor.store)
-				// If you are building a multi-user app, you probably want to store the document and session separately
-				// because the session is user-specific.
+				// If you are building a multi-user app, you probably want to store
+				// the document and session states separately because the
+				// session state is user-specific and normally shouldn't be shared.
 				await saveDocumentState(documentId, document)
 				await saveSessionState(documentId, userId, session)
 			}}
@@ -77,7 +78,26 @@ function SaveButton({ documentId, userId }) {
 }
 ```
 
-You can load the snapshot into a new editor with the `snapshot` prop.
+To load the snapshot back into an existing editor, use the [loadSnapshot](?) function.
+
+```tsx
+function LoadButton({ documentId, userId }) {
+	const editor = useEditor()
+	return (
+		<button
+			onClick={() => {
+				const document = await loadDocumentState(documentId)
+				const session = await loadSessionState(documentId, userId)
+				loadSnapshot(editor.store, { document, session })
+			}}
+		>
+			Load
+		</button>
+	)
+}
+```
+
+You can also pass a snapshot as a prop to set the initial editor content.
 
 ```tsx
 function MyApp({ userId, documentId }) {
@@ -97,28 +117,11 @@ function MyApp({ userId, documentId }) {
 }
 ```
 
-You can load the snapshot into an existing editor with [loadSnapshot](?).
+When tldraw loads a snapshot, it will run any necessary migrations to bring the data up to the latest tldraw schema version.
 
-```tsx
-function LoadButton() {
-	const editor = useEditor()
-	return (
-		<button
-			onClick={() => {
-				const stringified = localStorage.getItem('my-editor-snapshot')
-				const snapshot = JSON.parse(stringified)
-				loadSnapshot(editor.store, snapshot)
-			}}
-		>
-			Load
-		</button>
-	)
-}
-```
+Note that loading a snapshot does not reset the editor's tool state. For example, loading a snapshot during a resizing operation may lead to a crash. This is because the resizing state maintains its own cache of information about which shapes it is resizing, and its possible that those shapes may no longer exist after the snapshot loads!
 
-A [snapshot](/reference/store/StoreSnapshot) includes both the store's [serialized records](/reference/store/SerializedStore) and its [serialized schema](/reference/store/SerializedSchema), which is used for migrations.
-
-Note that loading a snapshot does not reset the editor's tool state. For example, loading a snapshot during a resizing operation may lead to a crash. This is because the resizing state maintains its own cache of information about which shapes it is resizing, and its possible that those shapes may no longer exist! If you need to reset the editor's tool state, you can call `editor.complete()` before loading the snapshot.
+To avoid this, you can call `editor.setCurrentTool('select')` to reset the tool state before loading a snapshot.
 
 ## The `"store"` prop
 
@@ -132,6 +135,7 @@ export default function () {
 		// Create the store
 		const newStore = createTLStore({
 			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
 		})
 
 		// Get the snapshot
@@ -166,6 +170,7 @@ export default function () {
 			// Create the store
 			const newStore = createTLStore({
 				shapeUtils: defaultShapeUtils,
+				bindingUtils: defaultBindingUtils,
 			})
 
 			// Load the snapshot

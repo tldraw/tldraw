@@ -21,7 +21,7 @@ export type TLStoreOptions = {
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
 
 /**
- * A helper for creating a TLStore. Custom shapes cannot override default shapes.
+ * A helper for creating a TLStore.
  *
  * @param opts - Options for creating the store.
  *
