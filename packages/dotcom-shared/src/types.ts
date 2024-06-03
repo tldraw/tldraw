@@ -1,19 +1,19 @@
 import { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 
-export type Snapshot = {
+export interface Snapshot {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>
 }
 
-export type CreateRoomRequestBody = {
+export interface CreateRoomRequestBody {
 	origin: string
 	snapshot: Snapshot
 }
 
-export type CreateSnapshotRequestBody = {
+export interface CreateSnapshotRequestBody {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | string[] | undefined
+	parent_slug?: string | undefined
 }
 
 export type CreateSnapshotResponseBody =
@@ -26,4 +26,7 @@ export type CreateSnapshotResponseBody =
 			message: string
 	  }
 
-export type GetReadonlySlugResponseBody = { slug: string; isLegacy: boolean }
+export interface GetReadonlySlugResponseBody {
+	slug: string
+	isLegacy: boolean
+}

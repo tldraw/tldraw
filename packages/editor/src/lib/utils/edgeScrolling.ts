@@ -1,5 +1,5 @@
-import { COARSE_POINTER_WIDTH, EDGE_SCROLL_DISTANCE, EDGE_SCROLL_SPEED } from '../constants'
 import { Editor } from '../editor/Editor'
+import { Vec } from '../primitives/Vec'
 
 /**
  * Helper function to get the scroll proximity factor for a given position.
@@ -8,14 +8,15 @@ import { Editor } from '../editor/Editor'
  * @internal
  */
 function getEdgeProximityFactor(
+	editor: Editor,
 	position: number,
 	dimension: number,
 	isCoarse: boolean,
 	insetStart: boolean,
 	insetEnd: boolean
 ) {
-	const dist = EDGE_SCROLL_DISTANCE
-	const pw = isCoarse ? COARSE_POINTER_WIDTH : 0 // pointer width
+	const dist = editor.options.edgeScrollDistance
+	const pw = isCoarse ? editor.options.coarsePointerWidth : 0 // pointer width
 	const pMin = position - pw
 	const pMax = position + pw
 	const min = insetStart ? 0 : dist
@@ -33,11 +34,7 @@ function getEdgeProximityFactor(
  * @public
  */
 export function moveCameraWhenCloseToEdge(editor: Editor) {
-	if (
-		!editor.inputs.isDragging ||
-		editor.inputs.isPanning ||
-		!editor.getInstanceState().canMoveCamera
-	)
+	if (!editor.inputs.isDragging || editor.inputs.isPanning || editor.getCameraOptions().isLocked)
 		return
 
 	const {
@@ -56,20 +53,17 @@ export function moveCameraWhenCloseToEdge(editor: Editor) {
 		isCoarsePointer,
 		insets: [t, r, b, l],
 	} = editor.getInstanceState()
-	const proximityFactorX = getEdgeProximityFactor(x, screenBounds.w, isCoarsePointer, l, r)
-	const proximityFactorY = getEdgeProximityFactor(y, screenBounds.h, isCoarsePointer, t, b)
+	const proximityFactorX = getEdgeProximityFactor(editor, x, screenBounds.w, isCoarsePointer, l, r)
+	const proximityFactorY = getEdgeProximityFactor(editor, y, screenBounds.h, isCoarsePointer, t, b)
 
 	if (proximityFactorX === 0 && proximityFactorY === 0) return
 
 	// Determines the base speed of the scroll
-	const pxSpeed = editor.user.getEdgeScrollSpeed() * EDGE_SCROLL_SPEED
+	const pxSpeed = editor.user.getEdgeScrollSpeed() * editor.options.edgeScrollSpeed
 	const scrollDeltaX = (pxSpeed * proximityFactorX * screenSizeFactorX) / zoomLevel
 	const scrollDeltaY = (pxSpeed * proximityFactorY * screenSizeFactorY) / zoomLevel
 
 	const camera = editor.getCamera()
 
-	editor.setCamera({
-		x: camera.x + scrollDeltaX,
-		y: camera.y + scrollDeltaY,
-	})
+	editor.setCamera(new Vec(camera.x + scrollDeltaX, camera.y + scrollDeltaY, camera.z))
 }

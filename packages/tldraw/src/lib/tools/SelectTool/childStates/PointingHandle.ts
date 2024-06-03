@@ -8,6 +8,7 @@ import {
 	TLPointerEventInfo,
 	Vec,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	NOTE_CENTER_OFFSET,
 	getNoteAdjacentPositions,
@@ -25,10 +26,10 @@ export class PointingHandle extends StateNode {
 
 		const { shape } = info
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
-			const initialTerminal = shape.props[info.handle.id as 'start' | 'end']
+			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
 
-			if (initialTerminal?.type === 'binding') {
-				this.editor.setHintingShapes([initialTerminal.boundShapeId])
+			if (initialBinding) {
+				this.editor.setHintingShapes([initialBinding.toId])
 			}
 		}
 

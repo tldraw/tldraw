@@ -3,7 +3,6 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, TEXT_SHADOW_LOD } from '../../constants'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 import { useContainer } from '../../hooks/useContainer'
@@ -26,7 +25,9 @@ import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
 
 /** @public */
-export type TLCanvasComponentProps = { className?: string }
+export interface TLCanvasComponentProps {
+	className?: string
+}
 
 /** @public */
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
@@ -63,16 +64,12 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			// If we're below the lod distance for text shadows, turn them off
 			if (
 				rMemoizedStuff.current.allowTextOutline &&
-				z < TEXT_SHADOW_LOD !== rMemoizedStuff.current.lodDisableTextOutline
+				z < editor.options.textShadowLod !== rMemoizedStuff.current.lodDisableTextOutline
 			) {
-				const lodDisableTextOutline = z < TEXT_SHADOW_LOD
+				const lodDisableTextOutline = z < editor.options.textShadowLod
 				container.style.setProperty(
 					'--tl-text-outline',
-					lodDisableTextOutline
-						? 'none'
-						: `0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
-				var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
-				var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background)`
+					lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
 				)
 				rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
 			}
@@ -169,7 +166,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
-				<InFrontOfTheCanvasWrapper />
 			</div>
 			<MovingCameraHitTestBlocker />
 		</div>
@@ -296,7 +292,8 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 			if (!handles) return null
 
 			const minDistBetweenVirtualHandlesAndRegularHandles =
-				((isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoomLevel) * 2
+				((isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoomLevel) *
+				2
 
 			return (
 				handles
@@ -645,12 +642,6 @@ function OnTheCanvasWrapper() {
 	const { OnTheCanvas } = useEditorComponents()
 	if (!OnTheCanvas) return null
 	return <OnTheCanvas />
-}
-
-function InFrontOfTheCanvasWrapper() {
-	const { InFrontOfTheCanvas } = useEditorComponents()
-	if (!InFrontOfTheCanvas) return null
-	return <InFrontOfTheCanvas />
 }
 
 function MovingCameraHitTestBlocker() {

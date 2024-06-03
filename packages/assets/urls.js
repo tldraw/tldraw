@@ -257,6 +257,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/geo-ellipse.svg', import.meta.url).href,
 				opts
 			),
+			'geo-heart': formatAssetUrl(
+				new URL('./icons/icon/geo-heart.svg', import.meta.url).href,
+				opts
+			),
 			'geo-hexagon': formatAssetUrl(
 				new URL('./icons/icon/geo-hexagon.svg', import.meta.url).href,
 				opts
@@ -365,6 +369,14 @@ export function getAssetUrlsByMetaUrl(opts) {
 			),
 			'size-small': formatAssetUrl(
 				new URL('./icons/icon/size-small.svg', import.meta.url).href,
+				opts
+			),
+			'spline-cubic': formatAssetUrl(
+				new URL('./icons/icon/spline-cubic.svg', import.meta.url).href,
+				opts
+			),
+			'spline-line': formatAssetUrl(
+				new URL('./icons/icon/spline-line.svg', import.meta.url).href,
 				opts
 			),
 			'stack-horizontal': formatAssetUrl(

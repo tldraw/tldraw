@@ -6,6 +6,7 @@ import {
 	TLShapeId,
 	createShapeId,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { DEFAULT_FRAME_PADDING, fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
 import { TestEditor } from './TestEditor'
 
@@ -562,9 +563,10 @@ describe('frame shapes', () => {
 		editor.pointerDown(150, 150).pointerMove(250, 250).pointerUp(250, 250)
 
 		const arrow = editor.getOnlySelectedShape()! as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
-		expect(arrow.props.start).toMatchObject({ boundShapeId: frameId })
-		expect(arrow.props.end).toMatchObject({ type: 'point' })
+		expect(bindings.start).toMatchObject({ toId: frameId })
+		expect(bindings.end).toBeUndefined()
 
 		expect(arrow.parentId).toBe(editor.getCurrentPageId())
 	})
@@ -587,9 +589,10 @@ describe('frame shapes', () => {
 		editor.pointerDown(150, 150).pointerMove(190, 190).pointerUp(190, 190)
 
 		const arrow = editor.getOnlySelectedShape()! as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
 
-		expect(arrow.props.start).toMatchObject({ boundShapeId: boxId })
-		expect(arrow.props.end).toMatchObject({ boundShapeId: frameId })
+		expect(bindings.start).toMatchObject({ toId: boxId })
+		expect(bindings.end).toMatchObject({ toId: frameId })
 
 		expect(arrow.parentId).toBe(editor.getCurrentPageId())
 	})
@@ -703,23 +706,16 @@ describe('frame shapes', () => {
 
 		// Check if the arrow's handles remain points
 		let arrow = editor.getOnlySelectedShape()! as TLArrowShape
-		expect(arrow.props.start).toMatchObject({
-			type: 'point',
-			x: 0,
-			y: 0,
-		})
-		expect(arrow.props.end).toMatchObject({
-			type: 'point',
-			x: -125,
-			y: -125,
-		})
+		expect(arrow.props.start).toMatchObject({ x: 0, y: 0 })
+		expect(arrow.props.end).toMatchObject({ x: -125, y: -125 })
 
 		// Move the end handle inside the frame
 		editor.pointerMove(175, 175).pointerUp(175, 175)
 
 		// Check if arrow's end handle is bound to the inner box
 		arrow = editor.getOnlySelectedShape()! as TLArrowShape
-		expect(arrow.props.end).toMatchObject({ boundShapeId: innerBoxId })
+		const bindings = getArrowBindings(editor, arrow)
+		expect(bindings.end).toMatchObject({ toId: innerBoxId })
 	})
 
 	it('correctly fits to its content', () => {

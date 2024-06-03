@@ -22,19 +22,19 @@ import {
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
-import { containBoxSize, downsizeImage, isGifAnimated } from './utils/assets/assets'
+import { containBoxSize, downsizeImage } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
 
 /** @public */
-export type TLExternalContentProps = {
+export interface TLExternalContentProps {
 	// The maximum dimension (width or height) of an image. Images larger than this will be rescaled to fit. Defaults to infinity.
 	maxImageDimension: number
 	// The maximum size (in bytes) of an asset. Assets larger than this will be rejected. Defaults to 10mb (10 * 1024 * 1024).
 	maxAssetSize: number
-	// The mime types of images that are allowed to be handled. Defaults to ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].
+	// The mime types of images that are allowed to be handled. Defaults to DEFAULT_SUPPORTED_IMAGE_TYPES.
 	acceptedImageMimeTypes: readonly string[]
-	// The mime types of videos that are allowed to be handled. Defaults to ['video/mp4', 'video/webm', 'video/quicktime'].
+	// The mime types of videos that are allowed to be handled. Defaults to DEFAULT_SUPPORT_VIDEO_TYPES.
 	acceptedVideoMimeTypes: readonly string[]
 }
 
@@ -70,19 +70,19 @@ export function registerDefaultExternalContentHandlers(
 			? await MediaHelpers.getImageSize(file)
 			: await MediaHelpers.getVideoSize(file)
 
-		const isAnimated = file.type === 'image/gif' ? await isGifAnimated(file) : isVideoType
+		const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
 
 		const hash = await getHashForBuffer(await file.arrayBuffer())
 
 		if (isFinite(maxImageDimension)) {
 			const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
-			if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+			if (size !== resizedSize && MediaHelpers.isStaticImageType(file.type)) {
 				size = resizedSize
 			}
 		}
 
 		// Always rescale the image
-		if (file.type === 'image/jpeg' || file.type === 'image/png') {
+		if (!isAnimated && MediaHelpers.isStaticImageType(file.type)) {
 			file = await downsizeImage(file, size.w, size.h, {
 				type: file.type,
 				quality: 0.92,
@@ -152,7 +152,9 @@ export function registerDefaultExternalContentHandlers(
 	editor.registerExternalContentHandler('svg-text', async ({ point, text }) => {
 		const position =
 			point ??
-			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
+			(editor.inputs.shiftKey
+				? editor.inputs.currentPagePoint
+				: editor.getViewportPageBounds().center)
 
 		const svg = new DOMParser().parseFromString(text, 'image/svg+xml').querySelector('svg')
 		if (!svg) {
@@ -185,7 +187,9 @@ export function registerDefaultExternalContentHandlers(
 	editor.registerExternalContentHandler('embed', ({ point, url, embed }) => {
 		const position =
 			point ??
-			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
+			(editor.inputs.shiftKey
+				? editor.inputs.currentPagePoint
+				: editor.getViewportPageBounds().center)
 
 		const { width, height } = embed
 
@@ -210,7 +214,9 @@ export function registerDefaultExternalContentHandlers(
 	editor.registerExternalContentHandler('files', async ({ point, files }) => {
 		const position =
 			point ??
-			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
+			(editor.inputs.shiftKey
+				? editor.inputs.currentPagePoint
+				: editor.getViewportPageBounds().center)
 
 		const pagePoint = new Vec(position.x, position.y)
 
@@ -266,7 +272,9 @@ export function registerDefaultExternalContentHandlers(
 	editor.registerExternalContentHandler('text', async ({ point, text }) => {
 		const p =
 			point ??
-			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
+			(editor.inputs.shiftKey
+				? editor.inputs.currentPagePoint
+				: editor.getViewportPageBounds().center)
 
 		const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
 
@@ -370,7 +378,9 @@ export function registerDefaultExternalContentHandlers(
 
 		const position =
 			point ??
-			(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.getViewportPageCenter())
+			(editor.inputs.shiftKey
+				? editor.inputs.currentPagePoint
+				: editor.getViewportPageBounds().center)
 
 		const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 		const shape = createEmptyBookmarkShape(editor, url, position)

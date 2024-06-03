@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
-	ShapeProps,
+	RecordProps,
 	TLHandle,
+	TLPropsMigrations,
 	TLShape,
 	TLShapePartial,
-	TLShapePropsMigrations,
 	TLUnknownShape,
 } from '@tldraw/tlschema'
 import { ReactElement } from 'react'
@@ -25,12 +25,27 @@ export interface TLShapeUtilConstructor<
 > {
 	new (editor: Editor): U
 	type: T['type']
-	props?: ShapeProps<T>
-	migrations?: LegacyMigrations | TLShapePropsMigrations | MigrationSequence
+	props?: RecordProps<T>
+	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 }
 
 /** @public */
 export type TLShapeUtilFlag<T> = (shape: T) => boolean
+
+/**
+ * Options passed to {@link ShapeUtil.canBind}. A binding that could be made. At least one of
+ * `fromShapeType` or `toShapeType` will belong to this shape util.
+ *
+ * @public
+ */
+export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
+	/** The type of shape referenced by the `fromId` of the binding. */
+	fromShapeType: string
+	/** The type of shape referenced by the `toId` of the binding. */
+	toShapeType: string
+	/** The type of binding. */
+	bindingType: string
+}
 
 /** @public */
 export interface TLShapeUtilCanvasSvgDef {
@@ -41,8 +56,8 @@ export interface TLShapeUtilCanvasSvgDef {
 /** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
-	static props?: ShapeProps<TLUnknownShape>
-	static migrations?: LegacyMigrations | TLShapePropsMigrations
+	static props?: RecordProps<TLUnknownShape>
+	static migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 
 	/**
 	 * The type of the shape util, which should match the shape's type.
@@ -97,12 +112,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canScroll: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape can be bound to by an arrow.
+	 * Whether the shape can be bound to. See {@link TLShapeUtilCanBindOpts} for details.
 	 *
-	 * @param _otherShape - The other shape attempting to bind to this shape.
 	 * @public
 	 */
-	canBind = <K>(_shape: Shape, _otherShape?: K) => true
+	canBind(opts: TLShapeUtilCanBindOpts<Shape>): boolean {
+		return true
+	}
 
 	/**
 	 * Whether the shape can be double clicked to edit.
@@ -131,6 +147,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	canCrop: TLShapeUtilFlag<Shape> = () => false
+
+	/**
+	 * Whether the shape participates in stacking, aligning, and distributing.
+	 *
+	 * @public
+	 */
+	canBeLaidOut: TLShapeUtilFlag<Shape> = () => true
 
 	/**
 	 * Does this shape provide a background for its children? If this is true,
@@ -555,7 +578,7 @@ export type TLResizeMode = 'scale_shape' | 'resize_bounds'
  * @param initialShape - The shape at the start of the resize.
  * @public
  */
-export type TLResizeInfo<T extends TLShape> = {
+export interface TLResizeInfo<T extends TLShape> {
 	newPoint: Vec
 	handle: TLResizeHandle
 	mode: TLResizeMode

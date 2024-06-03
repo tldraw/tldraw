@@ -215,7 +215,10 @@ async function copyTranslations() {
 	// languages.ts
 
 	const languagesSource = await readJsonIfExists(join(sourceFolderPath, 'languages.json'))!
-	type Language = { label: string; locale: string }
+	interface Language {
+		label: string
+		locale: string
+	}
 	const languagesFile = `
 		/** @public */
 		export const LANGUAGES = ${JSON.stringify(

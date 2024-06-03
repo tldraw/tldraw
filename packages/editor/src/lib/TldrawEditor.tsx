@@ -15,9 +15,11 @@ import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { TLUser, createTLUser } from './config/createTLUser'
+import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
+import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -28,11 +30,10 @@ import {
 	useEditorComponents,
 } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
-import { useFocusEvents } from './hooks/useFocusEvents'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
-import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
+import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -76,6 +77,11 @@ export interface TldrawEditorBaseProps {
 	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
 
 	/**
+	 * An array of binding utils to use in the editor.
+	 */
+	bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+
+	/**
 	 * An array of tools to add to the editor's state chart.
 	 */
 	tools?: readonly TLStateNodeConstructor[]
@@ -114,6 +120,16 @@ export interface TldrawEditorBaseProps {
 	 * Whether to infer dark mode from the user's OS. Defaults to false.
 	 */
 	inferDarkMode?: boolean
+
+	/**
+	 * Camera options for the editor.
+	 */
+	cameraOptions?: Partial<TLCameraOptions>
+
+	/**
+	 * Options for the editor.
+	 */
+	options?: Partial<TldrawOptions>
 }
 
 /**
@@ -135,6 +151,7 @@ declare global {
 }
 
 const EMPTY_SHAPE_UTILS_ARRAY = [] as const
+const EMPTY_BINDING_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
 
 /** @public */
@@ -157,6 +174,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const withDefaults = {
 		...rest,
 		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
+		bindingUtils: rest.bindingUtils ?? EMPTY_BINDING_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 		components,
 	}
@@ -197,12 +215,25 @@ export const TldrawEditor = memo(function TldrawEditor({
 })
 
 function TldrawEditorWithOwnStore(
-	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapeUtils' | 'tools'>
+	props: Required<
+		TldrawEditorProps & { store: undefined; user: TLUser },
+		'shapeUtils' | 'bindingUtils' | 'tools'
+	>
 ) {
-	const { defaultName, snapshot, initialData, shapeUtils, persistenceKey, sessionId, user } = props
+	const {
+		defaultName,
+		snapshot,
+		initialData,
+		shapeUtils,
+		bindingUtils,
+		persistenceKey,
+		sessionId,
+		user,
+	} = props
 
 	const syncedStore = useLocalStore({
 		shapeUtils,
+		bindingUtils,
 		initialData,
 		persistenceKey,
 		sessionId,
@@ -219,7 +250,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	...rest
 }: Required<
 	TldrawEditorProps & { store: TLStoreWithStatus; user: TLUser },
-	'shapeUtils' | 'tools'
+	'shapeUtils' | 'bindingUtils' | 'tools'
 >) {
 	const container = useContainer()
 
@@ -262,37 +293,57 @@ function TldrawEditorWithReadyStore({
 	store,
 	tools,
 	shapeUtils,
+	bindingUtils,
 	user,
 	initialState,
 	autoFocus = true,
 	inferDarkMode,
+	cameraOptions,
+	options,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
 		user: TLUser
 	},
-	'shapeUtils' | 'tools'
+	'shapeUtils' | 'bindingUtils' | 'tools'
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
 	const [editor, setEditor] = useState<Editor | null>(null)
+	const [initialAutoFocus] = useState(autoFocus)
 
 	useLayoutEffect(() => {
 		const editor = new Editor({
 			store,
 			shapeUtils,
+			bindingUtils,
 			tools,
 			getContainer: () => container,
 			user,
 			initialState,
+			autoFocus: initialAutoFocus,
 			inferDarkMode,
+			cameraOptions,
+			options,
 		})
 		setEditor(editor)
 
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapeUtils, tools, store, user, initialState, inferDarkMode])
+	}, [
+		container,
+		shapeUtils,
+		bindingUtils,
+		tools,
+		store,
+		user,
+		initialState,
+		initialAutoFocus,
+		inferDarkMode,
+		cameraOptions,
+		options,
+	])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
@@ -333,30 +384,18 @@ function TldrawEditorWithReadyStore({
 				<Crash crashingError={crashingError} />
 			) : (
 				<EditorContext.Provider value={editor}>
-					<Layout autoFocus={autoFocus} onMount={onMount}>
-						{children ?? (Canvas ? <Canvas /> : null)}
-					</Layout>
+					<Layout onMount={onMount}>{children ?? (Canvas ? <Canvas /> : null)}</Layout>
 				</EditorContext.Provider>
 			)}
 		</OptionalErrorBoundary>
 	)
 }
 
-function Layout({
-	children,
-	onMount,
-	autoFocus,
-}: {
-	children: ReactNode
-	autoFocus: boolean
-	onMount?: TLOnMountHandler
-}) {
+function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMountHandler }) {
 	useZoomCss()
 	useCursor()
 	useDarkMode()
-	useSafariFocusOutFix()
 	useForceUpdate()
-	useFocusEvents(autoFocus)
 	useOnMount(onMount)
 
 	return <>{children}</>

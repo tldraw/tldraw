@@ -7,7 +7,7 @@ import {
 	Snapshot,
 } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
 	AssetRecordType,
 	Editor,
@@ -96,14 +96,15 @@ export async function getNewRoomResponse(snapshot: Snapshot) {
 
 export function useSharing(): TLUiOverrides {
 	const navigate = useNavigate()
-	const id = useSearchParams()[0].get('id') ?? undefined
+	const params = useParams()
+	const roomId = params.roomId
 	const uploadFileToAsset = useMultiplayerAssets(ASSET_UPLOADER_URL)
 	const handleUiEvent = useHandleUiEvents()
 	const runningInIFrame = isInIframe()
 
 	return useMemo(
 		(): TLUiOverrides => ({
-			actions(editor, actions, { addToast, msg, addDialog }) {
+			actions(editor, actions, { addToast, clearToasts, msg, addDialog }) {
 				actions[LEAVE_SHARED_PROJECT_ACTION] = {
 					id: LEAVE_SHARED_PROJECT_ACTION,
 					label: 'action.leave-shared-project',
@@ -123,6 +124,12 @@ export function useSharing(): TLUiOverrides {
 					readonlyOk: true,
 					onSelect: async (source) => {
 						try {
+							addToast({
+								title: msg('share-menu.creating-project'),
+								severity: 'info',
+								keepOpen: true,
+							})
+
 							handleUiEvent('share-project', { source })
 							const data = await getRoomData(editor, addToast, msg, uploadFileToAsset)
 							if (!data) return
@@ -146,6 +153,7 @@ export function useSharing(): TLUiOverrides {
 							const pathname = decodeURIComponent(
 								`/${ROOM_PREFIX}/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`
 							)
+							clearToasts()
 							if (runningInIFrame) {
 								window.open(`${origin}${pathname}`)
 							} else {
@@ -173,7 +181,7 @@ export function useSharing(): TLUiOverrides {
 							addToast,
 							msg,
 							uploadFileToAsset,
-							id
+							roomId
 						)
 						if (navigator?.clipboard?.write) {
 							await navigator.clipboard.write([
@@ -186,6 +194,10 @@ export function useSharing(): TLUiOverrides {
 							if (link === '') return
 							navigator.clipboard.writeText(await link.text())
 						}
+						addToast({
+							title: msg('share-menu.copied'),
+							severity: 'success',
+						})
 					},
 				}
 				actions[FORK_PROJECT_ACTION] = {
@@ -196,7 +208,7 @@ export function useSharing(): TLUiOverrides {
 				return actions
 			},
 		}),
-		[handleUiEvent, navigate, uploadFileToAsset, id, runningInIFrame]
+		[handleUiEvent, navigate, uploadFileToAsset, roomId, runningInIFrame]
 	)
 }
 

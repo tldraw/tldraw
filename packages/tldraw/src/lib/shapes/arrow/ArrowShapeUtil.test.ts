@@ -1,12 +1,6 @@
-import {
-	assert,
-	createShapeId,
-	HALF_PI,
-	TLArrowShape,
-	TLArrowShapeTerminal,
-	TLShapeId,
-} from '@tldraw/editor'
+import { HALF_PI, TLArrowShape, TLShapeId, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
+import { createOrUpdateArrowBinding, getArrowBindings } from './shared'
 
 let editor: TestEditor
 
@@ -28,6 +22,13 @@ window.cancelAnimationFrame = function cancelAnimationFrame(id) {
 	clearTimeout(id)
 }
 
+function arrow(id = ids.arrow1) {
+	return editor.getShape(id) as TLArrowShape
+}
+function bindings(id = ids.arrow1) {
+	return getArrowBindings(editor, arrow(id))
+}
+
 beforeEach(() => {
 	editor = new TestEditor()
 	editor
@@ -42,23 +43,25 @@ beforeEach(() => {
 				x: 150,
 				y: 150,
 				props: {
-					start: {
-						type: 'binding',
-						isExact: false,
-						boundShapeId: ids.box1,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
-					},
-					end: {
-						type: 'binding',
-						isExact: false,
-						boundShapeId: ids.box2,
-						normalizedAnchor: { x: 0.5, y: 0.5 },
-						isPrecise: false,
-					},
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: 0 },
 				},
 			},
 		])
+
+	createOrUpdateArrowBinding(editor, ids.arrow1, ids.box1, {
+		terminal: 'start',
+		isExact: false,
+		isPrecise: false,
+		normalizedAnchor: { x: 0.5, y: 0.5 },
+	})
+
+	createOrUpdateArrowBinding(editor, ids.arrow1, ids.box2, {
+		terminal: 'end',
+		isExact: false,
+		isPrecise: false,
+		normalizedAnchor: { x: 0.5, y: 0.5 },
+	})
 })
 
 describe('When translating a bound shape', () => {
@@ -77,17 +80,23 @@ describe('When translating a bound shape', () => {
 			x: 150,
 			y: 150,
 			props: {
-				start: {
-					type: 'binding',
+				start: { x: 0, y: 0 },
+				end: { x: 0, y: 0 },
+			},
+		})
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box1,
+				props: {
 					isExact: false,
-					boundShapeId: ids.box1,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
 				},
-				end: {
-					type: 'binding',
+			},
+			end: {
+				toId: ids.box2,
+				props: {
 					isExact: false,
-					boundShapeId: ids.box2,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
 				},
@@ -111,17 +120,24 @@ describe('When translating a bound shape', () => {
 			x: 150,
 			y: 150,
 			props: {
-				start: {
-					type: 'binding',
+				start: { x: 0, y: 0 },
+				end: { x: 0, y: 0 },
+				bend: 20,
+			},
+		})
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box1,
+				props: {
 					isExact: false,
-					boundShapeId: ids.box1,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
 				},
-				end: {
-					type: 'binding',
+			},
+			end: {
+				toId: ids.box2,
+				props: {
 					isExact: false,
-					boundShapeId: ids.box2,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
 				},
@@ -147,17 +163,23 @@ describe('When translating the arrow', () => {
 			x: 150,
 			y: 100,
 			props: {
-				start: {
-					type: 'binding',
+				start: { x: 0, y: 0 },
+				end: { x: 0, y: 0 },
+			},
+		})
+		expect(bindings()).toMatchObject({
+			start: {
+				toId: ids.box1,
+				props: {
 					isExact: false,
-					boundShapeId: ids.box1,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
 				},
-				end: {
-					type: 'binding',
+			},
+			end: {
+				toId: ids.box2,
+				props: {
 					isExact: false,
-					boundShapeId: ids.box2,
 					normalizedAnchor: { x: 0.5, y: 0.5 },
 					isPrecise: false,
 				},
@@ -172,23 +194,18 @@ describe('Other cases when arrow are moved', () => {
 
 		// When box one is not selected, unbinds box1 and keeps binding to box2
 		editor.nudgeShapes(editor.getSelectedShapeIds(), { x: 0, y: -1 })
-
-		expect(editor.getShape(ids.arrow1)).toMatchObject({
-			props: {
-				start: { type: 'binding', boundShapeId: ids.box1 },
-				end: { type: 'binding', boundShapeId: ids.box2 },
-			},
+		expect(bindings()).toMatchObject({
+			start: { toId: ids.box1, props: { isPrecise: false } },
+			end: { toId: ids.box2, props: { isPrecise: false } },
 		})
 
 		// when only the arrow is selected, we keep the binding but make it precise:
 		editor.select(ids.arrow1)
 		editor.nudgeShapes(editor.getSelectedShapeIds(), { x: 0, y: -1 })
 
-		expect(editor.getShape(ids.arrow1)).toMatchObject({
-			props: {
-				start: { type: 'binding', boundShapeId: ids.box1, isPrecise: true },
-				end: { type: 'binding', boundShapeId: ids.box2, isPrecise: true },
-			},
+		expect(bindings()).toMatchObject({
+			start: { toId: ids.box1, props: { isPrecise: true } },
+			end: { toId: ids.box2, props: { isPrecise: true } },
 		})
 	})
 
@@ -200,11 +217,9 @@ describe('Other cases when arrow are moved', () => {
 		editor.alignShapes(editor.getSelectedShapeIds(), 'right')
 		jest.advanceTimersByTime(1000)
 
-		expect(editor.getShape(ids.arrow1)).toMatchObject({
-			props: {
-				start: { type: 'binding', boundShapeId: ids.box1 },
-				end: { type: 'binding', boundShapeId: ids.box2 },
-			},
+		expect(bindings()).toMatchObject({
+			start: { toId: ids.box1, props: { isPrecise: false } },
+			end: { toId: ids.box2, props: { isPrecise: false } },
 		})
 
 		// maintains bindings if they would still be over the same shape (but makes them precise), but unbinds others
@@ -212,16 +227,9 @@ describe('Other cases when arrow are moved', () => {
 		editor.alignShapes(editor.getSelectedShapeIds(), 'top')
 		jest.advanceTimersByTime(1000)
 
-		expect(editor.getShape(ids.arrow1)).toMatchObject({
-			props: {
-				start: {
-					type: 'binding',
-					isPrecise: true,
-				},
-				end: {
-					type: 'point',
-				},
-			},
+		expect(bindings()).toMatchObject({
+			start: { toId: ids.box1, props: { isPrecise: true } },
+			end: undefined,
 		})
 	})
 
@@ -236,17 +244,9 @@ describe('Other cases when arrow are moved', () => {
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
 		jest.advanceTimersByTime(1000)
 
-		expect(editor.getShape(ids.arrow1)).toMatchObject({
-			props: {
-				start: {
-					type: 'binding',
-					boundShapeId: ids.box1,
-				},
-				end: {
-					type: 'binding',
-					boundShapeId: ids.box2,
-				},
-			},
+		expect(bindings()).toMatchObject({
+			start: { toId: ids.box1, props: { isPrecise: false } },
+			end: { toId: ids.box2, props: { isPrecise: false } },
 		})
 
 		// unbinds when only the arrow is selected (not its bound shapes) if the arrow itself has moved
@@ -255,17 +255,9 @@ describe('Other cases when arrow are moved', () => {
 		jest.advanceTimersByTime(1000)
 
 		// The arrow didn't actually move
-		expect(editor.getShape(ids.arrow1)).toMatchObject({
-			props: {
-				start: {
-					type: 'binding',
-					boundShapeId: ids.box1,
-				},
-				end: {
-					type: 'binding',
-					boundShapeId: ids.box2,
-				},
-			},
+		expect(bindings()).toMatchObject({
+			start: { toId: ids.box1, props: { isPrecise: false } },
+			end: { toId: ids.box2, props: { isPrecise: false } },
 		})
 
 		// The arrow will move this time, so it should unbind
@@ -273,15 +265,9 @@ describe('Other cases when arrow are moved', () => {
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
 		jest.advanceTimersByTime(1000)
 
-		expect(editor.getShape(ids.arrow1)).toMatchObject({
-			props: {
-				start: {
-					type: 'point',
-				},
-				end: {
-					type: 'point',
-				},
-			},
+		expect(bindings()).toMatchObject({
+			start: undefined,
+			end: undefined,
 		})
 	})
 
@@ -298,57 +284,44 @@ describe('Other cases when arrow are moved', () => {
 			.groupShapes(editor.getSelectedShapeIds())
 
 		editor.setCurrentTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
-		let arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
-		assert(editor.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
-		assert(arrow.props.end.type === 'binding')
-		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
+		const arrowId = editor.getOnlySelectedShape()!.id
+		expect(bindings(arrowId).end?.toId).toBe(ids.box3)
 
 		// translate:
 		editor.selectAll().nudgeShapes(editor.getSelectedShapeIds(), { x: 0, y: 1 })
 
 		// arrow should still be bound to box3
-		arrow = editor.getShape(arrow.id)!
-		assert(editor.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
-		assert(arrow.props.end.type === 'binding')
-		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
+		expect(bindings(arrowId).end?.toId).toBe(ids.box3)
 	})
 })
 
 describe('When a shape is rotated', () => {
 	it('binds correctly', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(375, 375)
+		const arrowId = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1].id
 
-		const arrow = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
-
-		expect(editor.getShape(arrow.id)).toMatchObject({
-			props: {
-				start: { type: 'point' },
-				end: {
-					type: 'binding',
-					boundShapeId: ids.box2,
+		expect(bindings(arrowId)).toMatchObject({
+			start: undefined,
+			end: {
+				toId: ids.box2,
+				props: {
 					normalizedAnchor: { x: 0.75, y: 0.75 }, // moving slowly
 				},
 			},
 		})
 
 		editor.updateShapes([{ id: ids.box2, type: 'geo', rotation: HALF_PI }])
-
 		editor.pointerMove(225, 350)
 
-		expect(editor.getShape(arrow.id)).toMatchObject({
-			props: {
-				start: { type: 'point' },
-				end: { type: 'binding', boundShapeId: ids.box2 },
+		expect(bindings(arrowId)).toCloselyMatchObject({
+			start: undefined,
+			end: {
+				toId: ids.box2,
+				props: {
+					normalizedAnchor: { x: 0.5, y: 0.75 }, // moving slowly
+				},
 			},
 		})
-
-		const anchor = (
-			editor.getShape<TLArrowShape>(arrow.id)!.props.end as TLArrowShapeTerminal & {
-				type: 'binding'
-			}
-		).normalizedAnchor
-		expect(anchor.x).toBeCloseTo(0.5)
-		expect(anchor.y).toBeCloseTo(0.75)
 	})
 })
 
@@ -362,8 +335,7 @@ describe('Arrow labels', () => {
 
 	it('should create an arrow with a label', () => {
 		const arrowId = editor.getOnlySelectedShape()!.id
-		const arrow = editor.getShape(arrowId)
-		expect(arrow).toMatchObject({
+		expect(arrow(arrowId)).toMatchObject({
 			props: {
 				text: 'Test Label',
 			},
@@ -373,8 +345,7 @@ describe('Arrow labels', () => {
 	it('should update the label of an arrow', () => {
 		const arrowId = editor.getOnlySelectedShape()!.id
 		editor.updateShapes([{ id: arrowId, type: 'arrow', props: { text: 'New Label' } }])
-		const arrow = editor.getShape(arrowId)
-		expect(arrow).toMatchObject({
+		expect(arrow(arrowId)).toMatchObject({
 			props: {
 				text: 'New Label',
 			},
@@ -533,32 +504,22 @@ describe("an arrow's parents", () => {
 		editor.pointerDown(15, 15).pointerMove(50, 50)
 		const arrowId = editor.getOnlySelectedShape()!.id
 
-		expect(editor.getShape(arrowId)).toMatchObject({
-			props: {
-				start: { type: 'binding', boundShapeId: boxAid },
-				end: { type: 'binding', boundShapeId: frameId },
-			},
-		})
-		expect(editor.getShape(arrowId)?.parentId).toBe(editor.getCurrentPageId())
+		expect(arrow(arrowId).parentId).toBe(editor.getCurrentPageId())
 
 		// move arrow to b
 		editor.pointerMove(15, 85)
-		expect(editor.getShape(arrowId)?.parentId).toBe(frameId)
-		expect(editor.getShape(arrowId)).toMatchObject({
-			props: {
-				start: { type: 'binding', boundShapeId: boxAid },
-				end: { type: 'binding', boundShapeId: boxBid },
-			},
+		expect(arrow(arrowId).parentId).toBe(frameId)
+		expect(bindings(arrowId)).toMatchObject({
+			start: { toId: boxAid },
+			end: { toId: boxBid },
 		})
 
 		// move back to empty space
 		editor.pointerMove(50, 50)
-		expect(editor.getShape(arrowId)?.parentId).toBe(editor.getCurrentPageId())
-		expect(editor.getShape(arrowId)).toMatchObject({
-			props: {
-				start: { type: 'binding', boundShapeId: boxAid },
-				end: { type: 'binding', boundShapeId: frameId },
-			},
+		expect(arrow(arrowId).parentId).toBe(editor.getCurrentPageId())
+		expect(bindings(arrowId)).toMatchObject({
+			start: { toId: boxAid },
+			end: { toId: frameId },
 		})
 	})
 
@@ -568,21 +529,21 @@ describe("an arrow's parents", () => {
 		editor.pointerDown(15, 15).pointerMove(15, 85).pointerUp()
 		const arrowId = editor.getOnlySelectedShape()!.id
 
-		expect(editor.getShape(arrowId)).toMatchObject({
+		expect(arrow(arrowId)).toMatchObject({
 			parentId: frameId,
-			props: {
-				start: { type: 'binding', boundShapeId: boxAid },
-				end: { type: 'binding', boundShapeId: boxBid },
-			},
+		})
+		expect(bindings(arrowId)).toMatchObject({
+			start: { toId: boxAid },
+			end: { toId: boxBid },
 		})
 		// move b outside of frame
 		editor.select(boxBid).translateSelection(200, 0)
-		expect(editor.getShape(arrowId)).toMatchObject({
+		expect(arrow(arrowId)).toMatchObject({
 			parentId: editor.getCurrentPageId(),
-			props: {
-				start: { type: 'binding', boundShapeId: boxAid },
-				end: { type: 'binding', boundShapeId: boxBid },
-			},
+		})
+		expect(bindings(arrowId)).toMatchObject({
+			start: { toId: boxAid },
+			end: { toId: boxBid },
 		})
 	})
 
@@ -591,12 +552,12 @@ describe("an arrow's parents", () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(115, 15).pointerUp()
 		const arrowId = editor.getOnlySelectedShape()!.id
-		expect(editor.getShape(arrowId)).toMatchObject({
+		expect(arrow(arrowId)).toMatchObject({
 			parentId: editor.getCurrentPageId(),
-			props: {
-				start: { type: 'binding', boundShapeId: boxAid },
-				end: { type: 'binding', boundShapeId: boxCid },
-			},
+		})
+		expect(bindings(arrowId)).toMatchObject({
+			start: { toId: boxAid },
+			end: { toId: boxCid },
 		})
 
 		// move c inside of frame
@@ -604,10 +565,10 @@ describe("an arrow's parents", () => {
 
 		expect(editor.getShape(arrowId)).toMatchObject({
 			parentId: frameId,
-			props: {
-				start: { type: 'binding', boundShapeId: boxAid },
-				end: { type: 'binding', boundShapeId: boxCid },
-			},
+		})
+		expect(bindings(arrowId)).toMatchObject({
+			start: { toId: boxAid },
+			end: { toId: boxCid },
 		})
 	})
 })

@@ -1,15 +1,12 @@
 import { T } from '@tldraw/validate'
-import {
-	RETIRED_DOWN_MIGRATION,
-	createShapePropsMigrationIds,
-	createShapePropsMigrationSequence,
-} from '../records/TLShape'
+import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
+import { RETIRED_DOWN_MIGRATION, RecordPropsType } from '../recordsWithProps'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultFontStyle } from '../styles/TLFontStyle'
 import { DefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { DefaultVerticalAlignStyle } from '../styles/TLVerticalAlignStyle'
-import { ShapePropsType, TLBaseShape } from './TLBaseShape'
+import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export const noteShapeProps = {
@@ -25,7 +22,7 @@ export const noteShapeProps = {
 }
 
 /** @public */
-export type TLNoteShapeProps = ShapePropsType<typeof noteShapeProps>
+export type TLNoteShapeProps = RecordPropsType<typeof noteShapeProps>
 
 /** @public */
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>

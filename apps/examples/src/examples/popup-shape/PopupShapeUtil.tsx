@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
-	ShapeProps,
+	RecordProps,
 	T,
 	TLBaseShape,
 	stopEventPropagation,
@@ -20,7 +20,7 @@ type IMyPopupShape = TLBaseShape<
 
 export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 	static override type = 'my-popup-shape' as const
-	static override props: ShapeProps<IMyPopupShape> = {
+	static override props: RecordProps<IMyPopupShape> = {
 		w: T.number,
 		h: T.number,
 		animal: T.number,

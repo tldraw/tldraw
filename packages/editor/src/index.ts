@@ -104,43 +104,20 @@ export {
 	type TLStoreOptions,
 } from './lib/config/createTLStore'
 export { createTLUser } from './lib/config/createTLUser'
+export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
+export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
+export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
 export {
-	ANIMATION_MEDIUM_MS,
-	ANIMATION_SHORT_MS,
-	CAMERA_SLIDE_FRICTION,
-	DEFAULT_ANIMATION_OPTIONS,
-	DOUBLE_CLICK_DURATION,
-	DRAG_DISTANCE,
-	GRID_STEPS,
-	HASH_PATTERN_ZOOM_NAMES,
-	HIT_TEST_MARGIN,
-	MAX_PAGES,
-	MAX_SHAPES_PER_PAGE,
-	MAX_ZOOM,
-	MIN_ZOOM,
-	MULTI_CLICK_DURATION,
-	SIDES,
-	SVG_PADDING,
-	ZOOMS,
-} from './lib/constants'
-export {
-	Editor,
-	type TLAnimationOptions,
-	type TLEditorOptions,
-	type TLResizeShapeOptions,
-} from './lib/editor/Editor'
+	BindingUnbindReason,
+	BindingUtil,
+	type BindingOnChangeOptions,
+	type BindingOnCreateOptions,
+	type BindingOnShapeChangeOptions,
+	type BindingOnUnbindOptions,
+	type TLBindingUtilConstructor,
+} from './lib/editor/bindings/BindingUtil'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
-export type {
-	SideEffectManager,
-	TLAfterChangeHandler,
-	TLAfterCreateHandler,
-	TLAfterDeleteHandler,
-	TLBatchCompleteHandler,
-	TLBeforeChangeHandler,
-	TLBeforeCreateHandler,
-	TLBeforeDeleteHandler,
-} from './lib/editor/managers/SideEffectManager'
 export {
 	type BoundsSnapGeometry,
 	type BoundsSnapPoint,
@@ -176,17 +153,12 @@ export {
 	type TLOnTranslateStartHandler,
 	type TLResizeInfo,
 	type TLResizeMode,
+	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
-export {
-	type TLArcInfo,
-	type TLArrowInfo,
-	type TLArrowPoint,
-} from './lib/editor/shapes/shared/arrow/arrow-types'
-export { getArrowTerminalsInArrowSpace } from './lib/editor/shapes/shared/arrow/shared'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
@@ -235,7 +207,13 @@ export {
 	type TLExternalContent,
 	type TLExternalContentSource,
 } from './lib/editor/types/external-content'
-export { type RequiredKeys, type TLSvgOptions } from './lib/editor/types/misc-types'
+export {
+	type RequiredKeys,
+	type TLCameraConstraints,
+	type TLCameraMoveOptions,
+	type TLCameraOptions,
+	type TLSvgOptions,
+} from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
@@ -254,6 +232,7 @@ export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
+export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
 export {
 	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
@@ -304,6 +283,7 @@ export {
 	areAnglesCompatible,
 	average,
 	canonicalizeRotation,
+	centerOfCircleFromThreePoints,
 	clamp,
 	clampRadians,
 	clockwiseAngleDist,
@@ -312,6 +292,7 @@ export {
 	getArcMeasure,
 	getPointInArcT,
 	getPointOnCircle,
+	getPointsOnArc,
 	getPolygonVertices,
 	isSafeFloat,
 	perimeterOfEllipse,
@@ -330,7 +311,6 @@ export {
 	SharedStyleMap,
 	type SharedStyle,
 } from './lib/utils/SharedStylesMap'
-export { WeakMapCache } from './lib/utils/WeakMapCache'
 export { dataUrlToFile } from './lib/utils/assets'
 export { debugFlags, featureFlags, type DebugFlag } from './lib/utils/debug-flags'
 export {

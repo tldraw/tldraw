@@ -73,7 +73,7 @@ export interface BaseEditorComponents {
 }
 
 // These will always have defaults
-type ErrorComponents = {
+interface ErrorComponents {
 	ErrorFallback: TLErrorFallbackComponent
 	ShapeErrorFallback: TLShapeErrorFallbackComponent
 	ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent
@@ -86,9 +86,9 @@ export type TLEditorComponents = Partial<
 	} & ErrorComponents
 >
 
-const EditorComponentsContext = createContext({} as TLEditorComponents & ErrorComponents)
+const EditorComponentsContext = createContext<null | (TLEditorComponents & ErrorComponents)>(null)
 
-type ComponentsContextProviderProps = {
+interface ComponentsContextProviderProps {
 	overrides?: TLEditorComponents
 	children: ReactNode
 }
@@ -140,5 +140,9 @@ export function EditorComponentsProvider({
 
 /** @public */
 export function useEditorComponents() {
-	return useContext(EditorComponentsContext)
+	const components = useContext(EditorComponentsContext)
+	if (!components) {
+		throw new Error('useEditorComponents must be used inside of <EditorComponentsProvider />')
+	}
+	return components
 }

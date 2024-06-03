@@ -35,7 +35,7 @@ const MAX_CONNECTIONS = 50
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 0
-type DocumentInfo = {
+interface DocumentInfo {
 	version: number
 	slug: string
 }
@@ -338,7 +338,7 @@ export class TLDrawDurableObject extends TLServer {
 		this._roomState = undefined
 	}
 
-	// Load the room's drawing data from supabase
+	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	override async loadFromDatabase(persistenceKey: string): Promise<DBLoadResult> {
 		try {
 			const key = getR2KeyForRoom(persistenceKey)

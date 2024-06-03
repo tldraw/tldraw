@@ -27,7 +27,7 @@ export type RecordOp<R extends UnknownRecord> =
  *
  * @public
  */
-export type NetworkDiff<R extends UnknownRecord> = {
+export interface NetworkDiff<R extends UnknownRecord> {
 	[id: string]: RecordOp<R>
 }
 
@@ -84,7 +84,7 @@ export type DeleteOp = [type: typeof ValueOpType.Delete]
 export type ValueOp = PutOp | AppendOp | PatchOp | DeleteOp
 
 /** @public */
-export type ObjectDiff = {
+export interface ObjectDiff {
 	[k: string]: ValueOp
 }
 

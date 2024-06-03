@@ -76,6 +76,7 @@ export type AssetUrls = {
 		'geo-cloud': string
 		'geo-diamond': string
 		'geo-ellipse': string
+		'geo-heart': string
 		'geo-hexagon': string
 		'geo-octagon': string
 		'geo-oval': string
@@ -114,6 +115,8 @@ export type AssetUrls = {
 		'size-large': string
 		'size-medium': string
 		'size-small': string
+		'spline-cubic': string
+		'spline-line': string
 		'stack-horizontal': string
 		'stack-vertical': string
 		'stretch-horizontal': string

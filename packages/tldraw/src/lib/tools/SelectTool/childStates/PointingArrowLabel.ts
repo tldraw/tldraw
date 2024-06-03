@@ -10,6 +10,7 @@ import {
 	Vec,
 	getPointInArcT,
 } from '@tldraw/editor'
+import { getArrowInfo } from '../../../shapes/arrow/shared'
 
 export class PointingArrowLabel extends StateNode {
 	static override id = 'pointing_arrow_label'
@@ -74,7 +75,7 @@ export class PointingArrowLabel extends StateNode {
 		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
 		if (!shape) return
 
-		const info = this.editor.getArrowInfo(shape)!
+		const info = getArrowInfo(this.editor, shape)!
 
 		const groupGeometry = this.editor.getShapeGeometry<Group2d>(shape)
 		const bodyGeometry = groupGeometry.children[0] as Geometry2d

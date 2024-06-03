@@ -6,14 +6,14 @@ import { BoundsSnaps } from './BoundsSnaps'
 import { HandleSnaps } from './HandleSnaps'
 
 /** @public */
-export type PointsSnapIndicator = {
+export interface PointsSnapIndicator {
 	id: string
 	type: 'points'
 	points: VecLike[]
 }
 
 /** @public */
-export type GapsSnapIndicator = {
+export interface GapsSnapIndicator {
 	id: string
 	type: 'gaps'
 	direction: 'horizontal' | 'vertical'
@@ -64,7 +64,7 @@ export class SnapManager {
 	// TODO: make this an incremental derivation
 	@computed getSnappableShapes(): Set<TLShapeId> {
 		const { editor } = this
-		const renderingBounds = editor.getRenderingBounds()
+		const renderingBounds = editor.getViewportPageBounds()
 		const selectedShapeIds = editor.getSelectedShapeIds()
 
 		const snappableShapes: Set<TLShapeId> = new Set()

@@ -1,9 +1,3 @@
-import {
-	COARSE_DRAG_DISTANCE,
-	DOUBLE_CLICK_DURATION,
-	DRAG_DISTANCE,
-	MULTI_CLICK_DURATION,
-} from '../../constants'
 import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
@@ -72,7 +66,9 @@ export class ClickManager {
 					this._clickState = 'idle'
 				}
 			},
-			state === 'idle' || state === 'pendingDouble' ? DOUBLE_CLICK_DURATION : MULTI_CLICK_DURATION
+			state === 'idle' || state === 'pendingDouble'
+				? this.editor.options.doubleClickDurationMs
+				: this.editor.options.multiClickDurationMs
 		)
 	}
 
@@ -95,116 +91,120 @@ export class ClickManager {
 
 	lastPointerInfo = {} as TLPointerEventInfo
 
-	/**
-	 * Start the double click timeout.
-	 *
-	 * @param info - The event info.
-	 */
-	transformPointerDownEvent = (info: TLPointerEventInfo): TLPointerEventInfo | TLClickEventInfo => {
-		if (!this._clickState) return info
+	handlePointerEvent = (info: TLPointerEventInfo): TLPointerEventInfo | TLClickEventInfo => {
+		switch (info.name) {
+			case 'pointer_down': {
+				if (!this._clickState) return info
+				this._clickScreenPoint = Vec.From(info.point)
 
-		this._clickScreenPoint = Vec.From(info.point)
-
-		if (
-			this._previousScreenPoint &&
-			this._previousScreenPoint.dist(this._clickScreenPoint) > MAX_CLICK_DISTANCE
-		) {
-			this._clickState = 'idle'
-		}
-
-		this._previousScreenPoint = this._clickScreenPoint
-
-		this.lastPointerInfo = info
-
-		switch (this._clickState) {
-			case 'idle': {
-				this._clickState = 'pendingDouble'
-				this._clickTimeout = this._getClickTimeout(this._clickState)
-				return info // returns the pointer event
-			}
-			case 'pendingDouble': {
-				this._clickState = 'pendingTriple'
-				this._clickTimeout = this._getClickTimeout(this._clickState)
-				return {
-					...info,
-					type: 'click',
-					name: 'double_click',
-					phase: 'down',
+				if (
+					this._previousScreenPoint &&
+					Vec.Dist2(this._previousScreenPoint, this._clickScreenPoint) > MAX_CLICK_DISTANCE ** 2
+				) {
+					this._clickState = 'idle'
 				}
-			}
-			case 'pendingTriple': {
-				this._clickState = 'pendingQuadruple'
-				this._clickTimeout = this._getClickTimeout(this._clickState)
-				return {
-					...info,
-					type: 'click',
-					name: 'triple_click',
-					phase: 'down',
+
+				this._previousScreenPoint = this._clickScreenPoint
+
+				this.lastPointerInfo = info
+
+				switch (this._clickState) {
+					case 'pendingDouble': {
+						this._clickState = 'pendingTriple'
+						this._clickTimeout = this._getClickTimeout(this._clickState)
+						return {
+							...info,
+							type: 'click',
+							name: 'double_click',
+							phase: 'down',
+						}
+					}
+					case 'pendingTriple': {
+						this._clickState = 'pendingQuadruple'
+						this._clickTimeout = this._getClickTimeout(this._clickState)
+						return {
+							...info,
+							type: 'click',
+							name: 'triple_click',
+							phase: 'down',
+						}
+					}
+					case 'pendingQuadruple': {
+						this._clickState = 'pendingOverflow'
+						this._clickTimeout = this._getClickTimeout(this._clickState)
+						return {
+							...info,
+							type: 'click',
+							name: 'quadruple_click',
+							phase: 'down',
+						}
+					}
+					case 'idle': {
+						this._clickState = 'pendingDouble'
+						break
+					}
+					case 'pendingOverflow': {
+						this._clickState = 'overflow'
+						break
+					}
+					default: {
+						// overflow
+					}
 				}
-			}
-			case 'pendingQuadruple': {
-				this._clickState = 'pendingOverflow'
-				this._clickTimeout = this._getClickTimeout(this._clickState)
-				return {
-					...info,
-					type: 'click',
-					name: 'quadruple_click',
-					phase: 'down',
-				}
-			}
-			case 'pendingOverflow': {
-				this._clickState = 'overflow'
-				this._clickTimeout = this._getClickTimeout(this._clickState)
-				return info
-			}
-			default: {
-				// overflow
 				this._clickTimeout = this._getClickTimeout(this._clickState)
 				return info
 			}
-		}
-	}
+			case 'pointer_up': {
+				if (!this._clickState) return info
+				this._clickScreenPoint = Vec.From(info.point)
 
-	/**
-	 * Emit click_up events on pointer up.
-	 *
-	 * @param info - The event info.
-	 */
-	transformPointerUpEvent = (info: TLPointerEventInfo): TLPointerEventInfo | TLClickEventInfo => {
-		if (!this._clickState) return info
+				switch (this._clickState) {
+					case 'pendingTriple': {
+						return {
+							...this.lastPointerInfo,
+							type: 'click',
+							name: 'double_click',
+							phase: 'up',
+						}
+					}
+					case 'pendingQuadruple': {
+						return {
+							...this.lastPointerInfo,
+							type: 'click',
+							name: 'triple_click',
+							phase: 'up',
+						}
+					}
+					case 'pendingOverflow': {
+						return {
+							...this.lastPointerInfo,
+							type: 'click',
+							name: 'quadruple_click',
+							phase: 'up',
+						}
+					}
+					default: {
+						// idle, pendingDouble, overflow
+					}
+				}
 
-		this._clickScreenPoint = Vec.From(info.point)
-
-		switch (this._clickState) {
-			case 'pendingTriple': {
-				return {
-					...this.lastPointerInfo,
-					type: 'click',
-					name: 'double_click',
-					phase: 'up',
-				}
+				return info
 			}
-			case 'pendingQuadruple': {
-				return {
-					...this.lastPointerInfo,
-					type: 'click',
-					name: 'triple_click',
-					phase: 'up',
+			case 'pointer_move': {
+				if (
+					this._clickState !== 'idle' &&
+					this._clickScreenPoint &&
+					Vec.Dist2(this._clickScreenPoint, this.editor.inputs.currentScreenPoint) >
+						(this.editor.getInstanceState().isCoarsePointer
+							? this.editor.options.coarseDragDistanceSquared
+							: this.editor.options.dragDistanceSquared)
+				) {
+					this.cancelDoubleClickTimeout()
 				}
-			}
-			case 'pendingOverflow': {
-				return {
-					...this.lastPointerInfo,
-					type: 'click',
-					name: 'quadruple_click',
-					phase: 'up',
-				}
-			}
-			default: {
-				// idle, pendingDouble, overflow
 				return info
 			}
 		}
+		return info
 	}
 
 	/**
@@ -215,22 +215,5 @@ export class ClickManager {
 	cancelDoubleClickTimeout = () => {
 		this._clickTimeout = clearTimeout(this._clickTimeout)
 		this._clickState = 'idle'
-	}
-
-	/**
-	 * Handle a move event, possibly cancelling the click timeout.
-	 *
-	 * @internal
-	 */
-	handleMove = () => {
-		// Cancel a double click event if the user has started dragging.
-		if (
-			this._clickState !== 'idle' &&
-			this._clickScreenPoint &&
-			Vec.Dist2(this._clickScreenPoint, this.editor.inputs.currentScreenPoint) >
-				(this.editor.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
-		) {
-			this.cancelDoubleClickTimeout()
-		}
 	}
 }

@@ -9,7 +9,7 @@ export {
 	squashRecordDiffsMutable,
 	type RecordsDiff,
 } from './lib/RecordsDiff'
-export { Store } from './lib/Store'
+export { Store, createComputedCache } from './lib/Store'
 export type {
 	CollectionDiff,
 	ComputedCache,
@@ -28,6 +28,16 @@ export type {
 	SerializedSchemaV2,
 	StoreSchemaOptions,
 } from './lib/StoreSchema'
+export {
+	StoreSideEffects,
+	type StoreAfterChangeHandler,
+	type StoreAfterCreateHandler,
+	type StoreAfterDeleteHandler,
+	type StoreBeforeChangeHandler,
+	type StoreBeforeCreateHandler,
+	type StoreBeforeDeleteHandler,
+	type StoreOperationCompleteHandler,
+} from './lib/StoreSideEffects'
 export { devFreeze } from './lib/devFreeze'
 export {
 	MigrationFailureReason,
@@ -43,5 +53,6 @@ export {
 	type MigrationId,
 	type MigrationResult,
 	type MigrationSequence,
+	type StandaloneDependsOn,
 } from './lib/migrate'
 export type { AllRecords } from './lib/type-utils'

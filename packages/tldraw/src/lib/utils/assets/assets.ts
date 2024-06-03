@@ -1,8 +1,7 @@
 import { MediaHelpers, assertExists } from '@tldraw/editor'
 import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
-import { isAnimated } from './is-gif-animated'
 
-type BoxWidthHeight = {
+interface BoxWidthHeight {
 	w: number
 	h: number
 }
@@ -90,14 +89,4 @@ export async function downsizeImage(
 			quality
 		)
 	})
-}
-
-/** @public */
-export const DEFAULT_ACCEPTED_IMG_TYPE = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
-/** @public */
-export const DEFAULT_ACCEPTED_VID_TYPE = ['video/mp4', 'video/quicktime']
-
-/** @public */
-export async function isGifAnimated(file: Blob): Promise<boolean> {
-	return isAnimated(await file.arrayBuffer())
 }

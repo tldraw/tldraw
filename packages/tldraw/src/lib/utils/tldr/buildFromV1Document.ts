@@ -1,11 +1,9 @@
 import {
 	AssetRecordType,
 	Editor,
-	MAX_SHAPES_PER_PAGE,
 	PageRecordType,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
-	TLArrowShapeTerminal,
 	TLAsset,
 	TLAssetId,
 	TLDefaultColorStyle,
@@ -26,7 +24,9 @@ import {
 	VecModel,
 	clamp,
 	createShapeId,
+	structuredClone,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../../shapes/arrow/shared'
 
 const TLDRAW_V1_VERSION = 15.5
 
@@ -129,7 +129,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 				const v1Shapes = Object.values(v1Page.shapes ?? {})
 					.sort((a, b) => (a.childIndex < b.childIndex ? -1 : 1))
-					.slice(0, MAX_SHAPES_PER_PAGE)
+					.slice(0, editor.options.maxShapesPerPage)
 
 				// Groups only
 				v1Shapes.forEach((v1Shape) => {
@@ -411,12 +411,10 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 										arrowheadStart: getV2Arrowhead(v1Shape.decorations?.start),
 										arrowheadEnd: getV2Arrowhead(v1Shape.decorations?.end),
 										start: {
-											type: 'point',
 											x: coerceNumber(v1Shape.handles.start.point[0]),
 											y: coerceNumber(v1Shape.handles.start.point[1]),
 										},
 										end: {
-											type: 'point',
 											x: coerceNumber(v1Shape.handles.end.point[0]),
 											y: coerceNumber(v1Shape.handles.end.point[1]),
 										},
@@ -564,19 +562,24 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								})
 
 								if (change) {
-									if (change.props?.[handleId]) {
-										const terminal = change.props?.[handleId] as TLArrowShapeTerminal
-										if (terminal.type === 'binding') {
-											terminal.isExact = binding.distance === 0
+									editor.updateShape(change)
+								}
 
-											if (terminal.boundShapeId !== targetId) {
-												console.warn('Hit the wrong shape!')
-												terminal.boundShapeId = targetId
-												terminal.normalizedAnchor = { x: 0.5, y: 0.5 }
-											}
-										}
+								const freshBinding = getArrowBindings(
+									editor,
+									editor.getShape<TLArrowShape>(v2ShapeId)!
+								)[handleId]
+								if (freshBinding) {
+									const updatedFreshBinding = structuredClone(freshBinding)
+									if (binding.distance === 0) {
+										updatedFreshBinding.props.isExact = true
 									}
-									editor.updateShapes([change])
+									if (updatedFreshBinding.toId !== targetId) {
+										updatedFreshBinding.toId = targetId
+										updatedFreshBinding.props.normalizedAnchor = { x: nx, y: ny }
+									}
+
+									editor.updateBinding(updatedFreshBinding)
 								}
 							}
 						}
@@ -880,7 +883,7 @@ enum FontStyle {
 	Mono = 'mono',
 }
 
-type ShapeStyles = {
+interface ShapeStyles {
 	color: ColorStyle
 	size: SizeStyle
 	dash: DashStyle
@@ -1006,7 +1009,7 @@ type TDShape =
 	| ImageShape
 	| VideoShape
 
-type TDPage = {
+interface TDPage {
 	id: string
 	name?: string
 	childIndex?: number

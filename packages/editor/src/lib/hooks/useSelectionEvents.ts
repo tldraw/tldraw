@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { RIGHT_MOUSE_BUTTON } from '../constants'
 import { TLSelectionHandle } from '../editor/types/selection-types'
 import {
 	loopToHtmlElement,
@@ -18,7 +19,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 			const onPointerDown: React.PointerEventHandler = (e) => {
 				if ((e as any).isKilled) return
 
-				if (e.button === 2) {
+				if (e.button === RIGHT_MOUSE_BUTTON) {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'selection',

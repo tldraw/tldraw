@@ -11,7 +11,7 @@ import {
 	TLShapeUtilFlag,
 	TLTextShape,
 	Vec,
-	WeakMapCache,
+	WeakCache,
 	getDefaultColorTheme,
 	preventDefault,
 	textShapeMigrations,
@@ -28,7 +28,7 @@ import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-c
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
 
-const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width: number }>()
+const sizeCache = new WeakCache<TLTextShape['props'], { height: number; width: number }>()
 
 /** @public */
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {

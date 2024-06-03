@@ -1,4 +1,4 @@
-import { CAMERA_SLIDE_FRICTION, StateNode, TLEventHandlers, Vec } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, Vec } from '@tldraw/editor'
 
 export class Dragging extends StateNode {
 	static override id = 'dragging'
@@ -42,11 +42,7 @@ export class Dragging extends StateNode {
 		const velocityAtPointerUp = Math.min(pointerVelocity.len(), 2)
 
 		if (velocityAtPointerUp > 0.1) {
-			this.editor.slideCamera({
-				speed: velocityAtPointerUp,
-				direction: pointerVelocity,
-				friction: CAMERA_SLIDE_FRICTION,
-			})
+			this.editor.slideCamera({ speed: velocityAtPointerUp, direction: pointerVelocity })
 		}
 
 		this.parent.transition('idle')

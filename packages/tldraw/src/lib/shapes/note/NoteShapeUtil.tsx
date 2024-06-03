@@ -11,7 +11,7 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
-	WeakMapCache,
+	WeakCache,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -36,7 +36,6 @@ import {
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-import { ADJACENT_SHAPE_MARGIN } from '../../ui/constants'
 import { useForceSolid } from '../shared/useForceSolid'
 import {
 	CLONE_HANDLE_MARGIN,
@@ -372,7 +371,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	}
 }
 
-const labelSizesForNote = new WeakMapCache<TLShape, ReturnType<typeof getNoteLabelSize>>()
+const labelSizesForNote = new WeakCache<TLShape, ReturnType<typeof getNoteLabelSize>>()
 
 function getLabelSize(editor: Editor, shape: TLNoteShape) {
 	return labelSizesForNote.get(shape, () => getNoteLabelSize(editor, shape))
@@ -402,7 +401,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 				const offsetLength =
 					NOTE_SIZE +
-					ADJACENT_SHAPE_MARGIN +
+					editor.options.adjacentShapeMargin +
 					// If we're growing down, we need to account for the current shape's growY
 					(isCmdEnter && !e.shiftKey ? shape.props.growY : 0)
 

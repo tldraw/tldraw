@@ -25,9 +25,9 @@ describe('When zooming to bounds', () => {
 		})
 
 		editor.zoomToBounds(new Box(200, 300, 300, 300))
-		expect(editor.getCamera().z).toCloselyMatchObject((1000 - 256) / 300)
-		expect(editor.getViewportPageBounds().width).toCloselyMatchObject(1000 / ((1000 - 256) / 300))
-		expect(editor.getViewportPageBounds().height).toCloselyMatchObject(1000 / ((1000 - 256) / 300))
+		expect(editor.getCamera().z).toCloselyMatchObject((1000 - 128) / 300)
+		expect(editor.getViewportPageBounds().width).toCloselyMatchObject(1000 / ((1000 - 128) / 300))
+		expect(editor.getViewportPageBounds().height).toCloselyMatchObject(1000 / ((1000 - 128) / 300))
 	})
 })
 
@@ -44,7 +44,7 @@ it('does not zoom past min', () => {
 it('does not zoom to bounds when camera is frozen', () => {
 	editor.setScreenBounds({ x: 0, y: 0, w: 1000, h: 1000 })
 	expect(editor.getViewportPageCenter().toJson()).toCloselyMatchObject({ x: 500, y: 500 })
-	editor.updateInstanceState({ canMoveCamera: false })
+	editor.setCameraOptions({ isLocked: true })
 	editor.zoomToBounds(new Box(200, 300, 300, 300))
 	expect(editor.getViewportPageCenter().toJson()).toCloselyMatchObject({ x: 500, y: 500 })
 })

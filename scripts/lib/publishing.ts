@@ -8,7 +8,7 @@ import { REPO_ROOT } from './file'
 import { nicelog } from './nicelog'
 import { getAllWorkspacePackages } from './workspace'
 
-export type PackageDetails = {
+export interface PackageDetails {
 	name: string
 	dir: string
 	localDeps: string[]

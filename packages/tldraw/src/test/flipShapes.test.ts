@@ -3,10 +3,13 @@ import {
 	PI,
 	TLArrowShape,
 	TLArrowShapeProps,
+	TLBindingCreate,
 	TLShapeId,
 	TLShapePartial,
+	createBindingId,
 	createShapeId,
 } from '@tldraw/editor'
+import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -355,12 +358,10 @@ describe('flipping rotated shapes', () => {
 		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 		const props: Partial<TLArrowShapeProps> = {
 			start: {
-				type: 'point',
 				x: 0,
 				y: 0,
 			},
 			end: {
-				type: 'point',
 				x: 100,
 				y: 0,
 			},
@@ -408,8 +409,8 @@ describe('flipping rotated shapes', () => {
 		const transform = editor.getShapePageTransform(id)
 		if (!transform) throw new Error('no transform')
 		const arrow = editor.getShape<TLArrowShape>(id)!
-		if (arrow.props.start.type !== 'point' || arrow.props.end.type !== 'point')
-			throw new Error('not a point')
+		const bindings = getArrowBindings(editor, arrow)
+		if (bindings.start || bindings.end) throw new Error('not a point')
 		const start = Mat.applyToPoint(transform, arrow.props.start)
 		const end = Mat.applyToPoint(transform, arrow.props.end)
 		return { start, end }
@@ -466,11 +467,15 @@ describe('flipping rotated shapes', () => {
 
 describe('When flipping shapes that include arrows', () => {
 	let shapes: TLShapePartial[]
+	let bindings: TLBindingCreate[]
 
 	beforeEach(() => {
 		const box1 = createShapeId()
 		const box2 = createShapeId()
 		const box3 = createShapeId()
+		const arrow1 = createShapeId()
+		const arrow2 = createShapeId()
+		const arrow3 = createShapeId()
 
 		shapes = [
 			{
@@ -492,79 +497,115 @@ describe('When flipping shapes that include arrows', () => {
 				y: 0,
 			},
 			{
-				id: createShapeId(),
+				id: arrow1,
 				type: 'arrow',
 				x: 50,
 				y: 50,
 				props: {
 					bend: 200,
-					start: {
-						type: 'binding',
-						normalizedAnchor: { x: 0.75, y: 0.75 },
-						boundShapeId: box1,
-						isExact: false,
-						isPrecise: true,
-					},
-					end: {
-						type: 'binding',
-						normalizedAnchor: { x: 0.25, y: 0.25 },
-						boundShapeId: box1,
-						isExact: false,
-						isPrecise: true,
-					},
 				},
 			},
 			{
-				id: createShapeId(),
+				id: arrow2,
 				type: 'arrow',
 				x: 50,
 				y: 50,
 				props: {
 					bend: -200,
-					start: {
-						type: 'binding',
-						normalizedAnchor: { x: 0.75, y: 0.75 },
-						boundShapeId: box1,
-						isExact: false,
-						isPrecise: true,
-					},
-					end: {
-						type: 'binding',
-						normalizedAnchor: { x: 0.25, y: 0.25 },
-						boundShapeId: box1,
-						isExact: false,
-						isPrecise: true,
-					},
 				},
 			},
 			{
-				id: createShapeId(),
+				id: arrow3,
 				type: 'arrow',
 				x: 50,
 				y: 50,
 				props: {
 					bend: -200,
-					start: {
-						type: 'binding',
-						normalizedAnchor: { x: 0.75, y: 0.75 },
-						boundShapeId: box1,
-						isExact: false,
-						isPrecise: true,
-					},
-					end: {
-						type: 'binding',
-						normalizedAnchor: { x: 0.25, y: 0.25 },
-						boundShapeId: box3,
-						isExact: false,
-						isPrecise: true,
-					},
+				},
+			},
+		]
+		bindings = [
+			{
+				id: createBindingId(),
+				type: 'arrow',
+				fromId: arrow1,
+				toId: box1,
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.75, y: 0.75 },
+					isExact: false,
+					isPrecise: true,
+				},
+			},
+			{
+				id: createBindingId(),
+				type: 'arrow',
+				fromId: arrow1,
+				toId: box1,
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.25, y: 0.25 },
+					isExact: false,
+					isPrecise: true,
+				},
+			},
+			{
+				id: createBindingId(),
+				type: 'arrow',
+				fromId: arrow2,
+				toId: box1,
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.75, y: 0.75 },
+					isExact: false,
+					isPrecise: true,
+				},
+			},
+			{
+				id: createBindingId(),
+				type: 'arrow',
+				fromId: arrow2,
+				toId: box1,
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.25, y: 0.25 },
+					isExact: false,
+					isPrecise: true,
+				},
+			},
+			{
+				id: createBindingId(),
+				type: 'arrow',
+				fromId: arrow3,
+				toId: box1,
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.75, y: 0.75 },
+					isExact: false,
+					isPrecise: true,
+				},
+			},
+			{
+				id: createBindingId(),
+				type: 'arrow',
+				fromId: arrow3,
+				toId: box3,
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.25, y: 0.25 },
+					isExact: false,
+					isPrecise: true,
 				},
 			},
 		]
 	})
 
 	it('Flips horizontally', () => {
-		editor.selectAll().deleteShapes(editor.getSelectedShapeIds()).createShapes(shapes)
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes(shapes)
+			.createBindings(bindings)
 
 		const boundsBefore = editor.getSelectionRotatedPageBounds()!
 		editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
@@ -572,7 +613,11 @@ describe('When flipping shapes that include arrows', () => {
 	})
 
 	it('Flips vertically', () => {
-		editor.selectAll().deleteShapes(editor.getSelectedShapeIds()).createShapes(shapes)
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes(shapes)
+			.createBindings(bindings)
 
 		const boundsBefore = editor.getSelectionRotatedPageBounds()!
 		editor.flipShapes(editor.getSelectedShapeIds(), 'vertical')

@@ -10,7 +10,7 @@ import {
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
-	WeakMapCache,
+	WeakCache,
 	getIndexBetween,
 	getIndices,
 	lineShapeMigrations,
@@ -22,15 +22,10 @@ import {
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getDrawLinePathData } from '../shared/polygon-helpers'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
-import {
-	getSvgPathForBezierCurve,
-	getSvgPathForEdge,
-	getSvgPathForLineGeometry,
-} from './components/svg'
+import { getDrawLinePathData } from './line-helpers'
 
-const handlesCache = new WeakMapCache<TLLineShape['props'], TLHandle[]>()
+const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
 
 /** @public */
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
@@ -254,7 +249,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 									key={i}
 									strokeDasharray={strokeDasharray}
 									strokeDashoffset={strokeDashoffset}
-									d={getSvgPathForEdge(segment as any, true)}
+									d={segment.getSvgPathData(true)}
 									fill="none"
 								/>
 							)
@@ -283,7 +278,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 	}
 	// Cubic style spline
 	if (shape.props.spline === 'cubic') {
-		const splinePath = getSvgPathForLineGeometry(spline)
+		const splinePath = spline.getSvgPathData()
 		if (dash === 'solid') {
 			return (
 				<>
@@ -314,7 +309,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 									key={i}
 									strokeDasharray={strokeDasharray}
 									strokeDashoffset={strokeDashoffset}
-									d={getSvgPathForBezierCurve(segment as any, true)}
+									d={segment.getSvgPathData()}
 									fill="none"
 								/>
 							)

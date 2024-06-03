@@ -7,7 +7,7 @@ import { TldrawUiDropdownMenuGroup } from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export type TLUiMenuGroupProps<TranslationKey extends string = string> = {
+export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 	id: string
 	/**
 	 * The label to display on the item. If it's a string, it will be translated. If it's an object, the keys will be used as the language keys and the values will be translated.

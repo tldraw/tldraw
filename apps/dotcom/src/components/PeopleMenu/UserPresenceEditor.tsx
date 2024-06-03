@@ -52,8 +52,8 @@ export function UserPresenceEditor() {
 					onCancel={toggleEditingName}
 					onBlur={handleBlur}
 					shouldManuallyMaintainScrollPositionWhenFocused
-					autofocus
-					autoselect
+					autoFocus
+					autoSelect
 				/>
 			) : (
 				<>

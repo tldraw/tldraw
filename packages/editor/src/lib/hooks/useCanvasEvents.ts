@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { RIGHT_MOUSE_BUTTON } from '../constants'
 import {
 	preventDefault,
 	releasePointerCapture,
@@ -19,7 +20,7 @@ export function useCanvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
 
-				if (e.button === 2) {
+				if (e.button === RIGHT_MOUSE_BUTTON) {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',
@@ -39,15 +40,6 @@ export function useCanvasEvents() {
 					name: 'pointer_down',
 					...getPointerInfo(e),
 				})
-
-				if (editor.getOpenMenus().length > 0) {
-					editor.updateInstanceState({
-						openMenus: [],
-					})
-
-					document.body.click()
-					editor.getContainer().focus()
-				}
 			}
 
 			function onPointerMove(e: React.PointerEvent) {
@@ -97,9 +89,6 @@ export function useCanvasEvents() {
 
 			function onTouchStart(e: React.TouchEvent) {
 				;(e as any).isKilled = true
-				// todo: investigate whether this effects keyboard shortcuts
-				// god damn it, but necessary for long presses to open the context menu
-				document.body.click()
 				preventDefault(e)
 			}
 

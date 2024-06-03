@@ -35,7 +35,7 @@ it('does not zoom past min', () => {
 
 it('does not zoom to selection when camera is frozen', () => {
 	const cameraBefore = { ...editor.getCamera() }
-	editor.updateInstanceState({ canMoveCamera: false })
+	editor.setCameraOptions({ isLocked: true })
 	editor.setSelectedShapes([ids.box1, ids.box2])
 	editor.zoomToSelection()
 	expect(editor.getCamera()).toMatchObject(cameraBefore)

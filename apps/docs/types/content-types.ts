@@ -1,4 +1,4 @@
-export type InputCategory = {
+export interface InputCategory {
 	id: string
 	title: string
 	description: string
@@ -6,7 +6,7 @@ export type InputCategory = {
 	hero: string | null
 }
 
-export type InputSection = {
+export interface InputSection {
 	id: string
 	title: string
 	description: string
@@ -15,7 +15,7 @@ export type InputSection = {
 	sidebar_behavior: 'show-links' | 'show-title' | 'hidden' | 'reference'
 }
 
-export type InputGroup = {
+export interface InputGroup {
 	id: string
 }
 
@@ -150,7 +150,7 @@ export type ArticleLink = Pick<
 	'id' | 'title' | 'description' | 'categoryId' | 'sectionId' | 'path'
 >
 
-export type ArticleLinks = {
+export interface ArticleLinks {
 	prev: ArticleLink | null
 	next: ArticleLink | null
 }
@@ -184,7 +184,7 @@ export type SidebarContentLink =
 	| SidebarContentCategoryLink
 	| SidebarContentArticleLink
 
-export type SidebarContentList = {
+export interface SidebarContentList {
 	sectionId: string | null
 	categoryId: string | null
 	articleId: string | null
@@ -197,4 +197,7 @@ export type SidebarContentList = {
 /** A table keyed by slug of articles. */
 export type Articles = Record<string, Article>
 
-export type GeneratedContent = { sections: Section[]; articles: Articles }
+export interface GeneratedContent {
+	sections: Section[]
+	articles: Articles
+}

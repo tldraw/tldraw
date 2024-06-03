@@ -1,4 +1,5 @@
-import { TLArrowInfo, VecLike } from '@tldraw/editor'
+import { VecLike } from '@tldraw/editor'
+import { TLArrowInfo } from './arrow-types'
 
 /* --------------------- Curved --------------------- */
 

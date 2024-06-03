@@ -67,7 +67,6 @@ export function BoardHistorySnapshot({
 					}}
 					overrides={[fileSystemUiOverrides]}
 					inferDarkMode
-					autoFocus
 				/>
 			</div>
 			<div className="board-history__restore">

@@ -34,8 +34,8 @@ export const PageItemInput = function PageItemInput({
 			onValueChange={handleChange}
 			onFocus={handleFocus}
 			shouldManuallyMaintainScrollPositionWhenFocused
-			autofocus={isCurrentPage}
-			autoselect
+			autoFocus={isCurrentPage}
+			autoSelect
 		/>
 	)
 }

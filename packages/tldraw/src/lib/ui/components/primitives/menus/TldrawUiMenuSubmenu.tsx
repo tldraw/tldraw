@@ -20,7 +20,7 @@ import {
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export type TLUiMenuSubmenuProps<Translation extends string = string> = {
+export interface TLUiMenuSubmenuProps<Translation extends string = string> {
 	id: string
 	label?: Translation | { [key: string]: Translation }
 	disabled?: boolean
@@ -103,7 +103,10 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 }
 
 /** @private */
-export type TLUiContextMenuSubProps = { id: string; children: ReactNode }
+export interface TLUiContextMenuSubProps {
+	id: string
+	children: ReactNode
+}
 
 /** @private */
 export function ContextMenuSubWithMenu({ id, children }: TLUiContextMenuSubProps) {

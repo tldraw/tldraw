@@ -14,6 +14,18 @@ describe('When panning', () => {
 		editor.expectCameraToBe(200, 200, 1)
 	})
 
+	it('Updates the camera with panSpeed at 2', () => {
+		editor.setCameraOptions({ panSpeed: 2 })
+		editor.pan({ x: 200, y: 200 })
+		editor.expectCameraToBe(400, 400, 1)
+	})
+
+	it('Updates the camera with panSpeed', () => {
+		editor.setCameraOptions({ panSpeed: 0.5 })
+		editor.pan({ x: 200, y: 200 })
+		editor.expectCameraToBe(100, 100, 1)
+	})
+
 	it('Is not undoable', () => {
 		editor.mark()
 		editor.pan({ x: 200, y: 200 })

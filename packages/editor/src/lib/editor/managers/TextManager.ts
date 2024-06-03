@@ -21,7 +21,7 @@ const textAlignmentsForLtr = {
 }
 
 type TLOverflowMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
-type TLMeasureTextSpanOpts = {
+interface TLMeasureTextSpanOpts {
 	overflow: TLOverflowMode
 	width: number
 	height: number
@@ -79,7 +79,10 @@ export class TextManager {
 		const elm = this.baseElm?.cloneNode() as HTMLDivElement
 		this.baseElm.insertAdjacentElement('afterend', elm)
 
-		elm.setAttribute('dir', 'ltr')
+		elm.setAttribute('dir', 'auto')
+		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
+		// is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs.
+		elm.style.setProperty('unicode-bidi', 'plaintext')
 		elm.style.setProperty('font-family', opts.fontFamily)
 		elm.style.setProperty('font-style', opts.fontStyle)
 		elm.style.setProperty('font-weight', opts.fontWeight)
@@ -130,6 +133,7 @@ export class TextManager {
 		let currentSpan = null
 		let prevCharWasSpaceCharacter = null
 		let prevCharTop = 0
+		let prevCharLeftForRTLTest = 0
 		let didTruncate = false
 		for (const childNode of element.childNodes) {
 			if (childNode.nodeType !== Node.TEXT_NODE) continue
@@ -148,6 +152,7 @@ export class TextManager {
 				const top = rect.top + offsetY
 				const left = rect.left + offsetX
 				const right = rect.right + offsetX
+				const isRTL = left < prevCharLeftForRTLTest
 
 				const isSpaceCharacter = spaceCharacterRegex.test(char)
 				if (
@@ -175,10 +180,20 @@ export class TextManager {
 						box: { x: left, y: top, w: rect.width, h: rect.height },
 						text: char,
 					}
+					prevCharLeftForRTLTest = left
 				} else {
+					// Looks like we're in RTL mode, so we need to adjust the left position.
+					if (isRTL) {
+						currentSpan.box.x = left
+					}
+
 					// otherwise we just need to extend the current span with the next character
-					currentSpan.box.w = right - currentSpan.box.x
+					currentSpan.box.w = isRTL ? currentSpan.box.w + rect.width : right - currentSpan.box.x
 					currentSpan.text += char
+				}
+
+				if (char === '\n') {
+					prevCharLeftForRTLTest = 0
 				}
 
 				prevCharWasSpaceCharacter = isSpaceCharacter
@@ -213,9 +228,12 @@ export class TextManager {
 		this.baseElm.insertAdjacentElement('afterend', elm)
 
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
+		elm.setAttribute('dir', 'auto')
+		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
+		// is necessary for ensuring correct mixed RTL/LTR behavior when exporting SVGs.
+		elm.style.setProperty('unicode-bidi', 'plaintext')
 		elm.style.setProperty('width', `${elementWidth}px`)
 		elm.style.setProperty('height', 'min-content')
-		elm.style.setProperty('dir', 'ltr')
 		elm.style.setProperty('font-size', `${opts.fontSize}px`)
 		elm.style.setProperty('font-family', opts.fontFamily)
 		elm.style.setProperty('font-weight', opts.fontWeight)

@@ -50,7 +50,6 @@ const ZOOM_EVENT = {
 	'reset-zoom': 'resetZoom',
 	'zoom-to-fit': 'zoomToFit',
 	'zoom-to-selection': 'zoomToSelection',
-	'zoom-to-content': 'zoomToContent',
 }
 
 export function getCodeSnippet(name: string, data: any) {
@@ -136,15 +135,11 @@ if (updates.length > 0) {
 	} else if (name === 'fit-frame-to-content') {
 		codeSnippet = `fitFrameToContent(editor, editor.getOnlySelectedShape().id)`
 	} else if (name.startsWith('zoom-') || name === 'reset-zoom') {
-		if (name === 'zoom-to-content') {
-			codeSnippet = 'editor.zoomToContent()'
-		} else {
-			codeSnippet = `editor.${ZOOM_EVENT[name as keyof typeof ZOOM_EVENT]}(${
-				name !== 'zoom-to-fit' && name !== 'zoom-to-selection'
-					? 'editor.getViewportScreenCenter(), '
-					: ''
-			}{ duration: 320 })`
-		}
+		codeSnippet = `editor.${ZOOM_EVENT[name as keyof typeof ZOOM_EVENT]}(${
+			name !== 'zoom-to-fit' && name !== 'zoom-to-selection'
+				? 'editor.getViewportScreenCenter(), '
+				: ''
+		}{ duration: 320 })`
 	} else if (name.startsWith('toggle-')) {
 		if (name === 'toggle-lock') {
 			codeSnippet = `editor.toggleLock(editor.getSelectedShapeIds())`

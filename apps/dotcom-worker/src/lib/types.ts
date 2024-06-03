@@ -1,7 +1,7 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 // This type isn't available in @cloudflare/workers-types yet
-export type Analytics = {
+export interface Analytics {
 	writeDataPoint(data: {
 		blobs?: string[]
 		doubles?: number[]
@@ -16,6 +16,9 @@ export interface Environment {
 
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
+
+	ROOM_SNAPSHOTS: R2Bucket
+	SNAPSHOT_SLUG_TO_PARENT_SLUG: KVNamespace
 
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace

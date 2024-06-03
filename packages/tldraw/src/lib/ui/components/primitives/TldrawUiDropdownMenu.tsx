@@ -8,7 +8,7 @@ import { TldrawUiButtonLabel } from './Button/TldrawUiButtonLabel'
 import { TldrawUiIcon } from './TldrawUiIcon'
 
 /** @public */
-export type TLUiDropdownMenuRootProps = {
+export interface TLUiDropdownMenuRootProps {
 	id: string
 	children: ReactNode
 	modal?: boolean
@@ -57,7 +57,7 @@ export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownM
 }
 
 /** @public */
-export type TLUiDropdownMenuContentProps = {
+export interface TLUiDropdownMenuContentProps {
 	id?: string
 	children: ReactNode
 	alignOffset?: number
@@ -93,7 +93,10 @@ export function TldrawUiDropdownMenuContent({
 }
 
 /** @public */
-export type TLUiDropdownMenuSubProps = { id: string; children: ReactNode }
+export interface TLUiDropdownMenuSubProps {
+	id: string
+	children: ReactNode
+}
 
 /** @public */
 export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps) {
@@ -107,7 +110,7 @@ export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubPro
 }
 
 /** @public */
-export type TLUiDropdownMenuSubTriggerProps = {
+export interface TLUiDropdownMenuSubTriggerProps {
 	label: string
 	id?: string
 	title?: string
@@ -138,7 +141,7 @@ export function TldrawUiDropdownMenuSubTrigger({
 }
 
 /** @public */
-export type TLUiDropdownMenuSubContentProps = {
+export interface TLUiDropdownMenuSubContentProps {
 	id?: string
 	alignOffset?: number
 	sideOffset?: number
@@ -172,7 +175,7 @@ export function TldrawUiDropdownMenuSubContent({
 }
 
 /** @public */
-export type TLUiDropdownMenuGroupProps = {
+export interface TLUiDropdownMenuGroupProps {
 	children: ReactNode
 }
 

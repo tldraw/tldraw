@@ -2,7 +2,7 @@ import { useEditor, useValue } from '@tldraw/editor'
 import React, { ReactNode, useContext } from 'react'
 import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '../constants'
 
-const BreakpointContext = React.createContext(0)
+const BreakpointContext = React.createContext<number | null>(null)
 
 /** @public */
 export function BreakPointProvider({
@@ -40,5 +40,9 @@ export function BreakPointProvider({
 
 /** @public */
 export function useBreakpoint() {
-	return useContext(BreakpointContext)
+	const breakpoint = useContext(BreakpointContext)
+	if (breakpoint === null) {
+		throw new Error('useBreakpoint must be used inside of the <BreakpointProvider /> component')
+	}
+	return breakpoint
 }
