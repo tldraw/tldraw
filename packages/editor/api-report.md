@@ -986,7 +986,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
     getZoomLevel(): number;
-    groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
+    groupShapes(shapes: TLShape[], options?: Partial<{
+        groupId: TLShapeId;
+        select: boolean;
+    }>): this;
+    // (undocumented)
+    groupShapes(ids: TLShapeId[], options?: Partial<{
+        groupId: TLShapeId;
+        select: boolean;
+    }>): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     readonly history: HistoryManager<TLRecord>;
     inputs: {
@@ -1100,9 +1108,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly textMeasure: TextManager;
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
     undo(): this;
-    ungroupShapes(ids: TLShapeId[]): this;
+    ungroupShapes(ids: TLShapeId[], options?: Partial<{
+        select: boolean;
+    }>): this;
     // (undocumented)
-    ungroupShapes(ids: TLShape[]): this;
+    ungroupShapes(shapes: TLShape[], options?: Partial<{
+        select: boolean;
+    }>): this;
     updateAssets(assets: TLAssetPartial[]): this;
     // (undocumented)
     updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>): this;
