@@ -1,16 +1,37 @@
 import throttle from 'lodash.throttle'
 import { useLayoutEffect } from 'react'
+import { Box } from '../primitives/Box'
 import { useEditor } from './useEditor'
 
 export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 	const editor = useEditor()
 
 	useLayoutEffect(() => {
+		let prevBounds = new Box()
+
+		function updateScreenBounds() {
+			const container = ref.current
+			if (!container) return null
+
+			const rect = container.getBoundingClientRect()
+
+			const next = new Box(
+				rect.left || rect.x,
+				rect.top || rect.y,
+				Math.max(rect.width, 1),
+				Math.max(rect.height, 1)
+			)
+
+			if (prevBounds.equals(next)) return
+			editor.updateViewportScreenBounds(next)
+			prevBounds = next
+		}
+
 		// Set the initial bounds
-		editor.updateViewportScreenBounds()
+		updateScreenBounds()
 
 		// Everything else uses a debounced update...
-		const updateBounds = throttle(() => editor.updateViewportScreenBounds(), 200, {
+		const updateBounds = throttle(updateScreenBounds, 200, {
 			trailing: true,
 		})
 
