@@ -975,7 +975,47 @@ describe('Outside behavior', () => {
 })
 
 describe('Allows mixed values for x and y', () => {
-	it.todo('Allows different values to be set for x and y axes')
+	it('Allows different values to be set for x and y behaviour', () => {
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				behavior: { x: 'inside', y: 'outside' },
+				initialZoom: 'fit-x',
+				baseZoom: 'fit-x',
+			},
+		})
+		editor.setCamera(editor.getCamera(), { reset: true })
+		const camera = editor.getCamera()
+		editor.pan(new Vec(-100, 0))
+		jest.advanceTimersByTime(300)
+		// no change when panning on x axis because it's set to inside
+		expect(editor.getCamera()).toMatchObject(camera)
+		editor.pan(new Vec(0, -100))
+		jest.advanceTimersByTime(300)
+		// change when panning on y axis because it's set to outside
+		expect(editor.getCamera()).toMatchObject({ ...camera, y: camera.y - 100 / camera.z })
+		editor.pan(new Vec(0, -1000000))
+		jest.advanceTimersByTime(300)
+		// clamped to the bounds
+		expect(editor.getCamera()).toMatchObject({ ...camera, y: -800 })
+	})
+	it('Allows different values to be set for x and y origin', () => {
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				behavior: 'contain',
+				origin: { x: 0, y: 1 },
+				initialZoom: 'default',
+			},
+		})
+		editor.setCamera(editor.getCamera(), { reset: true })
+		const camera = editor.getCamera()
+		editor.zoomOut()
+		// zooms out and keeps the bounds in the bottom left of the viewport, so no change on x axis
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: camera.y + 900, z: 0.5 })
+	})
 })
 
 test('it animated towards the constrained viewport rather than the given viewport', () => {
