@@ -98,7 +98,7 @@ function LoadButton({ documentId, userId }) {
 }
 ```
 
-You can also pass a snapshot as a prop to set the initial editor content.
+You can also pass a snapshot as a prop to set the initial editor state.
 
 ```tsx
 function MyApp({ userId, documentId }) {
@@ -233,7 +233,7 @@ myRemoteSource.on('change', (changes) => {
 
 ## Migrations
 
-Tldraw uses migrations to bring data from old snapshots up to date. These run automatically when calling `loadSnapshot`.
+Tldraw uses migrations to bring data from old snapshots up to date. These run automatically when calling [loadSnapshot](?).
 
 ### Running migrations manually
 
