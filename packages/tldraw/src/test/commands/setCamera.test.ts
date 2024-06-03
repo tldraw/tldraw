@@ -863,9 +863,57 @@ describe('Padding', () => {
 })
 
 describe('Contain behavior', () => {
-	it.todo(
-		'Locks axis until the bounds are bigger than the padded viewport, then allows "inside" panning'
-	)
+	it('Locks axis until the bounds are smaller than the padded viewport, then allows "inside" panning', () => {
+		const boundsW = 1600
+		const boundsH = 900
+		const padding = 100
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				bounds: { x: 0, y: 0, w: boundsW, h: boundsH },
+				behavior: 'contain',
+				origin: { x: 0.5, y: 0.5 },
+				padding: { x: padding, y: padding },
+				initialZoom: 'fit-max',
+				baseZoom: 'fit-max',
+			},
+		})
+
+		editor.setCamera(editor.getCamera(), { reset: true })
+
+		const baseZoom = Math.min(1400 / 1600, 700 / 900)
+		const x = padding / baseZoom - boundsW + (boundsW - padding * 2) / baseZoom - padding
+		const y = padding / baseZoom - boundsH + (boundsH - padding * 2) / baseZoom
+		expect(editor.getCamera()).toCloselyMatchObject({ x, y, z: baseZoom }, 5)
+
+		// We should not be able to pan
+		editor.pan(new Vec(-10000, -10000))
+		jest.advanceTimersByTime(300)
+		expect(editor.getCamera()).toCloselyMatchObject({ x, y, z: baseZoom }, 5)
+
+		// But we can zoom
+		editor.zoomOut()
+		jest.advanceTimersByTime(300)
+		const newZoom = 0.5 * baseZoom
+		const newX =
+			padding / newZoom - boundsW + (boundsW - padding * 2) / newZoom - boundsW / 2 - padding * 2
+		const newY = padding / newZoom - boundsH + (boundsH - padding * 2) / newZoom - boundsH / 2
+		const newCamera = { x: newX, y: newY, z: newZoom }
+		expect(editor.getCamera()).toCloselyMatchObject(newCamera, 5)
+		// Panning is still locked
+		editor.pan(new Vec(-10000, -10000))
+		jest.advanceTimersByTime(300)
+		expect(editor.getCamera()).toCloselyMatchObject(newCamera, 5)
+		// Zooming in will allow us to pan
+		editor.zoomIn().zoomIn()
+		jest.advanceTimersByTime(300)
+		const camera = editor.getCamera()
+		// Panning is now allowed
+		editor.pan(new Vec(-10000, -10000))
+		jest.advanceTimersByTime(300)
+		expect(editor.getCamera()).not.toMatchObject(camera)
+	})
 })
 
 describe('Inside behavior', () => {
