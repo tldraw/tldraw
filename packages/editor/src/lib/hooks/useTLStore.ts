@@ -1,5 +1,4 @@
-import { StoreSnapshot } from '@tldraw/store'
-import { TLRecord } from '@tldraw/tlschema'
+import { TLStoreSnapshot } from '@tldraw/tlschema'
 import { areObjectsShallowEqual } from '@tldraw/utils'
 import { useState } from 'react'
 import { TLEditorSnapshot } from '../..'
@@ -8,7 +7,7 @@ import { TLStoreOptions, createTLStore } from '../config/createTLStore'
 
 /** @public */
 type UseTLStoreOptions = TLStoreOptions & {
-	snapshot?: TLEditorSnapshot | StoreSnapshot<TLRecord>
+	snapshot?: TLEditorSnapshot | TLStoreSnapshot
 }
 
 function createStore(opts: UseTLStoreOptions) {
@@ -21,7 +20,7 @@ function createStore(opts: UseTLStoreOptions) {
 
 /** @public */
 export function useTLStore(
-	opts: TLStoreOptions & { snapshot?: TLEditorSnapshot | StoreSnapshot<TLRecord> }
+	opts: TLStoreOptions & { snapshot?: TLEditorSnapshot | TLStoreSnapshot }
 ) {
 	const [current, setCurrent] = useState(() => createStore(opts))
 

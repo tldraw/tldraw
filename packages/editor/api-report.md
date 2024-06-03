@@ -38,7 +38,6 @@ import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSideEffects } from '@tldraw/store';
-import { StoreSnapshot } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
@@ -3120,7 +3119,7 @@ export function useSvgExportContext(): {
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions & {
-    snapshot?: StoreSnapshot<TLRecord> | TLEditorSnapshot;
+    snapshot?: TLEditorSnapshot | TLStoreSnapshot;
 }): TLStore;
 
 // @public (undocumented)

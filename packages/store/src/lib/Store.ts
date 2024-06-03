@@ -505,7 +505,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	getSnapshot() {
 		console.warn(
-			'[tldraw] `Store.getSnapshot` is deprecated and will be removed in a future release. Use `getSnapshot` from the `@tldraw` package instead.'
+			'[tldraw] `Store.getSnapshot` is deprecated and will be removed in a future release. Use `getSnapshot` from the `tldraw` package instead.'
 		)
 		return this.getStoreSnapshot()
 	}
