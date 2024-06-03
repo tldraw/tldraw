@@ -2981,26 +2981,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateViewportScreenBounds()
-	 * editor.updateViewportScreenBounds(undefined, true)
+	 * editor.updateViewportScreenBounds(new Box(0, 0, 1280, 1024))
+	 * editor.updateViewportScreenBounds(new Box(0, 0, 1280, 1024), true)
 	 * ```
 	 *
 	 * @param center - Whether to preserve the viewport page center as the viewport changes.
 	 *
 	 * @public
 	 */
-	updateViewportScreenBounds(screenBounds?: Box, center = false): this {
-		if (!screenBounds) {
-			const rect = this.getContainer().getBoundingClientRect()
-
-			screenBounds = new Box(
-				rect.left || rect.x,
-				rect.top || rect.y,
-				Math.max(rect.width, 1),
-				Math.max(rect.height, 1)
-			)
-		}
-
+	updateViewportScreenBounds(screenBounds: Box, center = false): this {
 		screenBounds.width = Math.max(screenBounds.width, 1)
 		screenBounds.height = Math.max(screenBounds.height, 1)
 
