@@ -3,19 +3,18 @@ import { TLEditorSnapshot, Tldraw, getSnapshot, loadSnapshot, useEditor } from '
 import 'tldraw/tldraw.css'
 import _jsonSnapshot from './snapshot.json'
 
+// There's a guide at the bottom of this file!
+
 const jsonSnapshot = _jsonSnapshot as any as TLEditorSnapshot
 
-// We'll add a toolbar to the top-right of the editor viewport that allows the user to save and load snapshots.
+// [1]
 function SnapshotToolbar() {
 	const editor = useEditor()
 
 	const save = useCallback(() => {
-		// Call `getSnapshot(editor.store)` to get the current state of the editor
+		// [2]
 		const { document, session } = getSnapshot(editor.store)
-		// The 'document' state is the set of shapes and pages and images etc.
-		// The 'session' state is the state of the editor like the current page, camera positions, zoom level, etc.
-		// You probably need to store these separately if you're building a multi-user app, so that you can store per-user session state.
-		// For this example we'll just store them together in localStorage.
+		// [3]
 		localStorage.setItem('snapshot', JSON.stringify({ document, session }))
 	}, [editor])
 
@@ -23,13 +22,8 @@ function SnapshotToolbar() {
 		const snapshot = localStorage.getItem('snapshot')
 		if (!snapshot) return
 
-		// Call `loadSnapshot()` to load a snapshot into the editor
+		// [4]
 		loadSnapshot(editor.store, JSON.parse(snapshot))
-		// You can omit the `session` state, or load it later on it's own.
-		// e.g.
-		//   loadSnapshot(editor.store, { document })
-		// then optionally later
-		//   loadSnapshot(editor.store, { session })
 	}, [editor])
 
 	const [showCheckMark, setShowCheckMark] = useState(false)
@@ -72,7 +66,7 @@ export default function SnapshotExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// You can load an initial snapshot into the editor by passing it to the `snapshot` prop
+				// [5]
 				snapshot={jsonSnapshot}
 				components={{
 					SharePanel: SnapshotToolbar,
@@ -81,3 +75,25 @@ export default function SnapshotExample() {
 		</div>
 	)
 }
+
+/*
+
+[1] We'll add a toolbar to the top-right of the editor viewport that allows the user to save and load snapshots.
+
+[2] Call `getSnapshot(editor.store)` to get the current state of the editor
+
+[3] The 'document' state is the set of shapes and pages and images etc.
+The 'session' state is the state of the editor like the current page, camera positions, zoom level, etc.
+You probably need to store these separately if you're building a multi-user app, so that you can store per-user session state.
+For this example we'll just store them together in localStorage.
+
+[4] Call `loadSnapshot()` to load a snapshot into the editor
+You can omit the `session` state, or load it later on it's own.
+e.g.
+	loadSnapshot(editor.store, { document })
+then optionally later
+	loadSnapshot(editor.store, { session })
+
+[5] You can load an initial snapshot into the editor by passing it to the `snapshot` prop.
+
+*/
