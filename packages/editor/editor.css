@@ -788,32 +788,38 @@ input,
 	/* remove overflow from textarea on windows */
 	margin: 0px;
 	padding: 0px;
-	border: 0px;
-	color: inherit;
-	caret-color: var(--color-text);
+
+	appearance: auto;
 	background: none;
 	border-image: none;
-	font-size: inherit;
-	font-family: inherit;
-	font-weight: inherit;
-	line-height: inherit;
-	font-variant: inherit;
-	font-style: inherit;
-	text-align: inherit;
-	letter-spacing: inherit;
-	text-shadow: inherit;
-	outline: none;
-	white-space: pre-wrap;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	text-rendering: auto;
-	text-transform: none;
-	text-indent: 0px;
-	display: inline-block;
-	appearance: auto;
+	border: 0px;
+	caret-color: var(--color-text);
+	color: inherit;
 	column-count: initial !important;
-	writing-mode: horizontal-tb !important;
+	display: inline-block;
+	font-family: inherit;
+	font-feature-settings: normal;
+	font-kerning: auto;
+	font-optical-sizing: auto;
+	font-size: inherit;
+	font-stretch: 100%;
+	font-style: inherit;
+	font-variant: inherit;
+	font-variation-settings: normal;
+	font-weight: inherit;
+	letter-spacing: inherit;
+	line-height: inherit;
+	outline: none;
+	overflow-wrap: break-word;
+	text-align: inherit;
+	text-indent: 0px;
+	text-rendering: auto;
+	text-shadow: inherit;
+	text-transform: none;
+	white-space: pre-wrap;
 	word-spacing: 0px;
+	word-wrap: break-word;
+	writing-mode: horizontal-tb !important;
 }
 
 .tl-text-measure {
