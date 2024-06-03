@@ -7,7 +7,13 @@
 
 # tldraw
 
-This package contains the source code for the tldraw library. Learn more at our docs site: [tldraw.dev](https://tldraw.dev).
+<div style="margin: -1.5rem 0 1.5rem 0; font-size: 12px;">a very good whiteboard</div>
+
+You can use the tldraw SDK to craft infinite canvas experiences for the web. It's perfect for collaborative whiteboards but you can use it for lots of other things, too.
+
+Learn more at our docs site: [tldraw.dev](https://tldraw.dev).
+
+This package is the main entry point when using tldraw. It's part of a larger suite of packages that you can find [here](https://www.npmjs.com/search?q=%40tldraw).
 
 ## Installation
 
@@ -15,12 +21,6 @@ Install the `tldraw` package.
 
 ```bash
 npm i tldraw
-```
-
-Then start the local development server.
-
-```bash
-npm run dev
 ```
 
 ## Usage
@@ -35,6 +35,14 @@ export default function () {
 ```
 
 Visit or [docs site](https://tldraw.dev) to learn more. See our [examples folder](https://github.com/tldraw/tldraw/tree/main/apps/examples) for more examples.
+
+## Package development
+
+To start the local development server:
+
+```bash
+npm run dev
+```
 
 ## Community
 
