@@ -748,6 +748,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     bindingUtils: {
         readonly [K in string]?: BindingUtil<TLUnknownBinding>;
     };
+    blur({ blurContainer }?: {
+        blurContainer?: boolean | undefined;
+    }): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
     // (undocumented)
@@ -834,7 +837,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
-    focus(): this;
+    focus({ focusContainer }?: {
+        focusContainer?: boolean | undefined;
+    }): this;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
@@ -896,6 +901,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInitialZoom(): number;
     getInstanceState(): TLInstance;
+    // (undocumented)
+    getIsFocused(): boolean;
     getIsMenuOpen(): boolean;
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;

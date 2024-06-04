@@ -1,34 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import { Editor, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function EditorFocusExample() {
-	const [focused, setFocused] = useState(false)
-	const rEditorRef = useRef<Editor | null>(null)
-
-	useEffect(() => {
-		const editor = rEditorRef.current
-		if (!editor) return
-		editor.updateInstanceState({ isFocused: focused })
-	}, [focused])
+	const editorRef = useRef<Editor | null>(null)
 
 	return (
-		<div
-			style={{ padding: 32 }}
-			onPointerDown={() => {
-				const editor = rEditorRef.current
-				if (editor && editor.getInstanceState().isFocused) {
-					editor.updateInstanceState({ isFocused: false })
-				}
-			}}
-		>
+		<div style={{ padding: 32 }}>
 			<div>
 				<div style={{ display: 'flex', gap: 4 }}>
 					<input
 						id="focus"
 						type="checkbox"
 						onChange={(e) => {
-							setFocused(e.target.checked)
+							if (e.target.checked) {
+								editorRef.current?.focus()
+							} else {
+								editorRef.current?.blur()
+							}
 						}}
 					/>
 					<label htmlFor="focus">Focus</label>
@@ -45,10 +34,14 @@ export default function EditorFocusExample() {
 				<Tldraw
 					autoFocus={false}
 					onMount={(editor) => {
-						rEditorRef.current = editor
+						editorRef.current = editor
 					}}
 				/>
 			</div>
+			<p>
+				You should be able to type in this text input without worrying about triggering editor
+				shortcuts even when the editor is focused.
+			</p>
 			<input type="text" placeholder="Test me" />
 		</div>
 	)
