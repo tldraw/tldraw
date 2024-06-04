@@ -165,7 +165,7 @@ function useCollaboratorState(editor: Editor, latestPresence: TLInstancePresence
 	)
 
 	useEffect(() => {
-		const interval = setInterval(() => {
+		const interval = editor.timers.setInterval(() => {
 			setState(getStateFromElapsedTime(editor, Date.now() - rLastActivityTimestamp.current))
 		}, editor.options.collaboratorCheckIntervalMs)
 

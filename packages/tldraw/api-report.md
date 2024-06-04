@@ -841,7 +841,7 @@ export function getPerfectDashProps(totalLength: number, strokeWidth: number, op
 };
 
 // @public (undocumented)
-export function getSvgAsImage(svgString: string, isSafari: boolean, options: {
+export function getSvgAsImage(editor: Editor, svgString: string, options: {
     height: number;
     quality: number;
     scale: number;
