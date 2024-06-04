@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { EffectScheduler } from '../core'
 
 /** @public */
 export function useReactor(name: string, reactFn: () => void, deps: undefined | any[] = []) {
-	const [raf, setRaf] = useState(-1)
+	const raf = useRef(-1)
 	const scheduler = useMemo(
 		() =>
 			new EffectScheduler(name, reactFn, {
 				scheduleEffect: (cb) => {
-					const raf = requestAnimationFrame(cb)
-					setRaf(raf)
-					return raf
+					const rafId = requestAnimationFrame(cb)
+					raf.current = rafId
+					return rafId
 				},
 			}),
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -22,7 +22,7 @@ export function useReactor(name: string, reactFn: () => void, deps: undefined | 
 		scheduler.execute()
 		return () => {
 			scheduler.detach()
-			cancelAnimationFrame(raf)
+			cancelAnimationFrame(raf.current)
 		}
 	}, [scheduler, raf])
 }
