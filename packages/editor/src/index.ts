@@ -109,12 +109,13 @@ export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/default
 export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
 export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
 export {
-	BindingUnbindReason,
 	BindingUtil,
 	type BindingOnChangeOptions,
 	type BindingOnCreateOptions,
+	type BindingOnDeleteOptions,
 	type BindingOnShapeChangeOptions,
-	type BindingOnUnbindOptions,
+	type BindingOnShapeDeleteOptions,
+	type BindingOnShapeIsolateOptions,
 	type TLBindingUtilConstructor,
 } from './lib/editor/bindings/BindingUtil'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
