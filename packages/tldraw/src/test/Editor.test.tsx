@@ -678,3 +678,39 @@ describe('middle-click panning', () => {
 		expect(editor.inputs.isPanning).toBe(false)
 	})
 })
+
+describe('dragging', () => {
+	it('drags correctly at 100% zoom', () => {
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 0).pointerDown()
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 1)
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 5)
+		expect(editor.inputs.isDragging).toBe(true)
+	})
+
+	it('drags correctly at 150% zoom', () => {
+		editor.setCamera({ x: 0, y: 0, z: 8 }).forceTick()
+
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 0).pointerDown()
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 2)
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 5)
+		expect(editor.inputs.isDragging).toBe(true)
+	})
+
+	it('drags correctly at 50% zoom', () => {
+		editor.setCamera({ x: 0, y: 0, z: 0.1 }).forceTick()
+
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 0).pointerDown()
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 2)
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 5)
+		expect(editor.inputs.isDragging).toBe(true)
+	})
+})
