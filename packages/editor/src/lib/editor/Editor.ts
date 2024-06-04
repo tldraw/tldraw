@@ -8730,7 +8730,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (
 							inputs.isPointing &&
 							!inputs.isDragging &&
-							Vec.Dist2(originPagePoint, currentPagePoint) >
+							Vec.Dist2(originPagePoint, currentPagePoint) * this.getZoomLevel() >
 								(instanceState.isCoarsePointer
 									? this.options.coarseDragDistanceSquared
 									: this.options.dragDistanceSquared) /
