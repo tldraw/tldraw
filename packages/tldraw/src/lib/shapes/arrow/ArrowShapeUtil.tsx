@@ -34,6 +34,7 @@ import {
 	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
+import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES } from '../shared/default-shape-constants'
@@ -354,6 +355,25 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				}
 			}),
 		})
+
+		// update arrow terminal bindings eagerly to make sure the arrows unbind nicely when translating
+		if (bindings.start) {
+			updateArrowTerminal({
+				editor: this.editor,
+				arrow: shape,
+				terminal: 'start',
+				useHandle: true,
+			})
+			shape = this.editor.getShape(shape.id) as TLArrowShape
+		}
+		if (bindings.end) {
+			updateArrowTerminal({
+				editor: this.editor,
+				arrow: shape,
+				terminal: 'end',
+				useHandle: true,
+			})
+		}
 
 		for (const handleName of [ARROW_HANDLES.START, ARROW_HANDLES.END] as const) {
 			const binding = bindings[handleName]
