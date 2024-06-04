@@ -3,11 +3,11 @@ import {
 	ErrorScreen,
 	Expand,
 	LoadingScreen,
-	StoreSnapshot,
 	TLAnyBindingUtilConstructor,
 	TLAnyShapeUtilConstructor,
+	TLEditorSnapshot,
 	TLPageId,
-	TLRecord,
+	TLStoreSnapshot,
 	TLSvgOptions,
 	useShallowArrayIdentity,
 	useTLStore,
@@ -29,7 +29,7 @@ export type TldrawImageProps = Expand<
 		/**
 		 * The snapshot to display.
 		 */
-		snapshot: StoreSnapshot<TLRecord>
+		snapshot: TLEditorSnapshot | TLStoreSnapshot
 
 		/**
 		 * The image format to use. Defaults to 'svg'.

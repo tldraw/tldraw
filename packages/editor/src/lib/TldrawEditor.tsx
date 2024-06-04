@@ -1,5 +1,5 @@
-import { MigrationSequence, SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
-import { TLRecord, TLStore } from '@tldraw/tlschema'
+import { MigrationSequence, Store } from '@tldraw/store'
+import { TLSerializedStore, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
@@ -14,6 +14,7 @@ import React, {
 import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
+import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
@@ -33,6 +34,7 @@ import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useZoomCss } from './hooks/useZoomCss'
+import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -50,8 +52,8 @@ export type TldrawEditorProps = Expand<
 			| {
 					store?: undefined
 					migrations?: readonly MigrationSequence[]
-					snapshot?: StoreSnapshot<TLRecord>
-					initialData?: SerializedStore<TLRecord>
+					snapshot?: TLEditorSnapshot | TLStoreSnapshot
+					initialData?: TLSerializedStore
 					persistenceKey?: string
 					sessionId?: string
 					defaultName?: string
@@ -124,6 +126,11 @@ export interface TldrawEditorBaseProps {
 	 * Camera options for the editor.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
+
+	/**
+	 * Options for the editor.
+	 */
+	options?: Partial<TldrawOptions>
 }
 
 /**
@@ -293,6 +300,7 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
+	options,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -317,6 +325,7 @@ function TldrawEditorWithReadyStore({
 			autoFocus: initialAutoFocus,
 			inferDarkMode,
 			cameraOptions,
+			options,
 		})
 		setEditor(editor)
 
@@ -334,6 +343,7 @@ function TldrawEditorWithReadyStore({
 		initialAutoFocus,
 		inferDarkMode,
 		cameraOptions,
+		options,
 	])
 
 	const crashingError = useSyncExternalStore(

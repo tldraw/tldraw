@@ -789,7 +789,7 @@ describe('snapshots', () => {
 		const serializedStore1 = store.serialize('all')
 		const serializedSchema1 = store.schema.serialize()
 
-		const snapshot1 = store.getSnapshot()
+		const snapshot1 = store.getStoreSnapshot()
 
 		const store2 = new Store({
 			props: {},
@@ -799,11 +799,11 @@ describe('snapshots', () => {
 			}),
 		})
 
-		store2.loadSnapshot(snapshot1)
+		store2.loadStoreSnapshot(snapshot1)
 
 		const serializedStore2 = store2.serialize('all')
 		const serializedSchema2 = store2.schema.serialize()
-		const snapshot2 = store2.getSnapshot()
+		const snapshot2 = store2.getStoreSnapshot()
 
 		expect(serializedStore1).toEqual(serializedStore2)
 		expect(serializedSchema1).toEqual(serializedSchema2)
@@ -811,7 +811,7 @@ describe('snapshots', () => {
 	})
 
 	it('throws errors when loading a snapshot with a different schema', () => {
-		const snapshot1 = store.getSnapshot()
+		const snapshot1 = store.getStoreSnapshot()
 
 		const store2 = new Store({
 			props: {},
@@ -823,12 +823,12 @@ describe('snapshots', () => {
 
 		expect(() => {
 			// @ts-expect-error
-			store2.loadSnapshot(snapshot1)
+			store2.loadStoreSnapshot(snapshot1)
 		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
 	})
 
 	it('throws errors when loading a snapshot with a different schema', () => {
-		const snapshot1 = store.getSnapshot()
+		const snapshot1 = store.getStoreSnapshot()
 
 		const store2 = new Store({
 			props: {},
@@ -838,12 +838,12 @@ describe('snapshots', () => {
 		})
 
 		expect(() => {
-			store2.loadSnapshot(snapshot1 as any)
+			store2.loadStoreSnapshot(snapshot1 as any)
 		}).toThrowErrorMatchingInlineSnapshot(`"Missing definition for record type author"`)
 	})
 
 	it('migrates the snapshot', () => {
-		const snapshot1 = store.getSnapshot()
+		const snapshot1 = store.getStoreSnapshot()
 		const up = jest.fn((s: any) => {
 			s['book:lotr'].numPages = 42
 		})
@@ -876,7 +876,7 @@ describe('snapshots', () => {
 		})
 
 		expect(() => {
-			store2.loadSnapshot(snapshot1)
+			store2.loadStoreSnapshot(snapshot1)
 		}).not.toThrow()
 
 		expect(up).toHaveBeenCalledTimes(1)
@@ -1059,20 +1059,20 @@ describe('diffs', () => {
 			Book.create({ title: 'The Hobbit', id: bookId, author: authorId, numPages: 300 }),
 		])
 
-		const checkpoint1 = store.getSnapshot()
+		const checkpoint1 = store.getStoreSnapshot()
 
 		const forwardsDiff = store.extractingChanges(() => {
 			store.remove([authorId])
 			store.update(bookId, (book) => ({ ...book, title: 'The Hobbit: There and Back Again' }))
 		})
 
-		const checkpoint2 = store.getSnapshot()
+		const checkpoint2 = store.getStoreSnapshot()
 
 		store.applyDiff(reverseRecordsDiff(forwardsDiff))
-		expect(store.getSnapshot()).toEqual(checkpoint1)
+		expect(store.getStoreSnapshot()).toEqual(checkpoint1)
 
 		store.applyDiff(forwardsDiff)
-		expect(store.getSnapshot()).toEqual(checkpoint2)
+		expect(store.getStoreSnapshot()).toEqual(checkpoint2)
 	})
 })
 

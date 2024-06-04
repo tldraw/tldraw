@@ -1,5 +1,13 @@
 import { useLayoutEffect, useState } from 'react'
-import { Tldraw, createTLStore, defaultShapeUtils, throttle } from 'tldraw'
+import {
+	Tldraw,
+	createTLStore,
+	defaultBindingUtils,
+	defaultShapeUtils,
+	getSnapshot,
+	loadSnapshot,
+	throttle,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -8,7 +16,9 @@ const PERSISTENCE_KEY = 'example-3'
 
 export default function PersistenceExample() {
 	//[1]
-	const [store] = useState(() => createTLStore({ shapeUtils: defaultShapeUtils }))
+	const [store] = useState(() =>
+		createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils })
+	)
 	//[2]
 	const [loadingState, setLoadingState] = useState<
 		{ status: 'loading' } | { status: 'ready' } | { status: 'error'; error: string }
@@ -25,7 +35,7 @@ export default function PersistenceExample() {
 		if (persistedSnapshot) {
 			try {
 				const snapshot = JSON.parse(persistedSnapshot)
-				store.loadSnapshot(snapshot)
+				loadSnapshot(store, snapshot)
 				setLoadingState({ status: 'ready' })
 			} catch (error: any) {
 				setLoadingState({ status: 'error', error: error.message }) // Something went wrong
@@ -37,7 +47,7 @@ export default function PersistenceExample() {
 		// Each time the store changes, run the (debounced) persist function
 		const cleanupFn = store.listen(
 			throttle(() => {
-				const snapshot = store.getSnapshot()
+				const snapshot = getSnapshot(store)
 				localStorage.setItem(PERSISTENCE_KEY, JSON.stringify(snapshot))
 			}, 500)
 		)

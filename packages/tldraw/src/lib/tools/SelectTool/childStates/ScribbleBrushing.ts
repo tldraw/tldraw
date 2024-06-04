@@ -98,7 +98,7 @@ export class ScribbleBrushing extends StateNode {
 		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec, B: Vec
 
-		const minDist = 0 // HIT_TEST_MARGIN / zoomLevel
+		const minDist = 0 // this.editor.options.hitTestMargin / zoomLevel
 
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
