@@ -34,7 +34,10 @@ export function getCurvedArrowInfo(
 	const { arrowheadEnd, arrowheadStart } = shape.props
 	const bend = shape.props.bend
 
-	if (Math.abs(bend) > Math.abs(shape.props.bend * WAY_TOO_BIG_ARROW_BEND_FACTOR)) {
+	if (
+		Math.abs(bend) >
+		Math.abs(shape.props.bend * (WAY_TOO_BIG_ARROW_BEND_FACTOR * shape.props.scale))
+	) {
 		return getStraightArrowInfo(editor, shape, bindings)
 	}
 
