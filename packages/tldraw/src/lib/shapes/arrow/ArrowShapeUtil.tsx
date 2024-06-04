@@ -590,7 +590,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
 					<ArrowSvg
 						shape={shape}
-						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape === shape}
+						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 					/>
 				</SVGContainer>
 				{showArrowLabel && (
