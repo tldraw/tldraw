@@ -18,6 +18,44 @@ By design, the [Editor](?)'s surface area is very large. Almost everything is av
 
 This page gives a broad idea of how the [Editor](?) class is organized and some of the architectural concepts involved. The full reference is available in the [Editor](?) API.
 
+## Using the editor
+
+You can access the editor in two ways:
+
+1. From the [Tldraw](?) component's `onMount` callback, where the editor is provided as the first argument in the callback.
+
+```tsx
+function App() {
+	return (
+		<Tldraw
+			onMount={(editor) => {
+				// your editor code here
+			}}
+		/>
+	)
+}
+```
+
+2. Via the [useEditor](?) hook. This must be called from within the JSX of the [Tldraw](?) component.
+
+```tsx
+function InsideOfContext() {
+	const editor = useEditor()
+	// your editor code here
+	return null // or whatever
+}
+
+function App() {
+	return (
+		<Tldraw>
+			<InsideOfContext />
+		</Tldraw>
+	)
+}
+```
+
+> If you are using the subcomponents as shown in [this example](/examples/editor-api/exploded), the editor instance is provided by the [TldrawEditor](?) component.
+
 ## Store
 
 The editor holds the raw state of the document in its [Editor#store](?) property. Data is kept here as a table of JSON serializable records.
@@ -121,7 +159,6 @@ Each node can be active or inactive. Each state node may also have zero or more 
 When a user interaction is sent to the editor via its [Editor#dispatch](?) method, this event is sent to the editor's root state node ([Editor#root](?)) and passed then down through the chart's active states until either it reaches a leaf node or until one of those nodes produces a transaction.
 
 <Image
-	title="Events"
 	src="/images/api/events.png"
 	alt="A diagram showing an event being sent to the editor and handled in the state chart."
 	title="The editor passes an event into the state start where it is handled by each active state in order."
