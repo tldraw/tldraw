@@ -691,7 +691,7 @@ describe('dragging', () => {
 	})
 
 	it('drags correctly at 150% zoom', () => {
-		editor.setCamera({ x: 0, y: 0, z: 2 }).forceTick()
+		editor.setCamera({ x: 0, y: 0, z: 8 }).forceTick()
 
 		expect(editor.inputs.isDragging).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
@@ -703,7 +703,7 @@ describe('dragging', () => {
 	})
 
 	it('drags correctly at 50% zoom', () => {
-		editor.setCamera({ x: 0, y: 0, z: 0.5 }).forceTick()
+		editor.setCamera({ x: 0, y: 0, z: 0.1 }).forceTick()
 
 		expect(editor.inputs.isDragging).toBe(false)
 		editor.pointerMove(0, 0).pointerDown()
