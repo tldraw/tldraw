@@ -99,7 +99,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
-		const forceSolid = this.editor.getZoomLevel() < 1.5 / sw
+		const zoomLevel = this.editor.getZoomLevel()
+		const forceSolid = zoomLevel < 0.5 && zoomLevel < 1.5 / sw
 
 		if (
 			!forceSolid &&
@@ -180,7 +181,7 @@ function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel: num
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
 	let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
-	const forceSolid = sw * zoomLevel < 1.5
+	const forceSolid = zoomLevel < 0.5 && zoomLevel < 1.5 / sw
 
 	if (
 		!forceSolid &&
