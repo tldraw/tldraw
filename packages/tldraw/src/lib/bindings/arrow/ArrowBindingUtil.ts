@@ -2,8 +2,7 @@ import {
 	BindingOnChangeOptions,
 	BindingOnCreateOptions,
 	BindingOnShapeChangeOptions,
-	BindingOnUnbindOptions,
-	BindingUnbindReason,
+	BindingOnShapeIsolateOptions,
 	BindingUtil,
 	Editor,
 	IndexKey,
@@ -60,13 +59,13 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		reparentArrow(this.editor, binding.fromId)
 	}
 
-	// when the shape the arrow is pointing to is deleted
-	override onBeforeUnbind({ binding, reason }: BindingOnUnbindOptions<TLArrowBinding>): void {
-		// don't need to do anything if the arrow is being deleted
-		if (reason === BindingUnbindReason.DeletingFromShape) return
+	// when the arrow is isolated we need to update it's x,y positions
+	override onBeforeIsolateFromShape({
+		binding,
+	}: BindingOnShapeIsolateOptions<TLArrowBinding>): void {
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
 		if (!arrow) return
-		unbindArrowTerminal(this.editor, arrow, binding.props.terminal)
+		updateArrowTerminal(this.editor, arrow, binding.props.terminal, false)
 	}
 }
 
@@ -171,7 +170,7 @@ function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {
 		const isShapeInSamePageAsArrow =
 			editor.getAncestorPageId(arrow) === editor.getAncestorPageId(boundShape)
 		if (!boundShape || !isShapeInSamePageAsArrow) {
-			unbindArrowTerminal(editor, arrow, handle)
+			updateArrowTerminal(editor, arrow, handle, true)
 		}
 	}
 
@@ -179,7 +178,12 @@ function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {
 	reparentArrow(editor, arrow.id)
 }
 
-function unbindArrowTerminal(editor: Editor, arrow: TLArrowShape, terminal: 'start' | 'end') {
+function updateArrowTerminal(
+	editor: Editor,
+	arrow: TLArrowShape,
+	terminal: 'start' | 'end',
+	unbind: boolean
+) {
 	const info = getArrowInfo(editor, arrow)!
 	if (!info) {
 		throw new Error('expected arrow info')
@@ -222,5 +226,7 @@ function unbindArrowTerminal(editor: Editor, arrow: TLArrowShape, terminal: 'sta
 	}
 
 	editor.updateShape(update)
-	removeArrowBinding(editor, arrow, terminal)
+	if (unbind) {
+		removeArrowBinding(editor, arrow, terminal)
+	}
 }

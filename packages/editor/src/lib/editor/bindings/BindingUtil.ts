@@ -18,22 +18,14 @@ export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
 }
 
 /** @public */
-export enum BindingUnbindReason {
-	DeletingFromShape = 'deleting_from_shape',
-	DeletingToShape = 'deleting_to_shape',
-	DeletingBinding = 'deleting_binding',
-}
-
-/** @public */
-export interface BindingOnUnbindOptions<Binding extends TLUnknownBinding> {
-	binding: Binding
-	reason: BindingUnbindReason
-}
-
-/** @public */
 export interface BindingOnChangeOptions<Binding extends TLUnknownBinding> {
 	bindingBefore: Binding
 	bindingAfter: Binding
+}
+
+/** @public */
+export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
+	binding: Binding
 }
 
 /** @public */
@@ -41,6 +33,18 @@ export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
 	binding: Binding
 	shapeBefore: TLShape
 	shapeAfter: TLShape
+}
+
+/** @public */
+export interface BindingOnShapeIsolateOptions<Binding extends TLUnknownBinding> {
+	binding: Binding
+	shape: TLShape
+}
+
+/** @public */
+export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
+	binding: Binding
+	shape: TLShape
 }
 
 /** @public */
@@ -65,15 +69,20 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 
 	onOperationComplete?(): void
 
-	onBeforeUnbind?(options: BindingOnUnbindOptions<Binding>): void
-	onAfterUnbind?(options: BindingOnUnbindOptions<Binding>): void
-
 	// self lifecycle hooks
 	onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void
 	onAfterCreate?(options: BindingOnCreateOptions<Binding>): void
 	onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void
 	onAfterChange?(options: BindingOnChangeOptions<Binding>): void
+	onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): Binding | void
+	onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void
 
 	onAfterChangeFromShape?(options: BindingOnShapeChangeOptions<Binding>): void
 	onAfterChangeToShape?(options: BindingOnShapeChangeOptions<Binding>): void
+
+	onBeforeIsolateFromShape?(options: BindingOnShapeIsolateOptions<Binding>): void
+	onBeforeIsolateToShape?(options: BindingOnShapeIsolateOptions<Binding>): void
+
+	onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void
+	onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void
 }
