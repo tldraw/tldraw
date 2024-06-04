@@ -305,8 +305,8 @@ export class Drawing extends StateNode {
 		const { segments } = shape.props
 
 		const { x, y, z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
-
-		const newPoint = { x, y, z: this.isPenOrStylus ? +(z! * 1.25).toFixed(2) : 0.5 }
+		const pressure = this.isPenOrStylus ? +(inputs.currentPagePoint.z! * 1.25).toFixed(2) : 0.5
+		const newPoint = { x, y, z: pressure }
 
 		switch (this.segmentMode) {
 			case 'starting_straight': {
@@ -415,7 +415,13 @@ export class Drawing extends StateNode {
 					// ended and where the pointer is now
 					const newFreeSegment: TLDrawShapeSegment = {
 						type: 'free',
-						points: [...Vec.PointsBetween(prevPoint, newPoint, 6).map((p) => p.toFixed().toJson())],
+						points: [
+							...Vec.PointsBetween(prevPoint, newPoint, 6).map((p) => ({
+								x: toFixed(p.x),
+								y: toFixed(p.y),
+								z: toFixed(p.z),
+							})),
+						],
 					}
 
 					const finalSegments = [...newSegments, newFreeSegment]
