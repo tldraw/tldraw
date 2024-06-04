@@ -5251,9 +5251,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const util = this.getBindingUtil(binding)
 				util.onBeforeIsolateFromShape?.({ binding, shape: this.getShape(binding.fromId)! })
 				util.onBeforeIsolateToShape?.({ binding, shape: this.getShape(binding.toId)! })
+				this.store.remove([id])
 			}
+		} else {
+			this.store.remove(ids)
 		}
-		this.store.remove(ids)
 		return this
 	}
 	deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]) {
@@ -9038,15 +9040,7 @@ function withIsolatedShapes<T>(
 				}
 			}
 
-			for (const bindingId of bindingsToRemove) {
-				const binding = editor.getBinding(bindingId)!
-				const util = editor.getBindingUtil(binding)
-				if (shapeIds.has(binding.fromId)) {
-					util.onBeforeIsolateFromShape?.({ binding, shape: editor.getShape(binding.fromId)! })
-				} else {
-					util.onBeforeIsolateToShape?.({ binding, shape: editor.getShape(binding.toId)! })
-				}
-			}
+			editor.deleteBindings([...bindingsToRemove], { isolateShapes: true })
 
 			try {
 				result = Result.ok(callback(bindingsWithBoth))

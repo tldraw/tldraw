@@ -14,6 +14,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Vec,
+	approximately,
 	arrowBindingMigrations,
 	arrowBindingProps,
 	assert,
@@ -238,7 +239,10 @@ export function updateArrowTerminal({
 
 		assert(intersections?.length === 1)
 		const bend = Vec.Dist(newMidPoint, intersections[0]) * Math.sign(arrow.props.bend)
-		update.props.bend = bend
+		// use `approximately` to avoid endless update loops
+		if (!approximately(bend, update.props.bend)) {
+			update.props.bend = bend
+		}
 	}
 
 	editor.updateShape(update)
