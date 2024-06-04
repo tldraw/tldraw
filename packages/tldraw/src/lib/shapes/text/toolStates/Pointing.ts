@@ -5,6 +5,7 @@ import {
 	TLTextShape,
 	Vec,
 	createShapeId,
+	isShapeId,
 } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
@@ -30,9 +31,13 @@ export class Pointing extends StateNode {
 			this.editor.mark(this.markId)
 
 			const shape = this.createTextShape(id, originPagePoint, false)
-			if (!shape) return
+			if (!shape) {
+				this.cancel()
+				return
+			}
 
-			this.shape = shape
+			// Now save the fresh reference
+			this.shape = this.editor.getShape(shape)
 
 			this.editor.select(id)
 
@@ -106,32 +111,39 @@ export class Pointing extends StateNode {
 		}
 
 		const bounds = this.editor.getShapePageBounds(shape)!
-		const localPoint = this.editor.getPointInParentSpace(shape, point)
 
-		let x: number
+		const delta = new Vec()
+
 		if (autoSize) {
 			switch (shape.props.textAlign) {
 				case 'start': {
-					x = localPoint.x
+					delta.x = 0
 					break
 				}
 				case 'middle': {
-					x = localPoint.x - bounds.width / 2
+					delta.x = -bounds.width / 2
 					break
 				}
 				case 'end': {
-					x = localPoint.x - bounds.width
+					delta.x = -bounds.width
 					break
 				}
 			}
 		} else {
-			x = shape.x
+			delta.x = 0
+		}
+
+		delta.y = -bounds.height / 2
+
+		if (isShapeId(shape.parentId)) {
+			const transform = this.editor.getShapeParentTransform(shape)
+			delta.rot(-transform.rotation())
 		}
 
 		this.editor.updateShape({
 			...shape,
-			x,
-			y: localPoint.y - bounds.height / 2,
+			x: shape.x + delta.x,
+			y: shape.y + delta.y,
 		})
 
 		return shape

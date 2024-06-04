@@ -162,24 +162,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	override onBeforeCreate = (shape: TLTextShape) => {
-		// When a shape is created, center the text at the created point.
-
-		// Only center if the shape is set to autosize.
-		if (!shape.props.autoSize) return
-
-		// Only center if the shape is empty when created.
-		if (shape.props.text.trim()) return
-
-		const bounds = this.getMinDimensions(shape)
-
-		return {
-			...shape,
-			x: shape.x - bounds.width / 2,
-			y: shape.y - bounds.height / 2,
-		}
-	}
-
 	override onEditEnd: TLOnEditEndHandler<TLTextShape> = (shape) => {
 		const {
 			id,

@@ -1374,30 +1374,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onBeforeCreate: (shape: TLTextShape) => {
-        id: TLShapeId;
-        index: IndexKey;
-        isLocked: boolean;
-        meta: JsonObject;
-        opacity: number;
-        parentId: TLParentId;
-        props: {
-            autoSize: boolean;
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            font: "draw" | "mono" | "sans" | "serif";
-            scale: number;
-            size: "l" | "m" | "s" | "xl";
-            text: string;
-            textAlign: "end" | "middle" | "start";
-            w: number;
-        };
-        rotation: number;
-        type: "text";
-        typeName: "shape";
-        x: number;
-        y: number;
-    } | undefined;
-    // (undocumented)
     onBeforeUpdate: (prev: TLTextShape, next: TLTextShape) => {
         id: TLShapeId;
         index: IndexKey;

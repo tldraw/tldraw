@@ -15,6 +15,7 @@ exports[`When resizing a shape with children Resizes a rotated draw shape: draw 
     "isClosed": false,
     "isComplete": false,
     "isPen": false,
+    "scale": 1,
     "segments": [
       {
         "points": [

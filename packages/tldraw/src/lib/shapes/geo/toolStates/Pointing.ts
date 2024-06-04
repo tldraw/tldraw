@@ -76,6 +76,15 @@ export class Pointing extends StateNode {
 
 		const scale = this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
 
+		const geo = this.editor.getStyleForNextShape(GeoShapeGeoStyle)
+
+		const size =
+			geo === 'star'
+				? { w: 200, h: 190 }
+				: geo === 'cloud'
+					? { w: 300, h: 180 }
+					: { w: 200, h: 200 }
+
 		this.editor.createShapes<TLGeoShape>([
 			{
 				id,
@@ -85,6 +94,7 @@ export class Pointing extends StateNode {
 				props: {
 					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
 					scale,
+					...size,
 				},
 			},
 		])
