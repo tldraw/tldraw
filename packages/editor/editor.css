@@ -237,7 +237,7 @@
 	-webkit-touch-callout: initial;
 }
 
-.tl-container:focus-within {
+.tl-container__focused {
 	outline: 1px solid var(--color-low);
 }
 

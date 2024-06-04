@@ -21,6 +21,7 @@ export class FocusManager {
 			(prev, next) => {
 				if (prev.isFocused !== next.isFocused) {
 					next.isFocused ? this.focus() : this.blur()
+					this.updateContainerClass()
 				}
 			}
 		)
@@ -28,6 +29,18 @@ export class FocusManager {
 		const currentFocusState = editor.getInstanceState().isFocused
 		if (autoFocus !== currentFocusState) {
 			editor.updateInstanceState({ isFocused: !!autoFocus })
+		}
+		this.updateContainerClass()
+	}
+
+	private updateContainerClass() {
+		const container = this.editor.getContainer()
+		const instanceState = this.editor.getInstanceState()
+
+		if (instanceState.isFocused) {
+			container.classList.add('tl-container__focused')
+		} else {
+			container.classList.remove('tl-container__focused')
 		}
 	}
 
