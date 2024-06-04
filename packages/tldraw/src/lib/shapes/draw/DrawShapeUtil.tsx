@@ -99,7 +99,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
-		const forceSolid = sw * this.editor.getZoomLevel() < 1.5
+		const forceSolid = this.editor.getZoomLevel() < 1.5 / sw
 
 		if (
 			!forceSolid &&

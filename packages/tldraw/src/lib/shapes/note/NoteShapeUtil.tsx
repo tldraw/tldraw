@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Editor,
 	Group2d,
@@ -36,7 +37,6 @@ import {
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-import { useForceSolid } from '../shared/useForceSolid'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
@@ -166,15 +166,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			props: { scale, color, font, size, align, text, verticalAlign, fontSizeAdjustment },
 		} = shape
 
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const handleKeyDown = useNoteKeydownHandler(id)
 
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 		const nw = NOTE_SIZE * scale
 		const nh = getNoteHeight(shape)
 
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const rotation = useValue(
 			'shape rotation',
 			() => this.editor.getShapePageTransform(id)?.rotation() ?? 0,
@@ -182,8 +179,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 
 		// todo: consider hiding shadows on dark mode if they're invisible anyway
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const hideShadows = useForceSolid()
+
+		const hideShadows = useValue('zoom', () => this.editor.getZoomLevel() < 0.35 / scale, [
+			scale,
+			this.editor,
+		])
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 

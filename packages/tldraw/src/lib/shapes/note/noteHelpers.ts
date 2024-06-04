@@ -12,15 +12,16 @@ export const NOTE_CENTER_OFFSET = new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2)
 /** @internal */
 export const NOTE_ADJACENT_POSITION_SNAP_RADIUS = 10
 
-// const BASE_NOTE_POSITIONS = [
-// 	[['a1' as IndexKey], new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN)], // t
-// 	[['a2' as IndexKey], new Vec(NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5)], // r
-// 	[['a3' as IndexKey], new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN)], // b
-// 	[['a4' as IndexKey], new Vec(NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5)], // l
 // ] as const
+const BASE_NOTE_POSITIONS = [
+	[['a1' as IndexKey], new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN)], // t
+	[['a2' as IndexKey], new Vec(NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5)], // r
+	[['a3' as IndexKey], new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN)], // b
+	[['a4' as IndexKey], new Vec(NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5)], // l
+] as const
 
 function getBaseAdjacentNotePositions(scale: number) {
-	// if (scale === 1) return BASE_NOTE_POSITIONS
+	if (scale === 1) return BASE_NOTE_POSITIONS
 	const s = NOTE_SIZE * scale
 	const m = ADJACENT_NOTE_MARGIN * scale
 	return [
