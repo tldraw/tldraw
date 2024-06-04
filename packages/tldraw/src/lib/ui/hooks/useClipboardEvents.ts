@@ -650,7 +650,7 @@ export function useNativeClipboardEvents() {
 			if (e.button === 1) {
 				// middle mouse button
 				disablingMiddleClickPaste = true
-				requestAnimationFrame(() => {
+				editor.timers.requestAnimationFrame(() => {
 					disablingMiddleClickPaste = false
 				})
 			}

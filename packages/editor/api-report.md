@@ -38,9 +38,9 @@ import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSideEffects } from '@tldraw/store';
-import { StoreSnapshot } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
+import { Timers } from '@tldraw/utils';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
@@ -67,11 +67,13 @@ import { TLParentId } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
+import { TLSerializedStore } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
+import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
@@ -987,7 +989,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
     getZoomLevel(): number;
-    groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
+    groupShapes(shapes: TLShape[], options?: Partial<{
+        groupId: TLShapeId;
+        select: boolean;
+    }>): this;
+    // (undocumented)
+    groupShapes(ids: TLShapeId[], options?: Partial<{
+        groupId: TLShapeId;
+        select: boolean;
+    }>): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     readonly history: HistoryManager<TLRecord>;
     inputs: {
@@ -1099,11 +1109,16 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
+    readonly timers: Timers;
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
     undo(): this;
-    ungroupShapes(ids: TLShapeId[]): this;
+    ungroupShapes(ids: TLShapeId[], options?: Partial<{
+        select: boolean;
+    }>): this;
     // (undocumented)
-    ungroupShapes(ids: TLShape[]): this;
+    ungroupShapes(shapes: TLShape[], options?: Partial<{
+        select: boolean;
+    }>): this;
     updateAssets(assets: TLAssetPartial[]): this;
     // (undocumented)
     updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>): this;
@@ -1307,6 +1322,9 @@ export function getRotationSnapshot({ editor }: {
     editor: Editor;
 }): null | TLRotationSnapshot;
 
+// @public (undocumented)
+export function getSnapshot(store: TLStore): TLEditorSnapshot;
+
 // @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
 
@@ -1480,6 +1498,9 @@ export function LoadingScreen({ children }: {
 
 // @public
 export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
+
+// @public
+export function loadSnapshot(store: TLStore, _snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): void;
 
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
@@ -2300,11 +2321,11 @@ export interface TldrawEditorBaseProps {
 // @public
 export type TldrawEditorProps = Expand<TldrawEditorBaseProps & ({
     defaultName?: string;
-    initialData?: SerializedStore<TLRecord>;
+    initialData?: TLSerializedStore;
     migrations?: readonly MigrationSequence[];
     persistenceKey?: string;
     sessionId?: string;
-    snapshot?: StoreSnapshot<TLRecord>;
+    snapshot?: TLEditorSnapshot | TLStoreSnapshot;
     store?: undefined;
 } | {
     store: TLStore | TLStoreWithStatus;
@@ -2385,6 +2406,14 @@ export interface TLEditorOptions {
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
+}
+
+// @public (undocumented)
+export interface TLEditorSnapshot {
+    // (undocumented)
+    document: TLStoreSnapshot;
+    // (undocumented)
+    session: TLSessionStateSnapshot;
 }
 
 // @public (undocumented)
@@ -3056,7 +3085,7 @@ export function useIsEditing(shapeId: TLShapeId): boolean;
 export function useLocalStore({ persistenceKey, sessionId, ...rest }: {
     persistenceKey?: string;
     sessionId?: string;
-    snapshot?: StoreSnapshot<TLRecord>;
+    snapshot?: TLEditorSnapshot | TLStoreSnapshot;
 } & TLStoreOptions): TLStoreWithStatus;
 
 // @internal (undocumented)
@@ -3095,7 +3124,7 @@ export function useSvgExportContext(): {
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions & {
-    snapshot?: StoreSnapshot<TLRecord>;
+    snapshot?: TLEditorSnapshot | TLStoreSnapshot;
 }): TLStore;
 
 // @public (undocumented)

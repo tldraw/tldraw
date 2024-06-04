@@ -1,20 +1,19 @@
-import { Signal, computed, transact } from '@tldraw/state'
-import { RecordsDiff, UnknownRecord, squashRecordDiffs } from '@tldraw/store'
+import { Signal, computed } from '@tldraw/state'
+import { UnknownRecord } from '@tldraw/store'
 import {
 	CameraRecordType,
 	InstancePageStateRecordType,
 	TLINSTANCE_ID,
 	TLPageId,
-	TLRecord,
 	TLShapeId,
 	TLStore,
 	pageIdValidator,
+	pluckPreservingValues,
 	shapeIdValidator,
 } from '@tldraw/tlschema'
 import {
 	deleteFromSessionStorage,
 	getFromSessionStorage,
-	objectMapFromEntries,
 	setInSessionStorage,
 	structuredClone,
 } from '@tldraw/utils'
@@ -209,58 +208,43 @@ export function loadSessionStateSnapshotIntoStore(
 	const res = migrateAndValidateSessionStateSnapshot(snapshot)
 	if (!res) return
 
+	const instanceState = store.schema.types.instance.create({
+		id: TLINSTANCE_ID,
+		...pluckPreservingValues(store.get(TLINSTANCE_ID)),
+		currentPageId: res.currentPageId,
+		isDebugMode: res.isDebugMode,
+		isFocusMode: res.isFocusMode,
+		isToolLocked: res.isToolLocked,
+		isGridMode: res.isGridMode,
+		exportBackground: res.exportBackground,
+	})
+
 	// remove all page states and cameras and the instance state
 	const allPageStatesAndCameras = store
 		.allRecords()
 		.filter((r) => r.typeName === 'instance_page_state' || r.typeName === 'camera')
 
-	const removeDiff: RecordsDiff<TLRecord> = {
-		added: {},
-		updated: {},
-		removed: {
-			...objectMapFromEntries(allPageStatesAndCameras.map((r) => [r.id, r])),
-		},
-	}
-	if (store.has(TLINSTANCE_ID)) {
-		removeDiff.removed[TLINSTANCE_ID] = store.get(TLINSTANCE_ID)!
-	}
+	store.atomic(() => {
+		store.remove(allPageStatesAndCameras.map((r) => r.id))
+		// replace them with new ones
+		for (const ps of res.pageStates) {
+			store.put([
+				CameraRecordType.create({
+					id: CameraRecordType.createId(ps.pageId),
+					x: ps.camera.x,
+					y: ps.camera.y,
+					z: ps.camera.z,
+				}),
+				InstancePageStateRecordType.create({
+					id: InstancePageStateRecordType.createId(ps.pageId),
+					pageId: ps.pageId,
+					selectedShapeIds: ps.selectedShapeIds,
+					focusedGroupId: ps.focusedGroupId,
+				}),
+			])
+		}
 
-	const addDiff: RecordsDiff<TLRecord> = {
-		removed: {},
-		updated: {},
-		added: {
-			[TLINSTANCE_ID]: store.schema.types.instance.create({
-				id: TLINSTANCE_ID,
-				currentPageId: res.currentPageId,
-				isDebugMode: res.isDebugMode,
-				isFocusMode: res.isFocusMode,
-				isToolLocked: res.isToolLocked,
-				isGridMode: res.isGridMode,
-				exportBackground: res.exportBackground,
-			}),
-		},
-	}
-
-	// replace them with new ones
-	for (const ps of res.pageStates) {
-		const cameraId = CameraRecordType.createId(ps.pageId)
-		const pageStateId = InstancePageStateRecordType.createId(ps.pageId)
-		addDiff.added[cameraId] = CameraRecordType.create({
-			id: CameraRecordType.createId(ps.pageId),
-			x: ps.camera.x,
-			y: ps.camera.y,
-			z: ps.camera.z,
-		})
-		addDiff.added[pageStateId] = InstancePageStateRecordType.create({
-			id: InstancePageStateRecordType.createId(ps.pageId),
-			pageId: ps.pageId,
-			selectedShapeIds: ps.selectedShapeIds,
-			focusedGroupId: ps.focusedGroupId,
-		})
-	}
-
-	transact(() => {
-		store.applyDiff(squashRecordDiffs([removeDiff, addDiff]))
+		store.put([instanceState])
 		store.ensureStoreIsUsable()
 	})
 }

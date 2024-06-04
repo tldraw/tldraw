@@ -1,5 +1,5 @@
-import { MigrationSequence, SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
-import { TLRecord, TLStore } from '@tldraw/tlschema'
+import { MigrationSequence, Store } from '@tldraw/store'
+import { TLSerializedStore, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
@@ -14,6 +14,7 @@ import React, {
 import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
+import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
@@ -51,8 +52,8 @@ export type TldrawEditorProps = Expand<
 			| {
 					store?: undefined
 					migrations?: readonly MigrationSequence[]
-					snapshot?: StoreSnapshot<TLRecord>
-					initialData?: SerializedStore<TLRecord>
+					snapshot?: TLEditorSnapshot | TLStoreSnapshot
+					initialData?: TLSerializedStore
 					persistenceKey?: string
 					sessionId?: string
 					defaultName?: string

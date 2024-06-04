@@ -70,6 +70,7 @@ export {
 	setInSessionStorage,
 } from './lib/storage'
 export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
+export { Timers } from './lib/timers'
 export type { Expand, RecursivePartial, Required } from './lib/types'
 export {
 	STRUCTURED_CLONE_OBJECT_PROTOTYPE,

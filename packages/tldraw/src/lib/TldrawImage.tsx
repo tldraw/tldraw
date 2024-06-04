@@ -3,11 +3,11 @@ import {
 	ErrorScreen,
 	Expand,
 	LoadingScreen,
-	StoreSnapshot,
 	TLAnyBindingUtilConstructor,
 	TLAnyShapeUtilConstructor,
+	TLEditorSnapshot,
 	TLPageId,
-	TLRecord,
+	TLStoreSnapshot,
 	TLSvgOptions,
 	useShallowArrayIdentity,
 	useTLStore,
@@ -29,7 +29,7 @@ export type TldrawImageProps = Expand<
 		/**
 		 * The snapshot to display.
 		 */
-		snapshot: StoreSnapshot<TLRecord>
+		snapshot: TLEditorSnapshot | TLStoreSnapshot
 
 		/**
 		 * The image format to use. Defaults to 'svg'.
@@ -137,7 +137,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 						setUrl(url)
 					}
 				} else if (format === 'png') {
-					const blob = await getSvgAsImage(svgResult.svg, editor.environment.isSafari, {
+					const blob = await getSvgAsImage(editor, svgResult.svg, {
 						type: format,
 						quality: 1,
 						scale: 2,

@@ -153,7 +153,7 @@ describe('When clicking', () => {
 	})
 
 	it("Erases a group when clicking on the group's child", () => {
-		editor.groupShapes([ids.box2, ids.box3], ids.group1)
+		editor.groupShapes([ids.box2, ids.box3], { groupId: ids.group1 })
 		editor.setCurrentTool('eraser')
 
 		const shapesBeforeCount = editor.getCurrentPageShapes().length
@@ -174,7 +174,7 @@ describe('When clicking', () => {
 	})
 
 	it('Does not erase a group when clicking on the group itself', () => {
-		editor.groupShapes([ids.box2, ids.box3], ids.group1)
+		editor.groupShapes([ids.box2, ids.box3], { groupId: ids.group1 })
 		editor.setCurrentTool('eraser')
 
 		const shapesBeforeCount = editor.getCurrentPageShapes().length
@@ -340,7 +340,7 @@ describe('When clicking and dragging', () => {
 	})
 
 	it('Excludes a group if it was hovered when the drag started', () => {
-		editor.groupShapes([ids.box2, ids.box3], ids.group1)
+		editor.groupShapes([ids.box2, ids.box3], { groupId: ids.group1 })
 		editor.setCurrentTool('eraser')
 		editor.expectToBeIn('eraser.idle')
 		editor.pointerDown(275, 275) // in between box2 AND box3, so over of the new group

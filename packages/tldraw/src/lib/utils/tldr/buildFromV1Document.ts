@@ -498,7 +498,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 				v1GroupShapeIdsToV1ChildIds.forEach((v1ChildIds, v1GroupId) => {
 					const v2ChildShapeIds = v1ChildIds.map((id) => v1ShapeIdsToV2ShapeIds.get(id)!)
 					const v2GroupId = v1ShapeIdsToV2ShapeIds.get(v1GroupId)!
-					editor.groupShapes(v2ChildShapeIds, v2GroupId)
+					editor.groupShapes(v2ChildShapeIds, { groupId: v2GroupId })
 
 					const v1Group = v1Page.shapes[v1GroupId]
 					const rotation = coerceNumber(v1Group.rotation)

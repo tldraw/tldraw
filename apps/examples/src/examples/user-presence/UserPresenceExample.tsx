@@ -80,15 +80,15 @@ export default function UserPresenceExample() {
 								])
 							})
 
-							rRaf.current = requestAnimationFrame(loop)
+							rRaf.current = editor.timers.requestAnimationFrame(loop)
 						}
 
-						rRaf.current = requestAnimationFrame(loop)
+						rRaf.current = editor.timers.requestAnimationFrame(loop)
 					} else {
 						editor.store.mergeRemoteChanges(() => {
 							editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
 						})
-						rRaf.current = setInterval(() => {
+						rRaf.current = editor.timers.setInterval(() => {
 							editor.store.mergeRemoteChanges(() => {
 								editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
 							})

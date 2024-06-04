@@ -74,14 +74,14 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 				setIsFocused(true)
 				const elm = e.currentTarget as HTMLInputElement
 				rCurrentValue.current = elm.value
-				requestAnimationFrame(() => {
+				editor.timers.requestAnimationFrame(() => {
 					if (autoSelect) {
 						elm.select()
 					}
 				})
 				onFocus?.()
 			},
-			[autoSelect, onFocus]
+			[autoSelect, onFocus, editor.timers]
 		)
 
 		const handleChange = React.useCallback(
@@ -134,7 +134,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 				visualViewport.addEventListener('resize', onViewportChange)
 				visualViewport.addEventListener('scroll', onViewportChange)
 
-				requestAnimationFrame(() => {
+				editor.timers.requestAnimationFrame(() => {
 					rInputRef.current?.scrollIntoView({ block: 'center' })
 				})
 

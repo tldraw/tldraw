@@ -274,6 +274,8 @@ export const DEFAULT_TRANSLATION = {
 		"Sorry, this project can't be shared because it's too large. We're working on it!",
 	'share-menu.upload-failed':
 		"Sorry, we couldn't upload your project at the moment. Please try again or let us know if the problem persists.",
+	'share-menu.creating-project': 'Creating the new project…',
+	'share-menu.copied': 'Copied link!',
 	'status.offline': 'Offline',
 	'status.online': 'Online',
 	'people-menu.title': 'People',

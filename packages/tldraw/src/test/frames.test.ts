@@ -917,7 +917,7 @@ describe('When dragging a shape inside a group inside a frame', () => {
 
 		expect(editor.getSelectedShapeIds()).toHaveLength(2)
 
-		editor.groupShapes(editor.getSelectedShapeIds(), ids.group1)
+		editor.groupShapes(editor.getSelectedShapeIds(), { groupId: ids.group1 })
 
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
 
@@ -937,7 +937,7 @@ describe('When dragging a shape inside a group inside a frame', () => {
 
 		expect(editor.getSelectedShapeIds()).toHaveLength(2)
 
-		editor.groupShapes(editor.getSelectedShapeIds(), ids.group1)
+		editor.groupShapes(editor.getSelectedShapeIds(), { groupId: ids.group1 })
 
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
 

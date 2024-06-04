@@ -1231,7 +1231,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					// this needs to be deferred because it causes the menu
 					// UI to unmount which puts us in a dodgy state
-					requestAnimationFrame(() => {
+					editor.timers.requestAnimationFrame(() => {
 						editor.batch(() => {
 							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
