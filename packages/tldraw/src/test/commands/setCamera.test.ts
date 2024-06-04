@@ -863,9 +863,49 @@ describe('Padding', () => {
 })
 
 describe('Contain behavior', () => {
-	it.todo(
-		'Locks axis until the bounds are bigger than the padded viewport, then allows "inside" panning'
-	)
+	it('Locks axis until the bounds are smaller than the padded viewport, then allows "inside" panning', () => {
+		const boundsW = 1600
+		const boundsH = 900
+		const padding = 100
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				bounds: { x: 0, y: 0, w: boundsW, h: boundsH },
+				behavior: 'contain',
+				origin: { x: 0.5, y: 0.5 },
+				padding: { x: padding, y: padding },
+				initialZoom: 'fit-max',
+				baseZoom: 'fit-max',
+			},
+		})
+
+		editor.setCamera(editor.getCamera(), { reset: true })
+
+		const baseZoom = 700 / 900
+		const x = padding / baseZoom - boundsW + (boundsW - padding * 2) / baseZoom - padding
+		const y = padding / baseZoom - boundsH + (boundsH - padding * 2) / baseZoom
+		expect(editor.getCamera()).toCloselyMatchObject({ x, y, z: baseZoom }, 5)
+		// We should not be able to pan
+		editor.pan(new Vec(-10000, -10000))
+		expect(editor.getCamera()).toCloselyMatchObject({ x, y, z: baseZoom }, 5)
+		// But we can zoom
+		editor.zoomOut()
+		const newZoom = 0.5 * baseZoom
+		const newX =
+			padding / newZoom - boundsW + (boundsW - padding * 2) / newZoom - boundsW / 2 - padding * 2
+		const newY = padding / newZoom - boundsH + (boundsH - padding * 2) / newZoom - boundsH / 2
+		const newCamera = { x: newX, y: newY, z: newZoom }
+		expect(editor.getCamera()).toCloselyMatchObject(newCamera, 5)
+		// Panning is still locked
+		editor.pan(new Vec(-10000, -10000))
+		expect(editor.getCamera()).toCloselyMatchObject(newCamera, 5)
+		// Zooming to within bounds will allow us to pan
+		editor.zoomIn().zoomIn()
+		const camera = editor.getCamera()
+		editor.pan(new Vec(-10000, -10000))
+		expect(editor.getCamera()).not.toMatchObject(camera)
+	})
 })
 
 describe('Inside behavior', () => {
@@ -886,12 +926,12 @@ describe('Inside behavior', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		// panning far outside of the bounds
 		editor.pan(new Vec(-10000, -10000))
-		jest.advanceTimersByTime(300)
+
 		// should be clamped to the bounds + padding
 		expect(editor.getCamera()).toMatchObject({ x: -100, y: -100, z: 1 })
 		// panning to the opposite direction, far outside of the bounds
 		editor.pan(new Vec(10000, 10000))
-		jest.advanceTimersByTime(300)
+
 		// should be clamped to the bounds + padding
 		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
 	})
@@ -915,19 +955,59 @@ describe('Outside behavior', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		// panning far outside of the bounds
 		editor.pan(new Vec(-10000, -10000))
-		jest.advanceTimersByTime(300)
+
 		// should be clamped so that the far edge of the bounds is adjacent to the viewport + padding
 		expect(editor.getCamera()).toMatchObject({ x: -bounds.w + 100, y: -bounds.h + 100, z: 1 })
 		// panning to the opposite direction, far outside of the bounds
 		editor.pan(new Vec(10000, 10000))
-		jest.advanceTimersByTime(300)
+
 		// should be clamped so that the far edge of the bounds is adjacent to the viewport + padding
 		expect(editor.getCamera()).toMatchObject({ x: bounds.w - 100, y: bounds.h - 100, z: 1 })
 	})
 })
 
 describe('Allows mixed values for x and y', () => {
-	it.todo('Allows different values to be set for x and y axes')
+	it('Allows different values to be set for x and y behaviour', () => {
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				behavior: { x: 'inside', y: 'outside' },
+				initialZoom: 'fit-x',
+				baseZoom: 'fit-x',
+			},
+		})
+		editor.setCamera(editor.getCamera(), { reset: true })
+		const camera = editor.getCamera()
+		editor.pan(new Vec(-100, 0))
+
+		// no change when panning on x axis because it's set to inside
+		expect(editor.getCamera()).toMatchObject(camera)
+		editor.pan(new Vec(0, -100))
+
+		// change when panning on y axis because it's set to outside
+		expect(editor.getCamera()).toMatchObject({ ...camera, y: camera.y - 100 / camera.z })
+		editor.pan(new Vec(0, -1000000))
+
+		// clamped to the bounds
+		expect(editor.getCamera()).toMatchObject({ ...camera, y: -800 })
+	})
+	it('Allows different values to be set for x and y origin', () => {
+		editor.setCameraOptions({
+			...DEFAULT_CAMERA_OPTIONS,
+			constraints: {
+				...DEFAULT_CONSTRAINTS,
+				behavior: 'contain',
+				origin: { x: 0, y: 1 },
+				initialZoom: 'default',
+			},
+		})
+		editor.setCamera(editor.getCamera(), { reset: true })
+		const camera = editor.getCamera()
+		editor.zoomOut()
+		// zooms out and keeps the bounds in the bottom left of the viewport, so no change on x axis
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: camera.y + 900, z: 0.5 })
+	})
 })
 
 test('it animated towards the constrained viewport rather than the given viewport', () => {
