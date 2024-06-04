@@ -96,12 +96,12 @@ export const TextLabel = React.memo(function TextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: fontSize * lineHeight + 'px',
+					lineHeight: Math.floor(fontSize * lineHeight) + 'px',
 					minHeight: lineHeight + 32,
-					minWidth: textWidth || 0,
+					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
-					width: textWidth,
-					height: textHeight,
+					width: textWidth ? Math.ceil(textWidth) : undefined,
+					height: textHeight ? Math.ceil(textHeight) : undefined,
 				}}
 			>
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">

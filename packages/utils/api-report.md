@@ -363,6 +363,18 @@ export function throttle<T extends (...args: any) => any>(func: T, limit: number
 // @internal
 export function throttleToNextFrame(fn: () => void): () => void;
 
+// @public (undocumented)
+export class Timers {
+    // (undocumented)
+    dispose(): void;
+    // (undocumented)
+    requestAnimationFrame(callback: FrameRequestCallback): number;
+    // (undocumented)
+    setInterval(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    // (undocumented)
+    setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+}
+
 // @internal (undocumented)
 export function validateIndexKey(key: string): asserts key is IndexKey;
 

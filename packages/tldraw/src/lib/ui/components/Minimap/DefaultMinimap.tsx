@@ -33,7 +33,7 @@ export function DefaultMinimap() {
 				origin: 'minimap',
 				willCrashApp: false,
 			})
-			setTimeout(() => {
+			editor.timers.setTimeout(() => {
 				throw e
 			})
 		}
@@ -188,11 +188,11 @@ export function DefaultMinimap() {
 	React.useEffect(() => {
 		// need to wait a tick for next theme css to be applied
 		// otherwise the minimap will render with the wrong colors
-		setTimeout(() => {
+		editor.timers.setTimeout(() => {
 			minimapRef.current?.updateColors()
 			minimapRef.current?.render()
 		})
-	}, [isDarkMode])
+	}, [isDarkMode, editor])
 
 	return (
 		<div className="tlui-minimap">

@@ -11,8 +11,8 @@ import { TLExportType } from './exportAs'
 
 /** @public */
 export async function getSvgAsImage(
+	editor: Editor,
 	svgString: string,
-	isSafari: boolean,
 	options: {
 		type: 'png' | 'jpeg' | 'webp'
 		quality: number
@@ -42,8 +42,8 @@ export async function getSvgAsImage(
 			// actually loaded. just waiting around a while is brittle, but
 			// there doesn't seem to be any better solution for now :( see
 			// https://bugs.webkit.org/show_bug.cgi?id=219770
-			if (isSafari) {
-				await new Promise((resolve) => setTimeout(resolve, 250))
+			if (editor.environment.isSafari) {
+				await new Promise((resolve) => editor.timers.setTimeout(resolve, 250))
 			}
 
 			const canvas = document.createElement('canvas') as HTMLCanvasElement
@@ -157,7 +157,7 @@ export async function exportToBlob({
 		case 'webp': {
 			const svgResult = await getSvgString(editor, ids, opts)
 			if (!svgResult) throw new Error('Could not construct image.')
-			const image = await getSvgAsImage(svgResult.svg, editor.environment.isSafari, {
+			const image = await getSvgAsImage(editor, svgResult.svg, {
 				type: format,
 				quality: 1,
 				scale: 2,

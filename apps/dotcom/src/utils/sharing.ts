@@ -104,7 +104,7 @@ export function useSharing(): TLUiOverrides {
 
 	return useMemo(
 		(): TLUiOverrides => ({
-			actions(editor, actions, { addToast, msg, addDialog }) {
+			actions(editor, actions, { addToast, clearToasts, msg, addDialog }) {
 				actions[LEAVE_SHARED_PROJECT_ACTION] = {
 					id: LEAVE_SHARED_PROJECT_ACTION,
 					label: 'action.leave-shared-project',
@@ -124,6 +124,12 @@ export function useSharing(): TLUiOverrides {
 					readonlyOk: true,
 					onSelect: async (source) => {
 						try {
+							addToast({
+								title: msg('share-menu.creating-project'),
+								severity: 'info',
+								keepOpen: true,
+							})
+
 							handleUiEvent('share-project', { source })
 							const data = await getRoomData(editor, addToast, msg, uploadFileToAsset)
 							if (!data) return
@@ -147,6 +153,7 @@ export function useSharing(): TLUiOverrides {
 							const pathname = decodeURIComponent(
 								`/${ROOM_PREFIX}/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`
 							)
+							clearToasts()
 							if (runningInIFrame) {
 								window.open(`${origin}${pathname}`)
 							} else {
@@ -187,6 +194,10 @@ export function useSharing(): TLUiOverrides {
 							if (link === '') return
 							navigator.clipboard.writeText(await link.text())
 						}
+						addToast({
+							title: msg('share-menu.copied'),
+							severity: 'success',
+						})
 					},
 				}
 				actions[FORK_PROJECT_ACTION] = {

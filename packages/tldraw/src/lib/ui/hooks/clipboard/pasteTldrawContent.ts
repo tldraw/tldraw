@@ -25,7 +25,7 @@ export function pasteTldrawContent(editor: Editor, clipboard: TLContent, point?:
 	) {
 		// Creates a 'puff' to show a paste has happened.
 		editor.updateInstanceState({ isChangingStyle: true })
-		setTimeout(() => {
+		editor.timers.setTimeout(() => {
 			editor.updateInstanceState({ isChangingStyle: false })
 		}, 150)
 	}
