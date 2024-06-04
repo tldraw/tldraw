@@ -24,5 +24,5 @@ export function useReactor(name: string, reactFn: () => void, deps: undefined | 
 			scheduler.detach()
 			cancelAnimationFrame(raf.current)
 		}
-	}, [scheduler, raf])
+	}, [scheduler])
 }
