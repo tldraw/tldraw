@@ -188,7 +188,9 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 					try {
 						// try to save the asset as a base64 string
 						assetSrcToSave = await FileHelpers.blobToDataUrl(
-							await (await fetch(record.props.src)).blob()
+							await (
+								await fetch(record.props.src, { referrerPolicy: 'strict-origin-when-cross-origin' })
+							).blob()
 						)
 					} catch {
 						// if that fails, just save the original src
