@@ -106,8 +106,6 @@ export function getCurvedArrowInfo(
 
 	let minLength = MIN_ARROW_LENGTH * shape.props.scale
 
-	console.log(minLength)
-
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		const startInPageSpace = Mat.applyToPoint(arrowPageTransform, tempA)
 		const centerInPageSpace = Mat.applyToPoint(arrowPageTransform, handleArc.center)
