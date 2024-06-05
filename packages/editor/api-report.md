@@ -458,7 +458,7 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, ...rest }: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {

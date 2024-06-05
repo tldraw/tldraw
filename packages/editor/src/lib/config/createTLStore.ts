@@ -31,20 +31,22 @@ export function createTLStore({
 	defaultName = '',
 	id,
 	...rest
-}: TLStoreOptions): TLStore {
+}: TLStoreOptions = {}): TLStore {
 	const schema =
 		'schema' in rest && rest.schema
 			? // we have a schema
 				rest.schema
 			: // we need a schema
 				createTLSchema({
-					shapes: utilsToMap(
-						checkShapesAndAddCore('shapeUtils' in rest && rest.shapeUtils ? rest.shapeUtils : [])
-					),
-					bindings: utilsToMap(
-						checkBindings('bindingUtils' in rest && rest.bindingUtils ? rest.bindingUtils : [])
-					),
-					migrations: 'migrations' in rest ? rest.migrations : [],
+					shapes:
+						'shapeUtils' in rest && rest.shapeUtils
+							? utilsToMap(checkShapesAndAddCore(rest.shapeUtils))
+							: undefined,
+					bindings:
+						'bindingUtils' in rest && rest.bindingUtils
+							? utilsToMap(checkBindings(rest.bindingUtils))
+							: undefined,
+					migrations: 'migrations' in rest ? rest.migrations : undefined,
 				})
 
 	return new Store({
