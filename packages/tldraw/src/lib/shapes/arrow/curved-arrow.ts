@@ -104,7 +104,9 @@ export function getCurvedArrowInfo(
 	let offsetA = 0
 	let offsetB = 0
 
-	let minLength = MIN_ARROW_LENGTH
+	let minLength = MIN_ARROW_LENGTH * shape.props.scale
+
+	console.log(minLength)
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		const startInPageSpace = Mat.applyToPoint(arrowPageTransform, tempA)
@@ -329,7 +331,10 @@ export function getCurvedArrowInfo(
 					.setTo(handleArc.center)
 					.add(
 						Vec.FromAngle(
-							aCA + dAB * (Math.min(0.9, MIN_ARROW_LENGTH / lAB) * (isClockwise ? 1 : -1))
+							aCA +
+								dAB *
+									(Math.min(0.9, (MIN_ARROW_LENGTH * shape.props.scale) / lAB) *
+										(isClockwise ? 1 : -1))
 						).mul(handleArc.radius)
 					)
 			}
