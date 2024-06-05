@@ -10,7 +10,11 @@ import { OptionalErrorBoundary } from '../ErrorBoundary'
 
 // need an extra layer of indirection here to allow hooks to be used inside the indicator render
 const EvenInnererIndicator = ({ shape, util }: { shape: TLShape; util: ShapeUtil<any> }) => {
-	return useStateTracking('Indicator: ' + shape.type, () => util.indicator(shape))
+	return useStateTracking('Indicator: ' + shape.type, () =>
+		// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
+		// calling the render method with stale data.
+		util.indicator(util.editor.store.unsafeGetWithoutCapture(shape.id) as TLShape)
+	)
 }
 
 const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
