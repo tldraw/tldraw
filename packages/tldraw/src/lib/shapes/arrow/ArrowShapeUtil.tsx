@@ -919,10 +919,22 @@ const ArrowSvg = track(function ArrowSvg({
 					<path d={path} strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} />
 				</g>
 				{as && maskStartArrowhead && shape.props.fill !== 'none' && (
-					<ShapeFill theme={theme} d={as} color={shape.props.color} fill={shape.props.fill} />
+					<ShapeFill
+						theme={theme}
+						d={as}
+						color={shape.props.color}
+						fill={shape.props.fill}
+						scale={shape.props.scale}
+					/>
 				)}
 				{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
-					<ShapeFill theme={theme} d={ae} color={shape.props.color} fill={shape.props.fill} />
+					<ShapeFill
+						theme={theme}
+						d={ae}
+						color={shape.props.color}
+						fill={shape.props.fill}
+						scale={shape.props.scale}
+					/>
 				)}
 				{as && <path d={as} />}
 				{ae && <path d={ae} />}

@@ -219,7 +219,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 
 			return (
 				<>
-					<ShapeFill d={pathData} fill={'none'} color={color} theme={theme} />
+					<ShapeFill d={pathData} fill="none" color={color} theme={theme} scale={scale} />
 					<path d={pathData} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 				</>
 			)
@@ -231,7 +231,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 
 			return (
 				<>
-					<ShapeFill d={pathData} fill={'none'} color={color} theme={theme} />
+					<ShapeFill d={pathData} fill="none" color={color} theme={theme} scale={scale} />
 					<g stroke={theme[color].solid} strokeWidth={strokeWidth}>
 						{spline.segments.map((segment, i) => {
 							const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -265,7 +265,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 
 			return (
 				<>
-					<ShapeFill d={innerPathData} fill={'none'} color={color} theme={theme} />
+					<ShapeFill d={innerPathData} fill="none" color={color} theme={theme} scale={scale} />
 					<path
 						d={outerPathData}
 						stroke={theme[color].solid}
@@ -282,7 +282,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 		if (dash === 'solid') {
 			return (
 				<>
-					<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
+					<ShapeFill d={splinePath} fill="none" color={color} theme={theme} scale={scale} />
 					<path strokeWidth={strokeWidth} stroke={theme[color].solid} fill="none" d={splinePath} />
 				</>
 			)
@@ -291,7 +291,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 		if (dash === 'dashed' || dash === 'dotted') {
 			return (
 				<>
-					<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
+					<ShapeFill d={splinePath} fill="none" color={color} theme={theme} scale={scale} />
 					<g stroke={theme[color].solid} strokeWidth={strokeWidth}>
 						{spline.segments.map((segment, i) => {
 							const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -322,7 +322,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 		if (dash === 'draw') {
 			return (
 				<>
-					<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
+					<ShapeFill d={splinePath} fill="none" color={color} theme={theme} scale={scale} />
 					<path
 						d={getLineDrawPath(shape, spline, strokeWidth)}
 						strokeWidth={1}

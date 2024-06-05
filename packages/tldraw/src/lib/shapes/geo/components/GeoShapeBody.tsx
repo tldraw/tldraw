@@ -28,7 +28,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 				const d = getCloudPath(w, h, id, size)
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
@@ -36,17 +36,17 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 				const d = inkyCloudSvgPath(w, h, id, size)
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
 			} else {
-				const innerPath = getCloudPath(w, h, id, size)
+				const d = getCloudPath(w, h, id, size)
 				const arcs = getCloudArcs(w, h, id, size)
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={innerPath} color={color} fill={fill} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						<g
 							strokeWidth={strokeWidth}
 							stroke={theme[color].solid}
@@ -108,7 +108,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						<path
 							d={d}
 							strokeWidth={strokeWidth}
@@ -124,7 +124,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 				const d = geometry.getSvgPathData(true)
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
@@ -149,7 +149,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						<path
 							d={d}
 							strokeWidth={strokeWidth}
@@ -163,7 +163,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 			} else {
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
@@ -176,7 +176,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						{curves.map((c, i) => {
 							const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 								c.length,
@@ -208,7 +208,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 				const d = getDrawHeartPath(w, h, strokeWidth, shape.id)
 				return (
 					<>
-						<ShapeFill d={d} color={color} fill={fill} theme={theme} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
@@ -231,16 +231,16 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
 			} else if (dash === 'dashed' || dash === 'dotted') {
-				const innerPath = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
+				const d = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={innerPath} fill={fill} color={color} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
 						<g
 							strokeWidth={strokeWidth}
 							stroke={theme[color].solid}
@@ -304,14 +304,9 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 					</>
 				)
 			} else if (dash === 'draw') {
-				const polygonPoints = getRoundedPolygonPoints(
-					id,
-					outline,
-					strokeWidth / 3,
-					strokeWidth * 2,
-					2
+				let d = getRoundedInkyPolygonPath(
+					getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
 				)
-				let d = getRoundedInkyPolygonPath(polygonPoints)
 
 				if (lines) {
 					for (const [A, B] of lines) {
@@ -319,12 +314,13 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 					}
 				}
 
-				const innerPolygonPoints = getRoundedPolygonPoints(id, outline, 0, strokeWidth * 2, 1)
-				const innerPathData = getRoundedInkyPolygonPath(innerPolygonPoints)
+				const innerPathData = getRoundedInkyPolygonPath(
+					getRoundedPolygonPoints(id, outline, 0, strokeWidth * 2, 1)
+				)
 
 				return (
 					<>
-						<ShapeFill d={innerPathData} fill={fill} color={color} theme={theme} />
+						<ShapeFill theme={theme} d={innerPathData} color={color} fill={fill} scale={scale} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)

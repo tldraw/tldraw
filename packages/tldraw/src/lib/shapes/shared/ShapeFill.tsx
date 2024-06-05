@@ -11,11 +11,12 @@ import {
 import React from 'react'
 import { getHashPatternZoomName } from './defaultStyleDefs'
 
-export interface ShapeFillProps {
+interface ShapeFillProps {
 	d: string
 	fill: TLDefaultFillStyle
 	color: TLDefaultColorStyle
 	theme: TLDefaultColorTheme
+	scale: number
 }
 
 /** @public */
@@ -23,7 +24,13 @@ export function useDefaultColorTheme() {
 	return getDefaultColorTheme({ isDarkMode: useIsDarkMode() })
 }
 
-export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }: ShapeFillProps) {
+export const ShapeFill = React.memo(function ShapeFill({
+	theme,
+	d,
+	color,
+	fill,
+	scale,
+}: ShapeFillProps) {
 	switch (fill) {
 		case 'none': {
 			return null
@@ -35,7 +42,7 @@ export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }
 			return <path fill={theme.solid} d={d} />
 		}
 		case 'pattern': {
-			return <PatternFill theme={theme} color={color} fill={fill} d={d} />
+			return <PatternFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
 		}
 	}
 })

@@ -198,13 +198,14 @@ function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel: num
 			<>
 				{shape.props.isClosed && shape.props.fill && allPointsFromSegments.length > 1 ? (
 					<ShapeFill
-						theme={theme}
-						fill={shape.props.isClosed ? shape.props.fill : 'none'}
-						color={shape.props.color}
 						d={getSvgPathFromStrokePoints(
 							getStrokePoints(allPointsFromSegments, options),
 							shape.props.isClosed
 						)}
+						theme={theme}
+						color={shape.props.color}
+						fill={shape.props.isClosed ? shape.props.fill : 'none'}
+						scale={shape.props.scale}
 					/>
 				) : null}
 				<path
@@ -225,10 +226,11 @@ function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel: num
 	return (
 		<>
 			<ShapeFill
+				d={solidStrokePath}
 				theme={theme}
 				color={shape.props.color}
 				fill={isDot || shape.props.isClosed ? shape.props.fill : 'none'}
-				d={solidStrokePath}
+				scale={shape.props.scale}
 			/>
 			<path
 				d={solidStrokePath}
