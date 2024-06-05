@@ -72,6 +72,7 @@ export class MediaHelpers {
 				reject(new Error('Could not load image'))
 			}
 			img.crossOrigin = 'anonymous'
+			img.referrerPolicy = 'strict-origin-when-cross-origin'
 			img.src = src
 		})
 	}
