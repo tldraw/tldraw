@@ -33,6 +33,15 @@ export class FocusManager {
 		this.updateContainerClass()
 	}
 
+	/**
+	 * The editor's focus state and the container's focus state
+	 * are not necessarily always in sync. For that reason we
+	 * can't rely on the css `:focus` or `:focus-within` selectors to style the
+	 * editor when it is in focus.
+	 *
+	 * For that reason we synchronize the editor's focus state with a
+	 * special class on the container: tl-container__focused
+	 */
 	private updateContainerClass() {
 		const container = this.editor.getContainer()
 		const instanceState = this.editor.getInstanceState()
