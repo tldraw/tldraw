@@ -1,7 +1,8 @@
 import { Group2d, TLGeoShape, Vec, canonicalizeRotation, useEditor } from '@tldraw/editor'
-import { ShapeFill, useDefaultColorTheme } from '../../shared/ShapeFill'
+import { ShapeFill } from '../../shared/ShapeFill'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
+import { useDefaultColorTheme } from '../../shared/useDefaultColorTheme'
 import {
 	getCloudArcs,
 	getCloudPath,

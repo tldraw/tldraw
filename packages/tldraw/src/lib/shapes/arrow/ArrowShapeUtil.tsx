@@ -34,7 +34,7 @@ import {
 	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
-import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
+import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import { STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
@@ -44,6 +44,7 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
 import {

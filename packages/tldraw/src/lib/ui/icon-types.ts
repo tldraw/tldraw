@@ -50,6 +50,7 @@ export type TLUiIconType =
 	| 'duplicate'
 	| 'edit'
 	| 'external-link'
+	| 'fill-fill'
 	| 'fill-none'
 	| 'fill-pattern'
 	| 'fill-semi'
@@ -192,6 +193,7 @@ export const iconTypes = [
 	'duplicate',
 	'edit',
 	'external-link',
+	'fill-fill',
 	'fill-none',
 	'fill-pattern',
 	'fill-semi',

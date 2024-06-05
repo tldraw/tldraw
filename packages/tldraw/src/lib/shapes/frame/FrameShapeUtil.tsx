@@ -18,8 +18,8 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 
 export function defaultEmptyAs(str: string, dflt: string) {

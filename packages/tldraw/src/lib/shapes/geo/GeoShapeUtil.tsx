@@ -28,7 +28,6 @@ import {
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import {
@@ -43,6 +42,7 @@ import {
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import {
 	cloudOutline,

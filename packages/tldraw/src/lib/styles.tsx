@@ -24,6 +24,7 @@ export const STYLES = {
 		{ value: 'semi', icon: 'fill-semi' },
 		{ value: 'solid', icon: 'fill-solid' },
 		{ value: 'pattern', icon: 'fill-pattern' },
+		// { value: 'fill', icon: 'fill-fill' },
 	],
 	dash: [
 		{ value: 'draw', icon: 'dash-draw' },

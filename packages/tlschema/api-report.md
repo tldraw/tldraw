@@ -45,7 +45,7 @@ export const arrowShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
     end: T.Validator<VecModel>;
-    fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
+    fill: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     labelPosition: T.Validator<number>;
@@ -180,7 +180,7 @@ export const DefaultColorThemePalette: {
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
-export const DefaultFillStyle: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
+export const DefaultFillStyle: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
 
 // @public (undocumented)
 export const DefaultFontFamilies: {
@@ -220,7 +220,7 @@ export const drawShapeMigrations: TLPropsMigrations;
 export const drawShapeProps: {
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-    fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
+    fill: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
     isClosed: T.Validator<boolean>;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
@@ -524,7 +524,7 @@ export const geoShapeProps: {
     align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
     color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-    fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
+    fill: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     geo: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
     growY: T.Validator<number>;
@@ -1035,6 +1035,8 @@ export type TLDefaultColorTheme = Expand<{
 
 // @public (undocumented)
 export interface TLDefaultColorThemeColor {
+    // (undocumented)
+    fill: string;
     // (undocumented)
     highlight: {
         p3: string;

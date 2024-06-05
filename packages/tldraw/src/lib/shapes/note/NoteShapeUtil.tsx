@@ -25,7 +25,6 @@ import { useCallback } from 'react'
 import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import {
@@ -36,6 +35,7 @@ import {
 } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
+import { useDefaultColorTheme } from '../../..'
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 import {
 	CLONE_HANDLE_MARGIN,
