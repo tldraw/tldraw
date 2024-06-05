@@ -8271,19 +8271,67 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Dispatch a focus event.
+	 * Puts the editor into focused mode.
+	 *
+	 * This makes the editor eligible to receive keyboard events and some pointer events (move, wheel).
 	 *
 	 * @example
 	 * ```ts
 	 * editor.focus()
 	 * ```
 	 *
+	 * By default this also dispatches a 'focus' event to the container element. To prevent this, pass `focusContainer: false`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.focus({ focusContainer: false })
+	 * ```
+	 *
 	 * @public
 	 */
-	focus(): this {
-		this.focusManager.focus()
-		this.updateInstanceState({ isFocused: true }, { history: 'ignore' })
+	focus({ focusContainer = true } = {}): this {
+		if (focusContainer) {
+			this.focusManager.focus()
+		}
+		this.updateInstanceState({ isFocused: true })
 		return this
+	}
+
+	/**
+	 * Switches off the editor's focused mode.
+	 *
+	 * This makes the editor ignore keyboard events and some pointer events (move, wheel).
+	 *
+	 * @example
+	 * ```ts
+	 * editor.blur()
+	 * ```
+	 * By default this also dispatches a 'blur' event to the container element. To prevent this, pass `blurContainer: false`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.blur({ blurContainer: false })
+	 * ```
+	 *
+	 * @public
+	 */
+	blur({ blurContainer = true } = {}): this {
+		if (!this.getIsFocused()) return this
+		if (blurContainer) {
+			this.focusManager.blur()
+		} else {
+			this.complete() // stop any interaction
+		}
+		this.updateInstanceState({ isFocused: false })
+		return this
+	}
+
+	/**
+	 * @public
+	 * @returns true if the editor is focused
+	 */
+	@computed getIsFocused() {
+		return this.getInstanceState().isFocused
 	}
 
 	/**
