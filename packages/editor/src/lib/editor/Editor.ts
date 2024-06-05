@@ -3456,7 +3456,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	private _tickCameraState = () => {
 		// always reset the timeout
-		this._cameraStateTimeoutRemaining = this.options.cameraMovingTimeout
+		this._cameraStateTimeoutRemaining = this.options.cameraMovingTimeoutMs
 		// If the state is idle, then start the tick
 		if (this._cameraState.__unsafe__getWithoutCapture() !== 'idle') return
 		this._cameraState.set('moving')
