@@ -4,6 +4,7 @@ import {
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
+	fetch,
 	getHashForString,
 	uniqueId,
 } from 'tldraw'

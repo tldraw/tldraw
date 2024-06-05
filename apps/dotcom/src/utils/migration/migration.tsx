@@ -1,5 +1,5 @@
 import { openDB } from 'idb'
-import { Editor, LegacyTldrawDocument, buildFromV1Document } from 'tldraw'
+import { Editor, LegacyTldrawDocument, buildFromV1Document, fetch } from 'tldraw'
 
 export function isEditorEmpty(editor: Editor) {
 	const hasAnyShapes = editor.store.allRecords().some((r) => r.typeName === 'shape')

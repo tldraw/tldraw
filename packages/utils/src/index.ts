@@ -32,6 +32,7 @@ export {
 	MediaHelpers,
 } from './lib/media/media'
 export { PngHelpers } from './lib/media/png'
+export { fetch } from './lib/network'
 export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
 	areObjectsShallowEqual,

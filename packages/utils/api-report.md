@@ -69,6 +69,10 @@ export type Expand<T> = T extends infer O ? {
 } : never;
 
 // @public
+function fetch_2(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+export { fetch_2 as fetch }
+
+// @public
 export class FileHelpers {
     static blobToDataUrl(file: Blob): Promise<string>;
     static blobToText(file: Blob): Promise<string>;

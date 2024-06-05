@@ -10,6 +10,7 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	fetch,
 	unwrapLabel,
 	useActions,
 	useContainer,

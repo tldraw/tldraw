@@ -1,3 +1,5 @@
+import { fetch } from '@tldraw/utils'
+
 /** @public */
 export function dataUrlToFile(url: string, filename: string, mimeType: string) {
 	return fetch(url)

@@ -91,11 +91,11 @@ module.exports = {
 				'no-restricted-globals': [
 					'error',
 					{
-						name: 'setInterval',
+						name: 'setTimeout',
 						message: 'Use the timers from @tldraw/util instead.',
 					},
 					{
-						name: 'setTimeout',
+						name: 'setInterval',
 						message: 'Use the timers from @tldraw/util instead.',
 					},
 					{
@@ -119,6 +119,27 @@ module.exports = {
 						object: 'window',
 						property: 'requestAnimationFrame',
 						message: 'Use the timers from @tldraw/util instead.',
+					},
+				],
+			},
+		},
+
+		{
+			files: ['apps/dotcom/**/*', 'packages/editor/**/*', 'packages/tldraw/**/*'],
+			rules: {
+				'no-restricted-globals': [
+					'error',
+					{
+						name: 'fetch',
+						message: 'Use the fetch from @tldraw/util instead.',
+					},
+				],
+				'no-restricted-properties': [
+					'error',
+					{
+						object: 'window',
+						property: 'fetch',
+						message: 'Use the fetch from @tldraw/util instead.',
 					},
 				],
 			},
