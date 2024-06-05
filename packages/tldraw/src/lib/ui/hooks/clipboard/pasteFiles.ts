@@ -14,7 +14,12 @@ export async function pasteFiles(
 	point?: VecLike,
 	sources?: TLExternalContentSource[]
 ) {
-	const blobs = await Promise.all(urls.map(async (url) => await (await fetch(url)).blob()))
+	const blobs = await Promise.all(
+		urls.map(
+			async (url) =>
+				await (await fetch(url, { referrerPolicy: 'strict-origin-when-cross-origin' })).blob()
+		)
+	)
 	const files = blobs.map((blob) => new File([blob], 'tldrawFile', { type: blob.type }))
 
 	editor.mark('paste')
