@@ -3899,7 +3899,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		assetId: TLAssetId | null,
 		context: {
 			screenScale?: number
-			steppedScreenScale?: number
 			shouldResolveToOriginalImage?: boolean
 		}
 	): Promise<string | null> {
@@ -3907,14 +3906,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const asset = this.getAsset(assetId)
 		if (!asset) return ''
 
+		const { screenScale, shouldResolveToOriginalImage } = context
+
+		// We only look at the zoom level at powers of 2.
+		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
+		const steppedScreenScale = Math.max(0.125, zoomStepFunction(screenScale || 1))
 		const networkEffectiveType: string | null =
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
 		const dpr = this.getInstanceState().devicePixelRatio
 
-		const { screenScale, steppedScreenScale, shouldResolveToOriginalImage } = context
 		return await this._assetOptions.get().onResolveAsset(asset!, {
 			screenScale: screenScale || 1,
-			steppedScreenScale: steppedScreenScale || 1,
+			steppedScreenScale,
 			dpr,
 			networkEffectiveType,
 			shouldResolveToOriginalImage,

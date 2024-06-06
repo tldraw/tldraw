@@ -1072,7 +1072,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     resolveAssetUrl(assetId: null | TLAssetId, context: {
         screenScale?: number;
         shouldResolveToOriginalImage?: boolean;
-        steppedScreenScale?: number;
     }): Promise<null | string>;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
