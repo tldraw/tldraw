@@ -1,6 +1,6 @@
-import { BindingOnShapeDeleteOptions } from '@tldraw/editor'
 import {
 	BindingOnShapeChangeOptions,
+	BindingOnShapeDeleteOptions,
 	BindingUtil,
 	Box,
 	DefaultToolbar,
