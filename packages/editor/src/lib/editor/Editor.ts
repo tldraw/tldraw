@@ -5245,14 +5245,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
 		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
 		if (isolateShapes) {
-			for (const id of ids) {
-				const binding = this.getBinding(id)
-				if (!binding) continue
-				const util = this.getBindingUtil(binding)
-				util.onBeforeIsolateFromShape?.({ binding, shape: this.getShape(binding.fromId)! })
-				util.onBeforeIsolateToShape?.({ binding, shape: this.getShape(binding.toId)! })
-				this.store.remove([id])
-			}
+			this.store.atomic(() => {
+				for (const id of ids) {
+					const binding = this.getBinding(id)
+					if (!binding) continue
+					const util = this.getBindingUtil(binding)
+					util.onBeforeIsolateFromShape?.({ binding, shape: this.getShape(binding.fromId)! })
+					util.onBeforeIsolateToShape?.({ binding, shape: this.getShape(binding.toId)! })
+					this.store.remove([id])
+				}
+			})
 		} else {
 			this.store.remove(ids)
 		}
