@@ -406,7 +406,6 @@ export {
 	TLV1ShapeType,
 	TLV1SizeStyle,
 	buildFromV1Document,
-	type TDHandle,
 	type TLV1ArrowBinding,
 	type TLV1ArrowShape,
 	type TLV1Asset,

@@ -804,6 +804,8 @@ export interface TLV1Handle {
 	id: string
 	index: number
 	point: number[]
+	canBind?: boolean
+	bindingId?: string
 }
 
 /** @internal */
@@ -903,7 +905,7 @@ export interface TLV1BaseShape {
 	style: TLV1ShapeStyles
 	type: TLV1ShapeType
 	label?: string
-	handles?: Record<string, TDHandle>
+	handles?: Record<string, TLV1Handle>
 }
 
 /** @internal */
@@ -911,13 +913,6 @@ export interface TLV1DrawShape extends TLV1BaseShape {
 	type: TLV1ShapeType.Draw
 	points: number[][]
 	isComplete: boolean
-}
-
-// The extended handle (used for arrows)
-/** @internal */
-export interface TDHandle extends TLV1Handle {
-	canBind?: boolean
-	bindingId?: string
 }
 
 /** @internal */
@@ -955,9 +950,9 @@ export interface TLV1ArrowShape extends TLV1BaseShape {
 	type: TLV1ShapeType.Arrow
 	bend: number
 	handles: {
-		start: TDHandle
-		bend: TDHandle
-		end: TDHandle
+		start: TLV1Handle
+		bend: TLV1Handle
+		end: TLV1Handle
 	}
 	decorations?: {
 		start?: TLV1Decoration

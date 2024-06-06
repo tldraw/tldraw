@@ -1318,14 +1318,6 @@ export type StyleValuesForUi<T> = readonly {
     readonly value: T;
 }[];
 
-// @internal (undocumented)
-export interface TDHandle extends TLV1Handle {
-    // (undocumented)
-    bindingId?: string;
-    // (undocumented)
-    canBind?: boolean;
-}
-
 // @public (undocumented)
 export const TEXT_PROPS: {
     fontStyle: string;
@@ -2777,9 +2769,9 @@ export interface TLV1ArrowShape extends TLV1BaseShape {
     };
     // (undocumented)
     handles: {
-        bend: TDHandle;
-        end: TDHandle;
-        start: TDHandle;
+        bend: TLV1Handle;
+        end: TLV1Handle;
+        start: TLV1Handle;
     };
     // (undocumented)
     label?: string;
@@ -2827,7 +2819,7 @@ export interface TLV1BaseShape {
     // (undocumented)
     children?: string[];
     // (undocumented)
-    handles?: Record<string, TDHandle>;
+    handles?: Record<string, TLV1Handle>;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -2985,6 +2977,10 @@ export interface TLV1GroupShape extends TLV1BaseShape {
 
 // @internal (undocumented)
 export interface TLV1Handle {
+    // (undocumented)
+    bindingId?: string;
+    // (undocumented)
+    canBind?: boolean;
     // (undocumented)
     id: string;
     // (undocumented)
