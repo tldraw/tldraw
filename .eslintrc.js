@@ -86,46 +86,7 @@ module.exports = {
 			},
 		},
 		{
-			files: ['packages/editor/**/*', 'packages/tldraw/**/*'],
-			rules: {
-				'no-restricted-globals': [
-					'error',
-					{
-						name: 'setTimeout',
-						message: 'Use the timers from @tldraw/util instead.',
-					},
-					{
-						name: 'setInterval',
-						message: 'Use the timers from @tldraw/util instead.',
-					},
-					{
-						name: 'requestAnimationFrame',
-						message: 'Use the timers from @tldraw/util instead.',
-					},
-				],
-				'no-restricted-properties': [
-					'error',
-					{
-						object: 'window',
-						property: 'setTimeout',
-						message: 'Use the timers from @tldraw/util instead.',
-					},
-					{
-						object: 'window',
-						property: 'setInterval',
-						message: 'Use the timers from @tldraw/util instead.',
-					},
-					{
-						object: 'window',
-						property: 'requestAnimationFrame',
-						message: 'Use the timers from @tldraw/util instead.',
-					},
-				],
-			},
-		},
-
-		{
-			files: ['apps/dotcom/**/*', 'packages/editor/**/*', 'packages/tldraw/**/*'],
+			files: ['packages/editor/**/*', 'packages/tldraw/**/*', 'packages/utils/**/*'],
 			rules: {
 				'no-restricted-globals': [
 					'error',
@@ -133,6 +94,23 @@ module.exports = {
 						name: 'fetch',
 						message: 'Use the fetch from @tldraw/util instead.',
 					},
+					{
+						name: 'Image',
+						message: 'Use the Image from @tldraw/util instead.',
+					},
+					{
+						name: 'setTimeout',
+						message: 'Use the timers from editor.timers instead.',
+					},
+					{
+						name: 'setInterval',
+						message: 'Use the timers from editor.timers instead.',
+					},
+					{
+						name: 'requestAnimationFrame',
+						message: 'Use the timers from editor.timers instead.',
+					},
+					{ name: 'structuredClone', message: 'Use structuredClone from @tldraw/util instead' },
 				],
 				'no-restricted-properties': [
 					'error',
@@ -140,6 +118,75 @@ module.exports = {
 						object: 'window',
 						property: 'fetch',
 						message: 'Use the fetch from @tldraw/util instead.',
+					},
+					{
+						object: 'window',
+						property: 'Image',
+						message: 'Use the Image from @tldraw/util instead.',
+					},
+					{
+						object: 'window',
+						property: 'setTimeout',
+						message: 'Use the timers from editor.timers instead.',
+					},
+					{
+						object: 'window',
+						property: 'setInterval',
+						message: 'Use the timers from editor.timers instead.',
+					},
+					{
+						object: 'window',
+						property: 'requestAnimationFrame',
+						message: 'Use the timers from editor.timers instead.',
+					},
+				],
+				'no-restricted-syntax': [
+					'error',
+					{ selector: "MethodDefinition[kind='set']", message: 'Property setters are not allowed' },
+					{ selector: "MethodDefinition[kind='get']", message: 'Property getters are not allowed' },
+					{
+						selector: 'Identifier[name=localStorage]',
+						message: 'Use the getFromLocalStorage/setInLocalStorage helpers instead',
+					},
+					{
+						selector: 'Identifier[name=sessionStorage]',
+						message: 'Use the getFromSessionStorage/setInSessionStorage helpers instead',
+					},
+					{
+						selector:
+							"JSXElement[openingElement.name.name='img']:not(:has(JSXAttribute[name.name='referrerPolicy']))",
+						message: 'You must pass `referrerPolicy` when creating an <img>.',
+					},
+				],
+			},
+		},
+		// This overrides the default config for the given matching paths.
+		{
+			files: ['apps/dotcom/**/*'],
+			rules: {
+				'no-restricted-globals': [
+					'error',
+					{
+						name: 'fetch',
+						message: 'Use the fetch from @tldraw/util instead.',
+					},
+					{
+						name: 'Image',
+						message: 'Use the Image from @tldraw/util instead.',
+					},
+					{ name: 'structuredClone', message: 'Use structuredClone from @tldraw/util instead' },
+				],
+				'no-restricted-properties': [
+					'error',
+					{
+						object: 'window',
+						property: 'fetch',
+						message: 'Use the fetch from @tldraw/util instead.',
+					},
+					{
+						object: 'window',
+						property: 'Image',
+						message: 'Use the Image from @tldraw/util instead.',
 					},
 				],
 			},

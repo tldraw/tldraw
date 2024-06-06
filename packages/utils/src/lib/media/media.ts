@@ -1,3 +1,4 @@
+import { Image } from '../network'
 import { isApngAnimated } from './apng'
 import { isAvifAnimated } from './avif'
 import { isGifAnimated } from './gif'

@@ -1,4 +1,5 @@
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
+import { Image } from 'tldraw'
 
 export const assetUrls = getAssetUrlsByImport()
 

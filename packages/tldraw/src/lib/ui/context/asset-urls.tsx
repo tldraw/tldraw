@@ -1,3 +1,4 @@
+import { Image } from '@tldraw/editor'
 import { createContext, useContext, useEffect } from 'react'
 import { TLUiAssetUrls } from '../assetUrls'
 

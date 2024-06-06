@@ -68,7 +68,7 @@ export type Expand<T> = T extends infer O ? {
     [K in keyof O]: O[K];
 } : never;
 
-// @public
+// @internal
 function fetch_2(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
 export { fetch_2 as fetch }
 
@@ -140,6 +140,13 @@ export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
+
+// @internal
+class Image_2 extends HTMLImageElement {
+    // (undocumented)
+    new(width?: number, height?: number): HTMLImageElement;
+}
+export { Image_2 as Image }
 
 // @public
 export type IndexKey = string & {

@@ -1,5 +1,6 @@
 import {
 	Editor,
+	Image,
 	PngHelpers,
 	TLShapeId,
 	TLSvgOptions,

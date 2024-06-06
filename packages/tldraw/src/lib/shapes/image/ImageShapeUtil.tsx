@@ -3,6 +3,7 @@ import {
 	BaseBoxShapeUtil,
 	FileHelpers,
 	HTMLContainer,
+	Image,
 	MediaHelpers,
 	TLImageShape,
 	TLOnDoubleClickHandler,
