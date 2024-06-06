@@ -260,6 +260,26 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
+    onBeforeCreate: (next: TLBookmarkShape) => {
+        id: TLShapeId;
+        index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: number;
+        parentId: TLParentId;
+        props: {
+            assetId: null | TLAssetId;
+            h: number;
+            url: string;
+            w: number;
+        };
+        rotation: number;
+        type: "bookmark";
+        typeName: "shape";
+        x: number;
+        y: number;
+    };
+    // (undocumented)
     onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
     // (undocumented)
     static props: {

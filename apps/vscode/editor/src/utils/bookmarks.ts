@@ -20,6 +20,7 @@ export async function onCreateAssetFromUrl({
 				src: url,
 				description: meta.description ?? '',
 				image: meta.image ?? '',
+				favicon: meta.favicon ?? '',
 				title: meta.title ?? truncateStringWithEllipsis(url, 32),
 			},
 			meta: {},
@@ -27,7 +28,7 @@ export async function onCreateAssetFromUrl({
 	} catch (error) {
 		// Otherwise, fallback to fetching data from the url
 
-		let meta: { image: string; title: string; description: string }
+		let meta: { image: string; favicon: string; title: string; description: string }
 
 		try {
 			const resp = await fetch(url, { method: 'GET', mode: 'no-cors' })
@@ -35,6 +36,10 @@ export async function onCreateAssetFromUrl({
 			const doc = new DOMParser().parseFromString(html, 'text/html')
 			meta = {
 				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
+				favicon:
+					doc.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ??
+					doc.head.querySelector('link[rel="icon"]')?.getAttribute('href') ??
+					'',
 				title:
 					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
 					truncateStringWithEllipsis(url, 32),
@@ -43,7 +48,7 @@ export async function onCreateAssetFromUrl({
 			}
 		} catch (error) {
 			console.error(error)
-			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
+			meta = { image: '', favicon: '', title: truncateStringWithEllipsis(url, 32), description: '' }
 		}
 
 		// Create the bookmark asset from the meta
@@ -54,6 +59,7 @@ export async function onCreateAssetFromUrl({
 			props: {
 				src: url,
 				image: meta.image,
+				favicon: meta.favicon,
 				title: meta.title,
 				description: meta.description,
 			},

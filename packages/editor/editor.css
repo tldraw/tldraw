@@ -949,6 +949,12 @@ input,
 	object-position: center;
 }
 
+.tl-bookmark__favicon {
+	width: 16px;
+	height: 16px;
+	margin-right: 8px;
+}
+
 .tl-bookmark__copy_container {
 	background-color: var(--color-muted);
 	padding: var(--space-4);
@@ -967,7 +973,7 @@ input,
 	font-size: 16px;
 	font-weight: bold;
 	padding-bottom: var(--space-2);
-	margin: 8px 0px;
+	margin: 0 0 8px 0;
 }
 
 .tl-bookmark__description {
@@ -980,7 +986,10 @@ input,
 	pointer-events: all;
 	z-index: 999;
 	overflow: hidden;
-	display: block;
+	width: fit-content;
+	display: flex;
+	align-items: center;
+	white-space: nowrap;
 	color: var(--color-text);
 	text-overflow: ellipsis;
 	text-decoration: none;

@@ -16,7 +16,7 @@ export async function pasteUrl(
 	point?: VecLike,
 	sources?: TLExternalContentSource[]
 ) {
-	// Lets see if its an image and we have CORs
+	// Lets see if its an image and we have CORS
 	try {
 		// skip this step if the url doesn't contain an image extension, treat it as a regular bookmark
 		if (new URL(url).pathname.match(/\.(png|jpe?g|gif|svg|webp)$/i)) {

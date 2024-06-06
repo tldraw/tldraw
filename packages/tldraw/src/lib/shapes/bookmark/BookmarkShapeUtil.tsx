@@ -19,6 +19,9 @@ import { truncateStringWithEllipsis } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
+const BOOKMARK_HEIGHT = 320
+const SHORT_BOOKMARK_HEIGHT = 110
+
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override type = 'bookmark' as const
@@ -33,7 +36,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		return {
 			url: '',
 			w: 300,
-			h: 320,
+			h: BOOKMARK_HEIGHT,
 			assetId: null,
 		}
 	}
@@ -55,19 +58,21 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 						boxShadow: getRotatedBoxShadow(pageRotation),
 					}}
 				>
-					<div className="tl-bookmark__image_container">
-						{asset?.props.image ? (
-							<img
-								className="tl-bookmark__image"
-								draggable={false}
-								src={asset?.props.image}
-								alt={asset?.props.title || ''}
-							/>
-						) : (
-							<div className="tl-bookmark__placeholder" />
-						)}
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-					</div>
+					{(!asset || asset.props.image) && (
+						<div className="tl-bookmark__image_container">
+							{asset ? (
+								<img
+									className="tl-bookmark__image"
+									draggable={false}
+									src={asset?.props.image}
+									alt={asset?.props.title || ''}
+								/>
+							) : (
+								<div className="tl-bookmark__placeholder" />
+							)}
+							<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+						</div>
+					)}
 					<div className="tl-bookmark__copy_container">
 						{asset?.props.title && (
 							<h2 className="tl-bookmark__heading">
@@ -88,6 +93,14 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 							onPointerUp={stopEventPropagation}
 							onClick={stopEventPropagation}
 						>
+							{asset?.props.favicon && (
+								<img
+									className="tl-bookmark__favicon"
+									src={asset?.props.favicon}
+									referrerPolicy="strict-origin-when-cross-origin"
+									alt={`favicon of ${address}`}
+								/>
+							)}
 							{truncateStringWithEllipsis(address, 45)}
 						</a>
 					</div>
@@ -107,6 +120,10 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		)
 	}
 
+	override onBeforeCreate = (next: TLBookmarkShape) => {
+		return getBookmarkSize(this.editor, next)
+	}
+
 	override onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape> = (prev, shape) => {
 		if (prev.props.url !== shape.props.url) {
 			if (!T.linkUrl.isValid(shape.props.url)) {
@@ -115,6 +132,24 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 				updateBookmarkAssetOnUrlChange(this.editor, shape)
 			}
 		}
+
+		if (prev.props.assetId !== shape.props.assetId) {
+			return getBookmarkSize(this.editor, shape)
+		}
+	}
+}
+
+function getBookmarkSize(editor: Editor, shape: TLBookmarkShape) {
+	const asset = (
+		shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
+	) as TLBookmarkAsset
+
+	return {
+		...shape,
+		props: {
+			...shape.props,
+			h: !asset || asset.props.image ? BOOKMARK_HEIGHT : SHORT_BOOKMARK_HEIGHT,
+		},
 	}
 }
 
@@ -122,8 +157,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 export const getHumanReadableAddress = (shape: TLBookmarkShape) => {
 	try {
 		const url = new URL(shape.props.url)
-		const path = url.pathname.replace(/\/*$/, '')
-		return `${url.hostname}${path}`
+		return url.hostname
 	} catch (e) {
 		return shape.props.url
 	}
