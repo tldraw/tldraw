@@ -916,6 +916,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	redo(): this {
 		this._flushEventsForTick(0)
+		this.complete()
 		this.history.redo()
 		return this
 	}
