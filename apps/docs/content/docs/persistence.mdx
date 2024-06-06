@@ -130,10 +130,7 @@ The `store` property of the `<Tldraw>` / `<TldrawEditor>` components accepts a s
 export default function () {
 	const [store] = useState(() => {
 		// Create the store
-		const newStore = createTLStore({
-			shapeUtils: defaultShapeUtils,
-			bindingUtils: defaultBindingUtils,
-		})
+		const newStore = createTLStore()
 
 		// Get the snapshot
 		const stringified = localStorage.getItem('my-editor-snapshot')
@@ -165,10 +162,7 @@ export default function () {
 			if (cancelled) return
 
 			// Create the store
-			const newStore = createTLStore({
-				shapeUtils: defaultShapeUtils,
-				bindingUtils: defaultBindingUtils,
-			})
+			const newStore = createTLStore()
 
 			// Load the snapshot
 			loadSnapshot(newStore, snapshot)

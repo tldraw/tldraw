@@ -190,6 +190,12 @@ export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
 }
 
 // @public (undocumented)
+export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
+    // (undocumented)
+    binding: Binding;
+}
+
+// @public (undocumented)
 export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
     // (undocumented)
     binding: Binding;
@@ -200,21 +206,19 @@ export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
 }
 
 // @public (undocumented)
-export interface BindingOnUnbindOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
     // (undocumented)
     binding: Binding;
     // (undocumented)
-    reason: BindingUnbindReason;
+    shape: TLShape;
 }
 
 // @public (undocumented)
-export enum BindingUnbindReason {
+export interface BindingOnShapeIsolateOptions<Binding extends TLUnknownBinding> {
     // (undocumented)
-    DeletingBinding = "deleting_binding",
+    binding: Binding;
     // (undocumented)
-    DeletingFromShape = "deleting_from_shape",
-    // (undocumented)
-    DeletingToShape = "deleting_to_shape"
+    shape: TLShape;
 }
 
 // @public (undocumented)
@@ -234,13 +238,21 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     // (undocumented)
     onAfterCreate?(options: BindingOnCreateOptions<Binding>): void;
     // (undocumented)
-    onAfterUnbind?(options: BindingOnUnbindOptions<Binding>): void;
+    onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void;
     // (undocumented)
     onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void;
     // (undocumented)
     onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void;
     // (undocumented)
-    onBeforeUnbind?(options: BindingOnUnbindOptions<Binding>): void;
+    onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): Binding | void;
+    // (undocumented)
+    onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
+    // (undocumented)
+    onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
+    // (undocumented)
+    onBeforeIsolateFromShape?(options: BindingOnShapeIsolateOptions<Binding>): void;
+    // (undocumented)
+    onBeforeIsolateToShape?(options: BindingOnShapeIsolateOptions<Binding>): void;
     // (undocumented)
     onOperationComplete?(): void;
     // (undocumented)
@@ -458,7 +470,7 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, ...rest }: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -604,7 +616,7 @@ export const DefaultSvgDefs: () => null;
 export const defaultTldrawOptions: {
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
-    readonly cameraMovingTimoutMs: 64;
+    readonly cameraMovingTimeoutMs: 64;
     readonly cameraSlideFriction: 0.09;
     readonly coarseDragDistanceSquared: 36;
     readonly coarseHandleRadius: 20;
@@ -748,6 +760,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     bindingUtils: {
         readonly [K in string]?: BindingUtil<TLUnknownBinding>;
     };
+    blur({ blurContainer }?: {
+        blurContainer?: boolean | undefined;
+    }): this;
     bringForward(shapes: TLShape[] | TLShapeId[]): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
     // (undocumented)
@@ -796,9 +811,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     // (undocumented)
-    deleteBinding(binding: TLBinding | TLBindingId): this;
+    deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]): this;
     // (undocumented)
-    deleteBindings(bindings: (TLBinding | TLBindingId)[]): this;
+    deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
+        isolateShapes?: boolean | undefined;
+    }): this;
     deleteOpenMenu(id: string): this;
     deletePage(page: TLPage | TLPageId): this;
     deleteShape(id: TLShapeId): this;
@@ -834,7 +851,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
-    focus(): this;
+    focus({ focusContainer }?: {
+        focusContainer?: boolean | undefined;
+    }): this;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
@@ -896,6 +915,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInitialZoom(): number;
     getInstanceState(): TLInstance;
+    // (undocumented)
+    getIsFocused(): boolean;
     getIsMenuOpen(): boolean;
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;
@@ -2337,7 +2358,7 @@ export interface TldrawOptions {
     // (undocumented)
     readonly animationMediumMs: number;
     // (undocumented)
-    readonly cameraMovingTimoutMs: number;
+    readonly cameraMovingTimeoutMs: number;
     // (undocumented)
     readonly cameraSlideFriction: number;
     // (undocumented)

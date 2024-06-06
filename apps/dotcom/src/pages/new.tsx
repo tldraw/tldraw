@@ -35,5 +35,5 @@ export function Component() {
 				}}
 			/>
 		)
-	return <Navigate to={`/${ROOM_PREFIX}/${data.slug}`} />
+	return <Navigate replace to={`/${ROOM_PREFIX}/${data.slug}`} />
 }
