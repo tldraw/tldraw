@@ -99,34 +99,19 @@ export function registerDefaultExternalContentHandlers(
 			},
 		} as TLAsset
 
-		if (editor.hasExternalAssetHandler('blob')) {
+		if (persistenceKey) {
 			assetInfo.props.src = assetId
-			const asset = await editor.getAssetForExternalContent({
-				type: 'blob',
-				assetInfo,
-				blob: file,
-			})
-
-			return asset!
-		}
-
-		assetInfo.props.src = await FileHelpers.blobToDataUrl(file)
-		return AssetRecordType.create(assetInfo)
-	})
-
-	if (persistenceKey) {
-		editor.registerExternalAssetHandler('blob', async ({ assetInfo, blob }) => {
-			const asset = AssetRecordType.create(assetInfo)
-
 			await storeAssetInIndexedDb({
 				persistenceKey,
-				assetId: asset.id,
-				blob,
+				assetId,
+				blob: file,
 			})
+		} else {
+			assetInfo.props.src = await FileHelpers.blobToDataUrl(file)
+		}
 
-			return asset
-		})
-	}
+		return AssetRecordType.create(assetInfo)
+	})
 
 	// urls -> bookmark asset
 	editor.registerExternalAssetHandler('url', async ({ url }) => {
