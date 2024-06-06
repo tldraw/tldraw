@@ -105,17 +105,14 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 }
 
 /** @internal */
-export function areObjectsShallowEqual<T extends Record<string, unknown>>(
-	obj1: T,
-	obj2: T
-): boolean {
+export function areObjectsShallowEqual<T extends object>(obj1: T, obj2: T): boolean {
 	if (obj1 === obj2) return true
 	const keys1 = new Set(Object.keys(obj1))
 	const keys2 = new Set(Object.keys(obj2))
 	if (keys1.size !== keys2.size) return false
 	for (const key of keys1) {
 		if (!keys2.has(key)) return false
-		if (!Object.is(obj1[key], obj2[key])) return false
+		if (!Object.is((obj1 as any)[key], (obj2 as any)[key])) return false
 	}
 	return true
 }

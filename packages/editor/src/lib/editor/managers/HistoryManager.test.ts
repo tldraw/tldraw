@@ -1,7 +1,6 @@
 import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
 import { TLHistoryBatchOptions } from '../types/history-types'
 import { HistoryManager } from './HistoryManager'
-import { stack } from './Stack'
 
 interface TestRecord extends BaseRecord<'test', TestRecordId> {
 	value: number | string
@@ -99,9 +98,9 @@ describe(HistoryManager, () => {
 		editor.decrement()
 		expect(editor.getCount()).toBe(3)
 
-		const undos = [...editor.history.stacks.get().undos]
+		const undos = editor.history.debug().undos
 		const parsedUndos = JSON.parse(JSON.stringify(undos))
-		editor.history.stacks.update(({ redos }) => ({ undos: stack(parsedUndos), redos }))
+		expect(parsedUndos).toEqual(undos)
 
 		editor.history.undo()
 

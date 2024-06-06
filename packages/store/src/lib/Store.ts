@@ -19,7 +19,9 @@ import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { StoreSideEffects } from './StoreSideEffects'
 import { devFreeze } from './devFreeze'
 
-type RecFromId<K extends RecordId<UnknownRecord>> = K extends RecordId<infer R> ? R : never
+/** @public */
+export type RecordFromId<K extends RecordId<UnknownRecord>> =
+	K extends RecordId<infer R> ? R : never
 
 /**
  * A diff describing the changes to a collection.
@@ -31,8 +33,10 @@ export interface CollectionDiff<T> {
 	removed?: Set<T>
 }
 
+/** @public */
 export type ChangeSource = 'user' | 'remote'
 
+/** @public */
 export interface StoreListenerFilters {
 	source: ChangeSource | 'all'
 	scope: RecordScope | 'all'
@@ -450,7 +454,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to get.
 	 * @public
 	 */
-	get = <K extends IdOf<R>>(id: K): RecFromId<K> | undefined => {
+	get = <K extends IdOf<R>>(id: K): RecordFromId<K> | undefined => {
 		return this.atoms.get()[id]?.get() as any
 	}
 
@@ -460,7 +464,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to get.
 	 * @public
 	 */
-	unsafeGetWithoutCapture = <K extends IdOf<R>>(id: K): RecFromId<K> | undefined => {
+	unsafeGetWithoutCapture = <K extends IdOf<R>>(id: K): RecordFromId<K> | undefined => {
 		return this.atoms.get()[id]?.__unsafe__getWithoutCapture() as any
 	}
 
@@ -602,14 +606,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to update.
 	 * @param updater - A function that updates the record.
 	 */
-	update = <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => {
+	update = <K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>) => {
 		const atom = this.atoms.get()[id]
 		if (!atom) {
 			console.error(`Record ${id} not found. This is probably an error`)
 			return
 		}
 
-		this.put([updater(atom.__unsafe__getWithoutCapture() as any as RecFromId<K>) as any])
+		this.put([updater(atom.__unsafe__getWithoutCapture() as any as RecordFromId<K>) as any])
 	}
 
 	/**
@@ -973,8 +977,10 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	}
 }
 
-type StoreContext<R extends UnknownRecord> = Store<R> | { store: Store<R> }
-type ContextRecordType<Context extends StoreContext<any>> =
+/** @public */
+export type StoreObject<R extends UnknownRecord> = Store<R> | { store: Store<R> }
+/** @public */
+export type StoreObjectRecordType<Context extends StoreObject<any>> =
 	Context extends Store<infer R> ? R : Context extends { store: Store<infer R> } ? R : never
 
 /**
@@ -992,9 +998,9 @@ type ContextRecordType<Context extends StoreContext<any>> =
  * @public
  */
 export function createComputedCache<
-	Context extends StoreContext<any>,
+	Context extends StoreObject<any>,
 	Result,
-	Record extends ContextRecordType<Context> = ContextRecordType<Context>,
+	Record extends StoreObjectRecordType<Context> = StoreObjectRecordType<Context>,
 >(
 	name: string,
 	derive: (context: Context, record: Record) => Result | undefined,

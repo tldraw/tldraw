@@ -47,6 +47,7 @@ export interface HandleSnapGeometry {
 const defaultGetSelfSnapOutline = () => null
 const defaultGetSelfSnapPoints = () => []
 
+/** @public */
 export class HandleSnaps {
 	readonly editor: Editor
 	constructor(readonly manager: SnapManager) {
