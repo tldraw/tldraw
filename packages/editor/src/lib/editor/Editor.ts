@@ -890,6 +890,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	undo(): this {
 		this._flushEventsForTick(0)
+		this.complete()
 		this.history.undo()
 		return this
 	}
@@ -1438,12 +1439,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>,
 		historyOptions?: TLHistoryBatchOptions
 	) => {
-		this.batch(() => {
-			this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
-				...state,
-				...partial,
-			}))
-		}, historyOptions)
+		this.batch(
+			() => {
+				this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
+					...state,
+					...partial,
+				}))
+			},
+			{
+				history: 'ignore',
+				...historyOptions,
+			}
+		)
 	}
 
 	/**

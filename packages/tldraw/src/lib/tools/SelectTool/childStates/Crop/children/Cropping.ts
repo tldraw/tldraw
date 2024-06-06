@@ -11,9 +11,9 @@ import {
 	Vec,
 	structuredClone,
 } from '@tldraw/editor'
-import { kickoutOccludedShapes } from '../selectHelpers'
-import { MIN_CROP_SIZE } from './Crop/crop-constants'
-import { CursorTypeMap } from './PointingResizeHandle'
+import { kickoutOccludedShapes } from '../../../selectHelpers'
+import { CursorTypeMap } from '../../PointingResizeHandle'
+import { MIN_CROP_SIZE } from '../crop-constants'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
 

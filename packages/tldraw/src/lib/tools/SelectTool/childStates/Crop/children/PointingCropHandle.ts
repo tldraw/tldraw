@@ -1,5 +1,5 @@
 import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
-import { CursorTypeMap } from './PointingResizeHandle'
+import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
 	target: 'selection'
