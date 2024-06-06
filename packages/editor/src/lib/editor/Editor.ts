@@ -3910,14 +3910,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
 		const dpr = this.getInstanceState().devicePixelRatio
 
-		return await this._assetOptions
-			.get()
-			.onResolveAsset(asset!, {
-				screenScale: context.screenScale,
-				steppedScreenScale,
-				dpr,
-				networkEffectiveType,
-			})
+		return await this._assetOptions.get().onResolveAsset(asset!, {
+			screenScale: context.screenScale,
+			steppedScreenScale,
+			dpr,
+			networkEffectiveType,
+		})
 	}
 
 	/* --------------------- Shapes --------------------- */
