@@ -142,7 +142,7 @@ export function getOwnProperty(obj: object, key: string): unknown;
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @internal
-class Image_2 extends HTMLImageElement {
+class Image_2 extends window.Image {
     // (undocumented)
     new(width?: number, height?: number): HTMLImageElement;
 }
