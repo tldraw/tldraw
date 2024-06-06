@@ -1,6 +1,6 @@
+import { BindingOnShapeDeleteOptions } from '@tldraw/editor'
 import {
 	BindingOnShapeChangeOptions,
-	BindingOnUnbindOptions,
 	BindingUtil,
 	Box,
 	DefaultToolbar,
@@ -157,10 +157,8 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 	}
 
 	// when the thing we're stuck to is deleted, delete the sticker too
-	override onBeforeUnbind({ binding, reason }: BindingOnUnbindOptions<StickerBinding>): void {
-		if (reason === 'delete_to_shape') {
-			this.editor.deleteShape(binding.fromId)
-		}
+	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<StickerBinding>): void {
+		this.editor.deleteShape(binding.fromId)
 	}
 }
 

@@ -1,6 +1,6 @@
 import {
 	BindingOnShapeChangeOptions,
-	BindingOnUnbindOptions,
+	BindingOnShapeDeleteOptions,
 	BindingUtil,
 	Box,
 	DefaultFillStyle,
@@ -256,10 +256,8 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 	}
 
 	// when the thing we're stuck to is deleted, delete the pin too
-	override onBeforeUnbind({ binding, reason }: BindingOnUnbindOptions<PinBinding>): void {
-		if (reason === 'delete_to_shape') {
-			this.editor.deleteShape(binding.fromId)
-		}
+	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<PinBinding>): void {
+		this.editor.deleteShape(binding.fromId)
 	}
 }
 

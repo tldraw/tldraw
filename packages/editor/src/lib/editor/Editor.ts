@@ -57,6 +57,7 @@ import {
 	JsonObject,
 	PerformanceTracker,
 	Result,
+	Timers,
 	annotateError,
 	assert,
 	assertExists,
@@ -83,26 +84,16 @@ import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkBindings } from '../config/defaultBindings'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
-	ANIMATION_MEDIUM_MS,
-	CAMERA_MOVING_TIMEOUT,
-	CAMERA_SLIDE_FRICTION,
-	COARSE_DRAG_DISTANCE,
-	COLLABORATOR_IDLE_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
-	DRAG_DISTANCE,
-	FOLLOW_CHASE_VIEWPORT_SNAP,
-	HIT_TEST_MARGIN,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
-	LONG_PRESS_DURATION,
-	MAX_PAGES,
-	MAX_SHAPES_PER_PAGE,
 	MIDDLE_MOUSE_BUTTON,
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
 	ZOOM_TO_FIT_PADDING,
 } from '../constants'
+import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike } from '../primitives/Mat'
 import { Vec, VecLike } from '../primitives/Vec'
@@ -119,7 +110,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import {
-	BindingOnUnbindOptions,
+	BindingOnDeleteOptions,
 	BindingUtil,
 	TLBindingUtilConstructor,
 } from './bindings/BindingUtil'
@@ -216,6 +207,8 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
+
+	options?: Partial<TldrawOptions>
 }
 
 /** @public */
@@ -231,9 +224,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		initialState,
 		autoFocus,
 		inferDarkMode,
+		options,
 	}: TLEditorOptions) {
 		super()
 
+		this.options = { ...defaultTldrawOptions, ...options }
 		this.store = store
 		this.history = new HistoryManager<TLRecord>({
 			store,
@@ -244,6 +239,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.snaps = new SnapManager(this)
+
+		this.timers = new Timers()
+		this.disposables.add(this.timers.dispose.bind(this.timers))
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
@@ -360,7 +358,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.sideEffects = this.store.sideEffects
 
-		let deletedBindings = new Map<TLBindingId, BindingOnUnbindOptions<any>>()
+		let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<string>()
@@ -396,7 +394,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const t = deletedBindings
 					deletedBindings = new Map()
 					for (const opts of t.values()) {
-						this.getBindingUtil(opts.binding).onAfterUnbind?.(opts)
+						this.getBindingUtil(opts.binding).onAfterDelete?.(opts)
 					}
 				}
 
@@ -492,8 +490,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 						for (const binding of this.getBindingsInvolvingShape(shape)) {
 							invalidBindingTypes.add(binding.type)
 							deleteBindingIds.push(binding.id)
+							const util = this.getBindingUtil(binding)
+							if (binding.fromId === shape.id) {
+								util.onBeforeIsolateToShape?.({ binding, removedShape: shape })
+								util.onBeforeDeleteFromShape?.({ binding, shape })
+							} else {
+								util.onBeforeIsolateFromShape?.({ binding, removedShape: shape })
+								util.onBeforeDeleteToShape?.({ binding, shape })
+							}
 						}
-						this.deleteBindings(deleteBindingIds)
+
+						if (deleteBindingIds.length) {
+							this.deleteBindings(deleteBindingIds)
+						}
 
 						const deletedIds = new Set([shape.id])
 						const updates = compact(
@@ -530,25 +539,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.getBindingUtil(bindingAfter).onAfterChange?.({ bindingBefore, bindingAfter })
 					},
 					beforeDelete: (binding) => {
-						const util = this.getBindingUtil(binding)
-						// No need to track this binding if it's util doesn't care about the unbind operation
-						if (!util.onBeforeUnbind && !util.onAfterUnbind) return
-						// We only want to call this once per binding and it might be possible that the onBeforeUnbind
-						// callback will trigger a nested delete operation on the same binding so let's bail out if
-						// that is happening
-						if (deletedBindings.has(binding.id)) return
-						const opts: BindingOnUnbindOptions<any> = {
-							binding,
-							reason: deletedShapeIds.has(binding.fromId)
-								? 'delete_from_shape'
-								: deletedShapeIds.has(binding.toId)
-									? 'delete_to_shape'
-									: 'delete_binding',
-						}
-						deletedBindings.set(binding.id, opts)
-						this.getBindingUtil(binding).onBeforeUnbind?.(opts)
+						this.getBindingUtil(binding).onBeforeDelete?.({ binding })
 					},
 					afterDelete: (binding) => {
+						this.getBindingUtil(binding).onAfterDelete?.({ binding })
 						invalidBindingTypes.add(binding.type)
 					},
 				},
@@ -692,12 +686,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.on('tick', this._flushEventsForTick)
 
-		requestAnimationFrame(() => {
+		this.timers.requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
 
 		this.performanceTracker = new PerformanceTracker()
 	}
+
+	readonly options: TldrawOptions
 
 	/**
 	 * The editor's store
@@ -729,6 +725,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly snaps: SnapManager
+
+	/**
+	 * A manager for the any asynchronous events and making sure they're
+	 * cleaned up upon disposal.
+	 *
+	 * @public
+	 */
+	readonly timers: Timers
 
 	/**
 	 * A manager for the user and their preferences.
@@ -1249,7 +1253,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			clearTimeout(this._isChangingStyleTimeout)
 			if (partial.isChangingStyle === true) {
 				// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
-				this._isChangingStyleTimeout = setTimeout(() => {
+				this._isChangingStyleTimeout = this.timers.setTimeout(() => {
 					this._updateInstanceState({ isChangingStyle: false }, { history: 'ignore' })
 				}, 2000)
 			}
@@ -1874,7 +1878,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setHoveredShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
 		if (id === this.getHoveredShapeId()) return this
-		this.updateCurrentPageState({ hoveredShapeId: id })
+		this.updateCurrentPageState({ hoveredShapeId: id }, { history: 'ignore' })
 		return this
 	}
 
@@ -2875,7 +2879,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as {
 			speed: number
 			direction: VecLike
-			friction: number
+			friction?: number
 			speedThreshold?: number
 		}
 	): this {
@@ -2886,7 +2890,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.stopCameraAnimation()
 
-		const { speed, friction, direction, speedThreshold = 0.01 } = opts
+		const {
+			speed,
+			friction = this.options.cameraSlideFriction,
+			direction,
+			speedThreshold = 0.01,
+		} = opts
 		let currentSpeed = Math.min(speed, 1)
 
 		const cancel = () => {
@@ -2956,13 +2965,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.updateInstanceState({ highlightedUserIds: [...highlightedUserIds, userId] })
 
 			// Unhighlight the user's cursor after a few seconds
-			setTimeout(() => {
+			this.timers.setTimeout(() => {
 				const highlightedUserIds = [...this.getInstanceState().highlightedUserIds]
 				const index = highlightedUserIds.indexOf(userId)
 				if (index < 0) return
 				highlightedUserIds.splice(index, 1)
 				this.updateInstanceState({ highlightedUserIds })
-			}, COLLABORATOR_IDLE_TIMEOUT)
+			}, this.options.collaboratorIdleTimeoutMs)
 		})
 
 		return this
@@ -2979,8 +2988,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateViewportScreenBounds()
-	 * editor.updateViewportScreenBounds(true)
+	 * editor.updateViewportScreenBounds(new Box(0, 0, 1280, 1024))
+	 * editor.updateViewportScreenBounds(new Box(0, 0, 1280, 1024), true)
 	 * ```
 	 *
 	 * @param center - Whether to preserve the viewport page center as the viewport changes.
@@ -3002,29 +3011,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 			screenBounds.minX !== 0,
 		]
 
-		const boundsAreEqual = screenBounds.equals(this.getViewportScreenBounds())
+		const { screenBounds: prevScreenBounds, insets: prevInsets } = this.getInstanceState()
+		if (screenBounds.equals(prevScreenBounds) && insets.every((v, i) => v === prevInsets[i])) {
+			// nothing to do
+			return this
+		}
 
 		const { _willSetInitialBounds } = this
 
-		if (boundsAreEqual) {
-			this._willSetInitialBounds = false
+		this._willSetInitialBounds = false
+
+		if (_willSetInitialBounds) {
+			// If we have just received the initial bounds, don't center the camera.
+			this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
+			this.setCamera(this.getCamera())
 		} else {
-			if (_willSetInitialBounds) {
-				// If we have just received the initial bounds, don't center the camera.
-				this._willSetInitialBounds = false
+			if (center && !this.getInstanceState().followingUserId) {
+				// Get the page center before the change, make the change, and restore it
+				const before = this.getViewportPageBounds().center
 				this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
-				this.setCamera(this.getCamera())
+				this.centerOnPoint(before)
 			} else {
-				if (center && !this.getInstanceState().followingUserId) {
-					// Get the page center before the change, make the change, and restore it
-					const before = this.getViewportPageBounds().center
-					this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
-					this.centerOnPoint(before)
-				} else {
-					// Otherwise,
-					this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
-					this._setCamera(Vec.From({ ...this.getCamera() }))
-				}
+				// Otherwise,
+				this.updateInstanceState({ screenBounds: screenBounds.toJson(), insets })
+				this._setCamera(Vec.From({ ...this.getCamera() }))
 			}
 		}
 
@@ -3215,7 +3225,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		transact(() => {
-			this.updateInstanceState({ followingUserId: userId })
+			this.updateInstanceState({ followingUserId: userId }, { history: 'ignore' })
 
 			// we listen for page changes separately from the 'moveTowardsUser' tick
 			const dispose = react('update current page', () => {
@@ -3278,7 +3288,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					Math.abs(targetViewport.maxY - currentViewport.maxY)
 
 				// Stop chasing if we're close enough!
-				if (diffX < FOLLOW_CHASE_VIEWPORT_SNAP && diffY < FOLLOW_CHASE_VIEWPORT_SNAP) {
+				if (
+					diffX < this.options.followChaseViewportSnap &&
+					diffY < this.options.followChaseViewportSnap
+				) {
 					this._isLockedOnFollowingUser.set(true)
 					return
 				}
@@ -3326,7 +3339,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopFollowingUser(): this {
-		this.batch(() => {
+		this.history.ignore(() => {
 			// commit the current camera to the store
 			this.store.put([this.getCamera()])
 			// this must happen after the camera is committed
@@ -3363,8 +3376,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			opacity: number
 		}[] = []
 
-		let nextIndex = MAX_SHAPES_PER_PAGE * 2
-		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE
+		let nextIndex = this.options.maxShapesPerPage * 2
+		let nextBackgroundIndex = this.options.maxShapesPerPage
 
 		const erasingShapeIds = this.getErasingShapeIds()
 
@@ -3402,7 +3415,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (util.providesBackgroundForChildren(shape)) {
 				backgroundIndexToRestore = nextBackgroundIndex
 				nextBackgroundIndex = nextIndex
-				nextIndex += MAX_SHAPES_PER_PAGE
+				nextIndex += this.options.maxShapesPerPage
 			}
 
 			for (const childId of childIds) {
@@ -3443,7 +3456,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	private _tickCameraState = () => {
 		// always reset the timeout
-		this._cameraStateTimeoutRemaining = CAMERA_MOVING_TIMEOUT
+		this._cameraStateTimeoutRemaining = this.options.cameraMovingTimeoutMs
 		// If the state is idle, then start the tick
 		if (this._cameraState.__unsafe__getWithoutCapture() !== 'idle') return
 		this._cameraState.set('moving')
@@ -3666,7 +3679,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	createPage(page: Partial<TLPage>): this {
 		this.history.batch(() => {
 			if (this.getInstanceState().isReadonly) return
-			if (this.getPages().length >= MAX_PAGES) return
+			if (this.getPages().length >= this.options.maxPages) return
 			const pages = this.getPages()
 
 			const name = getIncrementedName(
@@ -3733,7 +3746,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	duplicatePage(page: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): this {
-		if (this.getPages().length >= MAX_PAGES) return this
+		if (this.getPages().length >= this.options.maxPages) return this
 		const id = typeof page === 'string' ? page : page.id
 		const freshPage = this.getPage(id) // get the most recent version of the page anyway
 		if (!freshPage) return this
@@ -3812,7 +3825,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	createAssets(assets: TLAsset[]): this {
 		if (this.getInstanceState().isReadonly) return this
 		if (assets.length <= 0) return this
-		return this.batch(() => this.store.put(assets))
+		this.history.ignore(() => this.store.put(assets))
+		return this
 	}
 
 	/**
@@ -3830,7 +3844,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	updateAssets(assets: TLAssetPartial[]): this {
 		if (this.getInstanceState().isReadonly) return this
 		if (assets.length <= 0) return this
-		return this.batch(() => {
+		this.history.ignore(() => {
 			this.store.put(
 				assets.map((partial) => ({
 					...this.store.get(partial.id)!,
@@ -3838,6 +3852,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}))
 			)
 		})
+		return this
 	}
 
 	/**
@@ -3861,7 +3876,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (assets as TLAsset[]).map((a) => a.id)
 		if (ids.length <= 0) return this
 
-		return this.batch(() => this.store.remove(ids))
+		this.history.ignore(() => this.store.remove(ids))
+		return this
 	}
 
 	/**
@@ -4542,7 +4558,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			} else {
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
-				if (distance < HIT_TEST_MARGIN / zoomLevel) {
+				if (distance < this.options.hitTestMargin / zoomLevel) {
 					return shape
 				}
 			}
@@ -5265,16 +5281,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Delete several bindings by their IDs. If a binding ID doesn't exist, it's ignored.
 	 */
-	deleteBindings(bindings: (TLBinding | TLBindingId)[]) {
+	deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
 		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
-		this.store.remove(ids)
+		if (isolateShapes) {
+			this.store.atomic(() => {
+				for (const id of ids) {
+					const binding = this.getBinding(id)
+					if (!binding) continue
+					const util = this.getBindingUtil(binding)
+					util.onBeforeIsolateFromShape?.({ binding, removedShape: this.getShape(binding.toId)! })
+					util.onBeforeIsolateToShape?.({ binding, removedShape: this.getShape(binding.fromId)! })
+					this.store.remove([id])
+				}
+			})
+		} else {
+			this.store.remove(ids)
+		}
 		return this
 	}
 	/**
 	 * Delete a binding by its ID. If the binding doesn't exist, it's ignored.
 	 */
-	deleteBinding(binding: TLBinding | TLBindingId) {
-		return this.deleteBindings([binding])
+	deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]) {
+		return this.deleteBindings([binding], opts)
 	}
 	canBindShapes({
 		fromShape,
@@ -5427,7 +5456,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shapeIds.set(shapeId, createShapeId())
 			}
 
-			const { shapesToCreate, bindingsToCreate } = withoutBindingsToUnrelatedShapes(
+			const { shapesToCreate, bindingsToCreate } = withIsolatedShapes(
 				this,
 				shapeIdSet,
 				(bindingIdsToMaintain) => {
@@ -5486,7 +5515,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 
 			const maxShapesReached =
-				shapesToCreate.length + this.getCurrentPageShapeIds().size > MAX_SHAPES_PER_PAGE
+				shapesToCreate.length + this.getCurrentPageShapeIds().size > this.options.maxShapesPerPage
 
 			if (maxShapesReached) {
 				alertMaxShapes(this)
@@ -5505,7 +5534,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const viewportPageBounds = this.getViewportPageBounds()
 				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
 					this.centerOnPoint(selectionPageBounds.center, {
-						animation: { duration: ANIMATION_MEDIUM_MS },
+						animation: { duration: this.options.animationMediumMs },
 					})
 				}
 			}
@@ -5549,7 +5578,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// If there is no space on pageId, or if the selected shapes
 		// would take the new page above the limit, don't move the shapes
-		if (this.getPageShapeIds(pageId).size + content.shapes.length > MAX_SHAPES_PER_PAGE) {
+		if (this.getPageShapeIds(pageId).size + content.shapes.length > this.options.maxShapesPerPage) {
 			alertMaxShapes(this, pageId)
 			return this
 		}
@@ -6652,7 +6681,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const currentPageShapeIds = this.getCurrentPageShapeIds()
 
-		const maxShapesReached = shapes.length + currentPageShapeIds.size > MAX_SHAPES_PER_PAGE
+		const maxShapesReached =
+			shapes.length + currentPageShapeIds.size > this.options.maxShapesPerPage
 
 		if (maxShapesReached) {
 			// can't create more shapes than fit on the page
@@ -6958,12 +6988,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Create a group containing the provided shapes.
 	 *
+	 * @example
+	 * ```ts
+	 * editor.groupShapes([myShape, myOtherShape])
+	 * editor.groupShapes([myShape, myOtherShape], { groupId: myGroupId, select: false })
+	 * ```
+	 *
 	 * @param shapes - The shapes (or shape ids) to group. Defaults to the selected shapes.
-	 * @param groupId - The id of the group to create.
+	 * @param options - An options object.
 	 *
 	 * @public
 	 */
-	groupShapes(shapes: TLShapeId[] | TLShape[], groupId = createShapeId()): this {
+	groupShapes(shapes: TLShape[], options?: Partial<{ groupId: TLShapeId; select: boolean }>): this
+	groupShapes(ids: TLShapeId[], options?: Partial<{ groupId: TLShapeId; select: boolean }>): this
+	groupShapes(
+		shapes: TLShapeId[] | TLShape[],
+		options = {} as Partial<{ groupId: TLShapeId; select: boolean }>
+	): this {
+		const { groupId = createShapeId(), select = true } = options
+
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.groupShapes: must provide an array of shapes or shape ids')
 		}
@@ -7013,7 +7056,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 			])
 			this.reparentShapes(sortedShapeIds, groupId)
-			this.select(groupId)
+			if (select) {
+				// the select option determines whether the grouped shapes' children are selected
+				this.select(groupId)
+			}
 		})
 
 		return this
@@ -7022,15 +7068,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Ungroup some shapes.
 	 *
-	 * @param ids - Ids of the shapes to ungroup. Defaults to the selected shapes.
+	 * @example
+	 * ```ts
+	 * editor.ungroupShapes([myGroup, myOtherGroup])
+	 * editor.ungroupShapes([myGroup], { select: false })
+	 * ```
+	 *
+	 * @param shapes - The group shapes (or shape ids) to ungroup.
+	 * @param options - An options object.
 	 *
 	 * @public
 	 */
-	ungroupShapes(ids: TLShapeId[]): this
-	ungroupShapes(ids: TLShape[]): this
-	ungroupShapes(_ids: TLShapeId[] | TLShape[]) {
+	ungroupShapes(ids: TLShapeId[], options?: Partial<{ select: boolean }>): this
+	ungroupShapes(shapes: TLShape[], options?: Partial<{ select: boolean }>): this
+	ungroupShapes(shapes: TLShapeId[] | TLShape[], options = {} as Partial<{ select: boolean }>) {
+		const { select = true } = options
 		const ids =
-			typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
+			typeof shapes[0] === 'string'
+				? (shapes as TLShapeId[])
+				: (shapes as TLShape[]).map((s) => s.id)
 		if (this.getInstanceState().isReadonly) return this
 		if (ids.length === 0) return this
 
@@ -7048,11 +7104,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const idsToSelect = new Set<TLShapeId>()
 
 		// Get all groups in the selection
-		const shapes = compact(ids.map((id) => this.getShape(id)))
-
 		const groups: TLGroupShape[] = []
 
-		shapes.forEach((shape) => {
+		compact(ids.map((id) => this.getShape(id))).forEach((shape) => {
 			if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
 				groups.push(shape)
 			} else {
@@ -7077,7 +7131,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			this.deleteShapes(groups.map((group) => group.id))
-			this.select(...idsToSelect)
+
+			if (select) {
+				// the select option determines whether the ungrouped shapes' children are selected
+				this.select(...idsToSelect)
+			}
 		})
 
 		return this
@@ -7656,7 +7714,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapeIds = this.getShapeAndDescendantIds(ids)
 
-		return withoutBindingsToUnrelatedShapes(this, shapeIds, (bindingIdsToKeep) => {
+		return withIsolatedShapes(this, shapeIds, (bindingIdsToKeep) => {
 			const bindings: TLBinding[] = []
 			for (const id of bindingIdsToKeep) {
 				const binding = this.getBinding(id)
@@ -7896,7 +7954,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return newShape
 		})
 
-		if (newShapes.length + this.getCurrentPageShapeIds().size > MAX_SHAPES_PER_PAGE) {
+		if (newShapes.length + this.getCurrentPageShapeIds().size > this.options.maxShapesPerPage) {
 			// There's some complexity here involving children
 			// that might be created without their parents, so
 			// if we're going over the limit then just don't paste.
@@ -8263,18 +8321,67 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Dispatch a focus event.
+	 * Puts the editor into focused mode.
+	 *
+	 * This makes the editor eligible to receive keyboard events and some pointer events (move, wheel).
 	 *
 	 * @example
 	 * ```ts
 	 * editor.focus()
 	 * ```
 	 *
+	 * By default this also dispatches a 'focus' event to the container element. To prevent this, pass `focusContainer: false`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.focus({ focusContainer: false })
+	 * ```
+	 *
 	 * @public
 	 */
-	focus(): this {
-		this.focusManager.focus()
+	focus({ focusContainer = true } = {}): this {
+		if (focusContainer) {
+			this.focusManager.focus()
+		}
+		this.updateInstanceState({ isFocused: true })
 		return this
+	}
+
+	/**
+	 * Switches off the editor's focused mode.
+	 *
+	 * This makes the editor ignore keyboard events and some pointer events (move, wheel).
+	 *
+	 * @example
+	 * ```ts
+	 * editor.blur()
+	 * ```
+	 * By default this also dispatches a 'blur' event to the container element. To prevent this, pass `blurContainer: false`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.blur({ blurContainer: false })
+	 * ```
+	 *
+	 * @public
+	 */
+	blur({ blurContainer = true } = {}): this {
+		if (!this.getIsFocused()) return this
+		if (blurContainer) {
+			this.focusManager.blur()
+		} else {
+			this.complete() // stop any interaction
+		}
+		this.updateInstanceState({ isFocused: false })
+		return this
+	}
+
+	/**
+	 * @public
+	 * @returns true if the editor is focused
+	 */
+	@computed getIsFocused() {
+		return this.getInstanceState().isFocused
 	}
 
 	/**
@@ -8443,27 +8550,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		if (info.shiftKey) {
-			clearInterval(this._shiftKeyTimeout)
+			clearTimeout(this._shiftKeyTimeout)
 			this._shiftKeyTimeout = -1
 			inputs.shiftKey = true
 		} else if (!info.shiftKey && inputs.shiftKey && this._shiftKeyTimeout === -1) {
-			this._shiftKeyTimeout = setTimeout(this._setShiftKeyTimeout, 150)
+			this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
 		}
 
 		if (info.altKey) {
-			clearInterval(this._altKeyTimeout)
+			clearTimeout(this._altKeyTimeout)
 			this._altKeyTimeout = -1
 			inputs.altKey = true
 		} else if (!info.altKey && inputs.altKey && this._altKeyTimeout === -1) {
-			this._altKeyTimeout = setTimeout(this._setAltKeyTimeout, 150)
+			this._altKeyTimeout = this.timers.setTimeout(this._setAltKeyTimeout, 150)
 		}
 
 		if (info.ctrlKey) {
-			clearInterval(this._ctrlKeyTimeout)
+			clearTimeout(this._ctrlKeyTimeout)
 			this._ctrlKeyTimeout = -1
 			inputs.ctrlKey = true
 		} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === -1) {
-			this._ctrlKeyTimeout = setTimeout(this._setCtrlKeyTimeout, 150)
+			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
 		}
 
 		const { originPagePoint, currentPagePoint } = inputs
@@ -8648,13 +8755,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (!this.inputs.isPanning) {
 							// Start a long press timeout
-							this._longPressTimeout = setTimeout(() => {
+							this._longPressTimeout = this.timers.setTimeout(() => {
 								this.dispatch({
 									...info,
 									point: this.inputs.currentScreenPoint,
 									name: 'long_press',
 								})
-							}, LONG_PRESS_DURATION)
+							}, this.options.longPressDurationMs)
 						}
 
 						// Save the selected ids at pointer down
@@ -8721,8 +8828,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (
 							inputs.isPointing &&
 							!inputs.isDragging &&
-							Vec.Dist2(originPagePoint, currentPagePoint) >
-								(instanceState.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) / cz
+							Vec.Dist2(originPagePoint, currentPagePoint) * this.getZoomLevel() >
+								(instanceState.isCoarsePointer
+									? this.options.coarseDragDistanceSquared
+									: this.options.dragDistanceSquared) /
+									cz
 						) {
 							// Start dragging
 							inputs.isDragging = true
@@ -8775,11 +8885,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 
 							if (slideSpeed > 0) {
-								this.slideCamera({
-									speed: slideSpeed,
-									direction: slideDirection,
-									friction: CAMERA_SLIDE_FRICTION,
-								})
+								this.slideCamera({ speed: slideSpeed, direction: slideDirection })
 							}
 						} else {
 							if (info.button === STYLUS_ERASER_BUTTON) {
@@ -8883,7 +8989,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			} else {
 				this.performanceTracker.start(name)
 			}
-			this.performanceTrackerTimeout = setTimeout(() => {
+			this.performanceTrackerTimeout = this.timers.setTimeout(() => {
 				this.performanceTracker.stop()
 			}, 50)
 		}
@@ -8892,7 +8998,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	const name = editor.getPage(pageId)!.name
-	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
+	editor.emit('max-shapes', { name, pageId, count: editor.options.maxShapesPerPage })
 }
 
 function applyPartialToRecordWithProps<
@@ -8949,36 +9055,36 @@ function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape
  *
  * The callback is given the set of bindings that should be maintained.
  */
-function withoutBindingsToUnrelatedShapes<T>(
+function withIsolatedShapes<T>(
 	editor: Editor,
 	shapeIds: Set<TLShapeId>,
 	callback: (bindingsWithBoth: Set<TLBindingId>) => T
 ): T {
-	const bindingsWithBoth = new Set<TLBindingId>()
-	const bindingsToRemove = new Set<TLBindingId>()
-
-	for (const shapeId of shapeIds) {
-		const shape = editor.getShape(shapeId)
-		if (!shape) continue
-
-		for (const binding of editor.getBindingsInvolvingShape(shapeId)) {
-			const hasFrom = shapeIds.has(binding.fromId)
-			const hasTo = shapeIds.has(binding.toId)
-			if (hasFrom && hasTo) {
-				bindingsWithBoth.add(binding.id)
-				continue
-			}
-			if (!hasFrom || !hasTo) {
-				bindingsToRemove.add(binding.id)
-			}
-		}
-	}
-
 	let result!: Result<T, unknown>
 
 	editor.history.ignore(() => {
 		const changes = editor.store.extractingChanges(() => {
-			editor.deleteBindings([...bindingsToRemove])
+			const bindingsWithBoth = new Set<TLBindingId>()
+			const bindingsToRemove = new Set<TLBindingId>()
+
+			for (const shapeId of shapeIds) {
+				const shape = editor.getShape(shapeId)
+				if (!shape) continue
+
+				for (const binding of editor.getBindingsInvolvingShape(shapeId)) {
+					const hasFrom = shapeIds.has(binding.fromId)
+					const hasTo = shapeIds.has(binding.toId)
+					if (hasFrom && hasTo) {
+						bindingsWithBoth.add(binding.id)
+						continue
+					}
+					if (!hasFrom || !hasTo) {
+						bindingsToRemove.add(binding.id)
+					}
+				}
+			}
+
+			editor.deleteBindings([...bindingsToRemove], { isolateShapes: true })
 
 			try {
 				result = Result.ok(callback(bindingsWithBoth))

@@ -26,29 +26,6 @@ export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
 }
 
 /**
- * Options passed to {@link BindingUtil.onBeforeUnbind} and {@link BindingUtil.onAfterUnbind},
- * describing a binding being unbound.
- *
- * - `delete_from_shape`: The shape referenced by the binding's `fromId` is being deleted.
- * - `delete_to_shape`: The shape referenced by the binding's `toId` is being deleted.
- * - `delete_binding`: The binding itself is being deleted, but the shapes involved are not.
- *
- * @public
- */
-export interface BindingOnUnbindOptions<Binding extends TLUnknownBinding> {
-	/** The binding which is being unbound. */
-	binding: Binding
-	/**
-	 * The reason the binding it being unbound.
-	 *
-	 * - `delete _from_shape`: The shape referenced by the binding's `fromId` is being deleted.
-	 * - `delete_to_shape`: The shape referenced by the binding's `toId` is being deleted.
-	 * - `delete_binding`: The binding itself is being deleted, but the shapes involved are not.
-	 */
-	reason: 'delete_from_shape' | 'delete_to_shape' | 'delete_binding'
-}
-
-/**
  * Options passed to {@link BindingUtil.onBeforeChange} and {@link BindingUtil.onAfterChange},
  * describing the data associated with a binding being changed.
  *
@@ -59,6 +36,17 @@ export interface BindingOnChangeOptions<Binding extends TLUnknownBinding> {
 	bindingBefore: Binding
 	/** The binding record after the change is made. */
 	bindingAfter: Binding
+}
+
+/**
+ * Options passed to {@link BindingUtil.onBeforeDelete} and {@link BindingUtil.onAfterDelete},
+ * describing a binding being deleted.
+ *
+ * @public
+ */
+export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
+	/** The binding being deleted. */
+	binding: Binding
 }
 
 /**
@@ -74,6 +62,57 @@ export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
 	shapeBefore: TLShape
 	/** The shape record after the change is made. */
 	shapeAfter: TLShape
+}
+
+/**
+ * Options passed to {@link BindingUtil.onBeforeIsolateFromShape} and
+ * {@link BindingUtil.onBeforeIsolateToShape}, describing a shape that is about to be isolated from
+ * the one that it's bound to.
+ *
+ * Isolation happens whenever two bound shapes are separated. For example
+ * 1. One is deleted, but the other is not.
+ * 1. One is copied, but the other is not.
+ * 1. One is duplicated, but the other is not.
+ *
+ * In each of these cases, if the remaining shape depends on the binding for its rendering, it may
+ * now be in an inconsistent state. For example, tldraw's arrow shape depends on the binding to know
+ * where the end of the arrow is. If we removed the binding without doing anything else, the arrow
+ * would suddenly be pointing to the wrong location. Instead, when the shape the arrow is pointing
+ * to is deleted, or the arrow is copied/duplicated, we use an isolation callback. The callback
+ * updates the arrow based on the binding that's about to be removed, so it doesn't end up pointing
+ * to the wrong place.
+ *
+ * For this style of consistency update, use isolation callbacks. For actions specific to deletion
+ * (like deleting a sticker when the shape it's bound to is removed), use the delete callbacks
+ * ({@link BindingUtil.onBeforeDeleteFromShape} and {@link BindingUtil.onBeforeDeleteToShape})
+ * instead.
+ *
+ * @public
+ */
+export interface BindingOnShapeIsolateOptions<Binding extends TLUnknownBinding> {
+	/** The binding record that refers to the shape in question. */
+	binding: Binding
+	/**
+	 * The shape being removed. For deletion, this is the deleted shape. For copy/duplicate, this is
+	 * the shape that _isn't_ being copied/duplicated and is getting left behind.
+	 */
+	removedShape: TLShape
+}
+
+/**
+ * Options passed to {@link BindingUtil.onBeforeDeleteFromShape} and
+ * {@link BindingUtil.onBeforeDeleteToShape}, describing a bound shape that is about to be deleted.
+ *
+ * See {@link BindingOnShapeIsolateOptions} for discussion on when to use the delete vs. the isolate
+ * callbacks.
+ *
+ * @public
+ */
+export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
+	/** The binding record that refers to the shape in question. */
+	binding: Binding
+	/** The shape that is about to be deleted. */
+	shape: TLShape
 }
 
 /** @public */
@@ -140,6 +179,10 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	/**
 	 * Called when a binding is about to be changed. See {@link BindingOnChangeOptions} for details.
 	 *
+	 * Note that this only fires when the binding record is changing, not when the shapes
+	 * associated change. Use {@link BindingUtil.onAfterChangeFromShape} and
+	 * {@link BindingUtil.onAfterChangeToShape} for that.
+	 *
 	 * You can optionally return a new binding to replace the one being changed - for example, to
 	 * enforce constraints on the binding's props.
 	 *
@@ -150,26 +193,27 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	/**
 	 * Called after a binding has been changed. See {@link BindingOnChangeOptions} for details.
 	 *
+	 * Note that this only fires when the binding record is changing, not when the shapes
+	 * associated change. Use {@link BindingUtil.onAfterChangeFromShape} and
+	 * {@link BindingUtil.onAfterChangeToShape} for that.
+	 *
 	 * @public
 	 */
 	onAfterChange?(options: BindingOnChangeOptions<Binding>): void
 
 	/**
-	 * Called before a binding is removed. See {@link BindingOnUnbindOptions} for details.
-	 *
-	 * Use this hook to perform any necessary cleanup when a binding is removed, such as updating a
-	 * shape so that removing a binding doesn't change the shape's appearance.
+	 * Called when a binding is about to be deleted. See {@link BindingOnDeleteOptions} for details.
 	 *
 	 * @public
 	 */
-	onBeforeUnbind?(options: BindingOnUnbindOptions<Binding>): void
+	onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): void
 
 	/**
-	 * Called after a binding has been removed. See {@link BindingOnUnbindOptions} for details.
+	 * Called after a binding has been deleted. See {@link BindingOnDeleteOptions} for details.
 	 *
 	 * @public
 	 */
-	onAfterUnbind?(options: BindingOnUnbindOptions<Binding>): void
+	onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void
 
 	/**
 	 * Called after the shape referenced in a binding's `fromId` is changed. Use this to propagate
@@ -188,4 +232,35 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 * @public
 	 */
 	onAfterChangeToShape?(options: BindingOnShapeChangeOptions<Binding>): void
+
+	/**
+	 * Called before the shape referenced in a binding's `fromId` is about to be deleted. Use this
+	 * with care - you may want to use {@link BindingUtil.onBeforeIsolateToShape} instead. See
+	 * {@link BindingOnShapeDeleteOptions} for details.
+	 *
+	 * @public
+	 */
+	onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void
+	/**
+	 * Called before the shape referenced in a binding's `toId` is about to be deleted. Use this
+	 * with care - you may want to use {@link BindingUtil.onBeforeIsolateFromShape} instead. See
+	 * {@link BindingOnShapeDeleteOptions} for details.
+	 *
+	 * @public
+	 */
+	onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void
+
+	/**
+	 * Called before the shape referenced in a binding's `fromId` is about to be isolated from the
+	 * shape referenced in `toId`. See {@link BindingOnShapeIsolateOptions} for discussion on what
+	 * isolation means, and when/how to use this callback.
+	 */
+	onBeforeIsolateFromShape?(options: BindingOnShapeIsolateOptions<Binding>): void
+
+	/**
+	 * Called before the shape referenced in a binding's `toId` is about to be isolated from the
+	 * shape referenced in `fromId`. See {@link BindingOnShapeIsolateOptions} for discussion on what
+	 * isolation means, and when/how to use this callback.
+	 */
+	onBeforeIsolateToShape?(options: BindingOnShapeIsolateOptions<Binding>): void
 }

@@ -19,9 +19,9 @@ export default function MultipleExample() {
 	const setFocusedEditor = useCallback(
 		(editor: Editor | null) => {
 			if (focusedEditor !== editor) {
-				focusedEditor?.updateInstanceState({ isFocused: false })
+				focusedEditor?.blur()
 				_setFocusedEditor(editor)
-				editor?.updateInstanceState({ isFocused: true })
+				editor?.focus()
 			}
 		},
 		[focusedEditor]

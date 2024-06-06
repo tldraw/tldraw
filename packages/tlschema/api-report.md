@@ -769,6 +769,9 @@ export const PageRecordType: RecordType<TLPage, "index" | "name">;
 // @public (undocumented)
 export const parentIdValidator: T.Validator<TLParentId>;
 
+// @internal (undocumented)
+export const pluckPreservingValues: (val?: null | TLInstance) => null | Partial<TLInstance>;
+
 // @public (undocumented)
 export const PointerRecordType: RecordType<TLPointer, never>;
 

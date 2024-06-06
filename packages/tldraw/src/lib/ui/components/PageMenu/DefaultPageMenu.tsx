@@ -1,5 +1,4 @@
 import {
-	MAX_PAGES,
 	PageRecordType,
 	TLPageId,
 	releasePointerCapture,
@@ -50,7 +49,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	// If the user has reached the max page count, we disable the "add page" button
 	const maxPageCountReached = useValue(
 		'maxPageCountReached',
-		() => editor.getPages().length >= MAX_PAGES,
+		() => editor.getPages().length >= editor.options.maxPages,
 		[editor]
 	)
 
@@ -95,7 +94,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	// Scroll the current page into view when the menu opens / when current page changes
 	useEffect(() => {
 		if (!isOpen) return
-		requestAnimationFrame(() => {
+		editor.timers.requestAnimationFrame(() => {
 			const elm = document.querySelector(
 				`[data-testid="page-menu-item-${currentPageId}"]`
 			) as HTMLDivElement
@@ -119,7 +118,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				}
 			}
 		})
-	}, [ITEM_HEIGHT, currentPageId, isOpen])
+	}, [ITEM_HEIGHT, currentPageId, isOpen, editor])
 
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {

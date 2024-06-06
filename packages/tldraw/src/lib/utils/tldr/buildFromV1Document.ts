@@ -1,7 +1,6 @@
 import {
 	AssetRecordType,
 	Editor,
-	MAX_SHAPES_PER_PAGE,
 	PageRecordType,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
@@ -130,7 +129,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 				const v1Shapes = Object.values(v1Page.shapes ?? {})
 					.sort((a, b) => (a.childIndex < b.childIndex ? -1 : 1))
-					.slice(0, MAX_SHAPES_PER_PAGE)
+					.slice(0, editor.options.maxShapesPerPage)
 
 				// Groups only
 				v1Shapes.forEach((v1Shape) => {
@@ -499,7 +498,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 				v1GroupShapeIdsToV1ChildIds.forEach((v1ChildIds, v1GroupId) => {
 					const v2ChildShapeIds = v1ChildIds.map((id) => v1ShapeIdsToV2ShapeIds.get(id)!)
 					const v2GroupId = v1ShapeIdsToV2ShapeIds.get(v1GroupId)!
-					editor.groupShapes(v2ChildShapeIds, v2GroupId)
+					editor.groupShapes(v2ChildShapeIds, { groupId: v2GroupId })
 
 					const v1Group = v1Page.shapes[v1GroupId]
 					const rotation = coerceNumber(v1Group.rotation)

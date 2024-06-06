@@ -19,7 +19,7 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
-	const response = await fetch(url)
+	const response = await fetch(url, { referrerPolicy: 'strict-origin-when-cross-origin' })
 	const blob = await response.blob()
 	return FileHelpers.blobToDataUrl(blob)
 }
@@ -85,6 +85,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					setStaticFrameSrc(canvas.toDataURL())
 				}
 				image.crossOrigin = 'anonymous'
+				image.referrerPolicy = 'strict-origin-when-cross-origin'
 				image.src = url
 
 				return () => {

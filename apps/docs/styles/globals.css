@@ -1091,7 +1091,12 @@ body {
 	.layout {
 		display: grid;
 		grid-template-columns: 200px 1fr;
-		column-gap: 40px;
+		column-gap: 24px;
+	}
+
+	.article {
+		padding-left: 16px;
+		padding-right: 16px;
 	}
 
 	.footer {

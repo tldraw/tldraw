@@ -10,16 +10,18 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	lns,
 	unwrapLabel,
 	useActions,
 	useContainer,
+	useToasts,
 	useTranslation,
 } from 'tldraw'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { createQRCodeImageDataString } from '../utils/qrcode'
 import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
 import { ShareButton } from './ShareButton'
+
+const COPY_LINK_TIMEOUT = 1000
 
 const SHARE_CURRENT_STATE = {
 	OFFLINE: 'offline',
@@ -77,6 +79,14 @@ function getFreshShareState(previousReadonlyUrl?: string): ShareState {
 	}
 }
 
+export async function getShareUrl(url: string, readonly: boolean) {
+	if (!readonly) {
+		return url
+	}
+
+	return await getReadonlyUrl()
+}
+
 async function getReadonlyUrl() {
 	const pathname = window.location.pathname
 	const isReadOnly = isSharedReadonlyUrl(pathname)
@@ -119,6 +129,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	const [didCopy, setDidCopy] = useState(false)
 	const [didCopyReadonlyLink, setDidCopyReadonlyLink] = useState(false)
 	const [didCopySnapshotLink, setDidCopySnapshotLink] = useState(false)
+	const toasts = useToasts()
 
 	useEffect(() => {
 		if (shareState.state === SHARE_CURRENT_STATE.OFFLINE) {
@@ -127,7 +138,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 
 		let cancelled = false
 
-		const shareUrl = getShareUrl(window.location.href, false)
+		const shareUrl = window.location.href
 		if (!shareState.qrCodeDataUrl && shareState.state === SHARE_CURRENT_STATE.SHARED_READ_WRITE) {
 			// Fetch the QR code data URL
 			createQRCodeImageDataString(shareUrl).then((dataUrl) => {
@@ -197,8 +208,12 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									onClick={() => {
 										if (!currentShareLinkUrl) return
 										setDidCopy(true)
-										setTimeout(() => setDidCopy(false), 1000)
+										setTimeout(() => setDidCopy(false), COPY_LINK_TIMEOUT)
 										navigator.clipboard.writeText(currentShareLinkUrl)
+										toasts.addToast({
+											title: msg('share-menu.copied'),
+											severity: 'success',
+										})
 									}}
 								/>
 
@@ -212,8 +227,12 @@ export const ShareMenu = React.memo(function ShareMenu() {
 											onSelect={() => {
 												if (!shareState.url) return
 												setDidCopy(true)
-												setTimeout(() => setDidCopy(false), 750)
+												setTimeout(() => setDidCopy(false), COPY_LINK_TIMEOUT)
 												navigator.clipboard.writeText(shareState.url)
+												toasts.addToast({
+													title: msg('share-menu.copied'),
+													severity: 'success',
+												})
 											}}
 										/>
 									)}
@@ -225,8 +244,12 @@ export const ShareMenu = React.memo(function ShareMenu() {
 										onSelect={() => {
 											if (!shareState.readonlyUrl) return
 											setDidCopyReadonlyLink(true)
-											setTimeout(() => setDidCopyReadonlyLink(false), 750)
+											setTimeout(() => setDidCopyReadonlyLink(false), COPY_LINK_TIMEOUT)
 											navigator.clipboard.writeText(shareState.readonlyUrl)
+											toasts.addToast({
+												title: msg('share-menu.copied'),
+												severity: 'success',
+											})
 										}}
 									/>
 									<p className="tlui-menu__group tlui-share-zone__details">
@@ -243,7 +266,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 											await shareSnapshot.onSelect('share-menu')
 											setIsUploadingSnapshot(false)
 											setDidCopySnapshotLink(true)
-											setTimeout(() => setDidCopySnapshotLink(false), 1000)
+											setTimeout(() => setDidCopySnapshotLink(false), COPY_LINK_TIMEOUT)
 										}}
 										spinner={isUploadingSnapshot}
 									/>
@@ -260,6 +283,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 										readonlyOk
 										label="share-menu.share-project"
 										icon="share-1"
+										disabled={isUploading}
 										onSelect={async () => {
 											if (isUploading) return
 											setIsUploading(true)
@@ -289,7 +313,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 											await shareSnapshot.onSelect('share-menu')
 											setIsUploadingSnapshot(false)
 											setDidCopySnapshotLink(true)
-											setTimeout(() => setDidCopySnapshotLink(false), 1000)
+											setTimeout(() => setDidCopySnapshotLink(false), COPY_LINK_TIMEOUT)
 										}}
 										spinner={isUploadingSnapshot}
 									/>
@@ -305,23 +329,3 @@ export const ShareMenu = React.memo(function ShareMenu() {
 		</Popover.Root>
 	)
 })
-
-export function getShareUrl(url: string, readonly: boolean) {
-	if (!readonly) {
-		return url
-	}
-
-	const segs = url.split('/')
-
-	// Change the r for a v
-	segs[segs.length - 2] = 'v'
-
-	// A url might be something like https://www.tldraw.com/r/123?pageId=myPageId
-	// we want it instead to be https://www.tldraw.com/v/312?pageId=myPageId, ie
-	// the scrambled room id but not scrambled query params
-	const [roomId, params] = segs[segs.length - 1].split('?')
-	segs[segs.length - 1] = lns(roomId)
-	if (params) segs[segs.length - 1] += '?' + params
-
-	return segs.join('/')
-}
