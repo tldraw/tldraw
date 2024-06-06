@@ -1,5 +1,7 @@
-import { AssetContextProps, TLAsset, getAssetFromIndexedDb } from 'tldraw'
+import { AssetContextProps, TLAsset, TLAssetId, WeakCache, getAssetFromIndexedDb } from 'tldraw'
 import { ASSET_UPLOADER_URL } from './config'
+
+const objectURLCache = new WeakCache<TLAsset, ReturnType<typeof getLocalAssetObjectURL>>()
 
 export const resolveAsset =
 	(persistenceKey?: string) =>
@@ -14,14 +16,10 @@ export const resolveAsset =
 
 		// Retrieve a local image from the DB.
 		if (persistenceKey && asset.props.src.startsWith('asset:')) {
-			const blob = await getAssetFromIndexedDb({
-				assetId: asset.id,
-				persistenceKey,
-			})
-			if (blob) {
-				return URL.createObjectURL(blob)
-			}
-			return null
+			return await objectURLCache.get(
+				asset,
+				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
+			)
 		}
 
 		// Don't try to transform data: URLs, yikes.
@@ -45,3 +43,14 @@ export const resolveAsset =
 
 		return `${ASSET_UPLOADER_URL}/cdn-cgi/image/width=${width},dpr=${context.dpr},fit=scale-down,quality=92/${asset.props.src}`
 	}
+
+async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId) {
+	const blob = await getAssetFromIndexedDb({
+		assetId: assetId,
+		persistenceKey,
+	})
+	if (blob) {
+		return URL.createObjectURL(blob)
+	}
+	return null
+}

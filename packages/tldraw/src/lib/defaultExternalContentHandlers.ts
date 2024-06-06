@@ -13,6 +13,7 @@ import {
 	TLTextShapeProps,
 	Vec,
 	VecLike,
+	WeakCache,
 	assert,
 	compact,
 	createShapeId,
@@ -575,27 +576,35 @@ export function createEmptyBookmarkShape(
 	return editor.getShape(partial.id) as TLBookmarkShape
 }
 
+const objectURLCache = new WeakCache<TLAsset, ReturnType<typeof getLocalAssetObjectURL>>()
 export const defaultResolveAsset =
 	(persistenceKey?: string) => async (asset: TLAsset | null | undefined) => {
-		if (!asset || !asset.props.src) return ''
+		if (!asset || !asset.props.src) return null
 
 		// We don't deal with videos at the moment.
 		if (asset.type === 'video') return asset.props.src
 
 		// Assert it's an image to make TS happy.
-		if (asset.type !== 'image') return ''
+		if (asset.type !== 'image') return null
 
 		// Retrieve a local image from the DB.
 		if (persistenceKey && asset.props.src.startsWith('asset:')) {
-			const blob = await getAssetFromIndexedDb({
-				persistenceKey,
-				assetId: asset.id,
-			})
-			if (blob) {
-				return URL.createObjectURL(blob)
-			}
-			return ''
+			return await objectURLCache.get(
+				asset,
+				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
+			)
 		}
 
 		return asset.props.src
 	}
+
+async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId) {
+	const blob = await getAssetFromIndexedDb({
+		assetId: assetId,
+		persistenceKey,
+	})
+	if (blob) {
+		return URL.createObjectURL(blob)
+	}
+	return null
+}
