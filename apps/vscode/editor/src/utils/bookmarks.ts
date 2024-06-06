@@ -31,7 +31,11 @@ export async function onCreateAssetFromUrl({
 		let meta: { image: string; favicon: string; title: string; description: string }
 
 		try {
-			const resp = await fetch(url, { method: 'GET', mode: 'no-cors' })
+			const resp = await fetch(url, {
+				method: 'GET',
+				mode: 'no-cors',
+				referrerPolicy: 'strict-origin-when-cross-origin',
+			})
 			const html = await resp.text()
 			const doc = new DOMParser().parseFromString(html, 'text/html')
 			meta = {

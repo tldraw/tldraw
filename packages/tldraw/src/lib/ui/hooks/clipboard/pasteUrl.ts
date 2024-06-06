@@ -20,7 +20,10 @@ export async function pasteUrl(
 	try {
 		// skip this step if the url doesn't contain an image extension, treat it as a regular bookmark
 		if (new URL(url).pathname.match(/\.(png|jpe?g|gif|svg|webp)$/i)) {
-			const resp = await fetch(url, { method: 'HEAD' })
+			const resp = await fetch(url, {
+				method: 'HEAD',
+				referrerPolicy: 'strict-origin-when-cross-origin',
+			})
 			if (resp.headers.get('content-type')?.match(/^image\//)) {
 				editor.mark('paste')
 				pasteFiles(editor, [url])

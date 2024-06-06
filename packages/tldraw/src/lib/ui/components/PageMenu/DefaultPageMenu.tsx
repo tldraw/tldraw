@@ -94,7 +94,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	// Scroll the current page into view when the menu opens / when current page changes
 	useEffect(() => {
 		if (!isOpen) return
-		requestAnimationFrame(() => {
+		editor.timers.requestAnimationFrame(() => {
 			const elm = document.querySelector(
 				`[data-testid="page-menu-item-${currentPageId}"]`
 			) as HTMLDivElement
@@ -118,7 +118,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				}
 			}
 		})
-	}, [ITEM_HEIGHT, currentPageId, isOpen])
+	}, [ITEM_HEIGHT, currentPageId, isOpen, editor])
 
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {

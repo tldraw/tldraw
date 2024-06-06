@@ -82,12 +82,12 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 
 	useEffect(() => {
 		if (didCopy) {
-			const timeout = setTimeout(() => {
+			const timeout = editor?.timers.setTimeout(() => {
 				setDidCopy(false)
 			}, 2000)
 			return () => clearTimeout(timeout)
 		}
-	}, [didCopy])
+	}, [didCopy, editor])
 
 	const copyError = () => {
 		const textarea = document.createElement('textarea')

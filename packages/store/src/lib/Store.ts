@@ -485,19 +485,29 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * Get a serialized snapshot of the store and its schema.
 	 *
 	 * ```ts
-	 * const snapshot = store.getSnapshot()
-	 * store.loadSnapshot(snapshot)
+	 * const snapshot = store.getStoreSnapshot()
+	 * store.loadStoreSnapshot(snapshot)
 	 * ```
 	 *
 	 * @param scope - The scope of records to serialize. Defaults to 'document'.
 	 *
 	 * @public
 	 */
-	getSnapshot(scope: RecordScope | 'all' = 'document'): StoreSnapshot<R> {
+	getStoreSnapshot(scope: RecordScope | 'all' = 'document'): StoreSnapshot<R> {
 		return {
 			store: this.serialize(scope),
 			schema: this.schema.serialize(),
 		}
+	}
+
+	/**
+	 * @deprecated use `getSnapshot` from the 'tldraw' package instead.
+	 */
+	getSnapshot(scope: RecordScope | 'all' = 'document') {
+		console.warn(
+			'[tldraw] `Store.getSnapshot` is deprecated and will be removed in a future release. Use `getSnapshot` from the `tldraw` package instead.'
+		)
+		return this.getStoreSnapshot(scope)
 	}
 
 	/**
@@ -528,14 +538,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * Load a serialized snapshot.
 	 *
 	 * ```ts
-	 * const snapshot = store.getSnapshot()
-	 * store.loadSnapshot(snapshot)
+	 * const snapshot = store.getStoreSnapshot()
+	 * store.loadStoreSnapshot(snapshot)
 	 * ```
 	 *
 	 * @param snapshot - The snapshot to load.
 	 * @public
 	 */
-	loadSnapshot(snapshot: StoreSnapshot<R>): void {
+	loadStoreSnapshot(snapshot: StoreSnapshot<R>): void {
 		const migrationResult = this.schema.migrateStoreSnapshot(snapshot)
 
 		if (migrationResult.type === 'error') {
@@ -553,6 +563,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		} finally {
 			this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 		}
+	}
+
+	/**
+	 * @public
+	 * @deprecated use `loadSnapshot` from the 'tldraw' package instead.
+	 */
+	loadSnapshot(snapshot: StoreSnapshot<R>) {
+		console.warn(
+			"[tldraw] `Store.loadSnapshot` is deprecated and will be removed in a future release. Use `loadSnapshot` from the 'tldraw' package instead."
+		)
+		this.loadStoreSnapshot(snapshot)
 	}
 
 	/**

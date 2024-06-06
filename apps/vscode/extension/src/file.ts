@@ -1,16 +1,22 @@
-import { TldrawFile, createTLStore, defaultShapeUtils } from 'tldraw'
+import { TldrawFile, createTLStore, defaultBindingUtils, defaultShapeUtils } from 'tldraw'
 import * as vscode from 'vscode'
 import { nicelog } from './utils'
 
 export const defaultFileContents: TldrawFile = {
 	tldrawFileFormatVersion: 1,
-	schema: createTLStore({ shapeUtils: defaultShapeUtils }).schema.serialize(),
+	schema: createTLStore({
+		shapeUtils: defaultShapeUtils,
+		bindingUtils: defaultBindingUtils,
+	}).schema.serialize(),
 	records: [],
 }
 
 export const fileContentWithErrors: TldrawFile = {
 	tldrawFileFormatVersion: 1,
-	schema: createTLStore({ shapeUtils: defaultShapeUtils }).schema.serialize(),
+	schema: createTLStore({
+		shapeUtils: defaultShapeUtils,
+		bindingUtils: defaultBindingUtils,
+	}).schema.serialize(),
 	records: [{ typeName: 'shape', id: null } as any],
 }
 

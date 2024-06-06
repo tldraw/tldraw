@@ -64,6 +64,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 								<img
 									className="tl-bookmark__image"
 									draggable={false}
+									referrerPolicy="strict-origin-when-cross-origin"
 									src={asset?.props.image}
 									alt={asset?.props.title || ''}
 								/>

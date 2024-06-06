@@ -1,3 +1,12 @@
+## 2.0.35
+
+- Fix for pen pressure.
+
+## 2.0.34
+
+- Improved exporting of cropped images.
+- Bug fixes and performance improvements.
+
 ## 2.0.33
 
 - Improves minimap rendering.
