@@ -35,7 +35,7 @@ export async function getSvgAsImage(
 	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
-		const image = new Image()
+		const image = Image()
 		image.crossOrigin = 'anonymous'
 
 		image.onload = async () => {

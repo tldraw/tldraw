@@ -1,5 +1,3 @@
-/* eslint-disable no-restricted-properties */
-
 /**
  * Just a wrapper around `window.fetch` that sets the `referrerPolicy` to `strict-origin-when-cross-origin`.
  *
@@ -20,10 +18,9 @@ export async function fetch(input: RequestInfo | URL, init?: RequestInit): Promi
  *
  * @internal
  */
-export class Image extends window.Image {
-	new(width?: number, height?: number) {
-		const img = new window.Image(width, height)
-		img.referrerPolicy = 'strict-origin-when-cross-origin'
-		return img
-	}
+export const Image = (width?: number, height?: number) => {
+	// eslint-disable-next-line no-restricted-properties
+	const img = new window.Image(width, height)
+	img.referrerPolicy = 'strict-origin-when-cross-origin'
+	return img
 }

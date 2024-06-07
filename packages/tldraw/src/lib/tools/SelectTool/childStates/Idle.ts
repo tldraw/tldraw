@@ -41,6 +41,10 @@ export class Idle extends StateNode {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
+	override onExit = () => {
+		updateHoveredShapeId.cancel()
+	}
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		updateHoveredShapeId(this.editor)
 	}

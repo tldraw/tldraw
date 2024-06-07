@@ -1,4 +1,5 @@
-import { Editor, TLShape, throttle } from '@tldraw/editor'
+import { Editor, TLShape } from '@tldraw/editor'
+import throttle from 'lodash.throttle'
 
 function _updateHoveredShapeId(editor: Editor) {
 	// todo: consider replacing `get hoveredShapeId` with this; it would mean keeping hoveredShapeId in memory rather than in the store and possibly re-computing it more often than necessary
@@ -32,5 +33,7 @@ function _updateHoveredShapeId(editor: Editor) {
 }
 
 /** @internal */
-export const updateHoveredShapeId =
-	process.env.NODE_ENV === 'test' ? _updateHoveredShapeId : throttle(_updateHoveredShapeId, 32)
+export const updateHoveredShapeId = throttle(
+	_updateHoveredShapeId,
+	process.env.NODE_ENV === 'test' ? 0 : 32
+)

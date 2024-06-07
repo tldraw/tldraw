@@ -417,6 +417,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	close() {
 		this.debug('closing')
 		this.disposables.forEach((dispose) => dispose())
+		this.flushPendingPushRequests.cancel?.()
+		this.scheduleRebase.cancel?.()
 	}
 
 	lastPushedPresenceState: R | null = null

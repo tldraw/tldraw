@@ -88,7 +88,7 @@ export function filterEntries<Key extends string, Value>(object: {
 };
 
 // @internal
-export function fpsThrottle(fn: () => void): () => void;
+export function fpsThrottle(fn: PseudoThrottleFn): PseudoThrottleFn;
 
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
@@ -142,10 +142,7 @@ export function getOwnProperty(obj: object, key: string): unknown;
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @internal
-class Image_2 extends window.Image {
-    // (undocumented)
-    new(width?: number, height?: number): HTMLImageElement;
-}
+const Image_2: (width?: number, height?: number) => HTMLImageElement;
 export { Image_2 as Image }
 
 // @public
@@ -367,9 +364,6 @@ export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
 // @public
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
-
-// @public
-export function throttle<T extends (...args: any) => any>(func: T, limit: number): (...args: Parameters<T>) => ReturnType<T>;
 
 // @internal
 export function throttleToNextFrame(fn: () => void): () => void;

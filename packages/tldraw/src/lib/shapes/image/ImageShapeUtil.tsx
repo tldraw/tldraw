@@ -72,7 +72,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				const url = asset.props.src
 				if (!url) return
 
-				const image = new Image()
+				const image = Image()
 				image.onload = () => {
 					if (cancelled) return
 

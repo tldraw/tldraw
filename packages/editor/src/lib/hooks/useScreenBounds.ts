@@ -62,6 +62,7 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 			window.removeEventListener('resize', updateBounds)
 			resizeObserver.disconnect()
 			scrollingParent?.removeEventListener('scroll', updateBounds)
+			updateBounds.cancel()
 		}
 	}, [editor, ref])
 }

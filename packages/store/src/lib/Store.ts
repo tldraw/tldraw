@@ -158,6 +158,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	private historyReactor: Reactor
 
+	/**
+	 * Function to dispose of any in-flight timeouts.
+	 *
+	 * @internal
+	 */
+	private cancelHistoryReactor: () => void = () => {
+		/* noop */
+	}
+
 	readonly schema: StoreSchema<R, Props>
 
 	readonly props: Props
@@ -205,7 +214,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				// If we have accumulated history, flush it and update listeners
 				this._flushHistory()
 			},
-			{ scheduleEffect: (cb) => throttleToNextFrame(cb) }
+			{ scheduleEffect: (cb) => (this.cancelHistoryReactor = throttleToNextFrame(cb)) }
 		)
 		this.scopedTypes = {
 			document: new Set(
@@ -258,6 +267,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				}
 			}
 		}
+	}
+
+	dispose() {
+		this.cancelHistoryReactor()
 	}
 
 	/**

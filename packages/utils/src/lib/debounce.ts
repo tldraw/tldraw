@@ -17,6 +17,7 @@ export function debounce<T extends unknown[], U>(
 	let state:
 		| undefined
 		| {
+				// eslint-disable-next-line no-restricted-globals
 				timeout: ReturnType<typeof setTimeout>
 				promise: Promise<U>
 				resolve: (value: U | PromiseLike<U>) => void
@@ -34,6 +35,8 @@ export function debounce<T extends unknown[], U>(
 		}
 		clearTimeout(state!.timeout)
 		state!.latestArgs = args
+		// It's up to the consumer of debounce to call `cancel`
+		// eslint-disable-next-line no-restricted-globals
 		state!.timeout = setTimeout(() => {
 			const s = state!
 			state = undefined
