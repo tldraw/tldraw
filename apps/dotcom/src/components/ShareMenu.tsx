@@ -221,9 +221,9 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									{shareState.state === SHARE_CURRENT_STATE.SHARED_READ_WRITE && (
 										<TldrawUiMenuItem
 											id="copy-to-clipboard"
-											readonlyOk
-											icon={didCopy ? 'clipboard-copied' : 'clipboard-copy'}
+											readonlyOk={false}
 											label="share-menu.copy-link"
+											icon="clipboard-copy"
 											onSelect={() => {
 												if (!shareState.url) return
 												setDidCopy(true)
@@ -239,8 +239,8 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									<TldrawUiMenuItem
 										id="copy-readonly-to-clipboard"
 										readonlyOk
-										icon={didCopyReadonlyLink ? 'clipboard-copied' : 'clipboard-copy'}
 										label="share-menu.copy-readonly-link"
+										icon="clipboard-copy"
 										onSelect={() => {
 											if (!shareState.readonlyUrl) return
 											setDidCopyReadonlyLink(true)
@@ -260,7 +260,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 								<TldrawUiMenuGroup id="snapshot">
 									<TldrawUiMenuItem
 										{...shareSnapshot}
-										icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
+										icon="clipboard-copy"
 										onSelect={async () => {
 											setIsUploadingSnapshot(true)
 											await shareSnapshot.onSelect('share-menu')
