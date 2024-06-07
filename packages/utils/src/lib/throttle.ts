@@ -7,7 +7,7 @@ const isTest = () =>
 const fpsQueue: Array<() => void> = []
 const targetFps = 60
 const targetTimePerFrame = Math.ceil(1000 / targetFps)
-let frame = -1
+let frame: number | undefined
 let time = 0
 let last = 0
 
@@ -29,7 +29,7 @@ function tick() {
 		// It's up to the consumer of debounce to call `cancel`
 		// eslint-disable-next-line no-restricted-globals
 		frame = requestAnimationFrame(() => {
-			frame = -1
+			frame = undefined
 			tick()
 		})
 		return
@@ -37,7 +37,7 @@ function tick() {
 	// It's up to the consumer of debounce to call `cancel`
 	// eslint-disable-next-line no-restricted-globals
 	frame = requestAnimationFrame(() => {
-		frame = -1
+		frame = undefined
 		last = now
 		// If we fall behind more than 10 frames, we'll just reset the time so we don't try to update a number of times
 		// This can happen if we don't interact with the page for a while
@@ -62,7 +62,7 @@ interface PseudoThrottleFn {
  */
 export function fpsThrottle(fn: PseudoThrottleFn): PseudoThrottleFn {
 	if (isTest()) {
-		fn.cancel = () => cancelAnimationFrame(frame)
+		fn.cancel = () => frame && cancelAnimationFrame(frame)
 		return fn
 	}
 
@@ -78,7 +78,7 @@ export function fpsThrottle(fn: PseudoThrottleFn): PseudoThrottleFn {
 		}
 		tick()
 	}
-	throttledFn.cancel = () => cancelAnimationFrame(frame)
+	throttledFn.cancel = () => frame && cancelAnimationFrame(frame)
 	return throttledFn
 }
 
@@ -111,7 +111,7 @@ export function throttleToNextFrame(fn: () => void): () => void {
 		const index = fpsQueue.indexOf(fn)
 		if (index > -1) {
 			fpsQueue.splice(index, 1)
-			cancelAnimationFrame(frame)
+			frame && cancelAnimationFrame(frame)
 		}
 	}
 }
