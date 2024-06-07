@@ -15,11 +15,13 @@ import {
 	stopEventPropagation,
 	toDomPrecision,
 } from '@tldraw/editor'
-import { truncateStringWithEllipsis } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { LINK_ICON } from '../shared/icons-editor'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
+const BOOKMARK_WIDTH = 300
 const BOOKMARK_HEIGHT = 320
+const BOOKMARK_JUST_URL_HEIGHT = 46
 const SHORT_BOOKMARK_HEIGHT = 110
 
 /** @public */
@@ -35,7 +37,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	override getDefaultProps(): TLBookmarkShape['props'] {
 		return {
 			url: '',
-			w: 300,
+			w: BOOKMARK_WIDTH,
 			h: BOOKMARK_HEIGHT,
 			assetId: null,
 		}
@@ -71,20 +73,18 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 							) : (
 								<div className="tl-bookmark__placeholder" />
 							)}
-							<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+							{asset?.props.image && (
+								<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
+							)}
 						</div>
 					)}
 					<div className="tl-bookmark__copy_container">
-						{asset?.props.title && (
-							<h2 className="tl-bookmark__heading">
-								{truncateStringWithEllipsis(asset?.props.title || '', 54)}
-							</h2>
-						)}
-						{asset?.props.description && (
-							<p className="tl-bookmark__description">
-								{truncateStringWithEllipsis(asset?.props.description || '', 128)}
-							</p>
-						)}
+						{asset?.props.title ? (
+							<h2 className="tl-bookmark__heading">{asset.props.title}</h2>
+						) : null}
+						{asset?.props.description && asset?.props.image ? (
+							<p className="tl-bookmark__description">{asset.props.description}</p>
+						) : null}
 						<a
 							className="tl-bookmark__link"
 							href={shape.props.url || ''}
@@ -94,15 +94,23 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 							onPointerUp={stopEventPropagation}
 							onClick={stopEventPropagation}
 						>
-							{asset?.props.favicon && (
+							{asset?.props.favicon ? (
 								<img
 									className="tl-bookmark__favicon"
 									src={asset?.props.favicon}
 									referrerPolicy="strict-origin-when-cross-origin"
 									alt={`favicon of ${address}`}
 								/>
+							) : (
+								<div
+									className="tl-hyperlink__icon"
+									style={{
+										mask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
+										WebkitMask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
+									}}
+								/>
 							)}
-							{truncateStringWithEllipsis(address, 45)}
+							<span>{address}</span>
 						</a>
 					</div>
 				</div>
@@ -145,11 +153,23 @@ function getBookmarkSize(editor: Editor, shape: TLBookmarkShape) {
 		shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
 	) as TLBookmarkAsset
 
+	let h = BOOKMARK_HEIGHT
+
+	if (asset) {
+		if (!asset.props.image) {
+			if (!asset.props.title) {
+				h = BOOKMARK_JUST_URL_HEIGHT
+			} else {
+				h = SHORT_BOOKMARK_HEIGHT
+			}
+		}
+	}
+
 	return {
 		...shape,
 		props: {
 			...shape.props,
-			h: !asset || asset.props.image ? BOOKMARK_HEIGHT : SHORT_BOOKMARK_HEIGHT,
+			h,
 		},
 	}
 }
@@ -158,7 +178,8 @@ function getBookmarkSize(editor: Editor, shape: TLBookmarkShape) {
 export const getHumanReadableAddress = (shape: TLBookmarkShape) => {
 	try {
 		const url = new URL(shape.props.url)
-		return url.hostname
+		// we want the hostname without any www
+		return url.hostname.replace(/^www\./, '')
 	} catch (e) {
 		return shape.props.url
 	}

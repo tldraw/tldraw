@@ -24,7 +24,7 @@ import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize, downsizeImage } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
-import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
+import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /** @public */
 export interface TLExternalContentProps {
@@ -126,9 +126,7 @@ export function registerDefaultExternalContentHandlers(
 					doc.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ??
 					doc.head.querySelector('link[rel="icon"]')?.getAttribute('href') ??
 					'',
-				title:
-					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
-					truncateStringWithEllipsis(url, 32),
+				title: doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? url,
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
@@ -138,7 +136,7 @@ export function registerDefaultExternalContentHandlers(
 				title: msg('assets.url.failed'),
 				severity: 'error',
 			})
-			meta = { image: '', favicon: '', title: truncateStringWithEllipsis(url, 32), description: '' }
+			meta = { image: '', favicon: '', title: '', description: '' }
 		}
 
 		// Create the bookmark asset from the meta

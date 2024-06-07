@@ -1,4 +1,4 @@
-import { AssetRecordType, TLAsset, getHashForString, truncateStringWithEllipsis } from 'tldraw'
+import { AssetRecordType, TLAsset, getHashForString } from 'tldraw'
 import { BOOKMARK_ENDPOINT } from './config'
 
 interface ResponseBody {
@@ -32,7 +32,7 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 				description: meta.description ?? '',
 				image: meta.image ?? '',
 				favicon: meta.favicon ?? '',
-				title: meta.title ?? truncateStringWithEllipsis(url, 32),
+				title: meta.title ?? '',
 			},
 			meta: {},
 		}
@@ -55,9 +55,7 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 					doc.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ??
 					doc.head.querySelector('link[rel="icon"]')?.getAttribute('href') ??
 					'',
-				title:
-					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
-					truncateStringWithEllipsis(url, 32),
+				title: doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? '',
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
@@ -68,7 +66,7 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 			}
 		} catch (error) {
 			console.error(error)
-			meta = { image: '', favicon: '', title: truncateStringWithEllipsis(url, 32), description: '' }
+			meta = { image: '', favicon: '', title: '', description: '' }
 		}
 
 		// Create the bookmark asset from the meta

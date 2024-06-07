@@ -1,10 +1,6 @@
 import { AssetRecordType, TLAsset, TLExternalAssetContent, getHashForString } from 'tldraw'
 import { rpc } from './rpc'
 
-export const truncateStringWithEllipsis = (str: string, maxLength: number) => {
-	return str.length <= maxLength ? str : str.substring(0, maxLength - 3) + '...'
-}
-
 export async function onCreateAssetFromUrl({
 	url,
 }: TLExternalAssetContent & { type: 'url' }): Promise<TLAsset> {
@@ -21,7 +17,7 @@ export async function onCreateAssetFromUrl({
 				description: meta.description ?? '',
 				image: meta.image ?? '',
 				favicon: meta.favicon ?? '',
-				title: meta.title ?? truncateStringWithEllipsis(url, 32),
+				title: meta.title ?? '',
 			},
 			meta: {},
 		}
@@ -44,15 +40,13 @@ export async function onCreateAssetFromUrl({
 					doc.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ??
 					doc.head.querySelector('link[rel="icon"]')?.getAttribute('href') ??
 					'',
-				title:
-					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
-					truncateStringWithEllipsis(url, 32),
+				title: doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? '',
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
 		} catch (error) {
 			console.error(error)
-			meta = { image: '', favicon: '', title: truncateStringWithEllipsis(url, 32), description: '' }
+			meta = { image: '', favicon: '', title: '', description: '' }
 		}
 
 		// Create the bookmark asset from the meta
