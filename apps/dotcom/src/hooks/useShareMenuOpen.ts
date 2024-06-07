@@ -25,7 +25,7 @@ export function useShareMenuIsOpen() {
 		}
 		// if we are navigating from the new shared project button then
 		// the share menu wasn't originally open, so we have to open it
-		if (location.state.shouldOpenShareMenu) {
+		if (location.state?.shouldOpenShareMenu) {
 			persistentShareMenuOpenAtom.set(true)
 		}
 	}, [isShareMenuOpen, location.state, onOpenChange])
