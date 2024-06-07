@@ -111,7 +111,6 @@ export function throttleToNextFrame(fn: () => void): () => void {
 		const index = fpsQueue.indexOf(fn)
 		if (index > -1) {
 			fpsQueue.splice(index, 1)
-			frame && cancelAnimationFrame(frame)
 		}
 	}
 }
