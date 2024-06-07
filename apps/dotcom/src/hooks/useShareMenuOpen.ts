@@ -17,14 +17,13 @@ export function useShareMenuIsOpen() {
 	const isFirst = useRef(true)
 
 	useEffect(() => {
-		// if we are navigating from the new shared project button then
-		// the share menu wasn't originally open, so we have to open it
-		if (isFirst.current && location.state?.shouldOpenShareMenu) {
-			isFirst.current = false
-			onOpenChange(true)
-		}
 		if (isFirst.current) {
 			isFirst.current = false
+			if (location.state?.shouldOpenShareMenu) {
+				// if we are navigating from the new shared project button then
+				// we always open the share menu
+				persistentShareMenuOpenAtom.set(true)
+			}
 			onOpenChange(persistentShareMenuOpenAtom.get())
 		} else {
 			persistentShareMenuOpenAtom.set(isShareMenuOpen)

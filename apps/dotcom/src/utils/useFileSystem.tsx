@@ -76,7 +76,7 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 					readonlyOk: true,
 					async onSelect(source) {
 						handleUiEvent('create-new-shared-project', { source })
-						navigate('/new', { state: { shouldOpenShareMenu: true } })
+						navigate('/new')
 					},
 				}
 				actions[NEW_PROJECT_ACTION] = {

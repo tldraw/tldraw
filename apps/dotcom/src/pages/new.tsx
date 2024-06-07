@@ -1,6 +1,6 @@
 import { ROOM_PREFIX, Snapshot } from '@tldraw/dotcom-shared'
 import { schema } from '@tldraw/tlsync'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import '../../styles/globals.css'
 import { ErrorPage } from '../components/ErrorPage/ErrorPage'
 import { defineLoader } from '../utils/defineLoader'
@@ -26,7 +26,6 @@ export { loader }
 
 export function Component() {
 	const data = useData()
-	const location = useLocation()
 	if (!data)
 		return (
 			<ErrorPage
@@ -37,5 +36,13 @@ export function Component() {
 			/>
 		)
 
-	return <Navigate replace state={location.state} to={`/${ROOM_PREFIX}/${data.slug}`} />
+	return (
+		<Navigate
+			replace
+			state={{
+				shouldOpenShareMenu: true,
+			}}
+			to={`/${ROOM_PREFIX}/${data.slug}`}
+		/>
+	)
 }
