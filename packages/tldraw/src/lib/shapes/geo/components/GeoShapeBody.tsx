@@ -99,7 +99,11 @@ export function GeoShapeBody({
 			}
 		}
 		case 'ellipse': {
-			const geometry = editor.getShapeGeometry(shape)
+			let geometry = editor.getShapeGeometry(shape)
+			if (!shouldScale) {
+				// We don't want the cached geometry
+				geometry = editor.getShapeUtil(shape).getGeometry(shape)
+			}
 			const d = geometry.getSvgPathData(true)
 
 			if (dash === 'dashed' || dash === 'dotted') {
@@ -128,7 +132,11 @@ export function GeoShapeBody({
 					</>
 				)
 			} else {
-				const geometry = editor.getShapeGeometry(shape)
+				let geometry = editor.getShapeGeometry(shape)
+				if (!shouldScale) {
+					// We don't want the cached geometry
+					geometry = editor.getShapeUtil(shape).getGeometry(shape)
+				}
 				const d = geometry.getSvgPathData(true)
 				return (
 					<>
@@ -139,7 +147,11 @@ export function GeoShapeBody({
 			}
 		}
 		case 'oval': {
-			const geometry = editor.getShapeGeometry(shape)
+			let geometry = editor.getShapeGeometry(shape)
+			if (!shouldScale) {
+				// We don't want the cached geometry
+				geometry = editor.getShapeUtil(shape).getGeometry(shape)
+			}
 			const d = geometry.getSvgPathData(true)
 			if (dash === 'dashed' || dash === 'dotted') {
 				const perimeter = geometry.getLength()
