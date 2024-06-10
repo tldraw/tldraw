@@ -175,50 +175,39 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     onResize: TLOnResizeHandler<any>;
 }
 
-// @public (undocumented)
+// @public
 export interface BindingOnChangeOptions<Binding extends TLUnknownBinding> {
-    // (undocumented)
     bindingAfter: Binding;
-    // (undocumented)
     bindingBefore: Binding;
 }
 
-// @public (undocumented)
+// @public
 export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
-    // (undocumented)
     binding: Binding;
 }
 
-// @public (undocumented)
+// @public
 export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
-    // (undocumented)
     binding: Binding;
 }
 
-// @public (undocumented)
+// @public
 export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
-    // (undocumented)
     binding: Binding;
-    // (undocumented)
     shapeAfter: TLShape;
-    // (undocumented)
     shapeBefore: TLShape;
 }
 
-// @public (undocumented)
+// @public
 export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
-    // (undocumented)
     binding: Binding;
-    // (undocumented)
     shape: TLShape;
 }
 
-// @public (undocumented)
+// @public
 export interface BindingOnShapeIsolateOptions<Binding extends TLUnknownBinding> {
-    // (undocumented)
     binding: Binding;
-    // (undocumented)
-    shape: TLShape;
+    removedShape: TLShape;
 }
 
 // @public (undocumented)
@@ -229,31 +218,18 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
     abstract getDefaultProps(): Partial<Binding['props']>;
     // (undocumented)
     static migrations?: TLPropsMigrations;
-    // (undocumented)
     onAfterChange?(options: BindingOnChangeOptions<Binding>): void;
-    // (undocumented)
     onAfterChangeFromShape?(options: BindingOnShapeChangeOptions<Binding>): void;
-    // (undocumented)
     onAfterChangeToShape?(options: BindingOnShapeChangeOptions<Binding>): void;
-    // (undocumented)
     onAfterCreate?(options: BindingOnCreateOptions<Binding>): void;
-    // (undocumented)
     onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void;
-    // (undocumented)
     onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void;
-    // (undocumented)
     onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void;
-    // (undocumented)
-    onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): Binding | void;
-    // (undocumented)
+    onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): void;
     onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
-    // (undocumented)
     onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
-    // (undocumented)
     onBeforeIsolateFromShape?(options: BindingOnShapeIsolateOptions<Binding>): void;
-    // (undocumented)
     onBeforeIsolateToShape?(options: BindingOnShapeIsolateOptions<Binding>): void;
-    // (undocumented)
     onOperationComplete?(): void;
     // (undocumented)
     static props?: RecordProps<TLUnknownBinding>;
@@ -790,9 +766,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     crash(error: unknown): this;
     createAssets(assets: TLAsset[]): this;
-    // (undocumented)
     createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>): this;
-    // (undocumented)
     createBindings(partials: TLBindingCreate[]): this;
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
@@ -811,9 +785,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
-    // (undocumented)
     deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]): this;
-    // (undocumented)
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
         isolateShapes?: boolean | undefined;
     }): this;
@@ -860,13 +832,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getBaseZoom(): number;
-    // (undocumented)
     getBinding(id: TLBindingId): TLBinding | undefined;
-    // (undocumented)
     getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
-    // (undocumented)
     getBindingsInvolvingShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type?: Binding['type']): Binding[];
-    // (undocumented)
     getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
     getBindingUtil<S extends TLUnknownBinding>(binding: {
         type: S['type'];
@@ -1141,9 +1109,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         select: boolean;
     }>): this;
     updateAssets(assets: TLAssetPartial[]): this;
-    // (undocumented)
     updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>): this;
-    // (undocumented)
     updateBindings(partials: (null | TLBindingUpdate | undefined)[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions): this;
     // (undocumented)
@@ -2181,9 +2147,7 @@ export interface TLBaseEventInfo {
 export interface TLBindingUtilConstructor<T extends TLUnknownBinding, U extends BindingUtil<T> = BindingUtil<T>> {
     // (undocumented)
     new (editor: Editor): U;
-    // (undocumented)
     migrations?: TLPropsMigrations;
-    // (undocumented)
     props?: RecordProps<T>;
     // (undocumented)
     type: T['type'];

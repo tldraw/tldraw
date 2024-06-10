@@ -959,7 +959,7 @@ export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
     typeName?: T['typeName'];
 }>;
 
-// @public (undocumented)
+// @public
 export type TLBindingId = RecordId<TLUnknownBinding>;
 
 // @public (undocumented)
