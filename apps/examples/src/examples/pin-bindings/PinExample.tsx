@@ -44,9 +44,13 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		return {}
 	}
 
-	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<PinShape>) {
-		// bindings can go _from_ pins to other shapes, but not the other way round
-		return toShapeType !== 'pin'
+	override canBind({ toShapeType, bindingType }: TLShapeUtilCanBindOpts<PinShape>) {
+		if (bindingType === 'pin') {
+			// pins cannot bind to other pins!
+			return toShapeType !== 'pin'
+		}
+		// Allow pins to participate in other bindings, e.g. arrows
+		return true
 	}
 	override canEdit = () => false
 	override canResize = () => false
