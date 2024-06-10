@@ -651,6 +651,7 @@ export const defaultTldrawOptions: {
     readonly hitTestMargin: 8;
     readonly longPressDurationMs: 500;
     readonly maxPages: 40;
+    readonly maxPointsPerDrawShape: 500;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
     readonly textShadowLod: 0.35;
@@ -2399,6 +2400,8 @@ export interface TldrawOptions {
     readonly longPressDurationMs: number;
     // (undocumented)
     readonly maxPages: number;
+    // (undocumented)
+    readonly maxPointsPerDrawShape: number;
     // (undocumented)
     readonly maxShapesPerPage: number;
     // (undocumented)
