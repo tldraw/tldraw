@@ -175,7 +175,11 @@ export const Shape = memo(function Shape({
 
 const InnerShape = memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-		return useStateTracking('InnerShape:' + shape.type, () => util.component(shape))
+		return useStateTracking('InnerShape:' + shape.type, () =>
+			// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
+			// calling the render method with stale data.
+			util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T)
+		)
 	},
 	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
@@ -188,7 +192,11 @@ const InnerShapeBackground = memo(
 		shape: T
 		util: ShapeUtil<T>
 	}) {
-		return useStateTracking('InnerShape:' + shape.type, () => util.backgroundComponent?.(shape))
+		return useStateTracking('InnerShape:' + shape.type, () =>
+			// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
+			// calling the render method with stale data.
+			util.backgroundComponent?.(util.editor.store.unsafeGetWithoutCapture(shape.id) as T)
+		)
 	},
 	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )

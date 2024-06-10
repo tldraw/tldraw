@@ -2,6 +2,7 @@ import { Box } from '../Box'
 import { Vec } from '../Vec'
 import { pointInPolygon } from '../utils'
 
+/** @public */
 export interface Geometry2dOptions {
 	isFilled: boolean
 	isClosed: boolean

@@ -37,7 +37,7 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 
 		// Rather than running getClientRects on every frame, we'll
 		// run it once a second or when the window resizes.
-		const interval = setInterval(updateBounds, 1000)
+		const interval = editor.timers.setInterval(updateBounds, 1000)
 		window.addEventListener('resize', updateBounds)
 
 		const resizeObserver = new ResizeObserver((entries) => {

@@ -16,24 +16,28 @@ import { RecordsDiff } from './RecordsDiff'
 import { diffSets } from './setUtils'
 import { CollectionDiff } from './Store'
 
+/** @public */
 export type RSIndexDiff<
 	R extends UnknownRecord,
 	Property extends string & keyof R = string & keyof R,
 > = Map<R[Property], CollectionDiff<IdOf<R>>>
 
+/** @public */
 export type RSIndexMap<
 	R extends UnknownRecord,
 	Property extends string & keyof R = string & keyof R,
 > = Map<R[Property], Set<IdOf<R>>>
 
+/** @public */
 export type RSIndex<
 	R extends UnknownRecord,
 	Property extends string & keyof R = string & keyof R,
-> = Computed<Map<R[Property], Set<IdOf<R>>>, RSIndexDiff<R, Property>>
+> = Computed<RSIndexMap<R, Property>, RSIndexDiff<R, Property>>
 
 /**
  * A class that provides a 'namespace' for the various kinds of indexes one may wish to derive from
  * the record store.
+ * @public
  */
 export class StoreQueries<R extends UnknownRecord> {
 	constructor(

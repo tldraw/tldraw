@@ -43,6 +43,7 @@ export const isUninitialized = (value: any): value is UNINITIALIZED => {
 	return value === UNINITIALIZED
 }
 
+/** @public */
 export const WithDiff = singleton(
 	'WithDiff',
 	() =>
@@ -53,6 +54,8 @@ export const WithDiff = singleton(
 			) {}
 		}
 )
+
+/** @public */
 export interface WithDiff<Value, Diff> {
 	value: Value
 	diff: Diff

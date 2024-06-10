@@ -8,16 +8,12 @@ export interface TLErrorBoundaryProps {
 	fallback: TLErrorFallbackComponent
 }
 
-interface TLErrorBoundaryState {
-	error: Error | null
-}
-
-const initialState: TLErrorBoundaryState = { error: null }
+const initialState = { error: null }
 
 /** @public */
 export class ErrorBoundary extends React.Component<
 	React.PropsWithRef<React.PropsWithChildren<TLErrorBoundaryProps>>,
-	TLErrorBoundaryState
+	{ error: Error | null }
 > {
 	static getDerivedStateFromError(error: Error) {
 		return { error }

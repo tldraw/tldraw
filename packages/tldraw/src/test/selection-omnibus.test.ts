@@ -967,7 +967,7 @@ describe('Selects inside of groups', () => {
 			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100, fill: 'solid' } },
 		])
-		editor.groupShapes([ids.box1, ids.box2], ids.group1)
+		editor.groupShapes([ids.box1, ids.box2], { groupId: ids.group1 })
 		editor.selectNone()
 	})
 
@@ -1288,7 +1288,7 @@ describe('when shift+selecting a group', () => {
 				{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
 				{ id: ids.box4, type: 'geo', x: 600, y: 0 },
 			])
-			.groupShapes([ids.box2, ids.box3], ids.group1)
+			.groupShapes([ids.box2, ids.box3], { groupId: ids.group1 })
 			.select(ids.box1)
 	})
 
@@ -1370,9 +1370,9 @@ describe('When children / descendants of a group are selected', () => {
 				{ id: ids.box4, type: 'geo', x: 600, y: 0 },
 				{ id: ids.box5, type: 'geo', x: 800, y: 0 },
 			])
-			.groupShapes([ids.box1, ids.box2], ids.group1)
-			.groupShapes([ids.box3, ids.box4], ids.group2)
-			.groupShapes([ids.group1, ids.group2], ids.group3)
+			.groupShapes([ids.box1, ids.box2], { groupId: ids.group1 })
+			.groupShapes([ids.box3, ids.box4], { groupId: ids.group2 })
+			.groupShapes([ids.group1, ids.group2], { groupId: ids.group3 })
 			.selectNone()
 	})
 
@@ -1445,8 +1445,8 @@ describe('When pressing the enter key with groups selected', () => {
 				{ id: ids.box4, type: 'geo', x: 600, y: 0 },
 				{ id: ids.box5, type: 'geo', x: 800, y: 0 },
 			])
-			.groupShapes([ids.box1, ids.box2], ids.group1)
-			.groupShapes([ids.box3, ids.box4], ids.group2)
+			.groupShapes([ids.box1, ids.box2], { groupId: ids.group1 })
+			.groupShapes([ids.box3, ids.box4], { groupId: ids.group2 })
 	})
 
 	it('selects the children of the groups on enter up', () => {
@@ -1460,7 +1460,7 @@ describe('When pressing the enter key with groups selected', () => {
 	})
 
 	it('repeats children of the groups on enter up', () => {
-		editor.groupShapes([ids.group1, ids.group2], ids.group3)
+		editor.groupShapes([ids.group1, ids.group2], { groupId: ids.group3 })
 		editor.select(ids.group3)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
 		editor.keyDown('Enter').keyUp('Enter')
@@ -1527,7 +1527,7 @@ describe('When double clicking an editable shape', () => {
 
 	it('starts editing a child of a group on triple (not double!) click', () => {
 		editor.createShape({ id: ids.box2, type: 'geo', x: 300, y: 0 })
-		editor.groupShapes([ids.box1, ids.box2], ids.group1)
+		editor.groupShapes([ids.box1, ids.box2], { groupId: ids.group1 })
 		editor.selectNone()
 		editor.pointerMove(50, 50).click() // clicks on the shape label
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
@@ -1552,7 +1552,7 @@ describe('shift brushes to add to the selection', () => {
 				{ id: ids.box3, type: 'geo', x: 400, y: 0 },
 				{ id: ids.box4, type: 'geo', x: 600, y: 200 },
 			])
-			.groupShapes([ids.box3, ids.box4], ids.group1)
+			.groupShapes([ids.box3, ids.box4], { groupId: ids.group1 })
 	})
 
 	it('does not select when brushing into margin', () => {
@@ -1669,7 +1669,7 @@ describe('scribble brushes to add to the selection', () => {
 	})
 
 	it('selects a group when scribble is colliding with the groups child shape', () => {
-		editor.groupShapes([ids.box3, ids.box4], ids.group1)
+		editor.groupShapes([ids.box3, ids.box4], { groupId: ids.group1 })
 		editor.pointerMove(650, -50)
 		editor.keyDown('Alt')
 		editor.pointerDown()

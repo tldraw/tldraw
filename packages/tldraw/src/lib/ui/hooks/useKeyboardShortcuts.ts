@@ -22,22 +22,23 @@ export function useKeyboardShortcuts() {
 	const actions = useActions()
 	const tools = useTools()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
-
 	useEffect(() => {
 		if (!isFocused) return
 
-		hotkeys.setScope(editor.store.id)
+		const disposables = new Array<() => void>()
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: document.body, scope: editor.store.id }, callback)
+			hotkeys(keys, { element: document.body }, callback)
+			disposables.push(() => {
+				hotkeys.unbind(keys, callback)
+			})
 		}
 
 		const hotUp = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(
-				keys,
-				{ element: document.body, keyup: true, keydown: false, scope: editor.store.id },
-				callback
-			)
+			hotkeys(keys, { element: document.body, keyup: true, keydown: false }, callback)
+			disposables.push(() => {
+				hotkeys.unbind(keys, callback)
+			})
 		}
 
 		// Add hotkeys for actions and tools.
@@ -121,7 +122,7 @@ export function useKeyboardShortcuts() {
 		})
 
 		return () => {
-			hotkeys.deleteScope(editor.store.id)
+			disposables.forEach((d) => d())
 		}
 	}, [actions, tools, isReadonlyMode, editor, isFocused])
 }

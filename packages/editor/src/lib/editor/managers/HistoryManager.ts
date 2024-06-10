@@ -27,8 +27,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	private state: HistoryRecorderState = HistoryRecorderState.Recording
 	private readonly pendingDiff = new PendingDiff<R>()
-	/** @internal */
-	stacks = atom(
+	private stacks = atom(
 		'HistoryManager.stacks',
 		{
 			undos: stack<TLHistoryEntry<R>>(),
@@ -274,7 +273,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			undos: undos.toArray(),
 			redos: redos.toArray(),
 			pendingDiff: this.pendingDiff.debug(),
-			state: this.state,
+			state: this.state as string,
 		}
 	}
 }

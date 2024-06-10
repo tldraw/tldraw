@@ -1,4 +1,4 @@
-import { StateNode, react } from '@tldraw/editor'
+import { StateNode, TLStateNodeConstructor, react } from '@tldraw/editor'
 import { Brushing } from './childStates/Brushing'
 import { Crop } from './childStates/Crop/Crop'
 import { Cropping } from './childStates/Cropping'
@@ -24,7 +24,7 @@ export class SelectTool extends StateNode {
 	static override initial = 'idle'
 	reactor: undefined | (() => void) = undefined
 
-	static override children = () => [
+	static override children = (): TLStateNodeConstructor[] => [
 		Crop,
 		Cropping,
 		Idle,

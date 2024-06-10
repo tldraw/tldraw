@@ -18,6 +18,44 @@ By design, the [Editor](?)'s surface area is very large. Almost everything is av
 
 This page gives a broad idea of how the [Editor](?) class is organized and some of the architectural concepts involved. The full reference is available in the [Editor](?) API.
 
+## Using the editor
+
+You can access the editor in two ways:
+
+1. From the [Tldraw](?) component's `onMount` callback, where the editor is provided as the first argument in the callback.
+
+```tsx
+function App() {
+	return (
+		<Tldraw
+			onMount={(editor) => {
+				// your editor code here
+			}}
+		/>
+	)
+}
+```
+
+2. Via the [useEditor](?) hook. This must be called from within the JSX of the [Tldraw](?) component.
+
+```tsx
+function InsideOfContext() {
+	const editor = useEditor()
+	// your editor code here
+	return null // or whatever
+}
+
+function App() {
+	return (
+		<Tldraw>
+			<InsideOfContext />
+		</Tldraw>
+	)
+}
+```
+
+> If you are using the subcomponents as shown in [this example](/examples/editor-api/exploded), the editor instance is provided by the [TldrawEditor](?) component.
+
 ## Store
 
 The editor holds the raw state of the document in its [Editor#store](?) property. Data is kept here as a table of JSON serializable records.
@@ -121,7 +159,6 @@ Each node can be active or inactive. Each state node may also have zero or more 
 When a user interaction is sent to the editor via its [Editor#dispatch](?) method, this event is sent to the editor's root state node ([Editor#root](?)) and passed then down through the chart's active states until either it reaches a leaf node or until one of those nodes produces a transaction.
 
 <Image
-	title="Events"
 	src="/images/api/events.png"
 	alt="A diagram showing an event being sent to the editor and handled in the state chart."
 	title="The editor passes an event into the state start where it is handled by each active state in order."
@@ -349,6 +386,108 @@ There are several `Editor` methods available for controlling the camera.
 The camera may be in two states, `idle` or `moving`.
 
 You can get the current camera state with [Editor#getCameraState](?).
+
+# Bindings
+
+A binding is a relationship from one [shape](/docs/shapes) to another. They're used to connect
+shapes so they can update together or depend on one and other. For example: tldraw's default arrow
+shape uses bindings to connect the ends of the arrows to the shapes they're pointing to, one binding
+for each end of the arrow.
+
+You can create different types of binding that do all sorts of different things with relationships
+between shapes. For example, you could create a [sticker
+shape](/examples/shapes/tools/sticker-bindings) that sticks to any other shape it's dropped onto.
+
+## The binding object
+
+Bindings are records (JSON objects) that live in the [store](/docs/editor#store). For example,
+here's a binding record for one end of an arrow shape:
+
+```json
+{
+    "id": "binding:someId",
+    "typeName": "binding"
+    "type": "arrow",
+    "fromId": "shape:arrowId",
+    "toId": "shape:someOtherShapeId",
+    "props": {
+        "terminal": "end"
+        "isPrecise": true,
+        "isExact": false,
+        "normalizedAnchor": {
+            "x": 0.5,
+            "y": 0.5
+        },
+    },
+    "meta": {},
+}
+```
+
+Every binding contains some base information - its ID & the type of binding, as well as the ID of
+the shape that a binding comes _from_ and the ID of the shape that the binding goes _to_. These two
+properties work the same way, but it's often useful to have an explicit direction in a binding
+relationship. For example, an arrow binding always goes _from_ an arrow _to_ another shape.
+
+Bindings contain their own type-specific information in the `props` object. Each type of binding can
+have different props.
+
+Bindings also have a `meta` property which can be used by your application to add data to bindings
+you haven't built yourself. You can read more about the meta property
+[here](/docs/shapes#Meta-information).
+
+## Custom bindings
+
+To create a binding of your own, you can define a custom binding.
+
+### The binding type
+
+First, you need to create a type that describes what the binding object will look like:
+
+```ts
+import { TLBaseBinding } from 'tldraw'
+
+type StickerBinding = TLBaseBinding<'sticker', { x: number; y: number }>
+```
+
+With [TLBaseBinding](?) we define the binding's type (`sticker`) and `props` property (`{x: number,
+y: number}`). The type can be any string, and the props must be a plain JSON object (ie not a class
+instance).
+
+The [TLBaseBinding](?) helper adds the other base properties like `id`, `toId`, and `fromId`.
+
+### The `BindingUtil` class
+
+While bindings themselves are plain JSON objects, we use
+[`BindingUtil`](/reference/editor/BindingUtil) classes to define how bindings should work. They tell
+tldraw the structure of a binding, and what to do when it or the shapes it involves are created,
+updated, or deleted.
+
+```ts
+import { BindingUtil } from 'tldraw'
+
+class StickerBindingUtil extends BindingUtil<StickerBinding> {
+	static override type = 'sticker' as const
+
+	override getDefaultProps() {
+		return { x: 0.5, y: 0.5 }
+	}
+
+	override onAfterChangeToShape({ binding }) {
+		const sticker = this.editor.getShape(binding.fromShape)
+
+		// move the sticker so it stays attached to the to shape
+	}
+}
+```
+
+Each binding util needs a `type` and `getDefaultProps` to define its basic structure. You can also
+define a number of different callbacks describing how the binding should behave. See the
+[BindingUtil](?) reference or a [complete example of a
+binding](/examples/shapes/tools/sticker-bindings) for details.
+
+If the strucutre of your binding needs to change over time, you can provide
+[migrations](/docs/persistence#Shape-props-migrations) describing how old stored bindings can be
+brought up to date.
 
 # Common things to do with the editor
 

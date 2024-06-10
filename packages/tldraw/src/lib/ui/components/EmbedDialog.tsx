@@ -69,7 +69,10 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								// has not yet entered a valid URL.
 								setShowError(false)
 								clearTimeout(rShowErrorTimeout.current)
-								rShowErrorTimeout.current = setTimeout(() => setShowError(!embedInfo), 320)
+								rShowErrorTimeout.current = editor.timers.setTimeout(
+									() => setShowError(!embedInfo),
+									320
+								)
 							}}
 						/>
 						{url === '' ? (

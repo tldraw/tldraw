@@ -170,7 +170,7 @@ export class Pointing extends StateNode {
 	private preciseTimeout = -1
 	private didTimeout = false
 	private startPreciseTimeout() {
-		this.preciseTimeout = window.setTimeout(() => {
+		this.preciseTimeout = this.editor.timers.setTimeout(() => {
 			if (!this.getIsActive()) return
 			this.didTimeout = true
 		}, 320)
