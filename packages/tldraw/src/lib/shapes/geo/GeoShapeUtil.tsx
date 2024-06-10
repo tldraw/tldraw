@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	Box,
 	Editor,
 	Ellipse2d,
 	Geometry2d,
@@ -520,32 +521,41 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
-		const { props } = shape
-		ctx.addExportDef(getFillDefForExport(shape.props.fill))
+		// We need to scale the shape to 1x for export
+		const newShape = {
+			...shape,
+			props: {
+				...shape.props,
+				w: shape.props.w / shape.props.scale,
+				h: shape.props.h / shape.props.scale,
+			},
+		}
+		const props = newShape.props
+		ctx.addExportDef(getFillDefForExport(props.fill))
 
 		let textEl
 		if (props.text) {
-			ctx.addExportDef(getFontDefForExport(shape.props.font))
+			ctx.addExportDef(getFontDefForExport(props.font))
 			const theme = getDefaultColorTheme(ctx)
 
-			const bounds = this.editor.getShapeGeometry(shape).bounds
+			const bounds = new Box(0, 0, props.w, props.h + props.growY)
 			textEl = (
 				<SvgTextLabel
-					fontSize={LABEL_FONT_SIZES[props.size] * shape.props.scale}
+					fontSize={LABEL_FONT_SIZES[props.size]}
 					font={props.font}
 					align={props.align}
 					verticalAlign={props.verticalAlign}
 					text={props.text}
 					labelColor={theme[props.labelColor].solid}
 					bounds={bounds}
-					padding={16 * shape.props.scale}
+					padding={16}
 				/>
 			)
 		}
 
 		return (
 			<>
-				<GeoShapeBody shape={shape} />
+				<GeoShapeBody shouldScale={false} shape={newShape} />
 				{textEl}
 			</>
 		)

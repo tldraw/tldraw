@@ -15,12 +15,19 @@ import {
 } from '../geo-shape-helpers'
 import { getLines } from '../getLines'
 
-export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
+export function GeoShapeBody({
+	shape,
+	shouldScale = true,
+}: {
+	shape: TLGeoShape
+	shouldScale?: boolean
+}) {
+	const scaleToUse = shouldScale ? shape.props.scale : 1
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const { id, props } = shape
-	const { w, color, fill, dash, growY, size, scale } = props
-	const strokeWidth = STROKE_SIZES[size] * scale
+	const { w, color, fill, dash, growY, size } = props
+	const strokeWidth = STROKE_SIZES[size] * scaleToUse
 	const h = props.h + growY
 
 	switch (props.geo) {
@@ -29,7 +36,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 				const d = getCloudPath(w, h, id, size)
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
@@ -37,7 +44,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 				const d = inkyCloudSvgPath(w, h, id, size)
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
@@ -47,7 +54,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						<g
 							strokeWidth={strokeWidth}
 							stroke={theme[color].solid}
@@ -109,7 +116,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						<path
 							d={d}
 							strokeWidth={strokeWidth}
@@ -125,7 +132,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 				const d = geometry.getSvgPathData(true)
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
@@ -150,7 +157,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						<path
 							d={d}
 							strokeWidth={strokeWidth}
@@ -164,7 +171,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 			} else {
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
@@ -177,7 +184,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						{curves.map((c, i) => {
 							const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 								c.length,
@@ -209,14 +216,19 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 				const d = getDrawHeartPath(w, h, strokeWidth, shape.id)
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
 			}
 		}
 		default: {
-			const geometry = editor.getShapeGeometry(shape)
+			let geometry = editor.getShapeGeometry(shape)
+			if (!shouldScale) {
+				// We don't want the cached geometry
+				geometry = editor.getShapeUtil(shape).getGeometry(shape)
+			}
+
 			const outline =
 				geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
 			const lines = getLines(shape.props, strokeWidth)
@@ -232,7 +244,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
@@ -241,7 +253,7 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scale} />
+						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
 						<g
 							strokeWidth={strokeWidth}
 							stroke={theme[color].solid}
@@ -321,7 +333,13 @@ export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 
 				return (
 					<>
-						<ShapeFill theme={theme} d={innerPathData} color={color} fill={fill} scale={scale} />
+						<ShapeFill
+							theme={theme}
+							d={innerPathData}
+							color={color}
+							fill={fill}
+							scale={scaleToUse}
+						/>
 						<path d={d} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</>
 				)
