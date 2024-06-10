@@ -25,7 +25,6 @@ module.exports = {
 	rules: {
 		'deprecation/deprecation': 'error',
 		'@next/next/no-html-link-for-pages': 'off',
-		'react/jsx-key': 'off',
 		'no-non-null-assertion': 'off',
 		'no-fallthrough': 'off',
 		'react/jsx-no-target-blank': 'error',
