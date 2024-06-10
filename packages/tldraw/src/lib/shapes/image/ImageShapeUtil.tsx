@@ -104,6 +104,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
+					setLoadedSrc(url)
 				}
 				image.crossOrigin = 'anonymous'
 				image.referrerPolicy = 'strict-origin-when-cross-origin'
