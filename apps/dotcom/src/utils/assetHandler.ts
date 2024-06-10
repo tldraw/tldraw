@@ -1,5 +1,5 @@
 import { AssetContextProps, TLAsset } from 'tldraw'
-import { ASSET_UPLOADER_URL } from './config'
+import { ASSET_BUCKET_ORIGIN, ASSET_UPLOADER_URL } from './config'
 
 export async function resolveAsset(asset: TLAsset | null | undefined, context: AssetContextProps) {
 	if (!asset || !asset.props.src) return null
@@ -25,5 +25,8 @@ export async function resolveAsset(asset: TLAsset | null | undefined, context: A
 		return asset.props.src
 	}
 
-	return `${ASSET_UPLOADER_URL}/cdn-cgi/image/width=${width},dpr=${context.dpr},fit=scale-down,quality=92/${asset.props.src}`
+	// On preview, builds the origin for the asset won't be the right one for the Cloudflare transform.
+	const src = asset.props.src.replace(ASSET_UPLOADER_URL, ASSET_BUCKET_ORIGIN)
+
+	return `${ASSET_BUCKET_ORIGIN}/cdn-cgi/image/width=${width},dpr=${context.dpr},fit=scale-down,quality=92/${src}`
 }

@@ -24,6 +24,7 @@ const dotcom = path.relative(process.cwd(), path.resolve(__dirname, '../apps/dot
 const env = makeEnv([
 	'APP_ORIGIN',
 	'ASSET_UPLOAD',
+	'ASSET_BUCKET_ORIGIN',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
@@ -147,6 +148,7 @@ async function prepareDotcomApp() {
 			ASSET_UPLOAD: previewId
 				? `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 				: env.ASSET_UPLOAD,
+			ASSET_BUCKET_ORIGIN: env.ASSET_BUCKET_ORIGIN,
 			MULTIPLAYER_SERVER: previewId
 				? `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
 				: env.MULTIPLAYER_SERVER,
