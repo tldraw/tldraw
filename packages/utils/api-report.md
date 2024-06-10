@@ -236,7 +236,7 @@ export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefi
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
 
 // @internal
-export function noop(): void;
+export const noop: () => void;
 
 // @internal
 export function objectMapEntries<Key extends string, Value>(object: {

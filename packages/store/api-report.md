@@ -277,13 +277,13 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
 // @public (undocumented)
 export function reverseRecordsDiff(diff: RecordsDiff<any>): RecordsDiff<any>;
 
-// @internal (undocumented)
-export type RSIndex<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Computed<Map<R[Property], Set<IdOf<R>>>, RSIndexDiff<R, Property>>;
+// @public (undocumented)
+export type RSIndex<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Computed<RSIndexMap<R, Property>, RSIndexDiff<R, Property>>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export type RSIndexDiff<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], CollectionDiff<IdOf<R>>>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export type RSIndexMap<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], Set<IdOf<R>>>;
 
 // @public (undocumented)
@@ -476,7 +476,6 @@ export class StoreQueries<R extends UnknownRecord> {
     }>>>, CollectionDiff<IdOf<Extract<R, {
         typeName: TypeName;
     }>>>>;
-    // Warning: (ae-incompatible-release-tags) The symbol "index" is marked as @public, but its signature references "RSIndex" which is marked as @internal
     index<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
         typeName: TypeName;
     }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {

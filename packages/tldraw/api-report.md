@@ -30,7 +30,6 @@ import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
-import { noop } from '@tldraw/editor';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
 import { default as React_2 } from 'react';
@@ -3317,10 +3316,10 @@ export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
 export function useEditableText(id: TLShapeId, type: string, text: string): {
-    handleBlur: typeof noop;
+    handleBlur: () => void;
     handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
     handleDoubleClick: (e: any) => any;
-    handleFocus: typeof noop;
+    handleFocus: () => void;
     handleInputPointerDown: (e: React_2.PointerEvent) => void;
     handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
