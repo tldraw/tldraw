@@ -207,7 +207,7 @@ module.exports = {
 			},
 		},
 		{
-			files: ['*.test.ts', '*.spec.ts'],
+			files: ['*.test.ts', '*.test.tsx', '*.spec.ts'],
 			rules: {
 				'no-restricted-properties': 'off',
 				'no-restricted-globals': 'off',
