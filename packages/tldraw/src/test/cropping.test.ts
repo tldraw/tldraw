@@ -96,12 +96,20 @@ describe('When in the select.idle state', () => {
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageB])
 		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
 
+		editor.updateShape({
+			id: ids.imageB,
+			type: 'image',
+			props: {
+				crop: { topLeft: { x: 0.1, y: 0.1 }, bottomRight: { x: 0.9, y: 0.9 } },
+			},
+		})
+
 		editor.undo()
 
-		// first selection should have been a mark
-		editor.expectToBeIn('select.idle')
+		// back to the start of the crop (undo the crop)
+		editor.expectToBeIn('select.crop.idle')
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageB])
-		expect(editor.getCroppingShapeId()).toBe(null)
+		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
 
 		editor.undo()
 
@@ -114,9 +122,13 @@ describe('When in the select.idle state', () => {
 			.redo() // select again
 			.redo() // crop again
 
-		editor.expectToBeIn('select.crop.idle')
+		// does not start copping again, but will redo the crop operation
+		editor.expectToBeIn('select.idle')
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageB])
-		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
+		expect(editor.getCroppingShapeId()).toBe(null)
+		expect(editor.getOnlySelectedShape()!.props).toMatchObject({
+			crop: { topLeft: { x: 0.1, y: 0.1 }, bottomRight: { x: 0.9, y: 0.9 } },
+		})
 	})
 
 	it('when ONLY ONE image is selected double clicking a selection handle should transition to select.crop', () => {

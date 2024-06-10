@@ -1537,6 +1537,8 @@ export class HistoryManager<R extends UnknownRecord> {
     // (undocumented)
     redo: () => this | undefined;
     // (undocumented)
+    squashToMark: (id: string) => this;
+    // (undocumented)
     undo: () => this;
 }
 
