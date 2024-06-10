@@ -78,7 +78,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					if (cancelled) return
 					setLoadedSrc(url)
 				}
-				image.crossOrigin = 'anonymous'
 				image.src = url
 
 				return () => {
