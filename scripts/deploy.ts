@@ -148,7 +148,6 @@ async function prepareDotcomApp() {
 			ASSET_UPLOAD: previewId
 				? `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 				: env.ASSET_UPLOAD,
-			ASSET_BUCKET_ORIGIN: env.ASSET_BUCKET_ORIGIN,
 			MULTIPLAYER_SERVER: previewId
 				? `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
 				: env.MULTIPLAYER_SERVER,

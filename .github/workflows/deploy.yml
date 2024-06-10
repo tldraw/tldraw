@@ -55,6 +55,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
           ASSET_UPLOAD: ${{ vars.ASSET_UPLOAD }}
+          ASSET_BUCKET_ORIGIN: ${{ vars.ASSET_BUCKET_ORIGIN }}
           MULTIPLAYER_SERVER: ${{ vars.MULTIPLAYER_SERVER }}
           SUPABASE_LITE_URL: ${{ vars.SUPABASE_LITE_URL }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_DOTCOM_PROJECT_ID }}
