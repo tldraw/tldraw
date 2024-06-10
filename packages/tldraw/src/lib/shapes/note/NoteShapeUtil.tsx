@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+	Box,
 	Editor,
 	Group2d,
 	IndexKey,
@@ -236,25 +237,18 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		const { scale } = shape.props
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
 		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
-		const bounds = this.editor.getShapeGeometry(shape).bounds
+		const bounds = getBoundsForSVG(shape)
+
 		return (
 			<>
+				<rect x={5} y={5} rx={1} width={NOTE_SIZE - 10} height={bounds.h} fill="rgba(0,0,0,.1)" />
 				<rect
-					x={5 * scale}
-					y={5 * scale}
-					rx={1 * scale}
-					width={(NOTE_SIZE - 10) * scale}
-					height={bounds.h * scale}
-					fill="rgba(0,0,0,.1)"
-				/>
-				<rect
-					rx={scale}
-					width={NOTE_SIZE * scale}
-					height={bounds.h * scale}
+					rx={1}
+					width={NOTE_SIZE}
+					height={bounds.h}
 					fill={theme[shape.props.color].note.fill}
 				/>
 				<SvgTextLabel
@@ -463,4 +457,8 @@ function getNoteShadow(id: string, rotation: number, scale: number) {
 	return `0px ${a - lift}px ${a}px -${a}px rgba(15, 23, 31, .6),
 	0px ${(b + lift * d) * Math.max(0, oy)}px ${c + lift * d}px -${b + lift * c}px rgba(15, 23, 31, ${(0.3 + lift * 0.1).toFixed(2)}), 
 	0px ${48 * scale}px ${10 * scale}px -${10 * scale}px inset rgba(15, 23, 44, ${((0.022 + random() * 0.005) * ((1 + oy) / 2)).toFixed(2)})`
+}
+
+function getBoundsForSVG(shape: TLNoteShape) {
+	return new Box(0, 0, NOTE_SIZE, NOTE_SIZE + shape.props.growY)
 }
