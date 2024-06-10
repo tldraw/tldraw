@@ -26,6 +26,7 @@ export interface TldrawOptions {
 	readonly dragDistanceSquared: number
 	readonly defaultSvgPadding: number
 	readonly cameraSlideFriction: number
+	readonly maxPointsPerDrawShape: number
 	readonly gridSteps: readonly {
 		readonly min: number
 		readonly mid: number
@@ -58,6 +59,7 @@ export const defaultTldrawOptions = {
 	dragDistanceSquared: 16, // 4 squared
 	defaultSvgPadding: 32,
 	cameraSlideFriction: 0.09,
+	maxPointsPerDrawShape: 500,
 	gridSteps: [
 		{ min: -1, mid: 0.15, step: 64 },
 		{ min: 0.05, mid: 0.375, step: 16 },

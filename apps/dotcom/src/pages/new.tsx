@@ -35,5 +35,14 @@ export function Component() {
 				}}
 			/>
 		)
-	return <Navigate replace to={`/${ROOM_PREFIX}/${data.slug}`} />
+
+	return (
+		<Navigate
+			replace
+			state={{
+				shouldOpenShareMenu: true,
+			}}
+			to={`/${ROOM_PREFIX}/${data.slug}`}
+		/>
+	)
 }

@@ -976,6 +976,7 @@ export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
 // @public
 export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
     description: string;
+    favicon: string;
     image: string;
     src: null | string;
     title: string;
