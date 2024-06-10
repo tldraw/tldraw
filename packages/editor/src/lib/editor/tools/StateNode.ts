@@ -11,7 +11,6 @@ import {
 	TLPinchEventInfo,
 } from '../types/event-types'
 
-type TLStateNodeType = 'branch' | 'leaf' | 'root'
 const STATE_NODES_TO_MEASURE = [
 	'brushing',
 	'cropping',
@@ -84,7 +83,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	static children?: () => TLStateNodeConstructor[]
 
 	id: string
-	type: TLStateNodeType
+	type: 'branch' | 'leaf' | 'root'
 	shapeType?: string
 	initial?: string
 	children?: Record<string, StateNode>

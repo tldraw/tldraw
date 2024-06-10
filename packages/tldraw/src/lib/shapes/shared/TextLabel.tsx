@@ -12,7 +12,8 @@ import { TextHelpers } from './TextHelpers'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableText } from './useEditableText'
 
-interface TextLabelProps {
+/** @public */
+export interface TextLabelProps {
 	id: TLShapeId
 	type: string
 	font: TLDefaultFontStyle

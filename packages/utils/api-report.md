@@ -11,7 +11,7 @@ export function annotateError(error: unknown, annotations: Partial<ErrorAnnotati
 export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[]): boolean;
 
 // @internal (undocumented)
-export function areObjectsShallowEqual<T extends Record<string, unknown>>(obj1: T, obj2: T): boolean;
+export function areObjectsShallowEqual<T extends object>(obj1: T, obj2: T): boolean;
 
 // @internal (undocumented)
 export const assert: (value: unknown, message?: string) => asserts value;
@@ -51,6 +51,14 @@ export function deleteFromLocalStorage(key: string): void;
 
 // @internal
 export function deleteFromSessionStorage(key: string): void;
+
+// @public (undocumented)
+export interface ErrorAnnotations {
+    // (undocumented)
+    extras: Record<string, unknown>;
+    // (undocumented)
+    tags: Record<string, bigint | boolean | null | number | string | symbol | undefined>;
+}
 
 // @public (undocumented)
 export interface ErrorResult<E> {
@@ -228,7 +236,7 @@ export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefi
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
 
 // @internal
-export function noop(): void;
+export const noop: () => void;
 
 // @internal
 export function objectMapEntries<Key extends string, Value>(object: {
@@ -316,7 +324,9 @@ export type RecursivePartial<T> = {
 };
 
 // @internal (undocumented)
-type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & _Required<Pick<T, K>>>;
+type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {
+    [P in K]-?: T[P];
+}>;
 export { Required_2 as Required }
 
 // @public (undocumented)

@@ -707,7 +707,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly root: RootState
+	readonly root: StateNode
 
 	/**
 	 * A set of functions to call when the app is disposed.

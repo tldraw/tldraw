@@ -3,6 +3,7 @@ import { version } from '../ui/version'
 import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/static-assets/assetUrls'
 import { TLUiIconType, iconTypes } from './icon-types'
 
+/** @public */
 export type TLUiAssetUrls = TLEditorAssetUrls & {
 	icons: Record<TLUiIconType | Exclude<string, TLUiIconType>, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>

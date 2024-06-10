@@ -1,4 +1,10 @@
-import { StateNode, TLInterruptEvent, TLKeyboardEvent, TLPointerEventInfo } from '@tldraw/editor'
+import {
+	StateNode,
+	TLInterruptEvent,
+	TLKeyboardEvent,
+	TLPointerEventInfo,
+	TLStateNodeConstructor,
+} from '@tldraw/editor'
 import { Idle } from './childStates/Idle'
 import { Pointing } from './childStates/Pointing'
 import { ZoomBrushing } from './childStates/ZoomBrushing'
@@ -7,7 +13,7 @@ import { ZoomBrushing } from './childStates/ZoomBrushing'
 export class ZoomTool extends StateNode {
 	static override id = 'zoom'
 	static override initial = 'idle'
-	static override children = () => [Idle, ZoomBrushing, Pointing]
+	static override children = (): TLStateNodeConstructor[] => [Idle, ZoomBrushing, Pointing]
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
