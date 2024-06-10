@@ -460,5 +460,6 @@ function getNoteShadow(id: string, rotation: number, scale: number) {
 }
 
 function getBoundsForSVG(shape: TLNoteShape) {
+	// When rendering the SVG we don't want to adjust for scale
 	return new Box(0, 0, NOTE_SIZE, NOTE_SIZE + shape.props.growY)
 }
