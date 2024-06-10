@@ -25,7 +25,7 @@ import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize, downsizeImage } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
-import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
+import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /** @public */
 export interface TLExternalContentProps {
@@ -111,7 +111,7 @@ export function registerDefaultExternalContentHandlers(
 
 	// urls -> bookmark asset
 	editor.registerExternalAssetHandler('url', async ({ url }) => {
-		let meta: { image: string; title: string; description: string }
+		let meta: { image: string; favicon: string; title: string; description: string }
 
 		try {
 			const resp = await fetch(url, {
@@ -122,9 +122,11 @@ export function registerDefaultExternalContentHandlers(
 			const doc = new DOMParser().parseFromString(html, 'text/html')
 			meta = {
 				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
-				title:
-					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
-					truncateStringWithEllipsis(url, 32),
+				favicon:
+					doc.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ??
+					doc.head.querySelector('link[rel="icon"]')?.getAttribute('href') ??
+					'',
+				title: doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? url,
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
@@ -134,7 +136,7 @@ export function registerDefaultExternalContentHandlers(
 				title: msg('assets.url.failed'),
 				severity: 'error',
 			})
-			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
+			meta = { image: '', favicon: '', title: '', description: '' }
 		}
 
 		// Create the bookmark asset from the meta
@@ -146,6 +148,7 @@ export function registerDefaultExternalContentHandlers(
 				src: url,
 				description: meta.description,
 				image: meta.image,
+				favicon: meta.favicon,
 				title: meta.title,
 			},
 			meta: {},

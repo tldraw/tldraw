@@ -22,8 +22,6 @@ import { createQRCodeImageDataString } from '../utils/qrcode'
 import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
 import { ShareButton } from './ShareButton'
 
-const COPY_LINK_TIMEOUT = 1000
-
 const SHARE_CURRENT_STATE = {
 	OFFLINE: 'offline',
 	SHARED_READ_WRITE: 'shared-read-write',
@@ -127,9 +125,6 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	const currentQrCodeUrl = isReadOnlyLink
 		? shareState.readonlyQrCodeDataUrl
 		: shareState.qrCodeDataUrl
-	const [didCopy, setDidCopy] = useState(false)
-	const [didCopyReadonlyLink, setDidCopyReadonlyLink] = useState(false)
-	const [didCopySnapshotLink, setDidCopySnapshotLink] = useState(false)
 	const toasts = useToasts()
 
 	useEffect(() => {
@@ -208,8 +203,6 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									)}
 									onClick={() => {
 										if (!currentShareLinkUrl) return
-										setDidCopy(true)
-										setTimeout(() => setDidCopy(false), COPY_LINK_TIMEOUT)
 										navigator.clipboard.writeText(currentShareLinkUrl)
 										toasts.addToast({
 											title: msg('share-menu.copied'),
@@ -222,13 +215,11 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									{shareState.state === SHARE_CURRENT_STATE.SHARED_READ_WRITE && (
 										<TldrawUiMenuItem
 											id="copy-to-clipboard"
-											readonlyOk
-											icon={didCopy ? 'clipboard-copied' : 'clipboard-copy'}
+											readonlyOk={false}
 											label="share-menu.copy-link"
+											icon="clipboard-copy"
 											onSelect={() => {
 												if (!shareState.url) return
-												setDidCopy(true)
-												setTimeout(() => setDidCopy(false), COPY_LINK_TIMEOUT)
 												navigator.clipboard.writeText(shareState.url)
 												toasts.addToast({
 													title: msg('share-menu.copied'),
@@ -240,12 +231,10 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									<TldrawUiMenuItem
 										id="copy-readonly-to-clipboard"
 										readonlyOk
-										icon={didCopyReadonlyLink ? 'clipboard-copied' : 'clipboard-copy'}
 										label="share-menu.copy-readonly-link"
+										icon="clipboard-copy"
 										onSelect={() => {
 											if (!shareState.readonlyUrl) return
-											setDidCopyReadonlyLink(true)
-											setTimeout(() => setDidCopyReadonlyLink(false), COPY_LINK_TIMEOUT)
 											navigator.clipboard.writeText(shareState.readonlyUrl)
 											toasts.addToast({
 												title: msg('share-menu.copied'),
@@ -261,13 +250,11 @@ export const ShareMenu = React.memo(function ShareMenu() {
 								<TldrawUiMenuGroup id="snapshot">
 									<TldrawUiMenuItem
 										{...shareSnapshot}
-										icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
+										icon="clipboard-copy"
 										onSelect={async () => {
 											setIsUploadingSnapshot(true)
 											await shareSnapshot.onSelect('share-menu')
 											setIsUploadingSnapshot(false)
-											setDidCopySnapshotLink(true)
-											setTimeout(() => setDidCopySnapshotLink(false), COPY_LINK_TIMEOUT)
 										}}
 										spinner={isUploadingSnapshot}
 									/>
@@ -307,14 +294,12 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									<TldrawUiMenuItem
 										id="copy-snapshot-link"
 										readonlyOk
-										icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
+										icon="clipboard-copy"
 										label={unwrapLabel(shareSnapshot.label)}
 										onSelect={async () => {
 											setIsUploadingSnapshot(true)
 											await shareSnapshot.onSelect('share-menu')
 											setIsUploadingSnapshot(false)
-											setDidCopySnapshotLink(true)
-											setTimeout(() => setDidCopySnapshotLink(false), COPY_LINK_TIMEOUT)
 										}}
 										spinner={isUploadingSnapshot}
 									/>

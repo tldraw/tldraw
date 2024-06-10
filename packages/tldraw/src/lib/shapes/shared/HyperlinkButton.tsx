@@ -19,7 +19,7 @@ export function HyperlinkButton({ url, zoomLevel }: { url: string; zoomLevel: nu
 			draggable={false}
 		>
 			<div
-				className="tl-hyperlink-button__icon"
+				className="tl-hyperlink__icon"
 				style={{
 					mask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
 					WebkitMask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,

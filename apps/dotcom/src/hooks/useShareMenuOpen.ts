@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { atom, useMenuIsOpen, useValue } from 'tldraw'
 
 // When people click the 'create shared project' in the share menu we want to make sure that
@@ -12,17 +13,22 @@ export function useShareMenuIsOpen() {
 	const isOpen = useValue('is menu open', () => persistentShareMenuOpenAtom.get(), [])
 	const [isShareMenuOpen, onOpenChange] = useMenuIsOpen('share menu')
 	// on initial render the persistent option takes effect
-
+	const location = useLocation()
 	const isFirst = useRef(true)
 
 	useEffect(() => {
 		if (isFirst.current) {
 			isFirst.current = false
+			if (location.state?.shouldOpenShareMenu) {
+				// if we are navigating from the new shared project button then
+				// we always open the share menu
+				persistentShareMenuOpenAtom.set(true)
+			}
 			onOpenChange(persistentShareMenuOpenAtom.get())
 		} else {
 			persistentShareMenuOpenAtom.set(isShareMenuOpen)
 		}
-	}, [isShareMenuOpen, onOpenChange])
+	}, [isShareMenuOpen, location.state, onOpenChange])
 
 	return [isOpen, onOpenChange] as const
 }

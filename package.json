@@ -103,7 +103,7 @@
 		"rimraf": "^4.4.0",
 		"tsx": "^4.0.0",
 		"typescript": "^5.3.3",
-		"vercel": "^28.16.15"
+		"vercel": "^34.2.4"
 	},
 	"// resolutions.canvas": [
 		"our examples app depenends on pdf.js which pulls in canvas as an optional dependency.",

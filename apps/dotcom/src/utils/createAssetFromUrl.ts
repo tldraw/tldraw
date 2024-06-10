@@ -1,16 +1,11 @@
-import {
-	AssetRecordType,
-	TLAsset,
-	fetch,
-	getHashForString,
-	truncateStringWithEllipsis,
-} from 'tldraw'
+import { AssetRecordType, TLAsset, fetch, getHashForString } from 'tldraw'
 import { BOOKMARK_ENDPOINT } from './config'
 
 interface ResponseBody {
 	title?: string
 	description?: string
 	image?: string
+	favicon?: string
 }
 
 export async function createAssetFromUrl({ url }: { type: 'url'; url: string }): Promise<TLAsset> {
@@ -36,14 +31,15 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 				src: url,
 				description: meta.description ?? '',
 				image: meta.image ?? '',
-				title: meta.title ?? truncateStringWithEllipsis(url, 32),
+				favicon: meta.favicon ?? '',
+				title: meta.title ?? '',
 			},
 			meta: {},
 		}
 	} catch (error) {
 		// Otherwise, fallback to fetching data from the url
 
-		let meta: { image: string; title: string; description: string }
+		let meta: { image: string; favicon: string; title: string; description: string }
 
 		try {
 			const resp = await fetch(url, {
@@ -54,15 +50,22 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 			const doc = new DOMParser().parseFromString(html, 'text/html')
 			meta = {
 				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
-				title:
-					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
-					truncateStringWithEllipsis(url, 32),
+				favicon:
+					doc.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ??
+					doc.head.querySelector('link[rel="icon"]')?.getAttribute('href') ??
+					'',
+				title: doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? '',
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
+			// Resolve relative URLs
+			if (meta.image.startsWith('/')) {
+				const urlObj = new URL(url)
+				meta.image = `${urlObj.origin}${meta.image}`
+			}
 		} catch (error) {
 			console.error(error)
-			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
+			meta = { image: '', favicon: '', title: '', description: '' }
 		}
 
 		// Create the bookmark asset from the meta
@@ -73,6 +76,7 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 			props: {
 				src: url,
 				image: meta.image,
+				favicon: meta.favicon,
 				title: meta.title,
 				description: meta.description,
 			},
