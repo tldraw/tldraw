@@ -80,7 +80,6 @@ import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
-import { TLOnBeforeCreateHandler } from '@tldraw/editor';
 import { TLOnBeforeUpdateHandler } from '@tldraw/editor';
 import { TLOnDoubleClickHandler } from '@tldraw/editor';
 import { TLOnEditEndHandler } from '@tldraw/editor';
@@ -254,7 +253,25 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onBeforeCreate?: TLOnBeforeCreateHandler<TLBookmarkShape>;
+    onBeforeCreate: (next: TLBookmarkShape) => {
+        id: TLShapeId;
+        index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: number;
+        parentId: TLParentId;
+        props: {
+            assetId: null | TLAssetId;
+            h: number;
+            url: string;
+            w: number;
+        };
+        rotation: number;
+        type: "bookmark";
+        typeName: "shape";
+        x: number;
+        y: number;
+    };
     // (undocumented)
     onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
     // (undocumented)
