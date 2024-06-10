@@ -1,6 +1,6 @@
 import { APIGroup, InputSection } from '@/types/content-types'
+import { TldrawApiModel } from '@/utils/TldrawApiModel'
 import { nicelog } from '@/utils/nicelog'
-import { ApiModel } from '@microsoft/api-extractor-model'
 import fs from 'fs'
 import path from 'path'
 import { CONTENT_DIR, getSlug } from '../utils'
@@ -27,7 +27,7 @@ export async function createApiMarkdown() {
 
 	fs.mkdirSync(OUTPUT_DIR)
 
-	const model = new ApiModel()
+	const model = new TldrawApiModel()
 	const packageModels = []
 
 	// get all files in the INPUT_DIR
@@ -42,6 +42,8 @@ export async function createApiMarkdown() {
 		// add the parsed file to the packageModels array
 		packageModels.push(apiModel)
 	}
+
+	model.preprocessReactComponents()
 
 	for (const packageModel of packageModels) {
 		const categoryName = packageModel.name.replace(`@tldraw/`, '')
@@ -65,8 +67,14 @@ export async function createApiMarkdown() {
 		for (let j = 0; j < entrypoint.members.length; j++) {
 			const item = entrypoint.members[j]
 
-			const result = await getApiMarkdown(categoryName, item, j)
 			const outputFileName = `${getSlug(item)}.mdx`
+
+			if (model.isComponentProps(item)) {
+				nicelog(`  ${outputFileName} (skipped: component props)`)
+				continue
+			}
+
+			const result = await getApiMarkdown(model, categoryName, item, j)
 			nicelog(`✎ ${outputFileName}`)
 			fs.writeFileSync(path.join(OUTPUT_DIR, outputFileName), result.markdown)
 		}

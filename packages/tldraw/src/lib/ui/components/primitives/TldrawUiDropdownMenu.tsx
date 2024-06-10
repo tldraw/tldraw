@@ -66,7 +66,7 @@ export interface TLUiDropdownMenuContentProps {
 	side?: 'bottom' | 'top' | 'right' | 'left'
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuContent({
 	side = 'bottom',
 	align = 'start',
@@ -188,7 +188,7 @@ export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupPro
 	)
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuIndicator() {
 	return (
 		<_DropdownMenu.ItemIndicator dir="ltr" asChild>

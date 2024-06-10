@@ -130,6 +130,7 @@ export enum APIGroup {
 	Interface = 'Interface',
 	TypeAlias = 'TypeAlias',
 	Namespace = 'Namespace',
+	Component = 'Component',
 }
 
 /* ---------------- Article Headings ---------------- */

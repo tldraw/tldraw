@@ -1,5 +1,5 @@
-export function assert<T>(thing: T, errorMessage?: string): asserts thing is NonNullable<T> {
-	if (thing === null || thing === undefined) {
+export function assert<T>(thing: T, errorMessage?: string): asserts thing {
+	if (!thing === null) {
 		throw new Error(errorMessage)
 	}
 }

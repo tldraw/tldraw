@@ -1551,28 +1551,16 @@ export interface TldrawFile {
 export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | null;
 
 // @public
-export const TldrawImage: NamedExoticComponent<    {
-background?: boolean | undefined;
-bindingUtils?: readonly TLAnyBindingUtilConstructor[] | undefined;
-bounds?: Box | undefined;
-darkMode?: boolean | undefined;
-format?: "png" | "svg" | undefined;
-padding?: number | undefined;
-pageId?: TLPageId | undefined;
-preserveAspectRatio?: string | undefined;
-scale?: number | undefined;
-shapeUtils?: readonly TLAnyShapeUtilConstructor[] | undefined;
-snapshot: TLEditorSnapshot | TLStoreSnapshot;
-}>;
+export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
-// @public
-export type TldrawImageProps = Expand<{
+// @public (undocumented)
+export interface TldrawImageProps extends Partial<TLSvgOptions> {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
-    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     format?: 'png' | 'svg';
     pageId?: TLPageId;
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: TLEditorSnapshot | TLStoreSnapshot;
-} & Partial<TLSvgOptions>>;
+}
 
 // @public (undocumented)
 export type TldrawProps = Expand<(Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {

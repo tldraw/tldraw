@@ -15,6 +15,8 @@ order: 3
 
 ## Changelog
 
+
+
 {/* START AUTO-GENERATED CHANGELOG */}
 
 ### [v2.1.4](/releases/v2.1.4)
@@ -40,6 +42,7 @@ order: 3
 
 ### [v2.1.3](/releases/v2.1.3)
 
+
 #### Expose migrations, validators, and versions from tlschema ([#3613](https://github.com/tldraw/tldraw/pull/3613))
 
 Previously, we weren't exporting migrations & validators for our default shapes. This meant that it wasn't possible to make your own tlschema with both our default shapes and some of your own (e.g. for custom multiplayer). This fixes that by exposing all the migrations, validators, and versions from tlschema, plus `defaultShapeSchemas` which can be passed directly to `createTLSchema`
@@ -56,6 +59,7 @@ Previously, we weren't exporting migrations & validators for our default shapes.
 - alex ([@SomeHats](https://github.com/SomeHats))
 
 ### [v2.1.2](/releases/v2.1.2)
+
 
 #### Revert "[signia] Smart dirty checking of active computeds (#3516)" ([#3611](https://github.com/tldraw/tldraw/pull/3611))
 
@@ -78,6 +82,7 @@ This performance optimisation introduced a regression where sometimes computed c
 - alex ([@SomeHats](https://github.com/SomeHats))
 
 ### [v2.1.1](/releases/v2.1.1)
+
 
 #### fix migration exports ([#3594](https://github.com/tldraw/tldraw/pull/3594))
 
@@ -113,7 +118,7 @@ This tldraw release has loads of performance improvements, plus completely redes
 - `compareRecordVersions` and the `RecordVersion` type have both disappeared. There is no replacement. These were public by mistake anyway, so hopefully nobody had been using it.
 - `compareSchemas` is gone. Comparing the schemas directly is no longer really possible since we introduced some fuzziness. The best thing to do now to check compatibility is to call `schema.getMigraitonsSince(prevSchema)` and it will return an error if the schemas are not compatible, an empty array if there are no migrations to apply since the prev schema, and a nonempty array otherwise.
 
-  Generally speaking, the best way to check schema compatibility now is to call `store.schema.getMigrationsSince(persistedSchema)`. This will throw an error if there is no upgrade path from the `persistedSchema` to the current version.
+   Generally speaking, the best way to check schema compatibility now is to call `store.schema.getMigrationsSince(persistedSchema)`. This will throw an error if there is no upgrade path from the `persistedSchema` to the current version.
 
 - `defineMigrations` has been deprecated and will be removed in a future release. For upgrade instructions see [updating legacy shape migrations](https://tldraw.dev/docs/persistence#Updating-legacy-shape-migrations-defineMigrations)
 
@@ -138,7 +143,6 @@ If you're using the `toolbar` callback to override the items in the toolbar at t
 See the [custom toolbar example](https://tldraw.dev/examples/ui/custom-toolbar) for more details.
 
 #### Improvements
-
 - All-new sticky notes! ([#3249](https://github.com/tldraw/tldraw/pull/3249))
 - Improve color contrast. ([#3486](https://github.com/tldraw/tldraw/pull/3486))
 - Add long press event. ([#3275](https://github.com/tldraw/tldraw/pull/3275))
@@ -147,13 +151,11 @@ See the [custom toolbar example](https://tldraw.dev/examples/ui/custom-toolbar) 
 - Better handling of broken images / videos. ([#2990](https://github.com/tldraw/tldraw/pull/2990))
 
 #### API changes
-
 - Expose `Editor.getStyleForNextShape` - previously marked as internal. ([#3039](https://github.com/tldraw/tldraw/pull/3039))
 - Expose `usePreloadAssets`. ([#3545](https://github.com/tldraw/tldraw/pull/3545))
 - `getRenderingShapes` no longer returns `isCulled`. Instead, use `getCulledShapes`.
 
 #### Bug fixes
-
 - Prevent copy error sound in safari. ([#3536](https://github.com/tldraw/tldraw/pull/3536))
 - Fix arrow label positioning overlapping the shape the arrow is bound to. ([#3512](https://github.com/tldraw/tldraw/pull/3512))
 - Fix cursor chat button appearing when not in select tool. ([#3485](https://github.com/tldraw/tldraw/pull/3485))
@@ -171,7 +173,6 @@ See the [custom toolbar example](https://tldraw.dev/examples/ui/custom-toolbar) 
 - Fix a rare crash with video shapes. ([#3037](https://github.com/tldraw/tldraw/pull/3037))
 
 #### Performance improvements
-
 - Improve performance of draw shapes. ([#3464](https://github.com/tldraw/tldraw/pull/3464))
 - Improve icon preloading. ([#3507](https://github.com/tldraw/tldraw/pull/3507))
 - Use WebGL to draw the minimap. ([#3510](https://github.com/tldraw/tldraw/pull/3510))
@@ -191,7 +192,6 @@ See the [custom toolbar example](https://tldraw.dev/examples/ui/custom-toolbar) 
 - Faster rendering. ([#2977](https://github.com/tldraw/tldraw/pull/2977))
 
 #### Translations
-
 - Update Romanian translations. ([#3269](https://github.com/tldraw/tldraw/pull/3269))
 - Update Hungarian translations. ([#3049](https://github.com/tldraw/tldraw/pull/3049))
 
@@ -268,3 +268,5 @@ See the [custom toolbar example](https://tldraw.dev/examples/ui/custom-toolbar) 
 - Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
 
 {/* END AUTO-GENERATED CHANGELOG */}
+
+
