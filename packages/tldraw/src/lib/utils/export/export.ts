@@ -118,7 +118,7 @@ export async function exportToString(
 			return (await getSvgString(editor, ids, opts))?.svg
 		}
 		case 'json': {
-			const data = editor.getContentFromCurrentPage(ids)
+			const data = await editor.getContentFromCurrentPage(ids)
 			return JSON.stringify(data)
 		}
 		default: {

@@ -825,7 +825,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
-    duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
+    duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): Promise<this>;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
     readonly environment: EnvironmentManager;
     // @internal (undocumented)
@@ -876,7 +876,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getContainer: () => HTMLElement;
-    getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): Promise<TLContent | undefined>;
     // @internal
     getCrashingError(): unknown;
     getCroppingShapeId(): null | TLShapeId;
@@ -1042,7 +1042,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
     mark(markId?: string): this;
-    moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
+    moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): Promise<this>;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
     readonly options: TldrawOptions;

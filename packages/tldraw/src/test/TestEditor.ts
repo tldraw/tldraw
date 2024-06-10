@@ -178,9 +178,9 @@ export class TestEditor extends Editor {
 
 	clipboard = null as TLContent | null
 
-	copy = (ids = this.getSelectedShapeIds()) => {
+	copy = async (ids = this.getSelectedShapeIds()) => {
 		if (ids.length > 0) {
-			const content = this.getContentFromCurrentPage(ids)
+			const content = await this.getContentFromCurrentPage(ids)
 			if (content) {
 				this.clipboard = content
 			}
@@ -188,9 +188,9 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	cut = (ids = this.getSelectedShapeIds()) => {
+	cut = async (ids = this.getSelectedShapeIds()) => {
 		if (ids.length > 0) {
-			const content = this.getContentFromCurrentPage(ids)
+			const content = await this.getContentFromCurrentPage(ids)
 			if (content) {
 				this.clipboard = content
 			}

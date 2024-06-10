@@ -2745,8 +2745,8 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T): rea
 
 // @public (undocumented)
 export function useMenuClipboardEvents(): {
-    copy: (source: TLUiEventSource) => void;
-    cut: (source: TLUiEventSource) => void;
+    copy: (source: TLUiEventSource) => Promise<void>;
+    cut: (source: TLUiEventSource) => Promise<void>;
     paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike) => Promise<void>;
 };
 

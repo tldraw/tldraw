@@ -70,7 +70,7 @@ export function ImageAnnotationEditor({
 		})
 
 		// Make sure the shape is at the bottom of the page
-		function makeSureShapeIsAtBottom() {
+		async function makeSureShapeIsAtBottom() {
 			if (!editor) return
 
 			const shape = editor.getShape(shapeId)
@@ -80,7 +80,7 @@ export function ImageAnnotationEditor({
 
 			// The shape should always be the child of the current page
 			if (shape.parentId !== pageId) {
-				editor.moveShapesToPage([shape], pageId)
+				await editor.moveShapesToPage([shape], pageId)
 			}
 
 			// The shape should always be at the bottom of the page's children

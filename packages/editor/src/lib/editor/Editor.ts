@@ -53,6 +53,7 @@ import {
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
+	FileHelpers,
 	IndexKey,
 	JsonObject,
 	PerformanceTracker,
@@ -3745,14 +3746,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	duplicatePage(page: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): this {
+	async duplicatePage(
+		page: TLPageId | TLPage,
+		createId: TLPageId = PageRecordType.createId()
+	): Promise<this> {
 		if (this.getPages().length >= this.options.maxPages) return this
 		const id = typeof page === 'string' ? page : page.id
 		const freshPage = this.getPage(id) // get the most recent version of the page anyway
 		if (!freshPage) return this
 
 		const prevCamera = { ...this.getCamera() }
-		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(freshPage.id))
+		const content = await this.getContentFromCurrentPage(
+			this.getSortedChildIdsForParent(freshPage.id)
+		)
 
 		this.batch(() => {
 			const pages = this.getPages()
@@ -5529,7 +5535,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	moveShapesToPage(shapes: TLShapeId[] | TLShape[], pageId: TLPageId): this {
+	async moveShapesToPage(shapes: TLShapeId[] | TLShape[], pageId: TLPageId): Promise<this> {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
@@ -5544,7 +5550,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!this.store.has(pageId)) return this
 
 		// Basically copy the shapes
-		const content = this.getContentFromCurrentPage(ids)
+		const content = await this.getContentFromCurrentPage(ids)
 
 		// Just to be sure
 		if (!content) return this
@@ -7652,7 +7658,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getContentFromCurrentPage(shapes: TLShapeId[] | TLShape[]): TLContent | undefined {
+	async getContentFromCurrentPage(shapes: TLShapeId[] | TLShape[]): Promise<TLContent | undefined> {
 		// todo: make this work with any page, not just the current page
 		const ids =
 			typeof shapes[0] === 'string'
@@ -7664,7 +7670,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapeIds = this.getShapeAndDescendantIds(ids)
 
-		return withoutBindingsToUnrelatedShapes(this, shapeIds, (bindingIdsToKeep) => {
+		return await withoutBindingsToUnrelatedShapes(this, shapeIds, async (bindingIdsToKeep) => {
 			const bindings: TLBinding[] = []
 			for (const id of bindingIdsToKeep) {
 				const binding = this.getBinding(id)
@@ -7708,7 +7714,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 				seenAssetIds.add(assetId)
 				const asset = this.getAsset(assetId)
 				if (!asset) continue
-				assets.push(asset)
+
+				if (
+					(asset.type === 'image' || asset.type === 'video') &&
+					!asset.props.src?.startsWith('data:image') &&
+					!asset.props.src?.startsWith('http')
+				) {
+					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+					const objectUrl = await this._assetOptions.get().onResolveAsset(asset!, {
+						screenScale: 1,
+						steppedScreenScale: 1,
+						dpr: 1,
+						networkEffectiveType: null,
+						shouldResolveToOriginalImage: true,
+					})
+					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
+						await fetch(objectUrl!).then((r) => r.blob())
+					)
+					assets.push(assetWithDataUrl)
+				} else {
+					assets.push(asset)
+				}
 			}
 
 			return {

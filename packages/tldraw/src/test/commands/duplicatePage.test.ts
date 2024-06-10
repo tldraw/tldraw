@@ -13,7 +13,7 @@ beforeEach(() => {
 	])
 })
 
-it('Duplicates a page', () => {
+it('Duplicates a page', async () => {
 	const oldPageId = editor.getCurrentPageId()
 	const camera = { ...editor.getCamera() }
 	const n = editor.getPages().length
@@ -21,7 +21,7 @@ it('Duplicates a page', () => {
 
 	const existingIds = new Set(editor.getPages().map((s) => s.id))
 
-	editor.duplicatePage(editor.getCurrentPageId())
+	await editor.duplicatePage(editor.getCurrentPageId())
 
 	// Creates the new page
 	expect(editor.getPages().length).toBe(n + 1)
@@ -47,9 +47,9 @@ it('Duplicates a page', () => {
 	expect(editor.getCurrentPageId()).toBe(newPageId)
 })
 
-it("Doesn't duplicate the page if max pages is reached", () => {
+it("Doesn't duplicate the page if max pages is reached", async () => {
 	for (let i = 0; i < editor.options.maxPages; i++) {
-		editor.duplicatePage(editor.getCurrentPageId())
+		await editor.duplicatePage(editor.getCurrentPageId())
 	}
 	expect(editor.getPages().length).toBe(editor.options.maxPages)
 })
