@@ -60,6 +60,21 @@ describe('resolveAsset', () => {
 		).toBe('data:somedata')
 	})
 
+	it('should return the original src if it is animated', async () => {
+		const asset = {
+			type: 'image',
+			props: { src: 'http://example.com/animated.gif', mimeType: 'image/gif', w: 100 },
+		}
+		expect(
+			await resolveAsset(asset as TLAsset, {
+				screenScale: -1,
+				steppedScreenScale: 1,
+				dpr: 1,
+				networkEffectiveType: '4g',
+			})
+		).toBe('http://example.com/animated.gif')
+	})
+
 	it("should return null if the asset type is not 'image'", async () => {
 		const asset = { type: 'document', props: { src: 'http://example.com/doc.pdf', w: 100 } }
 		expect(

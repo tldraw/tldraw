@@ -1,4 +1,4 @@
-import { AssetContextProps, TLAsset } from 'tldraw'
+import { AssetContextProps, MediaHelpers, TLAsset } from 'tldraw'
 import { ASSET_BUCKET_ORIGIN, ASSET_UPLOADER_URL } from './config'
 
 export async function resolveAsset(asset: TLAsset | null | undefined, context: AssetContextProps) {
@@ -12,6 +12,13 @@ export async function resolveAsset(asset: TLAsset | null | undefined, context: A
 
 	// Don't try to transform data: URLs, yikes.
 	if (!asset.props.src.startsWith('http:') && !asset.props.src.startsWith('https:'))
+		return asset.props.src
+
+	// Don't try to transform animated images.
+	if (
+		('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
+		('isAnimated' in asset.props && asset.props.isAnimated)
+	)
 		return asset.props.src
 
 	// N.B. navigator.connection is only available in certain browsers (mainly Blink-based browsers)
