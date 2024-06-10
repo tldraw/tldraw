@@ -17,14 +17,12 @@ import { getLines } from '../getLines'
 export function GeoShapeBody({ shape }: { shape: TLGeoShape }) {
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
-	const {
-		id,
-		props: { w, color, geo, fill, dash, growY, size },
-	} = shape
+	const { id, props } = shape
+	const { w, color, fill, dash, growY, size } = props
 	const strokeWidth = STROKE_SIZES[size]
-	const h = shape.props.h + growY
+	const h = props.h + growY
 
-	switch (geo) {
+	switch (props.geo) {
 		case 'cloud': {
 			if (dash === 'solid') {
 				const d = getCloudPath(w, h, id, size)

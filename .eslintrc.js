@@ -35,6 +35,7 @@ module.exports = {
 		'@typescript-eslint/ban-ts-comment': 'off',
 		'react/display-name': 'off',
 		'@next/next/no-img-element': 'off',
+		'react/prop-types': 'off',
 		'@typescript-eslint/no-extra-semi': 'off',
 		'no-mixed-spaces-and-tabs': 'off',
 		'@typescript-eslint/no-unused-vars': [
