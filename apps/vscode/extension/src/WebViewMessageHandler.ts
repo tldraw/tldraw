@@ -97,6 +97,7 @@ export class WebViewMessageHandler {
 								title: json.title,
 								description: json.description,
 								image: json.image,
+								favicon: json.favicon,
 							},
 						})
 					})

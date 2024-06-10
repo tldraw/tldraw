@@ -1314,6 +1314,32 @@ describe('Make urls valid for all the assets', () => {
 	}
 })
 
+describe('Ensure favicons are on bookmarks', () => {
+	const { up, down } = getTestMigration(bookmarkAssetVersions.AddFavicon)
+	it('up works as expected', () => {
+		expect(
+			up({
+				props: {},
+			})
+		).toEqual({
+			props: {
+				favicon: '',
+			},
+		})
+	})
+	it('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					favicon: 'https://tldraw.com/favicon.ico',
+				},
+			})
+		).toEqual({
+			props: {},
+		})
+	})
+})
+
 describe('Add duplicate props to instance', () => {
 	const { up, down } = getTestMigration(instanceVersions.AddDuplicateProps)
 	it('up works as expected', () => {
