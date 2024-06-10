@@ -154,7 +154,7 @@ function GapsSnapIndicator({ gaps, direction, zoom }: { zoom: number } & GapsSna
 }
 
 /** @public */
-export type TLSnapIndicatorProps = {
+export interface TLSnapIndicatorProps {
 	className?: string
 	line: SnapIndicator
 	zoom: number

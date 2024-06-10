@@ -22,7 +22,6 @@ export interface TLHandle {
 	/** A unique identifier for the handle. */
 	id: string
 	type: TLHandleType
-	canBind?: boolean
 	canSnap?: boolean
 	index: IndexKey
 	x: number

@@ -1,13 +1,11 @@
 import { useMemo } from 'react'
 import {
 	Box,
-	DEFAULT_CAMERA_OPTIONS,
 	SVGContainer,
 	TLComponents,
 	TLImageShape,
 	TLShapePartial,
 	Tldraw,
-	compact,
 	getIndicesBetween,
 	react,
 	sortByIndex,
@@ -123,7 +121,6 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 
 				function updateCameraBounds(isMobile: boolean) {
 					editor.setCameraOptions({
-						...DEFAULT_CAMERA_OPTIONS,
 						constraints: {
 							bounds: targetBounds,
 							padding: { x: isMobile ? 16 : 164, y: 64 },
@@ -158,14 +155,14 @@ const PageOverlayScreen = track(function PageOverlayScreen({ pdf }: { pdf: Pdf }
 	const viewportPageBounds = editor.getViewportPageBounds()
 	const viewportScreenBounds = editor.getViewportScreenBounds()
 
-	const relevantPageBounds = compact(
-		pdf.pages.map((page) => {
+	const relevantPageBounds = pdf.pages
+		.map((page) => {
 			if (!viewportPageBounds.collides(page.bounds)) return null
 			const topLeft = editor.pageToViewport(page.bounds)
 			const bottomRight = editor.pageToViewport({ x: page.bounds.maxX, y: page.bounds.maxY })
 			return new Box(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y)
 		})
-	)
+		.filter((bounds): bounds is Box => bounds !== null)
 
 	function pathForPageBounds(bounds: Box) {
 		return `M ${bounds.x} ${bounds.y} L ${bounds.maxX} ${bounds.y} L ${bounds.maxX} ${bounds.maxY} L ${bounds.x} ${bounds.maxY} Z`

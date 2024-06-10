@@ -18,7 +18,6 @@ import {
 	createTLStore,
 	exhaustiveSwitchError,
 	partition,
-	transact,
 } from '@tldraw/editor'
 import { TLUiToastsContextType } from '../../ui/context/toasts'
 import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
@@ -185,7 +184,9 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 						let assetSrcToSave: string | null = record.props.src
 						try {
 							assetSrcToSave = await FileHelpers.blobToDataUrl(
-								await (await fetch(assetSrcToSave)).blob()
+								await (
+									await fetch(assetSrcToSave, { referrerPolicy: 'strict-origin-when-cross-origin' })
+								).blob()
 							)
 						} catch {
 							// noop, keep the original src
@@ -204,7 +205,9 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 						let assetSrcToSave: string | null = biggestImageSource.src
 						try {
 							assetSrcToSave = await FileHelpers.blobToDataUrl(
-								await (await fetch(assetSrcToSave)).blob()
+								await (
+									await fetch(assetSrcToSave, { referrerPolicy: 'strict-origin-when-cross-origin' })
+								).blob()
 							)
 						} catch {
 							// noop, keep the original src
@@ -313,7 +316,7 @@ export async function parseAndLoadDocument(
 	// just restore everything, so if the user has opened
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
-	transact(() => {
+	editor.store.atomic(() => {
 		const initialBounds = editor.getViewportScreenBounds().clone()
 		const isFocused = editor.getInstanceState().isFocused
 		editor.store.clear()

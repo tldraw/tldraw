@@ -49,7 +49,7 @@ export interface Signal<Value, Diff = unknown> {
 }
 
 /** @internal */
-export type Child = {
+export interface Child {
 	lastTraversedEpoch: number
 	readonly parentSet: ArraySet<Signal<any, any>>
 	readonly parents: Signal<any, any>[]

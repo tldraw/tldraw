@@ -16,15 +16,19 @@ export type TldrawUiMenuContextType =
 const menuContext = createContext<{
 	type: TldrawUiMenuContextType
 	sourceId: TLUiEventSource
-}>({ type: 'menu', sourceId: 'main-menu' })
+} | null>(null)
 
 /** @public */
 export function useTldrawUiMenuContext() {
-	return useContext(menuContext)
+	const context = useContext(menuContext)
+	if (!context) {
+		throw new Error('useTldrawUiMenuContext must be used within a TldrawUiMenuContextProvider')
+	}
+	return context
 }
 
 /** @public */
-export type TLUiMenuContextProviderProps = {
+export interface TLUiMenuContextProviderProps {
 	type: TldrawUiMenuContextType
 	sourceId: TLUiEventSource
 	children: React.ReactNode

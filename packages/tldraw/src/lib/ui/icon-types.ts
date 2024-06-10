@@ -68,6 +68,7 @@ export type TLUiIconType =
 	| 'geo-cloud'
 	| 'geo-diamond'
 	| 'geo-ellipse'
+	| 'geo-heart'
 	| 'geo-hexagon'
 	| 'geo-octagon'
 	| 'geo-oval'
@@ -106,6 +107,8 @@ export type TLUiIconType =
 	| 'size-large'
 	| 'size-medium'
 	| 'size-small'
+	| 'spline-cubic'
+	| 'spline-line'
 	| 'stack-horizontal'
 	| 'stack-vertical'
 	| 'stretch-horizontal'
@@ -207,6 +210,7 @@ export const iconTypes = [
 	'geo-cloud',
 	'geo-diamond',
 	'geo-ellipse',
+	'geo-heart',
 	'geo-hexagon',
 	'geo-octagon',
 	'geo-oval',
@@ -245,6 +249,8 @@ export const iconTypes = [
 	'size-large',
 	'size-medium',
 	'size-small',
+	'spline-cubic',
+	'spline-line',
 	'stack-horizontal',
 	'stack-vertical',
 	'stretch-horizontal',

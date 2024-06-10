@@ -1,5 +1,4 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	Box,
 	TLPointerEventInfo,
 	Vec,
@@ -34,7 +33,7 @@ export function DefaultMinimap() {
 				origin: 'minimap',
 				willCrashApp: false,
 			})
-			setTimeout(() => {
+			editor.timers.setTimeout(() => {
 				throw e
 			})
 		}
@@ -62,7 +61,7 @@ export function DefaultMinimap() {
 			minimapRef.current.originPagePoint.setTo(clampedPoint)
 			minimapRef.current.originPageCenter.setTo(editor.getViewportPageBounds().center)
 
-			editor.centerOnPoint(point, { animation: { duration: ANIMATION_MEDIUM_MS } })
+			editor.centerOnPoint(point, { animation: { duration: editor.options.animationMediumMs } })
 		},
 		[editor]
 	)
@@ -101,7 +100,7 @@ export function DefaultMinimap() {
 				const pagePoint = Vec.Add(point, delta)
 				minimapRef.current.originPagePoint.setTo(pagePoint)
 				minimapRef.current.originPageCenter.setTo(point)
-				editor.centerOnPoint(point, { animation: { duration: ANIMATION_MEDIUM_MS } })
+				editor.centerOnPoint(point, { animation: { duration: editor.options.animationMediumMs } })
 			} else {
 				const clampedPoint = minimapRef.current.minimapScreenPointToPagePoint(
 					e.clientX,
@@ -189,11 +188,11 @@ export function DefaultMinimap() {
 	React.useEffect(() => {
 		// need to wait a tick for next theme css to be applied
 		// otherwise the minimap will render with the wrong colors
-		setTimeout(() => {
+		editor.timers.setTimeout(() => {
 			minimapRef.current?.updateColors()
 			minimapRef.current?.render()
 		})
-	}, [isDarkMode])
+	}, [isDarkMode, editor])
 
 	return (
 		<div className="tlui-minimap">

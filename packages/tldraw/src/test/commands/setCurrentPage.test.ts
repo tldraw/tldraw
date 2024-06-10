@@ -85,4 +85,22 @@ describe('setCurrentPage', () => {
 		expect(console.error).toHaveBeenCalled()
 		expect(editor.getCurrentPageId()).toBe(initialPageId)
 	})
+
+	it('cancels any in-progress actions', () => {
+		const page1Id = editor.getPages()[0].id
+		const page2Id = PageRecordType.createId('page2')
+
+		editor.createPage({ name: 'New Page 2', id: page2Id })
+		expect(editor.getCurrentPageId()).toBe(page1Id)
+
+		const geoId = createShapeId()
+		editor.createShape({ type: 'geo', id: geoId, props: { w: 100, h: 100 } })
+		editor.select(geoId)
+		editor.keyUp('Enter')
+
+		expect(editor.isIn('select.editing_shape')).toBe(true)
+
+		editor.setCurrentPage(page2Id)
+		expect(editor.isIn('select.idle')).toBe(true)
+	})
 })

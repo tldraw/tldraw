@@ -58,14 +58,6 @@ export const FrameHeading = function FrameHeading({
 			// On iOS, we must focus here
 			el.focus()
 			el.select()
-
-			requestAnimationFrame(() => {
-				// On desktop, the input may have lost focus, so try try try again!
-				if (document.activeElement !== el) {
-					el.focus()
-					el.select()
-				}
-			})
 		}
 	}, [rInput, isEditing])
 

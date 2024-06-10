@@ -2,7 +2,7 @@ import { ArticleLinks } from '@/types/content-types'
 import Link from 'next/link'
 import { Icon } from './Icon'
 
-type ArticleNavLinksProps = {
+interface ArticleNavLinksProps {
 	links: ArticleLinks
 }
 

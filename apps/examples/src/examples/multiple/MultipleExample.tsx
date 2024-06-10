@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState } from 'react'
-import { Tldraw } from 'tldraw'
+import { Editor, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this page!
@@ -7,23 +7,34 @@ import 'tldraw/tldraw.css'
 // [1]
 const focusedEditorContext = createContext(
 	{} as {
-		focusedEditor: string | null
-		setFocusedEditor: (id: string | null) => void
+		focusedEditor: Editor | null
+		setFocusedEditor: (id: Editor | null) => void
 	}
 )
 
 // [2]
 export default function MultipleExample() {
-	const [focusedEditor, _setFocusedEditor] = useState<string | null>('A')
+	const [focusedEditor, _setFocusedEditor] = useState<Editor | null>(null)
 
 	const setFocusedEditor = useCallback(
-		(id: string | null) => {
-			if (focusedEditor !== id) {
-				_setFocusedEditor(id)
+		(editor: Editor | null) => {
+			if (focusedEditor !== editor) {
+				focusedEditor?.blur()
+				_setFocusedEditor(editor)
+				editor?.focus()
 			}
 		},
 		[focusedEditor]
 	)
+
+	const focusName =
+		focusedEditor === (window as any).EDITOR_A
+			? 'A'
+			: focusedEditor === (window as any).EDITOR_B
+				? 'B'
+				: focusedEditor === (window as any).EDITOR_C
+					? 'C'
+					: 'none'
 
 	return (
 		<div
@@ -35,7 +46,7 @@ export default function MultipleExample() {
 			onPointerDown={() => setFocusedEditor(null)}
 		>
 			<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
-				<h1>Focusing: {focusedEditor ?? 'none'}</h1>
+				<h1>Focusing: {focusName}</h1>
 				<EditorA />
 				<textarea data-testid="textarea" placeholder="type in me" style={{ margin: 10 }} />
 				<div
@@ -61,19 +72,23 @@ export default function MultipleExample() {
 
 // [3]
 function EditorA() {
-	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
-	const isFocused = focusedEditor === 'A'
+	const { setFocusedEditor } = useContext(focusedEditorContext)
 
 	return (
 		<div style={{ padding: 32 }}>
 			<h2>A</h2>
-			<div tabIndex={-1} onFocus={() => setFocusedEditor('A')} style={{ height: 600 }}>
+			<div
+				tabIndex={-1}
+				onFocus={() => setFocusedEditor((window as any).EDITOR_A)}
+				style={{ height: 600 }}
+			>
 				<Tldraw
 					persistenceKey="steve"
 					className="A"
-					autoFocus={isFocused}
+					autoFocus={false}
 					onMount={(editor) => {
 						;(window as any).EDITOR_A = editor
+						setFocusedEditor(editor)
 					}}
 				/>
 			</div>
@@ -83,17 +98,20 @@ function EditorA() {
 
 // [4]
 function EditorB() {
-	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
-	const isFocused = focusedEditor === 'B'
+	const { setFocusedEditor } = useContext(focusedEditorContext)
 
 	return (
 		<div>
 			<h2>B</h2>
-			<div tabIndex={-1} onFocus={() => setFocusedEditor('B')} style={{ height: 600 }}>
+			<div
+				tabIndex={-1}
+				onFocus={() => setFocusedEditor((window as any).EDITOR_B)}
+				style={{ height: 600 }}
+			>
 				<Tldraw
 					persistenceKey="david"
 					className="B"
-					autoFocus={isFocused}
+					autoFocus={false}
 					onMount={(editor) => {
 						;(window as any).EDITOR_B = editor
 					}}
@@ -104,17 +122,20 @@ function EditorB() {
 }
 
 function EditorC() {
-	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
-	const isFocused = focusedEditor === 'C'
+	const { setFocusedEditor } = useContext(focusedEditorContext)
 
 	return (
 		<div>
 			<h2>C</h2>
-			<div tabIndex={-1} onFocus={() => setFocusedEditor('C')} style={{ height: 600 }}>
+			<div
+				tabIndex={-1}
+				onFocus={() => setFocusedEditor((window as any).EDITOR_C)}
+				style={{ height: 600 }}
+			>
 				<Tldraw
 					persistenceKey="david"
 					className="C"
-					autoFocus={isFocused}
+					autoFocus={false}
 					onMount={(editor) => {
 						;(window as any).EDITOR_C = editor
 					}}

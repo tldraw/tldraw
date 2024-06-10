@@ -115,10 +115,10 @@ const defaultEventHandler: TLUiEventHandler = () => void null
 export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>
 
 /** @internal */
-export const EventsContext = React.createContext<TLUiEventContextType>({} as TLUiEventContextType)
+export const EventsContext = React.createContext<TLUiEventContextType | null>(null)
 
 /** @public */
-export type EventsProviderProps = {
+export interface EventsProviderProps {
 	onEvent?: TLUiEventHandler
 	children: React.ReactNode
 }

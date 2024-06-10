@@ -36,6 +36,12 @@ export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
 }
 
 /** @public */
+export interface BindingOnShapeIsolateOptions<Binding extends TLUnknownBinding> {
+	binding: Binding
+	shape: TLShape
+}
+
+/** @public */
 export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
 	binding: Binding
 	shape: TLShape
@@ -61,16 +67,21 @@ export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBi
 	 */
 	abstract getDefaultProps(): Partial<Binding['props']>
 
+	onOperationComplete?(): void
+
 	// self lifecycle hooks
 	onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void
 	onAfterCreate?(options: BindingOnCreateOptions<Binding>): void
 	onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void
 	onAfterChange?(options: BindingOnChangeOptions<Binding>): void
-	onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): void
+	onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): Binding | void
 	onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void
 
 	onAfterChangeFromShape?(options: BindingOnShapeChangeOptions<Binding>): void
 	onAfterChangeToShape?(options: BindingOnShapeChangeOptions<Binding>): void
+
+	onBeforeIsolateFromShape?(options: BindingOnShapeIsolateOptions<Binding>): void
+	onBeforeIsolateToShape?(options: BindingOnShapeIsolateOptions<Binding>): void
 
 	onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void
 	onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void

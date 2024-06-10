@@ -10,29 +10,20 @@ export function useCoarsePointer() {
 		let isCoarse = editor.getInstanceState().isCoarsePointer
 
 		// 1.
-		// We'll use touch events / mouse events to detect coarse pointer.
+		// We'll use pointer events to detect coarse pointer.
 
-		// When the user touches the screen, we assume they have a coarse pointer
-		const handleTouchStart = () => {
-			if (isCoarse) return
-			isCoarse = true
-			editor.updateInstanceState({ isCoarsePointer: true })
+		const handlePointerDown = (e: PointerEvent) => {
+			// when the user interacts with a mouse, we assume they have a fine pointer.
+			// otherwise, we assume they have a coarse pointer.
+			const isCoarseEvent = e.pointerType !== 'mouse'
+			if (isCoarse === isCoarseEvent) return
+			isCoarse = isCoarseEvent
+			editor.updateInstanceState({ isCoarsePointer: isCoarseEvent })
 		}
 
-		// When the user moves the mouse, we assume they have a fine pointer
-		const handleMouseMove = (
-			e: MouseEvent & { sourceCapabilities?: { firesTouchEvents: boolean } }
-		) => {
-			if (!isCoarse) return
-			// Fix Android Chrome bug where mousemove is fired even if the user long presses
-			if (e.sourceCapabilities?.firesTouchEvents) return
-			isCoarse = false
-			editor.updateInstanceState({ isCoarsePointer: false })
-		}
-
-		// Set up the listeners for touch and mouse events
-		window.addEventListener('touchstart', handleTouchStart)
-		window.addEventListener('mousemove', handleMouseMove)
+		// we need `capture: true` here because the tldraw component itself stops propagation on
+		// pointer events it receives.
+		window.addEventListener('pointerdown', handlePointerDown, { capture: true })
 
 		// 2.
 		// We can also use the media query to detect / set the initial pointer type
@@ -65,8 +56,7 @@ export function useCoarsePointer() {
 		}
 
 		return () => {
-			window.removeEventListener('touchstart', handleTouchStart)
-			window.removeEventListener('mousemove', handleMouseMove)
+			window.removeEventListener('pointerdown', handlePointerDown, { capture: true })
 
 			if (mql) {
 				mql.removeEventListener('change', handleMediaQueryChange)

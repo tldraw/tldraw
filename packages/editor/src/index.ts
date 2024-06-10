@@ -83,6 +83,7 @@ export {
 } from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
+export { getSnapshot, loadSnapshot, type TLEditorSnapshot } from './lib/config/TLEditorSnapshot'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
@@ -106,22 +107,7 @@ export {
 export { createTLUser } from './lib/config/createTLUser'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
-export {
-	ANIMATION_MEDIUM_MS,
-	ANIMATION_SHORT_MS,
-	CAMERA_SLIDE_FRICTION,
-	DEFAULT_ANIMATION_OPTIONS,
-	DEFAULT_CAMERA_OPTIONS,
-	DOUBLE_CLICK_DURATION,
-	DRAG_DISTANCE,
-	GRID_STEPS,
-	HIT_TEST_MARGIN,
-	MAX_PAGES,
-	MAX_SHAPES_PER_PAGE,
-	MULTI_CLICK_DURATION,
-	SIDES,
-	SVG_PADDING,
-} from './lib/constants'
+export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
 export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
 export {
 	BindingUtil,
@@ -130,19 +116,10 @@ export {
 	type BindingOnDeleteOptions,
 	type BindingOnShapeChangeOptions,
 	type BindingOnShapeDeleteOptions,
+	type BindingOnShapeIsolateOptions,
 	type TLBindingUtilConstructor,
 } from './lib/editor/bindings/BindingUtil'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
-export type {
-	SideEffectManager,
-	TLAfterChangeHandler,
-	TLAfterCreateHandler,
-	TLAfterDeleteHandler,
-	TLBatchCompleteHandler,
-	TLBeforeChangeHandler,
-	TLBeforeCreateHandler,
-	TLBeforeDeleteHandler,
-} from './lib/editor/managers/SideEffectManager'
 export {
 	type BoundsSnapGeometry,
 	type BoundsSnapPoint,
@@ -178,6 +155,7 @@ export {
 	type TLOnTranslateStartHandler,
 	type TLResizeInfo,
 	type TLResizeMode,
+	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
@@ -233,6 +211,7 @@ export {
 } from './lib/editor/types/external-content'
 export {
 	type RequiredKeys,
+	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
 	type TLSvgOptions,
@@ -255,6 +234,7 @@ export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
+export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
 export {
 	Box,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
@@ -305,6 +285,7 @@ export {
 	areAnglesCompatible,
 	average,
 	canonicalizeRotation,
+	centerOfCircleFromThreePoints,
 	clamp,
 	clampRadians,
 	clockwiseAngleDist,
@@ -313,6 +294,7 @@ export {
 	getArcMeasure,
 	getPointInArcT,
 	getPointOnCircle,
+	getPointsOnArc,
 	getPolygonVertices,
 	isSafeFloat,
 	perimeterOfEllipse,

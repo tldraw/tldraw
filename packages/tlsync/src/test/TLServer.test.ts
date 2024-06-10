@@ -5,8 +5,7 @@ import {
 	TLDocument,
 	TLRecord,
 	ZERO_INDEX_KEY,
-	createTLStore,
-	defaultShapeUtils,
+	createTLSchema,
 } from 'tldraw'
 import { type WebSocket } from 'ws'
 import { RoomSessionState } from '../lib/RoomSession'
@@ -95,7 +94,7 @@ class TLServerTestImpl extends TLServer {
 }
 type UnpackPromise<T> = T extends Promise<infer U> ? U : T
 
-const schema = createTLStore({ shapeUtils: defaultShapeUtils }).schema.serialize()
+const schema = createTLSchema().serialize()
 
 let server: TLServerTestImpl
 let sockets: UnpackPromise<ReturnType<typeof server.createSocketPair>>

@@ -20,17 +20,20 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiKbd,
+	preventDefault,
+	stopEventPropagation,
 	track,
 	useActions,
 	useBreakpoint,
 	useEditor,
+	useToasts,
 	useTranslation,
 } from 'tldraw'
 import { FORK_PROJECT_ACTION } from '../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION } from '../../utils/useFileSystem'
 import { getShareUrl } from '../ShareMenu'
 
-type NameState = {
+interface NameState {
 	readonly name: string | null
 	readonly isEditing: boolean
 }
@@ -64,6 +67,7 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 	const saveFileAction = actions[SAVE_FILE_COPY_ACTION]
 	const editor = useEditor()
 	const msg = useTranslation()
+	const toasts = useToasts()
 
 	return (
 		<div className="tlui-document-name__inner">
@@ -91,12 +95,16 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 						<TldrawUiDropdownMenuItem>
 							<TldrawUiButton
 								type="menu"
-								onClick={() => {
-									const shareLink = getShareUrl(
+								onClick={async () => {
+									const shareLink = await getShareUrl(
 										window.location.href,
 										editor.getInstanceState().isReadonly
 									)
-									navigator.clipboard.writeText(shareLink)
+									shareLink && navigator.clipboard.writeText(shareLink)
+									toasts.addToast({
+										title: msg('share-menu.copied'),
+										severity: 'success',
+									})
 								}}
 							>
 								<span className={'tlui-button__label' as any}>Copy link</span>
@@ -258,18 +266,20 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	const handleKeydownCapture = useCallback(
 		(e: KeyboardEvent) => {
 			if (e.key === 'Enter') {
-				e.preventDefault()
+				preventDefault(e)
 				// blur triggers save
 				inputRef.current?.blur()
 			} else if (e.key === 'Escape') {
-				e.preventDefault()
+				preventDefault(e)
+				stopEventPropagation(e)
 				// revert to original name instantly so that when we blur we don't
 				// trigger a save with the new one
 				setState((prev) => ({ ...prev, name: null }))
 				inputRef.current?.blur()
+				editor.focus()
 			}
 		},
-		[setState]
+		[setState, editor]
 	)
 
 	const handleBlur = useCallback(() => {

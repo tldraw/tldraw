@@ -53,4 +53,9 @@ export class Circle2d extends Geometry2d {
 		const { _center, radius } = this
 		return intersectLineSegmentCircle(A, B, _center, radius + distance) !== null
 	}
+
+	getSvgPathData(): string {
+		const { _center, radius } = this
+		return `M${_center.x + radius},${_center.y} a${radius},${radius} 0 1,0 ${radius * 2},0a${radius},${radius} 0 1,0 -${radius * 2},0`
+	}
 }

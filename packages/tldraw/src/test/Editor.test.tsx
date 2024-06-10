@@ -5,6 +5,8 @@ import {
 	TLShape,
 	createShapeId,
 	debounce,
+	getSnapshot,
+	loadSnapshot,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
@@ -446,7 +448,9 @@ describe('isFocused', () => {
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
-	it('becomes false when a child of the app container div receives a focusout event', () => {
+	it.skip('becomes false when a child of the app container div receives a focusout event', () => {
+		// This used to be true, but the focusout event doesn't actually bubble up anymore
+		// after we reworked to have the focus manager handle things.
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 
@@ -581,11 +585,11 @@ describe('snapshots', () => {
 
 		// now serialize
 
-		const snapshot = editor.store.getSnapshot()
+		const snapshot = getSnapshot(editor.store)
 
 		const newEditor = new TestEditor()
 
-		newEditor.store.loadSnapshot(snapshot)
+		loadSnapshot(newEditor.store, snapshot)
 
 		expect(editor.store.serialize()).toEqual(newEditor.store.serialize())
 	})
@@ -642,5 +646,71 @@ describe('when the user prefers light UI', () => {
 	it('should be false if the editor was instantiated with inferDarkMode', () => {
 		editor = new TestEditor({ inferDarkMode: true })
 		expect(editor.user.getIsDarkMode()).toBe(false)
+	})
+})
+
+describe('middle-click panning', () => {
+	it('clears the isPanning state on mouse up', () => {
+		editor.pointerDown(0, 0, {
+			// middle mouse button
+			button: 1,
+		})
+		editor.pointerMove(100, 100)
+		expect(editor.inputs.isPanning).toBe(true)
+		editor.pointerUp(100, 100)
+		expect(editor.inputs.isPanning).toBe(false)
+	})
+
+	it('does not clear thee isPanning state if the space bar is down', () => {
+		editor.pointerDown(0, 0, {
+			// middle mouse button
+			button: 1,
+		})
+		editor.pointerMove(100, 100)
+		expect(editor.inputs.isPanning).toBe(true)
+		editor.keyDown(' ')
+		editor.pointerUp(100, 100, {
+			button: 1,
+		})
+		expect(editor.inputs.isPanning).toBe(true)
+
+		editor.keyUp(' ')
+		expect(editor.inputs.isPanning).toBe(false)
+	})
+})
+
+describe('dragging', () => {
+	it('drags correctly at 100% zoom', () => {
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 0).pointerDown()
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 1)
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 5)
+		expect(editor.inputs.isDragging).toBe(true)
+	})
+
+	it('drags correctly at 150% zoom', () => {
+		editor.setCamera({ x: 0, y: 0, z: 8 }).forceTick()
+
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 0).pointerDown()
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 2)
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 5)
+		expect(editor.inputs.isDragging).toBe(true)
+	})
+
+	it('drags correctly at 50% zoom', () => {
+		editor.setCamera({ x: 0, y: 0, z: 0.1 }).forceTick()
+
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 0).pointerDown()
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 2)
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 5)
+		expect(editor.inputs.isDragging).toBe(true)
 	})
 })

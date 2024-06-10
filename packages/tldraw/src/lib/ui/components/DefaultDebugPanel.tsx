@@ -41,13 +41,12 @@ const CurrentState = track(function CurrentState() {
 		shape && path.includes('select.')
 			? ` / ${shape.type || ''}${
 					'geo' in shape.props ? ' / ' + shape.props.geo : ''
-				} / [${Vec.ToFixed(editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint), 0)}]`
+				} / [${Vec.ToInt(editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint))}]`
 			: ''
 	const ruler =
 		path.startsWith('select.') && !path.includes('.idle')
-			? ` / [${Vec.ToFixed(editor.inputs.originPagePoint, 0)}] → [${Vec.ToFixed(
-					editor.inputs.currentPagePoint,
-					0
+			? ` / [${Vec.ToInt(editor.inputs.originPagePoint)}] → [${Vec.ToInt(
+					editor.inputs.currentPagePoint
 				)}] = ${Vec.Dist(editor.inputs.originPagePoint, editor.inputs.currentPagePoint).toFixed(0)}`
 			: ''
 
@@ -55,6 +54,7 @@ const CurrentState = track(function CurrentState() {
 })
 
 function FPS() {
+	const editor = useEditor()
 	const showFps = useValue('show_fps', () => debugFlags.showFps.get(), [debugFlags])
 
 	const fpsRef = useRef<HTMLDivElement>(null)
@@ -64,7 +64,7 @@ function FPS() {
 
 		const TICK_LENGTH = 250
 		let maxKnownFps = 0
-		let cancelled = false
+		let raf = -1
 
 		let start = performance.now()
 		let currentTickLength = 0
@@ -79,8 +79,6 @@ function FPS() {
 		// of frames that we've seen since the last time we rendered,
 		// and the actual time since the last render.
 		function loop() {
-			if (cancelled) return
-
 			// Count the frame
 			framesInCurrentTick++
 
@@ -112,15 +110,15 @@ function FPS() {
 				start = performance.now()
 			}
 
-			requestAnimationFrame(loop)
+			raf = editor.timers.requestAnimationFrame(loop)
 		}
 
 		loop()
 
 		return () => {
-			cancelled = true
+			cancelAnimationFrame(raf)
 		}
-	}, [showFps])
+	}, [showFps, editor])
 
 	if (!showFps) return null
 

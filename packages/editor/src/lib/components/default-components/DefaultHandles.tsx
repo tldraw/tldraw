@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 
 /** @public */
-export type TLHandlesProps = {
+export interface TLHandlesProps {
 	children: ReactNode
 }
 

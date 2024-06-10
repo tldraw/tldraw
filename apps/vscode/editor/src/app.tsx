@@ -96,7 +96,7 @@ export const TldrawWrapper = () => {
 	)
 }
 
-export type TLDrawInnerProps = {
+export interface TLDrawInnerProps {
 	assetSrc: string
 	fileContents: string
 	uri: string
@@ -126,7 +126,6 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 			persistenceKey={uri}
 			onMount={handleMount}
 			components={components}
-			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 

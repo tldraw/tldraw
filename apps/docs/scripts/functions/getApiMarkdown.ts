@@ -24,7 +24,10 @@ import {
 } from '@microsoft/api-extractor-model'
 import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from '../utils'
 
-type Result = { markdown: string; keywords: string[] }
+interface Result {
+	markdown: string
+	keywords: string[]
+}
 
 const REPO_URL = 'https://github.com/tldraw/tldraw/blob/main/'
 

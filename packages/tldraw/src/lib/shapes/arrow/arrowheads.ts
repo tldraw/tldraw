@@ -1,7 +1,7 @@
 import { HALF_PI, PI, Vec, VecLike, intersectCircleCircle } from '@tldraw/editor'
 import { TLArrowInfo } from './arrow-types'
 
-type TLArrowPointsInfo = {
+interface TLArrowPointsInfo {
 	point: VecLike
 	int: VecLike
 }

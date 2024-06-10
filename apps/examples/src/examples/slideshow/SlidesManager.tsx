@@ -4,7 +4,7 @@ import { atom, computed, structuredClone, uniqueId } from 'tldraw'
 export const SLIDE_SIZE = { x: 0, y: 0, w: 1600, h: 900 }
 export const SLIDE_MARGIN = 100
 
-type Slide = {
+interface Slide {
 	id: string
 	index: number
 	name: string

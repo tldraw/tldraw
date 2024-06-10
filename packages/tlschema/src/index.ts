@@ -60,14 +60,20 @@ export {
 	isBindingId,
 	rootBindingMigrations,
 	type TLBinding,
+	type TLBindingCreate,
 	type TLBindingId,
-	type TLBindingPartial,
+	type TLBindingUpdate,
 	type TLDefaultBinding,
 	type TLUnknownBinding,
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
 export { DocumentRecordType, TLDOCUMENT_ID, type TLDocument } from './records/TLDocument'
-export { TLINSTANCE_ID, type TLInstance, type TLInstanceId } from './records/TLInstance'
+export {
+	TLINSTANCE_ID,
+	pluckPreservingValues,
+	type TLInstance,
+	type TLInstanceId,
+} from './records/TLInstance'
 export {
 	PageRecordType,
 	isPageId,

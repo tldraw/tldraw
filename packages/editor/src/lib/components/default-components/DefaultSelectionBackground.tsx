@@ -4,7 +4,7 @@ import { Box } from '../../primitives/Box'
 import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
-export type TLSelectionBackgroundProps = {
+export interface TLSelectionBackgroundProps {
 	bounds: Box
 	rotation: number
 }

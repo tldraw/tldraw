@@ -23,7 +23,13 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 	const [didCopy, setDidCopy] = useState(false)
 	const [shouldShowResetConfirmation, setShouldShowResetConfirmation] = useState(false)
 
-	const { Canvas } = useEditorComponents()
+	let Canvas: React.ComponentType | null = null
+	try {
+		const components = useEditorComponents()
+		Canvas = components.Canvas ?? null
+	} catch (e) {
+		// allow this to fail silently
+	}
 
 	const errorMessage = error instanceof Error ? error.message : String(error)
 	const errorStack = error instanceof Error ? error.stack : null
@@ -76,12 +82,12 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 
 	useEffect(() => {
 		if (didCopy) {
-			const timeout = setTimeout(() => {
+			const timeout = editor?.timers.setTimeout(() => {
 				setDidCopy(false)
 			}, 2000)
 			return () => clearTimeout(timeout)
 		}
-	}, [didCopy])
+	}, [didCopy, editor])
 
 	const copyError = () => {
 		const textarea = document.createElement('textarea')

@@ -4,7 +4,7 @@ import React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 
 /** @public */
-export type TLUiPopoverProps = {
+export interface TLUiPopoverProps {
 	id: string
 	open?: boolean
 	children: React.ReactNode
@@ -40,7 +40,7 @@ export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps) {
 }
 
 /** @public */
-export type TLUiPopoverContentProps = {
+export interface TLUiPopoverContentProps {
 	children: React.ReactNode
 	side: 'top' | 'bottom' | 'left' | 'right'
 	align?: 'start' | 'center' | 'end'

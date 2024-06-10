@@ -1,4 +1,3 @@
-import { useEditor } from '@tldraw/editor'
 import classnames from 'classnames'
 import * as React from 'react'
 
@@ -11,15 +10,6 @@ export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement>
 /** @public */
 export const TldrawUiButton = React.forwardRef<HTMLButtonElement, TLUiButtonProps>(
 	function TldrawUiButton({ children, disabled, type, ...props }, ref) {
-		const editor = useEditor()
-
-		// If the button is getting disabled while it's focused, move focus to the editor
-		// so that the user can continue using keyboard shortcuts
-		const current = (ref as React.MutableRefObject<HTMLButtonElement | null>)?.current
-		if (disabled && current === document.activeElement) {
-			editor.getContainer().focus()
-		}
-
 		return (
 			<button
 				ref={ref}

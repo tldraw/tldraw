@@ -638,7 +638,7 @@ export type TLEmbedShapeProps = RecordPropsType<typeof embedShapeProps>
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
 
 /** @public */
-export type EmbedDefinition = {
+export interface EmbedDefinition {
 	readonly type: string
 	readonly title: string
 	readonly hostnames: readonly string[]

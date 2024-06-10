@@ -10,10 +10,10 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	lns,
 	unwrapLabel,
 	useActions,
 	useContainer,
+	useToasts,
 	useTranslation,
 } from 'tldraw'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
@@ -28,11 +28,11 @@ const SHARE_CURRENT_STATE = {
 } as const
 type ShareCurrentState = (typeof SHARE_CURRENT_STATE)[keyof typeof SHARE_CURRENT_STATE]
 
-type ShareState = {
+interface ShareState {
 	state: ShareCurrentState
 	qrCodeDataUrl: string
 	url: string
-	readonlyUrl: string | null
+	readonlyUrl?: string
 	readonlyQrCodeDataUrl: string
 }
 
@@ -47,9 +47,22 @@ function isSharedReadWriteUrl(pathname: string) {
 	return pathname.startsWith(`/${ROOM_PREFIX}/`)
 }
 
-function getFreshShareState(): ShareState {
+function getFreshShareState(previousReadonlyUrl?: string): ShareState {
 	const isSharedReadWrite = isSharedReadWriteUrl(window.location.pathname)
 	const isSharedReadOnly = isSharedReadonlyUrl(window.location.pathname)
+
+	let readonlyUrl
+	if (isSharedReadOnly) {
+		readonlyUrl = window.location.href
+	} else if (previousReadonlyUrl) {
+		// Pull out the room prefix and the readonly slug from the existing readonly url
+		const segments = window.location.pathname.split('/')
+		const roSegments = new URL(previousReadonlyUrl).pathname.split('/')
+		segments[1] = roSegments[1]
+		segments[2] = roSegments[2]
+		const newPathname = segments.join('/')
+		readonlyUrl = `${window.location.origin}${newPathname}${window.location.search}`
+	}
 
 	return {
 		state: isSharedReadWrite
@@ -58,10 +71,18 @@ function getFreshShareState(): ShareState {
 				? SHARE_CURRENT_STATE.SHARED_READ_ONLY
 				: SHARE_CURRENT_STATE.OFFLINE,
 		url: window.location.href,
-		readonlyUrl: isSharedReadOnly ? window.location.href : null,
+		readonlyUrl,
 		qrCodeDataUrl: '',
 		readonlyQrCodeDataUrl: '',
 	}
+}
+
+export async function getShareUrl(url: string, readonly: boolean) {
+	if (!readonly) {
+		return url
+	}
+
+	return await getReadonlyUrl()
 }
 
 async function getReadonlyUrl() {
@@ -103,9 +124,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	const currentQrCodeUrl = isReadOnlyLink
 		? shareState.readonlyQrCodeDataUrl
 		: shareState.qrCodeDataUrl
-	const [didCopy, setDidCopy] = useState(false)
-	const [didCopyReadonlyLink, setDidCopyReadonlyLink] = useState(false)
-	const [didCopySnapshotLink, setDidCopySnapshotLink] = useState(false)
+	const toasts = useToasts()
 
 	useEffect(() => {
 		if (shareState.state === SHARE_CURRENT_STATE.OFFLINE) {
@@ -114,7 +133,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 
 		let cancelled = false
 
-		const shareUrl = getShareUrl(window.location.href, false)
+		const shareUrl = window.location.href
 		if (!shareState.qrCodeDataUrl && shareState.state === SHARE_CURRENT_STATE.SHARED_READ_WRITE) {
 			// Fetch the QR code data URL
 			createQRCodeImageDataString(shareUrl).then((dataUrl) => {
@@ -146,7 +165,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 		const interval = setInterval(() => {
 			const url = window.location.href
 			if (shareState.url === url) return
-			setShareState(getFreshShareState())
+			setShareState(getFreshShareState(shareState.readonlyUrl))
 		}, 300)
 
 		return () => {
@@ -183,9 +202,11 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									)}
 									onClick={() => {
 										if (!currentShareLinkUrl) return
-										setDidCopy(true)
-										setTimeout(() => setDidCopy(false), 1000)
 										navigator.clipboard.writeText(currentShareLinkUrl)
+										toasts.addToast({
+											title: msg('share-menu.copied'),
+											severity: 'success',
+										})
 									}}
 								/>
 
@@ -193,27 +214,31 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									{shareState.state === SHARE_CURRENT_STATE.SHARED_READ_WRITE && (
 										<TldrawUiMenuItem
 											id="copy-to-clipboard"
-											readonlyOk
-											icon={didCopy ? 'clipboard-copied' : 'clipboard-copy'}
+											readonlyOk={false}
 											label="share-menu.copy-link"
+											icon="clipboard-copy"
 											onSelect={() => {
 												if (!shareState.url) return
-												setDidCopy(true)
-												setTimeout(() => setDidCopy(false), 750)
 												navigator.clipboard.writeText(shareState.url)
+												toasts.addToast({
+													title: msg('share-menu.copied'),
+													severity: 'success',
+												})
 											}}
 										/>
 									)}
 									<TldrawUiMenuItem
 										id="copy-readonly-to-clipboard"
 										readonlyOk
-										icon={didCopyReadonlyLink ? 'clipboard-copied' : 'clipboard-copy'}
 										label="share-menu.copy-readonly-link"
+										icon="clipboard-copy"
 										onSelect={() => {
 											if (!shareState.readonlyUrl) return
-											setDidCopyReadonlyLink(true)
-											setTimeout(() => setDidCopyReadonlyLink(false), 750)
 											navigator.clipboard.writeText(shareState.readonlyUrl)
+											toasts.addToast({
+												title: msg('share-menu.copied'),
+												severity: 'success',
+											})
 										}}
 									/>
 									<p className="tlui-menu__group tlui-share-zone__details">
@@ -224,13 +249,11 @@ export const ShareMenu = React.memo(function ShareMenu() {
 								<TldrawUiMenuGroup id="snapshot">
 									<TldrawUiMenuItem
 										{...shareSnapshot}
-										icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
+										icon="clipboard-copy"
 										onSelect={async () => {
 											setIsUploadingSnapshot(true)
 											await shareSnapshot.onSelect('share-menu')
 											setIsUploadingSnapshot(false)
-											setDidCopySnapshotLink(true)
-											setTimeout(() => setDidCopySnapshotLink(false), 1000)
 										}}
 										spinner={isUploadingSnapshot}
 									/>
@@ -247,6 +270,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 										readonlyOk
 										label="share-menu.share-project"
 										icon="share-1"
+										disabled={isUploading}
 										onSelect={async () => {
 											if (isUploading) return
 											setIsUploading(true)
@@ -269,14 +293,12 @@ export const ShareMenu = React.memo(function ShareMenu() {
 									<TldrawUiMenuItem
 										id="copy-snapshot-link"
 										readonlyOk
-										icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
+										icon="clipboard-copy"
 										label={unwrapLabel(shareSnapshot.label)}
 										onSelect={async () => {
 											setIsUploadingSnapshot(true)
 											await shareSnapshot.onSelect('share-menu')
 											setIsUploadingSnapshot(false)
-											setDidCopySnapshotLink(true)
-											setTimeout(() => setDidCopySnapshotLink(false), 1000)
 										}}
 										spinner={isUploadingSnapshot}
 									/>
@@ -292,23 +314,3 @@ export const ShareMenu = React.memo(function ShareMenu() {
 		</Popover.Root>
 	)
 })
-
-export function getShareUrl(url: string, readonly: boolean) {
-	if (!readonly) {
-		return url
-	}
-
-	const segs = url.split('/')
-
-	// Change the r for a v
-	segs[segs.length - 2] = 'v'
-
-	// A url might be something like https://www.tldraw.com/r/123?pageId=myPageId
-	// we want it instead to be https://www.tldraw.com/v/312?pageId=myPageId, ie
-	// the scrambled room id but not scrambled query params
-	const [roomId, params] = segs[segs.length - 1].split('?')
-	segs[segs.length - 1] = lns(roomId)
-	if (params) segs[segs.length - 1] += '?' + params
-
-	return segs.join('/')
-}

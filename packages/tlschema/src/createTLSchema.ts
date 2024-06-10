@@ -39,7 +39,7 @@ import { videoShapeMigrations, videoShapeProps } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
 import { StyleProp } from './styles/StyleProp'
 
-type AnyValidator = {
+interface AnyValidator {
 	validate: (prop: any) => any
 	validateUsingKnownGoodVersion?: (prevVersion: any, newVersion: any) => any
 }

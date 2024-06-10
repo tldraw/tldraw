@@ -17,6 +17,12 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 	const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
 	const url = `${UPLOAD_URL}/${objectName}`
 
+	await fetch(url, {
+		method: 'POST',
+		body: file,
+		referrerPolicy: 'strict-origin-when-cross-origin',
+	})
+
 	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 
 	const isImageType = MediaHelpers.isImageType(file.type)

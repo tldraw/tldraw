@@ -15,13 +15,14 @@ import {
 	TLOnEditEndHandler,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
-	TLOnResizeStartHandler,
 	TLOnTranslateHandler,
 	TLOnTranslateStartHandler,
 	TLShapePartial,
+	TLShapeUtilCanBindOpts,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec,
+	WeakCache,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	getDefaultColorTheme,
@@ -33,6 +34,7 @@ import {
 	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
+import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES } from '../shared/default-shape-constants'
@@ -75,7 +77,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override migrations = arrowShapeMigrations
 
 	override canEdit = () => true
-	override canBind = () => false
+	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean {
+		// bindings can go from arrows to shapes, but not from shapes to arrows
+		return toShapeType !== 'arrow'
+	}
 	override canSnap = () => false
 	override hideResizeHandles: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideRotateHandle: TLShapeUtilFlag<TLArrowShape> = () => true
@@ -117,7 +122,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				})
 			: new Arc2d({
 					center: Vec.Cast(info.handleArc.center),
-					radius: info.handleArc.radius,
 					start: Vec.Cast(info.start.point),
 					end: Vec.Cast(info.end.point),
 					sweepFlag: info.bodyArc.sweepFlag,
@@ -153,7 +157,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a0',
 				x: info.start.handle.x,
 				y: info.start.handle.y,
-				canBind: true,
 			},
 			{
 				id: ARROW_HANDLES.MIDDLE,
@@ -161,7 +164,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a2',
 				x: info.middle.x,
 				y: info.middle.y,
-				canBind: false,
 			},
 			{
 				id: ARROW_HANDLES.END,
@@ -169,7 +171,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a3',
 				x: info.end.handle.x,
 				y: info.end.handle.y,
-				canBind: true,
 			},
 		].filter(Boolean) as TLHandle[]
 	}
@@ -223,7 +224,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			hitFrameInside: true,
 			margin: 0,
 			filter: (targetShape) => {
-				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+				return (
+					!targetShape.isLocked &&
+					this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
+				)
 			},
 		})
 
@@ -352,6 +356,25 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}),
 		})
 
+		// update arrow terminal bindings eagerly to make sure the arrows unbind nicely when translating
+		if (bindings.start) {
+			updateArrowTerminal({
+				editor: this.editor,
+				arrow: shape,
+				terminal: 'start',
+				useHandle: true,
+			})
+			shape = this.editor.getShape(shape.id) as TLArrowShape
+		}
+		if (bindings.end) {
+			updateArrowTerminal({
+				editor: this.editor,
+				arrow: shape,
+				terminal: 'end',
+				useHandle: true,
+			})
+		}
+
 		for (const handleName of [ARROW_HANDLES.START, ARROW_HANDLES.END] as const) {
 			const binding = bindings[handleName]
 			if (!binding) continue
@@ -384,7 +407,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				hitFrameInside: true,
 				margin: 0,
 				filter: (targetShape) => {
-					return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+					return (
+						!targetShape.isLocked &&
+						this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
+					)
 				},
 			})
 
@@ -406,15 +432,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	// replace this with memo bag?
-	private _resizeInitialBindings: TLArrowBindings = { start: undefined, end: undefined }
-	override onResizeStart?: TLOnResizeStartHandler<TLArrowShape> = (shape) => {
-		this._resizeInitialBindings = getArrowBindings(this.editor, shape)
-	}
+	private readonly _resizeInitialBindings = new WeakCache<TLArrowShape, TLArrowBindings>()
+
 	override onResize: TLOnResizeHandler<TLArrowShape> = (shape, info) => {
 		const { scaleX, scaleY } = info
 
-		const bindings = this._resizeInitialBindings
+		const bindings = this._resizeInitialBindings.get(shape, () =>
+			getArrowBindings(this.editor, shape)
+		)
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 
 		const { start, end } = structuredClone<TLArrowShape['props']>(shape.props)
@@ -565,7 +590,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
 					<ArrowSvg
 						shape={shape}
-						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape === shape}
+						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 					/>
 				</SVGContainer>
 				{showArrowLabel && (

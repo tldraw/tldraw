@@ -70,6 +70,7 @@ module.exports = {
 			'error',
 			{ name: 'structuredClone', message: 'Use structuredClone from @tldraw/util instead' },
 		],
+		'@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
 	},
 	parser: '@typescript-eslint/parser',
 	parserOptions: {
@@ -85,6 +86,44 @@ module.exports = {
 			},
 		},
 		{
+			files: ['packages/editor/**/*', 'packages/tldraw/**/*'],
+			rules: {
+				'no-restricted-globals': [
+					'error',
+					{
+						name: 'setInterval',
+						message: 'Use the timers from @tldraw/util instead.',
+					},
+					{
+						name: 'setTimeout',
+						message: 'Use the timers from @tldraw/util instead.',
+					},
+					{
+						name: 'requestAnimationFrame',
+						message: 'Use the timers from @tldraw/util instead.',
+					},
+				],
+				'no-restricted-properties': [
+					'error',
+					{
+						object: 'window',
+						property: 'setTimeout',
+						message: 'Use the timers from @tldraw/util instead.',
+					},
+					{
+						object: 'window',
+						property: 'setInterval',
+						message: 'Use the timers from @tldraw/util instead.',
+					},
+					{
+						object: 'window',
+						property: 'requestAnimationFrame',
+						message: 'Use the timers from @tldraw/util instead.',
+					},
+				],
+			},
+		},
+		{
 			files: ['e2e/**/*'],
 			rules: {
 				'@typescript-eslint/no-empty-function': 'off',
@@ -97,9 +136,17 @@ module.exports = {
 			},
 		},
 		{
+			files: ['*.test.ts', '*.spec.ts'],
+			rules: {
+				'no-restricted-properties': 'off',
+				'no-restricted-globals': 'off',
+			},
+		},
+		{
 			files: ['apps/examples/**/*'],
 			rules: {
 				'no-restricted-syntax': 'off',
+				'local/no-at-internal': 'error',
 			},
 		},
 		{
