@@ -73,13 +73,10 @@ async function main() {
 		env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'production' || env.TLDRAW_ENV === 'preview',
 		'TLDRAW_ENV must be staging or production or preview'
 	)
-	let currentStep = 1
-	// Previews have an extra step of aliasing the deployment and production builds also release the VS Code extension
-	const totalSteps = previewId || env.TLDRAW_ENV === 'production' ? 8 : 7
 
 	await discordMessage(`--- **${env.TLDRAW_ENV} deploy pre-flight** ---`)
 
-	await discordStep(`[${currentStep++}/${totalSteps}] setting up deploy`, async () => {
+	await discordStep('[1/7] setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
 		await exec('yarn', ['lazy', 'prebuild'])
 
@@ -89,14 +86,14 @@ async function main() {
 
 	// deploy pre-flight steps:
 	// 1. get the dotcom app ready to go (env vars and pre-build)
-	await discordStep(`[${currentStep++}/${totalSteps}] building dotcom app`, async () => {
+	await discordStep('[2/7] building dotcom app', async () => {
 		await createSentryRelease()
 		await prepareDotcomApp()
 		await uploadSourceMaps()
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
 
-	await discordStep(`[${currentStep++}/${totalSteps}] cloudflare deploy dry run`, async () => {
+	await discordStep('[3/7] cloudflare deploy dry run', async () => {
 		await deployAssetUploadWorker({ dryRun: true })
 		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
@@ -107,28 +104,19 @@ async function main() {
 	await discordMessage(`--- **pre-flight complete, starting real deploy** ---`)
 
 	// 2. deploy the cloudflare workers:
-	await discordStep(
-		`[${currentStep++}/${totalSteps}] deploying asset uploader to cloudflare`,
-		async () => {
-			await deployAssetUploadWorker({ dryRun: false })
-		}
-	)
-	await discordStep(
-		`[${currentStep++}/${totalSteps}] deploying multiplayer worker to cloudflare`,
-		async () => {
-			await deployTlsyncWorker({ dryRun: false })
-		}
-	)
-	await discordStep(
-		`[${currentStep++}/${totalSteps}] deploying health worker to cloudflare`,
-		async () => {
-			await deployHealthWorker({ dryRun: false })
-		}
-	)
+	await discordStep('[4/7] deploying asset uploader to cloudflare', async () => {
+		await deployAssetUploadWorker({ dryRun: false })
+	})
+	await discordStep('[5/7] deploying multiplayer worker to cloudflare', async () => {
+		await deployTlsyncWorker({ dryRun: false })
+	})
+	await discordStep('[6/7] deploying health worker to cloudflare', async () => {
+		await deployHealthWorker({ dryRun: false })
+	})
 
 	// 3. deploy the pre-build dotcom app:
 	const { deploymentUrl, inspectUrl } = await discordStep(
-		`[${currentStep++}/${totalSteps}] deploying dotcom app to vercel`,
+		'[7/7] deploying dotcom app to vercel',
 		async () => {
 			return await deploySpa()
 		}
@@ -138,20 +126,11 @@ async function main() {
 
 	if (previewId) {
 		const aliasDomain = `${previewId}-preview-deploy.tldraw.com`
-		await discordStep(`[${currentStep++}/${totalSteps}] aliasing preview deployment`, async () => {
+		await discordStep('[8/7] aliasing preview deployment', async () => {
 			await vercelCli('alias', ['set', deploymentUrl, aliasDomain])
 		})
 
 		deploymentAlias = `https://${aliasDomain}`
-	}
-
-	if (env.TLDRAW_ENV === 'production') {
-		await discordStep(
-			`[${currentStep++}/${totalSteps} packaging and publishing VS Code extension]`,
-			async () => {
-				await packageAndPublishVSCodeExtension()
-			}
-		)
 	}
 
 	nicelog('Creating deployment for', deploymentUrl)
@@ -540,15 +519,6 @@ async function coalesceWithPreviousAssets(assetsDir: string) {
 		}
 		out.end()
 	}
-}
-
-async function packageAndPublishVSCodeExtension() {
-	const EXTENSION_DIR = './apps/vscode/extension'
-	await exec('yarn', ['version', 'patch'], { pwd: EXTENSION_DIR })
-	await exec('git', ['add', '--update', `${EXTENSION_DIR}/package.json`])
-	await exec('git', ['commit', '-m', 'Bump VS Code Extension version.'])
-	await exec('yarn', ['package'], { pwd: EXTENSION_DIR })
-	await exec('yarn', ['publish'], { pwd: EXTENSION_DIR })
 }
 
 main().catch(async (err) => {
