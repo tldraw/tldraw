@@ -738,9 +738,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
 		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme(ctx)
+		const scaleFactor = 1 / shape.props.scale
 
 		return (
-			<>
+			<g transform={`scale(${scaleFactor})`}>
 				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
 				<SvgTextLabel
 					fontSize={getArrowLabelFontSize(shape)}
@@ -752,7 +753,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					bounds={getArrowLabelPosition(this.editor, shape).box}
 					padding={4 * shape.props.scale}
 				/>
-			</>
+			</g>
 		)
 	}
 

@@ -125,7 +125,12 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
-		return <DrawShapeSvg shape={shape} zoomLevel={1} />
+		const scaleFactor = 1 / shape.props.scale
+		return (
+			<g transform={`scale(${scaleFactor})`}>
+				<DrawShapeSvg shape={shape} zoomLevel={1} />
+			</g>
+		)
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {

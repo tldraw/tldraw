@@ -120,26 +120,32 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	override toSvg(shape: TLHighlightShape) {
 		const strokeWidth = getStrokeWidth(shape)
 		const forceSolid = strokeWidth < 1.5
+		const scaleFactor = 1 / shape.props.scale
 		return (
-			<HighlightRenderer
-				forceSolid={forceSolid}
-				strokeWidth={strokeWidth}
-				shape={shape}
-				opacity={OVERLAY_OPACITY}
-			/>
+			<g transform={`scale(${scaleFactor})`}>
+				<HighlightRenderer
+					forceSolid={forceSolid}
+					strokeWidth={strokeWidth}
+					shape={shape}
+					opacity={OVERLAY_OPACITY}
+				/>
+			</g>
 		)
 	}
 
 	override toBackgroundSvg(shape: TLHighlightShape) {
 		const strokeWidth = getStrokeWidth(shape)
 		const forceSolid = strokeWidth < 1.5
+		const scaleFactor = 1 / shape.props.scale
 		return (
-			<HighlightRenderer
-				forceSolid={forceSolid}
-				strokeWidth={strokeWidth}
-				shape={shape}
-				opacity={UNDERLAY_OPACITY}
-			/>
+			<g transform={`scale(${scaleFactor})`}>
+				<HighlightRenderer
+					forceSolid={forceSolid}
+					strokeWidth={strokeWidth}
+					shape={shape}
+					opacity={UNDERLAY_OPACITY}
+				/>
+			</g>
 		)
 	}
 
