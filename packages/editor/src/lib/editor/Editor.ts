@@ -487,6 +487,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 					},
 					beforeDelete: (shape) => {
+						// if we triggered this delete with a recursive call, don't do anything
+						if (deletedShapeIds.has(shape.id)) return
 						// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
 						if (shape.parentId && isShapeId(shape.parentId)) {
 							invalidParents.add(shape.parentId)
@@ -898,6 +900,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	undo(): this {
 		this._flushEventsForTick(0)
+		this.complete()
 		this.history.undo()
 		return this
 	}
@@ -923,6 +926,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	redo(): this {
 		this._flushEventsForTick(0)
+		this.complete()
 		this.history.redo()
 		return this
 	}
@@ -1446,12 +1450,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>,
 		historyOptions?: TLHistoryBatchOptions
 	) => {
-		this.batch(() => {
-			this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
-				...state,
-				...partial,
-			}))
-		}, historyOptions)
+		this.batch(
+			() => {
+				this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
+					...state,
+					...partial,
+				}))
+			},
+			{
+				history: 'ignore',
+				...historyOptions,
+			}
+		)
 	}
 
 	/**

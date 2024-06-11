@@ -120,10 +120,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			throw Error("Bookmark assets can't be rendered as images")
 		}
 
-		const showCropPreview =
-			isSelected &&
-			isCropping &&
-			this.editor.isInAny('select.crop', 'select.cropping', 'select.pointing_crop_handle')
+		const showCropPreview = isSelected && isCropping && this.editor.isIn('select.crop')
 
 		// We only want to reduce motion for mimeTypes that have motion
 		const reduceMotion =

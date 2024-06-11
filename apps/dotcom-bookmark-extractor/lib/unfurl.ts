@@ -25,11 +25,18 @@ export async function unfurl(url: string) {
 		twitter['twitter:description'] ??
 		$('meta[name="description"]').attr('content') ??
 		undefined
-	const image = og['og:image:secure_url'] ?? og['og:image'] ?? twitter['twitter:image'] ?? undefined
-	const favicon =
+	let image = og['og:image:secure_url'] ?? og['og:image'] ?? twitter['twitter:image'] ?? undefined
+	let favicon =
 		$('link[rel="apple-touch-icon"]').attr('href') ??
 		$('link[rel="icon"]').attr('href') ??
 		undefined
+
+	if (image?.startsWith('/')) {
+		image = new URL(image, url).href
+	}
+	if (favicon?.startsWith('/')) {
+		favicon = new URL(favicon, url).href
+	}
 
 	return {
 		title,
