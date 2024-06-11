@@ -1,5 +1,5 @@
 import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
-import { CursorTypeMap } from './PointingResizeHandle'
+import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -51,7 +51,7 @@ export class PointingCropHandle extends StateNode {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.editor.setCroppingShape(null)
-			this.parent.transition('idle')
+			this.editor.setCurrentTool('select.idle')
 		}
 	}
 
@@ -72,7 +72,7 @@ export class PointingCropHandle extends StateNode {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.editor.setCroppingShape(null)
-			this.parent.transition('idle')
+			this.editor.setCurrentTool('select.idle')
 		}
 	}
 }

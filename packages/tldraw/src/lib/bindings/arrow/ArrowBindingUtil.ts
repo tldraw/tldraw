@@ -2,8 +2,7 @@ import {
 	BindingOnChangeOptions,
 	BindingOnCreateOptions,
 	BindingOnShapeChangeOptions,
-	BindingOnUnbindOptions,
-	BindingUnbindReason,
+	BindingOnShapeIsolateOptions,
 	BindingUtil,
 	Editor,
 	IndexKey,
@@ -15,6 +14,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Vec,
+	approximately,
 	arrowBindingMigrations,
 	arrowBindingProps,
 	assert,
@@ -60,13 +60,17 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		reparentArrow(this.editor, binding.fromId)
 	}
 
-	// when the shape the arrow is pointing to is deleted
-	override onBeforeUnbind({ binding, reason }: BindingOnUnbindOptions<TLArrowBinding>): void {
-		// don't need to do anything if the arrow is being deleted
-		if (reason === BindingUnbindReason.DeletingFromShape) return
+	// when the arrow is isolated we need to update it's x,y positions
+	override onBeforeIsolateFromShape({
+		binding,
+	}: BindingOnShapeIsolateOptions<TLArrowBinding>): void {
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
 		if (!arrow) return
-		unbindArrowTerminal(this.editor, arrow, binding.props.terminal)
+		updateArrowTerminal({
+			editor: this.editor,
+			arrow,
+			terminal: binding.props.terminal,
+		})
 	}
 }
 
@@ -171,7 +175,7 @@ function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {
 		const isShapeInSamePageAsArrow =
 			editor.getAncestorPageId(arrow) === editor.getAncestorPageId(boundShape)
 		if (!boundShape || !isShapeInSamePageAsArrow) {
-			unbindArrowTerminal(editor, arrow, handle)
+			updateArrowTerminal({ editor, arrow, terminal: handle, unbind: true })
 		}
 	}
 
@@ -179,17 +183,34 @@ function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {
 	reparentArrow(editor, arrow.id)
 }
 
-function unbindArrowTerminal(editor: Editor, arrow: TLArrowShape, terminal: 'start' | 'end') {
-	const info = getArrowInfo(editor, arrow)!
+/** @internal */
+export function updateArrowTerminal({
+	editor,
+	arrow,
+	terminal,
+	unbind = false,
+	useHandle = false,
+}: {
+	editor: Editor
+	arrow: TLArrowShape
+	terminal: 'start' | 'end'
+	unbind?: boolean
+	useHandle?: boolean
+}) {
+	const info = getArrowInfo(editor, arrow)
 	if (!info) {
 		throw new Error('expected arrow info')
 	}
+
+	const startPoint = useHandle ? info.start.handle : info.start.point
+	const endPoint = useHandle ? info.end.handle : info.end.point
+	const point = terminal === 'start' ? startPoint : endPoint
 
 	const update = {
 		id: arrow.id,
 		type: 'arrow',
 		props: {
-			[terminal]: { x: info[terminal].point.x, y: info[terminal].point.y },
+			[terminal]: { x: point.x, y: point.y },
 			bend: arrow.props.bend,
 		},
 	} satisfies TLShapePartial<TLArrowShape>
@@ -197,8 +218,8 @@ function unbindArrowTerminal(editor: Editor, arrow: TLArrowShape, terminal: 'sta
 	// fix up the bend:
 	if (!info.isStraight) {
 		// find the new start/end points of the resulting arrow
-		const newStart = terminal === 'start' ? info.start.point : info.start.handle
-		const newEnd = terminal === 'end' ? info.end.point : info.end.handle
+		const newStart = terminal === 'start' ? startPoint : info.start.handle
+		const newEnd = terminal === 'end' ? endPoint : info.end.handle
 		const newMidPoint = Vec.Med(newStart, newEnd)
 
 		// intersect a line segment perpendicular to the new arrow with the old arrow arc to
@@ -218,9 +239,14 @@ function unbindArrowTerminal(editor: Editor, arrow: TLArrowShape, terminal: 'sta
 
 		assert(intersections?.length === 1)
 		const bend = Vec.Dist(newMidPoint, intersections[0]) * Math.sign(arrow.props.bend)
-		update.props.bend = bend
+		// use `approximately` to avoid endless update loops
+		if (!approximately(bend, update.props.bend)) {
+			update.props.bend = bend
+		}
 	}
 
 	editor.updateShape(update)
-	removeArrowBinding(editor, arrow, terminal)
+	if (unbind) {
+		removeArrowBinding(editor, arrow, terminal)
+	}
 }

@@ -98,6 +98,78 @@ describe('TLImageAsset AddIsAnimated', () => {
 	})
 })
 
+describe('TLVideoAsset AddFileSize', () => {
+	const oldAsset = {
+		id: '1',
+		type: 'video',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'video',
+			width: 100,
+			height: 100,
+			mimeType: 'video/mp4',
+		},
+	}
+
+	const newAsset = {
+		id: '1',
+		type: 'video',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'video',
+			width: 100,
+			height: 100,
+			mimeType: 'video/mp4',
+			fileSize: -1,
+		},
+	}
+
+	const { up, down } = getTestMigration(videoAssetVersions.AddFileSize)
+
+	test('up works as expected', () => {
+		expect(up(oldAsset)).toEqual(newAsset)
+	})
+	test('down works as expected', () => {
+		expect(down(newAsset)).toEqual(oldAsset)
+	})
+})
+
+describe('TLImageAsset AddFileSize', () => {
+	const oldAsset = {
+		id: '1',
+		type: 'image',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'image',
+			width: 100,
+			height: 100,
+			mimeType: 'image/gif',
+		},
+	}
+
+	const newAsset = {
+		id: '1',
+		type: 'image',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'image',
+			width: 100,
+			height: 100,
+			mimeType: 'image/gif',
+			fileSize: -1,
+		},
+	}
+
+	const { up, down } = getTestMigration(imageAssetVersions.AddFileSize)
+
+	test('up works as expected', () => {
+		expect(up(oldAsset)).toEqual(newAsset)
+	})
+	test('down works as expected', () => {
+		expect(down(newAsset)).toEqual(oldAsset)
+	})
+})
+
 const ShapeRecord = createRecordType('shape', {
 	validator: { validate: (record) => record as TLShape },
 	scope: 'document',
@@ -1312,6 +1384,32 @@ describe('Make urls valid for all the assets', () => {
 			expect(down(asset)).toEqual(asset)
 		})
 	}
+})
+
+describe('Ensure favicons are on bookmarks', () => {
+	const { up, down } = getTestMigration(bookmarkAssetVersions.AddFavicon)
+	it('up works as expected', () => {
+		expect(
+			up({
+				props: {},
+			})
+		).toEqual({
+			props: {
+				favicon: '',
+			},
+		})
+	})
+	it('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					favicon: 'https://tldraw.com/favicon.ico',
+				},
+			})
+		).toEqual({
+			props: {},
+		})
+	})
 })
 
 describe('Add duplicate props to instance', () => {

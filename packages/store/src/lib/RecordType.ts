@@ -1,6 +1,6 @@
 import { objectMapEntries, structuredClone } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
-import { IdOf, OmitMeta, UnknownRecord } from './BaseRecord'
+import { IdOf, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
 
 export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['create']>
@@ -26,7 +26,7 @@ export class RecordType<
 	R extends UnknownRecord,
 	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>,
 > {
-	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
+	readonly createDefaultProperties: () => Exclude<Omit<R, 'id' | 'typeName'>, RequiredProperties>
 	readonly validator: StoreValidator<R>
 	readonly ephemeralKeys?: { readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean }
 	readonly ephemeralKeySet: ReadonlySet<string>
@@ -41,7 +41,10 @@ export class RecordType<
 		 */
 		public readonly typeName: R['typeName'],
 		config: {
-			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
+			readonly createDefaultProperties: () => Exclude<
+				Omit<R, 'id' | 'typeName'>,
+				RequiredProperties
+			>
 			readonly validator?: StoreValidator<R>
 			readonly scope?: RecordScope
 			readonly ephemeralKeys?: { readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean }

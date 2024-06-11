@@ -1,7 +1,6 @@
 import {
 	BindingOnShapeChangeOptions,
-	BindingOnUnbindOptions,
-	BindingUnbindReason,
+	BindingOnShapeDeleteOptions,
 	BindingUtil,
 	Box,
 	DefaultFillStyle,
@@ -45,9 +44,13 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		return {}
 	}
 
-	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<PinShape>) {
-		// bindings can go _from_ pins to other shapes, but not the other way round
-		return toShapeType !== 'pin'
+	override canBind({ toShapeType, bindingType }: TLShapeUtilCanBindOpts<PinShape>) {
+		if (bindingType === 'pin') {
+			// pins cannot bind to other pins!
+			return toShapeType !== 'pin'
+		}
+		// Allow pins to participate in other bindings, e.g. arrows
+		return true
 	}
 	override canEdit = () => false
 	override canResize = () => false
@@ -257,10 +260,8 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 	}
 
 	// when the thing we're stuck to is deleted, delete the pin too
-	override onBeforeUnbind({ binding, reason }: BindingOnUnbindOptions<PinBinding>): void {
-		if (reason === BindingUnbindReason.DeletingToShape) {
-			this.editor.deleteShape(binding.fromId)
-		}
+	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<PinBinding>): void {
+		this.editor.deleteShape(binding.fromId)
 	}
 }
 

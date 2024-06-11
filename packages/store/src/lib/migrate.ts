@@ -163,7 +163,8 @@ export type Migration = {
 	  }
 )
 
-interface LegacyBaseMigrationsInfo {
+/** @public */
+export interface LegacyBaseMigrationsInfo {
 	firstVersion: number
 	currentVersion: number
 	migrators: { [version: number]: LegacyMigration }

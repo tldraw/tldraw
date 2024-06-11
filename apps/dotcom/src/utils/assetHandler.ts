@@ -1,5 +1,12 @@
-import { AssetContextProps, TLAsset, TLAssetId, WeakCache, getAssetFromIndexedDb } from 'tldraw'
-import { ASSET_UPLOADER_URL } from './config'
+import {
+	AssetContextProps,
+	MediaHelpers,
+	TLAsset,
+	TLAssetId,
+	WeakCache,
+	getAssetFromIndexedDb,
+} from 'tldraw'
+import { ASSET_BUCKET_ORIGIN, ASSET_UPLOADER_URL } from './config'
 
 const objectURLCache = new WeakCache<TLAsset, ReturnType<typeof getLocalAssetObjectURL>>()
 
@@ -30,6 +37,14 @@ export const resolveAsset =
 			return asset.props.src
 		}
 
+		// Don't try to transform animated images.
+		if (MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated)
+			return asset.props.src
+
+		// Assets that are under a certain file size aren't worth transforming (and incurring cost).
+		if (asset.props.fileSize === -1 || asset.props.fileSize < 1024 * 1024 * 1.5 /* 1.5 MB */)
+			return asset.props.src
+
 		// N.B. navigator.connection is only available in certain browsers (mainly Blink-based browsers)
 		// 4g is as high the 'effectiveType' goes and we can pick a lower effective image quality for slower connections.
 		const networkCompensation =
@@ -41,7 +56,9 @@ export const resolveAsset =
 			return asset.props.src
 		}
 
-		return `${ASSET_UPLOADER_URL}/cdn-cgi/image/width=${width},dpr=${context.dpr},fit=scale-down,quality=92/${asset.props.src}`
+		// On preview, builds the origin for the asset won't be the right one for the Cloudflare transform.
+		const src = asset.props.src.replace(ASSET_UPLOADER_URL, ASSET_BUCKET_ORIGIN)
+		return `${ASSET_BUCKET_ORIGIN}/cdn-cgi/image/width=${width},dpr=${context.dpr},fit=scale-down,quality=92/${src}`
 	}
 
 async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId) {

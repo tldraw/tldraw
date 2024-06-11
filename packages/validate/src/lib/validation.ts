@@ -380,7 +380,8 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 }
 
 // pass this into itself e.g. Config extends UnionObjectSchemaConfig<Key, Config>
-type UnionValidatorConfig<Key extends string, Config> = {
+/** @public */
+export type UnionValidatorConfig<Key extends string, Config> = {
 	readonly [Variant in keyof Config]: Validatable<any> & {
 		validate: (input: any) => { readonly [K in Key]: Variant }
 	}
@@ -677,11 +678,13 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
 	return value as Record<string, unknown>
 })
 
-type ExtractRequiredKeys<T extends object> = {
+/** @public */
+export type ExtractRequiredKeys<T extends object> = {
 	[K in keyof T]: undefined extends T[K] ? never : K
 }[keyof T]
 
-type ExtractOptionalKeys<T extends object> = {
+/** @public */
+export type ExtractOptionalKeys<T extends object> = {
 	[K in keyof T]: undefined extends T[K] ? K : never
 }[keyof T]
 

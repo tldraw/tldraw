@@ -20,7 +20,7 @@ import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
-	const response = await fetch(url)
+	const response = await fetch(url, { referrerPolicy: 'strict-origin-when-cross-origin' })
 	const blob = await response.blob()
 	return FileHelpers.blobToDataUrl(blob)
 }
@@ -78,7 +78,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					if (cancelled) return
 					setLoadedSrc(url)
 				}
-				image.crossOrigin = 'anonymous'
 				image.src = url
 
 				return () => {
@@ -105,8 +104,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
+					setLoadedSrc(url)
 				}
 				image.crossOrigin = 'anonymous'
+				image.referrerPolicy = 'strict-origin-when-cross-origin'
 				image.src = url
 
 				return () => {
@@ -119,10 +120,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			throw Error("Bookmark assets can't be rendered as images")
 		}
 
-		const showCropPreview =
-			isSelected &&
-			isCropping &&
-			this.editor.isInAny('select.crop', 'select.cropping', 'select.pointing_crop_handle')
+		const showCropPreview = isSelected && isCropping && this.editor.isIn('select.crop')
 
 		// We only want to reduce motion for mimeTypes that have motion
 		const reduceMotion =

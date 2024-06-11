@@ -18,6 +18,7 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 	await fetch(url, {
 		method: 'POST',
 		body: file,
+		referrerPolicy: 'strict-origin-when-cross-origin',
 	})
 
 	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
@@ -52,6 +53,7 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 			w: size.w,
 			h: size.h,
 			mimeType: file.type,
+			fileSize: file.size,
 			isAnimated,
 		},
 		meta: {},

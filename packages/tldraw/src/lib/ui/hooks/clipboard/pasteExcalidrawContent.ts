@@ -290,6 +290,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 					props: {
 						w: element.width,
 						h: element.height,
+						fileSize: file.size,
 						name: element.id ?? 'Untitled',
 						isAnimated: false,
 						mimeType: file.mimeType,

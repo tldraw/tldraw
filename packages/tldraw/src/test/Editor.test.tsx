@@ -5,6 +5,8 @@ import {
 	TLShape,
 	createShapeId,
 	debounce,
+	getSnapshot,
+	loadSnapshot,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
@@ -539,6 +541,7 @@ describe('snapshots', () => {
 				props: {
 					w: 1200,
 					h: 800,
+					fileSize: -1,
 					name: '',
 					isAnimated: false,
 					mimeType: 'png',
@@ -583,11 +586,11 @@ describe('snapshots', () => {
 
 		// now serialize
 
-		const snapshot = editor.store.getSnapshot()
+		const snapshot = getSnapshot(editor.store)
 
 		const newEditor = new TestEditor()
 
-		newEditor.store.loadSnapshot(snapshot)
+		loadSnapshot(newEditor.store, snapshot)
 
 		expect(editor.store.serialize()).toEqual(newEditor.store.serialize())
 	})
@@ -674,5 +677,41 @@ describe('middle-click panning', () => {
 
 		editor.keyUp(' ')
 		expect(editor.inputs.isPanning).toBe(false)
+	})
+})
+
+describe('dragging', () => {
+	it('drags correctly at 100% zoom', () => {
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 0).pointerDown()
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 1)
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 5)
+		expect(editor.inputs.isDragging).toBe(true)
+	})
+
+	it('drags correctly at 150% zoom', () => {
+		editor.setCamera({ x: 0, y: 0, z: 8 }).forceTick()
+
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 0).pointerDown()
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 2)
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 5)
+		expect(editor.inputs.isDragging).toBe(true)
+	})
+
+	it('drags correctly at 50% zoom', () => {
+		editor.setCamera({ x: 0, y: 0, z: 0.1 }).forceTick()
+
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 0).pointerDown()
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 2)
+		expect(editor.inputs.isDragging).toBe(false)
+		editor.pointerMove(0, 5)
+		expect(editor.inputs.isDragging).toBe(true)
 	})
 })

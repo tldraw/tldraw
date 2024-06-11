@@ -12,6 +12,7 @@ export type TLVideoAsset = TLBaseAsset<
 	{
 		w: number
 		h: number
+		fileSize: number
 		name: string
 		isAnimated: boolean
 		mimeType: string | null
@@ -25,6 +26,7 @@ export const videoAssetValidator: T.Validator<TLVideoAsset> = createAssetValidat
 	T.object({
 		w: T.number,
 		h: T.number,
+		fileSize: T.number,
 		name: T.string,
 		isAnimated: T.boolean,
 		mimeType: T.string.nullable(),
@@ -36,6 +38,7 @@ const Versions = createMigrationIds('com.tldraw.asset.video', {
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
 	MakeUrlsValid: 3,
+	AddFileSize: 4,
 } as const)
 
 export { Versions as videoAssetVersions }
@@ -79,6 +82,15 @@ export const videoAssetMigrations = createRecordMigrationSequence({
 			},
 			down: (_asset) => {
 				// noop
+			},
+		},
+		{
+			id: Versions.AddFileSize,
+			up: (asset: any) => {
+				asset.props.fileSize = -1
+			},
+			down: (asset: any) => {
+				delete asset.props.fileSize
 			},
 		},
 	],

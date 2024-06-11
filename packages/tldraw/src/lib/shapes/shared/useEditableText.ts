@@ -2,6 +2,7 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
+	noop,
 	stopEventPropagation,
 	useEditor,
 	useValue,
@@ -132,8 +133,4 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		isEditing,
 		isEditingAnything,
 	}
-}
-
-function noop() {
-	return
 }
