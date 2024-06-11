@@ -214,7 +214,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			shouldResolveToOriginalImage: true,
 		})
 		if (!src) return null
-		if (src.startsWith('http') || src.startsWith('/') || src.startsWith('./')) {
+		if (
+			src.startsWith('blob:') ||
+			src.startsWith('http') ||
+			src.startsWith('/') ||
+			src.startsWith('./')
+		) {
 			// If it's a remote image, we need to fetch it and convert it to a data URI
 			src = (await getDataURIFromURL(src)) || ''
 		}

@@ -65,6 +65,7 @@ import {
 	compact,
 	dedupe,
 	exhaustiveSwitchError,
+	fetch,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -3773,19 +3774,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async duplicatePage(
-		page: TLPageId | TLPage,
-		createId: TLPageId = PageRecordType.createId()
-	): Promise<this> {
+	duplicatePage(page: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): this {
 		if (this.getPages().length >= this.options.maxPages) return this
 		const id = typeof page === 'string' ? page : page.id
 		const freshPage = this.getPage(id) // get the most recent version of the page anyway
 		if (!freshPage) return this
 
 		const prevCamera = { ...this.getCamera() }
-		const content = await this.getContentFromCurrentPage(
-			this.getSortedChildIdsForParent(freshPage.id)
-		)
+		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(freshPage.id))
 
 		this.batch(() => {
 			const pages = this.getPages()
@@ -5620,7 +5616,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async moveShapesToPage(shapes: TLShapeId[] | TLShape[], pageId: TLPageId): Promise<this> {
+	moveShapesToPage(shapes: TLShapeId[] | TLShape[], pageId: TLPageId): this {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
@@ -5635,7 +5631,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!this.store.has(pageId)) return this
 
 		// Basically copy the shapes
-		const content = await this.getContentFromCurrentPage(ids)
+		const content = this.getContentFromCurrentPage(ids)
 
 		// Just to be sure
 		if (!content) return this
@@ -7771,7 +7767,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getContentFromCurrentPage(shapes: TLShapeId[] | TLShape[]): Promise<TLContent | undefined> {
+	getContentFromCurrentPage(shapes: TLShapeId[] | TLShape[]): TLContent | undefined {
 		// todo: make this work with any page, not just the current page
 		const ids =
 			typeof shapes[0] === 'string'
@@ -7783,7 +7779,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapeIds = this.getShapeAndDescendantIds(ids)
 
-		return await withIsolatedShapes(this, shapeIds, async (bindingIdsToKeep) => {
+		return withIsolatedShapes(this, shapeIds, (bindingIdsToKeep) => {
 			const bindings: TLBinding[] = []
 			for (const id of bindingIdsToKeep) {
 				const binding = this.getBinding(id)
@@ -7827,27 +7823,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				seenAssetIds.add(assetId)
 				const asset = this.getAsset(assetId)
 				if (!asset) continue
-
-				if (
-					(asset.type === 'image' || asset.type === 'video') &&
-					!asset.props.src?.startsWith('data:image') &&
-					!asset.props.src?.startsWith('http')
-				) {
-					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
-					const objectUrl = await this._assetOptions.get().onResolveAsset(asset!, {
-						screenScale: 1,
-						steppedScreenScale: 1,
-						dpr: 1,
-						networkEffectiveType: null,
-						shouldResolveToOriginalImage: true,
-					})
-					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
-						await fetch(objectUrl!).then((r) => r.blob())
-					)
-					assets.push(assetWithDataUrl)
-				} else {
-					assets.push(asset)
-				}
+				assets.push(asset)
 			}
 
 			return {
@@ -7858,6 +7834,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 				assets,
 			}
 		})
+	}
+
+	async resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined> {
+		if (!content) return undefined
+
+		const assets: TLAsset[] = []
+		for (const asset of content.assets) {
+			if (
+				(asset.type === 'image' || asset.type === 'video') &&
+				!asset.props.src?.startsWith('data:image') &&
+				!asset.props.src?.startsWith('http')
+			) {
+				const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+				const objectUrl = await this._assetOptions.get().onResolveAsset(asset!, {
+					screenScale: 1,
+					steppedScreenScale: 1,
+					dpr: 1,
+					networkEffectiveType: null,
+					shouldResolveToOriginalImage: true,
+				})
+				assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
+					await fetch(objectUrl!).then((r) => r.blob())
+				)
+				assets.push(assetWithDataUrl)
+			} else {
+				assets.push(asset)
+			}
+		}
+		content.assets = assets
+
+		return content
 	}
 
 	/**

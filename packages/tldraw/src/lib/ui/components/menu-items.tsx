@@ -408,9 +408,9 @@ export function MoveToPageMenu() {
 						key={page.id}
 						disabled={currentPageId === page.id}
 						label={page.name}
-						onSelect={async () => {
+						onSelect={() => {
 							editor.mark('move_shapes_to_page')
-							await editor.moveShapesToPage(editor.getSelectedShapeIds(), page.id as TLPageId)
+							editor.moveShapesToPage(editor.getSelectedShapeIds(), page.id as TLPageId)
 
 							const toPage = editor.getPage(page.id)
 

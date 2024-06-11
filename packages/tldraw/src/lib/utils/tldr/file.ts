@@ -175,7 +175,7 @@ function pruneUnusedAssets(records: TLRecord[]) {
 }
 
 /** @public */
-export async function serializeTldrawJson(store: TLStore): Promise<string> {
+export async function serializeTldrawJson(editor: Editor, store: TLStore): Promise<string> {
 	const records: TLRecord[] = []
 	for (const record of store.allRecords()) {
 		switch (record.typeName) {
@@ -187,10 +187,14 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 				) {
 					let assetSrcToSave
 					try {
+						let src = record.props.src
+						if (!src.startsWith('http')) {
+							src =
+								(await editor.resolveAssetUrl(record.id, { shouldResolveToOriginalImage: true })) ||
+								''
+						}
 						// try to save the asset as a base64 string
-						assetSrcToSave = await FileHelpers.blobToDataUrl(
-							await (await fetch(record.props.src)).blob()
-						)
+						assetSrcToSave = await FileHelpers.blobToDataUrl(await (await fetch(src)).blob())
 					} catch {
 						// if that fails, just save the original src
 						assetSrcToSave = record.props.src
@@ -221,8 +225,8 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 }
 
 /** @public */
-export async function serializeTldrawJsonBlob(store: TLStore): Promise<Blob> {
-	return new Blob([await serializeTldrawJson(store)], { type: TLDRAW_FILE_MIMETYPE })
+export async function serializeTldrawJsonBlob(editor: Editor, store: TLStore): Promise<Blob> {
+	return new Blob([await serializeTldrawJson(editor, store)], { type: TLDRAW_FILE_MIMETYPE })
 }
 
 /** @internal */

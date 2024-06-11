@@ -32,8 +32,8 @@ beforeEach(() => {
 })
 
 describe('Editor.moveShapesToPage', () => {
-	it('Moves shapes to page', async () => {
-		await editor.moveShapesToPage([ids.box2, ids.ellipse1], ids.page2)
+	it('Moves shapes to page', () => {
+		editor.moveShapesToPage([ids.box2, ids.ellipse1], ids.page2)
 		expect(editor.getCurrentPageId()).toBe(ids.page2)
 
 		expect(editor.getShape(ids.box2)!.parentId).toBe(ids.page2)
@@ -51,39 +51,39 @@ describe('Editor.moveShapesToPage', () => {
 		expect([...editor.getCurrentPageShapeIds()]).toEqual([ids.box1])
 	})
 
-	it('Moves children to page', async () => {
-		await editor.moveShapesToPage([ids.box1], ids.page2)
+	it('Moves children to page', () => {
+		editor.moveShapesToPage([ids.box1], ids.page2)
 		expect(editor.getShape(ids.box2)!.parentId).toBe(ids.box1)
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.page2)
 		expect(editor.getShape(ids.ellipse1)!.parentId).toBe(ids.page1)
 	})
 
-	it('Adds undo items', async () => {
+	it('Adds undo items', () => {
 		editor.history.clear()
 		expect(editor.history.getNumUndos()).toBe(0)
-		await editor.moveShapesToPage([ids.box1], ids.page2)
+		editor.moveShapesToPage([ids.box1], ids.page2)
 		expect(editor.history.getNumUndos()).toBe(1)
 	})
 
-	it('Does nothing on an empty ids array', async () => {
+	it('Does nothing on an empty ids array', () => {
 		editor.history.clear()
-		await editor.moveShapesToPage([], ids.page2)
+		editor.moveShapesToPage([], ids.page2)
 		expect(editor.history.getNumUndos()).toBe(0)
 	})
 
-	it('Does nothing if the new page is not found or is deleted', async () => {
+	it('Does nothing if the new page is not found or is deleted', () => {
 		editor.history.clear()
-		await editor.moveShapesToPage([ids.box1], PageRecordType.createId('missing'))
+		editor.moveShapesToPage([ids.box1], PageRecordType.createId('missing'))
 		expect(editor.history.getNumUndos()).toBe(0)
 	})
 
-	it('Does not move shapes to the current page', async () => {
+	it('Does not move shapes to the current page', () => {
 		editor.history.clear()
-		await editor.moveShapesToPage([ids.box1], ids.page1)
+		editor.moveShapesToPage([ids.box1], ids.page1)
 		expect(editor.history.getNumUndos()).toBe(0)
 	})
 
-	it('Restores on undo / redo', async () => {
+	it('Restores on undo / redo', () => {
 		expect(editor.getCurrentPageId()).toBe(ids.page1)
 		expect([...editor.getCurrentPageShapeIds()].sort()).toMatchObject([
 			ids.box1,
@@ -92,7 +92,7 @@ describe('Editor.moveShapesToPage', () => {
 		])
 
 		editor.mark('move shapes to page')
-		await editor.moveShapesToPage([ids.box2], ids.page2)
+		editor.moveShapesToPage([ids.box2], ids.page2)
 
 		expect(editor.getCurrentPageId()).toBe(ids.page2)
 		expect([...editor.getCurrentPageShapeIds()].sort()).toMatchObject([ids.box2])
@@ -112,7 +112,7 @@ describe('Editor.moveShapesToPage', () => {
 		expect([...editor.getCurrentPageShapeIds()].sort()).toMatchObject([ids.box2])
 	})
 
-	it('Sets the correct indices', async () => {
+	it('Sets the correct indices', () => {
 		editor = new TestEditor()
 		const page2Id = PageRecordType.createId('newPage2')
 
@@ -140,7 +140,7 @@ describe('Editor.moveShapesToPage', () => {
 
 		editor.setCurrentPage(page2Id)
 		editor.select(ids.box1)
-		await editor.moveShapesToPage([ids.box1], page3Id)
+		editor.moveShapesToPage([ids.box1], page3Id)
 
 		expect(editor.getCurrentPageId()).toBe(page3Id)
 
@@ -191,7 +191,7 @@ describe('arrows', () => {
 		secondBox = editor.getShape(ids.box2)!
 	})
 
-	it("retains an arrow's bound position if it's bound shape is moved to another page", async () => {
+	it("retains an arrow's bound position if it's bound shape is moved to another page", () => {
 		editor.setCurrentTool('arrow')
 
 		editor.pointerDown(250, 250)
@@ -213,7 +213,7 @@ describe('arrows', () => {
 		expect(editor.getArrowsBoundTo(firstBox.id).length).toBe(1)
 		expect(editor.getArrowsBoundTo(secondBox.id).length).toBe(1)
 		// move the second box to another page
-		await editor.moveShapesToPage([secondBox.id], ids.page2)
+		editor.moveShapesToPage([secondBox.id], ids.page2)
 
 		expect(editor.getArrowsBoundTo(firstBox.id).length).toBe(1)
 		expect(editor.getArrowsBoundTo(secondBox.id).length).toBe(0)
@@ -226,7 +226,7 @@ describe('arrows', () => {
 		})
 	})
 
-	it('retains the arrow binding if you move the arrow to the other page too', async () => {
+	it('retains the arrow binding if you move the arrow to the other page too', () => {
 		editor
 			.setCurrentTool('arrow')
 			.pointerDown(250, 250)
@@ -238,17 +238,17 @@ describe('arrows', () => {
 		expect(editor.getArrowsBoundTo(firstBox.id).length).toBe(1)
 		expect(editor.getArrowsBoundTo(secondBox.id).length).toBe(1)
 
-		await editor.moveShapesToPage([arrow.id, firstBox.id], ids.page2)
+		editor.moveShapesToPage([arrow.id, firstBox.id], ids.page2)
 
 		expect(editor.getArrowsBoundTo(firstBox.id).length).toBe(1)
 
 		expect(editor.getArrowsBoundTo(secondBox.id).length).toBe(0)
 	})
 
-	it('centers the camera on the shapes in the new page', async () => {
+	it('centers the camera on the shapes in the new page', () => {
 		editor.setCurrentTool('arrow').pointerDown(250, 250).pointerMove(450, 450).pointerUp(450, 450)
 
-		await editor.moveShapesToPage([ids.box1, ids.box2], ids.page2)
+		editor.moveShapesToPage([ids.box1, ids.box2], ids.page2)
 		const selectionPageBounds = editor.getSelectionPageBounds()
 		expect(editor.getViewportPageCenter()).toMatchObject(selectionPageBounds!.center)
 	})

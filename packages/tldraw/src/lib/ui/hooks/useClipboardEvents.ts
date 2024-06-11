@@ -483,7 +483,9 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
  * @public
  */
 const handleNativeOrMenuCopy = async (editor: Editor) => {
-	const content = await editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
+	const content = await editor.resolveAssetsInContent(
+		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
+	)
 	if (!content) {
 		if (navigator && navigator.clipboard) {
 			navigator.clipboard.writeText('')

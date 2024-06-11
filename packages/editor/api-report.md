@@ -879,7 +879,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
-    duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): Promise<this>;
+    duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
     readonly environment: EnvironmentManager;
     // @internal (undocumented)
@@ -928,7 +928,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getContainer: () => HTMLElement;
-    getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): Promise<TLContent | undefined>;
+    getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     // @internal
     getCrashingError(): unknown;
     getCroppingShapeId(): null | TLShapeId;
@@ -1105,7 +1105,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
     mark(markId?: string): this;
-    moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): Promise<this>;
+    moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
     readonly options: TldrawOptions;
@@ -1131,6 +1131,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
+    // (undocumented)
+    resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
     // (undocumented)
     resolveAssetUrl(assetId: null | TLAssetId, context: {
         screenScale?: number;

@@ -1316,10 +1316,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
 					const ids = editor.getSelectedShapeIds()
-					editor.batch(async () => {
+					editor.batch(() => {
 						editor.mark('move_shapes_to_page')
 						editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
-						await editor.moveShapesToPage(ids, newPageId)
+						editor.moveShapesToPage(ids, newPageId)
 					})
 					trackEvent('new-page', { source })
 				},
