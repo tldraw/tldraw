@@ -48,7 +48,7 @@ function tick() {
 
 let started = false
 
-interface PseudoThrottleFn {
+interface CancellableFn {
 	(): void
 	cancel?(): void
 }
@@ -60,7 +60,7 @@ interface PseudoThrottleFn {
  * @returns
  * @internal
  */
-export function fpsThrottle(fn: PseudoThrottleFn): PseudoThrottleFn {
+export function fpsThrottle(fn: CancellableFn): CancellableFn {
 	if (isTest()) {
 		fn.cancel = () => frame && cancelAnimationFrame(frame)
 		return fn
@@ -78,7 +78,12 @@ export function fpsThrottle(fn: PseudoThrottleFn): PseudoThrottleFn {
 		}
 		tick()
 	}
-	throttledFn.cancel = () => frame && cancelAnimationFrame(frame)
+	throttledFn.cancel = () => {
+		const index = fpsQueue.indexOf(fn)
+		if (index > -1) {
+			fpsQueue.splice(index, 1)
+		}
+	}
 	return throttledFn
 }
 

@@ -1,4 +1,4 @@
-import throttle from 'lodash.throttle'
+import { throttle } from '@tldraw/utils'
 import { useLayoutEffect } from 'react'
 import { Box } from '../primitives/Box'
 import { useEditor } from './useEditor'

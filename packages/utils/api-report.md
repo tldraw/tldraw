@@ -4,6 +4,9 @@
 
 ```ts
 
+import { default as throttle } from 'lodash.throttle';
+import { default as uniq } from 'lodash.uniq';
+
 // @internal
 export function annotateError(error: unknown, annotations: Partial<ErrorAnnotations>): void;
 
@@ -88,7 +91,7 @@ export function filterEntries<Key extends string, Value>(object: {
 };
 
 // @internal
-export function fpsThrottle(fn: PseudoThrottleFn): PseudoThrottleFn;
+export function fpsThrottle(fn: CancellableFn): CancellableFn;
 
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
@@ -365,6 +368,8 @@ export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 
+export { throttle }
+
 // @internal
 export function throttleToNextFrame(fn: () => void): () => void;
 
@@ -379,6 +384,8 @@ export class Timers {
     // (undocumented)
     setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number;
 }
+
+export { uniq }
 
 // @internal (undocumented)
 export function validateIndexKey(key: string): asserts key is IndexKey;

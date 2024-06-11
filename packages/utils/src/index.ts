@@ -1,3 +1,5 @@
+export { default as throttle } from 'lodash.throttle'
+export { default as uniq } from 'lodash.uniq'
 export { PerformanceTracker } from './lib/PerformanceTracker'
 export {
 	areArraysShallowEqual,
