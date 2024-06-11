@@ -206,7 +206,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 			let { undos, redos } = this.stacks.get()
 			if (redos.length === 0) {
-				return
+				return this
 			}
 
 			// ignore any intermediate marks - this should take us to the first `diff` entry
