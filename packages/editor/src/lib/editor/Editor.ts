@@ -236,6 +236,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.options = { ...defaultTldrawOptions, ...options }
 		this.store = store
+		this.disposables.add(this.store.dispose.bind(this.store))
 		this.history = new HistoryManager<TLRecord>({
 			store,
 			annotateError: (error) => {
@@ -726,6 +727,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly disposables = new Set<() => void>()
 
+	/**
+	 * Whether the editor is disposed.
+	 *
+	 * @public
+	 */
+	isDisposed = false
+
 	/** @internal */
 	private readonly _tickManager
 
@@ -806,6 +814,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	dispose() {
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
+		this.isDisposed = true
 	}
 
 	/* ------------------- Shape Utils ------------------ */

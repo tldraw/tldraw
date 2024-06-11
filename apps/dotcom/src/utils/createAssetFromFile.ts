@@ -3,6 +3,7 @@ import {
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
+	fetch,
 	getHashForString,
 	uniqueId,
 } from 'tldraw'
@@ -18,7 +19,6 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 	await fetch(url, {
 		method: 'POST',
 		body: file,
-		referrerPolicy: 'strict-origin-when-cross-origin',
 	})
 
 	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))

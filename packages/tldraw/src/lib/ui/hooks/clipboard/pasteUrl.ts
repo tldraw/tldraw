@@ -1,4 +1,4 @@
-import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
+import { Editor, TLExternalContentSource, VecLike, fetch } from '@tldraw/editor'
 import { pasteFiles } from './pasteFiles'
 
 /**
@@ -22,7 +22,6 @@ export async function pasteUrl(
 		if (new URL(url).pathname.match(/\.(png|jpe?g|gif|svg|webp)$/i)) {
 			const resp = await fetch(url, {
 				method: 'HEAD',
-				referrerPolicy: 'strict-origin-when-cross-origin',
 			})
 			if (resp.headers.get('content-type')?.match(/^image\//)) {
 				editor.mark('paste')

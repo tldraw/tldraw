@@ -75,7 +75,7 @@ const MyComponentInFront = track(() => {
 				boxShadow: '0 0 0 1px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.1)',
 			}}
 		>
-			<p>This won't scale with zoom.</p>
+			<p>This won’t scale with zoom.</p>
 		</div>
 	)
 })

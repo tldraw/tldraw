@@ -1,4 +1,4 @@
-import _uniq from 'lodash.uniq'
+import { uniq as _uniq } from '@tldraw/utils'
 
 /** @public */
 export function uniq<T>(

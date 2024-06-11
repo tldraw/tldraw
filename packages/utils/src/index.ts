@@ -1,3 +1,5 @@
+export { default as throttle } from 'lodash.throttle'
+export { default as uniq } from 'lodash.uniq'
 export { PerformanceTracker } from './lib/PerformanceTracker'
 export {
 	areArraysShallowEqual,
@@ -21,7 +23,7 @@ export {
 export { debounce } from './lib/debounce'
 export { annotateError, getErrorAnnotations, type ErrorAnnotations } from './lib/error'
 export { FileHelpers } from './lib/file'
-export { noop, omitFromStackTrace, throttle } from './lib/function'
+export { noop, omitFromStackTrace } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
@@ -32,6 +34,7 @@ export {
 	MediaHelpers,
 } from './lib/media/media'
 export { PngHelpers } from './lib/media/png'
+export { Image, fetch } from './lib/network'
 export { invLerp, lerp, modulate, rng } from './lib/number'
 export {
 	areObjectsShallowEqual,

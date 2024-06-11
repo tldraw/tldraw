@@ -1,3 +1,39 @@
+# v2.2.0 (Tue Jun 11 2024)
+
+### Release Notes
+
+#### Update validation.ts ([#3324](https://github.com/tldraw/tldraw/pull/3324))
+
+- Update example for Union type
+
+---
+
+I believe this type was changed and `literal` is what it should be now.
+
+---
+
+#### 📚 SDK Changes
+
+- Force `interface` instead of `type` for better docs [#3815](https://github.com/tldraw/tldraw/pull/3815) ([@SomeHats](https://github.com/SomeHats))
+
+#### 📖 Documentation changes
+
+- make sure everything marked @public gets documented [#3892](https://github.com/tldraw/tldraw/pull/3892) ([@SomeHats](https://github.com/SomeHats))
+- Update validation.ts [#3324](https://github.com/tldraw/tldraw/pull/3324) ([@lorenzolewis](https://github.com/lorenzolewis))
+
+#### 🏠 Internal
+
+- Update READMEs, add form link [#3741](https://github.com/tldraw/tldraw/pull/3741) ([@steveruizok](https://github.com/steveruizok))
+- Don't check api.json files into git [#3565](https://github.com/tldraw/tldraw/pull/3565) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Lorenzo Lewis ([@lorenzolewis](https://github.com/lorenzolewis))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.1.0 (Tue Apr 23 2024)
 
 ### Release Notes

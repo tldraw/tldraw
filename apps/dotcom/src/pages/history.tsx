@@ -1,4 +1,5 @@
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
+import { fetch } from 'tldraw'
 import { BoardHistoryLog } from '../components/BoardHistoryLog/BoardHistoryLog'
 import { ErrorPage } from '../components/ErrorPage/ErrorPage'
 import { IFrameProtector, ROOM_CONTEXT } from '../components/IFrameProtector'

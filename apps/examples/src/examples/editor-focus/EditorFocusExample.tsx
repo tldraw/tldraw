@@ -42,10 +42,10 @@ function ControlledFocusExample() {
 				</div>
 			</div>
 			<p>
-				The checkbox controls the editor's <code>instanceState.isFocused</code> property.
+				The checkbox controls the editor’s <code>instanceState.isFocused</code> property.
 			</p>
 			<p>
-				When the editor is "focused", its keyboard shortcuts will work. When it is not focused, the
+				When the editor is “focused”, its keyboard shortcuts will work. When it is not focused, the
 				keyboard shortcuts will not work.
 			</p>
 			<div style={{ width: 800, maxWidth: '100%', height: 500 }}>
@@ -67,7 +67,7 @@ function FreeFocusExample() {
 		<div>
 			<h2>Free Focus</h2>
 			<p>
-				You can use `onBlur` and `onFocus` to control the editor's focus so that it behaves like a
+				You can use `onBlur` and `onFocus` to control the editor’s focus so that it behaves like a
 				native form input.
 			</p>
 			<div

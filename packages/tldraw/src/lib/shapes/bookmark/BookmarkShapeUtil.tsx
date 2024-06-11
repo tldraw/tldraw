@@ -220,6 +220,8 @@ function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) 
 }
 
 const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TLBookmarkShape) => {
+	if (editor.isDisposed) return
+
 	const { url } = shape.props
 
 	// Create the asset using the external content manager's createAssetFromUrl method.

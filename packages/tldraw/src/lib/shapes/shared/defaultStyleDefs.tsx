@@ -9,6 +9,7 @@ import {
 	TLDefaultFontStyle,
 	TLShapeUtilCanvasSvgDef,
 	debugFlags,
+	fetch,
 	last,
 	useEditor,
 	useValue,
@@ -28,9 +29,7 @@ export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef
 			const fontFaceRule: string = (font as any).$$_fontface
 			if (!url || !fontFaceRule) return null
 
-			const fontFile = await (
-				await fetch(url, { referrerPolicy: 'strict-origin-when-cross-origin' })
-			).blob()
+			const fontFile = await (await fetch(url)).blob()
 			const base64FontFile = await FileHelpers.blobToDataUrl(fontFile)
 
 			const newFontFaceRule = fontFaceRule.replace(url, base64FontFile)
