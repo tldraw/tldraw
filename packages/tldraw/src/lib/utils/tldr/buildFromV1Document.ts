@@ -24,6 +24,7 @@ import {
 	VecModel,
 	clamp,
 	createShapeId,
+	fetch,
 	structuredClone,
 } from '@tldraw/editor'
 import { getArrowBindings } from '../../shapes/arrow/shared'

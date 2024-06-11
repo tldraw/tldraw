@@ -16,6 +16,7 @@ import {
 	assert,
 	compact,
 	createShapeId,
+	fetch,
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
@@ -116,7 +117,6 @@ export function registerDefaultExternalContentHandlers(
 			const resp = await fetch(url, {
 				method: 'GET',
 				mode: 'no-cors',
-				referrerPolicy: 'strict-origin-when-cross-origin',
 			})
 			const html = await resp.text()
 			const doc = new DOMParser().parseFromString(html, 'text/html')

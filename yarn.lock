@@ -6129,8 +6129,6 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": "npm:^2.1.2"
     "@types/core-js": "npm:^2.5.5"
-    "@types/lodash.throttle": "npm:^4.1.7"
-    "@types/lodash.uniq": "npm:^4.5.7"
     "@types/react-test-renderer": "npm:^18.0.0"
     "@types/wicg-file-system-access": "npm:^2020.9.5"
     "@use-gesture/react": "npm:^10.2.27"
@@ -6144,8 +6142,6 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.throttle: "npm:^4.1.1"
-    lodash.uniq: "npm:^4.5.0"
     nanoid: "npm:4.0.2"
     react-test-renderer: "npm:^18.2.0"
     resize-observer-polyfill: "npm:^1.5.1"
@@ -6322,8 +6318,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/utils@workspace:packages/utils"
   dependencies:
+    "@types/lodash.throttle": "npm:^4.1.7"
+    "@types/lodash.uniq": "npm:^4.5.7"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash.throttle: "npm:^4.1.1"
+    lodash.uniq: "npm:^4.5.0"
   languageName: unknown
   linkType: soft
 

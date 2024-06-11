@@ -11,6 +11,7 @@ export class PerformanceTracker {
 	recordFrame = () => {
 		this.frames++
 		if (!this.started) return
+		// eslint-disable-next-line no-restricted-globals
 		this.frame = requestAnimationFrame(this.recordFrame)
 	}
 
@@ -19,6 +20,7 @@ export class PerformanceTracker {
 		this.frames = 0
 		this.started = true
 		if (this.frame !== null) cancelAnimationFrame(this.frame)
+		// eslint-disable-next-line no-restricted-globals
 		this.frame = requestAnimationFrame(this.recordFrame)
 		this.startTime = performance.now()
 	}
