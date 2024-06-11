@@ -15,10 +15,7 @@ export async function resolveAsset(asset: TLAsset | null | undefined, context: A
 		return asset.props.src
 
 	// Don't try to transform animated images.
-	if (
-		('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
-		('isAnimated' in asset.props && asset.props.isAnimated)
-	)
+	if (MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated)
 		return asset.props.src
 
 	// N.B. navigator.connection is only available in certain browsers (mainly Blink-based browsers)
