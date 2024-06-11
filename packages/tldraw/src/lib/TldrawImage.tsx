@@ -181,7 +181,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 	}
 
 	if (!preloadingComplete) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
+		return <LoadingScreen>Loading assets…</LoadingScreen>
 	}
 
 	return (

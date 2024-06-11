@@ -124,7 +124,7 @@ export function Tldraw(props: TldrawProps) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
 	if (!preloadingComplete) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
+		return <LoadingScreen>Loading assets…</LoadingScreen>
 	}
 
 	return (

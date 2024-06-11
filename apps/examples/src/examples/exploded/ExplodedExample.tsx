@@ -38,7 +38,7 @@ export default function ExplodedExample() {
 	}
 
 	if (!assetLoading.done) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
+		return <LoadingScreen>Loading assets…</LoadingScreen>
 	}
 
 	return (
