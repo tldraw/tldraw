@@ -479,6 +479,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 					},
 					beforeDelete: (shape) => {
+						// if we triggered this delete with a recursive call, don't do anything
+						if (deletedShapeIds.has(shape.id)) return
 						// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
 						if (shape.parentId && isShapeId(shape.parentId)) {
 							invalidParents.add(shape.parentId)
