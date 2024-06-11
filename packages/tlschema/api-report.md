@@ -1187,6 +1187,7 @@ export type TLHighlightShapeProps = RecordPropsType<typeof highlightShapeProps>;
 
 // @public
 export type TLImageAsset = TLBaseAsset<'image', {
+    fileSize: number;
     h: number;
     isAnimated: boolean;
     mimeType: null | string;
@@ -1486,6 +1487,7 @@ export type TLUnknownShape = TLBaseShape<string, object>;
 
 // @public
 export type TLVideoAsset = TLBaseAsset<'video', {
+    fileSize: number;
     h: number;
     isAnimated: boolean;
     mimeType: null | string;

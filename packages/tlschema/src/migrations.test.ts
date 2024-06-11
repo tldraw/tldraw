@@ -49,6 +49,7 @@ describe('TLVideoAsset AddIsAnimated', () => {
 			height: 100,
 			mimeType: 'video/mp4',
 			isAnimated: false,
+			fileSize: -1,
 		},
 	}
 
@@ -85,6 +86,7 @@ describe('TLImageAsset AddIsAnimated', () => {
 			height: 100,
 			mimeType: 'image/gif',
 			isAnimated: false,
+			fileSize: -1,
 		},
 	}
 

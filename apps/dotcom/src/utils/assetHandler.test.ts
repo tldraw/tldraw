@@ -1,6 +1,8 @@
 import { TLAsset } from 'tldraw'
 import { resolveAsset } from './assetHandler'
 
+const FILE_SIZE = 1024 * 1024 * 2
+
 describe('resolveAsset', () => {
 	it('should return null if the asset is null', async () => {
 		expect(
@@ -25,7 +27,7 @@ describe('resolveAsset', () => {
 	})
 
 	it('should return null if the asset has no src', async () => {
-		const asset = { type: 'image', props: { w: 100 } }
+		const asset = { type: 'image', props: { w: 100, fileSize: FILE_SIZE } }
 		expect(
 			await resolveAsset(asset as TLAsset, {
 				screenScale: -1,
@@ -37,7 +39,10 @@ describe('resolveAsset', () => {
 	})
 
 	it('should return the original src for video types', async () => {
-		const asset = { type: 'video', props: { src: 'http://example.com/video.mp4' } }
+		const asset = {
+			type: 'video',
+			props: { src: 'http://example.com/video.mp4', fileSize: FILE_SIZE },
+		}
 		expect(
 			await resolveAsset(asset as TLAsset, {
 				screenScale: -1,
@@ -49,7 +54,7 @@ describe('resolveAsset', () => {
 	})
 
 	it('should return the original src if it does not start with http or https', async () => {
-		const asset = { type: 'image', props: { src: 'data:somedata', w: 100 } }
+		const asset = { type: 'image', props: { src: 'data:somedata', w: 100, fileSize: FILE_SIZE } }
 		expect(
 			await resolveAsset(asset as TLAsset, {
 				screenScale: -1,
@@ -63,7 +68,12 @@ describe('resolveAsset', () => {
 	it('should return the original src if it is animated', async () => {
 		const asset = {
 			type: 'image',
-			props: { src: 'http://example.com/animated.gif', mimeType: 'image/gif', w: 100 },
+			props: {
+				src: 'http://example.com/animated.gif',
+				mimeType: 'image/gif',
+				w: 100,
+				fileSize: FILE_SIZE,
+			},
 		}
 		expect(
 			await resolveAsset(asset as TLAsset, {
@@ -75,8 +85,26 @@ describe('resolveAsset', () => {
 		).toBe('http://example.com/animated.gif')
 	})
 
+	it('should return the original src if it is under a certain file size', async () => {
+		const asset = {
+			type: 'image',
+			props: { src: 'http://example.com/small.png', w: 100, fileSize: 1024 * 1024 },
+		}
+		expect(
+			await resolveAsset(asset as TLAsset, {
+				screenScale: -1,
+				steppedScreenScale: 1,
+				dpr: 1,
+				networkEffectiveType: '4g',
+			})
+		).toBe('http://example.com/small.png')
+	})
+
 	it("should return null if the asset type is not 'image'", async () => {
-		const asset = { type: 'document', props: { src: 'http://example.com/doc.pdf', w: 100 } }
+		const asset = {
+			type: 'document',
+			props: { src: 'http://example.com/doc.pdf', w: 100, fileSize: FILE_SIZE },
+		}
 		expect(
 			await resolveAsset(asset as TLAsset, {
 				screenScale: -1,
@@ -88,7 +116,10 @@ describe('resolveAsset', () => {
 	})
 
 	it('should handle if network compensation is not available and zoom correctly', async () => {
-		const asset = { type: 'image', props: { src: 'http://example.com/image.jpg', w: 100 } }
+		const asset = {
+			type: 'image',
+			props: { src: 'http://example.com/image.jpg', w: 100, fileSize: FILE_SIZE },
+		}
 		expect(
 			await resolveAsset(asset as TLAsset, {
 				screenScale: -1,
@@ -102,7 +133,10 @@ describe('resolveAsset', () => {
 	})
 
 	it('should handle network compensation and zoom correctly', async () => {
-		const asset = { type: 'image', props: { src: 'http://example.com/image.jpg', w: 100 } }
+		const asset = {
+			type: 'image',
+			props: { src: 'http://example.com/image.jpg', w: 100, fileSize: FILE_SIZE },
+		}
 		expect(
 			await resolveAsset(asset as TLAsset, {
 				screenScale: -1,
@@ -116,7 +150,10 @@ describe('resolveAsset', () => {
 	})
 
 	it('should round zoom to powers of 2', async () => {
-		const asset = { type: 'image', props: { src: 'https://example.com/image.jpg', w: 100 } }
+		const asset = {
+			type: 'image',
+			props: { src: 'https://example.com/image.jpg', w: 100, fileSize: FILE_SIZE },
+		}
 		expect(
 			await resolveAsset(asset as TLAsset, {
 				screenScale: -1,
@@ -130,7 +167,10 @@ describe('resolveAsset', () => {
 	})
 
 	it('should round zoom to the nearest 0.25 and apply network compensation', async () => {
-		const asset = { type: 'image', props: { src: 'https://example.com/image.jpg', w: 100 } }
+		const asset = {
+			type: 'image',
+			props: { src: 'https://example.com/image.jpg', w: 100, fileSize: FILE_SIZE },
+		}
 		expect(
 			await resolveAsset(asset as TLAsset, {
 				screenScale: -1,
@@ -144,7 +184,10 @@ describe('resolveAsset', () => {
 	})
 
 	it('should set zoom to a minimum of 0.25 if zoom is below 0.25', async () => {
-		const asset = { type: 'image', props: { src: 'https://example.com/image.jpg', w: 100 } }
+		const asset = {
+			type: 'image',
+			props: { src: 'https://example.com/image.jpg', w: 100, fileSize: FILE_SIZE },
+		}
 		expect(
 			await resolveAsset(asset as TLAsset, {
 				screenScale: -1,
