@@ -78,5 +78,3 @@ jobs:
           APP_ORIGIN: ${{ vars.APP_ORIGIN }}
 
           NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER: ${{ vars.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER }}
-
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
