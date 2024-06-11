@@ -21,7 +21,7 @@ export {
 	type OkResult,
 } from './lib/control'
 export { debounce } from './lib/debounce'
-export { annotateError, getErrorAnnotations } from './lib/error'
+export { annotateError, getErrorAnnotations, type ErrorAnnotations } from './lib/error'
 export { FileHelpers } from './lib/file'
 export { noop, omitFromStackTrace } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'

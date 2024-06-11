@@ -48,11 +48,6 @@ function tick() {
 
 let started = false
 
-interface CancellableFn {
-	(): void
-	cancel?(): void
-}
-
 /**
  * Returns a throttled version of the function that will only be called max once per frame.
  * The target frame rate is 60fps.
@@ -60,7 +55,10 @@ interface CancellableFn {
  * @returns
  * @internal
  */
-export function fpsThrottle(fn: CancellableFn): CancellableFn {
+export function fpsThrottle(fn: { (): void; cancel?(): void }): {
+	(): void
+	cancel?(): void
+} {
 	if (isTest()) {
 		fn.cancel = () => frame && cancelAnimationFrame(frame)
 		return fn

@@ -370,7 +370,7 @@
 				"addToApiReportFile": false
 			},
 			"ae-forgotten-export": {
-				"logLevel": "none",
+				"logLevel": "error",
 				"addToApiReportFile": false
 			}
 			// "ae-extra-release-tag": {

@@ -11,9 +11,9 @@ import {
 	Vec,
 	structuredClone,
 } from '@tldraw/editor'
-import { kickoutOccludedShapes } from '../selectHelpers'
-import { MIN_CROP_SIZE } from './Crop/crop-constants'
-import { CursorTypeMap } from './PointingResizeHandle'
+import { kickoutOccludedShapes } from '../../../selectHelpers'
+import { CursorTypeMap } from '../../PointingResizeHandle'
+import { MIN_CROP_SIZE } from '../crop-constants'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
 
@@ -207,7 +207,7 @@ export class Cropping extends StateNode {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.editor.setCroppingShape(null)
-			this.parent.transition('idle')
+			this.editor.setCurrentTool('select.idle')
 		}
 	}
 
@@ -217,7 +217,7 @@ export class Cropping extends StateNode {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.editor.setCroppingShape(null)
-			this.parent.transition('idle')
+			this.editor.setCurrentTool('select.idle')
 		}
 	}
 

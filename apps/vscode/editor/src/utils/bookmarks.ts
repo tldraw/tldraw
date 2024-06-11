@@ -43,6 +43,12 @@ export async function onCreateAssetFromUrl({
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
+			if (meta.image.startsWith('/')) {
+				meta.image = new URL(meta.image, url).href
+			}
+			if (meta.favicon.startsWith('/')) {
+				meta.favicon = new URL(meta.favicon, url).href
+			}
 		} catch (error) {
 			console.error(error)
 			meta = { image: '', favicon: '', title: '', description: '' }

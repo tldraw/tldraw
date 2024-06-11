@@ -1,4 +1,5 @@
-interface ErrorAnnotations {
+/** @public */
+export interface ErrorAnnotations {
 	tags: Record<string, number | string | boolean | bigint | symbol | null | undefined>
 	extras: Record<string, unknown>
 }
