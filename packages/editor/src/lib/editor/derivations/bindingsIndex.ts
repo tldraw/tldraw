@@ -50,14 +50,14 @@ export const bindingsIndex = (editor: Editor): Computed<TLBindingsIndex> => {
 
 		function removingBinding(binding: TLBinding) {
 			nextValue ??= new Map(lastValue)
-			const prevFrom = lastValue.get(binding.fromId)
+			const prevFrom = nextValue.get(binding.fromId)
 			const nextFrom = prevFrom?.filter((b) => b.id !== binding.id)
 			if (!nextFrom?.length) {
 				nextValue.delete(binding.fromId)
 			} else {
 				nextValue.set(binding.fromId, nextFrom)
 			}
-			const prevTo = lastValue.get(binding.toId)
+			const prevTo = nextValue.get(binding.toId)
 			const nextTo = prevTo?.filter((b) => b.id !== binding.id)
 			if (!nextTo?.length) {
 				nextValue.delete(binding.toId)

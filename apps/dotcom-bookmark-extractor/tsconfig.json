@@ -1,5 +1,4 @@
 {
-	"include": ["api"],
 	"exclude": ["node_modules", "dist", ".tsbuild*", ".vercel"],
 	"compilerOptions": {
 		"composite": true,

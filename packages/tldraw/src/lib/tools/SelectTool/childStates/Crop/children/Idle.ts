@@ -10,21 +10,13 @@ export class Idle extends StateNode {
 
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
 
-		// well this fucking sucks. what the fuck.
-		// it's possible for a user to enter cropping, then undo
-		// (which clears the cropping id) but still remain in this state.
-		this.editor.on('tick', this.cleanupCroppingState)
-
 		if (onlySelectedShape) {
-			this.editor.mark('crop')
 			this.editor.setCroppingShape(onlySelectedShape.id)
 		}
 	}
 
 	override onExit: TLExitEventHandler = () => {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
-
-		this.editor.off('tick', this.cleanupCroppingState)
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
@@ -85,27 +77,21 @@ export class Idle extends StateNode {
 					case 'bottom_right_rotate': {
 						this.editor.setCurrentTool('select.pointing_rotate_handle', {
 							...info,
-							onInteractionEnd: 'select.crop',
+							onInteractionEnd: 'select.crop.idle',
 						})
 						break
 					}
 					case 'top':
 					case 'right':
 					case 'bottom':
-					case 'left': {
-						this.editor.setCurrentTool('select.pointing_crop_handle', {
-							...info,
-							onInteractionEnd: 'select.crop',
-						})
-						break
-					}
+					case 'left':
 					case 'top_left':
 					case 'top_right':
 					case 'bottom_left':
 					case 'bottom_right': {
-						this.editor.setCurrentTool('select.pointing_crop_handle', {
+						this.editor.setCurrentTool('select.crop.pointing_crop_handle', {
 							...info,
-							onInteractionEnd: 'select.crop',
+							onInteractionEnd: 'select.crop.idle',
 						})
 						break
 					}
@@ -163,12 +149,6 @@ export class Idle extends StateNode {
 	private cancel() {
 		this.editor.setCroppingShape(null)
 		this.editor.setCurrentTool('select.idle', {})
-	}
-
-	private cleanupCroppingState = () => {
-		if (!this.editor.getCroppingShapeId()) {
-			this.editor.setCurrentTool('select.idle', {})
-		}
 	}
 
 	private nudgeCroppingImage(ephemeral = false) {

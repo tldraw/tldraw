@@ -1,13 +1,5 @@
 import { useLayoutEffect, useState } from 'react'
-import {
-	Tldraw,
-	createTLStore,
-	defaultBindingUtils,
-	defaultShapeUtils,
-	getSnapshot,
-	loadSnapshot,
-	throttle,
-} from 'tldraw'
+import { Tldraw, createTLStore, getSnapshot, loadSnapshot, throttle } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -16,9 +8,7 @@ const PERSISTENCE_KEY = 'example-3'
 
 export default function PersistenceExample() {
 	//[1]
-	const [store] = useState(() =>
-		createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils })
-	)
+	const [store] = useState(() => createTLStore())
 	//[2]
 	const [loadingState, setLoadingState] = useState<
 		{ status: 'loading' } | { status: 'ready' } | { status: 'error'; error: string }

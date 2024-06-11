@@ -1,6 +1,10 @@
 import {
-	BindingOnUnbindOptions,
-	BindingUnbindReason,
+	BindingOnChangeOptions,
+	BindingOnCreateOptions,
+	BindingOnDeleteOptions,
+	BindingOnShapeChangeOptions,
+	BindingOnShapeDeleteOptions,
+	BindingOnShapeIsolateOptions,
 	BindingUtil,
 	TLShapeId,
 	TLUnknownBinding,
@@ -19,8 +23,39 @@ const ids = {
 	box4: createShapeId('box4'),
 }
 
-const mockOnBeforeUnbind = jest.fn() as jest.Mock<void, [BindingOnUnbindOptions<TLUnknownBinding>]>
-const mockOnAfterUnbind = jest.fn() as jest.Mock<void, [BindingOnUnbindOptions<TLUnknownBinding>]>
+const mockOnOperationComplete = jest.fn() as jest.Mock<void, []>
+const mockOnBeforeDelete = jest.fn() as jest.Mock<void, [BindingOnDeleteOptions<TLUnknownBinding>]>
+const mockOnAfterDelete = jest.fn() as jest.Mock<void, [BindingOnDeleteOptions<TLUnknownBinding>]>
+const mockOnBeforeFromShapeDelete = jest.fn() as jest.Mock<
+	void,
+	[BindingOnShapeDeleteOptions<TLUnknownBinding>]
+>
+const mockOnBeforeToShapeDelete = jest.fn() as jest.Mock<
+	void,
+	[BindingOnShapeDeleteOptions<TLUnknownBinding>]
+>
+const mockOnBeforeFromShapeIsolate = jest.fn() as jest.Mock<
+	void,
+	[BindingOnShapeIsolateOptions<TLUnknownBinding>]
+>
+const mockOnBeforeToShapeIsolate = jest.fn() as jest.Mock<
+	void,
+	[BindingOnShapeIsolateOptions<TLUnknownBinding>]
+>
+const mockOnBeforeCreate = jest.fn() as jest.Mock<void, [BindingOnCreateOptions<TLUnknownBinding>]>
+const mockOnAfterCreate = jest.fn() as jest.Mock<void, [BindingOnCreateOptions<TLUnknownBinding>]>
+const mockOnBeforeChange = jest.fn() as jest.Mock<void, [BindingOnChangeOptions<TLUnknownBinding>]>
+const mockOnAfterChange = jest.fn() as jest.Mock<void, [BindingOnChangeOptions<TLUnknownBinding>]>
+const mockOnAfterChangeFromShape = jest.fn() as jest.Mock<
+	void,
+	[BindingOnShapeChangeOptions<TLUnknownBinding>]
+>
+const mockOnAfterChangeToShape = jest.fn() as jest.Mock<
+	void,
+	[BindingOnShapeChangeOptions<TLUnknownBinding>]
+>
+
+const calls: string[] = []
 
 class TestBindingUtil extends BindingUtil {
 	static override type = 'test'
@@ -31,12 +66,69 @@ class TestBindingUtil extends BindingUtil {
 		return {}
 	}
 
-	override onBeforeUnbind(options: BindingOnUnbindOptions<TLUnknownBinding>): void {
-		mockOnBeforeUnbind(options)
+	override onOperationComplete(): void {
+		calls.push('onOperationComplete')
+		mockOnOperationComplete()
 	}
 
-	override onAfterUnbind(options: BindingOnUnbindOptions<TLUnknownBinding>): void {
-		mockOnAfterUnbind(options)
+	override onBeforeDelete(options: BindingOnDeleteOptions<TLUnknownBinding>): void {
+		calls.push('onBeforeDelete')
+		mockOnBeforeDelete(options)
+	}
+
+	override onAfterDelete(options: BindingOnDeleteOptions<TLUnknownBinding>): void {
+		calls.push('onAfterDelete')
+		mockOnAfterDelete(options)
+	}
+
+	override onBeforeDeleteFromShape(options: BindingOnShapeDeleteOptions<TLUnknownBinding>): void {
+		calls.push('onBeforeDeleteFromShape')
+		mockOnBeforeFromShapeDelete(options)
+	}
+
+	override onBeforeDeleteToShape(options: BindingOnShapeDeleteOptions<TLUnknownBinding>): void {
+		calls.push('onBeforeDeleteToShape')
+		mockOnBeforeToShapeDelete(options)
+	}
+
+	override onBeforeIsolateFromShape(options: BindingOnShapeIsolateOptions<TLUnknownBinding>): void {
+		calls.push('onBeforeIsolateFromShape')
+		mockOnBeforeFromShapeIsolate(options)
+	}
+
+	override onBeforeIsolateToShape(options: BindingOnShapeIsolateOptions<TLUnknownBinding>): void {
+		calls.push('onBeforeIsolateToShape')
+		mockOnBeforeToShapeIsolate(options)
+	}
+
+	override onBeforeCreate(options: BindingOnCreateOptions<TLUnknownBinding>): void {
+		calls.push('onBeforeCreate')
+		mockOnBeforeCreate(options)
+	}
+
+	override onAfterCreate(options: BindingOnCreateOptions<TLUnknownBinding>): void {
+		calls.push('onAfterCreate')
+		mockOnAfterCreate(options)
+	}
+
+	override onBeforeChange(options: BindingOnChangeOptions<TLUnknownBinding>): void {
+		calls.push('onBeforeChange')
+		mockOnBeforeChange(options)
+	}
+
+	override onAfterChange(options: BindingOnChangeOptions<TLUnknownBinding>): void {
+		calls.push('onAfterChange')
+		mockOnAfterChange(options)
+	}
+
+	override onAfterChangeFromShape(options: BindingOnShapeChangeOptions<TLUnknownBinding>): void {
+		calls.push('onAfterChangeFromShape')
+		mockOnAfterChangeFromShape(options)
+	}
+
+	override onAfterChangeToShape(options: BindingOnShapeChangeOptions<TLUnknownBinding>): void {
+		calls.push('onAfterChangeToShape')
+		mockOnAfterChangeToShape(options)
 	}
 }
 
@@ -50,8 +142,19 @@ beforeEach(() => {
 		<TL.geo id={ids.box4} x={0} y={0} />,
 	])
 
-	mockOnBeforeUnbind.mockClear()
-	mockOnAfterUnbind.mockClear()
+	mockOnOperationComplete.mockReset()
+	mockOnBeforeDelete.mockReset()
+	mockOnAfterDelete.mockReset()
+	mockOnBeforeFromShapeDelete.mockReset()
+	mockOnBeforeToShapeDelete.mockReset()
+	mockOnBeforeFromShapeIsolate.mockReset()
+	mockOnBeforeToShapeIsolate.mockReset()
+	mockOnBeforeCreate.mockReset()
+	mockOnAfterCreate.mockReset()
+	mockOnBeforeChange.mockReset()
+	mockOnAfterChange.mockReset()
+	mockOnAfterChangeFromShape.mockReset()
+	mockOnAfterChangeToShape.mockReset()
 })
 
 function bindShapes(fromId: TLShapeId, toId: TLShapeId) {
@@ -65,93 +168,120 @@ function bindShapes(fromId: TLShapeId, toId: TLShapeId) {
 	return bindingId
 }
 
-test('deleting the from shape causes the reason to be "deleting_from_shape"', () => {
+test('deleting the from shape', () => {
 	bindShapes(ids.box1, ids.box2)
+	calls.length = 0
 	editor.deleteShape(ids.box1)
-	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(1)
-	expect(mockOnBeforeUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingFromShape })
-	)
-	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(1)
-	expect(mockOnAfterUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingFromShape })
-	)
+	expect(calls).toMatchInlineSnapshot(`
+		[
+		  "onBeforeIsolateToShape",
+		  "onBeforeDeleteFromShape",
+		  "onBeforeDelete",
+		  "onAfterDelete",
+		  "onOperationComplete",
+		]
+	`)
 })
 
-test('deleting the to shape causes the reason to be "deleting_to_shape"', () => {
+test('deleting the to shape', () => {
 	bindShapes(ids.box1, ids.box2)
+	calls.length = 0
 	editor.deleteShape(ids.box2)
-	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(1)
-	expect(mockOnBeforeUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingToShape })
-	)
-	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(1)
-	expect(mockOnAfterUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingToShape })
-	)
+	expect(calls).toMatchInlineSnapshot(`
+		[
+		  "onBeforeIsolateFromShape",
+		  "onBeforeDeleteToShape",
+		  "onBeforeDelete",
+		  "onAfterDelete",
+		  "onOperationComplete",
+		]
+	`)
 })
 
-test('deleting the binding itself causes the reason to be "deleting_binding"', () => {
+test('deleting the binding', () => {
 	const bindingId = bindShapes(ids.box1, ids.box2)
+	calls.length = 0
 	editor.deleteBinding(bindingId)
-
-	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(1)
-	expect(mockOnBeforeUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
-	)
-	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(1)
-	expect(mockOnAfterUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
-	)
+	expect(calls).toMatchInlineSnapshot(`
+		[
+		  "onBeforeDelete",
+		  "onAfterDelete",
+		  "onOperationComplete",
+		]
+	`)
 })
 
-test('copying both bound shapes does not trigger the unbind operation', () => {
+test('deleting the binding while isolating', () => {
+	const bindingId = bindShapes(ids.box1, ids.box2)
+	calls.length = 0
+	editor.deleteBinding(bindingId, { isolateShapes: true })
+	expect(calls).toMatchInlineSnapshot(`
+		[
+		  "onBeforeIsolateFromShape",
+		  "onBeforeIsolateToShape",
+		  "onBeforeDelete",
+		  "onAfterDelete",
+		  "onOperationComplete",
+		]
+	`)
+})
+
+test('copying both bound shapes does not trigger the isolation operations', () => {
 	bindShapes(ids.box1, ids.box2)
 	editor.select(ids.box1, ids.box2)
+	calls.length = 0
 	editor.copy()
-	expect(mockOnBeforeUnbind).not.toHaveBeenCalled()
-	expect(mockOnAfterUnbind).not.toHaveBeenCalled()
+	expect(calls).toMatchInlineSnapshot(`[]`)
 })
 
-test('copying the from shape on its own does trigger the unbind operation', () => {
+test('copying the from shape on its own does trigger isolation operations', () => {
 	bindShapes(ids.box1, ids.box2)
 	editor.select(ids.box1)
+	calls.length = 0
 	editor.copy()
-	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(1)
-	expect(mockOnBeforeUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
-	)
-	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(1)
-	expect(mockOnAfterUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
-	)
+	expect(calls).toMatchInlineSnapshot(`
+		[
+		  "onBeforeIsolateFromShape",
+		  "onBeforeIsolateToShape",
+		  "onBeforeDelete",
+		  "onAfterDelete",
+		  "onOperationComplete",
+		  "onBeforeCreate",
+		  "onAfterCreate",
+		  "onOperationComplete",
+		]
+	`)
 })
 
 test('copying the to shape on its own does trigger the unbind operation', () => {
 	bindShapes(ids.box1, ids.box2)
 	editor.select(ids.box2)
+	calls.length = 0
 	editor.copy()
-	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(1)
-	expect(mockOnBeforeUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
-	)
-	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(1)
-	expect(mockOnAfterUnbind).toHaveBeenCalledWith(
-		expect.objectContaining({ reason: BindingUnbindReason.DeletingBinding })
-	)
+	expect(calls).toMatchInlineSnapshot(`
+		[
+		  "onBeforeIsolateFromShape",
+		  "onBeforeIsolateToShape",
+		  "onBeforeDelete",
+		  "onAfterDelete",
+		  "onOperationComplete",
+		  "onBeforeCreate",
+		  "onAfterCreate",
+		  "onOperationComplete",
+		]
+	`)
 })
 
-test('cascading deletes in afterUnbind are handled correctly', () => {
-	mockOnAfterUnbind.mockImplementation((options) => {
-		if (options.reason === BindingUnbindReason.DeletingFromShape) {
-			editor.deleteShape(options.binding.toId)
-		}
+test('cascading deletes in beforeFromShapeDelete are handled correctly', () => {
+	mockOnBeforeFromShapeDelete.mockImplementation((options) => {
+		editor.deleteShape(options.binding.toId)
 	})
 
 	bindShapes(ids.box1, ids.box2)
 	bindShapes(ids.box2, ids.box3)
 	bindShapes(ids.box3, ids.box4)
 
+	calls.length = 0
 	editor.deleteShape(ids.box1)
 
 	expect(editor.getShape(ids.box1)).toBeUndefined()
@@ -159,52 +289,163 @@ test('cascading deletes in afterUnbind are handled correctly', () => {
 	expect(editor.getShape(ids.box3)).toBeUndefined()
 	expect(editor.getShape(ids.box4)).toBeUndefined()
 
-	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(3)
-	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(3)
+	expect(calls).toMatchInlineSnapshot(`
+		[
+		  "onBeforeIsolateToShape",
+		  "onBeforeDeleteFromShape",
+		  "onBeforeIsolateFromShape",
+		  "onBeforeDeleteToShape",
+		  "onBeforeIsolateToShape",
+		  "onBeforeDeleteFromShape",
+		  "onBeforeIsolateFromShape",
+		  "onBeforeDeleteToShape",
+		  "onBeforeIsolateToShape",
+		  "onBeforeDeleteFromShape",
+		  "onBeforeIsolateFromShape",
+		  "onBeforeDeleteToShape",
+		  "onBeforeDelete",
+		  "onBeforeDelete",
+		  "onBeforeDelete",
+		  "onAfterDelete",
+		  "onAfterDelete",
+		  "onAfterDelete",
+		  "onOperationComplete",
+		]
+	`)
 })
 
-test('cascading deletes in beforeUnbind are handled correctly', () => {
-	mockOnBeforeUnbind.mockImplementation((options) => {
-		if (options.reason === BindingUnbindReason.DeletingFromShape) {
-			editor.deleteShape(options.binding.toId)
-		}
+test('cascading deletes in beforeToShapeDelete are handled correctly', () => {
+	mockOnBeforeToShapeDelete.mockImplementation((options) => {
+		editor.deleteShape(options.binding.fromId)
 	})
 
 	bindShapes(ids.box1, ids.box2)
 	bindShapes(ids.box2, ids.box3)
 	bindShapes(ids.box3, ids.box4)
 
-	editor.deleteShape(ids.box1)
+	calls.length = 0
+	editor.deleteShape(ids.box4)
 
 	expect(editor.getShape(ids.box1)).toBeUndefined()
 	expect(editor.getShape(ids.box2)).toBeUndefined()
 	expect(editor.getShape(ids.box3)).toBeUndefined()
 	expect(editor.getShape(ids.box4)).toBeUndefined()
 
-	expect(mockOnBeforeUnbind).toHaveBeenCalledTimes(3)
-	expect(mockOnAfterUnbind).toHaveBeenCalledTimes(3)
+	expect(calls).toMatchInlineSnapshot(`
+		[
+		  "onBeforeIsolateFromShape",
+		  "onBeforeDeleteToShape",
+		  "onBeforeIsolateFromShape",
+		  "onBeforeDeleteToShape",
+		  "onBeforeIsolateFromShape",
+		  "onBeforeDeleteToShape",
+		  "onBeforeIsolateToShape",
+		  "onBeforeDeleteFromShape",
+		  "onBeforeDelete",
+		  "onBeforeIsolateToShape",
+		  "onBeforeDeleteFromShape",
+		  "onBeforeDelete",
+		  "onBeforeIsolateToShape",
+		  "onBeforeDeleteFromShape",
+		  "onBeforeDelete",
+		  "onAfterDelete",
+		  "onAfterDelete",
+		  "onAfterDelete",
+		  "onOperationComplete",
+		]
+	`)
 })
 
-test('beforeUnbind is called before the from shape is deleted or the binding is deleted', () => {
-	mockOnBeforeUnbind.mockImplementationOnce(() => {
-		expect(editor.getShape(ids.box1)).toBeDefined()
-		expect(editor.getShape(ids.box2)).toBeDefined()
+test('onBeforeCreate is called before the binding is created', () => {
+	mockOnBeforeCreate.mockImplementationOnce(() => {
+		expect(editor.getBindingsFromShape(ids.box1, 'test')).toHaveLength(0)
+	})
+	bindShapes(ids.box1, ids.box2)
+	expect(editor.getBindingsFromShape(ids.box1, 'test')).toHaveLength(1)
+})
+
+test('onAfterCreate is called after the binding is created', () => {
+	mockOnAfterCreate.mockImplementationOnce(() => {
 		expect(editor.getBindingsFromShape(ids.box1, 'test')).toHaveLength(1)
 	})
 	bindShapes(ids.box1, ids.box2)
-	editor.deleteShape(ids.box1)
+	expect(editor.getBindingsFromShape(ids.box1, 'test')).toHaveLength(1)
+	expect.assertions(2)
+})
 
+test('onBeforeChange is called before the binding is updated', () => {
+	const bindingId = bindShapes(ids.box1, ids.box2)
+	mockOnBeforeChange.mockImplementationOnce(() => {
+		expect(editor.getBinding(bindingId)?.meta).toEqual({})
+	})
+	editor.updateBindings([
+		{
+			id: bindingId,
+			type: 'test',
+			meta: { foo: 'bar' },
+		},
+	])
+	expect(editor.getBinding(bindingId)?.meta).toEqual({ foo: 'bar' })
+	expect.assertions(2)
+})
+
+test('onAfterChange is called after the binding is updated', () => {
+	const bindingId = bindShapes(ids.box1, ids.box2)
+	expect(editor.getBinding(bindingId)?.meta).toEqual({})
+	mockOnAfterChange.mockImplementationOnce(() => {
+		expect(editor.getBinding(bindingId)?.meta).toEqual({ foo: 'bar' })
+	})
+	editor.updateBindings([
+		{
+			id: bindingId,
+			type: 'test',
+			meta: { foo: 'bar' },
+		},
+	])
+	expect(editor.getBinding(bindingId)?.meta).toEqual({ foo: 'bar' })
 	expect.assertions(3)
 })
 
-test('beforeUnbind is called before the to shape is deleted or the binding is deleted', () => {
-	mockOnBeforeUnbind.mockImplementationOnce(() => {
-		expect(editor.getShape(ids.box1)).toBeDefined()
-		expect(editor.getShape(ids.box2)).toBeDefined()
-		expect(editor.getBindingsToShape(ids.box2, 'test')).toHaveLength(1)
-	})
+test('onAfterChangeFromShape is called after the from shape is updated', () => {
 	bindShapes(ids.box1, ids.box2)
-	editor.deleteShape(ids.box2)
 
+	expect(editor.getShape(ids.box1)?.meta).toEqual({})
+	mockOnAfterChangeFromShape.mockImplementationOnce(() => {
+		expect(editor.getShape(ids.box1)?.meta).toEqual({
+			foo: 'bar',
+		})
+	})
+	editor.updateShapes([
+		{
+			id: ids.box1,
+			type: 'geo',
+			meta: { foo: 'bar' },
+		},
+	])
+	expect(editor.getShape(ids.box1)?.meta).toEqual({
+		foo: 'bar',
+	})
+	expect.assertions(3)
+})
+
+test('onAfterChangeToShape is called after the to shape is updated', () => {
+	bindShapes(ids.box1, ids.box2)
+
+	expect(editor.getShape(ids.box2)?.meta).toEqual({})
+	mockOnAfterChangeToShape.mockImplementationOnce(() => {
+		expect(editor.getShape(ids.box2)?.meta).toEqual({
+			foo: 'bar',
+		})
+	})
+	editor.updateShapes([
+		{
+			id: ids.box2,
+			type: 'geo',
+			meta: { foo: 'bar' },
+		},
+	])
+	expect(editor.getShape(ids.box2)?.meta).toEqual({
+		foo: 'bar',
+	})
 	expect.assertions(3)
 })

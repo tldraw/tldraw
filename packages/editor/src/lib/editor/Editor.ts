@@ -110,8 +110,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import {
-	BindingOnUnbindOptions,
-	BindingUnbindReason,
+	BindingOnDeleteOptions,
 	BindingUtil,
 	TLBindingUtilConstructor,
 } from './bindings/BindingUtil'
@@ -359,7 +358,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.sideEffects = this.store.sideEffects
 
-		let deletedBindings = new Map<TLBindingId, BindingOnUnbindOptions<any>>()
+		let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<string>()
@@ -395,7 +394,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const t = deletedBindings
 					deletedBindings = new Map()
 					for (const opts of t.values()) {
-						this.getBindingUtil(opts.binding).onAfterUnbind?.(opts)
+						this.getBindingUtil(opts.binding).onAfterDelete?.(opts)
 					}
 				}
 
@@ -480,6 +479,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 					},
 					beforeDelete: (shape) => {
+						// if we triggered this delete with a recursive call, don't do anything
+						if (deletedShapeIds.has(shape.id)) return
 						// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
 						if (shape.parentId && isShapeId(shape.parentId)) {
 							invalidParents.add(shape.parentId)
@@ -491,8 +492,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 						for (const binding of this.getBindingsInvolvingShape(shape)) {
 							invalidBindingTypes.add(binding.type)
 							deleteBindingIds.push(binding.id)
+							const util = this.getBindingUtil(binding)
+							if (binding.fromId === shape.id) {
+								util.onBeforeIsolateToShape?.({ binding, removedShape: shape })
+								util.onBeforeDeleteFromShape?.({ binding, shape })
+							} else {
+								util.onBeforeIsolateFromShape?.({ binding, removedShape: shape })
+								util.onBeforeDeleteToShape?.({ binding, shape })
+							}
 						}
-						this.deleteBindings(deleteBindingIds)
+
+						if (deleteBindingIds.length) {
+							this.deleteBindings(deleteBindingIds)
+						}
 
 						const deletedIds = new Set([shape.id])
 						const updates = compact(
@@ -529,25 +541,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this.getBindingUtil(bindingAfter).onAfterChange?.({ bindingBefore, bindingAfter })
 					},
 					beforeDelete: (binding) => {
-						const util = this.getBindingUtil(binding)
-						// No need to track this binding if it's util doesn't care about the unbind operation
-						if (!util.onBeforeUnbind && !util.onAfterUnbind) return
-						// We only want to call this once per binding and it might be possible that the onBeforeUnbind
-						// callback will trigger a nested delete operation on the same binding so let's bail out if
-						// that is happening
-						if (deletedBindings.has(binding.id)) return
-						const opts: BindingOnUnbindOptions<any> = {
-							binding,
-							reason: deletedShapeIds.has(binding.fromId)
-								? BindingUnbindReason.DeletingFromShape
-								: deletedShapeIds.has(binding.toId)
-									? BindingUnbindReason.DeletingToShape
-									: BindingUnbindReason.DeletingBinding,
-						}
-						deletedBindings.set(binding.id, opts)
-						this.getBindingUtil(binding).onBeforeUnbind?.(opts)
+						this.getBindingUtil(binding).onBeforeDelete?.({ binding })
 					},
 					afterDelete: (binding) => {
+						this.getBindingUtil(binding).onAfterDelete?.({ binding })
 						invalidBindingTypes.add(binding.type)
 					},
 				},
@@ -712,7 +709,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly root: RootState
+	readonly root: StateNode
 
 	/**
 	 * A set of functions to call when the app is disposed.
@@ -895,6 +892,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	undo(): this {
 		this._flushEventsForTick(0)
+		this.complete()
 		this.history.undo()
 		return this
 	}
@@ -920,6 +918,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	redo(): this {
 		this._flushEventsForTick(0)
+		this.complete()
 		this.history.redo()
 		return this
 	}
@@ -1443,12 +1442,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>,
 		historyOptions?: TLHistoryBatchOptions
 	) => {
-		this.batch(() => {
-			this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
-				...state,
-				...partial,
-			}))
-		}, historyOptions)
+		this.batch(
+			() => {
+				this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
+					...state,
+					...partial,
+				}))
+			},
+			{
+				history: 'ignore',
+				...historyOptions,
+			}
+		)
 	}
 
 	/**
@@ -3461,7 +3466,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	private _tickCameraState = () => {
 		// always reset the timeout
-		this._cameraStateTimeoutRemaining = this.options.cameraMovingTimoutMs
+		this._cameraStateTimeoutRemaining = this.options.cameraMovingTimeoutMs
 		// If the state is idle, then start the tick
 		if (this._cameraState.__unsafe__getWithoutCapture() !== 'idle') return
 		this._cameraState.set('moving')
@@ -5157,10 +5162,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
+	/**
+	 * Get a binding from the store by its ID if it exists.
+	 */
 	getBinding(id: TLBindingId): TLBinding | undefined {
 		return this.store.get(id) as TLBinding | undefined
 	}
 
+	/**
+	 * Get all bindings of a certain type _from_ a particular shape. These are the bindings whose
+	 * `fromId` matched the shape's ID.
+	 */
 	getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
@@ -5170,6 +5182,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			(b) => b.fromId === id && b.type === type
 		) as Binding[]
 	}
+
+	/**
+	 * Get all bindings of a certain type _to_ a particular shape. These are the bindings whose
+	 * `toId` matches the shape's ID.
+	 */
 	getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
@@ -5179,6 +5196,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			(b) => b.toId === id && b.type === type
 		) as Binding[]
 	}
+
+	/**
+	 * Get all bindings involving a particular shape. This includes bindings where the shape is the
+	 * `fromId` or `toId`. If a type is provided, only bindings of that type are returned.
+	 */
 	getBindingsInvolvingShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type?: Binding['type']
@@ -5189,6 +5211,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return result.filter((b) => b.type === type) as Binding[]
 	}
 
+	/**
+	 * Create bindings from a list of partial bindings. You can omit the ID and most props of a
+	 * binding, but the `type`, `toId`, and `fromId` must all be provided.
+	 */
 	createBindings(partials: TLBindingCreate[]) {
 		const bindings: TLBinding[] = []
 		for (const partial of partials) {
@@ -5214,10 +5240,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.put(bindings)
 		return this
 	}
+
+	/**
+	 * Create a single binding from a partial. You can omit the ID and most props of a binding, but
+	 * the `type`, `toId`, and `fromId` must all be provided.
+	 */
 	createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>) {
 		return this.createBindings([partial])
 	}
 
+	/**
+	 * Update bindings from a list of partial bindings. Each partial must include an ID, which will
+	 * be used to match the binding to it's existing record. If there is no existing record, that
+	 * binding is skipped. The changes from the partial are merged into the existing record.
+	 */
 	updateBindings(partials: (TLBindingUpdate | null | undefined)[]) {
 		const updated: TLBinding[] = []
 
@@ -5243,17 +5279,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Update a binding from a partial binding. Each partial must include an ID, which will be used
+	 * to match the binding to it's existing record. If there is no existing record, that binding is
+	 * skipped. The changes from the partial are merged into the existing record.
+	 */
 	updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>) {
 		return this.updateBindings([partial])
 	}
 
-	deleteBindings(bindings: (TLBinding | TLBindingId)[]) {
+	/**
+	 * Delete several bindings by their IDs. If a binding ID doesn't exist, it's ignored.
+	 */
+	deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
 		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
-		this.store.remove(ids)
+		if (isolateShapes) {
+			this.store.atomic(() => {
+				for (const id of ids) {
+					const binding = this.getBinding(id)
+					if (!binding) continue
+					const util = this.getBindingUtil(binding)
+					util.onBeforeIsolateFromShape?.({ binding, removedShape: this.getShape(binding.toId)! })
+					util.onBeforeIsolateToShape?.({ binding, removedShape: this.getShape(binding.fromId)! })
+					this.store.remove([id])
+				}
+			})
+		} else {
+			this.store.remove(ids)
+		}
 		return this
 	}
-	deleteBinding(binding: TLBinding | TLBindingId) {
-		return this.deleteBindings([binding])
+	/**
+	 * Delete a binding by its ID. If the binding doesn't exist, it's ignored.
+	 */
+	deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]) {
+		return this.deleteBindings([binding], opts)
 	}
 	canBindShapes({
 		fromShape,
@@ -5406,7 +5466,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shapeIds.set(shapeId, createShapeId())
 			}
 
-			const { shapesToCreate, bindingsToCreate } = withoutBindingsToUnrelatedShapes(
+			const { shapesToCreate, bindingsToCreate } = withIsolatedShapes(
 				this,
 				shapeIdSet,
 				(bindingIdsToMaintain) => {
@@ -7664,7 +7724,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapeIds = this.getShapeAndDescendantIds(ids)
 
-		return withoutBindingsToUnrelatedShapes(this, shapeIds, (bindingIdsToKeep) => {
+		return withIsolatedShapes(this, shapeIds, (bindingIdsToKeep) => {
 			const bindings: TLBinding[] = []
 			for (const id of bindingIdsToKeep) {
 				const binding = this.getBinding(id)
@@ -8271,19 +8331,67 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Dispatch a focus event.
+	 * Puts the editor into focused mode.
+	 *
+	 * This makes the editor eligible to receive keyboard events and some pointer events (move, wheel).
 	 *
 	 * @example
 	 * ```ts
 	 * editor.focus()
 	 * ```
 	 *
+	 * By default this also dispatches a 'focus' event to the container element. To prevent this, pass `focusContainer: false`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.focus({ focusContainer: false })
+	 * ```
+	 *
 	 * @public
 	 */
-	focus(): this {
-		this.focusManager.focus()
-		this.updateInstanceState({ isFocused: true }, { history: 'ignore' })
+	focus({ focusContainer = true } = {}): this {
+		if (focusContainer) {
+			this.focusManager.focus()
+		}
+		this.updateInstanceState({ isFocused: true })
 		return this
+	}
+
+	/**
+	 * Switches off the editor's focused mode.
+	 *
+	 * This makes the editor ignore keyboard events and some pointer events (move, wheel).
+	 *
+	 * @example
+	 * ```ts
+	 * editor.blur()
+	 * ```
+	 * By default this also dispatches a 'blur' event to the container element. To prevent this, pass `blurContainer: false`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.blur({ blurContainer: false })
+	 * ```
+	 *
+	 * @public
+	 */
+	blur({ blurContainer = true } = {}): this {
+		if (!this.getIsFocused()) return this
+		if (blurContainer) {
+			this.focusManager.blur()
+		} else {
+			this.complete() // stop any interaction
+		}
+		this.updateInstanceState({ isFocused: false })
+		return this
+	}
+
+	/**
+	 * @public
+	 * @returns true if the editor is focused
+	 */
+	@computed getIsFocused() {
+		return this.getInstanceState().isFocused
 	}
 
 	/**
@@ -8957,36 +9065,36 @@ function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape
  *
  * The callback is given the set of bindings that should be maintained.
  */
-function withoutBindingsToUnrelatedShapes<T>(
+function withIsolatedShapes<T>(
 	editor: Editor,
 	shapeIds: Set<TLShapeId>,
 	callback: (bindingsWithBoth: Set<TLBindingId>) => T
 ): T {
-	const bindingsWithBoth = new Set<TLBindingId>()
-	const bindingsToRemove = new Set<TLBindingId>()
-
-	for (const shapeId of shapeIds) {
-		const shape = editor.getShape(shapeId)
-		if (!shape) continue
-
-		for (const binding of editor.getBindingsInvolvingShape(shapeId)) {
-			const hasFrom = shapeIds.has(binding.fromId)
-			const hasTo = shapeIds.has(binding.toId)
-			if (hasFrom && hasTo) {
-				bindingsWithBoth.add(binding.id)
-				continue
-			}
-			if (!hasFrom || !hasTo) {
-				bindingsToRemove.add(binding.id)
-			}
-		}
-	}
-
 	let result!: Result<T, unknown>
 
 	editor.history.ignore(() => {
 		const changes = editor.store.extractingChanges(() => {
-			editor.deleteBindings([...bindingsToRemove])
+			const bindingsWithBoth = new Set<TLBindingId>()
+			const bindingsToRemove = new Set<TLBindingId>()
+
+			for (const shapeId of shapeIds) {
+				const shape = editor.getShape(shapeId)
+				if (!shape) continue
+
+				for (const binding of editor.getBindingsInvolvingShape(shapeId)) {
+					const hasFrom = shapeIds.has(binding.fromId)
+					const hasTo = shapeIds.has(binding.toId)
+					if (hasFrom && hasTo) {
+						bindingsWithBoth.add(binding.id)
+						continue
+					}
+					if (!hasFrom || !hasTo) {
+						bindingsToRemove.add(binding.id)
+					}
+				}
+			}
+
+			editor.deleteBindings([...bindingsToRemove], { isolateShapes: true })
 
 			try {
 				result = Result.ok(callback(bindingsWithBoth))

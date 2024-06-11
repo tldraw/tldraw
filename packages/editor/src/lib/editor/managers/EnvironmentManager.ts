@@ -1,5 +1,6 @@
 import { Editor } from '../Editor'
 
+/** @public */
 export class EnvironmentManager {
 	constructor(public editor: Editor) {
 		if (typeof window !== 'undefined' && 'navigator' in window) {

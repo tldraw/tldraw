@@ -196,6 +196,7 @@ function dedupeGapSnaps(snaps: Array<Extract<SnapIndicator, { type: 'gaps' }>>) 
 	}
 }
 
+/** @public */
 export class BoundsSnaps {
 	readonly editor: Editor
 	constructor(readonly manager: SnapManager) {

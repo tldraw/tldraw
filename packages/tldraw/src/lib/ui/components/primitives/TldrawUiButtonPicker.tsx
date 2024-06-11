@@ -7,7 +7,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { memo, useMemo, useRef } from 'react'
+import { ReactElement, memo, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -25,7 +25,10 @@ export interface TLUiButtonPickerProps<T extends string> {
 	onValueChange: (style: StyleProp<T>, value: T) => void
 }
 
-function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>) {
+/** @public */
+export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends string>(
+	props: TLUiButtonPickerProps<T>
+) {
 	const {
 		uiType,
 		items,
@@ -130,6 +133,4 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 			))}
 		</div>
 	)
-}
-/** @public */
-export const TldrawUiButtonPicker = memo(_TldrawUiButtonPicker) as typeof _TldrawUiButtonPicker
+}) as <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement

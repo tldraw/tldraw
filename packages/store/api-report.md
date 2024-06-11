@@ -9,9 +9,6 @@ import { Computed } from '@tldraw/state';
 import { Result } from '@tldraw/utils';
 
 // @public
-export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;
-
-// @public
 export function assertIdType<R extends UnknownRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is IdOf<R>;
 
 // @public
@@ -21,6 +18,9 @@ export interface BaseRecord<TypeName extends string, Id extends RecordId<Unknown
     // (undocumented)
     readonly typeName: TypeName;
 }
+
+// @public (undocumented)
+export type ChangeSource = 'remote' | 'user';
 
 // @public
 export interface CollectionDiff<T> {
@@ -37,7 +37,7 @@ export interface ComputedCache<Data, R extends UnknownRecord> {
 }
 
 // @public
-export function createComputedCache<Context extends StoreContext<any>, Result, Record extends ContextRecordType<Context> = ContextRecordType<Context>>(name: string, derive: (context: Context, record: Record) => Result | undefined, isEqual?: (a: Record, b: Record) => boolean): {
+export function createComputedCache<Context extends StoreObject<any>, Result, Record extends StoreObjectRecordType<Context> = StoreObjectRecordType<Context>>(name: string, derive: (context: Context, record: Record) => Result | undefined, isEqual?: (a: Record, b: Record) => boolean): {
     get(context: Context, id: IdOf<Record>): Result | undefined;
 };
 
@@ -118,6 +118,18 @@ export class IncrementalSetConstructor<T> {
 export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>): boolean;
 
 // @public (undocumented)
+export interface LegacyBaseMigrationsInfo {
+    // (undocumented)
+    currentVersion: number;
+    // (undocumented)
+    firstVersion: number;
+    // (undocumented)
+    migrators: {
+        [version: number]: LegacyMigration;
+    };
+}
+
+// @public (undocumented)
 export interface LegacyMigration<Before = any, After = any> {
     // (undocumented)
     down: (newState: After) => Before;
@@ -192,9 +204,29 @@ export function parseMigrationId(id: MigrationId): {
 };
 
 // @public (undocumented)
+export type QueryExpression<R extends object> = {
+    [k in keyof R & string]?: QueryValueMatcher<R[k]>;
+};
+
+// @public (undocumented)
+export type QueryValueMatcher<T> = {
+    eq: T;
+} | {
+    gt: number;
+} | {
+    neq: T;
+};
+
+// @public (undocumented)
+export type RecordFromId<K extends RecordId<UnknownRecord>> = K extends RecordId<infer R> ? R : never;
+
+// @public (undocumented)
 export type RecordId<R extends UnknownRecord> = string & {
     __type__: R;
 };
+
+// @public
+export type RecordScope = 'document' | 'presence' | 'session';
 
 // @public
 export interface RecordsDiff<R extends UnknownRecord> {
@@ -210,7 +242,7 @@ export interface RecordsDiff<R extends UnknownRecord> {
 export class RecordType<R extends UnknownRecord, RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>> {
     constructor(
     typeName: R['typeName'], config: {
-        readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
+        readonly createDefaultProperties: () => Exclude<Omit<R, 'id' | 'typeName'>, RequiredProperties>;
         readonly ephemeralKeys?: {
             readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean;
         };
@@ -222,7 +254,7 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     // @deprecated
     createCustomId(id: string): IdOf<R>;
     // (undocumented)
-    readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
+    readonly createDefaultProperties: () => Exclude<Omit<R, 'id' | 'typeName'>, RequiredProperties>;
     createId(customUniquePart?: string): IdOf<R>;
     // (undocumented)
     readonly ephemeralKeys?: {
@@ -244,6 +276,15 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
 
 // @public (undocumented)
 export function reverseRecordsDiff(diff: RecordsDiff<any>): RecordsDiff<any>;
+
+// @public (undocumented)
+export type RSIndex<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Computed<RSIndexMap<R, Property>, RSIndexDiff<R, Property>>;
+
+// @public (undocumented)
+export type RSIndexDiff<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], CollectionDiff<IdOf<R>>>;
+
+// @public (undocumented)
+export type RSIndexMap<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], Set<IdOf<R>>>;
 
 // @public (undocumented)
 export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2;
@@ -317,7 +358,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     } | null;
     // (undocumented)
     _flushHistory(): void;
-    get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
+    get: <K extends IdOf<R>>(id: K) => RecordFromId<K> | undefined;
     // @deprecated (undocumented)
     getSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     getStoreSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
@@ -348,8 +389,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     serialize: (scope?: 'all' | RecordScope) => SerializedStore<R>;
     // (undocumented)
     readonly sideEffects: StoreSideEffects<R>;
-    unsafeGetWithoutCapture: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
-    update: <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => void;
+    unsafeGetWithoutCapture: <K extends IdOf<R>>(id: K) => RecordFromId<K> | undefined;
+    update: <K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>) => void;
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
 }
@@ -390,7 +431,67 @@ export interface StoreError {
 export type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) => void;
 
 // @public (undocumented)
+export interface StoreListenerFilters {
+    // (undocumented)
+    scope: 'all' | RecordScope;
+    // (undocumented)
+    source: 'all' | ChangeSource;
+}
+
+// @public (undocumented)
+export type StoreObject<R extends UnknownRecord> = {
+    store: Store<R>;
+} | Store<R>;
+
+// @public (undocumented)
+export type StoreObjectRecordType<Context extends StoreObject<any>> = Context extends Store<infer R> ? R : Context extends {
+    store: Store<infer R>;
+} ? R : never;
+
+// @public (undocumented)
 export type StoreOperationCompleteHandler = (source: 'remote' | 'user') => void;
+
+// @public
+export class StoreQueries<R extends UnknownRecord> {
+    constructor(atoms: Atom<Record<IdOf<R>, Atom<R>>>, history: Atom<number, RecordsDiff<R>>);
+    // @internal
+    __uncached_createIndex<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
+        typeName: TypeName;
+    }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
+        typeName: TypeName;
+    }>, Property>;
+    // (undocumented)
+    exec<TypeName extends R['typeName']>(typeName: TypeName, query: QueryExpression<Extract<R, {
+        typeName: TypeName;
+    }>>): Array<Extract<R, {
+        typeName: TypeName;
+    }>>;
+    filterHistory<TypeName extends R['typeName']>(typeName: TypeName): Computed<number, RecordsDiff<Extract<R, {
+        typeName: TypeName;
+    }>>>;
+    ids<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
+        typeName: TypeName;
+    }>>, name?: string): Computed<Set<IdOf<Extract<R, {
+        typeName: TypeName;
+    }>>>, CollectionDiff<IdOf<Extract<R, {
+        typeName: TypeName;
+    }>>>>;
+    index<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
+        typeName: TypeName;
+    }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
+        typeName: TypeName;
+    }>, Property>;
+    record<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
+        typeName: TypeName;
+    }>>, name?: string): Computed<Extract<R, {
+        typeName: TypeName;
+    }> | undefined>;
+    records<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
+        typeName: TypeName;
+    }>>, name?: string): Computed<Array<Extract<R, {
+        typeName: TypeName;
+    }>>>;
+}
 
 // @public (undocumented)
 export class StoreSchema<R extends UnknownRecord, P = unknown> {

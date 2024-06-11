@@ -4,11 +4,7 @@ export function registerDefaultSideEffects(editor: Editor) {
 	return [
 		editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {
 			if (prev.croppingShapeId !== next.croppingShapeId) {
-				const isInCroppingState = editor.isInAny(
-					'select.crop',
-					'select.pointing_crop_handle',
-					'select.cropping'
-				)
+				const isInCroppingState = editor.isIn('select.crop')
 				if (!prev.croppingShapeId && next.croppingShapeId) {
 					if (!isInCroppingState) {
 						editor.setCurrentTool('select.crop.idle')

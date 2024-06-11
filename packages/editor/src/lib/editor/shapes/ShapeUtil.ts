@@ -542,17 +542,29 @@ export type TLOnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void
 /** @public */
 export type TLOnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void
 /** @public */
-export type TLOnTranslateStartHandler<T extends TLShape> = TLEventStartHandler<T>
+export type TLOnTranslateStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
 /** @public */
-export type TLOnTranslateHandler<T extends TLShape> = TLEventChangeHandler<T>
+export type TLOnTranslateHandler<T extends TLShape> = (
+	initial: T,
+	current: T
+) => TLShapePartial<T> | void
 /** @public */
-export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>
+export type TLOnTranslateEndHandler<T extends TLShape> = (
+	initial: T,
+	current: T
+) => TLShapePartial<T> | void
 /** @public */
-export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>
+export type TLOnRotateStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
 /** @public */
-export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>
+export type TLOnRotateHandler<T extends TLShape> = (
+	initial: T,
+	current: T
+) => TLShapePartial<T> | void
 /** @public */
-export type TLOnRotateEndHandler<T extends TLShape> = TLEventChangeHandler<T>
+export type TLOnRotateEndHandler<T extends TLShape> = (
+	initial: T,
+	current: T
+) => TLShapePartial<T> | void
 
 /**
  * The type of resize.
@@ -595,10 +607,13 @@ export type TLOnResizeHandler<T extends TLShape> = (
 ) => Omit<TLShapePartial<T>, 'id' | 'type'> | undefined | void
 
 /** @public */
-export type TLOnResizeStartHandler<T extends TLShape> = TLEventStartHandler<T>
+export type TLOnResizeStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
 
 /** @public */
-export type TLOnResizeEndHandler<T extends TLShape> = TLEventChangeHandler<T>
+export type TLOnResizeEndHandler<T extends TLShape> = (
+	initial: T,
+	current: T
+) => TLShapePartial<T> | void
 
 /* -------------------- Dragging -------------------- */
 
@@ -632,6 +647,3 @@ export type TLOnDoubleClickHandleHandler<T extends TLShape> = (
 	shape: T,
 	handle: TLHandle
 ) => TLShapePartial<T> | void
-
-type TLEventStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-type TLEventChangeHandler<T extends TLShape> = (initial: T, current: T) => TLShapePartial<T> | void
