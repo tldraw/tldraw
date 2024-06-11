@@ -43,7 +43,7 @@ export async function createApiMarkdown() {
 		packageModels.push(apiModel)
 	}
 
-	model.preprocessReactComponents()
+	await model.preprocessReactComponents()
 
 	for (const packageModel of packageModels) {
 		const categoryName = packageModel.name.replace(`@tldraw/`, '')

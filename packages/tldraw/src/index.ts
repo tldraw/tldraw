@@ -56,7 +56,7 @@ export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { getOccludedChildren, kickoutOccludedShapes } from './lib/tools/SelectTool/selectHelpers'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
-export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
+export { TldrawUi, type TldrawUiProps } from './lib/ui/TldrawUi'
 export {
 	setDefaultUiAssetUrls,
 	type TLUiAssetUrlOverrides,

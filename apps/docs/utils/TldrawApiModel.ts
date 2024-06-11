@@ -1,3 +1,4 @@
+import { MarkdownWriter } from '@/scripts/utils'
 import {
 	ApiDocumentedItem,
 	ApiFunction,
@@ -14,7 +15,8 @@ export class TldrawApiModel extends ApiModel {
 	private reactComponents = new Set<ApiItem>()
 	private reactComponentProps = new Set<ApiItem>()
 
-	preprocessReactComponents() {
+	async preprocessReactComponents() {
+		const errors = []
 		for (const packageModel of this.members) {
 			assert(packageModel instanceof ApiPackage)
 			if (packageModel.name !== 'tldraw') continue
@@ -26,9 +28,30 @@ export class TldrawApiModel extends ApiModel {
 				if (!member.tsdocComment.modifierTagSet.hasTagName('@react')) continue
 
 				this.reactComponents.add(member)
-				const props = this.getReactPropsItem(member)
-				if (props) this.reactComponentProps.add(props)
+				try {
+					const props = this.getReactPropsItem(member)
+
+					if (props instanceof ApiDocumentedItem && props.tsdocComment) {
+						const markdown = await MarkdownWriter.docNodeToMarkdown(
+							props,
+							props.tsdocComment.summarySection
+						)
+						if (markdown.trim()) {
+							this.error(
+								props,
+								"Component props should not contain documentation as it won't be included in the docs site. Add it to the component instead."
+							)
+						}
+					}
+					if (props) this.reactComponentProps.add(props)
+				} catch (e) {
+					errors.push(e)
+				}
 			}
+		}
+
+		if (errors.length > 0) {
+			throw new Error(errors.map((e) => (e as any).message).join('\n\n'))
 		}
 
 		console.log(
@@ -55,16 +78,21 @@ export class TldrawApiModel extends ApiModel {
 			)
 
 			const propsParam = component.parameters[0]
-			const typeTokens = propsParam.parameterTypeExcerpt.spannedTokens
+			const tokens = propsParam.parameterTypeExcerpt.spannedTokens
+			if (tokens.length === 1 && tokens[0].kind === 'Reference') {
+				return this.resolveToken(component, tokens[0])
+			} else if (
+				tokens.length === 2 &&
+				tokens[0].kind === 'Reference' &&
+				tokens[1].text.startsWith('<')
+			) {
+				return this.resolveToken(component, tokens[0])
+			}
 
-			const typeToken = typeTokens[0]
-			this.assert(
+			this.error(
 				component,
-				typeTokens.length === 1 && typeToken.kind === 'Reference',
-				`Expected props parameter to be a simple reference. Rewrite this to use a \`${component.displayName}Props\` interface.`
+				`Expected props parameter to be a simple reference. Rewrite this to use a \`${component.displayName}Props\` interface.\nFound: ${propsParam.parameterTypeExcerpt.text}`
 			)
-
-			return this.resolveToken(component, typeToken)
 		} else if (component instanceof ApiVariable) {
 			const tokens = component.variableTypeExcerpt.spannedTokens
 			if (
@@ -76,6 +104,16 @@ export class TldrawApiModel extends ApiModel {
 				tokens[4].text === '>'
 			) {
 				return this.resolveToken(component, tokens[3])
+			}
+
+			if (
+				tokens.length === 4 &&
+				tokens[0].text === 'React.NamedExoticComponent' &&
+				tokens[1].text === '<' &&
+				tokens[2].kind === ExcerptTokenKind.Reference &&
+				tokens[3].text === '>'
+			) {
+				return this.resolveToken(component, tokens[2])
 			}
 
 			if (

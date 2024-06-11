@@ -113,6 +113,15 @@ export async function getApiMarkdown(
 				})
 				addHorizontalRule(propertiesResult)
 			}
+			if (
+				componentProps &&
+				componentProps instanceof ApiDeclaredItem &&
+				componentProps?.kind !== 'Interface'
+			) {
+				propertiesResult.markdown += await typeExcerptToMarkdown(componentProps.excerpt, {
+					kind: componentProps.kind,
+				})
+			}
 			if (propertiesResult.markdown.trim()) {
 				addMarkdown(toc, `- [Properties](#properties)\n`)
 				addMarkdown(membersResult, propertiesResult.markdown)
@@ -240,24 +249,6 @@ async function addDocComment(
 	}
 
 	const isComponent = model.isComponent(member)
-	const componentProps = isComponent ? model.getReactPropsItem(member) : null
-
-	if (
-		componentProps &&
-		componentProps instanceof ApiDocumentedItem &&
-		componentProps.tsdocComment
-	) {
-		const markdown = await MarkdownWriter.docNodeToMarkdown(
-			componentProps,
-			componentProps.tsdocComment.summarySection
-		)
-		if (markdown.trim()) {
-			model.error(
-				componentProps,
-				"Component props should not contain documentation as it won't be included in the docs site. Add it to the component instead."
-			)
-		}
-	}
 
 	if (member.tsdocComment) {
 		result.markdown += await MarkdownWriter.docNodeToMarkdown(
@@ -278,8 +269,6 @@ async function addDocComment(
 		}
 	}
 
-	if (isComponent) return
-
 	if (
 		member instanceof ApiVariable ||
 		member instanceof ApiTypeAlias ||
@@ -298,6 +287,8 @@ async function addDocComment(
 		})
 		result.markdown += `\n\n`
 	}
+
+	if (isComponent) return
 
 	if (
 		member instanceof ApiMethod ||
