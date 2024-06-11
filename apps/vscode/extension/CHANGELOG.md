@@ -1,3 +1,5 @@
+### See [our blog](https://tldraw.substack.com/) for release notes
+
 ## 2.0.35
 
 - Fix for pen pressure.

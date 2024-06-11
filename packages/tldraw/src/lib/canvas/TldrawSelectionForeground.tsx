@@ -90,8 +90,8 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 				'select.pointing_shape',
 				'select.crop.idle',
 				'select.crop.pointing_crop',
-				'select.pointing_resize_handle',
-				'select.pointing_crop_handle'
+				'select.crop.pointing_crop_handle',
+				'select.pointing_resize_handle'
 			)) ||
 		(showSelectionBounds &&
 			editor.isIn('select.resizing') &&
@@ -106,9 +106,9 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 
 	const showCropHandles =
 		editor.isInAny(
-			'select.pointing_crop_handle',
 			'select.crop.idle',
-			'select.crop.pointing_crop'
+			'select.crop.pointing_crop',
+			'select.crop.pointing_crop_handle'
 		) &&
 		!isChangingStyle &&
 		!isReadonlyMode

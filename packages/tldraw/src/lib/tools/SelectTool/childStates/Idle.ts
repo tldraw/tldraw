@@ -41,6 +41,10 @@ export class Idle extends StateNode {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
+	override onExit = () => {
+		updateHoveredShapeId.cancel()
+	}
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		updateHoveredShapeId(this.editor)
 	}
@@ -137,20 +141,13 @@ export class Idle extends StateNode {
 					case 'top':
 					case 'right':
 					case 'bottom':
-					case 'left': {
-						if (shouldEnterCropMode) {
-							this.parent.transition('pointing_crop_handle', info)
-						} else {
-							this.parent.transition('pointing_resize_handle', info)
-						}
-						break
-					}
+					case 'left':
 					case 'top_left':
 					case 'top_right':
 					case 'bottom_left':
 					case 'bottom_right': {
 						if (shouldEnterCropMode) {
-							this.parent.transition('pointing_crop_handle', info)
+							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
 							this.parent.transition('pointing_resize_handle', info)
 						}

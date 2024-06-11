@@ -11,6 +11,7 @@ import {
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 /** @public */
@@ -36,7 +37,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	component(shape: TLVideoShape) {
 		const { editor } = this
 		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
-		const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
+		const { asset, url } = useAsset(shape.props.assetId, shape.props.w)
 		const { time, playing } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
@@ -157,7 +158,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 				>
 					<div className="tl-counter-scaled">
 						<div className="tl-video-container">
-							{asset?.props.src ? (
+							{url ? (
 								<video
 									ref={rVideo}
 									style={isEditing ? { pointerEvents: 'all' } : undefined}
@@ -178,7 +179,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 									onLoadedData={handleLoadedData}
 									hidden={!isLoaded}
 								>
-									<source src={asset.props.src} />
+									<source src={url} />
 								</video>
 							) : (
 								<BrokenAssetIcon />

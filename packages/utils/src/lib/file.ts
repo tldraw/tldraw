@@ -1,3 +1,5 @@
+import { fetch } from './network'
+
 /**
  * Helpers for files
  *
@@ -10,11 +12,9 @@ export class FileHelpers {
 	 * from https://stackoverflow.com/a/53817185
 	 */
 	static async dataUrlToArrayBuffer(dataURL: string) {
-		return fetch(dataURL, { referrerPolicy: 'strict-origin-when-cross-origin' }).then(
-			function (result) {
-				return result.arrayBuffer()
-			}
-		)
+		return fetch(dataURL).then(function (result) {
+			return result.arrayBuffer()
+		})
 	}
 
 	/**

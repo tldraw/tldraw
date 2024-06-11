@@ -180,7 +180,13 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 
 	return (
 		<div ref={setContainer} style={{ position: 'relative', width: '100%', height: '100%' }}>
-			{url && <img src={url} style={{ width: '100%', height: '100%' }} />}
+			{url && (
+				<img
+					src={url}
+					referrerPolicy="strict-origin-when-cross-origin"
+					style={{ width: '100%', height: '100%' }}
+				/>
+			)}
 		</div>
 	)
 })

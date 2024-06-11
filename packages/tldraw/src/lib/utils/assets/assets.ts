@@ -1,7 +1,8 @@
 import { MediaHelpers, assertExists } from '@tldraw/editor'
 import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 
-interface BoxWidthHeight {
+/** @public */
+export interface BoxWidthHeight {
 	w: number
 	h: number
 }

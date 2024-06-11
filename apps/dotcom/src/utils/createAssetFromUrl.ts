@@ -1,4 +1,4 @@
-import { AssetRecordType, TLAsset, getHashForString } from 'tldraw'
+import { AssetRecordType, TLAsset, fetch, getHashForString } from 'tldraw'
 import { BOOKMARK_ENDPOINT } from './config'
 
 interface ResponseBody {
@@ -45,7 +45,6 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 			const resp = await fetch(url, {
 				method: 'GET',
 				mode: 'no-cors',
-				referrerPolicy: 'strict-origin-when-cross-origin',
 			})
 			const html = await resp.text()
 			const doc = new DOMParser().parseFromString(html, 'text/html')
@@ -59,10 +58,11 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
-			// Resolve relative URLs
 			if (meta.image.startsWith('/')) {
-				const urlObj = new URL(url)
-				meta.image = `${urlObj.origin}${meta.image}`
+				meta.image = new URL(meta.image, url).href
+			}
+			if (meta.favicon.startsWith('/')) {
+				meta.favicon = new URL(meta.favicon, url).href
 			}
 		} catch (error) {
 			console.error(error)

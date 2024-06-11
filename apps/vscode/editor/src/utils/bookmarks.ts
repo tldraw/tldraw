@@ -1,4 +1,4 @@
-import { AssetRecordType, TLAsset, TLExternalAssetContent, getHashForString } from 'tldraw'
+import { AssetRecordType, TLAsset, TLExternalAssetContent, fetch, getHashForString } from 'tldraw'
 import { rpc } from './rpc'
 
 export async function onCreateAssetFromUrl({
@@ -30,7 +30,6 @@ export async function onCreateAssetFromUrl({
 			const resp = await fetch(url, {
 				method: 'GET',
 				mode: 'no-cors',
-				referrerPolicy: 'strict-origin-when-cross-origin',
 			})
 			const html = await resp.text()
 			const doc = new DOMParser().parseFromString(html, 'text/html')
@@ -43,6 +42,12 @@ export async function onCreateAssetFromUrl({
 				title: doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? '',
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
+			}
+			if (meta.image.startsWith('/')) {
+				meta.image = new URL(meta.image, url).href
+			}
+			if (meta.favicon.startsWith('/')) {
+				meta.favicon = new URL(meta.favicon, url).href
 			}
 		} catch (error) {
 			console.error(error)

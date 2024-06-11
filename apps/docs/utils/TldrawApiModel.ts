@@ -92,6 +92,11 @@ export class TldrawApiModel extends ApiModel {
 				return this.resolveToken(component, tokens[2])
 			}
 
+			if (component.variableTypeExcerpt.text === 'import("react").NamedExoticComponent<object>') {
+				// this is a `memo` component with no props
+				return null
+			}
+
 			console.log(tokens)
 
 			this.error(

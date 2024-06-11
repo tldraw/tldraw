@@ -14,7 +14,6 @@ import {
 	TLEventHandlers,
 	TLOnTranslateEndHandler,
 	TLOnTranslateStartHandler,
-	TLShapeUtilCanBindOpts,
 	TLUiComponents,
 	TLUiOverrides,
 	Tldraw,
@@ -40,9 +39,9 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		return {}
 	}
 
-	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<StickerShape>) {
-		// bindings can go _from_ stickers to other shapes, but not the other way round
-		return toShapeType !== 'sticker'
+	override canBind() {
+		// stickers can bind to anything
+		return true
 	}
 	override canEdit = () => false
 	override canResize = () => false

@@ -10,7 +10,8 @@ export const frameShapeProps = {
 	name: T.string,
 }
 
-type TLFrameShapeProps = RecordPropsType<typeof frameShapeProps>
+/** @public */
+export type TLFrameShapeProps = RecordPropsType<typeof frameShapeProps>
 
 /** @public */
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>

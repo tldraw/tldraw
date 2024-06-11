@@ -244,7 +244,7 @@ export function ExampleDialog({
 						style={{ marginRight: 'auto' }}
 					>
 						<TldrawUiButtonCheck checked={dontShowAgain} />
-						<TldrawUiButtonLabel>Don't show again</TldrawUiButtonLabel>
+						<TldrawUiButtonLabel>Don’t show again</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				)}
 				<TldrawUiButton type="normal" onClick={onCancel}>

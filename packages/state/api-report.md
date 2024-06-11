@@ -7,6 +7,20 @@
 import { FunctionComponent } from 'react';
 import { default as React_2 } from 'react';
 
+// @internal
+export class ArraySet<T> {
+    add(elem: T): boolean;
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    has(elem: T): boolean;
+    get isEmpty(): boolean;
+    remove(elem: T): boolean;
+    // (undocumented)
+    size(): number;
+    visit(visitor: (item: T) => void): void;
+}
+
 // @public
 export interface Atom<Value, Diff = unknown> extends Signal<Value, Diff> {
     set(value: Value, diff?: Diff): Value;
@@ -24,6 +38,20 @@ export interface AtomOptions<Value, Diff> {
     computeDiff?: ComputeDiff<Value, Diff>;
     historyLength?: number;
     isEqual?: (a: any, b: any) => boolean;
+}
+
+// @internal (undocumented)
+export interface Child {
+    // (undocumented)
+    isActivelyListening: boolean;
+    // (undocumented)
+    lastTraversedEpoch: number;
+    // (undocumented)
+    readonly parentEpochs: number[];
+    // (undocumented)
+    readonly parents: Signal<any, any>[];
+    // (undocumented)
+    readonly parentSet: ArraySet<Signal<any, any>>;
 }
 
 // @public
@@ -47,6 +75,9 @@ export function computed(target: any, key: string, descriptor: PropertyDescripto
 export function computed<Value, Diff = unknown>(options?: ComputedOptions<Value, Diff>): (target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
 
 // @public
+export type ComputeDiff<Value, Diff> = (previousValue: Value, currentValue: Value, lastComputedEpoch: number, currentEpoch: number) => Diff | RESET_VALUE;
+
+// @public
 export interface ComputedOptions<Value, Diff> {
     computeDiff?: ComputeDiff<Value, Diff>;
     historyLength?: number;
@@ -54,10 +85,35 @@ export interface ComputedOptions<Value, Diff> {
 }
 
 // @public
-export const EffectScheduler: typeof __EffectScheduler__;
+export const EffectScheduler: new <Result>(name: string, runEffect: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions) => EffectScheduler<Result>;
 
 // @public (undocumented)
-export type EffectScheduler<Result> = __EffectScheduler__<Result>;
+export interface EffectScheduler<Result> {
+    attach(): void;
+    detach(): void;
+    execute(): Result;
+    readonly isActivelyListening: boolean;
+    // @internal (undocumented)
+    readonly lastTraversedEpoch: number;
+    // @internal (undocumented)
+    maybeExecute(): void;
+    // @internal (undocumented)
+    maybeScheduleEffect(): void;
+    // @internal (undocumented)
+    readonly parentEpochs: number[];
+    // @internal (undocumented)
+    readonly parents: Signal<any, any>[];
+    // @internal (undocumented)
+    readonly parentSet: ArraySet<Signal<any, any>>;
+    readonly scheduleCount: number;
+    // @internal (undocumented)
+    scheduleEffect(): void;
+}
+
+// @public (undocumented)
+export interface EffectSchedulerOptions {
+    scheduleEffect?: (execute: () => void) => void;
+}
 
 // @public (undocumented)
 export const EMPTY_ARRAY: [];
@@ -115,6 +171,12 @@ export function transact<T>(fn: () => T): T;
 // @public
 export function transaction<T>(fn: (rollback: () => void) => T): T;
 
+// @public (undocumented)
+export const UNINITIALIZED: unique symbol;
+
+// @public
+export type UNINITIALIZED = typeof UNINITIALIZED;
+
 // @public
 export function unsafe__withoutCapture<T>(fn: () => T): T;
 
@@ -146,7 +208,26 @@ export function useValue<Value>(value: Signal<Value>): Value;
 export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value;
 
 // @public
+export function useValueDebounced<Value>(name: string, fn: () => Value, deps: unknown[], ms: number): Value;
+
+// @public
 export function whyAmIRunning(): void;
+
+// @public (undocumented)
+export const WithDiff: {
+    new <Value, Diff>(value: Value, diff: Diff): {
+        diff: Diff;
+        value: Value;
+    };
+};
+
+// @public (undocumented)
+export interface WithDiff<Value, Diff> {
+    // (undocumented)
+    diff: Diff;
+    // (undocumented)
+    value: Value;
+}
 
 // @public
 export function withDiff<Value, Diff>(value: Value, diff: Diff): WithDiff<Value, Diff>;
