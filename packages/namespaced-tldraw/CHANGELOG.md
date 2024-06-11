@@ -1,3 +1,15 @@
+# v2.2.0 (Tue Jun 11 2024)
+
+#### 🏠 Internal
+
+- Don't check api.json files into git [#3565](https://github.com/tldraw/tldraw/pull/3565) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v2.1.0 (Tue Apr 23 2024)
 
 ### Release Notes
