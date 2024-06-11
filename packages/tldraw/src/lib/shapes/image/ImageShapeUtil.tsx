@@ -75,7 +75,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				let cancelled = false
 				if (!url) return
 
-				const image = new Image()
+				const image = Image()
 				image.onload = () => {
 					if (cancelled) return
 					setLoadedSrc(url)
