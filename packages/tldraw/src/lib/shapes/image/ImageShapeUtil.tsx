@@ -109,7 +109,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					setLoadedSrc(url)
 				}
 				image.crossOrigin = 'anonymous'
-				image.referrerPolicy = 'strict-origin-when-cross-origin'
 				image.src = url
 
 				return () => {
@@ -158,13 +157,13 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			<>
 				{showCropPreview && (
 					<div style={containerStyle}>
-						<div
+						<img
 							className="tl-image"
+							crossOrigin="anonymous"
+							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
+							referrerPolicy="strict-origin-when-cross-origin"
 							style={{
 								opacity: 0.1,
-								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc
-								})`,
 							}}
 							draggable={false}
 						/>
@@ -175,13 +174,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
 				>
 					<div className="tl-image-container" style={containerStyle}>
-						<div
+						<img
 							className="tl-image"
-							style={{
-								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc
-								})`,
-							}}
+							crossOrigin="anonymous"
+							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
+							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
 						/>
 						{this.isAnimated(shape) && !shape.props.playing && (

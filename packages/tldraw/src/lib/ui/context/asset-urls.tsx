@@ -18,13 +18,11 @@ export function AssetUrlsProvider({
 	useEffect(() => {
 		for (const src of Object.values(assetUrls.icons)) {
 			const image = Image()
-			image.referrerPolicy = 'strict-origin-when-cross-origin'
 			image.src = src
 			image.decode()
 		}
 		for (const src of Object.values(assetUrls.embedIcons)) {
 			const image = Image()
-			image.referrerPolicy = 'strict-origin-when-cross-origin'
 			image.src = src
 			image.decode()
 		}
