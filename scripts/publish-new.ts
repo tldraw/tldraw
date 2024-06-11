@@ -9,6 +9,7 @@ import { generateAutoRcFile } from './lib/labels'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
+import { uploadStaticAssets } from './upload-static-assets'
 
 type ReleaseType =
 	| {
@@ -133,6 +134,9 @@ async function main() {
 
 	// finally, publish the packages [IF THIS STEP FAILS, RUN THE `publish-manual.ts` script locally]
 	await publish()
+
+	// upload static assets
+	await uploadStaticAssets(nextVersion)
 
 	nicelog('Notifying huppy of release...')
 	const huppyResponse = await fetch('https://tldraw-repo-sync.fly.dev/api/on-release', {

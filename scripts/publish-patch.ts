@@ -9,6 +9,7 @@ import { generateAutoRcFile } from './lib/labels'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
+import { uploadStaticAssets } from './upload-static-assets'
 
 async function main() {
 	const huppyToken = process.env.HUPPY_TOKEN
@@ -108,6 +109,8 @@ async function main() {
 	// semver rules will still be respected because there's no prerelease tag in the version,
 	// so clients will get the updated version if they have a range like ^1.0.0
 	await publish(isLatestVersion ? 'latest' : 'revision')
+
+	await uploadStaticAssets(nextVersion)
 
 	if (isLatestVersion) {
 		nicelog('Notifying huppy of release...')
