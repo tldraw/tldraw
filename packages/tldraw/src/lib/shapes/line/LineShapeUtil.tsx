@@ -153,7 +153,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override toSvg(shape: TLLineShape) {
-		return <LineShapeSvg shape={shape} />
+		return <LineShapeSvg shouldScale shape={shape} />
 	}
 
 	override getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry {
@@ -206,11 +206,23 @@ export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Pol
 	}
 }
 
-function LineShapeSvg({ shape }: { shape: TLLineShape }) {
+function LineShapeSvg({
+	shape,
+	shouldScale = false,
+}: {
+	shape: TLLineShape
+	shouldScale?: boolean
+}) {
 	const theme = useDefaultColorTheme()
+
 	const spline = getGeometryForLineShape(shape)
-	const { dash, color, scale, size } = shape.props
-	const strokeWidth = STROKE_SIZES[size] * scale
+	const { dash, color, size } = shape.props
+
+	const scaleFactor = 1 / shape.props.scale
+
+	const scale = shouldScale ? scaleFactor : 1
+
+	const strokeWidth = STROKE_SIZES[size] * shape.props.scale
 
 	// Line style lines
 	if (shape.props.spline === 'line') {
@@ -219,10 +231,10 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 			const pathData = 'M' + outline[0] + 'L' + outline.slice(1)
 
 			return (
-				<>
+				<g transform={`scale(${scale})`}>
 					<ShapeFill d={pathData} fill="none" color={color} theme={theme} scale={scale} />
 					<path d={pathData} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
-				</>
+				</g>
 			)
 		}
 
@@ -231,7 +243,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 			const pathData = 'M' + outline[0] + 'L' + outline.slice(1)
 
 			return (
-				<>
+				<g transform={`scale(${scale})`}>
 					<ShapeFill d={pathData} fill="none" color={color} theme={theme} scale={scale} />
 					<g stroke={theme[color].solid} strokeWidth={strokeWidth}>
 						{spline.segments.map((segment, i) => {
@@ -256,7 +268,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 							)
 						})}
 					</g>
-				</>
+				</g>
 			)
 		}
 
@@ -265,7 +277,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 			const [innerPathData, outerPathData] = getDrawLinePathData(shape.id, outline, strokeWidth)
 
 			return (
-				<>
+				<g transform={`scale(${scale})`}>
 					<ShapeFill d={innerPathData} fill="none" color={color} theme={theme} scale={scale} />
 					<path
 						d={outerPathData}
@@ -273,7 +285,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 						strokeWidth={strokeWidth}
 						fill="none"
 					/>
-				</>
+				</g>
 			)
 		}
 	}
@@ -282,16 +294,16 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 		const splinePath = spline.getSvgPathData()
 		if (dash === 'solid') {
 			return (
-				<>
+				<g transform={`scale(${scale})`}>
 					<ShapeFill d={splinePath} fill="none" color={color} theme={theme} scale={scale} />
 					<path strokeWidth={strokeWidth} stroke={theme[color].solid} fill="none" d={splinePath} />
-				</>
+				</g>
 			)
 		}
 
 		if (dash === 'dashed' || dash === 'dotted') {
 			return (
-				<>
+				<g transform={`scale(${scale})`}>
 					<ShapeFill d={splinePath} fill="none" color={color} theme={theme} scale={scale} />
 					<g stroke={theme[color].solid} strokeWidth={strokeWidth}>
 						{spline.segments.map((segment, i) => {
@@ -316,13 +328,13 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 							)
 						})}
 					</g>
-				</>
+				</g>
 			)
 		}
 
 		if (dash === 'draw') {
 			return (
-				<>
+				<g transform={`scale(${scale})`}>
 					<ShapeFill d={splinePath} fill="none" color={color} theme={theme} scale={scale} />
 					<path
 						d={getLineDrawPath(shape, spline, strokeWidth)}
@@ -330,7 +342,7 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 						stroke={theme[color].solid}
 						fill={theme[color].solid}
 					/>
-				</>
+				</g>
 			)
 		}
 	}
