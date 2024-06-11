@@ -25,7 +25,7 @@ async function updateExtensionVersion() {
 
 	const packageJsonPath = path.join(EXTENSION_DIR, 'package.json')
 	if (!existsSync(packageJsonPath)) {
-		throw new Error("Could not find the extension' package.json file")
+		throw new Error("Could not find the extension's package.json file.")
 	}
 	const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
 	packageJson.version = nextVersion
