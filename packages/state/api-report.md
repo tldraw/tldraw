@@ -208,6 +208,9 @@ export function useValue<Value>(value: Signal<Value>): Value;
 export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value;
 
 // @public
+export function useValueDebounced<Value>(name: string, fn: () => Value, deps: unknown[], ms: number): Value;
+
+// @public
 export function whyAmIRunning(): void;
 
 // @public (undocumented)

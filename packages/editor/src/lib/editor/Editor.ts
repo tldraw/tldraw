@@ -85,6 +85,7 @@ import { checkBindings } from '../config/defaultBindings'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
+	DEFAULT_ASSET_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
@@ -144,6 +145,7 @@ import { TLHistoryBatchOptions } from './types/history-types'
 import {
 	OptionalKeys,
 	RequiredKeys,
+	TLAssetOptions,
 	TLCameraMoveOptions,
 	TLCameraOptions,
 	TLSvgOptions,
@@ -207,7 +209,10 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-
+	/**
+	 * Options for the editor's assets.
+	 */
+	assetOptions?: Partial<TLAssetOptions>
 	options?: Partial<TldrawOptions>
 }
 
@@ -221,6 +226,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools,
 		getContainer,
 		cameraOptions,
+		assetOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
@@ -245,6 +251,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(this.timers.dispose.bind(this.timers))
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
+
+		this._assetOptions.set({ ...DEFAULT_ASSET_OPTIONS, ...assetOptions })
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
@@ -3815,6 +3823,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Assets --------------------- */
 
+	private _assetOptions = atom('asset options', DEFAULT_ASSET_OPTIONS)
+
 	/** @internal */
 	@computed private _getAllAssetsQuery() {
 		return this.store.query.records('asset')
@@ -3913,6 +3923,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getAsset(asset: TLAssetId | TLAsset): TLAsset | undefined {
 		return this.store.get(typeof asset === 'string' ? asset : asset.id) as TLAsset | undefined
+	}
+
+	async resolveAssetUrl(
+		assetId: TLAssetId | null,
+		context: { screenScale: number }
+	): Promise<string | null> {
+		if (!assetId) return ''
+		const asset = this.getAsset(assetId)
+		if (!asset) return ''
+
+		// We only look at the zoom level at powers of 2.
+		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
+		const steppedScreenScale = Math.max(0.125, zoomStepFunction(context.screenScale))
+		const networkEffectiveType: string | null =
+			'connection' in navigator ? (navigator as any).connection.effectiveType : null
+		const dpr = this.getInstanceState().devicePixelRatio
+
+		return await this._assetOptions.get().onResolveAsset(asset!, {
+			screenScale: context.screenScale,
+			steppedScreenScale,
+			dpr,
+			networkEffectiveType,
+		})
 	}
 
 	/* --------------------- Shapes --------------------- */

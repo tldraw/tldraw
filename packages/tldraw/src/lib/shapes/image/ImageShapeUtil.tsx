@@ -18,6 +18,7 @@ import {
 import { useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -61,15 +62,35 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
-
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
-
+		const [loadedSrc, setLoadedSrc] = useState('')
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
+		const { asset, url } = useAsset(shape.props.assetId, shape.props.w)
 
 		useEffect(() => {
-			if (asset?.props.src && this.isAnimated(shape)) {
+			// If an image is not animated (that's handled below), then we preload the image
+			// because we might have different source urls for different zoom levels.
+			// Preloading the image ensures that the browser caches the image and doesn't
+			// cause visual flickering when the image is loaded.
+			if (url && !this.isAnimated(shape)) {
 				let cancelled = false
-				const url = asset.props.src
+				if (!url) return
+
+				const image = Image()
+				image.onload = () => {
+					if (cancelled) return
+					setLoadedSrc(url)
+				}
+				image.src = url
+
+				return () => {
+					cancelled = true
+				}
+			}
+		}, [url, shape])
+
+		useEffect(() => {
+			if (url && this.isAnimated(shape)) {
+				let cancelled = false
 				if (!url) return
 
 				const image = Image()
@@ -85,6 +106,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
+					setLoadedSrc(url)
 				}
 				image.crossOrigin = 'anonymous'
 				image.referrerPolicy = 'strict-origin-when-cross-origin'
@@ -94,7 +116,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, asset?.props, shape])
+		}, [prefersReducedMotion, url, shape])
 
 		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")
@@ -108,7 +130,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
-		if (!asset?.props.src) {
+		if (!url) {
 			return (
 				<HTMLContainer
 					id={shape.id}
@@ -141,7 +163,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							style={{
 								opacity: 0.1,
 								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+									!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc
 								})`,
 							}}
 							draggable={false}
@@ -157,7 +179,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							className="tl-image"
 							style={{
 								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
+									!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc
 								})`,
 							}}
 							draggable={false}

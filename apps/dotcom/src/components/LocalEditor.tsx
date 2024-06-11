@@ -19,6 +19,7 @@ import {
 	ViewSubmenu,
 	useActions,
 } from 'tldraw'
+import { resolveAsset } from '../utils/assetHandler'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
@@ -105,6 +106,7 @@ export function LocalEditor() {
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
+				assetOptions={{ onResolveAsset: resolveAsset }}
 				inferDarkMode
 			>
 				<LocalMigration />

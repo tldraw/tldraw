@@ -85,6 +85,7 @@ import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
+import { useValueDebounced } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
@@ -143,6 +144,18 @@ export class Arc2d extends Geometry2d {
 
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
+
+// @public (undocumented)
+export interface AssetContextProps {
+    // (undocumented)
+    dpr: number;
+    // (undocumented)
+    networkEffectiveType: null | string;
+    // (undocumented)
+    screenScale: number;
+    // (undocumented)
+    steppedScreenScale: number;
+}
 
 export { Atom }
 
@@ -765,7 +778,7 @@ export class Edge2d extends Geometry2d {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, assetOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
@@ -1114,6 +1127,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
+    // (undocumented)
+    resolveAssetUrl(assetId: null | TLAssetId, context: {
+        screenScale: number;
+    }): Promise<null | string>;
     readonly root: StateNode;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
     screenToPage(point: VecLike): Vec;
@@ -2307,6 +2324,12 @@ export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
 // @public (undocumented)
+export interface TLAssetOptions {
+    // (undocumented)
+    onResolveAsset: (asset: null | TLAsset | undefined, ctx: AssetContextProps) => Promise<null | string>;
+}
+
+// @public (undocumented)
 export type TLBaseBoxShape = TLBaseShape<string, {
     h: number;
     w: number;
@@ -2478,6 +2501,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
+    assetOptions?: Partial<TLAssetOptions>;
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     cameraOptions?: Partial<TLCameraOptions>;
@@ -2622,6 +2646,7 @@ export interface TLEditorComponents {
 
 // @public (undocumented)
 export interface TLEditorOptions {
+    assetOptions?: Partial<TLAssetOptions>;
     autoFocus?: boolean;
     bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[];
     cameraOptions?: Partial<TLCameraOptions>;
@@ -3452,6 +3477,8 @@ export function useTLStore(opts: TLStoreOptions & {
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 export { useValue }
+
+export { useValueDebounced }
 
 // @public (undocumented)
 export class Vec {

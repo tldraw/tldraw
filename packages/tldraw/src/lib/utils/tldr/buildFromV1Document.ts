@@ -68,6 +68,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 						props: {
 							w: coerceDimension(v1Asset.size[0]),
 							h: coerceDimension(v1Asset.size[1]),
+							fileSize: -1,
 							name: v1Asset.fileName ?? 'Untitled',
 							isAnimated: false,
 							mimeType: null,
@@ -91,6 +92,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								props: {
 									w: coerceDimension(v1Asset.size[0]),
 									h: coerceDimension(v1Asset.size[1]),
+									fileSize: -1,
 									name: v1Asset.fileName ?? 'Untitled',
 									isAnimated: true,
 									mimeType: null,

@@ -28,6 +28,7 @@ export {
 	useQuickReactor,
 	useReactor,
 	useValue,
+	useValueDebounced,
 	whyAmIRunning,
 	type Atom,
 	type Signal,
@@ -239,8 +240,10 @@ export {
 	type TLHistoryMark,
 } from './lib/editor/types/history-types'
 export {
+	type AssetContextProps,
 	type OptionalKeys,
 	type RequiredKeys,
+	type TLAssetOptions,
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,

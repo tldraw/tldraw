@@ -23,7 +23,7 @@ import {
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
-import { containBoxSize, downsizeImage } from './utils/assets/assets'
+import { containBoxSize } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
@@ -82,14 +82,6 @@ export function registerDefaultExternalContentHandlers(
 			}
 		}
 
-		// Always rescale the image
-		if (!isAnimated && MediaHelpers.isStaticImageType(file.type)) {
-			file = await downsizeImage(file, size.w, size.h, {
-				type: file.type,
-				quality: 0.92,
-			})
-		}
-
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
 
 		const asset = AssetRecordType.create({
@@ -101,6 +93,7 @@ export function registerDefaultExternalContentHandlers(
 				src: await FileHelpers.blobToDataUrl(file),
 				w: size.w,
 				h: size.h,
+				fileSize: file.size,
 				mimeType: file.type,
 				isAnimated,
 			},
