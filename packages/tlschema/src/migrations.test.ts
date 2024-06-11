@@ -49,7 +49,6 @@ describe('TLVideoAsset AddIsAnimated', () => {
 			height: 100,
 			mimeType: 'video/mp4',
 			isAnimated: false,
-			fileSize: -1,
 		},
 	}
 
@@ -86,11 +85,82 @@ describe('TLImageAsset AddIsAnimated', () => {
 			height: 100,
 			mimeType: 'image/gif',
 			isAnimated: false,
-			fileSize: -1,
 		},
 	}
 
 	const { up, down } = getTestMigration(imageAssetVersions.AddIsAnimated)
+
+	test('up works as expected', () => {
+		expect(up(oldAsset)).toEqual(newAsset)
+	})
+	test('down works as expected', () => {
+		expect(down(newAsset)).toEqual(oldAsset)
+	})
+})
+
+describe('TLVideoAsset AddFileSize', () => {
+	const oldAsset = {
+		id: '1',
+		type: 'video',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'video',
+			width: 100,
+			height: 100,
+			mimeType: 'video/mp4',
+		},
+	}
+
+	const newAsset = {
+		id: '1',
+		type: 'video',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'video',
+			width: 100,
+			height: 100,
+			mimeType: 'video/mp4',
+			fileSize: -1,
+		},
+	}
+
+	const { up, down } = getTestMigration(videoAssetVersions.AddFileSize)
+
+	test('up works as expected', () => {
+		expect(up(oldAsset)).toEqual(newAsset)
+	})
+	test('down works as expected', () => {
+		expect(down(newAsset)).toEqual(oldAsset)
+	})
+})
+
+describe('TLImageAsset AddFileSize', () => {
+	const oldAsset = {
+		id: '1',
+		type: 'image',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'image',
+			width: 100,
+			height: 100,
+			mimeType: 'image/gif',
+		},
+	}
+
+	const newAsset = {
+		id: '1',
+		type: 'image',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'image',
+			width: 100,
+			height: 100,
+			mimeType: 'image/gif',
+			fileSize: -1,
+		},
+	}
+
+	const { up, down } = getTestMigration(imageAssetVersions.AddFileSize)
 
 	test('up works as expected', () => {
 		expect(up(oldAsset)).toEqual(newAsset)
