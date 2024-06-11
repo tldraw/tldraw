@@ -16,21 +16,18 @@ export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>
 export let defaultUiAssetUrls: TLUiAssetUrls = {
 	...defaultEditorAssetUrls,
 	icons: Object.fromEntries(
-		iconTypes.map((name) => [
-			name,
-			`https://unpkg.com/@tldraw/assets@${version}/icons/icon/${name}.svg`,
-		])
+		iconTypes.map((name) => [name, `https://cdn.tldraw.xyz/${version}/icons/icon/${name}.svg`])
 	) as Record<TLUiIconType, string>,
 	translations: Object.fromEntries(
 		LANGUAGES.map((lang) => [
 			lang.locale,
-			`https://unpkg.com/@tldraw/assets@${version}/translations/${lang.locale}.json`,
+			`https://cdn.tldraw.xyz/${version}/translations/${lang.locale}.json`,
 		])
 	) as Record<(typeof LANGUAGES)[number]['locale'], string>,
 	embedIcons: Object.fromEntries(
 		EMBED_DEFINITIONS.map((def) => [
 			def.type,
-			`https://unpkg.com/@tldraw/assets@${version}/embed-icons/${def.type}.png`,
+			`https://cdn.tldraw.xyz/${version}/embed-icons/${def.type}.png`,
 		])
 	) as Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>,
 }
