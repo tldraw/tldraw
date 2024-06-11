@@ -92,6 +92,7 @@ export function registerDefaultExternalContentHandlers(
 				src: await FileHelpers.blobToDataUrl(file),
 				w: size.w,
 				h: size.h,
+				fileSize: file.size,
 				mimeType: file.type,
 				isAnimated,
 			},

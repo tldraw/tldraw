@@ -58,6 +58,7 @@ export default function HostedImagesExample() {
 					src: url,
 					w: size.w,
 					h: size.h,
+					fileSize: file.size,
 					mimeType: file.type,
 					isAnimated,
 				},
