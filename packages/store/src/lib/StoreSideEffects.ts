@@ -224,6 +224,8 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
+	 *
+	 * @returns A callback that removes the handler.
 	 */
 	registerBeforeCreateHandler<T extends R['typeName']>(
 		typeName: T,
@@ -254,6 +256,8 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
+	 *
+	 * @returns A callback that removes the handler.
 	 */
 	registerAfterCreateHandler<T extends R['typeName']>(
 		typeName: T,
@@ -288,6 +292,8 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
+	 *
+	 * @returns A callback that removes the handler.
 	 */
 	registerBeforeChangeHandler<T extends R['typeName']>(
 		typeName: T,
@@ -317,6 +323,8 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
+	 *
+	 * @returns A callback that removes the handler.
 	 */
 	registerAfterChangeHandler<T extends R['typeName']>(
 		typeName: T,
@@ -348,6 +356,8 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
+	 *
+	 * @returns A callback that removes the handler.
 	 */
 	registerBeforeDeleteHandler<T extends R['typeName']>(
 		typeName: T,
@@ -380,6 +390,8 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param typeName - The type of record to listen for
 	 * @param handler - The handler to call
+	 *
+	 * @returns A callback that removes the handler.
 	 */
 	registerAfterDeleteHandler<T extends R['typeName']>(
 		typeName: T,
@@ -412,6 +424,8 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 * ```
 	 *
 	 * @param handler - The handler to call
+	 *
+	 * @returns A callback that removes the handler.
 	 *
 	 * @public
 	 */
