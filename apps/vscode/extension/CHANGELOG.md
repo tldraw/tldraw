@@ -1,3 +1,5 @@
+### See [our blog](https://tldraw.substack.com/) for release notes
+
 ## 2.0.35
 
 - Fix for pen pressure.
@@ -127,12 +129,12 @@
 ## 2.0.14
 
 - Bug fixes and performance improvements. More info:
-  https://github.com/tldraw/tldraw/releases/tag/v2.0.0-alpha.17
+  <https://github.com/tldraw/tldraw/releases/tag/v2.0.0-alpha.17>
 
 ## 2.0.13
 
 - Bug fixes and performance improvements. More info:
-  https://github.com/tldraw/tldraw/releases/tag/v2.0.0-alpha.16
+  <https://github.com/tldraw/tldraw/releases/tag/v2.0.0-alpha.16>
 
 ## 2.0.12
 
