@@ -62,7 +62,7 @@ export function IFrameProtector({
 		return (
 			<div className="tldraw__editor tl-container">
 				<div className="iframe-warning__container">
-					<a className="iframe-warning__link" href={url} target="_blank">
+					<a className="iframe-warning__link" href={url} rel="noopener noreferrer" target="_blank">
 						{'Visit this page on tldraw.com'}
 						<svg
 							width="15"

@@ -20,6 +20,7 @@ import {
 	TLUiOverrides,
 	TLUiToastsContextType,
 	TLUiTranslationKey,
+	fetch,
 	isShape,
 } from 'tldraw'
 import { useMultiplayerAssets } from '../hooks/useMultiplayerAssets'

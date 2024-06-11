@@ -1,4 +1,4 @@
-import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
+import { Editor, TLExternalContentSource, VecLike, fetch } from '@tldraw/editor'
 
 /**
  * When the clipboard has a file, create an image shape from the file and paste it into the scene
@@ -14,12 +14,7 @@ export async function pasteFiles(
 	point?: VecLike,
 	sources?: TLExternalContentSource[]
 ) {
-	const blobs = await Promise.all(
-		urls.map(
-			async (url) =>
-				await (await fetch(url, { referrerPolicy: 'strict-origin-when-cross-origin' })).blob()
-		)
-	)
+	const blobs = await Promise.all(urls.map(async (url) => await (await fetch(url)).blob()))
 	const files = blobs.map((blob) => new File([blob], 'tldrawFile', { type: blob.type }))
 
 	editor.mark('paste')

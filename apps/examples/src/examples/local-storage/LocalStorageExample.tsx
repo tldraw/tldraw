@@ -1,5 +1,6 @@
+import { throttle } from 'lodash'
 import { useLayoutEffect, useState } from 'react'
-import { Tldraw, createTLStore, getSnapshot, loadSnapshot, throttle } from 'tldraw'
+import { Tldraw, createTLStore, getSnapshot, loadSnapshot } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!

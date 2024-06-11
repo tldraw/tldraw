@@ -1,4 +1,5 @@
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
+import { Image } from 'tldraw'
 
 export const assetUrls = getAssetUrlsByImport()
 
@@ -12,7 +13,7 @@ async function preloadIcons() {
 
 function preloadIcon(url: string) {
 	return new Promise((resolve, reject) => {
-		const image = new Image()
+		const image = Image()
 		// this isn't known by typescript but it works
 		;(image as any).fetchPriority = 'low'
 		image.onload = resolve

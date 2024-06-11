@@ -3,11 +3,13 @@ import {
 	BaseBoxShapeUtil,
 	FileHelpers,
 	HTMLContainer,
+	Image,
 	MediaHelpers,
 	TLImageShape,
 	TLOnDoubleClickHandler,
 	TLShapePartial,
 	Vec,
+	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
 	structuredClone,
@@ -20,7 +22,7 @@ import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
-	const response = await fetch(url, { referrerPolicy: 'strict-origin-when-cross-origin' })
+	const response = await fetch(url)
 	const blob = await response.blob()
 	return FileHelpers.blobToDataUrl(blob)
 }
@@ -73,7 +75,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				let cancelled = false
 				if (!url) return
 
-				const image = new Image()
+				const image = Image()
 				image.onload = () => {
 					if (cancelled) return
 					setLoadedSrc(url)
@@ -91,7 +93,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				let cancelled = false
 				if (!url) return
 
-				const image = new Image()
+				const image = Image()
 				image.onload = () => {
 					if (cancelled) return
 

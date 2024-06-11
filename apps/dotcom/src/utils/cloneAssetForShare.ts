@@ -1,4 +1,4 @@
-import { TLAsset, getAssetFromIndexedDb } from 'tldraw'
+import { TLAsset, fetch, getAssetFromIndexedDb } from 'tldraw'
 
 export async function cloneAssetForShare(
 	asset: TLAsset,

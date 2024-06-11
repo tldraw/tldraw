@@ -40,7 +40,6 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 			spellCheck="true"
 			wrap="off"
 			dir="auto"
-			datatype="wysiwyg"
 			defaultValue={text}
 			onFocus={handleFocus}
 			onChange={handleChange}

@@ -1,4 +1,4 @@
-import { AssetRecordType, TLAsset, TLExternalAssetContent, getHashForString } from 'tldraw'
+import { AssetRecordType, TLAsset, TLExternalAssetContent, fetch, getHashForString } from 'tldraw'
 import { rpc } from './rpc'
 
 export async function onCreateAssetFromUrl({
@@ -30,7 +30,6 @@ export async function onCreateAssetFromUrl({
 			const resp = await fetch(url, {
 				method: 'GET',
 				mode: 'no-cors',
-				referrerPolicy: 'strict-origin-when-cross-origin',
 			})
 			const html = await resp.text()
 			const doc = new DOMParser().parseFromString(html, 'text/html')

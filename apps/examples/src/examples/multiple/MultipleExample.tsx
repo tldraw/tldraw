@@ -155,13 +155,13 @@ function ABunchOfText() {
 				The fluorescent lights flickered overhead as John sat hunched over his desk, his fingers
 				tapping rhythmically on the keyboard. He was a software developer, and tonight, he had a
 				peculiar mission. A mission that would take him deep into the labyrinthine world of web
-				development. John had stumbled upon a new whiteboard library called "tldraw," a seemingly
+				development. John had stumbled upon a new whiteboard library called “tldraw”, a seemingly
 				simple tool that promised to revolutionize collaborative drawing on the web. Little did he
 				know that this discovery would set off a chain of events that would challenge his skills,
 				test his perseverance, and blur the line between reality and imagination.
 			</p>
 			<p>
-				With a newfound sense of excitement, John began integrating "tldraw" into his latest
+				With a newfound sense of excitement, John began integrating “tldraw” into his latest
 				project. As lines of code danced across his screen, he imagined the possibilities that lay
 				ahead. The potential to create virtual spaces where ideas could be shared, concepts could be
 				visualized, and teams could collaborate seamlessly from different corners of the world. It
@@ -169,7 +169,7 @@ function ABunchOfText() {
 				merged into a harmonious symphony.
 			</p>
 			<p>
-				As the night wore on, John's mind became consumed with the whiteboard library. He couldn't
+				As the night wore on, John’s mind became consumed with the whiteboard library. He couldn’t
 				help but marvel at its elegance and simplicity. With each stroke of his keyboard, he felt a
 				surge of inspiration, a connection to something greater than himself. It was as if the lines
 				of code he was writing were transforming into a digital canvas, waiting to be filled with
@@ -179,7 +179,7 @@ function ABunchOfText() {
 				take shape.
 			</p>
 			<p>
-				Little did John know, this integration of "tldraw" was only the beginning. It would lead him
+				Little did John know, this integration of “tldraw” was only the beginning. It would lead him
 				down a path filled with unforeseen challenges, where he would confront his own limitations
 				and question the very nature of creation. The journey ahead would test his resolve, pushing
 				him to the edge of his sanity. And as he embarked on this perilous adventure, he could not
