@@ -159,7 +159,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					<div style={containerStyle}>
 						<img
 							className="tl-image"
-							crossOrigin="anonymous"
+							// We don't set crossOrigin for non-animated images because
+							// for Cloudflare we don't currenly have that set up.
+							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
 							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							style={{
@@ -176,7 +178,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					<div className="tl-image-container" style={containerStyle}>
 						<img
 							className="tl-image"
-							crossOrigin="anonymous"
+							// We don't set crossOrigin for non-animated images because
+							// for Cloudflare we don't currenly have that set up.
+							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
 							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
