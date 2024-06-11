@@ -15,7 +15,7 @@ export interface TLUiDropdownMenuRootProps {
 	debugOpen?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuRoot({
 	id,
 	children,
@@ -41,7 +41,7 @@ export interface TLUiDropdownMenuTriggerProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps) {
 	return (
 		<_DropdownMenu.Trigger
@@ -98,7 +98,7 @@ export interface TLUiDropdownMenuSubProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps) {
 	const [open, onOpenChange] = useMenuIsOpen(id)
 
@@ -117,7 +117,7 @@ export interface TLUiDropdownMenuSubTriggerProps {
 	disabled?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuSubTrigger({
 	id,
 	label,
@@ -149,7 +149,7 @@ export interface TLUiDropdownMenuSubContentProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuSubContent({
 	id,
 	alignOffset = -1,
@@ -179,7 +179,7 @@ export interface TLUiDropdownMenuGroupProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps) {
 	return (
 		<_DropdownMenu.Group dir="ltr" className="tlui-menu__group">
@@ -203,7 +203,7 @@ export interface TLUiDropdownMenuItemProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuItem({ noClose, children }: TLUiDropdownMenuItemProps) {
 	return (
 		<_DropdownMenu.Item dir="ltr" asChild onClick={noClose ? preventDefault : undefined}>
@@ -221,7 +221,7 @@ export interface TLUiDropdownMenuCheckboxItemProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuCheckboxItem({
 	children,
 	onSelect,

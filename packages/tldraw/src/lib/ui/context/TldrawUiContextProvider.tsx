@@ -49,7 +49,7 @@ export interface TldrawUiContextProviderProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiContextProvider({
 	overrides,
 	components,

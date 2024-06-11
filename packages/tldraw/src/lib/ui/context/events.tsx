@@ -123,7 +123,7 @@ export interface EventsProviderProps {
 	children: React.ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
 	return (
 		<EventsContext.Provider value={onEvent ?? defaultEventHandler}>

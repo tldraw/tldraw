@@ -59,7 +59,7 @@ export interface TLUiMenuItemProps<
 	isSelected?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiMenuItem<
 	TranslationKey extends string = string,
 	IconType extends string = string,

@@ -19,7 +19,7 @@ export interface TLUiActionsMenuProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	children,
 }: TLUiActionsMenuProps) {

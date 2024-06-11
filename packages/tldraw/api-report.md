@@ -142,9 +142,7 @@ export function ArrangeMenuSubmenu(): JSX_2.Element | null;
 export function ArrowDownToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function ArrowheadStylePickerSet({ styles }: {
-    styles: ReadonlySharedStyleMap;
-}): JSX_2.Element | null;
+export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function ArrowLeftToolbarItem(): JSX_2.Element;
@@ -293,10 +291,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 }
 
 // @public (undocumented)
-export function BreakPointProvider({ forceMobile, children, }: {
-    children: ReactNode;
-    forceMobile?: boolean;
-}): JSX_2.Element;
+export function BreakPointProvider({ forceMobile, children }: BreakPointProviderProps): JSX_2.Element;
 
 // @internal (undocumented)
 export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocument): void;
@@ -311,10 +306,7 @@ export function ClipboardMenuGroup(): JSX_2.Element;
 export function CloudToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function CommonStylePickerSet({ styles, theme, }: {
-    styles: ReadonlySharedStyleMap;
-    theme: TLDefaultColorTheme;
-}): JSX_2.Element;
+export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps): JSX_2.Element;
 
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
@@ -421,9 +413,7 @@ export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps): JSX_2.Element | null;
 
 // @public
-export const DefaultToolbar: NamedExoticComponent<    {
-children?: ReactNode;
-}>;
+export const DefaultToolbar: NamedExoticComponent<DefaultToolbarProps>;
 
 // @public (undocumented)
 export function DefaultToolbarContent(): JSX_2.Element;
@@ -581,15 +571,7 @@ export interface EventsProviderProps {
 }
 
 // @public (undocumented)
-export function ExampleDialog({ title, body, cancel, confirm, displayDontShowAgain, onCancel, onContinue, }: {
-    body?: string;
-    cancel?: string;
-    confirm?: string;
-    displayDontShowAgain?: boolean;
-    onCancel: () => void;
-    onContinue: () => void;
-    title?: string;
-}): JSX_2.Element;
+export function ExampleDialog({ title, body, cancel, confirm, displayDontShowAgain, onCancel, onContinue, }: ExampleDialogProps): JSX_2.Element;
 
 // @public
 export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: Partial<TLSvgOptions>): Promise<void>;
@@ -825,9 +807,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 }
 
 // @public (undocumented)
-export function GeoStylePickerSet({ styles }: {
-    styles: ReadonlySharedStyleMap;
-}): JSX_2.Element | null;
+export function GeoStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
@@ -1216,11 +1196,7 @@ export function OpacitySlider(): JSX_2.Element | null;
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export const PageItemInput: ({ name, id, isCurrentPage, }: {
-    id: TLPageId;
-    isCurrentPage: boolean;
-    name: string;
-}) => JSX_2.Element;
+export const PageItemInput: ({ name, id, isCurrentPage, }: PageItemInputProps) => JSX_2.Element;
 
 // @public (undocumented)
 export const PageItemSubmenu: MemoExoticComponent<({ index, listSize, item, onRename, }: PageItemSubmenuProps) => JSX_2.Element>;
@@ -1325,9 +1301,7 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX_2.Element;
 
 // @public (undocumented)
-export function SplineStylePickerSet({ styles }: {
-    styles: ReadonlySharedStyleMap;
-}): JSX_2.Element | null;
+export function SplineStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function StackMenuItems(): JSX_2.Element;
@@ -1466,10 +1440,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 // @public (undocumented)
-export function TextStylePickerSet({ theme, styles, }: {
-    styles: ReadonlySharedStyleMap;
-    theme: TLDefaultColorTheme;
-}): JSX_2.Element | null;
+export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TextToolbarItem(): JSX_2.Element;
@@ -2619,9 +2590,7 @@ export function ToggleTransparentBgMenuItem(): JSX_2.Element;
 export function ToggleWrapModeItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function ToolbarItem({ tool }: {
-    tool: string;
-}): JSX_2.Element;
+export function ToolbarItem({ tool }: ToolbarItemProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TrapezoidToolbarItem(): JSX_2.Element;

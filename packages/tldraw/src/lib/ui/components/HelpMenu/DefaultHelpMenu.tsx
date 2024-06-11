@@ -17,7 +17,7 @@ export interface TLUiHelpMenuProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiHelpMenuProps) {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()

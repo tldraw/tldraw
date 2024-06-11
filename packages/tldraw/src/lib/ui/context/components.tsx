@@ -66,7 +66,7 @@ export interface TLUiComponentsProviderProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiComponentsProvider({
 	overrides = {},
 	children,

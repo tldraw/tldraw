@@ -3,7 +3,7 @@ import { useDialogs } from '../../context/dialogs'
 import { LanguageMenu } from '../LanguageMenu'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
-/** @public */
+/** @public @react */
 export function DefaultHelpMenuContent() {
 	return (
 		<>
@@ -12,7 +12,7 @@ export function DefaultHelpMenuContent() {
 		</>
 	)
 }
-/** @public */
+/** @public @react */
 export function KeyboardShortcutsMenuItem() {
 	const { KeyboardShortcutsDialog } = useTldrawUiComponents()
 	const { addDialog } = useDialogs()

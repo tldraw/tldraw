@@ -60,6 +60,7 @@ export type TldrawUiProps = Expand<TldrawUiBaseProps & TldrawUiContextProviderPr
 
 /**
  * @public
+ * @react
  */
 export const TldrawUi = React.memo(function TldrawUi({
 	renderDebugMenuItems,

@@ -7,7 +7,7 @@ export interface TLUiHelperButtonsProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps) {
 	const content = children ?? <DefaultHelperButtonsContent />
 	return (

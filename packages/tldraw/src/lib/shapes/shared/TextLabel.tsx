@@ -34,7 +34,7 @@ interface TextLabelProps {
 	textHeight?: number
 }
 
-/** @public */
+/** @public @react */
 export const TextLabel = React.memo(function TextLabel({
 	id,
 	type,
