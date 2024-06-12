@@ -207,7 +207,7 @@ export function useValue<Value>(value: Signal<Value>): Value;
 // @public (undocumented)
 export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value;
 
-// @internal
+// @public
 export function useValueDebounced<Value>(name: string, fn: () => Value, deps: unknown[], ms: number): Value;
 
 // @public

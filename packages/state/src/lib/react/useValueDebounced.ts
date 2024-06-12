@@ -7,7 +7,7 @@ import { useValue } from './useValue'
  *
  * @see [[useValue]] for more information.
  *
- * @internal
+ * @public
  */
 export function useValueDebounced<Value>(
 	name: string,
@@ -15,7 +15,7 @@ export function useValueDebounced<Value>(
 	deps: unknown[],
 	ms: number
 ): Value
-/** @internal */
+/** @public */
 export function useValueDebounced<Value>(): Value {
 	const args = [...arguments].slice(0, -1) as Parameters<typeof useValue>
 	const ms = arguments[arguments.length - 1] as number
