@@ -15,10 +15,10 @@ export interface TLEditorAssetUrls {
 /** @public */
 export let defaultEditorAssetUrls: TLEditorAssetUrls = {
 	fonts: {
-		draw: `https://cdn.tldraw.xyz/${version}/fonts/Shantell_Sans-Tldrawish.woff2`,
-		serif: `https://cdn.tldraw.xyz/${version}/fonts/IBMPlexSerif-Medium.woff2`,
-		sansSerif: `https://cdn.tldraw.xyz/${version}/fonts/IBMPlexSans-Medium.woff2`,
-		monospace: `https://cdn.tldraw.xyz/${version}/fonts/IBMPlexMono-Medium.woff2`,
+		draw: `https://cdn.tldraw.com/${version}/fonts/Shantell_Sans-Tldrawish.woff2`,
+		serif: `https://cdn.tldraw.com/${version}/fonts/IBMPlexSerif-Medium.woff2`,
+		sansSerif: `https://cdn.tldraw.com/${version}/fonts/IBMPlexSans-Medium.woff2`,
+		monospace: `https://cdn.tldraw.com/${version}/fonts/IBMPlexMono-Medium.woff2`,
 	},
 }
 
