@@ -1,6 +1,6 @@
 import * as customComponents from '../article-components'
 import * as apiComponents from './api-docs'
-import { Code, CodeBlock, CodeLinkProvider } from './code-block'
+import { Code, CodeBlock, CodeLinkProvider } from './code'
 import {
 	A,
 	ApiHeading,

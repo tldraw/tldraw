@@ -194,34 +194,6 @@ export function Code({ children, ...props }: React.ComponentProps<'code'>) {
 		}
 
 		return processChildrenArray(children)
-
-		// function processChildren(children: React.ReactNode, path: string): React.ReactNode {
-		// 	if (typeof children === 'string') {
-		// 		const link = codeLinks[children]
-		// 		if (link) {
-		// 			return (
-		// 				<A href={link} className="code-link" key={path}>
-		// 					{children}
-		// 				</A>
-		// 			)
-		// 		}
-		// 	}
-
-		// 	if (Array.isArray(children)) {
-		// 		return children.map((child, i) => processChildren(child, `${path}/${i}`))
-		// 	}
-
-		// 	if (React.isValidElement(children)) {
-		// 		return React.cloneElement(children as any, {
-		// 			key: path,
-		// 			children: processChildren(children.props.children, path),
-		// 		})
-		// 	}
-
-		// 	return children
-		// }
-
-		// return processChildren(children, '')
 	}, [children, codeLinks])
 
 	return <code {...props}>{newChildren}</code>
