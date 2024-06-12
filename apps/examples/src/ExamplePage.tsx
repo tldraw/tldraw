@@ -32,7 +32,6 @@ export function ExamplePage({
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
 	}
-	console.log(examples[6].value[0].keywords)
 	return (
 		<DialogContextProvider>
 			<div className="example">

@@ -2,6 +2,7 @@
 title: Custom quick actions
 component: ./CustomQuickActions.tsx
 category: ui
+keywords: [components, ui]
 ---
 
 You can customize tldraw's quick actions, a collection of components that appear next to the menu button, or in the toolbar on smaller sizes.

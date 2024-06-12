@@ -3,7 +3,7 @@ title: Bounds Snapping Shape
 component: ./BoundsSnappingShape.tsx
 category: shapes/tools
 priority: 3
-keywords: [geometry, custom shape]
+keywords: [geometry, custom shape, playing card]
 ---
 
 Custom shapes with special bounds snapping behaviour.

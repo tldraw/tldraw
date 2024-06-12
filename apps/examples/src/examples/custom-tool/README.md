@@ -3,6 +3,7 @@ title: Custom tool
 component: ./CustomToolExample.tsx
 category: shapes/tools
 priority: 1
+keywords: [state machine, statenode, sticker]
 ---
 
 Create a custom tool
