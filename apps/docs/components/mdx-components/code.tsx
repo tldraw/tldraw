@@ -1,6 +1,5 @@
 'use client'
 
-import { assert } from '@/utils/assert'
 import { SandpackCodeViewer, SandpackFiles, SandpackProvider } from '@codesandbox/sandpack-react'
 import { useTheme } from 'next-themes'
 import React, {
@@ -90,7 +89,10 @@ export function Code({ children, ...props }: React.ComponentProps<'code'>) {
 
 		// recursively process the children array
 		function processChildrenArray(children: ReactNode): ReactNode {
-			assert(Array.isArray(children))
+			if (!Array.isArray(children)) {
+				if (!children) return children
+				return processChildrenArray([children])
+			}
 
 			// these are the new linkified children, the result of this function
 			const newChildren = []
