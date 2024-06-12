@@ -323,6 +323,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 				<div
 					className="tlui-document-name__text"
 					onDoubleClick={() => {
+						if (isReadonly) return
 						editor.setEditingShape(null)
 						setState((prev) => ({ ...prev, isEditing: true }))
 					}}
