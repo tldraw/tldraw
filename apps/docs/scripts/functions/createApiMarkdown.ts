@@ -69,11 +69,6 @@ export async function createApiMarkdown() {
 
 			const outputFileName = `${getSlug(item)}.mdx`
 
-			if (model.isComponentProps(item)) {
-				nicelog(`  ${outputFileName} (skipped: component props)`)
-				continue
-			}
-
 			const result = await getApiMarkdown(model, categoryName, item, j)
 			nicelog(`✎ ${outputFileName}`)
 			fs.writeFileSync(path.join(OUTPUT_DIR, outputFileName), result.markdown)

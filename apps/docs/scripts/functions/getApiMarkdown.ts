@@ -325,7 +325,7 @@ async function addDocComment(
 			result.markdown += '</ParametersTable>\n\n'
 		}
 
-		if (!(member instanceof ApiConstructor) && !isComponent) {
+		if (!(member instanceof ApiConstructor)) {
 			result.markdown += `<ApiHeading>Returns</ApiHeading>\n\n`
 			result.markdown += await typeExcerptToMarkdown(member.returnTypeExcerpt, {
 				kind: 'ReturnType',
@@ -480,9 +480,6 @@ function addReferences(model: TldrawApiModel, result: Result, member: ApiItem) {
 		componentProps.excerptTokens.forEach((token) => {
 			addToken(componentProps, token)
 		})
-
-		const selfReference = `[${componentProps.displayName}](/reference/${getPath(componentProps)})`
-		references.delete(selfReference)
 	}
 
 	if (references.size) {
