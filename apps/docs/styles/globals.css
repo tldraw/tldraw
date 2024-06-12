@@ -526,6 +526,10 @@ body {
 	tab-size: 16px;
 }
 
+.article td pre code {
+	background-color: transparent;
+}
+
 .article ol {
 	margin: 20px 0px;
 	padding-left: 16px;

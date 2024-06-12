@@ -1,5 +1,6 @@
 import * as customComponents from '../article-components'
 import * as apiComponents from './api-docs'
+import { Code, CodeBlock, CodeLinkProvider } from './code-block'
 import {
 	A,
 	ApiHeading,
@@ -27,12 +28,11 @@ import {
 	Video,
 } from './generic'
 
-import { Code, CodeBlock } from './code'
-
 export const components = {
 	a: A,
 	blockquote: Blockquote,
 	code: Code,
+	CodeLinkProvider,
 	h1: Heading1,
 	h2: Heading2,
 	h3: Heading3,
