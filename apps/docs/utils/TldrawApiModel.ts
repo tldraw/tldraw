@@ -53,11 +53,6 @@ export class TldrawApiModel extends ApiModel {
 		if (errors.length > 0) {
 			throw new Error(errors.map((e) => (e as any).message).join('\n\n'))
 		}
-
-		console.log(
-			'components:',
-			Array.from(this.reactComponents, (c) => c.displayName)
-		)
 	}
 
 	resolveToken(origin: ApiItem, token: ExcerptToken) {
