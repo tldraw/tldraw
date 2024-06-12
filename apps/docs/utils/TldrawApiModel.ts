@@ -130,8 +130,6 @@ export class TldrawApiModel extends ApiModel {
 				return null
 			}
 
-			console.log(tokens)
-
 			this.error(
 				component,
 				`Expected a simple props interface for react component. Got: ${component.variableTypeExcerpt.text}`
