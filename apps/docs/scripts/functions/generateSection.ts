@@ -118,6 +118,7 @@ export function generateSection(section: InputSection, articles: Articles, index
 					: isUncategorized
 						? `/${section.id}/${articleId}`
 						: `/${section.id}/${categoryId}/${articleId}`,
+			apiTags: parsed.data.apiTags ?? null,
 		}
 
 		if (isExamples) {
