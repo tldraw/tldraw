@@ -151,6 +151,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			)
 		}
 
+		if (!loadedSrc) return null
+
 		return (
 			<>
 				{showCropPreview && (

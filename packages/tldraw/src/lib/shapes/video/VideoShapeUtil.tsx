@@ -158,7 +158,9 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 				>
 					<div className="tl-counter-scaled">
 						<div className="tl-video-container">
-							{url ? (
+							{!asset?.props.src ? (
+								<BrokenAssetIcon />
+							) : url ? (
 								<video
 									ref={rVideo}
 									style={isEditing ? { pointerEvents: 'all' } : undefined}
@@ -181,9 +183,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 								>
 									<source src={url} />
 								</video>
-							) : (
-								<BrokenAssetIcon />
-							)}
+							) : null}
 						</div>
 					</div>
 				</HTMLContainer>
