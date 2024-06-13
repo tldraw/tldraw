@@ -490,7 +490,30 @@ function addExtends(result: Result, item: ApiItem) {
 
 	if (!extendsTypes.length) return
 
-	result.markdown += `Extends \`${extendsTypes.map((type) => type.excerpt.text).join(', ')}\`.\n\n`
+	const links = {} as Record<string, string>
+	for (const type of extendsTypes) {
+		for (const token of type.excerpt.spannedTokens) {
+			if (!token.canonicalReference) continue
+
+			const apiItemResult = item
+				.getAssociatedModel()!
+				.resolveDeclarationReference(token.canonicalReference!, item)
+
+			if (apiItemResult.errorMessage) continue
+
+			const apiItem = apiItemResult.resolvedApiItem!
+			links[token.text] = `/reference/${getPath(apiItem)}`
+		}
+	}
+
+	result.markdown += [
+		`<CodeLinkProvider links={${JSON.stringify(links)}}>`,
+		'',
+		`Extends \`${extendsTypes.map((type) => type.excerpt.text).join(', ')}\`.`,
+		'',
+		'</CodeLinkProvider>',
+		'',
+	].join('\n')
 }
 
 function addLinkToSource(result: Result, member: ApiItem) {

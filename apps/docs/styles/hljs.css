@@ -78,7 +78,7 @@
 	text-decoration: underline;
 }
 
-a.code-link {
+.hljs a.code-link {
 	color: inherit;
 }
 a.code-link::before {
