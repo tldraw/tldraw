@@ -7,7 +7,7 @@ export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement>
 	type: 'normal' | 'primary' | 'danger' | 'low' | 'icon' | 'tool' | 'menu' | 'help'
 }
 
-/** @public */
+/** @public @react */
 export const TldrawUiButton = React.forwardRef<HTMLButtonElement, TLUiButtonProps>(
 	function TldrawUiButton({ children, disabled, type, ...props }, ref) {
 		return (

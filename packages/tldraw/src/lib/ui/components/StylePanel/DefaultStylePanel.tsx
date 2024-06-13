@@ -10,7 +10,7 @@ export interface TLUiStylePanelProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultStylePanel = memo(function DefaultStylePanel({
 	isMobile,
 	children,

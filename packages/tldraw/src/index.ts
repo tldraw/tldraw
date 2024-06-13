@@ -56,7 +56,7 @@ export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { getOccludedChildren, kickoutOccludedShapes } from './lib/tools/SelectTool/selectHelpers'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
-export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
+export { TldrawUi, type TldrawUiProps } from './lib/ui/TldrawUi'
 export {
 	setDefaultUiAssetUrls,
 	type TLUiAssetUrlOverrides,
@@ -91,6 +91,7 @@ export {
 	DefaultDebugMenuContent,
 	ExampleDialog,
 	FeatureFlags,
+	type ExampleDialogProps,
 } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
 export {
 	DefaultHelpMenu,
@@ -129,7 +130,7 @@ export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
 export { DefaultNavigationPanel } from './lib/ui/components/NavigationPanel/DefaultNavigationPanel'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
-export { PageItemInput } from './lib/ui/components/PageMenu/PageItemInput'
+export { PageItemInput, type PageItemInputProps } from './lib/ui/components/PageMenu/PageItemInput'
 export {
 	PageItemSubmenu,
 	type PageItemSubmenuProps,
@@ -152,9 +153,14 @@ export {
 	OpacitySlider,
 	SplineStylePickerSet,
 	TextStylePickerSet,
+	type StylePickerSetProps,
 	type TLUiStylePanelContentProps,
+	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
-export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
+export {
+	DefaultToolbar,
+	type DefaultToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultToolbar'
 export {
 	ArrowDownToolbarItem,
 	ArrowLeftToolbarItem,
@@ -187,6 +193,7 @@ export {
 	TriangleToolbarItem,
 	XBoxToolbarItem,
 	useIsToolSelected,
+	type ToolbarItemProps,
 } from './lib/ui/components/Toolbar/DefaultToolbarContent'
 export {
 	DefaultZoomMenu,
@@ -327,7 +334,11 @@ export {
 	type TLUiActionsContextType,
 } from './lib/ui/context/actions'
 export { AssetUrlsProvider, useAssetUrls } from './lib/ui/context/asset-urls'
-export { BreakPointProvider, useBreakpoint } from './lib/ui/context/breakpoints'
+export {
+	BreakPointProvider,
+	useBreakpoint,
+	type BreakPointProviderProps,
+} from './lib/ui/context/breakpoints'
 export {
 	TldrawUiComponentsProvider,
 	useTldrawUiComponents,

@@ -18,7 +18,7 @@ import {
 } from '../menu-items'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 
-/** @public */
+/** @public @react */
 export function DefaultContextMenuContent() {
 	const editor = useEditor()
 

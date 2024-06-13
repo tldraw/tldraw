@@ -20,8 +20,9 @@ export interface DefaultToolbarProps {
  * recently active item from the overflow being shown in the main toolbar.
  *
  * @public
+ * @react
  */
-export const DefaultToolbar = memo(function DefaultToolbar({ children }: { children?: ReactNode }) {
+export const DefaultToolbar = memo(function DefaultToolbar({ children }: DefaultToolbarProps) {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()

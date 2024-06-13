@@ -160,7 +160,7 @@ export interface TLSnapIndicatorProps {
 	zoom: number
 }
 
-/** @public */
+/** @public @react */
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps) {
 	return (
 		<svg className={classNames('tl-overlays__item', className)}>

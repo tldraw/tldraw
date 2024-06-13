@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { useBreakpoint } from '../context/breakpoints'
 import { useTldrawUiComponents } from '../context/components'
 
-/** @public */
+/** @public @react */
 export const DefaultMenuPanel = memo(function MenuPanel() {
 	const breakpoint = useBreakpoint()
 

@@ -13,7 +13,7 @@ export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
 	crossOrigin?: 'anonymous' | 'use-credentials'
 }
 
-/** @public */
+/** @public @react */
 export const TldrawUiIcon = memo(function TldrawUiIcon({
 	small,
 	invertIcon,
