@@ -36,5 +36,5 @@ export async function resolveAsset(asset: TLAsset | null | undefined, context: A
 	// On preview, builds the origin for the asset won't be the right one for the Cloudflare transform.
 	const src = asset.props.src.replace(ASSET_UPLOADER_URL, ASSET_BUCKET_ORIGIN)
 
-	return `${ASSET_BUCKET_ORIGIN}/cdn-cgi/image/width=${width},dpr=${context.dpr},fit=scale-down,quality=92/${src}`
+	return `${ASSET_BUCKET_ORIGIN}/cdn-cgi/image/format=auto,width=${width},dpr=${context.dpr},fit=scale-down,quality=92/${src}`
 }
