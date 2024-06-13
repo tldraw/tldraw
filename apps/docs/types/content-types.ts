@@ -114,6 +114,8 @@ export interface Article extends ContentPage {
 	componentCode: string | null
 	/** The article's code example files, JSON stringified (optional). */
 	componentCodeFiles: string | null
+	/** Tags for this item if it's a reference page */
+	apiTags: string | null
 }
 
 export enum ArticleStatus {

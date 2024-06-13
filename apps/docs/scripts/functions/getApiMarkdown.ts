@@ -14,15 +14,14 @@ import {
 	ApiMethod,
 	ApiMethodSignature,
 	ApiNamespace,
+	ApiOptionalMixin,
 	ApiProperty,
 	ApiPropertySignature,
 	ApiReadonlyMixin,
-	ApiReleaseTagMixin,
 	ApiStaticMixin,
 	ApiTypeAlias,
 	ApiVariable,
 	Excerpt,
-	ReleaseTag,
 } from '@microsoft/api-extractor-model'
 import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from '../utils'
 
@@ -30,8 +29,6 @@ interface Result {
 	markdown: string
 	keywords: string[]
 }
-
-const REPO_URL = 'https://github.com/tldraw/tldraw/blob/main/'
 
 const date = new Intl.DateTimeFormat('en-US', {
 	year: 'numeric',
@@ -101,8 +98,7 @@ export async function getApiMarkdown(
 			addMarkdown(membersResult, constructorResult.markdown)
 		}
 
-		if (properties.length || componentProps) {
-			addMarkdown(propertiesResult, `## Properties\n\n`)
+		if (properties.length || isComponent) {
 			if (componentProps) addExtends(propertiesResult, componentProps)
 			for (const member of properties) {
 				const slug = getSlug(member)
@@ -125,9 +121,14 @@ export async function getApiMarkdown(
 					}
 				)
 			}
+
 			if (propertiesResult.markdown.trim()) {
 				addMarkdown(toc, `- [Properties](#properties)\n`)
+				addMarkdown(membersResult, `## Properties\n\n`)
 				addMarkdown(membersResult, propertiesResult.markdown)
+			} else if (isComponent && !componentProps) {
+				addMarkdown(membersResult, `## Properties\n\n`)
+				addMarkdown(membersResult, `This component does not take any props.\n\n`)
 			}
 		}
 
@@ -152,11 +153,7 @@ export async function getApiMarkdown(
 		result.markdown += `</details>\n\n`
 	}
 
-	addTags(model, result, item)
-
 	await addDocComment(model, result, item)
-
-	addLinkToSource(result, item)
 
 	if (membersResult.markdown.length) {
 		addHorizontalRule(result)
@@ -179,9 +176,8 @@ async function addMarkdownForMember(
 	{ isComponentProp = false } = {}
 ) {
 	if (member.displayName.startsWith('_')) return
-	addMemberName(result, member)
-	addTags(model, result, member, { isComponentProp })
-	await addDocComment(model, result, member, { isComponentProp })
+	addMemberNameAndMeta(result, model, member, { isComponentProp })
+	await addDocComment(model, result, member)
 }
 
 async function addFrontmatter(
@@ -211,40 +207,71 @@ async function addFrontmatter(
 		}
 	}
 
-	result.markdown += `---
-title: ${member.displayName}
-status: published
-description: ${description}
-category: ${categoryName}
-group: ${model.isComponent(member) ? APIGroup.Component : member.kind}
-author: api
-date: ${date}
-order: ${order}
-sourceUrl: ${'_fileUrlPath' in member ? member._fileUrlPath : ''}${kw}
----
-`
+	const frontmatter: Record<string, string> = {
+		title: member.displayName,
+		status: 'published',
+		description,
+		category: categoryName,
+		group: model.isComponent(member) ? APIGroup.Component : member.kind,
+		date,
+		order: order.toString(),
+		apiTags: getTags(model, member).join(','),
+	}
+
+	if (member instanceof ApiDeclaredItem && member.sourceLocation.fileUrl) {
+		frontmatter.sourceUrl = member.sourceLocation.fileUrl
+	}
+
+	result.markdown += [
+		'---',
+		...Object.entries(frontmatter).map(([key, value]) => `${key}: ${value}`),
+		kw,
+		'---',
+		'',
+	].join('\n')
 }
 
 function addHorizontalRule(result: Result) {
 	result.markdown += `---\n\n`
 }
 
-function addMemberName(result: Result, member: ApiItem) {
-	if (member.kind === 'Constructor') {
-		result.markdown += `### Constructor\n\n`
-		return
+function getItemTitle(item: ApiItem) {
+	if (item.kind === ApiItemKind.Constructor) {
+		return 'Constructor'
 	}
 
-	if (!member.displayName) return
-	result.markdown += `### \`${member.displayName}${member.kind === 'Method' ? '()' : ''}\`\n\n`
+	const name = item.displayName
+	if (item.kind === ApiItemKind.Method || item.kind === ApiItemKind.Function) {
+		return `${name}()`
+	}
+
+	return name
+}
+function addMemberNameAndMeta(
+	result: Result,
+	model: TldrawApiModel,
+	item: ApiItem,
+	{ level = 3, isComponentProp = false } = {}
+) {
+	const heading = `${'#'.repeat(level)} ${getItemTitle(item)}`
+
+	if (item instanceof ApiDeclaredItem && item.sourceLocation.fileUrl) {
+		const source = item.sourceLocation.fileUrl
+		const tags = getTags(model, item, { isComponentProp, includeKind: false })
+		result.markdown += [
+			`<TitleWithSourceLink source={${JSON.stringify(source)}} tags={${JSON.stringify(tags)}}>`,
+			'',
+			heading,
+			'',
+			'</TitleWithSourceLink>',
+			'',
+		].join('\n')
+	} else {
+		result.markdown += `${heading}\n\n`
+	}
 }
 
-async function addDocComment(
-	model: TldrawApiModel,
-	result: Result,
-	member: ApiItem,
-	{ isComponentProp = false } = {}
-) {
+async function addDocComment(model: TldrawApiModel, result: Result, member: ApiItem) {
 	if (!(member instanceof ApiDocumentedItem)) {
 		return
 	}
@@ -256,7 +283,28 @@ async function addDocComment(
 			member,
 			member.tsdocComment.summarySection
 		)
+	}
 
+	if (
+		!isComponent &&
+		(member instanceof ApiVariable ||
+			member instanceof ApiTypeAlias ||
+			member instanceof ApiProperty ||
+			member instanceof ApiPropertySignature ||
+			member instanceof ApiClass ||
+			member instanceof ApiFunction ||
+			member instanceof ApiInterface ||
+			member instanceof ApiEnum ||
+			member instanceof ApiNamespace ||
+			member instanceof ApiMethod)
+	) {
+		result.markdown += await excerptToMarkdown(member, member.excerpt, {
+			kind: member.kind,
+		})
+		result.markdown += `\n\n`
+	}
+
+	if (member.tsdocComment) {
 		const exampleBlocks = member.tsdocComment.customBlocks.filter(
 			(block) => block.blockTag.tagNameWithUpperCase === '@EXAMPLE'
 		)
@@ -268,25 +316,6 @@ async function addDocComment(
 				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, example.content)
 			}
 		}
-	}
-
-	if (
-		member instanceof ApiVariable ||
-		member instanceof ApiTypeAlias ||
-		member instanceof ApiProperty ||
-		member instanceof ApiPropertySignature ||
-		member instanceof ApiClass ||
-		member instanceof ApiFunction ||
-		member instanceof ApiInterface ||
-		member instanceof ApiEnum ||
-		member instanceof ApiNamespace ||
-		member instanceof ApiMethod
-	) {
-		if (!isComponentProp) result.markdown += `<ApiHeading>Signature</ApiHeading>\n\n`
-		result.markdown += await excerptToMarkdown(member, member.excerpt, {
-			kind: member.kind,
-		})
-		result.markdown += `\n\n`
 	}
 
 	if (isComponent) return
@@ -452,32 +481,37 @@ async function excerptToMarkdown(
 	].join('\n')
 }
 
-function addTags(
+function getTags(
 	model: TldrawApiModel,
-	result: Result,
 	member: ApiItem,
-	{ isComponentProp = false } = {}
+	{ isComponentProp = false, includeKind = true } = {}
 ) {
 	const tags = []
-	if (!isComponentProp) {
-		if (ApiReleaseTagMixin.isBaseClassOf(member)) {
-			tags.push(ReleaseTag[member.releaseTag])
-		}
-		if (ApiStaticMixin.isBaseClassOf(member) && member.isStatic) {
-			tags.push('static')
-		}
-		if (ApiReadonlyMixin.isBaseClassOf(member) && member.isReadonly) {
+
+	if (ApiStaticMixin.isBaseClassOf(member) && member.isStatic) {
+		tags.push('static')
+	}
+	let kind = member.kind.toLowerCase()
+	if (ApiReadonlyMixin.isBaseClassOf(member) && member.isReadonly) {
+		if (member.kind === ApiItemKind.Variable) {
+			kind = 'constant'
+		} else if (!isComponentProp) {
 			tags.push('readonly')
 		}
 	}
-	if (member instanceof ApiPropertySignature && member.isOptional) {
+	if (model.isComponent(member)) {
+		kind = 'component'
+	}
+
+	if (ApiOptionalMixin.isBaseClassOf(member) && member.isOptional) {
 		tags.push('optional')
 	}
-	if (!isComponentProp) {
-		const kind = model.isComponent(member) ? 'component' : member.kind.toLowerCase()
+
+	if (includeKind) {
 		tags.push(kind)
 	}
-	result.markdown += `<Small>${tags.filter((t) => t.toLowerCase() !== 'none').join(' ')}</Small>\n\n`
+
+	return tags
 }
 
 function addExtends(result: Result, item: ApiItem) {
@@ -514,11 +548,4 @@ function addExtends(result: Result, item: ApiItem) {
 		'</CodeLinkProvider>',
 		'',
 	].join('\n')
-}
-
-function addLinkToSource(result: Result, member: ApiItem) {
-	if ('_fileUrlPath' in member && member._fileUrlPath) {
-		result.markdown += `<ApiHeading>Source</ApiHeading>\n\n`
-		result.markdown += `[${member._fileUrlPath}](${REPO_URL}${member._fileUrlPath})\n\n`
-	}
 }
