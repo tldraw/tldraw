@@ -1282,9 +1282,7 @@ export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_
 }
 
 // @public (undocumented)
-export function ErrorScreen({ children }: {
-    children: ReactNode;
-}): JSX_2.Element;
+export function ErrorScreen({ children }: LoadingScreenProps): JSX_2.Element;
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
@@ -1600,9 +1598,13 @@ export const isSafeFloat: (n: number) => boolean;
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
 
 // @public (undocumented)
-export function LoadingScreen({ children }: {
+export function LoadingScreen({ children }: LoadingScreenProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface LoadingScreenProps {
+    // (undocumented)
     children: ReactNode;
-}): JSX_2.Element;
+}
 
 // @public
 export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;

@@ -1,16 +1,20 @@
 import { TLPageId, useEditor } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
+
 /** @public */
+export interface PageItemInputProps {
+	name: string
+	id: TLPageId
+	isCurrentPage: boolean
+}
+
+/** @public @react */
 export const PageItemInput = function PageItemInput({
 	name,
 	id,
 	isCurrentPage,
-}: {
-	name: string
-	id: TLPageId
-	isCurrentPage: boolean
-}) {
+}: PageItemInputProps) {
 	const editor = useEditor()
 
 	const rInput = useRef<HTMLInputElement | null>(null)

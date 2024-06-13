@@ -10,7 +10,7 @@ import {
 	DocSection,
 	DocSoftBreak,
 } from '@microsoft/tsdoc'
-import assert from 'assert'
+import { assert } from '@tldraw/utils'
 import { slug as githubSlug } from 'github-slugger'
 
 import path from 'path'
@@ -96,6 +96,12 @@ export async function formatWithPrettier(
 		})
 	} catch (e) {
 		console.warn(`☢️ Could not format code: ${code}`)
+	}
+
+	// sometimes prettier adds a semicolon to the start of the code when formatting expressions (JSX
+	// in particular), so strip it if we see it
+	if (formattedCode.startsWith(';')) {
+		formattedCode = formattedCode.slice(1)
 	}
 
 	return formattedCode.trimEnd()

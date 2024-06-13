@@ -1,3 +1,5 @@
+import { APIGroup } from '@/types/content-types'
+import { TldrawApiModel } from '@/utils/TldrawApiModel'
 import {
 	ApiClass,
 	ApiConstructSignature,
@@ -20,6 +22,7 @@ import {
 	ApiTypeAlias,
 	ApiVariable,
 	Excerpt,
+	ExcerptToken,
 	ReleaseTag,
 } from '@microsoft/api-extractor-model'
 import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from '../utils'
@@ -37,16 +40,25 @@ const date = new Intl.DateTimeFormat('en-US', {
 	day: '2-digit',
 }).format(new Date())
 
-export async function getApiMarkdown(categoryName: string, item: ApiItem, j: number) {
+export async function getApiMarkdown(
+	model: TldrawApiModel,
+	categoryName: string,
+	item: ApiItem,
+	j: number
+) {
 	const result: Result = { markdown: '', keywords: [] }
 	const toc: Result = { markdown: '', keywords: [] }
 	const membersResult: Result = { markdown: '', keywords: [] }
 
-	if (item.members) {
+	const isComponent = model.isComponent(item)
+	const componentProps = isComponent ? model.getReactPropsItem(item) : null
+
+	const members = componentProps?.members ?? item.members
+	if (members) {
 		const constructors = []
 		const properties = []
 		const methods = []
-		for (const member of item.members) {
+		for (const member of members) {
 			switch (member.kind) {
 				case ApiItemKind.Constructor:
 				case ApiItemKind.ConstructSignature:
@@ -60,7 +72,11 @@ export async function getApiMarkdown(categoryName: string, item: ApiItem, j: num
 				case ApiItemKind.Method:
 				case ApiItemKind.Function:
 				case ApiItemKind.MethodSignature:
-					methods.push(member)
+					if (isComponent) {
+						properties.push(member)
+					} else {
+						methods.push(member)
+					}
 
 					break
 				case ApiItemKind.EnumMember:
@@ -80,22 +96,36 @@ export async function getApiMarkdown(categoryName: string, item: ApiItem, j: num
 
 		if (constructors.length) {
 			for (const member of constructors) {
-				await addMarkdownForMember(constructorResult, member)
+				await addMarkdownForMember(model, constructorResult, member)
 				addHorizontalRule(constructorResult)
 			}
 			addMarkdown(membersResult, constructorResult.markdown)
 		}
 
-		if (properties.length) {
-			addMarkdown(toc, `- [Properties](#properties)\n`)
+		if (properties.length || componentProps) {
 			addMarkdown(propertiesResult, `## Properties\n\n`)
+			if (componentProps) addExtends(propertiesResult, componentProps)
 			for (const member of properties) {
 				const slug = getSlug(member)
 				addMarkdown(toc, `  - [${member.displayName}](#${slug})\n`)
-				await addMarkdownForMember(propertiesResult, member)
+				await addMarkdownForMember(model, propertiesResult, member, {
+					isComponentProp: isComponent,
+				})
 				addHorizontalRule(propertiesResult)
 			}
-			addMarkdown(membersResult, propertiesResult.markdown)
+			if (
+				componentProps &&
+				componentProps instanceof ApiDeclaredItem &&
+				componentProps?.kind !== 'Interface'
+			) {
+				propertiesResult.markdown += await typeExcerptToMarkdown(componentProps.excerpt, {
+					kind: componentProps.kind,
+				})
+			}
+			if (propertiesResult.markdown.trim()) {
+				addMarkdown(toc, `- [Properties](#properties)\n`)
+				addMarkdown(membersResult, propertiesResult.markdown)
+			}
 		}
 
 		if (methods.length) {
@@ -104,14 +134,14 @@ export async function getApiMarkdown(categoryName: string, item: ApiItem, j: num
 			for (const member of methods) {
 				const slug = getSlug(member)
 				addMarkdown(toc, `  - [${member.displayName}](#${slug})\n`)
-				await addMarkdownForMember(methodsResult, member)
+				await addMarkdownForMember(model, methodsResult, member)
 				addHorizontalRule(methodsResult)
 			}
 			addMarkdown(membersResult, methodsResult.markdown)
 		}
 	}
 
-	await addFrontmatter(result, item, categoryName, j)
+	await addFrontmatter(model, result, item, categoryName, j)
 
 	if (toc.markdown.length) {
 		result.markdown += `<details className="article__table-of-contents">\n\t<summary>Table of contents</summary>\n`
@@ -119,11 +149,11 @@ export async function getApiMarkdown(categoryName: string, item: ApiItem, j: num
 		result.markdown += `</details>\n\n`
 	}
 
-	addTags(result, item)
+	addTags(model, result, item)
 
-	await addDocComment(result, item)
+	await addDocComment(model, result, item)
 
-	addReferences(result, item)
+	addReferences(model, result, item)
 	addLinkToSource(result, item)
 
 	if (membersResult.markdown.length) {
@@ -140,16 +170,21 @@ function addMarkdown(result: Result, markdown: string) {
 	result.markdown += markdown
 }
 
-async function addMarkdownForMember(result: Result, member: ApiItem) {
+async function addMarkdownForMember(
+	model: TldrawApiModel,
+	result: Result,
+	member: ApiItem,
+	{ isComponentProp = false } = {}
+) {
 	if (member.displayName.startsWith('_')) return
 	addMemberName(result, member)
-	addTags(result, member)
-	await addDocComment(result, member)
-	addReferences(result, member)
-	addLinkToSource(result, member)
+	addTags(model, result, member, { isComponentProp })
+	await addDocComment(model, result, member, { isComponentProp })
+	addReferences(model, result, member)
 }
 
 async function addFrontmatter(
+	model: TldrawApiModel,
 	result: Result,
 	member: ApiItem,
 	categoryName: string,
@@ -180,7 +215,7 @@ title: ${member.displayName}
 status: published
 description: ${description}
 category: ${categoryName}
-group: ${member.kind}
+group: ${model.isComponent(member) ? APIGroup.Component : member.kind}
 author: api
 date: ${date}
 order: ${order}
@@ -203,10 +238,17 @@ function addMemberName(result: Result, member: ApiItem) {
 	result.markdown += `### \`${member.displayName}${member.kind === 'Method' ? '()' : ''}\`\n\n`
 }
 
-async function addDocComment(result: Result, member: ApiItem) {
+async function addDocComment(
+	model: TldrawApiModel,
+	result: Result,
+	member: ApiItem,
+	{ isComponentProp = false } = {}
+) {
 	if (!(member instanceof ApiDocumentedItem)) {
 		return
 	}
+
+	const isComponent = model.isComponent(member)
 
 	if (member.tsdocComment) {
 		result.markdown += await MarkdownWriter.docNodeToMarkdown(
@@ -239,12 +281,14 @@ async function addDocComment(result: Result, member: ApiItem) {
 		member instanceof ApiNamespace ||
 		member instanceof ApiMethod
 	) {
-		result.markdown += `<ApiHeading>Signature</ApiHeading>\n\n`
+		if (!isComponentProp) result.markdown += `<ApiHeading>Signature</ApiHeading>\n\n`
 		result.markdown += await typeExcerptToMarkdown(member.excerpt, {
 			kind: member.kind,
 		})
 		result.markdown += `\n\n`
 	}
+
+	if (isComponent) return
 
 	if (
 		member instanceof ApiMethod ||
@@ -321,7 +365,7 @@ async function addDocComment(result: Result, member: ApiItem) {
 			result.markdown += '</ParametersTable>\n\n'
 		}
 	} else {
-		throw new Error('unknown member kind: ' + member.kind)
+		model.error(member, `Unknown member kind: ${member.kind}`)
 	}
 }
 
@@ -384,42 +428,79 @@ async function typeExcerptToMarkdown(
 	return ['```ts', code, '```'].join('\n')
 }
 
-function addTags(result: Result, member: ApiItem) {
+function addTags(
+	model: TldrawApiModel,
+	result: Result,
+	member: ApiItem,
+	{ isComponentProp = false } = {}
+) {
 	const tags = []
-	if (ApiReleaseTagMixin.isBaseClassOf(member)) {
-		tags.push(ReleaseTag[member.releaseTag])
+	if (!isComponentProp) {
+		if (ApiReleaseTagMixin.isBaseClassOf(member)) {
+			tags.push(ReleaseTag[member.releaseTag])
+		}
+		if (ApiStaticMixin.isBaseClassOf(member) && member.isStatic) {
+			tags.push('static')
+		}
+		if (ApiReadonlyMixin.isBaseClassOf(member) && member.isReadonly) {
+			tags.push('readonly')
+		}
 	}
-	if (ApiStaticMixin.isBaseClassOf(member) && member.isStatic) {
-		tags.push('static')
+	if (member instanceof ApiPropertySignature && member.isOptional) {
+		tags.push('optional')
 	}
-	if (ApiReadonlyMixin.isBaseClassOf(member) && member.isReadonly) {
-		tags.push('readonly')
+	if (!isComponentProp) {
+		const kind = model.isComponent(member) ? 'component' : member.kind.toLowerCase()
+		tags.push(kind)
 	}
-	tags.push(member.kind.toLowerCase())
 	result.markdown += `<Small>${tags.filter((t) => t.toLowerCase() !== 'none').join(' ')}</Small>\n\n`
 }
 
-function addReferences(result: Result, member: ApiItem) {
+function addReferences(model: TldrawApiModel, result: Result, member: ApiItem) {
 	if (!(member instanceof ApiDeclaredItem)) return
 	const references = new Set<string>()
 
-	member.excerptTokens.forEach((token) => {
+	function addToken(item: ApiDeclaredItem, token: ExcerptToken) {
 		if (token.kind !== 'Reference') return
-		const apiItemResult = member
+		const apiItemResult = item
 			.getAssociatedModel()!
-			.resolveDeclarationReference(token.canonicalReference!, member)
+			.resolveDeclarationReference(token.canonicalReference!, item)
 		if (apiItemResult.errorMessage) {
 			return
 		}
 		const apiItem = apiItemResult.resolvedApiItem!
 		const url = `/reference/${getPath(apiItem)}`
 		references.add(`[${token.text}](${url})`)
+	}
+
+	member.excerptTokens.forEach((token) => {
+		addToken(member, token)
 	})
+
+	const componentProps = model.isComponent(member) ? model.getReactPropsItem(member) : null
+	if (componentProps && componentProps instanceof ApiDeclaredItem) {
+		componentProps.excerptTokens.forEach((token) => {
+			addToken(componentProps, token)
+		})
+	}
 
 	if (references.size) {
 		result.markdown += `<ApiHeading>References</ApiHeading>\n\n`
 		result.markdown += Array.from(references).join(', ') + '\n\n'
 	}
+}
+
+function addExtends(result: Result, item: ApiItem) {
+	const extendsTypes =
+		item instanceof ApiClass && item.extendsType
+			? [item.extendsType]
+			: item instanceof ApiInterface
+				? item.extendsTypes
+				: []
+
+	if (!extendsTypes.length) return
+
+	result.markdown += `Extends \`${extendsTypes.map((type) => type.excerpt.text).join(', ')}\`.\n\n`
 }
 
 function addLinkToSource(result: Result, member: ApiItem) {

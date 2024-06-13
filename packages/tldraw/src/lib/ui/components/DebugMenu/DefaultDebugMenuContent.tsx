@@ -29,7 +29,7 @@ import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 
-/** @public */
+/** @public @react */
 export function DefaultDebugMenuContent() {
 	const editor = useEditor()
 	const { addToast } = useToasts()
@@ -177,7 +177,7 @@ export function DefaultDebugMenuContent() {
 		</>
 	)
 }
-/** @public */
+/** @public @react */
 export function DebugFlags() {
 	const items = Object.values(debugFlags)
 	if (!items.length) return null
@@ -191,7 +191,7 @@ export function DebugFlags() {
 		</TldrawUiMenuSubmenu>
 	)
 }
-/** @public */
+/** @public @react */
 export function FeatureFlags() {
 	const items = Object.values(featureFlags)
 	if (!items.length) return null
@@ -205,7 +205,19 @@ export function FeatureFlags() {
 		</TldrawUiMenuSubmenu>
 	)
 }
+
 /** @public */
+export interface ExampleDialogProps {
+	title?: string
+	body?: string
+	cancel?: string
+	confirm?: string
+	displayDontShowAgain?: boolean
+	onCancel: () => void
+	onContinue: () => void
+}
+
+/** @public @react */
 export function ExampleDialog({
 	title = 'title',
 	body = 'hello hello hello',
@@ -214,15 +226,7 @@ export function ExampleDialog({
 	displayDontShowAgain = false,
 	onCancel,
 	onContinue,
-}: {
-	title?: string
-	body?: string
-	cancel?: string
-	confirm?: string
-	displayDontShowAgain?: boolean
-	onCancel: () => void
-	onContinue: () => void
-}) {
+}: ExampleDialogProps) {
 	const [dontShowAgain, setDontShowAgain] = React.useState(false)
 
 	return (

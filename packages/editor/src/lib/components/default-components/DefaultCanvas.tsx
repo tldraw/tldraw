@@ -29,7 +29,7 @@ export interface TLCanvasComponentProps {
 	className?: string
 }
 
-/** @public */
+/** @public @react */
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 

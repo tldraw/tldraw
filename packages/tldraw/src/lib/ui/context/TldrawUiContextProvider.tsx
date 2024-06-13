@@ -12,11 +12,7 @@ import { DialogsProvider } from './dialogs'
 import { TLUiEventHandler, UiEventsProvider } from './events'
 import { ToastsProvider } from './toasts'
 
-/**
- * Props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.
- *
- * @public
- **/
+/** @public */
 export interface TldrawUiContextProviderProps {
 	/**
 	 * Urls for where to find fonts and other assets for the UI.
@@ -49,7 +45,7 @@ export interface TldrawUiContextProviderProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiContextProvider({
 	overrides,
 	components,

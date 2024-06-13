@@ -295,4 +295,137 @@ exports.rules = {
 		},
 		defaultOptions: [],
 	}),
+	'tagged-components': ESLintUtils.RuleCreator.withoutDocs({
+		create(context) {
+			function isComponentName(node: TSESTree.Node) {
+				return node.type === 'Identifier' && /^[A-Z]/.test(node.name)
+			}
+
+			function checkComponentDeclaration(
+				services: utils.ParserServices,
+				node: TSESTree.VariableDeclarator | TSESTree.FunctionDeclaration,
+				propsType: ts.TypeNode | undefined
+			) {
+				const declaration = findTopLevelParent(node)
+				const comments = context.getSourceCode().getCommentsBefore(declaration)
+
+				// we only care about components tagged as public
+				const publicComment = comments.find((comment) => comment.value.includes('@public'))
+				if (!publicComment) return
+
+				// if it's not tagged as a react component, it should be:
+				if (!publicComment.value.includes('@react')) {
+					context.report({
+						messageId: 'untagged',
+						node: publicComment,
+						fix: (fixer) => {
+							const hasLines = publicComment.value.includes('\n')
+							let replacement
+							if (hasLines) {
+								const lines = publicComment.value.split('\n')
+								const publicLineIdx = lines.findIndex((line) => line.includes('@public'))
+								if (!publicLineIdx) throw new Error('Could not find @public line')
+								const indent = lines[publicLineIdx].match(/^\s*/)![0]
+								lines.splice(publicLineIdx + 1, 0, `${indent}* @react`)
+								replacement = lines.join('\n')
+							} else {
+								replacement = publicComment.value.replace('@public', '@public @react')
+							}
+
+							return fixer.replaceText(publicComment, `/*${replacement}*/`)
+						},
+					})
+					return
+				}
+
+				// if it is tagged as a react component, the props should be a named export:
+				if (!propsType) return
+				if (propsType.kind !== ts.SyntaxKind.TypeReference) {
+					context.report({
+						messageId: 'nonNamedProps',
+						node: services.tsNodeToESTreeNodeMap.get(propsType)!,
+					})
+				}
+			}
+
+			function findTopLevelParent(node: TSESTree.Node): TSESTree.Node {
+				let current: TSESTree.Node = node
+				while (current.parent && current.parent.type !== 'Program') {
+					current = current.parent
+				}
+				return current
+			}
+
+			function checkFunctionExpression(
+				node: TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression
+			) {
+				const services = ESLintUtils.getParserServices(context)
+
+				const parent = node.parent!
+				if (parent.type === utils.AST_NODE_TYPES.VariableDeclarator && isComponentName(parent.id)) {
+					const propsType = services.esTreeNodeToTSNodeMap.get(node).parameters[0]?.type
+					checkComponentDeclaration(services, parent, propsType)
+				}
+
+				if (parent.type === utils.AST_NODE_TYPES.CallExpression) {
+					const callee = parent.callee
+					const grandparent = parent.parent!
+
+					const isMemoFn =
+						(callee.type === utils.AST_NODE_TYPES.Identifier && callee.name === 'memo') ||
+						(callee.type === utils.AST_NODE_TYPES.MemberExpression &&
+							callee.property.type === utils.AST_NODE_TYPES.Identifier &&
+							callee.property.name === 'memo')
+
+					const isForwardRefFn =
+						(callee.type === utils.AST_NODE_TYPES.Identifier && callee.name === 'forwardRef') ||
+						(callee.type === utils.AST_NODE_TYPES.MemberExpression &&
+							callee.property.type === utils.AST_NODE_TYPES.Identifier &&
+							callee.property.name === 'forwardRef')
+
+					const isComponenty =
+						grandparent.type === utils.AST_NODE_TYPES.VariableDeclarator &&
+						isComponentName(grandparent.id)
+
+					if (isMemoFn && isComponenty) {
+						const propsType = services.esTreeNodeToTSNodeMap.get(node).parameters[0]?.type
+						checkComponentDeclaration(services, grandparent, propsType)
+					}
+
+					if (isForwardRefFn && isComponenty) {
+						const propsType =
+							services.esTreeNodeToTSNodeMap.get(node).parameters[1]?.type ||
+							services.esTreeNodeToTSNodeMap.get(parent).typeArguments?.[1]
+						checkComponentDeclaration(services, grandparent, propsType)
+					}
+				}
+			}
+
+			return {
+				FunctionDeclaration(node) {
+					if (node.id && isComponentName(node.id)) {
+						const services = ESLintUtils.getParserServices(context)
+						const propsType = services.esTreeNodeToTSNodeMap.get(node).parameters[0]?.type
+						checkComponentDeclaration(services, node, propsType)
+					}
+				},
+				FunctionExpression(node) {
+					checkFunctionExpression(node)
+				},
+				ArrowFunctionExpression(node) {
+					checkFunctionExpression(node)
+				},
+			}
+		},
+		meta: {
+			messages: {
+				untagged: 'This react component should be tagged with @react',
+				nonNamedProps: 'Props should be a separate named & public exported type/interface.',
+			},
+			type: 'problem',
+			schema: [],
+			fixable: 'code',
+		},
+		defaultOptions: [],
+	}),
 }

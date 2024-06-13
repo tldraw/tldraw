@@ -34,7 +34,7 @@ export interface TLUiMenuContextProviderProps {
 	children: React.ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiMenuContextProvider({
 	type,
 	sourceId,

@@ -2,7 +2,7 @@ import { GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
 import { TLUiToolItem, useTools } from '../../hooks/useTools'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
-/** @public */
+/** @public @react */
 export function DefaultToolbarContent() {
 	return (
 		<>
@@ -54,159 +54,164 @@ export function useIsToolSelected(tool: TLUiToolItem) {
 }
 
 /** @public */
-export function ToolbarItem({ tool }: { tool: string }) {
+export interface ToolbarItemProps {
+	tool: string
+}
+
+/** @public @react */
+export function ToolbarItem({ tool }: ToolbarItemProps) {
 	const tools = useTools()
 	const isSelected = useIsToolSelected(tools[tool])
 	return <TldrawUiMenuItem {...tools[tool]} isSelected={isSelected} />
 }
 
-/** @public */
+/** @public @react */
 export function SelectToolbarItem() {
 	return <ToolbarItem tool="select" />
 }
 
-/** @public */
+/** @public @react */
 export function HandToolbarItem() {
 	return <ToolbarItem tool="hand" />
 }
 
-/** @public */
+/** @public @react */
 export function DrawToolbarItem() {
 	return <ToolbarItem tool="draw" />
 }
 
-/** @public */
+/** @public @react */
 export function EraserToolbarItem() {
 	return <ToolbarItem tool="eraser" />
 }
 
-/** @public */
+/** @public @react */
 export function ArrowToolbarItem() {
 	return <ToolbarItem tool="arrow" />
 }
 
-/** @public */
+/** @public @react */
 export function TextToolbarItem() {
 	return <ToolbarItem tool="text" />
 }
 
-/** @public */
+/** @public @react */
 export function NoteToolbarItem() {
 	return <ToolbarItem tool="note" />
 }
 
-/** @public */
+/** @public @react */
 export function AssetToolbarItem() {
 	const tools = useTools()
 	return <TldrawUiMenuItem {...tools['asset']} />
 }
 
-/** @public */
+/** @public @react */
 export function RectangleToolbarItem() {
 	return <ToolbarItem tool="rectangle" />
 }
 
-/** @public */
+/** @public @react */
 export function EllipseToolbarItem() {
 	return <ToolbarItem tool="ellipse" />
 }
 
-/** @public */
+/** @public @react */
 export function DiamondToolbarItem() {
 	return <ToolbarItem tool="diamond" />
 }
 
-/** @public */
+/** @public @react */
 export function TriangleToolbarItem() {
 	return <ToolbarItem tool="triangle" />
 }
 
-/** @public */
+/** @public @react */
 export function TrapezoidToolbarItem() {
 	return <ToolbarItem tool="trapezoid" />
 }
 
-/** @public */
+/** @public @react */
 export function RhombusToolbarItem() {
 	return <ToolbarItem tool="rhombus" />
 }
 
-/** @public */
+/** @public @react */
 export function PentagonToolbarItem() {
 	return <ToolbarItem tool="pentagon" />
 }
 
-/** @public */
+/** @public @react */
 export function HeartToolbarItem() {
 	return <ToolbarItem tool="heart" />
 }
 
-/** @public */
+/** @public @react */
 export function HexagonToolbarItem() {
 	return <ToolbarItem tool="hexagon" />
 }
 
-/** @public */
+/** @public @react */
 export function CloudToolbarItem() {
 	return <ToolbarItem tool="cloud" />
 }
 
-/** @public */
+/** @public @react */
 export function StarToolbarItem() {
 	return <ToolbarItem tool="star" />
 }
 
-/** @public */
+/** @public @react */
 export function OvalToolbarItem() {
 	return <ToolbarItem tool="oval" />
 }
 
-/** @public */
+/** @public @react */
 export function XBoxToolbarItem() {
 	return <ToolbarItem tool="x-box" />
 }
 
-/** @public */
+/** @public @react */
 export function CheckBoxToolbarItem() {
 	return <ToolbarItem tool="check-box" />
 }
 
-/** @public */
+/** @public @react */
 export function ArrowLeftToolbarItem() {
 	return <ToolbarItem tool="arrow-left" />
 }
 
-/** @public */
+/** @public @react */
 export function ArrowUpToolbarItem() {
 	return <ToolbarItem tool="arrow-up" />
 }
 
-/** @public */
+/** @public @react */
 export function ArrowDownToolbarItem() {
 	return <ToolbarItem tool="arrow-down" />
 }
 
-/** @public */
+/** @public @react */
 export function ArrowRightToolbarItem() {
 	return <ToolbarItem tool="arrow-right" />
 }
 
-/** @public */
+/** @public @react */
 export function LineToolbarItem() {
 	return <ToolbarItem tool="line" />
 }
 
-/** @public */
+/** @public @react */
 export function HighlightToolbarItem() {
 	return <ToolbarItem tool="highlight" />
 }
 
-/** @public */
+/** @public @react */
 export function FrameToolbarItem() {
 	return <ToolbarItem tool="frame" />
 }
 
-/** @public */
+/** @public @react */
 export function LaserToolbarItem() {
 	return <ToolbarItem tool="laser" />
 }

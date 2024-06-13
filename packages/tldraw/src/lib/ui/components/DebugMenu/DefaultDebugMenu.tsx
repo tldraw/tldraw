@@ -14,7 +14,7 @@ export interface TLUiDebugMenuProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function DefaultDebugMenu({ children }: TLUiDebugMenuProps) {
 	const content = children ?? <DefaultDebugMenuContent />
 
