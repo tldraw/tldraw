@@ -27,6 +27,7 @@ import { EmbedDialog } from '../components/EmbedDialog'
 import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
 import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
+import { flattenShapesToImages } from '../hooks/useFlatten'
 import { useInsertMedia } from '../hooks/useInsertMedia'
 import { usePrint } from '../hooks/usePrint'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -1339,6 +1340,28 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.updateInstanceState({ isChangingStyle: true })
 					})
 					trackEvent('set-style', { source, id: style.id, value: 'white' })
+				},
+			},
+			{
+				id: 'flatten-to-image',
+				label: 'action.flatten-to-image',
+				kbd: '!f',
+				onSelect: async (source) => {
+					const ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) return
+
+					editor.mark('flattening to image')
+					trackEvent('flatten-to-image', { source })
+
+					const newShapeIds = await flattenShapesToImages(
+						editor,
+						ids,
+						editor.options.flattenImageBoundsExpand
+					)
+
+					if (newShapeIds?.length) {
+						editor.setSelectedShapes(newShapeIds)
+					}
 				},
 			},
 		]
