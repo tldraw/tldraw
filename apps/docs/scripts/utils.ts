@@ -98,6 +98,12 @@ export async function formatWithPrettier(
 		console.warn(`☢️ Could not format code: ${code}`)
 	}
 
+	// sometimes prettier adds a semicolon to the start of the code when formatting expressions (JSX
+	// in particular), so strip it if we see it
+	if (formattedCode.startsWith(';')) {
+		formattedCode = formattedCode.slice(1)
+	}
+
 	return formattedCode.trimEnd()
 }
 
