@@ -22,7 +22,6 @@ import {
 	ApiTypeAlias,
 	ApiVariable,
 	Excerpt,
-	ExcerptToken,
 	ReleaseTag,
 } from '@microsoft/api-extractor-model'
 import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from '../utils'
@@ -118,9 +117,13 @@ export async function getApiMarkdown(
 				componentProps instanceof ApiDeclaredItem &&
 				componentProps?.kind !== 'Interface'
 			) {
-				propertiesResult.markdown += await typeExcerptToMarkdown(componentProps.excerpt, {
-					kind: componentProps.kind,
-				})
+				propertiesResult.markdown += await excerptToMarkdown(
+					componentProps,
+					componentProps.excerpt,
+					{
+						kind: componentProps.kind,
+					}
+				)
 			}
 			if (propertiesResult.markdown.trim()) {
 				addMarkdown(toc, `- [Properties](#properties)\n`)
@@ -153,7 +156,6 @@ export async function getApiMarkdown(
 
 	await addDocComment(model, result, item)
 
-	addReferences(model, result, item)
 	addLinkToSource(result, item)
 
 	if (membersResult.markdown.length) {
@@ -180,7 +182,6 @@ async function addMarkdownForMember(
 	addMemberName(result, member)
 	addTags(model, result, member, { isComponentProp })
 	await addDocComment(model, result, member, { isComponentProp })
-	addReferences(model, result, member)
 }
 
 async function addFrontmatter(
@@ -282,7 +283,7 @@ async function addDocComment(
 		member instanceof ApiMethod
 	) {
 		if (!isComponentProp) result.markdown += `<ApiHeading>Signature</ApiHeading>\n\n`
-		result.markdown += await typeExcerptToMarkdown(member.excerpt, {
+		result.markdown += await excerptToMarkdown(member, member.excerpt, {
 			kind: member.kind,
 		})
 		result.markdown += `\n\n`
@@ -308,7 +309,7 @@ async function addDocComment(
 				result.markdown += `\`${param.name}\`\n\n`
 				result.markdown += `</ParametersTableName>\n`
 				result.markdown += `<ParametersTableDescription>\n\n`
-				result.markdown += await typeExcerptToMarkdown(param.parameterTypeExcerpt, {
+				result.markdown += await excerptToMarkdown(member, param.parameterTypeExcerpt, {
 					kind: 'ParameterType',
 					printWidth: 60,
 				})
@@ -327,7 +328,7 @@ async function addDocComment(
 
 		if (!(member instanceof ApiConstructor)) {
 			result.markdown += `<ApiHeading>Returns</ApiHeading>\n\n`
-			result.markdown += await typeExcerptToMarkdown(member.returnTypeExcerpt, {
+			result.markdown += await excerptToMarkdown(member, member.returnTypeExcerpt, {
 				kind: 'ReturnType',
 			})
 			result.markdown += `\n\n`
@@ -369,13 +370,28 @@ async function addDocComment(
 	}
 }
 
-async function typeExcerptToMarkdown(
+async function excerptToMarkdown(
+	item: ApiItem,
 	excerpt: Excerpt,
 	{ kind, printWidth }: { kind: ApiItemKind | 'ReturnType' | 'ParameterType'; printWidth?: number }
 ) {
+	const links = {} as Record<string, string>
+
 	let code = ''
 	for (const token of excerpt.spannedTokens) {
 		code += token.text
+
+		if (!token.canonicalReference) continue
+
+		const apiItemResult = item
+			.getAssociatedModel()!
+			.resolveDeclarationReference(token.canonicalReference!, item)
+
+		if (apiItemResult.errorMessage) continue
+
+		const apiItem = apiItemResult.resolvedApiItem!
+		const url = `/reference/${getPath(apiItem)}`
+		links[token.text] = url
 	}
 
 	code = code.replace(/^export /, '')
@@ -425,7 +441,15 @@ async function typeExcerptToMarkdown(
 			throw Error()
 	}
 
-	return ['```ts', code, '```'].join('\n')
+	return [
+		`<CodeLinkProvider links={${JSON.stringify(links)}}>`,
+		'',
+		'```ts',
+		code,
+		'```',
+		'',
+		'</CodeLinkProvider>',
+	].join('\n')
 }
 
 function addTags(
@@ -456,40 +480,6 @@ function addTags(
 	result.markdown += `<Small>${tags.filter((t) => t.toLowerCase() !== 'none').join(' ')}</Small>\n\n`
 }
 
-function addReferences(model: TldrawApiModel, result: Result, member: ApiItem) {
-	if (!(member instanceof ApiDeclaredItem)) return
-	const references = new Set<string>()
-
-	function addToken(item: ApiDeclaredItem, token: ExcerptToken) {
-		if (token.kind !== 'Reference') return
-		const apiItemResult = item
-			.getAssociatedModel()!
-			.resolveDeclarationReference(token.canonicalReference!, item)
-		if (apiItemResult.errorMessage) {
-			return
-		}
-		const apiItem = apiItemResult.resolvedApiItem!
-		const url = `/reference/${getPath(apiItem)}`
-		references.add(`[${token.text}](${url})`)
-	}
-
-	member.excerptTokens.forEach((token) => {
-		addToken(member, token)
-	})
-
-	const componentProps = model.isComponent(member) ? model.getReactPropsItem(member) : null
-	if (componentProps && componentProps instanceof ApiDeclaredItem) {
-		componentProps.excerptTokens.forEach((token) => {
-			addToken(componentProps, token)
-		})
-	}
-
-	if (references.size) {
-		result.markdown += `<ApiHeading>References</ApiHeading>\n\n`
-		result.markdown += Array.from(references).join(', ') + '\n\n'
-	}
-}
-
 function addExtends(result: Result, item: ApiItem) {
 	const extendsTypes =
 		item instanceof ApiClass && item.extendsType
@@ -500,7 +490,30 @@ function addExtends(result: Result, item: ApiItem) {
 
 	if (!extendsTypes.length) return
 
-	result.markdown += `Extends \`${extendsTypes.map((type) => type.excerpt.text).join(', ')}\`.\n\n`
+	const links = {} as Record<string, string>
+	for (const type of extendsTypes) {
+		for (const token of type.excerpt.spannedTokens) {
+			if (!token.canonicalReference) continue
+
+			const apiItemResult = item
+				.getAssociatedModel()!
+				.resolveDeclarationReference(token.canonicalReference!, item)
+
+			if (apiItemResult.errorMessage) continue
+
+			const apiItem = apiItemResult.resolvedApiItem!
+			links[token.text] = `/reference/${getPath(apiItem)}`
+		}
+	}
+
+	result.markdown += [
+		`<CodeLinkProvider links={${JSON.stringify(links)}}>`,
+		'',
+		`Extends \`${extendsTypes.map((type) => type.excerpt.text).join(', ')}\`.`,
+		'',
+		'</CodeLinkProvider>',
+		'',
+	].join('\n')
 }
 
 function addLinkToSource(result: Result, member: ApiItem) {
