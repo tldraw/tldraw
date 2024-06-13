@@ -10,7 +10,7 @@ import {
 	DocSection,
 	DocSoftBreak,
 } from '@microsoft/tsdoc'
-import assert from 'assert'
+import { assert } from '@tldraw/utils'
 import { slug as githubSlug } from 'github-slugger'
 
 import path from 'path'

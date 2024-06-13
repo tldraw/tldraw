@@ -9,7 +9,7 @@ import {
 	ExcerptToken,
 	ExcerptTokenKind,
 } from '@microsoft/api-extractor-model'
-import { assert } from './assert'
+import { assert } from '@tldraw/utils'
 
 export class TldrawApiModel extends ApiModel {
 	private reactComponents = new Set<ApiItem>()

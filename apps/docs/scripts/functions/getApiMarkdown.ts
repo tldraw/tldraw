@@ -435,14 +435,16 @@ function addTags(
 	{ isComponentProp = false } = {}
 ) {
 	const tags = []
-	if (!isComponentProp && ApiReleaseTagMixin.isBaseClassOf(member)) {
-		tags.push(ReleaseTag[member.releaseTag])
-	}
-	if (!isComponentProp && ApiStaticMixin.isBaseClassOf(member) && member.isStatic) {
-		tags.push('static')
-	}
-	if (!isComponentProp && ApiReadonlyMixin.isBaseClassOf(member) && member.isReadonly) {
-		tags.push('readonly')
+	if (!isComponentProp) {
+		if (ApiReleaseTagMixin.isBaseClassOf(member)) {
+			tags.push(ReleaseTag[member.releaseTag])
+		}
+		if (ApiStaticMixin.isBaseClassOf(member) && member.isStatic) {
+			tags.push('static')
+		}
+		if (ApiReadonlyMixin.isBaseClassOf(member) && member.isReadonly) {
+			tags.push('readonly')
+		}
 	}
 	if (member instanceof ApiPropertySignature && member.isOptional) {
 		tags.push('optional')

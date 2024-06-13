@@ -1,4 +1,5 @@
 import { connect } from '@/scripts/functions/connect'
+import { assert } from '@tldraw/utils'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
 import {
@@ -12,7 +13,6 @@ import {
 	SidebarContentLink,
 	SidebarContentList,
 } from '../types/content-types'
-import { assert } from './assert'
 
 export class ContentDatabase {
 	constructor(public db: Database<sqlite3.Database, sqlite3.Statement>) {}
