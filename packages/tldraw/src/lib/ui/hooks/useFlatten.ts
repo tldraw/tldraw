@@ -17,7 +17,7 @@ import { useCallback } from 'react'
 export async function flattenShapesToImages(
 	editor: Editor,
 	ids: TLShapeId[],
-	multipleImagePadding?: number
+	flattenImageBoundsExpand?: number
 ) {
 	if (ids.length === 0) return
 
@@ -30,11 +30,11 @@ export async function flattenShapesToImages(
 
 	const groups: { ids: TLShapeId[]; bounds: Box; asset?: TLImageAsset }[] = []
 
-	if (multipleImagePadding !== undefined) {
+	if (flattenImageBoundsExpand !== undefined) {
 		const expandedBounds = ids.map((id) => {
 			return {
 				id,
-				bounds: editor.getShapeMaskedPageBounds(id)!.clone().expandBy(multipleImagePadding),
+				bounds: editor.getShapeMaskedPageBounds(id)!.clone().expandBy(flattenImageBoundsExpand),
 			}
 		})
 
@@ -77,9 +77,9 @@ export async function flattenShapesToImages(
 	const padding = editor.options.flattenImageBoundsPadding
 
 	for (const group of groups) {
-		if (multipleImagePadding !== undefined) {
+		if (flattenImageBoundsExpand !== undefined) {
 			// shrink the bounds again, removing the expanded area
-			group.bounds.expandBy(-multipleImagePadding)
+			group.bounds.expandBy(-flattenImageBoundsExpand)
 		}
 
 		// get an image for the shapes
