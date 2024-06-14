@@ -17,9 +17,9 @@ async function main() {
 		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
 	}
 
-	await publish()
-
 	await uploadStaticAssets(latestVersionInBranch.version)
+
+	await publish()
 }
 
 main()

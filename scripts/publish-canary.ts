@@ -21,8 +21,8 @@ async function main() {
 	// module was called directly
 
 	const versionString = await setCanaryVersions()
-	await publish('canary')
 	await uploadStaticAssets(versionString)
+	await publish('canary')
 }
 
 main()
