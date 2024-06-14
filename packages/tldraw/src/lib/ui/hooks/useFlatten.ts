@@ -5,8 +5,10 @@ import {
 	IndexKey,
 	TLImageAsset,
 	TLImageShape,
+	TLShape,
 	TLShapeId,
 	Vec,
+	compact,
 	createShapeId,
 	isShapeId,
 	transact,
@@ -16,25 +18,36 @@ import { useCallback } from 'react'
 
 export async function flattenShapesToImages(
 	editor: Editor,
-	ids: TLShapeId[],
+	shapeIds: TLShapeId[],
 	flattenImageBoundsExpand?: number
 ) {
-	if (ids.length === 0) return
+	const shapes = compact(
+		shapeIds.map((id) => {
+			const shape = editor.getShape(id)
+			if (!shape) return
+			const util = editor.getShapeUtil(shape.type)
+			// skip shapes that don't have a toSvg method
+			if (util.toSvg === undefined) return
+			return shape
+		})
+	)
+
+	if (shapes.length === 0) return
 
 	// Don't flatten if it's just one image
-	if (ids.length === 1) {
-		const shape = editor.getShape(ids[0])
+	if (shapes.length === 1) {
+		const shape = shapes[0]
 		if (!shape) return
 		if (editor.isShapeOfType(shape, 'image')) return
 	}
 
-	const groups: { ids: TLShapeId[]; bounds: Box; asset?: TLImageAsset }[] = []
+	const groups: { shapes: TLShape[]; bounds: Box; asset?: TLImageAsset }[] = []
 
 	if (flattenImageBoundsExpand !== undefined) {
-		const expandedBounds = ids.map((id) => {
+		const expandedBounds = shapes.map((shape) => {
 			return {
-				id,
-				bounds: editor.getShapeMaskedPageBounds(id)!.clone().expandBy(flattenImageBoundsExpand),
+				shape,
+				bounds: editor.getShapeMaskedPageBounds(shape)!.clone().expandBy(flattenImageBoundsExpand),
 			}
 		})
 
@@ -42,7 +55,7 @@ export async function flattenShapesToImages(
 			const item = expandedBounds[i]
 			if (i === 0) {
 				groups[0] = {
-					ids: [item.id],
+					shapes: [item.shape],
 					bounds: item.bounds,
 				}
 				continue
@@ -52,7 +65,7 @@ export async function flattenShapesToImages(
 
 			for (const group of groups) {
 				if (group.bounds.includes(item.bounds)) {
-					group.ids.push(item.id)
+					group.shapes.push(item.shape)
 					group.bounds.expand(item.bounds)
 					didLand = true
 					break
@@ -61,15 +74,15 @@ export async function flattenShapesToImages(
 
 			if (!didLand) {
 				groups.push({
-					ids: [item.id],
+					shapes: [item.shape],
 					bounds: item.bounds,
 				})
 			}
 		}
 	} else {
-		const bounds = Box.Common(ids.map((id) => editor.getShapeMaskedPageBounds(id)!))
+		const bounds = Box.Common(shapes.map((shape) => editor.getShapeMaskedPageBounds(shape)!))
 		groups.push({
-			ids,
+			shapes,
 			bounds,
 		})
 	}
@@ -83,7 +96,7 @@ export async function flattenShapesToImages(
 		}
 
 		// get an image for the shapes
-		const svgResult = await editor.getSvgString(group.ids, {
+		const svgResult = await editor.getSvgString(group.shapes, {
 			padding,
 		})
 		if (!svgResult?.svg) continue
@@ -100,22 +113,20 @@ export async function flattenShapesToImages(
 		group.asset = asset
 	}
 
-	const shapeIds: TLShapeId[] = []
+	const createdShapeIds: TLShapeId[] = []
 
 	transact(() => {
 		for (const group of groups) {
-			const { asset, bounds, ids } = group
+			const { asset, bounds, shapes } = group
 			if (!asset) continue
 
 			const assetId = AssetRecordType.createId()
 
-			const commonAncestorId = editor.findCommonAncestor(ids) ?? editor.getCurrentPageId()
+			const commonAncestorId = editor.findCommonAncestor(shapes) ?? editor.getCurrentPageId()
 			if (!commonAncestorId) continue
 
 			let index: IndexKey = 'a1' as IndexKey
-			for (const id of ids) {
-				const shape = editor.getShape(id)
-				if (!shape) continue
+			for (const shape of shapes) {
 				if (shape.parentId === commonAncestorId) {
 					if (shape.index > index) {
 						index = shape.index
@@ -150,7 +161,7 @@ export async function flattenShapesToImages(
 			}
 
 			// delete the shapes
-			editor.deleteShapes(ids)
+			editor.deleteShapes(shapes)
 
 			// create the asset
 			editor.createAssets([{ ...asset, id: assetId }])
@@ -173,11 +184,11 @@ export async function flattenShapesToImages(
 				},
 			})
 
-			shapeIds.push(shapeId)
+			createdShapeIds.push(shapeId)
 		}
 	})
 
-	return shapeIds
+	return createdShapeIds
 }
 
 export function useFlatten() {
