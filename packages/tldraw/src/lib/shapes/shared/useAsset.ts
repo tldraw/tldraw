@@ -1,4 +1,4 @@
-import { TLAssetId, useEditor, useValueDebounced } from '@tldraw/editor'
+import { TLAssetId, useEditor, useValue } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
 
 /** @internal */
@@ -10,22 +10,25 @@ export function useAsset(assetId: TLAssetId | null, width: number) {
 	const shapeScale = asset && 'w' in asset.props ? width / asset.props.w : 1
 	// We debounce the zoom level to reduce the number of times we fetch a new image and,
 	// more importantly, to not cause zooming in and out to feel janky.
-	const debouncedScreenScale = useValueDebounced(
-		'zoom level',
-		() => editor.getZoomLevel() * shapeScale,
-		[editor, shapeScale],
-		500
-	)
+	const screenScale = useValue('zoom level', () => editor.getZoomLevel() * shapeScale, [
+		editor,
+		shapeScale,
+	])
 
 	useEffect(() => {
-		async function resolve() {
+		let isCancelled = false
+		const timer = editor.timers.setTimeout(async () => {
 			const resolvedUrl = await editor.resolveAssetUrl(assetId, {
-				screenScale: debouncedScreenScale,
+				screenScale,
 			})
-			setUrl(resolvedUrl)
+			if (!isCancelled) setUrl(resolvedUrl)
+		})
+
+		return () => {
+			clearTimeout(timer)
+			isCancelled = true
 		}
-		resolve()
-	}, [assetId, debouncedScreenScale, editor])
+	}, [assetId, screenScale, editor])
 
 	return { asset, url }
 }

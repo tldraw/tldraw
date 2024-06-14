@@ -127,7 +127,7 @@ export function getSaveFileCopyAction(
 			const defaultName =
 				saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
 
-			const blobToSave = serializeTldrawJsonBlob(editor.store)
+			const blobToSave = serializeTldrawJsonBlob(editor)
 			let handle
 			try {
 				handle = await fileSave(blobToSave, {

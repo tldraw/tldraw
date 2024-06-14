@@ -85,7 +85,6 @@ import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
-import { useValueDebounced } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
@@ -153,6 +152,8 @@ export interface AssetContextProps {
     networkEffectiveType: null | string;
     // (undocumented)
     screenScale: number;
+    // (undocumented)
+    shouldResolveToOriginalImage?: boolean;
     // (undocumented)
     steppedScreenScale: number;
 }
@@ -1065,6 +1066,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         select: boolean;
     }>): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
+    // (undocumented)
+    hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean;
     readonly history: HistoryManager<TLRecord>;
     inputs: {
         buttons: Set<number>;
@@ -1130,8 +1133,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     // (undocumented)
+    resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
+    // (undocumented)
     resolveAssetUrl(assetId: null | TLAssetId, context: {
-        screenScale: number;
+        screenScale?: number;
+        shouldResolveToOriginalImage?: boolean;
     }): Promise<null | string>;
     readonly root: StateNode;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
@@ -3485,8 +3491,6 @@ export function useTLStore(opts: TLStoreOptions & {
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 export { useValue }
-
-export { useValueDebounced }
 
 // @public (undocumented)
 export class Vec {
