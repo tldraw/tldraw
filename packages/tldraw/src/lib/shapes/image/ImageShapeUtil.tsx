@@ -67,11 +67,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const { asset, url } = useAsset(shape.props.assetId, shape.props.w)
 
 		useEffect(() => {
-			// If an image is not animated (that's handled below), then we preload the image
-			// because we might have different source urls for different zoom levels.
+			// We preload the image because we might have different source urls for different
+			// zoom levels.
 			// Preloading the image ensures that the browser caches the image and doesn't
 			// cause visual flickering when the image is loaded.
-			if (url && !this.isAnimated(shape)) {
+			if (url) {
 				let cancelled = false
 
 				const image = Image()
@@ -204,12 +204,22 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	override async toSvg(shape: TLImageShape) {
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
+		if (!shape.props.assetId) return null
+
+		const asset = this.editor.getAsset(shape.props.assetId)
 
 		if (!asset) return null
 
-		let src = asset?.props.src || ''
-		if (src.startsWith('http') || src.startsWith('/') || src.startsWith('./')) {
+		let src = await this.editor.resolveAssetUrl(shape.props.assetId, {
+			shouldResolveToOriginalImage: true,
+		})
+		if (!src) return null
+		if (
+			src.startsWith('blob:') ||
+			src.startsWith('http') ||
+			src.startsWith('/') ||
+			src.startsWith('./')
+		) {
 			// If it's a remote image, we need to fetch it and convert it to a data URI
 			src = (await getDataURIFromURL(src)) || ''
 		}

@@ -2,7 +2,7 @@
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
-
+export { getAssetFromIndexedDb, storeAssetInIndexedDb } from './lib/AssetBlobStore'
 export { Tldraw, type TLComponents, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'

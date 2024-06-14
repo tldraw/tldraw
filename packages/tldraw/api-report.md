@@ -847,6 +847,12 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
     start: Vec;
 };
 
+// @public (undocumented)
+export function getAssetFromIndexedDb({ persistenceKey, assetId, }: {
+    assetId: string;
+    persistenceKey: string;
+}): Promise<Blob | undefined>;
+
 // @public
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
@@ -1321,10 +1327,10 @@ export class SelectTool extends StateNode {
 export function SelectToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function serializeTldrawJson(store: TLStore): Promise<string>;
+export function serializeTldrawJson(editor: Editor): Promise<string>;
 
 // @public (undocumented)
-export function serializeTldrawJsonBlob(store: TLStore): Promise<Blob>;
+export function serializeTldrawJsonBlob(editor: Editor): Promise<Blob>;
 
 // @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
@@ -1343,6 +1349,13 @@ export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function storeAssetInIndexedDb({ persistenceKey, assetId, blob, }: {
+    assetId: string;
+    blob: Blob;
+    persistenceKey: string;
+}): Promise<void>;
 
 // @public (undocumented)
 export interface StylePickerSetProps {
@@ -3281,8 +3294,8 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T): rea
 
 // @public (undocumented)
 export function useMenuClipboardEvents(): {
-    copy: (source: TLUiEventSource) => void;
-    cut: (source: TLUiEventSource) => void;
+    copy: (source: TLUiEventSource) => Promise<void>;
+    cut: (source: TLUiEventSource) => Promise<void>;
     paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike) => Promise<void>;
 };
 

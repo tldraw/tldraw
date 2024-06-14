@@ -21439,6 +21439,7 @@ __metadata:
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.3.2"
     hotkeys-js: "npm:^3.11.2"
+    idb: "npm:^7.1.1"
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
