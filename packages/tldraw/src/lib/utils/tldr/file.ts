@@ -175,9 +175,9 @@ function pruneUnusedAssets(records: TLRecord[]) {
 }
 
 /** @public */
-export async function serializeTldrawJson(editor: Editor, store: TLStore): Promise<string> {
+export async function serializeTldrawJson(editor: Editor): Promise<string> {
 	const records: TLRecord[] = []
-	for (const record of store.allRecords()) {
+	for (const record of editor.store.allRecords()) {
 		switch (record.typeName) {
 			case 'asset':
 				if (
@@ -219,14 +219,14 @@ export async function serializeTldrawJson(editor: Editor, store: TLStore): Promi
 
 	return JSON.stringify({
 		tldrawFileFormatVersion: LATEST_TLDRAW_FILE_FORMAT_VERSION,
-		schema: store.schema.serialize(),
+		schema: editor.store.schema.serialize(),
 		records: pruneUnusedAssets(records),
 	})
 }
 
 /** @public */
-export async function serializeTldrawJsonBlob(editor: Editor, store: TLStore): Promise<Blob> {
-	return new Blob([await serializeTldrawJson(editor, store)], { type: TLDRAW_FILE_MIMETYPE })
+export async function serializeTldrawJsonBlob(editor: Editor): Promise<Blob> {
+	return new Blob([await serializeTldrawJson(editor)], { type: TLDRAW_FILE_MIMETYPE })
 }
 
 /** @internal */

@@ -7661,7 +7661,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	} = {
 		file: null,
 		url: null,
-		blob: null,
 	}
 
 	/**
@@ -7840,28 +7839,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!content) return undefined
 
 		const assets: TLAsset[] = []
-		for (const asset of content.assets) {
-			if (
-				(asset.type === 'image' || asset.type === 'video') &&
-				!asset.props.src?.startsWith('data:image') &&
-				!asset.props.src?.startsWith('http')
-			) {
-				const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
-				const objectUrl = await this._assetOptions.get().onResolveAsset(asset!, {
-					screenScale: 1,
-					steppedScreenScale: 1,
-					dpr: 1,
-					networkEffectiveType: null,
-					shouldResolveToOriginalImage: true,
-				})
-				assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
-					await fetch(objectUrl!).then((r) => r.blob())
-				)
-				assets.push(assetWithDataUrl)
-			} else {
-				assets.push(asset)
-			}
-		}
+		await Promise.allSettled(
+			content.assets.map(async (asset) => {
+				if (
+					(asset.type === 'image' || asset.type === 'video') &&
+					!asset.props.src?.startsWith('data:image') &&
+					!asset.props.src?.startsWith('http')
+				) {
+					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+					const objectUrl = await this._assetOptions.get().onResolveAsset(asset!, {
+						screenScale: 1,
+						steppedScreenScale: 1,
+						dpr: 1,
+						networkEffectiveType: null,
+						shouldResolveToOriginalImage: true,
+					})
+					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
+						await fetch(objectUrl!).then((r) => r.blob())
+					)
+					assets.push(assetWithDataUrl)
+				} else {
+					assets.push(asset)
+				}
+			})
+		)
 		content.assets = assets
 
 		return content

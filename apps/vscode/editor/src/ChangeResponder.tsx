@@ -48,7 +48,7 @@ export const ChangeResponder = () => {
 			vscode.postMessage({
 				type: 'vscode:editor-updated',
 				data: {
-					fileContents: await serializeTldrawJson(editor, editor.store),
+					fileContents: await serializeTldrawJson(editor),
 				},
 			})
 		}, 250)

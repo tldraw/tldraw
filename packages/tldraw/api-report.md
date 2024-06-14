@@ -1309,10 +1309,10 @@ export class SelectTool extends StateNode {
 export function SelectToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function serializeTldrawJson(editor: Editor, store: TLStore): Promise<string>;
+export function serializeTldrawJson(editor: Editor): Promise<string>;
 
 // @public (undocumented)
-export function serializeTldrawJsonBlob(editor: Editor, store: TLStore): Promise<Blob>;
+export function serializeTldrawJsonBlob(editor: Editor): Promise<Blob>;
 
 // @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
