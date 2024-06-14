@@ -1,12 +1,8 @@
 import * as github from '@actions/github'
-import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
-import { Upload } from '@aws-sdk/lib-storage'
 import assert from 'assert'
 import { execSync } from 'child_process'
-import { appendFileSync, existsSync, readdirSync, writeFileSync } from 'fs'
+import { appendFileSync, existsSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
-import { PassThrough } from 'stream'
-import * as tar from 'tar'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
@@ -91,7 +87,6 @@ async function main() {
 		await createSentryRelease()
 		await prepareDotcomApp()
 		await uploadSourceMaps()
-		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
 
 	await discordStep('[3/7] cloudflare deploy dry run', async () => {
@@ -423,103 +418,6 @@ async function uploadSourceMaps() {
 
 	await execSentry('sourcemaps', ['upload', '--release', sentryReleaseName, sourceMapDir])
 	execSync('rm -rf ./.next/static/chunks/**/*.map')
-}
-
-const R2_URL = `https://c34edc4e76350954b63adebde86d5eb1.r2.cloudflarestorage.com`
-const R2_BUCKET = `dotcom-deploy-assets-cache`
-
-const R2 = new S3Client({
-	region: 'auto',
-	endpoint: R2_URL,
-	credentials: {
-		accessKeyId: env.R2_ACCESS_KEY_ID,
-		secretAccessKey: env.R2_ACCESS_KEY_SECRET,
-	},
-})
-
-/**
- * When we run a vite prod build it creates a folder in the output dir called assets in which
- * every file includes a hash of its contents in the filename. These files include files that
- * are 'imported' by the js bundle, e.g. svg and css files, along with the js bundle itself
- * (split into chunks).
- *
- * By default, when we deploy a new version of the app it will replace the previous versions
- * of the files with new versions. This is problematic when we make a new deploy because if
- * existing users have tldraw open in tabs while we make the new deploy, they might still try
- * to fetch .js chunks or images which are no longer present on the server and may not have
- * been cached by vercel's CDN in their location (or at all).
- *
- * To avoid this, we keep track of the assets from previous deploys in R2 and include them in the
- * new deploy. This way, if a user has an old version of the app open in a tab, they will still
- * be able to fetch the old assets from the previous deploy.
- */
-async function coalesceWithPreviousAssets(assetsDir: string) {
-	nicelog('Saving assets to R2 bucket')
-	const objectKey = `${previewId ?? env.TLDRAW_ENV}/${new Date().toISOString()}+${sha}.tar.gz`
-	const pack = tar.c({ gzip: true, cwd: assetsDir }, readdirSync(assetsDir))
-	// Need to pipe through a PassThrough here because the tar stream is not a first class node stream
-	// and AWS's sdk expects a node stream (it checks `Body instanceof streams.Readable`)
-	const Body = new PassThrough()
-	pack.pipe(Body)
-	await new Upload({
-		client: R2,
-		params: {
-			Bucket: R2_BUCKET,
-			Key: objectKey,
-			Body,
-		},
-	}).done()
-
-	nicelog('Extracting previous assets from R2 bucket')
-	const { Contents } = await R2.send(
-		new ListObjectsV2Command({
-			Bucket: R2_BUCKET,
-			Prefix: `${previewId ?? env.TLDRAW_ENV}/`,
-		})
-	)
-	const [mostRecent, ...others] =
-		// filter out the one we just uploaded
-		Contents?.filter((obj) => obj.Key !== objectKey).sort(
-			(a, b) => (b.LastModified?.getTime() ?? 0) - (a.LastModified?.getTime() ?? 0)
-		) ?? []
-
-	if (!mostRecent) {
-		nicelog('No previous assets found')
-		return
-	}
-
-	// Always include the assets from the directly previous build, but also if there
-	// have been more deploys in the last two weeks, include those too.
-	const twoWeeks = 1000 * 60 * 60 * 24 * 14
-	const recentOthers = others.filter(
-		(o) => (o.LastModified?.getTime() ?? 0) > Date.now() - twoWeeks
-	)
-	const objectsToFetch = [mostRecent, ...recentOthers]
-
-	nicelog(
-		`Fetching ${objectsToFetch.length} previous assets from R2 bucket:`,
-		objectsToFetch.map((k) => k.Key)
-	)
-	for (const obj of objectsToFetch) {
-		const { Body } = await R2.send(
-			new GetObjectCommand({
-				Bucket: R2_BUCKET,
-				Key: obj.Key,
-			})
-		)
-		if (!Body) {
-			throw new Error(`Could not fetch object ${obj.Key}`)
-		}
-		// pipe into untar
-		// `keep-existing` is important here because we don't want to overwrite the new assets
-		// if they have the same name as the old assets becuase they will have different sentry debugIds
-		// and it will mess up the inline source viewer on sentry errors.
-		const out = tar.x({ cwd: assetsDir, 'keep-existing': true })
-		for await (const chunk of Body?.transformToWebStream() as any as AsyncIterable<Uint8Array>) {
-			out.write(Buffer.from(chunk.buffer))
-		}
-		out.end()
-	}
 }
 
 main().catch(async (err) => {

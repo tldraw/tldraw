@@ -28,8 +28,6 @@
 	"devDependencies": {
 		"@actions/github": "^6.0.0",
 		"@auto-it/core": "^11.1.1",
-		"@aws-sdk/client-s3": "^3.440.0",
-		"@aws-sdk/lib-storage": "^3.440.0",
 		"@types/is-ci": "^3.0.0",
 		"@types/node": "~20.11",
 		"@typescript-eslint/utils": "^5.59.0",
