@@ -3,7 +3,7 @@ title: Custom UI
 component: ./CustomUiExample.tsx
 category: ui
 priority: 1
-keywords: [hideui, event listener]
+keywords: [hide, ui, event listener]
 ---
 
 Replace tldraw's UI with your own.

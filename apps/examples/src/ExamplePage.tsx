@@ -85,14 +85,20 @@ export function ExamplePage({
 								<ul className="example__sidebar__category__items">
 									{examples
 										.find((category) => category.id === currentCategory)
-										?.value.filter(
-											(example) =>
-												// Filter by title and keywords
-												example.title.toLowerCase().includes(filterValue.toLowerCase()) ||
+										?.value.filter((example) => {
+											const excludedWords = ['a', 'the', '', ' ']
+											const terms = filterValue
+												.toLowerCase()
+												.split(' ')
+												.filter((term) => !excludedWords.includes(term))
+											if (!terms.length) return true
+											return (
+												terms.some((term) => example.title.toLowerCase().includes(term)) ||
 												example.keywords.some((keyword) =>
-													keyword.toLowerCase().includes(filterValue.toLowerCase())
+													terms.some((term) => keyword.toLowerCase().includes(term))
 												)
-										)
+											)
+										})
 										.map((sidebarExample) => (
 											<ExampleSidebarListItem
 												key={sidebarExample.path}

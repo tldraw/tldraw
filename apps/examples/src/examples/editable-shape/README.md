@@ -3,7 +3,7 @@ title: Editable shape
 component: ./EditableShapeExample.tsx
 category: shapes/tools
 priority: 2
-keywords: [onEditEnd, isEditing, canEdit, custom shape]
+keywords: [custom]
 ---
 
 A custom shape that you can edit by double-clicking it.

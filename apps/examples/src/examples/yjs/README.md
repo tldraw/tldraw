@@ -3,5 +3,5 @@ title: YJS
 component: ./YjsExample.tsx
 category: collaboration
 priority: 2
-keywords: [multiplayer]
+keywords: [multi, player]
 ---

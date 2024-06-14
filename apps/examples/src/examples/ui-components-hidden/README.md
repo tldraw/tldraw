@@ -2,7 +2,7 @@
 title: Hidden UI components
 component: ./UiComponentsHiddenExample.tsx
 category: ui
-keywords: [hideui, overrides]
+keywords: [hide, ui, overrides]
 ---
 
 You can hide tldraw's UI components.

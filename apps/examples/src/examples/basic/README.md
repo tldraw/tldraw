@@ -3,7 +3,7 @@ title: Tldraw component
 component: ./BasicExample.tsx
 category: basic
 priority: 1
-keywords: [basic]
+keywords: [basic, intro, simple, quick, start]
 ---
 
 ---
