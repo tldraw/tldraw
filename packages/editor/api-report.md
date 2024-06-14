@@ -85,7 +85,6 @@ import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
-import { useValueDebounced } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
@@ -3479,8 +3478,6 @@ export function useTLStore(opts: TLStoreOptions & {
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 export { useValue }
-
-export { useValueDebounced }
 
 // @public (undocumented)
 export class Vec {

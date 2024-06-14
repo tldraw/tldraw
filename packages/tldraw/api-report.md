@@ -963,7 +963,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop: () => boolean;
     // (undocumented)
-    component(shape: TLImageShape): JSX_2.Element;
+    component(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
     // (undocumented)

@@ -128,7 +128,7 @@ describe('resolveAsset', () => {
 				networkEffectiveType: null,
 			})
 		).toBe(
-			'https://localhost:8788/cdn-cgi/image/width=50,dpr=2,fit=scale-down,quality=92/http://example.com/image.jpg'
+			'https://localhost:8788/cdn-cgi/image/format=auto,width=50,dpr=2,fit=scale-down,quality=92/http://example.com/image.jpg'
 		)
 	})
 
@@ -145,7 +145,7 @@ describe('resolveAsset', () => {
 				networkEffectiveType: '3g',
 			})
 		).toBe(
-			'https://localhost:8788/cdn-cgi/image/width=25,dpr=2,fit=scale-down,quality=92/http://example.com/image.jpg'
+			'https://localhost:8788/cdn-cgi/image/format=auto,width=25,dpr=2,fit=scale-down,quality=92/http://example.com/image.jpg'
 		)
 	})
 
@@ -162,7 +162,7 @@ describe('resolveAsset', () => {
 				networkEffectiveType: '4g',
 			})
 		).toBe(
-			'https://localhost:8788/cdn-cgi/image/width=400,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
+			'https://localhost:8788/cdn-cgi/image/format=auto,width=400,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
 		)
 	})
 
@@ -179,7 +179,7 @@ describe('resolveAsset', () => {
 				networkEffectiveType: '2g',
 			})
 		).toBe(
-			'https://localhost:8788/cdn-cgi/image/width=25,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
+			'https://localhost:8788/cdn-cgi/image/format=auto,width=25,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
 		)
 	})
 
@@ -196,7 +196,7 @@ describe('resolveAsset', () => {
 				networkEffectiveType: '4g',
 			})
 		).toBe(
-			'https://localhost:8788/cdn-cgi/image/width=25,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
+			'https://localhost:8788/cdn-cgi/image/format=auto,width=25,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
 		)
 	})
 })

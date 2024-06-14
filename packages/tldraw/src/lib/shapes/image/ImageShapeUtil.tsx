@@ -73,7 +73,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			// cause visual flickering when the image is loaded.
 			if (url && !this.isAnimated(shape)) {
 				let cancelled = false
-				if (!url) return
 
 				const image = Image()
 				image.onload = () => {
@@ -91,7 +90,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {
 				let cancelled = false
-				if (!url) return
 
 				const image = Image()
 				image.onload = () => {
@@ -129,7 +127,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
-		if (!url) {
+		// This is specifically `asset?.props.src` and not `url` because we're looking for broken assets.
+		if (!asset?.props.src) {
 			return (
 				<HTMLContainer
 					id={shape.id}
@@ -145,13 +144,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					<div className="tl-image-container" style={containerStyle}>
 						{asset ? null : <BrokenAssetIcon />}
 					</div>
-					)
 					{'url' in shape.props && shape.props.url && (
 						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					)}
 				</HTMLContainer>
 			)
 		}
+
+		if (!loadedSrc) return null
 
 		return (
 			<>
@@ -189,7 +189,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							<div className="tl-image__tg">GIF</div>
 						)}
 					</div>
-					)
 					{shape.props.url && (
 						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					)}
