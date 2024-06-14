@@ -71,7 +71,7 @@ export type TldrawProps = Expand<
 		)
 >
 
-/** @public */
+/** @public @react */
 export function Tldraw(props: TldrawProps) {
 	const {
 		children,

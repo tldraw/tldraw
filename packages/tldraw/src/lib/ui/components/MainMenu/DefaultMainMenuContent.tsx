@@ -35,7 +35,7 @@ import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 
-/** @public */
+/** @public @react */
 export function DefaultMainMenuContent() {
 	return (
 		<>
@@ -48,7 +48,7 @@ export function DefaultMainMenuContent() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function ExportFileContentSubMenu() {
 	const actions = useActions()
 
@@ -66,7 +66,7 @@ export function ExportFileContentSubMenu() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function EditSubmenu() {
 	const editor = useEditor()
 
@@ -90,7 +90,7 @@ export function EditSubmenu() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function MiscMenuGroup() {
 	return (
 		<TldrawUiMenuGroup id="misc">
@@ -107,7 +107,7 @@ export function MiscMenuGroup() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function LockGroup() {
 	return (
 		<TldrawUiMenuGroup id="lock">
@@ -117,7 +117,7 @@ export function LockGroup() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function UndoRedoGroup() {
 	const actions = useActions()
 	const canUndo = useCanUndo()
@@ -130,7 +130,7 @@ export function UndoRedoGroup() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function ViewSubmenu() {
 	const actions = useActions()
 	return (
@@ -146,7 +146,7 @@ export function ViewSubmenu() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function ExtrasGroup() {
 	const actions = useActions()
 	return (
@@ -159,7 +159,7 @@ export function ExtrasGroup() {
 
 /* ------------------- Preferences ------------------ */
 
-/** @public */
+/** @public @react */
 export function PreferencesGroup() {
 	return (
 		<TldrawUiMenuGroup id="preferences">

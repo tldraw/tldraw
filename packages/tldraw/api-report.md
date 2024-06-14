@@ -32,8 +32,8 @@ import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
-import { default as React_2 } from 'react';
-import * as React_3 from 'react';
+import * as React_2 from 'react';
+import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { ReadonlySharedStyleMap } from '@tldraw/editor';
@@ -116,7 +116,7 @@ import { VecModel } from '@tldraw/editor';
 // @public (undocumented)
 export interface ActionsProviderProps {
     // (undocumented)
-    children: React_3.ReactNode;
+    children: React_2.ReactNode;
     // (undocumented)
     overrides?: (editor: Editor, actions: TLUiActionsContextType, helpers: undefined) => TLUiActionsContextType;
 }
@@ -134,9 +134,7 @@ export function ArrangeMenuSubmenu(): JSX_2.Element | null;
 export function ArrowDownToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function ArrowheadStylePickerSet({ styles }: {
-    styles: ReadonlySharedStyleMap;
-}): JSX_2.Element | null;
+export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function ArrowLeftToolbarItem(): JSX_2.Element;
@@ -293,10 +291,15 @@ export interface BoxWidthHeight {
 }
 
 // @public (undocumented)
-export function BreakPointProvider({ forceMobile, children, }: {
+export function BreakPointProvider({ forceMobile, children }: BreakPointProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface BreakPointProviderProps {
+    // (undocumented)
     children: ReactNode;
+    // (undocumented)
     forceMobile?: boolean;
-}): JSX_2.Element;
+}
 
 // @internal (undocumented)
 export function buildFromV1Document(editor: Editor, _document: unknown): void;
@@ -311,10 +314,7 @@ export function ClipboardMenuGroup(): JSX_2.Element;
 export function CloudToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function CommonStylePickerSet({ styles, theme, }: {
-    styles: ReadonlySharedStyleMap;
-    theme: TLDefaultColorTheme;
-}): JSX_2.Element;
+export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps): JSX_2.Element;
 
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
@@ -409,7 +409,7 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool)[];
+export const defaultShapeTools: (typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
@@ -421,12 +421,16 @@ export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps): JSX_2.Element | null;
 
 // @public
-export const DefaultToolbar: NamedExoticComponent<    {
-children?: ReactNode;
-}>;
+export const DefaultToolbar: NamedExoticComponent<DefaultToolbarProps>;
 
 // @public (undocumented)
 export function DefaultToolbarContent(): JSX_2.Element;
+
+// @public (undocumented)
+export interface DefaultToolbarProps {
+    // (undocumented)
+    children?: ReactNode;
+}
 
 // @public (undocumented)
 export const defaultTools: (typeof EraserTool | typeof HandTool | typeof ZoomTool)[];
@@ -572,21 +576,31 @@ export function EraserToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export interface EventsProviderProps {
     // (undocumented)
-    children: React_3.ReactNode;
+    children: React_2.ReactNode;
     // (undocumented)
     onEvent?: TLUiEventHandler;
 }
 
 // @public (undocumented)
-export function ExampleDialog({ title, body, cancel, confirm, displayDontShowAgain, onCancel, onContinue, }: {
+export function ExampleDialog({ title, body, cancel, confirm, displayDontShowAgain, onCancel, onContinue, }: ExampleDialogProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface ExampleDialogProps {
+    // (undocumented)
     body?: string;
+    // (undocumented)
     cancel?: string;
+    // (undocumented)
     confirm?: string;
+    // (undocumented)
     displayDontShowAgain?: boolean;
+    // (undocumented)
     onCancel: () => void;
+    // (undocumented)
     onContinue: () => void;
+    // (undocumented)
     title?: string;
-}): JSX_2.Element;
+}
 
 // @public
 export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: Partial<TLSvgOptions>): Promise<void>;
@@ -822,9 +836,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 }
 
 // @public (undocumented)
-export function GeoStylePickerSet({ styles }: {
-    styles: ReadonlySharedStyleMap;
-}): JSX_2.Element | null;
+export function GeoStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBindings;
@@ -1194,11 +1206,17 @@ export function OpacitySlider(): JSX_2.Element | null;
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export const PageItemInput: ({ name, id, isCurrentPage, }: {
+export const PageItemInput: ({ name, id, isCurrentPage, }: PageItemInputProps) => JSX_2.Element;
+
+// @public (undocumented)
+export interface PageItemInputProps {
+    // (undocumented)
     id: TLPageId;
+    // (undocumented)
     isCurrentPage: boolean;
+    // (undocumented)
     name: string;
-}) => JSX_2.Element;
+}
 
 // @public (undocumented)
 export const PageItemSubmenu: MemoExoticComponent<({ index, listSize, item, onRename, }: PageItemSubmenuProps) => JSX_2.Element>;
@@ -1315,18 +1333,22 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
 // @internal (undocumented)
-export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX_2.Element;
+export function Spinner(props: React_3.SVGProps<SVGSVGElement>): JSX_2.Element;
 
 // @public (undocumented)
-export function SplineStylePickerSet({ styles }: {
-    styles: ReadonlySharedStyleMap;
-}): JSX_2.Element | null;
+export function SplineStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export interface StylePickerSetProps {
+    // (undocumented)
+    styles: ReadonlySharedStyleMap;
+}
 
 // @public (undocumented)
 export type StyleValuesForUi<T> = readonly {
@@ -1344,7 +1366,7 @@ export const TEXT_PROPS: {
 };
 
 // @public (undocumented)
-export const TextLabel: React_2.NamedExoticComponent<TextLabelProps>;
+export const TextLabel: React_3.NamedExoticComponent<TextLabelProps>;
 
 // @public (undocumented)
 export interface TextLabelProps {
@@ -1371,9 +1393,9 @@ export interface TextLabelProps {
     // (undocumented)
     lineHeight: number;
     // (undocumented)
-    onKeyDown?: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
+    onKeyDown?: (e: React_3.KeyboardEvent<HTMLTextAreaElement>) => void;
     // (undocumented)
-    style?: React_2.CSSProperties;
+    style?: React_3.CSSProperties;
     // (undocumented)
     text: string;
     // (undocumented)
@@ -1507,13 +1529,18 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 // @public (undocumented)
-export function TextStylePickerSet({ theme, styles, }: {
-    styles: ReadonlySharedStyleMap;
-    theme: TLDefaultColorTheme;
-}): JSX_2.Element | null;
+export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TextToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export interface ThemeStylePickerSetProps {
+    // (undocumented)
+    styles: ReadonlySharedStyleMap;
+    // (undocumented)
+    theme: TLDefaultColorTheme;
+}
 
 // @public (undocumented)
 export interface TLArcInfo {
@@ -1613,28 +1640,16 @@ export type TldrawFileParseError = {
 export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | null;
 
 // @public
-export const TldrawImage: NamedExoticComponent<    {
-background?: boolean | undefined;
-bindingUtils?: readonly TLAnyBindingUtilConstructor[] | undefined;
-bounds?: Box | undefined;
-darkMode?: boolean | undefined;
-format?: "png" | "svg" | undefined;
-padding?: number | undefined;
-pageId?: TLPageId | undefined;
-preserveAspectRatio?: string | undefined;
-scale?: number | undefined;
-shapeUtils?: readonly TLAnyShapeUtilConstructor[] | undefined;
-snapshot: TLEditorSnapshot | TLStoreSnapshot;
-}>;
+export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
-// @public
-export type TldrawImageProps = Expand<{
+// @public (undocumented)
+export interface TldrawImageProps extends Partial<TLSvgOptions> {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
-    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     format?: 'png' | 'svg';
     pageId?: TLPageId;
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: TLEditorSnapshot | TLStoreSnapshot;
-} & Partial<TLSvgOptions>>;
+}
 
 // @public (undocumented)
 export type TldrawProps = Expand<(Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
@@ -1660,96 +1675,10 @@ export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgr
 export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
 
 // @public (undocumented)
-export const TldrawUi: React_2.NamedExoticComponent<{
-    assetUrls?: (RecursivePartial<TLUiAssetUrls> & RecursivePartial<TLUiAssetUrls>) | undefined;
-    children?: ReactNode;
-    components?: TLUiComponents | undefined;
-    forceMobile?: boolean | undefined;
-    hideUi?: boolean | undefined;
-    onUiEvent?: TLUiEventHandler | undefined;
-    overrides?: Partial<{
-        actions: (editor: Editor, actions: TLUiActionsContextType, helpers: {
-            addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-                id?: string | undefined;
-            }) => string;
-            addToast: (toast: Omit<TLUiToast, "id"> & {
-                id?: string | undefined;
-            }) => string;
-            clearDialogs: () => void;
-            clearToasts: () => void;
-            isMobile: boolean;
-            msg: (id?: string | undefined) => string;
-            removeDialog: (id: string) => string;
-            removeToast: (id: string) => string;
-            updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
-        }) => TLUiActionsContextType;
-        tools: (editor: Editor, tools: TLUiToolsContextType, helpers: {
-            insertMedia: () => void;
-        } & {
-            addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-                id?: string | undefined;
-            }) => string;
-            addToast: (toast: Omit<TLUiToast, "id"> & {
-                id?: string | undefined;
-            }) => string;
-            clearDialogs: () => void;
-            clearToasts: () => void;
-            isMobile: boolean;
-            msg: (id?: string | undefined) => string;
-            removeDialog: (id: string) => string;
-            removeToast: (id: string) => string;
-            updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
-        }) => TLUiToolsContextType;
-        translations: Record<string, Record<string, string>> | undefined;
-    }> | Partial<{
-        actions: (editor: Editor, actions: TLUiActionsContextType, helpers: {
-            addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-                id?: string | undefined;
-            }) => string;
-            addToast: (toast: Omit<TLUiToast, "id"> & {
-                id?: string | undefined;
-            }) => string;
-            clearDialogs: () => void;
-            clearToasts: () => void;
-            isMobile: boolean;
-            msg: (id?: string | undefined) => string;
-            removeDialog: (id: string) => string;
-            removeToast: (id: string) => string;
-            updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
-        }) => TLUiActionsContextType;
-        tools: (editor: Editor, tools: TLUiToolsContextType, helpers: {
-            insertMedia: () => void;
-        } & {
-            addDialog: (dialog: Omit<TLUiDialog, "id"> & {
-                id?: string | undefined;
-            }) => string;
-            addToast: (toast: Omit<TLUiToast, "id"> & {
-                id?: string | undefined;
-            }) => string;
-            clearDialogs: () => void;
-            clearToasts: () => void;
-            isMobile: boolean;
-            msg: (id?: string | undefined) => string;
-            removeDialog: (id: string) => string;
-            removeToast: (id: string) => string;
-            updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
-        }) => TLUiToolsContextType;
-        translations: Record<string, Record<string, string>> | undefined;
-    }>[] | undefined;
-    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
-}>;
-
-// @public
-export interface TldrawUiBaseProps {
-    assetUrls?: TLUiAssetUrlOverrides;
-    children?: ReactNode;
-    components?: TLUiComponents;
-    hideUi?: boolean;
-    renderDebugMenuItems?: () => React_2.ReactNode;
-}
+export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
 
 // @public (undocumented)
-export const TldrawUiButton: React_3.ForwardRefExoticComponent<TLUiButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
+export const TldrawUiButton: React_2.ForwardRefExoticComponent<TLUiButtonProps & React_2.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
 export function TldrawUiButtonCheck({ checked }: TLUiButtonCheckProps): JSX_2.Element;
@@ -1769,7 +1698,7 @@ export function TldrawUiComponentsProvider({ overrides, children, }: TLUiCompone
 // @public (undocumented)
 export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, children, }: TldrawUiContextProviderProps): JSX_2.Element;
 
-// @public
+// @public (undocumented)
 export interface TldrawUiContextProviderProps {
     assetUrls?: RecursivePartial<TLUiAssetUrls>;
     children?: ReactNode;
@@ -1825,7 +1754,7 @@ export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownM
 export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
 
 // @public (undocumented)
-export const TldrawUiInput: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
+export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & React_2.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
 export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX_2.Element | null;
@@ -1857,8 +1786,14 @@ export function TldrawUiPopoverContent({ side, children, align, sideOffset, alig
 // @public (undocumented)
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
 
-// @public
-export type TldrawUiProps = Expand<TldrawUiBaseProps & TldrawUiContextProviderProps>;
+// @public (undocumented)
+export interface TldrawUiProps extends TldrawUiContextProviderProps {
+    assetUrls?: TLUiAssetUrlOverrides;
+    children?: ReactNode;
+    components?: TLUiComponents;
+    hideUi?: boolean;
+    renderDebugMenuItems?: () => React_3.ReactNode;
+}
 
 // @internal (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
@@ -1998,7 +1933,7 @@ export interface TLUiButtonPickerProps<T extends string> {
 }
 
 // @public (undocumented)
-export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElement> {
+export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
@@ -2434,7 +2369,7 @@ export interface TLUiInputProps {
     // (undocumented)
     autoSelect?: boolean;
     // (undocumented)
-    children?: React_3.ReactNode;
+    children?: React_2.ReactNode;
     // (undocumented)
     className?: string;
     // (undocumented)
@@ -2582,7 +2517,7 @@ export interface TLUiPopoverContentProps {
     // (undocumented)
     alignOffset?: number;
     // (undocumented)
-    children: React_2.ReactNode;
+    children: React_3.ReactNode;
     // (undocumented)
     side: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)
@@ -2592,7 +2527,7 @@ export interface TLUiPopoverContentProps {
 // @public (undocumented)
 export interface TLUiPopoverProps {
     // (undocumented)
-    children: React_2.ReactNode;
+    children: React_3.ReactNode;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -2604,7 +2539,7 @@ export interface TLUiPopoverProps {
 // @public (undocumented)
 export interface TLUiPopoverTriggerProps {
     // (undocumented)
-    children?: React_2.ReactNode;
+    children?: React_3.ReactNode;
 }
 
 // @public (undocumented)
@@ -2715,7 +2650,7 @@ export type TLUiToolsContextType = Record<string, TLUiToolItem>;
 // @public (undocumented)
 export interface TLUiToolsProviderProps {
     // (undocumented)
-    children: React_3.ReactNode;
+    children: React_2.ReactNode;
     // (undocumented)
     overrides?: (editor: Editor, tools: TLUiToolsContextType, helpers: {
         insertMedia: () => void;
@@ -2743,7 +2678,7 @@ export type TLUiTranslationKey = 'action.align-bottom' | 'action.align-center-ho
 // @public (undocumented)
 export interface TLUiTranslationProviderProps {
     // (undocumented)
-    children: React_3.ReactNode;
+    children: React_2.ReactNode;
     overrides?: Record<string, Record<string, string>>;
 }
 
@@ -3226,9 +3161,13 @@ export function ToggleTransparentBgMenuItem(): JSX_2.Element;
 export function ToggleWrapModeItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function ToolbarItem({ tool }: {
+export function ToolbarItem({ tool }: ToolbarItemProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface ToolbarItemProps {
+    // (undocumented)
     tool: string;
-}): JSX_2.Element;
+}
 
 // @public (undocumented)
 export function TrapezoidToolbarItem(): JSX_2.Element;
@@ -3319,15 +3258,15 @@ export function useDialogs(): TLUiDialogsContextType;
 // @public (undocumented)
 export function useEditableText(id: TLShapeId, type: string, text: string): {
     handleBlur: () => void;
-    handleChange: (e: React_2.ChangeEvent<HTMLTextAreaElement>) => void;
+    handleChange: (e: React_3.ChangeEvent<HTMLTextAreaElement>) => void;
     handleDoubleClick: (e: any) => any;
     handleFocus: () => void;
-    handleInputPointerDown: (e: React_2.PointerEvent) => void;
-    handleKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>) => void;
+    handleInputPointerDown: (e: React_3.PointerEvent) => void;
+    handleKeyDown: (e: React_3.KeyboardEvent<HTMLTextAreaElement>) => void;
     isEditing: boolean;
     isEditingAnything: boolean;
     isEmpty: boolean;
-    rInput: React_2.RefObject<HTMLTextAreaElement>;
+    rInput: React_3.RefObject<HTMLTextAreaElement>;
 };
 
 // @public (undocumented)

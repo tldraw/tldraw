@@ -28,7 +28,7 @@ export interface TLUiMenuSubmenuProps<Translation extends string = string> {
 	size?: 'tiny' | 'small' | 'medium' | 'wide'
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	id,
 	disabled = false,
