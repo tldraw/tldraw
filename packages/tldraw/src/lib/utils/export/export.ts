@@ -66,7 +66,6 @@ export async function getSvgAsImage(
 			resolve(null)
 		}
 
-		image.referrerPolicy = 'strict-origin-when-cross-origin'
 		image.src = svgUrl
 	})
 

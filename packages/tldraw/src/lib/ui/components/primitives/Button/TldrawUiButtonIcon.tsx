@@ -7,7 +7,7 @@ export interface TLUiButtonIconProps {
 	invertIcon?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiButtonIcon({ icon, small, invertIcon }: TLUiButtonIconProps) {
 	return (
 		<TldrawUiIcon className="tlui-button__icon" icon={icon} small={small} invertIcon={invertIcon} />

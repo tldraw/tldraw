@@ -73,7 +73,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			// cause visual flickering when the image is loaded.
 			if (url) {
 				let cancelled = false
-				if (!url) return
 
 				const image = Image()
 				image.onload = () => {
@@ -91,7 +90,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {
 				let cancelled = false
-				if (!url) return
 
 				const image = Image()
 				image.onload = () => {
@@ -109,7 +107,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					setLoadedSrc(url)
 				}
 				image.crossOrigin = 'anonymous'
-				image.referrerPolicy = 'strict-origin-when-cross-origin'
 				image.src = url
 
 				return () => {
@@ -130,7 +127,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
-		if (!url) {
+		// This is specifically `asset?.props.src` and not `url` because we're looking for broken assets.
+		if (!asset?.props.src) {
 			return (
 				<HTMLContainer
 					id={shape.id}
@@ -146,7 +144,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					<div className="tl-image-container" style={containerStyle}>
 						{asset ? null : <BrokenAssetIcon />}
 					</div>
-					)
 					{'url' in shape.props && shape.props.url && (
 						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					)}
@@ -154,17 +151,21 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			)
 		}
 
+		if (!loadedSrc) return null
+
 		return (
 			<>
 				{showCropPreview && (
 					<div style={containerStyle}>
-						<div
+						<img
 							className="tl-image"
+							// We don't set crossOrigin for non-animated images because
+							// for Cloudflare we don't currenly have that set up.
+							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
+							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
+							referrerPolicy="strict-origin-when-cross-origin"
 							style={{
 								opacity: 0.1,
-								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc
-								})`,
 							}}
 							draggable={false}
 						/>
@@ -175,20 +176,19 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
 				>
 					<div className="tl-image-container" style={containerStyle}>
-						<div
+						<img
 							className="tl-image"
-							style={{
-								backgroundImage: `url(${
-									!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc
-								})`,
-							}}
+							// We don't set crossOrigin for non-animated images because
+							// for Cloudflare we don't currenly have that set up.
+							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
+							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
+							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
 						/>
 						{this.isAnimated(shape) && !shape.props.playing && (
 							<div className="tl-image__tg">GIF</div>
 						)}
 					</div>
-					)
 					{shape.props.url && (
 						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					)}

@@ -9,7 +9,7 @@ export interface TLGridProps {
 	size: number
 }
 
-/** @public */
+/** @public @react */
 export function DefaultGrid({ x, y, z, size }: TLGridProps) {
 	const editor = useEditor()
 	const { gridSteps } = editor.options

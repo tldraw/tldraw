@@ -7,7 +7,7 @@ export interface TLUiQuickActionsProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultQuickActions = memo(function DefaultQuickActions({
 	children,
 }: TLUiQuickActionsProps) {

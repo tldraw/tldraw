@@ -85,7 +85,6 @@ import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
-import { useValueDebounced } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
@@ -1289,9 +1288,7 @@ export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_
 }
 
 // @public (undocumented)
-export function ErrorScreen({ children }: {
-    children: ReactNode;
-}): JSX_2.Element;
+export function ErrorScreen({ children }: LoadingScreenProps): JSX_2.Element;
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
@@ -1607,9 +1604,13 @@ export const isSafeFloat: (n: number) => boolean;
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
 
 // @public (undocumented)
-export function LoadingScreen({ children }: {
+export function LoadingScreen({ children }: LoadingScreenProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface LoadingScreenProps {
+    // (undocumented)
     children: ReactNode;
-}): JSX_2.Element;
+}
 
 // @public
 export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
@@ -3484,8 +3485,6 @@ export function useTLStore(opts: TLStoreOptions & {
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 export { useValue }
-
-export { useValueDebounced }
 
 // @public (undocumented)
 export class Vec {

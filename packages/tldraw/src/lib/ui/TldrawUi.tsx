@@ -1,4 +1,4 @@
-import { Expand, useEditor, useEditorComponents, useValue } from '@tldraw/editor'
+import { useEditor, useEditorComponents, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
@@ -21,12 +21,8 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useReadonly } from './hooks/useReadonly'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
-/**
- * Base props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.
- *
- * @public
- */
-export interface TldrawUiBaseProps {
+/** @public */
+export interface TldrawUiProps extends TldrawUiContextProviderProps {
 	/**
 	 * The component's children.
 	 */
@@ -52,14 +48,8 @@ export interface TldrawUiBaseProps {
 }
 
 /**
- * Props for the {@link tldraw#Tldraw} and {@link TldrawUi} components.
- *
  * @public
- */
-export type TldrawUiProps = Expand<TldrawUiBaseProps & TldrawUiContextProviderProps>
-
-/**
- * @public
+ * @react
  */
 export const TldrawUi = React.memo(function TldrawUi({
 	renderDebugMenuItems,

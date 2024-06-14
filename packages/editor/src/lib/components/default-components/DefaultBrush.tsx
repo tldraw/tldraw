@@ -11,7 +11,7 @@ export interface TLBrushProps {
 	className?: string
 }
 
-/** @public */
+/** @public @react */
 export const DefaultBrush = ({ brush, color, opacity, className }: TLBrushProps) => {
 	const rSvg = useRef<SVGSVGElement>(null)
 	useTransform(rSvg, brush.x, brush.y)

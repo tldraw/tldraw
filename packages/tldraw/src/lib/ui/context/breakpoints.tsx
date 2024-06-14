@@ -5,13 +5,13 @@ import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from '../constants'
 const BreakpointContext = React.createContext<number | null>(null)
 
 /** @public */
-export function BreakPointProvider({
-	forceMobile = false,
-	children,
-}: {
+export interface BreakPointProviderProps {
 	forceMobile?: boolean
 	children: ReactNode
-}) {
+}
+
+/** @public @react */
+export function BreakPointProvider({ forceMobile = false, children }: BreakPointProviderProps) {
 	const editor = useEditor()
 
 	const breakpoint = useValue(

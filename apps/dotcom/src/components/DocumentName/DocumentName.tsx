@@ -68,10 +68,11 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const toasts = useToasts()
+	const isReadonly = editor.getInstanceState().isReadonly
 
 	return (
 		<div className="tlui-document-name__inner">
-			<DocumentNameEditor state={state} setState={setState} />
+			<DocumentNameEditor isReadonly={isReadonly} state={state} setState={setState} />
 			<TldrawUiDropdownMenuRoot id="document-name">
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
@@ -83,15 +84,17 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent align="end" alignOffset={4} sideOffset={6}>
 					<TldrawUiDropdownMenuGroup>
-						<TldrawUiDropdownMenuItem>
-							<TldrawUiButton
-								type="menu"
-								onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
-							>
-								{' '}
-								<span className={'tlui-button__label' as any}>{msg('action.rename')}</span>
-							</TldrawUiButton>
-						</TldrawUiDropdownMenuItem>
+						{!isReadonly && (
+							<TldrawUiDropdownMenuItem>
+								<TldrawUiButton
+									type="menu"
+									onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
+								>
+									{' '}
+									<span className={'tlui-button__label' as any}>{msg('action.rename')}</span>
+								</TldrawUiButton>
+							</TldrawUiDropdownMenuItem>
+						)}
 						<TldrawUiDropdownMenuItem>
 							<TldrawUiButton
 								type="menu"
@@ -214,9 +217,11 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 const DocumentNameEditor = track(function DocumentNameEditor({
 	state,
 	setState,
+	isReadonly,
 }: {
 	state: NameState
 	setState: (update: SetStateAction<NameState>) => void
+	isReadonly: boolean
 }) {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const editor = useEditor()
@@ -225,10 +230,13 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	const defaultDocumentName = msg('document.default-name')
 
 	useEffect(() => {
+		if (isReadonly) {
+			setState((prev) => ({ ...prev, isEditing: false }))
+		}
 		if (state.isEditing && inputRef.current) {
 			inputRef.current.select()
 		}
-	}, [state.isEditing])
+	}, [isReadonly, setState, state.isEditing])
 
 	useEffect(() => {
 		const save = () => {
@@ -315,6 +323,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 				<div
 					className="tlui-document-name__text"
 					onDoubleClick={() => {
+						if (isReadonly) return
 						editor.setEditingShape(null)
 						setState((prev) => ({ ...prev, isEditing: true }))
 					}}
