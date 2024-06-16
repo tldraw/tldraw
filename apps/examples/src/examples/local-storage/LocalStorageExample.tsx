@@ -1,6 +1,6 @@
 import { throttle } from 'lodash'
 import { useLayoutEffect, useState } from 'react'
-import { Tldraw, createTLStore, getSnapshot, loadSnapshot } from 'tldraw'
+import { DefaultSpinner, Tldraw, createTLStore, getSnapshot, loadSnapshot } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -52,7 +52,9 @@ export default function PersistenceExample() {
 	if (loadingState.status === 'loading') {
 		return (
 			<div className="tldraw__editor">
-				<h2>Loading...</h2>
+				<h2>
+					<DefaultSpinner />
+				</h2>
 			</div>
 		)
 	}
