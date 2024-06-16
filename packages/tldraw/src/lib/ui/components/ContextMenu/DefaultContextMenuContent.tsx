@@ -3,18 +3,10 @@ import {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
-	ConvertToBookmarkMenuItem,
-	ConvertToEmbedMenuItem,
-	EditLinkMenuItem,
-	FitFrameToContentMenuItem,
-	GroupMenuItem,
+	EditMenuSubmenu,
 	MoveToPageMenu,
-	RemoveFrameMenuItem,
 	ReorderMenuSubmenu,
 	SelectAllMenuItem,
-	ToggleAutoSizeMenuItem,
-	ToggleLockMenuItem,
-	UngroupMenuItem,
 } from '../menu-items'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 
@@ -32,18 +24,8 @@ export function DefaultContextMenuContent() {
 
 	return (
 		<>
-			<TldrawUiMenuGroup id="misc">
-				<GroupMenuItem />
-				<UngroupMenuItem />
-				<EditLinkMenuItem />
-				<ToggleAutoSizeMenuItem />
-				<RemoveFrameMenuItem />
-				<FitFrameToContentMenuItem />
-				<ConvertToEmbedMenuItem />
-				<ConvertToBookmarkMenuItem />
-				<ToggleLockMenuItem />
-			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="modify">
+				<EditMenuSubmenu />
 				<ArrangeMenuSubmenu />
 				<ReorderMenuSubmenu />
 				<MoveToPageMenu />
