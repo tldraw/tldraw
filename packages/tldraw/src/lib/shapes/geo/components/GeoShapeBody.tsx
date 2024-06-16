@@ -126,11 +126,11 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 					</>
 				)
 			} else {
-				let geometry = editor.getShapeGeometry(shape)
-				if (!shouldScale) {
-					// We don't want the cached geometry
-					geometry = editor.getShapeUtil(shape).getGeometry(shape)
-				}
+				const geometry = shouldScale
+					? // cached
+						editor.getShapeGeometry(shape)
+					: // not cached
+						editor.getShapeUtil(shape).getGeometry(shape)
 				const d = geometry.getSvgPathData(true)
 				return (
 					<>
@@ -141,11 +141,11 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 			}
 		}
 		case 'oval': {
-			let geometry = editor.getShapeGeometry(shape)
-			if (!shouldScale) {
-				// We don't want the cached geometry
-				geometry = editor.getShapeUtil(shape).getGeometry(shape)
-			}
+			const geometry = shouldScale
+				? // cached
+					editor.getShapeGeometry(shape)
+				: // not cached
+					editor.getShapeUtil(shape).getGeometry(shape)
 			const d = geometry.getSvgPathData(true)
 			if (dash === 'dashed' || dash === 'dotted') {
 				const perimeter = geometry.getLength()
@@ -229,11 +229,11 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 			}
 		}
 		default: {
-			let geometry = editor.getShapeGeometry(shape)
-			if (!shouldScale) {
-				// We don't want the cached geometry
-				geometry = editor.getShapeUtil(shape).getGeometry(shape)
-			}
+			const geometry = shouldScale
+				? // cached
+					editor.getShapeGeometry(shape)
+				: // not cached
+					editor.getShapeUtil(shape).getGeometry(shape)
 
 			const outline =
 				geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
