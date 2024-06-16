@@ -1957,7 +1957,7 @@ it('Ignores locked shapes when hovering', () => {
 	expect(editor.getSelectedShapeIds()).toEqual([b.id])
 })
 
-describe.only('Edge scrolling', () => {
+describe('Edge scrolling', () => {
 	it('moves the camera correctly when delay and duration are zero', () => {
 		editor = new TestEditor({
 			options: {
