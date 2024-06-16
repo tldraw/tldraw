@@ -29,7 +29,7 @@ export class EdgeScrollManager {
 				this._edgeScrollDuration = 0
 			}
 			this._edgeScrollDuration += elapsed
-			if (this._edgeScrollDuration >= editor.options.edgeScrollDelay) {
+			if (this._edgeScrollDuration > editor.options.edgeScrollDelay) {
 				const eased =
 					editor.options.edgeScrollEaseDuration > 0
 						? EASINGS.easeInCubic(

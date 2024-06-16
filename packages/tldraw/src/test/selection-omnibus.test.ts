@@ -1956,3 +1956,88 @@ it('Ignores locked shapes when hovering', () => {
 	editor.rightClick()
 	expect(editor.getSelectedShapeIds()).toEqual([b.id])
 })
+
+describe.only('Edge scrolling', () => {
+	it('moves the camera correctly when delay and duration are zero', () => {
+		editor = new TestEditor({
+			options: {
+				edgeScrollDelay: 0,
+				edgeScrollEaseDuration: 0,
+			},
+		})
+		editor.setScreenBounds({ w: 3000, h: 3000, x: 0, y: 0 })
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(0, 0)
+
+		expect(editor.getCamera()).toMatchObject({
+			x: editor.options.edgeScrollSpeed,
+			y: editor.options.edgeScrollSpeed,
+		})
+
+		editor.forceTick()
+
+		expect(editor.getCamera()).toMatchObject({
+			x: editor.options.edgeScrollSpeed * 2,
+			y: editor.options.edgeScrollSpeed * 2,
+		})
+	})
+
+	it('moves the camera correctly when delay is 16 and duration are zero', () => {
+		editor = new TestEditor({
+			options: {
+				edgeScrollDelay: 16,
+				edgeScrollEaseDuration: 0,
+			},
+		})
+		editor.setScreenBounds({ w: 3000, h: 3000, x: 0, y: 0 })
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(0, 0)
+
+		// one tick's length of delay
+		expect(editor.getCamera()).toMatchObject({
+			x: 0,
+			y: 0,
+		})
+
+		editor.forceTick()
+
+		expect(editor.getCamera()).toMatchObject({
+			x: editor.options.edgeScrollSpeed,
+			y: editor.options.edgeScrollSpeed,
+		})
+	})
+
+	it('moves the camera correctly when delay is 0 and duration is 32', () => {
+		editor = new TestEditor({
+			options: {
+				edgeScrollDelay: 0,
+				edgeScrollEaseDuration: 32,
+			},
+		})
+		editor.setScreenBounds({ w: 3000, h: 3000, x: 0, y: 0 })
+		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
+
+		editor.pointerMove(300, 300)
+		editor.pointerDown()
+		editor.pointerMove(0, 0)
+
+		// one tick's length of delay
+		expect(editor.getCamera()).toMatchObject({
+			x: editor.options.edgeScrollSpeed * 0.125,
+			y: editor.options.edgeScrollSpeed * 0.125,
+		})
+
+		editor.forceTick()
+
+		expect(editor.getCamera()).toMatchObject({
+			x: editor.options.edgeScrollSpeed * 1.125,
+			y: editor.options.edgeScrollSpeed * 1.125,
+		})
+	})
+})
