@@ -1493,14 +1493,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onDoubleClickEdge: (shape: TLTextShape) => {
-        id: TLShapeId;
-        props: {
-            autoSize: boolean;
-        };
-        type: "text";
-    } | undefined;
-    // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLTextShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLTextShape>;

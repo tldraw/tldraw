@@ -249,33 +249,31 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	override onDoubleClickEdge = (shape: TLTextShape) => {
-		// If the shape has a fixed width, set it to autoSize.
-		if (!shape.props.autoSize) {
-			return {
-				id: shape.id,
-				type: shape.type,
-				props: {
-					autoSize: true,
-				},
-			}
-		}
+	// 	todo: The edge doubleclicking feels like a mistake more often than
+	//  not, especially on multiline text. Removed June 16 2024
 
-		// todo: This feels like a mistake more often than not, maybe
-		// instead we should have a reset scale option in a menu
-		// or a special shortcut.
-
-		// // If the shape is scaled, reset the scale to 1.
-		// if (shape.props.scale !== 1) {
-		// 	return {
-		// 		id: shape.id,
-		// 		type: shape.type,
-		// 		props: {
-		// 			scale: 1,
-		// 		},
-		// 	}
-		// }
-	}
+	// override onDoubleClickEdge = (shape: TLTextShape) => {
+	// 	// If the shape has a fixed width, set it to autoSize.
+	// 	if (!shape.props.autoSize) {
+	// 		return {
+	// 			id: shape.id,
+	// 			type: shape.type,
+	// 			props: {
+	// 				autoSize: true,
+	// 			},
+	// 		}
+	// 	}
+	// 	// If the shape is scaled, reset the scale to 1.
+	// 	if (shape.props.scale !== 1) {
+	// 		return {
+	// 			id: shape.id,
+	// 			type: shape.type,
+	// 			props: {
+	// 				scale: 1,
+	// 			},
+	// 		}
+	// 	}
+	// }
 }
 
 function getTextSize(editor: Editor, props: TLTextShape['props']) {
@@ -296,9 +294,9 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 		maxWidth: cw,
 	})
 
-	// // If we're autosizing the measureText will essentially `Math.floor`
-	// // the numbers so `19` rather than `19.3`, this means we must +1 to
-	// // whatever we get to avoid wrapping.
+	// If we're autosizing the measureText will essentially `Math.floor`
+	// the numbers so `19` rather than `19.3`, this means we must +1 to
+	// whatever we get to avoid wrapping.
 	if (autoSize) {
 		result.w += 1
 	}
