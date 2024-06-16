@@ -15,13 +15,7 @@ import {
 } from '../geo-shape-helpers'
 import { getLines } from '../getLines'
 
-export function GeoShapeBody({
-	shape,
-	shouldScale = true,
-}: {
-	shape: TLGeoShape
-	shouldScale?: boolean
-}) {
+export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; shouldScale: boolean }) {
 	const scaleToUse = shouldScale ? shape.props.scale : 1
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
@@ -99,11 +93,11 @@ export function GeoShapeBody({
 			}
 		}
 		case 'ellipse': {
-			let geometry = editor.getShapeGeometry(shape)
-			if (!shouldScale) {
-				// We don't want the cached geometry
-				geometry = editor.getShapeUtil(shape).getGeometry(shape)
-			}
+			const geometry = shouldScale
+				? // cached
+					editor.getShapeGeometry(shape)
+				: // not cached
+					editor.getShapeUtil(shape).getGeometry(shape)
 			const d = geometry.getSvgPathData(true)
 
 			if (dash === 'dashed' || dash === 'dotted') {

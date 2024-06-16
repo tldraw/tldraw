@@ -427,7 +427,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return (
 			<>
 				<SVGContainer id={id}>
-					<GeoShapeBody shape={shape} />
+					<GeoShapeBody shape={shape} shouldScale={true} />
 				</SVGContainer>
 				{showHtmlContainer && (
 					<HTMLContainer
