@@ -9,6 +9,11 @@
 import { ArrayOfValidator } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
+import { BindingOnChangeOptions } from '@tldraw/editor';
+import { BindingOnCreateOptions } from '@tldraw/editor';
+import { BindingOnShapeChangeOptions } from '@tldraw/editor';
+import { BindingOnShapeIsolateOptions } from '@tldraw/editor';
+import { BindingUtil } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
@@ -37,6 +42,7 @@ import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { ReadonlySharedStyleMap } from '@tldraw/editor';
+import { RecordProps } from '@tldraw/editor';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
 import { Result } from '@tldraw/editor';
@@ -50,6 +56,7 @@ import { T } from '@tldraw/editor';
 import { TLAnyBindingUtilConstructor } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
 import { TLArrowBinding } from '@tldraw/editor';
+import { TLArrowBindingProps } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
@@ -129,6 +136,28 @@ export function AlignMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function ArrangeMenuSubmenu(): JSX_2.Element | null;
+
+// @public (undocumented)
+export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
+    // (undocumented)
+    getDefaultProps(): Partial<TLArrowBindingProps>;
+    // (undocumented)
+    static migrations: TLPropsMigrations;
+    // (undocumented)
+    onAfterChange({ bindingAfter }: BindingOnChangeOptions<TLArrowBinding>): void;
+    // (undocumented)
+    onAfterChangeFromShape({ shapeAfter, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
+    // (undocumented)
+    onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
+    // (undocumented)
+    onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>): void;
+    // (undocumented)
+    onBeforeIsolateFromShape({ binding, }: BindingOnShapeIsolateOptions<TLArrowBinding>): void;
+    // (undocumented)
+    static props: RecordProps<TLArrowBinding>;
+    // (undocumented)
+    static type: string;
+}
 
 // @public (undocumented)
 export function ArrowDownToolbarItem(): JSX_2.Element;
