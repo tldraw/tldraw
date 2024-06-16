@@ -12,6 +12,7 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
+	TLTickEventInfo,
 	Vec,
 	pointInPolygon,
 	polygonsIntersect,
@@ -64,9 +65,9 @@ export class Brushing extends StateNode {
 	_isEdgeScrolling = false
 	_edgeScrollStart = -1
 
-	override onTick = () => {
+	override onTick = ({ elapsed }: TLTickEventInfo) => {
 		const { editor } = this
-		editor.edgeScrollManager.updateEdgeScrolling()
+		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
 	override onPointerMove = () => {

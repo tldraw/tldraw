@@ -38,6 +38,7 @@ export interface TldrawOptions {
 	readonly cameraMovingTimeoutMs: number
 	readonly hitTestMargin: number
 	readonly edgeScrollDelay: number
+	readonly edgeScrollEaseDuration: number
 	readonly edgeScrollSpeed: number
 	readonly edgeScrollDistance: number
 	readonly coarsePointerWidth: number
@@ -75,6 +76,7 @@ export const defaultTldrawOptions = {
 	cameraMovingTimeoutMs: 64,
 	hitTestMargin: 8,
 	edgeScrollDelay: 200,
+	edgeScrollEaseDuration: 200,
 	edgeScrollSpeed: 25,
 	edgeScrollDistance: 8,
 	coarsePointerWidth: 12,

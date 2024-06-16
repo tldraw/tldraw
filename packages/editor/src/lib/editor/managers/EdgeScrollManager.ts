@@ -7,7 +7,7 @@ export class EdgeScrollManager {
 	constructor(public editor: Editor) {}
 
 	private _isEdgeScrolling = false
-	private _edgeScrollStart = -1
+	private _edgeScrollDuration = -1
 
 	/**
 	 * Update the camera position when the mouse is close to the edge of the screen.
@@ -15,23 +15,31 @@ export class EdgeScrollManager {
 	 *
 	 * @public
 	 */
-	updateEdgeScrolling() {
+	updateEdgeScrolling(elapsed: number) {
 		const { editor } = this
 		const edgeScrollProximityFactor = this.getEdgeScroll()
 		if (edgeScrollProximityFactor.x === 0 && edgeScrollProximityFactor.y === 0) {
 			if (this._isEdgeScrolling) {
 				this._isEdgeScrolling = false
-				this._edgeScrollStart = -1
+				this._edgeScrollDuration = 0
 			}
 		} else {
 			if (!this._isEdgeScrolling) {
 				this._isEdgeScrolling = true
-				this._edgeScrollStart = Date.now()
+				this._edgeScrollDuration = 0
 			}
-			const scrollTime = Date.now() - this._edgeScrollStart
-			if (scrollTime > editor.options.edgeScrollDelay) {
-				const t = Math.min(1, scrollTime / 350)
-				const eased = EASINGS.easeInCubic(t)
+			this._edgeScrollDuration += elapsed
+			if (this._edgeScrollDuration >= editor.options.edgeScrollDelay) {
+				const eased =
+					editor.options.edgeScrollEaseDuration > 0
+						? EASINGS.easeInCubic(
+								Math.min(
+									1,
+									this._edgeScrollDuration /
+										(editor.options.edgeScrollDelay + editor.options.edgeScrollEaseDuration)
+								)
+							)
+						: 1
 				this.moveCameraWhenCloseToEdge({
 					x: edgeScrollProximityFactor.x * eased,
 					y: edgeScrollProximityFactor.y * eased,

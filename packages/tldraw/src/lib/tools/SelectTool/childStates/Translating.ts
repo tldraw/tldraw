@@ -10,6 +10,7 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapePartial,
+	TLTickEventInfo,
 	Vec,
 	compact,
 	isPageId,
@@ -103,13 +104,13 @@ export class Translating extends StateNode {
 	_isEdgeScrolling = false
 	_edgeScrollStart = -1
 
-	override onTick = () => {
+	override onTick = ({ elapsed }: TLTickEventInfo) => {
 		const { editor } = this
 		this.dragAndDropManager.updateDroppingNode(
 			this.snapshot.movingShapes,
 			this.updateParentTransforms
 		)
-		editor.edgeScrollManager.updateEdgeScrolling()
+		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
 	override onPointerMove = () => {

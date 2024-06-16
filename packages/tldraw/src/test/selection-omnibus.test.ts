@@ -16,7 +16,12 @@ const ids = {
 }
 
 beforeEach(() => {
-	editor = new TestEditor()
+	editor = new TestEditor({
+		options: {
+			edgeScrollDelay: 0,
+			edgeScrollEaseDuration: 0,
+		},
+	})
 	editor.setScreenBounds({ w: 3000, h: 3000, x: 0, y: 0 })
 })
 

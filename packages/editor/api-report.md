@@ -681,6 +681,7 @@ export const defaultTldrawOptions: {
     readonly dragDistanceSquared: 16;
     readonly edgeScrollDelay: 200;
     readonly edgeScrollDistance: 8;
+    readonly edgeScrollEaseDuration: 200;
     readonly edgeScrollSpeed: 25;
     readonly flattenImageBoundsExpand: 64;
     readonly flattenImageBoundsPadding: 16;
@@ -786,7 +787,7 @@ export class EdgeScrollManager {
     constructor(editor: Editor);
     // (undocumented)
     editor: Editor;
-    updateEdgeScrolling(): void;
+    updateEdgeScrolling(elapsed: number): void;
 }
 
 // @public (undocumented)
@@ -2583,6 +2584,8 @@ export interface TldrawOptions {
     readonly edgeScrollDelay: number;
     // (undocumented)
     readonly edgeScrollDistance: number;
+    // (undocumented)
+    readonly edgeScrollEaseDuration: number;
     // (undocumented)
     readonly edgeScrollSpeed: number;
     // (undocumented)
