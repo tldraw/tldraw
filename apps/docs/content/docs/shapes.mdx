@@ -96,7 +96,7 @@ You can create your own custom shapes. In the examples below, we will create a c
 In tldraw's data model, each shape is represented by a JSON object. Let's first create a type that describes what this object will look like.
 
 ```ts
-import { TLBaseShape } from 'tldraw'
+import { TLBaseShape } from '@tldraw/tldraw'
 
 type CardShape = TLBaseShape<'card', { w: number; h: number }>
 ```
@@ -112,7 +112,7 @@ While tldraw's shapes themselves are simple JSON objects, we use [ShapeUtil](?) 
 Let's create a [ShapeUtil](?) class for the shape.
 
 ```tsx
-import { HTMLContainer, ShapeUtil } from 'tldraw'
+import { HTMLContainer, ShapeUtil } from '@tldraw/tldraw'
 
 class CardShapeUtil extends ShapeUtil<CardShape> {
 	static override type = 'card' as const
