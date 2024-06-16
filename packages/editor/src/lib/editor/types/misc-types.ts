@@ -61,6 +61,7 @@ export interface AssetContextProps {
 	steppedScreenScale: number
 	dpr: number
 	networkEffectiveType: string | null
+	shouldResolveToOriginalImage?: boolean
 }
 
 /** @public */

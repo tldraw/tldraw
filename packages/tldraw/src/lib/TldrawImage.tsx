@@ -2,7 +2,6 @@ import {
 	DefaultSpinner,
 	Editor,
 	ErrorScreen,
-	Expand,
 	LoadingScreen,
 	TLAnyBindingUtilConstructor,
 	TLAnyShapeUtilConstructor,
@@ -20,38 +19,32 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { getSvgAsImage } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
-/**
- * Props for the {@link tldraw#TldrawImage} component.
- *
- * @public
- **/
-export type TldrawImageProps = Expand<
-	{
-		/**
-		 * The snapshot to display.
-		 */
-		snapshot: TLEditorSnapshot | TLStoreSnapshot
+/** @public */
+export interface TldrawImageProps extends Partial<TLSvgOptions> {
+	/**
+	 * The snapshot to display.
+	 */
+	snapshot: TLEditorSnapshot | TLStoreSnapshot
 
-		/**
-		 * The image format to use. Defaults to 'svg'.
-		 */
-		format?: 'svg' | 'png'
+	/**
+	 * The image format to use. Defaults to 'svg'.
+	 */
+	format?: 'svg' | 'png'
 
-		/**
-		 * The page to display. Defaults to the first page.
-		 */
-		pageId?: TLPageId
+	/**
+	 * The page to display. Defaults to the first page.
+	 */
+	pageId?: TLPageId
 
-		/**
-		 * Additional shape utils to use.
-		 */
-		shapeUtils?: readonly TLAnyShapeUtilConstructor[]
-		/**
-		 * Additional binding utils to use.
-		 */
-		bindingUtils?: readonly TLAnyBindingUtilConstructor[]
-	} & Partial<TLSvgOptions>
->
+	/**
+	 * Additional shape utils to use.
+	 */
+	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+	/**
+	 * Additional binding utils to use.
+	 */
+	bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+}
 
 /**
  * A renderered SVG image of a Tldraw snapshot.
@@ -69,6 +62,7 @@ export type TldrawImageProps = Expand<
  * ```
  *
  * @public
+ * @react
  */
 export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 	const [url, setUrl] = useState<string | null>(null)

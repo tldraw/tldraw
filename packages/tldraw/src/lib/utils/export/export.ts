@@ -66,7 +66,6 @@ export async function getSvgAsImage(
 			resolve(null)
 		}
 
-		image.referrerPolicy = 'strict-origin-when-cross-origin'
 		image.src = svgUrl
 	})
 
@@ -120,7 +119,7 @@ export async function exportToString(
 			return (await getSvgString(editor, ids, opts))?.svg
 		}
 		case 'json': {
-			const data = editor.getContentFromCurrentPage(ids)
+			const data = await editor.resolveAssetsInContent(editor.getContentFromCurrentPage(ids))
 			return JSON.stringify(data)
 		}
 		default: {

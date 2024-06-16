@@ -13,6 +13,7 @@ import {
 	TLTextShapeProps,
 	Vec,
 	VecLike,
+	WeakCache,
 	assert,
 	compact,
 	createShapeId,
@@ -20,6 +21,7 @@ import {
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
+import { getAssetFromIndexedDb, storeAssetInIndexedDb } from './AssetBlobStore'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
@@ -47,7 +49,8 @@ export function registerDefaultExternalContentHandlers(
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
 	}: TLExternalContentProps,
-	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
+	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> },
+	persistenceKey?: string
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
@@ -83,23 +86,33 @@ export function registerDefaultExternalContentHandlers(
 		}
 
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
-
-		const asset = AssetRecordType.create({
+		const assetInfo = {
 			id: assetId,
 			type: isImageType ? 'image' : 'video',
 			typeName: 'asset',
 			props: {
 				name,
-				src: await FileHelpers.blobToDataUrl(file),
+				src: '',
 				w: size.w,
 				h: size.h,
 				fileSize: file.size,
 				mimeType: file.type,
 				isAnimated,
 			},
-		})
+		} as TLAsset
 
-		return asset
+		if (persistenceKey) {
+			assetInfo.props.src = assetId
+			await storeAssetInIndexedDb({
+				persistenceKey,
+				assetId,
+				blob: file,
+			})
+		} else {
+			assetInfo.props.src = await FileHelpers.blobToDataUrl(file)
+		}
+
+		return AssetRecordType.create(assetInfo)
 	})
 
 	// urls -> bookmark asset
@@ -560,4 +573,37 @@ export function createEmptyBookmarkShape(
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
+}
+
+const objectURLCache = new WeakCache<TLAsset, ReturnType<typeof getLocalAssetObjectURL>>()
+export const defaultResolveAsset =
+	(persistenceKey?: string) => async (asset: TLAsset | null | undefined) => {
+		if (!asset || !asset.props.src) return null
+
+		// We don't deal with videos at the moment.
+		if (asset.type === 'video') return asset.props.src
+
+		// Assert it's an image to make TS happy.
+		if (asset.type !== 'image') return null
+
+		// Retrieve a local image from the DB.
+		if (persistenceKey && asset.props.src.startsWith('asset:')) {
+			return await objectURLCache.get(
+				asset,
+				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
+			)
+		}
+
+		return asset.props.src
+	}
+
+async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId) {
+	const blob = await getAssetFromIndexedDb({
+		assetId: assetId,
+		persistenceKey,
+	})
+	if (blob) {
+		return URL.createObjectURL(blob)
+	}
+	return null
 }

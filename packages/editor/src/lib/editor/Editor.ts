@@ -53,6 +53,7 @@ import {
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
+	FileHelpers,
 	IndexKey,
 	JsonObject,
 	PerformanceTracker,
@@ -64,6 +65,7 @@ import {
 	compact,
 	dedupe,
 	exhaustiveSwitchError,
+	fetch,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -3927,24 +3929,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	async resolveAssetUrl(
 		assetId: TLAssetId | null,
-		context: { screenScale: number }
+		context: {
+			screenScale?: number
+			shouldResolveToOriginalImage?: boolean
+		}
 	): Promise<string | null> {
 		if (!assetId) return ''
 		const asset = this.getAsset(assetId)
 		if (!asset) return ''
 
+		const { screenScale, shouldResolveToOriginalImage } = context
+
 		// We only look at the zoom level at powers of 2.
 		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
-		const steppedScreenScale = Math.max(0.125, zoomStepFunction(context.screenScale))
+		const steppedScreenScale = Math.max(0.125, zoomStepFunction(screenScale || 1))
 		const networkEffectiveType: string | null =
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
 		const dpr = this.getInstanceState().devicePixelRatio
 
 		return await this._assetOptions.get().onResolveAsset(asset!, {
-			screenScale: context.screenScale,
+			screenScale: screenScale || 1,
 			steppedScreenScale,
 			dpr,
 			networkEffectiveType,
+			shouldResolveToOriginalImage,
 		})
 	}
 
@@ -7694,6 +7702,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return await this.externalAssetContentHandlers[info.type]?.(info as any)
 	}
 
+	hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean {
+		return !!this.externalAssetContentHandlers[type]
+	}
+
 	/** @internal */
 	externalContentHandlers: {
 		[K in TLExternalContent['type']]: {
@@ -7821,6 +7833,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 				assets,
 			}
 		})
+	}
+
+	async resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined> {
+		if (!content) return undefined
+
+		const assets: TLAsset[] = []
+		await Promise.allSettled(
+			content.assets.map(async (asset) => {
+				if (
+					(asset.type === 'image' || asset.type === 'video') &&
+					!asset.props.src?.startsWith('data:image') &&
+					!asset.props.src?.startsWith('http')
+				) {
+					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+					const objectUrl = await this._assetOptions.get().onResolveAsset(asset!, {
+						screenScale: 1,
+						steppedScreenScale: 1,
+						dpr: 1,
+						networkEffectiveType: null,
+						shouldResolveToOriginalImage: true,
+					})
+					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
+						await fetch(objectUrl!).then((r) => r.blob())
+					)
+					assets.push(assetWithDataUrl)
+				} else {
+					assets.push(asset)
+				}
+			})
+		)
+		content.assets = assets
+
+		return content
 	}
 
 	/**
