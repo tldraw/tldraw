@@ -13,7 +13,7 @@ export interface TLCursorProps {
 	chatMessage: string
 }
 
-/** @public */
+/** @public @react */
 export const DefaultCursor = memo(function DefaultCursor({
 	className,
 	zoom,

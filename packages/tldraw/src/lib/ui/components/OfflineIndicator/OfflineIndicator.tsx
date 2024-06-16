@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
-/** @public */
+/** @public @react */
 export function OfflineIndicator() {
 	const msg = useTranslation()
 	const rContainer = useRef<HTMLDivElement>(null)

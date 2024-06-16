@@ -96,6 +96,7 @@ export interface TLUiEventMap {
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null
+	'flatten-to-image': null
 }
 
 /** @public */
@@ -124,7 +125,7 @@ export interface EventsProviderProps {
 	children: React.ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
 	return (
 		<EventsContext.Provider value={onEvent ?? defaultEventHandler}>

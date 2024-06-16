@@ -984,7 +984,8 @@ export const linkUrl = string.check((value) => {
 	}
 })
 
-const validSrcProtocols = new Set(['http:', 'https:', 'data:'])
+// N.B. asset: is a reference to the local indexedDB object store.
+const validSrcProtocols = new Set(['http:', 'https:', 'data:', 'asset:'])
 
 /**
  * Validates that a valid is a url safe to load as an asset.

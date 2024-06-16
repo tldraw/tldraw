@@ -12,7 +12,7 @@ import {
 } from '../../hooks/menu-hooks'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
-/** @public */
+/** @public @react */
 export function DefaultActionsMenuContent() {
 	return (
 		<>
@@ -28,7 +28,7 @@ export function DefaultActionsMenuContent() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function AlignMenuItems() {
 	const actions = useActions()
 	const twoSelected = useUnlockedSelectedShapesCount(2)
@@ -49,7 +49,7 @@ export function AlignMenuItems() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function DistributeMenuItems() {
 	const actions = useActions()
 	const threeSelected = useUnlockedSelectedShapesCount(3)
@@ -64,7 +64,7 @@ export function DistributeMenuItems() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function StackMenuItems() {
 	const actions = useActions()
 	const threeStackableItems = useThreeStackableItems()
@@ -79,7 +79,7 @@ export function StackMenuItems() {
 	)
 }
 
-/** @public */
+/** @public @react */
 export function ReorderMenuItems() {
 	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
@@ -96,13 +96,13 @@ export function ReorderMenuItems() {
 	)
 }
 
-/** @public */
+/** @public @react */
 
 export function ZoomOrRotateMenuItem() {
 	const breakpoint = useBreakpoint()
 	return breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM ? <ZoomTo100MenuItem /> : <RotateCCWMenuItem />
 }
-/** @public */
+/** @public @react */
 
 export function ZoomTo100MenuItem() {
 	const actions = useActions()
@@ -111,7 +111,7 @@ export function ZoomTo100MenuItem() {
 
 	return <TldrawUiMenuItem {...actions['zoom-to-100']} disabled={isZoomedTo100} />
 }
-/** @public */
+/** @public @react */
 
 export function RotateCCWMenuItem() {
 	const actions = useActions()
@@ -121,7 +121,7 @@ export function RotateCCWMenuItem() {
 
 	return <TldrawUiMenuItem {...actions['rotate-ccw']} disabled={!enabled} />
 }
-/** @public */
+/** @public @react */
 
 export function RotateCWMenuItem() {
 	const actions = useActions()
@@ -131,7 +131,7 @@ export function RotateCWMenuItem() {
 
 	return <TldrawUiMenuItem {...actions['rotate-cw']} disabled={!enabled} />
 }
-/** @public */
+/** @public @react */
 
 export function EditLinkMenuItem() {
 	const actions = useActions()
@@ -141,14 +141,14 @@ export function EditLinkMenuItem() {
 
 	return <TldrawUiMenuItem {...actions['edit-link']} disabled={!enabled} />
 }
-/** @public */
+/** @public @react */
 
 export function GroupOrUngroupMenuItem() {
 	const allowGroup = useAllowGroup()
 	const allowUngroup = useAllowUngroup()
 	return allowGroup ? <GroupMenuItem /> : allowUngroup ? <UngroupMenuItem /> : <GroupMenuItem />
 }
-/** @public */
+/** @public @react */
 
 export function GroupMenuItem() {
 	const actions = useActions()
@@ -158,7 +158,7 @@ export function GroupMenuItem() {
 
 	return <TldrawUiMenuItem {...actions['group']} disabled={!enabled} />
 }
-/** @public */
+/** @public @react */
 
 export function UngroupMenuItem() {
 	const actions = useActions()
