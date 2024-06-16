@@ -124,13 +124,13 @@ export function Tldraw(props: TldrawProps) {
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
-	// if (!preloadingComplete) {
-	return (
-		<LoadingScreen>
-			<DefaultSpinner />
-		</LoadingScreen>
-	)
-	// }
+	if (!preloadingComplete) {
+		return (
+			<LoadingScreen>
+				<DefaultSpinner />
+			</LoadingScreen>
+		)
+	}
 
 	return (
 		<TldrawEditor
