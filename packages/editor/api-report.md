@@ -681,6 +681,8 @@ export const defaultTldrawOptions: {
     readonly dragDistanceSquared: 16;
     readonly edgeScrollDistance: 8;
     readonly edgeScrollSpeed: 20;
+    readonly flattenImageBoundsExpand: 64;
+    readonly flattenImageBoundsPadding: 16;
     readonly followChaseViewportSnap: 2;
     readonly gridSteps: readonly [{
         readonly mid: 0.15;
@@ -2571,6 +2573,10 @@ export interface TldrawOptions {
     readonly edgeScrollDistance: number;
     // (undocumented)
     readonly edgeScrollSpeed: number;
+    // (undocumented)
+    readonly flattenImageBoundsExpand: number;
+    // (undocumented)
+    readonly flattenImageBoundsPadding: number;
     // (undocumented)
     readonly followChaseViewportSnap: number;
     // (undocumented)

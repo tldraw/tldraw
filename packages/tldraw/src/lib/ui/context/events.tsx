@@ -97,6 +97,7 @@ export interface TLUiEventMap {
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null
+	'flatten-to-image': null
 }
 
 /** @public */
