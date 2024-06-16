@@ -1,5 +1,5 @@
 import glob from 'fast-glob'
-import { mkdirSync, writeFileSync } from 'fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { exec } from '../../../scripts/lib/exec'
 import { Config } from './vercel-output-config'
 
@@ -55,6 +55,32 @@ async function build() {
 	mkdirSync('.vercel/output', { recursive: true })
 	await exec('cp', ['-r', 'dist', '.vercel/output/static'])
 	await exec('rm', ['-rf', ...glob.sync('.vercel/output/static/**/*.js.map')])
+
+	// Add fonts to preload into index.html
+	const assetsList = (await exec('ls', ['-1', 'dist/assets'])).split('\n').filter(Boolean)
+	const fontsToPreload = [
+		'Shantell_Sans-Tldrawish',
+		'IBMPlexSerif-Medium',
+		'IBMPlexSans-Medium',
+		'IBMPlexMono-Medium',
+	]
+	const indexHtml = await readFileSync('.vercel/output/static/index.html', 'utf8')
+	await writeFileSync(
+		'.vercel/output/static/index.html',
+		indexHtml.replace(
+			'<!-- $PRELOADED_FONTS -->',
+			fontsToPreload
+				.map(
+					(font) => `<link
+		rel="preload"
+		href="/assets/${assetsList.find((a) => a.startsWith(font))}"
+		as="font"
+		type="font/woff2"
+	/>`
+				)
+				.join('\n')
+		)
+	)
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 

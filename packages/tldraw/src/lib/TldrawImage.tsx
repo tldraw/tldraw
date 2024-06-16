@@ -1,4 +1,5 @@
 import {
+	DefaultSpinner,
 	Editor,
 	ErrorScreen,
 	LoadingScreen,
@@ -175,7 +176,11 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 	}
 
 	if (!preloadingComplete) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
+		return (
+			<LoadingScreen>
+				<DefaultSpinner />
+			</LoadingScreen>
+		)
 	}
 
 	return (
