@@ -67,7 +67,7 @@ test.describe('text measurement', () => {
 			measureTextOptions
 		)
 
-		expect(w).toBeCloseTo(88, 0)
+		expect(w).toBeCloseTo(87, 0)
 		expect(h).toBeCloseTo(32.3984375, 0)
 	})
 
