@@ -607,6 +607,23 @@ export function ToggleDebugModeItem() {
 	return <TldrawUiMenuCheckboxItem {...actions['toggle-debug-mode']} checked={isDebugMode} />
 }
 
+/** @public @react */
+export function ToggleDynamicSizeModeItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const isDynamicResizeMode = useValue(
+		'dynamic resize',
+		() => editor.user.getIsDynamicResizeMode(),
+		[editor]
+	)
+	return (
+		<TldrawUiMenuCheckboxItem
+			{...actions['toggle-dynamic-size-mode']}
+			checked={isDynamicResizeMode}
+		/>
+	)
+}
+
 /* ---------------------- Print --------------------- */
 /** @public @react */
 export function PrintItem() {

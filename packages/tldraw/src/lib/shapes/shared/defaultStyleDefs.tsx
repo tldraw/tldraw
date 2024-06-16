@@ -15,7 +15,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
-import { useDefaultColorTheme } from './ShapeFill'
+import { useDefaultColorTheme } from './useDefaultColorTheme'
 
 /** @public */
 export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {

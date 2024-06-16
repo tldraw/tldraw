@@ -93,6 +93,8 @@
 	"action.toggle-debug-mode": "Toggle debug mode",
 	"action.toggle-focus-mode.menu": "Focus mode",
 	"action.toggle-focus-mode": "Toggle focus mode",
+	"action.toggle-dynamic-size-mode.menu": "Dynamic size",
+	"action.toggle-dynamic-size-mode": "Toggle dynamic size",
 	"action.toggle-grid.menu": "Show grid",
 	"action.toggle-grid": "Toggle grid",
 	"action.toggle-lock": "Toggle locked",

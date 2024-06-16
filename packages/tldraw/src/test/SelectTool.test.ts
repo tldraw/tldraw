@@ -329,42 +329,6 @@ describe('When pressing enter on a selected shape', () => {
 // })
 
 describe('When double clicking the selection edge', () => {
-	it('Resets text scale when double clicking the edge of the text', () => {
-		const id = createShapeId()
-		editor
-			.selectAll()
-			.deleteShapes(editor.getSelectedShapeIds())
-			.selectNone()
-			.createShapes([{ id, type: 'text', x: 100, y: 100, props: { scale: 2, text: 'hello' } }])
-			.select(id)
-			.doubleClick(100, 100, { target: 'selection', handle: 'left' })
-
-		editor.expectShapeToMatch({ id, props: { scale: 1 } })
-	})
-
-	it('Resets text autosize first when double clicking the edge of the text', () => {
-		const id = createShapeId()
-		editor
-			.selectAll()
-			.deleteShapes(editor.getSelectedShapeIds())
-			.selectNone()
-			.createShapes([
-				{
-					id,
-					type: 'text',
-					props: { scale: 2, autoSize: false, w: 200, text: 'hello' },
-				},
-			])
-			.select(id)
-			.doubleClick(100, 100, { target: 'selection', handle: 'left' })
-
-		editor.expectShapeToMatch({ id, props: { scale: 2, autoSize: true } })
-
-		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
-
-		editor.expectShapeToMatch({ id, props: { scale: 1, autoSize: true } })
-	})
-
 	it('Begins editing the text if handler returns no change', () => {
 		const id = createShapeId()
 		editor
@@ -382,10 +346,12 @@ describe('When double clicking the selection edge', () => {
 			.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 			.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
-		expect(editor.getEditingShapeId()).toBe(null)
-		editor.expectShapeToMatch({ id, props: { scale: 1, autoSize: true } })
-
-		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
+		// Update:
+		// Previously, double clicking text edges would reset the scale and prevent editing. This is no longer the case.
+		//
+		// expect(editor.getEditingShapeId()).toBe(null)
+		// editor.expectShapeToMatch({ id, props: { scale: 1, autoSize: true } })
+		// editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
 		expect(editor.getEditingShapeId()).toBe(id)
 	})

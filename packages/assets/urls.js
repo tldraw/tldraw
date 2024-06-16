@@ -191,6 +191,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/external-link.svg', import.meta.url).href,
 				opts
 			),
+			'fill-fill': formatAssetUrl(
+				new URL('./icons/icon/fill-fill.svg', import.meta.url).href,
+				opts
+			),
 			'fill-none': formatAssetUrl(
 				new URL('./icons/icon/fill-none.svg', import.meta.url).href,
 				opts

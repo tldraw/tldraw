@@ -2,28 +2,28 @@ import {
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
-	getDefaultColorTheme,
 	useEditor,
-	useIsDarkMode,
 	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
 import { getHashPatternZoomName } from './defaultStyleDefs'
 
-export interface ShapeFillProps {
+interface ShapeFillProps {
 	d: string
 	fill: TLDefaultFillStyle
 	color: TLDefaultColorStyle
 	theme: TLDefaultColorTheme
+	scale: number
 }
 
-/** @public */
-export function useDefaultColorTheme() {
-	return getDefaultColorTheme({ isDarkMode: useIsDarkMode() })
-}
-
-export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }: ShapeFillProps) {
+export const ShapeFill = React.memo(function ShapeFill({
+	theme,
+	d,
+	color,
+	fill,
+	scale,
+}: ShapeFillProps) {
 	switch (fill) {
 		case 'none': {
 			return null
@@ -34,8 +34,11 @@ export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }
 		case 'semi': {
 			return <path fill={theme.solid} d={d} />
 		}
+		case 'fill': {
+			return <path fill={theme[color].fill} d={d} />
+		}
 		case 'pattern': {
-			return <PatternFill theme={theme} color={color} fill={fill} d={d} />
+			return <PatternFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
 		}
 	}
 })

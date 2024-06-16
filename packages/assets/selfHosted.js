@@ -68,6 +68,7 @@ export function getAssetUrls(opts) {
 			duplicate: formatAssetUrl('./icons/icon/duplicate.svg', opts),
 			edit: formatAssetUrl('./icons/icon/edit.svg', opts),
 			'external-link': formatAssetUrl('./icons/icon/external-link.svg', opts),
+			'fill-fill': formatAssetUrl('./icons/icon/fill-fill.svg', opts),
 			'fill-none': formatAssetUrl('./icons/icon/fill-none.svg', opts),
 			'fill-pattern': formatAssetUrl('./icons/icon/fill-pattern.svg', opts),
 			'fill-semi': formatAssetUrl('./icons/icon/fill-semi.svg', opts),
