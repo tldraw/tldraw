@@ -13,7 +13,6 @@ import {
 	Vec,
 	compact,
 	isPageId,
-	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
@@ -101,12 +100,16 @@ export class Translating extends StateNode {
 		this.dragAndDropManager.clear()
 	}
 
+	_isEdgeScrolling = false
+	_edgeScrollStart = -1
+
 	override onTick = () => {
+		const { editor } = this
 		this.dragAndDropManager.updateDroppingNode(
 			this.snapshot.movingShapes,
 			this.updateParentTransforms
 		)
-		moveCameraWhenCloseToEdge(this.editor)
+		editor.edgeScrollManager.updateEdgeScrolling()
 	}
 
 	override onPointerMove = () => {

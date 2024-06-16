@@ -13,7 +13,6 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec,
-	moveCameraWhenCloseToEdge,
 	pointInPolygon,
 	polygonsIntersect,
 } from '@tldraw/editor'
@@ -62,8 +61,12 @@ export class Brushing extends StateNode {
 		this.editor.updateInstanceState({ brush: null })
 	}
 
+	_isEdgeScrolling = false
+	_edgeScrollStart = -1
+
 	override onTick = () => {
-		moveCameraWhenCloseToEdge(this.editor)
+		const { editor } = this
+		editor.edgeScrollManager.updateEdgeScrolling()
 	}
 
 	override onPointerMove = () => {

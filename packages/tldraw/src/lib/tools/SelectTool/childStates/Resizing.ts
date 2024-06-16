@@ -18,7 +18,6 @@ import {
 	VecLike,
 	areAnglesCompatible,
 	compact,
-	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
@@ -73,7 +72,8 @@ export class Resizing extends StateNode {
 	}
 
 	override onTick = () => {
-		moveCameraWhenCloseToEdge(this.editor)
+		const { editor } = this
+		editor.edgeScrollManager.updateEdgeScrolling()
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
