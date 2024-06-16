@@ -29,7 +29,7 @@ export interface TLCanvasComponentProps {
 	className?: string
 }
 
-/** @public */
+/** @public @react */
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
@@ -596,6 +596,7 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 			src={image.src}
 			width={image.bounds.width}
 			height={image.bounds.height}
+			referrerPolicy="no-referrer"
 			style={{
 				position: 'absolute',
 				top: 0,

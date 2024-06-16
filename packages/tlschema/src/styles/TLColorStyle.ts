@@ -2,7 +2,8 @@ import { Expand } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
 
-const colors = [
+/** @public */
+export const defaultColorNames = [
 	'black',
 	'grey',
 	'light-violet',
@@ -41,7 +42,7 @@ export type TLDefaultColorTheme = Expand<
 		text: string
 		background: string
 		solid: string
-	} & Record<(typeof colors)[number], TLDefaultColorThemeColor>
+	} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>
 >
 
 /** @public */
@@ -436,13 +437,13 @@ export function getDefaultColorTheme(opts: { isDarkMode: boolean }): TLDefaultCo
 /** @public */
 export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', {
 	defaultValue: 'black',
-	values: colors,
+	values: defaultColorNames,
 })
 
 /** @public */
 export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', {
 	defaultValue: 'black',
-	values: colors,
+	values: defaultColorNames,
 })
 
 /** @public */

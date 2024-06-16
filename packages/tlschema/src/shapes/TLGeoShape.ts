@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RETIRED_DOWN_MIGRATION, RecordPropsType } from '../recordsWithProps'
+import { RecordPropsType } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -91,14 +91,14 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 			up: (props) => {
 				props.url = ''
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: geoShapeVersions.AddLabelColor,
 			up: (props) => {
 				props.labelColor = 'black'
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: geoShapeVersions.RemoveJustify,
@@ -107,21 +107,21 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 					props.align = 'start'
 				}
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: geoShapeVersions.AddCheckBox,
 			up: (_props) => {
 				// noop
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: geoShapeVersions.AddVerticalAlign,
 			up: (props) => {
 				props.verticalAlign = 'middle'
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: geoShapeVersions.MigrateLegacyAlign,
@@ -140,14 +140,14 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 				}
 				props.align = newAlign
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: geoShapeVersions.AddCloud,
 			up: (_props) => {
 				// noop
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: geoShapeVersions.MakeUrlsValid,

@@ -15,7 +15,7 @@ export default async function NotFound() {
 					<div className="page-header">
 						<h1>Not found.</h1>
 					</div>
-					<p>There's nothing here. :(</p>
+					<p>There’s nothing here. :(</p>
 				</main>
 			</div>
 		</div>

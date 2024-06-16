@@ -27,8 +27,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	private state: HistoryRecorderState = HistoryRecorderState.Recording
 	private readonly pendingDiff = new PendingDiff<R>()
-	/** @internal */
-	stacks = atom(
+	private stacks = atom(
 		'HistoryManager.stacks',
 		{
 			undos: stack<TLHistoryEntry<R>>(),
@@ -207,7 +206,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 			let { undos, redos } = this.stacks.get()
 			if (redos.length === 0) {
-				return
+				return this
 			}
 
 			// ignore any intermediate marks - this should take us to the first `diff` entry
@@ -253,6 +252,41 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this
 	}
 
+	squashToMark = (id: string) => {
+		// remove marks between head and the mark
+
+		let top = this.stacks.get().undos
+		const popped: Array<RecordsDiff<R>> = []
+
+		while (top.head && !(top.head.type === 'stop' && top.head.id === id)) {
+			if (top.head.type === 'diff') {
+				popped.push(top.head.diff)
+			}
+			top = top.tail
+		}
+
+		if (!top.head || top.head?.id !== id) {
+			console.error('Could not find mark to squash to: ', id)
+			return this
+		}
+		if (popped.length === 0) {
+			return this
+		}
+
+		const diff = createEmptyRecordsDiff<R>()
+		squashRecordDiffsMutable(diff, popped.reverse())
+
+		this.stacks.update(({ redos }) => ({
+			undos: top.push({
+				type: 'diff',
+				diff,
+			}),
+			redos,
+		}))
+
+		return this
+	}
+
 	mark = (id = uniqueId()) => {
 		transact(() => {
 			this.flushPendingDiff()
@@ -274,7 +308,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			undos: undos.toArray(),
 			redos: redos.toArray(),
 			pendingDiff: this.pendingDiff.debug(),
-			state: this.state,
+			state: this.state as string,
 		}
 	}
 }

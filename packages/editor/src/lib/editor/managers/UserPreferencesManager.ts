@@ -6,6 +6,7 @@ import {
 } from '../../config/TLUserPreferences'
 import { TLUser } from '../../config/createTLUser'
 
+/** @public */
 export class UserPreferencesManager {
 	constructor(
 		private readonly user: TLUser,

@@ -13,6 +13,7 @@ export type TLBookmarkAsset = TLBaseAsset<
 		title: string
 		description: string
 		image: string
+		favicon: string
 		src: string | null
 	}
 >
@@ -24,12 +25,14 @@ export const bookmarkAssetValidator: T.Validator<TLBookmarkAsset> = createAssetV
 		title: T.string,
 		description: T.string,
 		image: T.string,
+		favicon: T.string,
 		src: T.srcUrl.nullable(),
 	})
 )
 
 const Versions = createMigrationIds('com.tldraw.asset.bookmark', {
 	MakeUrlsValid: 1,
+	AddFavicon: 2,
 } as const)
 
 export { Versions as bookmarkAssetVersions }
@@ -49,6 +52,17 @@ export const bookmarkAssetMigrations = createRecordMigrationSequence({
 			},
 			down: (_asset) => {
 				// noop
+			},
+		},
+		{
+			id: Versions.AddFavicon,
+			up: (asset: any) => {
+				if (!T.srcUrl.isValid(asset.props.favicon)) {
+					asset.props.favicon = ''
+				}
+			},
+			down: (asset: any) => {
+				delete asset.props.favicon
 			},
 		},
 	],

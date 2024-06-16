@@ -9,7 +9,7 @@ export interface TLSelectionBackgroundProps {
 	rotation: number
 }
 
-/** @public */
+/** @public @react */
 export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBackgroundProps) {
 	const rDiv = React.useRef<HTMLDivElement>(null)
 	useTransform(rDiv, bounds.x, bounds.y, 1, rotation)

@@ -1,4 +1,4 @@
-import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
+import { Editor, TLExternalContentSource, VecLike, fetch } from '@tldraw/editor'
 
 /**
  * When the clipboard has a file, create an image shape from the file and paste it into the scene

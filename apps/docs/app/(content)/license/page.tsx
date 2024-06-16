@@ -53,13 +53,13 @@ export default async function LicensePage() {
 					available upon request and do so only under a license that complies with this License.
 				</p>
 				<p>
-					That that the word "tldraw" shall not be used to refer to any derivative works of the
-					Software except in the phrase "Based on the tldraw library (https://tldraw.com)", provided
+					That that the word “tldraw” shall not be used to refer to any derivative works of the
+					Software except in the phrase “Based on the tldraw library (https://tldraw.com)”, provided
 					such phrase is not used to promote the derivative works or to imply that tldraw endorses
 					you or the derivative works.
 				</p>
 				<p>
-					THAT THE SOFTWARE COMES "AS IS", WITH NO WARRANTIES. THIS MEANS NO EXPRESS, IMPLIED OR
+					THAT THE SOFTWARE COMES “AS IS”, WITH NO WARRANTIES. THIS MEANS NO EXPRESS, IMPLIED OR
 					STATUTORY WARRANTY, INCLUDING WITHOUT LIMITATION, WARRANTIES OF MERCHANTABILITY OR FITNESS
 					FOR A PARTICULAR PURPOSE OR ANY WARRANTY OF TITLE OR NON-INFRINGEMENT. ALSO, YOU MUST PASS
 					THIS DISCLAIMER ON WHENEVER YOU DISTRIBUTE THE SOFTWARE OR DERIVATIVE WORKS.

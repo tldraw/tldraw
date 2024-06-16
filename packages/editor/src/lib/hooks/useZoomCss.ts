@@ -26,6 +26,7 @@ export function useZoomCss() {
 
 		return () => {
 			scheduler.detach()
+			setScaleDebounced.cancel()
 		}
 	}, [editor, container])
 }

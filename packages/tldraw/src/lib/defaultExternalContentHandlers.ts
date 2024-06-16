@@ -13,18 +13,21 @@ import {
 	TLTextShapeProps,
 	Vec,
 	VecLike,
+	WeakCache,
 	assert,
 	compact,
 	createShapeId,
+	fetch,
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
+import { getAssetFromIndexedDb, storeAssetInIndexedDb } from './AssetBlobStore'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
-import { containBoxSize, downsizeImage } from './utils/assets/assets'
+import { containBoxSize } from './utils/assets/assets'
 import { getEmbedInfo } from './utils/embeds/embeds'
-import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text/text'
+import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /** @public */
 export interface TLExternalContentProps {
@@ -46,7 +49,8 @@ export function registerDefaultExternalContentHandlers(
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
 	}: TLExternalContentProps,
-	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
+	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> },
+	persistenceKey?: string
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
@@ -81,48 +85,62 @@ export function registerDefaultExternalContentHandlers(
 			}
 		}
 
-		// Always rescale the image
-		if (!isAnimated && MediaHelpers.isStaticImageType(file.type)) {
-			file = await downsizeImage(file, size.w, size.h, {
-				type: file.type,
-				quality: 0.92,
-			})
-		}
-
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
-
-		const asset = AssetRecordType.create({
+		const assetInfo = {
 			id: assetId,
 			type: isImageType ? 'image' : 'video',
 			typeName: 'asset',
 			props: {
 				name,
-				src: await FileHelpers.blobToDataUrl(file),
+				src: '',
 				w: size.w,
 				h: size.h,
+				fileSize: file.size,
 				mimeType: file.type,
 				isAnimated,
 			},
-		})
+		} as TLAsset
 
-		return asset
+		if (persistenceKey) {
+			assetInfo.props.src = assetId
+			await storeAssetInIndexedDb({
+				persistenceKey,
+				assetId,
+				blob: file,
+			})
+		} else {
+			assetInfo.props.src = await FileHelpers.blobToDataUrl(file)
+		}
+
+		return AssetRecordType.create(assetInfo)
 	})
 
 	// urls -> bookmark asset
 	editor.registerExternalAssetHandler('url', async ({ url }) => {
-		let meta: { image: string; title: string; description: string }
+		let meta: { image: string; favicon: string; title: string; description: string }
 
 		try {
-			const resp = await fetch(url, { method: 'GET', mode: 'no-cors' })
+			const resp = await fetch(url, {
+				method: 'GET',
+				mode: 'no-cors',
+			})
 			const html = await resp.text()
 			const doc = new DOMParser().parseFromString(html, 'text/html')
 			meta = {
 				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
-				title:
-					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
-					truncateStringWithEllipsis(url, 32),
+				favicon:
+					doc.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ??
+					doc.head.querySelector('link[rel="icon"]')?.getAttribute('href') ??
+					'',
+				title: doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? url,
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
+			}
+			if (meta.image.startsWith('/')) {
+				meta.image = new URL(meta.image, url).href
+			}
+			if (meta.favicon.startsWith('/')) {
+				meta.favicon = new URL(meta.favicon, url).href
 			}
 		} catch (error) {
 			console.error(error)
@@ -130,7 +148,7 @@ export function registerDefaultExternalContentHandlers(
 				title: msg('assets.url.failed'),
 				severity: 'error',
 			})
-			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
+			meta = { image: '', favicon: '', title: '', description: '' }
 		}
 
 		// Create the bookmark asset from the meta
@@ -142,6 +160,7 @@ export function registerDefaultExternalContentHandlers(
 				src: url,
 				description: meta.description,
 				image: meta.image,
+				favicon: meta.favicon,
 				title: meta.title,
 			},
 			meta: {},
@@ -554,4 +573,37 @@ export function createEmptyBookmarkShape(
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
+}
+
+const objectURLCache = new WeakCache<TLAsset, ReturnType<typeof getLocalAssetObjectURL>>()
+export const defaultResolveAsset =
+	(persistenceKey?: string) => async (asset: TLAsset | null | undefined) => {
+		if (!asset || !asset.props.src) return null
+
+		// We don't deal with videos at the moment.
+		if (asset.type === 'video') return asset.props.src
+
+		// Assert it's an image to make TS happy.
+		if (asset.type !== 'image') return null
+
+		// Retrieve a local image from the DB.
+		if (persistenceKey && asset.props.src.startsWith('asset:')) {
+			return await objectURLCache.get(
+				asset,
+				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
+			)
+		}
+
+		return asset.props.src
+	}
+
+async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId) {
+	const blob = await getAssetFromIndexedDb({
+		assetId: assetId,
+		persistenceKey,
+	})
+	if (blob) {
+		return URL.createObjectURL(blob)
+	}
+	return null
 }

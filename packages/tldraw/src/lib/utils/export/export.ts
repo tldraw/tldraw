@@ -1,5 +1,6 @@
 import {
 	Editor,
+	Image,
 	PngHelpers,
 	TLShapeId,
 	TLSvgOptions,
@@ -34,7 +35,7 @@ export async function getSvgAsImage(
 	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
-		const image = new Image()
+		const image = Image()
 		image.crossOrigin = 'anonymous'
 
 		image.onload = async () => {
@@ -118,7 +119,7 @@ export async function exportToString(
 			return (await getSvgString(editor, ids, opts))?.svg
 		}
 		case 'json': {
-			const data = editor.getContentFromCurrentPage(ids)
+			const data = await editor.resolveAssetsInContent(editor.getContentFromCurrentPage(ids))
 			return JSON.stringify(data)
 		}
 		default: {

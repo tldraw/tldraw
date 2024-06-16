@@ -1,4 +1,5 @@
 import { useValue } from '@tldraw/state'
+import { noop } from '@tldraw/utils'
 import classNames from 'classnames'
 import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Editor } from '../../editor/Editor'
@@ -10,13 +11,10 @@ import { ErrorBoundary } from '../ErrorBoundary'
 
 const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-function noop() {}
-
 /** @public */
 export type TLErrorFallbackComponent = ComponentType<{ error: unknown; editor?: Editor }>
 
-/** @public */
+/** @public @react */
 export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [shouldShowError, setShouldShowError] = useState(process.env.NODE_ENV === 'development')

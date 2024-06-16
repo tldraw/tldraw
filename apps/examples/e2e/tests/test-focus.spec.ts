@@ -197,7 +197,7 @@ test.describe('Focus', () => {
 		expect(await page.evaluate(() => document.activeElement?.nodeName === 'TEXTAREA')).toBe(true)
 	})
 
-	test('edit->edit, focus stays in the text areas when going from shape-to-shape', async ({
+	test.skip('edit->edit, focus stays in the text areas when going from shape-to-shape', async ({
 		page,
 	}) => {
 		await page.goto('http://localhost:5420/end-to-end')

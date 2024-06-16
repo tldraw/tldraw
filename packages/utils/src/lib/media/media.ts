@@ -1,3 +1,4 @@
+import { Image } from '../network'
 import { isApngAnimated } from './apng'
 import { isAvifAnimated } from './avif'
 import { isGifAnimated } from './gif'
@@ -65,13 +66,14 @@ export class MediaHelpers {
 	 */
 	static loadImage(src: string): Promise<HTMLImageElement> {
 		return new Promise((resolve, reject) => {
-			const img = new Image()
+			const img = Image()
 			img.onload = () => resolve(img)
 			img.onerror = (e) => {
 				console.error(e)
 				reject(new Error('Could not load image'))
 			}
 			img.crossOrigin = 'anonymous'
+			img.referrerPolicy = 'strict-origin-when-cross-origin'
 			img.src = src
 		})
 	}

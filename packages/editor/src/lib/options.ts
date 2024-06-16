@@ -26,6 +26,7 @@ export interface TldrawOptions {
 	readonly dragDistanceSquared: number
 	readonly defaultSvgPadding: number
 	readonly cameraSlideFriction: number
+	readonly maxPointsPerDrawShape: number
 	readonly gridSteps: readonly {
 		readonly min: number
 		readonly mid: number
@@ -34,7 +35,7 @@ export interface TldrawOptions {
 	readonly collaboratorInactiveTimeoutMs: number
 	readonly collaboratorIdleTimeoutMs: number
 	readonly collaboratorCheckIntervalMs: number
-	readonly cameraMovingTimoutMs: number
+	readonly cameraMovingTimeoutMs: number
 	readonly hitTestMargin: number
 	readonly edgeScrollSpeed: number
 	readonly edgeScrollDistance: number
@@ -58,6 +59,7 @@ export const defaultTldrawOptions = {
 	dragDistanceSquared: 16, // 4 squared
 	defaultSvgPadding: 32,
 	cameraSlideFriction: 0.09,
+	maxPointsPerDrawShape: 500,
 	gridSteps: [
 		{ min: -1, mid: 0.15, step: 64 },
 		{ min: 0.05, mid: 0.375, step: 16 },
@@ -67,7 +69,7 @@ export const defaultTldrawOptions = {
 	collaboratorInactiveTimeoutMs: 60000,
 	collaboratorIdleTimeoutMs: 3000,
 	collaboratorCheckIntervalMs: 1200,
-	cameraMovingTimoutMs: 64,
+	cameraMovingTimeoutMs: 64,
 	hitTestMargin: 8,
 	edgeScrollSpeed: 20,
 	edgeScrollDistance: 8,

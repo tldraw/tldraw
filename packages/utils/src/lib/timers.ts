@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-properties */
+
 /** @public */
 export class Timers {
 	private timeouts: number[] = []

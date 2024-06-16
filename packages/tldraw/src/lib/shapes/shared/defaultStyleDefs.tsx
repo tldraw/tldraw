@@ -9,6 +9,7 @@ import {
 	TLDefaultFontStyle,
 	TLShapeUtilCanvasSvgDef,
 	debugFlags,
+	fetch,
 	last,
 	useEditor,
 	useValue,

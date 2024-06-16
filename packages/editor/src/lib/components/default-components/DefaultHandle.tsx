@@ -12,7 +12,7 @@ export interface TLHandleProps {
 	className?: string
 }
 
-/** @public */
+/** @public @react */
 export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps) {
 	const editor = useEditor()
 	const br = (isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom

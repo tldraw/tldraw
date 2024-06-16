@@ -55,7 +55,11 @@ export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
 	meta?: Partial<T['meta']>
 }>
 
-/** @public */
+/**
+ * An ID for a {@link TLBinding}.
+ *
+ * @public
+ */
 export type TLBindingId = RecordId<TLUnknownBinding>
 
 /** @public */

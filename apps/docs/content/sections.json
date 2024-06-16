@@ -64,6 +64,10 @@
 					{
 						"id": "Namespace",
 						"path": null
+					},
+					{
+						"id": "Component",
+						"path": null
 					}
 				],
 				"hero": null
@@ -99,6 +103,10 @@
 					},
 					{
 						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Component",
 						"path": null
 					}
 				],
@@ -136,6 +144,10 @@
 					{
 						"id": "Namespace",
 						"path": null
+					},
+					{
+						"id": "Component",
+						"path": null
 					}
 				],
 				"hero": null
@@ -172,6 +184,10 @@
 					{
 						"id": "Namespace",
 						"path": null
+					},
+					{
+						"id": "Component",
+						"path": null
 					}
 				],
 				"hero": null
@@ -207,6 +223,10 @@
 					},
 					{
 						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Component",
 						"path": null
 					}
 				],

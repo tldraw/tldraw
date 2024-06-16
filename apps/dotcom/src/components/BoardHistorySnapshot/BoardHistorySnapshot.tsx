@@ -1,7 +1,7 @@
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/tlsync'
 import { useCallback, useState } from 'react'
-import { Tldraw } from 'tldraw'
+import { Tldraw, fetch } from 'tldraw'
 import '../../../styles/core.css'
 import { assetUrls } from '../../utils/assetUrls'
 import { useFileSystem } from '../../utils/useFileSystem'

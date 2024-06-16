@@ -20,9 +20,9 @@ const textAlignmentsForLtr = {
 	'end-legacy': 'right',
 }
 
-type TLOverflowMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
-interface TLMeasureTextSpanOpts {
-	overflow: TLOverflowMode
+/** @public */
+export interface TLMeasureTextSpanOpts {
+	overflow: 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
 	width: number
 	height: number
 	padding: number
@@ -36,6 +36,7 @@ interface TLMeasureTextSpanOpts {
 
 const spaceCharacterRegex = /\s/
 
+/** @public */
 export class TextManager {
 	baseElm: HTMLDivElement
 
