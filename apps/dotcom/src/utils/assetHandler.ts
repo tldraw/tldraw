@@ -15,12 +15,6 @@ export const resolveAsset =
 	async (asset: TLAsset | null | undefined, context: AssetContextProps) => {
 		if (!asset || !asset.props.src) return null
 
-		// We don't deal with videos at the moment.
-		if (asset.type === 'video') return asset.props.src
-
-		// Assert it's an image to make TS happy.
-		if (asset.type !== 'image') return null
-
 		// Retrieve a local image from the DB.
 		if (persistenceKey && asset.props.src.startsWith('asset:')) {
 			return await objectURLCache.get(
@@ -28,6 +22,12 @@ export const resolveAsset =
 				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
 			)
 		}
+
+		// We don't deal with videos at the moment.
+		if (asset.type === 'video') return asset.props.src
+
+		// Assert it's an image to make TS happy.
+		if (asset.type !== 'image') return null
 
 		// Don't try to transform data: URLs, yikes.
 		if (!asset.props.src.startsWith('http:') && !asset.props.src.startsWith('https:'))
