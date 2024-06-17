@@ -110,7 +110,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	indicator(shape: TLTextShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-		/* eslint-disable-next-line react-hooks/rules-of-hooks */
 		const editor = useEditor()
 		if (shape.props.autoSize && editor.getEditingShapeId() === shape.id) return null
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
