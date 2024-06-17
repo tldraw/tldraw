@@ -20,7 +20,7 @@ export async function exportAs(
 	ids: TLShapeId[],
 	format: TLExportType = 'png',
 	name: string | undefined,
-	opts = {} as Partial<TLSvgOptions>
+	opts: TLSvgOptions = {}
 ) {
 	// If we don't get name then use a predefined one
 	if (!name) {

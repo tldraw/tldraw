@@ -20,7 +20,7 @@ import { getSvgAsImage } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
-export interface TldrawImageProps extends Partial<TLSvgOptions> {
+export interface TldrawImageProps extends TLSvgOptions {
 	/**
 	 * The snapshot to display.
 	 */
