@@ -20,7 +20,7 @@ export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>
 export let defaultUiAssetUrls: TLUiAssetUrls = {
 	...defaultEditorAssetUrls,
 	icons: Object.fromEntries(
-		iconTypes.map((name) => [name, `https://cdn.tldraw.com/${version}/icons/icon/${name}.svg`])
+		iconTypes.map((name) => [name, `${CDN_BASE_URL}/${version}/icons/icon/${name}.svg`])
 	) as Record<TLUiIconType, string>,
 	translations: Object.fromEntries(
 		LANGUAGES.map((lang) => [
