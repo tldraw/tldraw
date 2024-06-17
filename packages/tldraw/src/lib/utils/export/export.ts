@@ -96,7 +96,7 @@ export async function getSvgAsImage(
 	}
 }
 
-async function getSvgString(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {
+async function getSvgString(editor: Editor, ids: TLShapeId[], opts: TLSvgOptions) {
 	const svg = await editor.getSvgString(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
 		scale: 1,
 		background: editor.getInstanceState().exportBackground,
@@ -112,7 +112,7 @@ export async function exportToString(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: 'svg' | 'json',
-	opts = {} as Partial<TLSvgOptions>
+	opts: TLSvgOptions = {}
 ) {
 	switch (format) {
 		case 'svg': {
@@ -141,12 +141,12 @@ export async function exportToBlob({
 	editor,
 	ids,
 	format,
-	opts = {} as Partial<TLSvgOptions>,
+	opts = {},
 }: {
 	editor: Editor
 	ids: TLShapeId[]
 	format: TLExportType
-	opts?: Partial<TLSvgOptions>
+	opts?: TLSvgOptions
 }): Promise<Blob> {
 	switch (format) {
 		case 'svg':
@@ -188,7 +188,7 @@ export function exportToBlobPromise(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: TLExportType,
-	opts = {} as Partial<TLSvgOptions>
+	opts: TLSvgOptions = {}
 ): { blobPromise: Promise<Blob>; mimeType: string } {
 	return {
 		blobPromise: exportToBlob({ editor, ids, format, opts }),

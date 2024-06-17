@@ -1018,13 +1018,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     // @deprecated (undocumented)
-    getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
-    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<{
+    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<SVGSVGElement | undefined>;
+    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<{
         height: number;
         svg: SVGSVGElement;
         width: number;
     } | undefined>;
-    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<{
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<{
         height: number;
         svg: string;
         width: number;
@@ -3249,17 +3249,17 @@ export type TLStoreWithStatus = {
 // @public (undocumented)
 export interface TLSvgOptions {
     // (undocumented)
-    background: boolean;
+    background?: boolean;
     // (undocumented)
-    bounds: Box;
+    bounds?: Box;
     // (undocumented)
     darkMode?: boolean;
     // (undocumented)
-    padding: number;
+    padding?: number;
     // (undocumented)
-    preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     // (undocumented)
-    scale: number;
+    scale?: number;
 }
 
 // @public (undocumented)

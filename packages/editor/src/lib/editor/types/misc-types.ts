@@ -9,12 +9,12 @@ export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>
 
 /** @public */
 export interface TLSvgOptions {
-	bounds: Box
-	scale: number
-	background: boolean
-	padding: number
+	bounds?: Box
+	scale?: number
+	background?: boolean
+	padding?: number
 	darkMode?: boolean
-	preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
 }
 
 /** @public */
