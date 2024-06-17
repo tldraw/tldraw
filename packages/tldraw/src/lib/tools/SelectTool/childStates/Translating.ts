@@ -10,10 +10,10 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapePartial,
+	TLTickEventInfo,
 	Vec,
 	compact,
 	isPageId,
-	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
@@ -101,12 +101,13 @@ export class Translating extends StateNode {
 		this.dragAndDropManager.clear()
 	}
 
-	override onTick = () => {
+	override onTick = ({ elapsed }: TLTickEventInfo) => {
+		const { editor } = this
 		this.dragAndDropManager.updateDroppingNode(
 			this.snapshot.movingShapes,
 			this.updateParentTransforms
 		)
-		moveCameraWhenCloseToEdge(this.editor)
+		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
 	override onPointerMove = () => {

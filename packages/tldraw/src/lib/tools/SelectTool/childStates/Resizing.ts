@@ -14,11 +14,11 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
+	TLTickEventInfo,
 	Vec,
 	VecLike,
 	areAnglesCompatible,
 	compact,
-	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
@@ -72,8 +72,9 @@ export class Resizing extends StateNode {
 		this.updateShapes()
 	}
 
-	override onTick = () => {
-		moveCameraWhenCloseToEdge(this.editor)
+	override onTick = ({ elapsed }: TLTickEventInfo) => {
+		const { editor } = this
+		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {

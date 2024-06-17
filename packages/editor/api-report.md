@@ -679,8 +679,10 @@ export const defaultTldrawOptions: {
     readonly defaultSvgPadding: 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
+    readonly edgeScrollDelay: 200;
     readonly edgeScrollDistance: 8;
-    readonly edgeScrollSpeed: 20;
+    readonly edgeScrollEaseDuration: 200;
+    readonly edgeScrollSpeed: 25;
     readonly flattenImageBoundsExpand: 64;
     readonly flattenImageBoundsPadding: 16;
     readonly followChaseViewportSnap: 2;
@@ -778,6 +780,14 @@ export class Edge2d extends Geometry2d {
     u: Vec;
     // (undocumented)
     ul: number;
+}
+
+// @public (undocumented)
+export class EdgeScrollManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    editor: Editor;
+    updateEdgeScrolling(elapsed: number): void;
 }
 
 // @public (undocumented)
@@ -883,6 +893,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
+    edgeScrollManager: EdgeScrollManager;
     readonly environment: EnvironmentManager;
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -1754,9 +1765,6 @@ export interface MatModel {
     f: number;
 }
 
-// @public
-export function moveCameraWhenCloseToEdge(editor: Editor): void;
-
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
     x: number;
@@ -2573,7 +2581,11 @@ export interface TldrawOptions {
     // (undocumented)
     readonly dragDistanceSquared: number;
     // (undocumented)
+    readonly edgeScrollDelay: number;
+    // (undocumented)
     readonly edgeScrollDistance: number;
+    // (undocumented)
+    readonly edgeScrollEaseDuration: number;
     // (undocumented)
     readonly edgeScrollSpeed: number;
     // (undocumented)

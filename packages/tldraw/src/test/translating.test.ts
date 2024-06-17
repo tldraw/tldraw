@@ -40,7 +40,12 @@ const ids = {
 
 beforeEach(() => {
 	console.error = jest.fn()
-	editor = new TestEditor()
+	editor = new TestEditor({
+		options: {
+			edgeScrollDelay: 0,
+			edgeScrollEaseDuration: 0,
+		},
+	})
 })
 
 const getNumSnapPoints = (snap: SnapIndicator): number => {
@@ -139,10 +144,10 @@ describe('When translating...', () => {
 
 		const before = editor.getShape<TLGeoShape>(ids.box1)!
 
-		jest.advanceTimersByTime(100)
+		editor.forceTick()
 		editor
 			// The change is bigger than expected because the camera moves
-			.expectShapeToMatch({ id: ids.box1, x: -160, y: 10 })
+			.expectShapeToMatch({ id: ids.box1, x: -65, y: 10 })
 			// We'll continue moving in the x postion, but now we'll also move in the y position.
 			// The speed in the y position is smaller since we are further away from the edge.
 			.pointerMove(0, 25)
@@ -161,16 +166,21 @@ describe('When translating...', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		editor.pointerDown(50, 50, ids.box1).pointerMove(1080, 50)
 
-		jest.advanceTimersByTime(100)
+		editor.forceTick()
+		editor.forceTick()
+		editor.forceTick()
 		editor
 			// The change is bigger than expected because the camera moves
-			.expectShapeToMatch({ id: ids.box1, x: 1160, y: 10 })
+			.expectShapeToMatch({ id: ids.box1, x: 1115, y: 10 })
 			.pointerMove(1080, 800)
-		jest.advanceTimersByTime(100)
+
+		editor.forceTick()
+		editor.forceTick()
+		editor.forceTick()
 		editor
-			.expectShapeToMatch({ id: ids.box1, x: 1320, y: 845.68 })
+			.expectShapeToMatch({ id: ids.box1, x: 1215, y: 805.9 })
 			.pointerUp()
-			.expectShapeToMatch({ id: ids.box1, x: 1340, y: 857.92 })
+			.expectShapeToMatch({ id: ids.box1, x: 1240, y: 821.2 })
 	})
 
 	it('translates multiple shapes', () => {
