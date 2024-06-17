@@ -6185,6 +6185,7 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     license-report: "npm:^6.5.0"
     lint-staged: "npm:>=10"
+    mime: "npm:^4.0.3"
     prettier: "npm:^3.0.3"
     prettier-plugin-organize-imports: "npm:^3.2.3"
     purgecss: "npm:^5.0.0"
@@ -17077,6 +17078,15 @@ __metadata:
   bin:
     mime: bin/cli.js
   checksum: 4598030457488c240a4ba30561a619cfb627f96271ecced5d715eb5c44d33105e3f28d28fe46d72eeadb78d7de5aeb1f8e62d448c14b0e518a7ace76d2af5f2d
+  languageName: node
+  linkType: hard
+
+"mime@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "mime@npm:4.0.3"
+  bin:
+    mime: bin/cli.js
+  checksum: fdabb0f0aecd34c11be108e7a73d74a9f672bee8586d3353834ebebedfb8420bdf932efad11a343de994978504024dab5b7846fc4cae4b1855b571a01d27ee6e
   languageName: node
   linkType: hard
 
