@@ -24,6 +24,7 @@ const dotcom = path.relative(process.cwd(), path.resolve(__dirname, '../apps/dot
 const env = makeEnv([
 	'APP_ORIGIN',
 	'ASSET_UPLOAD',
+	'ASSET_BUCKET_ORIGIN',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',

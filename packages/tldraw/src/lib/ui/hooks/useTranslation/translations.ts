@@ -1,4 +1,4 @@
-import { LANGUAGES } from '@tldraw/editor'
+import { LANGUAGES, fetch } from '@tldraw/editor'
 import { TLUiAssetUrls } from '../../assetUrls'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'

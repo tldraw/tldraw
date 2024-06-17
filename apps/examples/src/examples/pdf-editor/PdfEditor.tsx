@@ -43,6 +43,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 						props: {
 							w: page.bounds.w,
 							h: page.bounds.h,
+							fileSize: -1,
 							mimeType: 'image/png',
 							src: page.src,
 							name: 'page',

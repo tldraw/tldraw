@@ -104,13 +104,13 @@ async function main() {
 	// create a release on github
 	await auto.runRelease({ useVersion: nextVersion })
 
+	await uploadStaticAssets(nextVersion)
+
 	// if we're on the latest version, publish to npm under 'latest' tag.
 	// otherwise we don't want to overwrite the latest tag, so we publish under 'revision'.
 	// semver rules will still be respected because there's no prerelease tag in the version,
 	// so clients will get the updated version if they have a range like ^1.0.0
 	await publish(isLatestVersion ? 'latest' : 'revision')
-
-	await uploadStaticAssets(nextVersion)
 
 	if (isLatestVersion) {
 		nicelog('Notifying huppy of release...')

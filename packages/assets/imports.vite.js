@@ -74,6 +74,7 @@ import iconsDragHandleDots from './icons/icon/drag-handle-dots.svg?url'
 import iconsDuplicate from './icons/icon/duplicate.svg?url'
 import iconsEdit from './icons/icon/edit.svg?url'
 import iconsExternalLink from './icons/icon/external-link.svg?url'
+import iconsFillFill from './icons/icon/fill-fill.svg?url'
 import iconsFillNone from './icons/icon/fill-none.svg?url'
 import iconsFillPattern from './icons/icon/fill-pattern.svg?url'
 import iconsFillSemi from './icons/icon/fill-semi.svg?url'
@@ -266,6 +267,7 @@ export function getAssetUrlsByImport(opts) {
 			duplicate: formatAssetUrl(iconsDuplicate, opts),
 			edit: formatAssetUrl(iconsEdit, opts),
 			'external-link': formatAssetUrl(iconsExternalLink, opts),
+			'fill-fill': formatAssetUrl(iconsFillFill, opts),
 			'fill-none': formatAssetUrl(iconsFillNone, opts),
 			'fill-pattern': formatAssetUrl(iconsFillPattern, opts),
 			'fill-semi': formatAssetUrl(iconsFillSemi, opts),

@@ -12,18 +12,15 @@ export interface TLHandleProps {
 	className?: string
 }
 
-/** @public */
+/** @public @react */
 export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps) {
 	const editor = useEditor()
 	const br = (isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom
 
 	if (handle.type === 'clone') {
 		// bouba
-		const fr = 3 / Math.max(zoom, 0.35)
+		const fr = 3 / zoom
 		const path = `M0,${-fr} A${fr},${fr} 0 0,1 0,${fr}`
-		// kiki
-		// const fr = 4 / Math.max(zoom, 0.35)
-		// const path = `M0,${-fr} L${fr},0 L0,${fr} Z`
 
 		const index = SIDES.indexOf(handle.id as (typeof SIDES)[number])
 		return (
@@ -35,7 +32,7 @@ export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandlePro
 		)
 	}
 
-	const fr = (handle.type === 'create' && isCoarse ? 3 : 4) / Math.max(zoom, 0.35)
+	const fr = (handle.type === 'create' && isCoarse ? 3 : 4) / Math.max(zoom, 0.25)
 	return (
 		<g className={classNames(`tl-handle tl-handle__${handle.type}`, className)}>
 			<circle className="tl-handle__bg" r={br} />

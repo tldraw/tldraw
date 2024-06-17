@@ -6,7 +6,13 @@ if (!process.env.ASSET_UPLOAD) {
 	throw new Error('Missing ASSET_UPLOAD env var')
 }
 
+if (!process.env.ASSET_BUCKET_ORIGIN) {
+	throw new Error('Missing ASSET_BUCKET_ORIGIN env var')
+}
+
 export const ASSET_UPLOADER_URL: string = process.env.ASSET_UPLOAD
+
+export const ASSET_BUCKET_ORIGIN: string = process.env.ASSET_BUCKET_ORIGIN
 
 export const CONTROL_SERVER: string =
 	process.env.NEXT_PUBLIC_CONTROL_SERVER || 'http://localhost:3001'

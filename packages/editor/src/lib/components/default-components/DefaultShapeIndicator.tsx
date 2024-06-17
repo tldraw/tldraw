@@ -45,7 +45,7 @@ export interface TLShapeIndicatorProps {
 	hidden?: boolean
 }
 
-/** @public */
+/** @public @react */
 export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
 	shapeId,
 	className,

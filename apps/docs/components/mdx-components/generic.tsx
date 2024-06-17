@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import React from 'react'
 
 /* ---------------------- Lists --------------------- */
@@ -76,7 +77,12 @@ export const A = (props: any) => {
 			? undefined
 			: '_blank'
 	const target = props.target ?? derivedTarget
-	return <a {...props} target={target} />
+
+	if (isLocalUrl) {
+		return <Link {...props} target={target} />
+	} else {
+		return <a {...props} target={target} />
+	}
 }
 
 export const Divider = (props: any) => {

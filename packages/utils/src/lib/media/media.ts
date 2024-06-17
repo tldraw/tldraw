@@ -1,3 +1,4 @@
+import { Image } from '../network'
 import { isApngAnimated } from './apng'
 import { isAvifAnimated } from './avif'
 import { isGifAnimated } from './gif'
@@ -65,7 +66,7 @@ export class MediaHelpers {
 	 */
 	static loadImage(src: string): Promise<HTMLImageElement> {
 		return new Promise((resolve, reject) => {
-			const img = new Image()
+			const img = Image()
 			img.onload = () => resolve(img)
 			img.onerror = (e) => {
 				console.error(e)

@@ -57,6 +57,7 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 		text: '',
 		font: 'draw',
 		labelPosition: 0.5,
+		scale: 1,
 	},
 	meta: {},
 }

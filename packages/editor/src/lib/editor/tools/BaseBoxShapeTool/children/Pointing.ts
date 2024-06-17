@@ -1,4 +1,5 @@
 import { createShapeId } from '@tldraw/tlschema'
+import { structuredClone } from '@tldraw/utils'
 import { Vec } from '../../../../primitives/Vec'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLEventHandlers } from '../../../types/event-types'
@@ -85,6 +86,8 @@ export class Pointing extends StateNode {
 
 		this.editor.mark(this.markId)
 
+		// todo: add scale here when dynamic size is enabled
+
 		this.editor.createShapes<TLBaseBoxShape>([
 			{
 				id,
@@ -95,20 +98,35 @@ export class Pointing extends StateNode {
 		])
 
 		const shape = this.editor.getShape<TLBaseBoxShape>(id)!
-		const { w, h } = this.editor.getShapeUtil(shape).getDefaultProps() as TLBaseBoxShape['props']
-		const delta = new Vec(w / 2, h / 2)
+		if (!shape) {
+			this.cancel()
+			return
+		}
 
+		let { w, h } = shape.props
+		const delta = new Vec(w / 2, h / 2)
 		const parentTransform = this.editor.getShapeParentTransform(shape)
 		if (parentTransform) delta.rot(-parentTransform.rotation())
+		let scale = 1
 
-		this.editor.updateShapes<TLBaseBoxShape>([
-			{
-				id,
-				type: shapeType,
-				x: shape.x - delta.x,
-				y: shape.y - delta.y,
-			},
-		])
+		if (this.editor.user.getIsDynamicResizeMode()) {
+			scale = 1 / this.editor.getZoomLevel()
+			w *= scale
+			h *= scale
+			delta.mul(scale)
+		}
+
+		const next = structuredClone(shape)
+		next.x = shape.x - delta.x
+		next.y = shape.y - delta.y
+		next.props.w = w
+		next.props.h = h
+
+		if ('scale' in shape.props) {
+			;(next as TLBaseBoxShape & { props: { scale: number } }).props.scale = scale
+		}
+
+		this.editor.updateShape<TLBaseBoxShape>(next)
 
 		this.editor.setSelectedShapes([id])
 

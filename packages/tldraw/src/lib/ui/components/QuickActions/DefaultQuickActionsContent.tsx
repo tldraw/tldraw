@@ -9,7 +9,7 @@ import {
 import { useReadonly } from '../../hooks/useReadonly'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
-/** @public */
+/** @public @react */
 export function DefaultQuickActionsContent() {
 	const actions = useActions()
 

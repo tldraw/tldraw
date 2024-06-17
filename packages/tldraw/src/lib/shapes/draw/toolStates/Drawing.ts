@@ -268,6 +268,7 @@ export class Drawing extends StateNode {
 				y: originPagePoint.y,
 				props: {
 					isPen: this.isPenOrStylus,
+					scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 					segments: [
 						{
 							type: this.segmentMode,
@@ -415,7 +416,13 @@ export class Drawing extends StateNode {
 					// ended and where the pointer is now
 					const newFreeSegment: TLDrawShapeSegment = {
 						type: 'free',
-						points: [...Vec.PointsBetween(prevPoint, newPoint, 6).map((p) => p.toFixed().toJson())],
+						points: [
+							...Vec.PointsBetween(prevPoint, newPoint, 6).map((p) => ({
+								x: toFixed(p.x),
+								y: toFixed(p.y),
+								z: toFixed(p.z),
+							})),
+						],
 					}
 
 					const finalSegments = [...newSegments, newFreeSegment]

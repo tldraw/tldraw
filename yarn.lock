@@ -6129,8 +6129,6 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": "npm:^2.1.2"
     "@types/core-js": "npm:^2.5.5"
-    "@types/lodash.throttle": "npm:^4.1.7"
-    "@types/lodash.uniq": "npm:^4.5.7"
     "@types/react-test-renderer": "npm:^18.0.0"
     "@types/wicg-file-system-access": "npm:^2020.9.5"
     "@use-gesture/react": "npm:^10.2.27"
@@ -6144,8 +6142,6 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.throttle: "npm:^4.1.1"
-    lodash.uniq: "npm:^4.5.0"
     nanoid: "npm:4.0.2"
     react-test-renderer: "npm:^18.2.0"
     resize-observer-polyfill: "npm:^1.5.1"
@@ -6322,8 +6318,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/utils@workspace:packages/utils"
   dependencies:
+    "@types/lodash.throttle": "npm:^4.1.7"
+    "@types/lodash.uniq": "npm:^4.5.7"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash.throttle: "npm:^4.1.1"
+    lodash.uniq: "npm:^4.5.0"
   languageName: unknown
   linkType: soft
 
@@ -8718,11 +8718,11 @@ __metadata:
   linkType: hard
 
 "braces@npm:^3.0.2, braces@npm:~3.0.2":
-  version: 3.0.2
-  resolution: "braces@npm:3.0.2"
+  version: 3.0.3
+  resolution: "braces@npm:3.0.3"
   dependencies:
-    fill-range: "npm:^7.0.1"
-  checksum: 966b1fb48d193b9d155f810e5efd1790962f2c4e0829f8440b8ad236ba009222c501f70185ef732fef17a4c490bb33a03b90dab0631feafbdf447da91e8165b1
+    fill-range: "npm:^7.1.1"
+  checksum: fad11a0d4697a27162840b02b1fad249c1683cbc510cd5bf1a471f2f8085c046d41094308c577a50a03a579dd99d5a6b3724c4b5e8b14df2c4443844cfcda2c6
   languageName: node
   linkType: hard
 
@@ -12126,12 +12126,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fill-range@npm:^7.0.1":
-  version: 7.0.1
-  resolution: "fill-range@npm:7.0.1"
+"fill-range@npm:^7.1.1":
+  version: 7.1.1
+  resolution: "fill-range@npm:7.1.1"
   dependencies:
     to-regex-range: "npm:^5.0.1"
-  checksum: e260f7592fd196b4421504d3597cc76f4a1ca7a9488260d533b611fc3cefd61e9a9be1417cb82d3b01ad9f9c0ff2dbf258e1026d2445e26b0cf5148ff4250429
+  checksum: a7095cb39e5bc32fada2aa7c7249d3f6b01bd1ce461a61b0adabacccabd9198500c6fb1f68a7c851a657e273fce2233ba869638897f3d7ed2e87a2d89b4436ea
   languageName: node
   linkType: hard
 
@@ -21283,8 +21283,8 @@ __metadata:
   linkType: hard
 
 "tar@npm:^7.0.1":
-  version: 7.1.0
-  resolution: "tar@npm:7.1.0"
+  version: 7.2.0
+  resolution: "tar@npm:7.2.0"
   dependencies:
     "@isaacs/fs-minipass": "npm:^4.0.0"
     chownr: "npm:^3.0.0"
@@ -21292,7 +21292,7 @@ __metadata:
     minizlib: "npm:^3.0.1"
     mkdirp: "npm:^3.0.1"
     yallist: "npm:^5.0.0"
-  checksum: 87c2caa631dcf212cc50cc7fc4402b429d9083cf76f21d9ec63eba7a703b78804b2185bbe072f4c6cac8263dc8e7df786dfdfd53ef5bfbf7b46b480535794ea5
+  checksum: 29e4ebd5057e754442921e3f46fdec3316e00a85009762c389c52d07fee11f1c85397849ae34949e43080c703d3c5ecfabffa6efcbb077315f72142a9b7a51da
   languageName: node
   linkType: hard
 
@@ -21439,6 +21439,7 @@ __metadata:
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.3.2"
     hotkeys-js: "npm:^3.11.2"
+    idb: "npm:^7.1.1"
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"

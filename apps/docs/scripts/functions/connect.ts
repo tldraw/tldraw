@@ -72,6 +72,7 @@ export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readw
 			componentCode TEXT,
 			componentCodeFiles TEXT,
 			keywords TEXT,
+			apiTags TEXT,
 			content TEXT NOT NULL,
 			path TEXT,
 			FOREIGN KEY (authorId) REFERENCES authors(id),

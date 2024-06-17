@@ -13,7 +13,7 @@ export interface TLUiMainMenuProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiMainMenuProps) {
 	const container = useContainer()
 	const [isOpen, onOpenChange] = useMenuIsOpen('main menu')

@@ -36,6 +36,7 @@ export {
 	ErrorScreen,
 	LoadingScreen,
 	TldrawEditor,
+	type LoadingScreenProps,
 	type TLOnMountHandler,
 	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
@@ -239,8 +240,10 @@ export {
 	type TLHistoryMark,
 } from './lib/editor/types/history-types'
 export {
+	type AssetContextProps,
 	type OptionalKeys,
 	type RequiredKeys,
+	type TLAssetOptions,
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,

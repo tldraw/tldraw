@@ -1,5 +1,6 @@
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/tlsync'
+import { fetch } from 'tldraw'
 import '../../styles/globals.css'
 import { BoardHistorySnapshot } from '../components/BoardHistorySnapshot/BoardHistorySnapshot'
 import { ErrorPage } from '../components/ErrorPage/ErrorPage'

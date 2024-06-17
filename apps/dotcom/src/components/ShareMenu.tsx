@@ -10,6 +10,7 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	fetch,
 	unwrapLabel,
 	useActions,
 	useContainer,
@@ -107,7 +108,6 @@ async function getReadonlyUrl() {
 	return `${window.location.origin}${newPathname}${window.location.search}`
 }
 
-/** @public */
 export const ShareMenu = React.memo(function ShareMenu() {
 	const msg = useTranslation()
 	const container = useContainer()

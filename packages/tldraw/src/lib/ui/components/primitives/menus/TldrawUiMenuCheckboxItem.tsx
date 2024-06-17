@@ -27,7 +27,7 @@ export interface TLUiMenuCheckboxItemProps<
 	disabled?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiMenuCheckboxItem<
 	TranslationKey extends string = string,
 	IconType extends string = string,

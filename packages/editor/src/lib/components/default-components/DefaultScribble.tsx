@@ -11,7 +11,7 @@ export interface TLScribbleProps {
 	className?: string
 }
 
-/** @public */
+/** @public @react */
 export function DefaultScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps) {
 	if (!scribble.points.length) return null
 
