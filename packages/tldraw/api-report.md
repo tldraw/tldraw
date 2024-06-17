@@ -110,6 +110,7 @@ import { TLStoreWithStatus } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextLabel } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLTextTriggerHook } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
 import { Validator } from '@tldraw/editor';
@@ -436,7 +437,7 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool)[];
+export const defaultShapeTools: (typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
@@ -3248,13 +3249,15 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditableText(id: TLShapeId, type: string, text: string): {
+export function useEditableText(id: TLShapeId, type: string, text: string, options: {
+    useTextTriggerCharacter?: TLTextTriggerHook;
+}): {
     handleBlur: () => void;
     handleChange: (e: React_3.ChangeEvent<HTMLTextAreaElement>) => void;
     handleDoubleClick: (e: any) => any;
     handleFocus: () => void;
     handleInputPointerDown: (e: React_3.PointerEvent) => void;
-    handleKeyDown: (e: React_3.KeyboardEvent<HTMLTextAreaElement>) => void;
+    handleKeyDown: (e: React_3.KeyboardEvent<HTMLTextAreaElement>) => Promise<void>;
     isEditing: boolean;
     isEditingAnything: boolean;
     isEmpty: boolean;

@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import React, { useCallback } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -14,6 +14,7 @@ import {
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
+	TldrawTextLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	ViewSubmenu,
@@ -28,6 +29,7 @@ import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import { useTextTriggerCharacter } from '../utils/useTextTriggerCharacter'
 import { LocalFileMenu } from './FileMenu'
 import { Links } from './Links'
 import { ShareMenu } from './ShareMenu'
@@ -84,6 +86,9 @@ const components: TLComponents = {
 			</div>
 		)
 	},
+	TextLabel: React.memo((props) => {
+		return <TldrawTextLabel {...props} useTextTriggerCharacter={useTextTriggerCharacter} />
+	}),
 }
 
 export function LocalEditor() {

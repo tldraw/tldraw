@@ -30,11 +30,13 @@ export const TldrawTextLabel: TLTextLabel = React.memo(function TextLabel({
 	style,
 	textWidth,
 	textHeight,
+	useTextTriggerCharacter,
 }) {
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
 		id,
 		type,
-		text
+		text,
+		{ useTextTriggerCharacter }
 	)
 
 	const [initialText, setInitialText] = useState(text)

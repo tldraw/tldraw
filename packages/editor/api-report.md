@@ -2348,6 +2348,8 @@ export interface TextLabelProps {
     // (undocumented)
     type: string;
     // (undocumented)
+    useTextTriggerCharacter?: TLTextTriggerHook;
+    // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
     wrap?: boolean;
@@ -3400,6 +3402,14 @@ export interface TLSvgOptions {
 
 // @public
 export type TLTextLabel = ITextLabel<TextLabelProps>;
+
+// @public
+export type TLTextTriggerHook = (inputEl: HTMLTextAreaElement | null, onComplete: (text: string) => void) => {
+    onKeyDown: (e: React_2.KeyboardEvent<HTMLTextAreaElement>, coords: {
+        left: number;
+        top: number;
+    }) => Promise<boolean>;
+};
 
 // @public (undocumented)
 export type TLTickEvent = (info: TLTickEventInfo) => void;

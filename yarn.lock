@@ -1551,6 +1551,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@emoji-mart/data@npm:^1.1.2":
+  version: 1.2.1
+  resolution: "@emoji-mart/data@npm:1.2.1"
+  checksum: a9f50edaf354aadfede604fb26d80055a085e9160db2c924fd5e6afc27033cd5beb0006a9ee48240ce9c543e58e1bf1cf9ed83baba5db83a395154984b30bd91
+  languageName: node
+  linkType: hard
+
 "@endemolshinegroup/cosmiconfig-typescript-loader@npm:^3.0.2":
   version: 3.0.2
   resolution: "@endemolshinegroup/cosmiconfig-typescript-loader@npm:3.0.2"
@@ -10601,6 +10608,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dotcom@workspace:apps/dotcom"
   dependencies:
+    "@emoji-mart/data": "npm:^1.1.2"
     "@jest/globals": "npm:30.0.0-alpha.2"
     "@radix-ui/react-popover": "npm:^1.0.7"
     "@sentry/cli": "npm:^2.25.0"
@@ -10618,6 +10626,7 @@ __metadata:
     "@vitejs/plugin-react-swc": "npm:^3.6.0"
     browser-fs-access: "npm:^0.35.0"
     dotenv: "npm:^16.3.1"
+    emoji-mart: "patch:emoji-mart@npm%3A5.5.2#~/.yarn/patches/emoji-mart-npm-5.5.2-10ed58131e.patch"
     eslint: "npm:^8.37.0"
     fast-glob: "npm:^3.3.1"
     idb: "npm:^7.1.1"
@@ -10714,6 +10723,20 @@ __metadata:
   version: 0.13.1
   resolution: "emittery@npm:0.13.1"
   checksum: fbe214171d878b924eedf1757badf58a5dce071cd1fa7f620fa841a0901a80d6da47ff05929d53163105e621ce11a71b9d8acb1148ffe1745e045145f6e69521
+  languageName: node
+  linkType: hard
+
+"emoji-mart@npm:5.5.2":
+  version: 5.5.2
+  resolution: "emoji-mart@npm:5.5.2"
+  checksum: 3b891f7940b25fbe83eb784b655bca9fa1b552ddf1c76bf631d51c4b2adef7072834f58b08ed63dc3fccd635d63de7a38f40cd0320fa7c24d97b9ced60dec957
+  languageName: node
+  linkType: hard
+
+"emoji-mart@patch:emoji-mart@npm%3A5.5.2#~/.yarn/patches/emoji-mart-npm-5.5.2-10ed58131e.patch":
+  version: 5.5.2
+  resolution: "emoji-mart@patch:emoji-mart@npm%3A5.5.2#~/.yarn/patches/emoji-mart-npm-5.5.2-10ed58131e.patch::version=5.5.2&hash=1fc67b"
+  checksum: dac96d98c602986447e3af7bdae67ab6f8d5ca11d18bc660f867d2a09307816e4d38dddec3174d06469d7e906f60a6af8c8e97a2d1f6dfbeb3cec4c388bc9c10
   languageName: node
   linkType: hard
 

@@ -9,6 +9,23 @@ import React from 'react'
 import { MeasureMethod } from '../../editor/managers/TextManager'
 import { Box } from '../../primitives/Box'
 
+/**
+ * @public
+ * This is an _experimental_ component that we are still exploring.
+ */
+export type TLTextTriggerHook = (
+	inputEl: HTMLTextAreaElement | null,
+	onComplete: (text: string) => void
+) => {
+	onKeyDown: (
+		e: React.KeyboardEvent<HTMLTextAreaElement>,
+		coords: {
+			top: number
+			left: number
+		}
+	) => Promise<boolean>
+}
+
 /** @public */
 export interface TextLabelProps {
 	id: TLShapeId
@@ -31,6 +48,7 @@ export interface TextLabelProps {
 	style?: React.CSSProperties
 	textWidth?: number
 	textHeight?: number
+	useTextTriggerCharacter?: TLTextTriggerHook
 	padding?: number
 }
 
