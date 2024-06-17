@@ -28,7 +28,7 @@ export function useAsset(assetId: TLAssetId | null, width: number) {
 			clearTimeout(timer)
 			isCancelled = true
 		}
-	}, [assetId, screenScale, editor])
+	}, [assetId, asset?.props.src, screenScale, editor])
 
 	return { asset, url }
 }
