@@ -718,7 +718,6 @@ export const defaultUserPreferences: Readonly<{
     animationSpeed: 0 | 1;
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     edgeScrollSpeed: 1;
-    isDarkMode: false;
     isDynamicSizeMode: false;
     isSnapMode: false;
     isWrapMode: false;
@@ -3343,11 +3342,11 @@ export interface TLUserPreferences {
     // (undocumented)
     color?: null | string;
     // (undocumented)
+    colorScheme?: 'dark' | 'light' | 'system';
+    // (undocumented)
     edgeScrollSpeed?: null | number;
     // (undocumented)
     id: string;
-    // (undocumented)
-    isDarkMode?: boolean | null;
     // (undocumented)
     isDynamicSizeMode?: boolean | null;
     // (undocumented)
@@ -3470,6 +3469,7 @@ export class UserPreferencesManager {
     getUserPreferences(): {
         animationSpeed: number;
         color: string;
+        colorScheme: "dark" | "light" | "system" | undefined;
         id: string;
         isDarkMode: boolean;
         isDynamicResizeMode: boolean;
@@ -3478,6 +3478,8 @@ export class UserPreferencesManager {
         locale: string;
         name: string;
     };
+    // (undocumented)
+    systemColorScheme: Atom<"dark" | "light", unknown>;
     // (undocumented)
     updateUserPreferences: (userPreferences: Partial<TLUserPreferences>) => void;
 }

@@ -261,7 +261,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	const container = useContainer()
 
 	useLayoutEffect(() => {
-		if (user.userPreferences.get().isDarkMode) {
+		if (user.userPreferences.get().colorScheme === 'dark') {
 			container.classList.remove('tl-theme__light')
 			container.classList.add('tl-theme__dark')
 		}
