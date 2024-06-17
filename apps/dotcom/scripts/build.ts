@@ -76,6 +76,7 @@ async function build() {
 		href="/assets/${assetsList.find((a) => a.startsWith(font))}"
 		as="font"
 		type="font/woff2"
+		crossorigin="anonymous"
 	/>`
 				)
 				.join('\n')
