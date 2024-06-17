@@ -101,9 +101,6 @@ export class Translating extends StateNode {
 		this.dragAndDropManager.clear()
 	}
 
-	_isEdgeScrolling = false
-	_edgeScrollStart = -1
-
 	override onTick = ({ elapsed }: TLTickEventInfo) => {
 		const { editor } = this
 		this.dragAndDropManager.updateDroppingNode(
