@@ -1,32 +1,4 @@
 /**
- * Throttle a function.
- *
- * @example
- *
- * ```ts
- * const A = throttle(myFunction, 1000)
- * ```
- *
- * @public
- * @see source - https://github.com/bameyrick/throttle-typescript
- */
-export function throttle<T extends (...args: any) => any>(
-	func: T,
-	limit: number
-): (...args: Parameters<T>) => ReturnType<T> {
-	let inThrottle: boolean
-	let lastResult: ReturnType<T>
-	return function (this: any, ...args: any[]): ReturnType<T> {
-		if (!inThrottle) {
-			inThrottle = true
-			setTimeout(() => (inThrottle = false), limit)
-			lastResult = func(...args)
-		}
-		return lastResult
-	}
-}
-
-/**
  * When a function is wrapped in `omitFromStackTrace`, if it throws an error the stack trace won't
  * include the function itself or any stack frames above it. Useful for assertion-style function
  * where the error will ideally originate from the call-site rather than within the implementation
@@ -58,4 +30,4 @@ export function omitFromStackTrace<Args extends Array<unknown>, Return>(
  * @internal
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-export function noop(): void {}
+export const noop: () => void = () => {}

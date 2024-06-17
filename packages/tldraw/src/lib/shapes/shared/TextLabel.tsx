@@ -12,7 +12,8 @@ import { TextHelpers } from './TextHelpers'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableText } from './useEditableText'
 
-interface TextLabelProps {
+/** @public */
+export interface TextLabelProps {
 	id: TLShapeId
 	type: string
 	font: TLDefaultFontStyle
@@ -32,9 +33,10 @@ interface TextLabelProps {
 	style?: React.CSSProperties
 	textWidth?: number
 	textHeight?: number
+	padding?: number
 }
 
-/** @public */
+/** @public @react */
 export const TextLabel = React.memo(function TextLabel({
 	id,
 	type,
@@ -47,6 +49,7 @@ export const TextLabel = React.memo(function TextLabel({
 	verticalAlign,
 	wrap,
 	isSelected,
+	padding = 0,
 	onKeyDown: handleKeyDownCustom,
 	classNamePrefix,
 	style,
@@ -89,6 +92,7 @@ export const TextLabel = React.memo(function TextLabel({
 			style={{
 				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
 				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+				padding,
 				...style,
 			}}
 		>
@@ -97,7 +101,7 @@ export const TextLabel = React.memo(function TextLabel({
 				style={{
 					fontSize,
 					lineHeight: Math.floor(fontSize * lineHeight) + 'px',
-					minHeight: lineHeight + 32,
+					minHeight: Math.floor(fontSize * lineHeight) + 'px',
 					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
 					width: textWidth ? Math.ceil(textWidth) : undefined,

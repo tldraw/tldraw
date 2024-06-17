@@ -26,12 +26,16 @@ function tick() {
 	const elapsed = now - last
 
 	if (time + elapsed < targetTimePerFrame) {
+		// It's up to the consumer of debounce to call `cancel`
+		// eslint-disable-next-line no-restricted-globals
 		frame = requestAnimationFrame(() => {
 			frame = undefined
 			tick()
 		})
 		return
 	}
+	// It's up to the consumer of debounce to call `cancel`
+	// eslint-disable-next-line no-restricted-globals
 	frame = requestAnimationFrame(() => {
 		frame = undefined
 		last = now
@@ -51,12 +55,16 @@ let started = false
  * @returns
  * @internal
  */
-export function fpsThrottle(fn: () => void) {
+export function fpsThrottle(fn: { (): void; cancel?(): void }): {
+	(): void
+	cancel?(): void
+} {
 	if (isTest()) {
+		fn.cancel = () => frame && cancelAnimationFrame(frame)
 		return fn
 	}
 
-	return () => {
+	const throttledFn = () => {
 		if (fpsQueue.includes(fn)) {
 			return
 		}
@@ -68,6 +76,13 @@ export function fpsThrottle(fn: () => void) {
 		}
 		tick()
 	}
+	throttledFn.cancel = () => {
+		const index = fpsQueue.indexOf(fn)
+		if (index > -1) {
+			fpsQueue.splice(index, 1)
+		}
+	}
+	return throttledFn
 }
 
 /**

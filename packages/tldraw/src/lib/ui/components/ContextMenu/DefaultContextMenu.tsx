@@ -10,7 +10,7 @@ export interface TLUiContextMenuProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultContextMenu = memo(function DefaultContextMenu({
 	children,
 }: TLUiContextMenuProps) {

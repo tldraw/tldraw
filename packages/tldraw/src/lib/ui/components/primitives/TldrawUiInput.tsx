@@ -35,7 +35,7 @@ export interface TLUiInputProps {
 	value?: string
 }
 
-/** @public */
+/** @public @react */
 export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 	function TldrawUiInput(
 		{

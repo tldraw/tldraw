@@ -16,7 +16,7 @@ export interface TLCollaboratorHintProps {
 	color: string
 }
 
-/** @public */
+/** @public @react */
 export function DefaultCollaboratorHint({
 	className,
 	zoom,

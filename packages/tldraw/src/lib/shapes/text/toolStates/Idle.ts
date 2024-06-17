@@ -21,6 +21,10 @@ export class Idle extends StateNode {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
+	override onExit = () => {
+		updateHoveredShapeId.cancel()
+	}
+
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		if (info.key === 'Enter') {
 			if (this.editor.getInstanceState().isReadonly) return null

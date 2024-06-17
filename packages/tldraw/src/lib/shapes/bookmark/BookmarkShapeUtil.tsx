@@ -22,7 +22,7 @@ import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 const BOOKMARK_WIDTH = 300
 const BOOKMARK_HEIGHT = 320
 const BOOKMARK_JUST_URL_HEIGHT = 46
-const SHORT_BOOKMARK_HEIGHT = 110
+const SHORT_BOOKMARK_HEIGHT = 101
 
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
@@ -220,6 +220,8 @@ function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) 
 }
 
 const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TLBookmarkShape) => {
+	if (editor.isDisposed) return
+
 	const { url } = shape.props
 
 	// Create the asset using the external content manager's createAssetFromUrl method.

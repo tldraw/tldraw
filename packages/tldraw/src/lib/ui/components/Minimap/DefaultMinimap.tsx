@@ -13,7 +13,7 @@ import {
 import * as React from 'react'
 import { MinimapManager } from './MinimapManager'
 
-/** @public */
+/** @public @react */
 export function DefaultMinimap() {
 	const editor = useEditor()
 	const container = useContainer()

@@ -16,7 +16,7 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const msg = useTranslation()

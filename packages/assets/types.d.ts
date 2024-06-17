@@ -58,6 +58,7 @@ export type AssetUrls = {
 		duplicate: string
 		edit: string
 		'external-link': string
+		'fill-fill': string
 		'fill-none': string
 		'fill-pattern': string
 		'fill-semi': string

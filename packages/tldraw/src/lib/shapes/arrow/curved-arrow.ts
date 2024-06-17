@@ -34,7 +34,10 @@ export function getCurvedArrowInfo(
 	const { arrowheadEnd, arrowheadStart } = shape.props
 	const bend = shape.props.bend
 
-	if (Math.abs(bend) > Math.abs(shape.props.bend * WAY_TOO_BIG_ARROW_BEND_FACTOR)) {
+	if (
+		Math.abs(bend) >
+		Math.abs(shape.props.bend * (WAY_TOO_BIG_ARROW_BEND_FACTOR * shape.props.scale))
+	) {
 		return getStraightArrowInfo(editor, shape, bindings)
 	}
 
@@ -101,7 +104,7 @@ export function getCurvedArrowInfo(
 	let offsetA = 0
 	let offsetB = 0
 
-	let minLength = MIN_ARROW_LENGTH
+	let minLength = MIN_ARROW_LENGTH * shape.props.scale
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		const startInPageSpace = Mat.applyToPoint(arrowPageTransform, tempA)
@@ -165,8 +168,8 @@ export function getCurvedArrowInfo(
 					('size' in startShapeInfo.shape.props
 						? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 						: 0)
-				offsetA = BOUND_ARROW_OFFSET + strokeOffset
-				minLength += strokeOffset
+				offsetA = (BOUND_ARROW_OFFSET + strokeOffset) * shape.props.scale
+				minLength += strokeOffset * shape.props.scale
 			}
 		}
 	}
@@ -237,8 +240,8 @@ export function getCurvedArrowInfo(
 				const strokeOffset =
 					STROKE_SIZES[shape.props.size] / 2 +
 					('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
-				offsetB = BOUND_ARROW_OFFSET + strokeOffset
-				minLength += strokeOffset
+				offsetB = (BOUND_ARROW_OFFSET + strokeOffset) * shape.props.scale
+				minLength += strokeOffset * shape.props.scale
 			}
 		}
 	}
@@ -257,15 +260,15 @@ export function getCurvedArrowInfo(
 	const tB = tempB.clone()
 
 	if (offsetA !== 0) {
-		const n = (offsetA / lAB) * (isClockwise ? 1 : -1)
-		const u = Vec.FromAngle(aCA + dAB * n)
-		tA.setTo(handleArc.center).add(u.mul(handleArc.radius))
+		tA.setTo(handleArc.center).add(
+			Vec.FromAngle(aCA + dAB * ((offsetA / lAB) * (isClockwise ? 1 : -1))).mul(handleArc.radius)
+		)
 	}
 
 	if (offsetB !== 0) {
-		const n = (offsetB / lAB) * (isClockwise ? -1 : 1)
-		const u = Vec.FromAngle(aCB + dAB * n)
-		tB.setTo(handleArc.center).add(u.mul(handleArc.radius))
+		tB.setTo(handleArc.center).add(
+			Vec.FromAngle(aCB + dAB * ((offsetB / lAB) * (isClockwise ? -1 : 1))).mul(handleArc.radius)
+		)
 	}
 
 	if (Vec.DistMin(tA, tB, minLength)) {
@@ -282,15 +285,19 @@ export function getCurvedArrowInfo(
 	}
 
 	if (offsetA !== 0) {
-		const n = (offsetA / lAB) * (isClockwise ? 1 : -1)
-		const u = Vec.FromAngle(aCA + dAB * n)
-		tempA.setTo(handleArc.center).add(u.mul(handleArc.radius))
+		tempA
+			.setTo(handleArc.center)
+			.add(
+				Vec.FromAngle(aCA + dAB * ((offsetA / lAB) * (isClockwise ? 1 : -1))).mul(handleArc.radius)
+			)
 	}
 
 	if (offsetB !== 0) {
-		const n = (offsetB / lAB) * (isClockwise ? -1 : 1)
-		const u = Vec.FromAngle(aCB + dAB * n)
-		tempB.setTo(handleArc.center).add(u.mul(handleArc.radius))
+		tempB
+			.setTo(handleArc.center)
+			.add(
+				Vec.FromAngle(aCB + dAB * ((offsetB / lAB) * (isClockwise ? -1 : 1))).mul(handleArc.radius)
+			)
 	}
 
 	// Did we miss intersections? This happens when we have overlapping shapes.
@@ -318,9 +325,16 @@ export function getCurvedArrowInfo(
 				(endShapeInfo && !endShapeInfo.didIntersect) ||
 				distFn(handle_aCA, aCA) > distFn(handle_aCA, aCB)
 			) {
-				const n = Math.min(0.9, MIN_ARROW_LENGTH / lAB) * (isClockwise ? 1 : -1)
-				const u = Vec.FromAngle(aCA + dAB * n)
-				tempB.setTo(handleArc.center).add(u.mul(handleArc.radius))
+				tempB
+					.setTo(handleArc.center)
+					.add(
+						Vec.FromAngle(
+							aCA +
+								dAB *
+									(Math.min(0.9, (MIN_ARROW_LENGTH * shape.props.scale) / lAB) *
+										(isClockwise ? 1 : -1))
+						).mul(handleArc.radius)
+					)
 			}
 		}
 	}
@@ -421,9 +435,7 @@ function placeCenterHandle(
 	let dAB = clockwiseAngleDist(aCA, aCB) // angle distance between a and b
 	if (!isClockwise) dAB = PI2 - dAB
 
-	const n = 0.5 * (isClockwise ? 1 : -1)
-	const u = Vec.FromAngle(aCA + dAB * n)
-	tempC.setTo(center).add(u.mul(radius))
+	tempC.setTo(center).add(Vec.FromAngle(aCA + dAB * (0.5 * (isClockwise ? 1 : -1))).mul(radius))
 
 	if (dAB > originalArcLength) {
 		tempC.rotWith(center, PI)

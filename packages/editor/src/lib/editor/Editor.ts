@@ -43,6 +43,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLStore,
+	TLStoreSnapshot,
 	TLUnknownBinding,
 	TLUnknownShape,
 	TLVideoAsset,
@@ -53,6 +54,7 @@ import {
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
+	FileHelpers,
 	IndexKey,
 	JsonObject,
 	PerformanceTracker,
@@ -64,6 +66,7 @@ import {
 	compact,
 	dedupe,
 	exhaustiveSwitchError,
+	fetch,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
@@ -80,11 +83,13 @@ import {
 import EventEmitter from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
+import { TLEditorSnapshot, getSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkBindings } from '../config/defaultBindings'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
+	DEFAULT_ASSET_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
@@ -144,6 +149,7 @@ import { TLHistoryBatchOptions } from './types/history-types'
 import {
 	OptionalKeys,
 	RequiredKeys,
+	TLAssetOptions,
 	TLCameraMoveOptions,
 	TLCameraOptions,
 	TLSvgOptions,
@@ -207,7 +213,10 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-
+	/**
+	 * Options for the editor's assets.
+	 */
+	assetOptions?: Partial<TLAssetOptions>
 	options?: Partial<TldrawOptions>
 }
 
@@ -221,6 +230,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools,
 		getContainer,
 		cameraOptions,
+		assetOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
@@ -230,6 +240,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.options = { ...defaultTldrawOptions, ...options }
 		this.store = store
+		this.disposables.add(this.store.dispose.bind(this.store))
 		this.history = new HistoryManager<TLRecord>({
 			store,
 			annotateError: (error) => {
@@ -244,6 +255,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(this.timers.dispose.bind(this.timers))
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
+
+		this._assetOptions.set({ ...DEFAULT_ASSET_OPTIONS, ...assetOptions })
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
@@ -479,6 +492,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 					},
 					beforeDelete: (shape) => {
+						// if we triggered this delete with a recursive call, don't do anything
+						if (deletedShapeIds.has(shape.id)) return
 						// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
 						if (shape.parentId && isShapeId(shape.parentId)) {
 							invalidParents.add(shape.parentId)
@@ -492,10 +507,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							deleteBindingIds.push(binding.id)
 							const util = this.getBindingUtil(binding)
 							if (binding.fromId === shape.id) {
-								util.onBeforeIsolateToShape?.({ binding, shape })
+								util.onBeforeIsolateToShape?.({ binding, removedShape: shape })
 								util.onBeforeDeleteFromShape?.({ binding, shape })
 							} else {
-								util.onBeforeIsolateFromShape?.({ binding, shape })
+								util.onBeforeIsolateFromShape?.({ binding, removedShape: shape })
 								util.onBeforeDeleteToShape?.({ binding, shape })
 							}
 						}
@@ -707,7 +722,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly root: RootState
+	readonly root: StateNode
 
 	/**
 	 * A set of functions to call when the app is disposed.
@@ -715,6 +730,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly disposables = new Set<() => void>()
+
+	/**
+	 * Whether the editor is disposed.
+	 *
+	 * @public
+	 */
+	isDisposed = false
 
 	/** @internal */
 	private readonly _tickManager
@@ -796,6 +818,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	dispose() {
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
+		this.isDisposed = true
 	}
 
 	/* ------------------- Shape Utils ------------------ */
@@ -890,6 +913,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	undo(): this {
 		this._flushEventsForTick(0)
+		this.complete()
 		this.history.undo()
 		return this
 	}
@@ -915,6 +939,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	redo(): this {
 		this._flushEventsForTick(0)
+		this.complete()
 		this.history.redo()
 		return this
 	}
@@ -1438,12 +1463,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>,
 		historyOptions?: TLHistoryBatchOptions
 	) => {
-		this.batch(() => {
-			this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
-				...state,
-				...partial,
-			}))
-		}, historyOptions)
+		this.batch(
+			() => {
+				this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
+					...state,
+					...partial,
+				}))
+			},
+			{
+				history: 'ignore',
+				...historyOptions,
+			}
+		)
 	}
 
 	/**
@@ -3796,6 +3827,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Assets --------------------- */
 
+	private _assetOptions = atom('asset options', DEFAULT_ASSET_OPTIONS)
+
 	/** @internal */
 	@computed private _getAllAssetsQuery() {
 		return this.store.query.records('asset')
@@ -3894,6 +3927,35 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getAsset(asset: TLAssetId | TLAsset): TLAsset | undefined {
 		return this.store.get(typeof asset === 'string' ? asset : asset.id) as TLAsset | undefined
+	}
+
+	async resolveAssetUrl(
+		assetId: TLAssetId | null,
+		context: {
+			screenScale?: number
+			shouldResolveToOriginalImage?: boolean
+		}
+	): Promise<string | null> {
+		if (!assetId) return ''
+		const asset = this.getAsset(assetId)
+		if (!asset) return ''
+
+		const { screenScale, shouldResolveToOriginalImage } = context
+
+		// We only look at the zoom level at powers of 2.
+		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
+		const steppedScreenScale = Math.max(0.125, zoomStepFunction(screenScale || 1))
+		const networkEffectiveType: string | null =
+			'connection' in navigator ? (navigator as any).connection.effectiveType : null
+		const dpr = this.getInstanceState().devicePixelRatio
+
+		return await this._assetOptions.get().onResolveAsset(asset!, {
+			screenScale: screenScale || 1,
+			steppedScreenScale,
+			dpr,
+			networkEffectiveType,
+			shouldResolveToOriginalImage,
+		})
 	}
 
 	/* --------------------- Shapes --------------------- */
@@ -5152,10 +5214,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
+	/**
+	 * Get a binding from the store by its ID if it exists.
+	 */
 	getBinding(id: TLBindingId): TLBinding | undefined {
 		return this.store.get(id) as TLBinding | undefined
 	}
 
+	/**
+	 * Get all bindings of a certain type _from_ a particular shape. These are the bindings whose
+	 * `fromId` matched the shape's ID.
+	 */
 	getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
@@ -5165,6 +5234,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			(b) => b.fromId === id && b.type === type
 		) as Binding[]
 	}
+
+	/**
+	 * Get all bindings of a certain type _to_ a particular shape. These are the bindings whose
+	 * `toId` matches the shape's ID.
+	 */
 	getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
@@ -5174,6 +5248,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			(b) => b.toId === id && b.type === type
 		) as Binding[]
 	}
+
+	/**
+	 * Get all bindings involving a particular shape. This includes bindings where the shape is the
+	 * `fromId` or `toId`. If a type is provided, only bindings of that type are returned.
+	 */
 	getBindingsInvolvingShape<Binding extends TLUnknownBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type?: Binding['type']
@@ -5184,6 +5263,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return result.filter((b) => b.type === type) as Binding[]
 	}
 
+	/**
+	 * Create bindings from a list of partial bindings. You can omit the ID and most props of a
+	 * binding, but the `type`, `toId`, and `fromId` must all be provided.
+	 */
 	createBindings(partials: TLBindingCreate[]) {
 		const bindings: TLBinding[] = []
 		for (const partial of partials) {
@@ -5209,10 +5292,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.put(bindings)
 		return this
 	}
+
+	/**
+	 * Create a single binding from a partial. You can omit the ID and most props of a binding, but
+	 * the `type`, `toId`, and `fromId` must all be provided.
+	 */
 	createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>) {
 		return this.createBindings([partial])
 	}
 
+	/**
+	 * Update bindings from a list of partial bindings. Each partial must include an ID, which will
+	 * be used to match the binding to it's existing record. If there is no existing record, that
+	 * binding is skipped. The changes from the partial are merged into the existing record.
+	 */
 	updateBindings(partials: (TLBindingUpdate | null | undefined)[]) {
 		const updated: TLBinding[] = []
 
@@ -5238,10 +5331,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Update a binding from a partial binding. Each partial must include an ID, which will be used
+	 * to match the binding to it's existing record. If there is no existing record, that binding is
+	 * skipped. The changes from the partial are merged into the existing record.
+	 */
 	updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>) {
 		return this.updateBindings([partial])
 	}
 
+	/**
+	 * Delete several bindings by their IDs. If a binding ID doesn't exist, it's ignored.
+	 */
 	deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
 		const ids = bindings.map((binding) => (typeof binding === 'string' ? binding : binding.id))
 		if (isolateShapes) {
@@ -5250,8 +5351,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const binding = this.getBinding(id)
 					if (!binding) continue
 					const util = this.getBindingUtil(binding)
-					util.onBeforeIsolateFromShape?.({ binding, shape: this.getShape(binding.fromId)! })
-					util.onBeforeIsolateToShape?.({ binding, shape: this.getShape(binding.toId)! })
+					util.onBeforeIsolateFromShape?.({ binding, removedShape: this.getShape(binding.toId)! })
+					util.onBeforeIsolateToShape?.({ binding, removedShape: this.getShape(binding.fromId)! })
 					this.store.remove([id])
 				}
 			})
@@ -5260,6 +5361,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		return this
 	}
+	/**
+	 * Delete a binding by its ID. If the binding doesn't exist, it's ignored.
+	 */
 	deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]) {
 		return this.deleteBindings([binding], opts)
 	}
@@ -7600,6 +7704,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return await this.externalAssetContentHandlers[info.type]?.(info as any)
 	}
 
+	hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean {
+		return !!this.externalAssetContentHandlers[type]
+	}
+
 	/** @internal */
 	externalContentHandlers: {
 		[K in TLExternalContent['type']]: {
@@ -7727,6 +7835,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 				assets,
 			}
 		})
+	}
+
+	async resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined> {
+		if (!content) return undefined
+
+		const assets: TLAsset[] = []
+		await Promise.allSettled(
+			content.assets.map(async (asset) => {
+				if (
+					(asset.type === 'image' || asset.type === 'video') &&
+					!asset.props.src?.startsWith('data:image') &&
+					!asset.props.src?.startsWith('http')
+				) {
+					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+					const objectUrl = await this._assetOptions.get().onResolveAsset(asset!, {
+						screenScale: 1,
+						steppedScreenScale: 1,
+						dpr: 1,
+						networkEffectiveType: null,
+						shouldResolveToOriginalImage: true,
+					})
+					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
+						await fetch(objectUrl!).then((r) => r.blob())
+					)
+					assets.push(assetWithDataUrl)
+				} else {
+					assets.push(asset)
+				}
+			})
+		)
+		content.assets = assets
+
+		return content
 	}
 
 	/**
@@ -8340,6 +8481,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getIsFocused() {
 		return this.getInstanceState().isFocused
+	}
+
+	/**
+	 * @public
+	 * @returns a snapshot of the store's UI and document state
+	 */
+	getSnapshot() {
+		return getSnapshot(this.store)
+	}
+
+	/**
+	 * Loads a snapshot into the editor.
+	 * @param snapshot - the snapshot to load
+	 * @returns
+	 */
+	loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot) {
+		loadSnapshot(this.store, snapshot)
+		return this
 	}
 
 	/**

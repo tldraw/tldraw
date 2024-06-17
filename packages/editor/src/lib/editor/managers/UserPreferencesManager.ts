@@ -2,6 +2,7 @@ import { atom, computed } from '@tldraw/state'
 import { TLUserPreferences, defaultUserPreferences } from '../../config/TLUserPreferences'
 import { TLUser } from '../../config/createTLUser'
 
+/** @public */
 export class UserPreferencesManager {
 	systemColorScheme = atom<'dark' | 'light'>('systemColorScheme', 'light')
 	constructor(
@@ -40,6 +41,7 @@ export class UserPreferencesManager {
 			colorScheme: this.user.userPreferences.get().colorScheme,
 			isDarkMode: this.getIsDarkMode(),
 			isWrapMode: this.getIsWrapMode(),
+			isDynamicResizeMode: this.getIsDynamicResizeMode(),
 		}
 	}
 	@computed getIsDarkMode() {
@@ -88,5 +90,11 @@ export class UserPreferencesManager {
 
 	@computed getIsWrapMode() {
 		return this.user.userPreferences.get().isWrapMode ?? defaultUserPreferences.isWrapMode
+	}
+
+	@computed getIsDynamicResizeMode() {
+		return (
+			this.user.userPreferences.get().isDynamicSizeMode ?? defaultUserPreferences.isDynamicSizeMode
+		)
 	}
 }

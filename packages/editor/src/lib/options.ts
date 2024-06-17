@@ -45,6 +45,8 @@ export interface TldrawOptions {
 	readonly longPressDurationMs: number
 	readonly textShadowLod: number
 	readonly adjacentShapeMargin: number
+	readonly flattenImageBoundsExpand: number
+	readonly flattenImageBoundsPadding: number
 }
 
 /** @public */
@@ -79,4 +81,6 @@ export const defaultTldrawOptions = {
 	longPressDurationMs: 500,
 	textShadowLod: 0.35,
 	adjacentShapeMargin: 10,
+	flattenImageBoundsExpand: 64,
+	flattenImageBoundsPadding: 16,
 } as const satisfies TldrawOptions
