@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { version } from '../../ui/version'
 
 /** @internal */
-export const CDN_BASE_URL = 'https://cdn.tldraw.com'
+const CDN_BASE_URL = 'https://cdn.tldraw.com'
 
 /** @public */
 export interface TLEditorAssetUrls {
