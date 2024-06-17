@@ -1,3 +1,28 @@
+# v2.2.1 (Mon Jun 17 2024)
+
+### Release Notes
+
+#### 2.2.1 ([#3958](https://github.com/tldraw/tldraw/pull/3958))
+
+- Docs improvements (#3930, #3931, #3935, #3956)
+- Make `ArrowBindingUtil` public (#3913)
+- Add `editor.getSnapshot()` and `editor.loadSnapshot` (#3912)
+- CSS tweaks on bookmark elements (#3955)
+
+---
+
+#### 🐛 Bug Fix
+
+- 2.2.1 [#3958](https://github.com/tldraw/tldraw/pull/3958) ([@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300) [@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v2.2.0 (Tue Jun 11 2024)
 
 ### Release Notes
