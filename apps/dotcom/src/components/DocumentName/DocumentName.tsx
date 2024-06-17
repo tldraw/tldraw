@@ -20,17 +20,20 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiKbd,
+	preventDefault,
+	stopEventPropagation,
 	track,
 	useActions,
 	useBreakpoint,
 	useEditor,
+	useToasts,
 	useTranslation,
 } from 'tldraw'
 import { FORK_PROJECT_ACTION } from '../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION } from '../../utils/useFileSystem'
 import { getShareUrl } from '../ShareMenu'
 
-type NameState = {
+interface NameState {
 	readonly name: string | null
 	readonly isEditing: boolean
 }
@@ -64,10 +67,12 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 	const saveFileAction = actions[SAVE_FILE_COPY_ACTION]
 	const editor = useEditor()
 	const msg = useTranslation()
+	const toasts = useToasts()
+	const isReadonly = editor.getInstanceState().isReadonly
 
 	return (
 		<div className="tlui-document-name__inner">
-			<DocumentNameEditor state={state} setState={setState} />
+			<DocumentNameEditor isReadonly={isReadonly} state={state} setState={setState} />
 			<TldrawUiDropdownMenuRoot id="document-name">
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
@@ -79,24 +84,30 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent align="end" alignOffset={4} sideOffset={6}>
 					<TldrawUiDropdownMenuGroup>
+						{!isReadonly && (
+							<TldrawUiDropdownMenuItem>
+								<TldrawUiButton
+									type="menu"
+									onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
+								>
+									{' '}
+									<span className={'tlui-button__label' as any}>{msg('action.rename')}</span>
+								</TldrawUiButton>
+							</TldrawUiDropdownMenuItem>
+						)}
 						<TldrawUiDropdownMenuItem>
 							<TldrawUiButton
 								type="menu"
-								onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
-							>
-								{' '}
-								<span className={'tlui-button__label' as any}>{msg('action.rename')}</span>
-							</TldrawUiButton>
-						</TldrawUiDropdownMenuItem>
-						<TldrawUiDropdownMenuItem>
-							<TldrawUiButton
-								type="menu"
-								onClick={() => {
-									const shareLink = getShareUrl(
+								onClick={async () => {
+									const shareLink = await getShareUrl(
 										window.location.href,
 										editor.getInstanceState().isReadonly
 									)
-									navigator.clipboard.writeText(shareLink)
+									shareLink && navigator.clipboard.writeText(shareLink)
+									toasts.addToast({
+										title: msg('share-menu.copied'),
+										severity: 'success',
+									})
 								}}
 							>
 								<span className={'tlui-button__label' as any}>Copy link</span>
@@ -206,9 +217,11 @@ function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
 const DocumentNameEditor = track(function DocumentNameEditor({
 	state,
 	setState,
+	isReadonly,
 }: {
 	state: NameState
 	setState: (update: SetStateAction<NameState>) => void
+	isReadonly: boolean
 }) {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const editor = useEditor()
@@ -217,10 +230,13 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	const defaultDocumentName = msg('document.default-name')
 
 	useEffect(() => {
+		if (isReadonly) {
+			setState((prev) => ({ ...prev, isEditing: false }))
+		}
 		if (state.isEditing && inputRef.current) {
 			inputRef.current.select()
 		}
-	}, [state.isEditing])
+	}, [isReadonly, setState, state.isEditing])
 
 	useEffect(() => {
 		const save = () => {
@@ -258,18 +274,20 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	const handleKeydownCapture = useCallback(
 		(e: KeyboardEvent) => {
 			if (e.key === 'Enter') {
-				e.preventDefault()
+				preventDefault(e)
 				// blur triggers save
 				inputRef.current?.blur()
 			} else if (e.key === 'Escape') {
-				e.preventDefault()
+				preventDefault(e)
+				stopEventPropagation(e)
 				// revert to original name instantly so that when we blur we don't
 				// trigger a save with the new one
 				setState((prev) => ({ ...prev, name: null }))
 				inputRef.current?.blur()
+				editor.focus()
 			}
 		},
-		[setState]
+		[setState, editor]
 	)
 
 	const handleBlur = useCallback(() => {
@@ -305,6 +323,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 				<div
 					className="tlui-document-name__text"
 					onDoubleClick={() => {
+						if (isReadonly) return
 						editor.setEditingShape(null)
 						setState((prev) => ({ ...prev, isEditing: true }))
 					}}

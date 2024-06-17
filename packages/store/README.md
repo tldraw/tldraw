@@ -333,14 +333,6 @@ type AuthorRecord extends BaseRecord<"author"> {
 }
 ```
 
-### `AllRecords`
-
-A helper to get the type of all records in a record store.
-
-```ts
-type AllAuthorRecords = AllRecords<RecordStore<Author>>
-```
-
 ### `RecordsDiff`
 
 A diff describing the changes to a record.

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState } from 'react'
-import { Tldraw } from 'tldraw'
+import { Editor, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this page!
@@ -7,23 +7,34 @@ import 'tldraw/tldraw.css'
 // [1]
 const focusedEditorContext = createContext(
 	{} as {
-		focusedEditor: string | null
-		setFocusedEditor: (id: string | null) => void
+		focusedEditor: Editor | null
+		setFocusedEditor: (id: Editor | null) => void
 	}
 )
 
 // [2]
 export default function MultipleExample() {
-	const [focusedEditor, _setFocusedEditor] = useState<string | null>('A')
+	const [focusedEditor, _setFocusedEditor] = useState<Editor | null>(null)
 
 	const setFocusedEditor = useCallback(
-		(id: string | null) => {
-			if (focusedEditor !== id) {
-				_setFocusedEditor(id)
+		(editor: Editor | null) => {
+			if (focusedEditor !== editor) {
+				focusedEditor?.blur()
+				_setFocusedEditor(editor)
+				editor?.focus()
 			}
 		},
 		[focusedEditor]
 	)
+
+	const focusName =
+		focusedEditor === (window as any).EDITOR_A
+			? 'A'
+			: focusedEditor === (window as any).EDITOR_B
+				? 'B'
+				: focusedEditor === (window as any).EDITOR_C
+					? 'C'
+					: 'none'
 
 	return (
 		<div
@@ -35,7 +46,7 @@ export default function MultipleExample() {
 			onPointerDown={() => setFocusedEditor(null)}
 		>
 			<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
-				<h1>Focusing: {focusedEditor ?? 'none'}</h1>
+				<h1>Focusing: {focusName}</h1>
 				<EditorA />
 				<textarea data-testid="textarea" placeholder="type in me" style={{ margin: 10 }} />
 				<div
@@ -61,19 +72,23 @@ export default function MultipleExample() {
 
 // [3]
 function EditorA() {
-	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
-	const isFocused = focusedEditor === 'A'
+	const { setFocusedEditor } = useContext(focusedEditorContext)
 
 	return (
 		<div style={{ padding: 32 }}>
 			<h2>A</h2>
-			<div tabIndex={-1} onFocus={() => setFocusedEditor('A')} style={{ height: 600 }}>
+			<div
+				tabIndex={-1}
+				onFocus={() => setFocusedEditor((window as any).EDITOR_A)}
+				style={{ height: 600 }}
+			>
 				<Tldraw
 					persistenceKey="steve"
 					className="A"
-					autoFocus={isFocused}
+					autoFocus={false}
 					onMount={(editor) => {
 						;(window as any).EDITOR_A = editor
+						setFocusedEditor(editor)
 					}}
 				/>
 			</div>
@@ -83,17 +98,20 @@ function EditorA() {
 
 // [4]
 function EditorB() {
-	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
-	const isFocused = focusedEditor === 'B'
+	const { setFocusedEditor } = useContext(focusedEditorContext)
 
 	return (
 		<div>
 			<h2>B</h2>
-			<div tabIndex={-1} onFocus={() => setFocusedEditor('B')} style={{ height: 600 }}>
+			<div
+				tabIndex={-1}
+				onFocus={() => setFocusedEditor((window as any).EDITOR_B)}
+				style={{ height: 600 }}
+			>
 				<Tldraw
 					persistenceKey="david"
 					className="B"
-					autoFocus={isFocused}
+					autoFocus={false}
 					onMount={(editor) => {
 						;(window as any).EDITOR_B = editor
 					}}
@@ -104,17 +122,20 @@ function EditorB() {
 }
 
 function EditorC() {
-	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
-	const isFocused = focusedEditor === 'C'
+	const { setFocusedEditor } = useContext(focusedEditorContext)
 
 	return (
 		<div>
 			<h2>C</h2>
-			<div tabIndex={-1} onFocus={() => setFocusedEditor('C')} style={{ height: 600 }}>
+			<div
+				tabIndex={-1}
+				onFocus={() => setFocusedEditor((window as any).EDITOR_C)}
+				style={{ height: 600 }}
+			>
 				<Tldraw
 					persistenceKey="david"
 					className="C"
-					autoFocus={isFocused}
+					autoFocus={false}
 					onMount={(editor) => {
 						;(window as any).EDITOR_C = editor
 					}}
@@ -134,13 +155,13 @@ function ABunchOfText() {
 				The fluorescent lights flickered overhead as John sat hunched over his desk, his fingers
 				tapping rhythmically on the keyboard. He was a software developer, and tonight, he had a
 				peculiar mission. A mission that would take him deep into the labyrinthine world of web
-				development. John had stumbled upon a new whiteboard library called "tldraw," a seemingly
+				development. John had stumbled upon a new whiteboard library called “tldraw”, a seemingly
 				simple tool that promised to revolutionize collaborative drawing on the web. Little did he
 				know that this discovery would set off a chain of events that would challenge his skills,
 				test his perseverance, and blur the line between reality and imagination.
 			</p>
 			<p>
-				With a newfound sense of excitement, John began integrating "tldraw" into his latest
+				With a newfound sense of excitement, John began integrating “tldraw” into his latest
 				project. As lines of code danced across his screen, he imagined the possibilities that lay
 				ahead. The potential to create virtual spaces where ideas could be shared, concepts could be
 				visualized, and teams could collaborate seamlessly from different corners of the world. It
@@ -148,7 +169,7 @@ function ABunchOfText() {
 				merged into a harmonious symphony.
 			</p>
 			<p>
-				As the night wore on, John's mind became consumed with the whiteboard library. He couldn't
+				As the night wore on, John’s mind became consumed with the whiteboard library. He couldn’t
 				help but marvel at its elegance and simplicity. With each stroke of his keyboard, he felt a
 				surge of inspiration, a connection to something greater than himself. It was as if the lines
 				of code he was writing were transforming into a digital canvas, waiting to be filled with
@@ -158,7 +179,7 @@ function ABunchOfText() {
 				take shape.
 			</p>
 			<p>
-				Little did John know, this integration of "tldraw" was only the beginning. It would lead him
+				Little did John know, this integration of “tldraw” was only the beginning. It would lead him
 				down a path filled with unforeseen challenges, where he would confront his own limitations
 				and question the very nature of creation. The journey ahead would test his resolve, pushing
 				him to the edge of his sanity. And as he embarked on this perilous adventure, he could not

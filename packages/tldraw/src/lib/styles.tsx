@@ -1,3 +1,4 @@
+/** @public */
 export type StyleValuesForUi<T> = readonly {
 	readonly value: T
 	readonly icon: string
@@ -24,6 +25,7 @@ export const STYLES = {
 		{ value: 'semi', icon: 'fill-semi' },
 		{ value: 'solid', icon: 'fill-solid' },
 		{ value: 'pattern', icon: 'fill-pattern' },
+		// { value: 'fill', icon: 'fill-fill' },
 	],
 	dash: [
 		{ value: 'draw', icon: 'dash-draw' },
@@ -61,23 +63,24 @@ export const STYLES = {
 	geo: [
 		{ value: 'rectangle', icon: 'geo-rectangle' },
 		{ value: 'ellipse', icon: 'geo-ellipse' },
-		{ value: 'cloud', icon: 'geo-cloud' },
 		{ value: 'triangle', icon: 'geo-triangle' },
 		{ value: 'diamond', icon: 'geo-diamond' },
+		{ value: 'star', icon: 'geo-star' },
 		{ value: 'pentagon', icon: 'geo-pentagon' },
 		{ value: 'hexagon', icon: 'geo-hexagon' },
 		{ value: 'octagon', icon: 'geo-octagon' },
-		{ value: 'star', icon: 'geo-star' },
 		{ value: 'rhombus', icon: 'geo-rhombus' },
 		{ value: 'rhombus-2', icon: 'geo-rhombus-2' },
 		{ value: 'oval', icon: 'geo-oval' },
 		{ value: 'trapezoid', icon: 'geo-trapezoid' },
-		{ value: 'arrow-right', icon: 'geo-arrow-right' },
 		{ value: 'arrow-left', icon: 'geo-arrow-left' },
 		{ value: 'arrow-up', icon: 'geo-arrow-up' },
 		{ value: 'arrow-down', icon: 'geo-arrow-down' },
+		{ value: 'arrow-right', icon: 'geo-arrow-right' },
+		{ value: 'cloud', icon: 'geo-cloud' },
 		{ value: 'x-box', icon: 'geo-x-box' },
 		{ value: 'check-box', icon: 'geo-check-box' },
+		{ value: 'heart', icon: 'geo-heart' },
 	],
 	arrowheadStart: [
 		{ value: 'none', icon: 'arrowhead-none' },

@@ -2,6 +2,7 @@ module.exports = {
 	extends: [
 		'prettier',
 		'eslint:recommended',
+		'plugin:react/recommended',
 		'plugin:@typescript-eslint/recommended',
 		'plugin:@next/next/core-web-vitals',
 	],
@@ -12,6 +13,7 @@ module.exports = {
 		'import',
 		'local',
 		'@next/next',
+		'react',
 		'react-hooks',
 		'deprecation',
 	],
@@ -23,15 +25,17 @@ module.exports = {
 	rules: {
 		'deprecation/deprecation': 'error',
 		'@next/next/no-html-link-for-pages': 'off',
-		'react/jsx-key': 'off',
 		'no-non-null-assertion': 'off',
 		'no-fallthrough': 'off',
+		'react/jsx-no-target-blank': 'error',
+		'react/react-in-jsx-scope': 'off',
 		'@typescript-eslint/no-fallthrough': 'off',
 		'@typescript-eslint/no-non-null-assertion': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/ban-ts-comment': 'off',
 		'react/display-name': 'off',
 		'@next/next/no-img-element': 'off',
+		'react/prop-types': 'off',
 		'@typescript-eslint/no-extra-semi': 'off',
 		'no-mixed-spaces-and-tabs': 'off',
 		'@typescript-eslint/no-unused-vars': [
@@ -52,6 +56,7 @@ module.exports = {
 		],
 		'local/no-export-star': 'error',
 		'local/no-internal-imports': 'error',
+		'local/tagged-components': 'error',
 		'no-only-tests/no-only-tests': 'error',
 		'no-restricted-syntax': [
 			'error',
@@ -70,6 +75,7 @@ module.exports = {
 			'error',
 			{ name: 'structuredClone', message: 'Use structuredClone from @tldraw/util instead' },
 		],
+		'@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
 	},
 	parser: '@typescript-eslint/parser',
 	parserOptions: {
@@ -85,6 +91,112 @@ module.exports = {
 			},
 		},
 		{
+			files: ['packages/editor/**/*', 'packages/tldraw/**/*', 'packages/utils/**/*'],
+			rules: {
+				'no-restricted-globals': [
+					'error',
+					{
+						name: 'fetch',
+						message: 'Use the fetch from @tldraw/util instead.',
+					},
+					{
+						name: 'Image',
+						message: 'Use the Image from @tldraw/util instead.',
+					},
+					{
+						name: 'setTimeout',
+						message: 'Use the timers from editor.timers instead.',
+					},
+					{
+						name: 'setInterval',
+						message: 'Use the timers from editor.timers instead.',
+					},
+					{
+						name: 'requestAnimationFrame',
+						message: 'Use the timers from editor.timers instead.',
+					},
+					{ name: 'structuredClone', message: 'Use structuredClone from @tldraw/util instead' },
+				],
+				'no-restricted-properties': [
+					'error',
+					{
+						object: 'window',
+						property: 'fetch',
+						message: 'Use the fetch from @tldraw/util instead.',
+					},
+					{
+						object: 'window',
+						property: 'Image',
+						message: 'Use the Image from @tldraw/util instead.',
+					},
+					{
+						object: 'window',
+						property: 'setTimeout',
+						message: 'Use the timers from editor.timers instead.',
+					},
+					{
+						object: 'window',
+						property: 'setInterval',
+						message: 'Use the timers from editor.timers instead.',
+					},
+					{
+						object: 'window',
+						property: 'requestAnimationFrame',
+						message: 'Use the timers from editor.timers instead.',
+					},
+				],
+				'no-restricted-syntax': [
+					'error',
+					{ selector: "MethodDefinition[kind='set']", message: 'Property setters are not allowed' },
+					{ selector: "MethodDefinition[kind='get']", message: 'Property getters are not allowed' },
+					{
+						selector: 'Identifier[name=localStorage]',
+						message: 'Use the getFromLocalStorage/setInLocalStorage helpers instead',
+					},
+					{
+						selector: 'Identifier[name=sessionStorage]',
+						message: 'Use the getFromSessionStorage/setInSessionStorage helpers instead',
+					},
+					{
+						selector:
+							"JSXElement[openingElement.name.name='img']:not(:has(JSXAttribute[name.name='referrerPolicy']))",
+						message: 'You must pass `referrerPolicy` when creating an <img>.',
+					},
+				],
+			},
+		},
+		// This overrides the default config for the given matching paths.
+		{
+			files: ['apps/dotcom/**/*'],
+			rules: {
+				'no-restricted-globals': [
+					'error',
+					{
+						name: 'fetch',
+						message: 'Use the fetch from @tldraw/util instead.',
+					},
+					{
+						name: 'Image',
+						message: 'Use the Image from @tldraw/util instead.',
+					},
+					{ name: 'structuredClone', message: 'Use structuredClone from @tldraw/util instead' },
+				],
+				'no-restricted-properties': [
+					'error',
+					{
+						object: 'window',
+						property: 'fetch',
+						message: 'Use the fetch from @tldraw/util instead.',
+					},
+					{
+						object: 'window',
+						property: 'Image',
+						message: 'Use the Image from @tldraw/util instead.',
+					},
+				],
+			},
+		},
+		{
 			files: ['e2e/**/*'],
 			rules: {
 				'@typescript-eslint/no-empty-function': 'off',
@@ -97,9 +209,19 @@ module.exports = {
 			},
 		},
 		{
+			files: ['*.test.ts', '*.test.tsx', '*.spec.ts'],
+			rules: {
+				'no-restricted-properties': 'off',
+				'no-restricted-globals': 'off',
+				'react/jsx-key': 'off',
+				'react/no-string-refs': 'off',
+			},
+		},
+		{
 			files: ['apps/examples/**/*'],
 			rules: {
 				'no-restricted-syntax': 'off',
+				'local/no-at-internal': 'error',
 			},
 		},
 		{

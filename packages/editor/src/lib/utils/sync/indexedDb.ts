@@ -38,13 +38,13 @@ async function withDb<T>(storeId: string, cb: (db: IDBPDatabase<StoreName>) => P
 	}
 }
 
-type LoadResult = {
+interface LoadResult {
 	records: TLRecord[]
 	schema?: SerializedSchema
 	sessionStateSnapshot?: TLSessionStateSnapshot | null
 }
 
-type SessionStateSnapshotRow = {
+interface SessionStateSnapshotRow {
 	id: string
 	snapshot: TLSessionStateSnapshot
 	updatedAt: number

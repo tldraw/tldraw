@@ -39,7 +39,10 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		return {}
 	}
 
-	override canBind = () => false
+	override canBind() {
+		// stickers can bind to anything
+		return true
+	}
 	override canEdit = () => false
 	override canResize = () => false
 	override hideRotateHandle = () => true
@@ -85,7 +88,8 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		const pageAnchor = this.editor.getShapePageTransform(sticker).applyToPoint({ x: 0, y: 0 })
 		const target = this.editor.getShapeAtPoint(pageAnchor, {
 			hitInside: true,
-			filter: (shape) => shape.id !== sticker.id,
+			filter: (shape) =>
+				this.editor.canBindShapes({ fromShape: sticker, toShape: shape, binding: 'sticker' }),
 		})
 
 		if (!target) return
@@ -153,8 +157,7 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 
 	// when the thing we're stuck to is deleted, delete the sticker too
 	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<StickerBinding>): void {
-		const sticker = this.editor.getShape<StickerShape>(binding.fromId)
-		if (sticker) this.editor.deleteShape(sticker.id)
+		this.editor.deleteShape(binding.fromId)
 	}
 }
 

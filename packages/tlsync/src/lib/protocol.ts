@@ -61,20 +61,15 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 	  }
 
 /** @public */
-export type TLPushRequest<R extends UnknownRecord> =
-	| {
-			type: 'push'
-			clientClock: number
-			presence: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
-	  }
-	| {
-			type: 'push'
-			clientClock: number
-			diff: NetworkDiff<R>
-	  }
+export interface TLPushRequest<R extends UnknownRecord> {
+	type: 'push'
+	clientClock: number
+	diff?: NetworkDiff<R>
+	presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
+}
 
 /** @public */
-export type TLConnectRequest = {
+export interface TLConnectRequest {
 	type: 'connect'
 	connectRequestId: string
 	lastServerClock: number
@@ -83,7 +78,7 @@ export type TLConnectRequest = {
 }
 
 /** @public */
-export type TLPingRequest = {
+export interface TLPingRequest {
 	type: 'ping'
 }
 

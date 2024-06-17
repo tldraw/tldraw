@@ -23,9 +23,9 @@ const textAlignmentsForLtr = {
 	'end-legacy': 'right',
 }
 
-type TLOverflowMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
-type TLMeasureTextSpanOpts = {
-	overflow: TLOverflowMode
+/** @public */
+export interface TLMeasureTextSpanOpts {
+	overflow: 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
 	width: number
 	height: number
 	padding: number
@@ -45,6 +45,7 @@ const spaceCharacterRegex = /\s/
  */
 export type MeasureMethod = 'text' | ((content: string) => ReactNode)
 
+/** @public */
 export class TextManager {
 	baseElm: HTMLDivElement
 

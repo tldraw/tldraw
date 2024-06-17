@@ -1,6 +1,6 @@
 import { objectMapEntries, structuredClone } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
-import { IdOf, OmitMeta, UnknownRecord } from './BaseRecord'
+import { IdOf, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
 
 export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['create']>
@@ -8,7 +8,7 @@ export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['cre
 /**
  * Defines the scope of the record
  *
- * instance: The record belongs to a single instance of the store. It should not be synced, and any persistence logic should 'de-instance-ize' the record before persisting it, and apply the reverse when rehydrating.
+ * session: The record belongs to a single instance of the store. It should not be synced, and any persistence logic should 'de-instance-ize' the record before persisting it, and apply the reverse when rehydrating.
  * document: The record is persisted and synced. It is available to all store instances.
  * presence: The record belongs to a single instance of the store. It may be synced to other instances, but other instances should not make changes to it. It should not be persisted.
  *
@@ -26,7 +26,7 @@ export class RecordType<
 	R extends UnknownRecord,
 	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>,
 > {
-	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
+	readonly createDefaultProperties: () => Exclude<Omit<R, 'id' | 'typeName'>, RequiredProperties>
 	readonly validator: StoreValidator<R>
 	readonly ephemeralKeys?: { readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean }
 	readonly ephemeralKeySet: ReadonlySet<string>
@@ -41,7 +41,10 @@ export class RecordType<
 		 */
 		public readonly typeName: R['typeName'],
 		config: {
-			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
+			readonly createDefaultProperties: () => Exclude<
+				Omit<R, 'id' | 'typeName'>,
+				RequiredProperties
+			>
 			readonly validator?: StoreValidator<R>
 			readonly scope?: RecordScope
 			readonly ephemeralKeys?: { readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean }

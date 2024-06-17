@@ -329,6 +329,7 @@ export class Resizing extends StateNode {
 				scaleOrigin: scaleOriginPage,
 				isAspectRatioLocked,
 				scaleAxisRotation: selectionRotation,
+				skipStartAndEndCallbacks: true,
 			})
 		}
 

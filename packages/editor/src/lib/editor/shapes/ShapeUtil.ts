@@ -32,6 +32,21 @@ export interface TLShapeUtilConstructor<
 /** @public */
 export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
+/**
+ * Options passed to {@link ShapeUtil.canBind}. A binding that could be made. At least one of
+ * `fromShapeType` or `toShapeType` will belong to this shape util.
+ *
+ * @public
+ */
+export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
+	/** The type of shape referenced by the `fromId` of the binding. */
+	fromShapeType: string
+	/** The type of shape referenced by the `toId` of the binding. */
+	toShapeType: string
+	/** The type of binding. */
+	bindingType: string
+}
+
 /** @public */
 export interface TLShapeUtilCanvasSvgDef {
 	key: string
@@ -97,12 +112,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canScroll: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape can be bound to by an arrow.
+	 * Whether the shape can be bound to. See {@link TLShapeUtilCanBindOpts} for details.
 	 *
-	 * @param _otherShape - The other shape attempting to bind to this shape.
 	 * @public
 	 */
-	canBind = <K>(_shape: Shape, _otherShape?: K) => true
+	canBind(opts: TLShapeUtilCanBindOpts<Shape>): boolean {
+		return true
+	}
 
 	/**
 	 * Whether the shape can be double clicked to edit.
@@ -526,17 +542,29 @@ export type TLOnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void
 /** @public */
 export type TLOnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void
 /** @public */
-export type TLOnTranslateStartHandler<T extends TLShape> = TLEventStartHandler<T>
+export type TLOnTranslateStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
 /** @public */
-export type TLOnTranslateHandler<T extends TLShape> = TLEventChangeHandler<T>
+export type TLOnTranslateHandler<T extends TLShape> = (
+	initial: T,
+	current: T
+) => TLShapePartial<T> | void
 /** @public */
-export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>
+export type TLOnTranslateEndHandler<T extends TLShape> = (
+	initial: T,
+	current: T
+) => TLShapePartial<T> | void
 /** @public */
-export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>
+export type TLOnRotateStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
 /** @public */
-export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>
+export type TLOnRotateHandler<T extends TLShape> = (
+	initial: T,
+	current: T
+) => TLShapePartial<T> | void
 /** @public */
-export type TLOnRotateEndHandler<T extends TLShape> = TLEventChangeHandler<T>
+export type TLOnRotateEndHandler<T extends TLShape> = (
+	initial: T,
+	current: T
+) => TLShapePartial<T> | void
 
 /**
  * The type of resize.
@@ -562,7 +590,7 @@ export type TLResizeMode = 'scale_shape' | 'resize_bounds'
  * @param initialShape - The shape at the start of the resize.
  * @public
  */
-export type TLResizeInfo<T extends TLShape> = {
+export interface TLResizeInfo<T extends TLShape> {
 	newPoint: Vec
 	handle: TLResizeHandle
 	mode: TLResizeMode
@@ -579,10 +607,13 @@ export type TLOnResizeHandler<T extends TLShape> = (
 ) => Omit<TLShapePartial<T>, 'id' | 'type'> | undefined | void
 
 /** @public */
-export type TLOnResizeStartHandler<T extends TLShape> = TLEventStartHandler<T>
+export type TLOnResizeStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
 
 /** @public */
-export type TLOnResizeEndHandler<T extends TLShape> = TLEventChangeHandler<T>
+export type TLOnResizeEndHandler<T extends TLShape> = (
+	initial: T,
+	current: T
+) => TLShapePartial<T> | void
 
 /* -------------------- Dragging -------------------- */
 
@@ -616,6 +647,3 @@ export type TLOnDoubleClickHandleHandler<T extends TLShape> = (
 	shape: T,
 	handle: TLHandle
 ) => TLShapePartial<T> | void
-
-type TLEventStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-type TLEventChangeHandler<T extends TLShape> = (initial: T, current: T) => TLShapePartial<T> | void

@@ -8,7 +8,7 @@ export interface TLUiKbdProps {
 	visibleOnMobileLayout?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiKbd({ children, visibleOnMobileLayout = false }: TLUiKbdProps) {
 	const breakpoint = useBreakpoint()
 	if (!visibleOnMobileLayout && breakpoint < PORTRAIT_BREAKPOINT.MOBILE) return null

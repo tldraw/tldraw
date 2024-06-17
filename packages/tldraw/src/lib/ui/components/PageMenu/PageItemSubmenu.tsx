@@ -1,4 +1,4 @@
-import { MAX_PAGES, PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
+import { PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -66,7 +66,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 							id="duplicate"
 							label="page-menu.submenu.duplicate-page"
 							onSelect={onDuplicate}
-							disabled={pages.length >= MAX_PAGES}
+							disabled={pages.length >= editor.options.maxPages}
 						/>
 						{index > 0 && (
 							<TldrawUiMenuItem

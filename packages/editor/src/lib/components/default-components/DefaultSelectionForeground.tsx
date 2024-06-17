@@ -7,12 +7,12 @@ import { Box } from '../../primitives/Box'
 import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
-export type TLSelectionForegroundProps = {
+export interface TLSelectionForegroundProps {
 	bounds: Box
 	rotation: number
 }
 
-/** @public */
+/** @public @react */
 export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionForegroundProps) {
 	const editor = useEditor()
 	const rSvg = useRef<SVGSVGElement>(null)

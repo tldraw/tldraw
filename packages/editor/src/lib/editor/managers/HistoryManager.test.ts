@@ -1,7 +1,6 @@
 import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
 import { TLHistoryBatchOptions } from '../types/history-types'
 import { HistoryManager } from './HistoryManager'
-import { stack } from './Stack'
 
 interface TestRecord extends BaseRecord<'test', TestRecordId> {
 	value: number | string
@@ -99,9 +98,9 @@ describe(HistoryManager, () => {
 		editor.decrement()
 		expect(editor.getCount()).toBe(3)
 
-		const undos = [...editor.history.stacks.get().undos]
+		const undos = editor.history.debug().undos
 		const parsedUndos = JSON.parse(JSON.stringify(undos))
-		editor.history.stacks.update(({ redos }) => ({ undos: stack(parsedUndos), redos }))
+		expect(parsedUndos).toEqual(undos)
 
 		editor.history.undo()
 
@@ -430,5 +429,46 @@ describe('history options', () => {
 		// We can still redo because we preserved the redo stack:
 		manager.redo()
 		expect(getState()).toMatchObject({ a: 3, b: 2 })
+	})
+
+	it('squashToMark works', () => {
+		const a = manager.mark()
+		setA(1)
+		const b = manager.mark()
+		setB(1)
+		setB(2)
+		setB(3)
+		manager.mark()
+		setA(2)
+		setB(4)
+		manager.mark()
+		setB(5)
+		setB(6)
+
+		expect(getState()).toMatchObject({ a: 2, b: 6 })
+
+		manager.squashToMark(b)
+
+		// does not affect state
+		expect(getState()).toMatchObject({ a: 2, b: 6 })
+
+		// but now undoing should take us back to a
+		manager.undo()
+		expect(getState()).toMatchObject({ a: 1, b: 0 })
+
+		// and redoing should take us back to the end
+		manager.redo()
+		expect(getState()).toMatchObject({ a: 2, b: 6 })
+
+		// and we can get back to the start with two undos
+		manager.undo().undo()
+		expect(getState()).toMatchObject({ a: 0, b: 0 })
+
+		manager.redo().redo()
+		manager.squashToMark(a)
+
+		expect(getState()).toMatchObject({ a: 2, b: 6 })
+		manager.undo()
+		expect(getState()).toMatchObject({ a: 0, b: 0 })
 	})
 })

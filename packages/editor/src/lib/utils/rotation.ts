@@ -48,7 +48,7 @@ export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationS
  *
  * @public
  **/
-export type TLRotationSnapshot = {
+export interface TLRotationSnapshot {
 	selectionPageCenter: Vec
 	initialCursorAngle: number
 	initialSelectionRotation: number

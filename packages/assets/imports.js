@@ -74,6 +74,7 @@ import iconsDragHandleDots from './icons/icon/drag-handle-dots.svg'
 import iconsDuplicate from './icons/icon/duplicate.svg'
 import iconsEdit from './icons/icon/edit.svg'
 import iconsExternalLink from './icons/icon/external-link.svg'
+import iconsFillFill from './icons/icon/fill-fill.svg'
 import iconsFillNone from './icons/icon/fill-none.svg'
 import iconsFillPattern from './icons/icon/fill-pattern.svg'
 import iconsFillSemi from './icons/icon/fill-semi.svg'
@@ -92,6 +93,7 @@ import iconsGeoCheckBox from './icons/icon/geo-check-box.svg'
 import iconsGeoCloud from './icons/icon/geo-cloud.svg'
 import iconsGeoDiamond from './icons/icon/geo-diamond.svg'
 import iconsGeoEllipse from './icons/icon/geo-ellipse.svg'
+import iconsGeoHeart from './icons/icon/geo-heart.svg'
 import iconsGeoHexagon from './icons/icon/geo-hexagon.svg'
 import iconsGeoOctagon from './icons/icon/geo-octagon.svg'
 import iconsGeoOval from './icons/icon/geo-oval.svg'
@@ -130,6 +132,8 @@ import iconsSizeExtraLarge from './icons/icon/size-extra-large.svg'
 import iconsSizeLarge from './icons/icon/size-large.svg'
 import iconsSizeMedium from './icons/icon/size-medium.svg'
 import iconsSizeSmall from './icons/icon/size-small.svg'
+import iconsSplineCubic from './icons/icon/spline-cubic.svg'
+import iconsSplineLine from './icons/icon/spline-line.svg'
 import iconsStackHorizontal from './icons/icon/stack-horizontal.svg'
 import iconsStackVertical from './icons/icon/stack-vertical.svg'
 import iconsStretchHorizontal from './icons/icon/stretch-horizontal.svg'
@@ -263,6 +267,7 @@ export function getAssetUrlsByImport(opts) {
 			duplicate: formatAssetUrl(iconsDuplicate, opts),
 			edit: formatAssetUrl(iconsEdit, opts),
 			'external-link': formatAssetUrl(iconsExternalLink, opts),
+			'fill-fill': formatAssetUrl(iconsFillFill, opts),
 			'fill-none': formatAssetUrl(iconsFillNone, opts),
 			'fill-pattern': formatAssetUrl(iconsFillPattern, opts),
 			'fill-semi': formatAssetUrl(iconsFillSemi, opts),
@@ -281,6 +286,7 @@ export function getAssetUrlsByImport(opts) {
 			'geo-cloud': formatAssetUrl(iconsGeoCloud, opts),
 			'geo-diamond': formatAssetUrl(iconsGeoDiamond, opts),
 			'geo-ellipse': formatAssetUrl(iconsGeoEllipse, opts),
+			'geo-heart': formatAssetUrl(iconsGeoHeart, opts),
 			'geo-hexagon': formatAssetUrl(iconsGeoHexagon, opts),
 			'geo-octagon': formatAssetUrl(iconsGeoOctagon, opts),
 			'geo-oval': formatAssetUrl(iconsGeoOval, opts),
@@ -319,6 +325,8 @@ export function getAssetUrlsByImport(opts) {
 			'size-large': formatAssetUrl(iconsSizeLarge, opts),
 			'size-medium': formatAssetUrl(iconsSizeMedium, opts),
 			'size-small': formatAssetUrl(iconsSizeSmall, opts),
+			'spline-cubic': formatAssetUrl(iconsSplineCubic, opts),
+			'spline-line': formatAssetUrl(iconsSplineLine, opts),
 			'stack-horizontal': formatAssetUrl(iconsStackHorizontal, opts),
 			'stack-vertical': formatAssetUrl(iconsStackVertical, opts),
 			'stretch-horizontal': formatAssetUrl(iconsStretchHorizontal, opts),

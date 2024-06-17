@@ -1,3 +1,5 @@
+import { fetch } from './network'
+
 /**
  * Helpers for files
  *

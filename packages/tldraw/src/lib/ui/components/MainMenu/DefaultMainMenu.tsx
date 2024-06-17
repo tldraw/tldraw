@@ -9,11 +9,11 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { DefaultMainMenuContent } from './DefaultMainMenuContent'
 
 /** @public */
-export type TLUiMainMenuProps = {
+export interface TLUiMainMenuProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiMainMenuProps) {
 	const container = useContainer()
 	const [isOpen, onOpenChange] = useMenuIsOpen('main menu')

@@ -5,23 +5,23 @@ import { TldrawUiButton } from './Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './Button/TldrawUiButtonIcon'
 
 /** @public */
-export type TLUiDialogHeaderProps = {
+export interface TLUiDialogHeaderProps {
 	className?: string
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderProps) {
 	return <div className={classNames('tlui-dialog__header', className)}>{children}</div>
 }
 
 /** @public */
-export type TLUiDialogTitleProps = {
+export interface TLUiDialogTitleProps {
 	className?: string
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDialogTitle({ className, children }: TLUiDialogTitleProps) {
 	return (
 		<_Dialog.DialogTitle dir="ltr" className={classNames('tlui-dialog__header__title', className)}>
@@ -30,7 +30,7 @@ export function TldrawUiDialogTitle({ className, children }: TLUiDialogTitleProp
 	)
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDialogCloseButton() {
 	return (
 		<div className="tlui-dialog__header__close">
@@ -48,13 +48,13 @@ export function TldrawUiDialogCloseButton() {
 }
 
 /** @public */
-export type TLUiDialogBodyProps = {
+export interface TLUiDialogBodyProps {
 	className?: string
 	children: ReactNode
 	style?: React.CSSProperties
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps) {
 	return (
 		<div className={classNames('tlui-dialog__body', className)} style={style}>
@@ -64,12 +64,12 @@ export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBod
 }
 
 /** @public */
-export type TLUiDialogFooterProps = {
+export interface TLUiDialogFooterProps {
 	className?: string
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDialogFooter({ className, children }: TLUiDialogFooterProps) {
 	return <div className={classNames('tlui-dialog__footer', className)}>{children}</div>
 }

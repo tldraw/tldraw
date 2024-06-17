@@ -1,6 +1,7 @@
 import {
 	ContextMenu,
 	DefaultContextMenuContent,
+	DefaultSpinner,
 	ErrorScreen,
 	LoadingScreen,
 	TldrawEditor,
@@ -38,7 +39,11 @@ export default function ExplodedExample() {
 	}
 
 	if (!assetLoading.done) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
+		return (
+			<LoadingScreen>
+				<DefaultSpinner />
+			</LoadingScreen>
+		)
 	}
 
 	return (

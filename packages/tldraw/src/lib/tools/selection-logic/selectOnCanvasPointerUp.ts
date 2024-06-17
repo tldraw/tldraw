@@ -1,4 +1,4 @@
-import { Editor, HIT_TEST_MARGIN, TLShape, isShapeId } from '@tldraw/editor'
+import { Editor, TLShape, isShapeId } from '@tldraw/editor'
 
 export function selectOnCanvasPointerUp(editor: Editor) {
 	const selectedShapeIds = editor.getSelectedShapeIds()
@@ -6,7 +6,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 
 	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
 		hitInside: false,
-		margin: HIT_TEST_MARGIN / editor.getZoomLevel(),
+		margin: editor.options.hitTestMargin / editor.getZoomLevel(),
 		hitLabels: true,
 		renderingOnly: true,
 		filter: (shape) => !shape.isLocked,

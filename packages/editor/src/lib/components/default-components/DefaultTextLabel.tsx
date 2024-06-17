@@ -26,7 +26,8 @@ export type TLTextTriggerHook = (
 	) => Promise<boolean>
 }
 
-type TextLabelProps = {
+/** @public */
+export interface TextLabelProps {
 	id: TLShapeId
 	type: string
 	font: TLDefaultFontStyle
@@ -48,9 +49,11 @@ type TextLabelProps = {
 	textWidth?: number
 	textHeight?: number
 	useTextTriggerCharacter?: TLTextTriggerHook
+	padding?: number
 }
 
-type ITextLabel<P> = React.NamedExoticComponent<P> & {
+/** @public */
+export type ITextLabel<P> = React.NamedExoticComponent<P> & {
 	measureMethod?: MeasureMethod
 }
 
@@ -61,7 +64,7 @@ type ITextLabel<P> = React.NamedExoticComponent<P> & {
 export type TLTextLabel = ITextLabel<TextLabelProps>
 
 /**
- * @public
+ * @public @react
  * This is an _experimental_ component that we are still exploring.
  */
 export const DefaultTextLabel: TLTextLabel = React.memo(function DefaultTextLabel({ text }) {

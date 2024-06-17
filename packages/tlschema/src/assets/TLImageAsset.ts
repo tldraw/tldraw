@@ -12,6 +12,7 @@ export type TLImageAsset = TLBaseAsset<
 	{
 		w: number
 		h: number
+		fileSize: number
 		name: string
 		isAnimated: boolean
 		mimeType: string | null
@@ -25,6 +26,7 @@ export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidat
 	T.object({
 		w: T.number,
 		h: T.number,
+		fileSize: T.number,
 		name: T.string,
 		isAnimated: T.boolean,
 		mimeType: T.string.nullable(),
@@ -36,6 +38,7 @@ const Versions = createMigrationIds('com.tldraw.asset.image', {
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
 	MakeUrlsValid: 3,
+	AddFileSize: 4,
 } as const)
 
 export { Versions as imageAssetVersions }
@@ -79,6 +82,15 @@ export const imageAssetMigrations = createRecordMigrationSequence({
 			},
 			down: (_asset) => {
 				// noop
+			},
+		},
+		{
+			id: Versions.AddFileSize,
+			up: (asset: any) => {
+				asset.props.fileSize = -1
+			},
+			down: (asset: any) => {
+				delete asset.props.fileSize
 			},
 		},
 	],

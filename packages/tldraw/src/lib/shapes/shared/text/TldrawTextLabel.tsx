@@ -9,7 +9,7 @@ import { TextHelpers } from '../TextHelpers'
 import { useEditableText } from '../useEditableText'
 
 /**
- * @public
+ * @public @react
  * This is an _experimental_ component that we are still exploring.
  */
 export const TldrawTextLabel: TLTextLabel = React.memo(function TextLabel({
@@ -24,6 +24,7 @@ export const TldrawTextLabel: TLTextLabel = React.memo(function TextLabel({
 	verticalAlign,
 	wrap,
 	isSelected,
+	padding = 0,
 	onKeyDown: handleKeyDownCustom,
 	classNamePrefix,
 	style,
@@ -68,6 +69,7 @@ export const TldrawTextLabel: TLTextLabel = React.memo(function TextLabel({
 			style={{
 				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
 				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+				padding,
 				...style,
 			}}
 		>
@@ -75,12 +77,12 @@ export const TldrawTextLabel: TLTextLabel = React.memo(function TextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: fontSize * lineHeight + 'px',
-					minHeight: lineHeight + 32,
-					minWidth: textWidth || 0,
+					lineHeight: Math.floor(fontSize * lineHeight) + 'px',
+					minHeight: Math.floor(fontSize * lineHeight) + 'px',
+					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
-					width: textWidth,
-					height: textHeight,
+					width: textWidth ? Math.ceil(textWidth) : undefined,
+					height: textHeight ? Math.ceil(textHeight) : undefined,
 				}}
 			>
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
@@ -108,7 +110,8 @@ export const TldrawTextLabel: TLTextLabel = React.memo(function TextLabel({
 })
 TldrawTextLabel.measureMethod = 'text'
 
-type TextAreaProps = {
+/** @public */
+export interface TextAreaProps {
 	isEditing: boolean
 	text: string
 	handleFocus: () => void
@@ -120,7 +123,7 @@ type TextAreaProps = {
 }
 
 /**
- * @public
+ * @public @react
  * This is an _experimental_ component that we are still exploring.
  */
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
@@ -147,12 +150,10 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 			autoCapitalize="off"
 			autoCorrect="off"
 			autoSave="off"
-			// autoFocus
 			placeholder=""
 			spellCheck="true"
 			wrap="off"
 			dir="auto"
-			datatype="wysiwyg"
 			defaultValue={text}
 			onFocus={handleFocus}
 			onChange={handleChange}

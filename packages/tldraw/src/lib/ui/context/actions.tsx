@@ -1,5 +1,4 @@
 import {
-	ANIMATION_MEDIUM_MS,
 	Box,
 	DefaultColorStyle,
 	Editor,
@@ -25,10 +24,10 @@ import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
-import { ADJACENT_SHAPE_MARGIN } from '../constants'
 import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
 import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
+import { flattenShapesToImages } from '../hooks/useFlatten'
 import { useInsertMedia } from '../hooks/useInsertMedia'
 import { usePrint } from '../hooks/usePrint'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -56,10 +55,10 @@ export interface TLUiActionItem<
 export type TLUiActionsContextType = Record<string, TLUiActionItem>
 
 /** @internal */
-export const ActionsContext = React.createContext<TLUiActionsContextType>({})
+export const ActionsContext = React.createContext<TLUiActionsContextType | null>(null)
 
 /** @public */
-export type ActionsProviderProps = {
+export interface ActionsProviderProps {
 	overrides?: (
 		editor: Editor,
 		actions: TLUiActionsContextType,
@@ -819,7 +818,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('pack-shapes', { source })
 					editor.mark('pack')
 					const selectedShapeIds = editor.getSelectedShapeIds()
-					editor.packShapes(selectedShapeIds, ADJACENT_SHAPE_MARGIN)
+					editor.packShapes(selectedShapeIds, editor.options.adjacentShapeMargin)
 					kickoutOccludedShapes(editor, selectedShapeIds)
 				},
 			},
@@ -1038,7 +1037,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
 					editor.zoomIn(undefined, {
-						animation: { duration: ANIMATION_MEDIUM_MS },
+						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
 			},
@@ -1050,7 +1049,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('zoom-out', { source })
 					editor.zoomOut(undefined, {
-						animation: { duration: ANIMATION_MEDIUM_MS },
+						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
 			},
@@ -1063,7 +1062,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
 					editor.resetZoom(undefined, {
-						animation: { duration: ANIMATION_MEDIUM_MS },
+						animation: { duration: editor.options.animationMediumMs },
 					})
 				},
 			},
@@ -1074,7 +1073,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-fit', { source })
-					editor.zoomToFit({ animation: { duration: ANIMATION_MEDIUM_MS } })
+					editor.zoomToFit({ animation: { duration: editor.options.animationMediumMs } })
 				},
 			},
 			{
@@ -1087,7 +1086,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('zoom-to-selection', { source })
-					editor.zoomToSelection({ animation: { duration: ANIMATION_MEDIUM_MS } })
+					editor.zoomToSelection({ animation: { duration: editor.options.animationMediumMs } })
 				},
 			},
 			{
@@ -1127,6 +1126,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-wrap-mode', { source })
 					editor.user.updateUserPreferences({
 						isWrapMode: !editor.user.getIsWrapMode(),
+					})
+				},
+				checkbox: true,
+			},
+			{
+				id: 'toggle-dynamic-size-mode',
+				label: {
+					default: 'action.toggle-dynamic-size-mode',
+					menu: 'action.toggle-dynamic-size-mode.menu',
+				},
+				readonlyOk: false,
+				onSelect(source) {
+					trackEvent('toggle-dynamic-size-mode', { source })
+					editor.user.updateUserPreferences({
+						isDynamicSizeMode: !editor.user.getIsDynamicResizeMode(),
 					})
 				},
 				checkbox: true,
@@ -1218,7 +1232,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					// this needs to be deferred because it causes the menu
 					// UI to unmount which puts us in a dodgy state
-					requestAnimationFrame(() => {
+					editor.timers.requestAnimationFrame(() => {
 						editor.batch(() => {
 							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
@@ -1341,6 +1355,28 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.updateInstanceState({ isChangingStyle: true })
 					})
 					trackEvent('set-style', { source, id: style.id, value: 'white' })
+				},
+			},
+			{
+				id: 'flatten-to-image',
+				label: 'action.flatten-to-image',
+				kbd: '!f',
+				onSelect: async (source) => {
+					const ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) return
+
+					editor.mark('flattening to image')
+					trackEvent('flatten-to-image', { source })
+
+					const newShapeIds = await flattenShapesToImages(
+						editor,
+						ids,
+						editor.options.flattenImageBoundsExpand
+					)
+
+					if (newShapeIds?.length) {
+						editor.setSelectedShapes(newShapeIds)
+					}
 				},
 			},
 		]

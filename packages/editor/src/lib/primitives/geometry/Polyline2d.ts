@@ -33,14 +33,8 @@ export class Polyline2d extends Geometry2d {
 		return this._segments
 	}
 
-	_length?: number
-
-	// eslint-disable-next-line no-restricted-syntax
-	get length() {
-		if (!this._length) {
-			this._length = this.segments.reduce((acc, segment) => acc + segment.length, 0)
-		}
-		return this._length
+	override getLength() {
+		return this.segments.reduce((acc, segment) => acc + segment.length, 0)
 	}
 
 	getVertices() {
@@ -73,5 +67,14 @@ export class Polyline2d extends Geometry2d {
 			}
 		}
 		return false
+	}
+
+	getSvgPathData(): string {
+		const { vertices } = this
+		if (vertices.length < 2) return ''
+		return vertices.reduce((acc, vertex, i) => {
+			if (i === 0) return `M ${vertex.x} ${vertex.y}`
+			return `${acc} L ${vertex.x} ${vertex.y}`
+		}, '')
 	}
 }

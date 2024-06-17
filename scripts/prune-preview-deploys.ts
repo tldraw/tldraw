@@ -6,7 +6,7 @@ import { nicelog } from './lib/nicelog'
 // `env` instead. This makes sure that all required env vars are present.
 const env = makeEnv(['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', 'GH_TOKEN'])
 
-type ListWorkersResult = {
+interface ListWorkersResult {
 	success: boolean
 	result: { id: string }[]
 }

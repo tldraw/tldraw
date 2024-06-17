@@ -1,15 +1,15 @@
 import { useState } from 'react'
-import { AssetRecordType, Box, TLAssetId, TLShapeId, assertExists, createShapeId } from 'tldraw'
+import { AssetRecordType, Box, TLAssetId, TLShapeId, createShapeId } from 'tldraw'
 import tldrawPdf from './assets/tldraw.pdf'
 
-export type PdfPage = {
+export interface PdfPage {
 	src: string
 	bounds: Box
 	assetId: TLAssetId
 	shapeId: TLShapeId
 }
 
-export type Pdf = {
+export interface Pdf {
 	name: string
 	pages: PdfPage[]
 	source: string | ArrayBuffer
@@ -30,7 +30,8 @@ export function PdfPicker({ onOpenPdf }: { onOpenPdf: (pdf: Pdf) => void }) {
 		const pages: PdfPage[] = []
 
 		const canvas = window.document.createElement('canvas')
-		const context = assertExists(canvas.getContext('2d'))
+		const context = canvas.getContext('2d')
+		if (!context) throw new Error('Failed to create canvas context')
 
 		const visualScale = 1.5
 		const scale = window.devicePixelRatio

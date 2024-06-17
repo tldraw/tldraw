@@ -1,11 +1,15 @@
 /* @tldraw/ui */
 
 .tl-container {
+	--layer-behind: -1;
+	--layer-above: 1;
+	--layer-focused-input: 10;
 	--layer-panels: 300;
 	--layer-menus: 400;
 	--layer-overlays: 500;
 	--layer-toasts: 650;
 	--layer-cursor: 700;
+	--layer-header-footer: 999;
 }
 
 /* -------------------------------------------------- */
@@ -48,7 +52,7 @@
 
 .tlui-button > * {
 	position: relative;
-	z-index: 1;
+	z-index: var(--layer-above);
 }
 
 .tlui-button__label {
@@ -688,7 +692,7 @@
 	background: none;
 	margin: 0px;
 	position: relative;
-	z-index: 1;
+	z-index: var(--layer-above);
 	height: 40px;
 	max-height: 40px;
 	display: flex;
@@ -771,7 +775,7 @@
 	display: flex;
 	align-items: center;
 	flex: 0;
-	z-index: 999;
+	z-index: var(--layer-header-footer);
 	padding-left: var(--space-4);
 	color: var(--color-text);
 	height: 44px;
@@ -801,7 +805,7 @@
 
 .tlui-dialog__footer {
 	position: relative;
-	z-index: 999;
+	z-index: var(--layer-header-footer);
 }
 
 .tlui-dialog__footer__actions {
@@ -843,7 +847,7 @@
 /* Row of controls + lock button */
 .tlui-toolbar__extras {
 	position: relative;
-	z-index: 1;
+	z-index: var(--layer-above);
 	width: 100%;
 	pointer-events: none;
 	top: 6px;
@@ -858,7 +862,7 @@
 	display: flex;
 	position: relative;
 	flex-direction: row;
-	z-index: 1;
+	z-index: var(--layer-above);
 	background-color: var(--color-low);
 	border-top-left-radius: var(--radius-4);
 	border-top-right-radius: var(--radius-4);
@@ -1154,7 +1158,7 @@
 	content: '';
 	display: block;
 	position: absolute;
-	z-index: -1;
+	z-index: var(--layer-behind);
 	inset: -2px -2px 0px 0px;
 	border-radius: 0;
 	border-top: 2px solid var(--color-background);
@@ -1329,7 +1333,7 @@
 	flex-direction: row;
 	align-items: center;
 	overflow: hidden;
-	z-index: 1;
+	z-index: var(--layer-above);
 }
 
 .tlui-page_menu__item__sortable__title {
@@ -1341,7 +1345,7 @@
 }
 
 .tlui-page_menu__item__sortable:focus-within {
-	z-index: 10;
+	z-index: var(--layer-focused-input);
 }
 
 .tlui-page_menu__item__sortable__handle {

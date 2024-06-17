@@ -28,17 +28,17 @@ export default async function ClaPage() {
 					You reserve all right, title, and interest in and to Your Contributions.{' '}
 				</p>
 				<p>1. Definitions. </p>
-				<p>"You" (or "Your") means the individual identified above. </p>
+				<p>“You” (or “Your”) means the individual identified above. </p>
 				<p>
-					"Contribution" means any original work of authorship, including any modifications or
+					“Contribution” means any original work of authorship, including any modifications or
 					additions to an existing work, that is intentionally submitted by You to tldraw for
 					inclusion in, or documentation of, any of the products owned or managed by tldraw (each, a
-					"Work"). For the purposes of this definition, "submitted" means any form of electronic,
+					“Work”). For the purposes of this definition, “submitted” means any form of electronic,
 					verbal, or written communication sent to tldraw or its representatives, including but not
 					limited to communication on electronic mailing lists, source code control systems, and
 					issue tracking systems that are managed by, or on behalf of, tldraw for the purpose of
 					discussing and improving the Works, but excluding communication that is conspicuously
-					marked or otherwise designated in writing by You as "Not a Contribution."{' '}
+					marked or otherwise designated in writing by You as “Not a Contribution.”{' '}
 				</p>
 				<p>
 					2. Grant of Copyright License. You hereby grant to tldraw a perpetual, worldwide,
@@ -74,7 +74,7 @@ export default async function ClaPage() {
 					6. You are not expected to provide support for Your Contributions, except to the extent
 					You desire to provide support. You may provide support for free, for a fee, or not at all.
 					Unless required by applicable law or agreed to in writing, You provide Your Contributions
-					on an "as is" basis, without warranties or conditions of any kind, either express or
+					on an “as is” basis, without warranties or conditions of any kind, either express or
 					implied, including, without limitation, any warranties or conditions of title,
 					non-infringement, merchantability, or fitness for a particular purpose.{' '}
 				</p>

@@ -10,7 +10,7 @@ export class RemoteSyncError extends Error {
 }
 
 /** @public */
-export type UseSyncClientConfig = {
+export interface UseSyncClientConfig {
 	uri: string
 	roomId?: string
 	userPreferences?: Signal<TLUserPreferences>

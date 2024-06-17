@@ -5,4 +5,6 @@ export type JsonPrimitive = boolean | null | string | number
 /** @public */
 export type JsonArray = JsonValue[]
 /** @public */
-export type JsonObject = { [key: string]: JsonValue | undefined }
+export interface JsonObject {
+	[key: string]: JsonValue | undefined
+}

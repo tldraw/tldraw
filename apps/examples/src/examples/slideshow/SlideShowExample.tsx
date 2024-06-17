@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import {
-	DEFAULT_CAMERA_OPTIONS,
 	Editor,
 	TLFrameShape,
 	Tldraw,
@@ -39,7 +38,6 @@ function InsideSlidesContext() {
 		}
 
 		editor.setCameraOptions({
-			...DEFAULT_CAMERA_OPTIONS,
 			constraints: {
 				bounds: nextBounds,
 				behavior: 'contain',

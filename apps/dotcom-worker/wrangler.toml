@@ -3,6 +3,7 @@ compatibility_date = "2023-10-16"
 
 [dev]
 port = 8787
+ip = "0.0.0.0"
 
 # these migrations are append-only. you can't change them. if you do need to change something, do so
 # by creating new migrations

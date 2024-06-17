@@ -17,6 +17,7 @@ import {
 import { DefaultGrid, TLGridProps } from '../components/default-components/DefaultGrid'
 import { DefaultHandle, TLHandleProps } from '../components/default-components/DefaultHandle'
 import { DefaultHandles, TLHandlesProps } from '../components/default-components/DefaultHandles'
+import { DefaultLoadingScreen } from '../components/default-components/DefaultLoadingScreen'
 import { DefaultScribble, TLScribbleProps } from '../components/default-components/DefaultScribble'
 import {
 	DefaultSelectionBackground,
@@ -47,50 +48,42 @@ import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
 import { DefaultTextLabel, TLTextLabel } from '../components/default-components/DefaultTextLabel'
 import { useShallowObjectIdentity } from './useIdentity'
 
-export interface BaseEditorComponents {
-	Background: ComponentType
-	SvgDefs: ComponentType
-	Brush: ComponentType<TLBrushProps>
-	ZoomBrush: ComponentType<TLBrushProps>
-	ShapeIndicator: ComponentType<TLShapeIndicatorProps>
-	Cursor: ComponentType<TLCursorProps>
-	Canvas: ComponentType<TLCanvasComponentProps>
-	CollaboratorBrush: ComponentType<TLBrushProps>
-	CollaboratorCursor: ComponentType<TLCursorProps>
-	CollaboratorHint: ComponentType<TLCollaboratorHintProps>
-	CollaboratorShapeIndicator: ComponentType<TLShapeIndicatorProps>
-	Grid: ComponentType<TLGridProps>
-	Scribble: ComponentType<TLScribbleProps>
-	CollaboratorScribble: ComponentType<TLScribbleProps>
-	SnapIndicator: ComponentType<TLSnapIndicatorProps>
-	Handles: ComponentType<TLHandlesProps>
-	Handle: ComponentType<TLHandleProps>
-	Spinner: ComponentType
-	SelectionForeground: ComponentType<TLSelectionForegroundProps>
-	SelectionBackground: ComponentType<TLSelectionBackgroundProps>
-	OnTheCanvas: ComponentType
-	InFrontOfTheCanvas: ComponentType
-	LoadingScreen: ComponentType
-	TextLabel: TLTextLabel
-}
-
-// These will always have defaults
-type ErrorComponents = {
-	ErrorFallback: TLErrorFallbackComponent
-	ShapeErrorFallback: TLShapeErrorFallbackComponent
-	ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent
-}
-
 /** @public */
-export type TLEditorComponents = Partial<
-	{
-		[K in keyof BaseEditorComponents]: BaseEditorComponents[K] | null
-	} & ErrorComponents
->
+export interface TLEditorComponents {
+	Background?: ComponentType | null
+	SvgDefs?: ComponentType | null
+	Brush?: ComponentType<TLBrushProps> | null
+	ZoomBrush?: ComponentType<TLBrushProps> | null
+	ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
+	Cursor?: ComponentType<TLCursorProps> | null
+	Canvas?: ComponentType<TLCanvasComponentProps> | null
+	CollaboratorBrush?: ComponentType<TLBrushProps> | null
+	CollaboratorCursor?: ComponentType<TLCursorProps> | null
+	CollaboratorHint?: ComponentType<TLCollaboratorHintProps> | null
+	CollaboratorShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
+	Grid?: ComponentType<TLGridProps> | null
+	Scribble?: ComponentType<TLScribbleProps> | null
+	CollaboratorScribble?: ComponentType<TLScribbleProps> | null
+	SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null
+	Handles?: ComponentType<TLHandlesProps> | null
+	Handle?: ComponentType<TLHandleProps> | null
+	Spinner?: ComponentType | null
+	SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null
+	SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null
+	OnTheCanvas?: ComponentType | null
+	InFrontOfTheCanvas?: ComponentType | null
+	LoadingScreen?: ComponentType | null
+	TextLabel?: TLTextLabel | null
 
-const EditorComponentsContext = createContext({} as TLEditorComponents & ErrorComponents)
+	// These will always have defaults
+	ErrorFallback?: TLErrorFallbackComponent
+	ShapeErrorFallback?: TLShapeErrorFallbackComponent
+	ShapeIndicatorErrorFallback?: TLShapeIndicatorErrorFallbackComponent
+}
 
-type ComponentsContextProviderProps = {
+const EditorComponentsContext = createContext<null | Required<TLEditorComponents>>(null)
+
+interface ComponentsContextProviderProps {
 	overrides?: TLEditorComponents
 	children: ReactNode
 }
@@ -103,12 +96,11 @@ export function EditorComponentsProvider({
 	return (
 		<EditorComponentsContext.Provider
 			value={useMemo(
-				() => ({
+				(): Required<TLEditorComponents> => ({
 					Background: DefaultBackground,
 					SvgDefs: DefaultSvgDefs,
 					Brush: DefaultBrush,
 					ZoomBrush: DefaultBrush,
-					ScreenshotBrush: DefaultBrush,
 					CollaboratorBrush: DefaultBrush,
 					Cursor: DefaultCursor,
 					CollaboratorCursor: DefaultCursor,
@@ -131,6 +123,7 @@ export function EditorComponentsProvider({
 					InFrontOfTheCanvas: null,
 					Canvas: DefaultCanvas,
 					TextLabel: DefaultTextLabel,
+					LoadingScreen: DefaultLoadingScreen,
 					..._overrides,
 				}),
 				[_overrides]
@@ -143,5 +136,9 @@ export function EditorComponentsProvider({
 
 /** @public */
 export function useEditorComponents() {
-	return useContext(EditorComponentsContext)
+	const components = useContext(EditorComponentsContext)
+	if (!components) {
+		throw new Error('useEditorComponents must be used inside of <EditorComponentsProvider />')
+	}
+	return components
 }

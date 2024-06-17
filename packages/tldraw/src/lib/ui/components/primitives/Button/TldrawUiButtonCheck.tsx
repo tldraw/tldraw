@@ -1,9 +1,11 @@
 import { TldrawUiIcon } from '../TldrawUiIcon'
 
 /** @public */
-export type TLUiButtonCheckProps = { checked: boolean }
+export interface TLUiButtonCheckProps {
+	checked: boolean
+}
 
-/** @public */
+/** @public @react */
 export function TldrawUiButtonCheck({ checked }: TLUiButtonCheckProps) {
 	return <TldrawUiIcon icon={checked ? 'check' : 'none'} className="tlui-button__icon" small />
 }

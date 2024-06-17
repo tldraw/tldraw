@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	DefaultHelpMenu,
 	DefaultHelpMenuContent,
+	DefaultSpinner,
 	Editor,
 	ErrorBoundary,
 	TLComponents,
@@ -90,13 +91,15 @@ export const TldrawWrapper = () => {
 	}, [setTldrawInnerProps])
 
 	return tldrawInnerProps === null ? (
-		<FullPageMessage>Loading</FullPageMessage>
+		<FullPageMessage>
+			<DefaultSpinner />
+		</FullPageMessage>
 	) : (
 		<TldrawInner {...tldrawInnerProps} />
 	)
 }
 
-export type TLDrawInnerProps = {
+export interface TLDrawInnerProps {
 	assetSrc: string
 	fileContents: string
 	uri: string
@@ -126,7 +129,6 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 			persistenceKey={uri}
 			onMount={handleMount}
 			components={components}
-			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 

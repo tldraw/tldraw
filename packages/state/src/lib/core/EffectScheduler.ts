@@ -5,7 +5,8 @@ import { attach, detach, haveParentsChanged, singleton } from './helpers'
 import { getGlobalEpoch } from './transactions'
 import { Signal } from './types'
 
-interface EffectSchedulerOptions {
+/** @public */
+export interface EffectSchedulerOptions {
 	/**
 	 * scheduleEffect is a function that will be called when the effect is scheduled.
 	 *
@@ -38,7 +39,7 @@ interface EffectSchedulerOptions {
 	scheduleEffect?: (execute: () => void) => void
 }
 
-class __EffectScheduler__<Result> {
+class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	private _isActivelyListening = false
 	/**
 	 * Whether this scheduler is attached and actively listening to its parents.
@@ -174,9 +175,71 @@ class __EffectScheduler__<Result> {
  *
  * @public
  */
-export const EffectScheduler = singleton('EffectScheduler', () => __EffectScheduler__)
+export const EffectScheduler = singleton(
+	'EffectScheduler',
+	(): {
+		new <Result>(
+			name: string,
+			runEffect: (lastReactedEpoch: number) => Result,
+			options?: EffectSchedulerOptions
+		): EffectScheduler<Result>
+	} => __EffectScheduler__
+)
 /** @public */
-export type EffectScheduler<Result> = __EffectScheduler__<Result>
+export interface EffectScheduler<Result> {
+	/**
+	 * Whether this scheduler is attached and actively listening to its parents.
+	 * @public
+	 */
+	readonly isActivelyListening: boolean
+
+	/** @internal */
+	readonly lastTraversedEpoch: number
+
+	/**
+	 * The number of times this effect has been scheduled.
+	 * @public
+	 */
+	readonly scheduleCount: number
+
+	/** @internal */
+	readonly parentSet: ArraySet<Signal<any, any>>
+
+	/** @internal */
+	readonly parentEpochs: number[]
+
+	/** @internal */
+	readonly parents: Signal<any, any>[]
+
+	/** @internal */
+	maybeScheduleEffect(): void
+
+	/** @internal */
+	scheduleEffect(): void
+
+	/** @internal */
+	maybeExecute(): void
+
+	/**
+	 * Makes this scheduler become 'actively listening' to its parents.
+	 * If it has been executed before it will immediately become eligible to receive 'maybeScheduleEffect' calls.
+	 * If it has not executed before it will need to be manually executed once to become eligible for scheduling, i.e. by calling [[EffectScheduler.execute]].
+	 * @public
+	 */
+	attach(): void
+
+	/**
+	 * Makes this scheduler stop 'actively listening' to its parents.
+	 * It will no longer be eligible to receive 'maybeScheduleEffect' calls until [[EffectScheduler.attach]] is called again.
+	 */
+	detach(): void
+
+	/**
+	 * Executes the effect immediately and returns the result.
+	 * @returns The result of the effect.
+	 */
+	execute(): Result
+}
 
 /**
  * Starts a new effect scheduler, scheduling the effect immediately.

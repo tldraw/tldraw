@@ -7,7 +7,6 @@ import {
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { Router, createCors } from 'itty-router'
-import { env } from 'process'
 import Toucan from 'toucan-js'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -89,12 +88,13 @@ const Worker = {
 export function isAllowedOrigin(origin: string) {
 	if (origin === 'http://localhost:3000') return true
 	if (origin === 'http://localhost:5420') return true
+	if (origin === 'https://meet.google.com') return true
 	if (origin.endsWith('.tldraw.com')) return true
 	if (origin.endsWith('-tldraw.vercel.app')) return true
 	return false
 }
 
-async function blockUnknownOrigins(request: Request) {
+async function blockUnknownOrigins(request: Request, env: Environment) {
 	// allow requests for the same origin (new rewrite routing for SPA)
 	if (request.headers.get('sec-fetch-site') === 'same-origin') {
 		return undefined

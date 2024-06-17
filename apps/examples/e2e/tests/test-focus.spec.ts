@@ -175,4 +175,53 @@ test.describe('Focus', () => {
 			null
 		)
 	})
+
+	test('still focuses text after clicking on style button', async ({ page }) => {
+		await page.goto('http://localhost:5420/end-to-end')
+		await page.waitForSelector('.tl-canvas')
+
+		const EditorA = (await page.$(`.tl-container`))!
+		expect(EditorA).toBeTruthy()
+
+		// Create a new note, text should be focused
+		await page.keyboard.press('n')
+		await (await page.$('body'))?.click()
+		await page.waitForSelector('.tl-shape')
+
+		const blueButton = await page.$('.tlui-button[data-testid="style.color.blue"]')
+		await blueButton?.dispatchEvent('pointerdown')
+		await blueButton?.click()
+		await blueButton?.dispatchEvent('pointerup')
+
+		// Text should still be focused.
+		expect(await page.evaluate(() => document.activeElement?.nodeName === 'TEXTAREA')).toBe(true)
+	})
+
+	test.skip('edit->edit, focus stays in the text areas when going from shape-to-shape', async ({
+		page,
+	}) => {
+		await page.goto('http://localhost:5420/end-to-end')
+		await page.waitForSelector('.tl-canvas')
+
+		const EditorA = (await page.$(`.tl-container`))!
+		expect(EditorA).toBeTruthy()
+
+		// Create a new note, text should be focused
+		await page.keyboard.press('n')
+		await (await page.$('body'))?.click()
+		await page.waitForSelector('.tl-shape')
+		await page.keyboard.type('test')
+
+		// create new note next to it
+		await page.keyboard.press('Tab')
+
+		await (await page.$('body'))?.click()
+
+		await page.waitForTimeout(1000)
+
+		// First note's textarea should be focused.
+		expect(await EditorA.evaluate(() => !!document.querySelector('.tl-shape textarea:focus'))).toBe(
+			true
+		)
+	})
 })

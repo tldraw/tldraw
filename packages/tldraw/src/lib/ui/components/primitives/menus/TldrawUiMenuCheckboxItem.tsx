@@ -11,10 +11,10 @@ import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export type TLUiMenuCheckboxItemProps<
+export interface TLUiMenuCheckboxItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
-> = {
+> {
 	icon?: IconType
 	id: string
 	kbd?: string
@@ -27,7 +27,7 @@ export type TLUiMenuCheckboxItemProps<
 	disabled?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiMenuCheckboxItem<
 	TranslationKey extends string = string,
 	IconType extends string = string,

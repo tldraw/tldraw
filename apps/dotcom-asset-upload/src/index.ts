@@ -39,22 +39,12 @@ function objectNotFound(objectName: string): Response {
 	})
 }
 
+const CACHE_CONTROL_SETTING = 's-maxage=604800'
+
 const router = Router()
 
 router
 	.all('*', preflight)
-	.get('/uploads/list', async (request, env: Env) => {
-		// we need to protect this behind auth
-		const url = new URL(request.url)
-		const options: R2ListOptions = {
-			prefix: url.searchParams.get('prefix') ?? undefined,
-			delimiter: url.searchParams.get('delimiter') ?? undefined,
-			cursor: url.searchParams.get('cursor') ?? undefined,
-		}
-
-		const listing = await env.UPLOADS.list(options)
-		return Response.json(listing)
-	})
 	.get('/uploads/:objectName', async (request: Request, env: Env, ctx: ExecutionContext) => {
 		const url = new URL(request.url)
 
@@ -109,7 +99,7 @@ router
 
 		// Cache API respects Cache-Control headers. Setting s-max-age to 7 days
 		// Any changes made to the response here will be reflected in the cached value
-		headers.append('Cache-Control', 's-maxage=604800')
+		headers.append('Cache-Control', CACHE_CONTROL_SETTING)
 
 		const hasBody = 'body' in object && object.body
 		const status = hasBody ? (range ? 206 : 200) : 304
@@ -120,7 +110,10 @@ router
 
 		// Store the response in the cache for future access
 		if (!range) {
-			ctx.waitUntil(cache.put(cacheKey, response.clone()))
+			const clonedResponse = response.clone()
+			// If the request was made with no-cache, we should not cache that in the headers.
+			clonedResponse?.headers.set('Cache-Control', CACHE_CONTROL_SETTING)
+			ctx.waitUntil(cache.put(cacheKey, clonedResponse))
 		}
 
 		return response
@@ -154,13 +147,6 @@ router
 				etag: object.httpEtag,
 			},
 		})
-	})
-	.delete('/uploads/:objectName', async (request: Request, env: Env) => {
-		// Not sure if this is necessary, might be dangerous to expose
-		// TODO: infer types from path
-		// @ts-expect-error
-		await env.UPLOADS.delete(request.params.objectName)
-		return new Response()
 	})
 	.get('*', () => new Response('Not found', { status: 404 }))
 

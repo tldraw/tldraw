@@ -5,6 +5,7 @@ import { Breadcrumb } from './Breadcrumb'
 import { Header } from './Header'
 import { Mdx } from './Mdx'
 import { Sidebar } from './Sidebar'
+import { TitleWithSourceLink } from './mdx-components/api-docs'
 import { Image } from './mdx-components/generic'
 
 export async function ArticleReferenceDocsPage({ article }: { article: Article }) {
@@ -25,7 +26,9 @@ export async function ArticleReferenceDocsPage({ article }: { article: Article }
 			<main className="main-content article article__api-docs">
 				<div className="page-header">
 					<Breadcrumb section={section} category={category} />
-					<h1>{article.title}</h1>
+					<TitleWithSourceLink source={article.sourceUrl} large tags={article.apiTags?.split(',')}>
+						<h1>{article.title}</h1>
+					</TitleWithSourceLink>
 				</div>
 				{article.hero && <Image alt="hero" title={article.title} src={`images/${article.hero}`} />}
 				{article.content && <Mdx content={article.content} />}

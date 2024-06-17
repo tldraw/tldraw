@@ -1,4 +1,4 @@
-import { LegacyMigrations, MigrationSequence, StoreSchema } from '@tldraw/store'
+import { LegacyMigrations, MigrationSequence, StoreSchema, StoreValidator } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
@@ -39,16 +39,11 @@ import { videoShapeMigrations, videoShapeProps } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
 import { StyleProp } from './styles/StyleProp'
 
-type AnyValidator = {
-	validate: (prop: any) => any
-	validateUsingKnownGoodVersion?: (prevVersion: any, newVersion: any) => any
-}
-
 /** @public */
 export interface SchemaPropsInfo {
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
-	props?: Record<string, AnyValidator>
-	meta?: Record<string, AnyValidator>
+	props?: Record<string, StoreValidator<any>>
+	meta?: Record<string, StoreValidator<any>>
 }
 
 /** @public */

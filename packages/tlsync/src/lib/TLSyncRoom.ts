@@ -48,7 +48,7 @@ import {
 } from './protocol'
 
 /** @public */
-export type TLRoomSocket<R extends UnknownRecord> = {
+export interface TLRoomSocket<R extends UnknownRecord> {
 	isOpen: boolean
 	sendMessage: (msg: TLSocketServerSentEvent<R>) => void
 	close: () => void
@@ -120,7 +120,7 @@ class DocumentState<R extends UnknownRecord> {
 }
 
 /** @public */
-export type RoomSnapshot = {
+export interface RoomSnapshot {
 	clock: number
 	documents: Array<{ state: UnknownRecord; lastChangedClock: number }>
 	tombstones?: Record<string, number>
@@ -814,11 +814,15 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		transaction((rollback) => {
 			// collect actual ops that resulted from the push
 			// these will be broadcast to other users
-			let mergedChanges: NetworkDiff<R> | null = null
+			interface ActualChanges {
+				diff: NetworkDiff<R> | null
+			}
+			const docChanges: ActualChanges = { diff: null }
+			const presenceChanges: ActualChanges = { diff: null }
 
-			const propagateOp = (id: string, op: RecordOp<R>) => {
-				if (!mergedChanges) mergedChanges = {}
-				mergedChanges[id] = op
+			const propagateOp = (changes: ActualChanges, id: string, op: RecordOp<R>) => {
+				if (!changes.diff) changes.diff = {}
+				changes.diff[id] = op
 			}
 
 			const fail = (reason: TLIncompatibilityReason): Result<void, void> => {
@@ -830,7 +834,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				return Result.err(undefined)
 			}
 
-			const addDocument = (id: string, _state: R): Result<void, void> => {
+			const addDocument = (changes: ActualChanges, id: string, _state: R): Result<void, void> => {
 				const res = this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
 				if (res.type === 'error') {
 					return fail(
@@ -852,7 +856,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 						return fail(TLIncompatibilityReason.InvalidRecord)
 					}
 					if (diff.value) {
-						propagateOp(id, [RecordOpType.Patch, diff.value])
+						propagateOp(changes, id, [RecordOpType.Patch, diff.value])
 					}
 				} else {
 					// Otherwise, if we don't already have a document with this id
@@ -861,13 +865,17 @@ export class TLSyncRoom<R extends UnknownRecord> {
 					if (!result.ok) {
 						return fail(TLIncompatibilityReason.InvalidRecord)
 					}
-					propagateOp(id, [RecordOpType.Put, state])
+					propagateOp(changes, id, [RecordOpType.Put, state])
 				}
 
 				return Result.ok(undefined)
 			}
 
-			const patchDocument = (id: string, patch: ObjectDiff): Result<void, void> => {
+			const patchDocument = (
+				changes: ActualChanges,
+				id: string,
+				patch: ObjectDiff
+			): Result<void, void> => {
 				// if it was already deleted, there's no need to apply the patch
 				const doc = this.getDocument(id)
 				if (!doc) return Result.ok(undefined)
@@ -889,7 +897,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 						return fail(TLIncompatibilityReason.InvalidRecord)
 					}
 					if (diff.value) {
-						propagateOp(id, [RecordOpType.Patch, diff.value])
+						propagateOp(changes, id, [RecordOpType.Patch, diff.value])
 					}
 				} else {
 					// need to apply the patch to the downgraded version and then upgrade it
@@ -912,7 +920,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 						return fail(TLIncompatibilityReason.InvalidRecord)
 					}
 					if (diff.value) {
-						propagateOp(id, [RecordOpType.Patch, diff.value])
+						propagateOp(changes, id, [RecordOpType.Patch, diff.value])
 					}
 				}
 
@@ -921,7 +929,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 			const { clientClock } = message
 
-			if ('presence' in message) {
+			if ('presence' in message && message.presence) {
 				// The push request was for the presence scope.
 				const id = session.presenceId
 				const [type, val] = message.presence
@@ -929,30 +937,27 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				switch (type) {
 					case RecordOpType.Put: {
 						// Try to put the document. If it fails, stop here.
-						const res = addDocument(id, { ...val, id, typeName })
+						const res = addDocument(presenceChanges, id, { ...val, id, typeName })
+						// if res.ok is false here then we already called `fail` and we should stop immediately
 						if (!res.ok) return
 						break
 					}
 					case RecordOpType.Patch: {
 						// Try to patch the document. If it fails, stop here.
-						const res = patchDocument(id, {
+						const res = patchDocument(presenceChanges, id, {
 							...val,
 							id: [ValueOpType.Put, id],
 							typeName: [ValueOpType.Put, typeName],
 						})
+						// if res.ok is false here then we already called `fail` and we should stop immediately
 						if (!res.ok) return
 						break
 					}
 				}
-				this.sendMessage(session.sessionKey, {
-					type: 'push_result',
-					clientClock,
-					action: 'commit',
-					serverClock: this.clock,
-				})
-			} else {
+			}
+			if (message.diff) {
 				// The push request was for the document scope.
-				for (const [id, op] of Object.entries(message.diff)) {
+				for (const [id, op] of Object.entries(message.diff!)) {
 					switch (op[0]) {
 						case RecordOpType.Put: {
 							// Try to add the document.
@@ -960,13 +965,15 @@ export class TLSyncRoom<R extends UnknownRecord> {
 							if (!this.documentTypes.has(op[1].typeName)) {
 								return fail(TLIncompatibilityReason.InvalidRecord)
 							}
-							const res = addDocument(id, op[1])
+							const res = addDocument(docChanges, id, op[1])
+							// if res.ok is false here then we already called `fail` and we should stop immediately
 							if (!res.ok) return
 							break
 						}
 						case RecordOpType.Patch: {
 							// Try to patch the document. If it fails, stop here.
-							const res = patchDocument(id, op[1])
+							const res = patchDocument(docChanges, id, op[1])
+							// if res.ok is false here then we already called `fail` and we should stop immediately
 							if (!res.ok) return
 							break
 						}
@@ -986,60 +993,68 @@ export class TLSyncRoom<R extends UnknownRecord> {
 							this.removeDocument(id, this.clock)
 							// Schedule a pruneTombstones call to happen on the next call stack
 							setTimeout(this.pruneTombstones, 0)
-							propagateOp(id, op)
+							propagateOp(docChanges, id, op)
 							break
 						}
 					}
 				}
+			}
 
-				// Let the client know what action to take based on the results of the push
-				if (!mergedChanges) {
-					// DISCARD
-					// Applying the client's changes had no effect, so the client should drop the diff
-					this.sendMessage(session.sessionKey, {
-						type: 'push_result',
-						serverClock: this.clock,
-						clientClock,
-						action: 'discard',
-					})
-				} else if (isEqual(mergedChanges, message.diff)) {
-					// COMMIT
-					// Applying the client's changes had the exact same effect on the server as
-					// they had on the client, so the client should keep the diff
-					this.sendMessage(session.sessionKey, {
-						type: 'push_result',
-						serverClock: this.clock,
-						clientClock,
-						action: 'commit',
-					})
-				} else {
-					// REBASE
-					// Applying the client's changes had a different non-empty effect on the server,
-					// so the client should rebase with our gold-standard / authoritative diff.
-					// First we need to migrate the diff to the client's version
-					const migrateResult = this.migrateDiffForSession(session.serializedSchema, mergedChanges)
-					if (!migrateResult.ok) {
-						return fail(
-							migrateResult.error === MigrationFailureReason.TargetVersionTooNew
-								? TLIncompatibilityReason.ServerTooOld
-								: TLIncompatibilityReason.ClientTooOld
-						)
-					}
-					// If the migration worked, send the rebased diff to the client
-					this.sendMessage(session.sessionKey, {
-						type: 'push_result',
-						serverClock: this.clock,
-						clientClock,
-						action: { rebaseWithDiff: migrateResult.value },
-					})
+			// Let the client know what action to take based on the results of the push
+			if (
+				// if there was only a presence push, the client doesn't need to do anything aside from
+				// shift the push request.
+				!message.diff ||
+				isEqual(docChanges.diff, message.diff)
+			) {
+				// COMMIT
+				// Applying the client's changes had the exact same effect on the server as
+				// they had on the client, so the client should keep the diff
+				this.sendMessage(session.sessionKey, {
+					type: 'push_result',
+					serverClock: this.clock,
+					clientClock,
+					action: 'commit',
+				})
+			} else if (!docChanges.diff) {
+				// DISCARD
+				// Applying the client's changes had no effect, so the client should drop the diff
+				this.sendMessage(session.sessionKey, {
+					type: 'push_result',
+					serverClock: this.clock,
+					clientClock,
+					action: 'discard',
+				})
+			} else {
+				// REBASE
+				// Applying the client's changes had a different non-empty effect on the server,
+				// so the client should rebase with our gold-standard / authoritative diff.
+				// First we need to migrate the diff to the client's version
+				const migrateResult = this.migrateDiffForSession(session.serializedSchema, docChanges.diff)
+				if (!migrateResult.ok) {
+					return fail(
+						migrateResult.error === MigrationFailureReason.TargetVersionTooNew
+							? TLIncompatibilityReason.ServerTooOld
+							: TLIncompatibilityReason.ClientTooOld
+					)
 				}
+				// If the migration worked, send the rebased diff to the client
+				this.sendMessage(session.sessionKey, {
+					type: 'push_result',
+					serverClock: this.clock,
+					clientClock,
+					action: { rebaseWithDiff: migrateResult.value },
+				})
 			}
 
 			// If there are merged changes, broadcast them to all other clients
-			if (mergedChanges !== null) {
+			if (docChanges.diff || presenceChanges.diff) {
 				this.broadcastPatch({
 					sourceSessionKey: session.sessionKey,
-					diff: mergedChanges,
+					diff: {
+						...docChanges.diff,
+						...presenceChanges.diff,
+					},
 				})
 			}
 

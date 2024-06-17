@@ -32,41 +32,37 @@ import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
 
-export interface BaseTLUiComponents {
-	ContextMenu: ComponentType<TLUiContextMenuProps>
-	ActionsMenu: ComponentType<TLUiActionsMenuProps>
-	HelpMenu: ComponentType<TLUiHelpMenuProps>
-	ZoomMenu: ComponentType<TLUiZoomMenuProps>
-	MainMenu: ComponentType<TLUiMainMenuProps>
-	Minimap: ComponentType
-	StylePanel: ComponentType<TLUiStylePanelProps>
-	PageMenu: ComponentType
-	NavigationPanel: ComponentType
-	Toolbar: ComponentType
-	KeyboardShortcutsDialog: ComponentType<TLUiKeyboardShortcutsDialogProps>
-	QuickActions: ComponentType<TLUiQuickActionsProps>
-	HelperButtons: ComponentType<TLUiHelperButtonsProps>
-	DebugPanel: ComponentType
-	DebugMenu: ComponentType
-	MenuPanel: ComponentType
-	TopPanel: ComponentType
-	SharePanel: ComponentType
+/** @public */
+export interface TLUiComponents {
+	ContextMenu?: ComponentType<TLUiContextMenuProps> | null
+	ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null
+	HelpMenu?: ComponentType<TLUiHelpMenuProps> | null
+	ZoomMenu?: ComponentType<TLUiZoomMenuProps> | null
+	MainMenu?: ComponentType<TLUiMainMenuProps> | null
+	Minimap?: ComponentType | null
+	StylePanel?: ComponentType<TLUiStylePanelProps> | null
+	PageMenu?: ComponentType | null
+	NavigationPanel?: ComponentType | null
+	Toolbar?: ComponentType | null
+	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
+	QuickActions?: ComponentType<TLUiQuickActionsProps> | null
+	HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null
+	DebugPanel?: ComponentType | null
+	DebugMenu?: ComponentType | null
+	MenuPanel?: ComponentType | null
+	TopPanel?: ComponentType | null
+	SharePanel?: ComponentType | null
 }
 
-/** @public */
-export type TLUiComponents = Partial<{
-	[K in keyof BaseTLUiComponents]: BaseTLUiComponents[K] | null
-}>
-
-const TldrawUiComponentsContext = createContext({} as TLUiComponents)
+const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
 
 /** @public */
-export type TLUiComponentsProviderProps = {
+export interface TLUiComponentsProviderProps {
 	overrides?: TLUiComponents
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiComponentsProvider({
 	overrides = {},
 	children,
@@ -105,5 +101,9 @@ export function TldrawUiComponentsProvider({
 
 /** @public */
 export function useTldrawUiComponents() {
-	return useContext(TldrawUiComponentsContext)
+	const components = useContext(TldrawUiComponentsContext)
+	if (!components) {
+		throw new Error('useTldrawUiComponents must be used within a TldrawUiComponentsProvider')
+	}
+	return components
 }

@@ -1,0 +1,46 @@
+{
+	"name": "apps-scripts",
+	"description": "tldraw for Google Apps",
+	"version": "2.0.0-beta.2",
+	"private": true,
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"scripts": {
+		"lint": "yarn run -T tsx ../../scripts/lint.ts",
+		"glogin": "clasp login",
+		"glogout": "clasp logout",
+		"gcreate": "clasp create --type standalone --title \"tldraw.com\" --rootDir ./dist",
+		"gpull": "yarn build && clasp pull",
+		"gpush": "yarn build && clasp push",
+		"gpull:staging": "yarn build:staging && clasp pull",
+		"gpush:staging": "yarn build:staging && clasp push",
+		"build": "IS_PRODUCTION=1 yarn run -T tsx build-workspace-app.ts",
+		"build:staging": "yarn run -T tsx build-workspace-app.ts"
+	},
+	"dependencies": {
+		"@google/clasp": "^2.4.2"
+	},
+	"devDependencies": {
+		"@types/google-apps-script": "^1.0.83"
+	}
+}
