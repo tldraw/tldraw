@@ -946,7 +946,7 @@ input,
 }
 
 .tl-bookmark__image_container {
-	flex: 1;
+	flex: 1 1 100%;
 	overflow: hidden;
 	border-top-left-radius: var(--radius-1);
 	border-top-right-radius: var(--radius-1);
@@ -980,6 +980,10 @@ input,
 	background-color: var(--color-muted);
 	padding: var(--space-4);
 	pointer-events: all;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	flex: 1;
 }
 
 .tl-bookmark__heading,
