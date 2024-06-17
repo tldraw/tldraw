@@ -140,8 +140,10 @@ While these files must be available, you can overwrite the individual files: for
 If you use a CDN for hosting these files you can specify the base url of your assets. To recreate the above option of serving the assets from our CDN you would do the following:
 
 ```ts
+import { getDefaultCdnBaseUrl} from 'tldraw' 
+
 const assetUrls = getAssetUrls({
-	baseUrl: 'https://cdn.tldraw.com/',
+	baseUrl: getDefaultCdnBaseUrl(),
 })
 ```
 

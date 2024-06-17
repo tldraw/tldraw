@@ -1,6 +1,10 @@
 import { EMBED_DEFINITIONS, LANGUAGES, RecursivePartial } from '@tldraw/editor'
 import { version } from '../ui/version'
-import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/static-assets/assetUrls'
+import {
+	CDN_BASE_URL,
+	TLEditorAssetUrls,
+	defaultEditorAssetUrls,
+} from '../utils/static-assets/assetUrls'
 import { TLUiIconType, iconTypes } from './icon-types'
 
 /** @public */
@@ -21,13 +25,13 @@ export let defaultUiAssetUrls: TLUiAssetUrls = {
 	translations: Object.fromEntries(
 		LANGUAGES.map((lang) => [
 			lang.locale,
-			`https://cdn.tldraw.com/${version}/translations/${lang.locale}.json`,
+			`${CDN_BASE_URL}/${version}/translations/${lang.locale}.json`,
 		])
 	) as Record<(typeof LANGUAGES)[number]['locale'], string>,
 	embedIcons: Object.fromEntries(
 		EMBED_DEFINITIONS.map((def) => [
 			def.type,
-			`https://cdn.tldraw.com/${version}/embed-icons/${def.type}.png`,
+			`${CDN_BASE_URL}/${version}/embed-icons/${def.type}.png`,
 		])
 	) as Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>,
 }
