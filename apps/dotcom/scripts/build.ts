@@ -16,6 +16,7 @@ const cspDirectives: { [key: string]: string[] } = {
 		`'self'`,
 		`ws:`,
 		`wss:`,
+		`https://bookmark-extractor.tldraw.com`,
 		`https://assets.tldraw.xyz`,
 		`https://*.tldraw.workers.dev`,
 		`https://*.ingest.sentry.io`,
