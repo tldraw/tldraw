@@ -62,9 +62,6 @@ export class Brushing extends StateNode {
 		this.editor.updateInstanceState({ brush: null })
 	}
 
-	_isEdgeScrolling = false
-	_edgeScrollStart = -1
-
 	override onTick = ({ elapsed }: TLTickEventInfo) => {
 		const { editor } = this
 		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
