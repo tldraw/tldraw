@@ -10,7 +10,7 @@ export interface TLUiDialogHeaderProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderProps) {
 	return <div className={classNames('tlui-dialog__header', className)}>{children}</div>
 }
@@ -21,7 +21,7 @@ export interface TLUiDialogTitleProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDialogTitle({ className, children }: TLUiDialogTitleProps) {
 	return (
 		<_Dialog.DialogTitle dir="ltr" className={classNames('tlui-dialog__header__title', className)}>
@@ -30,7 +30,7 @@ export function TldrawUiDialogTitle({ className, children }: TLUiDialogTitleProp
 	)
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDialogCloseButton() {
 	return (
 		<div className="tlui-dialog__header__close">
@@ -54,7 +54,7 @@ export interface TLUiDialogBodyProps {
 	style?: React.CSSProperties
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps) {
 	return (
 		<div className={classNames('tlui-dialog__body', className)} style={style}>
@@ -69,7 +69,7 @@ export interface TLUiDialogFooterProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDialogFooter({ className, children }: TLUiDialogFooterProps) {
 	return <div className={classNames('tlui-dialog__footer', className)}>{children}</div>
 }

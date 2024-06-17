@@ -24,6 +24,9 @@ import {
 } from '@tldraw/editor'
 import { getArrowBindings, getArrowInfo, removeArrowBinding } from '../../shapes/arrow/shared'
 
+/**
+ * @public
+ */
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 	static override type = 'arrow'
 

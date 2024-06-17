@@ -155,7 +155,7 @@ const EMPTY_SHAPE_UTILS_ARRAY = [] as const
 const EMPTY_BINDING_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
 
-/** @public */
+/** @public @react */
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
@@ -407,12 +407,17 @@ function Crash({ crashingError }: { crashingError: unknown }): null {
 }
 
 /** @public */
-export function LoadingScreen({ children }: { children: ReactNode }) {
+export interface LoadingScreenProps {
+	children: ReactNode
+}
+
+/** @public @react */
+export function LoadingScreen({ children }: LoadingScreenProps) {
 	return <div className="tl-loading">{children}</div>
 }
 
-/** @public */
-export function ErrorScreen({ children }: { children: ReactNode }) {
+/** @public @react */
+export function ErrorScreen({ children }: LoadingScreenProps) {
 	return <div className="tl-loading">{children}</div>
 }
 

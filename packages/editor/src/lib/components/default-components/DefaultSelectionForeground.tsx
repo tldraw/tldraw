@@ -12,7 +12,7 @@ export interface TLSelectionForegroundProps {
 	rotation: number
 }
 
-/** @public */
+/** @public @react */
 export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionForegroundProps) {
 	const editor = useEditor()
 	const rSvg = useRef<SVGSVGElement>(null)

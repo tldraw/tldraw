@@ -1,4 +1,4 @@
-import { assert } from '@/utils/assert'
+import { assert } from '@tldraw/utils'
 import fs from 'fs'
 import { Octokit } from 'octokit'
 import path from 'path'

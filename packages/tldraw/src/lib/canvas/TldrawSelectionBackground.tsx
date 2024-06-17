@@ -5,7 +5,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
-/** @public */
+/** @public @react */
 export const TldrawSelectionBackground = ({ bounds, rotation }: TLSelectionBackgroundProps) => {
 	const editor = useEditor()
 
