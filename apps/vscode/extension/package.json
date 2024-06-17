@@ -123,6 +123,7 @@
 	"scripts": {
 		"dev": "tsx scripts/dev.ts",
 		"build": "cd ../editor && yarn build && cd ../extension && tsx scripts/build.ts",
+		"get-info": "vsce show tldraw-org.tldraw-vscode --json > extension.json",
 		"package": "yarn build && tsx scripts/package.ts",
 		"publish": "vsce publish",
 		"lint": "yarn run -T tsx ../../../scripts/lint.ts",
