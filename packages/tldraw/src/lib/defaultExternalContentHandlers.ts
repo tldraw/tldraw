@@ -580,12 +580,6 @@ export const defaultResolveAsset =
 	(persistenceKey?: string) => async (asset: TLAsset | null | undefined) => {
 		if (!asset || !asset.props.src) return null
 
-		// We don't deal with videos at the moment.
-		if (asset.type === 'video') return asset.props.src
-
-		// Assert it's an image to make TS happy.
-		if (asset.type !== 'image') return null
-
 		// Retrieve a local image from the DB.
 		if (persistenceKey && asset.props.src.startsWith('asset:')) {
 			return await objectURLCache.get(
@@ -593,6 +587,12 @@ export const defaultResolveAsset =
 				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
 			)
 		}
+
+		// We don't deal with videos at the moment.
+		if (asset.type === 'video') return asset.props.src
+
+		// Assert it's an image to make TS happy.
+		if (asset.type !== 'image') return null
 
 		return asset.props.src
 	}
