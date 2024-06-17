@@ -88,6 +88,7 @@ export interface TLUiEventMap {
 	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
 	'toggle-debug-mode': null
+	'toggle-dynamic-size-mode': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
 	'toggle-edge-scrolling': null
@@ -96,6 +97,7 @@ export interface TLUiEventMap {
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null
+	'flatten-to-image': null
 }
 
 /** @public */

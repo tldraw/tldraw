@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	DefaultHelpMenu,
 	DefaultHelpMenuContent,
+	DefaultSpinner,
 	Editor,
 	ErrorBoundary,
 	TLComponents,
@@ -90,7 +91,9 @@ export const TldrawWrapper = () => {
 	}, [setTldrawInnerProps])
 
 	return tldrawInnerProps === null ? (
-		<FullPageMessage>Loading</FullPageMessage>
+		<FullPageMessage>
+			<DefaultSpinner />
+		</FullPageMessage>
 	) : (
 		<TldrawInner {...tldrawInnerProps} />
 	)

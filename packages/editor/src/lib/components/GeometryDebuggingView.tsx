@@ -71,17 +71,26 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 						strokeLinecap="round"
 						strokeLinejoin="round"
 					>
-						{showStroke && <GeometryStroke geometry={geometry} />}
+						{showStroke && (
+							<g
+								stroke={geometry.debugColor ?? 'red'}
+								opacity="1"
+								strokeWidth={2 / zoomLevel}
+								fill="none"
+							>
+								<GeometryStroke geometry={geometry} />
+							</g>
+						)}
 						{showVertices &&
 							vertices.map((v, i) => (
 								<circle
 									key={`v${i}`}
 									cx={v.x}
 									cy={v.y}
-									r="2"
+									r={2 / zoomLevel}
 									fill={`hsl(${modulate(i, [0, vertices.length - 1], [120, 200])}, 100%, 50%)`}
 									stroke="black"
-									strokeWidth="1"
+									strokeWidth={1 / zoomLevel}
 								/>
 							))}
 						{showClosestPointOnOutline && dist < 150 && (
@@ -92,7 +101,7 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 								y2={pointInShapeSpace.y}
 								opacity={1 - dist / 150}
 								stroke={hitInside ? 'goldenrod' : 'dodgerblue'}
-								strokeWidth="2"
+								strokeWidth={2 / zoomLevel}
 							/>
 						)}
 					</g>
@@ -113,13 +122,5 @@ function GeometryStroke({ geometry }: { geometry: Geometry2d }) {
 		)
 	}
 
-	return (
-		<path
-			stroke={geometry.debugColor ?? 'red'}
-			strokeWidth="2"
-			fill="none"
-			opacity="1"
-			d={geometry.toSimpleSvgPath()}
-		/>
-	)
+	return <path d={geometry.toSimpleSvgPath()} />
 }

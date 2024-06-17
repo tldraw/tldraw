@@ -1,3 +1,4 @@
+import { DefaultTextAlignStyle } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { TextShapeTool } from './TextShapeTool'
 
@@ -111,13 +112,45 @@ describe('When in the pointing state', () => {
 
 	it('on pointer up, preserves the center when the text has a auto width', () => {
 		editor.setCurrentTool('text')
+		editor.setStyleForNextShapes(DefaultTextAlignStyle, 'middle')
 		const x = 0
 		const y = 0
 		editor.pointerDown(x, y)
 		editor.pointerUp()
-		const bounds = editor.getShapePageBounds(editor.getCurrentPageShapes()[0])!
-		expect(editor.getCurrentPageShapes()[0]).toMatchObject({
+		const shape = editor.getLastCreatedShape()
+		const bounds = editor.getShapePageBounds(shape)!
+		expect(shape).toMatchObject({
 			x: x - bounds.width / 2,
+			y: y - bounds.height / 2,
+		})
+	})
+
+	it('on pointer up, preserves the center when the text has a auto width (left aligned)', () => {
+		editor.setCurrentTool('text')
+		editor.setStyleForNextShapes(DefaultTextAlignStyle, 'start')
+		const x = 0
+		const y = 0
+		editor.pointerDown(x, y)
+		editor.pointerUp()
+		const shape = editor.getLastCreatedShape()
+		const bounds = editor.getShapePageBounds(shape)!
+		expect(shape).toMatchObject({
+			x,
+			y: y - bounds.height / 2,
+		})
+	})
+
+	it('on pointer up, preserves the center when the text has a auto width (right aligned)', () => {
+		editor.setCurrentTool('text')
+		editor.setStyleForNextShapes(DefaultTextAlignStyle, 'end')
+		const x = 0
+		const y = 0
+		editor.pointerDown(x, y)
+		editor.pointerUp()
+		const shape = editor.getLastCreatedShape()
+		const bounds = editor.getShapePageBounds(shape)!
+		expect(shape).toMatchObject({
+			x: x - bounds.width,
 			y: y - bounds.height / 2,
 		})
 	})
@@ -151,7 +184,7 @@ describe('When resizing', () => {
 		editor.pointerMove(x + 100, y + 100)
 		expect(editor.getCurrentPageShapes()[0]).toMatchObject({
 			x,
-			y,
+			y: -12, // 24 is the height of the text, and it's centered at that point
 		})
 	})
 })

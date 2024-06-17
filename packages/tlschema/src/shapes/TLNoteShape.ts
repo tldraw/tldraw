@@ -19,6 +19,7 @@ export const noteShapeProps = {
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	text: T.string,
+	scale: T.nonZeroNumber,
 }
 
 /** @public */
@@ -34,6 +35,7 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddVerticalAlign: 4,
 	MakeUrlsValid: 5,
 	AddFontSizeAdjustment: 6,
+	AddScale: 7,
 })
 
 export { Versions as noteShapeVersions }
@@ -99,6 +101,15 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.fontSizeAdjustment
+			},
+		},
+		{
+			id: Versions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
 			},
 		},
 	],

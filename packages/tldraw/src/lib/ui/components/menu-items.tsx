@@ -2,6 +2,7 @@ import {
 	TLBookmarkShape,
 	TLEmbedShape,
 	TLFrameShape,
+	TLImageShape,
 	TLPageId,
 	useEditor,
 	useValue,
@@ -49,6 +50,27 @@ export function DuplicateMenuItem() {
 	if (!shouldDisplay) return null
 
 	return <TldrawUiMenuItem {...actions['duplicate']} />
+}
+/** @public @react */
+export function FlattenMenuItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const shouldDisplay = useValue(
+		'should display flatten option',
+		() => {
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			if (selectedShapeIds.length === 0) return false
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (onlySelectedShape && editor.isShapeOfType<TLImageShape>(onlySelectedShape, 'image')) {
+				return false
+			}
+			return true
+		},
+		[editor]
+	)
+	if (!shouldDisplay) return null
+
+	return <TldrawUiMenuItem {...actions['flatten-to-image']} />
 }
 /** @public @react */
 export function GroupMenuItem() {
@@ -305,6 +327,25 @@ export function DeleteMenuItem() {
 }
 
 /* --------------------- Modify --------------------- */
+
+/** @public @react */
+export function EditMenuSubmenu() {
+	return (
+		<TldrawUiMenuSubmenu id="edit" label="context-menu.edit" size="small">
+			<GroupMenuItem />
+			<UngroupMenuItem />
+			<FlattenMenuItem />
+			<EditLinkMenuItem />
+			<FitFrameToContentMenuItem />
+			<RemoveFrameMenuItem />
+			<ConvertToEmbedMenuItem />
+			<ConvertToBookmarkMenuItem />
+			<ToggleAutoSizeMenuItem />
+			<ToggleLockMenuItem />
+		</TldrawUiMenuSubmenu>
+	)
+}
+
 /** @public @react */
 export function ArrangeMenuSubmenu() {
 	const twoSelected = useUnlockedSelectedShapesCount(2)
@@ -564,6 +605,23 @@ export function ToggleDebugModeItem() {
 	const editor = useEditor()
 	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
 	return <TldrawUiMenuCheckboxItem {...actions['toggle-debug-mode']} checked={isDebugMode} />
+}
+
+/** @public @react */
+export function ToggleDynamicSizeModeItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const isDynamicResizeMode = useValue(
+		'dynamic resize',
+		() => editor.user.getIsDynamicResizeMode(),
+		[editor]
+	)
+	return (
+		<TldrawUiMenuCheckboxItem
+			{...actions['toggle-dynamic-size-mode']}
+			checked={isDynamicResizeMode}
+		/>
+	)
 }
 
 /* ---------------------- Print --------------------- */

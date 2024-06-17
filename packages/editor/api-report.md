@@ -681,6 +681,8 @@ export const defaultTldrawOptions: {
     readonly dragDistanceSquared: 16;
     readonly edgeScrollDistance: 8;
     readonly edgeScrollSpeed: 20;
+    readonly flattenImageBoundsExpand: 64;
+    readonly flattenImageBoundsPadding: 16;
     readonly followChaseViewportSnap: 2;
     readonly gridSteps: readonly [{
         readonly mid: 0.15;
@@ -715,6 +717,7 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     edgeScrollSpeed: 1;
     isDarkMode: false;
+    isDynamicSizeMode: false;
     isSnapMode: false;
     isWrapMode: false;
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
@@ -1026,6 +1029,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
     getSharedOpacity(): SharedStyle<number>;
     getSharedStyles(): ReadonlySharedStyleMap;
+    // (undocumented)
+    getSnapshot(): TLEditorSnapshot;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
@@ -1103,6 +1108,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
+    loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): this;
     mark(markId?: string): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
@@ -2571,6 +2577,10 @@ export interface TldrawOptions {
     // (undocumented)
     readonly edgeScrollSpeed: number;
     // (undocumented)
+    readonly flattenImageBoundsExpand: number;
+    // (undocumented)
+    readonly flattenImageBoundsPadding: number;
+    // (undocumented)
     readonly followChaseViewportSnap: number;
     // (undocumented)
     readonly gridSteps: readonly {
@@ -3327,6 +3337,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isDarkMode?: boolean | null;
     // (undocumented)
+    isDynamicSizeMode?: boolean | null;
+    // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
@@ -3433,6 +3445,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsDarkMode(): boolean;
     // (undocumented)
+    getIsDynamicResizeMode(): boolean;
+    // (undocumented)
     getIsSnapMode(): boolean;
     // (undocumented)
     getIsWrapMode(): boolean;
@@ -3446,6 +3460,7 @@ export class UserPreferencesManager {
         color: string;
         id: string;
         isDarkMode: boolean;
+        isDynamicResizeMode: boolean;
         isSnapMode: boolean;
         isWrapMode: boolean;
         locale: string;

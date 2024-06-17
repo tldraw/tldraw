@@ -5,6 +5,7 @@ export * from '@tldraw/editor'
 export { getAssetFromIndexedDb, storeAssetInIndexedDb } from './lib/AssetBlobStore'
 export { Tldraw, type TLComponents, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
+export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackground'
@@ -37,7 +38,6 @@ export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
-export { useDefaultColorTheme } from './lib/shapes/shared/ShapeFill'
 export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
 export {
 	FONT_FAMILIES,
@@ -45,6 +45,7 @@ export {
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
 export { getPerfectDashProps } from './lib/shapes/shared/getPerfectDashProps'
+export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'

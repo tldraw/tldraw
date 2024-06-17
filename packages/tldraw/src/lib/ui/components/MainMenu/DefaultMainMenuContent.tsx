@@ -9,12 +9,14 @@ import {
 	ConvertToEmbedMenuItem,
 	EditLinkMenuItem,
 	FitFrameToContentMenuItem,
+	FlattenMenuItem,
 	GroupMenuItem,
 	RemoveFrameMenuItem,
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleDarkModeItem,
 	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
@@ -101,6 +103,7 @@ export function MiscMenuGroup() {
 			<FitFrameToContentMenuItem />
 			<ConvertToEmbedMenuItem />
 			<ConvertToBookmarkMenuItem />
+			<FlattenMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -171,6 +174,7 @@ export function PreferencesGroup() {
 					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
 					<ToggleReduceMotionItem />
+					<ToggleDynamicSizeModeItem />
 					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="language">

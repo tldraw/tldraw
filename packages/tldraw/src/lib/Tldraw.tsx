@@ -1,6 +1,7 @@
 import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
+	DefaultSpinner,
 	Editor,
 	ErrorScreen,
 	Expand,
@@ -130,7 +131,11 @@ export function Tldraw(props: TldrawProps) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
 	if (!preloadingComplete) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
+		return (
+			<LoadingScreen>
+				<DefaultSpinner />
+			</LoadingScreen>
+		)
 	}
 
 	return (

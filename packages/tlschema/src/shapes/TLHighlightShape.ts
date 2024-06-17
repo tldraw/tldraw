@@ -1,5 +1,5 @@
 import { T } from '@tldraw/validate'
-import { createShapePropsMigrationSequence } from '../records/TLShape'
+import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordPropsType } from '../recordsWithProps'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
@@ -13,7 +13,14 @@ export const highlightShapeProps = {
 	segments: T.arrayOf(DrawShapeSegment),
 	isComplete: T.boolean,
 	isPen: T.boolean,
+	scale: T.nonZeroNumber,
 }
+
+const Versions = createShapePropsMigrationIds('highlight', {
+	AddScale: 1,
+})
+
+export { Versions as highlightShapeVersions }
 
 /** @public */
 export type TLHighlightShapeProps = RecordPropsType<typeof highlightShapeProps>
@@ -22,4 +29,16 @@ export type TLHighlightShapeProps = RecordPropsType<typeof highlightShapeProps>
 export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
 
 /** @public */
-export const highlightShapeMigrations = createShapePropsMigrationSequence({ sequence: [] })
+export const highlightShapeMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: Versions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
+			},
+		},
+	],
+})

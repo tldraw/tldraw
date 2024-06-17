@@ -29,6 +29,7 @@ export class UserPreferencesManager {
 			isSnapMode: this.getIsSnapMode(),
 			isDarkMode: this.getIsDarkMode(),
 			isWrapMode: this.getIsWrapMode(),
+			isDynamicResizeMode: this.getIsDynamicResizeMode(),
 		}
 	}
 	@computed getIsDarkMode() {
@@ -71,5 +72,11 @@ export class UserPreferencesManager {
 
 	@computed getIsWrapMode() {
 		return this.user.userPreferences.get().isWrapMode ?? defaultUserPreferences.isWrapMode
+	}
+
+	@computed getIsDynamicResizeMode() {
+		return (
+			this.user.userPreferences.get().isDynamicSizeMode ?? defaultUserPreferences.isDynamicSizeMode
+		)
 	}
 }

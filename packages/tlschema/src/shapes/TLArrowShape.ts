@@ -55,6 +55,7 @@ export const arrowShapeProps = {
 	bend: T.number,
 	text: T.string,
 	labelPosition: T.number,
+	scale: T.nonZeroNumber,
 }
 
 /** @public */
@@ -68,6 +69,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddIsPrecise: 2,
 	AddLabelPosition: 3,
 	ExtractBindings: 4,
+	AddScale: 5,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -197,5 +199,14 @@ export const arrowShapeMigrations = createMigrationSequence({
 				}
 			},
 		},
+		propsMigration({
+			id: arrowShapeVersions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
+			},
+		}),
 	],
 })

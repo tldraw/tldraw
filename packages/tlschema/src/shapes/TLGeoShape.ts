@@ -60,6 +60,7 @@ export const geoShapeProps = {
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
 	text: T.string,
+	scale: T.nonZeroNumber,
 }
 
 /** @public */
@@ -77,6 +78,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	MigrateLegacyAlign: 6,
 	AddCloud: 7,
 	MakeUrlsValid: 8,
+	AddScale: 9,
 })
 
 export { geoShapeVersions as geoShapeVersions }
@@ -156,6 +158,15 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (_props) => {
 				// noop
+			},
+		},
+		{
+			id: geoShapeVersions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
 			},
 		},
 	],
