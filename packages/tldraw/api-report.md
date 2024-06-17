@@ -359,7 +359,7 @@ export function ConvertToBookmarkMenuItem(): JSX_2.Element | null;
 export function ConvertToEmbedMenuItem(): JSX_2.Element | null;
 
 // @public
-export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: Partial<TLSvgOptions>): Promise<void>;
+export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: TLSvgOptions): Promise<void>;
 
 // @public (undocumented)
 export function CopyAsMenuGroup(): JSX_2.Element;
@@ -634,7 +634,7 @@ export interface ExampleDialogProps {
 }
 
 // @public
-export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: Partial<TLSvgOptions>): Promise<void>;
+export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: TLSvgOptions): Promise<void>;
 
 // @public (undocumented)
 export function ExportFileContentSubMenu(): JSX_2.Element;
@@ -644,7 +644,7 @@ export function exportToBlob({ editor, ids, format, opts, }: {
     editor: Editor;
     format: TLExportType;
     ids: TLShapeId[];
-    opts?: Partial<TLSvgOptions>;
+    opts?: TLSvgOptions;
 }): Promise<Blob>;
 
 // @public (undocumented)
@@ -1660,7 +1660,7 @@ export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | nul
 export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
 // @public (undocumented)
-export interface TldrawImageProps extends Partial<TLSvgOptions> {
+export interface TldrawImageProps extends TLSvgOptions {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     format?: 'png' | 'svg';
     pageId?: TLPageId;

@@ -15,8 +15,9 @@ export class TldrawApiModel extends ApiModel {
 	private reactComponents = new Set<ApiItem>()
 	private reactComponentProps = new Set<ApiItem>()
 
+	nonBlockingErrors: Error[] = []
+
 	async preprocessReactComponents() {
-		const errors = []
 		for (const packageModel of this.members) {
 			assert(packageModel instanceof ApiPackage)
 			if (packageModel.name !== 'tldraw') continue
@@ -37,21 +38,17 @@ export class TldrawApiModel extends ApiModel {
 							props.tsdocComment.summarySection
 						)
 						if (markdown.trim()) {
-							this.error(
+							this.nonBlockingError(
 								props,
 								"Component props should not contain documentation as it won't be included in the docs site. Add it to the component instead."
 							)
 						}
 					}
 					if (props) this.reactComponentProps.add(props)
-				} catch (e) {
-					errors.push(e)
+				} catch (e: any) {
+					this.nonBlockingErrors.push(e)
 				}
 			}
-		}
-
-		if (errors.length > 0) {
-			throw new Error(errors.map((e) => (e as any).message).join('\n\n'))
 		}
 	}
 
@@ -59,6 +56,14 @@ export class TldrawApiModel extends ApiModel {
 		const apiItemResult = this.resolveDeclarationReference(token.canonicalReference!, origin)
 		if (apiItemResult.errorMessage) {
 			this.error(origin, apiItemResult.errorMessage)
+		}
+		return apiItemResult.resolvedApiItem!
+	}
+
+	tryResolveToken(origin: ApiItem, token: ExcerptToken) {
+		const apiItemResult = this.resolveDeclarationReference(token.canonicalReference!, origin)
+		if (apiItemResult.errorMessage) {
+			return null
 		}
 		return apiItemResult.resolvedApiItem!
 	}
@@ -84,10 +89,11 @@ export class TldrawApiModel extends ApiModel {
 				return this.resolveToken(component, tokens[0])
 			}
 
-			this.error(
+			this.nonBlockingError(
 				component,
 				`Expected props parameter to be a simple reference. Rewrite this to use a \`${component.displayName}Props\` interface.\nFound: ${propsParam.parameterTypeExcerpt.text}`
 			)
+			return null
 		} else if (component instanceof ApiVariable) {
 			const tokens = component.variableTypeExcerpt.spannedTokens
 			if (
@@ -130,12 +136,16 @@ export class TldrawApiModel extends ApiModel {
 				return null
 			}
 
-			this.error(
+			this.nonBlockingError(
 				component,
 				`Expected a simple props interface for react component. Got: ${component.variableTypeExcerpt.text}`
 			)
+
+			return null
 		} else {
-			this.error(component, `Unknown item kind for @react component: ${component.kind}`)
+			this.nonBlockingError(component, `Unknown item kind for @react component: ${component.kind}`)
+
+			return null
 		}
 	}
 
@@ -147,12 +157,26 @@ export class TldrawApiModel extends ApiModel {
 		return this.reactComponentProps.has(item)
 	}
 
-	error(item: ApiItem, message: string): never {
+	private createError(item: ApiItem, message: string) {
 		const suffix =
 			'_fileUrlPath' in item && typeof item._fileUrlPath === 'string'
 				? `\nin ${item._fileUrlPath}`
 				: ''
-		throw new Error(`${item.displayName}: ${message}${suffix}`)
+		return new Error(`${item.displayName}: ${message}${suffix}`)
+	}
+
+	nonBlockingError(item: ApiItem, message: string) {
+		this.nonBlockingErrors.push(this.createError(item, message))
+	}
+
+	throwEncounteredErrors() {
+		if (this.nonBlockingErrors.length > 0) {
+			throw new Error(this.nonBlockingErrors.map((e) => (e as any).message).join('\n\n'))
+		}
+	}
+
+	error(item: ApiItem, message: string): never {
+		throw this.createError(item, message)
 	}
 
 	assert(item: ApiItem, condition: unknown, message: string): asserts condition {

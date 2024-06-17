@@ -8224,7 +8224,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
+	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLSvgOptions = {}) {
 		const result = await getSvgJsx(this, shapes, opts)
 		if (!result) return undefined
 
@@ -8251,7 +8251,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvgString(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
+	async getSvgString(shapes: TLShapeId[] | TLShape[], opts: TLSvgOptions = {}) {
 		const result = await this.getSvgElement(shapes, opts)
 		if (!result) return undefined
 
@@ -8264,7 +8264,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @deprecated Use {@link Editor.getSvgString} or {@link Editor.getSvgElement} instead. */
-	async getSvg(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
+	async getSvg(shapes: TLShapeId[] | TLShape[], opts: TLSvgOptions = {}) {
 		const result = await this.getSvgElement(shapes, opts)
 		if (!result) return undefined
 		return result.svg

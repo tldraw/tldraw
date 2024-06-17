@@ -22,6 +22,7 @@ import {
 	ApiTypeAlias,
 	ApiVariable,
 	Excerpt,
+	HeritageType,
 } from '@microsoft/api-extractor-model'
 import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from '../utils'
 
@@ -36,6 +37,11 @@ const date = new Intl.DateTimeFormat('en-US', {
 	day: '2-digit',
 }).format(new Date())
 
+interface Member {
+	item: ApiItem
+	inheritedFrom: ApiItem | null
+}
+
 export async function getApiMarkdown(
 	model: TldrawApiModel,
 	categoryName: string,
@@ -49,100 +55,59 @@ export async function getApiMarkdown(
 	const isComponent = model.isComponent(item)
 	const componentProps = isComponent ? model.getReactPropsItem(item) : null
 
-	const members = componentProps?.members ?? item.members
-	if (members) {
-		const constructors = []
-		const properties = []
-		const methods = []
-		for (const member of members) {
-			switch (member.kind) {
-				case ApiItemKind.Constructor:
-				case ApiItemKind.ConstructSignature:
-					constructors.push(member)
-					break
-				case ApiItemKind.Variable:
-				case ApiItemKind.Property:
-				case ApiItemKind.PropertySignature:
-					properties.push(member)
-					break
-				case ApiItemKind.Method:
-				case ApiItemKind.Function:
-				case ApiItemKind.MethodSignature:
-					if (isComponent) {
-						properties.push(member)
-					} else {
-						methods.push(member)
-					}
+	const contents = collectMembersAndExtends(model, item)
 
-					break
-				case ApiItemKind.EnumMember:
-				case ApiItemKind.Class:
-				case ApiItemKind.TypeAlias:
-				case ApiItemKind.Interface:
-					// TODO: document these
-					break
-				default:
-					throw new Error(`Unknown member kind: ${member.kind} ${member.displayName}`)
-			}
-		}
-
+	if (contents.constructors.length) {
 		const constructorResult: Result = { markdown: '', keywords: [] }
+		for (const member of contents.constructors) {
+			await addMarkdownForMember(model, constructorResult, member)
+			addHorizontalRule(constructorResult)
+		}
+		addMarkdown(membersResult, constructorResult.markdown)
+	}
+
+	if (contents.properties.length || isComponent) {
 		const propertiesResult: Result = { markdown: '', keywords: [] }
+		if (componentProps) addExtends(propertiesResult, item, contents.heritage)
+		for (const member of contents.properties) {
+			const slug = getSlug(member.item)
+			addMarkdown(toc, `  - [${member.item.displayName}](#${slug})\n`)
+			await addMarkdownForMember(model, propertiesResult, member, {
+				isComponentProp: isComponent,
+			})
+			addHorizontalRule(propertiesResult)
+		}
+		if (
+			componentProps &&
+			componentProps instanceof ApiDeclaredItem &&
+			componentProps?.kind !== 'Interface'
+		) {
+			propertiesResult.markdown += await excerptToMarkdown(componentProps, componentProps.excerpt, {
+				kind: componentProps.kind,
+			})
+		}
+
+		if (propertiesResult.markdown.trim()) {
+			addMarkdown(toc, `- [Properties](#properties)\n`)
+			addMarkdown(membersResult, `## Properties\n\n`)
+			addMarkdown(membersResult, propertiesResult.markdown)
+		} else if (isComponent && !componentProps) {
+			addMarkdown(membersResult, `## Properties\n\n`)
+			addMarkdown(membersResult, `This component does not take any props.\n\n`)
+		}
+	}
+
+	if (contents.methods.length) {
 		const methodsResult: Result = { markdown: '', keywords: [] }
-
-		if (constructors.length) {
-			for (const member of constructors) {
-				await addMarkdownForMember(model, constructorResult, member)
-				addHorizontalRule(constructorResult)
-			}
-			addMarkdown(membersResult, constructorResult.markdown)
+		addMarkdown(toc, `- [Methods](#methods)\n`)
+		addMarkdown(methodsResult, `## Methods\n\n`)
+		for (const member of contents.methods) {
+			const slug = getSlug(member.item)
+			addMarkdown(toc, `  - [${member.item.displayName}](#${slug})\n`)
+			await addMarkdownForMember(model, methodsResult, member)
+			addHorizontalRule(methodsResult)
 		}
-
-		if (properties.length || isComponent) {
-			if (componentProps) addExtends(propertiesResult, componentProps)
-			for (const member of properties) {
-				const slug = getSlug(member)
-				addMarkdown(toc, `  - [${member.displayName}](#${slug})\n`)
-				await addMarkdownForMember(model, propertiesResult, member, {
-					isComponentProp: isComponent,
-				})
-				addHorizontalRule(propertiesResult)
-			}
-			if (
-				componentProps &&
-				componentProps instanceof ApiDeclaredItem &&
-				componentProps?.kind !== 'Interface'
-			) {
-				propertiesResult.markdown += await excerptToMarkdown(
-					componentProps,
-					componentProps.excerpt,
-					{
-						kind: componentProps.kind,
-					}
-				)
-			}
-
-			if (propertiesResult.markdown.trim()) {
-				addMarkdown(toc, `- [Properties](#properties)\n`)
-				addMarkdown(membersResult, `## Properties\n\n`)
-				addMarkdown(membersResult, propertiesResult.markdown)
-			} else if (isComponent && !componentProps) {
-				addMarkdown(membersResult, `## Properties\n\n`)
-				addMarkdown(membersResult, `This component does not take any props.\n\n`)
-			}
-		}
-
-		if (methods.length) {
-			addMarkdown(toc, `- [Methods](#methods)\n`)
-			addMarkdown(methodsResult, `## Methods\n\n`)
-			for (const member of methods) {
-				const slug = getSlug(member)
-				addMarkdown(toc, `  - [${member.displayName}](#${slug})\n`)
-				await addMarkdownForMember(model, methodsResult, member)
-				addHorizontalRule(methodsResult)
-			}
-			addMarkdown(membersResult, methodsResult.markdown)
-		}
+		addMarkdown(membersResult, methodsResult.markdown)
 	}
 
 	await addFrontmatter(model, result, item, categoryName, j)
@@ -151,6 +116,10 @@ export async function getApiMarkdown(
 		result.markdown += `<details className="article__table-of-contents">\n\t<summary>Table of contents</summary>\n`
 		addMarkdown(result, toc.markdown)
 		result.markdown += `</details>\n\n`
+	}
+
+	if (!isComponent) {
+		addExtends(result, item, contents.heritage)
 	}
 
 	await addDocComment(model, result, item)
@@ -165,6 +134,108 @@ export async function getApiMarkdown(
 
 /* --------------------- Helpers -------------------- */
 
+function sortMembers(members: Member[]) {
+	return members.sort((a, b) => {
+		const aIsStatic = ApiStaticMixin.isBaseClassOf(a.item) && a.item.isStatic
+		const bIsStatic = ApiStaticMixin.isBaseClassOf(b.item) && b.item.isStatic
+		if (aIsStatic && !bIsStatic) return -1
+		if (!aIsStatic && bIsStatic) return 1
+		return a.item.displayName.localeCompare(b.item.displayName)
+	})
+}
+
+function collectMembersAndExtends(model: TldrawApiModel, item: ApiItem) {
+	const isComponent = model.isComponent(item)
+
+	const constructors: Member[] = []
+	const properties: Member[] = []
+	const methods: Member[] = []
+	const heritage: HeritageType[] = []
+
+	function visit(item: ApiItem, inheritedFrom: ApiItem | null) {
+		if (item.members) {
+			for (const member of item.members) {
+				switch (member.kind) {
+					case ApiItemKind.Constructor:
+					case ApiItemKind.ConstructSignature:
+						addMember(constructors, member, inheritedFrom)
+						break
+					case ApiItemKind.Variable:
+					case ApiItemKind.Property:
+					case ApiItemKind.PropertySignature:
+						addMember(properties, member, inheritedFrom)
+						break
+					case ApiItemKind.Method:
+					case ApiItemKind.Function:
+					case ApiItemKind.MethodSignature:
+						if (isComponent) {
+							addMember(properties, member, inheritedFrom)
+						} else {
+							addMember(methods, member, inheritedFrom)
+						}
+
+						break
+					case ApiItemKind.EnumMember:
+					case ApiItemKind.Class:
+					case ApiItemKind.TypeAlias:
+					case ApiItemKind.Interface:
+						// TODO: document these
+						break
+					default:
+						model.nonBlockingError(
+							member,
+							`Unknown member kind: ${member.kind} in ${item.displayName}`
+						)
+						break
+				}
+			}
+		}
+
+		if (model.isComponent(item)) {
+			const componentProps = model.getReactPropsItem(item)
+			if (componentProps) {
+				visit(componentProps, null)
+			}
+		}
+
+		const extendsTypes =
+			item instanceof ApiClass && item.extendsType
+				? [item.extendsType]
+				: item instanceof ApiInterface
+					? item.extendsTypes
+					: []
+
+		for (const extendsType of extendsTypes) {
+			if (!inheritedFrom) {
+				heritage.push(extendsType)
+			}
+
+			const tokens = extendsType.excerpt.spannedTokens
+			let extendedItem = null
+			if (tokens[0].kind === 'Reference') {
+				extendedItem = model.tryResolveToken(item, tokens[0])
+			}
+
+			if (extendedItem) {
+				visit(extendedItem, extendedItem)
+			}
+		}
+	}
+
+	visit(item, null)
+
+	sortMembers(constructors)
+	sortMembers(properties)
+	sortMembers(methods)
+
+	return { constructors, properties, methods, heritage }
+}
+
+function addMember(members: Member[], item: ApiItem, inheritedFrom: ApiItem | null) {
+	if (members.some((m) => m.item.displayName === item.displayName)) return
+	members.push({ item, inheritedFrom })
+}
+
 function addMarkdown(result: Result, markdown: string) {
 	result.markdown += markdown
 }
@@ -172,12 +243,12 @@ function addMarkdown(result: Result, markdown: string) {
 async function addMarkdownForMember(
 	model: TldrawApiModel,
 	result: Result,
-	member: ApiItem,
+	{ item, inheritedFrom }: Member,
 	{ isComponentProp = false } = {}
 ) {
-	if (member.displayName.startsWith('_')) return
-	addMemberNameAndMeta(result, model, member, { isComponentProp })
-	await addDocComment(model, result, member)
+	if (item.displayName.startsWith('_')) return
+	addMemberNameAndMeta(result, model, item, { isComponentProp, inheritedFrom })
+	await addDocComment(model, result, item)
 }
 
 async function addFrontmatter(
@@ -251,24 +322,27 @@ function addMemberNameAndMeta(
 	result: Result,
 	model: TldrawApiModel,
 	item: ApiItem,
-	{ level = 3, isComponentProp = false } = {}
+	{
+		level = 3,
+		isComponentProp = false,
+		inheritedFrom = null,
+	}: { level?: number; isComponentProp?: boolean; inheritedFrom?: ApiItem | null } = {}
 ) {
 	const heading = `${'#'.repeat(level)} ${getItemTitle(item)}`
 
-	if (item instanceof ApiDeclaredItem && item.sourceLocation.fileUrl) {
-		const source = item.sourceLocation.fileUrl
-		const tags = getTags(model, item, { isComponentProp, includeKind: false })
-		result.markdown += [
-			`<TitleWithSourceLink source={${JSON.stringify(source)}} tags={${JSON.stringify(tags)}}>`,
-			'',
-			heading,
-			'',
-			'</TitleWithSourceLink>',
-			'',
-		].join('\n')
-	} else {
-		result.markdown += `${heading}\n\n`
-	}
+	const inherited = inheritedFrom
+		? { name: inheritedFrom.displayName, link: `/reference/${getPath(inheritedFrom)}` }
+		: null
+
+	const tags = getTags(model, item, { isComponentProp, includeKind: false })
+	result.markdown += [
+		`<TitleWithSourceLink tags={${JSON.stringify(tags)}} inherited={${JSON.stringify(inherited)}}>`,
+		'',
+		heading,
+		'',
+		'</TitleWithSourceLink>',
+		'',
+	].join('\n')
 }
 
 async function addDocComment(model: TldrawApiModel, result: Result, member: ApiItem) {
@@ -395,7 +469,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 			result.markdown += '</ParametersTable>\n\n'
 		}
 	} else {
-		model.error(member, `Unknown member kind: ${member.kind}`)
+		model.nonBlockingError(member, `Unknown member kind: ${member.kind}`)
 	}
 }
 
@@ -514,18 +588,11 @@ function getTags(
 	return tags
 }
 
-function addExtends(result: Result, item: ApiItem) {
-	const extendsTypes =
-		item instanceof ApiClass && item.extendsType
-			? [item.extendsType]
-			: item instanceof ApiInterface
-				? item.extendsTypes
-				: []
-
-	if (!extendsTypes.length) return
+function addExtends(result: Result, item: ApiItem, heritage: HeritageType[]) {
+	if (!heritage.length) return
 
 	const links = {} as Record<string, string>
-	for (const type of extendsTypes) {
+	for (const type of heritage) {
 		for (const token of type.excerpt.spannedTokens) {
 			if (!token.canonicalReference) continue
 
@@ -543,7 +610,7 @@ function addExtends(result: Result, item: ApiItem) {
 	result.markdown += [
 		`<CodeLinkProvider links={${JSON.stringify(links)}}>`,
 		'',
-		`Extends \`${extendsTypes.map((type) => type.excerpt.text).join(', ')}\`.`,
+		`Extends \`${heritage.map((type) => type.excerpt.text).join(', ')}\`.`,
 		'',
 		'</CodeLinkProvider>',
 		'',

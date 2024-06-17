@@ -83,8 +83,8 @@
 }
 a.code-link::before {
 	content: '';
-	width: 15px;
-	height: 15px;
+	width: 1.0714em; /* 15px when font-size is 14px */
+	height: 1.0714em;
 	display: inline-block;
 	background: currentColor;
 	-webkit-mask: url('data:image/svg+xml;utf8,<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.5 2.5H3.5C2.94772 2.5 2.5 2.94772 2.5 3.5V11.5C2.5 12.0523 2.94772 12.5 3.5 12.5H11.5C12.0523 12.5 12.5 12.0523 12.5 11.5V8.5M9.5 2.5H12.5M12.5 2.5V5.5M12.5 2.5L6.5 8.5" stroke="black" stroke-linecap="round" stroke-linejoin="round"/></svg>')
@@ -93,6 +93,6 @@ a.code-link::before {
 		no-repeat 50% 50%;
 	-webkit-mask-size: cover;
 	mask-size: cover;
-	vertical-align: -2px;
-	margin-right: 2px;
+	vertical-align: -0.142em; /* 2px when font-size is 14px */
+	margin-right: 0.142em;
 }
