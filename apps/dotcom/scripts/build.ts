@@ -10,11 +10,24 @@ import { nicelog } from '../../../scripts/lib/nicelog'
 import { T } from '@tldraw/validate'
 import { getMultiplayerServerURL } from '../vite.config'
 
+const cspDirectives: { [key: string]: string[] } = {
+	'default-src': [`'self'`],
+	'connect-src': [`'self'`, `ws:`, `wss:`, `'https://*.ingest.sentry.io'`],
+	'font-src': [`'self'`, `https://fonts.googleapis.com`],
+	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
+	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
+	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ''],
+}
+
+const csp = Object.keys(cspDirectives)
+	.map((directive) => `${directive} ${cspDirectives[directive].join(' ')}`)
+	.join('; ')
+
 const commonSecurityHeaders = {
 	'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
 	'X-Content-Type-Options': 'nosniff',
 	'Referrer-Policy': 'no-referrer-when-downgrade',
-	// 'Content-Security-Policy': `default-src 'unsafe-inline' data: blob: ws: *`,
+	'Content-Security-Policy': csp,
 }
 
 // We load the list of routes that should be forwarded to our SPA's index.html here.
