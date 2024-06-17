@@ -8,14 +8,14 @@ import { TldrawUiButtonLabel } from './Button/TldrawUiButtonLabel'
 import { TldrawUiIcon } from './TldrawUiIcon'
 
 /** @public */
-export type TLUiDropdownMenuRootProps = {
+export interface TLUiDropdownMenuRootProps {
 	id: string
 	children: ReactNode
 	modal?: boolean
 	debugOpen?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuRoot({
 	id,
 	children,
@@ -41,7 +41,7 @@ export interface TLUiDropdownMenuTriggerProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps) {
 	return (
 		<_DropdownMenu.Trigger
@@ -57,7 +57,7 @@ export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownM
 }
 
 /** @public */
-export type TLUiDropdownMenuContentProps = {
+export interface TLUiDropdownMenuContentProps {
 	id?: string
 	children: ReactNode
 	alignOffset?: number
@@ -66,7 +66,7 @@ export type TLUiDropdownMenuContentProps = {
 	side?: 'bottom' | 'top' | 'right' | 'left'
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuContent({
 	side = 'bottom',
 	align = 'start',
@@ -93,9 +93,12 @@ export function TldrawUiDropdownMenuContent({
 }
 
 /** @public */
-export type TLUiDropdownMenuSubProps = { id: string; children: ReactNode }
+export interface TLUiDropdownMenuSubProps {
+	id: string
+	children: ReactNode
+}
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps) {
 	const [open, onOpenChange] = useMenuIsOpen(id)
 
@@ -107,14 +110,14 @@ export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubPro
 }
 
 /** @public */
-export type TLUiDropdownMenuSubTriggerProps = {
+export interface TLUiDropdownMenuSubTriggerProps {
 	label: string
 	id?: string
 	title?: string
 	disabled?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuSubTrigger({
 	id,
 	label,
@@ -138,7 +141,7 @@ export function TldrawUiDropdownMenuSubTrigger({
 }
 
 /** @public */
-export type TLUiDropdownMenuSubContentProps = {
+export interface TLUiDropdownMenuSubContentProps {
 	id?: string
 	alignOffset?: number
 	sideOffset?: number
@@ -146,7 +149,7 @@ export type TLUiDropdownMenuSubContentProps = {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuSubContent({
 	id,
 	alignOffset = -1,
@@ -172,11 +175,11 @@ export function TldrawUiDropdownMenuSubContent({
 }
 
 /** @public */
-export type TLUiDropdownMenuGroupProps = {
+export interface TLUiDropdownMenuGroupProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps) {
 	return (
 		<_DropdownMenu.Group dir="ltr" className="tlui-menu__group">
@@ -185,7 +188,7 @@ export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupPro
 	)
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuIndicator() {
 	return (
 		<_DropdownMenu.ItemIndicator dir="ltr" asChild>
@@ -200,7 +203,7 @@ export interface TLUiDropdownMenuItemProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuItem({ noClose, children }: TLUiDropdownMenuItemProps) {
 	return (
 		<_DropdownMenu.Item dir="ltr" asChild onClick={noClose ? preventDefault : undefined}>
@@ -218,7 +221,7 @@ export interface TLUiDropdownMenuCheckboxItemProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiDropdownMenuCheckboxItem({
 	children,
 	onSelect,

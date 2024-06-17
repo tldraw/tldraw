@@ -6,5 +6,8 @@ export {
 	ObjectValidator,
 	UnionValidator,
 	Validator,
+	type ExtractOptionalKeys,
+	type ExtractRequiredKeys,
+	type UnionValidatorConfig,
 } from './lib/validation'
 export { T }

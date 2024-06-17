@@ -1,5 +1,4 @@
 import {
-	HIT_TEST_MARGIN,
 	StateNode,
 	TLEventHandlers,
 	TLFrameShape,
@@ -34,7 +33,7 @@ export class Pointing extends StateNode {
 			if (
 				this.editor.isPointInShape(shape, currentPagePoint, {
 					hitInside: false,
-					margin: HIT_TEST_MARGIN / zoomLevel,
+					margin: this.editor.options.hitTestMargin / zoomLevel,
 				})
 			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)

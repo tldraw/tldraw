@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { getSvgPathFromPoints } from '../../utils/getSvgPathFromPoints'
 
 /** @public */
-export type TLScribbleProps = {
+export interface TLScribbleProps {
 	scribble: TLScribble
 	zoom: number
 	color?: string
@@ -11,7 +11,7 @@ export type TLScribbleProps = {
 	className?: string
 }
 
-/** @public */
+/** @public @react */
 export function DefaultScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps) {
 	if (!scribble.points.length) return null
 

@@ -2,7 +2,8 @@ import { Expand } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
 
-const colors = [
+/** @public */
+export const defaultColorNames = [
 	'black',
 	'grey',
 	'light-violet',
@@ -19,10 +20,11 @@ const colors = [
 ] as const
 
 /** @public */
-export type TLDefaultColorThemeColor = {
+export interface TLDefaultColorThemeColor {
 	solid: string
 	semi: string
 	pattern: string
+	fill: string // same as solid
 	note: {
 		fill: string
 		text: string
@@ -40,7 +42,7 @@ export type TLDefaultColorTheme = Expand<
 		text: string
 		background: string
 		solid: string
-	} & Record<(typeof colors)[number], TLDefaultColorThemeColor>
+	} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>
 >
 
 /** @public */
@@ -55,6 +57,7 @@ export const DefaultColorThemePalette: {
 		solid: '#fcfffe',
 		black: {
 			solid: '#1d1d1d',
+			fill: '#1d1d1d',
 			note: {
 				fill: '#FCE19C',
 				text: '#000000',
@@ -68,6 +71,7 @@ export const DefaultColorThemePalette: {
 		},
 		blue: {
 			solid: '#4465e9',
+			fill: '#4465e9',
 			note: {
 				fill: '#8AA3FF',
 				text: '#000000',
@@ -81,6 +85,7 @@ export const DefaultColorThemePalette: {
 		},
 		green: {
 			solid: '#099268',
+			fill: '#099268',
 			note: {
 				fill: '#6FC896',
 				text: '#000000',
@@ -94,6 +99,7 @@ export const DefaultColorThemePalette: {
 		},
 		grey: {
 			solid: '#9fa8b2',
+			fill: '#9fa8b2',
 			note: {
 				fill: '#C0CAD3',
 				text: '#000000',
@@ -107,6 +113,7 @@ export const DefaultColorThemePalette: {
 		},
 		'light-blue': {
 			solid: '#4ba1f1',
+			fill: '#4ba1f1',
 			note: {
 				fill: '#9BC4FD',
 				text: '#000000',
@@ -120,6 +127,7 @@ export const DefaultColorThemePalette: {
 		},
 		'light-green': {
 			solid: '#4cb05e',
+			fill: '#4cb05e',
 			note: {
 				fill: '#98D08A',
 				text: '#000000',
@@ -133,6 +141,7 @@ export const DefaultColorThemePalette: {
 		},
 		'light-red': {
 			solid: '#f87777',
+			fill: '#f87777',
 			note: {
 				fill: '#F7A5A1',
 				text: '#000000',
@@ -146,6 +155,7 @@ export const DefaultColorThemePalette: {
 		},
 		'light-violet': {
 			solid: '#e085f4',
+			fill: '#e085f4',
 			note: {
 				fill: '#DFB0F9',
 				text: '#000000',
@@ -159,6 +169,7 @@ export const DefaultColorThemePalette: {
 		},
 		orange: {
 			solid: '#e16919',
+			fill: '#e16919',
 			note: {
 				fill: '#FAA475',
 				text: '#000000',
@@ -172,6 +183,7 @@ export const DefaultColorThemePalette: {
 		},
 		red: {
 			solid: '#e03131',
+			fill: '#e03131',
 			note: {
 				fill: '#FC8282',
 				text: '#000000',
@@ -185,6 +197,7 @@ export const DefaultColorThemePalette: {
 		},
 		violet: {
 			solid: '#ae3ec9',
+			fill: '#ae3ec9',
 			note: {
 				fill: '#DB91FD',
 				text: '#000000',
@@ -198,6 +211,7 @@ export const DefaultColorThemePalette: {
 		},
 		yellow: {
 			solid: '#f1ac4b',
+			fill: '#f1ac4b',
 			note: {
 				fill: '#FED49A',
 				text: '#000000',
@@ -211,6 +225,7 @@ export const DefaultColorThemePalette: {
 		},
 		white: {
 			solid: '#FFFFFF',
+			fill: '#FFFFFF',
 			semi: '#f5f5f5',
 			pattern: '#f9f9f9',
 			note: {
@@ -231,6 +246,7 @@ export const DefaultColorThemePalette: {
 
 		black: {
 			solid: '#f2f2f2',
+			fill: '#f2f2f2',
 			note: {
 				fill: '#2c2c2c',
 				text: '#f2f2f2',
@@ -244,6 +260,7 @@ export const DefaultColorThemePalette: {
 		},
 		blue: {
 			solid: '#4f72fc', // 3c60f0
+			fill: '#4f72fc',
 			note: {
 				fill: '#2A3F98',
 				text: '#f2f2f2',
@@ -257,6 +274,7 @@ export const DefaultColorThemePalette: {
 		},
 		green: {
 			solid: '#099268',
+			fill: '#099268',
 			note: {
 				fill: '#014429',
 				text: '#f2f2f2',
@@ -270,6 +288,7 @@ export const DefaultColorThemePalette: {
 		},
 		grey: {
 			solid: '#9398b0',
+			fill: '#9398b0',
 			note: {
 				fill: '#56595F',
 				text: '#f2f2f2',
@@ -283,6 +302,7 @@ export const DefaultColorThemePalette: {
 		},
 		'light-blue': {
 			solid: '#4dabf7',
+			fill: '#4dabf7',
 			note: {
 				fill: '#1F5495',
 				text: '#f2f2f2',
@@ -296,6 +316,7 @@ export const DefaultColorThemePalette: {
 		},
 		'light-green': {
 			solid: '#40c057',
+			fill: '#40c057',
 			note: {
 				fill: '#21581D',
 				text: '#f2f2f2',
@@ -309,6 +330,7 @@ export const DefaultColorThemePalette: {
 		},
 		'light-red': {
 			solid: '#ff8787',
+			fill: '#ff8787',
 			note: {
 				fill: '#923632',
 				text: '#f2f2f2',
@@ -322,6 +344,7 @@ export const DefaultColorThemePalette: {
 		},
 		'light-violet': {
 			solid: '#e599f7',
+			fill: '#e599f7',
 			note: {
 				fill: '#762F8E',
 				text: '#f2f2f2',
@@ -335,6 +358,7 @@ export const DefaultColorThemePalette: {
 		},
 		orange: {
 			solid: '#f76707',
+			fill: '#f76707',
 			note: {
 				fill: '#843906',
 				text: '#f2f2f2',
@@ -348,6 +372,7 @@ export const DefaultColorThemePalette: {
 		},
 		red: {
 			solid: '#e03131',
+			fill: '#e03131',
 			note: {
 				fill: '#89231A',
 				text: '#f2f2f2',
@@ -361,6 +386,7 @@ export const DefaultColorThemePalette: {
 		},
 		violet: {
 			solid: '#ae3ec9',
+			fill: '#ae3ec9',
 			note: {
 				fill: '#681683',
 				text: '#f2f2f2',
@@ -374,6 +400,7 @@ export const DefaultColorThemePalette: {
 		},
 		yellow: {
 			solid: '#ffc034',
+			fill: '#ffc034',
 			note: {
 				fill: '#98571B',
 				text: '#f2f2f2',
@@ -387,6 +414,7 @@ export const DefaultColorThemePalette: {
 		},
 		white: {
 			solid: '#f3f3f3',
+			fill: '#f3f3f3',
 			semi: '#f5f5f5',
 			pattern: '#f9f9f9',
 			note: {
@@ -409,13 +437,13 @@ export function getDefaultColorTheme(opts: { isDarkMode: boolean }): TLDefaultCo
 /** @public */
 export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', {
 	defaultValue: 'black',
-	values: colors,
+	values: defaultColorNames,
 })
 
 /** @public */
 export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', {
 	defaultValue: 'black',
-	values: colors,
+	values: defaultColorNames,
 })
 
 /** @public */

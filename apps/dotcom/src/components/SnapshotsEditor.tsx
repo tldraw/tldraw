@@ -63,7 +63,7 @@ const components: TLComponents = {
 	},
 }
 
-type SnapshotEditorProps = {
+interface SnapshotEditorProps {
 	schema: SerializedSchema
 	records: TLRecord[]
 }
@@ -89,7 +89,6 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 				}}
 				components={components}
 				renderDebugMenuItems={() => <DebugMenuItems />}
-				autoFocus
 				inferDarkMode
 			>
 				<UrlStateSync />

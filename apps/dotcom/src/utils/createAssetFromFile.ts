@@ -3,6 +3,7 @@ import {
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
+	fetch,
 	getHashForString,
 	uniqueId,
 } from 'tldraw'
@@ -52,6 +53,7 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 			w: size.w,
 			h: size.h,
 			mimeType: file.type,
+			fileSize: file.size,
 			isAnimated,
 		},
 		meta: {},

@@ -1,9 +1,11 @@
 import { ReactNode } from 'react'
 
 /** @public */
-export type TLUiButtonLabelProps = { children?: ReactNode }
+export interface TLUiButtonLabelProps {
+	children?: ReactNode
+}
 
-/** @public */
+/** @public @react */
 export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps) {
 	return <span className="tlui-button__label">{children}</span>
 }

@@ -24,6 +24,7 @@ export function Header({ sectionId }: { sectionId?: string }) {
 						href="https://x.com/tldraw/"
 						className="sidebar__button icon-button"
 						title="twitter"
+						rel="noopener noreferrer"
 						target="_blank"
 					>
 						<Icon icon="twitter" />
@@ -32,6 +33,7 @@ export function Header({ sectionId }: { sectionId?: string }) {
 						href="https://discord.com/invite/SBBEVCA4PG"
 						className="sidebar__button icon-button"
 						title="discord"
+						rel="noopener noreferrer"
 						target="_blank"
 					>
 						<Icon icon="discord" />
@@ -40,6 +42,7 @@ export function Header({ sectionId }: { sectionId?: string }) {
 						href="https://github.com/tldraw/tldraw"
 						className="sidebar__button icon-button"
 						title="github"
+						rel="noopener noreferrer"
 						target="_blank"
 					>
 						<Icon icon="github" />

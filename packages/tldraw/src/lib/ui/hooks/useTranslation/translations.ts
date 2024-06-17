@@ -1,4 +1,4 @@
-import { LANGUAGES } from '@tldraw/editor'
+import { LANGUAGES, fetch } from '@tldraw/editor'
 import { TLUiAssetUrls } from '../../assetUrls'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
@@ -13,7 +13,7 @@ import { DEFAULT_TRANSLATION } from './defaultTranslation'
 export const RTL_LANGUAGES = new Set(['ar', 'fa', 'he', 'ur', 'ku'])
 
 /** @public */
-export type TLUiTranslation = {
+export interface TLUiTranslation {
 	readonly locale: string
 	readonly label: string
 	readonly messages: Record<TLUiTranslationKey, string>

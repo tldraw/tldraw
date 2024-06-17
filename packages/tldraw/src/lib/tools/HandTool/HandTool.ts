@@ -1,4 +1,4 @@
-import { EASINGS, StateNode, TLClickEvent } from '@tldraw/editor'
+import { EASINGS, StateNode, TLClickEvent, TLStateNodeConstructor } from '@tldraw/editor'
 import { Dragging } from './childStates/Dragging'
 import { Idle } from './childStates/Idle'
 import { Pointing } from './childStates/Pointing'
@@ -7,7 +7,7 @@ import { Pointing } from './childStates/Pointing'
 export class HandTool extends StateNode {
 	static override id = 'hand'
 	static override initial = 'idle'
-	static override children = () => [Idle, Pointing, Dragging]
+	static override children = (): TLStateNodeConstructor[] => [Idle, Pointing, Dragging]
 
 	override onDoubleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {

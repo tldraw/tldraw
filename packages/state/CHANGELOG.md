@@ -1,3 +1,42 @@
+# v2.2.0 (Tue Jun 11 2024)
+
+### Release Notes
+
+#### editor: register timeouts/intervals/rafs for disposal ([#3852](https://github.com/tldraw/tldraw/pull/3852))
+
+- Editor: add registry of timeouts/intervals/rafs
+
+#### [signia] perf thing again ([#3645](https://github.com/tldraw/tldraw/pull/3645))
+
+- Add a brief release note for your PR here.
+
+---
+
+#### 📚 SDK Changes
+
+- timeouts: rework effectschedule timeout tracking [#3870](https://github.com/tldraw/tldraw/pull/3870) ([@mimecuvalo](https://github.com/mimecuvalo))
+- editor: register timeouts/intervals/rafs for disposal [#3852](https://github.com/tldraw/tldraw/pull/3852) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- Force `interface` instead of `type` for better docs [#3815](https://github.com/tldraw/tldraw/pull/3815) ([@SomeHats](https://github.com/SomeHats))
+- [signia] perf thing again [#3645](https://github.com/tldraw/tldraw/pull/3645) ([@ds300](https://github.com/ds300))
+- Revert "[signia] Smart dirty checking of active computeds (#3516)" [#3612](https://github.com/tldraw/tldraw/pull/3612) ([@SomeHats](https://github.com/SomeHats))
+
+#### 📖 Documentation changes
+
+- make sure everything marked @public gets documented [#3892](https://github.com/tldraw/tldraw/pull/3892) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🏠 Internal
+
+- Don't check api.json files into git [#3565](https://github.com/tldraw/tldraw/pull/3565) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 4
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.1.0 (Tue Apr 23 2024)
 
 ### Release Notes

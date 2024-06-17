@@ -4,12 +4,7 @@ import { TLArrowBinding } from '../bindings/TLArrowBinding'
 import { VecModel, vecModelValidator } from '../misc/geometry-types'
 import { createBindingId } from '../records/TLBinding'
 import { TLShapeId, createShapePropsMigrationIds } from '../records/TLShape'
-import {
-	RETIRED_DOWN_MIGRATION,
-	RecordPropsType,
-	TLPropsMigration,
-	createPropsMigration,
-} from '../recordsWithProps'
+import { RecordPropsType, TLPropsMigration, createPropsMigration } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -60,6 +55,7 @@ export const arrowShapeProps = {
 	bend: T.number,
 	text: T.string,
 	labelPosition: T.number,
+	scale: T.nonZeroNumber,
 }
 
 /** @public */
@@ -73,6 +69,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddIsPrecise: 2,
 	AddLabelPosition: 3,
 	ExtractBindings: 4,
+	AddScale: 5,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -88,7 +85,7 @@ export const arrowShapeMigrations = createMigrationSequence({
 			up: (props) => {
 				props.labelColor = 'black'
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		}),
 
 		propsMigration({
@@ -202,5 +199,14 @@ export const arrowShapeMigrations = createMigrationSequence({
 				}
 			},
 		},
+		propsMigration({
+			id: arrowShapeVersions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
+			},
+		}),
 	],
 })

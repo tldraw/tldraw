@@ -12,7 +12,10 @@ export class Pointing extends StateNode {
 
 		const target = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 			filter: (targetShape) => {
-				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+				return (
+					!targetShape.isLocked &&
+					this.editor.canBindShapes({ fromShape: 'arrow', toShape: targetShape, binding: 'arrow' })
+				)
 			},
 			margin: 0,
 			hitInside: true,
@@ -47,7 +50,7 @@ export class Pointing extends StateNode {
 
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
-				handle: { id: 'end', type: 'vertex', index: 'a3', x: 0, y: 0, canBind: true },
+				handle: { id: 'end', type: 'vertex', index: 'a3', x: 0, y: 0 },
 				isCreating: true,
 				onInteractionEnd: 'arrow',
 			})
@@ -87,14 +90,15 @@ export class Pointing extends StateNode {
 		this.markId = `creating:${id}`
 		this.editor.mark(this.markId)
 
-		this.editor.createShapes<TLArrowShape>([
-			{
-				id,
-				type: 'arrow',
-				x: originPagePoint.x,
-				y: originPagePoint.y,
+		this.editor.createShape<TLArrowShape>({
+			id,
+			type: 'arrow',
+			x: originPagePoint.x,
+			y: originPagePoint.y,
+			props: {
+				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 			},
-		])
+		})
 
 		const shape = this.editor.getShape<TLArrowShape>(id)
 		if (!shape) throw Error(`expected shape`)
@@ -167,7 +171,7 @@ export class Pointing extends StateNode {
 	private preciseTimeout = -1
 	private didTimeout = false
 	private startPreciseTimeout() {
-		this.preciseTimeout = window.setTimeout(() => {
+		this.preciseTimeout = this.editor.timers.setTimeout(() => {
 			if (!this.getIsActive()) return
 			this.didTimeout = true
 		}, 320)

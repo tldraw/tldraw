@@ -1,6 +1,5 @@
 import {
 	DefaultSizeStyle,
-	SharedStyleMap,
 	Tldraw,
 	TldrawUiIcon,
 	TLEditorComponents,
@@ -27,8 +26,7 @@ const ContextToolbarComponent = track(() => {
 	if (!selectionRotatedPageBounds) return null
 
 	// [2]
-	const styles = new SharedStyleMap(editor.getSharedStyles())
-	const size = styles.get(DefaultSizeStyle)
+	const size = editor.getSharedStyles().get(DefaultSizeStyle)
 	if (!size) return null
 	const currentSize = size.type === 'shared' ? size.value : undefined
 

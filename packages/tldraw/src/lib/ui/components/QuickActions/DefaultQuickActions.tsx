@@ -3,11 +3,11 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { DefaultQuickActionsContent } from './DefaultQuickActionsContent'
 
 /** @public */
-export type TLUiQuickActionsProps = {
+export interface TLUiQuickActionsProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultQuickActions = memo(function DefaultQuickActions({
 	children,
 }: TLUiQuickActionsProps) {

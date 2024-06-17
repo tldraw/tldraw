@@ -16,10 +16,10 @@ import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export type TLUiMenuItemProps<
+export interface TLUiMenuItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
-> = {
+> {
 	id: string
 	/**
 	 * The icon to display on the item.
@@ -59,7 +59,7 @@ export type TLUiMenuItemProps<
 	isSelected?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiMenuItem<
 	TranslationKey extends string = string,
 	IconType extends string = string,

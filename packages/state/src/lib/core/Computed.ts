@@ -43,6 +43,7 @@ export const isUninitialized = (value: any): value is UNINITIALIZED => {
 	return value === UNINITIALIZED
 }
 
+/** @public */
 export const WithDiff = singleton(
 	'WithDiff',
 	() =>
@@ -53,7 +54,12 @@ export const WithDiff = singleton(
 			) {}
 		}
 )
-export type WithDiff<Value, Diff> = { value: Value; diff: Diff }
+
+/** @public */
+export interface WithDiff<Value, Diff> {
+	value: Value
+	diff: Diff
+}
 
 /**
  * When writing incrementally-computed signals it is convenient (and usually more performant) to incrementally compute the diff too.

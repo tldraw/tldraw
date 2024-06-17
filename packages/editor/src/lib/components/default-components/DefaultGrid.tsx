@@ -1,20 +1,22 @@
 import { modulate } from '@tldraw/utils'
-import { GRID_STEPS } from '../../constants'
+import { useEditor } from '../../hooks/useEditor'
 
 /** @public */
-export type TLGridProps = {
+export interface TLGridProps {
 	x: number
 	y: number
 	z: number
 	size: number
 }
 
-/** @public */
+/** @public @react */
 export function DefaultGrid({ x, y, z, size }: TLGridProps) {
+	const editor = useEditor()
+	const { gridSteps } = editor.options
 	return (
 		<svg className="tl-grid" version="1.1" xmlns="http://www.w3.org/2000/svg">
 			<defs>
-				{GRID_STEPS.map(({ min, mid, step }, i) => {
+				{gridSteps.map(({ min, mid, step }, i) => {
 					const s = step * size * z
 					const xo = 0.5 + x * z
 					const yo = 0.5 + y * z
@@ -35,7 +37,7 @@ export function DefaultGrid({ x, y, z, size }: TLGridProps) {
 					)
 				})}
 			</defs>
-			{GRID_STEPS.map(({ step }, i) => (
+			{gridSteps.map(({ step }, i) => (
 				<rect key={`grid-rect-${i}`} width="100%" height="100%" fill={`url(#grid-${step})`} />
 			))}
 		</svg>

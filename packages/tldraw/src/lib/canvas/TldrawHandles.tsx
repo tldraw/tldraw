@@ -1,6 +1,6 @@
 import { TLHandlesProps, useEditor, useValue } from '@tldraw/editor'
 
-/** @public */
+/** @public @react */
 export function TldrawHandles({ children }: TLHandlesProps) {
 	const editor = useEditor()
 

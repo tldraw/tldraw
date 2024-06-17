@@ -20,7 +20,6 @@ import {
 	TLSocketServerSentEvent,
 	getTlsyncProtocolVersion,
 } from './protocol'
-import './requestAnimationFrame.polyfill'
 
 type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
@@ -44,7 +43,7 @@ export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
  *
  * @public
  */
-export type TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> = {
+export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
 	/** Whether there is currently an open connection to the server. */
 	connectionStatus: 'online' | 'offline' | 'error'
 	/** Send a message to the server */
@@ -418,35 +417,51 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	close() {
 		this.debug('closing')
 		this.disposables.forEach((dispose) => dispose())
+		this.flushPendingPushRequests.cancel?.()
+		this.scheduleRebase.cancel?.()
 	}
 
 	lastPushedPresenceState: R | null = null
 
 	private pushPresence(nextPresence: R | null) {
+		// make sure we push any document changes first
+		this.store._flushHistory()
+
 		if (!this.isConnectedToRoom) {
 			// if we're offline, don't do anything
 			return
 		}
-		let req: TLPushRequest<R> | null = null
+
+		let presence: TLPushRequest<any>['presence'] = undefined
 		if (!this.lastPushedPresenceState && nextPresence) {
 			// we don't have a last presence state, so we need to push the full state
-			req = {
-				type: 'push',
-				presence: [RecordOpType.Put, nextPresence],
-				clientClock: this.clientClock++,
-			}
+			presence = [RecordOpType.Put, nextPresence]
 		} else if (this.lastPushedPresenceState && nextPresence) {
 			// we have a last presence state, so we need to push a diff if there is one
 			const diff = diffRecord(this.lastPushedPresenceState, nextPresence)
 			if (diff) {
-				req = {
-					type: 'push',
-					presence: [RecordOpType.Patch, diff],
-					clientClock: this.clientClock++,
-				}
+				presence = [RecordOpType.Patch, diff]
 			}
 		}
+
+		if (!presence) return
 		this.lastPushedPresenceState = nextPresence
+
+		// if there is a pending push that has not been sent and does not already include a presence update,
+		// then add this presence update to it
+		const lastPush = this.pendingPushRequests.at(-1)
+		if (lastPush && !lastPush.sent && !lastPush.request.presence) {
+			lastPush.request.presence = presence
+			return
+		}
+
+		// otherwise, create a new push request
+		const req: TLPushRequest<R> = {
+			type: 'push',
+			clientClock: this.clientClock++,
+			presence,
+		}
+
 		if (req) {
 			this.pendingPushRequests.push({ request: req, sent: false })
 			this.flushPendingPushRequests()
@@ -586,7 +601,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 						this.pendingPushRequests.shift()
 					} else if (diff.action === 'commit') {
 						const { request } = this.pendingPushRequests.shift()!
-						if ('diff' in request) {
+						if ('diff' in request && request.diff) {
 							this.applyNetworkDiff(request.diff, true)
 						}
 					} else {
@@ -598,7 +613,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				try {
 					this.speculativeChanges = this.store.extractingChanges(() => {
 						for (const { request } of this.pendingPushRequests) {
-							if (!('diff' in request)) continue
+							if (!('diff' in request) || !request.diff) continue
 							this.applyNetworkDiff(request.diff, true)
 						}
 					})

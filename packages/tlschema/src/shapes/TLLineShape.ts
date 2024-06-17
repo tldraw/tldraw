@@ -1,7 +1,7 @@
 import { IndexKey, getIndices, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RETIRED_DOWN_MIGRATION, RecordPropsType } from '../recordsWithProps'
+import { RecordPropsType } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
@@ -31,6 +31,7 @@ export const lineShapeProps = {
 	size: DefaultSizeStyle,
 	spline: LineShapeSplineStyle,
 	points: T.dict(T.string, lineShapePointValidator),
+	scale: T.nonZeroNumber,
 }
 
 /** @public */
@@ -45,6 +46,7 @@ export const lineShapeVersions = createShapePropsMigrationIds('line', {
 	RemoveExtraHandleProps: 2,
 	HandlesToPoints: 3,
 	PointIndexIds: 4,
+	AddScale: 5,
 })
 
 /** @public */
@@ -57,7 +59,7 @@ export const lineShapeMigrations = createShapePropsMigrationSequence({
 					;(handle as any).canSnap = true
 				}
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: lineShapeVersions.RemoveExtraHandleProps,
@@ -153,6 +155,15 @@ export const lineShapeMigrations = createShapePropsMigrationSequence({
 				).sort(sortByIndex)
 
 				props.points = sortedHandles.map(({ x, y }) => ({ x, y }))
+			},
+		},
+		{
+			id: lineShapeVersions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
 			},
 		},
 	],

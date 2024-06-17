@@ -18,8 +18,8 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 
 export function defaultEmptyAs(str: string, dflt: string) {
@@ -34,8 +34,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	static override type = 'frame' as const
 	static override props = frameShapeProps
 	static override migrations = frameShapeMigrations
-
-	override canBind = () => true
 
 	override canEdit = () => true
 

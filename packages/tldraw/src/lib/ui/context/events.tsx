@@ -88,6 +88,7 @@ export interface TLUiEventMap {
 	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
 	'toggle-debug-mode': null
+	'toggle-dynamic-size-mode': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
 	'toggle-edge-scrolling': null
@@ -96,16 +97,18 @@ export interface TLUiEventMap {
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null
+	'flatten-to-image': null
 }
 
-type Join<T, K> = K extends null
-	? { [R in keyof T]: T[R] }
-	: { [R in keyof T]: T[R] } & { [R in keyof K]: K[R] }
+/** @public */
+export type TLUiEventData<K> = K extends null
+	? { source: TLUiEventSource }
+	: { source: TLUiEventSource } & K
 
 /** @public */
 export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (
 	name: T,
-	data: Join<{ source: TLUiEventSource }, TLUiEventMap[T]>
+	data: TLUiEventData<TLUiEventMap[T]>
 ) => void
 
 /** @internal */
@@ -115,15 +118,15 @@ const defaultEventHandler: TLUiEventHandler = () => void null
 export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>
 
 /** @internal */
-export const EventsContext = React.createContext<TLUiEventContextType>({} as TLUiEventContextType)
+export const EventsContext = React.createContext<TLUiEventContextType | null>(null)
 
 /** @public */
-export type EventsProviderProps = {
+export interface EventsProviderProps {
 	onEvent?: TLUiEventHandler
 	children: React.ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
 	return (
 		<EventsContext.Provider value={onEvent ?? defaultEventHandler}>

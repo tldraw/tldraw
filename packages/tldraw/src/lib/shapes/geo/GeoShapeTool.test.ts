@@ -51,6 +51,55 @@ describe(GeoShapeTool, () => {
 
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
+
+	it('Creates geo shapes when scaled', () => {
+		editor.setCurrentTool('geo')
+		editor.pointerMove(50, 50)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		editor.pointerUp()
+
+		expect(editor.getLastCreatedShape()).toMatchObject({
+			props: {
+				w: 50,
+				h: 50,
+				scale: 1,
+			},
+		})
+
+		editor.user.updateUserPreferences({ isDynamicSizeMode: true })
+		editor.zoomIn() // 1 -> 2
+
+		editor.setCurrentTool('geo')
+		editor.pointerMove(50, 50)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		editor.pointerUp()
+
+		expect(editor.getLastCreatedShape()).toMatchObject({
+			props: {
+				w: 25,
+				h: 25,
+				scale: 0.5,
+			},
+		})
+
+		editor.zoomOut().zoomOut() // 2 -> 1 -> .5
+
+		editor.setCurrentTool('geo')
+		editor.pointerMove(50, 50)
+		editor.pointerDown()
+		editor.pointerMove(100, 100)
+		editor.pointerUp()
+
+		expect(editor.getLastCreatedShape()).toMatchObject({
+			props: {
+				w: 100,
+				h: 100,
+				scale: 2,
+			},
+		})
+	})
 })
 
 describe('When selecting the tool', () => {

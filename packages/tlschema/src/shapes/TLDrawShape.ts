@@ -1,20 +1,23 @@
 import { T } from '@tldraw/validate'
-import { vecModelValidator } from '../misc/geometry-types'
+import { VecModel, vecModelValidator } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RETIRED_DOWN_MIGRATION, RecordPropsType } from '../recordsWithProps'
+import { RecordPropsType } from '../recordsWithProps'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
 import { DefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultFillStyle } from '../styles/TLFillStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
 
-export const DrawShapeSegment = T.object({
+/** @public */
+export interface TLDrawShapeSegment {
+	type: 'free' | 'straight'
+	points: VecModel[]
+}
+
+export const DrawShapeSegment: T.Validator<TLDrawShapeSegment> = T.object<TLDrawShapeSegment>({
 	type: T.literalEnum('free', 'straight'),
 	points: T.arrayOf(vecModelValidator),
 })
-
-/** @public */
-export type TLDrawShapeSegment = T.TypeOf<typeof DrawShapeSegment>
 
 /** @public */
 export const drawShapeProps = {
@@ -26,6 +29,7 @@ export const drawShapeProps = {
 	isComplete: T.boolean,
 	isClosed: T.boolean,
 	isPen: T.boolean,
+	scale: T.nonZeroNumber,
 }
 
 /** @public */
@@ -36,6 +40,7 @@ export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
 const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,
+	AddScale: 2,
 })
 
 export { Versions as drawShapeVersions }
@@ -66,7 +71,16 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 				}
 				props.isPen = isPen
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
+		},
+		{
+			id: Versions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
+			},
 		},
 	],
 })

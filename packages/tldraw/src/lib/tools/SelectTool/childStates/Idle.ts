@@ -1,7 +1,6 @@
 import {
 	Editor,
 	Group2d,
-	HIT_TEST_MARGIN,
 	StateNode,
 	TLArrowShape,
 	TLClickEventInfo,
@@ -40,6 +39,10 @@ export class Idle extends StateNode {
 		this.parent.setCurrentToolIdMask(undefined)
 		updateHoveredShapeId(this.editor)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
+	}
+
+	override onExit = () => {
+		updateHoveredShapeId.cancel()
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
@@ -138,20 +141,13 @@ export class Idle extends StateNode {
 					case 'top':
 					case 'right':
 					case 'bottom':
-					case 'left': {
-						if (shouldEnterCropMode) {
-							this.parent.transition('pointing_crop_handle', info)
-						} else {
-							this.parent.transition('pointing_resize_handle', info)
-						}
-						break
-					}
+					case 'left':
 					case 'top_left':
 					case 'top_right':
 					case 'bottom_left':
 					case 'bottom_right': {
 						if (shouldEnterCropMode) {
-							this.parent.transition('pointing_crop_handle', info)
+							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
 							this.parent.transition('pointing_resize_handle', info)
 						}
@@ -199,7 +195,7 @@ export class Idle extends StateNode {
 						? hoveredShape
 						: this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
 							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
+								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 							})
 
@@ -353,7 +349,7 @@ export class Idle extends StateNode {
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
 						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
+								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 								hitLabels: true,
 								hitLocked: true,

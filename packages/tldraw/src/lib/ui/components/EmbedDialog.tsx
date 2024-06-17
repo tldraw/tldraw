@@ -51,7 +51,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							className="tlui-embed-dialog__input"
 							label="embed-dialog.url"
 							placeholder="http://example.com"
-							autofocus
+							autoFocus
 							onValueChange={(value) => {
 								// Set the url that the user has typed into the input
 								setUrl(value)
@@ -69,7 +69,10 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								// has not yet entered a valid URL.
 								setShowError(false)
 								clearTimeout(rShowErrorTimeout.current)
-								rShowErrorTimeout.current = setTimeout(() => setShowError(!embedInfo), 320)
+								rShowErrorTimeout.current = editor.timers.setTimeout(
+									() => setShowError(!embedInfo),
+									320
+								)
 							}}
 						/>
 						{url === '' ? (

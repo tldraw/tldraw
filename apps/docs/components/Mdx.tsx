@@ -2,6 +2,7 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug-custom-id'
+import remarkGfm from 'remark-gfm'
 import { components } from './mdx-components'
 
 interface MdxProps {
@@ -15,7 +16,7 @@ export function Mdx({ content }: MdxProps) {
 			components={components}
 			options={{
 				mdxOptions: {
-					// remarkPlugins: [remarkGfm, {}],
+					remarkPlugins: [remarkGfm, {}],
 					rehypePlugins: [
 						[rehypeHighlight as any, {}],
 						[rehypeAutolinkHeadings, {}],

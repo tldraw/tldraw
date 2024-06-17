@@ -1,5 +1,5 @@
-import { MigrationSequence, SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
-import { TLRecord, TLStore } from '@tldraw/tlschema'
+import { MigrationSequence, Store } from '@tldraw/store'
+import { TLSerializedStore, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { Expand, Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
@@ -14,12 +14,13 @@ import React, {
 import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
+import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { TLCameraOptions } from './editor/types/misc-types'
+import { TLAssetOptions, TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -30,11 +31,10 @@ import {
 	useEditorComponents,
 } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
-import { useFocusEvents } from './hooks/useFocusEvents'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
-import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
+import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
@@ -52,8 +52,8 @@ export type TldrawEditorProps = Expand<
 			| {
 					store?: undefined
 					migrations?: readonly MigrationSequence[]
-					snapshot?: StoreSnapshot<TLRecord>
-					initialData?: SerializedStore<TLRecord>
+					snapshot?: TLEditorSnapshot | TLStoreSnapshot
+					initialData?: TLSerializedStore
 					persistenceKey?: string
 					sessionId?: string
 					defaultName?: string
@@ -126,6 +126,16 @@ export interface TldrawEditorBaseProps {
 	 * Camera options for the editor.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
+
+	/**
+	 * Asset options for the editor.
+	 */
+	assetOptions?: Partial<TLAssetOptions>
+
+	/**
+	 * Options for the editor.
+	 */
+	options?: Partial<TldrawOptions>
 }
 
 /**
@@ -150,7 +160,7 @@ const EMPTY_SHAPE_UTILS_ARRAY = [] as const
 const EMPTY_BINDING_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
 
-/** @public */
+/** @public @react */
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
@@ -295,6 +305,8 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
+	assetOptions,
+	options,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -305,6 +317,7 @@ function TldrawEditorWithReadyStore({
 	const { ErrorFallback, TextLabel } = useEditorComponents()
 	const container = useContainer()
 	const [editor, setEditor] = useState<Editor | null>(null)
+	const [initialAutoFocus] = useState(autoFocus)
 
 	useLayoutEffect(() => {
 		const editor = new Editor({
@@ -315,9 +328,12 @@ function TldrawEditorWithReadyStore({
 			getContainer: () => container,
 			user,
 			initialState,
+			autoFocus: initialAutoFocus,
 			inferDarkMode,
 			measureMethod: TextLabel!.measureMethod,
 			cameraOptions,
+			assetOptions,
+			options,
 		})
 		setEditor(editor)
 
@@ -332,9 +348,12 @@ function TldrawEditorWithReadyStore({
 		store,
 		user,
 		initialState,
+		initialAutoFocus,
 		inferDarkMode,
 		cameraOptions,
 		TextLabel,
+		assetOptions,
+		options,
 	])
 
 	const crashingError = useSyncExternalStore(
@@ -376,48 +395,21 @@ function TldrawEditorWithReadyStore({
 				<Crash crashingError={crashingError} />
 			) : (
 				<EditorContext.Provider value={editor}>
-					<Layout autoFocus={autoFocus} onMount={onMount}>
-						{children ?? (Canvas ? <Canvas /> : null)}
-					</Layout>
+					<Layout onMount={onMount}>{children ?? (Canvas ? <Canvas /> : null)}</Layout>
 				</EditorContext.Provider>
 			)}
 		</OptionalErrorBoundary>
 	)
 }
 
-function Layout({
-	children,
-	onMount,
-	autoFocus,
-}: {
-	children: ReactNode
-	autoFocus: boolean
-	onMount?: TLOnMountHandler
-}) {
+function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMountHandler }) {
 	useZoomCss()
 	useCursor()
 	useDarkMode()
-	useSafariFocusOutFix()
 	useForceUpdate()
-	useFocusEvents(autoFocus)
 	useOnMount(onMount)
 
-	return (
-		<>
-			{children}
-			<InFrontOfTheCanvasWrapper />
-		</>
-	)
-}
-
-function InFrontOfTheCanvasWrapper() {
-	const { InFrontOfTheCanvas } = useEditorComponents()
-	if (!InFrontOfTheCanvas) return null
-	return (
-		<div className="tl-front">
-			<InFrontOfTheCanvas />
-		</div>
-	)
+	return <>{children}</>
 }
 
 function Crash({ crashingError }: { crashingError: unknown }): null {
@@ -425,12 +417,17 @@ function Crash({ crashingError }: { crashingError: unknown }): null {
 }
 
 /** @public */
-export function LoadingScreen({ children }: { children: ReactNode }) {
+export interface LoadingScreenProps {
+	children: ReactNode
+}
+
+/** @public @react */
+export function LoadingScreen({ children }: LoadingScreenProps) {
 	return <div className="tl-loading">{children}</div>
 }
 
-/** @public */
-export function ErrorScreen({ children }: { children: ReactNode }) {
+/** @public @react */
+export function ErrorScreen({ children }: LoadingScreenProps) {
 	return <div className="tl-loading">{children}</div>
 }
 

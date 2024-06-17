@@ -7,6 +7,7 @@ const throttleToNextFrame =
 		? // At test time we should use actual raf and not throttle, because throttle was set up to evaluate immediately during tests, which causes stack overflow
 			// for the tick manager since it sets up a raf loop.
 			function mockThrottle(cb: any) {
+				// eslint-disable-next-line no-restricted-globals
 				const frame = requestAnimationFrame(cb)
 				return () => cancelAnimationFrame(frame)
 			}

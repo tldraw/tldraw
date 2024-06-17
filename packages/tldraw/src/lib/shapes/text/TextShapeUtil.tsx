@@ -21,12 +21,12 @@ import {
 	useEditorComponents,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
-import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextHelpers } from '../shared/TextHelpers'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
 const sizeCache = new WeakCache<TLTextShape['props'], { height: number; width: number }>()
 
@@ -167,24 +167,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	override onBeforeCreate = (shape: TLTextShape) => {
-		// When a shape is created, center the text at the created point.
-
-		// Only center if the shape is set to autosize.
-		if (!shape.props.autoSize) return
-
-		// Only center if the shape is empty when created.
-		if (shape.props.text.trim()) return
-
-		const bounds = this.getMinDimensions(shape)
-
-		return {
-			...shape,
-			x: shape.x - bounds.width / 2,
-			y: shape.y - bounds.height / 2,
-		}
-	}
-
 	override onEditEnd: TLOnEditEndHandler<TLTextShape> = (shape) => {
 		const {
 			id,
@@ -272,29 +254,31 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	override onDoubleClickEdge = (shape: TLTextShape) => {
-		// If the shape has a fixed width, set it to autoSize.
-		if (!shape.props.autoSize) {
-			return {
-				id: shape.id,
-				type: shape.type,
-				props: {
-					autoSize: true,
-				},
-			}
-		}
+	// 	todo: The edge doubleclicking feels like a mistake more often than
+	//  not, especially on multiline text. Removed June 16 2024
 
-		// If the shape is scaled, reset the scale to 1.
-		if (shape.props.scale !== 1) {
-			return {
-				id: shape.id,
-				type: shape.type,
-				props: {
-					scale: 1,
-				},
-			}
-		}
-	}
+	// override onDoubleClickEdge = (shape: TLTextShape) => {
+	// 	// If the shape has a fixed width, set it to autoSize.
+	// 	if (!shape.props.autoSize) {
+	// 		return {
+	// 			id: shape.id,
+	// 			type: shape.type,
+	// 			props: {
+	// 				autoSize: true,
+	// 			},
+	// 		}
+	// 	}
+	// 	// If the shape is scaled, reset the scale to 1.
+	// 	if (shape.props.scale !== 1) {
+	// 		return {
+	// 			id: shape.id,
+	// 			type: shape.type,
+	// 			props: {
+	// 				scale: 1,
+	// 			},
+	// 		}
+	// 	}
+	// }
 }
 
 function getTextSize(editor: Editor, props: TLTextShape['props']) {
@@ -315,9 +299,9 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 		maxWidth: cw,
 	})
 
-	// // If we're autosizing the `measure` will essentially `Math.floor`
-	// // the numbers so `19` rather than `19.3`, this means we must +1 to
-	// // whatever we get to avoid wrapping.
+	// If we're autosizing the `measure` will essentially `Math.floor`
+	// the numbers so `19` rather than `19.3`, this means we must +1 to
+	// whatever we get to avoid wrapping.
 	if (autoSize) {
 		result.w += 1
 	}

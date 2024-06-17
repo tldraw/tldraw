@@ -1,5 +1,5 @@
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
-import { ANIMATION_MEDIUM_MS, useContainer, useEditor, useValue } from '@tldraw/editor'
+import { useContainer, useEditor, useValue } from '@tldraw/editor'
 import { ReactNode, forwardRef, memo, useCallback } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -10,11 +10,11 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { DefaultZoomMenuContent } from './DefaultZoomMenuContent'
 
 /** @public */
-export type TLUiZoomMenuProps = {
+export interface TLUiZoomMenuProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZoomMenuProps) {
 	const container = useContainer()
 	const [isOpen, onOpenChange] = useMenuIsOpen('zoom menu')
@@ -56,7 +56,7 @@ const ZoomTriggerButton = forwardRef<HTMLButtonElement, any>(
 
 		const handleDoubleClick = useCallback(() => {
 			editor.resetZoom(editor.getViewportScreenCenter(), {
-				animation: { duration: ANIMATION_MEDIUM_MS },
+				animation: { duration: editor.options.animationMediumMs },
 			})
 		}, [editor])
 

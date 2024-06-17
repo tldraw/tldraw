@@ -145,7 +145,7 @@ export class DraggingHandle extends StateNode {
 			this.clearExactTimeout()
 		}
 
-		this.exactTimeout = setTimeout(() => {
+		this.exactTimeout = this.editor.timers.setTimeout(() => {
 			if (this.getIsActive() && !this.isPrecise) {
 				this.isPrecise = true
 				this.isPreciseId = this.pointingId
@@ -283,7 +283,10 @@ export class DraggingHandle extends StateNode {
 		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
 
 		// Arrows
-		if (initialHandle.canBind && this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+		if (
+			initialHandle.type === 'vertex' &&
+			this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+		) {
 			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 
 			if (bindingAfter) {

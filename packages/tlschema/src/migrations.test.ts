@@ -17,6 +17,7 @@ import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
 import { drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
 import { geoShapeVersions } from './shapes/TLGeoShape'
+import { highlightShapeVersions } from './shapes/TLHighlightShape'
 import { imageShapeVersions } from './shapes/TLImageShape'
 import { lineShapeVersions } from './shapes/TLLineShape'
 import { noteShapeVersions } from './shapes/TLNoteShape'
@@ -89,6 +90,78 @@ describe('TLImageAsset AddIsAnimated', () => {
 	}
 
 	const { up, down } = getTestMigration(imageAssetVersions.AddIsAnimated)
+
+	test('up works as expected', () => {
+		expect(up(oldAsset)).toEqual(newAsset)
+	})
+	test('down works as expected', () => {
+		expect(down(newAsset)).toEqual(oldAsset)
+	})
+})
+
+describe('TLVideoAsset AddFileSize', () => {
+	const oldAsset = {
+		id: '1',
+		type: 'video',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'video',
+			width: 100,
+			height: 100,
+			mimeType: 'video/mp4',
+		},
+	}
+
+	const newAsset = {
+		id: '1',
+		type: 'video',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'video',
+			width: 100,
+			height: 100,
+			mimeType: 'video/mp4',
+			fileSize: -1,
+		},
+	}
+
+	const { up, down } = getTestMigration(videoAssetVersions.AddFileSize)
+
+	test('up works as expected', () => {
+		expect(up(oldAsset)).toEqual(newAsset)
+	})
+	test('down works as expected', () => {
+		expect(down(newAsset)).toEqual(oldAsset)
+	})
+})
+
+describe('TLImageAsset AddFileSize', () => {
+	const oldAsset = {
+		id: '1',
+		type: 'image',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'image',
+			width: 100,
+			height: 100,
+			mimeType: 'image/gif',
+		},
+	}
+
+	const newAsset = {
+		id: '1',
+		type: 'image',
+		props: {
+			src: 'https://www.youtube.com/watch?v=1',
+			name: 'image',
+			width: 100,
+			height: 100,
+			mimeType: 'image/gif',
+			fileSize: -1,
+		},
+	}
+
+	const { up, down } = getTestMigration(imageAssetVersions.AddFileSize)
 
 	test('up works as expected', () => {
 		expect(up(oldAsset)).toEqual(newAsset)
@@ -1314,6 +1387,32 @@ describe('Make urls valid for all the assets', () => {
 	}
 })
 
+describe('Ensure favicons are on bookmarks', () => {
+	const { up, down } = getTestMigration(bookmarkAssetVersions.AddFavicon)
+	it('up works as expected', () => {
+		expect(
+			up({
+				props: {},
+			})
+		).toEqual({
+			props: {
+				favicon: '',
+			},
+		})
+	})
+	it('down works as expected', () => {
+		expect(
+			down({
+				props: {
+					favicon: 'https://tldraw.com/favicon.ico',
+				},
+			})
+		).toEqual({
+			props: {},
+		})
+	})
+})
+
 describe('Add duplicate props to instance', () => {
 	const { up, down } = getTestMigration(instanceVersions.AddDuplicateProps)
 	it('up works as expected', () => {
@@ -1800,6 +1899,78 @@ describe('Extract bindings from arrows', () => {
 		  },
 		}
 	`)
+	})
+})
+
+describe('Add scale to draw shape', () => {
+	const { up, down } = getTestMigration(drawShapeVersions.AddScale)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { scale: 1 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { scale: 1 } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add scale to highlight shape', () => {
+	const { up, down } = getTestMigration(highlightShapeVersions.AddScale)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { scale: 1 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { scale: 1 } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add scale to geo shape', () => {
+	const { up, down } = getTestMigration(geoShapeVersions.AddScale)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { scale: 1 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { scale: 1 } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add scale to arrow shape', () => {
+	const { up, down } = getTestMigration(arrowShapeVersions.AddScale)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { scale: 1 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { scale: 1 } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add scale to note shape', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.AddScale)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { scale: 1 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { scale: 1 } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add scale to line shape', () => {
+	const { up, down } = getTestMigration(lineShapeVersions.AddScale)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { scale: 1 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { scale: 1 } })).toEqual({ props: {} })
 	})
 })
 

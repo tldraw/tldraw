@@ -9,6 +9,7 @@ import { generateAutoRcFile } from './lib/labels'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
+import { uploadStaticAssets } from './upload-static-assets'
 
 type ReleaseType =
 	| {
@@ -130,6 +131,9 @@ async function main() {
 
 	// create a release on github
 	await auto.runRelease({ useVersion: nextVersion })
+
+	// upload static assets
+	await uploadStaticAssets(nextVersion)
 
 	// finally, publish the packages [IF THIS STEP FAILS, RUN THE `publish-manual.ts` script locally]
 	await publish()

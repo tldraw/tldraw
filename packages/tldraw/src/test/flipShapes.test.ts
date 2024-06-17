@@ -3,7 +3,7 @@ import {
 	PI,
 	TLArrowShape,
 	TLArrowShapeProps,
-	TLBindingPartial,
+	TLBindingCreate,
 	TLShapeId,
 	TLShapePartial,
 	createBindingId,
@@ -467,7 +467,7 @@ describe('flipping rotated shapes', () => {
 
 describe('When flipping shapes that include arrows', () => {
 	let shapes: TLShapePartial[]
-	let bindings: TLBindingPartial[]
+	let bindings: TLBindingCreate[]
 
 	beforeEach(() => {
 		const box1 = createShapeId()
