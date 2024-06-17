@@ -12,11 +12,13 @@ import { getMultiplayerServerURL } from '../vite.config'
 
 const cspDirectives: { [key: string]: string[] } = {
 	'default-src': [`'self'`],
-	'connect-src': [`'self'`, `ws:`, `wss:`, `'https://*.ingest.sentry.io'`],
+	'connect-src': [`'self'`, `ws:`, `wss:`, `https://*.ingest.sentry.io`],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`],
+	'frame-src': [`https:`],
 	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
-	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ''],
+	'style-src': [`'self'`, `https://fonts.googleapis.com`],
+	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ``],
 }
 
 const csp = Object.keys(cspDirectives)
