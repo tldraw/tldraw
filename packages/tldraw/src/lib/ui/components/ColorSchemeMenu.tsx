@@ -10,7 +10,7 @@ const COLOR_SCHEMES = [
 	{ colorScheme: 'system' as const, label: 'color-scheme.system' },
 ]
 
-/** @public */
+/** @public @react */
 export function ColorSchemeMenu() {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
