@@ -26,11 +26,11 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
+	useEditorComponents,
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -424,6 +424,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isEditingAnything = this.editor.getEditingShapeId() !== null
 		const showHtmlContainer = isEditingAnything || shape.props.text
 
+		const { TextLabel } = useEditorComponents()
+
 		return (
 			<>
 				<SVGContainer id={id}>
@@ -437,21 +439,23 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							height: shape.props.h + props.growY,
 						}}
 					>
-						<TextLabel
-							id={id}
-							type={type}
-							font={font}
-							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
-							lineHeight={TEXT_PROPS.lineHeight}
-							padding={16 * shape.props.scale}
-							fill={fill}
-							align={align}
-							verticalAlign={verticalAlign}
-							text={text}
-							isSelected={isSelected}
-							labelColor={theme[props.labelColor].solid}
-							wrap
-						/>
+						{TextLabel && (
+							<TextLabel
+								id={id}
+								type={type}
+								font={font}
+								fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
+								lineHeight={TEXT_PROPS.lineHeight}
+								padding={16 * shape.props.scale}
+								fill={fill}
+								align={align}
+								verticalAlign={verticalAlign}
+								text={text}
+								isSelected={isSelected}
+								labelColor={theme[props.labelColor].solid}
+								wrap
+							/>
+						)}
 					</HTMLContainer>
 				)}
 				{shape.props.url && (
@@ -817,7 +821,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		xl: 10,
 	}
 
-	const size = editor.textMeasure.measureText(text, {
+	const size = editor.textMeasure.measure(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size] * shape.props.scale,

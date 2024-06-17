@@ -20,6 +20,7 @@ import {
 	rng,
 	toDomPrecision,
 	useEditor,
+	useEditorComponents,
 	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
@@ -27,7 +28,6 @@ import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslat
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -173,6 +173,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const nw = NOTE_SIZE * scale
 		const nh = getNoteHeight(shape)
 
+		const { TextLabel } = useEditorComponents()
+
 		const rotation = useValue(
 			'shape rotation',
 			() => this.editor.getShapePageTransform(id)?.rotation() ?? 0,
@@ -201,22 +203,24 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
-					<TextLabel
-						id={id}
-						type={type}
-						font={font}
-						fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
-						lineHeight={TEXT_PROPS.lineHeight}
-						align={align}
-						verticalAlign={verticalAlign}
-						text={text}
-						isNote
-						isSelected={isSelected}
-						labelColor={theme[color].note.text}
-						wrap
-						padding={16 * scale}
-						onKeyDown={handleKeyDown}
-					/>
+					{TextLabel && (
+						<TextLabel
+							id={id}
+							type={type}
+							font={font}
+							fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
+							lineHeight={TEXT_PROPS.lineHeight}
+							align={align}
+							verticalAlign={verticalAlign}
+							text={text}
+							isNote
+							isSelected={isSelected}
+							labelColor={theme[color].note.text}
+							wrap
+							padding={16 * scale}
+							onKeyDown={handleKeyDown}
+						/>
+					)}
 				</div>
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
@@ -349,7 +353,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	// We slightly make the font smaller if the text is too big for the note, width-wise.
 	do {
 		fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
-		const nextTextSize = editor.textMeasure.measureText(text, {
+		const nextTextSize = editor.textMeasure.measure(text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize: fontSizeAdjustment,
@@ -363,7 +367,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 		if (fontSizeAdjustment <= 14) {
 			// Too small, just rely now on CSS `overflow-wrap: break-word`
 			// We need to recalculate the text measurement here with break-word enabled.
-			const nextTextSizeWithOverflowBreak = editor.textMeasure.measureText(text, {
+			const nextTextSizeWithOverflowBreak = editor.textMeasure.measure(text, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize: fontSizeAdjustment,

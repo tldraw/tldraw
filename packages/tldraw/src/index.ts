@@ -38,13 +38,17 @@ export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
-export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
 export {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
 export { getPerfectDashProps } from './lib/shapes/shared/getPerfectDashProps'
+export {
+	TextArea,
+	TldrawTextLabel,
+	type TextAreaProps,
+} from './lib/shapes/shared/text/TldrawTextLabel'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'

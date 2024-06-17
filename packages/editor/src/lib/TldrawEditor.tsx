@@ -314,7 +314,7 @@ function TldrawEditorWithReadyStore({
 	},
 	'shapeUtils' | 'bindingUtils' | 'tools'
 >) {
-	const { ErrorFallback } = useEditorComponents()
+	const { ErrorFallback, TextLabel } = useEditorComponents()
 	const container = useContainer()
 	const [editor, setEditor] = useState<Editor | null>(null)
 	const [initialAutoFocus] = useState(autoFocus)
@@ -330,6 +330,7 @@ function TldrawEditorWithReadyStore({
 			initialState,
 			autoFocus: initialAutoFocus,
 			inferDarkMode,
+			measureMethod: TextLabel!.measureMethod,
 			cameraOptions,
 			assetOptions,
 			options,
@@ -350,6 +351,7 @@ function TldrawEditorWithReadyStore({
 		initialAutoFocus,
 		inferDarkMode,
 		cameraOptions,
+		TextLabel,
 		assetOptions,
 		options,
 	])

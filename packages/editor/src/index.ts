@@ -99,6 +99,11 @@ export {
 } from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
+export {
+	type ITextLabel,
+	type TLTextLabel,
+	type TextLabelProps,
+} from './lib/components/default-components/DefaultTextLabel'
 export { getSnapshot, loadSnapshot, type TLEditorSnapshot } from './lib/config/TLEditorSnapshot'
 export {
 	TAB_ID,
@@ -152,7 +157,11 @@ export {
 	type SnapData,
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
-export { TextManager, type TLMeasureTextSpanOpts } from './lib/editor/managers/TextManager'
+export {
+	TextManager,
+	type MeasureMethod,
+	type TLMeasureTextSpanOpts,
+} from './lib/editor/managers/TextManager'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {

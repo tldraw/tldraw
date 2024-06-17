@@ -45,6 +45,7 @@ import {
 } from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
+import { DefaultTextLabel, TLTextLabel } from '../components/default-components/DefaultTextLabel'
 import { useShallowObjectIdentity } from './useIdentity'
 
 /** @public */
@@ -72,6 +73,7 @@ export interface TLEditorComponents {
 	OnTheCanvas?: ComponentType | null
 	InFrontOfTheCanvas?: ComponentType | null
 	LoadingScreen?: ComponentType | null
+	TextLabel?: TLTextLabel | null
 
 	// These will always have defaults
 	ErrorFallback?: TLErrorFallbackComponent
@@ -120,6 +122,7 @@ export function EditorComponentsProvider({
 					OnTheCanvas: null,
 					InFrontOfTheCanvas: null,
 					Canvas: DefaultCanvas,
+					TextLabel: DefaultTextLabel,
 					LoadingScreen: DefaultLoadingScreen,
 					..._overrides,
 				}),
