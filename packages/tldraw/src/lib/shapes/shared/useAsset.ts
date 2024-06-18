@@ -22,7 +22,7 @@ export function useAsset(assetId: TLAssetId | null, width: number) {
 				screenScale,
 			})
 			if (!isCancelled) setUrl(resolvedUrl)
-		})
+		}, 500)
 
 		return () => {
 			clearTimeout(timer)
