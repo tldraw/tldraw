@@ -41,6 +41,9 @@ export const resolveAsset =
 		if (MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated)
 			return asset.props.src
 
+		// Don't try to transform vector images.
+		if (MediaHelpers.isVectorImageType(asset?.props.mimeType)) return asset.props.src
+
 		// Assets that are under a certain file size aren't worth transforming (and incurring cost).
 		if (asset.props.fileSize === -1 || asset.props.fileSize < 1024 * 1024 * 1.5 /* 1.5 MB */)
 			return asset.props.src

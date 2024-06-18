@@ -100,6 +100,26 @@ describe('resolveAsset', () => {
 		).toBe('http://example.com/animated.gif')
 	})
 
+	it('should return the original src if it is a vector image', async () => {
+		const asset = {
+			type: 'image',
+			props: {
+				src: 'http://example.com/vector.svg',
+				mimeType: 'image/svg+xml',
+				w: 100,
+				fileSize: FILE_SIZE,
+			},
+		}
+		expect(
+			await resolver(asset as TLAsset, {
+				screenScale: -1,
+				steppedScreenScale: 1,
+				dpr: 1,
+				networkEffectiveType: '4g',
+			})
+		).toBe('http://example.com/vector.svg')
+	})
+
 	it('should return the original src if it is under a certain file size', async () => {
 		const asset = {
 			type: 'image',
