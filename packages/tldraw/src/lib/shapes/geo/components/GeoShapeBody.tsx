@@ -184,7 +184,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 			}
 		}
 		case 'heart': {
-			if (dash === 'dashed' || dash === 'dotted') {
+			if (dash === 'dashed' || dash === 'dotted' || dash === 'solid') {
 				const d = getHeartPath(w, h)
 				const curves = getHeartParts(w, h)
 
