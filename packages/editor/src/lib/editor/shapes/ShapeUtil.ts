@@ -303,6 +303,14 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	//  Events
+	/**
+	 * A callback called whenever the current user changes or creates a shape. This is an
+	 * opportunity to make any measurements (e.g. text size) that are needed for the shape as a
+	 * result of this change.
+	 *
+	 * @returns The updated shape if needed.
+	 */
+	onMeasure?(shape: Shape): Shape | void
 
 	/**
 	 * A callback called just before a shape is created. This method provides a last chance to modify

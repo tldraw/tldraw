@@ -10,6 +10,7 @@ import {
 	Vec,
 	VecLike,
 	angleDistance,
+	assertExists,
 	clamp,
 	getPointOnCircle,
 	intersectCirclePolygon,
@@ -54,7 +55,7 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 
 		const fontSize = getArrowLabelFontSize(shape)
 
-		const { w, h } = editor.textMeasure.measureText(shape.props.text, {
+		const { w, h } = assertExists(editor.textMeasure).measureText(shape.props.text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize,

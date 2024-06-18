@@ -4,6 +4,7 @@ import {
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
+	assertExists,
 	useEditor,
 } from '@tldraw/editor'
 import { createTextJsxFromSpans } from './createTextJsxFromSpans'
@@ -56,7 +57,7 @@ export function SvgTextLabel({
 		strokeWidth: undefined as number | undefined,
 	}
 
-	const spans = editor.textMeasure.measureTextSpans(text, opts)
+	const spans = assertExists(editor.textMeasure).measureTextSpans(text, opts)
 	const offsetX = getLegacyOffsetX(align, padding, spans, bounds.width)
 	if (offsetX) {
 		opts.offsetX = offsetX

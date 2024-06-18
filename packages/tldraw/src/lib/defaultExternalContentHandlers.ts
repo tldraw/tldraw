@@ -15,6 +15,7 @@ import {
 	VecLike,
 	WeakCache,
 	assert,
+	assertExists,
 	compact,
 	createShapeId,
 	fetch,
@@ -330,7 +331,9 @@ export function registerDefaultExternalContentHandlers(
 			align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
 		}
 
-		const rawSize = editor.textMeasure.measureText(textToPaste, {
+		const textMeasure = assertExists(editor.textMeasure, 'textMeasure not available')
+
+		const rawSize = textMeasure.measureText(textToPaste, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[defaultProps.font],
 			fontSize: FONT_SIZES[defaultProps.size],
@@ -343,7 +346,7 @@ export function registerDefaultExternalContentHandlers(
 		)
 
 		if (rawSize.w > minWidth) {
-			const shrunkSize = editor.textMeasure.measureText(textToPaste, {
+			const shrunkSize = textMeasure.measureText(textToPaste, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[defaultProps.font],
 				fontSize: FONT_SIZES[defaultProps.size],
