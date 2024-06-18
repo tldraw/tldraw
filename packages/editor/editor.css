@@ -946,7 +946,7 @@ input,
 }
 
 .tl-bookmark__image_container {
-	flex: 1;
+	flex: 1 1 100%;
 	overflow: hidden;
 	border-top-left-radius: var(--radius-1);
 	border-top-right-radius: var(--radius-1);
@@ -980,6 +980,10 @@ input,
 	background-color: var(--color-muted);
 	padding: var(--space-4);
 	pointer-events: all;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	flex: 1;
 }
 
 .tl-bookmark__heading,
@@ -1138,7 +1142,7 @@ input,
 	position: relative;
 	top: 0px;
 	left: 0px;
-	padding: 16px;
+	padding: inherit;
 	height: fit-content;
 	width: fit-content;
 	border-radius: var(--radius-1);
@@ -1150,7 +1154,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	padding: 16px;
+	padding: inherit;
 }
 
 .tl-text-wrapper[data-isselected='true'] .tl-text-input {
@@ -1236,12 +1240,12 @@ input,
 .tl-arrow-label .tl-arrow {
 	position: relative;
 	height: max-content;
-	padding: 4px;
+	padding: inherit;
 	overflow: visible;
 }
 
 .tl-arrow-label textarea {
-	padding: 4px;
+	padding: inherit;
 	/* Don't allow textarea to be zero width */
 	min-width: 4px;
 }

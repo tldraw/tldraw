@@ -1,6 +1,7 @@
 import {
 	Box,
 	DefaultColorStyle,
+	DefaultFillStyle,
 	Editor,
 	HALF_PI,
 	PageRecordType,
@@ -27,6 +28,7 @@ import { EmbedDialog } from '../components/EmbedDialog'
 import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
 import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
+import { flattenShapesToImages } from '../hooks/useFlatten'
 import { useInsertMedia } from '../hooks/useInsertMedia'
 import { usePrint } from '../hooks/usePrint'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -1109,8 +1111,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$/',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('toggle-dark-mode', { source })
-					editor.user.updateUserPreferences({ isDarkMode: !editor.user.getIsDarkMode() })
+					const value = editor.user.getIsDarkMode() ? 'light' : 'dark'
+					trackEvent('color-scheme', { source, value })
+					editor.user.updateUserPreferences({
+						colorScheme: value,
+					})
 				},
 				checkbox: true,
 			},
@@ -1125,6 +1130,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-wrap-mode', { source })
 					editor.user.updateUserPreferences({
 						isWrapMode: !editor.user.getIsWrapMode(),
+					})
+				},
+				checkbox: true,
+			},
+			{
+				id: 'toggle-dynamic-size-mode',
+				label: {
+					default: 'action.toggle-dynamic-size-mode',
+					menu: 'action.toggle-dynamic-size-mode.menu',
+				},
+				readonlyOk: false,
+				onSelect(source) {
+					trackEvent('toggle-dynamic-size-mode', { source })
+					editor.user.updateUserPreferences({
+						isDynamicSizeMode: !editor.user.getIsDynamicResizeMode(),
 					})
 				},
 				checkbox: true,
@@ -1336,9 +1356,46 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							editor.setStyleForSelectedShapes(style, 'white')
 						}
 						editor.setStyleForNextShapes(style, 'white')
-						editor.updateInstanceState({ isChangingStyle: true })
 					})
 					trackEvent('set-style', { source, id: style.id, value: 'white' })
+				},
+			},
+			{
+				id: 'select-fill-fill',
+				label: 'fill-style.fill',
+				kbd: '?f',
+				onSelect(source) {
+					const style = DefaultFillStyle
+					editor.batch(() => {
+						editor.mark('change-fill')
+						if (editor.isIn('select')) {
+							editor.setStyleForSelectedShapes(style, 'fill')
+						}
+						editor.setStyleForNextShapes(style, 'fill')
+					})
+					trackEvent('set-style', { source, id: style.id, value: 'fill' })
+				},
+			},
+			{
+				id: 'flatten-to-image',
+				label: 'action.flatten-to-image',
+				kbd: '!f',
+				onSelect: async (source) => {
+					const ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) return
+
+					editor.mark('flattening to image')
+					trackEvent('flatten-to-image', { source })
+
+					const newShapeIds = await flattenShapesToImages(
+						editor,
+						ids,
+						editor.options.flattenImageBoundsExpand
+					)
+
+					if (newShapeIds?.length) {
+						editor.setSelectedShapes(newShapeIds)
+					}
 				},
 			},
 		]

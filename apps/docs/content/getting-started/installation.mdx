@@ -137,11 +137,13 @@ const assetUrls = getAssetUrls()
 
 While these files must be available, you can overwrite the individual files: for example, by placing different icons under the same name or modifying / adding translations.
 
-If you use a CDN for hosting these files you can specify the base url of your assets. To recreate the above option of serving the assets from unpkg you would do the following:
+If you use a CDN for hosting these files you can specify the base url of your assets. To recreate the above option of serving the assets from our CDN you would do the following:
 
 ```ts
+import { getDefaultCdnBaseUrl } from 'tldraw'
+
 const assetUrls = getAssetUrls({
-	baseUrl: 'https://unpkg.com/@tldraw/assets',
+	baseUrl: getDefaultCdnBaseUrl(),
 })
 ```
 

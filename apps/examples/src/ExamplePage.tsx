@@ -32,7 +32,6 @@ export function ExamplePage({
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
 	}
-
 	return (
 		<DialogContextProvider>
 			<div className="example">
@@ -45,6 +44,7 @@ export function ExamplePage({
 							<a
 								target="_blank"
 								href="https://twitter.com/tldraw"
+								rel="noopener noreferrer"
 								title="twitter"
 								className="hoverable"
 							>
@@ -53,6 +53,7 @@ export function ExamplePage({
 							<a
 								target="_blank"
 								href="https://github.com/tldraw/tldraw"
+								rel="noopener noreferrer"
 								title="github"
 								className="hoverable"
 							>
@@ -61,6 +62,7 @@ export function ExamplePage({
 							<a
 								target="_blank"
 								href="https://discord.com/invite/SBBEVCA4PG"
+								rel="noopener noreferrer"
 								title="discord"
 								className="hoverable"
 							>
@@ -86,9 +88,20 @@ export function ExamplePage({
 								<ul className="example__sidebar__category__items">
 									{examples
 										.find((category) => category.id === currentCategory)
-										?.value.filter((example) =>
-											example.title.toLowerCase().includes(filterValue.toLowerCase())
-										)
+										?.value.filter((example) => {
+											const excludedWords = ['a', 'the', '', ' ']
+											const terms = filterValue
+												.toLowerCase()
+												.split(' ')
+												.filter((term) => !excludedWords.includes(term))
+											if (!terms.length) return true
+											return (
+												terms.some((term) => example.title.toLowerCase().includes(term)) ||
+												example.keywords.some((keyword) =>
+													terms.some((term) => keyword.toLowerCase().includes(term))
+												)
+											)
+										})
 										.map((sidebarExample) => (
 											<ExampleSidebarListItem
 												key={sidebarExample.path}
@@ -104,6 +117,7 @@ export function ExamplePage({
 						<a
 							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
 							target="_blank"
+							rel="noopener noreferrer"
 							href="https://github.com/tldraw/tldraw/issues/new?assignees=&labels=Example%20Request&projects=&template=example_request.yml&title=%5BExample Request%5D%3A+"
 						>
 							Request an example
@@ -111,6 +125,7 @@ export function ExamplePage({
 						<a
 							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
 							target="_blank"
+							rel="noopener noreferrer"
 							href="https://tldraw.dev"
 						>
 							Visit the docs

@@ -3,6 +3,7 @@ import {
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
+	fetch,
 	getHashForString,
 	uniqueId,
 } from 'tldraw'
@@ -18,7 +19,6 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 	await fetch(url, {
 		method: 'POST',
 		body: file,
-		referrerPolicy: 'strict-origin-when-cross-origin',
 	})
 
 	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
@@ -33,11 +33,7 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 
 	if (isImageType) {
 		size = await MediaHelpers.getImageSize(file)
-		if (MediaHelpers.isAnimatedImageType(file.type)) {
-			isAnimated = true // await getIsGifAnimated(file) todo export me from editor
-		} else {
-			isAnimated = false
-		}
+		isAnimated = await MediaHelpers.isAnimated(file)
 	} else {
 		isAnimated = true
 		size = await MediaHelpers.getVideoSize(file)
@@ -53,6 +49,7 @@ export async function createAssetFromFile({ file }: { type: 'file'; file: File }
 			w: size.w,
 			h: size.h,
 			mimeType: file.type,
+			fileSize: file.size,
 			isAnimated,
 		},
 		meta: {},

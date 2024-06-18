@@ -3,6 +3,7 @@ title: Interactive shape
 component: ./InteractiveShapeExample.tsx
 category: shapes/tools
 priority: 1
+keywords: [interaction, pointer events, stop propagation, click, todo, input]
 ---
 
 A custom shape that has its own onClick interactions.

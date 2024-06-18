@@ -36,6 +36,7 @@ export {
 	ErrorScreen,
 	LoadingScreen,
 	TldrawEditor,
+	type LoadingScreenProps,
 	type TLOnMountHandler,
 	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
@@ -135,6 +136,7 @@ export {
 	type TLBindingUtilConstructor,
 } from './lib/editor/bindings/BindingUtil'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager'
+export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
 export { EnvironmentManager } from './lib/editor/managers/EnvironmentManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
@@ -239,8 +241,10 @@ export {
 	type TLHistoryMark,
 } from './lib/editor/types/history-types'
 export {
+	type AssetContextProps,
 	type OptionalKeys,
 	type RequiredKeys,
+	type TLAssetOptions,
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
@@ -358,7 +362,6 @@ export {
 	setPointerCapture,
 	stopEventPropagation,
 } from './lib/utils/dom'
-export { moveCameraWhenCloseToEdge } from './lib/utils/edgeScrolling'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'

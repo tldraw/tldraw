@@ -9,7 +9,7 @@ import { kbdStr } from '../../kbd-utils'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 
-/** @public */
+/** @public @react */
 export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 	const actions = useActions()
 	const msg = useTranslation()

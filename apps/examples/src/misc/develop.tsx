@@ -8,7 +8,7 @@ export default function Develop() {
 		<div className="tldraw__editor">
 			<Tldraw
 				overrides={[performanceOverrides]}
-				persistenceKey="tldraw_example"
+				persistenceKey="example"
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor

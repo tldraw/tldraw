@@ -3,6 +3,7 @@ title: UI zones
 component: ./ZonesExample.tsx
 category: ui
 priority: 1
+keywords: [top zone, share zone]
 ---
 
 Inject custom components into tldraw's UI.

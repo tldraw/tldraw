@@ -3,6 +3,7 @@ title: Custom shape
 component: ./CustomShapeExample.tsx
 category: shapes/tools
 priority: 1
+keywords: [util]
 ---
 
 A simple custom shape.

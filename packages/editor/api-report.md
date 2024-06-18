@@ -144,6 +144,20 @@ export class Arc2d extends Geometry2d {
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
 
+// @public (undocumented)
+export interface AssetContextProps {
+    // (undocumented)
+    dpr: number;
+    // (undocumented)
+    networkEffectiveType: null | string;
+    // (undocumented)
+    screenScale: number;
+    // (undocumented)
+    shouldResolveToOriginalImage?: boolean;
+    // (undocumented)
+    steppedScreenScale: number;
+}
+
 export { Atom }
 
 export { atom }
@@ -665,8 +679,12 @@ export const defaultTldrawOptions: {
     readonly defaultSvgPadding: 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
+    readonly edgeScrollDelay: 200;
     readonly edgeScrollDistance: 8;
-    readonly edgeScrollSpeed: 20;
+    readonly edgeScrollEaseDuration: 200;
+    readonly edgeScrollSpeed: 25;
+    readonly flattenImageBoundsExpand: 64;
+    readonly flattenImageBoundsPadding: 16;
     readonly followChaseViewportSnap: 2;
     readonly gridSteps: readonly [{
         readonly mid: 0.15;
@@ -700,7 +718,7 @@ export const defaultUserPreferences: Readonly<{
     animationSpeed: 0 | 1;
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     edgeScrollSpeed: 1;
-    isDarkMode: false;
+    isDynamicSizeMode: false;
     isSnapMode: false;
     isWrapMode: false;
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
@@ -764,8 +782,16 @@ export class Edge2d extends Geometry2d {
 }
 
 // @public (undocumented)
+export class EdgeScrollManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    editor: Editor;
+    updateEdgeScrolling(elapsed: number): void;
+}
+
+// @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, assetOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
@@ -866,6 +892,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
+    edgeScrollManager: EdgeScrollManager;
     readonly environment: EnvironmentManager;
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -1012,17 +1039,19 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
     getSharedOpacity(): SharedStyle<number>;
     getSharedStyles(): ReadonlySharedStyleMap;
+    // (undocumented)
+    getSnapshot(): TLEditorSnapshot;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     // @deprecated (undocumented)
-    getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
-    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<{
+    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<SVGSVGElement | undefined>;
+    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<{
         height: number;
         svg: SVGSVGElement;
         width: number;
     } | undefined>;
-    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<{
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<{
         height: number;
         svg: string;
         width: number;
@@ -1050,6 +1079,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         select: boolean;
     }>): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
+    // (undocumented)
+    hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean;
     readonly history: HistoryManager<TLRecord>;
     inputs: {
         buttons: Set<number>;
@@ -1073,6 +1104,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
+    isDisposed: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
@@ -1086,6 +1118,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
+    loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): this;
     mark(markId?: string): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
@@ -1113,6 +1146,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
+    // (undocumented)
+    resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
+    // (undocumented)
+    resolveAssetUrl(assetId: null | TLAssetId, context: {
+        screenScale?: number;
+        shouldResolveToOriginalImage?: boolean;
+    }): Promise<null | string>;
     readonly root: StateNode;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
     screenToPage(point: VecLike): Vec;
@@ -1264,9 +1304,7 @@ export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_
 }
 
 // @public (undocumented)
-export function ErrorScreen({ children }: {
-    children: ReactNode;
-}): JSX_2.Element;
+export function ErrorScreen({ children }: LoadingScreenProps): JSX_2.Element;
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
@@ -1582,9 +1620,13 @@ export const isSafeFloat: (n: number) => boolean;
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
 
 // @public (undocumented)
-export function LoadingScreen({ children }: {
+export function LoadingScreen({ children }: LoadingScreenProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface LoadingScreenProps {
+    // (undocumented)
     children: ReactNode;
-}): JSX_2.Element;
+}
 
 // @public
 export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
@@ -1721,9 +1763,6 @@ export interface MatModel {
     // (undocumented)
     f: number;
 }
-
-// @public
-export function moveCameraWhenCloseToEdge(editor: Editor): void;
 
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
@@ -2306,6 +2345,12 @@ export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
 // @public (undocumented)
+export interface TLAssetOptions {
+    // (undocumented)
+    onResolveAsset: (asset: null | TLAsset | undefined, ctx: AssetContextProps) => Promise<null | string>;
+}
+
+// @public (undocumented)
 export type TLBaseBoxShape = TLBaseShape<string, {
     h: number;
     w: number;
@@ -2477,6 +2522,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
+    assetOptions?: Partial<TLAssetOptions>;
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     cameraOptions?: Partial<TLCameraOptions>;
@@ -2534,9 +2580,17 @@ export interface TldrawOptions {
     // (undocumented)
     readonly dragDistanceSquared: number;
     // (undocumented)
+    readonly edgeScrollDelay: number;
+    // (undocumented)
     readonly edgeScrollDistance: number;
     // (undocumented)
+    readonly edgeScrollEaseDuration: number;
+    // (undocumented)
     readonly edgeScrollSpeed: number;
+    // (undocumented)
+    readonly flattenImageBoundsExpand: number;
+    // (undocumented)
+    readonly flattenImageBoundsPadding: number;
     // (undocumented)
     readonly followChaseViewportSnap: number;
     // (undocumented)
@@ -2621,6 +2675,7 @@ export interface TLEditorComponents {
 
 // @public (undocumented)
 export interface TLEditorOptions {
+    assetOptions?: Partial<TLAssetOptions>;
     autoFocus?: boolean;
     bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[];
     cameraOptions?: Partial<TLCameraOptions>;
@@ -3244,17 +3299,17 @@ export type TLStoreWithStatus = {
 // @public (undocumented)
 export interface TLSvgOptions {
     // (undocumented)
-    background: boolean;
+    background?: boolean;
     // (undocumented)
-    bounds: Box;
+    bounds?: Box;
     // (undocumented)
     darkMode?: boolean;
     // (undocumented)
-    padding: number;
+    padding?: number;
     // (undocumented)
-    preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     // (undocumented)
-    scale: number;
+    scale?: number;
 }
 
 // @public (undocumented)
@@ -3287,11 +3342,13 @@ export interface TLUserPreferences {
     // (undocumented)
     color?: null | string;
     // (undocumented)
+    colorScheme?: 'dark' | 'light' | 'system';
+    // (undocumented)
     edgeScrollSpeed?: null | number;
     // (undocumented)
     id: string;
     // (undocumented)
-    isDarkMode?: boolean | null;
+    isDynamicSizeMode?: boolean | null;
     // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)
@@ -3399,6 +3456,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsDarkMode(): boolean;
     // (undocumented)
+    getIsDynamicResizeMode(): boolean;
+    // (undocumented)
     getIsSnapMode(): boolean;
     // (undocumented)
     getIsWrapMode(): boolean;
@@ -3410,13 +3469,17 @@ export class UserPreferencesManager {
     getUserPreferences(): {
         animationSpeed: number;
         color: string;
+        colorScheme: "dark" | "light" | "system" | undefined;
         id: string;
         isDarkMode: boolean;
+        isDynamicResizeMode: boolean;
         isSnapMode: boolean;
         isWrapMode: boolean;
         locale: string;
         name: string;
     };
+    // (undocumented)
+    systemColorScheme: Atom<"dark" | "light", unknown>;
     // (undocumented)
     updateUserPreferences: (userPreferences: Partial<TLUserPreferences>) => void;
 }

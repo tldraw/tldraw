@@ -4,7 +4,12 @@ import { TestEditor } from '../TestEditor'
 let editor: TestEditor
 
 beforeEach(() => {
-	editor = new TestEditor()
+	editor = new TestEditor({
+		options: {
+			edgeScrollDelay: 0,
+			edgeScrollEaseDuration: 0,
+		},
+	})
 	editor.updateViewportScreenBounds(new Box(0, 0, 1600, 900))
 })
 
@@ -227,11 +232,13 @@ describe('CameraOptions.panSpeed', () => {
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1.01 }) // 1 + 1
 	})
+
 	it('Does not effect hand tool panning', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 })
 		editor.setCurrentTool('hand').pointerDown(0, 0).pointerMove(5, 10).forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
 	})
+
 	it('Effects spacebar panning (2x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 })
 		editor
@@ -241,6 +248,7 @@ describe('CameraOptions.panSpeed', () => {
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 10, y: 20, z: 1 })
 	})
+
 	it('Effects spacebar panning (0.5x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 0.5 })
 		editor
@@ -250,6 +258,7 @@ describe('CameraOptions.panSpeed', () => {
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 2.5, y: 5, z: 1 })
 	})
+
 	it('Does not effect edge scroll panning', () => {
 		const shapeId = createShapeId()
 		const viewportScreenBounds = editor.getViewportScreenBounds()
@@ -261,11 +270,12 @@ describe('CameraOptions.panSpeed', () => {
 		const shape = editor.getSelectedShapes()[0]
 		editor.selectNone()
 		// Move shape far beyond bounds to trigger edge scrolling at maximum speed
-		editor.pointerDown(shape.x, shape.y).pointerMove(-5000, -5000).forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+		editor.pointerDown(shape.x, shape.y).pointerMove(-5000, -5000)
 		// At maximum speed and a zoom level of 1, the camera should move by 40px per tick if the screen
 		// is wider than 1000 pixels, or by 40 * 0.612px if it is smaller.
-		const newX = viewportScreenBounds.w < 1000 ? 40 * 0.612 : 40
-		const newY = viewportScreenBounds.h < 1000 ? 40 * 0.612 : 40
+		const newX = viewportScreenBounds.w < 1000 ? 25 * 0.612 : 25
+		const newY = viewportScreenBounds.h < 1000 ? 25 * 0.612 : 25
 		expect(editor.getCamera()).toMatchObject({ x: newX, y: newY, z: 1 })
 	})
 })

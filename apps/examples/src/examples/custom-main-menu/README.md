@@ -2,6 +2,7 @@
 title: Custom main menu
 component: ./CustomMainMenuExample.tsx
 category: ui
+keywords: [components, ui]
 ---
 
 You can customize tldraw's main menu.

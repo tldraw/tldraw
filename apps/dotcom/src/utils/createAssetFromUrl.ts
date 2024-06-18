@@ -1,4 +1,4 @@
-import { AssetRecordType, TLAsset, getHashForString } from 'tldraw'
+import { AssetRecordType, TLAsset, fetch, getHashForString } from 'tldraw'
 import { BOOKMARK_ENDPOINT } from './config'
 
 interface ResponseBody {
@@ -45,7 +45,6 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 			const resp = await fetch(url, {
 				method: 'GET',
 				mode: 'no-cors',
-				referrerPolicy: 'strict-origin-when-cross-origin',
 			})
 			const html = await resp.text()
 			const doc = new DOMParser().parseFromString(html, 'text/html')

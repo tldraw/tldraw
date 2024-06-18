@@ -37,6 +37,8 @@ export interface TldrawOptions {
 	readonly collaboratorCheckIntervalMs: number
 	readonly cameraMovingTimeoutMs: number
 	readonly hitTestMargin: number
+	readonly edgeScrollDelay: number
+	readonly edgeScrollEaseDuration: number
 	readonly edgeScrollSpeed: number
 	readonly edgeScrollDistance: number
 	readonly coarsePointerWidth: number
@@ -45,6 +47,8 @@ export interface TldrawOptions {
 	readonly longPressDurationMs: number
 	readonly textShadowLod: number
 	readonly adjacentShapeMargin: number
+	readonly flattenImageBoundsExpand: number
+	readonly flattenImageBoundsPadding: number
 }
 
 /** @public */
@@ -71,7 +75,9 @@ export const defaultTldrawOptions = {
 	collaboratorCheckIntervalMs: 1200,
 	cameraMovingTimeoutMs: 64,
 	hitTestMargin: 8,
-	edgeScrollSpeed: 20,
+	edgeScrollDelay: 200,
+	edgeScrollEaseDuration: 200,
+	edgeScrollSpeed: 25,
 	edgeScrollDistance: 8,
 	coarsePointerWidth: 12,
 	coarseHandleRadius: 20,
@@ -79,4 +85,6 @@ export const defaultTldrawOptions = {
 	longPressDurationMs: 500,
 	textShadowLod: 0.35,
 	adjacentShapeMargin: 10,
+	flattenImageBoundsExpand: 64,
+	flattenImageBoundsPadding: 16,
 } as const satisfies TldrawOptions

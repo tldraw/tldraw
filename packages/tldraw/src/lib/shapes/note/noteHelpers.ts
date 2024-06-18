@@ -8,15 +8,27 @@ export const CLONE_HANDLE_MARGIN = 0
 /** @internal */
 export const NOTE_SIZE = 200
 /** @internal */
-export const NOTE_CENTER_OFFSET = { x: NOTE_SIZE / 2, y: NOTE_SIZE / 2 }
+export const NOTE_CENTER_OFFSET = new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2)
 /** @internal */
-export const NOTE_PIT_RADIUS = 10
+export const NOTE_ADJACENT_POSITION_SNAP_RADIUS = 10
 
-const DEFAULT_PITS = {
-	['a1' as IndexKey]: new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN), // t
-	['a2' as IndexKey]: new Vec(NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // r
-	['a3' as IndexKey]: new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN), // b
-	['a4' as IndexKey]: new Vec(NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5), // l
+const BASE_NOTE_POSITIONS = [
+	[['a1' as IndexKey], new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN)], // t
+	[['a2' as IndexKey], new Vec(NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5)], // r
+	[['a3' as IndexKey], new Vec(NOTE_SIZE * 0.5, NOTE_SIZE * 1.5 + ADJACENT_NOTE_MARGIN)], // b
+	[['a4' as IndexKey], new Vec(NOTE_SIZE * -0.5 - ADJACENT_NOTE_MARGIN, NOTE_SIZE * 0.5)], // l
+] as const
+
+function getBaseAdjacentNotePositions(scale: number) {
+	if (scale === 1) return BASE_NOTE_POSITIONS
+	const s = NOTE_SIZE * scale
+	const m = ADJACENT_NOTE_MARGIN * scale
+	return [
+		[['a1' as IndexKey], new Vec(s * 0.5, s * -0.5 - m)], // t
+		[['a2' as IndexKey], new Vec(s * 1.5 + m, s * 0.5)], // r
+		[['a3' as IndexKey], new Vec(s * 0.5, s * 1.5 + m)], // b
+		[['a4' as IndexKey], new Vec(s * -0.5 - m, s * 0.5)], // l
+	] as const
 }
 
 /**
@@ -32,10 +44,11 @@ export function getNoteAdjacentPositions(
 	pagePoint: Vec,
 	pageRotation: number,
 	growY: number,
-	extraHeight: number
+	extraHeight: number,
+	scale: number
 ): Record<IndexKey, Vec> {
 	return Object.fromEntries(
-		Object.entries(DEFAULT_PITS).map(([id, v], i) => {
+		getBaseAdjacentNotePositions(scale).map(([id, v], i) => {
 			const point = v.clone()
 			if (i === 0 && extraHeight) {
 				// apply top margin (the growY of the moving note shape)
@@ -60,6 +73,7 @@ export function getNoteAdjacentPositions(
 export function getAvailableNoteAdjacentPositions(
 	editor: Editor,
 	rotation: number,
+	scale: number,
 	extraHeight: number
 ) {
 	const selectedShapeIds = new Set(editor.getSelectedShapeIds())
@@ -69,7 +83,11 @@ export function getAvailableNoteAdjacentPositions(
 
 	// Get all the positions that are adjacent to the selected note shapes
 	for (const shape of editor.getCurrentPageShapes()) {
-		if (!editor.isShapeOfType<TLNoteShape>(shape, 'note') || selectedShapeIds.has(shape.id)) {
+		if (
+			!editor.isShapeOfType<TLNoteShape>(shape, 'note') ||
+			scale !== shape.props.scale ||
+			selectedShapeIds.has(shape.id)
+		) {
 			continue
 		}
 
@@ -84,7 +102,7 @@ export function getAvailableNoteAdjacentPositions(
 		// And push its position to the positions array
 		positions.push(
 			...Object.values(
-				getNoteAdjacentPositions(transform.point(), rotation, shape.props.growY, extraHeight)
+				getNoteAdjacentPositions(transform.point(), rotation, shape.props.growY, extraHeight, scale)
 			)
 		)
 	}
@@ -133,7 +151,7 @@ export function getNoteShapeForAdjacentPosition(
 	// Start from the top of the stack, and work our way down
 	const allShapesOnPage = editor.getCurrentPageShapesSorted()
 
-	const minDistance = NOTE_SIZE + ADJACENT_NOTE_MARGIN ** 2
+	const minDistance = (NOTE_SIZE + ADJACENT_NOTE_MARGIN ** 2) ** shape.props.scale
 
 	for (let i = allShapesOnPage.length - 1; i >= 0; i--) {
 		const otherNote = allShapesOnPage[i]
@@ -158,7 +176,7 @@ export function getNoteShapeForAdjacentPosition(
 		const id = createShapeId()
 
 		// We create it at the center first, so that it becomes
-		//  the child of whatever parent was at that center
+		// the child of whatever parent was at that center
 		editor.createShape({
 			id,
 			type: 'note',
@@ -179,13 +197,16 @@ export function getNoteShapeForAdjacentPosition(
 
 		// Now we need to correct its location within its new parent
 
-		const createdShape = editor.getShape(id)!
+		const createdShape = editor.getShape<TLNoteShape>(id)!
+		if (!createdShape) return // may have hit max shapes
 
-		// We need to put the page point in the same coordinate
-		// space as the newly created shape (i.e its parent's space)
+		// We need to put the page point in the same coordinate space as the newly created shape (i.e its parent's space)
 		const topLeft = editor.getPointInParentSpace(
 			createdShape,
-			Vec.Sub(center, Vec.Rot(NOTE_CENTER_OFFSET, pageRotation))
+			Vec.Sub(
+				center,
+				Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(createdShape.props.scale), pageRotation)
+			)
 		)
 
 		editor.updateShape({

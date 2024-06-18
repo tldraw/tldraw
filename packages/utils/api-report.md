@@ -4,6 +4,9 @@
 
 ```ts
 
+import { default as throttle } from 'lodash.throttle';
+import { default as uniq } from 'lodash.uniq';
+
 // @internal
 export function annotateError(error: unknown, annotations: Partial<ErrorAnnotations>): void;
 
@@ -76,6 +79,10 @@ export type Expand<T> = T extends infer O ? {
     [K in keyof O]: O[K];
 } : never;
 
+// @internal
+function fetch_2(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+export { fetch_2 as fetch }
+
 // @public
 export class FileHelpers {
     static blobToDataUrl(file: Blob): Promise<string>;
@@ -92,7 +99,13 @@ export function filterEntries<Key extends string, Value>(object: {
 };
 
 // @internal
-export function fpsThrottle(fn: () => void): () => void;
+export function fpsThrottle(fn: {
+    (): void;
+    cancel?(): void;
+}): {
+    (): void;
+    cancel?(): void;
+};
 
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
@@ -144,6 +157,10 @@ export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
+
+// @internal
+const Image_2: (width?: number, height?: number) => HTMLImageElement;
+export { Image_2 as Image }
 
 // @public
 export type IndexKey = string & {
@@ -223,6 +240,8 @@ export class MediaHelpers {
     static isImageType(mimeType: string): boolean;
     // (undocumented)
     static isStaticImageType(mimeType: null | string): boolean;
+    // (undocumented)
+    static isVectorImageType(mimeType: null | string): boolean;
     static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
     // (undocumented)
@@ -367,8 +386,7 @@ export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 
-// @public
-export function throttle<T extends (...args: any) => any>(func: T, limit: number): (...args: Parameters<T>) => ReturnType<T>;
+export { throttle }
 
 // @internal
 export function throttleToNextFrame(fn: () => void): () => void;
@@ -384,6 +402,8 @@ export class Timers {
     // (undocumented)
     setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number;
 }
+
+export { uniq }
 
 // @internal (undocumented)
 export function validateIndexKey(key: string): asserts key is IndexKey;

@@ -2,6 +2,7 @@
 title: Custom actions menu
 component: ./CustomActionsMenuExample.tsx
 category: ui
+keywords: [drop, down, grouping, rotating, layout, components]
 ---
 
 You can customize tldraw's actions menu.

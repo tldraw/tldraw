@@ -46,6 +46,11 @@ export default defineConfig((env) => ({
 		),
 		'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(env.mode, getMultiplayerServerURL(), 8787),
 		'process.env.ASSET_UPLOAD': urlOrLocalFallback(env.mode, process.env.ASSET_UPLOAD, 8788),
+		'process.env.ASSET_BUCKET_ORIGIN': urlOrLocalFallback(
+			env.mode,
+			process.env.ASSET_BUCKET_ORIGIN,
+			8788
+		),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
 		// Fall back to staging DSN for local develeopment, although you still need to
 		// modify the env check in 'sentry.client.config.ts' to get it reporting errors

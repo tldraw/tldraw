@@ -3,6 +3,7 @@ title: Before create/update shape
 component: ./BeforeCreateUpdateShapeExample.tsx
 category: editor-api
 priority: 4
+keywords: [handler, register, side effects, records]
 ---
 
 Register a handler to run before shapes are created or updated.

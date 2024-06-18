@@ -2,9 +2,10 @@
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
-
+export { getAssetFromIndexedDb, storeAssetInIndexedDb } from './lib/AssetBlobStore'
 export { Tldraw, type TLComponents, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
+export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackground'
@@ -37,7 +38,6 @@ export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
-export { useDefaultColorTheme } from './lib/shapes/shared/ShapeFill'
 export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
 export {
 	FONT_FAMILIES,
@@ -45,6 +45,7 @@ export {
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
 export { getPerfectDashProps } from './lib/shapes/shared/getPerfectDashProps'
+export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
@@ -56,7 +57,7 @@ export { LaserTool } from './lib/tools/LaserTool/LaserTool'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { getOccludedChildren, kickoutOccludedShapes } from './lib/tools/SelectTool/selectHelpers'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
-export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
+export { TldrawUi, type TldrawUiProps } from './lib/ui/TldrawUi'
 export {
 	setDefaultUiAssetUrls,
 	type TLUiAssetUrlOverrides,
@@ -91,6 +92,7 @@ export {
 	DefaultDebugMenuContent,
 	ExampleDialog,
 	FeatureFlags,
+	type ExampleDialogProps,
 } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
 export {
 	DefaultHelpMenu,
@@ -129,7 +131,7 @@ export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
 export { DefaultNavigationPanel } from './lib/ui/components/NavigationPanel/DefaultNavigationPanel'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
-export { PageItemInput } from './lib/ui/components/PageMenu/PageItemInput'
+export { PageItemInput, type PageItemInputProps } from './lib/ui/components/PageMenu/PageItemInput'
 export {
 	PageItemSubmenu,
 	type PageItemSubmenuProps,
@@ -152,9 +154,14 @@ export {
 	OpacitySlider,
 	SplineStylePickerSet,
 	TextStylePickerSet,
+	type StylePickerSetProps,
 	type TLUiStylePanelContentProps,
+	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
-export { DefaultToolbar } from './lib/ui/components/Toolbar/DefaultToolbar'
+export {
+	DefaultToolbar,
+	type DefaultToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultToolbar'
 export {
 	ArrowDownToolbarItem,
 	ArrowLeftToolbarItem,
@@ -187,6 +194,7 @@ export {
 	TriangleToolbarItem,
 	XBoxToolbarItem,
 	useIsToolSelected,
+	type ToolbarItemProps,
 } from './lib/ui/components/Toolbar/DefaultToolbarContent'
 export {
 	DefaultZoomMenu,
@@ -214,7 +222,6 @@ export {
 	ReorderMenuSubmenu,
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
-	ToggleDarkModeItem,
 	ToggleDebugModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
@@ -327,7 +334,11 @@ export {
 	type TLUiActionsContextType,
 } from './lib/ui/context/actions'
 export { AssetUrlsProvider, useAssetUrls } from './lib/ui/context/asset-urls'
-export { BreakPointProvider, useBreakpoint } from './lib/ui/context/breakpoints'
+export {
+	BreakPointProvider,
+	useBreakpoint,
+	type BreakPointProviderProps,
+} from './lib/ui/context/breakpoints'
 export {
 	TldrawUiComponentsProvider,
 	useTldrawUiComponents,
@@ -392,6 +403,7 @@ export { exportAs, type TLExportType } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {
 	defaultEditorAssetUrls,
+	getDefaultCdnBaseUrl,
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'

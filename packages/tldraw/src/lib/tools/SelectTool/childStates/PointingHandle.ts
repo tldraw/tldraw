@@ -78,7 +78,7 @@ export class PointingHandle extends StateNode {
 				// Center the shape on the current pointer
 				const centeredOnPointer = editor
 					.getPointInParentSpace(nextNote, editor.inputs.originPagePoint)
-					.sub(Vec.Rot(NOTE_CENTER_OFFSET, nextNote.rotation))
+					.sub(Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(shape.props.scale), nextNote.rotation))
 				editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
 
 				// Then select and begin translating the shape
@@ -124,7 +124,13 @@ function getNoteForPit(editor: Editor, shape: TLNoteShape, handle: TLHandle, for
 	const pageTransform = editor.getShapePageTransform(shape.id)!
 	const pagePoint = pageTransform.point()
 	const pageRotation = pageTransform.rotation()
-	const pits = getNoteAdjacentPositions(pagePoint, pageRotation, shape.props.growY, 0)
+	const pits = getNoteAdjacentPositions(
+		pagePoint,
+		pageRotation,
+		shape.props.growY,
+		0,
+		shape.props.scale
+	)
 	const pit = pits[handle.index]
 	if (pit) {
 		return getNoteShapeForAdjacentPosition(editor, shape, pit, pageRotation, forceNew)

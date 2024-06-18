@@ -29,6 +29,7 @@ export const drawShapeProps = {
 	isComplete: T.boolean,
 	isClosed: T.boolean,
 	isPen: T.boolean,
+	scale: T.nonZeroNumber,
 }
 
 /** @public */
@@ -39,6 +40,7 @@ export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
 const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,
+	AddScale: 2,
 })
 
 export { Versions as drawShapeVersions }
@@ -70,6 +72,15 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 				props.isPen = isPen
 			},
 			down: 'retired',
+		},
+		{
+			id: Versions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
+			},
 		},
 	],
 })

@@ -3,6 +3,7 @@ title: After create/update shape
 component: ./AfterCreateUpdateShapeExample.tsx
 category: editor-api
 priority: 5
+keywords: [handler, register, side effects, records]
 ---
 
 Register a handler to run after shapes are created or updated.

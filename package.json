@@ -120,6 +120,7 @@
 		"@sentry/cli": "^2.25.0",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
+		"mime": "^4.0.3",
 		"purgecss": "^5.0.0",
 		"svgo": "^3.0.2"
 	}

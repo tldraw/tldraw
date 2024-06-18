@@ -2,6 +2,7 @@
 title: Custom debug menu
 component: ./CustomDebugMenuExample.tsx
 category: ui
+keywords: [components, ui]
 ---
 
 You can customize tldraw's debug menu.

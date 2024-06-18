@@ -14,7 +14,7 @@ const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
 /** @public */
 export type TLErrorFallbackComponent = ComponentType<{ error: unknown; editor?: Editor }>
 
-/** @public */
+/** @public @react */
 export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [shouldShowError, setShouldShowError] = useState(process.env.NODE_ENV === 'development')

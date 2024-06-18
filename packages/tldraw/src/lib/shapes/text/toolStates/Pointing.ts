@@ -1,4 +1,12 @@
-import { StateNode, TLEventHandlers, TLTextShape, createShapeId } from '@tldraw/editor'
+import {
+	StateNode,
+	TLEventHandlers,
+	TLShapeId,
+	TLTextShape,
+	Vec,
+	createShapeId,
+	isShapeId,
+} from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -22,26 +30,16 @@ export class Pointing extends StateNode {
 			this.markId = `creating:${id}`
 			this.editor.mark(this.markId)
 
-			this.editor.createShapes<TLTextShape>([
-				{
-					id,
-					type: 'text',
-					x: originPagePoint.x,
-					y: originPagePoint.y,
-					props: {
-						text: '',
-						autoSize: false,
-						w: 20,
-					},
-				},
-			])
+			const shape = this.createTextShape(id, originPagePoint, false)
+			if (!shape) {
+				this.cancel()
+				return
+			}
+
+			// Now save the fresh reference
+			this.shape = this.editor.getShape(shape)
 
 			this.editor.select(id)
-
-			this.shape = this.editor.getShape(id)
-			if (!this.shape) return
-
-			const { shape } = this
 
 			this.editor.setCurrentTool('select.resizing', {
 				...info,
@@ -77,22 +75,11 @@ export class Pointing extends StateNode {
 	private complete() {
 		this.editor.mark('creating text shape')
 		const id = createShapeId()
-		const { x, y } = this.editor.inputs.currentPagePoint
-		this.editor
-			.createShapes([
-				{
-					id,
-					type: 'text',
-					x,
-					y,
-					props: {
-						text: '',
-						autoSize: true,
-					},
-				},
-			])
-			.select(id)
+		const { currentPagePoint } = this.editor.inputs
+		const shape = this.createTextShape(id, currentPagePoint, true)
+		if (!shape) return
 
+		this.editor.select(id)
 		this.editor.setEditingShape(id)
 		this.editor.setCurrentTool('select')
 		this.editor.root.getCurrent()?.transition('editing_shape')
@@ -101,5 +88,64 @@ export class Pointing extends StateNode {
 	private cancel() {
 		this.parent.transition('idle')
 		this.editor.bailToMark(this.markId)
+	}
+
+	private createTextShape(id: TLShapeId, point: Vec, autoSize: boolean) {
+		this.editor.createShape<TLTextShape>({
+			id,
+			type: 'text',
+			x: point.x,
+			y: point.y,
+			props: {
+				text: '',
+				autoSize,
+				w: 20,
+				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+			},
+		})
+
+		const shape = this.editor.getShape<TLTextShape>(id)
+		if (!shape) {
+			this.cancel()
+			return
+		}
+
+		const bounds = this.editor.getShapePageBounds(shape)!
+
+		const delta = new Vec()
+
+		if (autoSize) {
+			switch (shape.props.textAlign) {
+				case 'start': {
+					delta.x = 0
+					break
+				}
+				case 'middle': {
+					delta.x = -bounds.width / 2
+					break
+				}
+				case 'end': {
+					delta.x = -bounds.width
+					break
+				}
+			}
+		} else {
+			delta.x = 0
+		}
+
+		delta.y = -bounds.height / 2
+
+		if (isShapeId(shape.parentId)) {
+			const transform = this.editor.getShapeParentTransform(shape)
+			delta.rot(-transform.rotation())
+		}
+
+		this.editor.updateShape({
+			...shape,
+			x: shape.x + delta.x,
+			y: shape.y + delta.y,
+		})
+
+		return shape
 	}
 }

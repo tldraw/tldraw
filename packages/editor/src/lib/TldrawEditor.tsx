@@ -20,7 +20,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { TLCameraOptions } from './editor/types/misc-types'
+import { TLAssetOptions, TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -128,6 +128,11 @@ export interface TldrawEditorBaseProps {
 	cameraOptions?: Partial<TLCameraOptions>
 
 	/**
+	 * Asset options for the editor.
+	 */
+	assetOptions?: Partial<TLAssetOptions>
+
+	/**
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
@@ -155,7 +160,7 @@ const EMPTY_SHAPE_UTILS_ARRAY = [] as const
 const EMPTY_BINDING_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
 
-/** @public */
+/** @public @react */
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
@@ -256,7 +261,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	const container = useContainer()
 
 	useLayoutEffect(() => {
-		if (user.userPreferences.get().isDarkMode) {
+		if (user.userPreferences.get().colorScheme === 'dark') {
 			container.classList.remove('tl-theme__light')
 			container.classList.add('tl-theme__dark')
 		}
@@ -300,6 +305,7 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
+	assetOptions,
 	options,
 }: Required<
 	TldrawEditorProps & {
@@ -325,6 +331,7 @@ function TldrawEditorWithReadyStore({
 			autoFocus: initialAutoFocus,
 			inferDarkMode,
 			cameraOptions,
+			assetOptions,
 			options,
 		})
 		setEditor(editor)
@@ -343,6 +350,7 @@ function TldrawEditorWithReadyStore({
 		initialAutoFocus,
 		inferDarkMode,
 		cameraOptions,
+		assetOptions,
 		options,
 	])
 
@@ -407,12 +415,17 @@ function Crash({ crashingError }: { crashingError: unknown }): null {
 }
 
 /** @public */
-export function LoadingScreen({ children }: { children: ReactNode }) {
+export interface LoadingScreenProps {
+	children: ReactNode
+}
+
+/** @public @react */
+export function LoadingScreen({ children }: LoadingScreenProps) {
 	return <div className="tl-loading">{children}</div>
 }
 
-/** @public */
-export function ErrorScreen({ children }: { children: ReactNode }) {
+/** @public @react */
+export function ErrorScreen({ children }: LoadingScreenProps) {
 	return <div className="tl-loading">{children}</div>
 }
 

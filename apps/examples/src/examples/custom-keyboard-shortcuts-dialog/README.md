@@ -2,6 +2,7 @@
 title: Custom keyboard shortcuts dialog
 component: ./CustomKeyboardShortcutsDialogExample.tsx
 category: ui
+keywords: [components, ui]
 ---
 
 You can customize tldraw's keyboard shortcuts dialog.

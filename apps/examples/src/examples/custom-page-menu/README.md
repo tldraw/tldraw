@@ -2,6 +2,7 @@
 title: Custom page menu
 component: ./CustomPageMenuExample.tsx
 category: ui
+keywords: [components, ui]
 ---
 
 You can customize tldraw's page menu, or remove it entirely.

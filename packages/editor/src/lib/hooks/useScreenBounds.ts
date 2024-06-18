@@ -1,4 +1,4 @@
-import throttle from 'lodash.throttle'
+import { throttle } from '@tldraw/utils'
 import { useLayoutEffect } from 'react'
 import { Box } from '../primitives/Box'
 import { useEditor } from './useEditor'
@@ -62,6 +62,7 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 			window.removeEventListener('resize', updateBounds)
 			resizeObserver.disconnect()
 			scrollingParent?.removeEventListener('scroll', updateBounds)
+			updateBounds.cancel()
 		}
 	}, [editor, ref])
 }

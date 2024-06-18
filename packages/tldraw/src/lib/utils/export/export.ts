@@ -1,5 +1,6 @@
 import {
 	Editor,
+	Image,
 	PngHelpers,
 	TLShapeId,
 	TLSvgOptions,
@@ -34,7 +35,7 @@ export async function getSvgAsImage(
 	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
-		const image = new Image()
+		const image = Image()
 		image.crossOrigin = 'anonymous'
 
 		image.onload = async () => {
@@ -65,7 +66,6 @@ export async function getSvgAsImage(
 			resolve(null)
 		}
 
-		image.referrerPolicy = 'strict-origin-when-cross-origin'
 		image.src = svgUrl
 	})
 
@@ -96,7 +96,7 @@ export async function getSvgAsImage(
 	}
 }
 
-async function getSvgString(editor: Editor, ids: TLShapeId[], opts: Partial<TLSvgOptions>) {
+async function getSvgString(editor: Editor, ids: TLShapeId[], opts: TLSvgOptions) {
 	const svg = await editor.getSvgString(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
 		scale: 1,
 		background: editor.getInstanceState().exportBackground,
@@ -112,14 +112,14 @@ export async function exportToString(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: 'svg' | 'json',
-	opts = {} as Partial<TLSvgOptions>
+	opts: TLSvgOptions = {}
 ) {
 	switch (format) {
 		case 'svg': {
 			return (await getSvgString(editor, ids, opts))?.svg
 		}
 		case 'json': {
-			const data = editor.getContentFromCurrentPage(ids)
+			const data = await editor.resolveAssetsInContent(editor.getContentFromCurrentPage(ids))
 			return JSON.stringify(data)
 		}
 		default: {
@@ -141,12 +141,12 @@ export async function exportToBlob({
 	editor,
 	ids,
 	format,
-	opts = {} as Partial<TLSvgOptions>,
+	opts = {},
 }: {
 	editor: Editor
 	ids: TLShapeId[]
 	format: TLExportType
-	opts?: Partial<TLSvgOptions>
+	opts?: TLSvgOptions
 }): Promise<Blob> {
 	switch (format) {
 		case 'svg':
@@ -188,7 +188,7 @@ export function exportToBlobPromise(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: TLExportType,
-	opts = {} as Partial<TLSvgOptions>
+	opts: TLSvgOptions = {}
 ): { blobPromise: Promise<Blob>; mimeType: string } {
 	return {
 		blobPromise: exportToBlob({ editor, ids, format, opts }),

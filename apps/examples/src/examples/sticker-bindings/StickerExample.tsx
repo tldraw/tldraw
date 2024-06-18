@@ -45,6 +45,7 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 	}
 	override canEdit = () => false
 	override canResize = () => false
+	override canSnap = () => false
 	override hideRotateHandle = () => true
 	override isAspectRatioLocked = () => true
 

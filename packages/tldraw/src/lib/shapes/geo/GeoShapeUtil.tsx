@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	Box,
 	Editor,
 	Ellipse2d,
 	Geometry2d,
@@ -28,7 +29,6 @@ import {
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
 import {
@@ -43,6 +43,7 @@ import {
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import {
 	cloudOutline,
@@ -81,6 +82,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
+			scale: 1,
 		}
 	}
 
@@ -90,7 +92,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const cx = w / 2
 		const cy = h / 2
 
-		const strokeWidth = STROKE_SIZES[shape.props.size]
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
 		const isFilled = shape.props.fill !== 'none' // || shape.props.text.trim().length > 0
 
 		let body: Geometry2d
@@ -318,12 +320,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const labelSize = getLabelSize(this.editor, shape)
 		const minWidth = Math.min(100, w / 2)
-		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(minWidth, Math.max(1, w - 8))))
 		const minHeight = Math.min(
-			LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
+			LABEL_FONT_SIZES[shape.props.size] * shape.props.scale * TEXT_PROPS.lineHeight +
+				LABEL_PADDING * 2,
 			h / 2
 		)
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(minHeight, Math.max(1, w - 8)))) // not sure if bug
+
+		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(minWidth, Math.max(1, w - 8))))
+		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(minHeight, Math.max(1, w - 8))))
+
+		// not sure if bug
 
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
@@ -421,7 +427,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return (
 			<>
 				<SVGContainer id={id}>
-					<GeoShapeBody shape={shape} />
+					<GeoShapeBody shape={shape} shouldScale={true} />
 				</SVGContainer>
 				{showHtmlContainer && (
 					<HTMLContainer
@@ -435,8 +441,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							id={id}
 							type={type}
 							font={font}
-							fontSize={LABEL_FONT_SIZES[size]}
+							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
 							lineHeight={TEXT_PROPS.lineHeight}
+							padding={16 * shape.props.scale}
 							fill={fill}
 							align={align}
 							verticalAlign={verticalAlign}
@@ -488,7 +495,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				let path: string
 
 				if (props.dash === 'draw') {
-					const polygonPoints = getRoundedPolygonPoints(id, outline, 0, strokeWidth * 2, 1)
+					const polygonPoints = getRoundedPolygonPoints(
+						id,
+						outline,
+						0,
+						strokeWidth * 2 * shape.props.scale,
+						1
+					)
 					path = getRoundedInkyPolygonPath(polygonPoints)
 				} else {
 					path = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
@@ -508,15 +521,24 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
-		const { props } = shape
-		ctx.addExportDef(getFillDefForExport(shape.props.fill))
+		// We need to scale the shape to 1x for export
+		const newShape = {
+			...shape,
+			props: {
+				...shape.props,
+				w: shape.props.w / shape.props.scale,
+				h: shape.props.h / shape.props.scale,
+			},
+		}
+		const props = newShape.props
+		ctx.addExportDef(getFillDefForExport(props.fill))
 
 		let textEl
 		if (props.text) {
-			ctx.addExportDef(getFontDefForExport(shape.props.font))
+			ctx.addExportDef(getFontDefForExport(props.font))
 			const theme = getDefaultColorTheme(ctx)
 
-			const bounds = this.editor.getShapeGeometry(shape).bounds
+			const bounds = new Box(0, 0, props.w, props.h + props.growY)
 			textEl = (
 				<SvgTextLabel
 					fontSize={LABEL_FONT_SIZES[props.size]}
@@ -526,13 +548,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					text={props.text}
 					labelColor={theme[props.labelColor].solid}
 					bounds={bounds}
+					padding={16}
 				/>
 			)
 		}
 
 		return (
 			<>
-				<GeoShapeBody shape={shape} />
+				<GeoShapeBody shouldScale={false} shape={newShape} />
 				{textEl}
 			</>
 		)
@@ -782,8 +805,8 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 	const minSize = editor.textMeasure.measureText('w', {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
-		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		maxWidth: 100,
+		fontSize: LABEL_FONT_SIZES[shape.props.size] * shape.props.scale,
+		maxWidth: 100, // ?
 	})
 
 	// TODO: Can I get these from somewhere?
@@ -797,7 +820,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 	const size = editor.textMeasure.measureText(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
-		fontSize: LABEL_FONT_SIZES[shape.props.size],
+		fontSize: LABEL_FONT_SIZES[shape.props.size] * shape.props.scale,
 		minWidth: minSize.w,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0

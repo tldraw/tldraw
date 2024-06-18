@@ -2,6 +2,7 @@
 title: Custom style panel
 component: ./CustomStylePanelExample.tsx
 category: ui
+keywords: [components, ui]
 ---
 
 You can customize tldraw's style panel or remove it entirely.

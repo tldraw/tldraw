@@ -19,9 +19,9 @@ import {
 	sortByIndex,
 } from '@tldraw/editor'
 
-import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
 import { getDrawLinePathData } from './line-helpers'
 
@@ -49,6 +49,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				[start]: { id: start, index: start, x: 0, y: 0 },
 				[end]: { id: end, index: end, x: 0.1, y: 0.1 },
 			},
+			scale: 1,
 		}
 	}
 
@@ -129,7 +130,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = STROKE_SIZES[shape.props.size]
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
 		const spline = getGeometryForLineShape(shape)
 		const { dash } = shape.props
 
@@ -151,7 +152,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override toSvg(shape: TLLineShape) {
-		return <LineShapeSvg shape={shape} />
+		return <LineShapeSvg shouldScale shape={shape} />
 	}
 
 	override getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry {
@@ -204,12 +205,23 @@ export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Pol
 	}
 }
 
-function LineShapeSvg({ shape }: { shape: TLLineShape }) {
+function LineShapeSvg({
+	shape,
+	shouldScale = false,
+}: {
+	shape: TLLineShape
+	shouldScale?: boolean
+}) {
 	const theme = useDefaultColorTheme()
-	const spline = getGeometryForLineShape(shape)
-	const strokeWidth = STROKE_SIZES[shape.props.size]
 
-	const { dash, color } = shape.props
+	const spline = getGeometryForLineShape(shape)
+	const { dash, color, size } = shape.props
+
+	const scaleFactor = 1 / shape.props.scale
+
+	const scale = shouldScale ? scaleFactor : 1
+
+	const strokeWidth = STROKE_SIZES[size] * shape.props.scale
 
 	// Line style lines
 	if (shape.props.spline === 'line') {
@@ -218,61 +230,56 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 			const pathData = 'M' + outline[0] + 'L' + outline.slice(1)
 
 			return (
-				<>
-					<ShapeFill d={pathData} fill={'none'} color={color} theme={theme} />
-					<path d={pathData} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
-				</>
+				<path
+					d={pathData}
+					stroke={theme[color].solid}
+					strokeWidth={strokeWidth}
+					fill="none"
+					transform={`scale(${scale})`}
+				/>
 			)
 		}
 
 		if (dash === 'dashed' || dash === 'dotted') {
-			const outline = spline.points
-			const pathData = 'M' + outline[0] + 'L' + outline.slice(1)
-
 			return (
-				<>
-					<ShapeFill d={pathData} fill={'none'} color={color} theme={theme} />
-					<g stroke={theme[color].solid} strokeWidth={strokeWidth}>
-						{spline.segments.map((segment, i) => {
-							const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-								segment.length,
-								strokeWidth,
-								{
-									style: dash,
-									start: i > 0 ? 'outset' : 'none',
-									end: i < spline.segments.length - 1 ? 'outset' : 'none',
-								}
-							)
+				<g stroke={theme[color].solid} strokeWidth={strokeWidth} transform={`scale(${scale})`}>
+					{spline.segments.map((segment, i) => {
+						const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+							segment.length,
+							strokeWidth,
+							{
+								style: dash,
+								start: i > 0 ? 'outset' : 'none',
+								end: i < spline.segments.length - 1 ? 'outset' : 'none',
+							}
+						)
 
-							return (
-								<path
-									key={i}
-									strokeDasharray={strokeDasharray}
-									strokeDashoffset={strokeDashoffset}
-									d={segment.getSvgPathData(true)}
-									fill="none"
-								/>
-							)
-						})}
-					</g>
-				</>
+						return (
+							<path
+								key={i}
+								strokeDasharray={strokeDasharray}
+								strokeDashoffset={strokeDashoffset}
+								d={segment.getSvgPathData(true)}
+								fill="none"
+							/>
+						)
+					})}
+				</g>
 			)
 		}
 
 		if (dash === 'draw') {
 			const outline = spline.points
-			const [innerPathData, outerPathData] = getDrawLinePathData(shape.id, outline, strokeWidth)
+			const [_, outerPathData] = getDrawLinePathData(shape.id, outline, strokeWidth)
 
 			return (
-				<>
-					<ShapeFill d={innerPathData} fill={'none'} color={color} theme={theme} />
-					<path
-						d={outerPathData}
-						stroke={theme[color].solid}
-						strokeWidth={strokeWidth}
-						fill="none"
-					/>
-				</>
+				<path
+					d={outerPathData}
+					stroke={theme[color].solid}
+					strokeWidth={strokeWidth}
+					fill="none"
+					transform={`scale(${scale})`}
+				/>
 			)
 		}
 	}
@@ -281,55 +288,53 @@ function LineShapeSvg({ shape }: { shape: TLLineShape }) {
 		const splinePath = spline.getSvgPathData()
 		if (dash === 'solid') {
 			return (
-				<>
-					<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
-					<path strokeWidth={strokeWidth} stroke={theme[color].solid} fill="none" d={splinePath} />
-				</>
+				<path
+					strokeWidth={strokeWidth}
+					stroke={theme[color].solid}
+					fill="none"
+					d={splinePath}
+					transform={`scale(${scale})`}
+				/>
 			)
 		}
 
 		if (dash === 'dashed' || dash === 'dotted') {
 			return (
-				<>
-					<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
-					<g stroke={theme[color].solid} strokeWidth={strokeWidth}>
-						{spline.segments.map((segment, i) => {
-							const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-								segment.length,
-								strokeWidth,
-								{
-									style: dash,
-									start: i > 0 ? 'outset' : 'none',
-									end: i < spline.segments.length - 1 ? 'outset' : 'none',
-								}
-							)
+				<g stroke={theme[color].solid} strokeWidth={strokeWidth} transform={`scale(${scale})`}>
+					{spline.segments.map((segment, i) => {
+						const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+							segment.length,
+							strokeWidth,
+							{
+								style: dash,
+								start: i > 0 ? 'outset' : 'none',
+								end: i < spline.segments.length - 1 ? 'outset' : 'none',
+							}
+						)
 
-							return (
-								<path
-									key={i}
-									strokeDasharray={strokeDasharray}
-									strokeDashoffset={strokeDashoffset}
-									d={segment.getSvgPathData()}
-									fill="none"
-								/>
-							)
-						})}
-					</g>
-				</>
+						return (
+							<path
+								key={i}
+								strokeDasharray={strokeDasharray}
+								strokeDashoffset={strokeDashoffset}
+								d={segment.getSvgPathData()}
+								fill="none"
+							/>
+						)
+					})}
+				</g>
 			)
 		}
 
 		if (dash === 'draw') {
 			return (
-				<>
-					<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
-					<path
-						d={getLineDrawPath(shape, spline, strokeWidth)}
-						strokeWidth={1}
-						stroke={theme[color].solid}
-						fill={theme[color].solid}
-					/>
-				</>
+				<path
+					d={getLineDrawPath(shape, spline, strokeWidth)}
+					strokeWidth={1}
+					stroke={theme[color].solid}
+					fill={theme[color].solid}
+					transform={`scale(${scale})`}
+				/>
 			)
 		}
 	}

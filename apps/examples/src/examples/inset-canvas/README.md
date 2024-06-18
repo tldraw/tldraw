@@ -2,6 +2,7 @@
 title: Inset canvas
 component: ./InsetCanvasExample.tsx
 category: ui
+keywords: []
 ---
 
 Handling events when the canvas is inset within the editor.

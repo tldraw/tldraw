@@ -2,7 +2,7 @@ import { CreateRoomRequestBody, ROOM_PREFIX, Snapshot } from '@tldraw/dotcom-sha
 import { schema } from '@tldraw/tlsync'
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { TldrawUiButton } from 'tldraw'
+import { TldrawUiButton, fetch } from 'tldraw'
 import '../../styles/globals.css'
 import { getParentOrigin } from '../utils/iFrame'
 
