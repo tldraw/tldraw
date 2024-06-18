@@ -110,7 +110,7 @@ const CursorChatInput = track(function CursorChatInput({
 		const elm = ref.current
 		if (!elm) return
 
-		const textMeasurement = editor.textMeasure.measureText(value || placeholder, {
+		const textMeasurement = editor.textMeasure!.measureText(value || placeholder, {
 			fontFamily: 'var(--font-body)',
 			fontSize: 12,
 			fontWeight: '500',

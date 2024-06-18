@@ -139,7 +139,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			verticalTextAlign: 'middle' as const,
 		}
 
-		const spans = this.editor.textMeasure.measureTextSpans(
+		const spans = this.editor.textMeasure!.measureTextSpans(
 			defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
 			opts
 		)

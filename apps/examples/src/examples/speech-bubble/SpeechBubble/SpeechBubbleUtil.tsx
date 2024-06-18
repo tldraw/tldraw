@@ -226,7 +226,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
 		const PADDING = 17
 
-		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
+		const nextTextSize = this.editor.textMeasure!.measureText(shape.props.text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize: LABEL_FONT_SIZES[shape.props.size],

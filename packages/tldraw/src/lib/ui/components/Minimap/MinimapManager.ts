@@ -4,6 +4,7 @@ import {
 	Editor,
 	TLShape,
 	Vec,
+	assertExists,
 	atom,
 	clamp,
 	computed,
@@ -37,7 +38,8 @@ export class MinimapManager {
 	}
 
 	private _getColors() {
-		const style = getComputedStyle(this.editor.getContainer())
+		const container = assertExists(this.editor.getContainer(), 'editor must have container')
+		const style = getComputedStyle(container)
 
 		return {
 			shapeFill: getRgba(style.getPropertyValue('--color-text-3').trim()),

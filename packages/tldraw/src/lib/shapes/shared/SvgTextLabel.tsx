@@ -57,7 +57,8 @@ export function SvgTextLabel({
 		strokeWidth: undefined as number | undefined,
 	}
 
-	const spans = assertExists(editor.textMeasure).measureTextSpans(text, opts)
+	const textMeasure = assertExists(editor.textMeasure, 'SvgTextLabel requires text measurement')
+	const spans = textMeasure.measureTextSpans(text, opts)
 	const offsetX = getLegacyOffsetX(align, padding, spans, bounds.width)
 	if (offsetX) {
 		opts.offsetX = offsetX

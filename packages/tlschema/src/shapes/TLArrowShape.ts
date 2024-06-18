@@ -56,6 +56,7 @@ export const arrowShapeProps = {
 	text: T.string,
 	labelPosition: T.number,
 	scale: T.nonZeroNumber,
+	labelSize: vecModelValidator.nullable(),
 }
 
 /** @public */
@@ -70,6 +71,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddLabelPosition: 3,
 	ExtractBindings: 4,
 	AddScale: 5,
+	AddLabelSize: 6,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -206,6 +208,15 @@ export const arrowShapeMigrations = createMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		}),
+		propsMigration({
+			id: arrowShapeVersions.AddLabelSize,
+			up: (props) => {
+				props.labelSize = null
+			},
+			down: (props) => {
+				delete props.labelSize
 			},
 		}),
 	],

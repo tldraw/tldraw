@@ -21,6 +21,8 @@ import {
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
+	VecModel,
+	assertExists,
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
@@ -83,6 +85,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			growY: 0,
 			url: '',
 			scale: 1,
+			labelSize: { x: 0, y: 0 },
 		}
 	}
 
@@ -326,8 +329,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			h / 2
 		)
 
-		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(minWidth, Math.max(1, w - 8))))
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(minHeight, Math.max(1, w - 8))))
+		const labelWidth = Math.min(w, Math.max(labelSize.x, Math.min(minWidth, Math.max(1, w - 8))))
+		const labelHeight = Math.min(h, Math.max(labelSize.y, Math.min(minHeight, Math.max(1, w - 8))))
 
 		// not sure if bug
 
@@ -597,8 +600,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				},
 			})
 
-			const nextW = Math.max(Math.abs(w), labelSize.w) * Math.sign(w)
-			const nextH = Math.max(Math.abs(h), labelSize.h) * Math.sign(h)
+			const nextW = Math.max(Math.abs(w), labelSize.x) * Math.sign(w)
+			const nextH = Math.max(Math.abs(h), labelSize.y) * Math.sign(h)
 			overShrinkX = Math.abs(nextW) - Math.abs(w)
 			overShrinkY = Math.abs(nextH) - Math.abs(h)
 
@@ -641,6 +644,19 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
+	override onMeasure(shape: TLGeoShape) {
+		if (shape.props.text === '') return
+		const size = measureLabelSize(this.editor, shape)
+		if (shape.props.labelSize && Vec.Equals(shape.props.labelSize, size)) return
+		return {
+			id: shape.id,
+			type: shape.type,
+			props: {
+				labelSize: size,
+			},
+		}
+	}
+
 	override onBeforeCreate = (shape: TLGeoShape) => {
 		if (!shape.props.text) {
 			if (shape.props.growY) {
@@ -659,7 +675,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		const prevHeight = shape.props.h
-		const nextHeight = getLabelSize(this.editor, shape).h
+		const nextHeight = getLabelSize(this.editor, shape).y
 
 		let growY: number | null = null
 
@@ -707,8 +723,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const prevWidth = prev.props.w
 		const prevHeight = prev.props.h
 		const nextSize = getLabelSize(this.editor, next)
-		const nextWidth = nextSize.w
-		const nextHeight = nextSize.h
+		const nextWidth = nextSize.x
+		const nextHeight = nextSize.y
 
 		// When entering the first character in a label (not pasting in multiple characters...)
 		if (!prevText && nextText && nextText.length === 1) {
@@ -796,13 +812,21 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 }
 
 function getLabelSize(editor: Editor, shape: TLGeoShape) {
+	if (!shape.props.text) return { x: 0, y: 0 }
+	if (shape.props.labelSize) return shape.props.labelSize
+	if (editor.textMeasure) return measureLabelSize(editor, shape)
+	return { x: 0, y: 0 }
+}
+
+function measureLabelSize(editor: Editor, shape: TLGeoShape): VecModel {
 	const text = shape.props.text
 
 	if (!text) {
-		return { w: 0, h: 0 }
+		return { x: 0, y: 0 }
 	}
 
-	const minSize = editor.textMeasure.measureText('w', {
+	const textMeasure = assertExists(editor.textMeasure)
+	const minSize = textMeasure.measureText('w', {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size] * shape.props.scale,
@@ -817,7 +841,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		xl: 10,
 	}
 
-	const size = editor.textMeasure.measureText(text, {
+	const size = textMeasure.measureText(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size] * shape.props.scale,
@@ -833,7 +857,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 	})
 
 	return {
-		w: size.w + LABEL_PADDING * 2,
-		h: size.h + LABEL_PADDING * 2,
+		x: size.w + LABEL_PADDING * 2,
+		y: size.h + LABEL_PADDING * 2,
 	}
 }

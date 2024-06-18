@@ -361,7 +361,7 @@ describe('currentToolId', () => {
 describe('isFocused', () => {
 	beforeEach(() => {
 		// lame but duplicated here since this was moved into a hook
-		const container = editor.getContainer()
+		const container = editor.getContainer()!
 
 		const updateFocus = debounce(() => {
 			const { activeElement } = document

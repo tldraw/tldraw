@@ -46,7 +46,7 @@ import {
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
-import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
+import { getArrowLabelFontSize, getArrowLabelPosition, measureArrowLabelSize } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
 import {
 	getCurvedArrowHandlePath,
@@ -109,6 +109,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			labelPosition: 0.5,
 			font: 'draw',
 			scale: 1,
+			labelSize: { x: 0, y: 0 },
 		}
 	}
 
@@ -147,6 +148,19 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return new Group2d({
 			children: [...(labelGeom ? [bodyGeom, labelGeom] : [bodyGeom]), ...debugGeom],
 		})
+	}
+
+	override onMeasure(shape: TLArrowShape): void | TLArrowShape {
+		if (!shape.props.text) return
+		const measured = measureArrowLabelSize(this.editor, shape)
+		if (shape.props.labelSize && Vec.Equals(measured, shape.props.labelSize)) return
+		return {
+			...shape,
+			props: {
+				...shape.props,
+				labelSize: measured,
+			},
+		}
 	}
 
 	override getHandles(shape: TLArrowShape): TLHandle[] {

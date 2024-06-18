@@ -310,7 +310,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @returns The updated shape if needed.
 	 */
-	onMeasure?(shape: Shape): Shape | void
+	onMeasure?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called just before a shape is created. This method provides a last chance to modify

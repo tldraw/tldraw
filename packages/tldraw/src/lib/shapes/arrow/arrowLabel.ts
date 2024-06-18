@@ -9,6 +9,7 @@ import {
 	TLArrowShape,
 	Vec,
 	VecLike,
+	VecModel,
 	angleDistance,
 	assertExists,
 	clamp,
@@ -25,15 +26,17 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { TLArrowInfo } from './arrow-types'
-import { getArrowInfo } from './shared'
+import { getArrowInfo, getArrowInfoUncached } from './shared'
 
-const labelSizeCache = new WeakMap<TLArrowShape, Vec>()
+const labelSizeCache = new WeakMap<TLArrowShape['props'], VecModel>()
 
-function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
-	const cachedSize = labelSizeCache.get(shape)
+export function measureArrowLabelSize(editor: Editor, shape: TLArrowShape): VecModel {
+	const cachedSize = labelSizeCache.get(shape.props)
 	if (cachedSize) return cachedSize
 
-	const info = getArrowInfo(editor, shape)!
+	const textMeasure = assertExists(editor.textMeasure, 'missing text measurement')
+
+	const info = getArrowInfoUncached(editor, shape)!
 	let width = 0
 	let height = 0
 
@@ -55,7 +58,7 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 
 		const fontSize = getArrowLabelFontSize(shape)
 
-		const { w, h } = assertExists(editor.textMeasure).measureText(shape.props.text, {
+		const { w, h } = textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize,
@@ -68,15 +71,12 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 		if (bodyBounds.width > bodyBounds.height) {
 			width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
 
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-				shape.props.text,
-				{
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize,
-					maxWidth: width,
-				}
-			)
+			const { w: squishedWidth, h: squishedHeight } = textMeasure.measureText(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize,
+				maxWidth: width,
+			})
 
 			width = squishedWidth
 			height = squishedHeight
@@ -85,24 +85,29 @@ function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
 		if (width > 16 * fontSize) {
 			width = 16 * fontSize
 
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-				shape.props.text,
-				{
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize,
-					maxWidth: width,
-				}
-			)
+			const { w: squishedWidth, h: squishedHeight } = textMeasure.measureText(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize,
+				maxWidth: width,
+			})
 
 			width = squishedWidth
 			height = squishedHeight
 		}
 	}
 
-	const size = new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
-	labelSizeCache.set(shape, size)
+	const size = new Vec(width, height)
+		.addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
+		.toJson()
+	labelSizeCache.set(shape.props, size)
 	return size
+}
+
+function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
+	if (shape.props.labelSize) return shape.props.labelSize
+	if (editor.textMeasure) return measureArrowLabelSize(editor, shape)
+	return new Vec(1, 1)
 }
 
 function getLabelToArrowPadding(shape: TLArrowShape) {
