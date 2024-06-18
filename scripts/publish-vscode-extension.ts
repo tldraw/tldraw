@@ -34,6 +34,7 @@ async function updateExtensionVersion() {
 }
 
 async function packageAndPublish() {
+	await exec('yarn', ['build'])
 	await exec('yarn', ['package'], { pwd: EXTENSION_DIR })
 	await exec('yarn', ['publish'], { pwd: EXTENSION_DIR })
 }
