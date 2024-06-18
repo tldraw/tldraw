@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/docs",
 	"description": "A docs site for tldraw.",
-	"version": "2.0.0-beta.2",
+	"version": "2.0.0-next",
 	"private": true,
 	"author": {
 		"name": "tldraw Inc.",
