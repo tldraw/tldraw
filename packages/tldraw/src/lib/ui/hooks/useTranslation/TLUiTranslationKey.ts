@@ -140,6 +140,7 @@ export type TLUiTranslationKey =
 	| 'fill-style.semi'
 	| 'fill-style.solid'
 	| 'fill-style.pattern'
+	| 'fill-style.fill'
 	| 'dash-style.dashed'
 	| 'dash-style.dotted'
 	| 'dash-style.draw'

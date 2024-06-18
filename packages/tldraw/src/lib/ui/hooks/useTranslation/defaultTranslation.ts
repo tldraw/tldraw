@@ -140,6 +140,7 @@ export const DEFAULT_TRANSLATION = {
 	'fill-style.semi': 'Semi',
 	'fill-style.solid': 'Solid',
 	'fill-style.pattern': 'Pattern',
+	'fill-style.fill': 'Fill',
 	'dash-style.dashed': 'Dashed',
 	'dash-style.dotted': 'Dotted',
 	'dash-style.draw': 'Draw',
