@@ -151,17 +151,27 @@ export class Drawing extends StateNode {
 
 	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle) {
 		if (!this.canClose()) return false
-
 		const strokeWidth = STROKE_SIZES[size]
-		const firstPoint = this.editor.pageToScreen(segments[0].points[0])
 		const lastSegment = segments[segments.length - 1]
-		const lastPoint = this.editor.pageToScreen(lastSegment.points[lastSegment.points.length - 1])
-
-		return (
-			firstPoint !== lastPoint &&
-			this.currentLineLength > strokeWidth * 4 &&
-			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2)
-		)
+		if (this.editor.user.getUserPreferences().isDynamicResizeMode) {
+			const firstPoint = this.editor.pageToViewport(segments[0].points[0])
+			const lastPoint = this.editor.pageToViewport(
+				lastSegment.points[lastSegment.points.length - 1]
+			)
+			return (
+				firstPoint !== lastPoint &&
+				this.currentLineLength > strokeWidth * 4 &&
+				Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2)
+			)
+		} else {
+			const firstPoint = segments[0].points[0]
+			const lastPoint = lastSegment.points[lastSegment.points.length - 1]
+			return (
+				firstPoint !== lastPoint &&
+				this.currentLineLength > strokeWidth * 4 &&
+				Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2)
+			)
+		}
 	}
 
 	private startShape() {
