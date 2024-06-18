@@ -2,6 +2,7 @@
 title: Custom zoom menu
 component: ./CustomZoomMenuExample.tsx
 category: ui
+keywords: [components, ui]
 ---
 
 You can customize tldraw's zoom menu.

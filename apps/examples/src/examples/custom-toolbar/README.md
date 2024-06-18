@@ -2,6 +2,7 @@
 title: Custom toolbar
 component: ./CustomToolbarExample.tsx
 category: ui
+keywords: [components, ui]
 ---
 
 You can customize tldraw's toolbar or remove it entirely.

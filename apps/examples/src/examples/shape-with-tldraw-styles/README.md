@@ -3,6 +3,7 @@ title: Using tldraw styles
 component: ./ShapeWithTldrawStylesExample.tsx
 category: shapes/tools
 priority: 1
+keywords: [default styles, style panel]
 ---
 
 Using the tldraw style panel with your custom shapes

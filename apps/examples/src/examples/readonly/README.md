@@ -3,6 +3,7 @@ title: Read-only
 component: ./ReadOnlyExample
 category: basic
 priority: 3
+keywords: [read, only mode]
 ---
 
 Use the editor in readonly mode.

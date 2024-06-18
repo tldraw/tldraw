@@ -3,6 +3,7 @@ title: User presence
 component: ./UserPresenceExample.tsx
 category: collaboration
 priority: 2
+keywords: [Instance presence record, cursor]
 ---
 
 Show other users editing the same document.

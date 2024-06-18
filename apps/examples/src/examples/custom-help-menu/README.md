@@ -2,6 +2,7 @@
 title: Custom help menu
 component: ./CustomHelpMenuExample.tsx
 category: ui
+keywords: [components, ui]
 ---
 
 You can customize tldraw's help menu.

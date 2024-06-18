@@ -2,6 +2,7 @@
 title: Custom navigation panel
 component: ./CustomNavigationPanelExample.tsx
 category: ui
+keywords: [components, ui]
 ---
 
 You can customize tldraw's navigation panel or remove it entirely.
