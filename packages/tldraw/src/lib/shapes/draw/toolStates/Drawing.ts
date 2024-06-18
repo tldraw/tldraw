@@ -642,6 +642,8 @@ export class Drawing extends StateNode {
 
 					const newShapeId = createShapeId()
 
+					const props = this.editor.getShape<DrawableShape>(id)!.props
+
 					this.editor.createShapes<DrawableShape>([
 						{
 							id: newShapeId,
@@ -650,6 +652,7 @@ export class Drawing extends StateNode {
 							y: toFixed(inputs.currentPagePoint.y),
 							props: {
 								isPen: this.isPenOrStylus,
+								scale: props.scale,
 								segments: [
 									{
 										type: 'free',
