@@ -650,6 +650,9 @@ export class Drawing extends StateNode {
 							y: toFixed(inputs.currentPagePoint.y),
 							props: {
 								isPen: this.isPenOrStylus,
+								scale: this.editor.user.getIsDynamicResizeMode()
+									? 1 / this.editor.getZoomLevel()
+									: 1,
 								segments: [
 									{
 										type: 'free',
