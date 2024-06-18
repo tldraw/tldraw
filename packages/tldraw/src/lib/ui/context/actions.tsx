@@ -1,6 +1,7 @@
 import {
 	Box,
 	DefaultColorStyle,
+	DefaultFillStyle,
 	Editor,
 	HALF_PI,
 	PageRecordType,
@@ -1355,9 +1356,24 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							editor.setStyleForSelectedShapes(style, 'white')
 						}
 						editor.setStyleForNextShapes(style, 'white')
-						editor.updateInstanceState({ isChangingStyle: true })
 					})
 					trackEvent('set-style', { source, id: style.id, value: 'white' })
+				},
+			},
+			{
+				id: 'select-fill-fill',
+				label: 'fill-style.fill',
+				kbd: '?f',
+				onSelect(source) {
+					const style = DefaultFillStyle
+					editor.batch(() => {
+						editor.mark('change-fill')
+						if (editor.isIn('select')) {
+							editor.setStyleForSelectedShapes(style, 'fill')
+						}
+						editor.setStyleForNextShapes(style, 'fill')
+					})
+					trackEvent('set-style', { source, id: style.id, value: 'fill' })
 				},
 			},
 			{
