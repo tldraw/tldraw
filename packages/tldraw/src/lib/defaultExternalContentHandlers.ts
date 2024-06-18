@@ -450,14 +450,15 @@ export async function createShapesForAssets(
 	const currentPoint = Vec.From(position)
 	const partials: TLShapePartial[] = []
 
-	for (const asset of assets) {
+	for (let i = 0; i < assets.length; i++) {
+		const asset = assets[i]
 		switch (asset.type) {
 			case 'bookmark': {
 				partials.push({
 					id: createShapeId(),
 					type: 'bookmark',
-					x: currentPoint.x - 150,
-					y: currentPoint.y - 160,
+					x: currentPoint.x,
+					y: currentPoint.y,
 					opacity: 1,
 					props: {
 						assetId: asset.id,
@@ -465,15 +466,15 @@ export async function createShapesForAssets(
 					},
 				})
 
-				currentPoint.x += 300
+				currentPoint.x += 300 // BOOKMARK_WIDTH
 				break
 			}
 			case 'image': {
 				partials.push({
 					id: createShapeId(),
 					type: 'image',
-					x: currentPoint.x - asset.props.w / 2,
-					y: currentPoint.y - asset.props.h / 2,
+					x: currentPoint.x,
+					y: currentPoint.y,
 					opacity: 1,
 					props: {
 						assetId: asset.id,
@@ -489,8 +490,8 @@ export async function createShapesForAssets(
 				partials.push({
 					id: createShapeId(),
 					type: 'video',
-					x: currentPoint.x - asset.props.w / 2,
-					y: currentPoint.y - asset.props.h / 2,
+					x: currentPoint.x,
+					y: currentPoint.y,
 					opacity: 1,
 					props: {
 						assetId: asset.id,
