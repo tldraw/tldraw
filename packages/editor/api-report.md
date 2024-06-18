@@ -893,6 +893,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
     edgeScrollManager: EdgeScrollManager;
+    // @internal
+    ensureBindingValid(binding: TLUnknownBinding): boolean;
     readonly environment: EnvironmentManager;
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -1104,6 +1106,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
+    // (undocumented)
+    isBindingValid(binding: TLUnknownBinding): boolean;
     isDisposed: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
