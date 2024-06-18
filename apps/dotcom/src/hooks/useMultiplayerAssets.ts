@@ -35,11 +35,7 @@ export function useMultiplayerAssets(assetUploaderUrl: string) {
 
 			if (isImageType) {
 				size = await MediaHelpers.getImageSize(file)
-				if (MediaHelpers.isAnimatedImageType(file.type)) {
-					isAnimated = true // await getIsGifAnimated(file) todo export me from editor
-				} else {
-					isAnimated = false
-				}
+				isAnimated = await MediaHelpers.isAnimated(file)
 			} else {
 				isAnimated = true
 				size = await MediaHelpers.getVideoSize(file)
