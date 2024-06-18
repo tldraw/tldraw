@@ -153,9 +153,9 @@ export class Drawing extends StateNode {
 		if (!this.canClose()) return false
 
 		const strokeWidth = STROKE_SIZES[size]
-		const firstPoint = segments[0].points[0]
+		const firstPoint = this.editor.pageToScreen(segments[0].points[0])
 		const lastSegment = segments[segments.length - 1]
-		const lastPoint = lastSegment.points[lastSegment.points.length - 1]
+		const lastPoint = this.editor.pageToScreen(lastSegment.points[lastSegment.points.length - 1])
 
 		return (
 			firstPoint !== lastPoint &&
