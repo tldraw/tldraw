@@ -7,15 +7,16 @@ import {
 	TLAssetId,
 	TLBookmarkShape,
 	TLEmbedShape,
+	TLImageAsset,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
+	TLVideoAsset,
 	Vec,
 	VecLike,
 	WeakCache,
 	assert,
-	compact,
 	createShapeId,
 	fetch,
 	getHashForBuffer,
@@ -53,9 +54,7 @@ export function registerDefaultExternalContentHandlers(
 	persistenceKey?: string
 ) {
 	// files -> asset
-	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
-		const name = _file.name
-		let file: Blob = _file
+	editor.registerExternalAssetHandler('file', async ({ file }) => {
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 
@@ -65,47 +64,29 @@ export function registerDefaultExternalContentHandlers(
 			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
 		)
 
-		if (file.type === 'video/quicktime') {
-			// hack to make .mov videos work
-			file = new Blob([file], { type: 'video/mp4' })
-		}
-
-		let size = isImageType
-			? await MediaHelpers.getImageSize(file)
-			: await MediaHelpers.getVideoSize(file)
-
-		const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
-
 		const hash = await getHashForBuffer(await file.arrayBuffer())
+		const assetId: TLAssetId = AssetRecordType.createId(hash)
+		const assetInfo = (await createMediaAssetInfoSkeleton(
+			file,
+			assetId,
+			isImageType,
+			isVideoType
+		)) as TLImageAsset | TLVideoAsset
 
 		if (isFinite(maxImageDimension)) {
+			const size = { w: assetInfo.props.w, h: assetInfo.props.h }
 			const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
 			if (size !== resizedSize && MediaHelpers.isStaticImageType(file.type)) {
-				size = resizedSize
+				assetInfo.props.w = resizedSize.w
+				assetInfo.props.h = resizedSize.h
 			}
 		}
 
-		const assetId: TLAssetId = AssetRecordType.createId(hash)
-		const assetInfo = {
-			id: assetId,
-			type: isImageType ? 'image' : 'video',
-			typeName: 'asset',
-			props: {
-				name,
-				src: '',
-				w: size.w,
-				h: size.h,
-				fileSize: file.size,
-				mimeType: file.type,
-				isAnimated,
-			},
-		} as TLAsset
-
 		if (persistenceKey) {
-			assetInfo.props.src = assetId
+			assetInfo.props.src = assetInfo.id
 			await storeAssetInIndexedDb({
 				persistenceKey,
-				assetId,
+				assetId: assetInfo.id,
 				blob: file,
 			})
 		} else {
@@ -238,53 +219,74 @@ export function registerDefaultExternalContentHandlers(
 				: editor.getViewportPageBounds().center)
 
 		const pagePoint = new Vec(position.x, position.y)
-
 		const assets: TLAsset[] = []
+		const assetsToUpdate: { asset: TLAsset; file: File }[] = []
+		for (const file of files) {
+			if (file.size > maxAssetSize) {
+				console.warn(
+					`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
+						maxAssetSize / 1024
+					).toFixed()}kb`
+				)
+				continue
+			}
 
-		await Promise.all(
-			files.map(async (file, i) => {
-				if (file.size > maxAssetSize) {
-					console.warn(
-						`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
-							maxAssetSize / 1024
-						).toFixed()}kb`
-					)
-					return null
-				}
+			// Use mime type instead of file ext, this is because
+			// window.navigator.clipboard does not preserve file names
+			// of copied files.
+			if (!file.type) {
+				toasts.addToast({
+					title: msg('assets.files.upload-failed'),
+					severity: 'error',
+				})
+				console.error('No mime type')
+				continue
+			}
 
-				// Use mime type instead of file ext, this is because
-				// window.navigator.clipboard does not preserve file names
-				// of copied files.
-				if (!file.type) {
-					throw new Error('No mime type')
-				}
+			// We can only accept certain extensions (either images or a videos)
+			if (!acceptedImageMimeTypes.concat(acceptedVideoMimeTypes).includes(file.type)) {
+				console.warn(`${file.name} not loaded - Extension not allowed.`)
+				continue
+			}
 
-				// We can only accept certain extensions (either images or a videos)
-				if (!acceptedImageMimeTypes.concat(acceptedVideoMimeTypes).includes(file.type)) {
-					console.warn(`${file.name} not loaded - Extension not allowed.`)
-					return null
-				}
+			const isImageType = acceptedImageMimeTypes.includes(file.type)
+			const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+			const hash = await getHashForBuffer(await file.arrayBuffer())
+			const assetId: TLAssetId = AssetRecordType.createId(hash)
+			const assetInfo = await createMediaAssetInfoSkeleton(file, assetId, isImageType, isVideoType)
+			if (isImageType) {
+				editor.registerTemporaryAssetPreview(assetId, file)
+			}
+			assets.push(assetInfo)
+			assetsToUpdate.push({ asset: assetInfo, file })
+		}
 
+		Promise.allSettled(
+			assetsToUpdate.map(async (assetAndFile) => {
 				try {
-					const asset = await editor.getAssetForExternalContent({ type: 'file', file })
+					const newAsset = await editor.getAssetForExternalContent({
+						type: 'file',
+						file: assetAndFile.file,
+					})
 
-					if (!asset) {
+					if (!newAsset) {
 						throw Error('Could not create an asset')
 					}
 
-					assets[i] = asset
+					// Save the new asset under the old asset's id
+					editor.updateAssets([{ ...newAsset, id: assetAndFile.asset.id }])
 				} catch (error) {
 					toasts.addToast({
 						title: msg('assets.files.upload-failed'),
 						severity: 'error',
 					})
 					console.error(error)
-					return null
+					return
 				}
 			})
 		)
 
-		createShapesForAssets(editor, compact(assets), pagePoint)
+		createShapesForAssets(editor, assets, pagePoint)
 	})
 
 	// text
@@ -440,6 +442,45 @@ export function registerDefaultExternalContentHandlers(
 	})
 }
 
+/** @public */
+export async function createMediaAssetInfoSkeleton(
+	file: File,
+	assetId: TLAssetId,
+	isImageType: boolean,
+	isVideoType: boolean
+) {
+	let fileType = file.type
+
+	if (file.type === 'video/quicktime') {
+		// hack to make .mov videos work
+		fileType = 'video/mp4'
+	}
+
+	const size = isImageType
+		? await MediaHelpers.getImageSize(file)
+		: await MediaHelpers.getVideoSize(file)
+
+	const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
+
+	const assetInfo = {
+		id: assetId,
+		type: isImageType ? 'image' : 'video',
+		typeName: 'asset',
+		props: {
+			name: file.name,
+			src: '',
+			w: size.w,
+			h: size.h,
+			fileSize: file.size,
+			mimeType: fileType,
+			isAnimated,
+		},
+		meta: {},
+	} as TLAsset
+
+	return assetInfo
+}
+
 export async function createShapesForAssets(
 	editor: Editor,
 	assets: TLAsset[],
@@ -453,22 +494,6 @@ export async function createShapesForAssets(
 	for (let i = 0; i < assets.length; i++) {
 		const asset = assets[i]
 		switch (asset.type) {
-			case 'bookmark': {
-				partials.push({
-					id: createShapeId(),
-					type: 'bookmark',
-					x: currentPoint.x,
-					y: currentPoint.y,
-					opacity: 1,
-					props: {
-						assetId: asset.id,
-						url: asset.props.src,
-					},
-				})
-
-				currentPoint.x += 300 // BOOKMARK_WIDTH
-				break
-			}
 			case 'image': {
 				partials.push({
 					id: createShapeId(),

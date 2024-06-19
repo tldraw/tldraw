@@ -11,7 +11,10 @@ export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackground'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
-export { type TLExternalContentProps } from './lib/defaultExternalContentHandlers'
+export {
+	createMediaAssetInfoSkeleton,
+	type TLExternalContentProps,
+} from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { defaultTools } from './lib/defaultTools'

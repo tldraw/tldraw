@@ -1,10 +1,7 @@
 import { TLAsset, fetch, getAssetFromIndexedDb } from 'tldraw'
+import { createAssetFromFile } from './createAssetFromFile'
 
-export async function cloneAssetForShare(
-	asset: TLAsset,
-	uploadFileToAsset: (file: File) => Promise<TLAsset>,
-	persistenceKey: string
-): Promise<TLAsset> {
+export async function cloneAssetForShare(asset: TLAsset, persistenceKey: string): Promise<TLAsset> {
 	if (asset.type === 'bookmark') return asset
 
 	if (asset.props.src) {
@@ -28,7 +25,7 @@ export async function cloneAssetForShare(
 			})
 		}
 
-		const uploadedAsset = await uploadFileToAsset(file)
+		const uploadedAsset = await createAssetFromFile({ type: 'file', file })
 
 		return {
 			...asset,

@@ -63,8 +63,17 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedSrc, setLoadedSrc] = useState('')
+		const [temporarySrc, setTemporarySrc] = useState('')
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+
+		useEffect(() => {
+			if (!asset) return
+			const temporaryAssetPreview = this.editor.getTemporaryAssetPreview(asset.id)
+			if (!asset.props.src && temporaryAssetPreview) {
+				setTemporarySrc(temporaryAssetPreview)
+			}
+		}, [asset])
 
 		useEffect(() => {
 			// We preload the image because we might have different source urls for different
@@ -78,6 +87,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				image.onload = () => {
 					if (cancelled) return
 					setLoadedSrc(url)
+					URL.revokeObjectURL(temporarySrc)
+					setTemporarySrc('')
 				}
 				image.src = url
 
@@ -85,7 +96,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [url, shape])
+		}, [url, temporarySrc, shape])
 
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {
@@ -105,6 +116,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
 					setLoadedSrc(url)
+					URL.revokeObjectURL(temporarySrc)
+					setTemporarySrc('')
 				}
 				image.crossOrigin = 'anonymous'
 				image.src = url
@@ -113,7 +126,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, url, shape])
+		}, [prefersReducedMotion, temporarySrc, url, shape])
 
 		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")
@@ -126,6 +139,26 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			prefersReducedMotion && (asset?.props.mimeType?.includes('video') || this.isAnimated(shape))
 
 		const containerStyle = getCroppedContainerStyle(shape)
+
+		if (temporarySrc) {
+			return (
+				<>
+					<HTMLContainer
+						id={shape.id}
+						style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+					>
+						<div className="tl-image-container" style={{ opacity: 0.5 }}>
+							<img
+								className="tl-image"
+								src={temporarySrc}
+								referrerPolicy="strict-origin-when-cross-origin"
+								draggable={false}
+							/>
+						</div>
+					</HTMLContainer>
+				</>
+			)
+		}
 
 		// This is specifically `asset?.props.src` and not `url` because we're looking for broken assets.
 		if (!asset?.props.src) {

@@ -1056,6 +1056,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         svg: string;
         width: number;
     } | undefined>;
+    getTemporaryAssetPreview(assetId: TLAssetId): string;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): {
         backgroundIndex: number;
@@ -1142,6 +1143,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent['type']>(type: T, handler: ((info: T extends TLExternalContent['type'] ? TLExternalContent & {
         type: T;
     } : TLExternalContent) => void) | null): this;
+    registerTemporaryAssetPreview(assetId: TLAssetId, file: File): void;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
@@ -1199,6 +1201,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     styleProps: {
         [key: string]: Map<StyleProp<any>, string>;
     };
+    // @internal (undocumented)
+    temporaryAssetPreview: Record<TLAssetId, string>;
     readonly textMeasure: TextManager;
     readonly timers: Timers;
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
