@@ -1,4 +1,4 @@
-import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
+import { ROOM_OPEN_MODE, type RoomOpenMode } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
@@ -22,7 +22,7 @@ import {
 	useActions,
 	useValue,
 } from 'tldraw'
-import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
+import { useAlexSyncClient } from '../AlexSyncClient'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
 import { resolveAsset } from '../utils/assetHandler'
 import { assetUrls } from '../utils/assetUrls'
@@ -113,9 +113,9 @@ export function MultiplayerEditor({
 }) {
 	const handleUiEvent = useHandleUiEvents()
 
-	const storeWithStatus = useRemoteSyncClient({
-		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
-		roomId: roomSlug,
+	const storeWithStatus = useAlexSyncClient({
+		uri: `${MULTIPLAYER_SERVER}/alex-sync/${roomSlug}`,
+		// roomId: roomSlug,
 	})
 
 	const isOffline =

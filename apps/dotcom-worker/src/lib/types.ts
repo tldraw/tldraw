@@ -1,5 +1,7 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
+import { type AlexSyncDO } from './AlexSyncDO'
+
 // This type isn't available in @cloudflare/workers-types yet
 export interface Analytics {
 	writeDataPoint(data: {
@@ -12,6 +14,7 @@ export interface Analytics {
 export interface Environment {
 	// bindings
 	TLDR_DOC: DurableObjectNamespace
+	ALEX_SYNC: DurableObjectNamespace<AlexSyncDO>
 	MEASURE: Analytics | undefined
 
 	ROOMS: R2Bucket

@@ -442,7 +442,7 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof TextShapeTool)[];
+export const defaultShapeTools: (typeof ArrowShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];

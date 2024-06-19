@@ -193,7 +193,7 @@ export interface TLEditorOptions {
 	 * Should return a containing html element which has all the styles applied to the editor. If not
 	 * given, the body element will be used.
 	 */
-	getContainer: () => HTMLElement
+	getContainer: () => HTMLElement | null
 	/**
 	 * A user defined externally to replace the default user.
 	 */

@@ -8,6 +8,12 @@ export {
 	type RoomOpenMode,
 } from './routes'
 export type {
+	ASClientMessage,
+	ASLoadClientMessage,
+	ASLoadServerMessage,
+	ASServerMessage,
+	ASUpdateClientMessage,
+	ASUpdateServerMessage,
 	CreateRoomRequestBody,
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,

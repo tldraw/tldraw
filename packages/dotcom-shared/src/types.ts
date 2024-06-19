@@ -1,4 +1,4 @@
-import { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
+import { RecordsDiff, SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 
 export interface Snapshot {
 	schema: SerializedSchema
@@ -30,3 +30,30 @@ export interface GetReadonlySlugResponseBody {
 	slug: string
 	isLegacy: boolean
 }
+
+export interface ASLoadServerMessage {
+	type: 'load'
+	snapshot: SerializedStore<TLRecord>
+}
+
+export interface ASUpdateServerMessage {
+	type: 'update'
+	clientId: string
+	clientVersion: number
+	changes: RecordsDiff<TLRecord>
+}
+
+export type ASServerMessage = ASLoadServerMessage | ASUpdateServerMessage
+
+export interface ASLoadClientMessage {
+	type: 'load'
+}
+
+export interface ASUpdateClientMessage {
+	type: 'update'
+	clientId: string
+	clientVersion: number
+	changes: RecordsDiff<TLRecord>
+}
+
+export type ASClientMessage = ASLoadClientMessage | ASUpdateClientMessage

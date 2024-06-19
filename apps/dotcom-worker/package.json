@@ -31,18 +31,20 @@
 		"esbuild": "^0.18.4",
 		"itty-router": "^4.0.13",
 		"nanoid": "4.0.2",
+		"partysocket": "^1.0.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"strip-ansi": "^7.1.0",
+		"tldraw": "workspace:*",
 		"toucan-js": "^2.7.0"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20230821.0",
+		"@cloudflare/workers-types": "^4.20240614.0",
 		"concurrently": "^8.2.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"picocolors": "^1.0.0",
 		"typescript": "^5.3.3",
-		"wrangler": "3.19.0"
+		"wrangler": "3.61.0"
 	},
 	"jest": {
 		"preset": "config/jest/node",

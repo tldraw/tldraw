@@ -2679,7 +2679,7 @@ export interface TLEditorOptions {
     autoFocus?: boolean;
     bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[];
     cameraOptions?: Partial<TLCameraOptions>;
-    getContainer: () => HTMLElement;
+    getContainer: () => HTMLElement | null;
     inferDarkMode?: boolean;
     initialState?: string;
     // (undocumented)

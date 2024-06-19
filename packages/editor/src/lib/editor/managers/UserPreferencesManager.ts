@@ -9,7 +9,7 @@ export class UserPreferencesManager {
 		private readonly user: TLUser,
 		private readonly inferDarkMode: boolean
 	) {
-		if (window) {
+		if (typeof window !== 'undefined') {
 			const darkModeMediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
 			if (darkModeMediaQuery?.matches) {
 				this.systemColorScheme.set('dark')
