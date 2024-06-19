@@ -19,6 +19,10 @@ new_classes = ["TLProWorkspaceDurableObject"]
 tag = "v3"
 deleted_classes = ["TLProWorkspaceDurableObject"]
 
+[[migrations]]
+tag = "v4"
+new_classes = ["AlexSyncDO"]
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 

@@ -161,7 +161,7 @@ class AlexSyncClient {
 				appliedUpdate ? squashRecordDiffs([appliedUpdate.changes, toRollForward]) : toRollForward
 			)
 
-			const totalDiff = tryMergeUpdates(
+			const totalDiff = mergeNoOpUpdates(
 				squashRecordDiffs([
 					// roll back...
 					toRollBack,
@@ -171,8 +171,6 @@ class AlexSyncClient {
 					toRollForward,
 				])
 			)
-
-			console.log({ changes, totalDiff })
 
 			if (totalDiff) {
 				this.store.mergeRemoteChanges(() => {
@@ -190,7 +188,7 @@ class AlexSyncClient {
 	}
 }
 
-function tryMergeUpdates(diff: RecordsDiff<TLRecord>) {
+function mergeNoOpUpdates(diff: RecordsDiff<TLRecord>) {
 	const merged = {
 		added: diff.added,
 		removed: diff.removed,
