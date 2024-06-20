@@ -76,6 +76,13 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}, [asset])
 
 		useEffect(() => {
+			if (loadedSrc && temporarySrc) {
+				this.editor.deRegisterTemporaryAssetPreview(temporarySrc)
+				setTemporarySrc('')
+			}
+		}, [loadedSrc, temporarySrc])
+
+		useEffect(() => {
 			// We preload the image because we might have different source urls for different
 			// zoom levels.
 			// Preloading the image ensures that the browser caches the image and doesn't
@@ -87,8 +94,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				image.onload = () => {
 					if (cancelled) return
 					setLoadedSrc(url)
-					URL.revokeObjectURL(temporarySrc)
-					setTemporarySrc('')
 				}
 				image.src = url
 
@@ -96,7 +101,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [url, temporarySrc, shape])
+		}, [url, shape])
 
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {
@@ -116,8 +121,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
 					setLoadedSrc(url)
-					URL.revokeObjectURL(temporarySrc)
-					setTemporarySrc('')
 				}
 				image.crossOrigin = 'anonymous'
 				image.src = url
@@ -126,7 +129,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, temporarySrc, url, shape])
+		}, [prefersReducedMotion, url, shape])
 
 		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")

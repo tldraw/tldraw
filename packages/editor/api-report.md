@@ -885,6 +885,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteShapes(ids: TLShapeId[]): this;
     // (undocumented)
     deleteShapes(shapes: TLShape[]): this;
+    deRegisterTemporaryAssetPreview(objectUrl: string): void;
     deselect(...shapes: TLShape[] | TLShapeId[]): this;
     dispatch: (info: TLEventInfo) => this;
     readonly disposables: Set<() => void>;

@@ -7719,6 +7719,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Clean up memory after using registerTemporaryAssetPreview.
+	 *
+	 * @param objectUrl - The url to revoke.
+	 *
+	 * @public
+	 */
+	deRegisterTemporaryAssetPreview(objectUrl: string) {
+		URL.revokeObjectURL(objectUrl)
+	}
+
+	/**
 	 * Get temporary preview of an asset. This is useful for showing a ghost
 	 * image of something that is being uploaded.
 	 *
