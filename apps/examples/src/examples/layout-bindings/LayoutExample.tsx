@@ -1,8 +1,8 @@
 import {
+	BindingOnCreateOptions,
 	BindingOnShapeChangeOptions,
 	BindingOnShapeDeleteOptions,
 	BindingUtil,
-	Box,
 	HTMLContainer,
 	RecordProps,
 	Rectangle2d,
@@ -10,10 +10,10 @@ import {
 	T,
 	TLBaseBinding,
 	TLBaseShape,
+	TLShape,
 	Tldraw,
-	VecModel,
+	createBindingId,
 	createShapeId,
-	invLerp,
 } from 'tldraw'
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -42,7 +42,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		toShapeType: string
 		bindingType: string
 	}) {
-		return fromShapeType === 'element' && toShapeType === 'container' && bindingType === 'layout'
+		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === 'layout'
 	}
 	override canEdit = () => false
 	override canResize = () => false
@@ -65,37 +65,43 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		return <rect width={100} height={100} />
 	}
 
-	override onTranslateStart = (shape: ElementShape) => {
-		const bindings = this.editor.getBindingsFromShape(shape, 'layout')
-		this.editor.deleteBindings(bindings)
+	override onTranslateStart = (element: ElementShape) => {
+		const binding = this.editor.getBindingsToShape(element, 'layout')[0] as LayoutBinding
+		if (!binding) return
+		this.editor.deleteBinding(binding)
+		const layoutBindingUtil = this.editor.getBindingUtil('layout') as LayoutBindingUtil
+		layoutBindingUtil.reShuffleAnchors(binding)
+		layoutBindingUtil.updateContainerWidth(binding)
 	}
 
 	override onTranslateEnd = (initial: ElementShape, element: ElementShape) => {
+		const bindings = this.editor.getBindingsToShape(element, 'layout')
+		const bindingExists = bindings.length > 0
+		if (bindingExists) return
 		const pageAnchor = this.editor.getShapePageTransform(element).applyToPoint({ x: 50, y: 50 })
 		const target = this.editor.getShapeAtPoint(pageAnchor, {
 			hitInside: true,
 			filter: (shape) =>
-				this.editor.canBindShapes({ fromShape: element, toShape: shape, binding: 'layout' }),
+				this.editor.canBindShapes({ fromShape: shape, toShape: element, binding: 'layout' }),
 		})
 
 		if (!target) return
-		console.log('target', target)
-		const targetBounds = Box.ZeroFix(this.editor.getShapeGeometry(target)!.bounds)
-		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pageAnchor)
-
-		const anchor = {
-			x: invLerp(targetBounds.minX, targetBounds.maxX, pointInTargetSpace.x),
-			y: invLerp(targetBounds.minY, targetBounds.maxY, pointInTargetSpace.y),
-		}
-
+		const elements = this.editor.getBindingsFromShape(target, 'layout')
+		// the anchor point should be in the top left corner of the container
+		const bindingId = createBindingId()
 		this.editor.createBinding({
+			id: bindingId,
 			type: 'layout',
-			fromId: element.id,
-			toId: target.id,
+			fromId: target.id,
+			toId: element.id,
 			props: {
-				anchor,
+				anchor: elements.length + 1,
 			},
 		})
+		const layoutBindingUtil = this.editor.getBindingUtil('layout') as LayoutBindingUtil
+		const binding = this.editor.getBinding(bindingId) as LayoutBinding
+
+		layoutBindingUtil.moveElementToAnchor(binding, target)
 	}
 }
 
@@ -106,7 +112,7 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 
 	override getDefaultProps() {
 		return {
-			width: PADDING * 2,
+			width: 100 + PADDING * 2,
 			height: 100 + PADDING * 2,
 		}
 	}
@@ -120,7 +126,7 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 		toShapeType: string
 		bindingType: string
 	}) {
-		return fromShapeType === 'element' && toShapeType === 'container' && bindingType === 'layout'
+		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === 'layout'
 	}
 	override canEdit = () => false
 	override canResize = () => false
@@ -135,21 +141,6 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 		})
 	}
 
-	override onBeforeUpdate = (shape: ContainerShape, changes: Partial<ContainerShape>) => {
-		const bindings = this.editor.getBindingsToShape(shape, 'layout')
-		const numberOfElements = bindings.length
-
-		const next = {
-			...shape,
-			x: changes.x ?? shape.x,
-			y: changes.y ?? shape.y,
-			props: {
-				...shape.props,
-				width: numberOfElements * 100 + PADDING * (2 + numberOfElements),
-			},
-		}
-		return next
-	}
 	override component(shape: ContainerShape) {
 		return (
 			<HTMLContainer
@@ -166,7 +157,7 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 type LayoutBinding = TLBaseBinding<
 	'layout',
 	{
-		anchor: VecModel
+		anchor: number
 	}
 >
 class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
@@ -174,19 +165,77 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 
 	override getDefaultProps() {
 		return {
-			anchor: { x: 0.5, y: 0.5 },
+			anchor: 1,
 		}
 	}
 
-	// when the shape we're stuck to changes, update the sticker's position
-	override onAfterChangeToShape({
+	override onAfterCreate(options: BindingOnCreateOptions<LayoutBinding>): void {
+		this.updateContainerWidth(options.binding)
+	}
+
+	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<LayoutBinding>): void {
+		this.updateContainerWidth(binding)
+	}
+
+	override onAfterChangeFromShape({
 		binding,
 		shapeAfter,
-	}: BindingOnShapeChangeOptions<LayoutBinding>): void {}
+	}: BindingOnShapeChangeOptions<LayoutBinding>): void {
+		this.moveElementToAnchor(binding, shapeAfter)
+	}
 
-	// when the thing we're stuck to is deleted, delete the sticker too
 	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<LayoutBinding>): void {
 		this.editor.deleteShape(binding.fromId)
+	}
+
+	reShuffleAnchors(binding: LayoutBinding) {
+		// get all the bindings to the container
+		// sort them by anchor
+		// update the anchor of each element so that they start at one and increment by one
+		const bindings = this.editor.getBindingsFromShape(binding.fromId, 'layout') as LayoutBinding[]
+		const sorted = bindings.sort((a, b) => a.props.anchor - b.props.anchor)
+		for (let i = 0; i < sorted.length; i++) {
+			this.editor.updateBinding({
+				...sorted[i],
+				props: {
+					...sorted[i].props,
+					anchor: i + 1,
+				},
+			})
+		}
+	}
+
+	moveElementToAnchor(binding: LayoutBinding, shapeAfter: TLShape) {
+		const element = this.editor.getShape<ElementShape>(binding.toId)!
+
+		const containerBounds = this.editor.getShapeGeometry(shapeAfter)!.bounds
+
+		const pageAnchor = this.editor.getShapePageTransform(shapeAfter).applyToPoint({
+			x: containerBounds.x + PADDING * binding.props.anchor + 100 * (binding.props.anchor - 1),
+			y: containerBounds.y + PADDING,
+		})
+
+		this.editor.updateShape({
+			id: element.id,
+			type: 'element',
+			x: pageAnchor.x,
+			y: pageAnchor.y,
+		})
+	}
+
+	updateContainerWidth(binding: LayoutBinding) {
+		const container = this.editor.getShape<ContainerShape>(binding.fromId)!
+		const bindings = this.editor.getBindingsFromShape(container, 'layout')
+		const numberOfElements = bindings.length
+
+		const next = {
+			...container,
+			props: {
+				...container.props,
+				width: numberOfElements * 100 + PADDING * (numberOfElements + 1),
+			},
+		}
+		this.editor.updateShape(next)
 	}
 }
 
