@@ -25,7 +25,6 @@ import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import {
 	TLExternalContentProps,
-	defaultResolveAsset,
 	registerDefaultExternalContentHandlers,
 } from './defaultExternalContentHandlers'
 import { defaultShapeTools } from './defaultShapeTools'
@@ -101,12 +100,7 @@ export function Tldraw(props: TldrawProps) {
 		[_tools]
 	)
 
-	const persistenceKey = 'persistenceKey' in rest ? rest.persistenceKey : undefined
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
-	const assetOptions = useMemo(
-		() => ({ onResolveAsset: defaultResolveAsset(persistenceKey), ...rest.assetOptions }),
-		[persistenceKey, rest.assetOptions]
-	)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
@@ -127,7 +121,6 @@ export function Tldraw(props: TldrawProps) {
 			shapeUtils={shapeUtilsWithDefaults}
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
-			assetOptions={assetOptions}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault}>
 				<InsideOfEditorAndUiContext
@@ -135,7 +128,6 @@ export function Tldraw(props: TldrawProps) {
 					maxAssetSize={maxAssetSize}
 					acceptedImageMimeTypes={acceptedImageMimeTypes}
 					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
-					persistenceKey={persistenceKey}
 					onMount={onMount}
 				/>
 				{children}
@@ -151,8 +143,7 @@ function InsideOfEditorAndUiContext({
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
-	persistenceKey,
-}: TLExternalContentProps & { onMount?: TLOnMountHandler; persistenceKey?: string }) {
+}: TLExternalContentProps & { onMount?: TLOnMountHandler }) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
@@ -174,8 +165,7 @@ function InsideOfEditorAndUiContext({
 			{
 				toasts,
 				msg,
-			},
-			persistenceKey
+			}
 		)
 
 		// ...then we run the onMount prop, which may override the above

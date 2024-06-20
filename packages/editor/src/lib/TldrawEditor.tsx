@@ -22,7 +22,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { TLAssetOptions, TLCameraOptions } from './editor/types/misc-types'
+import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -159,12 +159,6 @@ export interface TldrawEditorBaseProps {
 	 * Camera options for the editor.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-
-	/**
-	 * Asset options for the editor.
-	 * @internal
-	 */
-	assetOptions?: Partial<TLAssetOptions>
 
 	/**
 	 * Options for the editor.
@@ -339,7 +333,6 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
-	assetOptions,
 	options,
 }: Required<
 	TldrawEditorProps & {
@@ -394,7 +387,6 @@ function TldrawEditorWithReadyStore({
 				autoFocus,
 				inferDarkMode,
 				cameraOptions,
-				assetOptions,
 				options,
 			})
 
@@ -406,7 +398,7 @@ function TldrawEditorWithReadyStore({
 			}
 		},
 		// if any of these change, we need to recreate the editor.
-		[assetOptions, bindingUtils, container, options, shapeUtils, store, tools, user]
+		[bindingUtils, container, options, shapeUtils, store, tools, user]
 	)
 
 	// keep the editor up to date with the latest camera options

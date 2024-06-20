@@ -1,28 +1,25 @@
-import {
-	AssetContextProps,
-	MediaHelpers,
-	TLAsset,
-	TLAssetId,
-	WeakCache,
-	getAssetFromIndexedDb,
-} from 'tldraw'
-import { IMAGE_WORKER } from './config'
+import { MediaHelpers, TLAssetStore, fetch, uniqueId } from 'tldraw'
+import { ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
 import { isDevelopmentEnv } from './env'
 
-const objectURLCache = new WeakCache<TLAsset, ReturnType<typeof getLocalAssetObjectURL>>()
+export const multiplayerAssetStore: TLAssetStore = {
+	upload: async (asset, file) => {
+		const id = uniqueId()
 
-export const resolveAsset =
-	(persistenceKey?: string) =>
-	async (asset: TLAsset | null | undefined, context: AssetContextProps) => {
-		if (!asset || !asset.props.src) return null
+		const UPLOAD_URL = `${ASSET_UPLOADER_URL}/uploads`
+		const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
+		const url = `${UPLOAD_URL}/${objectName}`
 
-		// Retrieve a local image from the DB.
-		if (persistenceKey && asset.props.src.startsWith('asset:')) {
-			return await objectURLCache.get(
-				asset,
-				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
-			)
-		}
+		await fetch(url, {
+			method: 'POST',
+			body: file,
+		})
+
+		return url
+	},
+
+	resolve(asset, context) {
+		if (!asset.props.src) return null
 
 		// We don't deal with videos at the moment.
 		if (asset.type === 'video') return asset.props.src
@@ -34,9 +31,7 @@ export const resolveAsset =
 		if (!asset.props.src.startsWith('http:') && !asset.props.src.startsWith('https:'))
 			return asset.props.src
 
-		if (context.shouldResolveToOriginalImage) {
-			return asset.props.src
-		}
+		if (context.shouldResolveToOriginal) return asset.props.src
 
 		// Don't try to transform animated images.
 		if (MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated)
@@ -75,15 +70,5 @@ export const resolveAsset =
 
 		const newUrl = `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
 		return newUrl
-	}
-
-async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId) {
-	const blob = await getAssetFromIndexedDb({
-		assetId: assetId,
-		persistenceKey,
-	})
-	if (blob) {
-		return URL.createObjectURL(blob)
-	}
-	return null
+	},
 }

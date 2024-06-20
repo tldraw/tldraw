@@ -1,4 +1,5 @@
-import { TLStoreSnapshot } from '@tldraw/tlschema'
+import { TLAsset, TLStoreSnapshot } from '@tldraw/tlschema'
+import { WeakCache } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
 import { TLEditorSnapshot } from '../config/TLEditorSnapshot'
 import { TLStoreOptions } from '../config/createTLStore'
@@ -20,6 +21,7 @@ export function useLocalStore({
 	const [state, setState] = useState<{ id: string; storeWithStatus: TLStoreWithStatus } | null>(
 		null
 	)
+
 	const store = useTLStore(rest)
 
 	useEffect(() => {
@@ -57,6 +59,29 @@ export function useLocalStore({
 				setStoreWithStatus({ status: 'error', error: err })
 			},
 		})
+
+		const objectURLCache = new WeakCache<TLAsset, Promise<string | null>>()
+
+		// TODO(alex): set this when we generate the store instead of passing it in?
+		store.props.assets = {
+			upload: async (asset, file) => {
+				await client.db.storeAsset(asset.id, file)
+				return asset.id
+			},
+			resolve: async (asset) => {
+				if (!asset.props.src) return null
+
+				if (asset.props.src.startsWith('asset:')) {
+					return await objectURLCache.get(asset, async () => {
+						const blob = await client.db.getAsset(asset.id)
+						if (!blob) return null
+						return URL.createObjectURL(blob)
+					})
+				}
+
+				return asset.props.src
+			},
+		}
 
 		return () => {
 			setState((prevState) => (prevState?.id === id ? null : prevState))

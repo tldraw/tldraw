@@ -6,6 +6,7 @@ import {
 	StoreSnapshot,
 } from '@tldraw/store'
 import { IndexKey, annotateError, structuredClone } from '@tldraw/utils'
+import { TLAsset } from './records/TLAsset'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
 import { TLINSTANCE_ID } from './records/TLInstance'
@@ -45,12 +46,35 @@ export type TLSerializedStore = SerializedStore<TLRecord>
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>
 
 /** @public */
-export interface TLStoreProps {
-	defaultName: string
+export interface TLAssetContext {
+	screenScale: number
+	steppedScreenScale: number
+	dpr: number
+	networkEffectiveType: string | null
+	shouldResolveToOriginal: boolean
 }
 
 /** @public */
-export type TLStore = Store<TLRecord, TLStoreProps>
+export interface TLAssetStore {
+	upload(asset: TLAsset, file: File): Promise<string>
+	resolve(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
+}
+
+/** @public */
+export interface TLStoreProps {
+	defaultName: string
+	assets: TLAssetStore
+}
+
+/** @public */
+export class TLStore extends Store<TLRecord, TLStoreProps> {
+	async uploadAsset(asset: TLAsset, file: File): Promise<string> {
+		return await this.props.assets.upload(asset, file)
+	}
+	async resolveAsset(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> {
+		return await this.props.assets.resolve(asset, ctx)
+	}
+}
 
 /** @public */
 export const onValidationFailure: StoreSchemaOptions<
@@ -91,7 +115,7 @@ function getDefaultPages() {
 }
 
 /** @internal */
-export function createIntegrityChecker(store: TLStore): () => void {
+export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): () => void {
 	const $pageIds = store.query.ids('page')
 
 	const ensureStoreIsUsable = (): void => {

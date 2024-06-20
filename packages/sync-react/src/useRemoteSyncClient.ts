@@ -23,6 +23,8 @@ import {
 	useTLStore,
 	useValue,
 } from 'tldraw'
+import { multiplayerAssetStore } from '../utils/assetHandler'
+import { UseSyncClientConfig } from '../utils/remote-sync/remote-sync'
 
 const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
 
@@ -40,7 +42,7 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 	} | null>(null)
 	const { uri, roomId = 'default', userPreferences: prefs } = opts
 
-	const store = useTLStore({ schema })
+	const store = useTLStore({ schema, assets: multiplayerAssetStore })
 
 	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
 	const track = opts.trackAnalyticsEvent
