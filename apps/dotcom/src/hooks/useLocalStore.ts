@@ -9,7 +9,7 @@ import {
 	createTLStore,
 } from 'tldraw'
 
-export function useLocalStore(records: TLRecord[], serializedSchema: SerializedSchema) {
+export function useInMemoryStore(records: TLRecord[], serializedSchema: SerializedSchema) {
 	const [storeResult, setStoreResult] = useState<
 		Result<TLStore, MigrationFailureReason> | undefined
 	>(undefined)

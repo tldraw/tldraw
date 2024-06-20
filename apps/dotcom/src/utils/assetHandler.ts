@@ -1,27 +1,26 @@
-import {
-	AssetContextProps,
-	MediaHelpers,
-	TLAsset,
-	TLAssetId,
-	WeakCache,
-	getAssetFromIndexedDb,
-} from 'tldraw'
+import { MediaHelpers, TLAssetStore, fetch, uniqueId } from 'tldraw'
 import { ASSET_BUCKET_ORIGIN, ASSET_UPLOADER_URL } from './config'
 
-const objectURLCache = new WeakCache<TLAsset, ReturnType<typeof getLocalAssetObjectURL>>()
+export const multiplayerAssetStore: TLAssetStore = {
+	upload: async (asset, file) => {
+		const id = uniqueId()
 
-export const resolveAsset =
-	(persistenceKey?: string) =>
-	async (asset: TLAsset | null | undefined, context: AssetContextProps) => {
-		if (!asset || !asset.props.src) return null
+		console.log('multiplayer asset upload', { asset, file })
 
-		// Retrieve a local image from the DB.
-		if (persistenceKey && asset.props.src.startsWith('asset:')) {
-			return await objectURLCache.get(
-				asset,
-				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
-			)
-		}
+		const UPLOAD_URL = `${ASSET_UPLOADER_URL}/uploads`
+		const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
+		const url = `${UPLOAD_URL}/${objectName}`
+
+		await fetch(url, {
+			method: 'POST',
+			body: file,
+		})
+
+		return url
+	},
+
+	resolve(asset, context) {
+		if (!asset.props.src) return null
 
 		// We don't deal with videos at the moment.
 		if (asset.type === 'video') return asset.props.src
@@ -33,9 +32,7 @@ export const resolveAsset =
 		if (!asset.props.src.startsWith('http:') && !asset.props.src.startsWith('https:'))
 			return asset.props.src
 
-		if (context.shouldResolveToOriginalImage) {
-			return asset.props.src
-		}
+		if (context.shouldResolveToOriginal) return asset.props.src
 
 		// Don't try to transform animated images.
 		if (MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated)
@@ -45,8 +42,9 @@ export const resolveAsset =
 		if (MediaHelpers.isVectorImageType(asset?.props.mimeType)) return asset.props.src
 
 		// Assets that are under a certain file size aren't worth transforming (and incurring cost).
-		if (asset.props.fileSize === -1 || asset.props.fileSize < 1024 * 1024 * 1.5 /* 1.5 MB */)
+		if (asset.props.fileSize === -1 || asset.props.fileSize < 1024 * 1024 * 1.5 /* 1.5 MB */) {
 			return asset.props.src
+		}
 
 		// N.B. navigator.connection is only available in certain browsers (mainly Blink-based browsers)
 		// 4g is as high the 'effectiveType' goes and we can pick a lower effective image quality for slower connections.
@@ -62,15 +60,5 @@ export const resolveAsset =
 		// On preview, builds the origin for the asset won't be the right one for the Cloudflare transform.
 		const src = asset.props.src.replace(ASSET_UPLOADER_URL, ASSET_BUCKET_ORIGIN)
 		return `${ASSET_BUCKET_ORIGIN}/cdn-cgi/image/format=auto,width=${width},dpr=${context.dpr},fit=scale-down,quality=92/${src}`
-	}
-
-async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId) {
-	const blob = await getAssetFromIndexedDb({
-		assetId: assetId,
-		persistenceKey,
-	})
-	if (blob) {
-		return URL.createObjectURL(blob)
-	}
-	return null
+	},
 }

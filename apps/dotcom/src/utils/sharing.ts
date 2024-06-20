@@ -23,10 +23,8 @@ import {
 	fetch,
 	isShape,
 } from 'tldraw'
-import { useMultiplayerAssets } from '../hooks/useMultiplayerAssets'
 import { getViewportUrlQuery } from '../hooks/useUrlState'
 import { cloneAssetForShare } from './cloneAssetForShare'
-import { ASSET_UPLOADER_URL } from './config'
 import { getParentOrigin, isInIframe } from './iFrame'
 import { shouldLeaveSharedProject } from './shouldLeaveSharedProject'
 import { trackAnalyticsEvent } from './trackAnalyticsEvent'
@@ -46,12 +44,10 @@ async function getSnapshotLink(
 	handleUiEvent: TLUiEventHandler,
 	addToast: TLUiToastsContextType['addToast'],
 	msg: (id: TLUiTranslationKey) => string,
-	uploadFileToAsset: (file: File) => Promise<TLAsset>,
-	parentSlug: string | undefined,
-	persistenceKey: string
+	parentSlug: string | undefined
 ) {
 	handleUiEvent('share-snapshot' as UI_OVERRIDE_TODO_EVENT, { source } as UI_OVERRIDE_TODO_EVENT)
-	const data = await getRoomData(editor, addToast, msg, uploadFileToAsset, persistenceKey)
+	const data = await getRoomData(editor, addToast, msg)
 	if (!data) return ''
 
 	const res = await fetch(CREATE_SNAPSHOT_ENDPOINT, {
@@ -96,11 +92,10 @@ export async function getNewRoomResponse(snapshot: Snapshot) {
 	})
 }
 
-export function useSharing(persistenceKey?: string): TLUiOverrides {
+export function useSharing(): TLUiOverrides {
 	const navigate = useNavigate()
 	const params = useParams()
 	const roomId = params.roomId
-	const uploadFileToAsset = useMultiplayerAssets(ASSET_UPLOADER_URL)
 	const handleUiEvent = useHandleUiEvents()
 	const runningInIFrame = isInIframe()
 
@@ -133,13 +128,7 @@ export function useSharing(persistenceKey?: string): TLUiOverrides {
 							})
 
 							handleUiEvent('share-project', { source })
-							const data = await getRoomData(
-								editor,
-								addToast,
-								msg,
-								uploadFileToAsset,
-								persistenceKey || ''
-							)
+							const data = await getRoomData(editor, addToast, msg)
 							if (!data) return
 
 							const res = await getNewRoomResponse({
@@ -182,16 +171,7 @@ export function useSharing(persistenceKey?: string): TLUiOverrides {
 					label: 'share-menu.create-snapshot-link',
 					readonlyOk: true,
 					onSelect: async (source) => {
-						const result = getSnapshotLink(
-							source,
-							editor,
-							handleUiEvent,
-							addToast,
-							msg,
-							uploadFileToAsset,
-							roomId,
-							persistenceKey || ''
-						)
+						const result = getSnapshotLink(source, editor, handleUiEvent, addToast, msg, roomId)
 						if (navigator?.clipboard?.write) {
 							await navigator.clipboard.write([
 								new ClipboardItem({
@@ -217,16 +197,14 @@ export function useSharing(persistenceKey?: string): TLUiOverrides {
 				return actions
 			},
 		}),
-		[handleUiEvent, navigate, uploadFileToAsset, roomId, runningInIFrame, persistenceKey]
+		[handleUiEvent, navigate, roomId, runningInIFrame]
 	)
 }
 
 async function getRoomData(
 	editor: Editor,
 	addToast: TLUiToastsContextType['addToast'],
-	msg: (id: TLUiTranslationKey) => string,
-	uploadFileToAsset: (file: File) => Promise<TLAsset>,
-	persistenceKey: string
+	msg: (id: TLUiTranslationKey) => string
 ) {
 	const rawData = editor.store.serialize()
 
@@ -262,7 +240,7 @@ async function getRoomData(
 			// processed it
 			if (!asset) continue
 
-			data[asset.id] = await cloneAssetForShare(asset, uploadFileToAsset, persistenceKey)
+			data[asset.id] = await cloneAssetForShare(editor, asset)
 			// remove the asset after processing so we don't clone it multiple times
 			assets.delete(asset.id)
 		}

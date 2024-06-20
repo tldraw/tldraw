@@ -19,7 +19,6 @@ import {
 	ViewSubmenu,
 	useActions,
 } from 'tldraw'
-import { resolveAsset } from '../utils/assetHandler'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
@@ -88,7 +87,7 @@ const components: TLComponents = {
 
 export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing(SCRATCH_PERSISTENCE_KEY)
+	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback((editor: Editor) => {
@@ -106,7 +105,6 @@ export function LocalEditor() {
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
-				assetOptions={{ onResolveAsset: resolveAsset(SCRATCH_PERSISTENCE_KEY) }}
 				inferDarkMode
 			>
 				<LocalMigration />

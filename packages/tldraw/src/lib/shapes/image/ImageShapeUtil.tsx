@@ -211,7 +211,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		if (!asset) return null
 
 		let src = await this.editor.resolveAssetUrl(shape.props.assetId, {
-			shouldResolveToOriginalImage: true,
+			shouldResolveToOriginal: true,
 		})
 		if (!src) return null
 		if (
