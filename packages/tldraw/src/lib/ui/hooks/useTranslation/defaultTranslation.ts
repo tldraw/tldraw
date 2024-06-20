@@ -236,7 +236,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.embed': 'Embed',
 	'tool.text': 'Text',
 	'menu.title': 'Menu',
-	'menu.color-scheme': 'Color scheme',
+	'menu.color-scheme': 'Theme',
 	'menu.copy-as': 'Copy as',
 	'menu.edit': 'Edit',
 	'menu.export-as': 'Export as',
