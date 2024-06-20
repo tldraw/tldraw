@@ -1,7 +1,6 @@
 import {
 	BindingOnCreateOptions,
 	BindingOnShapeChangeOptions,
-	BindingOnShapeDeleteOptions,
 	BindingUtil,
 	HTMLContainer,
 	RecordProps,
@@ -13,8 +12,8 @@ import {
 	TLShape,
 	Tldraw,
 	createBindingId,
-	createShapeId,
 } from 'tldraw'
+import snapShot from './snapshot.json'
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 type ElementShape = TLBaseShape<'element', { color: string }>
@@ -172,8 +171,15 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 	override component(shape: ContainerShape) {
 		return (
 			<HTMLContainer
-				style={{ backgroundColor: '#efefef', width: shape.props.width }}
-			></HTMLContainer>
+				style={{
+					backgroundColor: '#efefef',
+					width: shape.props.width,
+					textAlign: 'center',
+					padding: 8,
+				}}
+			>
+				Container
+			</HTMLContainer>
 		)
 	}
 
@@ -206,10 +212,6 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 		shapeAfter,
 	}: BindingOnShapeChangeOptions<LayoutBinding>): void {
 		this.moveElementToAnchor(binding, shapeAfter)
-	}
-
-	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<LayoutBinding>): void {
-		this.editor.deleteShape(binding.fromId)
 	}
 
 	reShuffleAnchors(binding: LayoutBinding) {
@@ -268,18 +270,10 @@ export default function LayoutExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				// @ts-ignore
+				snapshot={snapShot}
 				onMount={(editor) => {
 					;(window as any).editor = editor
-					const elementIds = [1, 2, 3, 4].map(() => createShapeId())
-					const containerId = createShapeId()
-
-					editor.createShapes([
-						{ id: containerId, type: 'container', x: 500, y: 500 },
-						{ id: elementIds[0], type: 'element', x: 100, y: 100, props: { color: '#AEC6CF' } },
-						{ id: elementIds[1], type: 'element', x: 100, y: 100, props: { color: '#FF6961' } },
-						{ id: elementIds[2], type: 'element', x: 100, y: 100, props: { color: '#C1E1C1' } },
-						{ id: elementIds[3], type: 'element', x: 100, y: 100, props: { color: '#FFFAA0' } },
-					])
 				}}
 				shapeUtils={[ContainerShapeUtil, ElementShapeUtil]}
 				bindingUtils={[LayoutBindingUtil]}
