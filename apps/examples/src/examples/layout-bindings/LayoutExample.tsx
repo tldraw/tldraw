@@ -67,6 +67,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 
 	override onTranslateStart = (element: ElementShape) => {
 		const binding = this.editor.getBindingsToShape(element, 'layout')[0] as LayoutBinding
+
 		if (!binding) return
 		this.editor.deleteBinding(binding)
 		const layoutBindingUtil = this.editor.getBindingUtil('layout') as LayoutBindingUtil
@@ -75,7 +76,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 	}
 
 	override onTranslateEnd = (initial: ElementShape, element: ElementShape) => {
-		const bindings = this.editor.getBindingsToShape(element, 'layout')
+		const bindings = this.editor.getBindingsToShape(element, 'layout') as LayoutBinding[]
 		const bindingExists = bindings.length > 0
 		if (bindingExists) return
 		const pageAnchor = this.editor.getShapePageTransform(element).applyToPoint({ x: 50, y: 50 })
@@ -86,22 +87,49 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		})
 
 		if (!target) return
-		const elements = this.editor.getBindingsFromShape(target, 'layout')
-		// the anchor point should be in the top left corner of the container
+		const elementCount = this.editor.getBindingsFromShape(target, 'layout').length + 1
 		const bindingId = createBindingId()
-		this.editor.createBinding({
-			id: bindingId,
-			type: 'layout',
-			fromId: target.id,
-			toId: element.id,
-			props: {
-				anchor: elements.length + 1,
-			},
-		})
+
+		const atEnd = pageAnchor.x > target.x + (elementCount - 1) * 100
+
+		// first element, or at the end
+		if (elementCount === 0 || atEnd) {
+			this.editor.createBinding({
+				id: bindingId,
+				type: 'layout',
+				fromId: target.id,
+				toId: element.id,
+				props: {
+					anchor: elementCount,
+				},
+			})
+		} else {
+			// find which two elements to insert between, and shuffle the anchors
+			const atStart = pageAnchor.x < target.x + 100
+			const afterFirstElement = pageAnchor.x > target.x + 100 && pageAnchor.x < target.x + 200
+			const afterSecondElement = pageAnchor.x > target.x + 200 && pageAnchor.x < target.x + 300
+
+			const anchor = atStart ? 1 : afterFirstElement ? 2 : afterSecondElement ? 3 : 4
+
+			this.editor.createBinding({
+				id: bindingId,
+				type: 'layout',
+				fromId: target.id,
+				toId: element.id,
+				props: {
+					anchor: anchor,
+				},
+			})
+		}
+
 		const layoutBindingUtil = this.editor.getBindingUtil('layout') as LayoutBindingUtil
 		const binding = this.editor.getBinding(bindingId) as LayoutBinding
 
-		layoutBindingUtil.moveElementToAnchor(binding, target)
+		layoutBindingUtil.reShuffleAnchors(binding)
+		const bindingsFrom = this.editor.getBindingsFromShape(target, 'layout') as LayoutBinding[]
+		for (const currentBinding of bindingsFrom) {
+			layoutBindingUtil.moveElementToAnchor(currentBinding, target)
+		}
 	}
 }
 
@@ -173,10 +201,6 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 		this.updateContainerWidth(options.binding)
 	}
 
-	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<LayoutBinding>): void {
-		this.updateContainerWidth(binding)
-	}
-
 	override onAfterChangeFromShape({
 		binding,
 		shapeAfter,
@@ -189,11 +213,14 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 	}
 
 	reShuffleAnchors(binding: LayoutBinding) {
-		// get all the bindings to the container
-		// sort them by anchor
-		// update the anchor of each element so that they start at one and increment by one
 		const bindings = this.editor.getBindingsFromShape(binding.fromId, 'layout') as LayoutBinding[]
-		const sorted = bindings.sort((a, b) => a.props.anchor - b.props.anchor)
+		if (bindings.length === 0) return
+
+		const sorted = bindings.sort((a, b) => {
+			if (a.props.anchor === b.props.anchor) return -1
+			return a.props.anchor - b.props.anchor
+		})
+
 		for (let i = 0; i < sorted.length; i++) {
 			this.editor.updateBinding({
 				...sorted[i],
@@ -207,9 +234,7 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 
 	moveElementToAnchor(binding: LayoutBinding, shapeAfter: TLShape) {
 		const element = this.editor.getShape<ElementShape>(binding.toId)!
-
-		const containerBounds = this.editor.getShapeGeometry(shapeAfter)!.bounds
-
+		const containerBounds = this.editor.getShapeGeometry(binding.fromId).bounds
 		const pageAnchor = this.editor.getShapePageTransform(shapeAfter).applyToPoint({
 			x: containerBounds.x + PADDING * binding.props.anchor + 100 * (binding.props.anchor - 1),
 			y: containerBounds.y + PADDING,
@@ -225,8 +250,8 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 
 	updateContainerWidth(binding: LayoutBinding) {
 		const container = this.editor.getShape<ContainerShape>(binding.fromId)!
-		const bindings = this.editor.getBindingsFromShape(container, 'layout')
-		const numberOfElements = bindings.length
+		const bindings = this.editor.getBindingsFromShape(container, 'layout') as LayoutBinding[]
+		const numberOfElements = Math.max(bindings.length, 1)
 
 		const next = {
 			...container,
