@@ -15,9 +15,8 @@ import {
 } from 'tldraw'
 import snapShot from './snapshot.json'
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 type ElementShape = TLBaseShape<'element', { color: string }>
-// eslint-disable-next-line @typescript-eslint/ban-types
+
 type ContainerShape = TLBaseShape<'element', { height: number; width: number }>
 
 class ElementShapeUtil extends ShapeUtil<ElementShape> {
