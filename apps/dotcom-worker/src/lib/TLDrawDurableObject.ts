@@ -10,7 +10,12 @@ import {
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import { TLRecord } from '@tldraw/tlschema'
-import { RoomSnapshot, TLSocketRoom, type PersistedRoomSnapshotForSupabase } from '@tldraw/tlsync'
+import {
+	RoomSnapshot,
+	TLCloseEventCode,
+	TLSocketRoom,
+	type PersistedRoomSnapshotForSupabase,
+} from '@tldraw/tlsync'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest, Router } from 'itty-router'
 import Toucan from 'toucan-js'
@@ -276,12 +281,17 @@ export class TLDrawDurableObject {
 		sessionKey ??= params.instanceId
 		storeId ??= params.localClientId
 
+		// Create the websocket pair for the client
+		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
+		this.state.acceptWebSocket(serverWebSocket, [sessionKey])
+
 		let room
 		try {
 			room = await this.getRoom()
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
-				return new Response('Room not found', { status: 404 })
+				serverWebSocket.close(TLCloseEventCode.NOT_FOUND, 'Room not found')
+				return new Response(null, { status: 101, webSocket: clientWebSocket })
 			}
 			throw e
 		}
@@ -293,12 +303,7 @@ export class TLDrawDurableObject {
 			})
 		}
 
-		// Create the websocket pair for the client
-		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
-
 		room.handleSocketConnect(sessionKey, serverWebSocket)
-
-		this.state.acceptWebSocket(serverWebSocket, [sessionKey])
 
 		// if (connectionResult === 'room_not_found') {
 		// 	// If the room is not found, we need to accept and then immediately close the connection
