@@ -66,7 +66,7 @@ export const Header = () => {
 						</li>
 					))}
 				</ul>
-				<ul className="hidden sm:flex w-28 gap-4">
+				<ul className="hidden sm:flex w-28 gap-4 justify-end">
 					{socialLinks.map((item, index) => (
 						<li key={index}>
 							<SocialLink {...item} />
