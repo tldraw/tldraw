@@ -544,7 +544,7 @@ const handleNativeOrMenuCopy = (editor: Editor) => {
 				}),
 			])
 		} else if (navigator.clipboard.writeText) {
-			navigator.clipboard.writeText(`<div data-tldraw>${stringifiedClipboard}</div data-tldraw>`)
+			navigator.clipboard.writeText(`<div data-tldraw>${stringifiedClipboard}</div>`)
 		}
 	}
 }
