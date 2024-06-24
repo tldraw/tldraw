@@ -1,3 +1,26 @@
+# v2.2.3 (Mon Jun 24 2024)
+
+### Release Notes
+
+#### clipboard: fix copy/paste on Firefox (#4003) ([#4006](https://github.com/tldraw/tldraw/pull/4006))
+
+- Clipboard: fix copy/paste in Firefox 127+
+
+Describe what your pull request does. If appropriate, add GIFs or images showing the before and after.
+
+---
+
+#### 🐛 Bug Fix
+
+- `tldraw`
+  - clipboard: fix copy/paste on Firefox (#4003) [#4006](https://github.com/tldraw/tldraw/pull/4006) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v2.2.2 (Mon Jun 24 2024)
 
 ### Release Notes
