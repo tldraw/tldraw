@@ -224,28 +224,24 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	/** @internal */
-	constructorOptions: TLEditorOptions
 	id = nanoid()
-	constructor(options: TLEditorOptions) {
+	constructor({
+		store,
+		user,
+		shapeUtils,
+		bindingUtils,
+		tools,
+		getContainer,
+		cameraOptions,
+		assetOptions,
+		initialState,
+		autoFocus,
+		inferDarkMode,
+		options,
+	}: TLEditorOptions) {
 		super()
-		console.log('create editor', this.id)
 
-		const {
-			store,
-			user,
-			shapeUtils,
-			bindingUtils,
-			tools,
-			getContainer,
-			cameraOptions,
-			assetOptions,
-			initialState,
-			autoFocus,
-			inferDarkMode,
-		} = (this.constructorOptions = options)
-
-		this.options = { ...defaultTldrawOptions, ...options.options }
+		this.options = { ...defaultTldrawOptions, ...options }
 		this.store = store
 		this.disposables.add(this.store.dispose.bind(this.store))
 		this.history = new HistoryManager<TLRecord>({
