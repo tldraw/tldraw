@@ -119,27 +119,33 @@ export function registerDefaultExternalContentHandlers(
 		let meta: { image: string; favicon: string; title: string; description: string }
 
 		try {
-			const resp = await fetch(url, {
-				method: 'GET',
-				mode: 'no-cors',
-			})
-			const html = await resp.text()
-			const doc = new DOMParser().parseFromString(html, 'text/html')
-			meta = {
-				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
-				favicon:
-					doc.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ??
-					doc.head.querySelector('link[rel="icon"]')?.getAttribute('href') ??
-					'',
-				title: doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? url,
-				description:
-					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
-			}
-			if (meta.image.startsWith('/')) {
-				meta.image = new URL(meta.image, url).href
-			}
-			if (meta.favicon.startsWith('/')) {
-				meta.favicon = new URL(meta.favicon, url).href
+			if (editor.store.props.getUrlInfoForBookmark) {
+				meta = await editor.store.props.getUrlInfoForBookmark(url)
+			} else {
+				const resp = await fetch(url, {
+					method: 'GET',
+					mode: 'no-cors',
+				})
+				const html = await resp.text()
+				const doc = new DOMParser().parseFromString(html, 'text/html')
+				meta = {
+					image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
+					favicon:
+						doc.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ??
+						doc.head.querySelector('link[rel="icon"]')?.getAttribute('href') ??
+						'',
+					title:
+						doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? url,
+					description:
+						doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ??
+						'',
+				}
+				if (meta.image.startsWith('/')) {
+					meta.image = new URL(meta.image, url).href
+				}
+				if (meta.favicon.startsWith('/')) {
+					meta.favicon = new URL(meta.favicon, url).href
+				}
 			}
 		} catch (error) {
 			console.error(error)

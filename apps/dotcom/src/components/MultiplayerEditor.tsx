@@ -27,12 +27,10 @@ import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
 import { CursorChatMenuItem } from '../utils/context-menu/CursorChatMenuItem'
-import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { useSharing } from '../utils/sharing'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
-import { CursorChatBubble } from './CursorChatBubble'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
@@ -137,7 +135,6 @@ export function MultiplayerEditor({
 			editor.updateInstanceState({
 				isReadonly,
 			})
-			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 		},
 		[isReadonly]
 	)
@@ -159,7 +156,6 @@ export function MultiplayerEditor({
 				inferDarkMode
 			>
 				<UrlStateSync />
-				<CursorChatBubble />
 				<SneakyOnDropOverride isMultiplayer />
 				<ThemeUpdater />
 			</Tldraw>
