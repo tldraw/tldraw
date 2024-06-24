@@ -20,7 +20,7 @@ import {
 	useActions,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
-import { createAssetFromUrl } from '../utils/createAssetFromUrl'
+import { getUrlInfoForBookmark } from '../utils/getUrlInfoForBookmark'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../utils/migration/LocalMigration'
 import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
@@ -93,7 +93,6 @@ export function LocalEditor() {
 	const handleMount = useCallback((editor: Editor) => {
 		;(window as any).app = editor
 		;(window as any).editor = editor
-		editor.registerExternalAssetHandler('url', createAssetFromUrl)
 	}, [])
 
 	return (
@@ -106,6 +105,7 @@ export function LocalEditor() {
 				onUiEvent={handleUiEvent}
 				components={components}
 				inferDarkMode
+				getUrlInfoForBookmark={getUrlInfoForBookmark}
 			>
 				<LocalMigration />
 				<SneakyOnDropOverride isMultiplayer={false} />

@@ -19,6 +19,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { multiplayerAssetStore } from '../utils/assetHandler'
+import { getUrlInfoForBookmark } from '../utils/getUrlInfoForBookmark'
 import { ClientWebSocketAdapter } from '../utils/remote-sync/ClientWebSocketAdapter'
 import { RemoteSyncError, UseSyncClientConfig } from '../utils/remote-sync/remote-sync'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
@@ -39,7 +40,11 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 	} | null>(null)
 	const { uri, roomId = 'default', userPreferences: prefs } = opts
 
-	const store = useTLStore({ schema, assets: multiplayerAssetStore })
+	const store = useTLStore({
+		schema,
+		assets: multiplayerAssetStore,
+		getUrlInfoForBookmark,
+	})
 
 	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
 

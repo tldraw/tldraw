@@ -5,6 +5,7 @@ import {
 	TLRecord,
 	TLStore,
 	TLStoreProps,
+	TLUrlInfoForBookmark,
 	createTLSchema,
 } from '@tldraw/tlschema'
 import { FileHelpers } from '@tldraw/utils'
@@ -21,6 +22,9 @@ export interface TLStoreBaseOptions {
 
 	/** How should this store upload & resolve assets? */
 	assets?: Partial<TLAssetStore>
+
+	/** How should we fetch bookmark information from a URL? */
+	getUrlInfoForBookmark?: (url: string) => Promise<TLUrlInfoForBookmark>
 }
 
 /** @public */
@@ -58,6 +62,7 @@ export function createTLStore({
 	defaultName = '',
 	id,
 	assets,
+	getUrlInfoForBookmark,
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	const schema =
@@ -87,6 +92,7 @@ export function createTLStore({
 				...defaultAssetStore,
 				...assets,
 			},
+			getUrlInfoForBookmark,
 		},
 	})
 }

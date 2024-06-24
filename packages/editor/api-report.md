@@ -77,6 +77,7 @@ import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
+import { TLUrlInfoForBookmark } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { track } from '@tldraw/state';
 import { transact } from '@tldraw/state';
@@ -487,7 +488,7 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, getUrlInfoForBookmark, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -3248,6 +3249,7 @@ export interface TLStateNodeConstructor {
 export interface TLStoreBaseOptions {
     assets?: Partial<TLAssetStore>;
     defaultName?: string;
+    getUrlInfoForBookmark?: (url: string) => Promise<TLUrlInfoForBookmark>;
     initialData?: SerializedStore<TLRecord>;
 }
 

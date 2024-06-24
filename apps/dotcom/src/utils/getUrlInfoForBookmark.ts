@@ -1,4 +1,4 @@
-import { AssetRecordType, TLAsset, fetch, getHashForString } from 'tldraw'
+import { TLUrlInfoForBookmark, fetch } from 'tldraw'
 import { BOOKMARK_ENDPOINT } from './config'
 
 interface ResponseBody {
@@ -8,9 +8,9 @@ interface ResponseBody {
 	favicon?: string
 }
 
-export async function createAssetFromUrl({ url }: { type: 'url'; url: string }): Promise<TLAsset> {
+export async function getUrlInfoForBookmark(url: string): Promise<TLUrlInfoForBookmark> {
+	// First, try to get the meta data from our endpoint
 	try {
-		// First, try to get the meta data from our endpoint
 		const meta = (await (
 			await fetch(BOOKMARK_ENDPOINT, {
 				method: 'POST',
@@ -23,24 +23,9 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 			})
 		).json()) as ResponseBody
 
-		return {
-			id: AssetRecordType.createId(getHashForString(url)),
-			typeName: 'asset',
-			type: 'bookmark',
-			props: {
-				src: url,
-				description: meta.description ?? '',
-				image: meta.image ?? '',
-				favicon: meta.favicon ?? '',
-				title: meta.title ?? '',
-			},
-			meta: {},
-		}
-	} catch (error) {
-		// Otherwise, fallback to fetching data from the url
-
-		let meta: { image: string; favicon: string; title: string; description: string }
-
+		return meta as TLUrlInfoForBookmark
+	} catch (err) {
+		console.error(err)
 		try {
 			const resp = await fetch(url, {
 				method: 'GET',
@@ -48,7 +33,7 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 			})
 			const html = await resp.text()
 			const doc = new DOMParser().parseFromString(html, 'text/html')
-			meta = {
+			const meta = {
 				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
 				favicon:
 					doc.head.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') ??
@@ -64,24 +49,16 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 			if (meta.favicon.startsWith('/')) {
 				meta.favicon = new URL(meta.favicon, url).href
 			}
-		} catch (error) {
-			console.error(error)
-			meta = { image: '', favicon: '', title: '', description: '' }
-		}
 
-		// Create the bookmark asset from the meta
-		return {
-			id: AssetRecordType.createId(getHashForString(url)),
-			typeName: 'asset',
-			type: 'bookmark',
-			props: {
-				src: url,
-				image: meta.image,
-				favicon: meta.favicon,
-				title: meta.title,
-				description: meta.description,
-			},
-			meta: {},
+			return meta
+		} catch (err) {
+			console.error(err)
+			return {
+				image: '',
+				favicon: '',
+				title: '',
+				description: '',
+			}
 		}
 	}
 }

@@ -6,6 +6,7 @@ export {
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,
+	type TLUrlInfoForBookmark,
 } from './TLStore'
 export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
 export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'

@@ -61,9 +61,18 @@ export interface TLAssetStore {
 }
 
 /** @public */
+export interface TLUrlInfoForBookmark {
+	title: string
+	description: string
+	image: string
+	favicon: string
+}
+
+/** @public */
 export interface TLStoreProps {
 	defaultName: string
 	assets: TLAssetStore
+	getUrlInfoForBookmark?: (url: string) => Promise<TLUrlInfoForBookmark>
 }
 
 /** @public */

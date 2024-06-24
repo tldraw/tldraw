@@ -1502,6 +1502,8 @@ export interface TLStoreProps {
     assets: TLAssetStore;
     // (undocumented)
     defaultName: string;
+    // (undocumented)
+    getUrlInfoForBookmark?: (url: string) => Promise<TLUrlInfoForBookmark>;
 }
 
 // @public (undocumented)
@@ -1521,6 +1523,18 @@ export type TLUnknownBinding = TLBaseBinding<string, object>;
 
 // @public
 export type TLUnknownShape = TLBaseShape<string, object>;
+
+// @public (undocumented)
+export interface TLUrlInfoForBookmark {
+    // (undocumented)
+    description: string;
+    // (undocumented)
+    favicon: string;
+    // (undocumented)
+    image: string;
+    // (undocumented)
+    title: string;
+}
 
 // @public
 export type TLVideoAsset = TLBaseAsset<'video', {
