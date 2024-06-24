@@ -9,17 +9,8 @@ import {
 	ROOM_PREFIX,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import {
-	DBLoadResultType,
-	RoomSnapshot,
-	TLCloseEventCode,
-	TLServer,
-	TLServerEvent,
-	TLSyncRoom,
-	type DBLoadResult,
-	type PersistedRoomSnapshotForSupabase,
-	type RoomState,
-} from '@tldraw/tlsync'
+import { TLRecord } from '@tldraw/tlschema'
+import { RoomSnapshot, TLSocketRoom, type PersistedRoomSnapshotForSupabase } from '@tldraw/tlsync'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest, Router } from 'itty-router'
 import Toucan from 'toucan-js'
@@ -31,6 +22,45 @@ import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 
+type DBLoadResult =
+	| {
+			type: 'error'
+			error?: Error | undefined
+	  }
+	| {
+			type: 'room_found'
+			snapshot: RoomSnapshot
+	  }
+	| {
+			type: 'room_not_found'
+	  }
+
+type TLServerEvent =
+	| {
+			type: 'client'
+			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
+			roomId: string
+			clientId: string
+			instanceId: string
+			localClientId: string
+	  }
+	| {
+			type: 'room'
+			name:
+				| 'failed_load_from_db'
+				| 'failed_persist_to_db'
+				| 'room_empty'
+				| 'fail_persist'
+				| 'room_start'
+			roomId: string
+	  }
+	| {
+			type: 'send_message'
+			roomId: string
+			messageType: string
+			messageLength: number
+	  }
+
 const MAX_CONNECTIONS = 50
 
 // increment this any time you make a change to this type
@@ -40,12 +70,55 @@ interface DocumentInfo {
 	slug: string
 }
 
-export class TLDrawDurableObject extends TLServer {
+const ROOM_NOT_FOUND = Symbol('room_not_found')
+
+export class TLDrawDurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
 
 	// For TLSyncRoom
-	_roomState: RoomState | undefined
+	_room: Promise<TLSocketRoom<TLRecord>> | null = null
+
+	getRoom() {
+		if (!this._documentInfo) {
+			throw new Error('documentInfo must be present when accessing room')
+		}
+		const slug = this._documentInfo.slug
+		if (!this._room) {
+			this._room = this.loadFromDatabase(slug).then((result) => {
+				switch (result.type) {
+					case 'room_found': {
+						const room = new TLSocketRoom<TLRecord>({
+							initialSnapshot: result.snapshot,
+							onSessionRemoved: async (room, args) => {
+								if (args.numSessionsRemaining > 0) return
+								if (!this._room) return
+								try {
+									await this.persistToDatabase()
+								} catch (err) {
+									// already logged
+								}
+								this._room = null
+								this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
+								room.close()
+							},
+						})
+						return room
+					}
+					case 'room_not_found': {
+						throw ROOM_NOT_FOUND
+					}
+					case 'error': {
+						throw result.error
+					}
+					default: {
+						exhaustiveSwitchError(result)
+					}
+				}
+			})
+		}
+		return this._room
+	}
 
 	// For storage
 	storage: DurableObjectStorage
@@ -68,13 +141,11 @@ export class TLDrawDurableObject extends TLServer {
 	_documentInfo: DocumentInfo | null = null
 
 	constructor(
-		private controller: DurableObjectState,
+		private state: DurableObjectState,
 		private env: Environment
 	) {
-		super()
-
-		this.id = controller.id
-		this.storage = controller.storage
+		this.id = state.id
+		this.storage = state.storage
 		this.sentryDSN = env.SENTRY_DSN
 		this.measure = env.MEASURE
 		this.supabaseClient = createSupabaseClient(env)
@@ -85,7 +156,7 @@ export class TLDrawDurableObject extends TLServer {
 			versionCache: env.ROOMS_HISTORY_EPHEMERAL,
 		}
 
-		controller.blockConcurrencyWhile(async () => {
+		state.blockConcurrencyWhile(async () => {
 			const existingDocumentInfo = (await this.storage.get('documentInfo')) as DocumentInfo | null
 			if (existingDocumentInfo?.version !== CURRENT_DOCUMENT_INFO_VERSION) {
 				this._documentInfo = null
@@ -122,9 +193,7 @@ export class TLDrawDurableObject extends TLServer {
 		storage: () => this.storage,
 		alarms: {
 			persist: async () => {
-				const room = this.getRoomForPersistenceKey(this.documentInfo.slug)
-				if (!room) return
-				this.persistToDatabase(room.persistenceKey)
+				this.persistToDatabase()
 			},
 		},
 	})
@@ -189,38 +258,10 @@ export class TLDrawDurableObject extends TLServer {
 		}
 		const dataText = await data.text()
 		await this.r2.rooms.put(roomKey, dataText)
-		const roomState = this.getRoomForPersistenceKey(roomId)
-		if (!roomState) {
-			// nothing else to do because the room is not currently in use
-			return new Response()
-		}
+		const room = await this.getRoom()
+
 		const snapshot: RoomSnapshot = JSON.parse(dataText)
-		const oldRoom = roomState.room
-		const oldIds = oldRoom.getSnapshot().documents.map((d) => d.state.id)
-		const newIds = new Set(snapshot.documents.map((d) => d.state.id))
-		const removedIds = oldIds.filter((id) => !newIds.has(id))
-
-		const tombstones = { ...snapshot.tombstones }
-		removedIds.forEach((id) => {
-			tombstones[id] = oldRoom.clock + 1
-		})
-		newIds.forEach((id) => {
-			delete tombstones[id]
-		})
-
-		const newRoom = new TLSyncRoom(roomState.room.schema, {
-			clock: oldRoom.clock + 1,
-			documents: snapshot.documents.map((d) => ({
-				lastChangedClock: oldRoom.clock + 1,
-				state: d.state,
-			})),
-			schema: snapshot.schema,
-			tombstones,
-		})
-
-		// replace room with new one and kick out all the clients
-		this.setRoomState(this.documentInfo.slug, { ...roomState, room: newRoom })
-		oldRoom.close()
+		room.loadSnapshot(snapshot)
 
 		return new Response()
 	}
@@ -235,56 +276,61 @@ export class TLDrawDurableObject extends TLServer {
 		sessionKey ??= params.instanceId
 		storeId ??= params.localClientId
 
-		// Don't connect if we're already at max connections
-		const roomState = this.getRoomForPersistenceKey(this.documentInfo.slug)
-		if (roomState !== undefined) {
-			if (roomState.room.sessions.size >= MAX_CONNECTIONS) {
-				return new Response('Room is full', {
-					status: 403,
-				})
+		let room
+		try {
+			room = await this.getRoom()
+		} catch (e) {
+			if (e === ROOM_NOT_FOUND) {
+				return new Response('Room not found', { status: 404 })
 			}
+			throw e
+		}
+
+		// Don't connect if we're already at max connections
+		if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
+			return new Response('Room is full', {
+				status: 403,
+			})
 		}
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 
-		// Handle the connection (see TLServer)
-		let connectionResult: DBLoadResultType
-		try {
-			// block concurrency while initializing the room if that needs to happen
-			connectionResult = await this.controller.blockConcurrencyWhile(() =>
-				this.handleConnection({
-					socket: serverWebSocket as any,
-					persistenceKey: this.documentInfo.slug!,
-					sessionKey,
-					storeId,
-				})
-			)
-		} catch (e: any) {
-			console.error(e)
-			return new Response(e.message, { status: 500 })
-		}
+		room.handleSocketConnect(sessionKey, serverWebSocket)
 
-		// Accept the websocket connection
-		serverWebSocket.accept()
-		serverWebSocket.addEventListener(
-			'message',
-			throttle(() => {
-				this.schedulePersist()
-			}, 2000)
-		)
-		serverWebSocket.addEventListener('close', () => {
-			this.schedulePersist()
-		})
+		this.state.acceptWebSocket(serverWebSocket, [sessionKey])
 
-		if (connectionResult === 'room_not_found') {
-			// If the room is not found, we need to accept and then immediately close the connection
-			// with our custom close code.
-			serverWebSocket.close(TLCloseEventCode.NOT_FOUND, 'Room not found')
-		}
+		// if (connectionResult === 'room_not_found') {
+		// 	// If the room is not found, we need to accept and then immediately close the connection
+		// 	// with our custom close code.
+		// 	serverWebSocket.close(TLCloseEventCode.NOT_FOUND, 'Room not found')
+		// }
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
+
+	async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+		const [sessionKey] = this.state.getTags(ws)
+		const room = await this.getRoom()
+		room.handleSocketMessage(sessionKey, String(message))
+		this.triggerPersistSchedule()
+	}
+
+	async webSocketClose(ws: WebSocket) {
+		const [sessionKey] = this.state.getTags(ws)
+		const room = await this.getRoom()
+		room.handleSocketClose(sessionKey)
+	}
+
+	async webSocketError(ws: WebSocket, error: Error) {
+		const [sessionKey] = this.state.getTags(ws)
+		const room = await this.getRoom()
+		room.handleSocketError(sessionKey)
+	}
+
+	triggerPersistSchedule = throttle(() => {
+		this.schedulePersist()
+	}, 2000)
 
 	private writeEvent(
 		name: string,
@@ -325,21 +371,8 @@ export class TLDrawDurableObject extends TLServer {
 		}
 	}
 
-	getRoomForPersistenceKey(_persistenceKey: string): RoomState | undefined {
-		return this._roomState // only one room per worker
-	}
-
-	setRoomState(_persistenceKey: string, roomState: RoomState): void {
-		this.deleteRoomState()
-		this._roomState = roomState
-	}
-
-	deleteRoomState(): void {
-		this._roomState = undefined
-	}
-
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
-	override async loadFromDatabase(persistenceKey: string): Promise<DBLoadResult> {
+	async loadFromDatabase(persistenceKey: string): Promise<DBLoadResult> {
 		try {
 			const key = getR2KeyForRoom(persistenceKey)
 			// when loading, prefer to fetch documents from the bucket
@@ -376,47 +409,48 @@ export class TLDrawDurableObject extends TLServer {
 		}
 	}
 
-	_isPersisting = false
+	_persistQueue: Promise<void> | null = null
+	_persistAgain = false
 	_lastPersistedClock: number | null = null
 
 	// Save the room to supabase
-	async persistToDatabase(persistenceKey: string) {
-		if (this._isPersisting) {
-			setTimeout(() => {
-				this.schedulePersist()
-			}, 5000)
+	async persistToDatabase() {
+		if (this._persistQueue) {
+			this._persistAgain = true
+			await this._persistQueue
 			return
 		}
 
+		const slug = this.documentInfo.slug
+
 		try {
-			this._isPersisting = true
+			this._persistQueue = Promise.resolve(
+				(async () => {
+					this._persistAgain = true
+					while (this._persistAgain) {
+						this._persistAgain = false
+						const room = await this.getRoom()
+						const clock = room.getCurrentClock()
+						if (this._lastPersistedClock === clock) return
 
-			const roomState = this.getRoomForPersistenceKey(persistenceKey)
-			if (!roomState) {
-				// room was closed
-				return
-			}
+						const snapshot = JSON.stringify(room.getCurrentSnapshot())
 
-			const { room } = roomState
-			const { clock } = room
-			if (this._lastPersistedClock === clock) return
-
-			try {
-				const snapshot = JSON.stringify(room.getSnapshot())
-
-				const key = getR2KeyForRoom(persistenceKey)
-				await Promise.all([
-					this.r2.rooms.put(key, snapshot),
-					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
-				])
-				this._lastPersistedClock = clock
-			} catch (error) {
-				this.logEvent({ type: 'room', roomId: persistenceKey, name: 'failed_persist_to_db' })
-				console.error('failed to persist document', persistenceKey, error)
-				throw error
-			}
+						const key = getR2KeyForRoom(slug)
+						await Promise.all([
+							this.r2.rooms.put(key, snapshot),
+							this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
+						])
+						this._lastPersistedClock = clock
+					}
+				})()
+			)
+			await this._persistQueue
+		} catch (error) {
+			this.logEvent({ type: 'room', roomId: slug, name: 'failed_persist_to_db' })
+			console.error('failed to persist document', slug, error)
+			throw error
 		} finally {
-			this._isPersisting = false
+			this._persistQueue = null
 		}
 	}
 
