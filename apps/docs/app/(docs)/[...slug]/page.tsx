@@ -1,3 +1,5 @@
+import { Content } from '@/components/content'
+import { Header } from '@/components/docs/header'
 import { Sidebar } from '@/components/sidebar'
 import { getPageContent } from '@/utils/get-page-content'
 import { notFound } from 'next/navigation'
@@ -14,7 +16,10 @@ export default async function Page({ params }: { params: { slug: string | string
 				categoryId={content.article.categoryId}
 				articleId={content.article.id}
 			/>
-			<main>page</main>
+			<main className="max-w-3xl px-5 lg:px-12">
+				<Header article={content.article} />
+				<Content mdx={content.article.content ?? ''} />
+			</main>
 		</div>
 	)
 }

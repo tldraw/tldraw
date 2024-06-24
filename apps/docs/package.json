@@ -95,6 +95,7 @@
 		"ws": "^8.16.0"
 	},
 	"devDependencies": {
+		"@tailwindcss/typography": "^0.5.13",
 		"autoprefixer": "^10.4.19",
 		"linkinator": "^6.0.4",
 		"postcss": "^8.4.38",
