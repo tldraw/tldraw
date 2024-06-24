@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { vecModelValidator } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordPropsType } from '../recordsWithProps'
 import { DefaultColorStyle } from '../styles/TLColorStyle'
@@ -17,6 +18,7 @@ export const textShapeProps = {
 	text: T.string,
 	scale: T.nonZeroNumber,
 	autoSize: T.boolean,
+	textSize: vecModelValidator.nullable(),
 }
 
 /** @public */
@@ -28,6 +30,7 @@ export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 const Versions = createShapePropsMigrationIds('text', {
 	RemoveJustify: 1,
 	AddTextAlign: 2,
+	AddTextSize: 3,
 })
 
 export { Versions as textShapeVersions }
@@ -53,6 +56,15 @@ export const textShapeMigrations = createShapePropsMigrationSequence({
 			down: (props) => {
 				props.align = props.textAlign
 				delete props.textAlign
+			},
+		},
+		{
+			id: Versions.AddTextSize,
+			up: (props) => {
+				props.textSize = null
+			},
+			down: (props) => {
+				delete props.textSize
 			},
 		},
 	],

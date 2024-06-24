@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { vecModelValidator } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordPropsType } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
@@ -61,6 +62,7 @@ export const geoShapeProps = {
 	growY: T.positiveNumber,
 	text: T.string,
 	scale: T.nonZeroNumber,
+	labelSize: vecModelValidator.nullable(),
 }
 
 /** @public */
@@ -79,6 +81,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	AddCloud: 7,
 	MakeUrlsValid: 8,
 	AddScale: 9,
+	AddLabelSize: 10,
 })
 
 export { geoShapeVersions as geoShapeVersions }
@@ -167,6 +170,15 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		},
+		{
+			id: geoShapeVersions.AddLabelSize,
+			up: (props) => {
+				props.labelSize = null
+			},
+			down: (props) => {
+				delete props.labelSize
 			},
 		},
 	],

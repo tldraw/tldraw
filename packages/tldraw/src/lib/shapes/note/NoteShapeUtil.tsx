@@ -2,6 +2,7 @@
 import {
 	Box,
 	Editor,
+	Expand,
 	Group2d,
 	IndexKey,
 	Rectangle2d,
@@ -9,11 +10,11 @@ import {
 	SvgExportContext,
 	TLHandle,
 	TLNoteShape,
+	TLNoteShapeProps,
 	TLOnEditEndHandler,
-	TLShape,
 	TLShapeId,
 	Vec,
-	WeakCache,
+	assertExists,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -45,6 +46,9 @@ import {
 	getNoteShapeForAdjacentPosition,
 } from './noteHelpers'
 
+type LabelSize = Expand<NonNullable<TLNoteShapeProps['labelSize']>>
+const defaultLabelSize: LabelSize = { w: 0, h: 100, fontSizeAdjustment: 0 }
+
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override type = 'note' as const
@@ -67,11 +71,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			fontSizeAdjustment: 0,
 			url: '',
 			scale: 1,
+			labelSize: defaultLabelSize,
 		}
 	}
 
 	getGeometry(shape: TLNoteShape) {
-		const { labelHeight, labelWidth } = getLabelSize(this.editor, shape)
+		const { h: labelHeight, w: labelWidth } = getLabelSize(this.editor, shape)
 		const { scale } = shape.props
 
 		const lh = labelHeight * scale
@@ -306,7 +311,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
  * Get the growY and fontSizeAdjustment for a shape.
  */
 function getNoteSizeAdjustments(editor: Editor, shape: TLNoteShape) {
-	const { labelHeight, fontSizeAdjustment } = getLabelSize(editor, shape)
+	const { h: labelHeight, fontSizeAdjustment } = getLabelSize(editor, shape)
 	// When the label height is more than the height of the shape, we add extra height to it
 	const growY = Math.max(0, labelHeight - NOTE_SIZE)
 
@@ -325,13 +330,15 @@ function getNoteSizeAdjustments(editor: Editor, shape: TLNoteShape) {
 /**
  * Get the label size for a note.
  */
-function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
+function measureNoteLabelSize(editor: Editor, shape: TLNoteShape): LabelSize {
 	const { text } = shape.props
 
 	if (!text) {
 		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
-		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
+		return { h: minHeight, w: 100, fontSizeAdjustment: 0 }
 	}
+
+	const textMeasure = assertExists(editor.textMeasure, 'must have textMeasure')
 
 	const unadjustedFontSize = LABEL_FONT_SIZES[shape.props.size]
 
@@ -349,7 +356,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	// We slightly make the font smaller if the text is too big for the note, width-wise.
 	do {
 		fontSizeAdjustment = Math.min(unadjustedFontSize, unadjustedFontSize - iterations)
-		const nextTextSize = editor.textMeasure.measureText(text, {
+		const nextTextSize = textMeasure.measureText(text, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize: fontSizeAdjustment,
@@ -363,7 +370,7 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 		if (fontSizeAdjustment <= 14) {
 			// Too small, just rely now on CSS `overflow-wrap: break-word`
 			// We need to recalculate the text measurement here with break-word enabled.
-			const nextTextSizeWithOverflowBreak = editor.textMeasure.measureText(text, {
+			const nextTextSizeWithOverflowBreak = textMeasure.measureText(text, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize: fontSizeAdjustment,
@@ -380,16 +387,17 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 	} while (iterations++ < 50)
 
 	return {
-		labelHeight: labelHeight,
-		labelWidth: labelWidth,
+		h: labelHeight,
+		w: labelWidth,
 		fontSizeAdjustment: fontSizeAdjustment,
 	}
 }
 
-const labelSizesForNote = new WeakCache<TLShape, ReturnType<typeof getNoteLabelSize>>()
-
-function getLabelSize(editor: Editor, shape: TLNoteShape) {
-	return labelSizesForNote.get(shape, () => getNoteLabelSize(editor, shape))
+function getLabelSize(editor: Editor, shape: TLNoteShape): LabelSize {
+	if (!shape.props.text) return defaultLabelSize
+	if (shape.props.labelSize) return shape.props.labelSize
+	if (editor.textMeasure) return measureNoteLabelSize(editor, shape)
+	return defaultLabelSize
 }
 
 function useNoteKeydownHandler(id: TLShapeId) {

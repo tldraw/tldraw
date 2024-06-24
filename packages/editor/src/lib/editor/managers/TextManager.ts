@@ -38,24 +38,24 @@ const spaceCharacterRegex = /\s/
 
 /** @public */
 export class TextManager {
-	baseElm: HTMLDivElement
-
-	constructor(public editor: Editor) {
-		const container = this.editor.getContainer()
+	static create(editor: Editor) {
+		const container = editor.getContainer()
+		if (!container) return null
 
 		// Remove any existing text measure element that
 		// is a descendant of this editor's container
 		container.querySelector('#tldraw_text_measure')?.remove()
 
 		const elm = document.createElement('div')
-		elm.id = `tldraw_text_measure`
-		elm.classList.add('tl-text')
-		elm.classList.add('tl-text-measure')
+		elm.id = 'tldraw_text_measure'
+		elm.classList.add('tl-text', 'tl-text-measure')
 		elm.tabIndex = -1
 		container.appendChild(elm)
 
-		this.baseElm = elm
+		return new TextManager(elm)
 	}
+
+	private constructor(private baseElm: HTMLDivElement) {}
 
 	measureText = (
 		textToMeasure: string,

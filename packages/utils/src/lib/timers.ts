@@ -8,21 +8,21 @@ export class Timers {
 
 	/** @public */
 	setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number {
-		const id = window.setTimeout(handler, timeout, args)
+		const id = globalThis.setTimeout(handler, timeout, args)
 		this.timeouts.push(id)
 		return id
 	}
 
 	/** @public */
 	setInterval(handler: TimerHandler, timeout?: number, ...args: any[]): number {
-		const id = window.setInterval(handler, timeout, args)
+		const id = globalThis.setInterval(handler, timeout, args)
 		this.intervals.push(id)
 		return id
 	}
 
 	/** @public */
 	requestAnimationFrame(callback: FrameRequestCallback): number {
-		const id = window.requestAnimationFrame(callback)
+		const id = globalThis.requestAnimationFrame(callback)
 		this.rafs.push(id)
 		return id
 	}

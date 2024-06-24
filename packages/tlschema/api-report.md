@@ -50,6 +50,7 @@ export const arrowShapeProps: {
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
     labelPosition: T.Validator<number>;
+    labelSize: T.Validator<null | VecModel>;
     scale: T.Validator<number>;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     start: T.Validator<VecModel>;
@@ -543,6 +544,7 @@ export const geoShapeProps: {
     growY: T.Validator<number>;
     h: T.Validator<number>;
     labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+    labelSize: T.Validator<VecModel | null>;
     scale: T.Validator<number>;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     text: T.Validator<string>;
@@ -772,6 +774,11 @@ export const noteShapeProps: {
     font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
     fontSizeAdjustment: T.Validator<number>;
     growY: T.Validator<number>;
+    labelSize: T.Validator<({
+        fontSizeAdjustment: number;
+        h: number;
+        w: number;
+    } & {}) | null>;
     scale: T.Validator<number>;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     text: T.Validator<string>;
@@ -873,6 +880,7 @@ export const textShapeProps: {
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     text: T.Validator<string>;
     textAlign: EnumStyleProp<"end" | "middle" | "start">;
+    textSize: T.Validator<VecModel | null>;
     w: T.Validator<number>;
 };
 

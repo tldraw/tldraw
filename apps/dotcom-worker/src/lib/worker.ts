@@ -6,7 +6,7 @@ import {
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { Router, createCors } from 'itty-router'
+import { IRequest, Router, createCors } from 'itty-router'
 import Toucan from 'toucan-js'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -18,6 +18,7 @@ import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
 import { fourOhFour } from './utils/fourOhFour'
+export { AlexSyncDO } from './AlexSyncDO'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 
 const { preflight, corsify } = createCors({
@@ -39,6 +40,10 @@ const router = Router()
 	.get(`/${READ_ONLY_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
+	.get('/alex-sync/:roomId', (req: IRequest, env: Environment) => {
+		const room = env.ALEX_SYNC.get(env.ALEX_SYNC.idFromName(req.params.roomId))
+		return room.fetch(req)
+	})
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)
