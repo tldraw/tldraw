@@ -81,6 +81,7 @@ import {
 	structuredClone,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
+import { nanoid } from 'nanoid'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { TLEditorSnapshot, getSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
@@ -223,23 +224,28 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({
-		store,
-		user,
-		shapeUtils,
-		bindingUtils,
-		tools,
-		getContainer,
-		cameraOptions,
-		assetOptions,
-		initialState,
-		autoFocus,
-		inferDarkMode,
-		options,
-	}: TLEditorOptions) {
+	/** @internal */
+	constructorOptions: TLEditorOptions
+	id = nanoid()
+	constructor(options: TLEditorOptions) {
 		super()
+		console.log('create editor', this.id)
 
-		this.options = { ...defaultTldrawOptions, ...options }
+		const {
+			store,
+			user,
+			shapeUtils,
+			bindingUtils,
+			tools,
+			getContainer,
+			cameraOptions,
+			assetOptions,
+			initialState,
+			autoFocus,
+			inferDarkMode,
+		} = (this.constructorOptions = options)
+
+		this.options = { ...defaultTldrawOptions, ...options.options }
 		this.store = store
 		this.disposables.add(this.store.dispose.bind(this.store))
 		this.history = new HistoryManager<TLRecord>({

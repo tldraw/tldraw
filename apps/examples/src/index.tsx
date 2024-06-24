@@ -1,4 +1,5 @@
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import {
@@ -11,8 +12,6 @@ import { ExamplePage } from './ExamplePage'
 import { examples } from './examples'
 import Develop from './misc/develop'
 import EndToEnd from './misc/end-to-end'
-
-// This example is only used for end to end tests
 
 // we use secret internal `setDefaultAssetUrls` functions to set these at the
 // top-level so assets don't need to be passed down in every single example.
@@ -84,11 +83,13 @@ document.addEventListener('DOMContentLoaded', () => {
 	const rootElement = document.getElementById('root')!
 	const root = createRoot(rootElement!)
 	root.render(
-		<ErrorBoundary
-			fallback={(error) => <DefaultErrorFallback error={error} />}
-			onError={(error) => console.error(error)}
-		>
-			<RouterProvider router={router} />
-		</ErrorBoundary>
+		<StrictMode>
+			<ErrorBoundary
+				fallback={(error) => <DefaultErrorFallback error={error} />}
+				onError={(error) => console.error(error)}
+			>
+				<RouterProvider router={router} />
+			</ErrorBoundary>
+		</StrictMode>
 	)
 })

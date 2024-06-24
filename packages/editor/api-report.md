@@ -791,7 +791,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, assetOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor(options: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
@@ -851,6 +851,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
+    // @internal (undocumented)
+    constructorOptions: TLEditorOptions;
     // @internal (undocumented)
     crash(error: unknown): this;
     createAssets(assets: TLAsset[]): this;
@@ -1082,6 +1084,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean;
     readonly history: HistoryManager<TLRecord>;
+    // (undocumented)
+    id: string;
     inputs: {
         buttons: Set<number>;
         keys: Set<string>;
