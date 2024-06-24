@@ -1082,8 +1082,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean;
     readonly history: HistoryManager<TLRecord>;
-    // (undocumented)
-    id: string;
     inputs: {
         buttons: Set<number>;
         keys: Set<string>;

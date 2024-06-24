@@ -81,7 +81,6 @@ import {
 	structuredClone,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
-import { nanoid } from 'nanoid'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { TLEditorSnapshot, getSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
@@ -224,7 +223,6 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	id = nanoid()
 	constructor({
 		store,
 		user,
