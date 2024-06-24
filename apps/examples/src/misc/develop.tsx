@@ -13,6 +13,7 @@ export default function Develop() {
 					;(window as any).app = editor
 					;(window as any).editor = editor
 				}}
+				licenseKey="FdUX4R3kJEKr/qE1ALv6+hPngk2Wg1zTxAD5y30dqzAW6ThKp2nSWa6D7H4tCsxtQH5odCaQ2zwQyt5UMPm9BnsiZXhwaXJ5RGF0ZSI6IjIwMjEtMTItMzEiLCJjdXN0b21lciI6IkFsdGFzaWFuIiwidmFsaWRIb3N0cyI6WyJhdGxhc3NpYW4uY29tIiwiYXRsYXNzaWFuLm5ldCJdfQ=="
 			/>
 		</div>
 	)

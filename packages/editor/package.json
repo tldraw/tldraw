@@ -57,7 +57,9 @@
 		"eventemitter3": "^4.0.7",
 		"idb": "^7.1.1",
 		"is-plain-object": "^5.0.0",
-		"nanoid": "4.0.2"
+		"nanoid": "4.0.2",
+		"tweetnacl": "^1.0.3",
+		"tweetnacl-util": "^0.15.1"
 	},
 	"peerDependencies": {
 		"react": "^18",

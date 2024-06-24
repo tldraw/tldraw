@@ -129,6 +129,7 @@ import { EdgeScrollManager } from './managers/EdgeScrollManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { FocusManager } from './managers/FocusManager'
 import { HistoryManager } from './managers/HistoryManager'
+import { LicenseManager } from './managers/LicenseManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -219,6 +220,7 @@ export interface TLEditorOptions {
 	 */
 	assetOptions?: Partial<TLAssetOptions>
 	options?: Partial<TldrawOptions>
+	licenseKey?: string
 }
 
 /** @public */
@@ -236,6 +238,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
+		licenseKey,
 	}: TLEditorOptions) {
 		super()
 
@@ -707,6 +710,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
+		this.licenseManager = new LicenseManager()
+		const licenseResult = this.licenseManager.getLicenseFromKey(licenseKey)
+		console.log('license result', licenseResult)
+
 		this.performanceTracker = new PerformanceTracker()
 	}
 
@@ -806,6 +813,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private focusManager: FocusManager
+
+	/**
+	 * A manager for licensing.
+	 *
+	 * @internal
+	 */
+	private licenseManager: LicenseManager
 
 	/**
 	 * The current HTML element containing the editor.

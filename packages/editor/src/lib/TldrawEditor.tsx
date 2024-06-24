@@ -137,6 +137,11 @@ export interface TldrawEditorBaseProps {
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
+
+	/**
+	 * The license key.
+	 */
+	licenseKey?: string
 }
 
 /**
@@ -307,6 +312,7 @@ function TldrawEditorWithReadyStore({
 	inferDarkMode,
 	cameraOptions,
 	assetOptions,
+	licenseKey,
 	options,
 }: Required<
 	TldrawEditorProps & {
@@ -344,6 +350,7 @@ function TldrawEditorWithReadyStore({
 			cameraOptions,
 			assetOptions,
 			options,
+			licenseKey,
 		})
 
 		editorRef.current = editor
