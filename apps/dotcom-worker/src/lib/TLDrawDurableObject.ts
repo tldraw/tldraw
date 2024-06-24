@@ -285,9 +285,21 @@ export class TLDrawDurableObject {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		this.state.acceptWebSocket(serverWebSocket, [sessionKey])
 
-		let room
 		try {
-			room = await this.getRoom()
+			const room = await this.getRoom()
+			// Don't connect if we're already at max connections
+			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
+				// TODO: this is not handled on the client, it just gets stuck in a loading state.
+				// With hibernatable sockets it should be fine to send a .close() event here.
+				// but we should really handle unknown errors better on the client.
+				return new Response('Room is full', {
+					status: 403,
+				})
+			}
+
+			// all good
+			room.handleSocketConnect(sessionKey, serverWebSocket)
+			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
 				serverWebSocket.close(TLCloseEventCode.NOT_FOUND, 'Room not found')
@@ -295,23 +307,6 @@ export class TLDrawDurableObject {
 			}
 			throw e
 		}
-
-		// Don't connect if we're already at max connections
-		if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
-			return new Response('Room is full', {
-				status: 403,
-			})
-		}
-
-		room.handleSocketConnect(sessionKey, serverWebSocket)
-
-		// if (connectionResult === 'room_not_found') {
-		// 	// If the room is not found, we need to accept and then immediately close the connection
-		// 	// with our custom close code.
-		// 	serverWebSocket.close(TLCloseEventCode.NOT_FOUND, 'Room not found')
-		// }
-
-		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
 	async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
