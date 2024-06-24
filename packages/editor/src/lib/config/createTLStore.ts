@@ -25,6 +25,9 @@ export interface TLStoreBaseOptions {
 
 	/** How should we fetch bookmark information from a URL? */
 	getUrlInfoForBookmark?: (url: string) => Promise<TLUrlInfoForBookmark>
+
+	/** Is this store multiplayer synced? This flag enables/disables certain default UI elements. */
+	isMultiplayer?: boolean
 }
 
 /** @public */
@@ -63,6 +66,7 @@ export function createTLStore({
 	id,
 	assets,
 	getUrlInfoForBookmark,
+	isMultiplayer = false,
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	const schema =
@@ -93,6 +97,7 @@ export function createTLStore({
 				...assets,
 			},
 			getUrlInfoForBookmark,
+			isMultiplayer,
 		},
 	})
 }

@@ -488,7 +488,7 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, getUrlInfoForBookmark, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, getUrlInfoForBookmark, isMultiplayer, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -3251,6 +3251,7 @@ export interface TLStoreBaseOptions {
     defaultName?: string;
     getUrlInfoForBookmark?: (url: string) => Promise<TLUrlInfoForBookmark>;
     initialData?: SerializedStore<TLRecord>;
+    isMultiplayer?: boolean;
 }
 
 // @public (undocumented)

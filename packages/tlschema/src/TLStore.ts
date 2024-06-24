@@ -73,6 +73,7 @@ export interface TLStoreProps {
 	defaultName: string
 	assets: TLAssetStore
 	getUrlInfoForBookmark?: (url: string) => Promise<TLUrlInfoForBookmark>
+	isMultiplayer: boolean
 }
 
 /** @public */

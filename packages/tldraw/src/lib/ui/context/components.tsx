@@ -1,4 +1,4 @@
-import { useShallowObjectIdentity } from '@tldraw/editor'
+import { useEditor, useShallowObjectIdentity } from '@tldraw/editor'
 import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
 import {
 	DefaultActionsMenu,
@@ -9,6 +9,7 @@ import {
 	TLUiContextMenuProps,
 } from '../components/ContextMenu/DefaultContextMenu'
 import { DefaultDebugMenu } from '../components/DebugMenu/DefaultDebugMenu'
+import { DefaultCursorChatBubble } from '../components/DefaultCursorChatBubble'
 import { DefaultDebugPanel } from '../components/DefaultDebugPanel'
 import { DefaultHelpMenu, TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
 import {
@@ -52,6 +53,7 @@ export interface TLUiComponents {
 	MenuPanel?: ComponentType | null
 	TopPanel?: ComponentType | null
 	SharePanel?: ComponentType | null
+	CursorChatBubble?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -68,6 +70,9 @@ export function TldrawUiComponentsProvider({
 	children,
 }: TLUiComponentsProviderProps) {
 	const _overrides = useShallowObjectIdentity(overrides)
+	const editor = useEditor()
+
+	const isMultiplayer = editor.store.props.isMultiplayer
 
 	return (
 		<TldrawUiComponentsContext.Provider
@@ -89,9 +94,10 @@ export function TldrawUiComponentsProvider({
 					DebugPanel: DefaultDebugPanel,
 					DebugMenu: DefaultDebugMenu,
 					MenuPanel: DefaultMenuPanel,
+					CursorChatBubble: isMultiplayer ? DefaultCursorChatBubble : null,
 					..._overrides,
 				}),
-				[_overrides]
+				[_overrides, isMultiplayer]
 			)}
 		>
 			{children}

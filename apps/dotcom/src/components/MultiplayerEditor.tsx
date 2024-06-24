@@ -31,7 +31,6 @@ import { useSharing } from '../utils/sharing'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
-import { CursorChatBubble } from './CursorChatBubble'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
@@ -157,7 +156,6 @@ export function MultiplayerEditor({
 				inferDarkMode
 			>
 				<UrlStateSync />
-				<CursorChatBubble />
 				<SneakyOnDropOverride isMultiplayer />
 				<ThemeUpdater />
 			</Tldraw>

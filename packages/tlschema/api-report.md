@@ -1504,6 +1504,8 @@ export interface TLStoreProps {
     defaultName: string;
     // (undocumented)
     getUrlInfoForBookmark?: (url: string) => Promise<TLUrlInfoForBookmark>;
+    // (undocumented)
+    isMultiplayer: boolean;
 }
 
 // @public (undocumented)

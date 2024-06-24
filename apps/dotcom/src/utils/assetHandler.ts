@@ -5,8 +5,6 @@ export const multiplayerAssetStore: TLAssetStore = {
 	upload: async (asset, file) => {
 		const id = uniqueId()
 
-		console.log('multiplayer asset upload', { asset, file })
-
 		const UPLOAD_URL = `${ASSET_UPLOADER_URL}/uploads`
 		const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
 		const url = `${UPLOAD_URL}/${objectName}`

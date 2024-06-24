@@ -44,6 +44,7 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 		schema,
 		assets: multiplayerAssetStore,
 		getUrlInfoForBookmark,
+		isMultiplayer: true,
 	})
 
 	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
