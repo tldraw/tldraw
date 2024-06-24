@@ -222,6 +222,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onHandleDrag: TLOnHandleDragHandler<TLArrowShape>;
     // (undocumented)
+    onMeasure(shape: TLArrowShape): TLArrowShape | void;
+    // (undocumented)
     onResize: TLOnResizeHandler<TLArrowShape>;
     // (undocumented)
     onTranslate?: TLOnTranslateHandler<TLArrowShape>;
@@ -239,6 +241,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
         labelPosition: Validator<number>;
+        labelSize: Validator<VecModel | null>;
         scale: Validator<number>;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         start: Validator<VecModel>;
@@ -439,7 +442,7 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool)[];
+export const defaultShapeTools: (typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
@@ -765,6 +768,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            labelSize: null | VecModel;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
@@ -796,6 +800,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            labelSize: null | VecModel;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
@@ -844,6 +849,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLGeoShape>;
     // (undocumented)
+    onMeasure(shape: TLGeoShape): {
+        id: TLShapeId;
+        props: {
+            labelSize: VecModel;
+        };
+        type: "geo";
+    } | undefined;
+    // (undocumented)
     onResize: TLOnResizeHandler<TLGeoShape>;
     // (undocumented)
     static props: {
@@ -856,6 +869,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         growY: Validator<number>;
         h: Validator<number>;
         labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+        labelSize: Validator<null | VecModel>;
         scale: Validator<number>;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         text: Validator<string>;
@@ -1182,6 +1196,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             font: "draw" | "mono" | "sans" | "serif";
             fontSizeAdjustment: number;
             growY: number;
+            labelSize: {
+                fontSizeAdjustment: number;
+                h: number;
+                w: number;
+            } | null;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
@@ -1208,6 +1227,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             font: "draw" | "mono" | "sans" | "serif";
             fontSizeAdjustment: number;
             growY: number;
+            labelSize: {
+                fontSizeAdjustment: number;
+                h: number;
+                w: number;
+            } | null;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
@@ -1229,6 +1253,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
         fontSizeAdjustment: Validator<number>;
         growY: Validator<number>;
+        labelSize: Validator<    {
+        fontSizeAdjustment: number;
+        h: number;
+        w: number;
+        } | null>;
         scale: Validator<number>;
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         text: Validator<string>;
@@ -1490,11 +1519,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     getGeometry(shape: TLTextShape): Rectangle2d;
     // (undocumented)
-    getMinDimensions(shape: TLTextShape): {
-        height: number;
-        width: number;
-    };
-    // (undocumented)
     indicator(shape: TLTextShape): JSX_2.Element | null;
     // (undocumented)
     isAspectRatioLocked: TLShapeUtilFlag<TLTextShape>;
@@ -1516,6 +1540,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             size: "l" | "m" | "s" | "xl";
             text: string;
             textAlign: "end" | "middle" | "start";
+            textSize: null | VecModel;
             w: number;
         };
         rotation: number;
@@ -1527,6 +1552,14 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLTextShape>;
     // (undocumented)
+    onMeasure(shape: TLTextShape): {
+        id: TLShapeId;
+        props: {
+            textSize: VecModel;
+        };
+        type: "text";
+    } | undefined;
+    // (undocumented)
     onResize: TLOnResizeHandler<TLTextShape>;
     // (undocumented)
     static props: {
@@ -1537,6 +1570,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         size: EnumStyleProp<"l" | "m" | "s" | "xl">;
         text: Validator<string>;
         textAlign: EnumStyleProp<"end" | "middle" | "start">;
+        textSize: Validator<null | VecModel>;
         w: Validator<number>;
     };
     // (undocumented)

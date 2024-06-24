@@ -85,7 +85,7 @@ export class TestEditor extends Editor {
 		this.elm.getBoundingClientRect = () => this.bounds as DOMRect
 		document.body.appendChild(this.elm)
 
-		this.textMeasure.measureText = (
+		this.textMeasure!.measureText = (
 			textToMeasure: string,
 			opts: {
 				fontStyle: string
@@ -114,8 +114,8 @@ export class TestEditor extends Editor {
 			}
 		}
 
-		this.textMeasure.measureTextSpans = (textToMeasure, opts) => {
-			const box = this.textMeasure.measureText(textToMeasure, {
+		this.textMeasure!.measureTextSpans = (textToMeasure, opts) => {
+			const box = this.textMeasure!.measureText(textToMeasure, {
 				...opts,
 				maxWidth: opts.width,
 				padding: `${opts.padding}px`,

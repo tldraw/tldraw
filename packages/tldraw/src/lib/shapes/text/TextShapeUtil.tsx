@@ -11,7 +11,8 @@ import {
 	TLShapeUtilFlag,
 	TLTextShape,
 	Vec,
-	WeakCache,
+	VecModel,
+	assertExists,
 	getDefaultColorTheme,
 	preventDefault,
 	textShapeMigrations,
@@ -27,8 +28,6 @@ import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-c
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
-
-const sizeCache = new WeakCache<TLTextShape['props'], { height: number; width: number }>()
 
 /** @public */
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
@@ -46,16 +45,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			textAlign: 'start',
 			autoSize: true,
 			scale: 1,
+			textSize: null,
 		}
-	}
-
-	getMinDimensions(shape: TLTextShape) {
-		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
 	}
 
 	getGeometry(shape: TLTextShape) {
 		const { scale } = shape.props
-		const { width, height } = this.getMinDimensions(shape)!
+		const { x: width, y: height } = getTextSize(this.editor, shape.props)
 		return new Rectangle2d({
 			width: width * scale,
 			height: height * scale,
@@ -74,7 +70,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			props: { font, size, text, color, scale, textAlign },
 		} = shape
 
-		const { width, height } = this.getMinDimensions(shape)
+		const { x: width, y: height } = getTextSize(this.editor, shape.props)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const theme = useDefaultColorTheme()
 		const handleKeyDown = useTextShapeKeydownHandler(id)
@@ -109,6 +105,16 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const editor = useEditor()
 		if (shape.props.autoSize && editor.getEditingShapeId() === shape.id) return null
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
+	}
+
+	override onMeasure(shape: TLTextShape) {
+		const textSize = measureTextSize(this.editor, shape.props)
+		if (shape.props.textSize && Vec.Equals(shape.props.textSize, textSize)) return
+		return {
+			id: shape.id,
+			type: shape.type,
+			props: { textSize },
+		}
 	}
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
@@ -203,15 +209,15 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		if (!styleDidChange && !textDidChange) return
 
 		// Might return a cached value for the bounds
-		const boundsA = this.getMinDimensions(prev)
+		const boundsA = getTextSize(this.editor, prev.props)
 
 		// Will always be a fresh call to getTextSize
 		const boundsB = getTextSize(this.editor, next.props)
 
-		const wA = boundsA.width * prev.props.scale
-		const hA = boundsA.height * prev.props.scale
-		const wB = boundsB.width * next.props.scale
-		const hB = boundsB.height * next.props.scale
+		const wA = boundsA.x * prev.props.scale
+		const hA = boundsA.y * prev.props.scale
+		const wB = boundsB.x * next.props.scale
+		const hB = boundsB.y * next.props.scale
 
 		let delta: Vec | undefined
 
@@ -276,7 +282,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	// }
 }
 
-function getTextSize(editor: Editor, props: TLTextShape['props']) {
+function measureTextSize(editor: Editor, props: TLTextShape['props']): VecModel {
+	const textMeasure = assertExists(editor.textMeasure, 'textMeasure must exist')
 	const { font, text, autoSize, size, w } = props
 
 	const minWidth = autoSize ? 16 : Math.max(16, w)
@@ -287,7 +294,7 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 		: // `measureText` floors the number so we need to do the same here to avoid issues.
 			Math.floor(Math.max(minWidth, w))
 
-	const result = editor.textMeasure.measureText(text, {
+	const result = textMeasure.measureText(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
@@ -302,9 +309,14 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	}
 
 	return {
-		width: Math.max(minWidth, result.w),
-		height: Math.max(fontSize, result.h),
+		x: Math.max(minWidth, result.w),
+		y: Math.max(fontSize, result.h),
 	}
+}
+function getTextSize(editor: Editor, props: TLTextShape['props']): VecModel {
+	if (props.textSize) return props.textSize
+	if (editor.textMeasure) return measureTextSize(editor, props)
+	return { x: 16, y: FONT_SIZES[props.size] }
 }
 
 function useTextShapeKeydownHandler(id: TLShapeId) {

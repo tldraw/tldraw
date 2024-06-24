@@ -12,8 +12,16 @@ import type { Editor } from '../Editor'
 export class FocusManager {
 	private disposeSideEffectListener?: () => void
 
+	static create(editor: Editor, autoFocus?: boolean) {
+		const container = editor.getContainer()
+		if (!container) return null
+
+		return new FocusManager(editor, container, autoFocus)
+	}
+
 	constructor(
 		public editor: Editor,
+		private container: HTMLElement,
 		autoFocus?: boolean
 	) {
 		this.disposeSideEffectListener = editor.sideEffects.registerAfterChangeHandler(
@@ -43,23 +51,22 @@ export class FocusManager {
 	 * special class on the container: tl-container__focused
 	 */
 	private updateContainerClass() {
-		const container = this.editor.getContainer()
 		const instanceState = this.editor.getInstanceState()
 
 		if (instanceState.isFocused) {
-			container.classList.add('tl-container__focused')
+			this.container.classList.add('tl-container__focused')
 		} else {
-			container.classList.remove('tl-container__focused')
+			this.container.classList.remove('tl-container__focused')
 		}
 	}
 
 	focus() {
-		this.editor.getContainer().focus()
+		this.container.focus()
 	}
 
 	blur() {
 		this.editor.complete() // stop any interaction
-		this.editor.getContainer().blur() // blur the container
+		this.container.blur() // blur the container
 	}
 
 	dispose() {

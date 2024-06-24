@@ -263,7 +263,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.getContainer = getContainer ?? (() => document.body)
 
-		this.textMeasure = new TextManager(this)
+		this.textMeasure = TextManager.create(this)
 		this._tickManager = new TickManager(this)
 
 		class NewRoot extends RootState {
@@ -419,7 +419,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(
 			this.sideEffects.register({
 				shape: {
-					afterChange: (shapeBefore, shapeAfter) => {
+					afterCreate: (shape, source) => {
+						if (source === 'user') {
+							this.updateShapeMeasurements(shape)
+						}
+					},
+					afterChange: (shapeBefore, shapeAfter, source) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
 							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shapeAfter.id) {
@@ -490,6 +495,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (shapeAfter.parentId !== shapeBefore.parentId && isShapeId(shapeAfter.parentId)) {
 							invalidParents.add(shapeAfter.parentId)
+						}
+
+						if (source === 'user') {
+							this.updateShapeMeasurements(shapeAfter)
 						}
 					},
 					beforeDelete: (shape) => {
@@ -694,8 +703,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.root.enter(undefined, 'initial')
 
 		this.edgeScrollManager = new EdgeScrollManager(this)
-		this.focusManager = new FocusManager(this, autoFocus)
-		this.disposables.add(this.focusManager.dispose.bind(this.focusManager))
+		this.focusManager = FocusManager.create(this, autoFocus)
+		if (this.focusManager) {
+			this.disposables.add(this.focusManager.dispose.bind(this.focusManager))
+		}
 
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
@@ -770,7 +781,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly textMeasure: TextManager
+	readonly textMeasure: TextManager | null
 
 	/**
 	 * A manager for the editor's environment.
@@ -805,7 +816,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	private focusManager: FocusManager
+	private focusManager: FocusManager | null
 
 	/**
 	 * The current HTML element containing the editor.
@@ -817,7 +828,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getContainer: () => HTMLElement
+	getContainer: () => HTMLElement | null
 
 	/**
 	 * Dispose the editor.
@@ -6904,8 +6915,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					throw Error('no index!')
 				}
 
-				const next = this.getShapeUtil(shapeRecordToCreate).onBeforeCreate?.(shapeRecordToCreate)
-
+				let next = this.getShapeUtil(shapeRecordToCreate).onBeforeCreate?.(shapeRecordToCreate)
 				if (next) {
 					shapeRecordToCreate = next
 				}
@@ -7289,7 +7299,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				updated = applyPartialToRecordWithProps(shape, partial)
 				if (updated === shape) continue
 
-				//if any shape has an onBeforeUpdate handler, call it and, if the handler returns a
+				// if any shape has an onBeforeUpdate handler, call it and, if the handler returns a
 				// new shape, replace the old shape with the new one. This is used for example when
 				// repositioning a text shape based on its new text content.
 				updated = this.getShapeUtil(shape).onBeforeUpdate?.(shape, updated) ?? updated
@@ -7299,6 +7309,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			this.store.put(updates)
 		})
+	}
+
+	updateShapeMeasurements(shape: TLShape | TLShapeId): this {
+		const id = typeof shape === 'string' ? shape : shape.id
+		const latest = this.getShape(id)
+		if (!latest) return this
+
+		const util = this.getShapeUtil(latest)
+		if (!util.onMeasure) return this
+
+		const update = util.onMeasure(latest)
+		if (!update) return this
+
+		const updated = applyPartialToRecordWithProps(latest, update)
+		if (updated === latest) return this
+
+		this.store.put([updated])
+		return this
 	}
 
 	/** @internal */
@@ -8449,7 +8477,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	focus({ focusContainer = true } = {}): this {
 		if (focusContainer) {
-			this.focusManager.focus()
+			this.focusManager?.focus()
 		}
 		this.updateInstanceState({ isFocused: true })
 		return this
@@ -8476,7 +8504,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	blur({ blurContainer = true } = {}): this {
 		if (!this.getIsFocused()) return this
 		if (blurContainer) {
-			this.focusManager.blur()
+			this.focusManager?.blur()
 		} else {
 			this.complete() // stop any interaction
 		}

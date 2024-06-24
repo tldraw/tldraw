@@ -106,11 +106,16 @@ export function getArrowBindings(editor: Editor, shape: TLArrowShape): TLArrowBi
 	}
 }
 
-const arrowInfoCache = createComputedCache('arrow info', (editor: Editor, shape: TLArrowShape) => {
+/** @internal */
+export function getArrowInfoUncached(editor: Editor, shape: TLArrowShape) {
 	const bindings = getArrowBindings(editor, shape)
 	return getIsArrowStraight(shape)
 		? getStraightArrowInfo(editor, shape, bindings)
 		: getCurvedArrowInfo(editor, shape, bindings)
+}
+
+const arrowInfoCache = createComputedCache('arrow info', (editor: Editor, shape: TLArrowShape) => {
+	return getArrowInfoUncached(editor, shape)
 })
 
 /** @public */
