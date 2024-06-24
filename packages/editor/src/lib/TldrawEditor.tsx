@@ -8,7 +8,6 @@ import React, {
 	useLayoutEffect,
 	useMemo,
 	useRef,
-	useState,
 	useSyncExternalStore,
 } from 'react'
 
@@ -35,6 +34,7 @@ import {
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
+import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
 import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
@@ -343,16 +343,8 @@ function TldrawEditorWithReadyStore({
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
-	const editorRef = useRef<Editor | null>(null)
-	// we need to store the editor instance in a ref so that it persists across strict-mode
-	// remounts, but that won't trigger re-renders, so we use this hook to make sure all child
-	// components get the most up to date editor reference when needed.
-	const [renderEditor, setRenderEditor] = useState<Editor | null>(null)
 
-	const editor = editorRef.current
-	if (renderEditor !== editor) {
-		setRenderEditor(editor)
-	}
+	const [editor, setEditor] = useRefState<Editor | null>(null)
 
 	// props in this ref can be changed without causing the editor to be recreated.
 	const editorOptionsRef = useRef({
@@ -390,15 +382,14 @@ function TldrawEditorWithReadyStore({
 				options,
 			})
 
-			editorRef.current = editor
-			setRenderEditor(editor)
+			setEditor(editor)
 
 			return () => {
 				editor.dispose()
 			}
 		},
 		// if any of these change, we need to recreate the editor.
-		[bindingUtils, container, options, shapeUtils, store, tools, user]
+		[bindingUtils, container, options, shapeUtils, store, tools, user, setEditor]
 	)
 
 	// keep the editor up to date with the latest camera options

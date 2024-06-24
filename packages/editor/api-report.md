@@ -12,6 +12,7 @@ import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
+import { Dispatch } from 'react';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
@@ -33,6 +34,7 @@ import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
+import { SetStateAction } from 'react';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
@@ -3413,7 +3415,7 @@ export function useIsDarkMode(): boolean;
 export function useIsEditing(shapeId: TLShapeId): boolean;
 
 // @internal (undocumented)
-export function useLocalStore({ persistenceKey, sessionId, ...rest }: {
+export function useLocalStore(options: {
     persistenceKey?: string;
     sessionId?: string;
     snapshot?: TLEditorSnapshot | TLStoreSnapshot;
@@ -3431,6 +3433,9 @@ export { useQuickReactor }
 export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
 
 export { useReactor }
+
+// @internal
+export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>];
 
 // @public (undocumented)
 export class UserPreferencesManager {
