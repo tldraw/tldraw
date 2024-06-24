@@ -1,3 +1,24 @@
+# v2.2.2 (Mon Jun 24 2024)
+
+### Release Notes
+
+#### 2.2.2 ([#4004](https://github.com/tldraw/tldraw/pull/4004))
+
+Fixes a bug that would break text measurement when `Tldraw` was used with react strict mode (#4001)
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `tldraw`
+  - 2.2.2 [#4004](https://github.com/tldraw/tldraw/pull/4004) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v2.2.1 (Mon Jun 17 2024)
 
 ### Release Notes
