@@ -124,17 +124,6 @@ export function registerDefaultExternalContentHandlers(
 
 		assetInfo.props.src = await editor.store.uploadAsset(assetInfo, file)
 
-		// if (persistenceKey) {
-		// 	assetInfo.props.src = assetId
-		// 	await storeAssetInIndexedDb({
-		// 		persistenceKey,
-		// 		assetId,
-		// 		blob: file,
-		// 	})
-		// } else {
-		// 	assetInfo.props.src = await FileHelpers.blobToDataUrl(file)
-		// }
-
 		return AssetRecordType.create(assetInfo)
 	})
 
