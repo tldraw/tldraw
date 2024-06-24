@@ -7,6 +7,7 @@ import React, {
 	useCallback,
 	useLayoutEffect,
 	useMemo,
+	useRef,
 	useState,
 	useSyncExternalStore,
 } from 'react'
@@ -316,7 +317,17 @@ function TldrawEditorWithReadyStore({
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
-	const [editor, setEditor] = useState<Editor | null>(null)
+	const editorRef = useRef<Editor | null>(null)
+	// we need to store the editor instance in a ref so that it persists across strict-mode
+	// remounts, but that won't trigger re-renders, so we use this hook to make sure all child
+	// components get the most up to date editor reference when needed.
+	const [renderEditor, setRenderEditor] = useState<Editor | null>(null)
+
+	const editor = editorRef.current
+	if (renderEditor !== editor) {
+		setRenderEditor(editor)
+	}
+
 	const [initialAutoFocus] = useState(autoFocus)
 
 	useLayoutEffect(() => {
@@ -334,7 +345,9 @@ function TldrawEditorWithReadyStore({
 			assetOptions,
 			options,
 		})
-		setEditor(editor)
+
+		editorRef.current = editor
+		setRenderEditor(editor)
 
 		return () => {
 			editor.dispose()
