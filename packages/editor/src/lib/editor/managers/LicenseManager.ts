@@ -25,15 +25,11 @@ export class LicenseManager {
 	private publicKey = '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
 	extractLicense(licenseKey: string): LicenseInfo {
 		const base64License = util.decodeBase64(licenseKey)
-		console.log('licenseKey', licenseKey)
-		console.log('base64License', base64License)
 		const decoded = nacl.sign.open(base64License, util.decodeBase64(this.publicKey))
-		console.log('decoded', decoded)
 		if (!decoded) {
 			throw new Error('Invalid license')
 		}
 		const licenseInfo = JSON.parse(util.encodeUTF8(decoded))
-		console.log('licenseInfo', licenseInfo)
 
 		return licenseInfoValidator.validate(licenseInfo)
 	}
