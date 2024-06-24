@@ -7,7 +7,6 @@ import React, {
 	useCallback,
 	useLayoutEffect,
 	useMemo,
-	useRef,
 	useState,
 	useSyncExternalStore,
 } from 'react'
@@ -35,6 +34,7 @@ import {
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
+import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
 import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
@@ -343,16 +343,8 @@ function TldrawEditorWithReadyStore({
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
-	const editorRef = useRef<Editor | null>(null)
-	// we need to store the editor instance in a ref so that it persists across strict-mode
-	// remounts, but that won't trigger re-renders, so we use this hook to make sure all child
-	// components get the most up to date editor reference when needed.
-	const [renderEditor, setRenderEditor] = useState<Editor | null>(null)
 
-	const editor = editorRef.current
-	if (renderEditor !== editor) {
-		setRenderEditor(editor)
-	}
+	const [editor, setEditor] = useRefState<Editor | null>(null)
 
 	const [initialAutoFocus] = useState(autoFocus)
 
@@ -371,8 +363,7 @@ function TldrawEditorWithReadyStore({
 			options,
 		})
 
-		editorRef.current = editor
-		setRenderEditor(editor)
+		setEditor(editor)
 
 		return () => {
 			editor.dispose()
@@ -389,6 +380,7 @@ function TldrawEditorWithReadyStore({
 		inferDarkMode,
 		cameraOptions,
 		options,
+		setEditor,
 	])
 
 	const crashingError = useSyncExternalStore(
