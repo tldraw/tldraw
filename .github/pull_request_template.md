@@ -2,24 +2,12 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 
 ### Change Type
 
-<!-- ❗ Please select a 'Scope' label ❗️ -->
-
-- [ ] `sdk` — Changes the tldraw SDK
-- [ ] `dotcom` — Changes the tldraw.com web app
-- [ ] `docs` — Changes to the documentation, examples, or templates.
-- [ ] `vs code` — Changes to the vscode plugin
-- [ ] `internal` — Does not affect user-facing stuff
-
 <!-- ❗ Please select a 'Type' label ❗️ -->
 
-- [ ] `bugfix` — Bug fix
-- [ ] `feature` — New feature
 - [ ] `improvement` — Improving existing features
-- [ ] `chore` — Updating dependencies, other boring stuff
-- [ ] `galaxy brain` — Architectural changes
-- [ ] `tests` — Changes to any test code
-- [ ] `tools` — Changes to infrastructure, CI, internal scripts, debugging tools, etc.
-- [ ] `dunno` — I don't know
+- [ ] `bugfix` — Bug fix
+- [ ] `api` — API Change
+- [ ] `other` — Internal or flagship .com change
 
 
 ### Test Plan
