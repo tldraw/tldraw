@@ -80,6 +80,8 @@ export class TLDrawDurableObject {
 								} catch (err) {
 									// already logged
 								}
+								// make sure nobody joined the room while we were persisting
+								if (room.getNumActiveSessions() > 0) return
 								this._room = null
 								this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
 								room.close()
