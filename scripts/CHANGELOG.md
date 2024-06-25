@@ -2,6 +2,87 @@
 
 #### 🐛 Bug Fixes
 
+Editing: don't allow editing locked shapes when edit→edit mode.
+Clipboard: fix copy/paste for older versions of Firefox
+Clipboard: fix copy/paste in Firefox 127+
+Fix a bug causing text shape measurement to work incorrectly when using react strict mode
+Fix typo on "CardShapeUtil" name in the custom shape example documentation.
+Add a brief release note for your PR here.
+- Fix scale issue with new draw lines [#3971](https://github.com/tldraw/tldraw/pull/3971) ([@steveruizok](https://github.com/steveruizok))
+- flattening: use correct id for asset [#3968](https://github.com/tldraw/tldraw/pull/3968) ([@mimecuvalo](https://github.com/mimecuvalo))
+Images: fix isAnimated checks when adding an image to a shared room.
+Fixes the appearance of solid-style heart shapes.
+Fixes the position of multiple assets when pasted / dropped onto the canvas.
+- lod: fix up missing timeout from bad merge [#3964](https://github.com/tldraw/tldraw/pull/3964) ([@mimecuvalo](https://github.com/mimecuvalo))
+Fixes a bug with the indicator for stylus-drawn draw shapes.
+Assets: fix copy/paste for new asset resolver mechanic.
+Bookmarks: padding tweaks
+- assets: fix up videos with indexedDB [#3954](https://github.com/tldraw/tldraw/pull/3954) ([@mimecuvalo](https://github.com/mimecuvalo))
+- assets: add crossorigin tag for preloaded fonts [#3953](https://github.com/tldraw/tldraw/pull/3953) ([@mimecuvalo](https://github.com/mimecuvalo))
+Retrigger canary packaging.
+Retrigger canary package build to publish a new package and upload assets to R2.
+Fix an issue with uploading the static assets.
+- image: follow-up fixes for LOD [#3934](https://github.com/tldraw/tldraw/pull/3934) ([@mimecuvalo](https://github.com/mimecuvalo))
+Images: avoid double request for animated images.
+
+#### 🚀 Features
+
+Secretly adds a fill-fill style (Alt-F)
+Add a brief release note for your PR here.
+Add Flatten, a new menu item to flatten shapes into images
+Assets: make option to transform urls dynamically to provide different sized images on demand.
+
+#### 💄 Improvements
+
+- better auto-generated docs for Tldraw and TldrawEditor [#4012](https://github.com/tldraw/tldraw/pull/4012) ([@SomeHats](https://github.com/SomeHats))
+- theme: rename color scheme to theme [#3991](https://github.com/tldraw/tldraw/pull/3991) ([@mimecuvalo](https://github.com/mimecuvalo))
+- lod: dont transform SVGs [#3972](https://github.com/tldraw/tldraw/pull/3972) ([@mimecuvalo](https://github.com/mimecuvalo))
+- lod: dont resize images that are culled [#3970](https://github.com/tldraw/tldraw/pull/3970) ([@mimecuvalo](https://github.com/mimecuvalo))
+Improve filtering of examples
+- Document inherited members in reference [#3956](https://github.com/tldraw/tldraw/pull/3956) ([@SomeHats](https://github.com/SomeHats))
+Add a brief release note for your PR here.
+Add a delay and easing to edge scrolling.
+Start using our own cdn instead of unpkg.
+Perf: improve font loading timing on dotcom.
+Assets: store as reference to blob in indexedDB instead of storing directly as base64 in the snapshot.
+- Generated docs cleanup [#3935](https://github.com/tldraw/tldraw/pull/3935) ([@SomeHats](https://github.com/SomeHats))
+- Inline documentation links in type excerpts [#3931](https://github.com/tldraw/tldraw/pull/3931) ([@SomeHats](https://github.com/SomeHats))
+- Better generated docs for react components [#3930](https://github.com/tldraw/tldraw/pull/3930) ([@SomeHats](https://github.com/SomeHats))
+Remove ability to rename document while in readonly mode
+- security: enforce use of our fetch function and its default referrerpolicy [#3884](https://github.com/tldraw/tldraw/pull/3884) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🧹 Chores
+
+- assets: mark assetOptions as internal [#4014](https://github.com/tldraw/tldraw/pull/4014) ([@mimecuvalo](https://github.com/mimecuvalo))
+Fix the license in the readme file for the store package.
+VS Code 2.0.36 release.
+
+#### 🛠️ Tools
+
+Fix VS Code publishing.
+Automate publishing of the VS Code extension.
+Upload our static assets (fonts, icons, embed-icons, translations) to a R2 bucket so that we can move away from using unpkg and start using our own cdn.
+
+#### 🧪 Tests
+
+Introduce a new CI environment and use it for publishing vs code extension.
+
+#### Authors: 7
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Ben Holmes ([@bholmesdev](https://github.com/bholmesdev))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
+# (Tue Jun 25 2024)
+
+#### 🐛 Bug Fixes
+
 - editing: don't allow editing locked shapes when edit→edit mode. [#4007](https://github.com/tldraw/tldraw/pull/4007) ([@mimecuvalo](https://github.com/mimecuvalo))
 - clipboard: fix copy/paste bad typo, ugh [#4008](https://github.com/tldraw/tldraw/pull/4008) ([@mimecuvalo](https://github.com/mimecuvalo))
 - clipboard: fix copy/paste on Firefox [#4003](https://github.com/tldraw/tldraw/pull/4003) ([@mimecuvalo](https://github.com/mimecuvalo))
