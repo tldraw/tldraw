@@ -56,7 +56,6 @@ export type TLServerEvent =
 			type: 'client'
 			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
 			roomId: string
-			clientId: string
 			instanceId: string
 			localClientId: string
 	  }

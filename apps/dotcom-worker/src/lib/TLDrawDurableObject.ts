@@ -43,7 +43,7 @@ export class TLDrawDurableObject {
 	id: DurableObjectId
 
 	// For TLSyncRoom
-	_room: Promise<TLSocketRoom<TLRecord>> | null = null
+	_room: Promise<TLSocketRoom<TLRecord, { storeId: string }>> | null = null
 
 	getRoom() {
 		if (!this._documentInfo) {
@@ -54,11 +54,26 @@ export class TLDrawDurableObject {
 			this._room = this.loadFromDatabase(slug).then((result) => {
 				switch (result.type) {
 					case 'room_found': {
-						const room = new TLSocketRoom<TLRecord>({
+						const room = new TLSocketRoom<TLRecord, { storeId: string }>({
 							initialSnapshot: result.snapshot,
 							onSessionRemoved: async (room, args) => {
+								this.logEvent({
+									type: 'client',
+									roomId: slug,
+									name: 'leave',
+									instanceId: args.sessionKey,
+									localClientId: args.meta.storeId,
+								})
+
 								if (args.numSessionsRemaining > 0) return
 								if (!this._room) return
+								this.logEvent({
+									type: 'client',
+									roomId: slug,
+									name: 'last_out',
+									instanceId: args.sessionKey,
+									localClientId: args.meta.storeId,
+								})
 								try {
 									await this.persistToDatabase()
 								} catch (err) {
@@ -71,7 +86,16 @@ export class TLDrawDurableObject {
 							onDataChange: () => {
 								this.triggerPersistSchedule()
 							},
+							onBeforeSendMessage: (_sessionId, message, stringified) => {
+								this.logEvent({
+									type: 'send_message',
+									roomId: slug,
+									messageType: message.type,
+									messageLength: stringified.length,
+								})
+							},
 						})
+						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
 						return room
 					}
 					case 'room_not_found': {
@@ -239,10 +263,12 @@ export class TLDrawDurableObject {
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
-		let { sessionKey } = params
+		let { sessionKey, storeId } = params
 
 		// handle legacy param names
 		sessionKey ??= params.instanceId
+		storeId ??= params.localClientId
+		const isNewSession = !this._room
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
@@ -256,7 +282,23 @@ export class TLDrawDurableObject {
 			}
 
 			// all good
-			room.handleSocketConnect(sessionKey, serverWebSocket)
+			room.handleSocketConnect(sessionKey, serverWebSocket, { storeId })
+			if (isNewSession) {
+				this.logEvent({
+					type: 'client',
+					roomId: this.documentInfo.slug,
+					name: 'room_reopen',
+					instanceId: sessionKey,
+					localClientId: storeId,
+				})
+			}
+			this.logEvent({
+				type: 'client',
+				roomId: this.documentInfo.slug,
+				name: 'enter',
+				instanceId: sessionKey,
+				localClientId: storeId,
+			})
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
@@ -292,7 +334,7 @@ export class TLDrawDurableObject {
 			case 'client': {
 				// we would add user/connection ids here if we could
 				this.writeEvent(event.name, {
-					blobs: [event.roomId, event.clientId, event.instanceId],
+					blobs: [event.roomId, 'unused', event.instanceId],
 					indexes: [event.localClientId],
 				})
 				break

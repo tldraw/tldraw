@@ -11,8 +11,8 @@ interface TLSyncLog {
 	error?: (...args: any[]) => void
 }
 
-export class TLSocketRoom<R extends UnknownRecord> {
-	private room: TLSyncRoom<R>
+export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
+	private room: TLSyncRoom<R, SessionMeta>
 	private readonly sessions = new Map<
 		string,
 		{ assembler: JsonChunkAssembler; socket: WebSocket; unlisten: () => void }
@@ -27,8 +27,8 @@ export class TLSocketRoom<R extends UnknownRecord> {
 			log?: TLSyncLog
 			// a callback that is called when a client is disconnected
 			onSessionRemoved?: (
-				room: TLSocketRoom<R>,
-				args: { sessionKey: string; numSessionsRemaining: number }
+				room: TLSocketRoom<R, SessionMeta>,
+				args: { sessionKey: string; numSessionsRemaining: number; meta: SessionMeta }
 			) => void
 			// a callback that is called whenever a message is sent
 			onBeforeSendMessage?: (
@@ -40,7 +40,10 @@ export class TLSocketRoom<R extends UnknownRecord> {
 		}
 	) {
 		const initialClock = opts.initialSnapshot?.clock ?? 0
-		this.room = new TLSyncRoom<R>(opts.schema ?? (createTLSchema() as any), opts.initialSnapshot)
+		this.room = new TLSyncRoom<R, SessionMeta>(
+			opts.schema ?? (createTLSchema() as any),
+			opts.initialSnapshot
+		)
 		if (this.room.clock !== initialClock) {
 			this.opts?.onDataChange?.()
 		}
@@ -50,6 +53,7 @@ export class TLSocketRoom<R extends UnknownRecord> {
 				this.opts.onSessionRemoved(this, {
 					sessionKey: args.sessionKey,
 					numSessionsRemaining: this.room.sessions.size,
+					meta: args.meta,
 				})
 			}
 		})
@@ -59,7 +63,7 @@ export class TLSocketRoom<R extends UnknownRecord> {
 		return this.room.sessions.size
 	}
 
-	handleSocketConnect(sessionId: string, socket: WebSocket) {
+	handleSocketConnect(sessionId: string, socket: WebSocket, meta: SessionMeta) {
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data)
 		const handleSocketError = this.handleSocketError.bind(this, sessionId)
@@ -82,7 +86,8 @@ export class TLSocketRoom<R extends UnknownRecord> {
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
 					? (msg, stringified) => this.opts.onBeforeSendMessage!(sessionId, msg, stringified)
 					: undefined,
-			})
+			}),
+			meta
 		)
 
 		socket.addEventListener('message', handleSocketMessage)
@@ -156,7 +161,7 @@ export class TLSocketRoom<R extends UnknownRecord> {
 			delete tombstones[id]
 		})
 
-		const newRoom = new TLSyncRoom(oldRoom.schema, {
+		const newRoom = new TLSyncRoom<R, SessionMeta>(oldRoom.schema, {
 			clock: oldRoom.clock + 1,
 			documents: snapshot.documents.map((d) => ({
 				lastChangedClock: oldRoom.clock + 1,

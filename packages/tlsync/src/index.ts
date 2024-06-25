@@ -32,4 +32,4 @@ export {
 	type TLSocketServerSentEvent,
 } from './lib/protocol'
 export { schema } from './lib/schema'
-export type { PersistedRoomSnapshotForSupabase, RoomState as RoomState } from './lib/server-types'
+export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
