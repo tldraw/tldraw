@@ -1,6 +1,7 @@
 import { T } from '@tldraw/validate'
 import nacl from 'tweetnacl'
 import util from 'tweetnacl-util'
+import { Editor } from '../Editor'
 
 const licenseInfoValidator = T.object({
 	expiry: T.number,
@@ -25,6 +26,7 @@ export type LicenseFromKeyResult =
 export class LicenseManager {
 	private publicKey = '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
 	licenseKey: LicenseFromKeyResult | null = null
+	constructor(private editor: Editor) {}
 	extractLicense(licenseKey: string): LicenseInfo {
 		const base64License = util.decodeBase64(licenseKey)
 
@@ -41,7 +43,8 @@ export class LicenseManager {
 		let license: LicenseInfo
 		if (!licenseKey) {
 			this.licenseKey = { isLicenseValid: false, message: 'No license key provided' }
-			return this.shouldShowWatermark()
+			this.shouldShowWatermark()
+			return this.checkWatermark()
 		}
 
 		try {
@@ -49,7 +52,8 @@ export class LicenseManager {
 		} catch (e) {
 			// If the license can't be parsed, it's invalid
 			this.licenseKey = { isLicenseValid: false, message: 'Invalid license key' }
-			return this.shouldShowWatermark()
+			this.shouldShowWatermark()
+			return this.checkWatermark()
 		}
 		this.licenseKey = {
 			license,
@@ -60,6 +64,7 @@ export class LicenseManager {
 			isLicenseExpired: license.expiry > Date.now(),
 		}
 		this.shouldShowWatermark()
+		this.checkWatermark()
 	}
 	shouldShowWatermark() {
 		if (!this.licenseKey?.isLicenseValid) {
@@ -76,17 +81,47 @@ export class LicenseManager {
 		}
 	}
 	createWatermark() {
-		const watermark = document.createElement('div')
+		const watermark = document.createElement('a')
 		const canvas = document.getElementsByClassName('tldraw__editor')[0].firstChild as HTMLElement
 		watermark.style.position = 'absolute'
-		watermark.style.bottom = '10'
-		watermark.style.right = '10'
-		watermark.style.backgroundColor = 'rgba(0, 0, 0, 0.4)'
-		watermark.style.padding = '8px'
+		watermark.style.bottom = '60px'
+		watermark.style.right = '20px'
+		watermark.style.backgroundColor = 'rgb(0, 0, 0)'
+		watermark.style.color = 'white'
+		watermark.style.padding = '12px'
 		watermark.style.fontFamily = 'Arial'
-		watermark.style.fontSize = '72px'
+		watermark.style.fontSize = '20px'
 		watermark.style.zIndex = '201'
-		watermark.innerHTML = 'WATERMARK'
+		watermark.innerHTML = 'tldraw.dev'
+		watermark.href = 'https://tldraw.dev'
+		watermark.id = 'tldraw-watermark'
 		if (canvas) canvas.appendChild(watermark)
+	}
+	checkWatermark() {
+		// check on an interval if the watermark is still there, if it isn't then add it back
+
+		this.editor.timers.setInterval(() => {
+			const canvas = document.getElementsByClassName('tldraw__editor')[0].firstChild as HTMLElement
+			const children = [...canvas.children]
+			const watermark = children.find(
+				(element) => element.innerHTML === 'tldraw.dev'
+			) as HTMLAnchorElement
+			if (!watermark) {
+				this.createWatermark()
+			}
+			// check the style of the watermark is exactly what we want
+			watermark.style.position = 'absolute'
+			watermark.style.opacity = '1'
+			watermark.style.bottom = '60px'
+			watermark.style.right = '20px'
+			watermark.style.backgroundColor = 'rgb(0, 0, 0)'
+			watermark.style.color = 'white'
+			watermark.style.padding = '12px'
+			watermark.style.fontFamily = 'Arial'
+			watermark.style.fontSize = '20px'
+			watermark.style.zIndex = '201'
+			watermark.innerHTML = 'tldraw.dev'
+			watermark.href = 'https://tldraw.dev'
+		}, 5000)
 	}
 }

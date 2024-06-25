@@ -710,7 +710,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
-		this.licenseManager = new LicenseManager()
+		this.licenseManager = new LicenseManager(this)
 		this.licenseManager.getLicenseFromKey(licenseKey)
 
 		this.performanceTracker = new PerformanceTracker()
