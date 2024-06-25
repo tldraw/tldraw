@@ -914,6 +914,20 @@ export type TLArrowShapeProps = RecordPropsType<typeof arrowShapeProps>;
 export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
 
 // @public (undocumented)
+export interface TLAssetContext {
+    // (undocumented)
+    dpr: number;
+    // (undocumented)
+    networkEffectiveType: null | string;
+    // (undocumented)
+    screenScale: number;
+    // (undocumented)
+    shouldResolveToOriginal: boolean;
+    // (undocumented)
+    steppedScreenScale: number;
+}
+
+// @public (undocumented)
 export type TLAssetId = RecordId<TLBaseAsset<any, any>>;
 
 // @public (undocumented)
@@ -930,6 +944,14 @@ export type TLAssetShape = Extract<TLShape, {
         assetId: TLAssetId;
     };
 }>;
+
+// @public (undocumented)
+export interface TLAssetStore {
+    // (undocumented)
+    resolve(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
+    // (undocumented)
+    upload(asset: TLAsset, file: File): Promise<string>;
+}
 
 // @public (undocumented)
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
@@ -1467,10 +1489,17 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public (undocumented)
-export type TLStore = Store<TLRecord, TLStoreProps>;
+export class TLStore extends Store<TLRecord, TLStoreProps> {
+    // (undocumented)
+    resolveAsset(asset: TLAsset, ctx: TLAssetContext): Promise<null | string>;
+    // (undocumented)
+    uploadAsset(asset: TLAsset, file: File): Promise<string>;
+}
 
 // @public (undocumented)
 export interface TLStoreProps {
+    // (undocumented)
+    assets: TLAssetStore;
     // (undocumented)
     defaultName: string;
 }

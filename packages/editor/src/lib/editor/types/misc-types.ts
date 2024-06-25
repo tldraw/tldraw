@@ -1,4 +1,4 @@
-import { BoxModel, TLAsset } from '@tldraw/tlschema'
+import { BoxModel } from '@tldraw/tlschema'
 import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
 
@@ -53,23 +53,6 @@ export interface TLCameraOptions {
 	wheelBehavior: 'zoom' | 'pan' | 'none'
 	/** The camera constraints. */
 	constraints?: TLCameraConstraints
-}
-
-/** @public */
-export interface AssetContextProps {
-	screenScale: number
-	steppedScreenScale: number
-	dpr: number
-	networkEffectiveType: string | null
-	shouldResolveToOriginalImage?: boolean
-}
-
-/** @public */
-export interface TLAssetOptions {
-	onResolveAsset: (
-		asset: TLAsset | null | undefined,
-		ctx: AssetContextProps
-	) => Promise<string | null>
 }
 
 /** @public */

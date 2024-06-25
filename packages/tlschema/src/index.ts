@@ -1,6 +1,8 @@
 export {
+	TLStore,
+	type TLAssetContext,
+	type TLAssetStore,
 	type TLSerializedStore,
-	type TLStore,
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,

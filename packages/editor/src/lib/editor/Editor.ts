@@ -89,7 +89,6 @@ import { checkBindings } from '../config/defaultBindings'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
-	DEFAULT_ASSET_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
@@ -150,7 +149,6 @@ import { TLHistoryBatchOptions } from './types/history-types'
 import {
 	OptionalKeys,
 	RequiredKeys,
-	TLAssetOptions,
 	TLCameraMoveOptions,
 	TLCameraOptions,
 	TLSvgOptions,
@@ -214,10 +212,6 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-	/**
-	 * Options for the editor's assets.
-	 */
-	assetOptions?: Partial<TLAssetOptions>
 	options?: Partial<TldrawOptions>
 }
 
@@ -231,7 +225,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools,
 		getContainer,
 		cameraOptions,
-		assetOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
@@ -256,8 +249,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(this.timers.dispose.bind(this.timers))
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
-
-		this._assetOptions.set({ ...DEFAULT_ASSET_OPTIONS, ...assetOptions })
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
@@ -3836,8 +3827,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Assets --------------------- */
 
-	private _assetOptions = atom('asset options', DEFAULT_ASSET_OPTIONS)
-
 	/** @internal */
 	@computed private _getAllAssetsQuery() {
 		return this.store.query.records('asset')
@@ -3942,28 +3931,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		assetId: TLAssetId | null,
 		context: {
 			screenScale?: number
-			shouldResolveToOriginalImage?: boolean
+			shouldResolveToOriginal?: boolean
 		}
 	): Promise<string | null> {
-		if (!assetId) return ''
+		if (!assetId) return null
 		const asset = this.getAsset(assetId)
-		if (!asset) return ''
+		if (!asset) return null
 
-		const { screenScale, shouldResolveToOriginalImage } = context
+		const { screenScale = 1, shouldResolveToOriginal = false } = context
 
 		// We only look at the zoom level at powers of 2.
 		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
-		const steppedScreenScale = Math.max(0.125, zoomStepFunction(screenScale || 1))
+		const steppedScreenScale = Math.max(0.125, zoomStepFunction(screenScale))
 		const networkEffectiveType: string | null =
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
 		const dpr = this.getInstanceState().devicePixelRatio
 
-		return await this._assetOptions.get().onResolveAsset(asset!, {
+		return await this.store.resolveAsset(asset, {
 			screenScale: screenScale || 1,
 			steppedScreenScale,
 			dpr,
 			networkEffectiveType,
-			shouldResolveToOriginalImage,
+			shouldResolveToOriginal: shouldResolveToOriginal,
 		})
 	}
 
@@ -7858,12 +7847,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					!asset.props.src?.startsWith('http')
 				) {
 					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
-					const objectUrl = await this._assetOptions.get().onResolveAsset(asset!, {
+					const objectUrl = await this.store.resolveAsset(asset, {
 						screenScale: 1,
 						steppedScreenScale: 1,
 						dpr: 1,
 						networkEffectiveType: null,
-						shouldResolveToOriginalImage: true,
+						shouldResolveToOriginal: true,
 					})
 					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
 						await fetch(objectUrl!).then((r) => r.blob())

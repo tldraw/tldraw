@@ -1,68 +1,82 @@
-import { TLStoreSnapshot } from '@tldraw/tlschema'
-import { useEffect, useState } from 'react'
+import { TLAsset, TLAssetStore, TLStoreSnapshot } from '@tldraw/tlschema'
+import { WeakCache } from '@tldraw/utils'
+import { useEffect } from 'react'
 import { TLEditorSnapshot } from '../config/TLEditorSnapshot'
-import { TLStoreOptions } from '../config/createTLStore'
+import { TLStoreOptions, createTLStore } from '../config/createTLStore'
 import { TLStoreWithStatus } from '../utils/sync/StoreWithStatus'
 import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
-import { uniqueId } from '../utils/uniqueId'
-import { useTLStore } from './useTLStore'
+import { useShallowObjectIdentity } from './useIdentity'
+import { useRefState } from './useRefState'
 
 /** @internal */
-export function useLocalStore({
-	persistenceKey,
-	sessionId,
-	...rest
-}: {
-	persistenceKey?: string
-	sessionId?: string
-	snapshot?: TLEditorSnapshot | TLStoreSnapshot
-} & TLStoreOptions): TLStoreWithStatus {
-	const [state, setState] = useState<{ id: string; storeWithStatus: TLStoreWithStatus } | null>(
-		null
-	)
-	const store = useTLStore(rest)
+export function useLocalStore(
+	options: {
+		persistenceKey?: string
+		sessionId?: string
+		snapshot?: TLEditorSnapshot | TLStoreSnapshot
+	} & TLStoreOptions
+): TLStoreWithStatus {
+	const [state, setState] = useRefState<TLStoreWithStatus>({ status: 'loading' })
+
+	options = useShallowObjectIdentity(options)
 
 	useEffect(() => {
-		const id = uniqueId()
+		const { persistenceKey, sessionId, ...rest } = options
 
 		if (!persistenceKey) {
 			setState({
-				id,
-				storeWithStatus: { status: 'not-synced', store },
+				status: 'not-synced',
+				store: createTLStore(rest),
 			})
 			return
 		}
 
-		setState({
-			id,
-			storeWithStatus: { status: 'loading' },
-		})
+		setState({ status: 'loading' })
 
-		const setStoreWithStatus = (storeWithStatus: TLStoreWithStatus) => {
-			setState((prev) => {
-				if (prev?.id === id) {
-					return { id, storeWithStatus }
+		const objectURLCache = new WeakCache<TLAsset, Promise<string | null>>()
+		const assets: TLAssetStore = {
+			upload: async (asset, file) => {
+				await client.db.storeAsset(asset.id, file)
+				return asset.id
+			},
+			resolve: async (asset) => {
+				if (!asset.props.src) return null
+
+				if (asset.props.src.startsWith('asset:')) {
+					return await objectURLCache.get(asset, async () => {
+						const blob = await client.db.getAsset(asset.id)
+						if (!blob) return null
+						return URL.createObjectURL(blob)
+					})
 				}
-				return prev
-			})
+
+				return asset.props.src
+			},
+			...rest.assets,
 		}
+
+		const store = createTLStore({ ...rest, assets })
+
+		let isClosed = false
 
 		const client = new TLLocalSyncClient(store, {
 			sessionId,
 			persistenceKey,
 			onLoad() {
-				setStoreWithStatus({ store, status: 'synced-local' })
+				if (isClosed) return
+				setState({ store, status: 'synced-local' })
 			},
 			onLoadError(err: any) {
-				setStoreWithStatus({ status: 'error', error: err })
+				if (isClosed) return
+				setState({ status: 'error', error: err })
 			},
 		})
 
 		return () => {
-			setState((prevState) => (prevState?.id === id ? null : prevState))
+			isClosed = true
 			client.close()
 		}
-	}, [persistenceKey, store, sessionId])
+	}, [options, setState])
 
-	return state?.storeWithStatus ?? { status: 'loading' }
+	return state
 }

@@ -15,7 +15,7 @@ import {
 } from 'tldraw'
 import { UrlStateSync } from '../components/MultiplayerEditor'
 import { StoreErrorScreen } from '../components/StoreErrorScreen'
-import { useLocalStore } from '../hooks/useLocalStore'
+import { useInMemoryStore } from '../hooks/useLocalStore'
 import { assetUrls } from '../utils/assetUrls'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
@@ -72,7 +72,7 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
-	const storeResult = useLocalStore(props.records, props.schema)
+	const storeResult = useInMemoryStore(props.records, props.schema)
 	if (!storeResult?.ok) return <StoreErrorScreen error={new Error(storeResult?.error)} />
 
 	return (
