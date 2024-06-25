@@ -22,49 +22,10 @@ import Toucan from 'toucan-js'
 import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
-import { Analytics, Environment } from './types'
+import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-
-type DBLoadResult =
-	| {
-			type: 'error'
-			error?: Error | undefined
-	  }
-	| {
-			type: 'room_found'
-			snapshot: RoomSnapshot
-	  }
-	| {
-			type: 'room_not_found'
-	  }
-
-type TLServerEvent =
-	| {
-			type: 'client'
-			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
-			roomId: string
-			clientId: string
-			instanceId: string
-			localClientId: string
-	  }
-	| {
-			type: 'room'
-			name:
-				| 'failed_load_from_db'
-				| 'failed_persist_to_db'
-				| 'room_empty'
-				| 'fail_persist'
-				| 'room_start'
-			roomId: string
-	  }
-	| {
-			type: 'send_message'
-			roomId: string
-			messageType: string
-			messageLength: number
-	  }
 
 const MAX_CONNECTIONS = 50
 
@@ -106,6 +67,9 @@ export class TLDrawDurableObject {
 								this._room = null
 								this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
 								room.close()
+							},
+							onDataChange: () => {
+								this.triggerPersistSchedule()
 							},
 						})
 						return room
@@ -275,26 +239,20 @@ export class TLDrawDurableObject {
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
-		let { sessionKey, storeId } = params
+		let { sessionKey } = params
 
 		// handle legacy param names
 		sessionKey ??= params.instanceId
-		storeId ??= params.localClientId
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
-		this.state.acceptWebSocket(serverWebSocket, [sessionKey])
+		serverWebSocket.accept()
 
 		try {
 			const room = await this.getRoom()
 			// Don't connect if we're already at max connections
 			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
-				// TODO: this is not handled on the client, it just gets stuck in a loading state.
-				// With hibernatable sockets it should be fine to send a .close() event here.
-				// but we should really handle unknown errors better on the client.
-				return new Response('Room is full', {
-					status: 403,
-				})
+				return new Response('Room is full', { status: 403 })
 			}
 
 			// all good
@@ -307,25 +265,6 @@ export class TLDrawDurableObject {
 			}
 			throw e
 		}
-	}
-
-	async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
-		const [sessionKey] = this.state.getTags(ws)
-		const room = await this.getRoom()
-		room.handleSocketMessage(sessionKey, String(message))
-		this.triggerPersistSchedule()
-	}
-
-	async webSocketClose(ws: WebSocket) {
-		const [sessionKey] = this.state.getTags(ws)
-		const room = await this.getRoom()
-		room.handleSocketClose(sessionKey)
-	}
-
-	async webSocketError(ws: WebSocket, error: Error) {
-		const [sessionKey] = this.state.getTags(ws)
-		const room = await this.getRoom()
-		room.handleSocketError(sessionKey)
 	}
 
 	triggerPersistSchedule = throttle(() => {
@@ -415,6 +354,8 @@ export class TLDrawDurableObject {
 
 	// Save the room to supabase
 	async persistToDatabase() {
+		// check whether the worker was woken up to persist after having gone to sleep
+		if (!this._room) return
 		if (this._persistQueue) {
 			this._persistAgain = true
 			await this._persistQueue
@@ -426,9 +367,13 @@ export class TLDrawDurableObject {
 		try {
 			this._persistQueue = Promise.resolve(
 				(async () => {
-					this._persistAgain = true
-					while (this._persistAgain) {
-						this._persistAgain = false
+					// eslint-disable-next-line no-constant-condition
+					do {
+						if (this._persistAgain) {
+							await new Promise((resolve) => setTimeout(resolve, PERSIST_INTERVAL_MS / 2))
+							this._persistAgain = false
+						}
+
 						const room = await this.getRoom()
 						const clock = room.getCurrentClock()
 						if (this._lastPersistedClock === clock) return
@@ -441,7 +386,7 @@ export class TLDrawDurableObject {
 							this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
 						])
 						this._lastPersistedClock = clock
-					}
+					} while (this._persistAgain)
 				})()
 			)
 			await this._persistQueue

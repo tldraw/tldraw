@@ -1,5 +1,7 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
+import { RoomSnapshot } from '@tldraw/tlsync'
+
 // This type isn't available in @cloudflare/workers-types yet
 export interface Analytics {
 	writeDataPoint(data: {
@@ -35,3 +37,42 @@ export interface Environment {
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
 }
+
+export type DBLoadResult =
+	| {
+			type: 'error'
+			error?: Error | undefined
+	  }
+	| {
+			type: 'room_found'
+			snapshot: RoomSnapshot
+	  }
+	| {
+			type: 'room_not_found'
+	  }
+
+export type TLServerEvent =
+	| {
+			type: 'client'
+			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
+			roomId: string
+			clientId: string
+			instanceId: string
+			localClientId: string
+	  }
+	| {
+			type: 'room'
+			name:
+				| 'failed_load_from_db'
+				| 'failed_persist_to_db'
+				| 'room_empty'
+				| 'fail_persist'
+				| 'room_start'
+			roomId: string
+	  }
+	| {
+			type: 'send_message'
+			roomId: string
+			messageType: string
+			messageLength: number
+	  }
