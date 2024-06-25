@@ -4,17 +4,12 @@ import {
 	DefaultSpinner,
 	Editor,
 	ErrorScreen,
-	Expand,
 	LoadingScreen,
-	MigrationSequence,
 	TLEditorComponents,
-	TLEditorSnapshot,
 	TLOnMountHandler,
-	TLStore,
-	TLStoreSnapshot,
-	TLStoreWithStatus,
 	TldrawEditor,
 	TldrawEditorBaseProps,
+	TldrawEditorStoreProps,
 	useEditor,
 	useEditorComponents,
 	useEvent,
@@ -43,35 +38,19 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
-/**@public */
-export type TLComponents = Expand<TLEditorComponents & TLUiComponents>
+/** @public */
+export interface TLComponents extends TLEditorComponents, TLUiComponents {}
 
 /** @public */
-export type TldrawProps = Expand<
-	// combine components from base editor and ui
-	(Omit<TldrawUiProps, 'components'> &
-		Omit<TldrawEditorBaseProps, 'components'> & {
-			components?: TLComponents
-		}) &
-		// external content
-		Partial<TLExternalContentProps> &
-		// store stuff
-		(| {
-					store: TLStore | TLStoreWithStatus
-			  }
-			| {
-					store?: undefined
-					migrations?: readonly MigrationSequence[]
-					persistenceKey?: string
-					sessionId?: string
-					defaultName?: string
-					/**
-					 * A snapshot to load for the store's initial data / schema.
-					 */
-					snapshot?: TLEditorSnapshot | TLStoreSnapshot
-			  }
-		)
->
+export interface TldrawBaseProps
+	extends TldrawUiProps,
+		TldrawEditorBaseProps,
+		TLExternalContentProps {
+	components?: TLComponents
+}
+
+/** @public */
+export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps
 
 /** @public @react */
 export function Tldraw(props: TldrawProps) {
@@ -171,7 +150,7 @@ function InsideOfEditorAndUiContext({
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
 	persistenceKey,
-}: Partial<TLExternalContentProps & { onMount: TLOnMountHandler; persistenceKey?: string }>) {
+}: TLExternalContentProps & { onMount?: TLOnMountHandler; persistenceKey?: string }) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()

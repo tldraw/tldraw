@@ -4,18 +4,28 @@ import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
 /** @public */
-export type TLStoreOptions = {
+export interface TLStoreBaseOptions {
+	/** The initial data for the store. */
 	initialData?: SerializedStore<TLRecord>
+
+	/** The default name for the store. */
 	defaultName?: string
-	id?: string
-} & (
-	| {
-			shapeUtils?: readonly TLAnyShapeUtilConstructor[]
-			migrations?: readonly MigrationSequence[]
-			bindingUtils?: readonly TLAnyBindingUtilConstructor[]
-	  }
-	| { schema?: StoreSchema<TLRecord, TLStoreProps> }
-)
+}
+
+/** @public */
+export type TLStoreOptions = TLStoreBaseOptions &
+	(
+		| {
+				id?: string
+				shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+				migrations?: readonly MigrationSequence[]
+				bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+		  }
+		| {
+				id?: string
+				schema?: StoreSchema<TLRecord, TLStoreProps>
+		  }
+	)
 
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
