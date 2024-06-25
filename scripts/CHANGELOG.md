@@ -86,6 +86,90 @@
 
 #### 🐛 Bug Fixes
 
+- Editing: don't allow editing locked shapes when edit→edit mode. [#4007](https://github.com/tldraw/tldraw/pull/4007) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Clipboard: fix copy/paste for older versions of Firefox [#4008](https://github.com/tldraw/tldraw/pull/4008) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Clipboard: fix copy/paste in Firefox 127+ [#4003](https://github.com/tldraw/tldraw/pull/4003) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix a bug causing text shape measurement to work incorrectly when using react strict mode [#4001](https://github.com/tldraw/tldraw/pull/4001) ([@SomeHats](https://github.com/SomeHats)) ([@SomeHats](https://github.com/SomeHats)) ([@SomeHats](https://github.com/SomeHats))
+- Fix typo on "CardShapeUtil" name in the custom shape example documentation. [#3998](https://github.com/tldraw/tldraw/pull/3998) ([@bholmesdev](https://github.com/bholmesdev))
+- Add a brief release note for your PR here. [#3975](https://github.com/tldraw/tldraw/pull/3975) ([@ds300](https://github.com/ds300))
+- Fix scale issue with new draw lines [#3971](https://github.com/tldraw/tldraw/pull/3971) ([@steveruizok](https://github.com/steveruizok))
+- Add a brief release note for your PR here. [#3973](https://github.com/tldraw/tldraw/pull/3973) ([@ds300](https://github.com/ds300))
+- flattening: use correct id for asset [#3968](https://github.com/tldraw/tldraw/pull/3968) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Images: fix isAnimated checks when adding an image to a shared room. [#3967](https://github.com/tldraw/tldraw/pull/3967) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fixes the appearance of solid-style heart shapes. [#3963](https://github.com/tldraw/tldraw/pull/3963) ([@steveruizok](https://github.com/steveruizok))
+- Fixes the position of multiple assets when pasted / dropped onto the canvas. [#3965](https://github.com/tldraw/tldraw/pull/3965) ([@steveruizok](https://github.com/steveruizok))
+- lod: fix up missing timeout from bad merge [#3964](https://github.com/tldraw/tldraw/pull/3964) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fixes a bug with the indicator for stylus-drawn draw shapes. [#3962](https://github.com/tldraw/tldraw/pull/3962) ([@steveruizok](https://github.com/steveruizok))
+- Assets: fix copy/paste for new asset resolver mechanic. [#3959](https://github.com/tldraw/tldraw/pull/3959) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Bookmarks: padding tweaks [#3955](https://github.com/tldraw/tldraw/pull/3955) ([@mimecuvalo](https://github.com/mimecuvalo))
+- assets: fix up videos with indexedDB [#3954](https://github.com/tldraw/tldraw/pull/3954) ([@mimecuvalo](https://github.com/mimecuvalo))
+- assets: add crossorigin tag for preloaded fonts [#3953](https://github.com/tldraw/tldraw/pull/3953) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Retrigger canary packaging. [#3944](https://github.com/tldraw/tldraw/pull/3944) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Retrigger canary package build to publish a new package and upload assets to R2. [#3943](https://github.com/tldraw/tldraw/pull/3943) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Retrigger canary package build to publish a new package and upload assets to R2. [#3942](https://github.com/tldraw/tldraw/pull/3942) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix an issue with uploading the static assets. [#3941](https://github.com/tldraw/tldraw/pull/3941) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- image: follow-up fixes for LOD [#3934](https://github.com/tldraw/tldraw/pull/3934) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Images: avoid double request for animated images. [#3924](https://github.com/tldraw/tldraw/pull/3924) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🚀 Features
+
+- Secretly adds a fill-fill style (Alt-F) [#3966](https://github.com/tldraw/tldraw/pull/3966) ([@steveruizok](https://github.com/steveruizok))
+- Add a brief release note for your PR here. [#3913](https://github.com/tldraw/tldraw/pull/3913) ([@ds300](https://github.com/ds300))
+- Add Flatten, a new menu item to flatten shapes into images [#3933](https://github.com/tldraw/tldraw/pull/3933) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok))
+- Assets: make option to transform urls dynamically to provide different sized images on demand. [#3827](https://github.com/tldraw/tldraw/pull/3827) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 💄 Improvements
+
+- better auto-generated docs for Tldraw and TldrawEditor [#4012](https://github.com/tldraw/tldraw/pull/4012) ([@SomeHats](https://github.com/SomeHats))
+- theme: rename color scheme to theme [#3991](https://github.com/tldraw/tldraw/pull/3991) ([@mimecuvalo](https://github.com/mimecuvalo))
+- lod: dont transform SVGs [#3972](https://github.com/tldraw/tldraw/pull/3972) ([@mimecuvalo](https://github.com/mimecuvalo))
+- lod: dont resize images that are culled [#3970](https://github.com/tldraw/tldraw/pull/3970) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Improve filtering of examples [#3929](https://github.com/tldraw/tldraw/pull/3929) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git)) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git)) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git)) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- Document inherited members in reference [#3956](https://github.com/tldraw/tldraw/pull/3956) ([@SomeHats](https://github.com/SomeHats))
+- Add a brief release note for your PR here. [#3703](https://github.com/tldraw/tldraw/pull/3703) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Add a delay and easing to edge scrolling. [#3950](https://github.com/tldraw/tldraw/pull/3950) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok))
+- Start using our own cdn instead of unpkg. [#3923](https://github.com/tldraw/tldraw/pull/3923) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Perf: improve font loading timing on dotcom. [#3927](https://github.com/tldraw/tldraw/pull/3927) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok)) ([@steveruizok](https://github.com/steveruizok))
+- Add a brief release note for your PR here. [#3912](https://github.com/tldraw/tldraw/pull/3912) ([@ds300](https://github.com/ds300))
+- Assets: store as reference to blob in indexedDB instead of storing directly as base64 in the snapshot. [#3836](https://github.com/tldraw/tldraw/pull/3836) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo)) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Generated docs cleanup [#3935](https://github.com/tldraw/tldraw/pull/3935) ([@SomeHats](https://github.com/SomeHats))
+- Inline documentation links in type excerpts [#3931](https://github.com/tldraw/tldraw/pull/3931) ([@SomeHats](https://github.com/SomeHats))
+- Better generated docs for react components [#3930](https://github.com/tldraw/tldraw/pull/3930) ([@SomeHats](https://github.com/SomeHats))
+- Remove ability to rename document while in readonly mode [#3911](https://github.com/tldraw/tldraw/pull/3911) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git)) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- security: enforce use of our fetch function and its default referrerpolicy [#3884](https://github.com/tldraw/tldraw/pull/3884) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🧹 Chores
+
+- assets: mark assetOptions as internal [#4014](https://github.com/tldraw/tldraw/pull/4014) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix the license in the readme file for the store package. [#3990](https://github.com/tldraw/tldraw/pull/3990) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- VS Code 2.0.36 release. [#3922](https://github.com/tldraw/tldraw/pull/3922) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🛠️ Tools
+
+- Fix VS Code publishing. [#3976](https://github.com/tldraw/tldraw/pull/3976) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Automate publishing of the VS Code extension. [#3905](https://github.com/tldraw/tldraw/pull/3905) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Upload our static assets (fonts, icons, embed-icons, translations) to a R2 bucket so that we can move away from using unpkg and start using our own cdn. [#3921](https://github.com/tldraw/tldraw/pull/3921) ([@MitjaBezensek](https://github.com/MitjaBezensek)) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🧪 Tests
+
+- Introduce a new CI environment and use it for publishing vs code extension. [#3981](https://github.com/tldraw/tldraw/pull/3981) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### Authors: 7
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Ben Holmes ([@bholmesdev](https://github.com/bholmesdev))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
+# (Tue Jun 25 2024)
+
+#### 🐛 Bug Fixes
+
 - Editing: don't allow editing locked shapes when edit→edit mode. []()
 - Clipboard: fix copy/paste for older versions of Firefox []()
 - Clipboard: fix copy/paste in Firefox 127+ []()
