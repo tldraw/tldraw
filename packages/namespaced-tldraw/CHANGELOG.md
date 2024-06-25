@@ -82,6 +82,18 @@
 
 ---
 
+# v2.3.1 (Tue Jun 25 2024)
+
+#### 🐛 Bug Fix
+
+- Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 1
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+
+---
+
 # v2.2.0 (Tue Jun 11 2024)
 
 #### 🏠 Internal
