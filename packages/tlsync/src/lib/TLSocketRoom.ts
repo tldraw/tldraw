@@ -36,9 +36,14 @@ export class TLSocketRoom<R extends UnknownRecord> {
 				msg: TLSocketServerSentEvent<R>,
 				stringified: string
 			) => void
+			onDataChange?: () => void
 		}
 	) {
+		const initialClock = opts.initialSnapshot?.clock ?? 0
 		this.room = new TLSyncRoom<R>(opts.schema ?? (createTLSchema() as any), opts.initialSnapshot)
+		if (this.room.clock !== initialClock) {
+			this.opts?.onDataChange?.()
+		}
 		this.room.events.on('session_removed', (args) => {
 			this.sessions.delete(args.sessionKey)
 			if (this.opts.onSessionRemoved) {
@@ -86,6 +91,7 @@ export class TLSocketRoom<R extends UnknownRecord> {
 	}
 
 	handleSocketMessage(sessionId: string, message: string | ArrayBuffer) {
+		const clock = this.room.clock
 		const assembler = this.sessions.get(sessionId)?.assembler
 		if (!assembler) {
 			this.log.warn?.('Received message from unknown session', sessionId)
@@ -113,6 +119,10 @@ export class TLSocketRoom<R extends UnknownRecord> {
 					} satisfies TLSocketServerSentEvent<R>)
 				)
 				socket.close()
+			}
+		} finally {
+			if (this.room.clock !== clock) {
+				this.opts.onDataChange?.()
 			}
 		}
 	}

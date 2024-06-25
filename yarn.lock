@@ -6009,6 +6009,30 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/bemo-worker@workspace:apps/bemo-worker":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/bemo-worker@workspace:apps/bemo-worker"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20240620.0"
+    "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/tlsync": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    concurrently: "npm:^8.2.2"
+    esbuild: "npm:^0.18.4"
+    itty-router: "npm:^4.0.13"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    nanoid: "npm:4.0.2"
+    picocolors: "npm:^1.0.0"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    strip-ansi: "npm:^7.1.0"
+    toucan-js: "npm:^2.7.0"
+    typescript: "npm:^5.3.3"
+    wrangler: "npm:3.61.0"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/bookmark-extractor@workspace:apps/dotcom-bookmark-extractor":
   version: 0.0.0-use.local
   resolution: "@tldraw/bookmark-extractor@workspace:apps/dotcom-bookmark-extractor"
