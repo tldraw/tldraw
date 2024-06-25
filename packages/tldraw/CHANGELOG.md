@@ -1,3 +1,25 @@
+# v2.3.1 (Tue Jun 25 2024)
+
+### Release Notes
+
+#### clipboard: fix copy/paste bad typo, ugh (#4008) ([#4011](https://github.com/tldraw/tldraw/pull/4011))
+
+- Clipboard: fix copy/paste for older versions of Firefox
+
+---
+
+#### 🐛 Bug Fix
+
+- Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- clipboard: fix copy/paste bad typo, ugh (#4008) [#4011](https://github.com/tldraw/tldraw/pull/4011) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 2
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v2.3.0 (Tue Jun 25 2024)
 
 ### Release Notes
