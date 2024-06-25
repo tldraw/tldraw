@@ -40,6 +40,7 @@ export class LicenseManager {
 			throw new Error('Invalid license')
 		}
 		const licenseInfo = JSON.parse(util.encodeUTF8(decoded))
+		// console.log('extractLicense', licenseInfo)
 		return licenseInfoValidator.validate(licenseInfo)
 	}
 
@@ -48,7 +49,8 @@ export class LicenseManager {
 		if (!licenseKey) {
 			this.licenseKey = { isLicenseValid: false, message: 'No license key provided' }
 			this.shouldShowWatermark()
-			return this.watermarkManager.checkWatermark()
+			this.watermarkManager.checkWatermark()
+			return this.licenseKey
 		}
 
 		try {
@@ -57,7 +59,8 @@ export class LicenseManager {
 			// If the license can't be parsed, it's invalid
 			this.licenseKey = { isLicenseValid: false, message: 'Invalid license key' }
 			this.shouldShowWatermark()
-			return this.watermarkManager.checkWatermark()
+			this.watermarkManager.checkWatermark()
+			return this.licenseKey
 		}
 		this.licenseKey = {
 			license,
@@ -69,18 +72,19 @@ export class LicenseManager {
 		}
 		this.shouldShowWatermark()
 		this.watermarkManager.checkWatermark()
+		return this.licenseKey
 	}
 	shouldShowWatermark() {
 		if (!this.licenseKey?.isLicenseValid) {
-			console.log(this.licenseKey?.message)
+			// console.log(this.licenseKey?.message)
 			this.watermarkManager.createWatermark()
 		}
 		if (this.licenseKey?.isLicenseValid && !this.licenseKey.isDomainValid) {
-			console.log('Invalid domain')
+			// console.log('Invalid domain')
 			this.watermarkManager.createWatermark()
 		}
 		if (this.licenseKey?.isLicenseValid && this.licenseKey.isLicenseExpired) {
-			console.log('License expired')
+			// console.log('License expired')
 			this.watermarkManager.createWatermark()
 		}
 	}

@@ -5,14 +5,16 @@ export class WatermarkManager {
 	createWatermark() {
 		const watermark = document.createElement('a')
 		this.applyStyles(watermark)
-		const canvas = document.getElementsByClassName('tldraw__editor')[0].firstChild as HTMLElement
+		const canvas = document.getElementsByClassName('tldraw__editor')[0]?.firstChild as HTMLElement
+
 		if (canvas) canvas.appendChild(watermark)
 	}
 	checkWatermark() {
 		// check on an interval if the watermark is still there, if it isn't then add it back
 
 		this.editor.timers.setInterval(() => {
-			const canvas = document.getElementsByClassName('tldraw__editor')[0].firstChild as HTMLElement
+			const canvas = document.getElementsByClassName('tldraw__editor')[0]?.firstChild as HTMLElement
+			if (!canvas) return
 			const children = [...canvas.children]
 			const watermark = children.find(
 				(element) => element.innerHTML === 'tldraw.dev'
