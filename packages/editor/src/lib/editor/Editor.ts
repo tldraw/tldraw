@@ -711,8 +711,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.licenseManager = new LicenseManager()
-		const licenseResult = this.licenseManager.getLicenseFromKey(licenseKey)
-		console.log('license result', licenseResult)
+		this.licenseManager.getLicenseFromKey(licenseKey)
 
 		this.performanceTracker = new PerformanceTracker()
 	}
