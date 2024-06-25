@@ -1,5 +1,27 @@
 # v2.3.1 (Tue Jun 25 2024)
 
+### Release Notes
+
+#### assets: store in indexedDB, not as base64 ([#3836](https://github.com/tldraw/tldraw/pull/3836))
+
+- Assets: store as reference to blob in indexedDB instead of storing directly as base64 in the snapshot.
+
+---
+
+#### 🐛 Bug Fix
+
+- Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- assets: store in indexedDB, not as base64 [#3836](https://github.com/tldraw/tldraw/pull/3836) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 2
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
+# v2.3.1 (Tue Jun 25 2024)
+
 #### 🐛 Bug Fix
 
 - Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))

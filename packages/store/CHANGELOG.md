@@ -1,5 +1,29 @@
 # v2.3.1 (Tue Jun 25 2024)
 
+### Release Notes
+
+#### Update license in readme of the store package ([#3990](https://github.com/tldraw/tldraw/pull/3990))
+
+- Fix the license in the readme file for the store package.
+
+---
+
+#### 🐛 Bug Fix
+
+- Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Update license in readme of the store package [#3990](https://github.com/tldraw/tldraw/pull/3990) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- security: enforce use of our fetch function and its default referrerpolicy [#3884](https://github.com/tldraw/tldraw/pull/3884) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+---
+
+# v2.3.1 (Tue Jun 25 2024)
+
 #### 🐛 Bug Fix
 
 - Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
