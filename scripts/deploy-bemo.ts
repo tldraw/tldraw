@@ -69,17 +69,17 @@ async function main() {
 	await discord.message(`**Deploy complete!**`)
 }
 
-let didUpdateTlsyncWorker = false
+let didUpdateBemoWorker = false
 async function deployBemoWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-bemo`
-	if (previewId && !didUpdateTlsyncWorker) {
+	if (previewId && !didUpdateBemoWorker) {
 		appendFileSync(
 			join(worker, 'wrangler.toml'),
 			`
 [env.preview]
-name = "${previewId}-tldraw-multiplayer"`
+name = "${previewId}-bemo"`
 		)
-		didUpdateTlsyncWorker = true
+		didUpdateBemoWorker = true
 	}
 	await exec(
 		'yarn',
