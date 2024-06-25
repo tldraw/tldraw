@@ -23,6 +23,7 @@ import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
+import { createPersistQueue } from './utils/createPersistQueue'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
@@ -390,55 +391,28 @@ export class TLDrawDurableObject {
 		}
 	}
 
-	_persistQueue: Promise<void> | null = null
-	_persistAgain = false
 	_lastPersistedClock: number | null = null
+	_persistQueue = createPersistQueue(async () => {
+		// check whether the worker was woken up to persist after having gone to sleep
+		if (!this._room) return
+		const slug = this.documentInfo.slug
+		const room = await this.getRoom()
+		const clock = room.getCurrentClock()
+		if (this._lastPersistedClock === clock) return
+
+		const snapshot = JSON.stringify(room.getCurrentSnapshot())
+
+		const key = getR2KeyForRoom(slug)
+		await Promise.all([
+			this.r2.rooms.put(key, snapshot),
+			this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
+		])
+		this._lastPersistedClock = clock
+	}, PERSIST_INTERVAL_MS / 2)
 
 	// Save the room to supabase
 	async persistToDatabase() {
-		// check whether the worker was woken up to persist after having gone to sleep
-		if (!this._room) return
-		if (this._persistQueue) {
-			this._persistAgain = true
-			await this._persistQueue
-			return
-		}
-
-		const slug = this.documentInfo.slug
-
-		try {
-			this._persistQueue = Promise.resolve(
-				(async () => {
-					// eslint-disable-next-line no-constant-condition
-					do {
-						if (this._persistAgain) {
-							await new Promise((resolve) => setTimeout(resolve, PERSIST_INTERVAL_MS / 2))
-							this._persistAgain = false
-						}
-
-						const room = await this.getRoom()
-						const clock = room.getCurrentClock()
-						if (this._lastPersistedClock === clock) return
-
-						const snapshot = JSON.stringify(room.getCurrentSnapshot())
-
-						const key = getR2KeyForRoom(slug)
-						await Promise.all([
-							this.r2.rooms.put(key, snapshot),
-							this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
-						])
-						this._lastPersistedClock = clock
-					} while (this._persistAgain)
-				})()
-			)
-			await this._persistQueue
-		} catch (error) {
-			this.logEvent({ type: 'room', roomId: slug, name: 'failed_persist_to_db' })
-			console.error('failed to persist document', slug, error)
-			throw error
-		} finally {
-			this._persistQueue = null
-		}
+		await this._persistQueue()
 	}
 
 	async schedulePersist() {
