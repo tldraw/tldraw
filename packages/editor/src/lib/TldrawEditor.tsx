@@ -162,6 +162,7 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Asset options for the editor.
+	 * @internal
 	 */
 	assetOptions?: Partial<TLAssetOptions>
 

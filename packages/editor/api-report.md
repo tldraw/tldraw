@@ -2520,6 +2520,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
+    // @internal
     assetOptions?: Partial<TLAssetOptions>;
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
