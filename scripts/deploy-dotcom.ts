@@ -1,4 +1,3 @@
-import * as github from '@actions/github'
 import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
 import assert from 'assert'
@@ -7,6 +6,8 @@ import { appendFileSync, existsSync, readdirSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { PassThrough } from 'stream'
 import * as tar from 'tar'
+import { createGithubDeployment, getDeployInfo } from './lib/deploy'
+import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
@@ -48,26 +49,13 @@ const env = makeEnv([
 	'R2_ACCESS_KEY_SECRET',
 ])
 
-const githubPrNumber = process.env.GITHUB_REF?.match(/refs\/pull\/(\d+)\/merge/)?.[1]
-function getPreviewId() {
-	if (env.TLDRAW_ENV !== 'preview') return undefined
-	if (githubPrNumber) return `pr-${githubPrNumber}`
-	return process.env.TLDRAW_PREVIEW_ID ?? undefined
-}
-const previewId = getPreviewId()
+const discord = new Discord({
+	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
+	shouldNotify: env.TLDRAW_ENV === 'production',
+	totalSteps: 8,
+})
 
-if (env.TLDRAW_ENV === 'preview' && !previewId) {
-	throw new Error(
-		'If running preview deploys from outside of a PR action, TLDRAW_PREVIEW_ID env var must be set'
-	)
-}
-const sha =
-	// if the event is 'pull_request', github.context.sha is an ephemeral merge commit
-	// while the actual commit we want to create the deployment for is the 'head' of the PR.
-	github.context.eventName === 'pull_request'
-		? github.context.payload.pull_request?.head.sha
-		: github.context.sha
-
+const { previewId, sha } = getDeployInfo()
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
 
 async function main() {
@@ -76,9 +64,9 @@ async function main() {
 		'TLDRAW_ENV must be staging or production or preview'
 	)
 
-	await discordMessage(`--- **${env.TLDRAW_ENV} deploy pre-flight** ---`)
+	await discord.message(`--- **${env.TLDRAW_ENV} dotcom deploy pre-flight** ---`)
 
-	await discordStep('[1/7] setting up deploy', async () => {
+	await discord.step('setting up deploy', async () => {
 		// make sure the tldraw .css files are built:
 		await exec('yarn', ['lazy', 'prebuild'])
 
@@ -88,14 +76,14 @@ async function main() {
 
 	// deploy pre-flight steps:
 	// 1. get the dotcom app ready to go (env vars and pre-build)
-	await discordStep('[2/7] building dotcom app', async () => {
+	await discord.step('building dotcom app', async () => {
 		await createSentryRelease()
 		await prepareDotcomApp()
 		await uploadSourceMaps()
 		await coalesceWithPreviousAssets(`${dotcom}/.vercel/output/static/assets`)
 	})
 
-	await discordStep('[3/7] cloudflare deploy dry run', async () => {
+	await discord.step('cloudflare deploy dry run', async () => {
 		await deployAssetUploadWorker({ dryRun: true })
 		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
@@ -103,22 +91,22 @@ async function main() {
 
 	// --- point of no return! do the deploy for real --- //
 
-	await discordMessage(`--- **pre-flight complete, starting real deploy** ---`)
+	await discord.message(`--- **pre-flight complete, starting real dotcom deploy** ---`)
 
 	// 2. deploy the cloudflare workers:
-	await discordStep('[4/7] deploying asset uploader to cloudflare', async () => {
+	await discord.step('deploying asset uploader to cloudflare', async () => {
 		await deployAssetUploadWorker({ dryRun: false })
 	})
-	await discordStep('[5/7] deploying multiplayer worker to cloudflare', async () => {
+	await discord.step('deploying multiplayer worker to cloudflare', async () => {
 		await deployTlsyncWorker({ dryRun: false })
 	})
-	await discordStep('[6/7] deploying health worker to cloudflare', async () => {
+	await discord.step('deploying health worker to cloudflare', async () => {
 		await deployHealthWorker({ dryRun: false })
 	})
 
 	// 3. deploy the pre-build dotcom app:
-	const { deploymentUrl, inspectUrl } = await discordStep(
-		'[7/7] deploying dotcom app to vercel',
+	const { deploymentUrl, inspectUrl } = await discord.step(
+		'deploying dotcom app to vercel',
 		async () => {
 			return await deploySpa()
 		}
@@ -128,7 +116,7 @@ async function main() {
 
 	if (previewId) {
 		const aliasDomain = `${previewId}-preview-deploy.tldraw.com`
-		await discordStep('[8/7] aliasing preview deployment', async () => {
+		await discord.step('aliasing preview deployment', async () => {
 			await vercelCli('alias', ['set', deploymentUrl, aliasDomain])
 		})
 
@@ -136,9 +124,14 @@ async function main() {
 	}
 
 	nicelog('Creating deployment for', deploymentUrl)
-	await createGithubDeployment(deploymentAlias ?? deploymentUrl, inspectUrl)
+	await createGithubDeployment(env, {
+		app: 'dotcom',
+		deploymentUrl: deploymentAlias ?? deploymentUrl,
+		inspectUrl,
+		sha,
+	})
 
-	await discordMessage(`**Deploy complete!**`)
+	await discord.message(`**Deploy complete!**`)
 }
 
 async function prepareDotcomApp() {
@@ -293,61 +286,6 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	)
 }
 
-function sanitizeVariables(errorOutput: string): string {
-	const regex = /(--var\s+(\w+):[^ \n]+)/g
-
-	const sanitizedOutput = errorOutput.replace(regex, (_, match) => {
-		const [variable] = match.split(':')
-		return `${variable}:*`
-	})
-
-	return sanitizedOutput
-}
-
-async function discord(method: string, url: string, body: unknown): Promise<any> {
-	const response = await fetch(`${env.DISCORD_DEPLOY_WEBHOOK_URL}${url}`, {
-		method,
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(body),
-	})
-	if (!response.ok) {
-		throw new Error(`Discord webhook request failed: ${response.status} ${response.statusText}`)
-	}
-	return response.json()
-}
-
-const AT_TEAM_MENTION = '<@&959380625100513310>'
-async function discordMessage(content: string, { always = false }: { always?: boolean } = {}) {
-	const shouldNotify = env.TLDRAW_ENV === 'production' || always
-	if (!shouldNotify) {
-		return {
-			edit: () => {
-				// noop
-			},
-		}
-	}
-
-	const message = await discord('POST', '?wait=true', { content: sanitizeVariables(content) })
-
-	return {
-		edit: async (newContent: string) => {
-			await discord('PATCH', `/messages/${message.id}`, { content: sanitizeVariables(newContent) })
-		},
-	}
-}
-
-async function discordStep<T>(content: string, cb: () => Promise<T>): Promise<T> {
-	const message = await discordMessage(`${content}...`)
-	try {
-		const result = await cb()
-		await message.edit(`${content} ✅`)
-		return result
-	} catch (err) {
-		await message.edit(`${content} ❌`)
-		throw err
-	}
-}
-
 async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string }> {
 	// both 'staging' and 'production' are deployed to vercel as 'production' deploys
 	// in separate 'projects'
@@ -369,32 +307,6 @@ async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string 
 	}
 
 	return { deploymentUrl, inspectUrl }
-}
-
-// Creates a github 'deployment', which creates a 'View Deployment' button in the PR timeline.
-async function createGithubDeployment(deploymentUrl: string, inspectUrl: string) {
-	const client = github.getOctokit(env.GH_TOKEN)
-
-	const deployment = await client.rest.repos.createDeployment({
-		owner: 'tldraw',
-		repo: 'tldraw',
-		ref: sha,
-		payload: { web_url: deploymentUrl },
-		environment: env.TLDRAW_ENV,
-		transient_environment: true,
-		required_contexts: [],
-		auto_merge: false,
-		task: 'deploy',
-	})
-
-	await client.rest.repos.createDeploymentStatus({
-		owner: 'tldraw',
-		repo: 'tldraw',
-		deployment_id: (deployment.data as any).id,
-		state: 'success',
-		environment_url: deploymentUrl,
-		log_url: inspectUrl,
-	})
 }
 
 const sentryEnv = {
@@ -526,7 +438,9 @@ async function coalesceWithPreviousAssets(assetsDir: string) {
 main().catch(async (err) => {
 	// don't notify discord on preview builds
 	if (env.TLDRAW_ENV !== 'preview') {
-		await discordMessage(`${AT_TEAM_MENTION} Deploy failed: ${err.stack}`, { always: true })
+		await discord.message(`${Discord.AT_TEAM_MENTION} Deploy failed: ${err.stack}`, {
+			always: true,
+		})
 	}
 	console.error(err)
 	process.exit(1)

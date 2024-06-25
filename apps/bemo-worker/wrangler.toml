@@ -1,0 +1,56 @@
+main = "src/worker.ts"
+compatibility_date = "2024-06-25"
+
+[dev]
+port = 8989
+ip = "0.0.0.0"
+
+# these migrations are append-only. you can't change them. if you do need to change something, do so
+# by creating new migrations
+[[migrations]]
+tag = "v1" # Should be unique for each entry
+new_classes = ["BemoDO"]
+
+
+#################### Environment names ####################
+# dev should never actually get deployed anywhere
+[env.dev]
+name = "dev-bemo-worker"
+
+# we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
+
+# staging is the same as a preview on main:
+[env.staging]
+name = "main-bemo-worker"
+
+# production gets the proper name
+[env.production]
+name = "bemo-worker"
+
+#################### Durable objects ####################
+# durable objects have the same configuration in all environments:
+
+[durable_objects]
+bindings = [
+  { name = "BEMO_DO", class_name = "BemoDO" },
+]
+
+[env.dev.durable_objects]
+bindings = [
+  { name = "BEMO_DO", class_name = "BemoDO" },
+]
+
+[env.preview.durable_objects]
+bindings = [
+  { name = "BEMO_DO", class_name = "BemoDO" },
+]
+
+[env.staging.durable_objects]
+bindings = [
+  { name = "BEMO_DO", class_name = "BemoDO" },
+]
+
+[env.production.durable_objects]
+bindings = [
+  { name = "BEMO_DO", class_name = "BemoDO" },
+]
