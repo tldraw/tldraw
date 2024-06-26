@@ -9,7 +9,7 @@ const licenseInfoValidator = T.object({
 })
 
 export type LicenseInfo = T.TypeOf<typeof licenseInfoValidator>
-export type InvalidLicenseReason = 'InvalidLicenseKey' | 'NoLicenseKeyProvided'
+export type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided'
 
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult
 
@@ -42,7 +42,7 @@ export class LicenseManager {
 	getLicenseFromKey(licenseKey?: string): LicenseFromKeyResult {
 		if (!licenseKey) {
 			this.outputNoLicenseKeyProvided()
-			return { isLicenseValid: false, reason: 'NoLicenseKeyProvided' }
+			return { isLicenseValid: false, reason: 'no-key-provided' }
 		}
 
 		try {
@@ -60,7 +60,7 @@ export class LicenseManager {
 		} catch (e) {
 			this.outputInvalidLicenseKey()
 			// If the license can't be parsed, it's invalid
-			return { isLicenseValid: false, reason: 'InvalidLicenseKey' }
+			return { isLicenseValid: false, reason: 'invalid-license-key' }
 		}
 	}
 
