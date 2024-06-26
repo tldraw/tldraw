@@ -1,7 +1,11 @@
 import assert from 'assert'
-import { appendFileSync } from 'fs'
-import path, { join } from 'path'
-import { createGithubDeployment, getDeployInfo } from './lib/deploy'
+import path from 'path'
+import {
+	createGithubDeployment,
+	getDeployInfo,
+	setWranglerPreviewWorkerName,
+	wranglerDeploy,
+} from './lib/deploy'
 import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
@@ -15,11 +19,9 @@ const env = makeEnv([
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
-	'DISCORD_HEALTH_WEBHOOK_URL',
 	'RELEASE_COMMIT_HASH',
 	'SENTRY_AUTH_TOKEN',
 	'TLDRAW_ENV',
-	'WORKER_SENTRY_DSN',
 	'GH_TOKEN',
 ])
 
@@ -73,38 +75,19 @@ let didUpdateBemoWorker = false
 async function deployBemoWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-bemo`
 	if (previewId && !didUpdateBemoWorker) {
-		appendFileSync(
-			join(worker, 'wrangler.toml'),
-			`
-[env.preview]
-name = "${previewId}-bemo"`
-		)
+		await setWranglerPreviewWorkerName(workerId, `${previewId}-demo`)
 		didUpdateBemoWorker = true
 	}
-	await exec(
-		'yarn',
-		[
-			'wrangler',
-			'deploy',
-			dryRun ? '--dry-run' : null,
-			'--env',
-			env.TLDRAW_ENV,
-			'--var',
-			`SENTRY_DSN:${env.WORKER_SENTRY_DSN}`,
-			'--var',
-			`TLDRAW_ENV:${env.TLDRAW_ENV}`,
-			'--var',
-			`WORKER_NAME:${workerId}`,
-		],
-		{
-			pwd: worker,
-			env: {
-				NODE_ENV: 'production',
-				// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
-				CI: '1',
-			},
-		}
-	)
+
+	const releaseId = await wranglerDeploy({
+		location: worker,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			WORKER_NAME: workerId,
+		},
+	})
 }
 
 main().catch(async (err) => {

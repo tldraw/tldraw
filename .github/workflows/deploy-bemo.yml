@@ -20,8 +20,7 @@ jobs:
     name: Deploy bemo to ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-open
-    # TODO: dedicated separate environment for bemo
-    environment: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || 'deploy-staging' }}
+    environment: ${{ github.ref == 'refs/heads/production' && 'bemo-production' || 'bemo-canary' }}
     concurrency: bemo-${{ github.ref == 'refs/heads/production' && 'production' || github.ref }}
 
     steps:
@@ -51,6 +50,3 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
-          DISCORD_HEALTH_WEBHOOK_URL: ${{ secrets.DISCORD_HEALTH_WEBHOOK_URL }}
-          WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

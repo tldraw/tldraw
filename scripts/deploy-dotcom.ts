@@ -2,11 +2,16 @@ import { GetObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/clien
 import { Upload } from '@aws-sdk/lib-storage'
 import assert from 'assert'
 import { execSync } from 'child_process'
-import { appendFileSync, existsSync, readdirSync, writeFileSync } from 'fs'
-import path, { join } from 'path'
+import { existsSync, readdirSync, writeFileSync } from 'fs'
+import path from 'path'
 import { PassThrough } from 'stream'
 import * as tar from 'tar'
-import { createGithubDeployment, getDeployInfo } from './lib/deploy'
+import {
+	createGithubDeployment,
+	getDeployInfo,
+	setWranglerPreviewWorkerName,
+	wranglerDeploy,
+} from './lib/deploy'
 import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
@@ -160,21 +165,15 @@ async function prepareDotcomApp() {
 let didUpdateAssetUploadWorker = false
 async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateAssetUploadWorker) {
-		appendFileSync(
-			join(assetUpload, 'wrangler.toml'),
-			`
-[env.preview]
-name = "${previewId}-tldraw-assets"`
-		)
+		await setWranglerPreviewWorkerName(assetUpload, `${previewId}-tldraw-assets`)
 		didUpdateAssetUploadWorker = true
 	}
-	await exec('yarn', ['wrangler', 'deploy', dryRun ? '--dry-run' : null, '--env', env.TLDRAW_ENV], {
-		pwd: assetUpload,
-		env: {
-			NODE_ENV: 'production',
-			// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
-			CI: '1',
-		},
+
+	await wranglerDeploy({
+		location: assetUpload,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {},
 	})
 }
 
@@ -182,79 +181,39 @@ let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
 	if (previewId && !didUpdateTlsyncWorker) {
-		appendFileSync(
-			join(worker, 'wrangler.toml'),
-			`
-[env.preview]
-name = "${previewId}-tldraw-multiplayer"`
-		)
+		await setWranglerPreviewWorkerName(worker, `${previewId}-tldraw-multiplayer`)
 		didUpdateTlsyncWorker = true
 	}
-	await exec(
-		'yarn',
-		[
-			'wrangler',
-			'deploy',
-			dryRun ? '--dry-run' : null,
-			'--env',
-			env.TLDRAW_ENV,
-			'--var',
-			`SUPABASE_URL:${env.SUPABASE_LITE_URL}`,
-			'--var',
-			`SUPABASE_KEY:${env.SUPABASE_LITE_ANON_KEY}`,
-			'--var',
-			`SENTRY_DSN:${env.WORKER_SENTRY_DSN}`,
-			'--var',
-			`TLDRAW_ENV:${env.TLDRAW_ENV}`,
-			'--var',
-			`APP_ORIGIN:${env.APP_ORIGIN}`,
-			'--var',
-			`WORKER_NAME:${workerId}`,
-		],
-		{
-			pwd: worker,
-			env: {
-				NODE_ENV: 'production',
-				// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
-				CI: '1',
-			},
-		}
-	)
+	await wranglerDeploy({
+		location: worker,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			SUPABASE_URL: env.SUPABASE_LITE_URL,
+			SUPABASE_KEY: env.SUPABASE_LITE_ANON_KEY,
+			SENTRY_DSN: env.WORKER_SENTRY_DSN,
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			APP_ORIGIN: env.APP_ORIGIN,
+			WORKER_NAME: workerId,
+		},
+	})
 }
 
 let didUpdateHealthWorker = false
 async function deployHealthWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateHealthWorker) {
-		appendFileSync(
-			join(healthWorker, 'wrangler.toml'),
-			`
-[env.preview]
-name = "${previewId}-tldraw-health"`
-		)
+		await setWranglerPreviewWorkerName(healthWorker, `${previewId}-tldraw-health`)
 		didUpdateHealthWorker = true
 	}
-	await exec(
-		'yarn',
-		[
-			'wrangler',
-			'deploy',
-			dryRun ? '--dry-run' : null,
-			'--env',
-			env.TLDRAW_ENV,
-			'--var',
-			`DISCORD_HEALTH_WEBHOOK_URL:${env.DISCORD_HEALTH_WEBHOOK_URL}`,
-			'--var',
-			`HEALTH_WORKER_UPDOWN_WEBHOOK_PATH:${env.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH}`,
-		],
-		{
-			pwd: healthWorker,
-			env: {
-				NODE_ENV: 'production',
-				// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
-				CI: '1',
-			},
-		}
-	)
+	await wranglerDeploy({
+		location: healthWorker,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			DISCORD_HEALTH_WEBHOOK_URL: env.DISCORD_HEALTH_WEBHOOK_URL,
+			HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: env.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH,
+		},
+	})
 }
 
 type ExecOpts = NonNullable<Parameters<typeof exec>[2]>

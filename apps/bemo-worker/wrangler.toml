@@ -1,5 +1,6 @@
 main = "src/worker.ts"
 compatibility_date = "2024-06-25"
+upload_source_maps = true
 
 [dev]
 port = 8989
@@ -15,17 +16,28 @@ new_classes = ["BemoDO"]
 #################### Environment names ####################
 # dev should never actually get deployed anywhere
 [env.dev]
-name = "dev-bemo-worker"
+name = "dev-bemo"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
 # staging is the same as a preview on main:
 [env.staging]
-name = "main-bemo-worker"
+name = "canary-bemo"
 
 # production gets the proper name
 [env.production]
-name = "bemo-worker"
+name = "production-bemo"
+
+#################### Sentry reporting ####################
+# We use a tail worker to report errors to sentry:
+[[env.preview.tail_consumers]]
+service = "bemo-worker-tail"
+
+[[env.staging.tail_consumers]]
+service = "bemo-worker-tail"
+
+[[env.production.tail_consumers]]
+service = "bemo-worker-tail"
 
 #################### Durable objects ####################
 # durable objects have the same configuration in all environments:

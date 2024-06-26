@@ -1,5 +1,8 @@
 import * as github from '@actions/github'
+import { appendFile } from 'fs/promises'
+import { join } from 'path'
 import { env } from 'process'
+import { exec } from './exec'
 
 export function getDeployInfo() {
 	const githubPrNumber = process.env.GITHUB_REF?.match(/refs\/pull\/(\d+)\/merge/)?.[1]
@@ -66,4 +69,50 @@ export async function createGithubDeployment(
 		environment_url: deploymentUrl,
 		log_url: inspectUrl,
 	})
+}
+
+/** Deploy a worker to wrangler, returning the deploy ID */
+export async function wranglerDeploy({
+	location,
+	dryRun,
+	env,
+	vars,
+}: {
+	location: string
+	dryRun: boolean
+	env: string
+	vars: Record<string, string>
+}) {
+	const varsArray = []
+	for (const [key, value] of Object.entries(vars)) {
+		varsArray.push('--var', `${key}:${value}`)
+	}
+
+	const out = await exec(
+		'yarn',
+		['wrangler', 'deploy', dryRun ? '--dry-run' : null, '--env', env, ...varsArray],
+		{
+			pwd: location,
+			env: {
+				NODE_ENV: 'production',
+				// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
+				CI: '1',
+			},
+		}
+	)
+
+	const match = out.match(/Current Version ID: (.+)/)
+	if (!match) {
+		throw new Error('Could not find the deploy ID in wrangler output')
+	}
+	return match[1]
+}
+
+export async function setWranglerPreviewWorkerName(location: string, name: string) {
+	await appendFile(
+		join(location, 'wrangler.toml'),
+		`
+[env.preview]
+name = "${name}"`
+	)
 }
