@@ -1028,7 +1028,6 @@ input,
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	z-index: var(--layer-canvas);
 	font-size: 12px;
 	font-weight: 400;
 	color: var(--color-text-1);
@@ -1037,6 +1036,8 @@ input,
 	border: none;
 	outline: none;
 	pointer-events: all;
+	/* should be on top */
+	z-index: 500;
 }
 
 .tl-hyperlink-button::after {
