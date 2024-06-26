@@ -77,7 +77,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		useEffect(() => {
 			if (loadedSrc && temporarySrc) {
-				this.editor.deRegisterTemporaryAssetPreview(temporarySrc)
+				this.editor.clearTemporaryAssetPreview(temporarySrc)
 				setTemporarySrc('')
 			}
 		}, [loadedSrc, temporarySrc])
@@ -150,7 +150,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						id={shape.id}
 						style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
 					>
-						<div className="tl-image-container" style={{ opacity: 0.5 }}>
+						<div className="tl-image-container tl-image-temporary">
 							<img
 								className="tl-image"
 								src={temporarySrc}

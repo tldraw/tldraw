@@ -58,7 +58,6 @@ import { TLArrowBinding } from '@tldraw/editor';
 import { TLArrowBindingProps } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
-import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
@@ -82,6 +81,7 @@ import { TLGeoShape } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
+import { TLImageAsset } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
@@ -113,6 +113,7 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
 import { Validator } from '@tldraw/editor';
@@ -368,7 +369,7 @@ export function CopyAsMenuGroup(): JSX_2.Element;
 export function CopyMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean): Promise<TLAsset>;
+export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public (undocumented)
 export function CutMenuItem(): JSX_2.Element;

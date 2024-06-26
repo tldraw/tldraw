@@ -7675,7 +7675,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	temporaryAssetPreview: Record<TLAssetId, string> = {}
+	private readonly temporaryAssetPreview: Record<TLAssetId, string> = {}
 
 	/**
 	 * Register an external content handler. This handler will be called when the editor receives
@@ -7706,7 +7706,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.registerTemporaryAssetPreview('someid', file)
+	 * editor.setTemporaryAssetPreview('someid', file)
 	 * ```
 	 *
 	 * @param assetId - The asset's id.
@@ -7714,7 +7714,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	registerTemporaryAssetPreview(assetId: TLAssetId, file: File) {
+	setTemporaryAssetPreview(assetId: TLAssetId, file: File) {
 		this.temporaryAssetPreview[assetId] = URL.createObjectURL(file)
 	}
 
@@ -7725,7 +7725,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	deRegisterTemporaryAssetPreview(objectUrl: string) {
+	clearTemporaryAssetPreview(objectUrl: string) {
 		URL.revokeObjectURL(objectUrl)
 	}
 

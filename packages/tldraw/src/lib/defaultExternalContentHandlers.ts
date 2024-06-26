@@ -78,12 +78,7 @@ export function registerDefaultExternalContentHandlers(
 
 		const hash = await getHashForBuffer(await file.arrayBuffer())
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
-		const assetInfo = (await createMediaAssetInfoSkeleton(
-			file,
-			assetId,
-			isImageType,
-			isVideoType
-		)) as TLImageAsset | TLVideoAsset
+		const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
 
 		if (isFinite(maxImageDimension)) {
 			const size = { w: assetInfo.props.w, h: assetInfo.props.h }
@@ -265,9 +260,9 @@ export function registerDefaultExternalContentHandlers(
 			const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 			const hash = await getHashForBuffer(await file.arrayBuffer())
 			const assetId: TLAssetId = AssetRecordType.createId(hash)
-			const assetInfo = await createMediaAssetInfoSkeleton(file, assetId, isImageType, isVideoType)
+			const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
 			if (isImageType) {
-				editor.registerTemporaryAssetPreview(assetId, file)
+				editor.setTemporaryAssetPreview(assetId, file)
 			}
 			assets.push(assetInfo)
 			assetsToUpdate.push({ asset: assetInfo, file })
@@ -455,7 +450,7 @@ export function registerDefaultExternalContentHandlers(
 }
 
 /** @public */
-export async function createMediaAssetInfoSkeleton(
+export async function getMediaAssetInfoPartial(
 	file: File,
 	assetId: TLAssetId,
 	isImageType: boolean,
@@ -490,7 +485,7 @@ export async function createMediaAssetInfoSkeleton(
 		meta: {},
 	} as TLAsset
 
-	return assetInfo
+	return assetInfo as TLImageAsset | TLVideoAsset
 }
 
 export async function createShapesForAssets(

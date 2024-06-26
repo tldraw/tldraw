@@ -631,6 +631,18 @@ input,
 	align-items: center;
 }
 
+.tl-image-temporary {
+  mask: linear-gradient(-60deg, #000 30%, #0005, #000 70%) right / 400% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+	100% {
+		mask-position: left;
+	}
+}
+
 .tl-image__tg {
 	--scale: calc(min(2, var(--tl-scale)));
 	position: absolute;

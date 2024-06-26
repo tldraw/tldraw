@@ -12,7 +12,7 @@ export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackgroun
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
-	createMediaAssetInfoSkeleton,
+	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'

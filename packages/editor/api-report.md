@@ -846,6 +846,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
     clearOpenMenus(): this;
+    clearTemporaryAssetPreview(objectUrl: string): void;
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
@@ -883,7 +884,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteShapes(ids: TLShapeId[]): this;
     // (undocumented)
     deleteShapes(shapes: TLShape[]): this;
-    deRegisterTemporaryAssetPreview(objectUrl: string): void;
     deselect(...shapes: TLShape[] | TLShapeId[]): this;
     dispatch: (info: TLEventInfo) => this;
     readonly disposables: Set<() => void>;
@@ -1142,7 +1142,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent['type']>(type: T, handler: ((info: T extends TLExternalContent['type'] ? TLExternalContent & {
         type: T;
     } : TLExternalContent) => void) | null): this;
-    registerTemporaryAssetPreview(assetId: TLAssetId, file: File): void;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
@@ -1179,6 +1178,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
+    setTemporaryAssetPreview(assetId: TLAssetId, file: File): void;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
@@ -1200,8 +1200,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     styleProps: {
         [key: string]: Map<StyleProp<any>, string>;
     };
-    // @internal (undocumented)
-    temporaryAssetPreview: Record<TLAssetId, string>;
     readonly textMeasure: TextManager;
     readonly timers: Timers;
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
