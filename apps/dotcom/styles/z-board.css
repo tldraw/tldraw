@@ -226,7 +226,7 @@
 }
 
 .tlui-people-menu__user__color-picker {
-	z-index: var(--layer-overlays);
+	z-index: var(--layer-cvs-overlays);
 }
 
 .tlui-people-menu__user__color {

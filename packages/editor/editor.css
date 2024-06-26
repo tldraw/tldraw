@@ -21,29 +21,31 @@
 	--radius-2: 6px;
 	--radius-3: 9px;
 	--radius-4: 11px;
-	/* Z Index */
-	--layer-hidden: -999999;
-	--layer-collaborator-scribble: 10;
-	--layer-collaborator-brush: 20;
-	--layer-collaborator-shape-indicator: 30;
-	--layer-user-scribble: 40;
-	--layer-user-brush: 50;
-	--layer-user-indicator-selected: 60;
-	--layer-user-indicator-hovered: 70;
-	--layer-user-handles: 80;
-	--layer-user-snapline: 90;
-	--layer-background: 100;
-	--layer-user-indicator-hint: 110;
-	--layer-collaborator-cursor-hint: 120;
-	--layer-collaborator-cursor: 130;
-	--layer-grid: 150;
-	--layer-shapes: 300;
-	--layer-overlays: 400;
-	--layer-bookmark-link: 999;
-	--layer-following-indicator: 1000;
-	--layer-blocker: 10000;
 
-	/* z index for text editors */
+	/* Canvas z-index */
+	--layer-cvs-hidden: -999999;
+	--layer-cvs-background: 100;
+	--layer-cvs-grid: 150;
+	--layer-cvs-shapes: 300;
+	--layer-cvs-overlays: 400;
+	--layer-cvs-blocker: 10000;
+
+	/* Canvas overlays z-index */
+	--layer-ols-collaborator-scribble: 10;
+	--layer-ols-collaborator-brush: 20;
+	--layer-ols-collaborator-shape-indicator: 30;
+	--layer-ols-user-scribble: 40;
+	--layer-ols-user-brush: 50;
+	--layer-ols-user-indicator-selected: 60;
+	--layer-ols-user-indicator-hovered: 70;
+	--layer-ols-user-handles: 80;
+	--layer-ols-user-snapline: 90;
+	--layer-ols-selection-fg: 100;
+	--layer-ols-user-indicator-hint: 110;
+	--layer-ols-collaborator-cursor-hint: 120;
+	--layer-ols-collaborator-cursor: 130;
+
+	/* Text editor z-index */
 	--layer-text-container: 1;
 	--layer-text-content: 3;
 	--layer-text-editor: 4;
@@ -259,7 +261,7 @@ input,
 
 .tl-shapes {
 	position: relative;
-	z-index: var(--layer-shapes);
+	z-index: var(--layer-cvs-shapes);
 }
 
 .tl-overlays {
@@ -270,7 +272,7 @@ input,
 	width: 100%;
 	contain: strict;
 	pointer-events: none;
-	z-index: var(--layer-overlays);
+	z-index: var(--layer-cvs-overlays);
 }
 
 .tl-overlays__item {
@@ -294,7 +296,7 @@ input,
 /* ------------------- Background ------------------- */
 
 .tl-background__wrapper {
-	z-index: var(--layer-background);
+	z-index: var(--layer-cvs-background);
 	position: absolute;
 	inset: 0px;
 	height: 100%;
@@ -316,7 +318,7 @@ input,
 	height: 100%;
 	touch-action: none;
 	pointer-events: none;
-	z-index: var(--layer-grid);
+	z-index: var(--layer-cvs-grid);
 	contain: strict;
 }
 
@@ -397,58 +399,58 @@ input,
 
 /* back of the stack, behind user's stuff */
 .tl-collaborator__scribble {
-	z-index: var(--layer-collaborator-scribble);
+	z-index: var(--layer-ols-collaborator-scribble);
 }
 
 .tl-collaborator__brush {
-	z-index: var(--layer-collaborator-brush);
+	z-index: var(--layer-ols-collaborator-brush);
 }
 
 .tl-collaborator__shape-indicator {
-	z-index: var(--layer-collaborator-shape-indicator);
+	z-index: var(--layer-ols-collaborator-shape-indicator);
 }
 
 .tl-user-scribble {
-	z-index: var(--layer-user-scribble);
+	z-index: var(--layer-ols-user-scribble);
 }
 
 .tl-user-brush {
-	z-index: var(--layer-user-brush);
+	z-index: var(--layer-ols-user-brush);
 }
 
 .tl-user-indicator__selected {
-	z-index: var(--layer-user-indicator-selected);
+	z-index: var(--layer-ols-user-indicator-selected);
 }
 
 .tl-user-indicator__hovered {
-	z-index: var(--layer-user-indicator-hovered);
+	z-index: var(--layer-ols-user-indicator-hovered);
 }
 
 .tl-user-handles {
-	z-index: var(--layer-user-handles);
+	z-index: var(--layer-ols-user-handles);
 }
 
 .tl-user-snapline {
-	z-index: var(--layer-user-snapline);
+	z-index: var(--layer-ols-user-snapline);
 }
 
 .tl-selection__fg {
 	pointer-events: none;
-	z-index: var(--layer-background);
+	z-index: var(--layer-ols-selection-fg);
 }
 
 .tl-user-indicator__hint {
-	z-index: var(--layer-user-indicator-hint);
+	z-index: var(--layer-ols-user-indicator-hint);
 	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
 /* behind collaborator cursor */
 .tl-collaborator__cursor-hint {
-	z-index: var(--layer-collaborator-cursor-hint);
+	z-index: var(--layer-ols-collaborator-cursor-hint);
 }
 
 .tl-collaborator__cursor {
-	z-index: var(--layer-collaborator-cursor);
+	z-index: var(--layer-ols-collaborator-cursor);
 }
 
 .tl-cursor {
@@ -801,7 +803,7 @@ input,
 
 .tl-text-measure {
 	position: absolute;
-	z-index: var(--layer-hidden);
+	z-index: var(--layer-cvs-hidden);
 	top: 0px;
 	left: 0px;
 	opacity: 0;
@@ -984,7 +986,6 @@ input,
 .tl-bookmark__link {
 	font-size: 12px;
 	pointer-events: all;
-	z-index: var(--layer-bookmark-link);
 	display: flex;
 	color: var(--color-text-2);
 	align-items: center;
@@ -1551,7 +1552,7 @@ it from receiving any pointer events or affecting the cursor. */
 
 .tl-hit-test-blocker {
 	position: absolute;
-	z-index: var(--layer-blocker);
+	z-index: var(--layer-cvs-blocker);
 	inset: 0px;
 	width: 100%;
 	height: 100%;
