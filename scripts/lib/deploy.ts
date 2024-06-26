@@ -118,13 +118,18 @@ export async function wranglerDeploy({
 
 	if (dryRun) return
 
-	const match = out.match(/Current Version ID: (.+)/)
-	if (!match) {
+	const versionMatch = out.match(/Current Version ID: (.+)/)
+	if (!versionMatch) {
 		throw new Error('Could not find the deploy ID in wrangler output')
 	}
 
+	const workerNameMatch = out.match(/https:\/\/([^.]+)\.tldraw\.workers\.dev/)
+	if (!workerNameMatch) {
+		throw new Error('Could not find the worker name in wrangler output')
+	}
+
 	if (sentry) {
-		const release = sentry.release ?? match[1]
+		const release = sentry.release ?? `${workerNameMatch[1]}/${versionMatch[1]}`
 
 		const sentryEnv = {
 			SENTRY_AUTH_TOKEN: sentry.authToken,

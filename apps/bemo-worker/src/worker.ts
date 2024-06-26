@@ -3,7 +3,7 @@
 
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { Router, createCors } from 'itty-router'
-import { Toucan } from 'toucan-js'
+import { createSentry } from './sentry'
 import { Environment } from './types'
 
 export { BemoDO } from './BemoDO'
@@ -15,15 +15,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		.all('*', cors.preflight)
 		.get('/do', async (request) => {
 			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
-			const message = (await bemo.fetch(request)).json()
+			const message = await (await bemo.fetch(request)).json()
 			return Response.json(message)
-		})
-		.get('/do/error', async (request) => {
-			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
-			return Response.json((await bemo.fetch(request)).json())
-		})
-		.get('/error', async () => {
-			throw new Error('error from worker')
 		})
 		.all('*', async () => new Response('Not found', { status: 404 }))
 
@@ -31,17 +24,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		try {
 			return await this.router.handle(request).then(cors.corsify)
 		} catch (error) {
-			const sentry = new Toucan({
-				dsn: this.env.SENTRY_DSN,
-				release: this.env.CF_VERSION_METADATA.id,
-				environment: this.env.WORKER_NAME,
-				context: this.ctx,
-				request,
-				requestDataOptions: {
-					allowedHeaders: ['user-agent'],
-					allowedSearchParams: /(.*)/,
-				},
-			})
+			const sentry = createSentry(this.ctx, this.env, request)
 			console.error(error)
 			// eslint-disable-next-line deprecation/deprecation
 			sentry.captureException(error)
