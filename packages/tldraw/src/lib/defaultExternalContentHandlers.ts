@@ -148,10 +148,10 @@ export function registerDefaultExternalContentHandlers(
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
-			if (meta.image.startsWith('/')) {
+			if (!meta.image.startsWith('http')) {
 				meta.image = new URL(meta.image, url).href
 			}
-			if (meta.favicon.startsWith('/')) {
+			if (!meta.favicon.startsWith('http')) {
 				meta.favicon = new URL(meta.favicon, url).href
 			}
 		} catch (error) {
