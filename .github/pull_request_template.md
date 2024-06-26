@@ -2,12 +2,13 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 
 ### Change Type
 
+
 <!-- ❗ Please select a 'Type' label ❗️ -->
 
 - [ ] `feature` — New feature
 - [ ] `improvement` — Product improvement
 - [ ] `api` — API change
-- [ ] `bugfix` — Bug Fix
+- [ ] `bugfix` — Bug fix
 - [ ] `other` — Changes that don't affect SDK users, e.g. internal or .com changes
 
 
