@@ -11,17 +11,19 @@ const licenseInfoValidator = T.object({
 export type LicenseInfo = T.TypeOf<typeof licenseInfoValidator>
 export type InvalidLicense = 'InvalidLicenseKey' | 'NoLicenseKeyProvided'
 
-export type LicenseFromKeyResult =
-	| {
-			isLicenseValid: false
-			reason: InvalidLicense
-	  }
-	| {
-			isLicenseValid: true
-			license: LicenseInfo
-			isDomainValid: boolean
-			isLicenseExpired: boolean
-	  }
+export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult
+
+interface InvalidLicenseKeyResult {
+	isLicenseValid: false
+	reason: InvalidLicense
+}
+
+interface ValidLicenseKeyResult {
+	isLicenseValid: true
+	license: LicenseInfo
+	isDomainValid: boolean
+	isLicenseExpired: boolean
+}
 
 export class LicenseManager {
 	private publicKey = '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
@@ -39,12 +41,13 @@ export class LicenseManager {
 
 	getLicenseFromKey(licenseKey?: string): LicenseFromKeyResult {
 		if (!licenseKey) {
+			this.outputNoLicenseKeyProvided()
 			return { isLicenseValid: false, reason: 'NoLicenseKeyProvided' }
 		}
 
 		try {
 			const licenseInfo = this.extractLicense(licenseKey)
-			return {
+			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
 				isLicenseValid: true,
 				isDomainValid: licenseInfo.hosts.some(
@@ -52,9 +55,57 @@ export class LicenseManager {
 				),
 				isLicenseExpired: licenseInfo.expiry > Date.now(),
 			}
+			this.outputLicenseInfoIfNeeded(result)
+			return result
 		} catch (e) {
+			this.outputInvalidLicenseKey()
 			// If the license can't be parsed, it's invalid
 			return { isLicenseValid: false, reason: 'InvalidLicenseKey' }
 		}
+	}
+
+	private outputNoLicenseKeyProvided() {
+		this.outputMessages([
+			'No tldraw license key provided.',
+			"Please reach out to hello@tldraw.com if you would like to license tldraw or if you'd like a trial.",
+		])
+	}
+
+	private outputInvalidLicenseKey() {
+		// eslint-disable-next-line no-console
+		this.outputMessage('Invalid tldraw license key.')
+	}
+
+	private outputLicenseInfoIfNeeded(result: ValidLicenseKeyResult) {
+		if (result.isLicenseExpired) {
+			this.outputMessages([
+				'Your tldraw license has expired.',
+				'Please reach out to hello@tldraw.com to renew.',
+			])
+		}
+		if (!result.isDomainValid) {
+			this.outputMessages([
+				'This tldraw license key is not valid for this domain.',
+				'Please reach out to hello@tldraw.com if you would like to use tldraw on other domains.',
+			])
+		}
+	}
+
+	private outputMessage(message: string) {
+		this.outputMessages([message])
+	}
+
+	private outputMessages(messages: string[]) {
+		this.outputLines()
+		for (const message of messages) {
+			// eslint-disable-next-line no-console
+			console.log(message)
+		}
+		this.outputLines()
+	}
+
+	private outputLines() {
+		// eslint-disable-next-line no-console
+		console.log('-------------------------------------------------------------------')
 	}
 }

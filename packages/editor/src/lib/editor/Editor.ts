@@ -823,7 +823,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	private licenseManager: LicenseManager
 	/**
-	 * A manager for watermarks.
+	 * A manager for the watermark.
 	 *
 	 * @internal
 	 */
