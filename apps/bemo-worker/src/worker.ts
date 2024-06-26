@@ -14,6 +14,20 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			const message = await bemo.hello()
 			return new Response(message, { status: 200 })
 		})
+		.get('/do/error', async () => {
+			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
+			await bemo.throw()
+			return new Response('should have thrown', { status: 200 })
+		})
+		.get('/do/caught', async () => {
+			try {
+				const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
+				await bemo.throw()
+			} catch (err) {
+				console.error('caught error:', err)
+			}
+			return new Response('should have thrown', { status: 200 })
+		})
 		.get('/console-error', async () => {
 			console.log('hi there')
 			console.error('console.error from worker')
