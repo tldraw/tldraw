@@ -241,25 +241,31 @@ export class TLDrawDurableObject {
 		}
 	}
 
+	_isRestoring = false
 	async onRestore(req: IRequest) {
-		const roomId = this.documentInfo.slug
-		const roomKey = getR2KeyForRoom(roomId)
-		const timestamp = ((await req.json()) as any).timestamp
-		if (!timestamp) {
-			return new Response('Missing timestamp', { status: 400 })
-		}
-		const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
-		if (!data) {
-			return new Response('Version not found', { status: 400 })
-		}
-		const dataText = await data.text()
-		await this.r2.rooms.put(roomKey, dataText)
-		const room = await this.getRoom()
+		this._isRestoring = true
+		try {
+			const roomId = this.documentInfo.slug
+			const roomKey = getR2KeyForRoom(roomId)
+			const timestamp = ((await req.json()) as any).timestamp
+			if (!timestamp) {
+				return new Response('Missing timestamp', { status: 400 })
+			}
+			const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
+			if (!data) {
+				return new Response('Version not found', { status: 400 })
+			}
+			const dataText = await data.text()
+			await this.r2.rooms.put(roomKey, dataText)
+			const room = await this.getRoom()
 
-		const snapshot: RoomSnapshot = JSON.parse(dataText)
-		room.loadSnapshot(snapshot)
+			const snapshot: RoomSnapshot = JSON.parse(dataText)
+			room.loadSnapshot(snapshot)
 
-		return new Response()
+			return new Response()
+		} finally {
+			this._isRestoring = false
+		}
 	}
 
 	async onRequest(req: IRequest) {
@@ -401,6 +407,7 @@ export class TLDrawDurableObject {
 		const room = await this.getRoom()
 		const clock = room.getCurrentClock()
 		if (this._lastPersistedClock === clock) return
+		if (this._isRestoring) return
 
 		const snapshot = JSON.stringify(room.getCurrentSnapshot())
 
