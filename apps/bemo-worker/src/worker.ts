@@ -13,14 +13,14 @@ const cors = createCors({ origins: ['*'] })
 export default class Worker extends WorkerEntrypoint<Environment> {
 	private readonly router = Router()
 		.all('*', cors.preflight)
-		.get('/do', async () => {
+		.get('/do', async (request) => {
 			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
-			const message = (await bemo.fetch('/hello')).json()
+			const message = (await bemo.fetch(request)).json()
 			return Response.json(message)
 		})
-		.get('/do/error', async () => {
+		.get('/do/error', async (request) => {
 			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
-			return Response.json((await bemo.fetch('/throw')).json())
+			return Response.json((await bemo.fetch(request)).json())
 		})
 		.get('/error', async () => {
 			throw new Error('error from worker')

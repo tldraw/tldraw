@@ -6003,6 +6003,8 @@ __metadata:
     itty-router: "npm:^4.0.13"
     lazyrepo: "npm:0.0.0-alpha.27"
     nanoid: "npm:4.0.2"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
     toucan-js: "npm:^3.4.0"
     typescript: "npm:^5.3.3"
     wrangler: "npm:3.62.0"

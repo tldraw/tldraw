@@ -22,12 +22,12 @@ export class BemoDO extends DurableObject<Environment> {
 	}
 
 	private readonly router = Router()
-		.get('/hello', async () => {
+		.get('/do', async () => {
 			return Response.json(
 				`hello from a durable object! here's my env: ${JSON.stringify(this.env, null, 2)}`
 			)
 		})
-		.get('/throw', async () => {
+		.get('/do/error', async () => {
 			this.doAnError()
 		})
 		.all('*', async () => new Response('Not found', { status: 404 }))
