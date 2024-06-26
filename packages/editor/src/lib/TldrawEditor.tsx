@@ -371,6 +371,7 @@ function TldrawEditorWithReadyStore({
 		initialState,
 		initialAutoFocus,
 		inferDarkMode,
+		licenseKey,
 		cameraOptions,
 		assetOptions,
 		options,
