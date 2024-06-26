@@ -223,16 +223,10 @@ export class TLDrawDurableObject {
 		})
 
 		try {
-			return await this.router.handle(req).catch((err) => {
-				console.error(err)
-				sentry.captureException(err)
-
-				return new Response('Something went wrong', {
-					status: 500,
-					statusText: 'Internal Server Error',
-				})
-			})
+			return await this.router.handle(req)
 		} catch (err) {
+			console.error(err)
+			// eslint-disable-next-line deprecation/deprecation
 			sentry.captureException(err)
 			return new Response('Something went wrong', {
 				status: 500,

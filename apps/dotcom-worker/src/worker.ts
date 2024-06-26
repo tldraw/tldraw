@@ -59,6 +59,7 @@ const Worker = {
 			.handle(request, env, context)
 			.catch((err) => {
 				console.error(err)
+				// eslint-disable-next-line deprecation/deprecation
 				sentry.captureException(err)
 
 				return new Response('Something went wrong', {
