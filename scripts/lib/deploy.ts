@@ -129,7 +129,7 @@ export async function wranglerDeploy({
 	}
 
 	if (sentry) {
-		const release = sentry.release ?? `${workerNameMatch[1]}/${versionMatch[1]}`
+		const release = sentry.release ?? `${workerNameMatch[1]}.${versionMatch[1]}`
 
 		const sentryEnv = {
 			SENTRY_AUTH_TOKEN: sentry.authToken,
