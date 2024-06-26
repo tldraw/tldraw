@@ -405,7 +405,7 @@ export class TLDrawDurableObject {
 		if (!this._room) return
 		const slug = this.documentInfo.slug
 		const room = await this.getRoom()
-		const clock = room.getCurrentClock()
+		const clock = room.getCurrentDocumentClock()
 		if (this._lastPersistedClock === clock) return
 		if (this._isRestoring) return
 

@@ -196,6 +196,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// initial lastServerClock value get the full state
 	// in this case clients will start with 0, and the server will start with 1
 	clock = 1
+	documentClock = 1
 	tombstoneHistoryStartsAtClock = this.clock
 	// map from record id to clock upon deletion
 
@@ -324,6 +325,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.state.set({ documents, tombstones })
 
 		this.pruneTombstones()
+		this.documentClock = this.clock
 	}
 
 	private pruneTombstones = () => {
@@ -1059,6 +1061,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						...presenceChanges.diff,
 					},
 				})
+			}
+
+			if (docChanges.diff) {
+				this.documentClock = this.clock
 			}
 
 			return

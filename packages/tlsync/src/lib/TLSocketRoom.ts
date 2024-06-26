@@ -96,7 +96,7 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	handleSocketMessage(sessionId: string, message: string | ArrayBuffer) {
-		const clock = this.room.clock
+		const documentClockAtStart = this.room.documentClock
 		const assembler = this.sessions.get(sessionId)?.assembler
 		if (!assembler) {
 			this.log.warn?.('Received message from unknown session', sessionId)
@@ -126,7 +126,7 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 				socket.close()
 			}
 		} finally {
-			if (this.room.clock !== clock) {
+			if (this.room.documentClock !== documentClockAtStart) {
 				this.opts.onDataChange?.()
 			}
 		}
@@ -140,8 +140,8 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 		this.room.handleClose(sessionId)
 	}
 
-	getCurrentClock() {
-		return this.room.clock
+	getCurrentDocumentClock() {
+		return this.room.documentClock
 	}
 	getCurrentSnapshot() {
 		return this.room.getSnapshot()
