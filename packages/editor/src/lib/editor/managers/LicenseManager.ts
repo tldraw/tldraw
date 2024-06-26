@@ -9,13 +9,13 @@ const licenseInfoValidator = T.object({
 })
 
 export type LicenseInfo = T.TypeOf<typeof licenseInfoValidator>
-export type InvalidLicense = 'InvalidLicenseKey' | 'NoLicenseKeyProvided'
+export type InvalidLicenseReason = 'InvalidLicenseKey' | 'NoLicenseKeyProvided'
 
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult
 
 interface InvalidLicenseKeyResult {
 	isLicenseValid: false
-	reason: InvalidLicense
+	reason: InvalidLicenseReason
 }
 
 interface ValidLicenseKeyResult {
