@@ -1,3 +1,4 @@
+import { TL_CONTAINER_CLASS } from '../../TldrawEditor'
 import { Editor } from '../Editor'
 
 export class WatermarkManager {
@@ -11,7 +12,7 @@ export class WatermarkManager {
 	}
 
 	getWatermarkParent() {
-		return document.getElementsByClassName('tldraw__editor')[0]?.firstChild as HTMLElement
+		return document.getElementsByClassName(TL_CONTAINER_CLASS)[0] as HTMLElement
 	}
 
 	checkWatermark() {
@@ -30,18 +31,18 @@ export class WatermarkManager {
 	}
 	applyStyles(watermark: HTMLAnchorElement) {
 		const watermarkStyle = {
-			position: 'absolute',
-			bottom: '60px',
-			right: '20px',
 			backgroundColor: 'rgb(0, 0, 0)',
 			color: 'white',
 			padding: '12px',
 			fontFamily: 'Arial',
 			fontSize: '20px',
-			zIndex: '201',
-			opacity: '1', // Added based on checkWatermark method
 		}
 		Object.assign(watermark.style, watermarkStyle)
+		watermark.style.setProperty('position', 'absolute', 'important')
+		watermark.style.setProperty('bottom', '60px', 'important')
+		watermark.style.setProperty('right', '20px', 'important')
+		watermark.style.setProperty('opacity', '1', 'important')
+		watermark.style.setProperty('z-index', '99999', 'important')
 		watermark.innerHTML = 'tldraw.dev'
 		watermark.href = 'https://tldraw.dev'
 	}
