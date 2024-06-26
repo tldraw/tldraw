@@ -72,7 +72,6 @@ export class LicenseManager {
 	}
 
 	private outputInvalidLicenseKey() {
-		// eslint-disable-next-line no-console
 		this.outputMessage('Invalid tldraw license key.')
 	}
 
