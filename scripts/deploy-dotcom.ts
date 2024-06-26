@@ -181,7 +181,7 @@ let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
 	if (previewId && !didUpdateTlsyncWorker) {
-		await setWranglerPreviewWorkerName(worker, `${previewId}-tldraw-multiplayer`)
+		await setWranglerPreviewWorkerName(worker, workerId)
 		didUpdateTlsyncWorker = true
 	}
 	await wranglerDeploy({

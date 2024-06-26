@@ -74,7 +74,7 @@ let didUpdateBemoWorker = false
 async function deployBemoWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-bemo`
 	if (previewId && !didUpdateBemoWorker) {
-		await setWranglerPreviewWorkerName(workerId, `${previewId}-demo`)
+		await setWranglerPreviewWorkerName(worker, workerId)
 		didUpdateBemoWorker = true
 	}
 
