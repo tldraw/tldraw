@@ -3,13 +3,13 @@ import { RoomSnapshot, TLSyncRoom } from '../lib/TLSyncRoom'
 import { TestSocketPair } from './TestSocketPair'
 
 export class TestServer<R extends UnknownRecord, P = unknown> {
-	room: TLSyncRoom<R>
+	room: TLSyncRoom<R, undefined>
 	constructor(schema: StoreSchema<R, P>, snapshot?: RoomSnapshot) {
-		this.room = new TLSyncRoom<R>(schema, snapshot)
+		this.room = new TLSyncRoom<R, undefined>(schema, snapshot)
 	}
 
 	connect(socketPair: TestSocketPair<R>): void {
-		this.room.handleNewSession(socketPair.id, socketPair.roomSocket)
+		this.room.handleNewSession(socketPair.id, socketPair.roomSocket, undefined)
 
 		socketPair.clientSocket.connectionStatus = 'online'
 		socketPair.didReceiveFromClient = (msg) => {

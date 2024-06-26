@@ -41,7 +41,6 @@
 	--layer-collaborator-cursor: 130;
 	--layer-grid: 150;
 	--layer-culled-shapes: 175;
-	--layer-canvas: 200;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
 	--layer-in-front-overlay: 500;
@@ -257,7 +256,6 @@ input,
 	height: 100%;
 	width: 100%;
 	color: var(--color-text);
-	z-index: var(--layer-canvas);
 	cursor: var(--tl-cursor);
 	overflow: clip;
 	content-visibility: auto;
@@ -313,17 +311,6 @@ input,
 	pointer-events: none;
 }
 
-.tl-front {
-	z-index: var(--layer-in-front);
-	position: absolute;
-	inset: 0px;
-	height: 100%;
-	width: 100%;
-	overflow: clip;
-	content-visibility: auto;
-	touch-action: none;
-	pointer-events: none;
-}
 /* ------------------- Background ------------------- */
 
 .tl-background__wrapper {
@@ -1068,7 +1055,7 @@ input,
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	z-index: var(--layer-canvas);
+	z-index: 200;
 	font-size: 12px;
 	font-weight: 400;
 	color: var(--color-text-1);

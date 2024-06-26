@@ -125,51 +125,60 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	)
 
 	return (
-		<div
-			ref={rCanvas}
-			draggable={false}
-			data-iseditinganything={isEditingAnything}
-			data-isselectinganything={isSelectingAnything}
-			className={classNames('tl-canvas', className)}
-			data-testid="canvas"
-			{...events}
-		>
-			<svg className="tl-svg-context">
-				<defs>
-					{shapeSvgDefs}
-					<CursorDef />
-					<CollaboratorHintDef />
-					{SvgDefs && <SvgDefs />}
-				</defs>
-			</svg>
-			{Background && (
-				<div className="tl-background__wrapper">
-					<Background />
+		<>
+			<div
+				ref={rCanvas}
+				draggable={false}
+				data-iseditinganything={isEditingAnything}
+				data-isselectinganything={isSelectingAnything}
+				className={classNames('tl-canvas', className)}
+				data-testid="canvas"
+				{...events}
+			>
+				<svg className="tl-svg-context">
+					<defs>
+						{shapeSvgDefs}
+						<CursorDef />
+						<CollaboratorHintDef />
+						{SvgDefs && <SvgDefs />}
+					</defs>
+				</svg>
+				{Background && (
+					<div className="tl-background__wrapper">
+						<Background />
+					</div>
+				)}
+				<GridWrapper />
+				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
+					<OnTheCanvasWrapper />
+					<SelectionBackgroundWrapper />
+					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 				</div>
-			)}
-			<GridWrapper />
-			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
-				<OnTheCanvasWrapper />
-				<SelectionBackgroundWrapper />
-				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
-			</div>
-			<div className="tl-overlays">
-				<div ref={rHtmlLayer2} className="tl-html-layer">
-					{debugGeometry ? <GeometryDebuggingView /> : null}
-					<HandlesWrapper />
-					<BrushWrapper />
-					<ScribbleWrapper />
-					<ZoomBrushWrapper />
-					<ShapeIndicators />
-					<HintedShapeIndicator />
-					<SnapIndicatorWrapper />
-					<SelectionForegroundWrapper />
-					<LiveCollaborators />
+				<div className="tl-overlays">
+					<div ref={rHtmlLayer2} className="tl-html-layer">
+						{debugGeometry ? <GeometryDebuggingView /> : null}
+						<HandlesWrapper />
+						<BrushWrapper />
+						<ScribbleWrapper />
+						<ZoomBrushWrapper />
+						<ShapeIndicators />
+						<HintedShapeIndicator />
+						<SnapIndicatorWrapper />
+						<SelectionForegroundWrapper />
+						<LiveCollaborators />
+					</div>
 				</div>
+				<MovingCameraHitTestBlocker />
 			</div>
-			<MovingCameraHitTestBlocker />
-		</div>
+			<InFrontOfTheCanvasWrapper />
+		</>
 	)
+}
+
+function InFrontOfTheCanvasWrapper() {
+	const { InFrontOfTheCanvas } = useEditorComponents()
+	if (!InFrontOfTheCanvas) return null
+	return <InFrontOfTheCanvas />
 }
 
 function GridWrapper() {
