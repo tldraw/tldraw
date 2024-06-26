@@ -49,6 +49,8 @@ jobs:
 
       - name: Check PR template
         run: yarn update-pr-template --check
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Lint
         run: yarn lint

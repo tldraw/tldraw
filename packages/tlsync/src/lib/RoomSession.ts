@@ -14,13 +14,14 @@ export const SESSION_START_WAIT_TIME = 10000
 export const SESSION_REMOVAL_WAIT_TIME = 10000
 export const SESSION_IDLE_TIMEOUT = 20000
 
-export type RoomSession<R extends UnknownRecord> =
+export type RoomSession<R extends UnknownRecord, Meta> =
 	| {
 			state: typeof RoomSessionState.AwaitingConnectMessage
 			sessionKey: string
 			presenceId: string
 			socket: TLRoomSocket<R>
 			sessionStartTime: number
+			meta: Meta
 	  }
 	| {
 			state: typeof RoomSessionState.AwaitingRemoval
@@ -28,6 +29,7 @@ export type RoomSession<R extends UnknownRecord> =
 			presenceId: string
 			socket: TLRoomSocket<R>
 			cancellationTime: number
+			meta: Meta
 	  }
 	| {
 			state: typeof RoomSessionState.Connected
@@ -38,4 +40,5 @@ export type RoomSession<R extends UnknownRecord> =
 			lastInteractionTime: number
 			debounceTimer: ReturnType<typeof setTimeout> | null
 			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
+			meta: Meta
 	  }

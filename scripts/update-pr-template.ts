@@ -6,7 +6,7 @@ import { formatLabelOptionsForPRTemplate, getLabelNames } from './lib/labels'
 
 const prTemplatePath = join(REPO_ROOT, '.github', 'pull_request_template.md')
 
-const octo = new Octokit({})
+const octo = process.env.GH_TOKEN ? new Octokit({ auth: process.env.GH_TOKEN }) : new Octokit()
 
 async function updatePRTemplate(check: boolean) {
 	if (!existsSync(prTemplatePath)) {
