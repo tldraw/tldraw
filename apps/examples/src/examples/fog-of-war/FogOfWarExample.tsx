@@ -78,11 +78,7 @@ const components: TLComponents = {
 export default function BasicExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="example"
-				components={components}
-				onMount={(e) => (window.editor = e)}
-			/>
+			<Tldraw persistenceKey="example" components={components} />
 		</div>
 	)
 }
