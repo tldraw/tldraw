@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-open
     environment: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || 'deploy-staging' }}
-    concurrency: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || github.ref }}
+    concurrency: dotcom-${{ github.ref == 'refs/heads/production' && 'deploy-production' || github.ref }}
 
     steps:
       - name: Notify initial start

@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest-16-cores-open
     # TODO: dedicated separate environment for bemo
     environment: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || 'deploy-staging' }}
-    concurrency: ${{ github.ref == 'refs/heads/production' && 'bemo-production' || github.ref }}
+    concurrency: bemo-${{ github.ref == 'refs/heads/production' && 'production' || github.ref }}
 
     steps:
       - name: Notify initial start
