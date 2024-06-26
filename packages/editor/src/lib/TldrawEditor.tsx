@@ -1,12 +1,13 @@
 import { MigrationSequence, Store } from '@tldraw/store'
-import { TLSerializedStore, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
-import { Expand, Required, annotateError } from '@tldraw/utils'
+import { TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
+import { Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
 	memo,
 	useCallback,
 	useLayoutEffect,
 	useMemo,
+	useRef,
 	useState,
 	useSyncExternalStore,
 } from 'react'
@@ -15,6 +16,7 @@ import classNames from 'classnames'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
+import { TLStoreBaseOptions } from './config/createTLStore'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
@@ -39,27 +41,58 @@ import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
+ * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components, when passing in a
+ * {@link store#TLStore} directly. If you would like tldraw to create a store for you, use
+ * {@link TldrawEditorWithoutStoreProps}.
+ *
+ * @public
+ */
+export interface TldrawEditorWithStoreProps {
+	/**
+	 * The store to use in the editor.
+	 */
+	store: TLStore | TLStoreWithStatus
+}
+
+/**
+ * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components, when not passing in a
+ * {@link store#TLStore} directly. If you would like to pass in a store directly, use
+ * {@link TldrawEditorWithStoreProps}.
+ *
+ * @public
+ */
+export interface TldrawEditorWithoutStoreProps extends TLStoreBaseOptions {
+	store?: undefined
+
+	/**
+	 * Additional migrations to use in the store
+	 */
+	migrations?: readonly MigrationSequence[]
+
+	/**
+	 * A starting snapshot of data to pre-populate the store. Do not supply both this and
+	 * `initialData`.
+	 */
+	snapshot?: TLEditorSnapshot | TLStoreSnapshot
+
+	/**
+	 * If you would like to persist the store to the browser's local IndexedDB storage and sync it
+	 * across tabs, provide a key here. Each key represents a single tldraw document.
+	 */
+	persistenceKey?: string
+
+	sessionId?: string
+}
+
+/** @public */
+export type TldrawEditorStoreProps = TldrawEditorWithStoreProps | TldrawEditorWithoutStoreProps
+
+/**
  * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
  *
  * @public
  **/
-export type TldrawEditorProps = Expand<
-	TldrawEditorBaseProps &
-		(
-			| {
-					store: TLStore | TLStoreWithStatus
-			  }
-			| {
-					store?: undefined
-					migrations?: readonly MigrationSequence[]
-					snapshot?: TLEditorSnapshot | TLStoreSnapshot
-					initialData?: TLSerializedStore
-					persistenceKey?: string
-					sessionId?: string
-					defaultName?: string
-			  }
-		)
->
+export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps
 
 /**
  * Base props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
@@ -129,6 +162,7 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Asset options for the editor.
+	 * @internal
 	 */
 	assetOptions?: Partial<TLAssetOptions>
 
@@ -316,7 +350,17 @@ function TldrawEditorWithReadyStore({
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
-	const [editor, setEditor] = useState<Editor | null>(null)
+	const editorRef = useRef<Editor | null>(null)
+	// we need to store the editor instance in a ref so that it persists across strict-mode
+	// remounts, but that won't trigger re-renders, so we use this hook to make sure all child
+	// components get the most up to date editor reference when needed.
+	const [renderEditor, setRenderEditor] = useState<Editor | null>(null)
+
+	const editor = editorRef.current
+	if (renderEditor !== editor) {
+		setRenderEditor(editor)
+	}
+
 	const [initialAutoFocus] = useState(autoFocus)
 
 	useLayoutEffect(() => {
@@ -334,7 +378,9 @@ function TldrawEditorWithReadyStore({
 			assetOptions,
 			options,
 		})
-		setEditor(editor)
+
+		editorRef.current = editor
+		setRenderEditor(editor)
 
 		return () => {
 			editor.dispose()

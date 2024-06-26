@@ -15,7 +15,6 @@ import { computed } from '@tldraw/state';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
-import { Expand } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -67,7 +66,6 @@ import { TLParentId } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
-import { TLSerializedStore } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
@@ -2527,6 +2525,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
+    // @internal
     assetOptions?: Partial<TLAssetOptions>;
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
@@ -2544,17 +2543,26 @@ export interface TldrawEditorBaseProps {
 }
 
 // @public
-export type TldrawEditorProps = Expand<TldrawEditorBaseProps & ({
-    defaultName?: string;
-    initialData?: TLSerializedStore;
+export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps;
+
+// @public (undocumented)
+export type TldrawEditorStoreProps = TldrawEditorWithoutStoreProps | TldrawEditorWithStoreProps;
+
+// @public
+export interface TldrawEditorWithoutStoreProps extends TLStoreBaseOptions {
     migrations?: readonly MigrationSequence[];
     persistenceKey?: string;
+    // (undocumented)
     sessionId?: string;
     snapshot?: TLEditorSnapshot | TLStoreSnapshot;
+    // (undocumented)
     store?: undefined;
-} | {
+}
+
+// @public
+export interface TldrawEditorWithStoreProps {
     store: TLStore | TLStoreWithStatus;
-})>;
+}
 
 // @public
 export interface TldrawOptions {
@@ -3262,18 +3270,22 @@ export interface TLStateNodeConstructor {
 }
 
 // @public (undocumented)
+export interface TLStoreBaseOptions {
+    defaultName?: string;
+    initialData?: SerializedStore<TLRecord>;
+}
+
+// @public (undocumented)
 export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 
 // @public (undocumented)
-export type TLStoreOptions = {
-    defaultName?: string;
-    id?: string;
-    initialData?: SerializedStore<TLRecord>;
-} & ({
+export type TLStoreOptions = TLStoreBaseOptions & ({
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
+    id?: string;
     migrations?: readonly MigrationSequence[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 } | {
+    id?: string;
     schema?: StoreSchema<TLRecord, TLStoreProps>;
 });
 

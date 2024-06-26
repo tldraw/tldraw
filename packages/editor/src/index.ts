@@ -40,6 +40,9 @@ export {
 	type TLOnMountHandler,
 	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
+	type TldrawEditorStoreProps,
+	type TldrawEditorWithStoreProps,
+	type TldrawEditorWithoutStoreProps,
 } from './lib/TldrawEditor'
 export {
 	ErrorBoundary,
@@ -117,6 +120,7 @@ export {
 } from './lib/config/TLUserPreferences'
 export {
 	createTLStore,
+	type TLStoreBaseOptions,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
 } from './lib/config/createTLStore'

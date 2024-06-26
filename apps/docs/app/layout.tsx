@@ -46,12 +46,12 @@ export const metadata: Metadata = {
 	},
 	icons: [
 		{ rel: 'shortcut icon', url: '/favicon.svg' },
-		{ rel: 'icon', url: 'favicon-32x32.svg', sizes: '32x32' },
-		{ rel: 'icon', url: 'favicon-16x16.svg', sizes: '16x16' },
-		{ rel: 'apple-touch-icon', url: 'apple-touch-icon.png' },
-		{ rel: 'apple-touch-icon', url: 'apple-touch-icon-152x152.svg', sizes: '152x152' },
-		{ rel: 'apple-touch-icon', url: 'apple-touch-icon-180x180.svg', sizes: '180x180' },
-		{ rel: 'apple-touch-icon', url: 'apple-touch-icon-167x167.svg', sizes: '167x167' },
+		{ rel: 'icon', url: '/favicon-32x32.svg', sizes: '32x32' },
+		{ rel: 'icon', url: '/favicon-16x16.svg', sizes: '16x16' },
+		{ rel: 'apple-touch-icon', url: '/apple-touch-icon.png' },
+		{ rel: 'apple-touch-icon', url: '/apple-touch-icon-152x152.svg', sizes: '152x152' },
+		{ rel: 'apple-touch-icon', url: '/apple-touch-icon-180x180.svg', sizes: '180x180' },
+		{ rel: 'apple-touch-icon', url: '/apple-touch-icon-167x167.svg', sizes: '167x167' },
 	],
 }
 
