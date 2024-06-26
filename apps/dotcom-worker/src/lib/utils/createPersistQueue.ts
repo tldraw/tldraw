@@ -12,7 +12,6 @@ export function createPersistQueue(persist: () => Promise<void>, timeout: number
 		try {
 			queue = Promise.resolve(
 				(async () => {
-					// eslint-disable-next-line no-constant-condition
 					do {
 						if (persistAgain) {
 							if (timeout > 0) {
