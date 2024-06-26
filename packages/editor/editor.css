@@ -41,7 +41,6 @@
 	--layer-grid: 150;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
-	--layer-in-front-overlay: 500;
 	--layer-bookmark-link: 999;
 	--layer-following-indicator: 1000;
 	--layer-blocker: 10000;
@@ -1392,7 +1391,7 @@ input,
 	background-color: var(--color-background);
 	color: var(--color-text-1);
 	position: absolute;
-	z-index: var(--layer-in-front);
+	z-index: 600;
 }
 
 .tl-error-boundary__overlay {
@@ -1400,7 +1399,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-in-front-overlay);
+	z-index: 1;
 	background-color: var(--color-overlay);
 }
 
@@ -1416,7 +1415,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-behind);
+	z-index: 2;
 }
 
 /* some browsers seem to have some weird interactions between stacking contexts
@@ -1429,7 +1428,7 @@ it from receiving any pointer events or affecting the cursor. */
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-in-front);
+	z-index: 3;
 	pointer-events: all;
 }
 
@@ -1448,7 +1447,7 @@ it from receiving any pointer events or affecting the cursor. */
 	display: flex;
 	flex-direction: column;
 	overflow: auto;
-	z-index: var(--layer-in-front);
+	z-index: 4;
 	gap: 12px;
 }
 
