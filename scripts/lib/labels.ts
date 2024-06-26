@@ -12,17 +12,26 @@ interface Label {
 
 const TYPE_LABELS = [
 	{
+		name: `feature`,
+		description: `New feature`,
+		changelogTitle: '🎉 New Features',
+	},
+	{
 		name: `improvement`,
-		description: `Product Improvement`,
+		description: `Product improvement`,
 		changelogTitle: '💄 Product Improvements',
+	},
+	{
+		name: `api`,
+		description: `API change`,
+		changelogTitle: '🛠️ API Changes',
 	},
 	{ name: `bugfix`, description: `Bug fix`, changelogTitle: '🐛 Bug Fixes' },
 	{
-		name: `api`,
-		description: `API Change`,
-		changelogTitle: '🛠️ API Changes',
+		name: `other`,
+		description: `Changes that don't affect SDK users, e.g. internal or .com changes`,
+		changelogTitle: '🤷 Other',
 	},
-	{ name: `other`, description: `Internal or flagship .com change`, changelogTitle: '🤷 Other' },
 ] as const satisfies Label[]
 
 export function getLabelNames() {
@@ -45,7 +54,7 @@ export async function generateAutoRcFile() {
 	const autoRcPath = join(REPO_ROOT, '.autorc')
 	await writeJsonFile(autoRcPath, {
 		plugins: ['npm', '../scripts/lib/auto-plugin.js'],
-		labels: [...TYPE_LABELS].map(({ name, changelogTitle }) => ({
+		labels: [...TYPE_LABELS.filter((l) => l.name !== 'other')].map(({ name, changelogTitle }) => ({
 			name,
 			changelogTitle,
 			releaseType: 'none',

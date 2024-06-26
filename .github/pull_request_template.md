@@ -4,10 +4,11 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 
 <!-- ❗ Please select a 'Type' label ❗️ -->
 
-- [ ] `improvement` — Improving existing features
-- [ ] `bugfix` — Bug fix
-- [ ] `api` — API Change
-- [ ] `other` — Internal or flagship .com change
+- [ ] `feature` — New feature
+- [ ] `improvement` — Product improvement
+- [ ] `api` — API change
+- [ ] `bugfix` — Bug Fix
+- [ ] `other` — Changes that don't affect SDK users, e.g. internal or .com changes
 
 
 ### Test Plan
