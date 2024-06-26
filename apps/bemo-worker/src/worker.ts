@@ -2,51 +2,49 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { Router } from 'itty-router'
+import { AutoRouter, cors } from 'itty-router'
+import { Toucan } from 'toucan-js'
 import { Environment } from './types'
 
 export { BemoDO } from './BemoDO'
 
 export default class Worker extends WorkerEntrypoint<Environment> {
-	readonly router = Router()
+	private readonly cors = cors()
+	private readonly router = AutoRouter({
+		before: [this.cors.preflight],
+		finally: [this.cors.corsify],
+		catch: (error, request) => {
+			const sentry = new Toucan({
+				dsn: this.env.SENTRY_DSN,
+				release: this.env.CF_VERSION_METADATA.id,
+				context: this.ctx,
+				request,
+				requestDataOptions: {
+					allowedHeaders: ['user-agent'],
+					allowedSearchParams: /(.*)/,
+				},
+			})
+			console.error(error)
+			// eslint-disable-next-line deprecation/deprecation
+			sentry.captureException(error)
+			return new Response('Something went wrong', {
+				status: 500,
+				statusText: 'Internal Server Error',
+			})
+		},
+	})
 		.get('/do', async () => {
 			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
-			const message = await bemo.hello()
-			return new Response(message, { status: 200 })
+			const message = (await bemo.fetch('/hello')).json()
+			return message
 		})
 		.get('/do/error', async () => {
 			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
-			await bemo.throw()
-			return new Response('should have thrown', { status: 200 })
-		})
-		.get('/do/caught', async () => {
-			try {
-				const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
-				await bemo.throw()
-			} catch (err) {
-				console.error('caught error:', err)
-			}
-			return new Response('should have thrown', { status: 200 })
-		})
-		.get('/console-error', async () => {
-			console.log('hi there')
-			console.error('console.error from worker')
-			return new Response('console.error from worker', { status: 200 })
-		})
-		.get('/console-warning', async () => {
-			console.log('hi there')
-			console.warn('console.warn from worker')
-			return new Response('console.warn from worker', { status: 200 })
+			return (await bemo.fetch('/throw')).json()
 		})
 		.get('/error', async () => {
-			console.log('hi there')
 			throw new Error('error from worker')
 		})
-		.all('*', async () => {
-			return new Response('Hello, world!', { status: 200 })
-		})
 
-	override async fetch(_request: Request<unknown, CfProperties<unknown>>): Promise<Response> {
-		return this.router.handle(_request)
-	}
+	override fetch = this.router.fetch
 }

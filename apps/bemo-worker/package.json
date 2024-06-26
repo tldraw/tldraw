@@ -23,9 +23,9 @@
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/tlsync": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"itty-router": "^4.0.13",
+		"itty-router": "^5.0.17",
 		"nanoid": "4.0.2",
-		"toucan-js": "^2.7.0"
+		"toucan-js": "^3.4.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240620.0",

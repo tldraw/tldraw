@@ -22,6 +22,8 @@ const env = makeEnv([
 	'RELEASE_COMMIT_HASH',
 	'TLDRAW_ENV',
 	'GH_TOKEN',
+	'SENTRY_AUTH_TOKEN',
+	'SENTRY_BEMO_WORKER_DSN',
 ])
 
 const discord = new Discord({
@@ -78,13 +80,18 @@ async function deployBemoWorker({ dryRun }: { dryRun: boolean }) {
 		didUpdateBemoWorker = true
 	}
 
-	const releaseId = await wranglerDeploy({
+	await wranglerDeploy({
 		location: worker,
 		dryRun,
 		env: env.TLDRAW_ENV,
 		vars: {
-			TLDRAW_ENV: env.TLDRAW_ENV,
 			WORKER_NAME: workerId,
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			SENTRY_DSN: env.SENTRY_BEMO_WORKER_DSN,
+		},
+		sentry: {
+			authToken: env.SENTRY_AUTH_TOKEN,
+			project: 'bemo-worker',
 		},
 	})
 }

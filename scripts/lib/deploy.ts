@@ -77,11 +77,17 @@ export async function wranglerDeploy({
 	dryRun,
 	env,
 	vars,
+	sentry,
 }: {
 	location: string
 	dryRun: boolean
 	env: string
 	vars: Record<string, string>
+	sentry?: {
+		authToken: string
+		project: string
+		release?: string
+	}
 }) {
 	const varsArray = []
 	for (const [key, value] of Object.entries(vars)) {
@@ -90,7 +96,16 @@ export async function wranglerDeploy({
 
 	const out = await exec(
 		'yarn',
-		['wrangler', 'deploy', dryRun ? '--dry-run' : null, '--env', env, ...varsArray],
+		[
+			'wrangler',
+			'deploy',
+			dryRun ? '--dry-run' : null,
+			'--env',
+			env,
+			'--outdir',
+			'.wrangler/dist',
+			...varsArray,
+		],
 		{
 			pwd: location,
 			env: {
@@ -101,13 +116,47 @@ export async function wranglerDeploy({
 		}
 	)
 
-	if (dryRun) return null
+	if (dryRun) return
 
 	const match = out.match(/Current Version ID: (.+)/)
 	if (!match) {
 		throw new Error('Could not find the deploy ID in wrangler output')
 	}
-	return match[1]
+
+	if (sentry) {
+		const release = sentry.release ?? match[1]
+
+		const sentryEnv = {
+			SENTRY_AUTH_TOKEN: sentry.authToken,
+			SENTRY_ORG: 'tldraw',
+			SENTRY_PROJECT: sentry.project,
+		}
+
+		// create a sentry release:
+		exec('yarn', ['run', '-T', 'sentry-cli', 'releases', 'new', release], {
+			pwd: location,
+			env: sentryEnv,
+		})
+
+		// upload sourcemaps to the release:
+		exec(
+			'yarn',
+			[
+				'run',
+				'-T',
+				'sentry-cli',
+				'releases',
+				'files',
+				release,
+				'upload-sourcemaps',
+				'.wrangler/dist',
+			],
+			{
+				pwd: location,
+				env: sentryEnv,
+			}
+		)
+	}
 }
 
 export async function setWranglerPreviewWorkerName(location: string, name: string) {
