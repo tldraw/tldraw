@@ -13,7 +13,7 @@ export function EditorContextProvider({
 	children: React.ReactNode
 }) {
 	const ref = useRef<React.Context<Editor>>()
-	EditorContext = ref.current ?? createContext({} as Editor)
+	EditorContext = ref.current ??= createContext(editor)
 	return <EditorContext.Provider value={editor}>{children}</EditorContext.Provider>
 }
 

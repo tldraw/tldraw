@@ -132,7 +132,7 @@ export function EditorComponentsProvider({
 		}),
 		[_overrides]
 	)
-	EditorComponentsContext = ref.current ?? createContext(value)
+	EditorComponentsContext = ref.current ??= createContext(value)
 	return (
 		<EditorComponentsContext.Provider value={value}>{children}</EditorComponentsContext.Provider>
 	)
