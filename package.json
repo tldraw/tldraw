@@ -59,7 +59,10 @@
 		"test-ci": "lazy test-ci",
 		"test": "lazy test",
 		"test-coverage": "lazy test-coverage && node scripts/offer-coverage.mjs",
-		"e2e": "lazy e2e --filter='apps/examples'"
+		"e2e": "lazy e2e --filter='apps/examples'",
+		"generate-customer-license-key-pair": "tsx scripts/generate-customer-license-key-pair.ts",
+		"generate-customer-license-example": "tsx scripts/generate-customer-license-example.ts",
+		"extract-customer-license-example": "tsx scripts/extract-customer-license-example.ts"
 	},
 	"engines": {
 		"npm": ">=7.0.0"

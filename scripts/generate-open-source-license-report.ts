@@ -1,11 +1,11 @@
 // For all package.jsons found in the monorepo, generate a license report
-// by running the `license-report --output=html` script in each package.
+// by running the `generate-open-source-license-report --output=html` script in each package.
 
 import { execPromise } from '@auto-it/core'
 import { execSync } from 'child_process'
 import { writeFileSync } from 'fs'
 
-// Use `yarn workspace list` to get all the packages in the monorepo
+// Use `yarn workspaces list` to get all the packages in the monorepo
 async function main() {
 	const devOnly = process.argv.includes('--dev')
 	const prodOnly = process.argv.includes('--prod')
@@ -20,19 +20,19 @@ async function main() {
 	for (let i = 0; i < lines.length; i++) {
 		const location = lines[i].split(': ')[1]
 		try {
-			console.log('running license-report in', location)
+			console.log('running generate-open-source-license-report in', location)
 			const report = await execPromise(
-				`yarn license-report --package=${location}/package.json --department.value=tldraw  --relatedTo.label=Package --relatedTo.value=${location} --output=html --only=${devOnly ? 'dev' : prodOnly ? 'prod' : 'dev,prod,peer,opt'}`
+				`yarn generate-open-source-license-report --package=${location}/package.json --department.value=tldraw  --relatedTo.label=Package --relatedTo.value=${location} --output=html --only=${devOnly ? 'dev' : prodOnly ? 'prod' : 'dev,prod,peer,opt'}`
 			)
 			// Extract the <table> contents from the report
 			const table = report.match(/<tbody>.*<\/tbody>/gs)
 			if (!table) {
-				console.error('Error extracting table from license-report result.')
+				console.error('Error extracting table from generate-open-source-license-report result.')
 				process.exit(1)
 			}
 			htmlTables.push({ title: location, content: table[0] })
 		} catch (e) {
-			console.error(`Error running license-report in ${location}, ${e}`)
+			console.error(`Error running generate-open-source-license-report in ${location}, ${e}`)
 		}
 	}
 
