@@ -101,6 +101,8 @@ export async function wranglerDeploy({
 		}
 	)
 
+	if (dryRun) return null
+
 	const match = out.match(/Current Version ID: (.+)/)
 	if (!match) {
 		throw new Error('Could not find the deploy ID in wrangler output')
