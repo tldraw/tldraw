@@ -87,6 +87,7 @@ export function Fog() {
 				height: 'calc(100% + 200px)',
 				WebkitFilter: 'blur(15px)',
 				filter: 'blur(15px)',
+				pointerEvents: 'none',
 			}}
 		/>
 	)
