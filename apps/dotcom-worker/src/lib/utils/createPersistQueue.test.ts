@@ -1,16 +1,7 @@
+import { promiseWithResolve } from '@tldraw/utils'
 import { createPersistQueue } from './createPersistQueue'
 
 const tick = () => Promise.resolve()
-
-const resolvable = () => {
-	let resolve: () => void = () => {
-		//noop
-	}
-	const promise = new Promise<void>((_r) => {
-		resolve = _r
-	})
-	return { promise, resolve }
-}
 
 describe('createPersistQueue', () => {
 	it('creates a function that runs some async function when invoked', async () => {
@@ -33,7 +24,7 @@ describe('createPersistQueue', () => {
 
 	it('will queue up a second invocation if invoked while executing', async () => {
 		let numExecutions = 0
-		const { promise, resolve } = resolvable()
+		const promise = promiseWithResolve()
 		const persist = createPersistQueue(async () => {
 			await promise
 			numExecutions++
@@ -49,7 +40,7 @@ describe('createPersistQueue', () => {
 		expect(numExecutions).toBe(0)
 
 		// nothing happens until we resolve the promise
-		resolve!()
+		promise.resolve(undefined)
 		await persistPromiseA
 		expect(numExecutions).toBe(2)
 		await persistPromiseB

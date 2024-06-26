@@ -89,7 +89,7 @@ export class TLDrawDurableObject {
 							onDataChange: () => {
 								this.triggerPersistSchedule()
 							},
-							onBeforeSendMessage: (_sessionId, message, stringified) => {
+							onBeforeSendMessage: ({ message, stringified }) => {
 								this.logEvent({
 									type: 'send_message',
 									roomId: slug,
@@ -417,6 +417,8 @@ export class TLDrawDurableObject {
 			this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
 		])
 		this._lastPersistedClock = clock
+		// use a shorter timeout for this 'inner' loop than the 'outer' alarm-scheduled loop
+		// just in case there's any possibility of setting up a neverending queue
 	}, PERSIST_INTERVAL_MS / 2)
 
 	// Save the room to supabase

@@ -31,11 +31,11 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 				args: { sessionKey: string; numSessionsRemaining: number; meta: SessionMeta }
 			) => void
 			// a callback that is called whenever a message is sent
-			onBeforeSendMessage?: (
-				sessionId: string,
-				msg: TLSocketServerSentEvent<R>,
+			onBeforeSendMessage?: (args: {
+				sessionId: string
+				message: TLSocketServerSentEvent<R>
 				stringified: string
-			) => void
+			}) => void
 			onDataChange?: () => void
 		}
 	) {
@@ -84,7 +84,12 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 			new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
-					? (msg, stringified) => this.opts.onBeforeSendMessage!(sessionId, msg, stringified)
+					? (message, stringified) =>
+							this.opts.onBeforeSendMessage!({
+								sessionId,
+								message,
+								stringified,
+							})
 					: undefined,
 			}),
 			meta
