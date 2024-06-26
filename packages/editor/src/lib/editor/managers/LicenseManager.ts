@@ -27,6 +27,10 @@ interface ValidLicenseKeyResult {
 
 export class LicenseManager {
 	private publicKey = '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
+	private isTest: boolean
+	constructor() {
+		this.isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+	}
 	private extractLicense(licenseKey: string): LicenseInfo {
 		const base64License = util.decodeBase64(licenseKey)
 
@@ -95,6 +99,7 @@ export class LicenseManager {
 	}
 
 	private outputMessages(messages: string[]) {
+		if (this.isTest) return
 		this.outputDelimiter()
 		for (const message of messages) {
 			// eslint-disable-next-line no-console
