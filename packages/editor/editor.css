@@ -23,8 +23,6 @@
 	--radius-4: 11px;
 	/* Z Index */
 	--layer-hidden: -999999;
-	--layer-behind: -1;
-	--layer-text-label: 10;
 	--layer-collaborator-scribble: 10;
 	--layer-collaborator-brush: 20;
 	--layer-collaborator-shape-indicator: 30;
@@ -1035,8 +1033,6 @@ input,
 	border: none;
 	outline: none;
 	pointer-events: all;
-	/* should be on top */
-	z-index: 500;
 }
 
 .tl-hyperlink-button::after {
@@ -1081,7 +1077,6 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: var(--layer-text-label);
 }
 
 .tl-text-label[data-hastext='false'][data-isediting='false'] > .tl-text-label__inner {
