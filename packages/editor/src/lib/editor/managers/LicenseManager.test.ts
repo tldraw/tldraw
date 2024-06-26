@@ -1,20 +1,11 @@
-import { createTLStore } from '../../config/createTLStore'
-import { Editor } from '../Editor'
 import { LicenseManager } from './LicenseManager'
 
-const editor = new Editor({
-	shapeUtils: [],
-	bindingUtils: [],
-	tools: [],
-	store: createTLStore({ shapeUtils: [] }),
-	getContainer: () => document.body,
-})
 describe('LicenseManager', () => {
-	const licenseManager = new LicenseManager(editor)
+	const licenseManager = new LicenseManager()
 
 	it('Checks if a license key was provided', () => {
 		const result = licenseManager.getLicenseFromKey('')
-		expect(result).toMatchObject({ isLicenseValid: false, message: 'No license key provided' })
+		expect(result).toMatchObject({ isLicenseValid: false, reason: 'no-key-provided' })
 	})
 	/* it('Validates the license key', () => {
 		const invalidLicenseKey = generateKey(
