@@ -178,11 +178,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 function InFrontOfTheCanvasWrapper() {
 	const { InFrontOfTheCanvas } = useEditorComponents()
 	if (!InFrontOfTheCanvas) return null
-	return (
-		<div className="tl-front">
-			<InFrontOfTheCanvas />
-		</div>
-	)
+	return <InFrontOfTheCanvas />
 }
 
 function GridWrapper() {

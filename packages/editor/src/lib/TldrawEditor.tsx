@@ -26,7 +26,7 @@ import { TLAssetOptions, TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
-import { EditorContext, useEditor } from './hooks/useEditor'
+import { EditorContextProvider, useEditor } from './hooks/useEditor'
 import {
 	EditorComponentsProvider,
 	TLEditorComponents,
@@ -438,9 +438,9 @@ function TldrawEditorWithReadyStore({
 			{crashingError ? (
 				<Crash crashingError={crashingError} />
 			) : (
-				<EditorContext.Provider value={editor}>
+				<EditorContextProvider editor={editor}>
 					<Layout onMount={onMount}>{children ?? (Canvas ? <Canvas /> : null)}</Layout>
-				</EditorContext.Provider>
+				</EditorContextProvider>
 			)}
 		</OptionalErrorBoundary>
 	)

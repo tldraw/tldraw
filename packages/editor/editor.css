@@ -24,7 +24,6 @@
 	/* Z Index */
 	--layer-hidden: -999999;
 	--layer-behind: -1;
-	--layer-culled-shape: 0;
 	--layer-text-label: 10;
 	--layer-collaborator-scribble: 10;
 	--layer-collaborator-brush: 20;
@@ -40,12 +39,9 @@
 	--layer-collaborator-cursor-hint: 120;
 	--layer-collaborator-cursor: 130;
 	--layer-grid: 150;
-	--layer-culled-shapes: 175;
-	--layer-canvas: 200;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
 	--layer-in-front-overlay: 500;
-	--layer-in-front: 600;
 	--layer-bookmark-link: 999;
 	--layer-following-indicator: 1000;
 	--layer-blocker: 10000;
@@ -257,26 +253,11 @@ input,
 	height: 100%;
 	width: 100%;
 	color: var(--color-text);
-	z-index: var(--layer-canvas);
 	cursor: var(--tl-cursor);
 	overflow: clip;
 	content-visibility: auto;
 	touch-action: none;
 	contain: strict;
-}
-
-.tl-culled-shapes {
-	width: 100%;
-	height: 100%;
-	z-index: var(--layer-culled-shapes);
-	position: absolute;
-	pointer-events: none;
-	contain: size layout;
-}
-
-.tl-culled-shapes__canvas {
-	width: 100%;
-	height: 100%;
 }
 
 .tl-shapes {
@@ -313,17 +294,6 @@ input,
 	pointer-events: none;
 }
 
-.tl-front {
-	z-index: var(--layer-in-front);
-	position: absolute;
-	inset: 0px;
-	height: 100%;
-	width: 100%;
-	overflow: clip;
-	content-visibility: auto;
-	touch-action: none;
-	pointer-events: none;
-}
 /* ------------------- Background ------------------- */
 
 .tl-background__wrapper {
@@ -397,16 +367,6 @@ input,
 	overflow: visible;
 	transform-origin: top left;
 	contain: size layout;
-}
-
-.tl-shape__culled {
-	position: absolute;
-	pointer-events: none;
-	overflow: visible;
-	transform-origin: top left;
-	contain: size layout;
-	background-color: var(--color-culled);
-	z-index: var(--layer-culled-shape);
 }
 
 /* ---------------- Shape Containers ---------------- */
@@ -1081,7 +1041,7 @@ input,
 
 .tl-hyperlink-button::after {
 	content: '';
-	z-index: var(--layer-behind);
+	z-index: -1;
 	position: absolute;
 	right: 6px;
 	bottom: 6px;
@@ -1457,6 +1417,7 @@ input,
 	width: 100%;
 	z-index: var(--layer-behind);
 }
+
 /* some browsers seem to have some weird interactions between stacking contexts
 and pointer-events. this ::after pseudo element covers the canvas and prevents
 it from receiving any pointer events or affecting the cursor. */

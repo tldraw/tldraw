@@ -1,7 +1,6 @@
 /* @tldraw/ui */
 
 .tl-container {
-	--layer-behind: -1;
 	--layer-above: 1;
 	--layer-focused-input: 10;
 	--layer-panels: 300;
@@ -1158,7 +1157,7 @@
 	content: '';
 	display: block;
 	position: absolute;
-	z-index: var(--layer-behind);
+	z-index: -1;
 	inset: -2px -2px 0px 0px;
 	border-radius: 0;
 	border-top: 2px solid var(--color-background);
