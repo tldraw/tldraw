@@ -26,6 +26,9 @@ preview_bucket_name = 'uploads-preview'
 type = "analytics_engine"
 name = "MEASURE"
 
+[[env.staging.analytics_engine_datasets]] 
+binding = "MEASURE"
+
 
 # production settings
 [env.production]
@@ -45,7 +48,13 @@ preview_bucket_name = 'uploads-preview'
 type = "analytics_engine"
 name = "MEASURE"
 
+[[env.production.analytics_engine_datasets]] 
+binding = "MEASURE"
+
 [[env.preview.r2_buckets]]
 binding = 'UPLOADS'
 bucket_name = 'uploads'
 preview_bucket_name = 'uploads-preview'
+
+[[env.preview.analytics_engine_datasets]] 
+binding = "MEASURE"
