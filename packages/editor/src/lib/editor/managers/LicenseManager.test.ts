@@ -1,14 +1,5 @@
-import { createTLStore } from '../../config/createTLStore'
-import { Editor } from '../Editor'
 import { LicenseManager } from './LicenseManager'
 
-const editor = new Editor({
-	shapeUtils: [],
-	bindingUtils: [],
-	tools: [],
-	store: createTLStore({ shapeUtils: [] }),
-	getContainer: () => document.body,
-})
 describe('LicenseManager', () => {
 	const licenseManager = new LicenseManager()
 
