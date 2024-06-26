@@ -25,6 +25,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		.get('/error', async () => {
 			throw new Error('error from worker')
 		})
+		.all('*', async () => new Response('Not found', { status: 404 }))
 
 	override async fetch(request: Request): Promise<Response> {
 		try {

@@ -30,6 +30,7 @@ export class BemoDO extends DurableObject<Environment> {
 		.get('/throw', async () => {
 			this.doAnError()
 		})
+		.all('*', async () => new Response('Not found', { status: 404 }))
 
 	private doAnError() {
 		throw new Error('this is an error from a DO')
