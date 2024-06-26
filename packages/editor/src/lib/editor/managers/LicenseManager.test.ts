@@ -10,7 +10,7 @@ const editor = new Editor({
 	getContainer: () => document.body,
 })
 describe('LicenseManager', () => {
-	const licenseManager = new LicenseManager(editor)
+	const licenseManager = new LicenseManager()
 
 	it('Checks if a license key was provided', () => {
 		const result = licenseManager.getLicenseFromKey('')

@@ -1,9 +1,10 @@
 import { TL_CONTAINER_CLASS } from '../../TldrawEditor'
 import { Editor } from '../Editor'
+import { LicenseFromKeyResult } from './LicenseManager'
 
 export class WatermarkManager {
 	constructor(private editor: Editor) {}
-	createWatermark() {
+	private createWatermark() {
 		const watermark = document.createElement('a')
 		this.applyStyles(watermark)
 		const canvas = this.getWatermarkParent()
@@ -11,11 +12,28 @@ export class WatermarkManager {
 		if (canvas) canvas.appendChild(watermark)
 	}
 
-	getWatermarkParent() {
+	private getWatermarkParent() {
 		return document.getElementsByClassName(TL_CONTAINER_CLASS)[0] as HTMLElement
 	}
 
-	checkWatermark() {
+	private shouldShowWatermark(license: LicenseFromKeyResult) {
+		if (!license.isLicenseValid) {
+			return true
+		}
+		if (license.isLicenseValid) {
+			if (!license.isDomainValid) {
+				return true
+			}
+			if (license.isLicenseExpired) {
+				return true
+			}
+		}
+		return false
+	}
+
+	checkWatermark(license: LicenseFromKeyResult) {
+		if (!this.shouldShowWatermark(license)) return
+		this.createWatermark()
 		this.editor.timers.setTimeout(() => {
 			const canvas = this.getWatermarkParent()
 			if (!canvas) return

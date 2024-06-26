@@ -135,6 +135,7 @@ import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
+import { WatermarkManager } from './managers/WatermarkManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -710,8 +711,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
-		this.licenseManager = new LicenseManager(this)
-		this.licenseManager.getLicenseFromKey(licenseKey)
+		this.licenseManager = new LicenseManager()
+		const license = this.licenseManager.getLicenseFromKey(licenseKey)
+		this.watermarkManager = new WatermarkManager(this)
+		this.watermarkManager.checkWatermark(license)
 
 		this.performanceTracker = new PerformanceTracker()
 	}
@@ -819,6 +822,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private licenseManager: LicenseManager
+	/**
+	 * A manager for watermarks.
+	 *
+	 * @internal
+	 */
+	private watermarkManager: WatermarkManager
 
 	/**
 	 * The current HTML element containing the editor.
