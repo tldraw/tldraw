@@ -31,6 +31,7 @@ export interface Environment {
 
 	TLDRAW_ENV: string | undefined
 	SENTRY_DSN: string | undefined
+	SENTRY_CSP_REPORT_URI: string | undefined
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
 }
