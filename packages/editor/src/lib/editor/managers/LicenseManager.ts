@@ -95,15 +95,15 @@ export class LicenseManager {
 	}
 
 	private outputMessages(messages: string[]) {
-		this.outputLines()
+		this.outputDelimiter()
 		for (const message of messages) {
 			// eslint-disable-next-line no-console
 			console.log(message)
 		}
-		this.outputLines()
+		this.outputDelimiter()
 	}
 
-	private outputLines() {
+	private outputDelimiter() {
 		// eslint-disable-next-line no-console
 		console.log('-------------------------------------------------------------------')
 	}
