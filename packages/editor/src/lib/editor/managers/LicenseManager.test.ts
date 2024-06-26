@@ -5,7 +5,7 @@ describe('LicenseManager', () => {
 
 	it('Checks if a license key was provided', () => {
 		const result = licenseManager.getLicenseFromKey('')
-		expect(result).toMatchObject({ isLicenseValid: false, message: 'No license key provided' })
+		expect(result).toMatchObject({ isLicenseValid: false, reason: 'no-key-provided' })
 	})
 	/* it('Validates the license key', () => {
 		const invalidLicenseKey = generateKey(
