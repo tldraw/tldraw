@@ -6012,7 +6012,7 @@ __metadata:
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/tlsync": "workspace:*"
     "@tldraw/utils": "workspace:*"
-    itty-router: "npm:^5.0.17"
+    itty-router: "npm:^4.0.13"
     lazyrepo: "npm:0.0.0-alpha.27"
     nanoid: "npm:4.0.2"
     toucan-js: "npm:^3.4.0"
@@ -14433,16 +14433,9 @@ __metadata:
   linkType: hard
 
 "itty-router@npm:^4.0.13":
-  version: 4.0.27
-  resolution: "itty-router@npm:4.0.27"
-  checksum: ebb959388b1033f3d80ba2575c2d90fa649c1d5370d977879513cc46e8fd78159b7140d2a66853af6be98f7d740f8609a2c5aa7381506eaa1f1a46268fd2a95f
-  languageName: node
-  linkType: hard
-
-"itty-router@npm:^5.0.17":
-  version: 5.0.17
-  resolution: "itty-router@npm:5.0.17"
-  checksum: 5af87433b7ce1dc5c72c70bbf75e9676082381e6c101ac14fd5621e9d8a7e25cae97506b8654812b508d7f717aa8a881393888b4091112e33089d7b1aabd53d3
+  version: 4.2.2
+  resolution: "itty-router@npm:4.2.2"
+  checksum: ead44fd46ea358776dc2bb120970eff5ab0acb10ad82c384eba9b361c6eba7f5971408f80cbc3655004cb12ae53dd77a85de236bdb215cef896c2589f5096854
   languageName: node
   linkType: hard
 

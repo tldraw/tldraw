@@ -2,21 +2,38 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { AutoRouter, cors } from 'itty-router'
+import { Router, createCors } from 'itty-router'
 import { Toucan } from 'toucan-js'
 import { Environment } from './types'
 
 export { BemoDO } from './BemoDO'
 
+const cors = createCors({ origins: ['*'] })
+
 export default class Worker extends WorkerEntrypoint<Environment> {
-	private readonly cors = cors()
-	private readonly router = AutoRouter({
-		before: [this.cors.preflight],
-		finally: [this.cors.corsify],
-		catch: (error, request) => {
+	private readonly router = Router()
+		.all('*', cors.preflight)
+		.get('/do', async () => {
+			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
+			const message = (await bemo.fetch('/hello')).json()
+			return Response.json(message)
+		})
+		.get('/do/error', async () => {
+			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
+			return Response.json((await bemo.fetch('/throw')).json())
+		})
+		.get('/error', async () => {
+			throw new Error('error from worker')
+		})
+
+	override async fetch(request: Request): Promise<Response> {
+		try {
+			return await this.router.handle(request).then(cors.corsify)
+		} catch (error) {
 			const sentry = new Toucan({
 				dsn: this.env.SENTRY_DSN,
 				release: this.env.CF_VERSION_METADATA.id,
+				environment: this.env.WORKER_NAME,
 				context: this.ctx,
 				request,
 				requestDataOptions: {
@@ -31,20 +48,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				status: 500,
 				statusText: 'Internal Server Error',
 			})
-		},
-	})
-		.get('/do', async () => {
-			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
-			const message = (await bemo.fetch('/hello')).json()
-			return message
-		})
-		.get('/do/error', async () => {
-			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
-			return (await bemo.fetch('/throw')).json()
-		})
-		.get('/error', async () => {
-			throw new Error('error from worker')
-		})
-
-	override fetch = this.router.fetch
+		}
+	}
 }
