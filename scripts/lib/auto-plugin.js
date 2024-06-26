@@ -17,15 +17,8 @@ module.exports = class AutoPlugin {
 				const releaseNote = /### Release Notes\n\n-(.*)/g.exec(
 					commit.pullRequest.body.replaceAll('\r\n', '\n')
 				)
-				// For some reason, there's duplicate authors.
-				const uniqueAuthors = commit.authors.filter(
-					(author, index, array) => array.findIndex((a) => a.username === author.username) === index
-				)
-				const authors = uniqueAuthors
-					.map((author) => `([@${author.username}](${author.html_url}))`)
-					.join(' ')
 				return releaseNote
-					? `- ${releaseNote[1].trim()} [#${commit.pullRequest.number}](https://github.com/tldraw/tldraw/pull/${commit.pullRequest.number}) ${authors}`
+					? `- ${releaseNote[1].trim()} [#${commit.pullRequest.number}](https://github.com/tldraw/tldraw/pull/${commit.pullRequest.number})`
 					: line
 			})
 		)
