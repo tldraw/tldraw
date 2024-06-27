@@ -74,9 +74,6 @@ test.describe('Focus', () => {
 
 		await EditorB.click()
 
-		// something weird here, focus goes to C... needs a second click?
-		await EditorB.click()
-
 		await isOnlyFocused('B')
 
 		// Escape does not break focus

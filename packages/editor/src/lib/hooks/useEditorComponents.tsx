@@ -1,12 +1,4 @@
-import {
-	ComponentType,
-	Context,
-	ReactNode,
-	createContext,
-	useContext,
-	useMemo,
-	useRef,
-} from 'react'
+import { ComponentType, Context, ReactNode, createContext, useContext, useMemo } from 'react'
 import { DefaultBackground } from '../components/default-components/DefaultBackground'
 import { DefaultBrush, TLBrushProps } from '../components/default-components/DefaultBrush'
 import {
@@ -92,14 +84,13 @@ interface ComponentsContextProviderProps {
 	children: ReactNode
 }
 
-let EditorComponentsContext: Context<Required<TLEditorComponents>>
+const EditorComponentsContext: Context<Required<TLEditorComponents>> = createContext({} as any)
 
 export function EditorComponentsProvider({
 	overrides = {},
 	children,
 }: ComponentsContextProviderProps) {
 	const _overrides = useShallowObjectIdentity(overrides)
-	const ref = useRef<React.Context<Required<TLEditorComponents>>>()
 	const value = useMemo(
 		(): Required<TLEditorComponents> => ({
 			Background: DefaultBackground,
@@ -132,7 +123,6 @@ export function EditorComponentsProvider({
 		}),
 		[_overrides]
 	)
-	EditorComponentsContext = ref.current ??= createContext(value)
 	return (
 		<EditorComponentsContext.Provider value={value}>{children}</EditorComponentsContext.Provider>
 	)

@@ -1,8 +1,8 @@
-import React, { createContext, useRef } from 'react'
+import React, { createContext } from 'react'
 import { Editor } from '../editor/Editor'
 
 /** @internal */
-let EditorContext: React.Context<Editor>
+const EditorContext: React.Context<Editor> = createContext({} as Editor)
 
 /**	@internal */
 export function EditorContextProvider({
@@ -12,8 +12,6 @@ export function EditorContextProvider({
 	editor: Editor
 	children: React.ReactNode
 }) {
-	const ref = useRef<React.Context<Editor>>()
-	EditorContext = ref.current ??= createContext(editor)
 	return <EditorContext.Provider value={editor}>{children}</EditorContext.Provider>
 }
 
