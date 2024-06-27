@@ -539,3 +539,20 @@ it('goes into pointing canvas', () => {
 		.pointerDown(300, 300)
 		.expectToBeIn('select.pointing_canvas')
 })
+
+test('right clicking a shape inside of a group does not focus the group if the group is selected', () => {
+	const boxAId = createShapeId()
+	const boxBId = createShapeId()
+	editor.createShapes([
+		{ id: boxAId, type: 'geo', x: 100, y: 100 },
+		{ id: boxBId, type: 'geo', x: 200, y: 200 },
+	])
+	editor.groupShapes([boxAId, boxBId])
+	const groupId = editor.getOnlySelectedShapeId()
+	editor.pointerDown(100, 100, { target: 'shape', button: 2, shape: editor.getShape(boxAId)! })
+	editor.pointerUp(100, 100, { target: 'shape', button: 2, shape: editor.getShape(boxAId)! })
+	expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
+	editor.pointerDown(100, 100, { target: 'shape', button: 0, shape: editor.getShape(boxAId)! })
+	editor.pointerUp(100, 100, { target: 'shape', button: 0, shape: editor.getShape(boxAId)! })
+	expect(editor.getFocusedGroupId()).toBe(groupId)
+})
