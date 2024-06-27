@@ -1,4 +1,4 @@
-import { ComponentType, Context, ReactNode, createContext, useContext, useMemo } from 'react'
+import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
 import { DefaultBackground } from '../components/default-components/DefaultBackground'
 import { DefaultBrush, TLBrushProps } from '../components/default-components/DefaultBrush'
 import {
@@ -79,12 +79,12 @@ export interface TLEditorComponents {
 	ShapeIndicatorErrorFallback?: TLShapeIndicatorErrorFallbackComponent
 }
 
+const EditorComponentsContext = createContext<null | Required<TLEditorComponents>>(null)
+
 interface ComponentsContextProviderProps {
 	overrides?: TLEditorComponents
 	children: ReactNode
 }
-
-const EditorComponentsContext: Context<Required<TLEditorComponents>> = createContext({} as any)
 
 export function EditorComponentsProvider({
 	overrides = {},

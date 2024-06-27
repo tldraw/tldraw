@@ -1,5 +1,5 @@
 import { ReactElement, ReactNode, createContext, useContext } from 'react'
-import { EditorContextProvider } from '../../hooks/useEditor'
+import { EditorContext } from '../../hooks/useEditor'
 import { Editor } from '../Editor'
 
 /** @public */
@@ -33,9 +33,9 @@ export function SvgExportContextProvider({
 	children: ReactNode
 }) {
 	return (
-		<EditorContextProvider editor={editor}>
+		<EditorContext.Provider value={editor}>
 			<Context.Provider value={context}>{children}</Context.Provider>
-		</EditorContextProvider>
+		</EditorContext.Provider>
 	)
 }
 
