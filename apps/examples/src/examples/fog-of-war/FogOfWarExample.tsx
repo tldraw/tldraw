@@ -53,6 +53,9 @@ export function Fog() {
 			const cvs = rCanvas.current!
 			const ctx = cvs.getContext('2d')!
 
+			cvs.style.webkitFilter = `blur(${editor.getCamera().z * 15}px)`
+			cvs.style.filter = `blur(${editor.getCamera().z * 15}px)`
+
 			ctx.resetTransform()
 			const camera = editor.getCamera()
 
@@ -68,7 +71,6 @@ export function Fog() {
 				for (let j = 0; j < boxes[i].length; j++) {
 					if (!cells[i][j]) continue
 					const box = boxes[i][j]
-					ctx.filter = 'drop-shadow(100px)'
 					ctx.clearRect(box.x, box.y, box.width, box.height)
 				}
 			}
