@@ -38,14 +38,15 @@ export function Fog() {
 			for (const shape of shapes) {
 				const point = editor.getShapePageBounds(shape)!.point
 				const geometry = editor.getShapeGeometry(shape)
+				const adjustedPoint = Vec.Sub(point, geometry.bounds.point)
 				for (let i = 0; i < boxes.length; i++) {
 					for (let j = 0; j < boxes[i].length; j++) {
 						const box = boxes[i][j]
-						box.translate(Vec.Neg(point))
+						box.translate(Vec.Neg(adjustedPoint))
 						if (geometry.bounds.collides(box)) {
 							cells[i][j] = true
 						}
-						box.translate(point)
+						box.translate(adjustedPoint)
 					}
 				}
 			}
@@ -79,7 +80,6 @@ export function Fog() {
 		<canvas
 			ref={rCanvas}
 			style={{
-				zIndex: 999999,
 				position: 'absolute',
 				top: -100,
 				left: -100,
