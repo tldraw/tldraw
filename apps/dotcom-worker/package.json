@@ -18,6 +18,7 @@
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
+		"check-bundle-size": "yarn run -T tsx ../../scripts/check-worker-bundle.ts --entry src/lib/worker.ts --size-limit-bytes 350000",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"dependencies": {
