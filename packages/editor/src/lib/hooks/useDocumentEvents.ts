@@ -9,7 +9,7 @@ export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
 
-	const isAppFocused = useValue('isFocused', () => editor.getInstanceState().isFocused, [editor])
+	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
 
 	useEffect(() => {
 		if (typeof matchMedia === undefined) return
