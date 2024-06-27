@@ -53,7 +53,6 @@ export function Fog() {
 			const cvs = rCanvas.current!
 			const ctx = cvs.getContext('2d')!
 
-			cvs.style.webkitFilter = `blur(${editor.getCamera().z * 15}px)`
 			cvs.style.filter = `blur(${editor.getCamera().z * 15}px)`
 
 			ctx.resetTransform()
