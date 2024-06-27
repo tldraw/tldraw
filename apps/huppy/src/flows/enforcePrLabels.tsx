@@ -56,6 +56,10 @@ export const enforcePrLabels: Flow = {
 			return fail('Please add a label to the PR.')
 		}
 
+		if (pull.body?.includes('Add a brief release note for your PR here.')) {
+			return fail('Add a release note to the PR body.')
+		}
+
 		// add any labels that are checked
 		console.log('adding labels')
 		if (selectedReleaseLabels.length > 0) {

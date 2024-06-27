@@ -133,9 +133,9 @@ export interface RoomSnapshot {
  *
  * @public
  */
-export class TLSyncRoom<R extends UnknownRecord> {
+export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// A table of connected clients
-	readonly sessions = new Map<string, RoomSession<R>>()
+	readonly sessions = new Map<string, RoomSession<R, SessionMeta>>()
 
 	pruneSessions = () => {
 		for (const client of this.sessions.values()) {
@@ -180,7 +180,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 
 	readonly events = createNanoEvents<{
 		room_became_empty: () => void
-		session_removed: (args: { sessionKey: string }) => void
+		session_removed: (args: { sessionKey: string; meta: SessionMeta }) => void
 	}>()
 
 	// Values associated with each uid (must be serializable).
@@ -196,6 +196,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	// initial lastServerClock value get the full state
 	// in this case clients will start with 0, and the server will start with 1
 	clock = 1
+	documentClock = 1
 	tombstoneHistoryStartsAtClock = this.clock
 	// map from record id to clock upon deletion
 
@@ -324,6 +325,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 		this.state.set({ documents, tombstones })
 
 		this.pruneTombstones()
+		this.documentClock = this.clock
 	}
 
 	private pruneTombstones = () => {
@@ -484,7 +486,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			})
 		}
 
-		this.events.emit('session_removed', { sessionKey })
+		this.events.emit('session_removed', { sessionKey, meta: session.meta })
 		if (this.sessions.size === 0) {
 			this.events.emit('room_became_empty')
 		}
@@ -507,6 +509,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			presenceId: session.presenceId,
 			socket: session.socket,
 			cancellationTime: Date.now(),
+			meta: session.meta,
 		})
 	}
 
@@ -560,7 +563,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	 * @param sessionKey - The session of the client that connected to the room.
 	 * @param socket - Their socket.
 	 */
-	handleNewSession = (sessionKey: string, socket: TLRoomSocket<R>) => {
+	handleNewSession = (sessionKey: string, socket: TLRoomSocket<R>, meta: SessionMeta) => {
 		const existing = this.sessions.get(sessionKey)
 		this.sessions.set(sessionKey, {
 			state: RoomSessionState.AwaitingConnectMessage,
@@ -568,6 +571,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 			socket,
 			presenceId: existing?.presenceId ?? this.presenceType.createId(),
 			sessionStartTime: Date.now(),
+			meta,
 		})
 		return this
 	}
@@ -647,7 +651,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	/** If the client is out of date, or we are out of date, we need to let them know */
-	private rejectSession(session: RoomSession<R>, reason: TLIncompatibilityReason) {
+	private rejectSession(session: RoomSession<R, SessionMeta>, reason: TLIncompatibilityReason) {
 		try {
 			if (session.socket.isOpen) {
 				session.socket.sendMessage({
@@ -663,7 +667,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	private handleConnectRequest(
-		session: RoomSession<R>,
+		session: RoomSession<R, SessionMeta>,
 		message: Extract<TLSocketClientSentEvent<R>, { type: 'connect' }>
 	) {
 		// if the protocol versions don't match, disconnect the client
@@ -708,6 +712,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 				lastInteractionTime: Date.now(),
 				debounceTimer: null,
 				outstandingDataMessages: [],
+				meta: session.meta,
 			})
 			this.sendMessage(session.sessionKey, msg)
 		}
@@ -797,7 +802,7 @@ export class TLSyncRoom<R extends UnknownRecord> {
 	}
 
 	private handlePushRequest(
-		session: RoomSession<R>,
+		session: RoomSession<R, SessionMeta>,
 		message: Extract<TLSocketClientSentEvent<R>, { type: 'push' }>
 	) {
 		// We must be connected to handle push requests
@@ -1056,6 +1061,10 @@ export class TLSyncRoom<R extends UnknownRecord> {
 						...presenceChanges.diff,
 					},
 				})
+			}
+
+			if (docChanges.diff) {
+				this.documentClock = this.clock
 			}
 
 			return

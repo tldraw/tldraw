@@ -3,14 +3,14 @@ import ws from 'ws'
 import { TLRoomSocket } from './TLSyncRoom'
 import { TLSocketServerSentEvent } from './protocol'
 
-interface ServerSocketAdapterOptions {
+interface ServerSocketAdapterOptions<R extends UnknownRecord> {
 	readonly ws: WebSocket | ws.WebSocket
-	readonly logSendMessage: (type: string, size: number) => void
+	readonly onBeforeSendMessage?: (msg: TLSocketServerSentEvent<R>, stringified: string) => void
 }
 
 /** @public */
 export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocket<R> {
-	constructor(public readonly opts: ServerSocketAdapterOptions) {}
+	constructor(public readonly opts: ServerSocketAdapterOptions<R>) {}
 	// eslint-disable-next-line no-restricted-syntax
 	get isOpen(): boolean {
 		return this.opts.ws.readyState === 1 // ready state open
@@ -18,7 +18,7 @@ export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocke
 	// see TLRoomSocket for details on why this accepts a union and not just arrays
 	sendMessage(msg: TLSocketServerSentEvent<R>) {
 		const message = JSON.stringify(msg)
-		this.opts.logSendMessage(msg.type, message.length)
+		this.opts.onBeforeSendMessage?.(msg, message)
 		this.opts.ws.send(message)
 	}
 	close() {

@@ -1,9 +1,4 @@
-export {
-	TLServer,
-	type DBLoadResult,
-	type DBLoadResultType,
-	type TLServerEvent,
-} from './lib/TLServer'
+export { TLSocketRoom } from './lib/TLSocketRoom'
 export {
 	TLCloseEventCode,
 	TLSyncClient,
@@ -37,4 +32,4 @@ export {
 	type TLSocketServerSentEvent,
 } from './lib/protocol'
 export { schema } from './lib/schema'
-export type { PersistedRoomSnapshotForSupabase, RoomState as RoomState } from './lib/server-types'
+export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
