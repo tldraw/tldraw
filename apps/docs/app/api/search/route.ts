@@ -44,7 +44,6 @@ export async function GET(req: NextRequest) {
 			[query, query]
 		)
 
-
 		await searchForArticle.all().then(async (queryResults) => {
 			for (const article of queryResults) {
 				const section = await db.getSection(article.sectionId)
