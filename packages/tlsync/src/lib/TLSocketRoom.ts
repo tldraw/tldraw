@@ -1,4 +1,5 @@
-import { StoreSchema, UnknownRecord, createTLSchema } from 'tldraw'
+import type { StoreSchema, UnknownRecord } from '@tldraw/store'
+import { createTLSchema } from '@tldraw/tlschema'
 import { ServerSocketAdapter } from './ServerSocketAdapter'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
