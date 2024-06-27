@@ -13344,6 +13344,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@types/node": "npm:~20.11"
     discord-api-types: "npm:^0.37.67"
+    esbuild: "npm:^0.18.4"
     typescript: "npm:^5.3.3"
     wrangler: "npm:3.61.0"
   languageName: unknown

@@ -6,6 +6,7 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
+		"check-bundle-size": "yarn run -T tsx ../../scripts/check-worker-bundle.ts --entry src/index.ts --size-limit-bytes 35000",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"dependencies": {
@@ -15,6 +16,7 @@
 		"@cloudflare/workers-types": "^4.20240620.0",
 		"@types/node": "~20.11",
 		"discord-api-types": "^0.37.67",
+		"esbuild": "^0.18.4",
 		"typescript": "^5.3.3",
 		"wrangler": "3.61.0"
 	}
