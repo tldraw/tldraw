@@ -22,6 +22,8 @@ export const HeadingsMenu: React.FC<{ headings: ArticleHeadings }> = ({ headings
 		return () => window.removeEventListener('scroll', handleScroll)
 	}, [headings])
 
+	if (headings.length === 0) return null
+
 	return (
 		<div className="relative shrink overflow-y-auto">
 			<div className="sticky top-0">
