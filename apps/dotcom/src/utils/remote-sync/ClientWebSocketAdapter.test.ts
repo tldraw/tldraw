@@ -69,7 +69,7 @@ describe(ClientWebSocketAdapter, () => {
 		// transitioned to OPEN yet, thus the second waitFor
 		await waitFor(() => connectedServerSocket.readyState === WebSocket.OPEN)
 		expect(adapter._ws).not.toBe(prevClientSocket)
-		expect(adapter._ws?.readyState).toBe(WebSocket.OPEN)
+		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 	})
 	it('should transition to online if a retry succeeds', async () => {
 		adapter._ws?.onerror?.({} as any)
