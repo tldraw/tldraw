@@ -2,6 +2,8 @@ import { T } from '@tldraw/validate'
 import nacl from 'tweetnacl'
 import util from 'tweetnacl-util'
 
+const GRACE_PERIOD_DAYS = 5
+
 const ANNUAL_LICENSE_FLAG = 1
 const PERPETUAL_LICENSE_FLAG = 2
 const INTERNAL_LICENSE_FLAG = 4
@@ -29,6 +31,7 @@ interface ValidLicenseKeyResult {
 	license: LicenseInfo
 	isDomainValid: boolean
 	isLicenseExpired: boolean
+	expiryDate: Date
 	isAnualLicense: boolean
 	isPerpetualLicense: boolean
 	isInternalLicense: boolean
@@ -60,13 +63,16 @@ export class LicenseManager {
 
 		try {
 			const licenseInfo = this.extractLicense(licenseKey)
+			const expiryDate = new Date(licenseInfo.expiryDate)
+
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
 				isLicenseValid: true,
 				isDomainValid: licenseInfo.validHosts.some(
 					(host) => host.toLowerCase() === window.location.hostname.toLowerCase()
 				),
-				isLicenseExpired: new Date(licenseInfo.expiryDate) > new Date(),
+				expiryDate,
+				isLicenseExpired: this.isLicenseExpired(expiryDate),
 				isAnualLicense: this.isFlagEnabled(licenseInfo.flags, ANNUAL_LICENSE_FLAG),
 				isPerpetualLicense: this.isFlagEnabled(licenseInfo.flags, PERPETUAL_LICENSE_FLAG),
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, INTERNAL_LICENSE_FLAG),
@@ -78,6 +84,14 @@ export class LicenseManager {
 			// If the license can't be parsed, it's invalid
 			return { isLicenseValid: false, reason: 'invalid-license-key' }
 		}
+	}
+	private isLicenseExpired(expiryDate: Date) {
+		const expirationWithGracePeriod = new Date(
+			expiryDate.getFullYear(),
+			expiryDate.getMonth(),
+			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+		)
+		return new Date() > expirationWithGracePeriod
 	}
 
 	private isFlagEnabled(flags: number, flag: number) {

@@ -1,3 +1,4 @@
+import { releaseDates } from '../../../version'
 import { TL_CONTAINER_CLASS } from '../../TldrawEditor'
 import { Editor } from '../Editor'
 import { LicenseFromKeyResult } from './LicenseManager'
@@ -20,13 +21,27 @@ export class WatermarkManager {
 		if (!license.isLicenseValid) {
 			return true
 		}
-		if (license.isLicenseValid) {
-			if (!license.isDomainValid) {
+		if (!license.isDomainValid) {
+			return true
+		}
+		if (license.isPerpetualLicense) {
+			const expiryDate = license.expiryDate
+			const expiration = new Date(
+				expiryDate.getFullYear(),
+				expiryDate.getMonth(),
+				expiryDate.getDate() + 1 // Add 1 day to include the expiration day
+			)
+			const dates = {
+				major: new Date(releaseDates.major),
+				minor: new Date(releaseDates.minor),
+			}
+			// We allow patch releases, but the major and minor releases should be within the expiration date
+			if (dates.major > expiration || dates.minor > expiration) {
 				return true
 			}
-			if (license.isLicenseExpired) {
-				return true
-			}
+		}
+		if (license.isAnualLicense && license.isLicenseExpired) {
+			return true
 		}
 		return false
 	}
