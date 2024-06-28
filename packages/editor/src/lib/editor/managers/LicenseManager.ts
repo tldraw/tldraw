@@ -42,7 +42,8 @@ interface ValidLicenseKeyResult {
 }
 
 export class LicenseManager {
-	private publicKey = '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
+	private publicKey =
+		'-----BEGIN PUBLIC KEY-----\nMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEPkmEjocP8ldvaSv6BZuhhl+KgrBPn15eckpnYTtVGyqUngQnqdca/4BdZuCwxBR84cvE0MDQ/VnOu/Fyh+K2xr/uewxKqp9OaqqsGnedNdi4ypMZEnWIZkH32wn5BP6W\n-----END PUBLIC KEY-----'
 
 	private isTest: boolean
 
