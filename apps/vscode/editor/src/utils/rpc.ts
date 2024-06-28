@@ -36,7 +36,7 @@ export function rpc(
 		vscode.postMessage(inMessage)
 
 		const handler = ({ data: response }: MessageEvent<ResponseType | ErrorType>) => {
-			if (uuid === response.uuid) {
+			if (response.uuid !== uuid + '_response') {
 				return
 			}
 
