@@ -1,7 +1,7 @@
 ---
 title: Fog of war
 component: ./FogOfWarExample.tsx
-category: basic
+category: use-cases
 keywords: [ui, fog, overlay]
 ---
 
