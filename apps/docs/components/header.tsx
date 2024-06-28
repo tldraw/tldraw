@@ -5,7 +5,7 @@ import { Logo } from '@/components/logo'
 import { NavigationLink } from '@/components/navigation/link'
 import { MobileMenu } from '@/components/navigation/mobile-menu'
 import { SocialLink } from '@/components/navigation/social-link'
-import { SearchButton } from '@/components/search/button'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -52,20 +52,22 @@ const socialLinks = [
 
 export const Header = () => {
 	const pathname = usePathname()
+	const { scrollY } = useScroll()
+	const navOpacity = useTransform(scrollY, [0, 32], [1, 0])
 
 	return (
-		<header>
+		<header className="sticky top-0 bg-white/90 backdrop-blur z-10">
 			<nav className="border w-full max-w-screen-xl mx-auto px-5 h-14 sm:h-[4.5rem] flex justify-between items-center text-zinc-800 border-b border-zinc-100 sm:border-transparent">
 				<Link href="/" className="w-28">
 					<Logo className="h-6" />
 				</Link>
-				<ul className="hidden sm:flex gap-8">
+				<motion.ul style={{ opacity: navOpacity }} className="hidden sm:flex gap-8">
 					{mainLinks.map((item, index) => (
 						<li key={index}>
 							<NavigationLink {...item} pathname={pathname} />
 						</li>
 					))}
-				</ul>
+				</motion.ul>
 				<ul className="hidden sm:flex w-28 gap-4 justify-end">
 					{socialLinks.map((item, index) => (
 						<li key={index}>
@@ -77,9 +79,6 @@ export const Header = () => {
 					<MobileMenu main={mainLinks} social={socialLinks} pathname={pathname} />
 				</div>
 			</nav>
-			<div className="hidden sm:block w-full max-w-3xl mx-auto px-5 lg:px-12">
-				<SearchButton type="docs" />
-			</div>
 		</header>
 	)
 }

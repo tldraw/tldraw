@@ -23,7 +23,7 @@ export const SidebarMenu: React.FC<{
 	return (
 		<div className="mt-12">
 			<h4 className="text-black uppercase text-xs font-semibold">{title}</h4>
-			<ul className="flex flex-col mt-2 gap-2 text-sm">
+			<ul className="flex flex-col mt-2 gap-2 text-sm break-words">
 				{groups?.map((group, index) => {
 					const groupElements = elements.filter((e) => e.groupId === group)
 					if (groupElements.length === 0) return null

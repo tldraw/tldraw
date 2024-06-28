@@ -1,6 +1,7 @@
+import { Aside } from '@/components/docs/aside'
+import { CategoryMenu } from '@/components/navigation/category-menu'
+import { SidebarMenu } from '@/components/navigation/sidebar-menu'
 import { getDb } from '@/utils/ContentDatabase'
-import { CategoryMenu } from './navigation/category-menu'
-import { SidebarMenu } from './navigation/sidebar-menu'
 
 export const Sidebar: React.FC<{
 	sectionId?: string
@@ -14,9 +15,9 @@ export const Sidebar: React.FC<{
 	const elements = skipFirstLevel ? sidebar.links[0].children : sidebar.links
 
 	return (
-		<aside className="w-60 shrink-0 flex flex-col">
+		<Aside>
 			<CategoryMenu />
-			<div className="relative grow overflow-y-auto">
+			<div className="relative grow overflow-y-auto pr-12">
 				<div className="sticky top-0 h-12 -mb-12 w-full bg-gradient-to-b from-white" />
 				{elements.map((menu: any, index: number) => (
 					// @ts-ignore
@@ -24,6 +25,6 @@ export const Sidebar: React.FC<{
 				))}
 				<div className="sticky bottom-0 h-12 w-full bg-gradient-to-t from-white" />
 			</div>
-		</aside>
+		</Aside>
 	)
 }

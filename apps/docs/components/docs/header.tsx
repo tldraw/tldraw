@@ -1,6 +1,6 @@
 import { Breadcrumbs } from '@/components/docs/breadcrumbs'
+import { PageTitle } from '@/components/page-title'
 import { Article } from '@/types/content-types'
-import { PageTitle } from '../content/page-title'
 
 export const Header: React.FC<{ article: Article }> = async ({ article }) => {
 	return (

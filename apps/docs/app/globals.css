@@ -3,7 +3,4 @@
 @tailwind utilities;
 
 @layer base {
-	aside {
-		height: calc(100vh - 11rem);
-	}
 }

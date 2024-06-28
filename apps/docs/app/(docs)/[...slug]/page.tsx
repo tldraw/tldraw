@@ -1,5 +1,6 @@
 import { Footer } from '@/components/docs/footer'
 import { Header } from '@/components/docs/header'
+import { TableOfContents } from '@/components/docs/table-of-contents'
 import { Sidebar } from '@/components/sidebar'
 import { getPageContent } from '@/utils/get-page-content'
 import { notFound } from 'next/navigation'
@@ -22,6 +23,7 @@ export default async function Page({ params }: { params: { slug: string | string
 				<div className="my-96 py-96" />
 				<Footer article={content.article} />
 			</main>
+			<TableOfContents article={content.article} />
 		</div>
 	)
 }

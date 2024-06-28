@@ -60,6 +60,7 @@
 		"classnames": "^2.3.2",
 		"clsx": "^2.1.1",
 		"concurrently": "^8.2.2",
+		"date-fns": "^3.6.0",
 		"dotenv": "^16.3.1",
 		"eslint": "^8.37.0",
 		"eslint-config-next": "13.2.4",
