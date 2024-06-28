@@ -1,6 +1,6 @@
 Describe what your pull request does. If you can, add GIFs or images showing the before and after of your change.
 
-### Change Type
+### Change type
 
 - [ ] `bugfix`
 - [ ] `improvement`
@@ -8,7 +8,7 @@ Describe what your pull request does. If you can, add GIFs or images showing the
 - [ ] `api`
 - [ ] `other`
 
-### Test Plan
+### Test plan
 
 1. Create a shape...
 2.
@@ -16,6 +16,6 @@ Describe what your pull request does. If you can, add GIFs or images showing the
 - [ ] Unit tests
 - [ ] End to end tests
 
-### Release Notes
+### Release notes
 
 - Fixed a bug with...
