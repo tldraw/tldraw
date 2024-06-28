@@ -24,6 +24,10 @@ export class WatermarkManager {
 		if (!license.isDomainValid) {
 			return true
 		}
+		// We always show a watermark for expired internal licenses
+		if (license.isInternalLicense && license.isLicenseExpired) {
+			return true
+		}
 		if (license.isPerpetualLicense) {
 			const expiryDate = license.expiryDate
 			const expiration = new Date(
@@ -40,7 +44,7 @@ export class WatermarkManager {
 				return true
 			}
 		}
-		if (license.isAnualLicense && license.isLicenseExpired) {
+		if (license.isAnnualLicense && license.isLicenseExpired) {
 			return true
 		}
 		return false
