@@ -10,7 +10,7 @@ Describe what your pull request does. If you can, add GIFs or images showing the
 
 ### Test Plan
 
-1. Create a shape.
+1. Create a shape...
 2.
 
 - [ ] Unit tests
@@ -18,4 +18,4 @@ Describe what your pull request does. If you can, add GIFs or images showing the
 
 ### Release Notes
 
-- Fixed a bug.
+- Fixed a bug with...
