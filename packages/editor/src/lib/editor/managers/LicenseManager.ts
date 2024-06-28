@@ -4,9 +4,11 @@ import util from 'tweetnacl-util'
 
 const GRACE_PERIOD_DAYS = 5
 
-const ANNUAL_LICENSE_FLAG = 1
-const PERPETUAL_LICENSE_FLAG = 2
-const INTERNAL_LICENSE_FLAG = 4
+const FLAGS = {
+	annualLicense: 1,
+	perpetualLicense: 2,
+	internalLicense: 4,
+}
 
 const licenseInfoValidator = T.object({
 	expiryDate: T.string,
@@ -73,9 +75,9 @@ export class LicenseManager {
 				),
 				expiryDate,
 				isLicenseExpired: this.isLicenseExpired(expiryDate),
-				isAnnualLicense: this.isFlagEnabled(licenseInfo.flags, ANNUAL_LICENSE_FLAG),
-				isPerpetualLicense: this.isFlagEnabled(licenseInfo.flags, PERPETUAL_LICENSE_FLAG),
-				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, INTERNAL_LICENSE_FLAG),
+				isAnnualLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.annualLicense),
+				isPerpetualLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.perpetualLicense),
+				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.internalLicense),
 			}
 			this.outputLicenseInfoIfNeeded(result)
 			return result
