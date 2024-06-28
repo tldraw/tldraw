@@ -55,7 +55,7 @@ export const Header = () => {
 
 	return (
 		<header>
-			<nav className="relative w-full max-w-screen-xl mx-auto px-5 h-14 sm:h-[4.5rem] flex justify-between items-center text-zinc-800 border-b border-zinc-100 sm:border-transparent">
+			<nav className="border w-full max-w-screen-xl mx-auto px-5 h-14 sm:h-[4.5rem] flex justify-between items-center text-zinc-800 border-b border-zinc-100 sm:border-transparent">
 				<Link href="/" className="w-28">
 					<Logo className="h-6" />
 				</Link>
