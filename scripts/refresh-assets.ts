@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs'
 import { join } from 'path'
+import { SemVer } from 'semver'
 import { optimize } from 'svgo'
+import { releaseDates, version } from './../packages/editor/src/version'
 import {
 	readJsonIfExists,
 	REPO_ROOT,
@@ -404,11 +406,45 @@ async function writeAssetDeclarationDTSFile() {
 	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', assetDeclarationFilePath, dts)
 }
 
+function getNewReleaseDates(packageVersion: string) {
+	const currentVersion = new SemVer(version)
+	const currentPacakgeVersion = new SemVer(packageVersion)
+	if (currentPacakgeVersion.major > currentVersion.major) {
+		console.log('major')
+		return {
+			major: Date.now(),
+			minor: Date.now(),
+			patch: Date.now(),
+		}
+	} else if (currentPacakgeVersion.minor > currentVersion.minor) {
+		console.log('minor')
+		return {
+			major: releaseDates.major,
+			minor: Date.now(),
+			patch: Date.now(),
+		}
+	} else if (currentPacakgeVersion.patch > currentVersion.patch) {
+		console.log('patch')
+		return {
+			major: releaseDates.major,
+			minor: releaseDates.minor,
+			patch: Date.now(),
+		}
+	}
+	return releaseDates
+}
+
 async function copyVersionToDotCom() {
 	const packageJson = await readJsonIfExists(join(REPO_ROOT, 'packages', 'tldraw', 'package.json'))
 	const packageVersion = packageJson.version
+	const releaseDates = getNewReleaseDates(packageVersion)
+	const file = `export const version = '${packageVersion}'
+	export const releaseDates = {
+		major: ${releaseDates.major},
+		minor: ${releaseDates.minor},
+		patch: ${releaseDates.patch},
+	}`
 
-	const file = `export const version = '${packageVersion}'`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',

@@ -2,3 +2,8 @@
 // Do not edit manually. Or do, I'm a comment, not a cop.
 
 export const version = '2.2.0'
+export const releaseDates = {
+	major: 1719563843472,
+	minor: 1719563843472,
+	patch: 1719563843472,
+}
