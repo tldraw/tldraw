@@ -1,23 +1,86 @@
 import {
+	BindingOnChangeOptions,
 	BindingOnCreateOptions,
-	BindingOnShapeChangeOptions,
+	BindingOnDeleteOptions,
 	BindingUtil,
 	HTMLContainer,
+	IndexKey,
 	RecordProps,
 	Rectangle2d,
 	ShapeUtil,
 	T,
 	TLBaseBinding,
 	TLBaseShape,
-	TLShape,
+	TLOnTranslateHandler,
 	Tldraw,
+	Vec,
+	clamp,
 	createBindingId,
+	getIndexBetween,
 } from 'tldraw'
 import snapShot from './snapshot.json'
 
-type ElementShape = TLBaseShape<'element', { color: string }>
+// The container shapes that can contain element shapes
+
+const CONTAINER_PADDING = 24
 
 type ContainerShape = TLBaseShape<'element', { height: number; width: number }>
+
+class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
+	static override type = 'container' as const
+	static override props: RecordProps<ContainerShape> = { height: T.number, width: T.number }
+
+	override getDefaultProps() {
+		return {
+			width: 100 + CONTAINER_PADDING * 2,
+			height: 100 + CONTAINER_PADDING * 2,
+		}
+	}
+
+	override canBind({
+		fromShapeType,
+		toShapeType,
+		bindingType,
+	}: {
+		fromShapeType: string
+		toShapeType: string
+		bindingType: string
+	}) {
+		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === 'layout'
+	}
+	override canEdit = () => false
+	override canResize = () => false
+	override hideRotateHandle = () => true
+	override isAspectRatioLocked = () => true
+
+	override getGeometry(shape: ContainerShape) {
+		return new Rectangle2d({
+			width: shape.props.width,
+			height: shape.props.height,
+			isFilled: true,
+		})
+	}
+
+	override component(shape: ContainerShape) {
+		return (
+			<HTMLContainer
+				style={{
+					backgroundColor: '#efefef',
+					width: shape.props.width,
+					height: shape.props.height,
+				}}
+			/>
+		)
+	}
+
+	override indicator(shape: ContainerShape) {
+		return <rect width={shape.props.width} height={shape.props.height} />
+	}
+}
+
+// The element shapes that can be placed inside the container shapes
+
+type ElementShape = TLBaseShape<'element', { color: string }>
 
 class ElementShapeUtil extends ShapeUtil<ElementShape> {
 	static override type = 'element' as const
@@ -63,188 +126,220 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		return <rect width={100} height={100} />
 	}
 
-	override onTranslateStart = (element: ElementShape) => {
-		const binding = this.editor.getBindingsToShape(element, 'layout')[0] as LayoutBinding
-
-		if (!binding) return
-		this.editor.deleteBinding(binding)
-		const layoutBindingUtil = this.editor.getBindingUtil('layout') as LayoutBindingUtil
-		layoutBindingUtil.reShufflePositions(binding)
-		layoutBindingUtil.updateContainerWidth(binding)
-	}
-
-	override onTranslateEnd = (initial: ElementShape, element: ElementShape) => {
-		const bindings = this.editor.getBindingsToShape(element, 'layout') as LayoutBinding[]
-		if (bindings.length > 0) return // Early return if binding exists
-
-		const pageAnchor = this.editor.getShapePageTransform(element).applyToPoint({ x: 50, y: 50 })
-		const target = this.editor.getShapeAtPoint(pageAnchor, {
+	private getTargetContainer = (shape: ElementShape, pageAnchor: Vec) => {
+		// Find the container shape that the element is being dropped on
+		return this.editor.getShapeAtPoint(pageAnchor, {
 			hitInside: true,
-			filter: (shape) =>
-				this.editor.canBindShapes({ fromShape: shape, toShape: element, binding: 'layout' }),
-		})
-
-		if (!target) return
-
-		const elementCount = this.editor.getBindingsFromShape(target, 'layout').length + 1
-		const bindingId = createBindingId()
-		const atEnd = pageAnchor.x > target.x + (elementCount - 1) * 100
-		const position = atEnd ? elementCount : Math.ceil((pageAnchor.x - target.x) / 100)
-		const adjustedPosition = Math.min(Math.max(position, 1), 4) // Assuming positions are 1-indexed and max 4
-
-		// Create binding with calculated position
-		this.editor.createBinding({
-			id: bindingId,
-			type: 'layout',
-			fromId: target.id,
-			toId: element.id,
-			props: {
-				position: adjustedPosition,
-			},
-		})
-
-		// Re-shuffle and move elements to their new positions
-		const layoutBindingUtil = this.editor.getBindingUtil('layout') as LayoutBindingUtil
-		const binding = this.editor.getBinding(bindingId) as LayoutBinding
-		layoutBindingUtil.reShufflePositions(binding)
-		const bindingsFrom = this.editor.getBindingsFromShape(target, 'layout') as LayoutBinding[]
-		bindingsFrom.forEach((currentBinding) => {
-			layoutBindingUtil.moveElementToPosition(currentBinding, target)
-		})
+			filter: (otherShape) =>
+				this.editor.canBindShapes({ fromShape: otherShape, toShape: shape, binding: 'layout' }),
+		}) as ContainerShape | undefined
 	}
-}
 
-const PADDING = 24
-class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
-	static override type = 'container' as const
-	static override props: RecordProps<ContainerShape> = { height: T.number, width: T.number }
+	private getBindingIndexForPosition = (
+		shape: ElementShape,
+		container: ContainerShape,
+		pageAnchor: Vec
+	) => {
+		// All the layout bindings from the container
+		const allBindings = this.editor
+			.getBindingsFromShape<LayoutBinding>(container, 'layout')
+			.sort((a, b) => (a.props.index > b.props.index ? 1 : -1))
 
-	override getDefaultProps() {
-		return {
-			width: 100 + PADDING * 2,
-			height: 100 + PADDING * 2,
+		// Those bindings that don't involve the element
+		const siblings = allBindings.filter((b) => b.toId !== shape.id)
+
+		// Get the relative x position of the element center in the container
+		// Where should the element be placed? min index at left, max index + 1
+		const order = clamp(
+			Math.round((pageAnchor.x - container.x - CONTAINER_PADDING) / (100 + CONTAINER_PADDING)),
+			0,
+			siblings.length + 1
+		)
+
+		// Get a fractional index between the two siblings
+		const belowSib = allBindings[order - 1]
+		const aboveSib = allBindings[order]
+		let index: IndexKey
+
+		if (belowSib?.toId === shape.id) {
+			index = belowSib.props.index
+		} else if (aboveSib?.toId === shape.id) {
+			index = aboveSib.props.index
+		} else {
+			index = getIndexBetween(belowSib?.props.index, aboveSib?.props.index)
 		}
+
+		return index
 	}
 
-	override canBind({
-		fromShapeType,
-		toShapeType,
-		bindingType,
-	}: {
-		fromShapeType: string
-		toShapeType: string
-		bindingType: string
-	}) {
-		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === 'layout'
-	}
-	override canEdit = () => false
-	override canResize = () => false
-	override hideRotateHandle = () => true
-	override isAspectRatioLocked = () => true
-
-	override getGeometry(shape: ContainerShape) {
-		return new Rectangle2d({
-			width: shape.props.width,
-			height: shape.props.height,
-			isFilled: true,
-		})
-	}
-
-	override component(shape: ContainerShape) {
-		return (
-			<HTMLContainer
-				style={{
-					backgroundColor: '#efefef',
-					width: shape.props.width,
-					textAlign: 'center',
-					padding: 8,
-				}}
-			>
-				Container
-			</HTMLContainer>
+	override onTranslateStart = (shape: ElementShape) => {
+		// Update all the layout bindings for this shape to be placeholders
+		this.editor.updateBindings(
+			this.editor.getBindingsToShape<LayoutBinding>(shape, 'layout').map((binding) => ({
+				...binding,
+				props: { ...binding.props, placeholder: true },
+			}))
 		)
 	}
 
-	override indicator(shape: ContainerShape) {
-		return <rect width={shape.props.width} height={shape.props.height} />
-	}
-}
+	override onTranslate: TLOnTranslateHandler<ElementShape> | undefined = (
+		_,
+		shape: ElementShape
+	) => {
+		// Find the center of the element shape
+		const pageAnchor = this.editor.getShapePageTransform(shape).applyToPoint({ x: 50, y: 50 })
 
-type LayoutBinding = TLBaseBinding<
-	'layout',
-	{
-		position: number
-	}
->
-class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
-	static override type = 'layout' as const
+		// Find the container shape that the element is being dropped on
+		const targetContainer = this.getTargetContainer(shape, pageAnchor)
 
-	override getDefaultProps() {
-		return {
-			position: 1,
+		if (!targetContainer) {
+			// Delete all the bindings to the element
+			const bindings = this.editor.getBindingsToShape<LayoutBinding>(shape, 'layout')
+			this.editor.deleteBindings(bindings)
+			return
 		}
-	}
 
-	override onAfterCreate(options: BindingOnCreateOptions<LayoutBinding>): void {
-		this.updateContainerWidth(options.binding)
-	}
+		// Get the index for the new binding
+		const index = this.getBindingIndexForPosition(shape, targetContainer, pageAnchor)
 
-	override onAfterChangeFromShape({
-		binding,
-		shapeAfter,
-	}: BindingOnShapeChangeOptions<LayoutBinding>): void {
-		this.moveElementToPosition(binding, shapeAfter)
-	}
+		// Is there an existing binding already between the container and the shape?
+		const existingBinding = this.editor
+			.getBindingsFromShape<LayoutBinding>(targetContainer, 'layout')
+			.find((b) => b.toId === shape.id)
 
-	reShufflePositions(binding: LayoutBinding) {
-		const bindings = this.editor.getBindingsFromShape(binding.fromId, 'layout') as LayoutBinding[]
-		if (bindings.length === 0) return
-
-		const sorted = bindings.sort((a, b) => {
-			if (a.props.position === b.props.position) return -1
-			return a.props.position - b.props.position
-		})
-
-		for (let i = 0; i < sorted.length; i++) {
-			this.editor.updateBinding({
-				...sorted[i],
+		if (existingBinding) {
+			// If a binding already exists, update it
+			if (existingBinding.props.index === index) return
+			this.editor.updateBinding<LayoutBinding>({
+				...existingBinding,
 				props: {
-					...sorted[i].props,
-					position: i + 1,
+					...existingBinding.props,
+					placeholder: true,
+					index,
+				},
+			})
+		} else {
+			// ...otherwise, create a new one
+			this.editor.createBinding<LayoutBinding>({
+				id: createBindingId(),
+				type: 'layout',
+				fromId: targetContainer.id,
+				toId: shape.id,
+				props: {
+					index,
+					placeholder: true,
 				},
 			})
 		}
 	}
 
-	moveElementToPosition(binding: LayoutBinding, shapeAfter: TLShape) {
-		const element = this.editor.getShape<ElementShape>(binding.toId)!
-		const containerBounds = this.editor.getShapeGeometry(binding.fromId).bounds
-		const pageAnchor = this.editor.getShapePageTransform(shapeAfter).applyToPoint({
-			x: containerBounds.x + PADDING * binding.props.position + 100 * (binding.props.position - 1),
-			y: containerBounds.y + PADDING,
-		})
+	override onTranslateEnd = (_: ElementShape, shape: ElementShape) => {
+		// Find the center of the element shape
+		const pageAnchor = this.editor.getShapePageTransform(shape).applyToPoint({ x: 50, y: 50 })
 
-		this.editor.updateShape({
-			id: element.id,
-			type: 'element',
-			x: pageAnchor.x,
-			y: pageAnchor.y,
+		// Find the container shape that the element is being dropped on
+		const targetContainer = this.getTargetContainer(shape, pageAnchor)
+
+		// No target container? no problem
+		if (!targetContainer) return
+
+		// get the index for the new binding
+		const index = this.getBindingIndexForPosition(shape, targetContainer, pageAnchor)
+
+		// delete all the previous bindings for this shape
+		this.editor.deleteBindings(this.editor.getBindingsToShape<LayoutBinding>(shape, 'layout'))
+
+		// ...and then create a new one
+		this.editor.createBinding<LayoutBinding>({
+			id: createBindingId(),
+			type: 'layout',
+			fromId: targetContainer.id,
+			toId: shape.id,
+			props: {
+				index,
+				placeholder: false,
+			},
 		})
 	}
+}
 
-	updateContainerWidth(binding: LayoutBinding) {
-		const container = this.editor.getShape<ContainerShape>(binding.fromId)!
-		const bindings = this.editor.getBindingsFromShape(container, 'layout') as LayoutBinding[]
-		const numberOfElements = Math.max(bindings.length, 1)
+// The binding between the element shapes and the container shapes
 
-		const next = {
-			...container,
-			props: {
-				...container.props,
-				width: numberOfElements * 100 + PADDING * (numberOfElements + 1),
-			},
+type LayoutBinding = TLBaseBinding<
+	'layout',
+	{
+		index: IndexKey
+		placeholder: boolean
+	}
+>
+
+class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
+	static override type = 'layout' as const
+
+	override getDefaultProps() {
+		return {
+			index: 'a1' as IndexKey,
+			placeholder: true,
 		}
-		this.editor.updateShape(next)
+	}
+
+	override onAfterCreate({ binding }: BindingOnCreateOptions<LayoutBinding>): void {
+		this.updateElementsForContainer(binding)
+	}
+
+	override onAfterChange({ bindingAfter }: BindingOnChangeOptions<LayoutBinding>): void {
+		this.updateElementsForContainer(bindingAfter)
+	}
+
+	override onAfterDelete({ binding }: BindingOnDeleteOptions<LayoutBinding>): void {
+		this.updateElementsForContainer(binding)
+	}
+
+	private updateElementsForContainer({
+		props: { placeholder },
+		fromId: containerId,
+		toId,
+	}: LayoutBinding) {
+		// Get all of the bindings from the layout container
+		const container = this.editor.getShape<ContainerShape>(containerId)
+		if (!container) return
+
+		const bindings = this.editor
+			.getBindingsFromShape<LayoutBinding>(container, 'layout')
+			.sort((a, b) => (a.props.index > b.props.index ? 1 : -1))
+		if (bindings.length === 0) return
+
+		for (let i = 0; i < bindings.length; i++) {
+			const binding = bindings[i]
+
+			if (toId === binding.toId && placeholder) continue
+
+			const offset = new Vec(CONTAINER_PADDING + i * (100 + CONTAINER_PADDING), CONTAINER_PADDING)
+
+			const point = this.editor.getShapePageTransform(container).applyToPoint(offset)
+
+			this.editor.updateShape({
+				id: binding.toId,
+				type: 'element',
+				x: point.x,
+				y: point.y,
+			})
+		}
+
+		const width =
+			CONTAINER_PADDING +
+			(bindings.length * 100 + (bindings.length - 1) * CONTAINER_PADDING) +
+			CONTAINER_PADDING
+
+		const height = CONTAINER_PADDING + 100 + CONTAINER_PADDING
+
+		if (width !== container.props.width || height !== container.props.height) {
+			this.editor.updateShape({
+				id: container.id,
+				type: 'container',
+				props: { width, height },
+			})
+		}
 	}
 }
 

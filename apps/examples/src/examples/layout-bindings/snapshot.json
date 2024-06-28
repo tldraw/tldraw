@@ -27,7 +27,7 @@
 			"index": "a1",
 			"props": {
 				"width": 644,
-				"height": 132
+				"height": 148
 			},
 			"typeName": "shape"
 		},
@@ -118,7 +118,8 @@
 			"fromId": "shape:f4LKGB_8M2qsyWGpHR5Dq",
 			"toId": "shape:05jMujN6A0sIp6zzHMpbV",
 			"props": {
-				"position": 2
+				"index": "a2",
+				"placeholder": false
 			},
 			"typeName": "binding"
 		},
@@ -129,7 +130,8 @@
 			"fromId": "shape:f4LKGB_8M2qsyWGpHR5Dq",
 			"toId": "shape:GTQq2qxkWPHEK7KMIRtsh",
 			"props": {
-				"position": 1
+				"index": "a1",
+				"placeholder": false
 			},
 			"typeName": "binding"
 		},
@@ -140,7 +142,8 @@
 			"fromId": "shape:f4LKGB_8M2qsyWGpHR5Dq",
 			"toId": "shape:6uouhIK7PvyIRNQHACf-d",
 			"props": {
-				"position": 3
+				"index": "a3",
+				"placeholder": false
 			},
 			"typeName": "binding"
 		},
@@ -151,7 +154,8 @@
 			"fromId": "shape:f4LKGB_8M2qsyWGpHR5Dq",
 			"toId": "shape:2oThF4kJ4v31xqKN5lvq2",
 			"props": {
-				"position": 5
+				"index": "a5",
+				"placeholder": false
 			},
 			"typeName": "binding"
 		},
@@ -162,7 +166,8 @@
 			"fromId": "shape:f4LKGB_8M2qsyWGpHR5Dq",
 			"toId": "shape:K2vk_VTaNh-ANaRNOAvgY",
 			"props": {
-				"position": 4
+				"index": "a4",
+				"placeholder": false
 			},
 			"typeName": "binding"
 		}
