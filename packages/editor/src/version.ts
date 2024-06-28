@@ -2,7 +2,7 @@
 // Do not edit manually. Or do, I'm a comment, not a cop.
 
 export const version = '2.2.1'
-export const releaseDates = {
+export const publishDates = {
 	major: '2024-06-28T10:56:07.893Z',
 	minor: '2024-06-28T10:56:27.862Z',
 	patch: '2024-06-28T11:07:33.599Z',

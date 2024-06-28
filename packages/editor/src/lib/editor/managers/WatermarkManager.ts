@@ -1,4 +1,4 @@
-import { releaseDates } from '../../../version'
+import { publishDates } from '../../../version'
 import { TL_CONTAINER_CLASS } from '../../TldrawEditor'
 import { Editor } from '../Editor'
 import { LicenseFromKeyResult } from './LicenseManager'
@@ -36,8 +36,8 @@ export class WatermarkManager {
 				expiryDate.getDate() + 1 // Add 1 day to include the expiration day
 			)
 			const dates = {
-				major: new Date(releaseDates.major),
-				minor: new Date(releaseDates.minor),
+				major: new Date(publishDates.major),
+				minor: new Date(publishDates.minor),
 			}
 			// We allow patch releases, but the major and minor releases should be within the expiration date
 			if (dates.major > expiration || dates.minor > expiration) {
