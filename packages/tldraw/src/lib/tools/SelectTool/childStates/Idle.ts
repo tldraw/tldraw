@@ -398,7 +398,12 @@ export class Idle extends StateNode {
 					(parent) => !selectedShapeIds.includes(parent.id)
 				)
 
-				if (!selectedShapeIds.includes(targetShape.id)) {
+				if (
+					!selectedShapeIds.includes(targetShape.id) &&
+					!this.editor.findShapeAncestor(targetShape, (shape) =>
+						selectedShapeIds.includes(shape.id)
+					)
+				) {
 					this.editor.mark('selecting shape')
 					this.editor.setSelectedShapes([targetShape.id])
 				}
