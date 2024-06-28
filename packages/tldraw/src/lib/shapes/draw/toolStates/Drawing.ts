@@ -159,7 +159,7 @@ export class Drawing extends StateNode {
 
 		return (
 			firstPoint !== lastPoint &&
-			this.currentLineLength > strokeWidth * 4 &&
+			this.currentLineLength > strokeWidth * 4 * scale &&
 			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2 * scale)
 		)
 	}
