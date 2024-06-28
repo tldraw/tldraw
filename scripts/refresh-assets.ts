@@ -409,28 +409,27 @@ async function writeAssetDeclarationDTSFile() {
 function getNewReleaseDates(packageVersion: string) {
 	const currentVersion = new SemVer(version)
 	const currentPacakgeVersion = new SemVer(packageVersion)
+	const now = new Date().toISOString()
 	if (currentPacakgeVersion.major > currentVersion.major) {
-		console.log('major')
 		return {
-			major: Date.now(),
-			minor: Date.now(),
-			patch: Date.now(),
+			major: now,
+			minor: now,
+			patch: now,
 		}
 	} else if (currentPacakgeVersion.minor > currentVersion.minor) {
-		console.log('minor')
 		return {
 			major: releaseDates.major,
-			minor: Date.now(),
-			patch: Date.now(),
+			minor: now,
+			patch: now,
 		}
 	} else if (currentPacakgeVersion.patch > currentVersion.patch) {
-		console.log('patch')
 		return {
 			major: releaseDates.major,
 			minor: releaseDates.minor,
-			patch: Date.now(),
+			patch: now,
 		}
 	}
+	console.log('no change')
 	return releaseDates
 }
 
@@ -440,9 +439,9 @@ async function copyVersionToDotCom() {
 	const releaseDates = getNewReleaseDates(packageVersion)
 	const file = `export const version = '${packageVersion}'
 	export const releaseDates = {
-		major: ${releaseDates.major},
-		minor: ${releaseDates.minor},
-		patch: ${releaseDates.patch},
+		major: '${releaseDates.major}',
+		minor: '${releaseDates.minor}',
+		patch: '${releaseDates.patch}',
 	}`
 
 	await writeCodeFile(
