@@ -321,11 +321,15 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 
 			const offset = new Vec(CONTAINER_PADDING + i * (100 + CONTAINER_PADDING), CONTAINER_PADDING)
 
-			const point = this.editor.getShapePageTransform(container).applyToPoint(offset)
-
 			const shape = this.editor.getShape<ElementShape>(binding.toId)
+			if (!shape) continue
 
-			if (shape && (shape.x !== point.x || shape.y !== point.y)) {
+			const point = this.editor.getPointInParentSpace(
+				shape,
+				this.editor.getShapePageTransform(container)!.applyToPoint(offset)
+			)
+
+			if (shape.x !== point.x || shape.y !== point.y) {
 				this.editor.updateShape({
 					id: binding.toId,
 					type: 'element',
