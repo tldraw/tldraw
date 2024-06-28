@@ -11,22 +11,22 @@ interface Label {
 }
 
 const TYPE_LABELS = [
-	{
-		name: `feature`,
-		description: `New feature`,
-		changelogTitle: '🎉 New Features',
-	},
+	{ name: `bugfix`, description: `Bug fix`, changelogTitle: '🐛 Bug Fixes' },
 	{
 		name: `improvement`,
 		description: `Product improvement`,
 		changelogTitle: '💄 Product Improvements',
 	},
 	{
+		name: `feature`,
+		description: `New feature`,
+		changelogTitle: '🎉 New Features',
+	},
+	{
 		name: `api`,
 		description: `API change`,
 		changelogTitle: '🛠️ API Changes',
 	},
-	{ name: `bugfix`, description: `Bug fix`, changelogTitle: '🐛 Bug Fixes' },
 	{
 		name: `other`,
 		description: `Changes that don't affect SDK users, e.g. internal or .com changes`,
@@ -39,15 +39,11 @@ export function getLabelNames() {
 }
 
 function formatTemplateOption(label: Label) {
-	return `- [ ] \`${label.name}\` — ${label.description}`
+	return `- [ ] \`${label.name}\``
 }
 
 export function formatLabelOptionsForPRTemplate() {
-	let result = `\n<!-- ❗ Please select a 'Type' label ❗️ -->\n\n`
-	for (const label of TYPE_LABELS) {
-		result += formatTemplateOption(label) + '\n'
-	}
-	return result
+	return TYPE_LABELS.map(formatTemplateOption).join('\n')
 }
 
 export async function generateAutoRcFile() {
