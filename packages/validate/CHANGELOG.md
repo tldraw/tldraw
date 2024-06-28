@@ -1,3 +1,23 @@
+# v2.3.0 (Tue Jun 25 2024)
+
+### Release Notes
+
+#### assets: store in indexedDB, not as base64 ([#3836](https://github.com/tldraw/tldraw/pull/3836))
+
+- Assets: store as reference to blob in indexedDB instead of storing directly as base64 in the snapshot.
+
+---
+
+#### 📚 SDK Changes
+
+- assets: store in indexedDB, not as base64 [#3836](https://github.com/tldraw/tldraw/pull/3836) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v2.2.0 (Tue Jun 11 2024)
 
 ### Release Notes

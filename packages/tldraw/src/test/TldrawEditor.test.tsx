@@ -10,6 +10,7 @@ import {
 	createTLStore,
 	noop,
 } from '@tldraw/editor'
+import { StrictMode } from 'react'
 import { defaultTools } from '../lib/defaultTools'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 import { renderTldrawComponent } from './testutils/renderTldrawComponent'
@@ -206,6 +207,24 @@ describe('<TldrawEditor />', () => {
 
 		// Is the editor's current tool correct?
 		expect(editor.getCurrentToolId()).toBe('eraser')
+	})
+
+	it('renders correctly in strict mode', async () => {
+		const editorInstances = new Set<Editor>()
+		const onMount = jest.fn((editor: Editor) => {
+			editorInstances.add(editor)
+		})
+		await renderTldrawComponent(
+			<StrictMode>
+				<TldrawEditor tools={defaultTools} initialState="select" onMount={onMount} />
+			</StrictMode>,
+			{ waitForPatterns: false }
+		)
+
+		// we should only get one editor instance
+		expect(editorInstances.size).toBe(1)
+		// but strict mode will cause onMount to be called twice
+		expect(onMount).toHaveBeenCalledTimes(2)
 	})
 })
 

@@ -31,10 +31,10 @@ export async function unfurl(url: string) {
 		$('link[rel="icon"]').attr('href') ??
 		undefined
 
-	if (image?.startsWith('/')) {
+	if (image && !image?.startsWith('http')) {
 		image = new URL(image, url).href
 	}
-	if (favicon?.startsWith('/')) {
+	if (favicon && !favicon?.startsWith('http')) {
 		favicon = new URL(favicon, url).href
 	}
 

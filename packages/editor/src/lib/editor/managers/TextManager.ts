@@ -43,18 +43,16 @@ export class TextManager {
 	constructor(public editor: Editor) {
 		const container = this.editor.getContainer()
 
-		// Remove any existing text measure element that
-		// is a descendant of this editor's container
-		container.querySelector('#tldraw_text_measure')?.remove()
-
 		const elm = document.createElement('div')
-		elm.id = `tldraw_text_measure`
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
 		elm.tabIndex = -1
 		container.appendChild(elm)
 
 		this.baseElm = elm
+		editor.disposables.add(() => {
+			elm.remove()
+		})
 	}
 
 	measureText = (

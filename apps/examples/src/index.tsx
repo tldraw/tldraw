@@ -12,8 +12,6 @@ import { examples } from './examples'
 import Develop from './misc/develop'
 import EndToEnd from './misc/end-to-end'
 
-// This example is only used for end to end tests
-
 // we use secret internal `setDefaultAssetUrls` functions to set these at the
 // top-level so assets don't need to be passed down in every single example.
 const assetUrls = getAssetUrlsByMetaUrl()

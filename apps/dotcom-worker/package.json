@@ -18,6 +18,7 @@
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
+		"check-bundle-size": "yarn run -T tsx ../../scripts/check-worker-bundle.ts --entry src/lib/worker.ts --size-limit-bytes 350000",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"dependencies": {
@@ -37,12 +38,12 @@
 		"toucan-js": "^2.7.0"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20230821.0",
+		"@cloudflare/workers-types": "^4.20240620.0",
 		"concurrently": "^8.2.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"picocolors": "^1.0.0",
 		"typescript": "^5.3.3",
-		"wrangler": "3.19.0"
+		"wrangler": "3.61.0"
 	},
 	"jest": {
 		"preset": "config/jest/node",

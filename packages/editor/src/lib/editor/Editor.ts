@@ -3044,9 +3044,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// top
 			screenBounds.minY !== 0,
 			// right
-			document.body.scrollWidth !== screenBounds.maxX,
+			!approximately(document.body.scrollWidth, screenBounds.maxX, 1),
 			// bottom
-			document.body.scrollHeight !== screenBounds.maxY,
+			!approximately(document.body.scrollHeight, screenBounds.maxY, 1),
 			// left
 			screenBounds.minX !== 0,
 		]
