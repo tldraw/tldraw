@@ -2,6 +2,7 @@ import {
 	BindingOnChangeOptions,
 	BindingOnCreateOptions,
 	BindingOnDeleteOptions,
+	BindingOnShapeChangeOptions,
 	BindingUtil,
 	HTMLContainer,
 	IndexKey,
@@ -291,6 +292,10 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 		this.updateElementsForContainer(bindingAfter)
 	}
 
+	override onAfterChangeFromShape({ binding }: BindingOnShapeChangeOptions<LayoutBinding>): void {
+		this.updateElementsForContainer(binding)
+	}
+
 	override onAfterDelete({ binding }: BindingOnDeleteOptions<LayoutBinding>): void {
 		this.updateElementsForContainer(binding)
 	}
@@ -318,12 +323,16 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 
 			const point = this.editor.getShapePageTransform(container).applyToPoint(offset)
 
-			this.editor.updateShape({
-				id: binding.toId,
-				type: 'element',
-				x: point.x,
-				y: point.y,
-			})
+			const shape = this.editor.getShape<ElementShape>(binding.toId)
+
+			if (shape && (shape.x !== point.x || shape.y !== point.y)) {
+				this.editor.updateShape({
+					id: binding.toId,
+					type: 'element',
+					x: point.x,
+					y: point.y,
+				})
+			}
 		}
 
 		const width =
