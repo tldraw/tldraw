@@ -5,7 +5,7 @@ describe('LicenseManager', () => {
 
 	it('Checks if a license key was provided', () => {
 		const result = licenseManager.getLicenseFromKey('')
-		expect(result).toMatchObject({ isLicenseValid: false, reason: 'no-key-provided' })
+		expect(result).toMatchObject({ isLicenseParseable: false, reason: 'no-key-provided' })
 	})
 	/* it('Validates the license key', () => {
 		const invalidLicenseKey = generateKey(
@@ -16,12 +16,17 @@ describe('LicenseManager', () => {
 			})
 		)
 		const result = licenseManager.getLicenseFromKey(invalidLicenseKey)
-		expect(result).toMatchObject({ isLicenseValid: false, message: 'Invalid license key' })
+		expect(result).toMatchObject({ isLicenseParseable: false, message: 'Invalid license key' })
 	}) */
 	it.todo('Checks if the license key has expired')
 	it.todo('Checks versions and permissions')
 	it.todo('Checks the environment')
 	it.todo('Checks the host')
+	it.todo('Checks the host with just *')
+	it.todo('Checks the host with wildcard')
+	it.todo('Allows localhost')
+	it.todo('Checks for internal only')
+	it.todo('Cleanses out valid keys that accidentally have zero-width characters or newlines')
 })
 
 /* function generateKey(msgStr: string) {

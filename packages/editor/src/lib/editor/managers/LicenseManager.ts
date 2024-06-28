@@ -2,10 +2,22 @@ import { T } from '@tldraw/validate'
 import nacl from 'tweetnacl'
 import util from 'tweetnacl-util'
 
+const LICENSE_EMAIL = 'sales@tldraw.com'
+const LICENSE_ENV_TYPE = new Set(['prod', 'dev'] as const)
+
+const FLAG_ANNUAL_LICENSE = 0x1
+const FLAG_PERPETUAL_LICENSE = 0x2
+const FLAG_INTERNAL_ONLY = 0x4
+
 const licenseInfoValidator = T.object({
-	expiry: T.number,
-	company: T.string,
+	id: T.string,
+	env: T.setEnum(LICENSE_ENV_TYPE),
 	hosts: T.arrayOf(T.string),
+	customerId: T.string,
+	flags: T.number,
+	versionNumber: T.string,
+	expiryDate: T.number,
+	gracePeriod: T.number,
 })
 
 export type LicenseInfo = T.TypeOf<typeof licenseInfoValidator>
@@ -14,23 +26,30 @@ export type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided'
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult
 
 interface InvalidLicenseKeyResult {
-	isLicenseValid: false
+	isLicenseParseable: false
 	reason: InvalidLicenseReason
 }
 
 interface ValidLicenseKeyResult {
-	isLicenseValid: true
+	isLicenseParseable: true
 	license: LicenseInfo
+	isDevelopmentKey: boolean
 	isDomainValid: boolean
+	isAnnualLicense: boolean
+	isPerpetualLicense: boolean
+	isInternalOnly: boolean
 	isLicenseExpired: boolean
 }
 
 export class LicenseManager {
 	private publicKey = '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
+
 	private isTest: boolean
+
 	constructor() {
 		this.isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
 	}
+
 	private extractLicense(licenseKey: string): LicenseInfo {
 		const base64License = util.decodeBase64(licenseKey)
 
@@ -46,32 +65,71 @@ export class LicenseManager {
 	getLicenseFromKey(licenseKey?: string): LicenseFromKeyResult {
 		if (!licenseKey) {
 			this.outputNoLicenseKeyProvided()
-			return { isLicenseValid: false, reason: 'no-key-provided' }
+			return { isLicenseParseable: false, reason: 'no-key-provided' }
 		}
 
+		// Borrowed idea from AG Grid:
+		// Copying from various sources (like PDFs) can include zero-width characters.
+		// This helps makes sure the key validation doesn't fail.
+		let cleanedLicenseKey = licenseKey.replace(/[\u200B-\u200D\uFEFF]/g, '')
+		cleanedLicenseKey = cleanedLicenseKey.replace(/\r?\n|\r/g, '')
+
 		try {
-			const licenseInfo = this.extractLicense(licenseKey)
+			const licenseInfo = this.extractLicense(cleanedLicenseKey)
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
-				isLicenseValid: true,
-				isDomainValid: licenseInfo.hosts.some(
-					(host) => host.toLowerCase() === window.location.hostname.toLowerCase()
-				),
-				isLicenseExpired: licenseInfo.expiry > Date.now(),
+				isLicenseParseable: true,
+				isDevelopmentKey: licenseInfo.env === 'dev',
+				isDomainValid: this.isDomainValid(licenseInfo),
+				isAnnualLicense: !!(licenseInfo.flags & FLAG_ANNUAL_LICENSE),
+				isPerpetualLicense: !!(licenseInfo.flags & FLAG_PERPETUAL_LICENSE),
+				isInternalOnly: !!(licenseInfo.flags & FLAG_INTERNAL_ONLY),
+				// TODO: add grace period and one day fuzz for timezone
+				isLicenseExpired: licenseInfo.expiryDate > Date.now(),
 			}
 			this.outputLicenseInfoIfNeeded(result)
+
 			return result
 		} catch (e) {
 			this.outputInvalidLicenseKey()
 			// If the license can't be parsed, it's invalid
-			return { isLicenseValid: false, reason: 'invalid-license-key' }
+			return { isLicenseParseable: false, reason: 'invalid-license-key' }
 		}
+	}
+
+	private isDomainValid(licenseInfo: LicenseInfo) {
+		const currentHostname = window.location.hostname.toLowerCase()
+
+		if (['localhost', '127.0.0.1'].includes(currentHostname)) {
+			return true
+		}
+
+		return licenseInfo.hosts.some((host) => {
+			const normalizedHost = host.toLowerCase().trim()
+			if (normalizedHost === currentHostname) {
+				return true
+			}
+
+			// If host is '*', we allow all domains.
+			if (host === '*') {
+				// All domains allowed.
+				return true
+			}
+
+			// Glob testing, we only support '*.somedomain.com' right now.
+			if (host.includes('*')) {
+				const globToRegex = new RegExp(host.replace(/\*/g, '.*?'))
+				return globToRegex.test(host)
+			}
+
+			return false
+		})
 	}
 
 	private outputNoLicenseKeyProvided() {
 		this.outputMessages([
-			'No tldraw license key provided.',
-			"Please reach out to hello@tldraw.com if you would like to license tldraw or if you'd like a trial.",
+			'No tldraw license key provided!',
+			`Please reach out to ${LICENSE_EMAIL} if you would like to license tldraw or if you'd like a trial.`,
 		])
 	}
 
@@ -82,14 +140,15 @@ export class LicenseManager {
 	private outputLicenseInfoIfNeeded(result: ValidLicenseKeyResult) {
 		if (result.isLicenseExpired) {
 			this.outputMessages([
-				'Your tldraw license has expired.',
-				'Please reach out to hello@tldraw.com to renew.',
+				'Your tldraw license has expired!',
+				`Please reach out to ${LICENSE_EMAIL} to renew.`,
 			])
 		}
+
 		if (!result.isDomainValid) {
 			this.outputMessages([
-				'This tldraw license key is not valid for this domain.',
-				'Please reach out to hello@tldraw.com if you would like to use tldraw on other domains.',
+				'This tldraw license key is not valid for this domain!',
+				`Please reach out to ${LICENSE_EMAIL} if you would like to use tldraw on other domains.`,
 			])
 		}
 	}
@@ -100,16 +159,23 @@ export class LicenseManager {
 
 	private outputMessages(messages: string[]) {
 		if (this.isTest) return
+
 		this.outputDelimiter()
 		for (const message of messages) {
 			// eslint-disable-next-line no-console
-			console.log(message)
+			console.log(
+				`%c${message}`,
+				`color: white; background: crimson; padding: 2px; border-radius: 3px;`
+			)
 		}
 		this.outputDelimiter()
 	}
 
 	private outputDelimiter() {
 		// eslint-disable-next-line no-console
-		console.log('-------------------------------------------------------------------')
+		console.log(
+			'%c-------------------------------------------------------------------',
+			`color: white; background: crimson; padding: 2px; border-radius: 3px;`
+		)
 	}
 }

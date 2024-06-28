@@ -714,7 +714,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.licenseManager = new LicenseManager()
 		const license = this.licenseManager.getLicenseFromKey(licenseKey)
 		this.watermarkManager = new WatermarkManager(this)
-		this.watermarkManager.checkWatermark(license)
+		const isShowingWatermark = this.watermarkManager.checkWatermark(license)
+		if (isShowingWatermark && license.isLicenseParseable && license.isInternalOnly) {
+			throw new Error(
+				'License is expired. Please contact sales@tldraw.com to renew your internal-only license.'
+			)
+		}
 
 		this.performanceTracker = new PerformanceTracker()
 	}

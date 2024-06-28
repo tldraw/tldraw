@@ -122,6 +122,7 @@ export {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	HelpGroup,
 	MiscMenuGroup,
 	PreferencesGroup,
 	UndoRedoGroup,
