@@ -2,10 +2,16 @@ import { T } from '@tldraw/validate'
 import nacl from 'tweetnacl'
 import util from 'tweetnacl-util'
 
+const ANNUAL_LICENSE_FLAG = 1
+const PERPETUAL_LICENSE_FLAG = 2
+const INTERNAL_LICENSE_FLAG = 4
+
 const licenseInfoValidator = T.object({
-	expiry: T.number,
-	company: T.string,
-	hosts: T.arrayOf(T.string),
+	expiryDate: T.string,
+	customer: T.string,
+	validHosts: T.arrayOf(T.string),
+	flags: T.number,
+	env: T.literalEnum('Production', 'Development'),
 })
 
 export type LicenseInfo = T.TypeOf<typeof licenseInfoValidator>
@@ -23,6 +29,9 @@ interface ValidLicenseKeyResult {
 	license: LicenseInfo
 	isDomainValid: boolean
 	isLicenseExpired: boolean
+	isAnualLicense: boolean
+	isPerpetualLicense: boolean
+	isInternalLicense: boolean
 }
 
 export class LicenseManager {
@@ -54,10 +63,13 @@ export class LicenseManager {
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
 				isLicenseValid: true,
-				isDomainValid: licenseInfo.hosts.some(
+				isDomainValid: licenseInfo.validHosts.some(
 					(host) => host.toLowerCase() === window.location.hostname.toLowerCase()
 				),
-				isLicenseExpired: licenseInfo.expiry > Date.now(),
+				isLicenseExpired: new Date(licenseInfo.expiryDate) > new Date(),
+				isAnualLicense: this.isFlagEnabled(licenseInfo.flags, ANNUAL_LICENSE_FLAG),
+				isPerpetualLicense: this.isFlagEnabled(licenseInfo.flags, PERPETUAL_LICENSE_FLAG),
+				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, INTERNAL_LICENSE_FLAG),
 			}
 			this.outputLicenseInfoIfNeeded(result)
 			return result
@@ -66,6 +78,10 @@ export class LicenseManager {
 			// If the license can't be parsed, it's invalid
 			return { isLicenseValid: false, reason: 'invalid-license-key' }
 		}
+	}
+
+	private isFlagEnabled(flags: number, flag: number) {
+		return (flags & flag) === flag
 	}
 
 	private outputNoLicenseKeyProvided() {
