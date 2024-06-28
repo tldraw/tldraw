@@ -1,4 +1,4 @@
-import { Content } from '@/components/content'
+import { Footer } from '@/components/docs/footer'
 import { Header } from '@/components/docs/header'
 import { Sidebar } from '@/components/sidebar'
 import { getPageContent } from '@/utils/get-page-content'
@@ -16,9 +16,11 @@ export default async function Page({ params }: { params: { slug: string | string
 				categoryId={content.article.categoryId}
 				articleId={content.article.id}
 			/>
-			<main className="max-w-3xl px-5 lg:px-12">
+			<main className="w-full max-w-3xl px-5 lg:px-12">
 				<Header article={content.article} />
-				<Content mdx={content.article.content ?? ''} />
+				{/* <Content mdx={content.article.content ?? ''} /> */}
+				<div className="my-96 py-96" />
+				<Footer article={content.article} />
 			</main>
 		</div>
 	)

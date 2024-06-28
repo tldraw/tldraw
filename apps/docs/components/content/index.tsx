@@ -7,7 +7,7 @@ import { Embed } from './embed'
 
 export const Content: React.FC<{ mdx: string }> = ({ mdx }) => {
 	return (
-		<section className="prose">
+		<section className="prose max-w-3xl">
 			<MDXRemote
 				source={mdx}
 				components={{ Embed }}

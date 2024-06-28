@@ -1,9 +1,12 @@
+import { Breadcrumbs } from '@/components/docs/breadcrumbs'
 import { Article } from '@/types/content-types'
+import { PageTitle } from '../content/page-title'
 
-export const Header: React.FC<{ article: Article }> = ({ article }) => {
+export const Header: React.FC<{ article: Article }> = async ({ article }) => {
 	return (
 		<section className="pb-12 mb-12 border-b border-zinc-100">
-			<h1 className="font-black text-black text-4xl">{article.title}</h1>
+			<Breadcrumbs article={article} className="mb-2" />
+			<PageTitle>{article.title}</PageTitle>
 		</section>
 	)
 }
