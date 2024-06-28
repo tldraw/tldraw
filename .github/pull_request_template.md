@@ -1,25 +1,21 @@
-Describe what your pull request does. If appropriate, add GIFs or images showing the before and after.
+Describe what your pull request does. If you can, add GIFs or images showing the before and after of your change.
 
 ### Change Type
 
-
-<!-- ❗ Please select a 'Type' label ❗️ -->
-
-- [ ] `feature` — New feature
-- [ ] `improvement` — Product improvement
-- [ ] `api` — API change
-- [ ] `bugfix` — Bug fix
-- [ ] `other` — Changes that don't affect SDK users, e.g. internal or .com changes
-
+- [ ] `bugfix`
+- [ ] `improvement`
+- [ ] `feature`
+- [ ] `api`
+- [ ] `other`
 
 ### Test Plan
 
-1. Add a step-by-step description of how to test your PR here.
+1. Create a shape.
 2.
 
-- [ ] Unit Tests
+- [ ] Unit tests
 - [ ] End to end tests
 
 ### Release Notes
 
-- Add a brief release note for your PR here.
+- Fixed a bug.
