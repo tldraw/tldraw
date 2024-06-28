@@ -93,7 +93,7 @@ export class LicenseManager {
 			expiryDate.getMonth(),
 			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
 		)
-		return new Date() > expirationWithGracePeriod
+		return new Date() >= expirationWithGracePeriod
 	}
 
 	private isFlagEnabled(flags: number, flag: number) {

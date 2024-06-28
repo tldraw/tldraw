@@ -40,7 +40,7 @@ export class WatermarkManager {
 				minor: new Date(publishDates.minor),
 			}
 			// We allow patch releases, but the major and minor releases should be within the expiration date
-			if (dates.major > expiration || dates.minor > expiration) {
+			if (dates.major >= expiration || dates.minor >= expiration) {
 				return true
 			}
 		}
