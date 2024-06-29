@@ -172,3 +172,40 @@ describe('Unlocking', () => {
 		expect(getLockedStatus()).toStrictEqual([false, false])
 	})
 })
+
+describe('When forced', () => {
+	it('Can be deleted', () => {
+		editor.force(() => {
+			const numberOfShapesBefore = editor.getCurrentPageShapes().length
+			editor.deleteShapes([ids.lockedShapeA])
+			expect(editor.getCurrentPageShapes().length).toBe(numberOfShapesBefore - 1)
+		})
+	})
+
+	it('Can be changed', () => {
+		editor.force(() => {
+			editor.updateShapes([{ id: ids.lockedShapeA, type: 'geo', x: 100 }])
+			expect(editor.getShape(ids.lockedShapeA)!.x).toBe(100)
+		})
+	})
+
+	it('Can be selected with select all', () => {
+		editor.force(() => {
+			editor.selectAll()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
+		})
+	})
+
+	it('Can be grouped', () => {
+		editor.force(() => {
+			const shapeCount = editor.getCurrentPageShapes().length
+			const parentBefore = editor.getShape(ids.lockedShapeA)!.parentId
+
+			editor.groupShapes([ids.lockedShapeA, ids.unlockedShapeA, ids.unlockedShapeB])
+			expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
+
+			const parentAfter = editor.getShape(ids.lockedShapeA)!.parentId
+			expect(parentAfter).toBe(parentBefore)
+		})
+	})
+})
