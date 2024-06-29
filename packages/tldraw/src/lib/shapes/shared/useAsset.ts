@@ -1,38 +1,104 @@
-import { TLAssetId, TLShapeId, useEditor, useValue } from '@tldraw/editor'
-import { useEffect, useState } from 'react'
+import {
+	MediaHelpers,
+	TLAssetId,
+	TLImageShape,
+	TLShapeId,
+	TLVideoShape,
+	useEditor,
+	useReactor,
+} from '@tldraw/editor'
+import { useRef, useState } from 'react'
+
+function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
+	const editor = useEditor()
+	const asset = assetId ? editor.getAsset(assetId) : null
+
+	// The resolved url of the asset that should be used by the shape (duplicated as a ref)
+	const [state, setState] = useState<{ url: string | null; isAnimated: boolean }>({
+		url: null,
+		isAnimated: false,
+	})
+
+	const rPrevUrl = useRef(state.url)
+	// The previous screen scale at which we requested a new url
+	const rPrevScreenScale = useRef(-1)
+	// A timeout we can clear if we need to request a new url
+	const rTimeout = useRef<any>(-1)
+
+	useReactor(
+		'update url',
+		() => {
+			const shape = editor.getShape<TLImageShape | TLVideoShape>(shapeId)
+			if (!shape) return
+
+			if (editor.getCulledShapes().has(shapeId)) return
+
+			const asset = assetId ? editor.getAsset(assetId) : null
+			if (!asset) return
+
+			const screenScale =
+				editor.getZoomLevel() * ('w' in asset.props ? shape.props.w / asset.props.w : 1)
+
+			// If we don't have a url, get an asset url immediately
+			if (!rPrevUrl.current) {
+				rPrevScreenScale.current = screenScale
+
+				editor
+					.resolveAssetUrl(assetId, {
+						screenScale,
+					})
+					.then((resolvedUrl) => {
+						rPrevUrl.current = resolvedUrl
+						setState({
+							url: resolvedUrl,
+							isAnimated:
+								('mimeType' in asset.props &&
+									MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
+								('isAnimated' in asset.props && asset.props.isAnimated),
+						})
+					})
+				return
+			}
+			// If the camera is still moving, don't get a new url
+			if (editor.getCameraState() !== 'idle') return
+
+			// If the editor is not in the idle state (ie if it is resizing) don't get a new url
+			if (!editor.isIn('select.idle')) return
+
+			// If the current screen scale is the same as it was last time we got a new url,
+			// then we don't need to ask for a new one.
+			if (rPrevScreenScale.current === screenScale) return
+			rPrevScreenScale.current = screenScale
+
+			// Clear any previous timers and set a new one. If we make it here again before the
+			// request is completed, we will clear this timer and set a new one. There's a chance
+			// that the timeout is cancelled after the timeout runs but before the promise resolves,
+			// but we'll just ignore that case (maybe a cancellable promise would be the solution).
+			clearTimeout(rTimeout.current)
+			rTimeout.current = editor.timers.setTimeout(() => {
+				editor
+					.resolveAssetUrl(assetId, {
+						screenScale,
+					})
+					.then((resolvedUrl) => {
+						// If the new url is the same as the old one, don't update
+						if (rPrevUrl.current === resolvedUrl) {
+							return
+						}
+						// Update the url for the asset
+						rPrevUrl.current = resolvedUrl
+						setState((s) => ({ ...s, url: resolvedUrl }))
+					})
+			}, 500)
+		},
+		[editor, assetId]
+	)
+
+	return { asset, ...state }
+}
 
 /** @internal */
-export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: number) {
-	const editor = useEditor()
-	const [url, setUrl] = useState<string | null>(null)
-	const asset = assetId ? editor.getAsset(assetId) : null
-	const culledShapes = editor.getCulledShapes()
-	const isCulled = culledShapes.has(shapeId)
+export const useImageAsset = useScalableAsset
 
-	const shapeScale = asset && 'w' in asset.props ? width / asset.props.w : 1
-	// We debounce the zoom level to reduce the number of times we fetch a new image and,
-	// more importantly, to not cause zooming in and out to feel janky.
-	const screenScale = useValue('zoom level', () => editor.getZoomLevel() * shapeScale, [
-		editor,
-		shapeScale,
-	])
-
-	useEffect(() => {
-		if (isCulled) return
-
-		let isCancelled = false
-		const timer = editor.timers.setTimeout(async () => {
-			const resolvedUrl = await editor.resolveAssetUrl(assetId, {
-				screenScale,
-			})
-			if (!isCancelled) setUrl(resolvedUrl)
-		}, 500)
-
-		return () => {
-			clearTimeout(timer)
-			isCancelled = true
-		}
-	}, [assetId, asset?.props.src, isCulled, screenScale, editor])
-
-	return { asset, url }
-}
+/** @internal */
+export const useVideoAsset = useScalableAsset

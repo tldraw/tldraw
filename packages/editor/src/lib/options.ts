@@ -73,7 +73,7 @@ export const defaultTldrawOptions = {
 	collaboratorInactiveTimeoutMs: 60000,
 	collaboratorIdleTimeoutMs: 3000,
 	collaboratorCheckIntervalMs: 1200,
-	cameraMovingTimeoutMs: 64,
+	cameraMovingTimeoutMs: 100,
 	hitTestMargin: 8,
 	edgeScrollDelay: 200,
 	edgeScrollEaseDuration: 200,
