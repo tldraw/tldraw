@@ -4377,6 +4377,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return undefined
 	}
 
+	private _force = false
+
+	/**
+	 * Ignoring whether shapes are locked.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.toggleLock([myShape])
+	 * editor.force(() => {
+	 * 	editor.updateShape({ ...myShape, x: 100 })
+	 * })
+	 * ```
+	 *
+	 * @param callback - The callback to run.
+	 */
+	force(callback: () => void) {
+		this._force = true
+		callback()
+		this._force = false
+	}
+
 	/**
 	 * Check whether a shape or its parent is locked.
 	 *
@@ -4387,6 +4408,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape): boolean
 	isShapeOrAncestorLocked(id?: TLShapeId): boolean
 	isShapeOrAncestorLocked(arg?: TLShape | TLShapeId): boolean {
+		if (this._force) return false
+
 		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
 		if (shape === undefined) return false
 		if (shape.isLocked) return true
@@ -5009,40 +5032,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapesToReparent = compact(ids.map((id) => this.getShape(id)))
 
-		// The user is allowed to re-parent locked shapes. Unintuitive? Yeah! But there are plenty of
-		// times when a locked shape's parent is deleted... and we need to put that shape somewhere!
-		const lockedShapes = shapesToReparent.filter((shape) => shape.isLocked)
+		// Ignore locked shapes so that we can reparent locked shapes, for example
+		// when a locked shape's parent is deleted.
+		this.force(() => {
+			for (let i = 0; i < shapesToReparent.length; i++) {
+				const shape = shapesToReparent[i]
 
-		if (lockedShapes.length) {
-			// If we have locked shapes, unlock them before we update them
-			this.updateShapes(lockedShapes.map(({ id, type }) => ({ id, type, isLocked: false })))
-		}
+				const pageTransform = this.getShapePageTransform(shape)!
+				if (!pageTransform) continue
 
-		for (let i = 0; i < shapesToReparent.length; i++) {
-			const shape = shapesToReparent[i]
+				const pagePoint = pageTransform.point()
+				if (!pagePoint) continue
 
-			const pageTransform = this.getShapePageTransform(shape)!
-			if (!pageTransform) continue
+				const newPoint = invertedParentTransform.applyToPoint(pagePoint)
+				const newRotation = pageTransform.rotation() - parentPageRotation
 
-			const pagePoint = pageTransform.point()
-			if (!pagePoint) continue
+				changes.push({
+					id: shape.id,
+					type: shape.type,
+					parentId: parentId,
+					x: newPoint.x,
+					y: newPoint.y,
+					rotation: newRotation,
+					index: indices[i],
+				})
+			}
 
-			const newPoint = invertedParentTransform.applyToPoint(pagePoint)
-			const newRotation = pageTransform.rotation() - parentPageRotation
-
-			changes.push({
-				id: shape.id,
-				type: shape.type,
-				parentId: parentId,
-				x: newPoint.x,
-				y: newPoint.y,
-				rotation: newRotation,
-				index: indices[i],
-				isLocked: shape.isLocked, // this will re-lock locked shapes
-			})
-		}
-
-		this.updateShapes(changes)
+			this.updateShapes(changes)
+		})
 
 		return this
 	}
@@ -7321,27 +7338,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deleteShapes(ids: TLShapeId[]): this
 	deleteShapes(shapes: TLShape[]): this
 	deleteShapes(_ids: TLShapeId[] | TLShape[]): this {
+		if (this.getInstanceState().isReadonly) return this
+
 		if (!Array.isArray(_ids)) {
 			throw Error('Editor.deleteShapes: must provide an array of shapes or shapeIds')
 		}
 
-		const ids = this._getUnlockedShapeIds(
+		const shapeIds =
 			typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
-		)
 
-		if (this.getInstanceState().isReadonly) return this
-		if (ids.length === 0) return this
+		// Normally we don't want to delete locked shapes, but if the force option is set, we'll delete them anyway
+		const shapeIdsToDelete = this._force ? shapeIds : this._getUnlockedShapeIds(shapeIds)
 
-		const allIds = new Set(ids)
+		if (shapeIdsToDelete.length === 0) return this
 
-		for (const id of ids) {
+		// We also need to delete these shapes' descendants
+		const allShapeIdsToDelete = new Set<TLShapeId>(shapeIdsToDelete)
+
+		for (const id of shapeIdsToDelete) {
 			this.visitDescendants(id, (childId) => {
-				allIds.add(childId)
+				allShapeIdsToDelete.add(childId)
 			})
 		}
 
-		const deletedIds = [...allIds]
-		return this.batch(() => this.store.remove(deletedIds))
+		return this.batch(() => this.store.remove([...allShapeIdsToDelete]))
 	}
 
 	/**
