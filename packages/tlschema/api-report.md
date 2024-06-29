@@ -851,7 +851,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
     // (undocumented)
     readonly id: string;
     // (undocumented)
-    setDefault(value: Type): void;
+    setDefaultValue(value: Type): void;
     // (undocumented)
     readonly type: T.Validatable<Type>;
     // (undocumented)

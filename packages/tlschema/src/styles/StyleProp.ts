@@ -87,7 +87,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 		readonly type: T.Validatable<Type>
 	) {}
 
-	setDefault(value: Type) {
+	setDefaultValue(value: Type) {
 		this.defaultValue = value
 	}
 
