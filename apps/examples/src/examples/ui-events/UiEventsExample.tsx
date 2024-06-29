@@ -1,7 +1,6 @@
 import { Fragment, useCallback, useState } from 'react'
 import { TLUiEventHandler, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { getCodeSnippet } from './codeSnippets'
 
 // There's a guide at the bottom of this file!
 
@@ -9,11 +8,7 @@ export default function UiEventsExample() {
 	const [uiEvents, setUiEvents] = useState<string[]>([])
 
 	const handleUiEvent = useCallback<TLUiEventHandler>((name, data: any) => {
-		const codeSnippet = getCodeSnippet(name, data)
-		setUiEvents((events) => [
-			...events,
-			`event: ${name} ${JSON.stringify(data)}${codeSnippet && `\ncode:  ${codeSnippet}`}`,
-		])
+		setUiEvents((events) => [...events, `event: ${name} ${JSON.stringify(data)}`])
 	}, [])
 
 	return (
