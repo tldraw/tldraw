@@ -83,9 +83,13 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 	/** @internal */
 	protected constructor(
 		readonly id: string,
-		readonly defaultValue: Type,
+		public defaultValue: Type,
 		readonly type: T.Validatable<Type>
 	) {}
+
+	setDefault(value: Type) {
+		this.defaultValue = value
+	}
 
 	validate(value: unknown) {
 		return this.type.validate(value)
