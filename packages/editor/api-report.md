@@ -914,7 +914,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     focus({ focusContainer }?: {
         focusContainer?: boolean | undefined;
     }): this;
-    force(callback: () => void): void;
+    force(callback: () => void): this;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;

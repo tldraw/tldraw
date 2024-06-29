@@ -4394,8 +4394,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	force(callback: () => void) {
 		this._force = true
-		callback()
+		this.batch(callback)
 		this._force = false
+		return this
 	}
 
 	/**
