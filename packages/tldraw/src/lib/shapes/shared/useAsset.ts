@@ -21,7 +21,7 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 
 	const rPrevUrl = useRef(state.url)
 	// The previous screen scale at which we requested a new url
-	const rPrevScreenScale = useRef(-1)
+	const rPrevScreenScale = useRef(0)
 	// A timeout we can clear if we need to request a new url
 	const rTimeout = useRef<any>(-1)
 
@@ -31,18 +31,18 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 			const shape = editor.getShape<TLImageShape | TLVideoShape>(shapeId)
 			if (!shape) return
 
-			if (editor.getCulledShapes().has(shapeId)) return
-
 			const asset = assetId ? editor.getAsset(assetId) : null
 			if (!asset) return
+
+			if (editor.getCulledShapes().has(shapeId)) return
 
 			const screenScale =
 				editor.getZoomLevel() * ('w' in asset.props ? shape.props.w / asset.props.w : 1)
 
-			// If we don't have a url, get an asset url immediately
-			if (!rPrevUrl.current) {
+			// If the prev scale is zero (which is impossible), set it to the current
+			// screen scale and immediately request a new resolved url.
+			if (!rPrevScreenScale.current) {
 				rPrevScreenScale.current = screenScale
-
 				editor
 					.resolveAssetUrl(assetId, {
 						screenScale,
@@ -81,6 +81,7 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 						screenScale,
 					})
 					.then((resolvedUrl) => {
+						console.log(resolvedUrl)
 						// If the new url is the same as the old one, don't update
 						if (rPrevUrl.current === resolvedUrl) {
 							return
