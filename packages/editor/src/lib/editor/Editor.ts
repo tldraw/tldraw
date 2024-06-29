@@ -4387,10 +4387,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.toggleLock([myShape])
 	 * editor.force(() => {
 	 * 	editor.updateShape({ ...myShape, x: 100 })
+	 * 	editor.deleteShape(myShape)
 	 * })
 	 * ```
 	 *
 	 * @param callback - The callback to run.
+	 *
+	 * @public
 	 */
 	force(callback: () => void) {
 		this._force = true
@@ -4409,8 +4412,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape): boolean
 	isShapeOrAncestorLocked(id?: TLShapeId): boolean
 	isShapeOrAncestorLocked(arg?: TLShape | TLShapeId): boolean {
-		if (this._force) return false
-
 		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
 		if (shape === undefined) return false
 		if (shape.isLocked) return true
@@ -7108,7 +7109,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (ids.length <= 1) return this
 
-		const shapesToGroup = compact(this._getUnlockedShapeIds(ids).map((id) => this.getShape(id)))
+		const shapesToGroup = compact(
+			(this._force ? ids : this._getUnlockedShapeIds(ids)).map((id) => this.getShape(id))
+		)
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
 		const pageBounds = Box.Common(compact(shapesToGroup.map((id) => this.getShapePageBounds(id))))
 
@@ -7171,18 +7174,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	ungroupShapes(ids: TLShapeId[], options?: Partial<{ select: boolean }>): this
 	ungroupShapes(shapes: TLShape[], options?: Partial<{ select: boolean }>): this
 	ungroupShapes(shapes: TLShapeId[] | TLShape[], options = {} as Partial<{ select: boolean }>) {
+		if (this.getInstanceState().isReadonly) return this
+
 		const { select = true } = options
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
-		if (this.getInstanceState().isReadonly) return this
-		if (ids.length === 0) return this
 
-		// Only ungroup when the select tool is active
+		const shapesToUngroup = compact(
+			(this._force ? ids : this._getUnlockedShapeIds(ids)).map((id) => this.getShape(id))
+		)
+
+		if (shapesToUngroup.length === 0) return this
+
+		// todo: the editor shouldn't know about the select tool, move to group / ungroup actions
 		if (this.getCurrentToolId() !== 'select') return this
-
-		// If not already in idle, cancel the current interaction (get back to idle)
 		if (!this.isIn('select.idle')) {
 			this.cancel()
 		}
@@ -7195,7 +7202,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Get all groups in the selection
 		const groups: TLGroupShape[] = []
 
-		compact(ids.map((id) => this.getShape(id))).forEach((shape) => {
+		shapesToUngroup.forEach((shape) => {
 			if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
 				groups.push(shape)
 			} else {
@@ -7269,8 +7276,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shape = this.getShape(partial.id)
 			if (!shape) continue
 
-			// If the shape is locked and we're not setting isLocked to true, continue
-			if (this.isShapeOrAncestorLocked(shape) && !Object.hasOwn(partial, 'isLocked')) continue
+			// If we're "forcing" the update, then we'll update the shape
+			// regardless of whether it / its ancestor is locked
+			if (!this._force) {
+				if (shape.isLocked) {
+					// If the shape itself is locked (even if one of its ancestors is
+					// also locked) then only allow an update that unlocks the shape.
+					if (!(Object.hasOwn(partial, 'isLocked') && !partial.isLocked)) {
+						continue
+					}
+				} else if (this.isShapeOrAncestorLocked(shape)) {
+					// If the shape itself is unlocked, and any of the shape's
+					// ancestors are locked then we'll skip the update
+					continue
+				}
+			}
 
 			// Remove any animating shapes from the list of partials
 			this.animatingShapes.delete(partial.id)
