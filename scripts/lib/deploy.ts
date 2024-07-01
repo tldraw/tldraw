@@ -123,7 +123,7 @@ export async function wranglerDeploy({
 		throw new Error('Could not find the deploy ID in wrangler output')
 	}
 
-	const workerNameMatch = out.match(/Uploaded: ([^ ]+)/)
+	const workerNameMatch = out.match(/Uploaded ([^ ]+)/)
 
 	if (!workerNameMatch) {
 		throw new Error('Could not find the worker name in wrangler output')
