@@ -1,6 +1,7 @@
 import { T } from '@tldraw/validate'
 import nacl from 'tweetnacl'
 import util from 'tweetnacl-util'
+import { publishDates } from '../../../version'
 
 const GRACE_PERIOD_DAYS = 5
 
@@ -32,7 +33,8 @@ interface ValidLicenseKeyResult {
 	isLicenseValid: true
 	license: LicenseInfo
 	isDomainValid: boolean
-	isLicenseExpired: boolean
+	isAnnualLicenseExpired: boolean
+	isPerpetualLicenseExpired: boolean
 	expiryDate: Date
 	isAnnualLicense: boolean
 	isPerpetualLicense: boolean
@@ -66,6 +68,8 @@ export class LicenseManager {
 		try {
 			const licenseInfo = this.extractLicense(licenseKey)
 			const expiryDate = new Date(licenseInfo.expiryDate)
+			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.annualLicense)
+			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.perpetualLicense)
 
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
@@ -74,9 +78,10 @@ export class LicenseManager {
 					(host) => host.toLowerCase() === window.location.hostname.toLowerCase()
 				),
 				expiryDate,
-				isLicenseExpired: this.isLicenseExpired(expiryDate),
-				isAnnualLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.annualLicense),
-				isPerpetualLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.perpetualLicense),
+				isAnnualLicenseExpired: isAnnualLicense && this.isAnnualLicenseExpired(expiryDate),
+				isPerpetualLicenseExpired: isPerpetualLicense && this.isAnnualLicenseExpired(expiryDate),
+				isAnnualLicense,
+				isPerpetualLicense,
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.internalLicense),
 			}
 			this.outputLicenseInfoIfNeeded(result)
@@ -87,13 +92,30 @@ export class LicenseManager {
 			return { isLicenseValid: false, reason: 'invalid-license-key' }
 		}
 	}
-	private isLicenseExpired(expiryDate: Date) {
+
+	private isAnnualLicenseExpired(expiryDate: Date) {
 		const expirationWithGracePeriod = new Date(
 			expiryDate.getFullYear(),
 			expiryDate.getMonth(),
 			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
 		)
 		return new Date() >= expirationWithGracePeriod
+	}
+
+	private isPerpetualLicenseExpired(expiryDate: Date) {
+		const expiration = new Date(
+			expiryDate.getFullYear(),
+			expiryDate.getMonth(),
+			expiryDate.getDate() + 1 // Add 1 day to include the expiration day
+		)
+		const dates = {
+			major: new Date(publishDates.major),
+			minor: new Date(publishDates.minor),
+		}
+		// We allow patch releases, but the major and minor releases should be within the expiration date
+		if (dates.major >= expiration || dates.minor >= expiration) {
+			return true
+		}
 	}
 
 	private isFlagEnabled(flags: number, flag: number) {
@@ -112,7 +134,7 @@ export class LicenseManager {
 	}
 
 	private outputLicenseInfoIfNeeded(result: ValidLicenseKeyResult) {
-		if (result.isLicenseExpired) {
+		if (result.isAnnualLicenseExpired) {
 			this.outputMessages([
 				'Your tldraw license has expired.',
 				'Please reach out to hello@tldraw.com to renew.',

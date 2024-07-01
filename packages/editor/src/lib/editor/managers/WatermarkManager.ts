@@ -1,4 +1,3 @@
-import { publishDates } from '../../../version'
 import { TL_CONTAINER_CLASS } from '../../TldrawEditor'
 import { Editor } from '../Editor'
 import { LicenseFromKeyResult } from './LicenseManager'
@@ -25,26 +24,13 @@ export class WatermarkManager {
 			return true
 		}
 		// We always show a watermark for expired internal licenses
-		if (license.isInternalLicense && license.isLicenseExpired) {
+		if (license.isInternalLicense && license.isAnnualLicenseExpired) {
 			return true
 		}
-		if (license.isPerpetualLicense) {
-			const expiryDate = license.expiryDate
-			const expiration = new Date(
-				expiryDate.getFullYear(),
-				expiryDate.getMonth(),
-				expiryDate.getDate() + 1 // Add 1 day to include the expiration day
-			)
-			const dates = {
-				major: new Date(publishDates.major),
-				minor: new Date(publishDates.minor),
-			}
-			// We allow patch releases, but the major and minor releases should be within the expiration date
-			if (dates.major >= expiration || dates.minor >= expiration) {
-				return true
-			}
+		if (license.isPerpetualLicenseExpired) {
+			return true
 		}
-		if (license.isAnnualLicense && license.isLicenseExpired) {
+		if (license.isAnnualLicenseExpired) {
 			return true
 		}
 		return false
