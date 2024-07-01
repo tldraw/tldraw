@@ -5,6 +5,7 @@ import {
 	HTMLContainer,
 	Image,
 	MediaHelpers,
+	RC,
 	TLImageShape,
 	TLOnDoubleClickHandler,
 	TLShapePartial,
@@ -15,10 +16,11 @@ import {
 	structuredClone,
 	toDomPrecision,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import { useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useAsset } from '../shared/useAsset'
+import { useAsset, useRC } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -62,46 +64,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
-		const [loadedSrc, setLoadedSrc] = useState('')
-		const [temporarySrc, setTemporarySrc] = useState('')
+		const [loaded, setLoaded] = useState<null | {
+			src: string | RC<string>
+			isPlaceholder: boolean
+		}>(null)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
-
-		useEffect(() => {
-			if (!asset) return
-			const temporaryAssetPreview = this.editor.getTemporaryAssetPreview(asset.id)
-			if (!asset.props.src && temporaryAssetPreview) {
-				setTemporarySrc(temporaryAssetPreview)
-			}
-		}, [asset])
-
-		useEffect(() => {
-			if (loadedSrc && temporarySrc) {
-				this.editor.clearTemporaryAssetPreview(temporarySrc)
-				setTemporarySrc('')
-			}
-		}, [loadedSrc, temporarySrc])
-
-		useEffect(() => {
-			// We preload the image because we might have different source urls for different
-			// zoom levels.
-			// Preloading the image ensures that the browser caches the image and doesn't
-			// cause visual flickering when the image is loaded.
-			if (url) {
-				let cancelled = false
-
-				const image = Image()
-				image.onload = () => {
-					if (cancelled) return
-					setLoadedSrc(url)
-				}
-				image.src = url
-
-				return () => {
-					cancelled = true
-				}
-			}
-		}, [url, shape])
+		const { asset, url, isPlaceholder } = useAsset(shape.id, shape.props.assetId, shape.props.w)
 
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {
@@ -120,16 +88,17 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
-					setLoadedSrc(url)
+					setLoaded({ src: url, isPlaceholder })
+					if (url instanceof RC) url.release()
 				}
 				image.crossOrigin = 'anonymous'
-				image.src = url
+				image.src = url instanceof RC ? url.retain() : url
 
 				return () => {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, url, shape])
+		}, [prefersReducedMotion, url, shape, isPlaceholder])
 
 		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")
@@ -143,28 +112,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
-		if (temporarySrc) {
-			return (
-				<>
-					<HTMLContainer
-						id={shape.id}
-						style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
-					>
-						<div className="tl-image-container tl-image-temporary">
-							<img
-								className="tl-image"
-								src={temporarySrc}
-								referrerPolicy="strict-origin-when-cross-origin"
-								draggable={false}
-							/>
-						</div>
-					</HTMLContainer>
-				</>
-			)
-		}
+		const nextUrl = url === loaded?.src ? null : url
+		const nextSrc = useRC(nextUrl)
+		const loadedSrc = useRC(!shape.props.playing || reduceMotion ? staticFrameSrc : loaded?.src)
 
 		// This is specifically `asset?.props.src` and not `url` because we're looking for broken assets.
-		if (!asset?.props.src) {
+		if (!url && !asset?.props.src) {
 			return (
 				<HTMLContainer
 					id={shape.id}
@@ -187,22 +140,20 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			)
 		}
 
-		if (!loadedSrc) return null
+		// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
+		// have that set up.
+		const crossOrigin = this.isAnimated(shape) ? 'anonymous' : undefined
 
 		return (
 			<>
-				{showCropPreview && (
+				{showCropPreview && loadedSrc && (
 					<div style={containerStyle}>
 						<img
 							className="tl-image"
-							// We don't set crossOrigin for non-animated images because
-							// for Cloudflare we don't currenly have that set up.
-							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
-							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
+							crossOrigin={crossOrigin}
+							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
-							style={{
-								opacity: 0.1,
-							}}
+							style={{ opacity: 0.1 }}
 							draggable={false}
 						/>
 					</div>
@@ -211,16 +162,40 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					id={shape.id}
 					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
 				>
-					<div className="tl-image-container" style={containerStyle}>
-						<img
-							className="tl-image"
-							// We don't set crossOrigin for non-animated images because
-							// for Cloudflare we don't currenly have that set up.
-							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
-							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
-							referrerPolicy="strict-origin-when-cross-origin"
-							draggable={false}
-						/>
+					<div
+						className={classNames(
+							'tl-image-container',
+							loaded?.isPlaceholder && 'tl-image-container-loading'
+						)}
+						style={containerStyle}
+					>
+						{/* We have two images: the currently loaded image, and the next image that
+						we're waiting to load. we keep the loaded image mounted whilst we're waiting
+						for the next one by storing the loaded URL in state. We use `key` props with
+						the src of the image so that when the next image is ready, the previous one will
+						be unmounted and the next will be shown with the browser having to remount a
+						fresh image and decoded it again from the cache. */}
+						{loadedSrc && (
+							<img
+								key={loadedSrc}
+								className="tl-image"
+								crossOrigin={crossOrigin}
+								src={loadedSrc}
+								referrerPolicy="strict-origin-when-cross-origin"
+								draggable={false}
+							/>
+						)}
+						{nextSrc && (
+							<img
+								key={nextSrc}
+								className={classNames('tl-image tl-image-next', loadedSrc && 'tl-image-pending')}
+								crossOrigin={crossOrigin}
+								src={nextSrc}
+								referrerPolicy="strict-origin-when-cross-origin"
+								draggable={false}
+								onLoad={() => setLoaded({ src: nextUrl!, isPlaceholder })}
+							/>
+						)}
 						{this.isAnimated(shape) && !shape.props.playing && (
 							<div className="tl-image__tg">GIF</div>
 						)}

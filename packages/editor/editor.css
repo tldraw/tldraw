@@ -631,15 +631,58 @@ input,
 	align-items: center;
 }
 
-.tl-image-temporary {
-  mask: linear-gradient(-60deg, #000 30%, #0005, #000 70%) right / 400% 100%;
-  background-repeat: no-repeat;
-  animation: shimmer 1s ease-in-out infinite;
+.tl-image-container {
+	position: relative;
+	overflow: hidden;
+}
+.tl-image {
+	position: absolute;
+	inset: 0;
+}
+.tl-image-pending {
+	opacity: 0;
+	pointer-events: none;
+}
+.tl-image-container::after {
+	content: ' ';
+	display: block;
+	position: absolute;
+	left: -100%;
+	right: -100%;
+	top: 0;
+	bottom: 0;
+
+	background: linear-gradient(
+		-60deg,
+		color-mix(in srgb, transparent 100%, var(--color-background)) 30%,
+		color-mix(in srgb, transparent 27.8%, var(--color-background)) 41.3%,
+		color-mix(in srgb, transparent 4.2%, var(--color-background)) 47.22%,
+		color-mix(in srgb, transparent 0%, var(--color-background)) 50%,
+		color-mix(in srgb, transparent 4.2%, var(--color-background)) 52.78%,
+		color-mix(in srgb, transparent 27.8%, var(--color-background)) 58.7%,
+		color-mix(in srgb, transparent 100%, var(--color-background)) 70%
+	);
+
+	animation: shimmer 1s linear infinite;
+
+	opacity: 0;
+	display: none;
+	transition:
+		opacity 0.5s,
+		display 0.5s allow-discrete;
+}
+
+.tl-image-container.tl-image-container-loading::after {
+	opacity: 0.3;
+	display: block;
 }
 
 @keyframes shimmer {
+	0% {
+		transform: translateX(-100%);
+	}
 	100% {
-		mask-position: left;
+		transform: translateX(100%);
 	}
 }
 
