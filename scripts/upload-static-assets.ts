@@ -57,9 +57,6 @@ export async function uploadStaticAssets(version: string) {
 				await uploadDirectory(`${version}/${folderName}`, `${ASSETS_FOLDER}/${folderName}`)
 			}
 		}
-		// Upload the watermark file
-		const fileName = 'watermark.png'
-		await uploadFile(`${version}/${fileName}`, `${ASSETS_FOLDER}/${fileName}`)
 	} catch (e) {
 		console.error(e)
 		process.exit(1)

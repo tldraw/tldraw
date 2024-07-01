@@ -277,7 +277,7 @@ async function copyTranslations() {
 async function copyWatermark() {
 	await writeFile(
 		join(REPO_ROOT, 'packages', 'editor', 'assets', 'watermark.png'),
-		readFileSync(join(ASSETS_FOLDER_PATH, 'watermark.png'))
+		readFileSync(join(ASSETS_FOLDER_PATH, 'watermarks', 'watermark.png'))
 	)
 }
 
