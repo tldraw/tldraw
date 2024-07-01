@@ -33,11 +33,11 @@ interface ValidLicenseKeyResult {
 	isLicenseValid: true
 	license: LicenseInfo
 	isDomainValid: boolean
-	isAnnualLicenseExpired: boolean
-	isPerpetualLicenseExpired: boolean
 	expiryDate: Date
 	isAnnualLicense: boolean
+	isAnnualLicenseExpired: boolean
 	isPerpetualLicense: boolean
+	isPerpetualLicenseExpired: boolean
 	isInternalLicense: boolean
 }
 
@@ -78,10 +78,10 @@ export class LicenseManager {
 					(host) => host.toLowerCase() === window.location.hostname.toLowerCase()
 				),
 				expiryDate,
-				isAnnualLicenseExpired: isAnnualLicense && this.isAnnualLicenseExpired(expiryDate),
-				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isAnnualLicense,
+				isAnnualLicenseExpired: isAnnualLicense && this.isAnnualLicenseExpired(expiryDate),
 				isPerpetualLicense,
+				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.internalLicense),
 			}
 			this.outputLicenseInfoIfNeeded(result)
