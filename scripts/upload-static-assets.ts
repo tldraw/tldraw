@@ -9,6 +9,7 @@ const env = makeEnv(['R2_ACCESS_KEY_ID', 'R2_ACCESS_KEY_SECRET'])
 const R2_URL = 'https://c34edc4e76350954b63adebde86d5eb1.r2.cloudflarestorage.com'
 const R2_BUCKET = 'cdn'
 const ASSETS_FOLDER = './assets'
+const WATERMARK_FILE = 'watermark.png'
 
 const R2 = new S3Client({
 	region: 'auto',
@@ -54,6 +55,9 @@ export async function uploadStaticAssets(version: string) {
 			if (entry.isDirectory()) {
 				const folderName = entry.name
 				await uploadDirectory(`${version}/${folderName}`, `${ASSETS_FOLDER}/${folderName}`)
+			} else if (entry.isFile() && entry.name === WATERMARK_FILE) {
+				const fileName = entry.name
+				await uploadFile(`${version}/${fileName}`, `${ASSETS_FOLDER}/${fileName}`)
 			}
 		}
 	} catch (e) {
