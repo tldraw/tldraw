@@ -22,7 +22,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			return handleUserAssetGet({
 				request,
 				bucket: this.env.BEMO_BUCKET,
-				objectName: `${this.env.TLDRAW_ENV}/asset-uploads/${request.params.objectName}`,
+				objectName: `asset-uploads/${request.params.objectName}`,
 				context: this.ctx,
 			})
 		})
@@ -30,7 +30,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			return handleUserAssetUpload({
 				request,
 				bucket: this.env.BEMO_BUCKET,
-				objectName: `${this.env.TLDRAW_ENV}/asset-uploads/${request.params.objectName}`,
+				objectName: `asset-uploads/${request.params.objectName}`,
 				context: this.ctx,
 			})
 		})
