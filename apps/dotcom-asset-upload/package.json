@@ -16,6 +16,7 @@
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"dependencies": {
+		"@tldraw/worker-shared": "workspace:*",
 		"itty-cors": "^0.3.4",
 		"itty-router": "^4.0.13"
 	},

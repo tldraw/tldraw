@@ -7,7 +7,7 @@ import {
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
-import { createSentry } from '@tldraw/worker-shared'
+import { createSentry, notFound } from '@tldraw/worker-shared'
 import { Router, createCors, json } from 'itty-router'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -18,7 +18,6 @@ import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
-import { fourOhFour } from './utils/fourOhFour'
 import { unfurl } from './utils/unfurl'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 
@@ -51,7 +50,7 @@ const router = Router()
 		return json(await unfurl(req.query.url))
 	})
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
-	.all('*', fourOhFour)
+	.all('*', notFound)
 
 const Worker = {
 	fetch(request: Request, env: Environment, context: ExecutionContext) {

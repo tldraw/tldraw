@@ -10294,6 +10294,7 @@ __metadata:
   resolution: "dotcom-asset-upload@workspace:apps/dotcom-asset-upload"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
+    "@tldraw/worker-shared": "workspace:*"
     "@types/ws": "npm:^8.5.9"
     itty-cors: "npm:^0.3.4"
     itty-router: "npm:^4.0.13"
