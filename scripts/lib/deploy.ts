@@ -1,9 +1,7 @@
 import * as github from '@actions/github'
-import { readFileSync } from 'fs'
 import { appendFile } from 'fs/promises'
 import { join } from 'path'
 import { env } from 'process'
-import toml from 'toml'
 import { exec } from './exec'
 
 export function getDeployInfo() {
@@ -125,16 +123,14 @@ export async function wranglerDeploy({
 		throw new Error('Could not find the deploy ID in wrangler output')
 	}
 
-	const workerName = toml.parse(readFileSync(join(location, 'wrangler.toml')).toString())?.env?.[
-		env
-	]?.name
+	const workerNameMatch = out.match(/Uploaded ([^ ]+)/)
 
-	if (!workerName) {
+	if (!workerNameMatch) {
 		throw new Error('Could not find the worker name in wrangler output')
 	}
 
 	if (sentry) {
-		const release = sentry.release ?? `${workerName}.${versionMatch[1]}`
+		const release = sentry.release ?? `${workerNameMatch[1]}.${versionMatch[1]}`
 
 		const sentryEnv = {
 			SENTRY_AUTH_TOKEN: sentry.authToken,
@@ -143,13 +139,13 @@ export async function wranglerDeploy({
 		}
 
 		// create a sentry release:
-		exec('yarn', ['run', '-T', 'sentry-cli', 'releases', 'new', release], {
+		await exec('yarn', ['run', '-T', 'sentry-cli', 'releases', 'new', release], {
 			pwd: location,
 			env: sentryEnv,
 		})
 
 		// upload sourcemaps to the release:
-		exec(
+		await exec(
 			'yarn',
 			[
 				'run',
