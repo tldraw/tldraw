@@ -16,8 +16,8 @@
 		"@cloudflare/workers-types": "^4.20240620.0",
 		"@types/node": "~20.11",
 		"discord-api-types": "^0.37.67",
-		"esbuild": "^0.18.4",
+		"esbuild": "^0.21.5",
 		"typescript": "^5.3.3",
-		"wrangler": "3.61.0"
+		"wrangler": "3.62.0"
 	}
 }

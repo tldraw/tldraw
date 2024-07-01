@@ -23,7 +23,7 @@
 		"@cloudflare/workers-types": "^4.20240620.0",
 		"@types/ws": "^8.5.9",
 		"lazyrepo": "0.0.0-alpha.27",
-		"wrangler": "3.61.0"
+		"wrangler": "3.62.0"
 	},
 	"jest": {
 		"preset": "config/jest/node",

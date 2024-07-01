@@ -1,5 +1,5 @@
 {
-	"name": "@tldraw/dotcom-worker",
+	"name": "@tldraw/bemo-worker",
 	"description": "A tiny little drawing app (merge server).",
 	"version": "2.0.0-alpha.11",
 	"private": true,
@@ -19,8 +19,6 @@
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"dependencies": {
-		"@supabase/auth-helpers-remix": "^0.2.2",
-		"@supabase/supabase-js": "^2.33.2",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",

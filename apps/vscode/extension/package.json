@@ -137,7 +137,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.57.0",
 		"@typescript-eslint/parser": "^5.57.0",
 		"assert": "^2.0.0",
-		"esbuild": "^0.18.4",
+		"esbuild": "^0.21.5",
 		"eslint": "^8.37.0",
 		"fs-extra": "^11.1.0",
 		"lazyrepo": "0.0.0-alpha.27",

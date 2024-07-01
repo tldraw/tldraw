@@ -35,7 +35,7 @@
 		"@typescript-eslint/utils": "^5.59.0",
 		"ast-types": "^0.14.2",
 		"cross-fetch": "^3.1.5",
-		"esbuild": "^0.18.4",
+		"esbuild": "^0.21.5",
 		"eslint": "^8.37.0",
 		"glob": "^8.0.3",
 		"gray-matter": "^4.0.3",
@@ -59,6 +59,7 @@
 		"ignore": "^5.2.4",
 		"minimist": "^1.2.8",
 		"tar": "^7.0.1",
-		"tmp": "^0.2.3"
+		"tmp": "^0.2.3",
+		"toml": "^3.0.0"
 	}
 }

@@ -18,7 +18,7 @@ import {
 } from '@tldraw/tlsync'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest, Router } from 'itty-router'
-import Toucan from 'toucan-js'
+import { Toucan } from 'toucan-js'
 import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
@@ -218,21 +218,17 @@ export class TLDrawDurableObject {
 		const sentry = new Toucan({
 			dsn: this.sentryDSN,
 			request: req,
-			allowedHeaders: ['user-agent'],
-			allowedSearchParams: /(.*)/,
+			requestDataOptions: {
+				allowedHeaders: ['user-agent'],
+				allowedSearchParams: /(.*)/,
+			},
 		})
 
 		try {
-			return await this.router.handle(req).catch((err) => {
-				console.error(err)
-				sentry.captureException(err)
-
-				return new Response('Something went wrong', {
-					status: 500,
-					statusText: 'Internal Server Error',
-				})
-			})
+			return await this.router.handle(req)
 		} catch (err) {
+			console.error(err)
+			// eslint-disable-next-line deprecation/deprecation
 			sentry.captureException(err)
 			return new Response('Something went wrong', {
 				status: 500,

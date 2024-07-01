@@ -1,0 +1,26 @@
+{
+	"extends": "../../config/tsconfig.base.json",
+	"include": ["src", "scripts"],
+	"exclude": ["node_modules", "dist", ".tsbuild*"],
+	"compilerOptions": {
+		"noEmit": true,
+		"emitDeclarationOnly": false
+	},
+	"references": [
+		{
+			"path": "../../packages/dotcom-shared"
+		},
+		{
+			"path": "../../packages/store"
+		},
+		{
+			"path": "../../packages/tlschema"
+		},
+		{
+			"path": "../../packages/tlsync"
+		},
+		{
+			"path": "../../packages/utils"
+		}
+	]
+}
