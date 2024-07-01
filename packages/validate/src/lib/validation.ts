@@ -1004,7 +1004,7 @@ export const srcUrl = string.check((value) => {
 })
 
 /**
- * Validates that a valid is a url safe to load as an asset.
+ * Validates an http(s) url
  *
  * @public
  */
