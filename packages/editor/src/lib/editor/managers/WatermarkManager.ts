@@ -23,14 +23,10 @@ export class WatermarkManager {
 		if (!license.isDomainValid) {
 			return true
 		}
-		// We always show a watermark for expired internal licenses
-		if (license.isInternalLicense && license.isAnnualLicenseExpired) {
-			return true
-		}
-		if (license.isPerpetualLicenseExpired) {
-			return true
-		}
-		if (license.isAnnualLicenseExpired) {
+		if (license.isPerpetualLicenseExpired || license.isAnnualLicenseExpired) {
+			if (license.isInternalLicense) {
+				throw new Error('Internal license expired.')
+			}
 			return true
 		}
 		return false
