@@ -81,7 +81,6 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 						screenScale,
 					})
 					.then((resolvedUrl) => {
-						console.log(resolvedUrl)
 						// If the new url is the same as the old one, don't update
 						if (rPrevUrl.current === resolvedUrl) {
 							return
