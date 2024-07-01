@@ -1,14 +1,18 @@
-import { generateKeyPair, generateLicenseKey } from '../../utils/licensing'
+import { ab2str, exportCryptoKey, str2ab } from '../../utils/licensing'
 import { LicenseManager } from './LicenseManager'
 
 describe('LicenseManager', () => {
+	let keyPair: { publicKey: string; privateKey: string }
+	let licenseManager: LicenseManager
+	beforeAll(async () => {
+		keyPair = await generateKeyPair()
+		licenseManager = new LicenseManager(keyPair.publicKey)
+	})
 	it('Checks if a license key was provided', async () => {
-		const licenseManager = new LicenseManager()
 		const result = await licenseManager.getLicenseFromKey('')
 		expect(result).toMatchObject({ isLicenseValid: false, reason: 'no-key-provided' })
 	})
 	it('Validates the license key', async () => {
-		const keyPair = await generateKeyPair()
 		const licenseManager = new LicenseManager(keyPair.publicKey)
 		const invalidLicenseKey = await generateLicenseKey(
 			JSON.stringify({
@@ -22,8 +26,6 @@ describe('LicenseManager', () => {
 		expect(result).toMatchObject({ isLicenseValid: false, reason: 'invalid-license-key' })
 	})
 	it('Checks if the license key has expired', async () => {
-		const keyPair = await generateKeyPair()
-		const licenseManager = new LicenseManager(keyPair.publicKey)
 		const licenseInfo = {
 			expiry: Date.now() - 1000,
 			company: 'Test Company',
@@ -46,3 +48,72 @@ describe('LicenseManager', () => {
 	it.todo('Checks the environment')
 	it.todo('Checks the host')
 })
+
+async function generateLicenseKey(
+	message: string,
+	keyPair: { publicKey: string; privateKey: string }
+) {
+	const enc = new TextEncoder()
+	const encodedMsg = enc.encode(message)
+	const privateKey = await importPrivateKey(keyPair.privateKey)
+
+	const signedLicenseKeyBuffer = await crypto.subtle.sign(
+		{
+			name: 'ECDSA',
+			hash: { name: 'SHA-384' },
+		},
+		privateKey,
+		encodedMsg
+	)
+
+	const signature = btoa(ab2str(signedLicenseKeyBuffer))
+	const prefix = 'tldraw'
+	const licenseKey = `${prefix}/${btoa(message)}.${signature}`
+
+	return licenseKey
+}
+
+/*
+  Import a PEM encoded RSA private key, to use for RSA-PSS signing.
+  Takes a string containing the PEM encoded key, and returns a Promise
+  that will resolve to a CryptoKey representing the private key.
+*/
+function importPrivateKey(pem: string) {
+	// fetch the part of the PEM string between header and footer
+	const pemHeader = '-----BEGIN PRIVATE KEY-----'
+	const pemFooter = '-----END PRIVATE KEY-----'
+	const pemContents = pem.substring(pemHeader.length, pem.length - pemFooter.length - 1)
+	// base64 decode the string to get the binary data
+	const binaryDerString = atob(pemContents)
+	// convert from a binary string to an ArrayBuffer
+	const binaryDer = str2ab(binaryDerString) as Uint8Array
+
+	return crypto.subtle.importKey(
+		'pkcs8',
+		binaryDer,
+		{
+			name: 'ECDSA',
+			namedCurve: 'P-384',
+		},
+		true,
+		['sign']
+	)
+}
+
+/*
+  Generate a sign/verify key pair.
+*/
+async function generateKeyPair() {
+	const keyPair = await crypto.subtle.generateKey(
+		{
+			name: 'ECDSA',
+			namedCurve: 'P-384',
+		},
+		true,
+		['sign', 'verify']
+	)
+	const publicKey = await exportCryptoKey(keyPair.publicKey, true /* isPublic */)
+	const privateKey = await exportCryptoKey(keyPair.privateKey)
+
+	return { publicKey, privateKey }
+}
