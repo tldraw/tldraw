@@ -17,7 +17,7 @@ const licenseInfoValidator = T.object({
 	validHosts: T.arrayOf(T.string),
 	flags: T.number,
 	env: T.literalEnum('Production', 'Development'),
-}).allowUnknownProperties()
+})
 
 export type LicenseInfo = T.TypeOf<typeof licenseInfoValidator>
 export type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided'
@@ -56,7 +56,17 @@ export class LicenseManager {
 			throw new Error('Invalid license key')
 		}
 		const licenseInfo = JSON.parse(util.encodeUTF8(decoded))
-		return licenseInfoValidator.validate(licenseInfo)
+		try {
+			return licenseInfoValidator.validate(licenseInfo)
+		} catch (e: any) {
+			if (e.message.includes('Unexpected property')) {
+				this.outputMessages([
+					'License key contains some uknown properties.',
+					'You may want to update tldraw packages to a newer version to get access to new functionality.',
+				])
+			}
+		}
+		return licenseInfoValidator.allowUnknownProperties().validate(licenseInfo)
 	}
 
 	getLicenseFromKey(licenseKey?: string): LicenseFromKeyResult {
