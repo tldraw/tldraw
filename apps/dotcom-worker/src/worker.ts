@@ -7,7 +7,7 @@ import {
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { Router, createCors } from 'itty-router'
-import Toucan from 'toucan-js'
+import { Toucan } from 'toucan-js'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
@@ -51,8 +51,10 @@ const Worker = {
 			dsn: env.SENTRY_DSN,
 			context, // Includes 'waitUntil', which is essential for Sentry logs to be delivered. Modules workers do not include 'request' in context -- you'll need to set it separately.
 			request, // request is not included in 'context', so we set it here.
-			allowedHeaders: ['user-agent'],
-			allowedSearchParams: /(.*)/,
+			requestDataOptions: {
+				allowedHeaders: ['user-agent'],
+				allowedSearchParams: /(.*)/,
+			},
 		})
 
 		return router
