@@ -1,11 +1,19 @@
+import w from '../../../watermark.png'
 import { TL_CONTAINER_CLASS } from '../../TldrawEditor'
+import { getDefaultCdnBaseUrl } from '../../utils/assets'
 import { Editor } from '../Editor'
 import { LicenseFromKeyResult } from './LicenseManager'
+const WATERMARK_FILENAME = 'watermark.png'
 
 export class WatermarkManager {
 	constructor(private editor: Editor) {}
 	private createWatermark() {
-		const watermark = document.createElement('a')
+		const watermark = document.createElement('img')
+		if (navigator.onLine) {
+			watermark.src = `${getDefaultCdnBaseUrl()}/${WATERMARK_FILENAME}`
+		} else {
+			watermark.src = w
+		}
 		this.applyStyles(watermark)
 		const canvas = this.getWatermarkParent()
 
@@ -40,29 +48,20 @@ export class WatermarkManager {
 			if (!canvas) return
 			const children = [...canvas.children]
 			const watermark = children.find(
-				(element) => element.innerHTML === 'tldraw.dev'
-			) as HTMLAnchorElement
+				(element) => element instanceof HTMLImageElement && element.src.includes(WATERMARK_FILENAME)
+			) as HTMLImageElement
 			if (!watermark) {
 				this.createWatermark()
 			}
 			this.applyStyles(watermark)
 		}, 5000)
 	}
-	applyStyles(watermark: HTMLAnchorElement) {
-		const watermarkStyle = {
-			backgroundColor: 'rgb(0, 0, 0)',
-			color: 'white',
-			padding: '12px',
-			fontFamily: 'Arial',
-			fontSize: '20px',
-		}
-		Object.assign(watermark.style, watermarkStyle)
+	applyStyles(watermark: HTMLImageElement) {
+		watermark.style.width = '120px'
 		watermark.style.setProperty('position', 'absolute', 'important')
 		watermark.style.setProperty('bottom', '60px', 'important')
 		watermark.style.setProperty('right', '20px', 'important')
 		watermark.style.setProperty('opacity', '1', 'important')
 		watermark.style.setProperty('z-index', '99999', 'important')
-		watermark.innerHTML = 'tldraw.dev'
-		watermark.href = 'https://tldraw.dev'
 	}
 }
