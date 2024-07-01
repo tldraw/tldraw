@@ -161,9 +161,6 @@ export class TLLocalSyncClient {
 		} catch (error: any) {
 			onLoadError(error)
 			showCantReadFromIndexDbAlert()
-			if (typeof window !== 'undefined') {
-				window.location.reload()
-			}
 			return
 		}
 

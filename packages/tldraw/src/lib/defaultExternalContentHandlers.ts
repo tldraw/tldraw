@@ -3,6 +3,7 @@ import {
 	Editor,
 	FileHelpers,
 	MediaHelpers,
+	RC,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkShape,
@@ -227,7 +228,7 @@ export function registerDefaultExternalContentHandlers(
 
 		const pagePoint = new Vec(position.x, position.y)
 		const assets: TLAsset[] = []
-		const assetsToUpdate: { asset: TLAsset; file: File }[] = []
+		const assetsToUpdate: { asset: TLAsset; file: File; temporaryAssetPreview?: RC<string> }[] = []
 		for (const file of files) {
 			if (file.size > maxAssetSize) {
 				console.warn(
@@ -261,11 +262,13 @@ export function registerDefaultExternalContentHandlers(
 			const hash = await getHashForBuffer(await file.arrayBuffer())
 			const assetId: TLAssetId = AssetRecordType.createId(hash)
 			const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
+			let temporaryAssetPreview
 			if (isImageType) {
-				editor.setTemporaryAssetPreview(assetId, file)
+				temporaryAssetPreview = editor.createTemporaryAssetPreview(assetId, file)
+				temporaryAssetPreview.retain()
 			}
 			assets.push(assetInfo)
-			assetsToUpdate.push({ asset: assetInfo, file })
+			assetsToUpdate.push({ asset: assetInfo, file, temporaryAssetPreview })
 		}
 
 		Promise.allSettled(
@@ -289,6 +292,8 @@ export function registerDefaultExternalContentHandlers(
 					})
 					console.error(error)
 					return
+				} finally {
+					assetAndFile.temporaryAssetPreview?.release()
 				}
 			})
 		)
