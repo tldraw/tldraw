@@ -56,8 +56,12 @@ export class LicenseManager {
 			console.error(e)
 			throw new Error('Invalid signature')
 		}
-
-		const decodedData = JSON.parse(atob(encodedData))
+		let decodedData: any
+		try {
+			decodedData = JSON.parse(atob(encodedData))
+		} catch (e) {
+			throw new Error('Could not parse object')
+		}
 		return licenseInfoValidator.validate(decodedData)
 	}
 
