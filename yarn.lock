@@ -6000,13 +6000,13 @@ __metadata:
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/tlsync": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/worker-shared": "workspace:*"
     esbuild: "npm:^0.21.5"
     itty-router: "npm:^4.0.13"
     lazyrepo: "npm:0.0.0-alpha.27"
     nanoid: "npm:4.0.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
-    toucan-js: "npm:^3.4.0"
     typescript: "npm:^5.3.3"
     wrangler: "npm:3.62.0"
   languageName: unknown
@@ -6103,13 +6103,13 @@ __metadata:
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/tlsync": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/worker-shared": "workspace:*"
     esbuild: "npm:^0.21.5"
     itty-router: "npm:^4.0.13"
     lazyrepo: "npm:0.0.0-alpha.27"
     nanoid: "npm:4.0.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
-    toucan-js: "npm:^3.4.0"
     typescript: "npm:^5.3.3"
     wrangler: "npm:3.62.0"
   languageName: unknown
@@ -6360,6 +6360,18 @@ __metadata:
     react-dom: "npm:^18.2.0"
     tldraw: "workspace:*"
     tslib: "npm:^2.6.2"
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/worker-shared@workspace:*, @tldraw/worker-shared@workspace:packages/worker-shared":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/worker-shared@workspace:packages/worker-shared"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20240620.0"
+    "@tldraw/utils": "workspace:*"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    toucan-js: "npm:^3.4.0"
+    typescript: "npm:^5.3.3"
   languageName: unknown
   linkType: soft
 

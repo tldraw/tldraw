@@ -1,9 +1,9 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
+import { createSentry } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { Router, createCors } from 'itty-router'
-import { createSentry } from './sentry'
 import { Environment } from './types'
 
 export { BemoDO } from './BemoDO'

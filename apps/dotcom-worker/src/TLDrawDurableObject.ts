@@ -17,8 +17,8 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/tlsync'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+import { createSentry } from '@tldraw/worker-shared'
 import { IRequest, Router } from 'itty-router'
-import { Toucan } from 'toucan-js'
 import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
@@ -215,14 +215,7 @@ export class TLDrawDurableObject {
 
 	// Handle a request to the Durable Object.
 	async fetch(req: IRequest) {
-		const sentry = new Toucan({
-			dsn: this.sentryDSN,
-			request: req,
-			requestDataOptions: {
-				allowedHeaders: ['user-agent'],
-				allowedSearchParams: /(.*)/,
-			},
-		})
+		const sentry = createSentry(this.state, this.env, req)
 
 		try {
 			return await this.router.handle(req)

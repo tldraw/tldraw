@@ -25,6 +25,8 @@ export interface Environment {
 	SLUG_TO_READONLY_SLUG: KVNamespace
 	READONLY_SLUG_TO_SLUG: KVNamespace
 
+	CF_VERSION_METADATA: WorkerVersionMetadata
+
 	// env vars
 	SUPABASE_URL: string | undefined
 	SUPABASE_KEY: string | undefined

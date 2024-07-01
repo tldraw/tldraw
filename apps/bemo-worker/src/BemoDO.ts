@@ -1,6 +1,6 @@
+import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { Router } from 'itty-router'
-import { createSentry } from './sentry'
 import { Environment } from './types'
 
 export class BemoDO extends DurableObject<Environment> {
