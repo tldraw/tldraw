@@ -49,8 +49,8 @@ export class LicenseManager {
 					hash: { name: 'SHA-384' },
 				},
 				publicCryptoKey,
-				new Uint8Array(str2ab(signature)),
-				new Uint8Array(str2ab(encodedData))
+				str2ab(signature) as Uint8Array,
+				str2ab(encodedData) as Uint8Array
 			)
 		} catch (e) {
 			console.error(e)
