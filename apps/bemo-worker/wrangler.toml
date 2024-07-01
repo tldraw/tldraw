@@ -23,10 +23,16 @@ name = "dev-bemo"
 # staging is the same as a preview on main:
 [env.staging]
 name = "canary-bemo"
+routes = [
+  { pattern = "canary-demo.tldraw.xyz", custom_domain = true }
+]
 
 # production gets the proper name
 [env.production]
 name = "production-bemo"
+routes = [
+  { pattern = "demo.tldraw.xyz", custom_domain = true }
+]
 
 #################### Durable objects ####################
 # durable objects have the same configuration in all environments:

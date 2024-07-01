@@ -164,11 +164,16 @@ export async function wranglerDeploy({
 	}
 }
 
-export async function setWranglerPreviewWorkerName(location: string, name: string) {
+export async function setWranglerPreviewConfig(
+	location: string,
+	{ name, customDomain }: { name: string; customDomain?: string }
+) {
 	await appendFile(
 		join(location, 'wrangler.toml'),
 		`
 [env.preview]
-name = "${name}"`
+name = "${name}"
+${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}
+`
 	)
 }

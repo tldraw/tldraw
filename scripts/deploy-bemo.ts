@@ -1,9 +1,11 @@
 import assert from 'assert'
-import path from 'path'
+import { readFileSync } from 'fs'
+import path, { join } from 'path'
+import toml from 'toml'
 import {
 	createGithubDeployment,
 	getDeployInfo,
-	setWranglerPreviewWorkerName,
+	setWranglerPreviewConfig,
 	wranglerDeploy,
 } from './lib/deploy'
 import { Discord } from './lib/discord'
@@ -11,7 +13,7 @@ import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
-const worker = path.relative(process.cwd(), path.resolve(__dirname, '../apps/bemo-worker'))
+const workerDir = path.relative(process.cwd(), path.resolve(__dirname, '../apps/bemo-worker'))
 
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
 // `env` instead. This makes sure that all required env vars are present.
@@ -59,8 +61,15 @@ async function main() {
 		await deployBemoWorker({ dryRun: false })
 	})
 
-	// TODO(alex): real deploy url for bemo
-	const deploymentUrl = `https://${previewId ?? env.TLDRAW_ENV}-bemo.tldraw.dev`
+	// we set the domain in the wrangler.toml file since it's managed by cloudflare
+	const domain = toml.parse(readFileSync(join(workerDir, 'wrangler.toml')).toString())?.env[
+		env.TLDRAW_ENV
+	]?.routes?.[0]?.pattern
+	if (!domain) {
+		throw new Error('Could not find the domain in wrangler.toml')
+	}
+
+	const deploymentUrl = `https://${domain}`
 
 	nicelog('Creating deployment for', deploymentUrl)
 	await createGithubDeployment(env, {
@@ -76,12 +85,15 @@ let didUpdateBemoWorker = false
 async function deployBemoWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-bemo`
 	if (previewId && !didUpdateBemoWorker) {
-		await setWranglerPreviewWorkerName(worker, workerId)
+		await setWranglerPreviewConfig(workerDir, {
+			name: workerId,
+			customDomain: `${previewId}-demo.tldraw.xyz`,
+		})
 		didUpdateBemoWorker = true
 	}
 
 	await wranglerDeploy({
-		location: worker,
+		location: workerDir,
 		dryRun,
 		env: env.TLDRAW_ENV,
 		vars: {

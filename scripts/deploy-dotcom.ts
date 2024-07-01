@@ -9,7 +9,7 @@ import * as tar from 'tar'
 import {
 	createGithubDeployment,
 	getDeployInfo,
-	setWranglerPreviewWorkerName,
+	setWranglerPreviewConfig,
 	wranglerDeploy,
 } from './lib/deploy'
 import { Discord } from './lib/discord'
@@ -165,7 +165,7 @@ async function prepareDotcomApp() {
 let didUpdateAssetUploadWorker = false
 async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateAssetUploadWorker) {
-		await setWranglerPreviewWorkerName(assetUpload, `${previewId}-tldraw-assets`)
+		await setWranglerPreviewConfig(assetUpload, { name: `${previewId}-tldraw-assets` })
 		didUpdateAssetUploadWorker = true
 	}
 
@@ -181,7 +181,7 @@ let didUpdateTlsyncWorker = false
 async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
 	if (previewId && !didUpdateTlsyncWorker) {
-		await setWranglerPreviewWorkerName(worker, workerId)
+		await setWranglerPreviewConfig(worker, { name: workerId })
 		didUpdateTlsyncWorker = true
 	}
 	await wranglerDeploy({
@@ -202,7 +202,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 let didUpdateHealthWorker = false
 async function deployHealthWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateHealthWorker) {
-		await setWranglerPreviewWorkerName(healthWorker, `${previewId}-tldraw-health`)
+		await setWranglerPreviewConfig(healthWorker, { name: `${previewId}-tldraw-health` })
 		didUpdateHealthWorker = true
 	}
 	await wranglerDeploy({

@@ -6228,6 +6228,7 @@ __metadata:
     svgo: "npm:^3.0.2"
     tar: "npm:^7.0.1"
     tmp: "npm:^0.2.3"
+    toml: "npm:^3.0.0"
     typescript: "npm:^5.3.3"
   languageName: unknown
   linkType: soft
@@ -21473,6 +21474,13 @@ __metadata:
   version: 1.0.0
   resolution: "toidentifier@npm:1.0.0"
   checksum: 199e6bfca1531d49b3506cff02353d53ec987c9ee10ee272ca6484ed97f1fc10fb77c6c009079ca16d5c5be4a10378178c3cacdb41ce9ec954c3297c74c6053e
+  languageName: node
+  linkType: hard
+
+"toml@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "toml@npm:3.0.0"
+  checksum: cfef0966868d552bd02e741f30945a611f70841b7cddb07ea2b17441fe32543985bc0a7c0dcf7971af26fcaf8a17712a485d911f46bfe28644536e9a71a2bd09
   languageName: node
   linkType: hard
 
