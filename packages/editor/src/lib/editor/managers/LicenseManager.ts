@@ -79,7 +79,7 @@ export class LicenseManager {
 				),
 				expiryDate,
 				isAnnualLicenseExpired: isAnnualLicense && this.isAnnualLicenseExpired(expiryDate),
-				isPerpetualLicenseExpired: isPerpetualLicense && this.isAnnualLicenseExpired(expiryDate),
+				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isAnnualLicense,
 				isPerpetualLicense,
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.internalLicense),
@@ -113,9 +113,7 @@ export class LicenseManager {
 			minor: new Date(publishDates.minor),
 		}
 		// We allow patch releases, but the major and minor releases should be within the expiration date
-		if (dates.major >= expiration || dates.minor >= expiration) {
-			return true
-		}
+		return dates.major >= expiration || dates.minor >= expiration
 	}
 
 	private isFlagEnabled(flags: number, flag: number) {
