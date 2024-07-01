@@ -1004,6 +1004,22 @@ export const srcUrl = string.check((value) => {
 })
 
 /**
+ * Validates an http(s) url
+ *
+ * @public
+ */
+export const httpUrl = string.check((value) => {
+	if (value === '') return
+	const url = parseUrl(value)
+
+	if (!url.protocol.toLowerCase().match(/^https?:$/)) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
+	}
+})
+
+/**
  * Validates that a value is an IndexKey.
  * @public
  */

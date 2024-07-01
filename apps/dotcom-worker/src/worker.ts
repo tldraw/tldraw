@@ -6,7 +6,8 @@ import {
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { Router, createCors } from 'itty-router'
+import { T } from '@tldraw/validate'
+import { Router, createCors, json } from 'itty-router'
 import { Toucan } from 'toucan-js'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -18,6 +19,7 @@ import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
 import { fourOhFour } from './utils/fourOhFour'
+import { unfurl } from './utils/unfurl'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 
 const { preflight, corsify } = createCors({
@@ -42,6 +44,12 @@ const router = Router()
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)
+	.get('/unfurl', async (req) => {
+		if (typeof req.query.url !== 'string' || !T.httpUrl.isValid(req.query.url)) {
+			return new Response('url query param is required', { status: 400 })
+		}
+		return json(await unfurl(req.query.url))
+	})
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.all('*', fourOhFour)
 
