@@ -26,6 +26,8 @@
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/tlsync": "workspace:*",
 		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*",
+		"esbuild": "^0.18.4",
 		"itty-router": "^4.0.13",
 		"nanoid": "4.0.2",
 		"react": "^18.2.0",

@@ -4946,7 +4946,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/integrations@npm:7.112.2":
+"@sentry/integrations@npm:7.112.2, @sentry/integrations@npm:^7.34.0":
   version: 7.112.2
   resolution: "@sentry/integrations@npm:7.112.2"
   dependencies:
@@ -4955,18 +4955,6 @@ __metadata:
     "@sentry/utils": "npm:7.112.2"
     localforage: "npm:^1.8.1"
   checksum: fbb4852516e801ff3d1ec3e913a4c0237cb4418dfbec82ba70a86cceaf9dfa0db54df38fee4ce461cf07cf7896a3c8be8cca6128be6a42a09601b91719711a0a
-  languageName: node
-  linkType: hard
-
-"@sentry/integrations@npm:^7.34.0":
-  version: 7.93.0
-  resolution: "@sentry/integrations@npm:7.93.0"
-  dependencies:
-    "@sentry/core": "npm:7.93.0"
-    "@sentry/types": "npm:7.93.0"
-    "@sentry/utils": "npm:7.93.0"
-    localforage: "npm:^1.8.1"
-  checksum: 0ca677fcae67c474f0927eef21950ccb26fc7a5790692acc9963c8eccaa6d464a9c6988bda6602de7739387f78e78ff0d3bcbff3244168578cb7549de6dddcbd
   languageName: node
   linkType: hard
 
@@ -6100,6 +6088,7 @@ __metadata:
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/tlsync": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     esbuild: "npm:^0.21.5"
     itty-router: "npm:^4.0.13"
     lazyrepo: "npm:0.0.0-alpha.27"
