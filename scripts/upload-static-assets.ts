@@ -55,11 +55,11 @@ export async function uploadStaticAssets(version: string) {
 			if (entry.isDirectory()) {
 				const folderName = entry.name
 				await uploadDirectory(`${version}/${folderName}`, `${ASSETS_FOLDER}/${folderName}`)
-			} else if (entry.isFile() && entry.name === WATERMARK_FILE) {
-				const fileName = entry.name
-				await uploadFile(`${version}/${fileName}`, `${ASSETS_FOLDER}/${fileName}`)
 			}
 		}
+		// Upload the watermark file
+		const fileName = 'watermark.png'
+		await uploadFile(`${version}/${fileName}`, `${ASSETS_FOLDER}/${fileName}`)
 	} catch (e) {
 		console.error(e)
 		process.exit(1)
