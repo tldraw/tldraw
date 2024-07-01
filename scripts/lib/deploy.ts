@@ -1,7 +1,9 @@
 import * as github from '@actions/github'
+import { readFileSync } from 'fs'
 import { appendFile } from 'fs/promises'
 import { join } from 'path'
 import { env } from 'process'
+import toml from 'toml'
 import { exec } from './exec'
 
 export function getDeployInfo() {
@@ -123,13 +125,16 @@ export async function wranglerDeploy({
 		throw new Error('Could not find the deploy ID in wrangler output')
 	}
 
-	const workerNameMatch = out.match(/https:\/\/([^.]+)\.tldraw\.workers\.dev/)
-	if (!workerNameMatch) {
+	const workerName = toml.parse(readFileSync(join(location, 'wrangler.toml')).toString())?.env?.[
+		env
+	]?.name
+
+	if (!workerName) {
 		throw new Error('Could not find the worker name in wrangler output')
 	}
 
 	if (sentry) {
-		const release = sentry.release ?? `${workerNameMatch[1]}.${versionMatch[1]}`
+		const release = sentry.release ?? `${workerName}.${versionMatch[1]}`
 
 		const sentryEnv = {
 			SENTRY_AUTH_TOKEN: sentry.authToken,
