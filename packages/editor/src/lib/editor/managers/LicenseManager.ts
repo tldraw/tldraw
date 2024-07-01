@@ -17,7 +17,7 @@ const licenseInfoValidator = T.object({
 	validHosts: T.arrayOf(T.string),
 	flags: T.number,
 	env: T.literalEnum('Production', 'Development'),
-})
+}).allowUnknownProperties()
 
 export type LicenseInfo = T.TypeOf<typeof licenseInfoValidator>
 export type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided'
