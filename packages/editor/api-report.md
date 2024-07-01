@@ -846,6 +846,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
     clearOpenMenus(): this;
+    clearTemporaryAssetPreview(objectUrl: string): void;
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
@@ -1054,6 +1055,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         svg: string;
         width: number;
     } | undefined>;
+    getTemporaryAssetPreview(assetId: TLAssetId): string;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): {
         backgroundIndex: number;
@@ -1176,6 +1178,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
+    setTemporaryAssetPreview(assetId: TLAssetId, file: File): void;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };

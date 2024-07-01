@@ -63,8 +63,24 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedSrc, setLoadedSrc] = useState('')
+		const [temporarySrc, setTemporarySrc] = useState('')
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+
+		useEffect(() => {
+			if (!asset) return
+			const temporaryAssetPreview = this.editor.getTemporaryAssetPreview(asset.id)
+			if (!asset.props.src && temporaryAssetPreview) {
+				setTemporarySrc(temporaryAssetPreview)
+			}
+		}, [asset])
+
+		useEffect(() => {
+			if (loadedSrc && temporarySrc) {
+				this.editor.clearTemporaryAssetPreview(temporarySrc)
+				setTemporarySrc('')
+			}
+		}, [loadedSrc, temporarySrc])
 
 		useEffect(() => {
 			// We preload the image because we might have different source urls for different
@@ -126,6 +142,26 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			prefersReducedMotion && (asset?.props.mimeType?.includes('video') || this.isAnimated(shape))
 
 		const containerStyle = getCroppedContainerStyle(shape)
+
+		if (temporarySrc) {
+			return (
+				<>
+					<HTMLContainer
+						id={shape.id}
+						style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+					>
+						<div className="tl-image-container tl-image-temporary">
+							<img
+								className="tl-image"
+								src={temporarySrc}
+								referrerPolicy="strict-origin-when-cross-origin"
+								draggable={false}
+							/>
+						</div>
+					</HTMLContainer>
+				</>
+			)
+		}
 
 		// This is specifically `asset?.props.src` and not `url` because we're looking for broken assets.
 		if (!asset?.props.src) {
