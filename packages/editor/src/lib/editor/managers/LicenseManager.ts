@@ -106,7 +106,7 @@ export class LicenseManager {
 		const expiration = new Date(
 			expiryDate.getFullYear(),
 			expiryDate.getMonth(),
-			expiryDate.getDate() + 1 // Add 1 day to include the expiration day
+			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
 		)
 		const dates = {
 			major: new Date(publishDates.major),
