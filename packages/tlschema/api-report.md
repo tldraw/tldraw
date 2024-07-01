@@ -839,7 +839,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal
     protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
     // (undocumented)
-    readonly defaultValue: Type;
+    defaultValue: Type;
     static define<Type>(uniqueId: string, options: {
         defaultValue: Type;
         type?: T.Validatable<Type>;
@@ -850,6 +850,8 @@ export class StyleProp<Type> implements T.Validatable<Type> {
     }): EnumStyleProp<Values[number]>;
     // (undocumented)
     readonly id: string;
+    // (undocumented)
+    setDefaultValue(value: Type): void;
     // (undocumented)
     readonly type: T.Validatable<Type>;
     // (undocumented)
