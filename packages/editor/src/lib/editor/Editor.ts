@@ -711,11 +711,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
-		this.licenseManager = new LicenseManager()
-		this.watermarkManager = new WatermarkManager(this)
 		this.checkLicenseKey = async () => {
-			const license = await this.licenseManager.getLicenseFromKey(licenseKey)
-			this.watermarkManager.checkWatermark(license)
+			const licenseManager = new LicenseManager()
+			const watermarkManager = new WatermarkManager(this)
+			const license = await licenseManager.getLicenseFromKey(licenseKey)
+			watermarkManager.checkWatermark(license)
 		}
 		this.checkLicenseKey()
 
@@ -820,20 +820,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private focusManager: FocusManager
 
 	/**
-	 * A manager for licensing.
-	 *
-	 * @internal
-	 */
-	private licenseManager: LicenseManager
-	/**
-	 * A manager for the watermark.
-	 *
-	 * @internal
-	 */
-	private watermarkManager: WatermarkManager
-
-	/**
-	 * A function that checks the watermark.
+	 * A function that instantiates the license manager and watermark manager, and
+	 * checks the license key. Showing a watermark if the license key is invalid.
 	 *
 	 */
 	private checkLicenseKey: () => void
