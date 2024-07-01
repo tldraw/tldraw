@@ -77,6 +77,7 @@ export class WebViewMessageHandler {
 					.then(async (json: any) => {
 						this.webviewPanel.webview.postMessage({
 							type: 'vscode:bookmark/response',
+							// Add a suffix to the uuid to represent the response.
 							uuid: e.uuid + '_response',
 							data: {
 								url,
