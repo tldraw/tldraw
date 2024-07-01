@@ -93,21 +93,21 @@ export class LicenseManager {
 		}
 	}
 
-	private isAnnualLicenseExpired(expiryDate: Date) {
-		const expirationWithGracePeriod = new Date(
+	private getExpirationDateWithGracePeriod(expiryDate: Date) {
+		return new Date(
 			expiryDate.getFullYear(),
 			expiryDate.getMonth(),
 			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
 		)
-		return new Date() >= expirationWithGracePeriod
+	}
+
+	private isAnnualLicenseExpired(expiryDate: Date) {
+		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
+		return new Date() >= expiration
 	}
 
 	private isPerpetualLicenseExpired(expiryDate: Date) {
-		const expiration = new Date(
-			expiryDate.getFullYear(),
-			expiryDate.getMonth(),
-			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
-		)
+		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
 		const dates = {
 			major: new Date(publishDates.major),
 			minor: new Date(publishDates.minor),
