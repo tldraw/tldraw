@@ -42,6 +42,7 @@ export async function unfurl(url: string) {
 	const meta$ = new MetaExtractor()
 	const title$ = new TextExtractor()
 	const icon$ = new IconExtractor()
+	// we use cloudflare's special html parser https://developers.cloudflare.com/workers/runtime-apis/html-rewriter/
 	await new HTMLRewriter()
 		.on('meta', meta$)
 		.on('title', title$)
