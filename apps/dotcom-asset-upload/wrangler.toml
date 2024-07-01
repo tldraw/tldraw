@@ -22,10 +22,6 @@ binding = 'UPLOADS'
 bucket_name = 'uploads'
 preview_bucket_name = 'uploads-preview'
 
-[[env.staging.unsafe.bindings]]
-type = "analytics_engine"
-name = "MEASURE"
-
 [[env.staging.analytics_engine_datasets]] 
 binding = "MEASURE"
 
@@ -43,10 +39,6 @@ zone_name = 'tldraw.xyz'
 binding = 'UPLOADS'
 bucket_name = 'uploads'
 preview_bucket_name = 'uploads-preview'
-
-[[env.production.unsafe.bindings]]
-type = "analytics_engine"
-name = "MEASURE"
 
 [[env.production.analytics_engine_datasets]] 
 binding = "MEASURE"
