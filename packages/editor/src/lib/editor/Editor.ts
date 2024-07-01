@@ -713,14 +713,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.licenseManager = new LicenseManager()
 		this.watermarkManager = new WatermarkManager(this)
-		this.licenseManager
-			.getLicenseFromKey(licenseKey)
-			.then((license) => {
-				this.watermarkManager.checkWatermark(license)
-			})
-			.catch((error) => {
-				throw new Error(`Error getting license: ${error}`)
-			})
+		this.checkLicenseKey = async () => {
+			const license = await this.licenseManager.getLicenseFromKey(licenseKey)
+			this.watermarkManager.checkWatermark(license)
+		}
+		this.checkLicenseKey()
 
 		this.performanceTracker = new PerformanceTracker()
 	}
@@ -834,6 +831,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private watermarkManager: WatermarkManager
+
+	/**
+	 * A function that checks the watermark.
+	 *
+	 */
+	private checkLicenseKey: () => void
 
 	/**
 	 * The current HTML element containing the editor.

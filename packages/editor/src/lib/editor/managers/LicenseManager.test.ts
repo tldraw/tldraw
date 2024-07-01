@@ -1,4 +1,5 @@
-import { ab2str, exportCryptoKey, str2ab } from '../../utils/licensing'
+import crypto from 'crypto'
+import { ab2str, str2ab } from '../../utils/licensing'
 import { LicenseManager } from './LicenseManager'
 
 describe('LicenseManager', () => {
@@ -116,4 +117,11 @@ async function generateKeyPair() {
 	const privateKey = await exportCryptoKey(keyPair.privateKey)
 
 	return { publicKey, privateKey }
+}
+
+async function exportCryptoKey(key: CryptoKey, isPublic = false) {
+	const keyType = isPublic ? 'PUBLIC' : 'PRIVATE'
+	const exported = await crypto.subtle.exportKey(isPublic ? 'spki' : 'pkcs8', key)
+	const exportedAsBase64 = btoa(ab2str(exported))
+	return `-----BEGIN ${keyType} KEY-----\n${exportedAsBase64}\n-----END ${keyType} KEY-----`
 }

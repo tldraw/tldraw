@@ -18,13 +18,6 @@ export function str2ab(str: string) {
 	return buf
 }
 
-export async function exportCryptoKey(key: CryptoKey, isPublic = false) {
-	const keyType = isPublic ? 'PUBLIC' : 'PRIVATE'
-	const exported = await crypto.subtle.exportKey(isPublic ? 'spki' : 'pkcs8', key)
-	const exportedAsBase64 = btoa(ab2str(exported))
-	return `-----BEGIN ${keyType} KEY-----\n${exportedAsBase64}\n-----END ${keyType} KEY-----`
-}
-
 export function importPublicKey(pem: string) {
 	const pemHeader = '-----BEGIN PUBLIC KEY-----'
 	const pemFooter = '-----END PUBLIC KEY-----'
