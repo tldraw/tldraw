@@ -26,6 +26,7 @@
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/tlsync": "workspace:*",
 		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
 		"itty-router": "^4.0.13",
 		"nanoid": "4.0.2",

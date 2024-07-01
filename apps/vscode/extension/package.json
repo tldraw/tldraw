@@ -154,6 +154,7 @@
 	},
 	"gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",
 	"dependencies": {
+		"cheerio": "^1.0.0-rc.12",
 		"node-fetch": "^2.0.0"
 	},
 	"peerDependencies": {

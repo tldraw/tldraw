@@ -6012,21 +6012,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/bookmark-extractor@workspace:apps/dotcom-bookmark-extractor":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/bookmark-extractor@workspace:apps/dotcom-bookmark-extractor"
-  dependencies:
-    "@types/cheerio": "npm:0.22.33"
-    "@types/cors": "npm:^2.8.15"
-    cheerio: "npm:1.0.0-rc.12"
-    cors: "npm:^2.8.5"
-    lazyrepo: "npm:0.0.0-alpha.27"
-    tslib: "npm:^2.6.2"
-    typescript: "npm:^5.3.3"
-    vercel: "npm:^34.2.4"
-  languageName: unknown
-  linkType: soft
-
 "@tldraw/docs@workspace:apps/docs":
   version: 0.0.0-use.local
   resolution: "@tldraw/docs@workspace:apps/docs"
@@ -6103,6 +6088,7 @@ __metadata:
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/tlsync": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
     esbuild: "npm:^0.21.5"
     itty-router: "npm:^4.0.13"
@@ -6547,15 +6533,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cheerio@npm:0.22.33":
-  version: 0.22.33
-  resolution: "@types/cheerio@npm:0.22.33"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 21828cccc3da6c1177d884bff4aca3231904e98d262cc3bb98519805144361a39be24a89b7099c38457152b3822b59121a82111479d1d8f65e3703073a9245fd
-  languageName: node
-  linkType: hard
-
 "@types/classnames@npm:^2.3.1":
   version: 2.3.1
   resolution: "@types/classnames@npm:2.3.1"
@@ -6583,15 +6560,6 @@ __metadata:
   version: 2.5.8
   resolution: "@types/core-js@npm:2.5.8"
   checksum: 58c4b86102b13b778d3631d38913c788ef7f688d99fbd741f6241a9cedc7e986e670011bdccd58b32e28e97b9c0fa6fffedef6ba0f670a005b321788a5a01a65
-  languageName: node
-  linkType: hard
-
-"@types/cors@npm:^2.8.15":
-  version: 2.8.17
-  resolution: "@types/cors@npm:2.8.17"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 469bd85e29a35977099a3745c78e489916011169a664e97c4c3d6538143b0a16e4cc72b05b407dc008df3892ed7bf595f9b7c0f1f4680e169565ee9d64966bde
   languageName: node
   linkType: hard
 
@@ -9115,7 +9083,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cheerio@npm:1.0.0-rc.12, cheerio@npm:^1.0.0-rc.12, cheerio@npm:^1.0.0-rc.9":
+"cheerio@npm:^1.0.0-rc.12, cheerio@npm:^1.0.0-rc.9":
   version: 1.0.0-rc.12
   resolution: "cheerio@npm:1.0.0-rc.12"
   dependencies:
@@ -9638,16 +9606,6 @@ __metadata:
   version: 3.35.0
   resolution: "core-js@npm:3.35.0"
   checksum: 0815fce6bcc91d79d4b28885975453b0faa4d17fc2230635102b4f3832cd621035e4032aa3307e1dbe0ee14d5e34bcb64b507fd89bd8f567aedaf29538522e6a
-  languageName: node
-  linkType: hard
-
-"cors@npm:^2.8.5":
-  version: 2.8.5
-  resolution: "cors@npm:2.8.5"
-  dependencies:
-    object-assign: "npm:^4"
-    vary: "npm:^1"
-  checksum: 66e88e08edee7cbce9d92b4d28a2028c88772a4c73e02f143ed8ca76789f9b59444eed6b1c167139e76fa662998c151322720093ba229f9941365ada5a6fc2c6
   languageName: node
   linkType: hard
 
@@ -17971,7 +17929,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"object-assign@npm:^4, object-assign@npm:^4.1.1":
+"object-assign@npm:^4.1.1":
   version: 4.1.1
   resolution: "object-assign@npm:4.1.1"
   checksum: fcc6e4ea8c7fe48abfbb552578b1c53e0d194086e2e6bbbf59e0a536381a292f39943c6e9628af05b5528aa5e3318bb30d6b2e53cadaf5b8fe9e12c4b69af23f
@@ -21388,6 +21346,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^5.57.0"
     "@typescript-eslint/parser": "npm:^5.57.0"
     assert: "npm:^2.0.0"
+    cheerio: "npm:^1.0.0-rc.12"
     esbuild: "npm:^0.21.5"
     eslint: "npm:^8.37.0"
     fs-extra: "npm:^11.1.0"
@@ -22598,13 +22557,6 @@ __metadata:
   version: 13.11.0
   resolution: "validator@npm:13.11.0"
   checksum: 4bf094641eb71729c06a42d669840e7189597ba655a8264adabac9bf03f95cd6fde5fbc894b0a13ee861bd4a852f56d2afdc9391aeaeb3fc0f9633a974140e12
-  languageName: node
-  linkType: hard
-
-"vary@npm:^1":
-  version: 1.1.2
-  resolution: "vary@npm:1.1.2"
-  checksum: 31389debef15a480849b8331b220782230b9815a8e0dbb7b9a8369559aed2e9a7800cd904d4371ea74f4c3527db456dc8e7ac5befce5f0d289014dbdf47b2242
   languageName: node
   linkType: hard
 
