@@ -87,6 +87,7 @@ async function deployBemoWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateBemoWorker) {
 		await setWranglerPreviewConfig(workerDir, {
 			name: workerId,
+			customDomain: `${previewId}-demo.tldraw.xyz`,
 		})
 		didUpdateBemoWorker = true
 	}
