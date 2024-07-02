@@ -9,7 +9,7 @@
 	},
 	"main": "src/index.ts",
 	"scripts": {
-		"dev": "cross-env NODE_ENV=development wrangler dev --log-level info --persist-to tmp-assets",
+		"dev": "yarn run -T tsx ../../scripts/workers/dev.ts --persist-to tmp-assets",
 		"test-ci": "lazy inherit --passWithNoTests",
 		"test": "yarn run -T jest --passWithNoTests",
 		"test-coverage": "lazy inherit --passWithNoTests",
