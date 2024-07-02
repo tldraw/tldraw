@@ -10,7 +10,7 @@ export class WatermarkManager {
 	private createWatermark() {
 		const watermark = document.createElement('img')
 		if (navigator.onLine) {
-			watermark.src = `${getDefaultCdnBaseUrl()}/${WATERMARK_FILENAME}`
+			watermark.src = `${getDefaultCdnBaseUrl()}/watermarks/${WATERMARK_FILENAME}`
 		} else {
 			watermark.src = w
 		}
