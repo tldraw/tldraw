@@ -7,7 +7,7 @@ import {
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
-import { createSentry, notFound } from '@tldraw/worker-shared'
+import { createSentry, getUrlMetadata, notFound } from '@tldraw/worker-shared'
 import { Router, createCors, json } from 'itty-router'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -18,7 +18,6 @@ import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
-import { unfurl } from './utils/unfurl'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 
 const { preflight, corsify } = createCors({
@@ -47,7 +46,7 @@ const router = Router()
 		if (typeof req.query.url !== 'string' || !T.httpUrl.isValid(req.query.url)) {
 			return new Response('url query param is required', { status: 400 })
 		}
-		return json(await unfurl(req.query.url))
+		return json(await getUrlMetadata(req.query.url))
 	})
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.all('*', notFound)

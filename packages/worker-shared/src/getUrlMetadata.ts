@@ -38,7 +38,7 @@ class IconExtractor {
 	}
 }
 
-export async function unfurl(url: string) {
+export async function getUrlMetadata(url: string) {
 	const meta$ = new MetaExtractor()
 	const title$ = new TextExtractor()
 	const icon$ = new IconExtractor()
@@ -48,7 +48,7 @@ export async function unfurl(url: string) {
 		.on('title', title$)
 		.on('link', icon$)
 		.transform((await fetch(url)) as any)
-		.blob?.()
+		.blob()
 
 	const { og, twitter } = meta$
 	const title = og['og:title'] ?? twitter['twitter:title'] ?? title$.string ?? undefined
