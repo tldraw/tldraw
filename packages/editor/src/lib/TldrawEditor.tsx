@@ -170,6 +170,11 @@ export interface TldrawEditorBaseProps {
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
+
+	/**
+	 * The license key.
+	 */
+	licenseKey?: string
 }
 
 /**
@@ -193,6 +198,8 @@ declare global {
 const EMPTY_SHAPE_UTILS_ARRAY = [] as const
 const EMPTY_BINDING_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
+/** @internal */
+export const TL_CONTAINER_CLASS = 'tl-container'
 
 /** @public @react */
 export const TldrawEditor = memo(function TldrawEditor({
@@ -223,7 +230,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		<div
 			ref={setContainer}
 			draggable={false}
-			className={classNames('tl-container tl-theme__light', className)}
+			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
 			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
 		>
@@ -340,6 +347,7 @@ function TldrawEditorWithReadyStore({
 	inferDarkMode,
 	cameraOptions,
 	assetOptions,
+	licenseKey,
 	options,
 }: Required<
 	TldrawEditorProps & {
@@ -377,6 +385,7 @@ function TldrawEditorWithReadyStore({
 			cameraOptions,
 			assetOptions,
 			options,
+			licenseKey,
 		})
 
 		editorRef.current = editor
@@ -395,6 +404,7 @@ function TldrawEditorWithReadyStore({
 		initialState,
 		initialAutoFocus,
 		inferDarkMode,
+		licenseKey,
 		cameraOptions,
 		assetOptions,
 		options,

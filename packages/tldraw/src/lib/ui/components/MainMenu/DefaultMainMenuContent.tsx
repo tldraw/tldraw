@@ -2,6 +2,7 @@ import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
+import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
 import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
@@ -45,6 +46,7 @@ export function DefaultMainMenuContent() {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
+			<HelpGroup />
 		</>
 	)
 }
@@ -154,6 +156,32 @@ export function ExtrasGroup() {
 		<TldrawUiMenuGroup id="extras">
 			<TldrawUiMenuItem {...actions['insert-embed']} />
 			<TldrawUiMenuItem {...actions['insert-media']} />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** @public @react */
+export function HelpGroup() {
+	function openUrl(url: string) {
+		window.open(url, '_blank')
+	}
+
+	return (
+		<TldrawUiMenuGroup id="help">
+			<TldrawUiMenuSubmenu id="help" label="menu.help">
+				<TldrawUiMenuGroup id="help-actions">
+					<KeyboardShortcutsMenuItem />
+					<TldrawUiMenuItem
+						id="about"
+						label="help-menu.docs"
+						icon="external-link"
+						readonlyOk
+						onSelect={() => {
+							openUrl('https://tldraw.dev')
+						}}
+					/>
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuSubmenu>
 		</TldrawUiMenuGroup>
 	)
 }

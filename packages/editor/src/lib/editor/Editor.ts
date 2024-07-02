@@ -129,11 +129,13 @@ import { EdgeScrollManager } from './managers/EdgeScrollManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { FocusManager } from './managers/FocusManager'
 import { HistoryManager } from './managers/HistoryManager'
+import { LicenseManager } from './managers/LicenseManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
+import { WatermarkManager } from './managers/WatermarkManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -219,6 +221,7 @@ export interface TLEditorOptions {
 	 */
 	assetOptions?: Partial<TLAssetOptions>
 	options?: Partial<TldrawOptions>
+	licenseKey?: string
 }
 
 /** @public */
@@ -236,6 +239,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
+		licenseKey,
 	}: TLEditorOptions) {
 		super()
 
@@ -707,6 +711,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
+		this.checkLicenseKey(licenseKey)
+
 		this.performanceTracker = new PerformanceTracker()
 	}
 
@@ -806,6 +812,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private focusManager: FocusManager
+
+	/**
+	 * A function that instantiates the license manager and watermark manager, and
+	 * checks the license key. Showing a watermark if the license key is invalid.
+	 *
+	 */
+	private async checkLicenseKey(licenseKey: string | undefined) {
+		const licenseManager = new LicenseManager()
+		const watermarkManager = new WatermarkManager(this)
+		const license = await licenseManager.getLicenseFromKey(licenseKey)
+		watermarkManager.checkWatermark(license)
+	}
 
 	/**
 	 * The current HTML element containing the editor.
