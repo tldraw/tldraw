@@ -1,11 +1,22 @@
 import { T } from '@tldraw/validate'
 import crypto from 'crypto'
+import { publishDates } from '../../../version'
 import { importPublicKey, str2ab } from '../../utils/licensing'
 
+const GRACE_PERIOD_DAYS = 5
+
+const FLAGS = {
+	ANNUAL_LICENSE: 0x1,
+	PERPETUAL_LICENSE: 0x2,
+	INTERNAL_LICENSE: 0x4,
+}
+
 const licenseInfoValidator = T.object({
-	expiry: T.number,
-	company: T.string,
-	hosts: T.arrayOf(T.string),
+	expiryDate: T.string,
+	customer: T.string,
+	validHosts: T.arrayOf(T.string),
+	flags: T.number,
+	env: T.literalEnum('Production', 'Development'),
 })
 
 export type LicenseInfo = T.TypeOf<typeof licenseInfoValidator>
@@ -22,7 +33,12 @@ interface ValidLicenseKeyResult {
 	isLicenseValid: true
 	license: LicenseInfo
 	isDomainValid: boolean
-	isLicenseExpired: boolean
+	expiryDate: Date
+	isAnnualLicense: boolean
+	isAnnualLicenseExpired: boolean
+	isPerpetualLicense: boolean
+	isPerpetualLicenseExpired: boolean
+	isInternalLicense: boolean
 }
 
 export class LicenseManager {
@@ -73,14 +89,22 @@ export class LicenseManager {
 
 		try {
 			const licenseInfo = await this.extractLicenseKey(licenseKey)
+			const expiryDate = new Date(licenseInfo.expiryDate)
+			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.ANNUAL_LICENSE)
+			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.PERPETUAL_LICENSE)
 
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
 				isLicenseValid: true,
-				isDomainValid: licenseInfo.hosts.some(
+				isDomainValid: licenseInfo.validHosts.some(
 					(host) => host.toLowerCase() === window.location.hostname.toLowerCase()
 				),
-				isLicenseExpired: licenseInfo.expiry < Date.now(),
+				expiryDate,
+				isAnnualLicense,
+				isAnnualLicenseExpired: isAnnualLicense && this.isAnnualLicenseExpired(expiryDate),
+				isPerpetualLicense,
+				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
+				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
 			}
 			this.outputLicenseInfoIfNeeded(result)
 			return result
@@ -89,6 +113,33 @@ export class LicenseManager {
 			// If the license can't be parsed, it's invalid
 			return { isLicenseValid: false, reason: 'invalid-license-key' }
 		}
+	}
+
+	private getExpirationDateWithGracePeriod(expiryDate: Date) {
+		return new Date(
+			expiryDate.getFullYear(),
+			expiryDate.getMonth(),
+			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+		)
+	}
+
+	private isAnnualLicenseExpired(expiryDate: Date) {
+		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
+		return new Date() >= expiration
+	}
+
+	private isPerpetualLicenseExpired(expiryDate: Date) {
+		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
+		const dates = {
+			major: new Date(publishDates.major),
+			minor: new Date(publishDates.minor),
+		}
+		// We allow patch releases, but the major and minor releases should be within the expiration date
+		return dates.major >= expiration || dates.minor >= expiration
+	}
+
+	private isFlagEnabled(flags: number, flag: number) {
+		return (flags & flag) === flag
 	}
 
 	private outputNoLicenseKeyProvided() {
@@ -103,7 +154,7 @@ export class LicenseManager {
 	}
 
 	private outputLicenseInfoIfNeeded(result: ValidLicenseKeyResult) {
-		if (result.isLicenseExpired) {
+		if (result.isAnnualLicenseExpired) {
 			this.outputMessages([
 				'Your tldraw license has expired.',
 				'Please reach out to hello@tldraw.com to renew.',
