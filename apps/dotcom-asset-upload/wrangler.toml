@@ -40,7 +40,7 @@ bucket_name = 'uploads-preview'
 
 # in production, we write to the main bucket
 [[env.production.r2_buckets]]
-binding = "ROOMS"
+binding = "UPLOADS"
 bucket_name = "uploads"
 
 #################### Analytics engine ####################
