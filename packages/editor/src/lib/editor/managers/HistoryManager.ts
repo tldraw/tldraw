@@ -72,17 +72,17 @@ export class HistoryManager<R extends UnknownRecord> {
 		}))
 	}
 
-	onBatchComplete: () => void = () => void null
-
 	getNumUndos() {
 		return this.stacks.get().undos.length + (this.pendingDiff.isEmpty() ? 0 : 1)
 	}
+
 	getNumRedos() {
 		return this.stacks.get().redos.length
 	}
 
 	/** @internal */
 	_isInBatch = false
+
 	batch = (fn: () => void, opts?: TLHistoryBatchOptions) => {
 		const previousState = this.state
 
@@ -93,16 +93,13 @@ export class HistoryManager<R extends UnknownRecord> {
 
 		try {
 			if (this._isInBatch) {
-				fn()
+				transact(fn)
 				return this
 			}
 
 			this._isInBatch = true
 			try {
-				transact(() => {
-					fn()
-					this.onBatchComplete()
-				})
+				transact(fn)
 			} catch (error) {
 				this.annotateError(error)
 				throw error
@@ -114,10 +111,6 @@ export class HistoryManager<R extends UnknownRecord> {
 		} finally {
 			this.state = previousState
 		}
-	}
-
-	ignore(fn: () => void) {
-		return this.batch(fn, { history: 'ignore' })
 	}
 
 	// History

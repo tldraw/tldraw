@@ -115,7 +115,7 @@ export function ImageAnnotationEditor({
 		)
 
 		// Reset the history
-		editor.history.clear()
+		editor.clearHistory()
 		setImageShapeId(shapeId)
 
 		return () => {

@@ -12,7 +12,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		(isOpen: boolean) => {
 			rIsOpen.current = isOpen
 
-			editor.batch(() => {
+			editor.run(() => {
 				if (isOpen) {
 					editor.complete()
 					editor.addOpenMenu(id)

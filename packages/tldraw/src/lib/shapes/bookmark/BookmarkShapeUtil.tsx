@@ -233,7 +233,7 @@ const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 		return
 	}
 
-	editor.batch(() => {
+	editor.run(() => {
 		// Create the new asset
 		editor.createAssets([asset])
 

@@ -95,7 +95,7 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 
 							editor.store.clear()
 							editor.store.ensureStoreIsUsable()
-							editor.history.clear()
+							editor.clearHistory()
 							// Put the old bounds back in place
 							editor.updateViewportScreenBounds(bounds)
 							editor.updateInstanceState({ isFocused })
