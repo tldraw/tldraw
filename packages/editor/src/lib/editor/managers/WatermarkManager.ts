@@ -4,13 +4,14 @@ import { getDefaultCdnBaseUrl } from '../../utils/assets'
 import { Editor } from '../Editor'
 import { LicenseFromKeyResult } from './LicenseManager'
 const WATERMARK_FILENAME = 'watermark.png'
+const WATERMARKS_FOLDER = 'watermarks'
 
 export class WatermarkManager {
 	constructor(private editor: Editor) {}
 	private createWatermark() {
 		const watermark = document.createElement('img')
 		if (navigator.onLine) {
-			watermark.src = `${getDefaultCdnBaseUrl()}/watermarks/${WATERMARK_FILENAME}`
+			watermark.src = `${getDefaultCdnBaseUrl()}/${WATERMARKS_FOLDER}/${WATERMARK_FILENAME}`
 		} else {
 			watermark.src = w
 		}
