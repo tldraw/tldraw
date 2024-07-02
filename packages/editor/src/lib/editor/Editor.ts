@@ -711,13 +711,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
-		this.checkLicenseKey = async () => {
-			const licenseManager = new LicenseManager()
-			const watermarkManager = new WatermarkManager(this)
-			const license = await licenseManager.getLicenseFromKey(licenseKey)
-			watermarkManager.checkWatermark(license)
-		}
-		this.checkLicenseKey()
+		this.checkLicenseKey(licenseKey)
 
 		this.performanceTracker = new PerformanceTracker()
 	}
@@ -824,7 +818,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * checks the license key. Showing a watermark if the license key is invalid.
 	 *
 	 */
-	private checkLicenseKey: () => void
+	private async checkLicenseKey(licenseKey: string | undefined) {
+		const licenseManager = new LicenseManager()
+		const watermarkManager = new WatermarkManager(this)
+		const license = await licenseManager.getLicenseFromKey(licenseKey)
+		watermarkManager.checkWatermark(license)
+	}
 
 	/**
 	 * The current HTML element containing the editor.

@@ -1,11 +1,4 @@
 /*
-  Convert an ArrayBuffer into a string
-  from https://developer.chrome.com/blog/how-to-convert-arraybuffer-to-and-from-string/
-*/
-export function ab2str(buf: ArrayBuffer) {
-	return String.fromCharCode.apply(null, buf as unknown as number[])
-}
-/*
   Convert a string into an ArrayBuffer
   from https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
 */
