@@ -43,9 +43,9 @@ interface ValidLicenseKeyResult {
 
 export class LicenseManager {
 	private publicKey: string
-	private isTest: boolean
+	private isDevelopment: boolean
 	constructor(testPublicKey?: string) {
-		this.isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+		this.isDevelopment = typeof process !== 'undefined' && process.env.NODE_ENV === 'development'
 		this.publicKey = testPublicKey || '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
 	}
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
@@ -183,7 +183,7 @@ export class LicenseManager {
 	}
 
 	private outputMessages(messages: string[]) {
-		if (this.isTest) return
+		if (!this.isDevelopment) return
 		this.outputDelimiter()
 		for (const message of messages) {
 			// eslint-disable-next-line no-console
