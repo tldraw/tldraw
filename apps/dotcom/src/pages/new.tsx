@@ -24,6 +24,10 @@ const { loader, useData } = defineLoader(async (_args) => {
 
 export { loader }
 
+const state = {
+	shouldOpenShareMenu: true,
+}
+
 export function Component() {
 	const data = useData()
 	if (!data)
@@ -36,13 +40,5 @@ export function Component() {
 			/>
 		)
 
-	return (
-		<Navigate
-			replace
-			state={{
-				shouldOpenShareMenu: true,
-			}}
-			to={`/${ROOM_PREFIX}/${data.slug}`}
-		/>
-	)
+	return <Navigate replace state={state} to={`/${ROOM_PREFIX}/${data.slug}`} />
 }
