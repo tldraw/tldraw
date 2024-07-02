@@ -18,11 +18,10 @@ describe('LicenseManager', () => {
 
 	it('Checks if a license key was provided', async () => {
 		const result = await licenseManager.getLicenseFromKey('')
-		expect(result).toMatchObject({ isLicenseValid: false, reason: 'no-key-provided' })
+		expect(result).toMatchObject({ isLicenseParseable: false, reason: 'no-key-provided' })
 	})
 
 	it('Validates the license key', async () => {
-		const licenseManager = new LicenseManager(keyPair.publicKey)
 		const invalidLicenseKey = await generateLicenseKey(
 			JSON.stringify({
 				expiryDate: 123456789,
@@ -32,7 +31,7 @@ describe('LicenseManager', () => {
 			keyPair
 		)
 		const result = await licenseManager.getLicenseFromKey(invalidLicenseKey)
-		expect(result).toMatchObject({ isLicenseValid: false, reason: 'invalid-license-key' })
+		expect(result).toMatchObject({ isLicenseParseable: false, reason: 'invalid-license-key' })
 	})
 
 	it('Checks if the license key has expired', async () => {
@@ -44,7 +43,7 @@ describe('LicenseManager', () => {
 		const expiredLicenseKey = await generateLicenseKey(JSON.stringify(licenseInfo), keyPair)
 		const result = await licenseManager.getLicenseFromKey(expiredLicenseKey)
 		expect(result).toMatchObject({
-			isLicenseValid: true,
+			isLicenseParseable: true,
 			license: { ...licenseInfo },
 			isDomainValid: true,
 			isLicenseExpired: true,
@@ -62,6 +61,11 @@ describe('LicenseManager', () => {
 	it.todo('Checks the environment')
 
 	it.todo('Checks the host')
+	it.todo('Checks the host with just *')
+	it.todo('Checks the host with wildcard')
+	it.todo('Allows localhost')
+	it.todo('Checks for internal only')
+	it.todo('Cleanses out valid keys that accidentally have zero-width characters or newlines')
 })
 
 async function generateLicenseKey(
