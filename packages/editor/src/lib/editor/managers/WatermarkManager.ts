@@ -1,16 +1,28 @@
+import w from '../../../../assets/watermark.png'
 import { TL_CONTAINER_CLASS } from '../../TldrawEditor'
+import { getDefaultCdnBaseUrl } from '../../utils/assets'
 import { Editor } from '../Editor'
 import { LicenseFromKeyResult } from './LicenseManager'
+const WATERMARK_FILENAME = 'watermark.png'
+const WATERMARKS_FOLDER = 'watermarks'
 
 export class WatermarkManager {
 	constructor(private editor: Editor) {}
 
 	private createWatermark() {
-		const watermark = document.createElement('a')
-		this.applyStyles(watermark)
-		const canvas = this.getWatermarkParent()
+		const watermark = document.createElement('img')
+		if (navigator.onLine) {
+			watermark.src = `${getDefaultCdnBaseUrl()}/${WATERMARKS_FOLDER}/${WATERMARK_FILENAME}`
+		} else {
+			watermark.src = w
+		}
 
+		this.applyStyles(watermark)
+
+		const canvas = this.getWatermarkParent()
 		if (canvas) canvas.appendChild(watermark)
+
+		return watermark
 	}
 
 	private getWatermarkParent() {
@@ -20,8 +32,14 @@ export class WatermarkManager {
 	private shouldShowWatermark(license: LicenseFromKeyResult) {
 		if (!license.isLicenseParseable) return true
 		if (!license.isDomainValid) return true
-		if (license.isLicenseExpired) return true
 		if (license.isDevelopmentKey) return true
+
+		if (license.isPerpetualLicenseExpired || license.isAnnualLicenseExpired) {
+			if (license.isInternalLicense) {
+				throw new Error('License: Internal license expired.')
+			}
+			return true
+		}
 
 		return false
 	}
@@ -35,18 +53,16 @@ export class WatermarkManager {
 			const canvas = this.getWatermarkParent()
 			if (!canvas) return
 			const children = [...canvas.children]
-			let watermark = children.find(
-				(element) => element.innerHTML === 'tldraw.dev'
-			) as HTMLAnchorElement
 
 			// Ensure the watermark is still there.
 			// We check this once for any naughtiness.
 			// Don't be naughty.
+			let watermark = children.find(
+				(element) => element instanceof HTMLImageElement && element.src.includes(WATERMARK_FILENAME)
+			) as HTMLImageElement
+
 			if (!watermark) {
-				this.createWatermark()
-				watermark = children.find(
-					(element) => element.innerHTML === 'tldraw.dev'
-				) as HTMLAnchorElement
+				watermark = this.createWatermark()
 			}
 
 			this.applyStyles(watermark)
@@ -60,24 +76,18 @@ export class WatermarkManager {
 		return true
 	}
 
-	applyStyles(watermark: HTMLAnchorElement) {
-		const watermarkStyle = {
-			backgroundColor: 'rgb(0, 0, 0)',
-			color: 'white',
-			padding: '12px',
-			fontFamily: 'Arial',
-			fontSize: '20px',
-		}
-
-		Object.assign(watermark.style, watermarkStyle)
+	applyStyles(watermark: HTMLImageElement) {
+		watermark.style.width = '120px'
 		watermark.style.setProperty('position', 'absolute', 'important')
 		watermark.style.setProperty('bottom', '60px', 'important')
 		watermark.style.setProperty('right', '20px', 'important')
 		watermark.style.setProperty('opacity', '1', 'important')
 		watermark.style.setProperty('z-index', '2147483647' /* max */, 'important')
 		watermark.style.setProperty('pointer-events', 'all', 'important')
-		watermark.innerHTML = 'tldraw.dev'
+		watermark.style.setProperty('cursor', 'pointer', 'important')
 		watermark.setAttribute('target', '_blank')
-		watermark.href = 'https://tldraw.dev'
+		watermark.onclick = () => {
+			window.open('https://tldraw.dev', '_blank', 'noopener noreferrer')
+		}
 	}
 }

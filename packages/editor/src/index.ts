@@ -347,7 +347,7 @@ export {
 	SharedStyleMap,
 	type SharedStyle,
 } from './lib/utils/SharedStylesMap'
-export { dataUrlToFile } from './lib/utils/assets'
+export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
 export {
 	debugFlags,
 	featureFlags,

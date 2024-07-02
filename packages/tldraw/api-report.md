@@ -887,9 +887,6 @@ export function getAssetFromIndexedDb({ persistenceKey, assetId, }: {
     persistenceKey: string;
 }): Promise<Blob | undefined>;
 
-// @public (undocumented)
-export function getDefaultCdnBaseUrl(): string;
-
 // @public
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 

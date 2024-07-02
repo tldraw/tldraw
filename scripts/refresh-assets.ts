@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs'
 import { join } from 'path'
+import { SemVer } from 'semver'
 import { optimize } from 'svgo'
+import { publishDates, version } from './../packages/editor/src/version'
 import {
 	readJsonIfExists,
 	REPO_ROOT,
@@ -271,7 +273,15 @@ async function copyTranslations() {
 	}
 }
 
-// 4. ASSET DECLARATION FILES
+// 4. WATERMARK
+async function copyWatermark() {
+	await writeFile(
+		join(REPO_ROOT, 'packages', 'editor', 'assets', 'watermark.png'),
+		readFileSync(join(ASSETS_FOLDER_PATH, 'watermarks', 'watermark.png'))
+	)
+}
+
+// 5. ASSET DECLARATION FILES
 async function writeUrlBasedAssetDeclarationFile() {
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'urls.js')
 	const codeFile = `
@@ -404,11 +414,43 @@ async function writeAssetDeclarationDTSFile() {
 	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', assetDeclarationFilePath, dts)
 }
 
+function getNewPublishDates(packageVersion: string) {
+	const currentVersion = new SemVer(version)
+	const currentPackageVersion = new SemVer(packageVersion)
+	const now = new Date().toISOString()
+	if (currentPackageVersion.major > currentVersion.major) {
+		return {
+			major: now,
+			minor: now,
+			patch: now,
+		}
+	} else if (currentPackageVersion.minor > currentVersion.minor) {
+		return {
+			major: publishDates.major,
+			minor: now,
+			patch: now,
+		}
+	} else if (currentPackageVersion.patch > currentVersion.patch) {
+		return {
+			major: publishDates.major,
+			minor: publishDates.minor,
+			patch: now,
+		}
+	}
+	return publishDates
+}
+
 async function copyVersionToDotCom() {
 	const packageJson = await readJsonIfExists(join(REPO_ROOT, 'packages', 'tldraw', 'package.json'))
 	const packageVersion = packageJson.version
+	const publishDates = getNewPublishDates(packageVersion)
+	const file = `export const version = '${packageVersion}'
+	export const publishDates = {
+		major: '${publishDates.major}',
+		minor: '${publishDates.minor}',
+		patch: '${publishDates.patch}',
+	}`
 
-	const file = `export const version = '${packageVersion}'`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',
@@ -439,6 +481,8 @@ async function main() {
 	await copyFonts()
 	nicelog('Copying translations...')
 	await copyTranslations()
+	nicelog('Copying watermark...')
+	await copyWatermark()
 	nicelog('Writing asset declaration file...')
 	await writeAssetDeclarationDTSFile()
 	await writeUrlBasedAssetDeclarationFile()
