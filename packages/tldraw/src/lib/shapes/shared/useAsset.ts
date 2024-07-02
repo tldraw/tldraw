@@ -4,6 +4,7 @@ import {
 	TLImageShape,
 	TLShapeId,
 	TLVideoShape,
+	uniqueId,
 	useEditor,
 	useReactor,
 } from '@tldraw/editor'
@@ -23,6 +24,7 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 	const rPrevScreenScale = useRef(0)
 	// A timeout we can clear if we need to request a new url
 	const rTimeout = useRef<any>(-1)
+	const rRequestId = useRef(uniqueId())
 
 	useReactor(
 		'update url',
@@ -69,16 +71,24 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 			rPrevScreenScale.current = screenScale
 
 			// Clear any previous timers and set a new one. If we make it here again before the
-			// request is completed, we will clear this timer and set a new one. There's a chance
-			// that the timeout is cancelled after the timeout runs but before the promise resolves,
-			// but we'll just ignore that case (maybe a cancellable promise would be the solution).
+			// request is completed, we will clear this timer and set a new one.
 			clearTimeout(rTimeout.current)
+
+			// ...but there's still a chance that the timeout is cancelled after the timeout runs
+			// but before the promise resolves. Let's also stash a unique id for the request. When the
+			// promise resolves, we'll check if the id is still the same as the stashed id. If it's
+			// been replaced, then we can ignore the result; but if it's the same, we'll use the result.
+			const requestId = (rRequestId.current = uniqueId())
+
 			rTimeout.current = editor.timers.setTimeout(() => {
 				editor
 					.resolveAssetUrl(assetId, {
 						screenScale,
 					})
 					.then((resolvedUrl) => {
+						// let's be sure that the request is still the most recent request
+						if (rRequestId.current !== requestId) return
+
 						// If the new url is the same as the old one, don't update
 						if (rPrevUrl.current === resolvedUrl) {
 							return
