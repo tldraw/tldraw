@@ -22,7 +22,6 @@ describe('LicenseManager', () => {
 	})
 
 	it('Validates the license key', async () => {
-		const licenseManager = new LicenseManager(keyPair.publicKey)
 		const invalidLicenseKey = await generateLicenseKey(
 			JSON.stringify({
 				expiryDate: 123456789,

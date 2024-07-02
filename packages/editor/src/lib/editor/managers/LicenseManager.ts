@@ -54,7 +54,7 @@ export class LicenseManager {
 
 	constructor(testPublicKey?: string) {
 		this.isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
-		this.publicKey = testPublicKey || '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
+		this.publicKey = testPublicKey || this.publicKey
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
