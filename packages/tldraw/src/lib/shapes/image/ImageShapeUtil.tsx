@@ -49,13 +49,17 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	component(shape: TLImageShape) {
-		const { editor } = this
-
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedSrc, setLoadedSrc] = useState('')
 		const { assetId } = shape.props
 		const { asset, url } = useImageAsset(shape.id, assetId)
+
+		if (asset?.type === 'bookmark') {
+			throw Error("Bookmark assets can't be rendered as images")
+		}
+
+		const { editor } = this
 
 		// get whether the asset is animated
 		const isAnimated = useValue(
@@ -86,8 +90,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		useEffect(() => {
 			// We preload the image because we might have different source urls for different
-			// zoom levels.
-			// Preloading the image ensures that the browser caches the image and doesn't
+			// zoom levels. Preloading the image ensures that the browser caches the image and doesn't
 			// cause visual flickering when the image is loaded.
 			if (url) {
 				let cancelled = false
@@ -103,7 +106,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [url, shape])
+		}, [url])
 
 		useEffect(() => {
 			if (url && isAnimated) {
@@ -131,11 +134,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, url, isAnimated])
-
-		if (asset?.type === 'bookmark') {
-			throw Error("Bookmark assets can't be rendered as images")
-		}
+		}, [url, isAnimated])
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
