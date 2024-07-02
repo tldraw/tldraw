@@ -8,7 +8,7 @@ export class BemoDO extends DurableObject<Environment> {
 		const sentry = createSentry(this.ctx, this.env, request)
 		console.error(e)
 		// eslint-disable-next-line deprecation/deprecation
-		sentry.captureException(e)
+		sentry?.captureException(e)
 	}
 
 	private readonly router = Router()

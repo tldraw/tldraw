@@ -1,4 +1,4 @@
-main = "src/index.ts"
+main = "src/worker.ts"
 compatibility_date = "2022-09-22"
 
 [dev]
@@ -34,7 +34,7 @@ preview_bucket_name = 'uploads-preview'
 binding = 'UPLOADS'
 bucket_name = 'uploads-preview'
 
-[[env.stating.r2_buckets]]
+[[env.staging.r2_buckets]]
 binding = 'UPLOADS'
 bucket_name = 'uploads-preview'
 
