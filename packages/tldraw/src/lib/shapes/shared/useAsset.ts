@@ -15,10 +15,9 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 
 	// The resolved url of the asset that should be used by the shape (duplicated as a ref)
 	const [url, setUrl] = useState<string | null>(null)
-
 	// whether the asset is animated
 	const [isAnimated, setIsAnimated] = useState(false)
-
+	// The previous resolved url that we requested, used for a comparison later on
 	const rPrevUrl = useRef(url)
 	// The previous screen scale at which we requested a new url
 	const rPrevScreenScale = useRef(0)
