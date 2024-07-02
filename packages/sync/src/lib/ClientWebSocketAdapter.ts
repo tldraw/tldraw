@@ -1,13 +1,12 @@
+import { assert } from '@tldraw/utils'
+import { atom, Atom, TLRecord } from 'tldraw'
+import { chunk } from './chunk'
+import { TLSocketClientSentEvent, TLSocketServerSentEvent } from './protocol'
 import {
-	chunk,
 	TLCloseEventCode,
 	TLPersistentClientSocket,
 	TLPersistentClientSocketStatus,
-	TLSocketClientSentEvent,
-	TLSocketServerSentEvent,
-} from '@tldraw/tlsync'
-import { assert } from '@tldraw/utils'
-import { atom, Atom, TLRecord } from 'tldraw'
+} from './TLSyncClient'
 
 function listenTo<T extends EventTarget>(target: T, event: string, handler: () => void) {
 	target.addEventListener(event, handler)

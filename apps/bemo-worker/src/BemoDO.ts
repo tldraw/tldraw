@@ -1,5 +1,5 @@
+import { RoomSnapshot, TLCloseEventCode, TLSocketRoom } from '@tldraw/sync'
 import { TLRecord } from '@tldraw/tlschema'
-import { RoomSnapshot, TLCloseEventCode, TLSocketRoom } from '@tldraw/tlsync'
 import { throttle } from '@tldraw/utils'
 import { createPersistQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'

@@ -21,8 +21,8 @@
 	"dependencies": {
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/store": "workspace:*",
+		"@tldraw/sync": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
-		"@tldraw/tlsync": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
 		"itty-router": "^4.0.13",

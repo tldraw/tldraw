@@ -25,7 +25,7 @@
 			"path": "../../packages/tlschema"
 		},
 		{
-			"path": "../../packages/tlsync"
+			"path": "../../packages/sync"
 		},
 		{
 			"path": "../../packages/utils"

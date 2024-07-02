@@ -5997,8 +5997,8 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/sync": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
-    "@tldraw/tlsync": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
     esbuild: "npm:^0.21.5"
@@ -6085,8 +6085,8 @@ __metadata:
     "@supabase/supabase-js": "npm:^2.33.2"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/sync": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
-    "@tldraw/tlsync": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
@@ -6249,8 +6249,48 @@ __metadata:
     lodash.isequal: "npm:^4.5.0"
     nanoid: "npm:4.0.2"
     raf: "npm:^3.4.1"
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/sync-react@workspace:*, @tldraw/sync-react@workspace:packages/sync-react":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/sync-react@workspace:packages/sync-react"
+  dependencies:
+    "@tldraw/sync": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    lodash.isequal: "npm:^4.5.0"
+    nanoevents: "npm:^7.0.1"
+    nanoid: "npm:4.0.2"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.3.3"
+    uuid-by-string: "npm:^4.0.0"
+    uuid-readable: "npm:^0.0.2"
+    ws: "npm:^8.16.0"
   peerDependencies:
     react: ^18
+    react-dom: ^18
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/sync@workspace:*, @tldraw/sync@workspace:packages/sync":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/sync@workspace:packages/sync"
+  dependencies:
+    "@tldraw/state": "workspace:*"
+    "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    lodash.isequal: "npm:^4.5.0"
+    nanoevents: "npm:^7.0.1"
+    nanoid: "npm:4.0.2"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.3.3"
+    uuid-by-string: "npm:^4.0.0"
+    uuid-readable: "npm:^0.0.2"
+    ws: "npm:^8.16.0"
+  peerDependencies:
+    react: ^18
+    react-dom: ^18
   languageName: unknown
   linkType: soft
 
@@ -6280,28 +6320,6 @@ __metadata:
     nanoid: "npm:4.0.2"
   peerDependencies:
     react: ^18
-  languageName: unknown
-  linkType: soft
-
-"@tldraw/tlsync@workspace:*, @tldraw/tlsync@workspace:packages/tlsync":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/tlsync@workspace:packages/tlsync"
-  dependencies:
-    "@tldraw/state": "workspace:*"
-    "@tldraw/store": "workspace:*"
-    "@tldraw/tlschema": "workspace:*"
-    "@tldraw/utils": "workspace:*"
-    lodash.isequal: "npm:^4.5.0"
-    nanoevents: "npm:^7.0.1"
-    nanoid: "npm:4.0.2"
-    tldraw: "workspace:*"
-    typescript: "npm:^5.3.3"
-    uuid-by-string: "npm:^4.0.0"
-    uuid-readable: "npm:^0.0.2"
-    ws: "npm:^8.16.0"
-  peerDependencies:
-    react: ^18
-    react-dom: ^18
   languageName: unknown
   linkType: soft
 
@@ -10334,7 +10352,8 @@ __metadata:
     "@sentry/react": "npm:^7.77.0"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
-    "@tldraw/tlsync": "workspace:*"
+    "@tldraw/sync": "workspace:*"
+    "@tldraw/sync-react": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/qrcode": "npm:^1.5.0"

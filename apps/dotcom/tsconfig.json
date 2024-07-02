@@ -32,10 +32,13 @@
 			"path": "../../packages/dotcom-shared"
 		},
 		{
-			"path": "../../packages/tldraw"
+			"path": "../../packages/sync"
 		},
 		{
-			"path": "../../packages/tlsync"
+			"path": "../../packages/sync-react"
+		},
+		{
+			"path": "../../packages/tldraw"
 		},
 		{
 			"path": "../../packages/utils"

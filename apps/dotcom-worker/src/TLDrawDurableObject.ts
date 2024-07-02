@@ -9,13 +9,13 @@ import {
 	ROOM_PREFIX,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import { TLRecord } from '@tldraw/tlschema'
 import {
 	RoomSnapshot,
 	TLCloseEventCode,
 	TLSocketRoom,
 	type PersistedRoomSnapshotForSupabase,
-} from '@tldraw/tlsync'
+} from '@tldraw/sync'
+import { TLRecord } from '@tldraw/tlschema'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { createPersistQueue, createSentry } from '@tldraw/worker-shared'
 import { IRequest, Router } from 'itty-router'

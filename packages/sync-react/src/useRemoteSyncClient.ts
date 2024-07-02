@@ -1,16 +1,21 @@
 import {
+	ClientWebSocketAdapter,
 	TLCloseEventCode,
 	TLIncompatibilityReason,
 	TLPersistentClientSocketStatus,
+	TLRemoteSyncError,
 	TLSyncClient,
 	schema,
-} from '@tldraw/tlsync'
+} from '@tldraw/sync'
 import { useEffect, useState } from 'react'
 import {
+	Signal,
 	TAB_ID,
 	TLRecord,
 	TLStore,
+	TLStoreSnapshot,
 	TLStoreWithStatus,
+	TLUserPreferences,
 	computed,
 	createPresenceStateDerivation,
 	defaultUserPreferences,
@@ -18,9 +23,6 @@ import {
 	useTLStore,
 	useValue,
 } from 'tldraw'
-import { ClientWebSocketAdapter } from '../utils/remote-sync/ClientWebSocketAdapter'
-import { RemoteSyncError, UseSyncClientConfig } from '../utils/remote-sync/remote-sync'
-import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 
 const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
 
@@ -41,6 +43,7 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 	const store = useTLStore({ schema })
 
 	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
+	const track = opts.trackAnalyticsEvent
 
 	useEffect(() => {
 		if (error) return
@@ -67,8 +70,8 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 
 		socket.onStatusChange((val: TLPersistentClientSocketStatus, closeCode?: number) => {
 			if (val === 'error' && closeCode === TLCloseEventCode.NOT_FOUND) {
-				trackAnalyticsEvent(MULTIPLAYER_EVENT_NAME, { name: 'room-not-found', roomId })
-				setState({ error: new RemoteSyncError(TLIncompatibilityReason.RoomNotFound) })
+				track?.(MULTIPLAYER_EVENT_NAME, { name: 'room-not-found', roomId })
+				setState({ error: new TLRemoteSyncError(TLIncompatibilityReason.RoomNotFound) })
 				client.close()
 				socket.close()
 				return
@@ -82,17 +85,17 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 			socket,
 			didCancel: () => didCancel,
 			onLoad(client) {
-				trackAnalyticsEvent(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
+				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
 				setState({ readyClient: client })
 			},
 			onLoadError(err) {
-				trackAnalyticsEvent(MULTIPLAYER_EVENT_NAME, { name: 'load-error', roomId })
+				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load-error', roomId })
 				console.error(err)
 				setState({ error: err })
 			},
 			onSyncError(reason) {
-				trackAnalyticsEvent(MULTIPLAYER_EVENT_NAME, { name: 'sync-error', roomId, reason })
-				setState({ error: new RemoteSyncError(reason) })
+				track?.(MULTIPLAYER_EVENT_NAME, { name: 'sync-error', roomId, reason })
+				setState({ error: new TLRemoteSyncError(reason) })
 			},
 			onAfterConnect() {
 				// if the server crashes and loses all data it can return an empty document
@@ -111,7 +114,7 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 			client.close()
 			socket.close()
 		}
-	}, [prefs, roomId, store, uri, error])
+	}, [prefs, roomId, store, uri, error, track])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
@@ -128,4 +131,14 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 		},
 		[state]
 	)
+}
+
+/** @public */
+export interface UseSyncClientConfig {
+	uri: string
+	roomId?: string
+	userPreferences?: Signal<TLUserPreferences>
+	snapshotForNewRoomRef?: { current: null | TLStoreSnapshot }
+	/* @internal */
+	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
 }
