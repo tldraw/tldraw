@@ -5,14 +5,22 @@ import { LicenseManager } from './LicenseManager'
 describe('LicenseManager', () => {
 	let keyPair: { publicKey: string; privateKey: string }
 	let licenseManager: LicenseManager
-	beforeAll(async () => {
-		keyPair = await generateKeyPair()
-		licenseManager = new LicenseManager(keyPair.publicKey)
+
+	beforeAll(() => {
+		return new Promise((resolve) => {
+			generateKeyPair().then((kp) => {
+				keyPair = kp
+				licenseManager = new LicenseManager(keyPair.publicKey)
+				resolve(void 0)
+			})
+		})
 	})
+
 	it('Checks if a license key was provided', async () => {
 		const result = await licenseManager.getLicenseFromKey('')
 		expect(result).toMatchObject({ isLicenseValid: false, reason: 'no-key-provided' })
 	})
+
 	it('Validates the license key', async () => {
 		const licenseManager = new LicenseManager(keyPair.publicKey)
 		const invalidLicenseKey = await generateLicenseKey(
@@ -26,6 +34,7 @@ describe('LicenseManager', () => {
 		const result = await licenseManager.getLicenseFromKey(invalidLicenseKey)
 		expect(result).toMatchObject({ isLicenseValid: false, reason: 'invalid-license-key' })
 	})
+
 	it('Checks if the license key has expired', async () => {
 		const licenseInfo = {
 			expiry: Date.now() - 1000,
@@ -41,12 +50,17 @@ describe('LicenseManager', () => {
 			isLicenseExpired: true,
 		})
 	})
+
 	it.todo('It allows a grace period for expired licenses')
+
 	it.todo('Checks versions and permissions')
+
 	it.todo(
 		'Perpetual license: it allows updating important security patches past the release version'
 	)
+
 	it.todo('Checks the environment')
+
 	it.todo('Checks the host')
 })
 
@@ -91,7 +105,7 @@ function importPrivateKey(pem: string) {
 
 	return crypto.subtle.importKey(
 		'pkcs8',
-		binaryDer,
+		new Uint8Array(binaryDer),
 		{
 			name: 'ECDSA',
 			namedCurve: 'P-384',
@@ -131,5 +145,5 @@ async function exportCryptoKey(key: CryptoKey, isPublic = false) {
   from https://developer.chrome.com/blog/how-to-convert-arraybuffer-to-and-from-string/
 */
 export function ab2str(buf: ArrayBuffer) {
-	return String.fromCharCode.apply(null, buf as unknown as number[])
+	return String.fromCharCode.apply(null, new Uint8Array(buf) as unknown as number[])
 }

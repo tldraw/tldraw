@@ -4,7 +4,7 @@
 */
 export function str2ab(str: string) {
 	const buf = new ArrayBuffer(str.length) as Uint8Array
-	const bufView = buf
+	const bufView = new Uint8Array(buf)
 	for (let i = 0, strLen = str.length; i < strLen; i++) {
 		bufView[i] = str.charCodeAt(i)
 	}
@@ -22,7 +22,7 @@ export function importPublicKey(pem: string) {
 
 	return crypto.subtle.importKey(
 		'spki',
-		binaryDer,
+		new Uint8Array(binaryDer),
 		{
 			name: 'ECDSA',
 			namedCurve: 'P-384',
