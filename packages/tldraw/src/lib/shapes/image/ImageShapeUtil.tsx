@@ -49,21 +49,39 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	component(shape: TLImageShape) {
+		const { editor } = this
+
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedSrc, setLoadedSrc] = useState('')
-		const { asset, url, isAnimated } = useImageAsset(shape.id, shape.props.assetId)
+		const { assetId } = shape.props
+		const { asset, url } = useImageAsset(shape.id, assetId)
+
+		// get whether the asset is animated
+		const isAnimated = useValue(
+			'asset is animated',
+			() => {
+				if (!assetId) return false
+				const asset = editor.getAsset(assetId)
+				if (!asset) return false
+				return (
+					('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset.props.mimeType)) ||
+					('isAnimated' in asset.props && asset.props.isAnimated)
+				)
+			},
+			[editor, assetId]
+		)
 
 		const showCropPreview = useValue(
 			'show crop',
 			() => {
 				return (
-					this.editor.isIn('select.crop') &&
-					this.editor.getCroppingShapeId() === shape.id &&
-					shape.id === this.editor.getOnlySelectedShapeId()
+					editor.isIn('select.crop') &&
+					editor.getCroppingShapeId() === shape.id &&
+					shape.id === editor.getOnlySelectedShapeId()
 				)
 			},
-			[this.editor]
+			[editor]
 		)
 
 		useEffect(() => {

@@ -1,5 +1,4 @@
 import {
-	MediaHelpers,
 	TLAssetId,
 	TLImageShape,
 	TLShapeId,
@@ -7,32 +6,38 @@ import {
 	uniqueId,
 	useEditor,
 	useReactor,
+	useValue,
 } from '@tldraw/editor'
 import { useRef, useState } from 'react'
 
 function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 	const editor = useEditor()
-	const asset = assetId ? editor.getAsset(assetId) : null
+
+	const asset = useValue('asset', () => (assetId ? editor.getAsset(assetId) ?? null : null), [
+		editor,
+		assetId,
+	])
 
 	// The resolved url of the asset that should be used by the shape (duplicated as a ref)
 	const [url, setUrl] = useState<string | null>(null)
-	// whether the asset is animated
-	const [isAnimated, setIsAnimated] = useState(false)
 	// The previous resolved url that we requested, used for a comparison later on
-	const rPrevUrl = useRef(url)
+	const rPrevUrl = useRef<string | null>(null)
 	// The previous screen scale at which we requested a new url
 	const rPrevScreenScale = useRef(0)
 	// A timeout we can clear if we need to request a new url
 	const rTimeout = useRef<any>(-1)
+	// A unique id representing the current request
 	const rRequestId = useRef(uniqueId())
 
 	useReactor(
 		'update url',
 		() => {
+			if (!assetId) return
+
 			const shape = editor.getShape<TLImageShape | TLVideoShape>(shapeId)
 			if (!shape) return
 
-			const asset = assetId ? editor.getAsset(assetId) : null
+			const asset = editor.getAsset(assetId)
 			if (!asset) return
 
 			if (editor.getCulledShapes().has(shapeId)) return
@@ -51,11 +56,6 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 					.then((resolvedUrl) => {
 						rPrevUrl.current = resolvedUrl
 						setUrl(resolvedUrl)
-						setIsAnimated(
-							('mimeType' in asset.props &&
-								MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
-								('isAnimated' in asset.props && asset.props.isAnimated)
-						)
 					})
 				return
 			}
@@ -102,7 +102,7 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 		[editor, assetId]
 	)
 
-	return { asset, isAnimated, url }
+	return { asset, url }
 }
 
 /** @internal */
