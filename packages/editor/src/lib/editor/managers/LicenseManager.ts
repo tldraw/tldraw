@@ -43,11 +43,27 @@ interface ValidLicenseKeyResult {
 
 export class LicenseManager {
 	private publicKey: string
-	private isDevelopment: boolean
+	public isDevelopment: boolean
+
 	constructor(testPublicKey?: string) {
-		this.isDevelopment = typeof process !== 'undefined' && process.env.NODE_ENV === 'development'
+		this.isDevelopment = this.getIsDevelopment()
 		this.publicKey = testPublicKey || '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
 	}
+
+	private getIsDevelopment() {
+		if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+			return true
+		}
+		if (
+			typeof import.meta !== 'undefined' &&
+			(import.meta as any).env &&
+			(import.meta as any).env.MODE === 'development'
+		) {
+			return true
+		}
+		return window.location.protocol === 'http:'
+	}
+
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
 		const [data, signature] = licenseKey.split('.')
 		const [prefix, encodedData] = data.split('/')
