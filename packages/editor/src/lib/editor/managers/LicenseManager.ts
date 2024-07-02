@@ -42,11 +42,27 @@ interface ValidLicenseKeyResult {
 
 export class LicenseManager {
 	private publicKey: string
-	private isTest: boolean
+	public isDevelopment: boolean
+
 	constructor(testPublicKey?: string) {
-		this.isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+		this.isDevelopment = this.getIsDevelopment()
 		this.publicKey = testPublicKey || '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
 	}
+
+	private getIsDevelopment() {
+		if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+			return true
+		}
+		if (
+			typeof import.meta !== 'undefined' &&
+			(import.meta as any).env &&
+			(import.meta as any).env.MODE === 'development'
+		) {
+			return true
+		}
+		return window.location.protocol === 'http:'
+	}
+
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
 		const [data, signature] = licenseKey.split('.')
 		const [prefix, encodedData] = data.split('/')
@@ -77,7 +93,17 @@ export class LicenseManager {
 		} catch (e) {
 			throw new Error('Could not parse object')
 		}
-		return licenseInfoValidator.validate(decodedData)
+		try {
+			return licenseInfoValidator.validate(decodedData)
+		} catch (e: any) {
+			if (e.message.includes('Unexpected property')) {
+				this.outputMessages([
+					'License key contains some unknown properties.',
+					'You may want to update tldraw packages to a newer version to get access to new functionality.',
+				])
+			}
+		}
+		return licenseInfoValidator.allowUnknownProperties().validate(decodedData)
 	}
 
 	async getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult> {
@@ -172,7 +198,7 @@ export class LicenseManager {
 	}
 
 	private outputMessages(messages: string[]) {
-		if (this.isTest) return
+		if (!this.isDevelopment) return
 		this.outputDelimiter()
 		for (const message of messages) {
 			// eslint-disable-next-line no-console
