@@ -34,7 +34,7 @@ preview_bucket_name = 'uploads-preview'
 binding = 'UPLOADS'
 bucket_name = 'uploads-preview'
 
-[[env.stating.r2_buckets]]
+[[env.staging.r2_buckets]]
 binding = 'UPLOADS'
 bucket_name = 'uploads-preview'
 
