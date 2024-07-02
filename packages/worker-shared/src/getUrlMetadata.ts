@@ -1,3 +1,9 @@
+import { T } from '@tldraw/validate'
+
+export const urlMetadataQueryValidator = T.object({
+	url: T.httpUrl,
+})
+
 class TextExtractor {
 	string = ''
 	text({ text }: any) {
@@ -38,17 +44,25 @@ class IconExtractor {
 	}
 }
 
-export async function unfurl(url: string) {
+export async function getUrlMetadata({ url }: { url: string }) {
 	const meta$ = new MetaExtractor()
 	const title$ = new TextExtractor()
 	const icon$ = new IconExtractor()
+
+	let response
+	try {
+		response = await fetch(url)
+	} catch {
+		return null
+	}
+
 	// we use cloudflare's special html parser https://developers.cloudflare.com/workers/runtime-apis/html-rewriter/
 	await new HTMLRewriter()
 		.on('meta', meta$)
 		.on('title', title$)
 		.on('link', icon$)
-		.transform((await fetch(url)) as any)
-		.blob?.()
+		.transform(response as any)
+		.blob()
 
 	const { og, twitter } = meta$
 	const title = og['og:title'] ?? twitter['twitter:title'] ?? title$.string ?? undefined

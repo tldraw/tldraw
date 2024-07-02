@@ -7,7 +7,7 @@ interface Context {
 	request?: Request
 }
 
-interface SentryEnvironment {
+export interface SentryEnvironment {
 	readonly SENTRY_DSN: string | undefined
 	readonly TLDRAW_ENV?: string | undefined
 	readonly WORKER_NAME: string | undefined
