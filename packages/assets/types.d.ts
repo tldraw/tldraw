@@ -98,6 +98,9 @@ export type AssetUrls = {
 		leading: string
 		link: string
 		lock: string
+		'logo-1': string
+		'logo-2': string
+		'logo-3': string
 		menu: string
 		minus: string
 		mixed: string

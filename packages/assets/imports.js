@@ -114,6 +114,9 @@ import iconsInfoCircle from './icons/icon/info-circle.svg'
 import iconsLeading from './icons/icon/leading.svg'
 import iconsLink from './icons/icon/link.svg'
 import iconsLock from './icons/icon/lock.svg'
+import iconsLogo1 from './icons/icon/logo-1.svg'
+import iconsLogo2 from './icons/icon/logo-2.svg'
+import iconsLogo3 from './icons/icon/logo-3.svg'
 import iconsMenu from './icons/icon/menu.svg'
 import iconsMinus from './icons/icon/minus.svg'
 import iconsMixed from './icons/icon/mixed.svg'
@@ -307,6 +310,9 @@ export function getAssetUrlsByImport(opts) {
 			leading: formatAssetUrl(iconsLeading, opts),
 			link: formatAssetUrl(iconsLink, opts),
 			lock: formatAssetUrl(iconsLock, opts),
+			'logo-1': formatAssetUrl(iconsLogo1, opts),
+			'logo-2': formatAssetUrl(iconsLogo2, opts),
+			'logo-3': formatAssetUrl(iconsLogo3, opts),
 			menu: formatAssetUrl(iconsMenu, opts),
 			minus: formatAssetUrl(iconsMinus, opts),
 			mixed: formatAssetUrl(iconsMixed, opts),
