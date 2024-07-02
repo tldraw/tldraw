@@ -64,15 +64,12 @@ export async function handleUserAssetGet({ request, bucket, objectName, context 
 	const body = 'body' in object && object.body ? object.body : null
 	const status = body ? (request.headers.get('range') !== null ? 206 : 200) : 304
 
-	const response = new Response(body, { headers, status })
-
 	if (status === 200) {
+		const [cacheBody, responseBody] = body!.tee()
 		// cache the response
-		context.waitUntil(caches.default.put(cacheKey, response.clone()))
+		context.waitUntil(caches.default.put(cacheKey, new Response(cacheBody, { headers, status })))
+		return new Response(responseBody, { headers, status })
 	}
 
-	return new Response(body, {
-		headers,
-		status,
-	})
+	return new Response(body, { headers, status })
 }
