@@ -72,11 +72,10 @@ export class HistoryManager<R extends UnknownRecord> {
 		}))
 	}
 
-	onBatchComplete: () => void = () => void null
-
 	getNumUndos() {
 		return this.stacks.get().undos.length + (this.pendingDiff.isEmpty() ? 0 : 1)
 	}
+
 	getNumRedos() {
 		return this.stacks.get().redos.length
 	}
@@ -94,18 +93,13 @@ export class HistoryManager<R extends UnknownRecord> {
 
 		try {
 			if (this._isInBatch) {
-				transact(() => {
-					fn()
-				})
+				transact(fn)
 				return this
 			}
 
 			this._isInBatch = true
 			try {
-				transact(() => {
-					fn()
-					this.onBatchComplete()
-				})
+				transact(fn)
 			} catch (error) {
 				this.annotateError(error)
 				throw error

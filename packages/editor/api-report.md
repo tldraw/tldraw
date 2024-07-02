@@ -820,7 +820,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     bail(): this;
     bailToMark(id: string): this;
     batch(fn: () => void, opts?: Partial<TLHistoryBatchOptions & {
-        lockedShapes: 'ignore';
+        ignoreShapeLock: boolean;
     }>): this;
     bindingUtils: {
         readonly [K in string]?: BindingUtil<TLUnknownBinding>;
@@ -1217,8 +1217,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>): this;
     updateBindings(partials: (null | TLBindingUpdate | undefined)[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>): this;
-    // (undocumented)
-    _updateCurrentPageState: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>) => void;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: TLHistoryBatchOptions): this;
     updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this;
@@ -1568,8 +1566,6 @@ export class HistoryManager<R extends UnknownRecord> {
     _isInBatch: boolean;
     // (undocumented)
     mark: (id?: string) => string;
-    // (undocumented)
-    onBatchComplete: () => void;
     // (undocumented)
     redo: () => this;
     // (undocumented)

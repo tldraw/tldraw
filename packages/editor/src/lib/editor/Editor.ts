@@ -1066,17 +1066,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		fn: () => void,
 		opts?: Partial<
 			TLHistoryBatchOptions & {
-				lockedShapes: 'ignore'
+				ignoreShapeLock: boolean
 			}
 		>
 	): this {
-		if (opts?.lockedShapes === 'ignore') {
+		if (opts?.ignoreShapeLock) {
 			this._force = true
 		}
 		try {
 			this.history.batch(fn, opts)
 		} finally {
-			if (opts?.lockedShapes === 'ignore') {
+			if (opts?.ignoreShapeLock) {
 				this._force = false
 			}
 		}
@@ -1520,7 +1520,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param partial - The partial of the page state object containing the changes.
-	 * @param historyOptions - The history options for the change.
 	 *
 	 * @public
 	 */
@@ -1532,7 +1531,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._updateCurrentPageState(partial)
 		return this
 	}
-	_updateCurrentPageState = (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>) => {
+	private _updateCurrentPageState = (
+		partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>
+	) => {
 		this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
 			...state,
 			...partial,
@@ -5131,7 +5132,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this.updateShapes(changes)
 			},
-			{ lockedShapes: 'ignore' }
+			{ ignoreShapeLock: true }
 		)
 
 		return this

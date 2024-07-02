@@ -181,7 +181,7 @@ describe('When forced', () => {
 				editor.deleteShapes([ids.lockedShapeA])
 				expect(editor.getCurrentPageShapes().length).toBe(numberOfShapesBefore - 1)
 			},
-			{ lockedShapes: 'ignore' }
+			{ ignoreShapeLock: true }
 		)
 	})
 
@@ -191,7 +191,7 @@ describe('When forced', () => {
 				editor.updateShapes([{ id: ids.lockedShapeA, type: 'geo', x: 100 }])
 				expect(editor.getShape(ids.lockedShapeA)!.x).toBe(100)
 			},
-			{ lockedShapes: 'ignore' }
+			{ ignoreShapeLock: true }
 		)
 	})
 
@@ -203,7 +203,7 @@ describe('When forced', () => {
 				expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
 				expect(editor.getShape(ids.lockedShapeA)!.parentId).not.toBe(editor.getCurrentPageId())
 			},
-			{ lockedShapes: 'ignore' }
+			{ ignoreShapeLock: true }
 		)
 	})
 
@@ -220,7 +220,7 @@ describe('When forced', () => {
 				editor.pointerUp()
 				editor.expectToBeIn('select.idle')
 			},
-			{ lockedShapes: 'ignore' }
+			{ ignoreShapeLock: true }
 		)
 	})
 
@@ -230,7 +230,7 @@ describe('When forced', () => {
 				editor.selectAll()
 				expect(editor.getSelectedShapeIds()).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
 			},
-			{ lockedShapes: 'ignore' }
+			{ ignoreShapeLock: true }
 		)
 	})
 
@@ -246,7 +246,7 @@ describe('When forced', () => {
 					.expectToBeIn('select.idle')
 				expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
 			},
-			{ lockedShapes: 'ignore' }
+			{ ignoreShapeLock: true }
 		)
 	})
 
@@ -261,7 +261,7 @@ describe('When forced', () => {
 				expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
 				expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
 			},
-			{ lockedShapes: 'ignore' }
+			{ ignoreShapeLock: true }
 		)
 	})
 })
@@ -293,7 +293,7 @@ it('works when forced', () => {
 		() => {
 			editor.updateShape({ ...myLockedShape, x: 100 })
 		},
-		{ lockedShapes: 'ignore' }
+		{ ignoreShapeLock: true }
 	)
 	expect(editor.getShape(myShapeId)).toMatchObject({ ...myLockedShape, x: 100 })
 
@@ -302,7 +302,7 @@ it('works when forced', () => {
 		() => {
 			editor.deleteShapes([myLockedShape])
 		},
-		{ lockedShapes: 'ignore' }
+		{ ignoreShapeLock: true }
 	)
 	expect(editor.getShape(myShapeId)).toBeUndefined()
 })
