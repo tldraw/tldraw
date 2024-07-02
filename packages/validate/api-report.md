@@ -56,6 +56,9 @@ export type ExtractRequiredKeys<T extends object> = {
 }[keyof T];
 
 // @public
+const httpUrl: Validator<string>;
+
+// @public
 const indexKey: Validator<IndexKey>;
 
 // @public
@@ -182,6 +185,7 @@ declare namespace T {
         jsonValue,
         linkUrl,
         srcUrl,
+        httpUrl,
         indexKey
     }
 }

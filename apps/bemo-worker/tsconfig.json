@@ -24,9 +24,6 @@
 		},
 		{
 			"path": "../../packages/utils"
-		},
-		{
-			"path": "../../packages/validate"
 		}
 	]
 }
