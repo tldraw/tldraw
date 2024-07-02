@@ -27,7 +27,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			const sentry = createSentry(this.ctx, this.env, request)
 			console.error(error)
 			// eslint-disable-next-line deprecation/deprecation
-			sentry.captureException(error)
+			sentry?.captureException(error)
 			return new Response('Something went wrong', {
 				status: 500,
 				statusText: 'Internal Server Error',
