@@ -6,9 +6,9 @@ import { publishDates } from '../../../version'
 const GRACE_PERIOD_DAYS = 5
 
 const FLAGS = {
-	annualLicense: 1,
-	perpetualLicense: 2,
-	internalLicense: 4,
+	ANNUAL_LICENSE: 0x01,
+	PERPETUAL_LICENSE: 0x02,
+	INTERNAL_LICENSE: 0x04,
 }
 
 const licenseInfoValidator = T.object({
@@ -68,8 +68,8 @@ export class LicenseManager {
 		try {
 			const licenseInfo = this.extractLicense(licenseKey)
 			const expiryDate = new Date(licenseInfo.expiryDate)
-			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.annualLicense)
-			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.perpetualLicense)
+			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.ANNUAL_LICENSE)
+			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.PERPETUAL_LICENSE)
 
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
@@ -82,7 +82,7 @@ export class LicenseManager {
 				isAnnualLicenseExpired: isAnnualLicense && this.isAnnualLicenseExpired(expiryDate),
 				isPerpetualLicense,
 				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
-				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.internalLicense),
+				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
 			}
 			this.outputLicenseInfoIfNeeded(result)
 			return result
