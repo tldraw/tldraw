@@ -1,7 +1,12 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
-import { createSentry } from '@tldraw/worker-shared'
+import {
+	createSentry,
+	handleUserAssetGet,
+	handleUserAssetUpload,
+	notFound,
+} from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { Router, createCors } from 'itty-router'
 import { Environment } from './types'
@@ -13,12 +18,28 @@ const cors = createCors({ origins: ['*'] })
 export default class Worker extends WorkerEntrypoint<Environment> {
 	private readonly router = Router()
 		.all('*', cors.preflight)
+		.get('/v1/uploads/:objectName', (request) => {
+			return handleUserAssetGet({
+				request,
+				bucket: this.env.BEMO_BUCKET,
+				objectName: `asset-uploads/${request.params.objectName}`,
+				context: this.ctx,
+			})
+		})
+		.post('/v1/uploads/:objectName', async (request) => {
+			return handleUserAssetUpload({
+				request,
+				bucket: this.env.BEMO_BUCKET,
+				objectName: `asset-uploads/${request.params.objectName}`,
+				context: this.ctx,
+			})
+		})
 		.get('/do', async (request) => {
 			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
 			const message = await (await bemo.fetch(request)).json()
 			return Response.json(message)
 		})
-		.all('*', async () => new Response('Not found', { status: 404 }))
+		.all('*', notFound)
 
 	override async fetch(request: Request): Promise<Response> {
 		try {

@@ -1,7 +1,7 @@
+import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
-import { fourOhFour } from '../utils/fourOhFour'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 
 // Get a snapshot of the room at a given point in time
@@ -11,7 +11,7 @@ export async function getRoomHistorySnapshot(
 ): Promise<Response> {
 	const roomId = request.params.roomId
 
-	if (!roomId) return fourOhFour()
+	if (!roomId) return notFound()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
 	const timestamp = request.params.timestamp
