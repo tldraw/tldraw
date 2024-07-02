@@ -1,5 +1,4 @@
 import { T } from '@tldraw/validate'
-import crypto from 'crypto'
 import { publishDates } from '../../../version'
 import { importPublicKey, str2ab } from '../../utils/licensing'
 
@@ -65,8 +64,8 @@ export class LicenseManager {
 					hash: { name: 'SHA-384' },
 				},
 				publicCryptoKey,
-				str2ab(signature) as Uint8Array,
-				str2ab(encodedData) as Uint8Array
+				new Uint8Array(str2ab(signature)),
+				new Uint8Array(str2ab(encodedData))
 			)
 		} catch (e) {
 			console.error(e)
