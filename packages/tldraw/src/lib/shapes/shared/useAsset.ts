@@ -14,12 +14,12 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 	const asset = assetId ? editor.getAsset(assetId) : null
 
 	// The resolved url of the asset that should be used by the shape (duplicated as a ref)
-	const [state, setState] = useState<{ url: string | null; isAnimated: boolean }>({
-		url: null,
-		isAnimated: false,
-	})
+	const [url, setUrl] = useState<string | null>(null)
 
-	const rPrevUrl = useRef(state.url)
+	// whether the asset is animated
+	const [isAnimated, setIsAnimated] = useState(false)
+
+	const rPrevUrl = useRef(url)
 	// The previous screen scale at which we requested a new url
 	const rPrevScreenScale = useRef(0)
 	// A timeout we can clear if we need to request a new url
@@ -49,13 +49,12 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 					})
 					.then((resolvedUrl) => {
 						rPrevUrl.current = resolvedUrl
-						setState({
-							url: resolvedUrl,
-							isAnimated:
-								('mimeType' in asset.props &&
-									MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
-								('isAnimated' in asset.props && asset.props.isAnimated),
-						})
+						setUrl(resolvedUrl)
+						setIsAnimated(
+							('mimeType' in asset.props &&
+								MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
+								('isAnimated' in asset.props && asset.props.isAnimated)
+						)
 					})
 				return
 			}
@@ -87,14 +86,14 @@ function useScalableAsset(shapeId: TLShapeId, assetId: TLAssetId | null) {
 						}
 						// Update the url for the asset
 						rPrevUrl.current = resolvedUrl
-						setState((s) => ({ ...s, url: resolvedUrl }))
+						setUrl(resolvedUrl)
 					})
 			}, 500)
 		},
 		[editor, assetId]
 	)
 
-	return { asset, ...state }
+	return { asset, isAnimated, url }
 }
 
 /** @internal */
