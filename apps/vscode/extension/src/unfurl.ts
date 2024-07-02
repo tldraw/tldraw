@@ -1,4 +1,4 @@
-import cheerio from 'cheerio'
+import { load } from 'cheerio'
 
 export async function unfurl(url: string) {
 	const response = await fetch(url)
@@ -11,13 +11,17 @@ export async function unfurl(url: string) {
 	}
 
 	const content = await response.text()
-	const $ = cheerio.load(content)
+	const $ = load(content)
 
 	const og: { [key: string]: string | undefined } = {}
 	const twitter: { [key: string]: string | undefined } = {}
 
-	$('meta[property^=og:]').each((_, el) => (og[$(el).attr('property')!] = $(el).attr('content')))
-	$('meta[name^=twitter:]').each((_, el) => (twitter[$(el).attr('name')!] = $(el).attr('content')))
+	$('meta[property^=og:]').each((_, el) => {
+		og[$(el).attr('property')!] = $(el).attr('content')
+	})
+	$('meta[name^=twitter:]').each((_, el) => {
+		twitter[$(el).attr('name')!] = $(el).attr('content')
+	})
 
 	const title = og['og:title'] ?? twitter['twitter:title'] ?? $('title').text() ?? undefined
 	const description =
