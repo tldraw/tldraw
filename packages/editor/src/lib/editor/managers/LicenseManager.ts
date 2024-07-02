@@ -61,7 +61,7 @@ export class LicenseManager {
 		} catch (e: any) {
 			if (e.message.includes('Unexpected property')) {
 				this.outputMessages([
-					'License key contains some uknown properties.',
+					'License key contains some unknown properties.',
 					'You may want to update tldraw packages to a newer version to get access to new functionality.',
 				])
 			}
