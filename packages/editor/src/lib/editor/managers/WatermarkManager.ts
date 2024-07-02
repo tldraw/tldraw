@@ -1,4 +1,4 @@
-import w from '../../../watermark.png'
+import w from '../../../../assets/watermark.png'
 import { TL_CONTAINER_CLASS } from '../../TldrawEditor'
 import { getDefaultCdnBaseUrl } from '../../utils/assets'
 import { Editor } from '../Editor'
