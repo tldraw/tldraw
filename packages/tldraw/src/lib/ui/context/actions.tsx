@@ -503,15 +503,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					} else {
 						ids = editor.getSelectedShapeIds()
 						const commonBounds = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-						offset = !editor.getCameraOptions().isLocked
+						offset = editor.getCameraOptions().isLocked
 							? {
-									x: commonBounds.width + 20,
-									y: 0,
+									// same as the adjacent note margin
+									x: editor.options.adjacentShapeMargin,
+									y: editor.options.adjacentShapeMargin,
 								}
 							: {
-									// same as the adjacent note margin
-									x: 20,
-									y: 20,
+									x: commonBounds.width + editor.options.adjacentShapeMargin,
+									y: 0,
 								}
 					}
 

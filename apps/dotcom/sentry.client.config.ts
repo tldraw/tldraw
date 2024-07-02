@@ -22,6 +22,7 @@ Sentry.init({
 	tracesSampleRate: 1.0,
 	release: sentryReleaseName,
 	environment: env,
+	// eslint-disable-next-line deprecation/deprecation
 	integrations: [new ExtraErrorData({ depth: 10 }) as any],
 	// ...
 	// Note: if you want to override the automatic release value, do not set a
