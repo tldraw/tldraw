@@ -1,49 +1,52 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
-import { handleUserAssetGet, handleUserAssetUpload, notFound } from '@tldraw/worker-shared'
+import {
+	createSentry,
+	handleUserAssetGet,
+	handleUserAssetUpload,
+	notFound,
+} from '@tldraw/worker-shared'
+import { WorkerEntrypoint } from 'cloudflare:workers'
 import { createCors } from 'itty-cors'
 import { Router } from 'itty-router'
+import { Environment } from './types'
 
 const { preflight, corsify } = createCors({ origins: ['*'] })
 
-interface Env {
-	UPLOADS: R2Bucket
-}
-
-const router = Router()
-
-router
-	.all('*', preflight)
-	.get('/uploads/:objectName', async (request, env: Env, ctx: ExecutionContext) => {
-		return handleUserAssetGet({
-			request,
-			bucket: env.UPLOADS,
-			objectName: request.params.objectName,
-			context: ctx,
-		})
-	})
-	.post('/uploads/:objectName', async (request, env: Env, ctx: ExecutionContext) => {
-		return handleUserAssetUpload({
-			request,
-			bucket: env.UPLOADS,
-			objectName: request.params.objectName,
-			context: ctx,
-		})
-	})
-	.all('*', notFound)
-
-const Worker = {
-	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-		return router
-			.handle(request, env, ctx)
-			.catch((err) => {
-				// eslint-disable-next-line no-console
-				console.log(err, err.stack)
-				return new Response((err as Error).message, { status: 500 })
+export default class Worker extends WorkerEntrypoint<Environment> {
+	readonly router = Router()
+		.all('*', preflight)
+		.get('/uploads/:objectName', async (request) => {
+			return handleUserAssetGet({
+				request,
+				bucket: this.env.UPLOADS,
+				objectName: request.params.objectName,
+				context: this.ctx,
 			})
-			.then(corsify)
-	},
-}
+		})
+		.post('/uploads/:objectName', async (request) => {
+			return handleUserAssetUpload({
+				request,
+				bucket: this.env.UPLOADS,
+				objectName: request.params.objectName,
+				context: this.ctx,
+			})
+		})
+		.all('*', notFound)
 
-export default Worker
+	override async fetch(request: Request) {
+		try {
+			return await this.router.handle(request, this.env, this.ctx).then(corsify)
+		} catch (error) {
+			const sentry = createSentry(this.ctx, this.env, request)
+			console.error(error)
+			// eslint-disable-next-line deprecation/deprecation
+			sentry?.captureException(error)
+			return new Response('Something went wrong', {
+				status: 500,
+				statusText: 'Internal Server Error',
+			})
+		}
+	}
+}

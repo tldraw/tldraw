@@ -30,6 +30,7 @@ const dotcom = path.relative(process.cwd(), path.resolve(__dirname, '../apps/dot
 const env = makeEnv([
 	'APP_ORIGIN',
 	'ASSET_UPLOAD',
+	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_BUCKET_ORIGIN',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
@@ -164,8 +165,9 @@ async function prepareDotcomApp() {
 
 let didUpdateAssetUploadWorker = false
 async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-assets`
 	if (previewId && !didUpdateAssetUploadWorker) {
-		await setWranglerPreviewConfig(assetUpload, { name: `${previewId}-tldraw-assets` })
+		await setWranglerPreviewConfig(assetUpload, { name: workerId })
 		didUpdateAssetUploadWorker = true
 	}
 
@@ -173,7 +175,15 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 		location: assetUpload,
 		dryRun,
 		env: env.TLDRAW_ENV,
-		vars: {},
+		vars: {
+			SENTRY_DSN: env.ASSET_UPLOAD_SENTRY_DSN,
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			WORKER_NAME: workerId,
+		},
+		sentry: {
+			project: 'asset-upload-worker',
+			authToken: env.SENTRY_AUTH_TOKEN,
+		},
 	})
 }
 
