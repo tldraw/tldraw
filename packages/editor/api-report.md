@@ -666,7 +666,7 @@ export const DefaultSvgDefs: () => null;
 export const defaultTldrawOptions: {
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
-    readonly cameraMovingTimeoutMs: 64;
+    readonly cameraMovingTimeoutMs: 100;
     readonly cameraSlideFriction: 0.09;
     readonly coarseDragDistanceSquared: 36;
     readonly coarseHandleRadius: 20;

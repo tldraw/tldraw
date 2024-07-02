@@ -14,11 +14,12 @@ import {
 	imageShapeProps,
 	structuredClone,
 	toDomPrecision,
+	useValue,
 } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useAsset } from '../shared/useAsset'
+import { useImageAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -47,29 +48,49 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 	}
 
-	isAnimated(shape: TLImageShape) {
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
-
-		if (!asset) return false
-
-		return (
-			('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
-			('isAnimated' in asset.props && asset.props.isAnimated)
-		)
-	}
-
 	component(shape: TLImageShape) {
-		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedSrc, setLoadedSrc] = useState('')
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+		const { assetId } = shape.props
+		const { asset, url } = useImageAsset(shape.id, assetId)
+
+		if (asset?.type === 'bookmark') {
+			throw Error("Bookmark assets can't be rendered as images")
+		}
+
+		const { editor } = this
+
+		// get whether the asset is animated
+		const isAnimated = useValue(
+			'asset is animated',
+			() => {
+				if (!assetId) return false
+				const asset = editor.getAsset(assetId)
+				if (!asset) return false
+				return (
+					('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset.props.mimeType)) ||
+					('isAnimated' in asset.props && asset.props.isAnimated)
+				)
+			},
+			[editor, assetId]
+		)
+
+		const showCropPreview = useValue(
+			'show crop',
+			() => {
+				return (
+					editor.isIn('select.crop') &&
+					editor.getCroppingShapeId() === shape.id &&
+					shape.id === editor.getOnlySelectedShapeId()
+				)
+			},
+			[editor]
+		)
 
 		useEffect(() => {
 			// We preload the image because we might have different source urls for different
-			// zoom levels.
-			// Preloading the image ensures that the browser caches the image and doesn't
+			// zoom levels. Preloading the image ensures that the browser caches the image and doesn't
 			// cause visual flickering when the image is loaded.
 			if (url) {
 				let cancelled = false
@@ -85,10 +106,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [url, shape])
+		}, [url])
 
 		useEffect(() => {
-			if (url && this.isAnimated(shape)) {
+			if (url && isAnimated) {
 				let cancelled = false
 
 				const image = Image()
@@ -104,7 +125,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
-					setLoadedSrc(url)
 				}
 				image.crossOrigin = 'anonymous'
 				image.src = url
@@ -113,17 +133,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, url, shape])
-
-		if (asset?.type === 'bookmark') {
-			throw Error("Bookmark assets can't be rendered as images")
-		}
-
-		const showCropPreview = isSelected && isCropping && this.editor.isIn('select.crop')
-
-		// We only want to reduce motion for mimeTypes that have motion
-		const reduceMotion =
-			prefersReducedMotion && (asset?.props.mimeType?.includes('video') || this.isAnimated(shape))
+		}, [url, isAnimated])
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
@@ -153,6 +163,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		if (!loadedSrc) return null
 
+		// We only want to reduce motion for mimeTypes that have motion
+		const reduceMotion =
+			prefersReducedMotion && (asset.props.mimeType?.includes('video') || isAnimated)
+
 		return (
 			<>
 				{showCropPreview && (
@@ -161,7 +175,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							className="tl-image"
 							// We don't set crossOrigin for non-animated images because
 							// for Cloudflare we don't currenly have that set up.
-							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
+							crossOrigin={isAnimated ? 'anonymous' : undefined}
 							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							style={{
@@ -180,14 +194,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							className="tl-image"
 							// We don't set crossOrigin for non-animated images because
 							// for Cloudflare we don't currenly have that set up.
-							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
+							crossOrigin={isAnimated ? 'anonymous' : undefined}
 							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
 						/>
-						{this.isAnimated(shape) && !shape.props.playing && (
-							<div className="tl-image__tg">GIF</div>
-						)}
+						{isAnimated && !shape.props.playing && <div className="tl-image__tg">GIF</div>}
 					</div>
 					{shape.props.url && (
 						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
@@ -261,7 +273,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		if (!asset) return
 
-		const canPlay = asset.props.src && this.isAnimated(shape)
+		const canPlay =
+			asset.props.src &&
+			// is animated
+			(('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
+				('isAnimated' in asset.props && asset.props.isAnimated))
 
 		if (!canPlay) return
 
