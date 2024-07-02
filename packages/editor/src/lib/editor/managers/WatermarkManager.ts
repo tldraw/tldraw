@@ -62,6 +62,6 @@ export class WatermarkManager {
 		watermark.style.setProperty('bottom', '60px', 'important')
 		watermark.style.setProperty('right', '20px', 'important')
 		watermark.style.setProperty('opacity', '1', 'important')
-		watermark.style.setProperty('z-index', '99999', 'important')
+		watermark.style.setProperty('z-index', '2147483647', 'important')
 	}
 }
