@@ -408,21 +408,21 @@ async function writeAssetDeclarationDTSFile() {
 
 function getNewPublishDates(packageVersion: string) {
 	const currentVersion = new SemVer(version)
-	const currentPacakgeVersion = new SemVer(packageVersion)
+	const currentPackageVersion = new SemVer(packageVersion)
 	const now = new Date().toISOString()
-	if (currentPacakgeVersion.major > currentVersion.major) {
+	if (currentPackageVersion.major > currentVersion.major) {
 		return {
 			major: now,
 			minor: now,
 			patch: now,
 		}
-	} else if (currentPacakgeVersion.minor > currentVersion.minor) {
+	} else if (currentPackageVersion.minor > currentVersion.minor) {
 		return {
 			major: publishDates.major,
 			minor: now,
 			patch: now,
 		}
-	} else if (currentPacakgeVersion.patch > currentVersion.patch) {
+	} else if (currentPackageVersion.patch > currentVersion.patch) {
 		return {
 			major: publishDates.major,
 			minor: publishDates.minor,
