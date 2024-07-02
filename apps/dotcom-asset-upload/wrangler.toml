@@ -1,4 +1,4 @@
-main = "src/index.ts"
+main = "src/worker.ts"
 compatibility_date = "2022-09-22"
 
 [dev]
