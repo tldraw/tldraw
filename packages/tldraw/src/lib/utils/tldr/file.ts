@@ -18,7 +18,6 @@ import {
 	createTLStore,
 	exhaustiveSwitchError,
 	fetch,
-	partition,
 } from '@tldraw/editor'
 import { TLUiToastsContextType } from '../../ui/context/toasts'
 import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
@@ -300,13 +299,24 @@ export async function parseAndLoadDocument(
 		const initialBounds = editor.getViewportScreenBounds().clone()
 		const isFocused = editor.getInstanceState().isFocused
 		editor.store.clear()
-		const [shapes, nonShapes] = partition(
-			parseFileResult.value.allRecords(),
-			(record) => record.typeName === 'shape'
-		)
-		editor.store.put(nonShapes, 'initialize')
+
+		const metaRecords = []
+		const shapeRecords = []
+		const bindingRecords = []
+
+		for (const record of parseFileResult.value.allRecords()) {
+			if (record.typeName === 'shape') {
+				shapeRecords.push(record)
+			} else if (record.typeName === 'binding') {
+				bindingRecords.push(record)
+			} else {
+				metaRecords.push(record)
+			}
+		}
+		editor.store.put(metaRecords, 'initialize')
 		editor.store.ensureStoreIsUsable()
-		editor.store.put(shapes, 'initialize')
+		editor.store.put(shapeRecords, 'initialize')
+		editor.store.put(bindingRecords, 'initialize')
 		editor.history.clear()
 		// Put the old bounds back in place
 		editor.updateViewportScreenBounds(initialBounds)

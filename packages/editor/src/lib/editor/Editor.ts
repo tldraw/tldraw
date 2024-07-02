@@ -447,14 +447,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 								for (const binding of this.getBindingsInvolvingShape(descendantShape)) {
 									invalidBindingTypes.add(binding.type)
 
-									if (binding.fromId === descendantShape.id) {
+									if (binding.fromId === descendantShape.id && this.ensureBindingValid(binding)) {
 										this.getBindingUtil(binding).onAfterChangeFromShape?.({
 											binding,
 											shapeBefore: descendantShape,
 											shapeAfter: descendantShape,
 										})
 									}
-									if (binding.toId === descendantShape.id) {
+									if (binding.toId === descendantShape.id && this.ensureBindingValid(binding)) {
 										this.getBindingUtil(binding).onAfterChangeToShape?.({
 											binding,
 											shapeBefore: descendantShape,
@@ -508,11 +508,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 							deleteBindingIds.push(binding.id)
 							const util = this.getBindingUtil(binding)
 							if (binding.fromId === shape.id) {
-								util.onBeforeIsolateToShape?.({ binding, removedShape: shape })
-								util.onBeforeDeleteFromShape?.({ binding, shape })
+								if (this.isBindingValid(binding)) {
+									util.onBeforeIsolateToShape?.({ binding, removedShape: shape })
+									util.onBeforeDeleteFromShape?.({ binding, shape })
+								}
 							} else {
-								util.onBeforeIsolateFromShape?.({ binding, removedShape: shape })
-								util.onBeforeDeleteToShape?.({ binding, shape })
+								if (this.isBindingValid(binding)) {
+									util.onBeforeIsolateFromShape?.({ binding, removedShape: shape })
+									util.onBeforeDeleteToShape?.({ binding, shape })
+								}
 							}
 						}
 
@@ -534,25 +538,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				binding: {
 					beforeCreate: (binding) => {
-						const next = this.getBindingUtil(binding).onBeforeCreate?.({ binding })
-						if (next) return next
+						if (this.isBindingValid(binding)) {
+							const next = this.getBindingUtil(binding).onBeforeCreate?.({ binding })
+							if (next) return next
+						}
 						return binding
 					},
 					afterCreate: (binding) => {
 						invalidBindingTypes.add(binding.type)
-						this.getBindingUtil(binding).onAfterCreate?.({ binding })
+						if (this.ensureBindingValid(binding)) {
+							this.getBindingUtil(binding).onAfterCreate?.({ binding })
+						}
 					},
 					beforeChange: (bindingBefore, bindingAfter) => {
-						const updated = this.getBindingUtil(bindingAfter).onBeforeChange?.({
-							bindingBefore,
-							bindingAfter,
-						})
-						if (updated) return updated
+						if (this.ensureBindingValid(bindingAfter)) {
+							const updated = this.getBindingUtil(bindingAfter).onBeforeChange?.({
+								bindingBefore,
+								bindingAfter,
+							})
+							if (updated) return updated
+						}
 						return bindingAfter
 					},
 					afterChange: (bindingBefore, bindingAfter) => {
 						invalidBindingTypes.add(bindingAfter.type)
-						this.getBindingUtil(bindingAfter).onAfterChange?.({ bindingBefore, bindingAfter })
+						if (this.ensureBindingValid(bindingAfter)) {
+							this.getBindingUtil(bindingAfter).onAfterChange?.({ bindingBefore, bindingAfter })
+						}
 					},
 					beforeDelete: (binding) => {
 						this.getBindingUtil(binding).onBeforeDelete?.({ binding })
@@ -899,6 +911,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const bindingUtil = getOwnProperty(this.bindingUtils, type)
 		assert(bindingUtil, `No binding util found for type "${type}"`)
 		return bindingUtil
+	}
+
+	isBindingValid(binding: TLUnknownBinding): boolean {
+		return this.store.has(binding.fromId) && this.store.has(binding.toId)
+	}
+
+	/**
+	 * Ensure a binding is valid, and delete it if it isn't. Use in the condition of an if statement.
+	 *
+	 * @example
+	 * ```ts
+	 * if (editor.ensureBindingValid(binding)) {
+	 *     doSomethingWithTheBinding()
+	 * }
+	 * ```
+	 *
+	 * @internal
+	 */
+	ensureBindingValid(binding: TLUnknownBinding): boolean {
+		if (!this.isBindingValid(binding)) {
+			this.store.remove([binding.id])
+			return false
+		}
+		return true
 	}
 
 	/* --------------------- History -------------------- */
