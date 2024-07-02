@@ -12,3 +12,4 @@ export {
 } from './handleRequest'
 export { createSentry } from './sentry'
 export { handleUserAssetGet, handleUserAssetUpload } from './userAssetUploads'
+export { createPersistQueue } from './createPersistQueue'
