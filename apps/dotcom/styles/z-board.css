@@ -225,10 +225,6 @@
 	align-items: center;
 }
 
-.tlui-people-menu__user__color-picker {
-	z-index: 200;
-}
-
 .tlui-people-menu__user__color {
 	flex-shrink: 0;
 }

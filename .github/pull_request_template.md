@@ -18,4 +18,4 @@ Describe what your pull request does. If you can, add GIFs or images showing the
 
 ### Release notes
 
-- Fixed a bug with...
+- Fixed a bug with…
