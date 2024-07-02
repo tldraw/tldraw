@@ -594,7 +594,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 		// Set the current page to the first page again
 		editor.setCurrentPage(firstPageId)
 
-		editor.history.clear()
+		editor.clearHistory()
 		editor.selectNone()
 
 		const bounds = editor.getCurrentPageBounds()

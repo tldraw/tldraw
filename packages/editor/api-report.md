@@ -819,7 +819,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     bail(): this;
     bailToMark(id: string): this;
-    batch(fn: () => void, opts?: TLHistoryBatchOptions): this;
+    batch(fn: () => void, opts?: Partial<TLHistoryBatchOptions & {
+        lockedShapes: 'ignore';
+    }>): this;
     bindingUtils: {
         readonly [K in string]?: BindingUtil<TLUnknownBinding>;
     };
@@ -845,6 +847,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
+    // (undocumented)
+    clearHistory(): this;
     clearOpenMenus(): this;
     // @internal
     protected _clickManager: ClickManager;
@@ -914,7 +918,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     focus({ focusContainer }?: {
         focusContainer?: boolean | undefined;
     }): this;
-    force(callback: () => void): this;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
@@ -1080,7 +1083,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     // (undocumented)
     hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean;
-    readonly history: HistoryManager<TLRecord>;
+    protected readonly history: HistoryManager<TLRecord>;
     inputs: {
         buttons: Set<number>;
         keys: Set<string>;
@@ -1188,6 +1191,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         speedThreshold?: number | undefined;
     }): this;
     readonly snaps: SnapManager;
+    squashToMark(markId: string): this;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;
     startFollowingUser(userId: string): this;
     stopCameraAnimation(): this;
@@ -1212,9 +1216,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateAssets(assets: TLAssetPartial[]): this;
     updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>): this;
     updateBindings(partials: (null | TLBindingUpdate | undefined)[]): this;
-    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions): this;
+    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>): this;
     // (undocumented)
-    _updateCurrentPageState: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>, historyOptions?: TLHistoryBatchOptions) => void;
+    _updateCurrentPageState: (partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>) => void;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: TLHistoryBatchOptions): this;
     updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this;
@@ -1560,8 +1564,6 @@ export class HistoryManager<R extends UnknownRecord> {
     getNumRedos(): number;
     // (undocumented)
     getNumUndos(): number;
-    // (undocumented)
-    ignore(fn: () => void): this;
     // @internal (undocumented)
     _isInBatch: boolean;
     // (undocumented)

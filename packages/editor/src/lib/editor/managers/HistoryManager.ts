@@ -83,6 +83,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	/** @internal */
 	_isInBatch = false
+
 	batch = (fn: () => void, opts?: TLHistoryBatchOptions) => {
 		const previousState = this.state
 
@@ -93,7 +94,9 @@ export class HistoryManager<R extends UnknownRecord> {
 
 		try {
 			if (this._isInBatch) {
-				fn()
+				transact(() => {
+					fn()
+				})
 				return this
 			}
 
@@ -114,10 +117,6 @@ export class HistoryManager<R extends UnknownRecord> {
 		} finally {
 			this.state = previousState
 		}
-	}
-
-	ignore(fn: () => void) {
-		return this.batch(fn, { history: 'ignore' })
 	}
 
 	// History
