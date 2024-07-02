@@ -6,9 +6,9 @@ import { publishDates } from '../../../version'
 const GRACE_PERIOD_DAYS = 5
 
 const FLAGS = {
-	ANNUAL_LICENSE: 0x01,
-	PERPETUAL_LICENSE: 0x02,
-	INTERNAL_LICENSE: 0x04,
+	ANNUAL_LICENSE: 0x1,
+	PERPETUAL_LICENSE: 0x2,
+	INTERNAL_LICENSE: 0x4,
 }
 
 const licenseInfoValidator = T.object({
