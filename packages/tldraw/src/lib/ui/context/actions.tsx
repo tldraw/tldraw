@@ -392,7 +392,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					editor.batch(() => {
+					editor.run(() => {
 						trackEvent('convert-to-bookmark', { source })
 						const shapes = editor.getSelectedShapes()
 
@@ -437,7 +437,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('convert-to-embed', { source })
 
-					editor.batch(() => {
+					editor.run(() => {
 						const ids = editor.getSelectedShapeIds()
 						const shapes = compact(ids.map((id) => editor.getShape(id)))
 
@@ -959,7 +959,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$a',
 				readonlyOk: true,
 				onSelect(source) {
-					editor.batch(() => {
+					editor.run(() => {
 						if (mustGoBackToSelectToolFirst()) return
 
 						trackEvent('select-all-shapes', { source })
@@ -1237,7 +1237,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					// this needs to be deferred because it causes the menu
 					// UI to unmount which puts us in a dodgy state
 					editor.timers.requestAnimationFrame(() => {
-						editor.batch(() => {
+						editor.run(() => {
 							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
 							clearToasts()
@@ -1336,7 +1336,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
 					const ids = editor.getSelectedShapeIds()
-					editor.batch(() => {
+					editor.run(() => {
 						editor.mark('move_shapes_to_page')
 						editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
 						editor.moveShapesToPage(ids, newPageId)
@@ -1350,7 +1350,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?t',
 				onSelect(source) {
 					const style = DefaultColorStyle
-					editor.batch(() => {
+					editor.run(() => {
 						editor.mark('change-color')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'white')
@@ -1366,7 +1366,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?f',
 				onSelect(source) {
 					const style = DefaultFillStyle
-					editor.batch(() => {
+					editor.run(() => {
 						editor.mark('change-fill')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'fill')

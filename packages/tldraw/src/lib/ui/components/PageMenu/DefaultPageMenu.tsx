@@ -250,7 +250,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const handleCreatePageClick = useCallback(() => {
 		if (isReadonlyMode) return
 
-		editor.batch(() => {
+		editor.run(() => {
 			editor.mark('creating page')
 			const newPageId = PageRecordType.createId()
 			editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
@@ -399,7 +399,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 															editor.renamePage(page.id, name)
 														}
 													} else {
-														editor.batch(() => {
+														editor.run(() => {
 															setIsEditing(true)
 															editor.setCurrentPage(page.id)
 														})

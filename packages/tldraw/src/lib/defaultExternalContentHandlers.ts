@@ -434,7 +434,7 @@ export function registerDefaultExternalContentHandlers(
 			}
 		}
 
-		editor.batch(() => {
+		editor.run(() => {
 			if (shouldAlsoCreateAsset) {
 				editor.createAssets([asset])
 			}
@@ -517,7 +517,7 @@ export async function createShapesForAssets(
 		}
 	}
 
-	editor.batch(() => {
+	editor.run(() => {
 		// Create any assets
 		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
 		if (assetsToCreate.length) {
@@ -580,7 +580,7 @@ export function createEmptyBookmarkShape(
 		},
 	}
 
-	editor.batch(() => {
+	editor.run(() => {
 		editor.createShapes([partial]).select(partial.id)
 		centerSelectionAroundPoint(editor, position)
 	})

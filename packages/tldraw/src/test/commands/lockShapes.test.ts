@@ -175,7 +175,7 @@ describe('Unlocking', () => {
 
 describe('When forced', () => {
 	it('Can be deleted', () => {
-		editor.batch(
+		editor.run(
 			() => {
 				const numberOfShapesBefore = editor.getCurrentPageShapes().length
 				editor.deleteShapes([ids.lockedShapeA])
@@ -186,7 +186,7 @@ describe('When forced', () => {
 	})
 
 	it('Can be changed', () => {
-		editor.batch(
+		editor.run(
 			() => {
 				editor.updateShapes([{ id: ids.lockedShapeA, type: 'geo', x: 100 }])
 				expect(editor.getShape(ids.lockedShapeA)!.x).toBe(100)
@@ -196,7 +196,7 @@ describe('When forced', () => {
 	})
 
 	it('Can be grouped / ungrouped', () => {
-		editor.batch(
+		editor.run(
 			() => {
 				const shapeCount = editor.getCurrentPageShapes().length
 				editor.groupShapes([ids.lockedShapeA, ids.unlockedShapeA, ids.unlockedShapeB])
@@ -208,7 +208,7 @@ describe('When forced', () => {
 	})
 
 	it('Cannot be moved', () => {
-		editor.batch(
+		editor.run(
 			() => {
 				const shape = editor.getShape(ids.lockedShapeA)
 				editor.pointerDown(150, 150, { target: 'shape', shape })
@@ -225,7 +225,7 @@ describe('When forced', () => {
 	})
 
 	it('Can be selected with select all', () => {
-		editor.batch(
+		editor.run(
 			() => {
 				editor.selectAll()
 				expect(editor.getSelectedShapeIds()).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
@@ -235,7 +235,7 @@ describe('When forced', () => {
 	})
 
 	it('Cannot be selected by clicking', () => {
-		editor.batch(
+		editor.run(
 			() => {
 				const shape = editor.getShape(ids.lockedShapeA)!
 
@@ -251,7 +251,7 @@ describe('When forced', () => {
 	})
 
 	it('Cannot be edited', () => {
-		editor.batch(
+		editor.run(
 			() => {
 				const shape = editor.getShape(ids.lockedShapeA)!
 				const shapeCount = editor.getCurrentPageShapes().length
@@ -289,7 +289,7 @@ it('works when forced', () => {
 	expect(editor.getShape(myShapeId)).toMatchObject(myLockedShape)
 
 	// update works
-	editor.batch(
+	editor.run(
 		() => {
 			editor.updateShape({ ...myLockedShape, x: 100 })
 		},
@@ -298,7 +298,7 @@ it('works when forced', () => {
 	expect(editor.getShape(myShapeId)).toMatchObject({ ...myLockedShape, x: 100 })
 
 	// delete works
-	editor.batch(
+	editor.run(
 		() => {
 			editor.deleteShapes([myLockedShape])
 		},

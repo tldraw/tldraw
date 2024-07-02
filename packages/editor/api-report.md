@@ -819,6 +819,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     bail(): this;
     bailToMark(id: string): this;
+    // @deprecated (undocumented)
     batch(fn: () => void, opts?: Partial<TLHistoryBatchOptions & {
         ignoreShapeLock: boolean;
     }>): this;
@@ -1157,6 +1158,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): Promise<null | string>;
     readonly root: StateNode;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
+    run(fn: () => void, opts?: Partial<TLHistoryBatchOptions & {
+        ignoreShapeLock: boolean;
+    }>): this;
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
