@@ -273,7 +273,15 @@ async function copyTranslations() {
 	}
 }
 
-// 4. ASSET DECLARATION FILES
+// 4. WATERMARK
+async function copyWatermark() {
+	await writeFile(
+		join(REPO_ROOT, 'packages', 'editor', 'assets', 'watermark.png'),
+		readFileSync(join(ASSETS_FOLDER_PATH, 'watermarks', 'watermark.png'))
+	)
+}
+
+// 5. ASSET DECLARATION FILES
 async function writeUrlBasedAssetDeclarationFile() {
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'urls.js')
 	const codeFile = `
@@ -473,6 +481,8 @@ async function main() {
 	await copyFonts()
 	nicelog('Copying translations...')
 	await copyTranslations()
+	nicelog('Copying watermark...')
+	await copyWatermark()
 	nicelog('Writing asset declaration file...')
 	await writeAssetDeclarationDTSFile()
 	await writeUrlBasedAssetDeclarationFile()

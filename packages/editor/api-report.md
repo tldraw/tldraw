@@ -1402,6 +1402,9 @@ export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcF
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
 
 // @public (undocumented)
+export function getDefaultCdnBaseUrl(): string;
+
+// @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
 
 // @public
