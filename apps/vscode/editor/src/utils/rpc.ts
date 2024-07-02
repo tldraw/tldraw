@@ -36,7 +36,8 @@ export function rpc(
 		vscode.postMessage(inMessage)
 
 		const handler = ({ data: response }: MessageEvent<ResponseType | ErrorType>) => {
-			if (uuid === response.uuid) {
+			// Only handle messages that are meant to be a direct response to the message we sent
+			if (response.uuid !== uuid + '_response') {
 				return
 			}
 

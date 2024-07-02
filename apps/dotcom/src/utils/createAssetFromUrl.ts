@@ -11,17 +11,14 @@ interface ResponseBody {
 export async function createAssetFromUrl({ url }: { type: 'url'; url: string }): Promise<TLAsset> {
 	try {
 		// First, try to get the meta data from our endpoint
-		const meta = (await (
-			await fetch(BOOKMARK_ENDPOINT, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					url,
-				}),
-			})
-		).json()) as ResponseBody
+		const fetchUrl =
+			BOOKMARK_ENDPOINT +
+			'?' +
+			new URLSearchParams({
+				url,
+			}).toString()
+
+		const meta = (await (await fetch(fetchUrl)).json()) as ResponseBody
 
 		return {
 			id: AssetRecordType.createId(getHashForString(url)),
@@ -58,10 +55,10 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
-			if (meta.image.startsWith('/')) {
+			if (!meta.image.startsWith('http')) {
 				meta.image = new URL(meta.image, url).href
 			}
-			if (meta.favicon.startsWith('/')) {
+			if (!meta.favicon.startsWith('http')) {
 				meta.favicon = new URL(meta.favicon, url).href
 			}
 		} catch (error) {

@@ -10,86 +10,47 @@ interface Label {
 	changelogTitle: string
 }
 
-const SCOPE_LABELS = [
-	{
-		name: `sdk`,
-		description: `Changes the tldraw SDK`,
-		changelogTitle: '📚 SDK Changes',
-	},
-	{
-		name: `dotcom`,
-		description: `Changes the tldraw.com web app`,
-		changelogTitle: '🖥️ tldraw.com Changes',
-	},
-	{
-		name: `docs`,
-		description: `Changes to the documentation, examples, or templates.`,
-		changelogTitle: '📖 Documentation changes',
-	},
-	{
-		name: `vs code`,
-		description: `Changes to the vscode plugin`,
-		changelogTitle: '👩‍💻 VS Code Plugin Changes',
-	},
-	{
-		name: `internal`,
-		description: `Does not affect user-facing stuff`,
-		changelogTitle: '🕵️‍♀️ Internal Changes',
-	},
-] as const satisfies Label[]
-
 const TYPE_LABELS = [
 	{ name: `bugfix`, description: `Bug fix`, changelogTitle: '🐛 Bug Fixes' },
-	{ name: `feature`, description: `New feature`, changelogTitle: '🚀 Features' },
 	{
 		name: `improvement`,
-		description: `Improving existing features`,
-		changelogTitle: '💄 Improvements',
+		description: `Product improvement`,
+		changelogTitle: '💄 Product Improvements',
 	},
 	{
-		name: `chore`,
-		description: `Updating dependencies, other boring stuff`,
-		changelogTitle: '🧹 Chores',
+		name: `feature`,
+		description: `New feature`,
+		changelogTitle: '🎉 New Features',
 	},
 	{
-		name: `galaxy brain`,
-		description: `Architectural changes`,
-		changelogTitle: '🤯 Architectural changes',
+		name: `api`,
+		description: `API change`,
+		changelogTitle: '🛠️ API Changes',
 	},
-	{ name: `tests`, description: `Changes to any test code`, changelogTitle: '🧪 Tests' },
 	{
-		name: `tools`,
-		description: `Changes to infrastructure, CI, internal scripts, debugging tools, etc.`,
-		changelogTitle: '🛠️ Tools',
+		name: `other`,
+		description: `Changes that don't affect SDK users, e.g. internal or .com changes`,
+		changelogTitle: '🤷 Other',
 	},
-	{ name: `dunno`, description: `I don't know`, changelogTitle: '🤷 Dunno' },
 ] as const satisfies Label[]
 
 export function getLabelNames() {
-	return [...SCOPE_LABELS, ...TYPE_LABELS].map((label) => label.name)
+	return [...TYPE_LABELS].map((label) => label.name)
 }
 
 function formatTemplateOption(label: Label) {
-	return `- [ ] \`${label.name}\` — ${label.description}`
+	return `- [ ] \`${label.name}\``
 }
 
 export function formatLabelOptionsForPRTemplate() {
-	let result = `<!-- ❗ Please select a 'Scope' label ❗️ -->\n\n`
-	for (const label of SCOPE_LABELS) {
-		result += formatTemplateOption(label) + '\n'
-	}
-	result += `\n<!-- ❗ Please select a 'Type' label ❗️ -->\n\n`
-	for (const label of TYPE_LABELS) {
-		result += formatTemplateOption(label) + '\n'
-	}
-	return result
+	return TYPE_LABELS.map(formatTemplateOption).join('\n')
 }
 
 export async function generateAutoRcFile() {
 	const autoRcPath = join(REPO_ROOT, '.autorc')
 	await writeJsonFile(autoRcPath, {
-		plugins: ['npm'],
-		labels: [...SCOPE_LABELS, ...TYPE_LABELS].map(({ name, changelogTitle }) => ({
+		plugins: ['npm', '../scripts/lib/auto-plugin.js'],
+		labels: [...TYPE_LABELS.filter((l) => l.name !== 'other')].map(({ name, changelogTitle }) => ({
 			name,
 			changelogTitle,
 			releaseType: 'none',

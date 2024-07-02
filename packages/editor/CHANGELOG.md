@@ -1,3 +1,93 @@
+# v2.3.0 (Tue Jun 25 2024)
+
+### Release Notes
+
+#### Fix border color for following user ([#3975](https://github.com/tldraw/tldraw/pull/3975))
+
+- Add a brief release note for your PR here.
+
+#### Fix edge scrolling at odd browser zoom levels ([#3973](https://github.com/tldraw/tldraw/pull/3973))
+
+- Add a brief release note for your PR here.
+
+#### [Experiment] Allow users to use system's appearance (dark / light) mode ([#3703](https://github.com/tldraw/tldraw/pull/3703))
+
+- Add a brief release note for your PR here.
+
+#### Improve edge scrolling ([#3950](https://github.com/tldraw/tldraw/pull/3950))
+
+- Add a delay and easing to edge scrolling.
+
+#### bookmark: css tweaks ([#3955](https://github.com/tldraw/tldraw/pull/3955))
+
+- Bookmarks: padding tweaks
+
+#### Dynamic size mode + fill fill ([#3835](https://github.com/tldraw/tldraw/pull/3835))
+
+- Adds a dynamic size user preferences.
+- Removes double click to reset scale on text shapes.
+- Removes double click to reset autosize on text shapes.
+
+#### assets: preload fonts ([#3927](https://github.com/tldraw/tldraw/pull/3927))
+
+- Perf: improve font loading timing on dotcom.
+
+#### [tiny] getSnapshot and loadSnapshot on Editor class ([#3912](https://github.com/tldraw/tldraw/pull/3912))
+
+- Add a brief release note for your PR here.
+
+#### Flatten shapes to image(s) ([#3933](https://github.com/tldraw/tldraw/pull/3933))
+
+- Add Flatten, a new menu item to flatten shapes into images
+
+#### assets: store in indexedDB, not as base64 ([#3836](https://github.com/tldraw/tldraw/pull/3836))
+
+- Assets: store as reference to blob in indexedDB instead of storing directly as base64 in the snapshot.
+
+#### assets: make option to transform urls dynamically / LOD ([#3827](https://github.com/tldraw/tldraw/pull/3827))
+
+- Assets: make option to transform urls dynamically to provide different sized images on demand.
+
+---
+
+#### 📚 SDK Changes
+
+- assets: mark assetOptions as internal [#4014](https://github.com/tldraw/tldraw/pull/4014) ([@mimecuvalo](https://github.com/mimecuvalo))
+- better auto-generated docs for Tldraw and TldrawEditor [#4012](https://github.com/tldraw/tldraw/pull/4012) ([@SomeHats](https://github.com/SomeHats))
+- Fix border color for following user [#3975](https://github.com/tldraw/tldraw/pull/3975) ([@ds300](https://github.com/ds300))
+- Fix edge scrolling at odd browser zoom levels [#3973](https://github.com/tldraw/tldraw/pull/3973) ([@ds300](https://github.com/ds300))
+- [Experiment] Allow users to use system's appearance (dark / light) mode [#3703](https://github.com/tldraw/tldraw/pull/3703) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Improve edge scrolling [#3950](https://github.com/tldraw/tldraw/pull/3950) ([@steveruizok](https://github.com/steveruizok))
+- bookmark: css tweaks [#3955](https://github.com/tldraw/tldraw/pull/3955) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Dynamic size mode + fill fill [#3835](https://github.com/tldraw/tldraw/pull/3835) ([@steveruizok](https://github.com/steveruizok) [@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- [tiny] getSnapshot and loadSnapshot on Editor class [#3912](https://github.com/tldraw/tldraw/pull/3912) ([@ds300](https://github.com/ds300))
+- Flatten shapes to image(s) [#3933](https://github.com/tldraw/tldraw/pull/3933) ([@steveruizok](https://github.com/steveruizok))
+- assets: store in indexedDB, not as base64 [#3836](https://github.com/tldraw/tldraw/pull/3836) ([@mimecuvalo](https://github.com/mimecuvalo))
+- image: follow-up fixes for LOD [#3934](https://github.com/tldraw/tldraw/pull/3934) ([@mimecuvalo](https://github.com/mimecuvalo))
+- assets: make option to transform urls dynamically / LOD [#3827](https://github.com/tldraw/tldraw/pull/3827) ([@mimecuvalo](https://github.com/mimecuvalo))
+- security: enforce use of our fetch function and its default referrerpolicy [#3884](https://github.com/tldraw/tldraw/pull/3884) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🖥️ tldraw.com Changes
+
+- assets: preload fonts [#3927](https://github.com/tldraw/tldraw/pull/3927) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+
+#### 📖 Documentation changes
+
+- Document inherited members in reference [#3956](https://github.com/tldraw/tldraw/pull/3956) ([@SomeHats](https://github.com/SomeHats))
+- Better generated docs for react components [#3930](https://github.com/tldraw/tldraw/pull/3930) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 7
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.2.0 (Tue Jun 11 2024)
 
 ### Release Notes

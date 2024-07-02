@@ -23,7 +23,6 @@ import { Editor } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
 import { EmbedDefinition } from '@tldraw/editor';
 import { EnumStyleProp } from '@tldraw/editor';
-import { Expand } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
@@ -71,6 +70,7 @@ import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
+import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
@@ -110,7 +110,6 @@ import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
-import { TLStoreWithStatus } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -1614,7 +1613,8 @@ export interface TLArrowPoint {
 }
 
 // @public (undocumented)
-export type TLComponents = Expand<TLEditorComponents & TLUiComponents>;
+export interface TLComponents extends TLEditorComponents, TLUiComponents {
+}
 
 // @public (undocumented)
 export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
@@ -1624,6 +1624,12 @@ export function Tldraw(props: TldrawProps): JSX_2.Element;
 
 // @public (undocumented)
 export const TLDRAW_FILE_EXTENSION: ".tldr";
+
+// @public (undocumented)
+export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
+    // (undocumented)
+    components?: TLComponents;
+}
 
 // @public (undocumented)
 export interface TldrawFile {
@@ -1669,18 +1675,7 @@ export interface TldrawImageProps extends TLSvgOptions {
 }
 
 // @public (undocumented)
-export type TldrawProps = Expand<(Omit<TldrawUiProps, 'components'> & Omit<TldrawEditorBaseProps, 'components'> & {
-    components?: TLComponents;
-}) & Partial<TLExternalContentProps> & ({
-    snapshot?: TLEditorSnapshot | TLStoreSnapshot;
-    defaultName?: string;
-    migrations?: readonly MigrationSequence[];
-    persistenceKey?: string;
-    sessionId?: string;
-    store?: undefined;
-} | {
-    store: TLStore | TLStoreWithStatus;
-})>;
+export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;
 
 // @public (undocumented)
 export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX_2.Element | null;
@@ -1838,14 +1833,10 @@ export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
 
 // @public (undocumented)
 export interface TLExternalContentProps {
-    // (undocumented)
-    acceptedImageMimeTypes: readonly string[];
-    // (undocumented)
-    acceptedVideoMimeTypes: readonly string[];
-    // (undocumented)
-    maxAssetSize: number;
-    // (undocumented)
-    maxImageDimension: number;
+    acceptedImageMimeTypes?: readonly string[];
+    acceptedVideoMimeTypes?: readonly string[];
+    maxAssetSize?: number;
+    maxImageDimension?: number;
 }
 
 // @public (undocumented)
