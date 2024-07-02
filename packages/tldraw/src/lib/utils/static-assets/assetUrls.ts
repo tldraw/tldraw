@@ -1,14 +1,5 @@
-import { RecursivePartial } from '@tldraw/editor'
+import { RecursivePartial, getDefaultCdnBaseUrl } from '@tldraw/editor'
 import { useMemo } from 'react'
-import { version } from '../../ui/version'
-
-/** @internal */
-const CDN_BASE_URL = 'https://cdn.tldraw.com'
-
-/** @public */
-export function getDefaultCdnBaseUrl() {
-	return `${CDN_BASE_URL}/${version}`
-}
 
 /** @public */
 export interface TLEditorAssetUrls {

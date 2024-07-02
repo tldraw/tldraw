@@ -1,14 +1,14 @@
 import { T } from '@tldraw/validate'
-import nacl from 'tweetnacl'
-import util from 'tweetnacl-util'
+import crypto from 'crypto'
 import { publishDates } from '../../../version'
+import { importPublicKey, str2ab } from '../../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 5
 
 const FLAGS = {
-	annualLicense: 1,
-	perpetualLicense: 2,
-	internalLicense: 4,
+	ANNUAL_LICENSE: 0x1,
+	PERPETUAL_LICENSE: 0x2,
+	INTERNAL_LICENSE: 0x4,
 }
 
 const licenseInfoValidator = T.object({
@@ -42,22 +42,44 @@ interface ValidLicenseKeyResult {
 }
 
 export class LicenseManager {
-	private publicKey = '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
+	private publicKey: string
 	private isTest: boolean
-	constructor() {
+	constructor(testPublicKey?: string) {
 		this.isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+		this.publicKey = testPublicKey || '3UylteUjvvOL4nKfN8KfjnTbSm6ayj23QihX9TsWPIM='
 	}
-	private extractLicense(licenseKey: string): LicenseInfo {
-		const base64License = util.decodeBase64(licenseKey)
+	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
+		const [data, signature] = licenseKey.split('.')
+		const [prefix, encodedData] = data.split('/')
 
-		const decoded = nacl.sign.open(base64License, util.decodeBase64(this.publicKey))
-
-		if (!decoded) {
-			throw new Error('Invalid license key')
+		if (prefix !== 'tldraw') {
+			throw new Error(`Unsupported prefix '${prefix}'`)
 		}
-		const licenseInfo = JSON.parse(util.encodeUTF8(decoded))
+
+		const publicCryptoKey = await importPublicKey(this.publicKey)
+
 		try {
-			return licenseInfoValidator.validate(licenseInfo)
+			await crypto.subtle.verify(
+				{
+					name: 'ECDSA',
+					hash: { name: 'SHA-384' },
+				},
+				publicCryptoKey,
+				str2ab(signature) as Uint8Array,
+				str2ab(encodedData) as Uint8Array
+			)
+		} catch (e) {
+			console.error(e)
+			throw new Error('Invalid signature')
+		}
+		let decodedData: any
+		try {
+			decodedData = JSON.parse(atob(encodedData))
+		} catch (e) {
+			throw new Error('Could not parse object')
+		}
+		try {
+			return licenseInfoValidator.validate(decodedData)
 		} catch (e: any) {
 			if (e.message.includes('Unexpected property')) {
 				this.outputMessages([
@@ -66,20 +88,20 @@ export class LicenseManager {
 				])
 			}
 		}
-		return licenseInfoValidator.allowUnknownProperties().validate(licenseInfo)
+		return licenseInfoValidator.allowUnknownProperties().validate(decodedData)
 	}
 
-	getLicenseFromKey(licenseKey?: string): LicenseFromKeyResult {
+	async getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult> {
 		if (!licenseKey) {
 			this.outputNoLicenseKeyProvided()
 			return { isLicenseValid: false, reason: 'no-key-provided' }
 		}
 
 		try {
-			const licenseInfo = this.extractLicense(licenseKey)
+			const licenseInfo = await this.extractLicenseKey(licenseKey)
 			const expiryDate = new Date(licenseInfo.expiryDate)
-			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.annualLicense)
-			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.perpetualLicense)
+			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.ANNUAL_LICENSE)
+			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.PERPETUAL_LICENSE)
 
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
@@ -92,7 +114,7 @@ export class LicenseManager {
 				isAnnualLicenseExpired: isAnnualLicense && this.isAnnualLicenseExpired(expiryDate),
 				isPerpetualLicense,
 				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
-				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.internalLicense),
+				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
 			}
 			this.outputLicenseInfoIfNeeded(result)
 			return result

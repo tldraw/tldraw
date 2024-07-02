@@ -273,7 +273,15 @@ async function copyTranslations() {
 	}
 }
 
-// 4. ASSET DECLARATION FILES
+// 4. WATERMARK
+async function copyWatermark() {
+	await writeFile(
+		join(REPO_ROOT, 'packages', 'editor', 'assets', 'watermark.png'),
+		readFileSync(join(ASSETS_FOLDER_PATH, 'watermarks', 'watermark.png'))
+	)
+}
+
+// 5. ASSET DECLARATION FILES
 async function writeUrlBasedAssetDeclarationFile() {
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'urls.js')
 	const codeFile = `
@@ -408,21 +416,21 @@ async function writeAssetDeclarationDTSFile() {
 
 function getNewPublishDates(packageVersion: string) {
 	const currentVersion = new SemVer(version)
-	const currentPacakgeVersion = new SemVer(packageVersion)
+	const currentPackageVersion = new SemVer(packageVersion)
 	const now = new Date().toISOString()
-	if (currentPacakgeVersion.major > currentVersion.major) {
+	if (currentPackageVersion.major > currentVersion.major) {
 		return {
 			major: now,
 			minor: now,
 			patch: now,
 		}
-	} else if (currentPacakgeVersion.minor > currentVersion.minor) {
+	} else if (currentPackageVersion.minor > currentVersion.minor) {
 		return {
 			major: publishDates.major,
 			minor: now,
 			patch: now,
 		}
-	} else if (currentPacakgeVersion.patch > currentVersion.patch) {
+	} else if (currentPackageVersion.patch > currentVersion.patch) {
 		return {
 			major: publishDates.major,
 			minor: publishDates.minor,
@@ -473,6 +481,8 @@ async function main() {
 	await copyFonts()
 	nicelog('Copying translations...')
 	await copyTranslations()
+	nicelog('Copying watermark...')
+	await copyWatermark()
 	nicelog('Writing asset declaration file...')
 	await writeAssetDeclarationDTSFile()
 	await writeUrlBasedAssetDeclarationFile()
