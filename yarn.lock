@@ -6357,6 +6357,8 @@ __metadata:
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
+    itty-router: "npm:^4.0.13"
     lazyrepo: "npm:0.0.0-alpha.27"
     toucan-js: "npm:^3.4.0"
     typescript: "npm:^5.3.3"

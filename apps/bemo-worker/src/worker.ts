@@ -2,10 +2,13 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import {
-	createSentry,
+	getUrlMetadata,
+	handleApiRequest,
 	handleUserAssetGet,
 	handleUserAssetUpload,
 	notFound,
+	parseRequestQuery,
+	urlMetadataQueryValidator,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { Router, createCors } from 'itty-router'
@@ -34,6 +37,10 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				context: this.ctx,
 			})
 		})
+		.get('/v1/bookmarks/unfurl', async (request) => {
+			const query = parseRequestQuery(request, urlMetadataQueryValidator)
+			return Response.json(await getUrlMetadata(query))
+		})
 		.get('/do', async (request) => {
 			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
 			const message = await (await bemo.fetch(request)).json()
@@ -42,17 +49,12 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		.all('*', notFound)
 
 	override async fetch(request: Request): Promise<Response> {
-		try {
-			return await this.router.handle(request).then(cors.corsify)
-		} catch (error) {
-			const sentry = createSentry(this.ctx, this.env, request)
-			console.error(error)
-			// eslint-disable-next-line deprecation/deprecation
-			sentry?.captureException(error)
-			return new Response('Something went wrong', {
-				status: 500,
-				statusText: 'Internal Server Error',
-			})
-		}
+		return handleApiRequest({
+			router: this.router,
+			request,
+			env: this.env,
+			ctx: this.ctx,
+			after: cors.corsify,
+		})
 	}
 }
