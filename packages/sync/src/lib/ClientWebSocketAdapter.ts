@@ -1,5 +1,6 @@
+import { atom, Atom } from '@tldraw/state'
+import { TLRecord } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
-import { atom, Atom, TLRecord } from 'tldraw'
 import { chunk } from './chunk'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from './protocol'
 import {
