@@ -1,5 +1,5 @@
 import { Editor, TLAsset, fetch } from 'tldraw'
-import { multiplayerAssetStore } from './assetHandler'
+import { multiplayerAssetStore } from './multiplayerAssetStore'
 
 export async function cloneAssetForShare(editor: Editor, asset: TLAsset): Promise<TLAsset> {
 	if (asset.type === 'bookmark') return asset
