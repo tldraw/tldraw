@@ -21,7 +21,7 @@ const cors = createCors({ origins: ['*'] })
 export default class Worker extends WorkerEntrypoint<Environment> {
 	private readonly router = Router()
 		.all('*', cors.preflight)
-		.get('/v1/uploads/:objectName', (request) => {
+		.get('/uploads/:objectName', (request) => {
 			return handleUserAssetGet({
 				request,
 				bucket: this.env.BEMO_BUCKET,
@@ -29,7 +29,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				context: this.ctx,
 			})
 		})
-		.post('/v1/uploads/:objectName', async (request) => {
+		.post('/uploads/:objectName', async (request) => {
 			return handleUserAssetUpload({
 				request,
 				bucket: this.env.BEMO_BUCKET,
@@ -37,7 +37,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				context: this.ctx,
 			})
 		})
-		.get('/v1/bookmarks/unfurl', async (request) => {
+		.get('/bookmarks/unfurl', async (request) => {
 			const query = parseRequestQuery(request, urlMetadataQueryValidator)
 			return Response.json(await getUrlMetadata(query))
 		})
