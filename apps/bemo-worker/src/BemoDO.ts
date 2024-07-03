@@ -1,10 +1,16 @@
 import { RoomSnapshot, TLCloseEventCode, TLSocketRoom } from '@tldraw/sync'
 import { TLRecord } from '@tldraw/tlschema'
 import { throttle } from '@tldraw/utils'
-import { createPersistQueue, createSentry } from '@tldraw/worker-shared'
+import { T } from '@tldraw/validate'
+import { createPersistQueue, createSentry, parseRequestQuery } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Environment } from './types'
+
+const connectRequestQuery = T.object({
+	sessionKey: T.string,
+	storeId: T.string.optional(),
+})
 
 export class BemoDO extends DurableObject<Environment> {
 	r2: R2Bucket
@@ -55,9 +61,7 @@ export class BemoDO extends DurableObject<Environment> {
 
 	async handleConnect(req: IRequest) {
 		// extract query params from request, should include instanceId
-		const url = new URL(req.url)
-		const params = Object.fromEntries(url.searchParams.entries())
-		const { sessionKey } = params
+		const { sessionKey } = parseRequestQuery(req, connectRequestQuery)
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
