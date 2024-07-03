@@ -12,6 +12,9 @@
 		},
 		{
 			"path": "../../packages/tldraw"
+		},
+		{
+			"path": "../../packages/dotcom-shared"
 		}
 	]
 }

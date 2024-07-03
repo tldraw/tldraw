@@ -1,4 +1,9 @@
-import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
+import {
+	ROOM_OPEN_MODE,
+	RoomOpenModeToPath,
+	TLDRAW_LICENSE,
+	type RoomOpenMode,
+} from '@tldraw/dotcom-shared'
 import { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
@@ -144,6 +149,7 @@ export function MultiplayerEditor({
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={TLDRAW_LICENSE}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}

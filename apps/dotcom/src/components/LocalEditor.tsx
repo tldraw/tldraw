@@ -1,3 +1,4 @@
+import { TLDRAW_LICENSE } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import {
 	DefaultDebugMenu,
@@ -92,6 +93,7 @@ export function LocalEditor() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={TLDRAW_LICENSE}
 				assetUrls={assetUrls}
 				persistenceKey={SCRATCH_PERSISTENCE_KEY}
 				onMount={handleMount}

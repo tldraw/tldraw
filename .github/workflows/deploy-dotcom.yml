@@ -67,6 +67,7 @@ jobs:
           SENTRY_CSP_REPORT_URI: ${{ secrets.SENTRY_CSP_REPORT_URI }}
           SUPABASE_LITE_ANON_KEY: ${{ secrets.SUPABASE_LITE_ANON_KEY }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          TLDRAW_LICENSE: ${{ secrets.TLDRAW_LICENSE }}
 
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
