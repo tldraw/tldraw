@@ -8,6 +8,16 @@ const FLAGS = {
 	PERPETUAL_LICENSE: 0x2,
 	INTERNAL_LICENSE: 0x4,
 }
+const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
+
+const PROPERTIES = {
+	ID: 0,
+	HOSTS: 1,
+	FLAGS: 2,
+	VERSION: 3,
+	EXPIRY_DATE: 4,
+}
+const NUMBER_OF_KNOWN_PROPERTIES = Object.keys(PROPERTIES).length
 
 const LICENSE_EMAIL = 'sales@tldraw.com'
 
@@ -42,12 +52,25 @@ interface ValidLicenseKeyResult {
 export class LicenseManager {
 	private publicKey =
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
-
-	private isTest: boolean
+	public isDevelopment: boolean
 
 	constructor(testPublicKey?: string) {
-		this.isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+		this.isDevelopment = this.getIsDevelopment()
 		this.publicKey = testPublicKey || this.publicKey
+	}
+
+	private getIsDevelopment() {
+		if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+			return true
+		}
+		if (
+			typeof import.meta !== 'undefined' &&
+			(import.meta as any).env &&
+			(import.meta as any).env.MODE === 'development'
+		) {
+			return true
+		}
+		return window.location.protocol === 'http:'
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
@@ -88,13 +111,19 @@ export class LicenseManager {
 		} catch (e) {
 			throw new Error('Could not parse object')
 		}
+		if (decodedData.length > NUMBER_OF_KNOWN_PROPERTIES) {
+			this.outputMessages([
+				'License key contains some unknown properties.',
+				'You may want to update tldraw packages to a newer version to get access to new functionality.',
+			])
+		}
 
 		return {
-			id: decodedData[0],
-			hosts: decodedData[1],
-			flags: decodedData[2],
-			version: decodedData[3],
-			expiryDate: decodedData[4],
+			id: decodedData[PROPERTIES.ID],
+			hosts: decodedData[PROPERTIES.HOSTS],
+			flags: decodedData[PROPERTIES.FLAGS],
+			version: decodedData[PROPERTIES.VERSION],
+			expiryDate: decodedData[PROPERTIES.EXPIRY_DATE],
 		}
 	}
 
@@ -218,6 +247,14 @@ export class LicenseManager {
 				`Please reach out to ${LICENSE_EMAIL} if you would like to use tldraw on other domains.`,
 			])
 		}
+		// If we added a new flag it will be twice the value of the currently highest flag.
+		// And if all the current flags are on we would get the `HIGHEST_FLAG * 2 - 1`, so anything higher than that means there are new flags.
+		if (result.license.flags >= HIGHEST_FLAG * 2) {
+			this.outputMessages([
+				'This tldraw license contains some unknown flags.',
+				'You may want to update tldraw packages to a newer version to get access to new functionality.',
+			])
+		}
 	}
 
 	private outputMessage(message: string) {
@@ -225,8 +262,7 @@ export class LicenseManager {
 	}
 
 	private outputMessages(messages: string[]) {
-		if (this.isTest) return
-
+		if (!this.isDevelopment) return
 		this.outputDelimiter()
 		for (const message of messages) {
 			// eslint-disable-next-line no-console
