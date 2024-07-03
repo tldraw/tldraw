@@ -28,3 +28,5 @@ apps/docs/content/reference/**/*
 **/.out/*
 **/.temp/*
 apps/dotcom/public/**/*.*
+
+**/.clasp.json

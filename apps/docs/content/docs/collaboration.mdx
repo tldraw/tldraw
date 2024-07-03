@@ -20,7 +20,7 @@ We have a [sockets example](https://github.com/tldraw/tldraw-sockets-example) th
 
 ### Our own sync engine
 
-We developed our own sync engine for use on tldraw.com based on a push/pull/rebase-style algorithm. It powers our "shared projects", such as [this one](https://tldraw.com/r). The engine's source code can be found [here](https://github.com/tldraw/tldraw/tree/main/packages/tlsync). It was designed to be hosted on Cloudflare workers with [DurableObjects](https://developers.cloudflare.com/durable-objects/).
+We developed our own sync engine for use on tldraw.com based on a push/pull/rebase-style algorithm. It powers our "shared projects", such as [this one](https://tldraw.com/r). The engine's source code can be found [here](https://github.com/tldraw/tldraw/tree/main/packages/sync). It was designed to be hosted on Cloudflare workers with [DurableObjects](https://developers.cloudflare.com/durable-objects/).
 
 We don't suggest using this code directly. However, like our other examples, it may serve as a good reference for your own sync engine.
 

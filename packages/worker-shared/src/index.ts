@@ -1,6 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
+export { createPersistQueue } from './createPersistQueue'
 export { notFound } from './errors'
 export { getUrlMetadata, urlMetadataQueryValidator } from './getUrlMetadata'
 export {

@@ -41,10 +41,13 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			const query = parseRequestQuery(request, urlMetadataQueryValidator)
 			return Response.json(await getUrlMetadata(query))
 		})
-		.get('/do', async (request) => {
-			const bemo = this.env.BEMO_DO.get(this.env.BEMO_DO.idFromName('bemo-do'))
-			const message = await (await bemo.fetch(request)).json()
-			return Response.json(message)
+		.get('/connect/:slug', (request) => {
+			const slug = request.params.slug
+			if (!slug) return new Response('Not found', { status: 404 })
+
+			// Set up the durable object for this room
+			const id = this.env.BEMO_DO.idFromName(slug)
+			return this.env.BEMO_DO.get(id).fetch(request)
 		})
 		.all('*', notFound)
 
