@@ -10,6 +10,7 @@ const FLAGS = {
 	PERPETUAL_LICENSE: 0x2,
 	INTERNAL_LICENSE: 0x4,
 }
+const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
 const licenseInfoValidator = T.object({
 	expiryDate: T.string,
@@ -190,6 +191,12 @@ export class LicenseManager {
 			this.outputMessages([
 				'This tldraw license key is not valid for this domain.',
 				'Please reach out to hello@tldraw.com if you would like to use tldraw on other domains.',
+			])
+		}
+		if (result.license.flags > HIGHEST_FLAG * 2) {
+			this.outputMessages([
+				'This tldraw license contains some unknown flags.',
+				'You may want to update tldraw packages to a newer version to get access to new functionality.',
 			])
 		}
 	}
