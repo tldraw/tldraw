@@ -28,7 +28,7 @@ interface LicenseInfo {
 	version: string
 	expiryDate: string
 }
-type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided'
+type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided' | 'has-key-development-mode'
 
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult
 
@@ -131,6 +131,10 @@ export class LicenseManager {
 		if (!licenseKey) {
 			this.outputNoLicenseKeyProvided()
 			return { isLicenseParseable: false, reason: 'no-key-provided' }
+		}
+
+		if (this.isDevelopment) {
+			return { isLicenseParseable: false, reason: 'has-key-development-mode' }
 		}
 
 		// Borrowed idea from AG Grid:
@@ -263,6 +267,7 @@ export class LicenseManager {
 
 	private outputMessages(messages: string[]) {
 		if (!this.isDevelopment) return
+
 		this.outputDelimiter()
 		for (const message of messages) {
 			// eslint-disable-next-line no-console
