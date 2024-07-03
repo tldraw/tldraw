@@ -79,7 +79,7 @@ async function generateLicenseKey(
 	const signedLicenseKeyBuffer = await crypto.subtle.sign(
 		{
 			name: 'ECDSA',
-			hash: { name: 'SHA-384' },
+			hash: { name: 'SHA-256' },
 		},
 		privateKey,
 		encodedMsg
@@ -97,11 +97,7 @@ async function generateLicenseKey(
   Takes a string containing the PEM encoded key, and returns a Promise
   that will resolve to a CryptoKey representing the private key.
 */
-function importPrivateKey(pem: string) {
-	// fetch the part of the PEM string between header and footer
-	const pemHeader = '-----BEGIN PRIVATE KEY-----'
-	const pemFooter = '-----END PRIVATE KEY-----'
-	const pemContents = pem.substring(pemHeader.length, pem.length - pemFooter.length - 1)
+function importPrivateKey(pemContents: string) {
 	// base64 decode the string to get the binary data
 	const binaryDerString = atob(pemContents)
 	// convert from a binary string to an ArrayBuffer
@@ -112,7 +108,7 @@ function importPrivateKey(pem: string) {
 		new Uint8Array(binaryDer),
 		{
 			name: 'ECDSA',
-			namedCurve: 'P-384',
+			namedCurve: 'P-256',
 		},
 		true,
 		['sign']
@@ -126,7 +122,7 @@ async function generateKeyPair() {
 	const keyPair = await crypto.subtle.generateKey(
 		{
 			name: 'ECDSA',
-			namedCurve: 'P-384',
+			namedCurve: 'P-256',
 		},
 		true,
 		['sign', 'verify']
@@ -138,10 +134,8 @@ async function generateKeyPair() {
 }
 
 async function exportCryptoKey(key: CryptoKey, isPublic = false) {
-	const keyType = isPublic ? 'PUBLIC' : 'PRIVATE'
 	const exported = await crypto.subtle.exportKey(isPublic ? 'spki' : 'pkcs8', key)
-	const exportedAsBase64 = btoa(ab2str(exported))
-	return `-----BEGIN ${keyType} KEY-----\n${exportedAsBase64}\n-----END ${keyType} KEY-----`
+	return btoa(ab2str(exported))
 }
 
 /*

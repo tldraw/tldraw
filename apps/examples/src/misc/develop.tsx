@@ -2,6 +2,9 @@ import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { usePerformance } from '../hooks/usePerformance'
 
+const licenseKey =
+	'tldraw-tldraw-2025-07-03/WyJmcHlRZ1VzZyIsWyIqLnRsZHJhdy5jb20iXSwxLCIyLjMuMCIsIjIwMjUtMDctMDMiXQ==.DV8kOkKsSxZUngDL8oWEIQwgfVIBVhpgwgd/j+bxTQ7h+DVZ7R4oY9u1JDpvaLnwzbKX2LniFHiS8NUV4kqZoQ=='
+
 export default function Develop() {
 	const performanceOverrides = usePerformance()
 	return (
@@ -13,7 +16,7 @@ export default function Develop() {
 					;(window as any).app = editor
 					;(window as any).editor = editor
 				}}
-				licenseKey="Q2CXZkql7RiXfpL3sYNQo5HQ2ZV73xJNpfEvRdNeDR7IS0gHINzUGMsuxWal/JSACjr1BE1/1H4H0RiZ21SiCnsiZXhwaXJ5RGF0ZSI6IjIwMjEtMTItMzEiLCJjdXN0b21lciI6IkFsdGFzaWFuIiwidmFsaWRIb3N0cyI6WyJhdGxhc3NpYW4uY29tIiwiYXRsYXNzaWFuLm5ldCJdLCJmbGFncyI6NSwiZW52IjoiUHJvZHVjdGlvbiJ9"
+				licenseKey={licenseKey}
 			/>
 		</div>
 	)

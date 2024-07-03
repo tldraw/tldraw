@@ -273,12 +273,21 @@ async function copyTranslations() {
 	}
 }
 
-// 4. WATERMARK
-async function copyWatermark() {
-	await writeFile(
-		join(REPO_ROOT, 'packages', 'editor', 'assets', 'watermark.png'),
-		readFileSync(join(ASSETS_FOLDER_PATH, 'watermarks', 'watermark.png'))
+// 4. WATERMARKS
+async function copyWatermarks() {
+	const folderName = 'watermarks'
+	const extension = '.svg'
+
+	const sourceFolderPath = join(ASSETS_FOLDER_PATH, folderName)
+	const itemsToCopy = readdirSync(sourceFolderPath).filter((watermark) =>
+		watermark.endsWith(extension)
 	)
+
+	const destinationFolderPath = join(REPO_ROOT, 'packages', 'editor', 'assets', 'watermarks')
+	// Copy all items into the new folder
+	for (const item of itemsToCopy) {
+		await writeFile(join(destinationFolderPath, item), readFileSync(join(sourceFolderPath, item)))
+	}
 }
 
 // 5. ASSET DECLARATION FILES
@@ -481,8 +490,8 @@ async function main() {
 	await copyFonts()
 	nicelog('Copying translations...')
 	await copyTranslations()
-	nicelog('Copying watermark...')
-	await copyWatermark()
+	nicelog('Copying watermarks...')
+	await copyWatermarks()
 	nicelog('Writing asset declaration file...')
 	await writeAssetDeclarationDTSFile()
 	await writeUrlBasedAssetDeclarationFile()
