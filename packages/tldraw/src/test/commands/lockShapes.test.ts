@@ -175,94 +175,73 @@ describe('Unlocking', () => {
 
 describe('When forced', () => {
 	it('Can be deleted', () => {
-		editor.run(
-			() => {
-				const numberOfShapesBefore = editor.getCurrentPageShapes().length
-				editor.deleteShapes([ids.lockedShapeA])
-				expect(editor.getCurrentPageShapes().length).toBe(numberOfShapesBefore - 1)
-			},
-			{ ignoreShapeLock: true }
-		)
+		editor.run({ ignoreShapeLock: true }, () => {
+			const numberOfShapesBefore = editor.getCurrentPageShapes().length
+			editor.deleteShapes([ids.lockedShapeA])
+			expect(editor.getCurrentPageShapes().length).toBe(numberOfShapesBefore - 1)
+		})
 	})
 
 	it('Can be changed', () => {
-		editor.run(
-			() => {
-				editor.updateShapes([{ id: ids.lockedShapeA, type: 'geo', x: 100 }])
-				expect(editor.getShape(ids.lockedShapeA)!.x).toBe(100)
-			},
-			{ ignoreShapeLock: true }
-		)
+		editor.run({ ignoreShapeLock: true }, () => {
+			editor.updateShapes([{ id: ids.lockedShapeA, type: 'geo', x: 100 }])
+			expect(editor.getShape(ids.lockedShapeA)!.x).toBe(100)
+		})
 	})
 
 	it('Can be grouped / ungrouped', () => {
-		editor.run(
-			() => {
-				const shapeCount = editor.getCurrentPageShapes().length
-				editor.groupShapes([ids.lockedShapeA, ids.unlockedShapeA, ids.unlockedShapeB])
-				expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
-				expect(editor.getShape(ids.lockedShapeA)!.parentId).not.toBe(editor.getCurrentPageId())
-			},
-			{ ignoreShapeLock: true }
-		)
+		editor.run({ ignoreShapeLock: true }, () => {
+			const shapeCount = editor.getCurrentPageShapes().length
+			editor.groupShapes([ids.lockedShapeA, ids.unlockedShapeA, ids.unlockedShapeB])
+			expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
+			expect(editor.getShape(ids.lockedShapeA)!.parentId).not.toBe(editor.getCurrentPageId())
+		})
 	})
 
 	it('Cannot be moved', () => {
-		editor.run(
-			() => {
-				const shape = editor.getShape(ids.lockedShapeA)
-				editor.pointerDown(150, 150, { target: 'shape', shape })
-				editor.expectToBeIn('select.pointing_canvas')
+		editor.run({ ignoreShapeLock: true }, () => {
+			const shape = editor.getShape(ids.lockedShapeA)
+			editor.pointerDown(150, 150, { target: 'shape', shape })
+			editor.expectToBeIn('select.pointing_canvas')
 
-				editor.pointerMove(10, 10)
-				editor.expectToBeIn('select.brushing')
+			editor.pointerMove(10, 10)
+			editor.expectToBeIn('select.brushing')
 
-				editor.pointerUp()
-				editor.expectToBeIn('select.idle')
-			},
-			{ ignoreShapeLock: true }
-		)
+			editor.pointerUp()
+			editor.expectToBeIn('select.idle')
+		})
 	})
 
 	it('Can be selected with select all', () => {
-		editor.run(
-			() => {
-				editor.selectAll()
-				expect(editor.getSelectedShapeIds()).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
-			},
-			{ ignoreShapeLock: true }
-		)
+		editor.run({ ignoreShapeLock: true }, () => {
+			editor.selectAll()
+			expect(editor.getSelectedShapeIds()).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
+		})
 	})
 
 	it('Cannot be selected by clicking', () => {
-		editor.run(
-			() => {
-				const shape = editor.getShape(ids.lockedShapeA)!
+		editor.run({ ignoreShapeLock: true }, () => {
+			const shape = editor.getShape(ids.lockedShapeA)!
 
-				editor
-					.pointerDown(10, 10, { target: 'shape', shape })
-					.expectToBeIn('select.pointing_canvas')
-					.pointerUp()
-					.expectToBeIn('select.idle')
-				expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
-			},
-			{ ignoreShapeLock: true }
-		)
+			editor
+				.pointerDown(10, 10, { target: 'shape', shape })
+				.expectToBeIn('select.pointing_canvas')
+				.pointerUp()
+				.expectToBeIn('select.idle')
+			expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
+		})
 	})
 
 	it('Cannot be edited', () => {
-		editor.run(
-			() => {
-				const shape = editor.getShape(ids.lockedShapeA)!
-				const shapeCount = editor.getCurrentPageShapes().length
+		editor.run({ ignoreShapeLock: true }, () => {
+			const shape = editor.getShape(ids.lockedShapeA)!
+			const shapeCount = editor.getCurrentPageShapes().length
 
-				// We create a new shape and we edit that one
-				editor.doubleClick(10, 10, { target: 'shape', shape }).expectToBeIn('select.editing_shape')
-				expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
-				expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
-			},
-			{ ignoreShapeLock: true }
-		)
+			// We create a new shape and we edit that one
+			editor.doubleClick(10, 10, { target: 'shape', shape }).expectToBeIn('select.editing_shape')
+			expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
+			expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
+		})
 	})
 })
 
@@ -289,20 +268,14 @@ it('works when forced', () => {
 	expect(editor.getShape(myShapeId)).toMatchObject(myLockedShape)
 
 	// update works
-	editor.run(
-		() => {
-			editor.updateShape({ ...myLockedShape, x: 100 })
-		},
-		{ ignoreShapeLock: true }
-	)
+	editor.run({ ignoreShapeLock: true }, () => {
+		editor.updateShape({ ...myLockedShape, x: 100 })
+	})
 	expect(editor.getShape(myShapeId)).toMatchObject({ ...myLockedShape, x: 100 })
 
 	// delete works
-	editor.run(
-		() => {
-			editor.deleteShapes([myLockedShape])
-		},
-		{ ignoreShapeLock: true }
-	)
+	editor.run({ ignoreShapeLock: true }, () => {
+		editor.deleteShapes([myLockedShape])
+	})
 	expect(editor.getShape(myShapeId)).toBeUndefined()
 })
