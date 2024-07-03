@@ -1,3 +1,4 @@
+import { IMPORT_META_ENV } from '../../../importMeta'
 import { publishDates } from '../../../version'
 import { importPublicKey, str2ab } from '../../utils/licensing'
 
@@ -63,11 +64,7 @@ export class LicenseManager {
 		if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
 			return true
 		}
-		if (
-			typeof import.meta !== 'undefined' &&
-			(import.meta as any).env &&
-			(import.meta as any).env.MODE === 'development'
-		) {
+		if (IMPORT_META_ENV && IMPORT_META_ENV.MODE === 'development') {
 			return true
 		}
 		return window.location.protocol === 'http:'
