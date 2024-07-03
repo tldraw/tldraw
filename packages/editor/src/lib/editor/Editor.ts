@@ -109,7 +109,7 @@ import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { dataUrlToFile } from '../utils/assets'
-import { debugFlags } from '../utils/debug-flags'
+import { debugFlags, featureFlags } from '../utils/debug-flags'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
@@ -819,6 +819,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 */
 	private async checkLicenseKey(licenseKey: string | undefined) {
+		if (!featureFlags.enableLicensing.get()) return
+
 		const licenseManager = new LicenseManager()
 		const watermarkManager = new WatermarkManager(this)
 		const license = await licenseManager.getLicenseFromKey(licenseKey)
