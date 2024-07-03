@@ -3,9 +3,7 @@ import { str2ab } from '../../utils/licensing'
 import { FLAGS, LicenseManager, ValidLicenseKeyResult } from './LicenseManager'
 
 jest.mock('../../../importMeta.ts', () => ({
-	IMPORT_META_ENV: {
-		MODE: 'test',
-	},
+	IMPORT_META_ENV_MODE: 'test',
 }))
 
 describe('LicenseManager', () => {
