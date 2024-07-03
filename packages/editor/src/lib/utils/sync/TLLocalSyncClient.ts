@@ -157,7 +157,7 @@ export class TLLocalSyncClient {
 		let data: UnpackPromise<ReturnType<LocalIndexedDb['load']>> | undefined
 
 		try {
-			data = await this.db.load(this.sessionId)
+			data = await this.db.load({ sessionId: this.sessionId })
 		} catch (error: any) {
 			onLoadError(error)
 			showCantReadFromIndexDbAlert()

@@ -7,9 +7,6 @@ import { TLSessionStateSnapshot } from '../../config/TLSessionStateSnapshot'
 // DO NOT CHANGE THESE WITHOUT ADDING MIGRATION LOGIC. DOING SO WOULD WIPE ALL EXISTING DATA.
 const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
 const LEGACY_ASSET_STORE_PREFIX = 'TLDRAW_ASSET_STORE_v1'
-// N.B. This isn't very clean but this value is also echoed in AssetBlobStore.ts.
-// You need to keep them in sync.
-// This is to make sure that hard reset also clears this asset store.
 const dbNameIndexKey = 'TLDRAW_DB_NAME_INDEX_v2'
 
 const Table = {
@@ -59,17 +56,21 @@ async function migrateLegacyAssetDbIfNeeded(persistenceKey: string) {
 	})
 
 	const oldTx = oldAssetDb.transaction(['assets'], 'readonly')
+	const oldAssetStore = oldTx.objectStore('assets')
+	const oldAssetsKeys = await oldAssetStore.getAllKeys()
+	const oldAssets = await Promise.all(
+		oldAssetsKeys.map(async (key) => [key, await oldAssetStore.get(key)] as const)
+	)
+	await oldTx.done
 
 	const newDb = await openLocalDb(persistenceKey)
 	const newTx = newDb.transaction([Table.Assets], 'readwrite')
 	const newAssetTable = newTx.objectStore(Table.Assets)
-
-	for await (const oldAsset of oldTx.objectStore('assets').iterate()) {
-		await newAssetTable.put(oldAsset.value, oldAsset.key)
+	for (const [key, value] of oldAssets) {
+		newAssetTable.put(value, key)
 	}
-
-	await oldTx.done
 	await newTx.done
+
 	oldAssetDb.close()
 	newDb.close()
 
@@ -94,7 +95,11 @@ export class LocalIndexedDb {
 	private isClosed = false
 	private pendingTransactionSet = new Set<Promise<unknown>>()
 
+	/** @internal */
+	static connectedInstances = new Set<LocalIndexedDb>()
+
 	constructor(persistenceKey: string) {
+		LocalIndexedDb.connectedInstances.add(this)
 		this.getDbPromise = (async () => {
 			await migrateLegacyAssetDbIfNeeded(persistenceKey)
 			return await openLocalDb(persistenceKey)
@@ -110,6 +115,7 @@ export class LocalIndexedDb {
 		this.isClosed = true
 		await Promise.all([...this.pendingTransactionSet])
 		;(await this.getDb()).close()
+		LocalIndexedDb.connectedInstances.delete(this)
 	}
 
 	private tx<Names extends StoreName[], Mode extends IDBTransactionMode, T>(
@@ -136,7 +142,7 @@ export class LocalIndexedDb {
 		return txPromise
 	}
 
-	async load(sessionId: string) {
+	async load({ sessionId }: { sessionId?: string } = {}) {
 		return await this.tx(
 			'readonly',
 			[Table.Records, Table.Schema, Table.SessionState],

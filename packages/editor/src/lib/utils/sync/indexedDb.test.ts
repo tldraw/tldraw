@@ -1,227 +1,241 @@
-it.todo('re-enable these lol')
+import { createTLSchema } from '@tldraw/tlschema'
+import { openDB } from 'idb'
+import { hardReset } from './hardReset'
+import { getAllIndexDbNames, LocalIndexedDb } from './indexedDb'
 
-// import { createTLSchema } from '@tldraw/tlschema'
-// import { clearLocalStorage } from '@tldraw/utils'
-// import {
-// 	getAllIndexDbNames,
-// 	loadDataFromStore,
-// 	storeChangesInIndexedDb,
-// 	storeSnapshotInIndexedDb,
-// } from './indexedDb'
+const schema = createTLSchema({ shapes: {} })
+describe('LocalIndexedDb', () => {
+	beforeEach(() => {
+		jest.useRealTimers()
+	})
+	afterEach(async () => {
+		await hardReset({ shouldReload: false })
+	})
+	describe('#storeSnapshot', () => {
+		it("creates documents if they don't exist", async () => {
+			const db = new LocalIndexedDb('test-0')
+			await db.storeSnapshot({
+				schema,
+				snapshot: {},
+			})
 
-// const clearAll = async () => {
-// 	const dbs = (indexedDB as any)._databases as Map<any, any>
-// 	dbs.clear()
-// 	clearLocalStorage()
-// }
+			expect(getAllIndexDbNames()).toEqual(['TLDRAW_DOCUMENT_v2test-0'])
 
-// beforeEach(async () => {
-// 	await clearAll()
-// })
-// const schema = createTLSchema({ shapes: {} })
-// describe('storeSnapshotInIndexedDb', () => {
-// 	it("creates documents if they don't exist", async () => {
-// 		await storeSnapshotInIndexedDb({
-// 			persistenceKey: 'test-0',
-// 			schema,
-// 			snapshot: {},
-// 		})
+			const db2 = new LocalIndexedDb('test-1')
+			await db2.storeSnapshot({
+				schema,
+				snapshot: {},
+			})
 
-// 		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`
-// 		      [
-// 		        "TLDRAW_DOCUMENT_v2test-0",
-// 		      ]
-// 	    `)
+			expect(getAllIndexDbNames()).toEqual(['TLDRAW_DOCUMENT_v2test-0', 'TLDRAW_DOCUMENT_v2test-1'])
 
-// 		await storeSnapshotInIndexedDb({
-// 			persistenceKey: 'test-1',
-// 			schema,
-// 			snapshot: {},
-// 		})
+			await db2.storeSnapshot({
+				schema,
+				snapshot: {},
+			})
 
-// 		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`
-// 		      [
-// 		        "TLDRAW_DOCUMENT_v2test-0",
-// 		        "TLDRAW_DOCUMENT_v2test-1",
-// 		      ]
-// 	    `)
+			expect(getAllIndexDbNames()).toEqual(['TLDRAW_DOCUMENT_v2test-0', 'TLDRAW_DOCUMENT_v2test-1'])
 
-// 		await storeSnapshotInIndexedDb({
-// 			persistenceKey: 'test-1',
-// 			schema,
-// 			snapshot: {},
-// 		})
+			await db2.close()
+		})
 
-// 		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`
-// 		      [
-// 		        "TLDRAW_DOCUMENT_v2test-0",
-// 		        "TLDRAW_DOCUMENT_v2test-1",
-// 		      ]
-// 	    `)
-// 	})
+		it('allows reading back the snapshot', async () => {
+			const db = new LocalIndexedDb('test-0')
+			await db.storeSnapshot({
+				schema,
+				snapshot: {
+					'shape:1': {
+						id: 'shape:1',
+						type: 'rectangle',
+					},
+					'page:1': {
+						id: 'page:1',
+						name: 'steve',
+					},
+				},
+			})
 
-// 	it('allows reading back the snapshot', async () => {
-// 		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`[]`)
-// 		await storeSnapshotInIndexedDb({
-// 			persistenceKey: 'test-0',
-// 			schema,
-// 			snapshot: {
-// 				'shape:1': {
-// 					id: 'shape:1',
-// 					type: 'rectangle',
-// 				},
-// 				'page:1': {
-// 					id: 'page:1',
-// 					name: 'steve',
-// 				},
-// 			},
-// 		})
+			expect(getAllIndexDbNames()).toEqual(['TLDRAW_DOCUMENT_v2test-0'])
 
-// 		expect(getAllIndexDbNames()).toMatchInlineSnapshot(`
-// 		[
-// 		  "TLDRAW_DOCUMENT_v2test-0",
-// 		]
-// 	`)
+			const records = (await db.load())?.records
+			expect(records).toEqual([
+				{ id: 'page:1', name: 'steve' },
+				{ id: 'shape:1', type: 'rectangle' },
+			])
+		})
 
-// 		const records = (await loadDataFromStore({ persistenceKey: 'test-0' }))?.records
-// 		expect(records).toMatchInlineSnapshot(`
-// 		[
-// 		  {
-// 		    "id": "page:1",
-// 		    "name": "steve",
-// 		  },
-// 		  {
-// 		    "id": "shape:1",
-// 		    "type": "rectangle",
-// 		  },
-// 		]
-// 	`)
-// 	})
+		it('allows storing a session under a particular ID and reading it back', async () => {
+			const db = new LocalIndexedDb('test-0')
+			const snapshot = {
+				'shape:1': {
+					id: 'shape:1',
+					type: 'rectangle',
+				},
+			}
 
-// 	it('allows storing a session under a particular ID and reading it back', async () => {
-// 		const snapshot = {
-// 			'shape:1': {
-// 				id: 'shape:1',
-// 				type: 'rectangle',
-// 			},
-// 		}
+			await db.storeSnapshot({
+				sessionId: 'session-0',
+				schema,
+				snapshot,
+				sessionStateSnapshot: {
+					foo: 'bar',
+				} as any,
+			})
 
-// 		await storeSnapshotInIndexedDb({
-// 			persistenceKey: 'test-0',
-// 			sessionId: 'session-0',
-// 			schema,
-// 			snapshot,
-// 			sessionStateSnapshot: {
-// 				foo: 'bar',
-// 			} as any,
-// 		})
+			expect((await db.load({ sessionId: 'session-0' }))?.sessionStateSnapshot).toEqual({
+				foo: 'bar',
+			})
 
-// 		expect(
-// 			(await loadDataFromStore({ persistenceKey: 'test-0', sessionId: 'session-0' }))
-// 				?.sessionStateSnapshot
-// 		).toMatchInlineSnapshot(`
-// 		{
-// 		  "foo": "bar",
-// 		}
-// 	`)
+			await db.storeSnapshot({
+				sessionId: 'session-1',
+				schema,
+				snapshot,
+				sessionStateSnapshot: {
+					hello: 'world',
+				} as any,
+			})
 
-// 		await storeSnapshotInIndexedDb({
-// 			persistenceKey: 'test-0',
-// 			sessionId: 'session-1',
-// 			schema,
-// 			snapshot,
-// 			sessionStateSnapshot: {
-// 				hello: 'world',
-// 			} as any,
-// 		})
+			expect((await db.load({ sessionId: 'session-0' }))?.sessionStateSnapshot).toEqual({
+				foo: 'bar',
+			})
 
-// 		expect(
-// 			(await loadDataFromStore({ persistenceKey: 'test-0', sessionId: 'session-0' }))
-// 				?.sessionStateSnapshot
-// 		).toMatchInlineSnapshot(`
-// 		{
-// 		  "foo": "bar",
-// 		}
-// 	`)
+			expect((await db.load({ sessionId: 'session-1' }))?.sessionStateSnapshot).toEqual({
+				hello: 'world',
+			})
+		})
+	})
 
-// 		expect(
-// 			(await loadDataFromStore({ persistenceKey: 'test-0', sessionId: 'session-1' }))
-// 				?.sessionStateSnapshot
-// 		).toMatchInlineSnapshot(`
-// 		{
-// 		  "hello": "world",
-// 		}
-// 	`)
-// 	})
-// })
+	describe('#storeChanges', () => {
+		it('allows merging changes into an existing store', async () => {
+			const db = new LocalIndexedDb('test-0')
+			await db.storeSnapshot({
+				schema,
+				snapshot: {
+					'shape:1': {
+						id: 'shape:1',
+						version: 0,
+					},
+					'page:1': {
+						id: 'page:1',
+						version: 0,
+					},
+					'asset:1': {
+						id: 'asset:1',
+						version: 0,
+					},
+				},
+			})
 
-// describe(storeChangesInIndexedDb, () => {
-// 	it('allows merging changes into an existing store', async () => {
-// 		await storeSnapshotInIndexedDb({
-// 			persistenceKey: 'test-0',
-// 			schema,
-// 			snapshot: {
-// 				'shape:1': {
-// 					id: 'shape:1',
-// 					version: 0,
-// 				},
-// 				'page:1': {
-// 					id: 'page:1',
-// 					version: 0,
-// 				},
-// 				'asset:1': {
-// 					id: 'asset:1',
-// 					version: 0,
-// 				},
-// 			},
-// 		})
+			await db.storeChanges({
+				schema,
+				changes: {
+					added: {
+						'asset:2': {
+							id: 'asset:2',
+							version: 0,
+						},
+					},
+					updated: {
+						'page:1': [
+							{
+								id: 'page:1',
+								version: 0,
+							},
+							{
+								id: 'page:1',
+								version: 1,
+							},
+						],
+					},
+					removed: {
+						'shape:1': {
+							id: 'shape:1',
+							version: 0,
+						},
+					},
+				},
+			})
 
-// 		await storeChangesInIndexedDb({
-// 			persistenceKey: 'test-0',
-// 			schema,
-// 			changes: {
-// 				added: {
-// 					'asset:2': {
-// 						id: 'asset:2',
-// 						version: 0,
-// 					},
-// 				},
-// 				updated: {
-// 					'page:1': [
-// 						{
-// 							id: 'page:1',
-// 							version: 0,
-// 						},
-// 						{
-// 							id: 'page:1',
-// 							version: 1,
-// 						},
-// 					],
-// 				},
-// 				removed: {
-// 					'shape:1': {
-// 						id: 'shape:1',
-// 						version: 0,
-// 					},
-// 				},
-// 			},
-// 		})
+			expect((await db.load())?.records).toEqual([
+				{
+					id: 'asset:1',
+					version: 0,
+				},
+				{
+					id: 'asset:2',
+					version: 0,
+				},
+				{
+					id: 'page:1',
+					version: 1,
+				},
+			])
+		})
+	})
 
-// 		expect((await loadDataFromStore({ persistenceKey: 'test-0' }))?.records).toMatchInlineSnapshot(`
-// 		[
-// 		  {
-// 		    "id": "asset:1",
-// 		    "version": 0,
-// 		  },
-// 		  {
-// 		    "id": "asset:2",
-// 		    "version": 0,
-// 		  },
-// 		  {
-// 		    "id": "page:1",
-// 		    "version": 1,
-// 		  },
-// 		]
-// 	`)
-// 	})
-// })
+	it('migrates legacy asset storage into the new format', async () => {
+		const legacyAssetsDb = await openDB('TLDRAW_ASSET_STORE_v1test-0', 1, {
+			upgrade(database) {
+				if (!database.objectStoreNames.contains('assets')) {
+					database.createObjectStore('assets')
+				}
+			},
+		})
+
+		const file = { contents: 'hello, world!' } // new File(['Hello, world!'], 'hello.txt', { type: 'text/plain' })
+		const fileId = `asset:file`
+
+		{
+			const tx = legacyAssetsDb.transaction(['assets'], 'readwrite')
+			const store = tx.objectStore('assets')
+			await store.put(file, fileId)
+			await tx.done
+		}
+
+		legacyAssetsDb.close()
+
+		const mainDb = await openDB('TLDRAW_DOCUMENT_v2test-0', 3, {
+			upgrade(database) {
+				if (!database.objectStoreNames.contains('records')) {
+					database.createObjectStore('records')
+				}
+				if (!database.objectStoreNames.contains('schema')) {
+					database.createObjectStore('schema')
+				}
+				if (!database.objectStoreNames.contains('session_state')) {
+					database.createObjectStore('session_state')
+				}
+			},
+		})
+
+		{
+			const tx = mainDb.transaction(['records'], 'readwrite')
+			const store = tx.objectStore('records')
+			await store.put({ id: fileId, props: { src: fileId } }, fileId)
+			await tx.done
+		}
+
+		mainDb.close()
+
+		// before migration the legacy database should exist:
+		expect(
+			(await window.indexedDB.databases()).find((db) => db.name === 'TLDRAW_ASSET_STORE_v1test-0')
+		).toBeDefined()
+
+		// migration happens transparently:
+		const db = new LocalIndexedDb('test-0')
+		const snapshot = await db.load()
+
+		// records should be unaffected:
+		expect(snapshot?.records).toEqual([{ id: fileId, props: { src: fileId } }])
+		// assets should be accessible:
+		expect(await db.getAsset(fileId)).toEqual(file)
+
+		await db.close()
+
+		// the old asset DB should have been removed:
+		expect(
+			(await window.indexedDB.databases()).find((db) => db.name === 'TLDRAW_ASSET_STORE_v1test-0')
+		).toBeUndefined()
+	})
+})
