@@ -6249,6 +6249,8 @@ __metadata:
     lodash.isequal: "npm:^4.5.0"
     nanoid: "npm:4.0.2"
     raf: "npm:^3.4.1"
+  peerDependencies:
+    react: ^18
   languageName: unknown
   linkType: soft
 
