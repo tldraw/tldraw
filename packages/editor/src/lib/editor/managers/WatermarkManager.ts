@@ -12,12 +12,14 @@ const WATERMARKS_FOLDER = 'watermarks'
 export class WatermarkManager {
 	constructor(private editor: Editor) {}
 
-	private setWatermarkSrc(watermark: HTMLImageElement, forceLocal = false) {
+	private forceLocal = false
+
+	private setWatermarkSrc(watermark: HTMLImageElement) {
 		const isMobile = window.innerWidth < 840 /* PORTRAIT_BREAKPOINTS[TABLET] */
 
 		let src = ''
 		const width = isMobile ? '32px' : '120px'
-		if (navigator.onLine && !forceLocal) {
+		if (navigator.onLine && !this.forceLocal) {
 			src = `${getDefaultCdnBaseUrl()}/${WATERMARKS_FOLDER}/${isMobile ? WATERMARK_MOBILE_FILENAME : WATERMARK_DESKTOP_FILENAME}`
 		} else {
 			src = isMobile ? watermarkMobile : watermarkDesktop
@@ -29,9 +31,14 @@ export class WatermarkManager {
 		}
 	}
 
-	private createWatermark() {
-		const watermark = document.createElement('img')
-		this.setWatermarkSrc(watermark)
+	private createWatermark(doReplace = false) {
+		let watermark = this.findWatermark()
+
+		if (watermark && !doReplace) return watermark
+
+		if (!watermark) {
+			watermark = document.createElement('img')
+		}
 
 		this.applyStyles(watermark)
 
@@ -59,33 +66,29 @@ export class WatermarkManager {
 		return false
 	}
 
+	private findWatermark() {
+		const canvas = this.getWatermarkParent()
+		if (!canvas) return
+		const children = [...canvas.children]
+
+		return children.find(
+			(element) =>
+				element instanceof HTMLImageElement &&
+				(element.src.includes(WATERMARK_DESKTOP_FILENAME) ||
+					element.src.includes(WATERMARK_MOBILE_FILENAME))
+		) as HTMLImageElement
+	}
+
 	checkWatermark(license: LicenseFromKeyResult) {
 		if (!this.shouldShowWatermark(license)) return false
 
 		this.createWatermark()
 
-		const findWatermark = () => {
-			const canvas = this.getWatermarkParent()
-			if (!canvas) return
-			const children = [...canvas.children]
-
-			return children.find(
-				(element) =>
-					element instanceof HTMLImageElement &&
-					(element.src.includes(WATERMARK_DESKTOP_FILENAME) ||
-						element.src.includes(WATERMARK_MOBILE_FILENAME))
-			) as HTMLImageElement
-		}
-
 		this.editor.timers.setTimeout(() => {
 			// Ensure the watermark is still there.
 			// We check this once for any naughtiness.
 			// Don't be naughty.
-			let watermark = findWatermark()
-
-			if (!watermark) {
-				watermark = this.createWatermark()
-			}
+			const watermark = this.createWatermark()
 
 			this.applyStyles(watermark)
 
@@ -96,7 +99,8 @@ export class WatermarkManager {
 		}, 5000)
 
 		window.addEventListener('resize', () => {
-			const watermark = findWatermark()
+			// We need to replace the watermark to ensure the correct size is shown.
+			const watermark = this.createWatermark(true /* doReplace */)
 			watermark && this.setWatermarkSrc(watermark)
 		})
 
@@ -105,14 +109,19 @@ export class WatermarkManager {
 
 	applyStyles(watermark: HTMLImageElement) {
 		watermark.style.setProperty('position', 'absolute', 'important')
-		watermark.style.setProperty('bottom', '20px', 'important')
-		watermark.style.setProperty('right', '20px', 'important')
+		watermark.style.setProperty('bottom', '8px', 'important')
+		watermark.style.setProperty('right', '8px', 'important')
 		watermark.style.setProperty('opacity', '1', 'important')
 		watermark.style.setProperty('z-index', '2147483647' /* max */, 'important')
 		watermark.style.setProperty('pointer-events', 'all', 'important')
 		watermark.style.setProperty('cursor', 'pointer', 'important')
 		watermark.setAttribute('target', '_blank')
-		watermark.onerror = () => this.setWatermarkSrc(watermark, true /* forceLocal */)
+		watermark.onerror = () => {
+			// In case we're online but it's blocking this specific request,
+			// we still fallback to the local watermark.
+			this.forceLocal = true
+			this.setWatermarkSrc(watermark)
+		}
 		watermark.onclick = () => {
 			window.open('https://tldraw.dev', '_blank', 'noopener noreferrer')
 		}
