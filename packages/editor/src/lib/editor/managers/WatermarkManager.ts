@@ -48,7 +48,6 @@ export class WatermarkManager {
 	private shouldShowWatermark(license: LicenseFromKeyResult) {
 		if (!license.isLicenseParseable) return true
 		if (!license.isDomainValid) return true
-		if (license.isDevelopmentKey) return true
 
 		if (license.isPerpetualLicenseExpired || license.isAnnualLicenseExpired) {
 			if (license.isInternalLicense) {
@@ -90,7 +89,7 @@ export class WatermarkManager {
 
 			this.applyStyles(watermark)
 
-			if (license.isLicenseParseable && license.isDevelopmentKey) {
+			if (license.isLicenseParseable) {
 				// After 5 seconds, in development mode (dev, staging, CI), remove.
 				watermark.parentNode?.removeChild(watermark)
 			}

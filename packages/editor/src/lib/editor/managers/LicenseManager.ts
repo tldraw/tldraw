@@ -1,4 +1,3 @@
-import { T } from '@tldraw/validate'
 import { publishDates } from '../../../version'
 import { importPublicKey, str2ab } from '../../utils/licensing'
 
@@ -12,19 +11,14 @@ const FLAGS = {
 
 const LICENSE_EMAIL = 'sales@tldraw.com'
 
-const licenseInfoValidator = T.object({
-	id: T.string,
-	env: T.literalEnum('prod', 'dev'),
-	hosts: T.arrayOf(T.string),
-	customerId: T.string,
-	flags: T.number,
-	versionNumber: T.string,
-	expiryDate: T.string,
-	gracePeriod: T.number,
-})
-
-export type LicenseInfo = T.TypeOf<typeof licenseInfoValidator>
-export type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided'
+interface LicenseInfo {
+	id: string
+	hosts: string[]
+	flags: number
+	version: string
+	expiryDate: string
+}
+type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided'
 
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult
 
@@ -36,7 +30,6 @@ interface InvalidLicenseKeyResult {
 interface ValidLicenseKeyResult {
 	isLicenseParseable: true
 	license: LicenseInfo
-	isDevelopmentKey: boolean
 	isDomainValid: boolean
 	expiryDate: Date
 	isAnnualLicense: boolean
@@ -48,7 +41,7 @@ interface ValidLicenseKeyResult {
 
 export class LicenseManager {
 	private publicKey =
-		'-----BEGIN PUBLIC KEY-----\nMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEPkmEjocP8ldvaSv6BZuhhl+KgrBPn15eckpnYTtVGyqUngQnqdca/4BdZuCwxBR84cvE0MDQ/VnOu/Fyh+K2xr/uewxKqp9OaqqsGnedNdi4ypMZEnWIZkH32wn5BP6W\n-----END PUBLIC KEY-----'
+		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
 
 	private isTest: boolean
 
@@ -61,35 +54,46 @@ export class LicenseManager {
 		const [data, signature] = licenseKey.split('.')
 		const [prefix, encodedData] = data.split('/')
 
-		if (prefix !== 'tldraw') {
-			throw new Error(`License: Unsupported prefix '${prefix}'`)
+		if (!prefix.startsWith('tldraw-')) {
+			throw new Error(`Unsupported prefix '${prefix}'`)
 		}
 
 		const publicCryptoKey = await importPublicKey(this.publicKey)
 
+		let isVerified
 		try {
-			await crypto.subtle.verify(
+			isVerified = await crypto.subtle.verify(
 				{
 					name: 'ECDSA',
-					hash: { name: 'SHA-384' },
+					hash: { name: 'SHA-256' },
 				},
 				publicCryptoKey,
-				new Uint8Array(str2ab(signature)),
-				new Uint8Array(str2ab(encodedData))
+				str2ab(atob(signature)),
+				str2ab(atob(encodedData))
 			)
 		} catch (e) {
 			console.error(e)
-			throw new Error('License: Invalid signature')
+			throw new Error('Could not perform signature validation')
+		}
+
+		if (!isVerified) {
+			throw new Error('Invalid signature')
 		}
 
 		let decodedData: any
 		try {
 			decodedData = JSON.parse(atob(encodedData))
 		} catch (e) {
-			throw new Error('License: Could not parse object')
+			throw new Error('Could not parse object')
 		}
 
-		return licenseInfoValidator.validate(decodedData)
+		return {
+			id: decodedData[0],
+			hosts: decodedData[1],
+			flags: decodedData[2],
+			version: decodedData[3],
+			expiryDate: decodedData[4],
+		}
 	}
 
 	async getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult> {
@@ -113,7 +117,6 @@ export class LicenseManager {
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
 				isLicenseParseable: true,
-				isDevelopmentKey: licenseInfo.env === 'dev',
 				isDomainValid: this.isDomainValid(licenseInfo),
 				expiryDate,
 				isAnnualLicense,
@@ -125,8 +128,8 @@ export class LicenseManager {
 			this.outputLicenseInfoIfNeeded(result)
 
 			return result
-		} catch (e) {
-			this.outputInvalidLicenseKey()
+		} catch (e: any) {
+			this.outputInvalidLicenseKey(e.message)
 			// If the license can't be parsed, it's invalid
 			return { isLicenseParseable: false, reason: 'invalid-license-key' }
 		}
@@ -195,8 +198,8 @@ export class LicenseManager {
 		])
 	}
 
-	private outputInvalidLicenseKey() {
-		this.outputMessage('Invalid tldraw license key.')
+	private outputInvalidLicenseKey(msg: string) {
+		this.outputMessages(['Invalid tldraw license key', `Reason: ${msg}`])
 	}
 
 	private outputLicenseInfoIfNeeded(result: ValidLicenseKeyResult) {
