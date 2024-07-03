@@ -43,6 +43,7 @@
 		"uuid-readable": "^0.0.2"
 	},
 	"jest": {
+		"resolver": "<rootDir>/jestResolver.js",
 		"preset": "config/jest/node",
 		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"moduleNameMapper": {

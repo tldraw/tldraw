@@ -55,7 +55,6 @@
 		"ws": "^8.16.0"
 	},
 	"jest": {
-		"resolver": "<rootDir>/jestResolver.js",
 		"preset": "config/jest/node",
 		"roots": [
 			"<rootDir>"
