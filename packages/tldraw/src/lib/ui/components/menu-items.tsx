@@ -330,6 +330,8 @@ export function DeleteMenuItem() {
 
 /** @public @react */
 export function EditMenuSubmenu() {
+	if (!useAnySelectedShapesCount(1)) return null
+
 	return (
 		<TldrawUiMenuSubmenu id="edit" label="context-menu.edit" size="small">
 			<GroupMenuItem />

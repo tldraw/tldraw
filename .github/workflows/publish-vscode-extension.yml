@@ -3,6 +3,7 @@ name: Publish VS Code Extension
 on:
   push:
     branches:
+      - main
       - production
 
 env:
@@ -38,3 +39,4 @@ jobs:
         run: yarn tsx ./scripts/publish-vscode-extension.ts
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') }}

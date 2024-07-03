@@ -1,5 +1,4 @@
 import { isEqual } from 'lodash'
-import fetch from 'node-fetch'
 import * as vscode from 'vscode'
 import { TLDrawDocument } from './TldrawDocument'
 import { loadFile } from './file'
@@ -7,8 +6,8 @@ import { loadFile } from './file'
 import { UnknownRecord } from 'tldraw'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
+import { unfurl } from './unfurl'
 import { nicelog } from './utils'
-const BOOKMARK_ENDPOINT = 'https://bookmark-extractor.tldraw.com/api/bookmark'
 
 export const GlobalStateKeys = {
 	ShowV1FileOpenWarning: 'showV1fileOpenWarning',
@@ -74,24 +73,12 @@ export class WebViewMessageHandler {
 			}
 			case 'vscode:bookmark/request': {
 				const url = e.data.url
-				fetch(BOOKMARK_ENDPOINT, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						// We can fake the origin here because we're in node.js
-						origin: 'https://www.tldraw.com',
-					},
-					body: JSON.stringify({
-						url,
-					}),
-				})
-					.then((resp) => {
-						return resp.json()
-					})
-					.then((json: any) => {
+				await unfurl(url)
+					.then(async (json: any) => {
 						this.webviewPanel.webview.postMessage({
 							type: 'vscode:bookmark/response',
-							uuid: e.uuid,
+							// Add a suffix to the uuid to represent the response.
+							uuid: e.uuid + '_response',
 							data: {
 								url,
 								title: json.title,

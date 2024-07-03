@@ -125,7 +125,7 @@
 		"build": "cd ../editor && yarn build && cd ../extension && tsx scripts/build.ts",
 		"get-info": "vsce show tldraw-org.tldraw-vscode --json > extension.json",
 		"package": "yarn build && tsx scripts/package.ts",
-		"publish": "vsce publish",
+		"publish": "tsx scripts/publish.ts",
 		"lint": "yarn run -T tsx ../../../scripts/lint.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn"
 	},
@@ -137,7 +137,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.57.0",
 		"@typescript-eslint/parser": "^5.57.0",
 		"assert": "^2.0.0",
-		"esbuild": "^0.18.4",
+		"esbuild": "^0.21.5",
 		"eslint": "^8.37.0",
 		"fs-extra": "^11.1.0",
 		"lazyrepo": "0.0.0-alpha.27",
@@ -154,6 +154,7 @@
 	},
 	"gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",
 	"dependencies": {
+		"cheerio": "^1.0.0-rc.12",
 		"node-fetch": "^2.0.0"
 	},
 	"peerDependencies": {

@@ -1,3 +1,27 @@
+# v2.3.0 (Tue Jun 25 2024)
+
+### Release Notes
+
+#### Dynamic size mode + fill fill ([#3835](https://github.com/tldraw/tldraw/pull/3835))
+
+- Adds a dynamic size user preferences.
+- Removes double click to reset scale on text shapes.
+- Removes double click to reset autosize on text shapes.
+
+---
+
+#### 📚 SDK Changes
+
+- Dynamic size mode + fill fill [#3835](https://github.com/tldraw/tldraw/pull/3835) ([@steveruizok](https://github.com/steveruizok) [@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.2.0 (Tue Jun 11 2024)
 
 ### Release Notes

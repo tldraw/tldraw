@@ -36,12 +36,12 @@ export async function GET(req: NextRequest) {
 		const db = await getDb()
 		const searchForArticle = await db.db.prepare(
 			`
-	SELECT id, title, sectionId, categoryId, content
+	SELECT id, title, sectionId, categoryId, content, keywords
 	FROM ftsArticles
-	WHERE ftsArticles MATCH ?
+	WHERE ftsArticles MATCH ? OR keywords MATCH ?
 	ORDER BY bm25(ftsArticles, 1000.0)
 `,
-			query
+			[query, query]
 		)
 
 		await searchForArticle.all().then(async (queryResults) => {

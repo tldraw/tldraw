@@ -11,6 +11,9 @@
 			"path": "../../packages/dotcom-shared"
 		},
 		{
+			"path": "../../packages/worker-shared"
+		},
+		{
 			"path": "../../packages/store"
 		},
 		{
@@ -21,6 +24,9 @@
 		},
 		{
 			"path": "../../packages/utils"
+		},
+		{
+			"path": "../../packages/validate"
 		}
 	]
 }

@@ -1,4 +1,4 @@
-import { useEditor, useEditorComponents, useValue } from '@tldraw/editor'
+import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
@@ -87,20 +87,9 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 		<>
 			{children}
 			{hideUi ? null : <TldrawUiContent {...rest} />}
-			<InFrontOfTheCanvasWrapper />
 		</>
 	)
 })
-
-function InFrontOfTheCanvasWrapper() {
-	const { InFrontOfTheCanvas } = useEditorComponents()
-	if (!InFrontOfTheCanvas) return null
-	return (
-		<div className="tl-front">
-			<InFrontOfTheCanvas />
-		</div>
-	)
-}
 
 const TldrawUiContent = React.memo(function TldrawUI() {
 	const editor = useEditor()
