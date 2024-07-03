@@ -1,9 +1,10 @@
+import { IMPORT_META_ENV } from '../../../importMeta'
 import { publishDates } from '../../../version'
 import { importPublicKey, str2ab } from '../../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 5
 
-const FLAGS = {
+export const FLAGS = {
 	ANNUAL_LICENSE: 0x1,
 	PERPETUAL_LICENSE: 0x2,
 	INTERNAL_LICENSE: 0x4,
@@ -37,7 +38,7 @@ interface InvalidLicenseKeyResult {
 	reason: InvalidLicenseReason
 }
 
-interface ValidLicenseKeyResult {
+export interface ValidLicenseKeyResult {
 	isLicenseParseable: true
 	license: LicenseInfo
 	isDomainValid: boolean
@@ -49,25 +50,28 @@ interface ValidLicenseKeyResult {
 	isInternalLicense: boolean
 }
 
+type TestEnvironment = 'development' | 'production'
+
 export class LicenseManager {
 	private publicKey =
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
 	public isDevelopment: boolean
 
-	constructor(testPublicKey?: string) {
-		this.isDevelopment = this.getIsDevelopment()
+	constructor(testPublicKey?: string, testEnvironment?: TestEnvironment) {
+		this.isDevelopment = this.getIsDevelopment(testEnvironment)
 		this.publicKey = testPublicKey || this.publicKey
 	}
 
-	private getIsDevelopment() {
+	private getIsDevelopment(testEnvironment?: TestEnvironment) {
+		if (testEnvironment === 'development') {
+			return true
+		} else if (testEnvironment === 'production') {
+			return false
+		}
 		if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
 			return true
 		}
-		if (
-			typeof import.meta !== 'undefined' &&
-			(import.meta as any).env &&
-			(import.meta as any).env.MODE === 'development'
-		) {
+		if (IMPORT_META_ENV && IMPORT_META_ENV.MODE === 'development') {
 			return true
 		}
 		return window.location.protocol === 'http:'
@@ -75,7 +79,6 @@ export class LicenseManager {
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
 		// eslint-disable-next-line
-		console.debug('Found tldraw license key:', licenseKey)
 		const [data, signature] = licenseKey.split('.')
 		const [prefix, encodedData] = data.split('/')
 
@@ -93,8 +96,8 @@ export class LicenseManager {
 					hash: { name: 'SHA-256' },
 				},
 				publicCryptoKey,
-				str2ab(atob(signature)),
-				str2ab(atob(encodedData))
+				new Uint8Array(str2ab(atob(signature))),
+				new Uint8Array(str2ab(atob(encodedData)))
 			)
 		} catch (e) {
 			console.error(e)

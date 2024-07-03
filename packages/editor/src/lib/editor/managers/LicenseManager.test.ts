@@ -1,6 +1,12 @@
 import crypto from 'crypto'
 import { str2ab } from '../../utils/licensing'
-import { LicenseManager } from './LicenseManager'
+import { FLAGS, LicenseManager, ValidLicenseKeyResult } from './LicenseManager'
+
+jest.mock('../../../importMeta.ts', () => ({
+	IMPORT_META_ENV: {
+		MODE: 'test',
+	},
+}))
 
 describe('LicenseManager', () => {
 	let keyPair: { publicKey: string; privateKey: string }
@@ -10,7 +16,7 @@ describe('LicenseManager', () => {
 		return new Promise((resolve) => {
 			generateKeyPair().then((kp) => {
 				keyPair = kp
-				licenseManager = new LicenseManager(keyPair.publicKey)
+				licenseManager = new LicenseManager(keyPair.publicKey, 'production')
 				resolve(void 0)
 			})
 		})
@@ -22,32 +28,40 @@ describe('LicenseManager', () => {
 	})
 
 	it('Validates the license key', async () => {
-		const invalidLicenseKey = await generateLicenseKey(
-			JSON.stringify({
-				expiryDate: 123456789,
-				companyName: 'Test Company',
-				validHosts: ['localhost'],
-			}),
-			keyPair
-		)
+		const invalidLicenseKey = await generateLicenseKey('asdfsad', keyPair)
 		const result = await licenseManager.getLicenseFromKey(invalidLicenseKey)
 		expect(result).toMatchObject({ isLicenseParseable: false, reason: 'invalid-license-key' })
 	})
 
 	it('Checks if the license key has expired', async () => {
-		const licenseInfo = {
-			expiry: Date.now() - 1000,
-			company: 'Test Company',
-			hosts: ['localhost'],
-		}
+		const now = new Date()
+		const expiredDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+
+		const licenseInfo = [
+			'id',
+			['localhost'],
+			FLAGS.ANNUAL_LICENSE,
+			'1.0',
+			expiredDate.toISOString(),
+		]
 		const expiredLicenseKey = await generateLicenseKey(JSON.stringify(licenseInfo), keyPair)
 		const result = await licenseManager.getLicenseFromKey(expiredLicenseKey)
 		expect(result).toMatchObject({
 			isLicenseParseable: true,
-			license: { ...licenseInfo },
+			license: {
+				id: 'id',
+				hosts: ['localhost'],
+				flags: FLAGS.ANNUAL_LICENSE,
+				version: '1.0',
+				expiryDate: expiredDate.toISOString(),
+			},
 			isDomainValid: true,
-			isLicenseExpired: true,
-		})
+			isAnnualLicense: true,
+			isAnnualLicenseExpired: true,
+			isPerpetualLicense: false,
+			isPerpetualLicenseExpired: false,
+			isInternalLicense: false,
+		} as ValidLicenseKeyResult)
 	})
 
 	it.todo('It allows a grace period for expired licenses')
@@ -86,7 +100,7 @@ async function generateLicenseKey(
 	)
 
 	const signature = btoa(ab2str(signedLicenseKeyBuffer))
-	const prefix = 'tldraw'
+	const prefix = 'tldraw-'
 	const licenseKey = `${prefix}/${btoa(message)}.${signature}`
 
 	return licenseKey
