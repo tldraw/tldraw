@@ -236,7 +236,8 @@ export class LicenseManager {
 				`Please reach out to ${LICENSE_EMAIL} if you would like to use tldraw on other domains.`,
 			])
 		}
-		if (result.license.flags > HIGHEST_FLAG * 2) {
+		// If we added a new flag it will be twice the value of the currently highest flag.
+		if (result.license.flags >= HIGHEST_FLAG * 2) {
 			this.outputMessages([
 				'This tldraw license contains some unknown flags.',
 				'You may want to update tldraw packages to a newer version to get access to new functionality.',
