@@ -6,6 +6,7 @@ import {
 	createShapeId,
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
+
 import { Fragment, JSXElementConstructor, ReactElement } from 'react'
 import { Mat } from '../primitives/Mat'
 import { Editor } from './Editor'
@@ -62,12 +63,23 @@ export async function getSvgJsx(
 		ids.length === 1 && editor.isShapeOfType<TLFrameShape>(editor.getShape(ids[0])!, 'frame')
 			? ids[0]
 			: null
+
 	if (!singleFrameShapeId) {
 		// Expand by an extra 32 pixels
 		bbox.expandBy(padding)
-		// bbox.expandBy(padding * 4)
 	}
-
+	const watermarkHeight = 32
+	const watermarkWidth = 107
+	const watermarkPadding = 8
+	const desiredHeight = bbox.height * 0.1
+	const scaleFactor = desiredHeight / watermarkHeight
+	const offset = desiredHeight / 4
+	const shouldOffset = desiredHeight > watermarkHeight - watermarkPadding * 2
+	console.log('desiredHeight', desiredHeight)
+	if (shouldOffset) {
+		console.log('should offset', desiredHeight)
+		bbox.expandBy(offset)
+	}
 	// We want the svg image to be BIGGER THAN USUAL to account for image quality
 	const w = bbox.width * scale
 	const h = bbox.height * scale
@@ -121,7 +133,10 @@ export async function getSvgJsx(
 				)
 			}
 
-			let pageTransform = editor.getShapePageTransform(shape)!.toCssString()
+			let pageTransform = editor
+				.getShapePageTransform(shape)!
+				.translate(shouldOffset ? -offset : 0, shouldOffset ? -offset : 0)
+				.toCssString()
 			if ('scale' in shape.props) {
 				if (shape.props.scale !== 1) {
 					pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
@@ -187,13 +202,8 @@ export async function getSvgJsx(
 		{ zIndex: number; element: ReactElement<any, string | JSXElementConstructor<any>> }[]
 	>((resolve) => {
 		const id = createShapeId()
-		const height = 32
-		const width = 107
-		const padding = 8
-		const desiredHeight = bbox.height * 0.1
-		const scaleFactor = desiredHeight / height
-		const offsetX = width * scaleFactor + padding
-		const offsetY = height * scaleFactor + padding
+		const offsetX = watermarkWidth * scaleFactor + watermarkPadding
+		const offsetY = watermarkHeight * scaleFactor + watermarkPadding
 		const pageTransform = Mat.Identity()
 			.translate(bbox.maxX - offsetX, bbox.maxY - offsetY)
 			.scale(scaleFactor, scaleFactor)
