@@ -2,10 +2,6 @@ import crypto from 'crypto'
 import { str2ab } from '../../utils/licensing'
 import { FLAGS, LicenseManager, ValidLicenseKeyResult } from './LicenseManager'
 
-jest.mock('../../../importMeta.ts', () => ({
-	IMPORT_META_ENV_MODE: 'test',
-}))
-
 describe('LicenseManager', () => {
 	let keyPair: { publicKey: string; privateKey: string }
 	let licenseManager: LicenseManager
