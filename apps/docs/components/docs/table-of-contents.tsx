@@ -10,7 +10,7 @@ export const TableOfContents: React.FC<{ article: Article }> = async ({ article 
 	const headings = await db.getArticleHeadings(article.id)
 
 	return (
-		<Aside className="hidden xl:block pl-12">
+		<Aside className="hidden xl:flex pl-12">
 			<HeadingsMenu headings={headings} />
 			<ArticleInfo article={article} />
 			<FeedbackWidget className="mb-12" />
