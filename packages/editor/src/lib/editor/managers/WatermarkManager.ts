@@ -5,9 +5,9 @@ import { getDefaultCdnBaseUrl } from '../../utils/assets'
 import { Editor } from '../Editor'
 import { LicenseFromKeyResult } from './LicenseManager'
 
-const WATERMARK_DESKTOP_FILENAME = 'watermark-desktop.svg'
-const WATERMARK_MOBILE_FILENAME = 'watermark-mobile.svg'
-const WATERMARKS_FOLDER = 'watermarks'
+export const WATERMARK_DESKTOP_FILENAME = 'watermark-desktop.svg'
+export const WATERMARK_MOBILE_FILENAME = 'watermark-mobile.svg'
+export const WATERMARKS_FOLDER = 'watermarks'
 
 export class WatermarkManager {
 	constructor(private editor: Editor) {}
@@ -17,13 +17,8 @@ export class WatermarkManager {
 	private setWatermarkSrc(watermark: HTMLImageElement) {
 		const isMobile = window.innerWidth < 840 /* PORTRAIT_BREAKPOINTS[TABLET] */
 
-		let src = ''
 		const width = isMobile ? '32px' : '120px'
-		if (navigator.onLine && !this.forceLocal) {
-			src = `${getDefaultCdnBaseUrl()}/${WATERMARKS_FOLDER}/${isMobile ? WATERMARK_MOBILE_FILENAME : WATERMARK_DESKTOP_FILENAME}`
-		} else {
-			src = isMobile ? watermarkMobile : watermarkDesktop
-		}
+		const src = getWatermarkSrc({ forceLocal: this.forceLocal, isMobile })
 
 		if (src !== watermark.src) {
 			watermark.style.width = width
@@ -128,5 +123,19 @@ export class WatermarkManager {
 			window.open('https://tldraw.dev', '_blank', 'noopener noreferrer')
 		}
 		this.setWatermarkSrc(watermark)
+	}
+}
+
+export function getWatermarkSrc({
+	forceLocal,
+	isMobile,
+}: {
+	forceLocal: boolean
+	isMobile: boolean
+}) {
+	if (navigator.onLine && !forceLocal) {
+		return `${getDefaultCdnBaseUrl()}/${WATERMARKS_FOLDER}/${isMobile ? WATERMARK_MOBILE_FILENAME : WATERMARK_DESKTOP_FILENAME}`
+	} else {
+		return isMobile ? watermarkMobile : watermarkDesktop
 	}
 }
