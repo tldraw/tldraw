@@ -832,7 +832,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const licenseManager = new LicenseManager()
 		const watermarkManager = new WatermarkManager(this)
 		const license = await licenseManager.getLicenseFromKey(licenseKey)
-		const isTesEnv = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+		const isTesEnv = typeof process !== 'undefined' && process.env.CI
 		this.isWatermarkShown = watermarkManager.checkWatermark(license) && !isTesEnv
 	}
 
