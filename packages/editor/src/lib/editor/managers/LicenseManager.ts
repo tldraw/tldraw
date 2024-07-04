@@ -1,4 +1,3 @@
-import { IMPORT_META_ENV_MODE } from '../../../importMeta'
 import { publishDates } from '../../../version'
 import { importPublicKey, str2ab } from '../../utils/licensing'
 
@@ -66,18 +65,8 @@ export class LicenseManager {
 		if (testEnvironment === 'development') return true
 		if (testEnvironment === 'production') return false
 
-		// Can't be internal-only license, using https: but doing a development build
-		if (window.location.protocol === 'https:') return false
-
-		if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
-			return true
-		}
-		if (IMPORT_META_ENV_MODE === 'development') return true
-
-		const currentHostname = window.location.hostname.toLowerCase()
-		if (['localhost', '127.0.0.1'].includes(currentHostname)) return true
-
-		return true
+		// If we are using https we asume it's a production env and a development one otherwise
+		return window.location.protocol !== 'https:'
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
