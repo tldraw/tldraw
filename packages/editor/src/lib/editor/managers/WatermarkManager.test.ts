@@ -46,7 +46,9 @@ describe('WatermarkManager', () => {
 			isInternalLicense: true,
 			expiryDate,
 		})
-		expect(() => watermarkManager.checkWatermark(licenseResult)).toThrow(/Internal license expired/)
+		expect(() => watermarkManager.checkWatermark(licenseResult)).toThrow(
+			/License: Internal license expired/
+		)
 	})
 
 	it('throws when an internal perpetual license has expired', () => {
@@ -57,6 +59,8 @@ describe('WatermarkManager', () => {
 			isInternalLicense: true,
 			expiryDate,
 		})
-		expect(() => watermarkManager.checkWatermark(licenseResult)).toThrow(/Internal license expired/)
+		expect(() => watermarkManager.checkWatermark(licenseResult)).toThrow(
+			/License: Internal license expired/
+		)
 	})
 })
