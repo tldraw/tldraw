@@ -1,3 +1,4 @@
+import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { SearchBar } from '@/components/search/bar'
 
@@ -7,6 +8,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 			<Header />
 			<SearchBar />
 			{children}
+			<Footer />
 		</>
 	)
 }
