@@ -3,10 +3,6 @@ import { publishDates } from '../../../version'
 import { str2ab } from '../../utils/licensing'
 import { FLAGS, LicenseManager, PROPERTIES, ValidLicenseKeyResult } from './LicenseManager'
 
-jest.mock('../../../importMeta.ts', () => ({
-	IMPORT_META_ENV_MODE: 'test',
-}))
-
 jest.mock('../../../version', () => {
 	return {
 		publishDates: {
