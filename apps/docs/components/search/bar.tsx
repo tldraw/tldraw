@@ -10,7 +10,7 @@ export const SearchBar = () => {
 
 	return (
 		<motion.div
-			className="hidden md:flex px-5 sticky top-4 z-10 xl:max-w-3xl xl:mx-auto xl:px-0"
+			className="hidden md:flex mx-auto px-5 sticky top-4 z-10 xl:max-w-3xl xl:px-0"
 			style={{ width }}
 		>
 			<motion.div className="hidden lg:block xl:hidden shrink-0" style={{ width: offset }} />

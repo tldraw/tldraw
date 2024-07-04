@@ -34,7 +34,7 @@ export const SearchButton: React.FC<{
 				</div>
 				<span className={cn('text-xs', layout === 'mobile' && 'hidden')}>⌘K</span>
 			</PopoverButton>
-			<PopoverPanel className="fixed left-0 z-10 top-14 sm:top-12 bg-white w-screen h-screen px-5 py-8 flex justify-center text-rose-600">
+			<PopoverPanel className="fixed left-0 z-20 top-14 sm:top-12 bg-white w-screen h-screen px-5 py-8 flex justify-center text-rose-600">
 				Search: WIP
 			</PopoverPanel>
 		</Popover>

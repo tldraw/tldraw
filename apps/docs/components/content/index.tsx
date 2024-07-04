@@ -4,13 +4,14 @@ import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
 import { Embed } from './embed'
+import { Pre } from './pre'
 
 export const Content: React.FC<{ mdx: string }> = ({ mdx }) => {
 	return (
-		<section className="prose w-full max-w-3xl overflow-x-hidden">
+		<section className="prose prose-sm sm:prose-base w-full max-w-3xl">
 			<MDXRemote
 				source={mdx}
-				components={{ Embed }}
+				components={{ Embed, pre: Pre }}
 				options={{
 					mdxOptions: {
 						remarkPlugins: [remarkGfm, {}],

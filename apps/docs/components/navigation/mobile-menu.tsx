@@ -15,7 +15,7 @@ export const MobileMenu: React.FC<{
 				<EllipsisVerticalIcon className="h-6 group-data-[open]:hidden" />
 				<XMarkIcon className="h-6 hidden group-data-[open]:block" />
 			</PopoverButton>
-			<PopoverPanel className="fixed left-0 top-14 bg-white w-screen h-screen px-5 py-8">
+			<PopoverPanel className="fixed left-0 top-14 bg-white w-screen h-screen px-5 py-8 z-20">
 				<ul className="flex flex-col items-end gap-4">
 					{main.map((item, index) => (
 						<li key={index}>
