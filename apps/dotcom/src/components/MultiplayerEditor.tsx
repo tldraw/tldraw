@@ -1,7 +1,7 @@
 import {
 	ROOM_OPEN_MODE,
 	RoomOpenModeToPath,
-	TLDRAW_LICENSE,
+	getLicenseKey,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import { useRemoteSyncClient } from '@tldraw/sync-react'
@@ -149,7 +149,7 @@ export function MultiplayerEditor({
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={TLDRAW_LICENSE}
+				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}

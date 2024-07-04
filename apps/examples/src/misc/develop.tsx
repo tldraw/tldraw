@@ -1,4 +1,4 @@
-import { TLDRAW_LICENSE } from '@tldraw/dotcom-shared'
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { usePerformance } from '../hooks/usePerformance'
@@ -14,7 +14,7 @@ export default function Develop() {
 					;(window as any).app = editor
 					;(window as any).editor = editor
 				}}
-				licenseKey={TLDRAW_LICENSE}
+				licenseKey={getLicenseKey()}
 			/>
 		</div>
 	)

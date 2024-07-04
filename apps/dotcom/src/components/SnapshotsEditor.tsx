@@ -1,4 +1,4 @@
-import { TLDRAW_LICENSE } from '@tldraw/dotcom-shared'
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
@@ -68,7 +68,7 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={TLDRAW_LICENSE}
+				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				store={storeResult.value}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
