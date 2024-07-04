@@ -8,7 +8,7 @@ import { Pre } from './pre'
 
 export const Content: React.FC<{ mdx: string }> = ({ mdx }) => {
 	return (
-		<section className="prose prose-sm sm:prose-base w-full max-w-3xl">
+		<section className="prose prose-sm prose-zinc text-zinc-800 sm:prose-base w-full max-w-3xl prose-code:before:content-none prose-code:after:content-none prose-code:bg-zinc-200 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-a:no-underline prose-a:text-blue-500">
 			<MDXRemote
 				source={mdx}
 				components={{ Embed, pre: Pre }}
