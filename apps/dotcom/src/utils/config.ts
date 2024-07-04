@@ -1,4 +1,4 @@
-export const BOOKMARK_ENDPOINT = 'https://bookmark-extractor.tldraw.com/api/bookmark'
+export const BOOKMARK_ENDPOINT = '/api/unfurl'
 
 // some boilerplate to get the URL of the server to upload/fetch assets
 

@@ -64,7 +64,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedSrc, setLoadedSrc] = useState('')
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url } = useAsset(shape.props.assetId, shape.props.w)
+		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
 
 		useEffect(() => {
 			// We preload the image because we might have different source urls for different

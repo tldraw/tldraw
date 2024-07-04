@@ -26,8 +26,11 @@ apps/vscode/extension/editor/index.js
 apps/vscode/extension/editor/tldraw-assets.json
 **/sentry.server.config.js
 **/scripts/upload-sourcemaps.js
+**/scripts/lib/auto-plugin.js
 **/coverage/**/*
 
 apps/dotcom/public/sw.js
 
 patchedJestJsDom.js
+
+**/.clasp.json

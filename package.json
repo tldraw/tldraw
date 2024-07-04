@@ -37,7 +37,7 @@
 		"clean": "scripts/clean.sh",
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
-		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw'",
+		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/bemo-worker'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
 		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker}' --filter='packages/tldraw'",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
@@ -120,6 +120,7 @@
 		"@sentry/cli": "^2.25.0",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
+		"esbuild": "^0.21.5",
 		"mime": "^4.0.3",
 		"purgecss": "^5.0.0",
 		"svgo": "^3.0.2"

@@ -91,43 +91,40 @@ export function EditorComponentsProvider({
 	children,
 }: ComponentsContextProviderProps) {
 	const _overrides = useShallowObjectIdentity(overrides)
+	const value = useMemo(
+		(): Required<TLEditorComponents> => ({
+			Background: DefaultBackground,
+			SvgDefs: DefaultSvgDefs,
+			Brush: DefaultBrush,
+			ZoomBrush: DefaultBrush,
+			CollaboratorBrush: DefaultBrush,
+			Cursor: DefaultCursor,
+			CollaboratorCursor: DefaultCursor,
+			CollaboratorHint: DefaultCollaboratorHint,
+			CollaboratorShapeIndicator: DefaultShapeIndicator,
+			Grid: DefaultGrid,
+			Scribble: DefaultScribble,
+			SnapIndicator: DefaultSnapIndicator,
+			Handles: DefaultHandles,
+			Handle: DefaultHandle,
+			CollaboratorScribble: DefaultScribble,
+			ErrorFallback: DefaultErrorFallback,
+			ShapeErrorFallback: DefaultShapeErrorFallback,
+			ShapeIndicatorErrorFallback: DefaultShapeIndicatorErrorFallback,
+			Spinner: DefaultSpinner,
+			SelectionBackground: DefaultSelectionBackground,
+			SelectionForeground: DefaultSelectionForeground,
+			ShapeIndicator: DefaultShapeIndicator,
+			OnTheCanvas: null,
+			InFrontOfTheCanvas: null,
+			Canvas: DefaultCanvas,
+			LoadingScreen: DefaultLoadingScreen,
+			..._overrides,
+		}),
+		[_overrides]
+	)
 	return (
-		<EditorComponentsContext.Provider
-			value={useMemo(
-				(): Required<TLEditorComponents> => ({
-					Background: DefaultBackground,
-					SvgDefs: DefaultSvgDefs,
-					Brush: DefaultBrush,
-					ZoomBrush: DefaultBrush,
-					CollaboratorBrush: DefaultBrush,
-					Cursor: DefaultCursor,
-					CollaboratorCursor: DefaultCursor,
-					CollaboratorHint: DefaultCollaboratorHint,
-					CollaboratorShapeIndicator: DefaultShapeIndicator,
-					Grid: DefaultGrid,
-					Scribble: DefaultScribble,
-					SnapIndicator: DefaultSnapIndicator,
-					Handles: DefaultHandles,
-					Handle: DefaultHandle,
-					CollaboratorScribble: DefaultScribble,
-					ErrorFallback: DefaultErrorFallback,
-					ShapeErrorFallback: DefaultShapeErrorFallback,
-					ShapeIndicatorErrorFallback: DefaultShapeIndicatorErrorFallback,
-					Spinner: DefaultSpinner,
-					SelectionBackground: DefaultSelectionBackground,
-					SelectionForeground: DefaultSelectionForeground,
-					ShapeIndicator: DefaultShapeIndicator,
-					OnTheCanvas: null,
-					InFrontOfTheCanvas: null,
-					Canvas: DefaultCanvas,
-					LoadingScreen: DefaultLoadingScreen,
-					..._overrides,
-				}),
-				[_overrides]
-			)}
-		>
-			{children}
-		</EditorComponentsContext.Provider>
+		<EditorComponentsContext.Provider value={value}>{children}</EditorComponentsContext.Provider>
 	)
 }
 

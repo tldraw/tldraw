@@ -19,9 +19,13 @@ export default function MultipleExample() {
 	const setFocusedEditor = useCallback(
 		(editor: Editor | null) => {
 			if (focusedEditor !== editor) {
-				focusedEditor?.blur()
+				if (focusedEditor) {
+					focusedEditor.blur()
+				}
+				if (editor) {
+					editor.focus()
+				}
 				_setFocusedEditor(editor)
-				editor?.focus()
 			}
 		},
 		[focusedEditor]

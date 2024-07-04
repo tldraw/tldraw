@@ -149,7 +149,7 @@ export class Drawing extends StateNode {
 		return this.shapeType !== 'highlight'
 	}
 
-	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle) {
+	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle, scale: number) {
 		if (!this.canClose()) return false
 
 		const strokeWidth = STROKE_SIZES[size]
@@ -159,8 +159,8 @@ export class Drawing extends StateNode {
 
 		return (
 			firstPoint !== lastPoint &&
-			this.currentLineLength > strokeWidth * 4 &&
-			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2)
+			this.currentLineLength > strokeWidth * 4 * scale &&
+			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2 * scale)
 		)
 	}
 
@@ -245,7 +245,8 @@ export class Drawing extends StateNode {
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
-						shape.props.size
+						shape.props.size,
+						shape.props.scale
 					)
 				}
 
@@ -296,7 +297,7 @@ export class Drawing extends StateNode {
 
 		const {
 			id,
-			props: { size },
+			props: { size, scale },
 		} = initialShape
 
 		const shape = this.editor.getShape<DrawableShape>(id)!
@@ -374,7 +375,8 @@ export class Drawing extends StateNode {
 					if (this.canClose()) {
 						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							segments,
-							size
+							size,
+							scale
 						)
 					}
 
@@ -442,7 +444,8 @@ export class Drawing extends StateNode {
 					if (this.canClose()) {
 						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							finalSegments,
-							size
+							size,
+							scale
 						)
 					}
 
@@ -583,7 +586,8 @@ export class Drawing extends StateNode {
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
-						size
+						size,
+						scale
 					)
 				}
 
@@ -630,7 +634,8 @@ export class Drawing extends StateNode {
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						newSegments,
-						size
+						size,
+						scale
 					)
 				}
 
@@ -642,6 +647,8 @@ export class Drawing extends StateNode {
 
 					const newShapeId = createShapeId()
 
+					const props = this.editor.getShape<DrawableShape>(id)!.props
+
 					this.editor.createShapes<DrawableShape>([
 						{
 							id: newShapeId,
@@ -650,6 +657,7 @@ export class Drawing extends StateNode {
 							y: toFixed(inputs.currentPagePoint.y),
 							props: {
 								isPen: this.isPenOrStylus,
+								scale: props.scale,
 								segments: [
 									{
 										type: 'free',

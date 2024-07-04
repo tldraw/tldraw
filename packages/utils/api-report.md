@@ -240,6 +240,8 @@ export class MediaHelpers {
     static isImageType(mimeType: string): boolean;
     // (undocumented)
     static isStaticImageType(mimeType: null | string): boolean;
+    // (undocumented)
+    static isVectorImageType(mimeType: null | string): boolean;
     static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
     // (undocumented)
