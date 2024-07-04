@@ -1,4 +1,5 @@
 const svgTransformPath = require.resolve('config/svgTransform.js')
+const importMetaMock = require.resolve('config/importMetaMock.js')
 
 module.exports = {
 	roots: ['<rootDir>/src'],
@@ -34,6 +35,9 @@ module.exports = {
 		'<rootDir>/.tsbuild-dev',
 		'<rootDir>/.tsbuild-pub',
 	],
+	moduleNameMapper: {
+		importMeta: importMetaMock,
+	},
 	transformIgnorePatterns: ['node_modules/(?!(nanoid)/)'],
 	collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx}'],
 }
