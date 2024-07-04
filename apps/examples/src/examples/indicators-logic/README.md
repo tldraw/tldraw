@@ -1,7 +1,7 @@
 ---
 title: Indicators logic
 component: ./IndicatorsLogicExample.tsx
-category: basic
+category: editor-api
 keywords: [indicators]
 ---
 
