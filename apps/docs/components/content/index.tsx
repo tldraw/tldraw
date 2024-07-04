@@ -19,7 +19,8 @@ export const Content: React.FC<{ mdx: string }> = ({ mdx }) => {
 				'prose-table:bg-zinc-50 prose-table:rounded-xl prose-table:text-sm',
 				'prose-th:text-left prose-th:font-semibold prose-th:uppercase prose-th:text-xs prose-th:border-l prose-th:border-white prose-th:py-3 prose-th:px-4',
 				'prose-tr:border-t prose-tr:border-white',
-				'prose-td:border-l first:prose-td:border-l-0 prose-td:border-white prose-td:py-3 prose-td:px-4'
+				'prose-td:border-l first:prose-td:border-l-0 prose-td:border-white prose-td:py-3 prose-td:px-4',
+				'prose-hr:border-zinc-100'
 			)}
 		>
 			<MDXRemote
