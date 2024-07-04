@@ -6,12 +6,13 @@ import {
 	XMarkIcon,
 } from '@heroicons/react/24/solid'
 
-export const SearchButton: React.FC<{ type: 'docs' | 'blog'; layout: 'mobile' | 'desktop' }> = ({
-	type,
-	layout,
-}) => {
+export const SearchButton: React.FC<{
+	type: 'docs' | 'blog'
+	layout: 'mobile' | 'desktop'
+	className?: string
+}> = ({ type, layout, className }) => {
 	return (
-		<Popover className="group">
+		<Popover className={cn('group', className)}>
 			<PopoverButton
 				className={cn(
 					'flex items-center text-black',
@@ -33,7 +34,7 @@ export const SearchButton: React.FC<{ type: 'docs' | 'blog'; layout: 'mobile' | 
 				</div>
 				<span className={cn('text-xs', layout === 'mobile' && 'hidden')}>⌘K</span>
 			</PopoverButton>
-			<PopoverPanel className="fixed left-0 top-14 bg-white w-screen h-screen px-5 py-8 flex justify-center text-rose-600">
+			<PopoverPanel className="fixed left-0 z-10 top-14 sm:top-12 bg-white w-screen h-screen px-5 py-8 flex justify-center text-rose-600">
 				Search: WIP
 			</PopoverPanel>
 		</Popover>

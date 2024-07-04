@@ -51,7 +51,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 				'font-sans bg-white antialiased text-zinc-600'
 			)}
 		>
-			<body>
+			<body className="pt-14 md:pt-[4.5rem]">
 				{children}
 				<Analytics />
 			</body>

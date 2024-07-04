@@ -27,7 +27,7 @@ export const MobileSidebar: React.FC<{
 			</PopoverButton>
 			<PopoverPanel>
 				<div
-					className="fixed left-0 top-12 bg-white w-screen px-5 py-8 overflow-y-auto"
+					className="fixed left-0 top-12 bg-white w-screen px-5 py-8 overflow-y-auto z-10"
 					style={{ height: 'calc(100vh - 6.5rem)' }}
 				>
 					<CategoryMenu />

@@ -57,12 +57,19 @@ export const Header = () => {
 	const navOpacity = useTransform(scrollY, [0, 32], [1, 0])
 
 	return (
-		<header className="sticky top-0 bg-white/90 backdrop-blur z-10">
-			<nav className="w-full max-w-screen-xl mx-auto px-5 h-14 sm:h-[4.5rem] flex justify-between items-center text-zinc-800 border-b border-zinc-100 sm:border-transparent">
+		<header className="fixed top-0 w-full bg-white/90 backdrop-blur z-10">
+			<nav className="w-full max-w-screen-xl mx-auto px-5 h-14 md:h-[4.5rem] flex justify-between items-center text-zinc-800 border-b border-zinc-100 md:border-transparent">
 				<Link href="/" className="w-28">
 					<Logo className="h-6" />
 				</Link>
-				<motion.ul style={{ opacity: navOpacity }} className="hidden sm:flex gap-8">
+				<ul className="hidden sm:flex md:hidden gap-8">
+					{mainLinks.map((item, index) => (
+						<li key={index}>
+							<NavigationLink {...item} pathname={pathname} />
+						</li>
+					))}
+				</ul>
+				<motion.ul style={{ opacity: navOpacity }} className="hidden md:flex gap-8">
 					{mainLinks.map((item, index) => (
 						<li key={index}>
 							<NavigationLink {...item} pathname={pathname} />

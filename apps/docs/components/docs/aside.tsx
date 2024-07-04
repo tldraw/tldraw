@@ -12,7 +12,7 @@ export const Aside: React.FC<{ className?: string; children: React.ReactNode }> 
 
 	return (
 		<aside
-			className={cn('w-60 shrink-0 flex flex-col sticky top-24', className)}
+			className={cn('w-52 lg:w-60 shrink-0 flex flex-col sticky top-24', className)}
 			style={{
 				height: 'calc(100vh - 6rem)',
 			}}
