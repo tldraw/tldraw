@@ -8,13 +8,13 @@ export default function Develop() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				overrides={[performanceOverrides]}
 				persistenceKey="example"
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
 				}}
-				licenseKey={getLicenseKey()}
 			/>
 		</div>
 	)
