@@ -1,5 +1,5 @@
 import { CreateSnapshotRequestBody } from '@tldraw/dotcom-shared'
-import { RoomSnapshot } from '@tldraw/tlsync'
+import { RoomSnapshot } from '@tldraw/sync'
 import { IRequest } from 'itty-router'
 import { nanoid } from 'nanoid'
 import { getR2KeyForSnapshot } from '../r2'

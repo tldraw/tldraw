@@ -2,20 +2,20 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import {
-	createSentry,
+	createRouter,
+	handleApiRequest,
 	handleUserAssetGet,
 	handleUserAssetUpload,
 	notFound,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { createCors } from 'itty-cors'
-import { Router } from 'itty-router'
 import { Environment } from './types'
 
 const { preflight, corsify } = createCors({ origins: ['*'] })
 
 export default class Worker extends WorkerEntrypoint<Environment> {
-	readonly router = Router()
+	readonly router = createRouter<Environment>()
 		.all('*', preflight)
 		.get('/uploads/:objectName', async (request) => {
 			return handleUserAssetGet({
@@ -36,17 +36,12 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		.all('*', notFound)
 
 	override async fetch(request: Request) {
-		try {
-			return await this.router.handle(request, this.env, this.ctx).then(corsify)
-		} catch (error) {
-			const sentry = createSentry(this.ctx, this.env, request)
-			console.error(error)
-			// eslint-disable-next-line deprecation/deprecation
-			sentry?.captureException(error)
-			return new Response('Something went wrong', {
-				status: 500,
-				statusText: 'Internal Server Error',
-			})
-		}
+		return handleApiRequest({
+			router: this.router,
+			request,
+			env: this.env,
+			ctx: this.ctx,
+			after: corsify,
+		})
 	}
 }

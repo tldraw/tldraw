@@ -36,8 +36,8 @@ import {
 } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
-import { useDefaultColorTheme } from '../../..'
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,

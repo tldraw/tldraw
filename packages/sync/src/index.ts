@@ -1,3 +1,5 @@
+export { ClientWebSocketAdapter } from './lib/ClientWebSocketAdapter'
+export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
 export { TLSocketRoom } from './lib/TLSocketRoom'
 export {
 	TLCloseEventCode,

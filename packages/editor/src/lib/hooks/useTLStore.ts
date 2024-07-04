@@ -1,8 +1,7 @@
 import { TLStoreSnapshot } from '@tldraw/tlschema'
 import { areObjectsShallowEqual } from '@tldraw/utils'
 import { useState } from 'react'
-import { TLEditorSnapshot } from '../..'
-import { loadSnapshot } from '../config/TLEditorSnapshot'
+import { TLEditorSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
 import { TLStoreOptions, createTLStore } from '../config/createTLStore'
 
 /** @public */

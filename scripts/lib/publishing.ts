@@ -202,3 +202,9 @@ function retry(
 		attempt()
 	})
 }
+
+export async function publishProductionDocsAndExamples({
+	gitRef = 'HEAD',
+}: { gitRef?: string } = {}) {
+	await exec('git', ['push', 'origin', `${gitRef}:docs-production`, `--force`])
+}

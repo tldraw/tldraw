@@ -1,8 +1,8 @@
-import { TLSocketClientSentEvent, getTlsyncProtocolVersion } from '@tldraw/tlsync'
 import { TLRecord } from 'tldraw'
 import { ClientWebSocketAdapter, INACTIVE_MIN_DELAY } from './ClientWebSocketAdapter'
 // NOTE: there is a hack in apps/dotcom/jestResolver.js to make this import work
 import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
+import { TLSocketClientSentEvent, getTlsyncProtocolVersion } from './protocol'
 
 async function waitFor(predicate: () => boolean) {
 	let safety = 0

@@ -1,12 +1,11 @@
-import { TLIncompatibilityReason } from '@tldraw/tlsync'
+import { TLIncompatibilityReason, TLRemoteSyncError } from '@tldraw/sync'
 import { exhaustiveSwitchError } from 'tldraw'
-import { RemoteSyncError } from '../utils/remote-sync/remote-sync'
 import { ErrorPage } from './ErrorPage/ErrorPage'
 
 export function StoreErrorScreen({ error }: { error: Error }) {
 	let header = 'Could not connect to server.'
 	let message = ''
-	if (error instanceof RemoteSyncError) {
+	if (error instanceof TLRemoteSyncError) {
 		switch (error.reason) {
 			case TLIncompatibilityReason.ClientTooOld: {
 				return (

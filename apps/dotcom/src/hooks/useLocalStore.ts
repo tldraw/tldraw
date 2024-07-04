@@ -1,4 +1,4 @@
-import { schema } from '@tldraw/tlsync'
+import { schema } from '@tldraw/sync'
 import { useEffect, useState } from 'react'
 import {
 	MigrationFailureReason,
