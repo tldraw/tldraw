@@ -814,6 +814,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private focusManager: FocusManager
 
 	/**
+	 * Whether the watermark is shown.
+	 * This only affects watermarks on image exports, before you get any ideas.
+	 *
+	 * @public
+	 */
+	isWatermarkShown = false
+
+	/**
 	 * A function that instantiates the license manager and watermark manager, and
 	 * checks the license key. Showing a watermark if the license key is invalid.
 	 *
@@ -824,7 +832,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const licenseManager = new LicenseManager()
 		const watermarkManager = new WatermarkManager(this)
 		const license = await licenseManager.getLicenseFromKey(licenseKey)
-		watermarkManager.checkWatermark(license)
+		this.isWatermarkShown = watermarkManager.checkWatermark(license)
 	}
 
 	/**
