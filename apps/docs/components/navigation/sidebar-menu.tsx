@@ -21,7 +21,7 @@ export const SidebarMenu: React.FC<{
 	const groups = elements.some((e) => e.groupId) ? Object.values(APIGroup) : null
 
 	return (
-		<div className="mt-12">
+		<div className="mt-8 md:mt-12">
 			<h4 className="text-black uppercase text-xs font-semibold">{title}</h4>
 			<ul className="flex flex-col mt-2 gap-2 text-sm break-words">
 				{groups?.map((group, index) => {

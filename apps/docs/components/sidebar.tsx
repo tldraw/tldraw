@@ -15,7 +15,7 @@ export const Sidebar: React.FC<{
 	const elements = skipFirstLevel ? sidebar.links[0].children : sidebar.links
 
 	return (
-		<Aside>
+		<Aside className="hidden md:block">
 			<CategoryMenu />
 			<div className="relative grow overflow-y-auto pr-12">
 				<div className="sticky top-0 h-12 -mb-12 w-full bg-gradient-to-b from-white" />

@@ -8,6 +8,7 @@ import { SocialLink } from '@/components/navigation/social-link'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { SearchButton } from './search/button'
 
 const mainLinks = [
 	{
@@ -57,7 +58,7 @@ export const Header = () => {
 
 	return (
 		<header className="sticky top-0 bg-white/90 backdrop-blur z-10">
-			<nav className="border w-full max-w-screen-xl mx-auto px-5 h-14 sm:h-[4.5rem] flex justify-between items-center text-zinc-800 border-b border-zinc-100 sm:border-transparent">
+			<nav className="w-full max-w-screen-xl mx-auto px-5 h-14 sm:h-[4.5rem] flex justify-between items-center text-zinc-800 border-b border-zinc-100 sm:border-transparent">
 				<Link href="/" className="w-28">
 					<Logo className="h-6" />
 				</Link>
@@ -75,7 +76,8 @@ export const Header = () => {
 						</li>
 					))}
 				</ul>
-				<div className="flex items-center gap-4 sm:hidden -mr-2">
+				<div className="flex items-center sm:hidden -mr-2">
+					<SearchButton type="docs" layout="mobile" />
 					<MobileMenu main={mainLinks} social={socialLinks} pathname={pathname} />
 				</div>
 			</nav>
