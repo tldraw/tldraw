@@ -11,7 +11,7 @@ export const FLAGS = {
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
-const PROPERTIES = {
+export const PROPERTIES = {
 	ID: 0,
 	HOSTS: 1,
 	FLAGS: 2,
@@ -63,18 +63,21 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {
-		if (testEnvironment === 'development') {
-			return true
-		} else if (testEnvironment === 'production') {
-			return false
-		}
+		if (testEnvironment === 'development') return true
+		if (testEnvironment === 'production') return false
+
+		// Can't be internal-only license, using https: but doing a development build
+		if (window.location.protocol === 'https:') return false
+
 		if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
 			return true
 		}
-		if (IMPORT_META_ENV_MODE === 'development') {
-			return true
-		}
-		return window.location.protocol === 'http:'
+		if (IMPORT_META_ENV_MODE === 'development') return true
+
+		const currentHostname = window.location.hostname.toLowerCase()
+		if (['localhost', '127.0.0.1'].includes(currentHostname)) return true
+
+		return true
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
@@ -175,10 +178,6 @@ export class LicenseManager {
 	private isDomainValid(licenseInfo: LicenseInfo) {
 		const currentHostname = window.location.hostname.toLowerCase()
 
-		if (['localhost', '127.0.0.1'].includes(currentHostname)) {
-			return true
-		}
-
 		return licenseInfo.hosts.some((host) => {
 			const normalizedHost = host.toLowerCase().trim()
 			if (normalizedHost === currentHostname) {
@@ -194,11 +193,15 @@ export class LicenseManager {
 			// Glob testing, we only support '*.somedomain.com' right now.
 			if (host.includes('*')) {
 				const globToRegex = new RegExp(host.replace(/\*/g, '.*?'))
-				return globToRegex.test(host)
+				return globToRegex.test(currentHostname)
 			}
 
 			return false
 		})
+	}
+
+	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
+		return new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate())
 	}
 
 	private getExpirationDateWithGracePeriod(expiryDate: Date) {
@@ -210,11 +213,25 @@ export class LicenseManager {
 	}
 
 	private isAnnualLicenseExpired(expiryDate: Date) {
+		if (new Date() >= this.getExpirationDateWithoutGracePeriod(expiryDate)) {
+			this.outputMessages([
+				'tldraw license is about to expire, you are in a grace period.',
+				`Please reach out to ${LICENSE_EMAIL} if you would like to renew your license.`,
+			])
+		}
+
 		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
 		return new Date() >= expiration
 	}
 
 	private isPerpetualLicenseExpired(expiryDate: Date) {
+		if (new Date() >= this.getExpirationDateWithoutGracePeriod(expiryDate)) {
+			this.outputMessages([
+				'tldraw license is about to expire, you are in a grace period.',
+				`Please reach out to ${LICENSE_EMAIL} if you would like to renew your license.`,
+			])
+		}
+
 		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
 		const dates = {
 			major: new Date(publishDates.major),
