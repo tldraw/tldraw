@@ -78,7 +78,6 @@ export class LicenseManager {
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
-		// eslint-disable-next-line
 		const [data, signature] = licenseKey.split('.')
 		const [prefix, encodedData] = data.split('/')
 
