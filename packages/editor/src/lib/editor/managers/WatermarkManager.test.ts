@@ -39,23 +39,23 @@ describe('WatermarkManager', () => {
 	})
 
 	it('throws when an internal annual license has expired', () => {
-		const expireDate = new Date(2023, 1, 1)
+		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
 			isAnnualLicenseExpired: true,
 			isInternalLicense: true,
-			expiryDate: expireDate,
+			expiryDate,
 		})
 		expect(() => watermarkManager.checkWatermark(licenseResult)).toThrow(/Internal license expired/)
 	})
 
 	it('throws when an internal perpetual license has expired', () => {
-		const expireDate = new Date(2023, 1, 1)
+		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
 			isPerpetualLicense: true,
 			isPerpetualLicenseExpired: true,
 			isInternalLicense: true,
-			expiryDate: expireDate,
+			expiryDate,
 		})
 		expect(() => watermarkManager.checkWatermark(licenseResult)).toThrow(/Internal license expired/)
 	})
