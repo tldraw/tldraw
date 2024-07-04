@@ -1,3 +1,4 @@
+import { cn } from '@/utils/cn'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeHighlight from 'rehype-highlight'
@@ -8,7 +9,14 @@ import { Pre } from './pre'
 
 export const Content: React.FC<{ mdx: string }> = ({ mdx }) => {
 	return (
-		<section className="prose prose-sm prose-zinc text-zinc-800 sm:prose-base w-full max-w-3xl prose-code:before:content-none prose-code:after:content-none prose-code:bg-zinc-200 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-a:no-underline prose-a:text-blue-500">
+		<section
+			className={cn(
+				'prose prose-sm prose-zinc text-zinc-800 sm:prose-base w-full max-w-3xl',
+				'prose-code:before:content-none prose-code:after:content-none prose-code:bg-zinc-200 prose-code:px-1 prose-code:py-0.5 prose-code:rounded',
+				'prose-a:no-underline prose-a:text-blue-500 hover:prose-a:text-blue-600',
+				'prose-blockquote:text-zinc-800 prose-blockquote:font-normal prose-blockquote:border-none prose-blockquote:px-4 prose-blockquote:bg-zinc-50 prose-blockquote:py-2 prose-blockquote:rounded-xl md:prose-blockquote:mx-1'
+			)}
+		>
 			<MDXRemote
 				source={mdx}
 				components={{ Embed, pre: Pre }}

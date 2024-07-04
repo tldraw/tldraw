@@ -3,4 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+	.prose blockquote p {
+		margin: 0;
+	}
+	.prose blockquote p:before,
+	.prose blockquote p:after {
+		content: none;
+	}
 }
