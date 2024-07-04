@@ -67,14 +67,7 @@ export interface TLStoreProps {
 }
 
 /** @public */
-export class TLStore extends Store<TLRecord, TLStoreProps> {
-	async uploadAsset(asset: TLAsset, file: File): Promise<string> {
-		return await this.props.assets.upload(asset, file)
-	}
-	async resolveAsset(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> {
-		return await this.props.assets.resolve(asset, ctx)
-	}
-}
+export type TLStore = Store<TLRecord, TLStoreProps>
 
 /** @public */
 export const onValidationFailure: StoreSchemaOptions<

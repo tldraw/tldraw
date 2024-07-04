@@ -122,7 +122,7 @@ export function registerDefaultExternalContentHandlers(
 			},
 		} as TLAsset
 
-		assetInfo.props.src = await editor.store.uploadAsset(assetInfo, file)
+		assetInfo.props.src = await editor.uploadAsset(assetInfo, file)
 
 		return AssetRecordType.create(assetInfo)
 	})

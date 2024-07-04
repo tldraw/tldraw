@@ -3947,13 +3947,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
 		const dpr = this.getInstanceState().devicePixelRatio
 
-		return await this.store.resolveAsset(asset, {
+		return await this.store.props.assets.resolve(asset, {
 			screenScale: screenScale || 1,
 			steppedScreenScale,
 			dpr,
 			networkEffectiveType,
 			shouldResolveToOriginal: shouldResolveToOriginal,
 		})
+	}
+	/**
+	 * Upload an asset to the store's asset service, returning a URL that can be used to resolve the
+	 * asset.
+	 */
+	async uploadAsset(asset: TLAsset, file: File): Promise<string> {
+		return await this.store.props.assets.upload(asset, file)
 	}
 
 	/* --------------------- Shapes --------------------- */
@@ -7847,7 +7854,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					!asset.props.src?.startsWith('http')
 				) {
 					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
-					const objectUrl = await this.store.resolveAsset(asset, {
+					const objectUrl = await this.store.props.assets.resolve(asset, {
 						screenScale: 1,
 						steppedScreenScale: 1,
 						dpr: 1,

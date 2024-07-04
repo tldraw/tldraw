@@ -11,9 +11,9 @@ import { useEffect, useState } from 'react'
 import {
 	Signal,
 	TAB_ID,
+	TLAssetStore,
 	TLRecord,
 	TLStore,
-	TLStoreSnapshot,
 	TLStoreWithStatus,
 	TLUserPreferences,
 	computed,
@@ -23,8 +23,6 @@ import {
 	useTLStore,
 	useValue,
 } from 'tldraw'
-import { multiplayerAssetStore } from '../utils/assetHandler'
-import { UseSyncClientConfig } from '../utils/remote-sync/remote-sync'
 
 const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
 
@@ -40,9 +38,9 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
 	} | null>(null)
-	const { uri, roomId = 'default', userPreferences: prefs } = opts
+	const { uri, roomId = 'default', userPreferences: prefs, assets } = opts
 
-	const store = useTLStore({ schema, assets: multiplayerAssetStore })
+	const store = useTLStore({ schema, assets })
 
 	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
 	const track = opts.trackAnalyticsEvent
@@ -140,7 +138,7 @@ export interface UseSyncClientConfig {
 	uri: string
 	roomId?: string
 	userPreferences?: Signal<TLUserPreferences>
-	snapshotForNewRoomRef?: { current: null | TLStoreSnapshot }
 	/* @internal */
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
+	assets?: Partial<TLAssetStore>
 }

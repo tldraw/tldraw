@@ -1,4 +1,4 @@
-import { HistoryEntry, MigrationSequence, SerializedStore, StoreSchema } from '@tldraw/store'
+import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import {
 	SchemaPropsInfo,
 	TLAssetStore,
@@ -77,7 +77,7 @@ export function createTLStore({
 					migrations: 'migrations' in rest ? rest.migrations : undefined,
 				})
 
-	return new TLStore({
+	return new Store({
 		id,
 		schema,
 		initialData,

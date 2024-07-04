@@ -1493,12 +1493,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public (undocumented)
-export class TLStore extends Store<TLRecord, TLStoreProps> {
-    // (undocumented)
-    resolveAsset(asset: TLAsset, ctx: TLAssetContext): Promise<null | string>;
-    // (undocumented)
-    uploadAsset(asset: TLAsset, file: File): Promise<string>;
-}
+export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
 export interface TLStoreProps {
