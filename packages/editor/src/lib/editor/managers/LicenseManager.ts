@@ -128,6 +128,8 @@ export class LicenseManager {
 		}
 
 		if (this.isDevelopment) {
+			// We can't parse the license if we are in development mode since crypto
+			// is not available on http
 			return { isLicenseParseable: false, reason: 'has-key-development-mode' }
 		}
 
@@ -264,8 +266,6 @@ export class LicenseManager {
 	}
 
 	private outputMessages(messages: string[]) {
-		if (!this.isDevelopment) return
-
 		this.outputDelimiter()
 		for (const message of messages) {
 			// eslint-disable-next-line no-console
