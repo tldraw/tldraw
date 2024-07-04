@@ -12,6 +12,7 @@ function getDefaultLicenseResult(overides: Partial<ValidLicenseKeyResult>): Vali
 		isPerpetualLicense: false,
 		isPerpetualLicenseExpired: false,
 		isLicenseParseable: true as const,
+		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {
 			id: 'id',
 			hosts: ['localhost'],
