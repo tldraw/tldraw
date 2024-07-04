@@ -202,25 +202,19 @@ export class LicenseManager {
 	}
 
 	private isAnnualLicenseExpired(expiryDate: Date) {
-		if (new Date() >= this.getExpirationDateWithoutGracePeriod(expiryDate)) {
+		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
+		const isExpired = new Date() >= expiration
+		// If it is not expired yet (including the grace period), but after the expiry date we warn the users
+		if (!isExpired && new Date() >= this.getExpirationDateWithoutGracePeriod(expiryDate)) {
 			this.outputMessages([
 				'tldraw license is about to expire, you are in a grace period.',
 				`Please reach out to ${LICENSE_EMAIL} if you would like to renew your license.`,
 			])
 		}
-
-		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
-		return new Date() >= expiration
+		return isExpired
 	}
 
 	private isPerpetualLicenseExpired(expiryDate: Date) {
-		if (new Date() >= this.getExpirationDateWithoutGracePeriod(expiryDate)) {
-			this.outputMessages([
-				'tldraw license is about to expire, you are in a grace period.',
-				`Please reach out to ${LICENSE_EMAIL} if you would like to renew your license.`,
-			])
-		}
-
 		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
 		const dates = {
 			major: new Date(publishDates.major),
