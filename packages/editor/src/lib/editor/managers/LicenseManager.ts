@@ -280,10 +280,6 @@ export class LicenseManager {
 		}
 	}
 
-	private outputMessage(message: string) {
-		this.outputMessages([message])
-	}
-
 	private outputMessages(messages: string[]) {
 		if (!this.isDevelopment) return
 
