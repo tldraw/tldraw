@@ -21,6 +21,7 @@ import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
+import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import {
 	TLExternalContentProps,
@@ -72,6 +73,7 @@ export function Tldraw(props: TldrawProps) {
 	const componentsWithDefault = useMemo(
 		() => ({
 			Scribble: TldrawScribble,
+			ShapeIndicators: TldrawShapeIndicators,
 			CollaboratorScribble: TldrawScribble,
 			SelectionForeground: TldrawSelectionForeground,
 			SelectionBackground: TldrawSelectionBackground,
