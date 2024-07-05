@@ -711,7 +711,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
-		this.checkLicenseKey(licenseKey)
+		const checkLicenseKey = async (licenseKey: string | undefined) => {
+			if (!featureFlags.enableLicensing.get()) return
+
+			const licenseManager = new LicenseManager()
+			const watermarkManager = new WatermarkManager(this)
+			const license = await licenseManager.getLicenseFromKey(licenseKey)
+			const isTestEnv = typeof process !== 'undefined'
+			this.isWatermarkShown = watermarkManager.checkWatermark(license) && !isTestEnv
+		}
+		checkLicenseKey(licenseKey)
 
 		this.performanceTracker = new PerformanceTracker()
 	}
@@ -817,24 +826,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Whether the watermark is shown.
 	 * This only affects watermarks on image exports, before you get any ideas.
 	 *
-	 * @public
+	 * @internal
 	 */
 	isWatermarkShown = false
-
-	/**
-	 * A function that instantiates the license manager and watermark manager, and
-	 * checks the license key. Showing a watermark if the license key is invalid.
-	 *
-	 */
-	private async checkLicenseKey(licenseKey: string | undefined) {
-		if (!featureFlags.enableLicensing.get()) return
-
-		const licenseManager = new LicenseManager()
-		const watermarkManager = new WatermarkManager(this)
-		const license = await licenseManager.getLicenseFromKey(licenseKey)
-		const isTesEnv = typeof process !== 'undefined' && process.env.CI
-		this.isWatermarkShown = watermarkManager.checkWatermark(license) && !isTesEnv
-	}
 
 	/**
 	 * The current HTML element containing the editor.

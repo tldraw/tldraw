@@ -25,6 +25,7 @@ export async function setupPage(page: PlaywrightTestArgs['page']) {
 	await page.waitForSelector('.tl-canvas')
 	await page.evaluate(() => {
 		editor.user.updateUserPreferences({ animationSpeed: 0 })
+		editor.isWatermarkShown = false
 	})
 	await page.mouse.move(50, 50)
 }
