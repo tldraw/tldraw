@@ -165,7 +165,7 @@ export function useSharing(persistenceKey?: string): TLUiOverrides {
 							if (runningInIFrame) {
 								window.open(`${origin}${pathname}`)
 							} else {
-								navigate(pathname)
+								navigate(pathname, { state: { shouldOpenShareMenu: true } })
 							}
 						} catch (error) {
 							console.error(error)
