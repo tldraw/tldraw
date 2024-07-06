@@ -126,7 +126,6 @@ export function startEditingShapeWithLabel(editor: Editor, shape: TLShape, selec
 	if (selectAll) {
 		editor.emit('select-all-text', { shapeId: shape.id })
 	}
-	zoomToShapeIfOffscreen(editor)
 }
 
 const ZOOM_TO_SHAPE_PADDING = 16
