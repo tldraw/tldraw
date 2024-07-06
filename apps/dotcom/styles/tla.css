@@ -249,8 +249,11 @@ body * {
 	color: var(--color-text-2);
 }
 
-.tla_input:invalid {
+.tla_input[type='text']:user-invalid,
+.tla_input[type='password']:user-invalid {
 	border: 1px solid var(--color-warn);
+	transition: border 0s;
+	transition-delay: 0.25s;
 }
 
 /* ------------------ Checkbox row ------------------ */
@@ -297,8 +300,10 @@ body * {
 	content: '✔';
 }
 
-.tla_input[type='checkbox']:invalid::after {
+.tla_input[type='checkbox']:user-invalid::after {
 	border: 1px solid var(--color-warn);
+	transition: border 0s;
+	transition-delay: 0.25s;
 }
 
 /* -------------------- Dividers -------------------- */
