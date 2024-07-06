@@ -1,0 +1,445 @@
+/* Auth */
+
+:root {
+	/* Colors */
+	--color-background: hsla(0, 0%, 100%, 1);
+	--color-panel: hsla(0, 0%, 100%, 1);
+	--color-text-1: hsla(0, 0%, 0%, 1);
+	--color-text-2: hsla(212, 9%, 43%, 1);
+	--color-hover: hsla(0, 0%, 0%, 0.05);
+	--color-primary: hsla(214, 84%, 56%, 1);
+	--color-secondary: hsla(0, 0%, 95%, 1);
+	--color-accent-1: hsl(50, 91%, 70%);
+	--color-accent-2: hsl(28, 88%, 57%);
+	--color-accent-3: hsl(135, 59%, 49%);
+	--color-warn: hsl(0, 88%, 57%);
+	--color-border: hsl(0, 0%, 80%);
+	--color-overlay: hsla(0, 0%, 0%, 0.1);
+	/* Spacing */
+	/* Border radii */
+	--radius-1: 2px;
+	--radius-2: 4px;
+}
+
+button,
+input,
+textarea,
+label,
+br,
+select {
+	all: unset;
+}
+
+body,
+body * {
+	box-sizing: border-box;
+}
+
+.tla,
+.tla button,
+.tla input,
+.tla textarea,
+.tla label,
+.tla select {
+	font-size: 14px;
+	font-family: 'Inter', sans-serif;
+}
+
+.tla a {
+	color: var(--color-primary);
+	pointer-events: all;
+}
+
+/* --------------------- Spacers -------------------- */
+
+.tla_height_full {
+	height: 100%;
+}
+
+.tla_height_4 {
+	height: 4px;
+}
+
+.tla_height_8 {
+	height: 8px;
+}
+
+.tla_height_12 {
+	height: 12px;
+}
+
+.tla_height_20 {
+	height: 20px;
+}
+
+.tla_height_32 {
+	height: 32px;
+}
+
+.tla_height_36 {
+	height: 36px;
+}
+
+.tla_height_40 {
+	height: 40px;
+}
+
+.tla_width_full {
+	width: 100%;
+}
+
+.tla_width_4 {
+	width: 4px;
+}
+
+.tla_width_8 {
+	width: 8px;
+}
+
+.tla_width_12 {
+	width: 12px;
+}
+
+.tla_width_20 {
+	width: 20px;
+}
+
+.tla_width_32 {
+	width: 32px;
+}
+
+.tla_width_36 {
+	width: 36px;
+}
+
+.tla_height_40 {
+	width: 40px;
+}
+
+/* ---------------------- Text ---------------------- */
+
+.tla_text_ui__title {
+	font-size: 14px;
+	line-height: 1;
+	font-weight: 600;
+}
+
+.tla_text_ui__regular {
+	font-size: 14px;
+	line-height: 1;
+	font-weight: 500;
+}
+
+.tla_text_ui__detail {
+	font-size: 10px;
+	line-height: 1;
+	font-weight: 500;
+}
+
+.tla_text_ui__big {
+	font-size: 24px;
+	line-height: 32px;
+}
+
+/* ---------------------- Icons --------------------- */
+
+.tla_icon {
+	height: 15px;
+	width: 15px;
+	flex-shrink: 0;
+	background-color: currentColor;
+}
+
+.tla_icon_wrapper {
+	width: 36px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--color-text-1);
+}
+
+/* --------------------- Buttons -------------------- */
+
+.tla_icon_button {
+	height: 40px;
+	width: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tla_button {
+	position: relative;
+	height: 40px;
+	border: 1px solid transparent;
+	padding: 0px 12px;
+	border-radius: var(--radius-2);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* box-shadow:
+		inset 0 3px 1px -2px rgba(255, 255, 255, 0.32),
+		inset 0 -3px 1px -2px rgba(0, 0, 0, 0.2),
+		0px 3px 8px -2px rgba(0, 0, 0, 0.2); */
+}
+
+.tla_button > .tla_button_spinner {
+	position: absolute;
+	top: calc(50% - 20px);
+	left: calc(50% - 20px);
+	height: 40px;
+	width: 40px;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	animation: tla_spin 1.5s linear infinite;
+}
+
+@keyframes tla_spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.tla_button__primary {
+	background-color: var(--color-primary);
+	color: var(--color-panel);
+}
+.tla_button__primary[data-state='loading'] {
+	color: var(--color-primary);
+}
+.tla_button__primary[data-state='loading'] > .tla_button_spinner {
+	color: var(--color-panel);
+}
+
+.tla_button__secondary {
+	background-color: var(--color-secondary);
+	color: var(--color-text-1);
+}
+
+@media (hover: hover) {
+	.tla_button:hover {
+		border: 1px solid transparent;
+	}
+}
+
+/* --------------------- Spinner -------------------- */
+
+/* --------------------- Inputs --------------------- */
+
+.tla_input {
+	height: 40px;
+	background-color: var(--color-panel);
+	color: var(--color-text-1);
+	border: 1px solid var(--color-border);
+	padding: 0px 12px;
+	border-radius: var(--radius-2);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tla_input::placeholder {
+	color: var(--color-text-2);
+}
+
+.tla_input:invalid {
+	border: 1px solid var(--color-warn);
+}
+
+/* ------------------ Checkbox row ------------------ */
+
+.tla_checkbox {
+	position: relative;
+	cursor: pointer;
+	height: 40px;
+}
+
+.tla_checkbox > .tla_label {
+	position: absolute;
+	top: 0px;
+	left: 28px;
+	width: calc(100% - 28px);
+	height: 100%;
+	z-index: 2;
+	pointer-events: none;
+}
+
+.tla_input[type='checkbox'] {
+	position: relative;
+	width: 100%;
+	height: 40px;
+	border: none;
+	padding: 0px;
+}
+
+.tla_input[type='checkbox']::after {
+	content: '';
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: absolute;
+	top: calc(50% - 10px);
+	left: 0px;
+	width: 20px;
+	height: 20px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-1);
+}
+
+.tla_input[type='checkbox']:checked::after {
+	content: '✔';
+}
+
+.tla_input[type='checkbox']:invalid::after {
+	border: 1px solid var(--color-warn);
+}
+
+/* -------------------- Dividers -------------------- */
+
+.tla_divider {
+	position: relative;
+	width: 100%;
+	display: flex;
+	text-align: center;
+	justify-content: center;
+}
+
+.tla_divider::after {
+	content: '';
+	display: block;
+	position: absolute;
+	left: 0px;
+	top: 50%;
+	width: 100%;
+	height: 1px;
+	background-color: var(--color-border);
+}
+
+.tla_divider span {
+	position: relative;
+	z-index: 1;
+	color: var(--color-text-2);
+	background-color: var(--color-panel);
+	padding: 0px 12px;
+}
+
+/* --------------------- Labels --------------------- */
+
+.tla_label {
+	height: 40px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+/* ------------------ Close button ------------------ */
+
+.tla_close_button {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	cursor: pointer;
+	display: flex;
+	gap: 0px;
+	align-items: center;
+	justify-content: center;
+	height: 40px;
+	padding-right: 12px;
+}
+
+@media (hover: hover) {
+	.tla_close_button:hover::after {
+		display: block;
+		content: '';
+		position: absolute;
+		top: 4px;
+		left: 4px;
+		right: 4px;
+		bottom: 4px;
+		border-radius: 4px;
+		background-color: var(--color-hover);
+		z-index: -1;
+	}
+}
+
+/* -------------------- Full page ------------------- 
+Note: the three layers here (full, inner, content) are necessary if we
+want centered content that docks to the top when the window is short 
+*/
+
+.tla_full {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	background-color: var(--color-background);
+}
+
+.tla_full_inner {
+	width: 100%;
+	max-height: 100vh;
+	overflow-y: auto;
+}
+
+.tla_full_content {
+	width: 100%;
+	padding: 40px 12px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+/* ---------------------- Auth ---------------------- */
+
+.tla_auth_container {
+	background: var(--color-panel);
+	border: var(--color-border);
+	width: 100%;
+	max-width: 360px;
+}
+
+.tla_form {
+	display: flex;
+	flex-direction: column;
+}
+
+.tla_auth_container_title {
+	height: 32px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tla_auth_container_title h1 {
+	text-align: center;
+}
+
+.tla_auth_container > .tla_button,
+.tla_auth_container > .tla_input {
+	width: 100%;
+}
+
+.tla_auth_detail {
+	text-align: center;
+	color: var(--color-text-2);
+}
+
+.tla_auth_detail button {
+	display: inline;
+	cursor: pointer;
+	color: var(--color-primary);
+}

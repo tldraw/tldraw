@@ -5,6 +5,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import '../sentry.client.config'
 import '../styles/core.css'
 import '../styles/globals.css'
+import '../styles/tla.css'
 import { Head } from './components/Head/Head'
 import { router } from './routes'
 
