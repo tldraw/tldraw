@@ -453,7 +453,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useForceUpdate()
 	useOnMount(onMount)
 
-	return <>{children}</>
+	return children
 }
 
 function Crash({ crashingError }: { crashingError: unknown }): null {

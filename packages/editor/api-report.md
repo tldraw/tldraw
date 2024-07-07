@@ -654,6 +654,9 @@ export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionFore
 export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
 
 // @public (undocumented)
+export const DefaultShapeIndicators: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -1772,7 +1775,7 @@ export function openWindow(url: string, target?: string): void;
 // @internal (undocumented)
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
     fallback: TLErrorFallbackComponent;
-}): JSX_2.Element;
+}): boolean | JSX_2.Element | Iterable<React_3.ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -2668,6 +2671,8 @@ export interface TLEditorComponents {
     ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null;
     // (undocumented)
     ShapeIndicatorErrorFallback?: TLShapeIndicatorErrorFallbackComponent;
+    // (undocumented)
+    ShapeIndicators?: ComponentType | null;
     // (undocumented)
     SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null;
     // (undocumented)
