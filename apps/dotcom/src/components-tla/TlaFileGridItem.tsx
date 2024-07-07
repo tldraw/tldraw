@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { TldrawAppFile, getCleanId } from '../utils/tla/db'
+import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
+import { getCleanId } from '../utils/tla/tldrawApp'
 import { TlaIcon } from './TlaIcon'
 
 export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppFile) {

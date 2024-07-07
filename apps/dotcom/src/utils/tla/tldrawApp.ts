@@ -1,10 +1,11 @@
-import { Store } from 'tldraw'
-import { TldrawAppFileRecordType } from './schema/TldrawAppFile'
-import { TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
+import { Store, atom, computed } from 'tldraw'
+import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
+import { TldrawAppGroup, TldrawAppGroupId, TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
 import { TldrawAppGroupMembershipRecordType } from './schema/TldrawAppGroupMembership'
 import { TldrawAppStarRecordType } from './schema/TldrawAppStar'
-import { TldrawAppUserRecordType } from './schema/TldrawAppUser'
-import { TldrawAppWorkspaceRecordType } from './schema/TldrawAppWorkspace'
+import { TldrawAppUser, TldrawAppUserId, TldrawAppUserRecordType } from './schema/TldrawAppUser'
+import { TldrawAppVisitRecordType } from './schema/TldrawAppVisit'
+import { TldrawAppWorkspaceId, TldrawAppWorkspaceRecordType } from './schema/TldrawAppWorkspace'
 import { TldrawAppRecord, tldrawAppSchema } from './tldrawAppSchema'
 
 export class TldrawApp {
@@ -144,4 +145,150 @@ export class TldrawApp {
 	}
 
 	store: Store<TldrawAppRecord>
+
+	private _session = atom<{
+		userId: TldrawAppUserId
+		workspaceId: TldrawAppWorkspaceId
+	} | null>('session', {
+		userId: TldrawAppUserRecordType.createId('0'), // null,
+		workspaceId: TldrawAppWorkspaceRecordType.createId('0'),
+	})
+	@computed getSession() {
+		return this._session.get()
+	}
+
+	setSession(session: ReturnType<typeof this.getSession>) {
+		this._session.set(session)
+	}
+
+	private _ui = atom<{
+		isSidebarOpen: boolean
+		sidebarActiveTab: 'recent' | 'groups'
+	}>('ui', {
+		isSidebarOpen: true,
+		sidebarActiveTab: 'recent',
+	})
+	@computed getUi() {
+		return this._ui.get()
+	}
+
+	setUi(ui: ReturnType<typeof this.getUi>) {
+		this._ui.set(ui)
+	}
+
+	async signIn(_user: TldrawAppUser, forceError = false) {
+		await new Promise((resolve) => setTimeout(resolve, 1000))
+		if (forceError) {
+			return { error: 'An error occurred', success: false }
+		}
+		this.setSession({
+			userId: TldrawAppUserRecordType.createId('0'), // null,
+			workspaceId: TldrawAppWorkspaceRecordType.createId('0'),
+		})
+
+		return { success: true }
+	}
+
+	async signOut() {
+		this.setSession(null)
+
+		return { success: true }
+	}
+
+	toggleSidebar() {
+		const current = this.getUi()
+		this.setUi({
+			...current,
+			isSidebarOpen: !current.isSidebarOpen,
+		})
+	}
+
+	setSidebarActiveTab(tab: 'recent' | 'groups') {
+		this.setUi({
+			...this.getUi(),
+			sidebarActiveTab: tab,
+		})
+	}
+
+	// Simple
+
+	getAll<T extends TldrawAppRecord['typeName']>(
+		typeName: T
+	): (TldrawAppRecord & { typeName: T })[] {
+		return this.store.allRecords().filter((r) => r.typeName === typeName) as (TldrawAppRecord & {
+			typeName: T
+		})[]
+	}
+
+	get<T extends TldrawAppRecord>(id: T['id']): T | undefined {
+		return this.store.get(id) as T | undefined
+	}
+
+	// Complex
+
+	getWorkspaceUsers(workspaceId: TldrawAppWorkspaceId) {
+		return this.getAll('workspace-membership')
+			.filter((r) => r.workspaceId === workspaceId)
+			.map((r) => this.get(r.userId))
+			.filter(Boolean) as TldrawAppUser[]
+	}
+
+	getWorkspaceGroups(workspaceId: TldrawAppWorkspaceId) {
+		return this.getAll('group')
+			.filter((r) => r.workspaceId === workspaceId)
+			.filter(Boolean) as TldrawAppGroup[]
+	}
+
+	getUserFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
+		return this.getAll('file').filter((f) => f.workspaceId === workspaceId && f.owner === userId)
+	}
+
+	getUserRecentFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
+		return this.getAll('visit')
+			.filter((r) => r.userId === userId && r.workspaceId === workspaceId)
+			.map((s) => {
+				const file = this.get<TldrawAppFile>(s.fileId)
+				if (!file) return
+				return { visit: s, file: file }
+			})
+			.filter(Boolean) as { visit: TldrawAppRecord; file: TldrawAppFile }[]
+	}
+
+	getUserStarredFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
+		return this.getAll('star')
+			.filter((f) => f.workspaceId === workspaceId && f.userId === userId)
+			.map((s) => this.get(s.fileId))
+			.filter(Boolean) as TldrawAppFile[]
+	}
+
+	getUserSharedFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
+		return this.getAll('visit')
+			.filter((f) => f.workspaceId === workspaceId && f.userId === userId)
+			.map((s) => this.get(s.fileId) as TldrawAppFile)
+			.filter((f) => f && f.owner !== userId)
+	}
+
+	getUserGroups(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
+		return this.getAll('group-membership')
+			.filter((f) => f.workspaceId === workspaceId && f.userId === userId)
+			.map((s) => this.get(s.groupId) as TldrawAppGroup)
+	}
+
+	getGroupFiles(groupId: TldrawAppGroupId, workspaceId: TldrawAppWorkspaceId) {
+		return this.getAll('file').filter((f) => f.workspaceId === workspaceId && f.owner === groupId)
+	}
+
+	logVisit(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId, fileId: TldrawAppFileId) {
+		this.store.put([
+			TldrawAppVisitRecordType.create({
+				workspaceId,
+				userId,
+				fileId,
+			}),
+		])
+	}
+}
+
+export function getCleanId(id: string) {
+	return id.split(':')[1]
 }

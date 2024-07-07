@@ -30,7 +30,7 @@ import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../utils/migration/LocalMigration'
 import { useSharing } from '../utils/sharing'
-import { TldrawAppFile } from '../utils/tla/db'
+import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 

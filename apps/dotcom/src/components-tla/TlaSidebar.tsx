@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom'
-import { useAppApi, useAppState } from '../hooks/useAppState'
-import { TldrawAppFile, TldrawAppGroup, getCleanId } from '../utils/tla/db'
+import { useValue } from 'tldraw'
+import { useApp } from '../hooks/useAppState'
+import { useWorkspace } from '../tla-hooks/useWorkspace'
+import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
+import { TldrawAppGroup } from '../utils/tla/schema/TldrawAppGroup'
+import { TldrawAppUser } from '../utils/tla/schema/TldrawAppUser'
+import { getCleanId } from '../utils/tla/tldrawApp'
 import { TlaAvatar } from './TlaAvatar'
 import { TlaIcon } from './TlaIcon'
 import { TlaSpacer } from './TlaSpacer'
@@ -59,18 +64,13 @@ function SidebarCreateButton() {
 }
 
 function SidebarWorkspaceLink() {
-	const { db, session } = useAppState()
-	if (!session) throw Error('Session not found')
-
-	const { getWorkspace } = useAppApi()
-
-	const workspace = getWorkspace(db, session.workspaceId)
+	const workspace = useWorkspace()
 	if (!workspace) throw Error('Workspace not found')
 
 	return (
 		<div className="tla_sidebar__workspace tla_sidebar__hoverable">
 			<div className="tla_icon_wrapper" data-size="m">
-				<TlaIcon icon={workspace.icon} />
+				<TlaIcon icon={workspace.avatar} />
 			</div>
 			<div className="tla_sidebar__label">{workspace.name}</div>
 			<button className="tla_sidebar__link-button" />
@@ -82,8 +82,15 @@ function SidebarWorkspaceLink() {
 }
 
 function SidebarTabs() {
-	const { setSidebarActiveTab } = useAppApi()
-	const { sidebarActiveTab } = useAppState()
+	const app = useApp()
+	const sidebarActiveTab = useValue(
+		'sidebar active tab',
+		() => {
+			return app.getUi().sidebarActiveTab
+		},
+		[app]
+	)
+
 	return (
 		<div className="tla_sidebar__tabs">
 			<div className="tla_sidebar__line" />
@@ -91,7 +98,7 @@ function SidebarTabs() {
 				className="tla_sidebar__tabs_tab"
 				data-active={sidebarActiveTab === 'recent'}
 				onClick={() => {
-					setSidebarActiveTab('recent')
+					app.setSidebarActiveTab('recent')
 				}}
 			>
 				Recent
@@ -100,7 +107,7 @@ function SidebarTabs() {
 				className="tla_sidebar__tabs_tab"
 				data-active={sidebarActiveTab === 'groups'}
 				onClick={() => {
-					setSidebarActiveTab('groups')
+					app.setSidebarActiveTab('groups')
 				}}
 			>
 				Groups
@@ -110,7 +117,14 @@ function SidebarTabs() {
 }
 
 function SidebarActiveTabContent() {
-	const { sidebarActiveTab } = useAppState()
+	const app = useApp()
+	const sidebarActiveTab = useValue(
+		'sidebar active tab',
+		() => {
+			return app.getUi().sidebarActiveTab
+		},
+		[app]
+	)
 
 	if (sidebarActiveTab === 'recent') {
 		return <SidebarRecentFiles />
@@ -124,18 +138,22 @@ function SidebarActiveTabContent() {
 }
 
 function SidebarMainLink({ icon, label, href }: SideBarMainLink) {
-	const { session } = useAppState()
-	if (!session) throw Error('Session not found')
+	const app = useApp()
+	const workspaceId = useValue(
+		'workspaceId',
+		() => {
+			return app.getSession()?.workspaceId
+		},
+		[app]
+	)
+	if (!workspaceId) throw Error('Workspace not found')
 
 	return (
 		<div className="tla_sidebar__main-link tla_sidebar__hoverable">
 			<div className="tla_icon_wrapper">
 				<TlaIcon icon={icon} />
 			</div>
-			<Link
-				className="tla_sidebar__link-button"
-				to={`/${session.workspaceId.split(':')[1]}/${href}`}
-			/>
+			<Link className="tla_sidebar__link-button" to={`/${workspaceId.split(':')[1]}/${href}`} />
 			<div className="tla_sidebar__label">{label}</div>
 		</div>
 	)
@@ -172,11 +190,17 @@ function SidebarFileLink({ file }: { file: TldrawAppFile }) {
 }
 
 function SidebarRecentFiles() {
-	const { getUserRecentFiles } = useAppApi()
-	const { db, session } = useAppState()
-	if (!session) throw Error('Session not found')
-
-	const files = getUserRecentFiles(db, session.userId, session.workspaceId)
+	const app = useApp()
+	const results = useValue(
+		'recent user files',
+		() => {
+			const session = app.getSession()
+			if (!session) return
+			return app.getUserFiles(session.userId, session.workspaceId)
+		},
+		[app]
+	)
+	if (!results) throw Error('Could not get files')
 
 	// split the files into today, yesterday, this week, this month, and then by month
 	const day = 1000 * 60 * 60 * 24
@@ -186,7 +210,7 @@ function SidebarRecentFiles() {
 	const thisMonthFiles: TldrawAppFile[] = []
 	const olderFiles: TldrawAppFile[] = []
 
-	for (const file of files) {
+	for (const file of results) {
 		const date = new Date(file.createdAt)
 		if (date > new Date(Date.now() - day * 1)) {
 			todayFiles.push(file)
@@ -218,12 +242,17 @@ function SidebarRecentFiles() {
 }
 
 function SidebarGroups() {
-	const { getUserGroups } = useAppApi()
-	const { db, session } = useAppState()
-	if (!session) throw Error('Session not found')
-
-	const groups = getUserGroups(db, session.userId, session.workspaceId)
-	groups.sort((a, b) => b.createdAt - a.createdAt)
+	const app = useApp()
+	const groups = useValue(
+		'user groups',
+		() => {
+			const session = app.getSession()
+			if (!session) return
+			return app.getUserGroups(session.userId, session.workspaceId)
+		},
+		[app]
+	)
+	if (!groups) throw Error('Could not get groups')
 
 	return (
 		<>
@@ -235,11 +264,17 @@ function SidebarGroups() {
 }
 
 function SidebarGroup({ id, name }: TldrawAppGroup) {
-	const { getGroupFiles } = useAppApi()
-	const { db, session } = useAppState()
-	if (!session) throw Error('Session not found')
-
-	const files = getGroupFiles(db, id, session.workspaceId)
+	const app = useApp()
+	const files = useValue(
+		'recent user files',
+		() => {
+			const session = app.getSession()
+			if (!session) return
+			return app.getGroupFiles(id, session.workspaceId)
+		},
+		[app, id]
+	)
+	if (!files) throw Error('Could not get files')
 
 	return (
 		<div className="tla_sidebar__section">
@@ -253,12 +288,17 @@ function SidebarGroup({ id, name }: TldrawAppGroup) {
 }
 
 function SidebarUserLink() {
-	const { getUser } = useAppApi()
-	const { db, session } = useAppState()
-	if (!session) throw Error('Session not found')
-
-	const user = getUser(db, session.userId)
-	if (!user) throw Error('User not found')
+	const app = useApp()
+	const user = useValue(
+		'recent user files',
+		() => {
+			const session = app.getSession()
+			if (!session) return
+			return app.get<TldrawAppUser>(session.userId)
+		},
+		[app]
+	)
+	if (!user) throw Error('Could not get user')
 
 	return (
 		<div className="tla_sidebar__user tla_sidebar__hoverable">

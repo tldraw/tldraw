@@ -1,16 +1,21 @@
+import { useValue } from 'tldraw'
 import '../../styles/globals.css'
 import { TlaFileGridItem } from '../components-tla/TlaFileGridItem'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
-import { useAppApi, useAppState } from '../hooks/useAppState'
+import { useApp } from '../hooks/useAppState'
 
 export function Component() {
-	const { db, session } = useAppState()
-	if (!session) throw Error('Session not found')
-
-	const { getUserStarredFiles } = useAppApi()
-
-	const files = getUserStarredFiles(db, session.userId, session.workspaceId)
-	files.sort((a, b) => b.updatedAt - a.updatedAt)
+	const app = useApp()
+	const files = useValue(
+		'starred files',
+		() => {
+			const session = app.getSession()
+			if (!session) return
+			return app.getUserStarredFiles(session.userId, session.workspaceId)
+		},
+		[app]
+	)
+	if (!files) throw Error('Files not found')
 
 	return (
 		<div className="tla_content tla_page">

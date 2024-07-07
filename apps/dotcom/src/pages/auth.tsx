@@ -5,12 +5,11 @@ import { TlaFullWrapper } from '../components-tla/TlaFullWrapper'
 import { TlaInput } from '../components-tla/TlaInput'
 import { TlaLabel } from '../components-tla/TlaLabel'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
-import { useAppApi, useAppState } from '../hooks/useAppState'
-import { createTlaId } from '../utils/tla/db'
+import { useApp } from '../hooks/useAppState'
+import { TldrawAppUserRecordType } from '../utils/tla/schema/TldrawAppUser'
 
 export function Component() {
-	const { db } = useAppState()
-	const { signIn, getUser } = useAppApi()
+	const app = useApp()
 	const [state, setState] = useState('sign-in')
 	const [loadingState, setLoadingState] = useState<
 		{ name: 'ready' } | { name: 'loading' } | { name: 'error' }
@@ -39,8 +38,8 @@ export function Component() {
 							if (loadingState.name === 'loading') return
 							setLoadingState({ name: 'loading' })
 							try {
-								const user = getUser(db, createTlaId('user', 0))!
-								await signIn(user)
+								const user = app.store.get(TldrawAppUserRecordType.createId('0'))!
+								await app.signIn(user)
 							} catch (e) {
 								setLoadingState({ name: 'error' })
 							}
@@ -85,8 +84,8 @@ export function Component() {
 							if (loadingState.name === 'loading') return
 							setLoadingState({ name: 'loading' })
 							try {
-								const user = getUser(db, createTlaId('user', 0))!
-								await signIn(user)
+								const user = app.store.get(TldrawAppUserRecordType.createId('0'))!
+								await app.signIn(user)
 							} catch (e) {
 								setLoadingState({ name: 'error' })
 							}

@@ -1046,18 +1046,8 @@ export function or<T1, T2>(v1: Validatable<T1>, v2: Validatable<T2>): Validator<
 	return new Validator((value) => {
 		try {
 			return v1.validate(value)
-		} catch (error) {
-			if (error instanceof ValidationError) {
-				try {
-					return v2.validate(value)
-				} catch (error) {
-					if (error instanceof ValidationError) {
-						throw new ValidationError(`Expected either ${error.rawMessage} or ${error.rawMessage}`)
-					}
-					throw error
-				}
-			}
-			throw error
+		} catch {
+			return v2.validate(value)
 		}
 	})
 }
