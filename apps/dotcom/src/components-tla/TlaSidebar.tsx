@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, useMatch, useNavigate, useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
 import { useWorkspace } from '../tla-hooks/useWorkspace'
-import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
+import { TldrawAppFile, TldrawAppFileRecordType } from '../utils/tla/schema/TldrawAppFile'
 import { TldrawAppGroup } from '../utils/tla/schema/TldrawAppGroup'
 import { TldrawAppUser } from '../utils/tla/schema/TldrawAppUser'
 import { getCleanId } from '../utils/tla/tldrawApp'
@@ -56,8 +56,25 @@ export function TlaSidebar() {
 }
 
 function SidebarCreateButton() {
+	const app = useApp()
+	const navigate = useNavigate()
+
 	return (
-		<button className="tla_sidebar__create tla_icon_wrapper ">
+		<button
+			className="tla_sidebar__create tla_icon_wrapper"
+			onClick={() => {
+				const session = app.getSession()!
+				const id = TldrawAppFileRecordType.createId()
+				app.store.put([
+					TldrawAppFileRecordType.create({
+						id,
+						workspaceId: session.workspaceId,
+						owner: session.userId,
+					}),
+				])
+				navigate(`/${getCleanId(session.workspaceId)}/f/${getCleanId(id)}`)
+			}}
+		>
 			<TlaIcon icon="edit-strong" />
 		</button>
 	)
@@ -148,8 +165,10 @@ function SidebarMainLink({ icon, label, href }: SideBarMainLink) {
 	)
 	if (!workspaceId) throw Error('Workspace not found')
 
+	const match = useMatch(`/:workspaceId/${href}`)
+
 	return (
-		<div className="tla_sidebar__main-link tla_sidebar__hoverable">
+		<div className="tla_sidebar__main-link tla_sidebar__hoverable" data-active={!!match}>
 			<div className="tla_icon_wrapper">
 				<TlaIcon icon={icon} />
 			</div>
@@ -173,8 +192,10 @@ function SidebarRecentSection({ title, files }: { title: string; files: TldrawAp
 
 function SidebarFileLink({ file }: { file: TldrawAppFile }) {
 	const { workspaceId, id } = file
+	const { fileId } = useParams()
+	const isActive = fileId === getCleanId(id)
 	return (
-		<div className="tla_sidebar__section_link tla_sidebar__hoverable">
+		<div className="tla_sidebar__section_link tla_sidebar__hoverable" data-active={isActive}>
 			<div className="tla_sidebar__label">
 				{file.name || new Date(file.createdAt).toLocaleString('en-gb')}
 			</div>
@@ -196,7 +217,9 @@ function SidebarRecentFiles() {
 		() => {
 			const session = app.getSession()
 			if (!session) return
-			return app.getUserFiles(session.userId, session.workspaceId)
+			return app.getUserFiles(session.userId, session.workspaceId).sort((a, b) => {
+				return b.createdAt - a.createdAt
+			})
 		},
 		[app]
 	)

@@ -196,6 +196,7 @@ export class TldrawApp {
 	}
 
 	toggleSidebar() {
+		console.log('toggling')
 		const current = this.getUi()
 		this.setUi({
 			...current,

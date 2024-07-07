@@ -1,10 +1,24 @@
+import { useValue } from 'tldraw'
 import '../../styles/globals.css'
-import { LocalEditor } from '../components/LocalEditor'
+import { TlaEditor } from '../components-tla/TlaEditor'
+import { useApp } from '../hooks/useAppState'
 
 export function Component() {
+	const app = useApp()
+	const file = useValue(
+		'most recent file',
+		() => {
+			const session = app.getSession()
+			if (!session) return
+			return app.getUserFiles(session.userId, session.workspaceId)[0]
+		},
+		[app]
+	)
+	if (!file) throw Error('File not found')
+
 	return (
 		<div className="tla_content">
-			<LocalEditor />
+			<TlaEditor file={file} />
 		</div>
 	)
 }

@@ -1,9 +1,23 @@
 import { Link } from 'react-router-dom'
+import { useValue } from 'tldraw'
+import { useApp } from '../hooks/useAppState'
 import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
+import { TldrawAppStarRecordType } from '../utils/tla/schema/TldrawAppStar'
 import { getCleanId } from '../utils/tla/tldrawApp'
 import { TlaIcon } from './TlaIcon'
 
 export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppFile) {
+	const app = useApp()
+	const star = useValue(
+		'star',
+		() => {
+			const session = app.getSession()
+			if (!session) return false
+			return app.getAll('star').find((r) => r.fileId === id && r.userId === session.userId)
+		},
+		[id, app]
+	)
+
 	return (
 		<div key={id} className="tla_page__grid_item">
 			<div className="tla_page__grid_item_top">
@@ -22,6 +36,26 @@ export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppF
 				to={`/${getCleanId(workspaceId)}/f/${getCleanId(id)}`}
 				className="tla_page__grid_item_link"
 			/>
+			<button
+				className="tla_page__grid_item_star"
+				data-starred={!!star}
+				onClick={() => {
+					if (star) {
+						app.store.remove([star.id])
+					} else {
+						const session = app.getSession()!
+						app.store.put([
+							TldrawAppStarRecordType.create({
+								fileId: id,
+								userId: session.userId,
+								workspaceId: workspaceId,
+							}),
+						])
+					}
+				}}
+			>
+				<TlaIcon icon={star ? 'star-fill' : 'star'} />
+			</button>
 			<button className="tla_page__grid_item_menu">
 				<TlaIcon icon="more" />
 			</button>

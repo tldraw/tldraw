@@ -82,7 +82,7 @@ export const router = createRoutesFromElements(
 					</RequireAuth>
 				}
 			>
-				<Route index lazy={() => import('./pages/ws-root')} />
+				<Route index element={<RedirectToMostRecentFile />} />
 				<Route path="/:workspaceId/drafts" lazy={() => import('./pages/ws-drafts')} />
 				<Route path="/:workspaceId/stars" lazy={() => import('./pages/ws-stars')} />
 				<Route path="/:workspaceId/shared" lazy={() => import('./pages/ws-shared')} />
@@ -131,10 +131,26 @@ export function TlaWrapper() {
 	return (
 		<div className="tla tla_layout" data-sidebar={isSidebarOpen}>
 			<TlaSidebar />
-			<button className="tla_sidebar_toggle" onClick={app.toggleSidebar}>
+			<button className="tla_sidebar_toggle" onClick={() => app.toggleSidebar()}>
 				<TlaIcon icon="sidebar" />
 			</button>
 			<Outlet />
 		</div>
 	)
+}
+
+function RedirectToMostRecentFile() {
+	const app = useApp()
+	const file = useValue(
+		'most recent file',
+		() => {
+			const session = app.getSession()
+			if (!session) return
+			return app.getUserFiles(session.userId, session.workspaceId)[0]
+		},
+		[app]
+	)
+	if (!file) throw Error('File not found')
+
+	return <Navigate to={`/${getCleanId(file.workspaceId)}/f/${getCleanId(file.id)}`} />
 }

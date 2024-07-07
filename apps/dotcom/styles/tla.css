@@ -7,7 +7,7 @@
 	--color-panel: hsla(0, 0%, 100%, 1);
 	--color-text-1: hsla(0, 0%, 0%, 1);
 	--color-text-2: hsla(212, 9%, 43%, 1);
-	--color-hover: hsla(0, 0%, 0%, 0.05);
+	--color-hover: hsl(0, 0%, 0%, 4.3%);
 	--color-primary: hsla(214, 84%, 56%, 1);
 	--color-secondary: hsla(0, 0%, 95%, 1);
 	--color-accent-1: hsl(50, 91%, 70%);
@@ -549,18 +549,24 @@ want centered content that docks to the top when the window is short
 	flex-direction: column;
 }
 
+.tla_sidebar__hoverable::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 0px;
+	right: 0px;
+	bottom: 2px;
+	border-radius: 4px;
+	background-color: var(--color-hover);
+	z-index: -1;
+	pointer-events: none;
+	visibility: hidden;
+}
+
 @media (hover: hover) {
 	.tla_sidebar__hoverable:hover::after {
-		display: block;
-		content: '';
-		position: absolute;
-		top: 2px;
-		left: 0px;
-		right: 0px;
-		bottom: 2px;
-		border-radius: 4px;
-		background-color: var(--color-hover);
-		pointer-events: none;
+		visibility: visible;
 	}
 }
 
@@ -583,6 +589,7 @@ want centered content that docks to the top when the window is short
 		border-radius: 4px;
 		background-color: var(--color-hover);
 		pointer-events: none;
+		z-index: -1;
 	}
 }
 
@@ -660,7 +667,6 @@ want centered content that docks to the top when the window is short
 .tla_sidebar__section_link {
 	position: relative;
 	width: 100%;
-	height: 36px;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -668,14 +674,12 @@ want centered content that docks to the top when the window is short
 	font-weight: 500;
 	font-family: 'Inter', sans-serif;
 	overflow: hidden;
-}
-
-.tla_sidebar__section_link {
-	width: 100%;
-	display: flex;
-	flex-direction: row;
 	height: 36px;
 	padding: 0px 0px 0px 8px;
+}
+
+.tla_sidebar__hoverable[data-active='true']::after {
+	visibility: visible;
 }
 
 .tla_sidebar__link-button {
@@ -800,7 +804,7 @@ want centered content that docks to the top when the window is short
 /* -------------------- List page ------------------- */
 
 .tla_page {
-	padding: 40px 50px;
+	padding: 0px 50px;
 }
 
 .tla_page__header {
@@ -843,6 +847,9 @@ want centered content that docks to the top when the window is short
 	width: 100%;
 	height: 100%;
 	background: url('/thumbnail.png');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
 	border-radius: 4px;
 }
 
@@ -906,10 +913,10 @@ want centered content that docks to the top when the window is short
 	z-index: 2;
 }
 
+.tla_page__grid_item_star,
 .tla_page__grid_item_menu {
 	position: absolute;
 	top: 0px;
-	right: 0px;
 	width: 36px;
 	height: 36px;
 	display: flex;
@@ -921,20 +928,34 @@ want centered content that docks to the top when the window is short
 	cursor: pointer;
 }
 
+.tla_page__grid_item_star {
+	left: 0px;
+}
+.tla_page__grid_item_menu {
+	right: 0px;
+}
+
 @media (hover: hover) {
+	.tla_page__grid_item_star,
 	.tla_page__grid_item_menu {
 		visibility: hidden;
 	}
 
-	.tla_page__grid_item:hover .tla_page__grid_item_title {
-		color: var(--color-primary);
+	.tla_page__grid_item_star[data-starred='true'] {
+		visibility: visible;
 	}
 
+	.tla_page__grid_item:hover > .tla_page__grid_item_star,
 	.tla_page__grid_item:hover > .tla_page__grid_item_menu {
 		visibility: visible;
 	}
 
+	.tla_page__grid_item_star:hover,
 	.tla_page__grid_item_menu:hover {
 		color: var(--color-text-1);
+	}
+
+	.tla_page__grid_item:hover .tla_page__grid_item_title {
+		color: var(--color-primary);
 	}
 }

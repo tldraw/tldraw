@@ -56,7 +56,7 @@ export const TldrawAppFileRecordType = createRecordType<TldrawAppFile>('file', {
 }).withDefaultProperties(
 	(): Omit<TldrawAppFile, 'id' | 'typeName' | 'workspaceId' | 'owner'> => ({
 		shared: false,
-		name: 'New file',
+		name: '',
 		thumbnail: '',
 		createdAt: Date.now(),
 		updatedAt: Date.now(),
