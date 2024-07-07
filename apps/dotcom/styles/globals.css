@@ -3,7 +3,7 @@
 @import url('./z-board.css');
 
 .tldraw__editor {
-	position: fixed;
+	position: absolute;
 	top: 0px;
 	left: 0px;
 	bottom: 0px;

@@ -6,6 +6,7 @@ import '../sentry.client.config'
 import '../styles/core.css'
 import '../styles/globals.css'
 import '../styles/tla.css'
+import { TlaAppStateBoundary } from './components-tla/TlaAppStateBoundary'
 import { Head } from './components/Head/Head'
 import { router } from './routes'
 
@@ -14,7 +15,9 @@ const browserRouter = createBrowserRouter(router)
 createRoot(document.getElementById('root')!).render(
 	<HelmetProvider>
 		<Head />
-		<RouterProvider router={browserRouter} />
+		<TlaAppStateBoundary>
+			<RouterProvider router={browserRouter} />
+		</TlaAppStateBoundary>
 		<VercelAnalytics debug={false} />
 	</HelmetProvider>
 )

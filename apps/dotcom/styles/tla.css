@@ -34,23 +34,21 @@ body,
 body * {
 	box-sizing: border-box;
 }
-
-.tla,
-.tla button,
-.tla input,
-.tla textarea,
-.tla label,
-.tla select {
-	font-size: 14px;
-	font-family: 'Inter', sans-serif;
+/* 
+.tla button {
+	cursor: pointer;
 }
 
 .tla a {
 	color: var(--color-primary);
 	pointer-events: all;
-}
+} */
 
 /* --------------------- Spacers -------------------- */
+
+.tla_spacer {
+	flex: 0 0 auto;
+}
 
 .tla_height_full {
 	height: 100%;
@@ -144,19 +142,30 @@ body * {
 /* ---------------------- Icons --------------------- */
 
 .tla_icon {
-	height: 15px;
-	width: 15px;
 	flex-shrink: 0;
 	background-color: currentColor;
+	height: 15px;
+	width: 15px;
 }
 
 .tla_icon_wrapper {
-	width: 36px;
+	width: 40px;
 	height: 40px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	color: var(--color-text-1);
+	flex-shrink: 0;
+}
+
+.tla_icon_wrapper > .tla_icon {
+	height: 15px;
+	width: 15px;
+}
+
+.tla_icon_wrapper[data-size='m'] > .tla_icon {
+	height: 20px;
+	width: 20px;
 }
 
 /* --------------------- Buttons -------------------- */
@@ -167,6 +176,9 @@ body * {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	cursor: pointer;
+	font-size: 14px;
+	font-family: 'Inter', sans-serif;
 }
 
 .tla_button {
@@ -179,6 +191,9 @@ body * {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	cursor: pointer;
+	font-size: 14px;
+	font-family: 'Inter', sans-serif;
 	/* box-shadow:
 		inset 0 3px 1px -2px rgba(255, 255, 255, 0.32),
 		inset 0 -3px 1px -2px rgba(0, 0, 0, 0.2),
@@ -243,6 +258,8 @@ body * {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	font-size: 14px;
+	font-family: 'Inter', sans-serif;
 }
 
 .tla_input::placeholder {
@@ -343,6 +360,8 @@ body * {
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
+	font-size: 14px;
+	font-family: 'Inter', sans-serif;
 }
 
 /* ------------------ Close button ------------------ */
@@ -372,6 +391,7 @@ body * {
 		border-radius: 4px;
 		background-color: var(--color-hover);
 		z-index: -1;
+		pointer-events: none;
 	}
 }
 
@@ -447,4 +467,276 @@ want centered content that docks to the top when the window is short
 	display: inline;
 	cursor: pointer;
 	color: var(--color-primary);
+}
+
+/* ----------------- Sidebar button ----------------- */
+
+.tla .tlui-menu-zone {
+	padding-left: 40px;
+}
+
+.tla_sidebar_toggle {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 999;
+	cursor: pointer;
+}
+
+.tla_layout[data-sidebar='true'] .tla_sidebar_toggle {
+	left: 260px;
+}
+
+/* --------------------- Layout --------------------- */
+
+.tla_layout {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: row;
+}
+
+.tla_content {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	flex-grow: 2;
+}
+
+/* --------------------- Sidebar -------------------- */
+
+.tla_sidebar {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 260px;
+	height: 100%;
+	display: none;
+	flex: 0 0 auto;
+	padding: 0px 12px;
+}
+
+.tla_sidebar__top,
+.tla_sidebar__bottom {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 auto;
+	overflow: hidden;
+}
+
+.tla_sidebar__content {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+.tla_layout[data-sidebar='true'] .tla_sidebar {
+	display: flex;
+	flex-direction: column;
+}
+
+@media (hover: hover) {
+	.tla_sidebar__hoverable:hover::after {
+		display: block;
+		content: '';
+		position: absolute;
+		top: 2px;
+		left: 0px;
+		right: 0px;
+		bottom: 2px;
+		border-radius: 4px;
+		background-color: var(--color-hover);
+		pointer-events: none;
+	}
+}
+
+.tla_sidebar__create {
+	cursor: pointer;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+}
+
+@media (hover: hover) {
+	.tla_sidebar__create:hover::after {
+		display: block;
+		content: '';
+		position: absolute;
+		top: 4px;
+		left: 4px;
+		right: 4px;
+		bottom: 4px;
+		border-radius: 4px;
+		background-color: var(--color-hover);
+		pointer-events: none;
+	}
+}
+
+.tla_sidebar__label {
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding-right: 4px;
+}
+
+.tla_sidebar__workspace {
+	position: relative;
+	width: calc(100% - 28px);
+	height: 40px;
+	padding-right: 4px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	font-size: 14px;
+	font-weight: 600;
+	font-family: 'Inter', sans-serif;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.tla_sidebar__user {
+	position: relative;
+	width: 100%;
+	height: 40px;
+	padding-right: 4px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	font-size: 14px;
+	font-weight: 600;
+	font-family: 'Inter', sans-serif;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	flex: 0 0 auto;
+}
+
+.tla_sidebar__main-link {
+	position: relative;
+	width: 100%;
+	height: 40px;
+	padding-right: 4px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	font-size: 14px;
+	font-weight: 500;
+	font-family: 'Inter', sans-serif;
+	overflow: hidden;
+	flex: 0 0 auto;
+}
+
+.tla_sidebar__section_title {
+	position: relative;
+	width: 100%;
+	height: 36px;
+	padding: 0px 8px 0px 8px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	font-size: 12px;
+	font-weight: 600;
+	font-family: 'Inter', sans-serif;
+	overflow: hidden;
+	color: var(--color-text-2);
+}
+
+.tla_sidebar__section_link {
+	position: relative;
+	width: 100%;
+	height: 36px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	font-size: 14px;
+	font-weight: 500;
+	font-family: 'Inter', sans-serif;
+	overflow: hidden;
+}
+
+.tla_sidebar__section_link {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	height: 36px;
+	padding: 0px 0px 0px 8px;
+}
+
+.tla_sidebar__link-button {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	cursor: pointer;
+	z-index: 2;
+}
+
+.tla_sidebar__link-menu {
+	position: relative;
+	right: -2px;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--color-text-2);
+	flex: 0 0 auto;
+	z-index: 3;
+	cursor: pointer;
+}
+
+@media (hover: hover) {
+	.tla_sidebar__link-menu {
+		visibility: hidden;
+	}
+
+	.tla_sidebar__workspace:hover > .tla_sidebar__link-menu,
+	.tla_sidebar__user:hover > .tla_sidebar__link-menu,
+	.tla_sidebar__section_link:hover > .tla_sidebar__link-menu {
+		visibility: visible;
+	}
+
+	.tla_sidebar__link-menu:hover {
+		color: var(--color-text-1);
+	}
+}
+
+/* --------------------- Avatar --------------------- */
+
+.tla_avatar {
+	position: relative;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	overflow: hidden;
+	background-color: var(--color-secondary);
+}
+
+.tla-avatar[data-size='s'] {
+	width: 16px;
+	height: 16px;
+}
+
+.tla-avatar[data-size='m'] {
+	width: 20px;
+	height: 20px;
+}
+
+.tla-avatar[data-size='l'] {
+	width: 32px;
+	height: 32px;
 }
