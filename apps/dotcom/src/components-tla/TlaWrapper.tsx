@@ -1,17 +1,18 @@
-import { ReactNode } from 'react'
+import { Outlet } from 'react-router-dom'
 import { useAppState } from '../hooks/useAppState'
 import { TlaIcon } from './TlaIcon'
 import { TlaSidebar } from './TlaSidebar'
 
-export function TlaSidebarWrapper({ children }: { children: ReactNode }) {
+export function TlaWapper() {
 	const { isSidebarOpen, toggleSidebar } = useAppState()
+
 	return (
-		<div className="tla_layout" data-sidebar={isSidebarOpen}>
+		<div className="tla tla_layout" data-sidebar={isSidebarOpen}>
 			<TlaSidebar />
 			<button className="tla_sidebar_toggle" onClick={toggleSidebar}>
 				<TlaIcon icon="sidebar" />
 			</button>
-			<div className="tla_content">{children}</div>
+			<Outlet />
 		</div>
 	)
 }

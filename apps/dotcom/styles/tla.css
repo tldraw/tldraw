@@ -3,6 +3,7 @@
 :root {
 	/* Colors */
 	--color-background: hsla(0, 0%, 100%, 1);
+	--color-canvas: hsl(210, 20%, 98%);
 	--color-panel: hsla(0, 0%, 100%, 1);
 	--color-text-1: hsla(0, 0%, 0%, 1);
 	--color-text-2: hsla(212, 9%, 43%, 1);
@@ -509,6 +510,7 @@ want centered content that docks to the top when the window is short
 	width: 100%;
 	height: 100%;
 	flex-grow: 2;
+	background-color: var(--color-canvas);
 }
 
 /* --------------------- Sidebar -------------------- */
@@ -523,6 +525,7 @@ want centered content that docks to the top when the window is short
 	display: none;
 	flex: 0 0 auto;
 	padding: 0px 12px;
+	border-right: 1px solid var(--color-border);
 }
 
 .tla_sidebar__top,
@@ -715,6 +718,59 @@ want centered content that docks to the top when the window is short
 	}
 }
 
+/* ---------------------- Tabs ---------------------- */
+
+.tla_sidebar__tabs {
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	position: relative;
+}
+
+.tla_sidebar__tabs_tab {
+	position: relative;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	padding: 8px;
+	font-family: 'Inter', sans-serif;
+	color: var(--color-text-2);
+}
+
+.tla_sidebar__tabs_tab[data-active='true'] {
+	color: var(--color-text-1);
+}
+.tla_sidebar__tabs_tab[data-active='true']::after {
+	content: '';
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	left: 8px;
+	right: 8px;
+	height: 2px;
+	z-index: 2;
+	background-color: var(--color-text-1);
+}
+
+.tla_sidebar__line {
+	position: absolute;
+	bottom: 0px;
+	left: 8px;
+	right: 8px;
+	height: 2px;
+	background-color: var(--color-hover);
+}
+
+@media (hover: hover) {
+	.tla_sidebar__tabs_tab:hover {
+		color: var(--color-text-1);
+	}
+}
+
 /* --------------------- Avatar --------------------- */
 
 .tla_avatar {
@@ -739,4 +795,146 @@ want centered content that docks to the top when the window is short
 .tla-avatar[data-size='l'] {
 	width: 32px;
 	height: 32px;
+}
+
+/* -------------------- List page ------------------- */
+
+.tla_page {
+	padding: 40px 50px;
+}
+
+.tla_page__header {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	height: 40px;
+}
+
+.tla_page__controls {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	height: 40px;
+}
+
+.tla_page__controls_display {
+	display: flex;
+}
+
+.tla_page__controls_sort {
+	display: flex;
+}
+
+.tla_page__controls_grid {
+	display: flex;
+}
+
+.tla_page__grid {
+	display: grid;
+	width: 100%;
+	height: fit-content;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: 24px;
+}
+
+.tla_page__grid_item_thumbnail {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	background: url('/thumbnail.png');
+	border-radius: 4px;
+}
+
+.tla_page__list {
+	display: flex;
+	flex-direction: row;
+}
+
+/* -------------------- Grid item ------------------- */
+
+.tla_page__grid_item {
+	position: relative;
+	background-color: var(--color-panel);
+	border-radius: 4px;
+	border: 1px solid var(--color-border);
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.tla_page__grid_item_top {
+	position: relative;
+	width: 100%;
+	height: 200px;
+	border-bottom: 1px solid var(--color-border);
+	z-index: 1;
+}
+
+.tla_page__grid_item_bottom {
+	position: relative;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: flex-start;
+	padding: 12px;
+	gap: 8px;
+}
+
+.tla_page__grid_item_title {
+	flex: 0 0 auto;
+	font-size: 14px;
+	font-weight: 500;
+	font-family: 'Inter', sans-serif;
+	color: var(--color-text-1);
+}
+
+.tla_page__grid_item_details {
+	font-size: 12px;
+	font-weight: 500;
+	font-family: 'Inter', sans-serif;
+	color: var(--color-text-2);
+}
+
+.tla_page__grid_item_link {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	z-index: 2;
+}
+
+.tla_page__grid_item_menu {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--color-text-2);
+	flex: 0 0 auto;
+	z-index: 3;
+	cursor: pointer;
+}
+
+@media (hover: hover) {
+	.tla_page__grid_item_menu {
+		visibility: hidden;
+	}
+
+	.tla_page__grid_item:hover .tla_page__grid_item_title {
+		color: var(--color-primary);
+	}
+
+	.tla_page__grid_item:hover > .tla_page__grid_item_menu {
+		visibility: visible;
+	}
+
+	.tla_page__grid_item_menu:hover {
+		color: var(--color-text-1);
+	}
 }

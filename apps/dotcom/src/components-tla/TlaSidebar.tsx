@@ -1,9 +1,32 @@
-import { ReactNode } from 'react'
-import { useAppState } from '../hooks/useAppState'
-import { TldrawAppFile } from '../utils/tla/db'
+import { Link } from 'react-router-dom'
+import { useAppApi, useAppState } from '../hooks/useAppState'
+import { TldrawAppFile, TldrawAppGroup, getCleanId } from '../utils/tla/db'
 import { TlaAvatar } from './TlaAvatar'
 import { TlaIcon } from './TlaIcon'
 import { TlaSpacer } from './TlaSpacer'
+
+const SIDEBAR_MAIN_LINKS = [
+	{
+		id: 0,
+		icon: 'doc',
+		label: 'Drafts',
+		href: 'drafts',
+	},
+	{
+		id: 1,
+		icon: 'star',
+		label: 'Starred',
+		href: 'stars',
+	},
+	{
+		id: 2,
+		icon: 'link',
+		label: 'Shared with me',
+		href: 'shared',
+	},
+]
+
+type SideBarMainLink = (typeof SIDEBAR_MAIN_LINKS)[number]
 
 export function TlaSidebar() {
 	return (
@@ -13,11 +36,12 @@ export function TlaSidebar() {
 				<SidebarWorkspaceLink />
 			</div>
 			<div className="tla_sidebar__content">
-				<SidebarMainLink icon="doc">Drafts</SidebarMainLink>
-				<SidebarMainLink icon="star">Starred</SidebarMainLink>
-				<SidebarMainLink icon="link">Shared with me</SidebarMainLink>
-				<SidebarRecentFiles />
+				{SIDEBAR_MAIN_LINKS.map((link) => (
+					<SidebarMainLink key={link.id} {...link} />
+				))}
 				<TlaSpacer height="20" />
+				<SidebarTabs />
+				<SidebarActiveTabContent />
 			</div>
 			<div className="tla_sidebar__bottom">
 				<SidebarUserLink />
@@ -35,10 +59,12 @@ function SidebarCreateButton() {
 }
 
 function SidebarWorkspaceLink() {
-	const { getWorkspace, session } = useAppState()
+	const { db, session } = useAppState()
 	if (!session) throw Error('Session not found')
 
-	const workspace = getWorkspace(session.workspaceId)
+	const { getWorkspace } = useAppApi()
+
+	const workspace = getWorkspace(db, session.workspaceId)
 	if (!workspace) throw Error('Workspace not found')
 
 	return (
@@ -55,24 +81,102 @@ function SidebarWorkspaceLink() {
 	)
 }
 
-function SidebarMainLink({ icon, children }: { icon: string; children: ReactNode }) {
+function SidebarTabs() {
+	const { setSidebarActiveTab } = useAppApi()
+	const { sidebarActiveTab } = useAppState()
+	return (
+		<div className="tla_sidebar__tabs">
+			<div className="tla_sidebar__line" />
+			<button
+				className="tla_sidebar__tabs_tab"
+				data-active={sidebarActiveTab === 'recent'}
+				onClick={() => {
+					setSidebarActiveTab('recent')
+				}}
+			>
+				Recent
+			</button>
+			<button
+				className="tla_sidebar__tabs_tab"
+				data-active={sidebarActiveTab === 'groups'}
+				onClick={() => {
+					setSidebarActiveTab('groups')
+				}}
+			>
+				Groups
+			</button>
+		</div>
+	)
+}
+
+function SidebarActiveTabContent() {
+	const { sidebarActiveTab } = useAppState()
+
+	if (sidebarActiveTab === 'recent') {
+		return <SidebarRecentFiles />
+	}
+
+	if (sidebarActiveTab === 'groups') {
+		return <SidebarGroups />
+	}
+
+	throw Error('unknown tab')
+}
+
+function SidebarMainLink({ icon, label, href }: SideBarMainLink) {
+	const { session } = useAppState()
+	if (!session) throw Error('Session not found')
+
 	return (
 		<div className="tla_sidebar__main-link tla_sidebar__hoverable">
 			<div className="tla_icon_wrapper">
 				<TlaIcon icon={icon} />
 			</div>
-			<button className="tla_sidebar__link-button" />
-			<div className="tla_sidebar__label">{children}</div>
+			<Link
+				className="tla_sidebar__link-button"
+				to={`/${session.workspaceId.split(':')[1]}/${href}`}
+			/>
+			<div className="tla_sidebar__label">{label}</div>
+		</div>
+	)
+}
+
+function SidebarRecentSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
+	return (
+		<div className="tla_sidebar__section">
+			<TlaSpacer height="20" />
+			<div className="tla_sidebar__section_title">{title}</div>
+			{files.map((file) => (
+				<SidebarFileLink key={file.id} file={file} />
+			))}
+		</div>
+	)
+}
+
+function SidebarFileLink({ file }: { file: TldrawAppFile }) {
+	const { workspaceId, id } = file
+	return (
+		<div className="tla_sidebar__section_link tla_sidebar__hoverable">
+			<div className="tla_sidebar__label">
+				{file.name || new Date(file.createdAt).toLocaleString('en-gb')}
+			</div>
+			<Link
+				to={`/${getCleanId(workspaceId)}/f/${getCleanId(id)}`}
+				className="tla_page__grid_item_link"
+			/>
+			<button className="tla_sidebar__link-menu">
+				<TlaIcon icon="more" />
+			</button>
 		</div>
 	)
 }
 
 function SidebarRecentFiles() {
-	const { getUserFiles, session } = useAppState()
+	const { getUserRecentFiles } = useAppApi()
+	const { db, session } = useAppState()
 	if (!session) throw Error('Session not found')
 
-	const files = getUserFiles(session.userId, session.workspaceId)
-	files.sort((a, b) => b.updatedAt - a.updatedAt)
+	const files = getUserRecentFiles(db, session.userId, session.workspaceId)
 
 	// split the files into today, yesterday, this week, this month, and then by month
 	const day = 1000 * 60 * 60 * 24
@@ -99,47 +203,61 @@ function SidebarRecentFiles() {
 
 	return (
 		<>
-			{todayFiles.length ? <SidebarSection title={'Today'} files={todayFiles} /> : null}
-			{yesterdayFiles.length ? <SidebarSection title={'Yesterday'} files={yesterdayFiles} /> : null}
-			{thisWeekFiles.length ? <SidebarSection title={'This week'} files={thisWeekFiles} /> : null}
+			{todayFiles.length ? <SidebarRecentSection title={'Today'} files={todayFiles} /> : null}
+			{yesterdayFiles.length ? (
+				<SidebarRecentSection title={'Yesterday'} files={yesterdayFiles} />
+			) : null}
+			{thisWeekFiles.length ? (
+				<SidebarRecentSection title={'This week'} files={thisWeekFiles} />
+			) : null}
 			{thisMonthFiles.length ? (
-				<SidebarSection title={'This month'} files={thisMonthFiles} />
+				<SidebarRecentSection title={'This month'} files={thisMonthFiles} />
 			) : null}
 		</>
 	)
 }
 
-function SidebarSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
+function SidebarGroups() {
+	const { getUserGroups } = useAppApi()
+	const { db, session } = useAppState()
+	if (!session) throw Error('Session not found')
+
+	const groups = getUserGroups(db, session.userId, session.workspaceId)
+	groups.sort((a, b) => b.createdAt - a.createdAt)
+
+	return (
+		<>
+			{groups.map((group) => (
+				<SidebarGroup key={group.id} {...group} />
+			))}
+		</>
+	)
+}
+
+function SidebarGroup({ id, name }: TldrawAppGroup) {
+	const { getGroupFiles } = useAppApi()
+	const { db, session } = useAppState()
+	if (!session) throw Error('Session not found')
+
+	const files = getGroupFiles(db, id, session.workspaceId)
+
 	return (
 		<div className="tla_sidebar__section">
 			<TlaSpacer height="20" />
-			<div className="tla_sidebar__section_title">{title}</div>
+			<div className="tla_sidebar__section_title">{name}</div>
 			{files.map((file) => (
-				<SidebarFileLink key={file.id}>
-					{file.name || new Date(file.createdAt).toLocaleString('en-gb')}
-				</SidebarFileLink>
+				<SidebarFileLink key={file.id} file={file} />
 			))}
 		</div>
 	)
 }
 
-function SidebarFileLink({ children }: { children: ReactNode }) {
-	return (
-		<div className="tla_sidebar__section_link tla_sidebar__hoverable">
-			<div className="tla_sidebar__label">{children}</div>
-			<button className="tla_sidebar__link-button" />
-			<button className="tla_sidebar__link-menu">
-				<TlaIcon icon="more" />
-			</button>
-		</div>
-	)
-}
-
 function SidebarUserLink() {
-	const { session, getUser } = useAppState()
+	const { getUser } = useAppApi()
+	const { db, session } = useAppState()
 	if (!session) throw Error('Session not found')
 
-	const user = getUser(session.userId)
+	const user = getUser(db, session.userId)
 	if (!user) throw Error('User not found')
 
 	return (
@@ -148,7 +266,7 @@ function SidebarUserLink() {
 				<TlaAvatar data-size="m" />
 			</div>
 			<div className="tla_sidebar__label">{user.name}</div>
-			<button className="tla_sidebar__link-button" />
+			<Link className="tla_sidebar__link-button" to={`/`} />
 			<button className="tla_sidebar__link-menu">
 				<TlaIcon icon="more" />
 			</button>

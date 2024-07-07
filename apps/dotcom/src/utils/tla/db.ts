@@ -18,6 +18,7 @@ export type TldrawAppGroupMembershipId = `groupMembership:${string}` & {
 	__brand: 'groupMembership'
 }
 export type TldrawAppStarId = `star:${string}` & { __brand: 'star' }
+export type TldrawAppVisitId = `visit:${string}` & { __brand: 'visit' }
 
 type TldrawAppId =
 	| TldrawAppUserId
@@ -27,11 +28,19 @@ type TldrawAppId =
 	| TldrawAppWorkspaceMembershipId
 	| TldrawAppGroupMembershipId
 	| TldrawAppStarId
+	| TldrawAppVisitId
 
-let _id = 0
+let _id = 1
 
-export function createTlaId<const T extends TldrawAppId['__brand']>(brand: T, id?: number) {
+export function createTlaId<const T extends TldrawAppId['__brand']>(
+	brand: T,
+	id?: number | string
+) {
 	return `${brand}:${id ?? _id++}` as TldrawAppId & { __brand: T }
+}
+
+export function getCleanId<T extends TldrawAppId>(id: T) {
+	return id.split(':')[1] as string
 }
 
 export interface TldrawAppRow {
@@ -78,9 +87,9 @@ export interface TldrawAppWorkspace extends TldrawAppRow {
 const defaultWorkspace: TldrawAppWorkspace = {
 	id: createTlaId('workspace', 0),
 	createdAt: Date.now(),
-	createdBy: createTlaId('user', 0),
+	createdBy: defaultUser.id,
 	updatedAt: Date.now(),
-	updatedBy: createTlaId('user', 0),
+	updatedBy: defaultUser.id,
 	name: 'tldraw',
 	icon: 'tldraw',
 }
@@ -101,12 +110,12 @@ export interface TldrawAppGroup extends TldrawAppRow {
 
 const defaultGroup: TldrawAppGroup = {
 	id: createTlaId('group', 0),
-	workspaceId: createTlaId('workspace', 0),
+	workspaceId: defaultWorkspace.id,
 	createdAt: Date.now(),
-	createdBy: createTlaId('user', 0),
+	createdBy: defaultUser.id,
 	updatedAt: Date.now(),
-	updatedBy: createTlaId('user', 0),
-	name: 'tldraw',
+	updatedBy: defaultUser.id,
+	name: 'My group',
 }
 
 export function createTldrawAppGroup(
@@ -126,11 +135,11 @@ export interface TldrawAppWorkspaceMembership extends TldrawAppRow {
 const defaultMembership: TldrawAppWorkspaceMembership = {
 	id: createTlaId('workspaceMembership', 0),
 	createdAt: Date.now(),
-	createdBy: createTlaId('user', 0),
+	createdBy: defaultUser.id,
 	updatedAt: Date.now(),
-	updatedBy: createTlaId('user', 0),
-	workspaceId: createTlaId('workspace', 0),
-	userId: createTlaId('user', 0),
+	updatedBy: defaultUser.id,
+	workspaceId: defaultWorkspace.id,
+	userId: defaultUser.id,
 }
 
 export function createTldrawAppWorkspaceMembership(
@@ -153,12 +162,12 @@ export interface TldrawAppGroupMembership extends TldrawAppRow {
 const defaultGroupMembership: TldrawAppGroupMembership = {
 	id: createTlaId('groupMembership', 0),
 	createdAt: Date.now(),
-	createdBy: createTlaId('user', 0),
+	createdBy: defaultUser.id,
 	updatedAt: Date.now(),
-	updatedBy: createTlaId('user', 0),
-	workspaceId: createTlaId('workspace', 0),
-	userId: createTlaId('user', 0),
-	groupId: createTlaId('group', 0),
+	updatedBy: defaultUser.id,
+	workspaceId: defaultWorkspace.id,
+	userId: defaultUser.id,
+	groupId: defaultGroup.id,
 }
 
 export function createTldrawAppGroupMembership(
@@ -174,17 +183,21 @@ export interface TldrawAppFile extends TldrawAppRow {
 	workspaceId: TldrawAppWorkspaceId
 	owner: TldrawAppUserId | TldrawAppGroupId
 	name: string
+	thumbnail: string
+	shared: boolean
 }
 
 const defaultFile: TldrawAppFile = {
 	id: createTlaId('file', 0),
 	createdAt: Date.now(),
-	createdBy: createTlaId('user', 0),
+	createdBy: defaultUser.id,
 	updatedAt: Date.now(),
-	updatedBy: createTlaId('user', 0),
-	workspaceId: createTlaId('workspace', 0),
-	owner: createTlaId('user', 0),
-	name: 'New file',
+	updatedBy: defaultUser.id,
+	workspaceId: defaultWorkspace.id,
+	owner: defaultUser.id,
+	name: '',
+	thumbnail: '',
+	shared: false,
 }
 
 export function createTldrawAppFile(
@@ -197,6 +210,7 @@ export function createTldrawAppFile(
 
 export interface TldrawAppStar extends TldrawAppRow {
 	id: TldrawAppStarId
+	workspaceId: TldrawAppWorkspaceId
 	userId: TldrawAppUserId
 	fileId: TldrawAppFileId
 }
@@ -204,17 +218,44 @@ export interface TldrawAppStar extends TldrawAppRow {
 const defaultStar: TldrawAppStar = {
 	id: createTlaId('star', 0),
 	createdAt: Date.now(),
-	createdBy: createTlaId('user', 0),
+	createdBy: defaultUser.id,
 	updatedAt: Date.now(),
-	updatedBy: createTlaId('user', 0),
-	userId: createTlaId('user', 0),
-	fileId: createTlaId('file', 0),
+	updatedBy: defaultUser.id,
+	workspaceId: defaultWorkspace.id,
+	userId: defaultUser.id,
+	fileId: defaultFile.id,
 }
 
 export function createTldrawAppStar(
 	star: Partial<Omit<TldrawAppStar, 'id'>> & { id: TldrawAppStar['id'] }
 ): TldrawAppStar {
 	return createWithDefault(star, defaultStar)
+}
+
+/* ---------------------- Visits ---------------------- */
+
+export interface TldrawAppVisit extends TldrawAppRow {
+	id: TldrawAppVisitId
+	workspaceId: TldrawAppWorkspaceId
+	userId: TldrawAppUserId
+	fileId: TldrawAppFileId
+}
+
+const defaultVisit: TldrawAppVisit = {
+	id: createTlaId('visit', 0),
+	createdAt: Date.now(),
+	createdBy: defaultUser.id,
+	updatedAt: Date.now(),
+	updatedBy: defaultUser.id,
+	workspaceId: defaultWorkspace.id,
+	userId: defaultUser.id,
+	fileId: defaultFile.id,
+}
+
+export function createTldrawAppVisit(
+	visit: Partial<Omit<TldrawAppVisit, 'id'>> & { id: TldrawAppVisit['id'] }
+): TldrawAppVisit {
+	return createWithDefault(visit, defaultVisit)
 }
 
 /* -------------------- Database -------------------- */
@@ -227,79 +268,87 @@ export interface TldrawAppDb {
 	stars: TldrawAppStar[]
 	workspaceMemberships: TldrawAppWorkspaceMembership[]
 	groupMemberships: TldrawAppGroupMembership[]
+	visits: TldrawAppVisit[]
 }
 
 const day = 1000 * 60 * 60 * 24
 export const defaultDb: TldrawAppDb = {
 	users: [defaultUser],
+	visits: [],
 	files: [
+		defaultFile,
 		createTldrawAppFile({
 			id: createTlaId('file'),
-			name: '',
-			owner: createTlaId('user', 0),
-			workspaceId: createTlaId('workspace', 0),
 			createdAt: Date.now() - day * 0.5,
 		}),
 		createTldrawAppFile({
 			id: createTlaId('file'),
-			name: '',
-			owner: createTlaId('user', 0),
-			workspaceId: createTlaId('workspace', 0),
 			createdAt: Date.now() - day * 0.6,
 		}),
 		createTldrawAppFile({
 			id: createTlaId('file'),
-			name: '',
-			owner: createTlaId('user', 0),
-			workspaceId: createTlaId('workspace', 0),
 			createdAt: Date.now() - day * 0.7,
 		}),
 		createTldrawAppFile({
 			id: createTlaId('file'),
-			name: '',
-			owner: createTlaId('user', 0),
-			workspaceId: createTlaId('workspace', 0),
 			createdAt: Date.now() - day * 1.2,
 		}),
 		createTldrawAppFile({
 			id: createTlaId('file'),
-			name: '',
-			owner: createTlaId('user', 0),
-			workspaceId: createTlaId('workspace', 0),
 			createdAt: Date.now() - day * 1.3,
 		}),
 		createTldrawAppFile({
 			id: createTlaId('file'),
-			name: '',
-			owner: createTlaId('user', 0),
-			workspaceId: createTlaId('workspace', 0),
 			createdAt: Date.now() - day * 1.4,
 		}),
 		createTldrawAppFile({
 			id: createTlaId('file'),
-			name: '',
-			owner: createTlaId('user', 0),
-			workspaceId: createTlaId('workspace', 0),
 			createdAt: Date.now() - day * 1.6,
 		}),
 		createTldrawAppFile({
 			id: createTlaId('file'),
-			name: '',
-			owner: createTlaId('user', 0),
-			workspaceId: createTlaId('workspace', 0),
 			createdAt: Date.now() - day * 2.5,
 		}),
 		createTldrawAppFile({
 			id: createTlaId('file'),
-			name: '',
-			owner: createTlaId('user', 0),
-			workspaceId: createTlaId('workspace', 0),
 			createdAt: Date.now() - day * 3.5,
+		}),
+		// Group files
+		createTldrawAppFile({
+			id: createTlaId('file'),
+			owner: defaultGroup.id,
+			createdAt: Date.now() - day * 1,
+		}),
+		createTldrawAppFile({
+			id: createTlaId('file'),
+			owner: defaultGroup.id,
+			createdAt: Date.now() - day * 2,
+		}),
+		createTldrawAppFile({
+			id: createTlaId('file'),
+			owner: defaultGroup.id,
+			createdAt: Date.now() - day * 3,
+		}),
+		createTldrawAppFile({
+			id: createTlaId('file'),
+			owner: createTlaId('group', 2),
+			createdAt: Date.now() - day * 3,
 		}),
 	],
 	stars: [defaultStar],
-	groups: [defaultGroup],
+	groups: [
+		defaultGroup,
+		createTldrawAppGroup({ id: createTlaId('group', 2), name: 'My other group' }),
+	],
 	workspaces: [defaultWorkspace],
 	workspaceMemberships: [defaultMembership],
-	groupMemberships: [defaultGroupMembership],
+	groupMemberships: [
+		defaultGroupMembership,
+		createTldrawAppGroupMembership({
+			id: createTlaId('groupMembership'),
+			userId: defaultUser.id,
+			workspaceId: defaultWorkspace.id,
+			groupId: createTlaId('group', 2),
+		}),
+	],
 }

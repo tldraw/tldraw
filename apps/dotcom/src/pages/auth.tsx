@@ -5,25 +5,24 @@ import { TlaFullWrapper } from '../components-tla/TlaFullWrapper'
 import { TlaInput } from '../components-tla/TlaInput'
 import { TlaLabel } from '../components-tla/TlaLabel'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
-import { useAppState } from '../hooks/useAppState'
+import { useAppApi, useAppState } from '../hooks/useAppState'
 import { createTlaId } from '../utils/tla/db'
 
-export function AuthPage({
-	initialState = 'sign-in',
-	onClose,
-}: {
-	initialState?: 'sign-in' | 'sign-up'
-	onClose: () => void
-}) {
-	const { signIn, getUser } = useAppState()
-	const [state, setState] = useState(initialState)
+export function Component() {
+	const { db } = useAppState()
+	const { signIn, getUser } = useAppApi()
+	const [state, setState] = useState('sign-in')
 	const [loadingState, setLoadingState] = useState<
 		{ name: 'ready' } | { name: 'loading' } | { name: 'error' }
 	>({ name: 'ready' })
 
 	if (state === 'sign-in') {
 		return (
-			<TlaFullWrapper onClose={onClose}>
+			<TlaFullWrapper
+				onClose={() => {
+					window.location.href = '/'
+				}}
+			>
 				<div className="tla_auth_container">
 					<div className="tla_auth_container_title">
 						<h2 className="tla_text_ui__big">Sign in</h2>
@@ -40,7 +39,7 @@ export function AuthPage({
 							if (loadingState.name === 'loading') return
 							setLoadingState({ name: 'loading' })
 							try {
-								const user = getUser(createTlaId('user', 0))!
+								const user = getUser(db, createTlaId('user', 0))!
 								await signIn(user)
 							} catch (e) {
 								setLoadingState({ name: 'error' })
@@ -65,7 +64,11 @@ export function AuthPage({
 
 	if (state === 'sign-up') {
 		return (
-			<TlaFullWrapper onClose={onClose}>
+			<TlaFullWrapper
+				onClose={() => {
+					window.location.href = '/'
+				}}
+			>
 				<div className="tla_auth_container">
 					<div className="tla_auth_container_title">
 						<h2 className="tla_text_ui__big">Create your account</h2>
@@ -82,7 +85,7 @@ export function AuthPage({
 							if (loadingState.name === 'loading') return
 							setLoadingState({ name: 'loading' })
 							try {
-								const user = getUser(createTlaId('user', 0))!
+								const user = getUser(db, createTlaId('user', 0))!
 								await signIn(user)
 							} catch (e) {
 								setLoadingState({ name: 'error' })
