@@ -43,7 +43,7 @@ describe('resolveAsset', () => {
 	it('should return the original src for video types', async () => {
 		const asset = {
 			type: 'video',
-			props: { src: 'http://example.com/video.mp4', fileSize: FILE_SIZE },
+			props: { src: 'http://assets.tldraw.dev/video.mp4', fileSize: FILE_SIZE },
 		}
 		expect(
 			await resolver(asset as TLAsset, {
@@ -52,11 +52,41 @@ describe('resolveAsset', () => {
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
-		).toBe('http://example.com/video.mp4')
+		).toBe('http://assets.tldraw.dev/video.mp4')
+	})
+
+	it('should return the original src for non-tldraw assets', async () => {
+		const asset = {
+			type: 'video',
+			props: { src: 'http://assets.not-tldraw.dev/video.mp4', fileSize: FILE_SIZE },
+		}
+		expect(
+			await resolver(asset as TLAsset, {
+				screenScale: -1,
+				steppedScreenScale: 1,
+				dpr: 1,
+				networkEffectiveType: '4g',
+			})
+		).toBe('http://assets.not-tldraw.dev/video.mp4')
+	})
+
+	it('should return the a transformed URL for small image types', async () => {
+		const asset = {
+			type: 'image',
+			props: { src: 'http://assets.tldraw.dev/image.jpg', fileSize: 1000 },
+		}
+		expect(
+			await resolver(asset as TLAsset, {
+				screenScale: -1,
+				steppedScreenScale: 1,
+				dpr: 1,
+				networkEffectiveType: '4g',
+			})
+		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg')
 	})
 
 	it('should return the original src for if original is asked for', async () => {
-		const asset = { type: 'image', props: { src: 'http://example.com/image.jpg', w: 100 } }
+		const asset = { type: 'image', props: { src: 'http://assets.tldraw.dev/image.jpg', w: 100 } }
 		expect(
 			await resolver(asset as TLAsset, {
 				screenScale: -1,
@@ -65,7 +95,7 @@ describe('resolveAsset', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginalImage: true,
 			})
-		).toBe('http://example.com/image.jpg')
+		).toBe('http://assets.tldraw.dev/image.jpg')
 	})
 
 	it('should return the original src if it does not start with http or https', async () => {
@@ -84,7 +114,7 @@ describe('resolveAsset', () => {
 		const asset = {
 			type: 'image',
 			props: {
-				src: 'http://example.com/animated.gif',
+				src: 'http://assets.tldraw.dev/animated.gif',
 				mimeType: 'image/gif',
 				w: 100,
 				fileSize: FILE_SIZE,
@@ -97,14 +127,14 @@ describe('resolveAsset', () => {
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
-		).toBe('http://example.com/animated.gif')
+		).toBe('http://assets.tldraw.dev/animated.gif')
 	})
 
 	it('should return the original src if it is a vector image', async () => {
 		const asset = {
 			type: 'image',
 			props: {
-				src: 'http://example.com/vector.svg',
+				src: 'http://assets.tldraw.dev/vector.svg',
 				mimeType: 'image/svg+xml',
 				w: 100,
 				fileSize: FILE_SIZE,
@@ -117,28 +147,13 @@ describe('resolveAsset', () => {
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
-		).toBe('http://example.com/vector.svg')
-	})
-
-	it('should return the original src if it is under a certain file size', async () => {
-		const asset = {
-			type: 'image',
-			props: { src: 'http://example.com/small.png', w: 100, fileSize: 1024 * 1024 },
-		}
-		expect(
-			await resolver(asset as TLAsset, {
-				screenScale: -1,
-				steppedScreenScale: 1,
-				dpr: 1,
-				networkEffectiveType: '4g',
-			})
-		).toBe('http://example.com/small.png')
+		).toBe('http://assets.tldraw.dev/vector.svg')
 	})
 
 	it("should return null if the asset type is not 'image'", async () => {
 		const asset = {
 			type: 'document',
-			props: { src: 'http://example.com/doc.pdf', w: 100, fileSize: FILE_SIZE },
+			props: { src: 'http://assets.tldraw.dev/doc.pdf', w: 100, fileSize: FILE_SIZE },
 		}
 		expect(
 			await resolver(asset as TLAsset, {
@@ -153,7 +168,7 @@ describe('resolveAsset', () => {
 	it('should handle if network compensation is not available and zoom correctly', async () => {
 		const asset = {
 			type: 'image',
-			props: { src: 'http://example.com/image.jpg', w: 100, fileSize: FILE_SIZE },
+			props: { src: 'http://assets.tldraw.dev/image.jpg', w: 100, fileSize: FILE_SIZE },
 		}
 		expect(
 			await resolver(asset as TLAsset, {
@@ -162,15 +177,13 @@ describe('resolveAsset', () => {
 				dpr: 2,
 				networkEffectiveType: null,
 			})
-		).toBe(
-			'https://localhost:8788/cdn-cgi/image/format=auto,width=50,dpr=2,fit=scale-down,quality=92/http://example.com/image.jpg'
-		)
+		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg?w=100')
 	})
 
 	it('should handle network compensation and zoom correctly', async () => {
 		const asset = {
 			type: 'image',
-			props: { src: 'http://example.com/image.jpg', w: 100, fileSize: FILE_SIZE },
+			props: { src: 'http://assets.tldraw.dev/image.jpg', w: 100, fileSize: FILE_SIZE },
 		}
 		expect(
 			await resolver(asset as TLAsset, {
@@ -179,59 +192,21 @@ describe('resolveAsset', () => {
 				dpr: 2,
 				networkEffectiveType: '3g',
 			})
-		).toBe(
-			'https://localhost:8788/cdn-cgi/image/format=auto,width=25,dpr=2,fit=scale-down,quality=92/http://example.com/image.jpg'
-		)
+		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg?w=50')
 	})
 
-	it('should round zoom to powers of 2', async () => {
+	it('should not scale image above natural size', async () => {
 		const asset = {
 			type: 'image',
-			props: { src: 'https://example.com/image.jpg', w: 100, fileSize: FILE_SIZE },
+			props: { src: 'https://assets.tldraw.dev/image.jpg', w: 100, fileSize: FILE_SIZE },
 		}
 		expect(
 			await resolver(asset as TLAsset, {
 				screenScale: -1,
-				steppedScreenScale: 4,
+				steppedScreenScale: 5,
 				dpr: 1,
 				networkEffectiveType: '4g',
 			})
-		).toBe(
-			'https://localhost:8788/cdn-cgi/image/format=auto,width=400,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
-		)
-	})
-
-	it('should round zoom to the nearest 0.25 and apply network compensation', async () => {
-		const asset = {
-			type: 'image',
-			props: { src: 'https://example.com/image.jpg', w: 100, fileSize: FILE_SIZE },
-		}
-		expect(
-			await resolver(asset as TLAsset, {
-				screenScale: -1,
-				steppedScreenScale: 0.5,
-				dpr: 1,
-				networkEffectiveType: '2g',
-			})
-		).toBe(
-			'https://localhost:8788/cdn-cgi/image/format=auto,width=25,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
-		)
-	})
-
-	it('should set zoom to a minimum of 0.25 if zoom is below 0.25', async () => {
-		const asset = {
-			type: 'image',
-			props: { src: 'https://example.com/image.jpg', w: 100, fileSize: FILE_SIZE },
-		}
-		expect(
-			await resolver(asset as TLAsset, {
-				screenScale: -1,
-				steppedScreenScale: 0.25,
-				dpr: 1,
-				networkEffectiveType: '4g',
-			})
-		).toBe(
-			'https://localhost:8788/cdn-cgi/image/format=auto,width=25,dpr=1,fit=scale-down,quality=92/https://example.com/image.jpg'
-		)
+		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg?w=100')
 	})
 })
