@@ -7671,13 +7671,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Register an external content handler. This handler will be called when the editor receives
-	 * external content of the provided type. For example, the 'image' type handler will be called
-	 * when a user drops an image onto the canvas.
+	 * Register an external asset handler. This handler will be called when the editor needs to
+	 * create an asset for some external content, like an image/video file or a bookmark URL. For
+	 * example, the 'file' type handler will be called when a user drops an image onto the canvas.
+	 *
+	 * The handler should extract any relevant metadata for the asset, upload it to blob storage
+	 * using {@link Editor.uploadAsset} if needed, and return the asset with the metadata & uploaded
+	 * URL.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.registerExternalAssetHandler('text', myHandler)
+	 * editor.registerExternalAssetHandler('file', myHandler)
 	 * ```
 	 *
 	 * @param type - The type of external content.
