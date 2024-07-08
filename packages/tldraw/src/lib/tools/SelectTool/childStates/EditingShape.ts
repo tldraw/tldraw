@@ -111,6 +111,7 @@ export class EditingShape extends StateNode {
 						// If we clicked on a frame, while editing its heading, cancel editing
 						if (this.editor.isShapeOfType<TLFrameShape>(selectingShape, 'frame')) {
 							this.editor.setEditingShape(null)
+							this.parent.transition('idle', info)
 						}
 						// If we clicked on the editing shape (which isn't a shape with a label), do nothing
 					} else {
