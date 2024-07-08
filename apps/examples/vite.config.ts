@@ -6,7 +6,7 @@ const PR_NUMBER = process.env.VERCEL_GIT_PULL_REQUEST_ID
 
 function getEnv() {
 	if (!process.env.VERCEL_ENV) {
-		return 'local'
+		return 'development'
 	}
 	if (PR_NUMBER !== undefined && PR_NUMBER !== '') {
 		return 'preview'
@@ -19,14 +19,15 @@ function getEnv() {
 
 const env = getEnv()
 
-const TLDRAW_BEMO_URL =
+const TLDRAW_BEMO_URL_STRING =
 	env === 'production'
-		? 'https://demo.tldraw.xyz'
+		? '"https://demo.tldraw.xyz"'
 		: env === 'canary'
-			? 'https://canary-demo.tldraw.xyz'
+			? '"https://canary-demo.tldraw.xyz"'
 			: env === 'preview'
-				? `https://pr-${PR_NUMBER}-demo.tldraw.xyz`
-				: 'http://localhost:8989'
+				? `"https://pr-${PR_NUMBER}-demo.tldraw.xyz"`
+				: // local dev fallback
+					'`http://${location.hostname}:8989`'
 
 export default defineConfig({
 	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],
@@ -52,7 +53,7 @@ export default defineConfig({
 	},
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),
-		'process.env.TLDRAW_BEMO_URL': JSON.stringify(TLDRAW_BEMO_URL),
+		'process.env.TLDRAW_BEMO_URL': TLDRAW_BEMO_URL_STRING,
 	},
 })
 
