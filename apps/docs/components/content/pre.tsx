@@ -1,6 +1,7 @@
 'use client'
 
-import { CheckIcon, PaperClipIcon } from '@heroicons/react/16/solid'
+import { Button } from '@/components/button'
+import { cn } from '@/utils/cn'
 import { DetailedHTMLProps, HTMLAttributes, useRef, useState } from 'react'
 
 export const Pre = (props: DetailedHTMLProps<HTMLAttributes<HTMLPreElement>, HTMLPreElement>) => {
@@ -15,22 +16,28 @@ export const Pre = (props: DetailedHTMLProps<HTMLAttributes<HTMLPreElement>, HTM
 	}
 
 	return (
-		<div className="not-prose bg-zinc-100 py-1 md:rounded-2xl -mx-5 md:mx-0 md:px-1">
-			<div className="flex justify-end bg-zinc-900 border-b border-zinc-700/50 md:rounded-t-xl">
-				<button
-					onClick={copy}
-					className="h-8 text-blue-400 flex items-center gap-1.5 px-5 md:px-4 focus:outline-none text-sm font-semibold"
-				>
-					{copied ? <CheckIcon className="h-4" /> : <PaperClipIcon className="h-4" />}
-					<span>{copied ? 'Copied' : 'Copy'}</span>
-				</button>
-			</div>
+		<div
+			className={cn(
+				'group relative not-prose bg-zinc-100 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1 my-6',
+				'[td_&]:m-0 [td_&]:mb-2 [td_&]:p-0 [td_&]:bg-transparent [td_&]:rounded-none'
+			)}
+		>
 			<pre
 				ref={container}
-				className="bg-zinc-900 text-sm text-white shadow md:rounded-b-xl overflow-x-auto px-5 md:px-4 py-4"
+				className={cn(
+					'bg-zinc-900 text-sm text-white shadow md:rounded-xl overflow-x-auto px-5 md:px-4 py-4',
+					'[td_&]:bg-zinc-200 [td_&]:shadow-none [td_&]:rounded-lg [td_&]:p-0 [td_&]:px-1.5'
+				)}
 			>
 				{props.children}
 			</pre>
+			<Button
+				onClick={copy}
+				caption={copied ? 'Copied' : 'Copy'}
+				icon={copied ? 'check' : 'paperclip'}
+				size="xs"
+				className="absolute -top-2 right-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-100"
+			/>
 		</div>
 	)
 }

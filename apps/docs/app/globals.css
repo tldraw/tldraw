@@ -10,4 +10,10 @@
 	.prose blockquote p:after {
 		content: none;
 	}
+	.prose details.article__table-of-contents {
+		display: none !important;
+	}
+	.prose .hljs {
+		background: transparent !important;
+	}
 }

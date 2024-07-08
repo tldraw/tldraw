@@ -4,16 +4,24 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
+import { ApiHeading } from './api-heading'
+import { CodeLinkProvider } from './code-link-provider'
 import { Embed } from './embed'
 import { Image } from './image'
+import { ParametersTable } from './parameters-table'
+import { ParametersTableDescription } from './parameters-table-description'
+import { ParametersTableName } from './parameters-table-name'
+import { ParametersTableRow } from './parameters-table-row'
 import { Pre } from './pre'
+import { TitleWithSourceLink } from './title-with-source-link'
 
-export const Content: React.FC<{ mdx: string }> = ({ mdx }) => {
+export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type }) => {
 	return (
 		<section
 			className={cn(
+				type === 'reference' && 'prose-hr:hidden prose-h2:!mt-8 md:prose-h2:!mt-24',
 				'prose prose-sm prose-zinc text-zinc-800 sm:prose-base w-full max-w-3xl',
-				'prose-code:before:content-none prose-code:after:content-none prose-code:bg-zinc-200 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-normal',
+				'prose-code:before:content-none prose-code:after:content-none prose-code:bg-zinc-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:font-normal',
 				'prose-a:no-underline prose-a:text-blue-500 hover:prose-a:text-blue-600 prose-a:font-normal',
 				'prose-blockquote:text-zinc-800 prose-blockquote:font-normal prose-blockquote:border-none prose-blockquote:px-4 prose-blockquote:leading-normal prose-blockquote:bg-zinc-50 prose-blockquote:py-3 prose-blockquote:rounded-xl',
 				'prose-table:bg-zinc-50 prose-table:rounded-xl prose-table:text-sm',
@@ -25,7 +33,18 @@ export const Content: React.FC<{ mdx: string }> = ({ mdx }) => {
 		>
 			<MDXRemote
 				source={mdx}
-				components={{ Embed, pre: Pre, Image }}
+				components={{
+					Embed,
+					pre: Pre,
+					Image,
+					ApiHeading,
+					CodeLinkProvider,
+					ParametersTable,
+					ParametersTableDescription,
+					ParametersTableName,
+					ParametersTableRow,
+					TitleWithSourceLink,
+				}}
 				options={{
 					mdxOptions: {
 						remarkPlugins: [remarkGfm, {}],
