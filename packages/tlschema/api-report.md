@@ -949,11 +949,9 @@ export type TLAssetShape = Extract<TLShape, {
     };
 }>;
 
-// @public (undocumented)
+// @public
 export interface TLAssetStore {
-    // (undocumented)
     resolve(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
-    // (undocumented)
     upload(asset: TLAsset, file: File): Promise<string>;
 }
 
