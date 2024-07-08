@@ -11,9 +11,9 @@ export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppF
 	const star = useValue(
 		'star',
 		() => {
-			const session = app.getSession()
-			if (!session) return false
-			return app.getAll('star').find((r) => r.fileId === id && r.userId === session.userId)
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return app.getAll('star').find((r) => r.fileId === id && r.userId === auth.userId)
 		},
 		[id, app]
 	)
@@ -43,11 +43,12 @@ export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppF
 					if (star) {
 						app.store.remove([star.id])
 					} else {
-						const session = app.getSession()!
+						const { auth } = app.getSessionState()
+						if (!auth) return false
 						app.store.put([
 							TldrawAppStarRecordType.create({
 								fileId: id,
-								userId: session.userId,
+								userId: auth.userId,
 								workspaceId: workspaceId,
 							}),
 						])

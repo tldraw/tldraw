@@ -21,6 +21,7 @@ import { TlaSidebar } from './components-tla/TlaSidebar'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { AppStateProvider, useApp } from './hooks/useAppState'
+import { useAuth } from './tla-hooks/useAuth'
 import { getCleanId } from './utils/tla/tldrawApp'
 
 const enableTemporaryLocalBemo =
@@ -95,21 +96,11 @@ export const router = createRoutesFromElements(
 )
 
 function RequireAuth({ children }: { children: ReactNode }) {
-	const app = useApp()
 	const location = useLocation()
 	const { workspaceId } = useParams()
+	const auth = useAuth()
 
-	const sessionWorkspaceId = useValue(
-		'session workspace id',
-		() => {
-			const session = app.getSession()
-			if (!session) return
-			return session.workspaceId
-		},
-		[app]
-	)
-
-	if (!sessionWorkspaceId) {
+	if (!auth) {
 		// Redirect them to the /login page, but save the current location they were
 		// trying to go to when they were redirected. This allows us to send them
 		// along to that page after they login, which is a nicer user experience
@@ -117,7 +108,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 		return <Navigate to="/auth" state={{ from: location }} replace />
 	}
 
-	if (getCleanId(sessionWorkspaceId) !== workspaceId) {
+	if (getCleanId(auth.workspaceId) !== workspaceId) {
 		return <div>you cant see that</div>
 	}
 
@@ -126,7 +117,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 
 export function TlaWrapper() {
 	const app = useApp()
-	const isSidebarOpen = useValue('sidebar open', () => app.getUi()?.isSidebarOpen, [app])
+	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
 
 	return (
 		<div className="tla tla_layout" data-sidebar={isSidebarOpen}>
@@ -144,9 +135,9 @@ function RedirectToMostRecentFile() {
 	const file = useValue(
 		'most recent file',
 		() => {
-			const session = app.getSession()
-			if (!session) return
-			return app.getUserFiles(session.userId, session.workspaceId)[0]
+			const session = app.getSessionState()
+			if (!session.auth) return
+			return app.getUserFiles(session.auth.userId, session.auth.workspaceId)[0]
 		},
 		[app]
 	)

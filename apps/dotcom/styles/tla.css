@@ -542,6 +542,7 @@ want centered content that docks to the top when the window is short
 	flex: 1 1 auto;
 	overflow-x: hidden;
 	overflow-y: auto;
+	padding-bottom: 40px;
 }
 
 .tla_layout[data-sidebar='true'] .tla_sidebar {
@@ -549,7 +550,7 @@ want centered content that docks to the top when the window is short
 	flex-direction: column;
 }
 
-.tla_sidebar__hoverable::after {
+.tla_hoverable::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -565,7 +566,7 @@ want centered content that docks to the top when the window is short
 }
 
 @media (hover: hover) {
-	.tla_sidebar__hoverable:hover::after {
+	.tla_hoverable:hover::after {
 		visibility: visible;
 	}
 }
@@ -678,7 +679,7 @@ want centered content that docks to the top when the window is short
 	padding: 0px 0px 0px 8px;
 }
 
-.tla_sidebar__hoverable[data-active='true']::after {
+.tla_hoverable[data-active='true']::after {
 	visibility: visible;
 }
 
@@ -804,7 +805,8 @@ want centered content that docks to the top when the window is short
 /* -------------------- List page ------------------- */
 
 .tla_page {
-	padding: 0px 50px;
+	padding: 40px 50px 90px 50px;
+	overflow-y: auto;
 }
 
 .tla_page__header {
@@ -812,26 +814,6 @@ want centered content that docks to the top when the window is short
 	align-items: center;
 	justify-content: flex-start;
 	height: 40px;
-}
-
-.tla_page__controls {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: space-between;
-	height: 40px;
-}
-
-.tla_page__controls_display {
-	display: flex;
-}
-
-.tla_page__controls_sort {
-	display: flex;
-}
-
-.tla_page__controls_grid {
-	display: flex;
 }
 
 .tla_page__grid {
@@ -958,4 +940,85 @@ want centered content that docks to the top when the window is short
 	.tla_page__grid_item:hover .tla_page__grid_item_title {
 		color: var(--color-primary);
 	}
+}
+
+/* ------------------ Page controls ----------------- */
+
+.tla_page_controls {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	height: 40px;
+	margin: 0px -12px;
+}
+
+.tla_page_controls__right {
+	align-items: center;
+	display: flex;
+	height: 100%;
+}
+
+.tla_page_controls__search,
+.tla_page_controls__sort,
+.tla_page_controls__grid {
+	align-items: center;
+	display: flex;
+	position: relative;
+	cursor: pointer;
+	padding: 0px 12px;
+	height: 100%;
+	font-size: 14px;
+	font-weight: 500;
+	font-family: 'Inter', sans-serif;
+	z-index: 1;
+}
+
+.tla_page_controls__search::after,
+.tla_page_controls__sort::after,
+.tla_page_controls__grid::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	right: 2px;
+	bottom: 2px;
+	background-color: var(--color-hover);
+	border-radius: 4px;
+	z-index: -1;
+	visibility: hidden;
+}
+
+.tla_page_controls__search:focus-within::after {
+	visibility: visible;
+}
+
+@media (hover: hover) {
+	.tla_page_controls__search:hover::after,
+	.tla_page_controls__sort:hover::after,
+	.tla_page_controls__grid:hover::after {
+		visibility: visible;
+	}
+}
+
+.tla_page_controls__search {
+	display: flex;
+	flex-grow: 1;
+	align-items: center;
+	position: relative;
+	height: 100%;
+}
+
+.tla_page_controls__search_input {
+	width: 100%;
+	height: 32px;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 500;
+	font-family: 'Inter', sans-serif;
+}
+
+.tla_page_controls__search_input::placeholder {
+	color: var(--color-text-2);
 }

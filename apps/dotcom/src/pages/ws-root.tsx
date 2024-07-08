@@ -8,9 +8,9 @@ export function Component() {
 	const file = useValue(
 		'most recent file',
 		() => {
-			const session = app.getSession()
-			if (!session) return
-			return app.getUserFiles(session.userId, session.workspaceId)[0]
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return app.getUserFiles(auth.userId, auth.workspaceId)[0]
 		},
 		[app]
 	)

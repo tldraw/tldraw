@@ -63,16 +63,17 @@ function SidebarCreateButton() {
 		<button
 			className="tla_sidebar__create tla_icon_wrapper"
 			onClick={() => {
-				const session = app.getSession()!
+				const { auth } = app.getSessionState()
+				if (!auth) return false
 				const id = TldrawAppFileRecordType.createId()
 				app.store.put([
 					TldrawAppFileRecordType.create({
 						id,
-						workspaceId: session.workspaceId,
-						owner: session.userId,
+						workspaceId: auth.workspaceId,
+						owner: auth.userId,
 					}),
 				])
-				navigate(`/${getCleanId(session.workspaceId)}/f/${getCleanId(id)}`)
+				navigate(`/${getCleanId(auth.workspaceId)}/f/${getCleanId(id)}`)
 			}}
 		>
 			<TlaIcon icon="edit-strong" />
@@ -85,7 +86,7 @@ function SidebarWorkspaceLink() {
 	if (!workspace) throw Error('Workspace not found')
 
 	return (
-		<div className="tla_sidebar__workspace tla_sidebar__hoverable">
+		<div className="tla_sidebar__workspace tla_hoverable">
 			<div className="tla_icon_wrapper" data-size="m">
 				<TlaIcon icon={workspace.avatar} />
 			</div>
@@ -103,7 +104,7 @@ function SidebarTabs() {
 	const sidebarActiveTab = useValue(
 		'sidebar active tab',
 		() => {
-			return app.getUi().sidebarActiveTab
+			return app.getSessionState().sidebarActiveTab
 		},
 		[app]
 	)
@@ -138,7 +139,7 @@ function SidebarActiveTabContent() {
 	const sidebarActiveTab = useValue(
 		'sidebar active tab',
 		() => {
-			return app.getUi().sidebarActiveTab
+			return app.getSessionState().sidebarActiveTab
 		},
 		[app]
 	)
@@ -159,7 +160,9 @@ function SidebarMainLink({ icon, label, href }: SideBarMainLink) {
 	const workspaceId = useValue(
 		'workspaceId',
 		() => {
-			return app.getSession()?.workspaceId
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return auth.workspaceId
 		},
 		[app]
 	)
@@ -168,7 +171,7 @@ function SidebarMainLink({ icon, label, href }: SideBarMainLink) {
 	const match = useMatch(`/:workspaceId/${href}`)
 
 	return (
-		<div className="tla_sidebar__main-link tla_sidebar__hoverable" data-active={!!match}>
+		<div className="tla_sidebar__main-link tla_hoverable" data-active={!!match}>
 			<div className="tla_icon_wrapper">
 				<TlaIcon icon={icon} />
 			</div>
@@ -195,7 +198,7 @@ function SidebarFileLink({ file }: { file: TldrawAppFile }) {
 	const { fileId } = useParams()
 	const isActive = fileId === getCleanId(id)
 	return (
-		<div className="tla_sidebar__section_link tla_sidebar__hoverable" data-active={isActive}>
+		<div className="tla_sidebar__section_link tla_hoverable" data-active={isActive}>
 			<div className="tla_sidebar__label">
 				{file.name || new Date(file.createdAt).toLocaleString('en-gb')}
 			</div>
@@ -215,9 +218,9 @@ function SidebarRecentFiles() {
 	const results = useValue(
 		'recent user files',
 		() => {
-			const session = app.getSession()
-			if (!session) return
-			return app.getUserFiles(session.userId, session.workspaceId).sort((a, b) => {
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return app.getUserFiles(auth.userId, auth.workspaceId).sort((a, b) => {
 				return b.createdAt - a.createdAt
 			})
 		},
@@ -269,9 +272,9 @@ function SidebarGroups() {
 	const groups = useValue(
 		'user groups',
 		() => {
-			const session = app.getSession()
-			if (!session) return
-			return app.getUserGroups(session.userId, session.workspaceId)
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return app.getUserGroups(auth.userId, auth.workspaceId)
 		},
 		[app]
 	)
@@ -291,9 +294,9 @@ function SidebarGroup({ id, name }: TldrawAppGroup) {
 	const files = useValue(
 		'recent user files',
 		() => {
-			const session = app.getSession()
-			if (!session) return
-			return app.getGroupFiles(id, session.workspaceId)
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return app.getGroupFiles(id, auth.workspaceId)
 		},
 		[app, id]
 	)
@@ -315,16 +318,16 @@ function SidebarUserLink() {
 	const user = useValue(
 		'recent user files',
 		() => {
-			const session = app.getSession()
-			if (!session) return
-			return app.get<TldrawAppUser>(session.userId)
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return app.get<TldrawAppUser>(auth.userId)
 		},
 		[app]
 	)
 	if (!user) throw Error('Could not get user')
 
 	return (
-		<div className="tla_sidebar__user tla_sidebar__hoverable">
+		<div className="tla_sidebar__user tla_hoverable">
 			<div className="tla_icon_wrapper">
 				<TlaAvatar data-size="m" />
 			</div>

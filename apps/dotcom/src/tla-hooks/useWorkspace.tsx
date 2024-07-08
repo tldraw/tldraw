@@ -7,9 +7,9 @@ export function useWorkspace() {
 	return useValue(
 		'workspace',
 		() => {
-			const session = app.getSession()
-			if (!session) return null
-			return app.get<TldrawAppWorkspace>(session.workspaceId)
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return app.get<TldrawAppWorkspace>(auth.workspaceId)
 		},
 		[app]
 	)

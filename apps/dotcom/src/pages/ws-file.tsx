@@ -14,8 +14,6 @@ export function Component() {
 	const file = useValue(
 		'file',
 		() => {
-			const session = app.getSession()
-			if (!session) return
 			return app.store.get(TldrawAppFileRecordType.createId(fileId))
 		},
 		[app, fileId]
@@ -26,9 +24,9 @@ export function Component() {
 		let cancelled = false
 		setTimeout(() => {
 			if (cancelled) return
-			const session = app.getSession()
-			if (!session) return
-			app.logVisit(session.userId, session.workspaceId, TldrawAppFileRecordType.createId(fileId))
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			app.logVisit(auth.userId, auth.workspaceId, TldrawAppFileRecordType.createId(fileId))
 		}, 500)
 		return () => {
 			cancelled = true

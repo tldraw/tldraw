@@ -1,8 +1,9 @@
-import { Store, atom, computed } from 'tldraw'
+import { Store } from 'tldraw'
 import { LocalSyncClient } from './local-sync'
 import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
 import { TldrawAppGroup, TldrawAppGroupId, TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
 import { TldrawAppGroupMembershipRecordType } from './schema/TldrawAppGroupMembership'
+import { TldrawAppSessionStateRecordType } from './schema/TldrawAppSessionState'
 import { TldrawAppStarRecordType } from './schema/TldrawAppStar'
 import { TldrawAppUser, TldrawAppUserId, TldrawAppUserRecordType } from './schema/TldrawAppUser'
 import { TldrawAppVisitRecordType } from './schema/TldrawAppVisit'
@@ -22,34 +23,8 @@ export class TldrawApp {
 		this.client.close()
 	}
 
-	private _session = atom<{
-		userId: TldrawAppUserId
-		workspaceId: TldrawAppWorkspaceId
-	} | null>('session', {
-		userId: TldrawAppUserRecordType.createId('0'), // null,
-		workspaceId: TldrawAppWorkspaceRecordType.createId('0'),
-	})
-	@computed getSession() {
-		return this._session.get()
-	}
-
-	setSession(session: ReturnType<typeof this.getSession>) {
-		this._session.set(session)
-	}
-
-	private _ui = atom<{
-		isSidebarOpen: boolean
-		sidebarActiveTab: 'recent' | 'groups'
-	}>('ui', {
-		isSidebarOpen: true,
-		sidebarActiveTab: 'recent',
-	})
-	@computed getUi() {
-		return this._ui.get()
-	}
-
-	setUi(ui: ReturnType<typeof this.getUi>) {
-		this._ui.set(ui)
+	getSessionState() {
+		return this.store.get(TldrawApp.SessionStateId)!
 	}
 
 	async signIn(_user: TldrawAppUser, forceError = false) {
@@ -57,33 +32,54 @@ export class TldrawApp {
 		if (forceError) {
 			return { error: 'An error occurred', success: false }
 		}
-		this.setSession({
-			userId: TldrawAppUserRecordType.createId('0'), // null,
-			workspaceId: TldrawAppWorkspaceRecordType.createId('0'),
-		})
+		const sessionState = this.getSessionState()
+
+		this.store.put([
+			{
+				...sessionState,
+				auth: {
+					userId: TldrawAppUserRecordType.createId('0'), // null,
+					workspaceId: TldrawAppWorkspaceRecordType.createId('0'),
+				},
+			},
+		])
 
 		return { success: true }
 	}
 
 	async signOut() {
-		this.setSession(null)
+		const sessionState = this.getSessionState()
+
+		this.store.put([
+			{
+				...sessionState,
+				auth: undefined,
+			},
+		])
 
 		return { success: true }
 	}
 
 	toggleSidebar() {
-		const current = this.getUi()
-		this.setUi({
-			...current,
-			isSidebarOpen: !current.isSidebarOpen,
-		})
+		const sessionState = this.getSessionState()
+
+		this.store.put([
+			{
+				...sessionState,
+				isSidebarOpen: !sessionState.isSidebarOpen,
+			},
+		])
 	}
 
 	setSidebarActiveTab(tab: 'recent' | 'groups') {
-		this.setUi({
-			...this.getUi(),
-			sidebarActiveTab: tab,
-		})
+		const sessionState = this.getSessionState()
+
+		this.store.put([
+			{
+				...sessionState,
+				sidebarActiveTab: tab,
+			},
+		])
 	}
 
 	// Simple
@@ -295,11 +291,22 @@ export class TldrawApp {
 			}),
 		]
 
+		const session = TldrawAppSessionStateRecordType.create({
+			id: TldrawApp.SessionStateId,
+			auth: {
+				userId: user.id,
+				workspaceId: workspace.id,
+			},
+		})
+
 		const store = new Store<TldrawAppRecord>({
 			id: 'tla',
 			schema: tldrawAppSchema,
 			initialData: Object.fromEntries(
-				[user, workspace, group1, group2, star, groupMembership, ...files].map((r) => [r.id, r])
+				[user, workspace, group1, group2, star, groupMembership, ...files, session].map((r) => [
+					r.id,
+					r,
+				])
 			),
 			props: {},
 		})
@@ -318,6 +325,8 @@ export class TldrawApp {
 		onLoad(app)
 		return app
 	}
+
+	static SessionStateId = TldrawAppSessionStateRecordType.createId('0')
 }
 
 export function getCleanId(id: string) {
