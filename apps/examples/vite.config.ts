@@ -19,6 +19,9 @@ function getEnv() {
 
 const env = getEnv()
 
+// eslint-disable-next-line no-console
+console.log('build env:', env)
+
 const TLDRAW_BEMO_URL_STRING =
 	env === 'production'
 		? '"https://demo.tldraw.xyz"'
