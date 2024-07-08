@@ -2302,6 +2302,8 @@ export interface TLUiEventMap {
     // (undocumented)
     'toggle-lock': null;
     // (undocumented)
+    'toggle-paste-at-cursor': null;
+    // (undocumented)
     'toggle-reduce-motion': null;
     // (undocumented)
     'toggle-snap-mode': null;
@@ -3331,7 +3333,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventContextType;
+export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

@@ -1157,7 +1157,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: false,
 				onSelect(source) {
-					trackEvent('toggle-dynamic-size-mode', { source })
+					trackEvent('toggle-paste-at-cursor', { source })
 					editor.user.updateUserPreferences({
 						pasteAtCursor: !editor.user.getPasteAtCursor(),
 					})
