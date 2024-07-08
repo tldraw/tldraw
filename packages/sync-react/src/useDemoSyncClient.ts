@@ -10,6 +10,14 @@ export interface UseDemoSyncClientConfig {
 	host?: string
 }
 
+/**
+ * Depending on the environment this package is used in, process.env may not be available. Wrap
+ * `process.env` accesses in this to make sure they don't fail.
+ *
+ * The reason that this is just a try/catch and not a dynamic check e.g. `process &&
+ * process.env[key]` is that many bundlers implement `process.env.WHATEVER` using compile-time
+ * string replacement, rather than actually creating a runtime implementation of a `process` object.
+ */
 function getEnv(cb: () => string | undefined): string | undefined {
 	try {
 		return cb()
