@@ -87,7 +87,7 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 				<div className="tla_page_controls__control">
 					<div className="tla_page_controls__control_label">
 						{LABELS[sort]}
-						{/* <TlaIcon icon="chevron-down" /> */}
+						<TlaIcon icon="chevron-down" />
 					</div>
 					<select
 						className="tla_page_controls__control_select"

@@ -29,12 +29,12 @@ const SIDEBAR_MAIN_LINKS = [
 		label: 'Shared with me',
 		href: 'shared',
 	},
-	// {
-	// 	id: 4,
-	// 	icon: 'group',
-	// 	label: 'My groups',
-	// 	href: 'groups',
-	// },
+	{
+		id: 4,
+		icon: 'group',
+		label: 'My groups',
+		href: 'groups',
+	},
 ]
 
 type SideBarMainLink = (typeof SIDEBAR_MAIN_LINKS)[number]
@@ -210,7 +210,7 @@ function SidebarFileLink({ file }: { file: TldrawAppFile }) {
 			</div>
 			<Link
 				to={`/${getCleanId(workspaceId)}/f/${getCleanId(id)}`}
-				className="tla_page__item_link"
+				className="tla_sidebar__link-button"
 			/>
 			<button className="tla_sidebar__link-menu">
 				<TlaIcon icon="more" />

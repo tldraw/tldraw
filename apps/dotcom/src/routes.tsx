@@ -16,8 +16,6 @@ import {
 	useRouteError,
 } from 'react-router-dom'
 import { useValue } from 'tldraw'
-import { TlaIcon } from './components-tla/TlaIcon'
-import { TlaSidebar } from './components-tla/TlaSidebar'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { AppStateProvider, useApp } from './hooks/useAppState'
@@ -79,7 +77,7 @@ export const router = createRoutesFromElements(
 				path="/:workspaceId"
 				element={
 					<RequireAuth>
-						<TlaWrapper />
+						<Outlet />
 					</RequireAuth>
 				}
 			>
@@ -114,21 +112,6 @@ function RequireAuth({ children }: { children: ReactNode }) {
 	}
 
 	return children
-}
-
-export function TlaWrapper() {
-	const app = useApp()
-	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
-
-	return (
-		<div className="tla tla_layout" data-sidebar={isSidebarOpen}>
-			<TlaSidebar />
-			<button className="tla_sidebar_toggle" onClick={() => app.toggleSidebar()}>
-				<TlaIcon icon="sidebar" />
-			</button>
-			<Outlet />
-		</div>
-	)
 }
 
 function RedirectToMostRecentFile() {

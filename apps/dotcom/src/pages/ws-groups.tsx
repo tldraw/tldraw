@@ -2,6 +2,7 @@ import { useValue } from 'tldraw'
 import '../../styles/globals.css'
 import { TlaPageControls } from '../components-tla/TlaPageControls'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
+import { TlaWrapper } from '../components-tla/TlaWrapper'
 import { useApp } from '../hooks/useAppState'
 
 export function Component() {
@@ -19,12 +20,15 @@ export function Component() {
 	if (!groups) throw Error('Files not found')
 
 	return (
-		<div className="tla_content tla_page">
-			<div className="tla_page__header">
-				<h2 className="tla_text_ui__title">Groups</h2>
+		<TlaWrapper>
+			<div className="tla_content tla_page">
+				<div className="tla_page__header">
+					<h2 className="tla_text_ui__big">Groups</h2>
+				</div>
+				<TlaSpacer height={40} />
+				<TlaPageControls viewName="shared" />
+				<TlaSpacer height="20" />
 			</div>
-			<TlaPageControls viewName="shared" />
-			<TlaSpacer height="20" />
-		</div>
+		</TlaWrapper>
 	)
 }

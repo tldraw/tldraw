@@ -1,6 +1,7 @@
 import { useValue } from 'tldraw'
 import '../../styles/globals.css'
 import { TlaEditor } from '../components-tla/TlaEditor'
+import { TlaWrapperWithSidebar } from '../components-tla/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
 
 export function Component() {
@@ -17,8 +18,10 @@ export function Component() {
 	if (!file) throw Error('File not found')
 
 	return (
-		<div className="tla_content">
-			<TlaEditor file={file} />
-		</div>
+		<TlaWrapperWithSidebar>
+			<div className="tla_content">
+				<TlaEditor file={file} />
+			</div>
+		</TlaWrapperWithSidebar>
 	)
 }

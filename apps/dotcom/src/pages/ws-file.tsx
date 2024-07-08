@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import '../../styles/globals.css'
 import { TlaEditor } from '../components-tla/TlaEditor'
+import { TlaWrapper } from '../components-tla/TlaWrapper'
 import { useApp } from '../hooks/useAppState'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/tla/schema/TldrawAppFile'
 
@@ -36,8 +37,10 @@ export function Component() {
 	// todo: handle viewing permissions—is this file owned by the user, or is it part of a group that they belong to?
 
 	return (
-		<div className="tla_content">
-			<TlaEditor key={'file_' + file.id} file={file} />
-		</div>
+		<TlaWrapper>
+			<div className="tla_content">
+				<TlaEditor key={'file_' + file.id} file={file} />
+			</div>
+		</TlaWrapper>
 	)
 }
