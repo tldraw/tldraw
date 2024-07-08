@@ -97,7 +97,7 @@ export function registerDefaultExternalContentHandlers(
 
 		const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
 
-		const hash = await getHashForBuffer(await file.arrayBuffer())
+		const hash = getHashForBuffer(await file.arrayBuffer())
 
 		if (isFinite(maxImageDimension)) {
 			const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
