@@ -60,6 +60,7 @@ export function registerDefaultExternalContentHandlers(
 	}: Required<TLExternalContentProps>,
 	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
+	console.trace('registerDefaultExternalContentHandlers')
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
 		const name = _file.name

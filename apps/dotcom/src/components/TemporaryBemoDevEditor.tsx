@@ -48,14 +48,6 @@ export function TemporaryBemoDevEditor({ slug }: { slug: string }) {
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const cursorChatOverrides = useCursorChat()
 
-	// TODO: handle bookmarks
-	// const handleMount = useCallback(
-	// 	(editor: Editor) => {
-	// 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	// 	},
-	// 	[]
-	// )
-
 	if (storeWithStatus.error) {
 		return <StoreErrorScreen error={storeWithStatus.error} />
 	}

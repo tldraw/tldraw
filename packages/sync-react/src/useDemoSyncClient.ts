@@ -1,5 +1,15 @@
-import { useMemo } from 'react'
-import { MediaHelpers, Signal, TLAssetStore, TLUserPreferences, uniqueId } from 'tldraw'
+import { useCallback, useMemo } from 'react'
+import {
+	AssetRecordType,
+	Editor,
+	MediaHelpers,
+	Signal,
+	TLAsset,
+	TLAssetStore,
+	TLUserPreferences,
+	getHashForString,
+	uniqueId,
+} from 'tldraw'
 import { RemoteTLStoreWithStatus, useRemoteSyncClient } from './useRemoteSyncClient'
 
 /** @public */
@@ -41,6 +51,18 @@ export function useDemoRemoteSyncClient({
 		roomId,
 		userPreferences,
 		assets,
+		onConnectEditor: useCallback(
+			(editor: Editor) => {
+				console.log('onConnectEditor')
+				editor.registerExternalAssetHandler('url', async ({ url }) => {
+					console.log('url handler', url, host)
+					const r = await createAssetFromUrlUsingDemoServer(host, url)
+					console.log(r)
+					return r
+				})
+			},
+			[host]
+		),
 	})
 }
 
@@ -114,5 +136,51 @@ function createDemoAssetStore(host: string): TLAssetStore {
 			const newUrl = `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
 			return newUrl
 		},
+	}
+}
+
+async function createAssetFromUrlUsingDemoServer(host: string, url: string): Promise<TLAsset> {
+	const urlHash = getHashForString(url)
+	try {
+		// First, try to get the meta data from our endpoint
+		const fetchUrl = new URL(`${host}/bookmarks/unfurl`)
+		fetchUrl.searchParams.set('url', url)
+
+		const meta = (await (await fetch(fetchUrl)).json()) as {
+			description?: string
+			image?: string
+			favicon?: string
+			title?: string
+		} | null
+
+		return {
+			id: AssetRecordType.createId(urlHash),
+			typeName: 'asset',
+			type: 'bookmark',
+			props: {
+				src: url,
+				description: meta?.description ?? '',
+				image: meta?.image ?? '',
+				favicon: meta?.favicon ?? '',
+				title: meta?.title ?? '',
+			},
+			meta: {},
+		}
+	} catch (error) {
+		// Otherwise, fallback to a blank bookmark
+		console.error(error)
+		return {
+			id: AssetRecordType.createId(urlHash),
+			typeName: 'asset',
+			type: 'bookmark',
+			props: {
+				src: url,
+				description: '',
+				image: '',
+				favicon: '',
+				title: '',
+			},
+			meta: {},
+		}
 	}
 }

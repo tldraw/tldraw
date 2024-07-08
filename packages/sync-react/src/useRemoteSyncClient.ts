@@ -9,6 +9,7 @@ import {
 } from '@tldraw/sync'
 import { useEffect, useState } from 'react'
 import {
+	Editor,
 	Signal,
 	TAB_ID,
 	TLAssetStore,
@@ -38,9 +39,9 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
 	} | null>(null)
-	const { uri, roomId = 'default', userPreferences: prefs, assets } = opts
+	const { uri, roomId = 'default', userPreferences: prefs, assets, onConnectEditor } = opts
 
-	const store = useTLStore({ schema, assets })
+	const store = useTLStore({ schema, assets, onConnectEditor })
 
 	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
 	const track = opts.trackAnalyticsEvent
@@ -141,4 +142,5 @@ export interface UseSyncClientConfig {
 	/* @internal */
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
 	assets?: Partial<TLAssetStore>
+	onConnectEditor?: (editor: Editor) => void
 }

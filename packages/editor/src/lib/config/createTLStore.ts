@@ -7,7 +7,8 @@ import {
 	TLStoreProps,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { FileHelpers } from '@tldraw/utils'
+import { FileHelpers, assert } from '@tldraw/utils'
+import { Editor } from '../editor/Editor'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
@@ -21,6 +22,9 @@ export interface TLStoreBaseOptions {
 
 	/** How should this store upload & resolve assets? */
 	assets?: Partial<TLAssetStore>
+
+	/** Called when the store is connected to an {@link Editor}. */
+	onConnectEditor?: (editor: Editor) => void
 }
 
 /** @public */
@@ -58,6 +62,7 @@ export function createTLStore({
 	defaultName = '',
 	id,
 	assets,
+	onConnectEditor,
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	const schema =
@@ -86,6 +91,10 @@ export function createTLStore({
 			assets: {
 				...defaultAssetStore,
 				...assets,
+			},
+			onConnectEditor: (editor) => {
+				assert(editor instanceof Editor)
+				onConnectEditor?.(editor)
 			},
 		},
 	})

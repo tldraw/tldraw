@@ -94,6 +94,10 @@ export interface TLAssetStore {
 export interface TLStoreProps {
 	defaultName: string
 	assets: TLAssetStore
+	/**
+	 * Called when this store is connected to an {@link @tldraw/editor#Editor}.
+	 */
+	onConnectEditor: (editor: unknown) => void
 }
 
 /** @public */
