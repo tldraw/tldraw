@@ -2,16 +2,16 @@ import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import { PluginOption, defineConfig } from 'vite'
 
-const PR_NUMBER = process.env.NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID
+const PR_NUMBER = process.env.VERCEL_GIT_PULL_REQUEST_ID
 
 function getEnv() {
-	if (!process.env.NEXT_PUBLIC_VERCEL_ENV) {
+	if (!process.env.VERCEL_ENV) {
 		return 'local'
 	}
 	if (PR_NUMBER !== undefined && PR_NUMBER !== '') {
 		return 'preview'
 	}
-	if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'production') {
+	if (process.env.VERCEL_ENV === 'production') {
 		return 'production'
 	}
 	return 'canary'
