@@ -39,7 +39,7 @@ export function Component() {
 
 	return (
 		<div className="tla_content">
-			<TlaEditor key={file.id} file={file} />
+			<TlaEditor key={'file_' + file.id} file={file} />
 		</div>
 	)
 }

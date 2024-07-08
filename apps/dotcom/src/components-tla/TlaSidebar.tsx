@@ -184,7 +184,7 @@ function SidebarRecentSection({ title, files }: { title: string; files: TldrawAp
 			<TlaSpacer height="20" />
 			<div className="tla_sidebar__section_title">{title}</div>
 			{files.map((file) => (
-				<SidebarFileLink key={file.id} file={file} />
+				<SidebarFileLink key={'recent_' + file.id} file={file} />
 			))}
 		</div>
 	)
@@ -304,7 +304,7 @@ function SidebarGroup({ id, name }: TldrawAppGroup) {
 			<TlaSpacer height="20" />
 			<div className="tla_sidebar__section_title">{name}</div>
 			{files.map((file) => (
-				<SidebarFileLink key={file.id} file={file} />
+				<SidebarFileLink key={'group_' + file.id} file={file} />
 			))}
 		</div>
 	)

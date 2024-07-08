@@ -32,7 +32,7 @@ export function Component() {
 			<TlaSpacer height="20" />
 			<div className="tla_page__grid">
 				{files.map((file) => (
-					<TlaFileGridItem key={file.id} {...file} />
+					<TlaFileGridItem key={'grid_' + file.id} {...file} />
 				))}
 			</div>
 		</div>
