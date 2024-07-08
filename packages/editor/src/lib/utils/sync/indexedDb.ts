@@ -1,6 +1,6 @@
 import { RecordsDiff, SerializedSchema, SerializedStore } from '@tldraw/store'
 import { TLRecord, TLStoreSchema } from '@tldraw/tlschema'
-import { assert, getFromLocalStorage, setInLocalStorage } from '@tldraw/utils'
+import { assert, getFromLocalStorage, noop, setInLocalStorage } from '@tldraw/utils'
 import { IDBPDatabase, IDBPTransaction, deleteDB, openDB } from 'idb'
 import { TLSessionStateSnapshot } from '../../config/TLSessionStateSnapshot'
 
@@ -110,10 +110,19 @@ export class LocalIndexedDb {
 		return this.getDbPromise
 	}
 
+	/**
+	 * Wait for any pending transactions to be completed. Useful for tests.
+	 *
+	 * @internal
+	 */
+	pending(): Promise<void> {
+		return Promise.allSettled([this.getDbPromise, ...this.pendingTransactionSet]).then(noop)
+	}
+
 	async close() {
 		if (this.isClosed) return
 		this.isClosed = true
-		await Promise.all([...this.pendingTransactionSet])
+		await this.pending()
 		;(await this.getDb()).close()
 		LocalIndexedDb.connectedInstances.delete(this)
 	}
