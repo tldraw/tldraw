@@ -170,6 +170,5 @@ test('writes that come in during a persist operation will get persisted afterwar
 	// if we resolve the idb operation, the next change should get persisted
 	idbOperationResult.resolve()
 	await tick()
-	await tick()
 	expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
 })

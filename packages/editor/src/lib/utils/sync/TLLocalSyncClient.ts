@@ -9,8 +9,8 @@ import {
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
 } from '../../config/TLSessionStateSnapshot'
+import { LocalIndexedDb } from './LocalIndexedDb'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
-import { LocalIndexedDb } from './indexedDb'
 
 /** How should we debounce persists? */
 const PERSIST_THROTTLE_MS = 350

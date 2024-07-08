@@ -1,7 +1,7 @@
 import { createTLSchema } from '@tldraw/tlschema'
 import { openDB } from 'idb'
 import { hardReset } from './hardReset'
-import { getAllIndexDbNames, LocalIndexedDb } from './indexedDb'
+import { getAllIndexDbNames, LocalIndexedDb } from './LocalIndexedDb'
 
 const schema = createTLSchema({ shapes: {} })
 describe('LocalIndexedDb', () => {

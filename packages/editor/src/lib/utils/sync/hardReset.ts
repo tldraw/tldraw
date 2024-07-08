@@ -1,6 +1,6 @@
 import { clearLocalStorage, clearSessionStorage } from '@tldraw/utils'
 import { deleteDB } from 'idb'
-import { LocalIndexedDb, getAllIndexDbNames } from './indexedDb'
+import { LocalIndexedDb, getAllIndexDbNames } from './LocalIndexedDb'
 
 /**
  * Clear the database of all data associated with tldraw.
