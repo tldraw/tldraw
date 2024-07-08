@@ -451,7 +451,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useDarkMode()
 	useForceUpdate()
 	useOnMount((editor) => {
-		const teardownStore = editor.store.props.onMountEditor(editor)
+		const teardownStore = editor.store.props.onEditorMount(editor)
 		const teardownCallback = onMount?.(editor)
 
 		return () => {

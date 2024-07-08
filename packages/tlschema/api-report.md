@@ -1499,7 +1499,7 @@ export interface TLStoreProps {
     assets: TLAssetStore;
     // (undocumented)
     defaultName: string;
-    onMountEditor: (editor: unknown) => (() => void) | void;
+    onEditorMount: (editor: unknown) => (() => void) | void;
 }
 
 // @public (undocumented)

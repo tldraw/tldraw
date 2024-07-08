@@ -12,14 +12,11 @@ import {
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { Router, createCors } from 'itty-router'
-import { assert } from 'tldraw'
 import { Environment } from './types'
 
 export { BemoDO } from './BemoDO'
 
 const cors = createCors({ origins: ['*'] })
-
-assert(true)
 
 export default class Worker extends WorkerEntrypoint<Environment> {
 	private readonly router = Router()

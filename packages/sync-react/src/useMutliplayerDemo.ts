@@ -51,7 +51,7 @@ export function useMultiplayerDemo({
 		roomId,
 		userPreferences,
 		assets,
-		onMountEditor: useCallback(
+		onEditorMount: useCallback(
 			(editor: Editor) => {
 				editor.registerExternalAssetHandler('url', async ({ url }) => {
 					return await createAssetFromUrlUsingDemoServer(host, url)

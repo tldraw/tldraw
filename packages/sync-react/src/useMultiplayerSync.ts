@@ -39,9 +39,9 @@ export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLSto
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
 	} | null>(null)
-	const { uri, roomId = 'default', userPreferences: prefs, assets, onMountEditor } = opts
+	const { uri, roomId = 'default', userPreferences: prefs, assets, onEditorMount } = opts
 
-	const store = useTLStore({ schema, assets, onMountEditor })
+	const store = useTLStore({ schema, assets, onEditorMount })
 
 	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
 	const track = opts.trackAnalyticsEvent
@@ -142,5 +142,5 @@ export interface UseMultiplayerSyncOptions {
 	/* @internal */
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
 	assets?: Partial<TLAssetStore>
-	onMountEditor?: (editor: Editor) => void
+	onEditorMount?: (editor: Editor) => void
 }
