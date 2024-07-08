@@ -79,6 +79,7 @@ function propsMigration(migration: TLPropsMigration) {
 /** @public */
 export const arrowShapeMigrations = createMigrationSequence({
 	sequenceId: 'com.tldraw.shape.arrow',
+	retroactive: false,
 	sequence: [
 		propsMigration({
 			id: arrowShapeVersions.AddLabelColor,
