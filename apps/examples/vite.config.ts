@@ -2,7 +2,49 @@ import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import { PluginOption, defineConfig } from 'vite'
 
-export default defineConfig({
+const PR_NUMBER = process.env.VERCEL_GIT_PULL_REQUEST_ID
+
+function getEnv() {
+	if (!process.env.VERCEL_ENV) {
+		return 'development'
+	}
+	if (PR_NUMBER !== undefined && PR_NUMBER !== '') {
+		return 'preview'
+	}
+	if (process.env.VERCEL_ENV === 'production') {
+		return 'production'
+	}
+	return 'canary'
+}
+
+const env = getEnv()
+
+// eslint-disable-next-line no-console
+console.log('build env:', env)
+
+function urlOrLocalFallback(mode: string, url: string | undefined, localFallbackPort: number) {
+	if (url) {
+		return JSON.stringify(url)
+	}
+
+	if (mode === 'development') {
+		// in dev, vite lets us inline javascript expressions - so we return a template string that
+		// will be evaluated on the client
+		return '`http://${location.hostname}:' + localFallbackPort + '`'
+	} else {
+		// in production, we have to fall back to a hardcoded value
+		return JSON.stringify(`http://localhost:${localFallbackPort}`)
+	}
+}
+
+const TLDRAW_BEMO_URL_STRING =
+	env === 'production'
+		? '"https://demo.tldraw.xyz"'
+		: env === 'canary'
+			? '"https://canary-demo.tldraw.xyz"'
+			: `"https://pr-${PR_NUMBER}-demo.tldraw.xyz"`
+
+export default defineConfig(({ mode }) => ({
 	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
@@ -26,8 +68,9 @@ export default defineConfig({
 	},
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),
+		'process.env.TLDRAW_BEMO_URL': urlOrLocalFallback(mode, TLDRAW_BEMO_URL_STRING, 8989),
 	},
-})
+}))
 
 function exampleReadmePlugin(): PluginOption {
 	return {
