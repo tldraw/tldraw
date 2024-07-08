@@ -2,6 +2,32 @@ import react from '@vitejs/plugin-react-swc'
 import path from 'path'
 import { PluginOption, defineConfig } from 'vite'
 
+const PR_NUMBER = process.env.NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID
+
+function getEnv() {
+	if (!process.env.NEXT_PUBLIC_VERCEL_ENV) {
+		return 'local'
+	}
+	if (PR_NUMBER !== undefined && PR_NUMBER !== '') {
+		return 'preview'
+	}
+	if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'production') {
+		return 'production'
+	}
+	return 'canary'
+}
+
+const env = getEnv()
+
+const TLDRAW_BEMO_URL =
+	env === 'production'
+		? 'https://demo.tldraw.xyz'
+		: env === 'canary'
+			? 'https://canary-demo.tldraw.xyz'
+			: env === 'preview'
+				? `https://pr-${PR_NUMBER}-demo.tldraw.xyz`
+				: 'http://localhost:8989'
+
 export default defineConfig({
 	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],
 	root: path.join(__dirname, 'src'),
@@ -26,6 +52,7 @@ export default defineConfig({
 	},
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),
+		'process.env.TLDRAW_BEMO_URL': JSON.stringify(TLDRAW_BEMO_URL),
 	},
 })
 

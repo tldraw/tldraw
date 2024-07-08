@@ -20,9 +20,12 @@ setDefaultEditorAssetUrls(assetUrls)
 // eslint-disable-next-line local/no-at-internal
 setDefaultUiAssetUrls(assetUrls)
 const gettingStartedExamples = examples.find((e) => e.id === 'Getting started')
-if (!gettingStartedExamples) throw new Error('Could not find getting started exmaples')
+if (!gettingStartedExamples) throw new Error('Could not find getting started examples')
 const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Tldraw component')
 if (!basicExample) throw new Error('Could not find initial example')
+
+// eslint-disable-next-line no-console
+console.log('bemo', process.env.TLDRAW_BEMO_URL)
 
 const router = createBrowserRouter([
 	{
