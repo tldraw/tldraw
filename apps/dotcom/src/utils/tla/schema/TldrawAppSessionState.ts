@@ -22,6 +22,7 @@ export interface TldrawAppSessionState
 		[key: string]: {
 			sort: 'recent' | 'newest' | 'oldest'
 			view: 'grid' | 'list'
+			search: string
 		}
 	}
 }
@@ -41,6 +42,7 @@ export const tldrawAppSessionStateValidator: T.Validator<TldrawAppSessionState> 
 			T.object({
 				sort: T.literalEnum('recent', 'newest', 'oldest'),
 				view: T.literalEnum('grid', 'list'),
+				search: T.string,
 			})
 		),
 		auth: T.object({
@@ -72,14 +74,17 @@ export const TldrawAppSessionStateRecordType = createRecordType<TldrawAppSession
 			drafts: {
 				sort: 'recent',
 				view: 'grid',
+				search: '',
 			},
 			shared: {
 				sort: 'recent',
 				view: 'grid',
+				search: '',
 			},
-			star: {
+			starred: {
 				sort: 'recent',
 				view: 'grid',
+				search: '',
 			},
 		},
 	})

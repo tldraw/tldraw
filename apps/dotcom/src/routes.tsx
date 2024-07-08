@@ -87,6 +87,7 @@ export const router = createRoutesFromElements(
 				<Route path="/:workspaceId/drafts" lazy={() => import('./pages/ws-drafts')} />
 				<Route path="/:workspaceId/stars" lazy={() => import('./pages/ws-stars')} />
 				<Route path="/:workspaceId/shared" lazy={() => import('./pages/ws-shared')} />
+				<Route path="/:workspaceId/groups" lazy={() => import('./pages/ws-groups')} />
 				<Route path="/:workspaceId/settings" lazy={() => import('./pages/ws-profile')} />
 				<Route path="/:workspaceId/f/:fileId" lazy={() => import('./pages/ws-file')} />
 			</Route>

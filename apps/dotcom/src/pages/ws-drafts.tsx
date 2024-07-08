@@ -1,35 +1,38 @@
 import { useValue } from 'tldraw'
 import '../../styles/globals.css'
-import { TlaFileGridItem } from '../components-tla/TlaFileGridItem'
+import { TlaButton } from '../components-tla/TlaButton'
+import { TlaFileList } from '../components-tla/TlaFileList'
 import { TlaPageControls } from '../components-tla/TlaPageControls'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
 import { useApp } from '../hooks/useAppState'
 
 export function Component() {
 	const app = useApp()
+
 	const files = useValue(
 		'starred files',
 		() => {
 			const { auth } = app.getSessionState()
 			if (!auth) return false
-			return app.getUserFiles(auth.userId, auth.workspaceId)
+			const files = app.getUserFiles(auth.userId, auth.workspaceId)
+			return app.getSortedFilteredFiles('star', files)
 		},
 		[app]
 	)
+
 	if (!files) throw Error('Files not found')
 
 	return (
 		<div className="tla_content tla_page">
 			<div className="tla_page__header">
 				<h2 className="tla_text_ui__title">Drafts</h2>
+				<TlaButton className="tla_page__create-button" iconRight="edit">
+					New
+				</TlaButton>
 			</div>
-			<TlaPageControls />
+			<TlaPageControls viewName="drafts" />
 			<TlaSpacer height="20" />
-			<div className="tla_page__grid">
-				{files.map((file) => (
-					<TlaFileGridItem key={'grid_' + file.id} {...file} />
-				))}
-			</div>
+			<TlaFileList files={files} viewName="drafts" />
 		</div>
 	)
 }

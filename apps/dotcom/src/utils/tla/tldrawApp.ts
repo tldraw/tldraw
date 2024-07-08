@@ -1,9 +1,13 @@
+import { deleteDB } from 'idb'
 import { Store } from 'tldraw'
-import { LocalSyncClient } from './local-sync'
+import { getAllIndexDbNames, LocalSyncClient } from './local-sync'
 import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
 import { TldrawAppGroup, TldrawAppGroupId, TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
 import { TldrawAppGroupMembershipRecordType } from './schema/TldrawAppGroupMembership'
-import { TldrawAppSessionStateRecordType } from './schema/TldrawAppSessionState'
+import {
+	TldrawAppSessionState,
+	TldrawAppSessionStateRecordType,
+} from './schema/TldrawAppSessionState'
 import { TldrawAppStarRecordType } from './schema/TldrawAppStar'
 import { TldrawAppUser, TldrawAppUserId, TldrawAppUserRecordType } from './schema/TldrawAppUser'
 import { TldrawAppVisitRecordType } from './schema/TldrawAppVisit'
@@ -25,6 +29,67 @@ export class TldrawApp {
 
 	getSessionState() {
 		return this.store.get(TldrawApp.SessionStateId)!
+	}
+
+	setSessionState(sessionState: TldrawAppSessionState) {
+		return this.store.put([sessionState])
+	}
+
+	getSortedFilteredFiles(viewName: string, files: TldrawAppFile[]) {
+		// Get the current view from session state
+		const sessionState = this.getSessionState()
+		const { auth } = sessionState
+
+		if (!auth) return files // can't sort
+
+		const currentView = sessionState.views[viewName] ?? {
+			sort: 'recent',
+			view: 'grid',
+			search: '',
+		}
+
+		let filteredFiles = files
+
+		// If there's a search, filter the files
+		if (currentView.search.length) {
+			const query = currentView.search.toLowerCase()
+			filteredFiles = files.filter((file) =>
+				(file.name || new Date(file.createdAt).toLocaleString('en-gb'))
+					.toLowerCase()
+					.includes(query)
+			)
+		}
+
+		// Sort the filtered files
+		switch (currentView.sort) {
+			case 'newest': {
+				// newest created files first
+				filteredFiles.sort((a, b) => b.createdAt - a.createdAt)
+				break
+			}
+			case 'oldest': {
+				// oldest created files first
+				filteredFiles.sort((a, b) => a.createdAt - b.createdAt)
+				break
+			}
+			case 'recent': {
+				// never visited first, then recently visited first
+				const visits = this.getAll('visit')
+					.filter((v) => v.userId === auth.userId)
+					.sort((a, b) => b.createdAt - a.createdAt)
+
+				const now = Date.now()
+
+				filteredFiles.sort((a, b) => {
+					const visitA = visits.find((v) => v.fileId === a.id)?.createdAt ?? now
+					const visitB = visits.find((v) => v.fileId === b.id)?.createdAt ?? now
+					return visitA > visitB ? -1 : 1
+				})
+				break
+			}
+		}
+
+		return filteredFiles
 	}
 
 	async signIn(_user: TldrawAppUser, forceError = false) {
@@ -317,11 +382,17 @@ export class TldrawApp {
 				onLoad: () => {
 					r(client)
 				},
-				onLoadError,
+				onLoadError: (e) => {
+					Promise.all(getAllIndexDbNames().map((db) => deleteDB(db))).then(() => {
+						window.location.reload()
+					})
+					onLoadError?.(e)
+				},
 			})
 		})
 
 		const app = new TldrawApp(store, client)
+
 		onLoad(app)
 		return app
 	}

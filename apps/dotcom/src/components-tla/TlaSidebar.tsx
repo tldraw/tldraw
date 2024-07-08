@@ -12,23 +12,29 @@ import { TlaSpacer } from './TlaSpacer'
 
 const SIDEBAR_MAIN_LINKS = [
 	{
-		id: 0,
+		id: 1,
 		icon: 'doc',
 		label: 'Drafts',
 		href: 'drafts',
 	},
 	{
-		id: 1,
+		id: 2,
 		icon: 'star',
 		label: 'Starred',
 		href: 'stars',
 	},
 	{
-		id: 2,
+		id: 3,
 		icon: 'link',
 		label: 'Shared with me',
 		href: 'shared',
 	},
+	// {
+	// 	id: 4,
+	// 	icon: 'group',
+	// 	label: 'My groups',
+	// 	href: 'groups',
+	// },
 ]
 
 type SideBarMainLink = (typeof SIDEBAR_MAIN_LINKS)[number]
@@ -204,7 +210,7 @@ function SidebarFileLink({ file }: { file: TldrawAppFile }) {
 			</div>
 			<Link
 				to={`/${getCleanId(workspaceId)}/f/${getCleanId(id)}`}
-				className="tla_page__grid_item_link"
+				className="tla_page__item_link"
 			/>
 			<button className="tla_sidebar__link-menu">
 				<TlaIcon icon="more" />

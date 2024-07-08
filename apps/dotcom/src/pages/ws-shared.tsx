@@ -1,6 +1,6 @@
 import { useValue } from 'tldraw'
 import '../../styles/globals.css'
-import { TlaFileGridItem } from '../components-tla/TlaFileGridItem'
+import { TlaFileList } from '../components-tla/TlaFileList'
 import { TlaPageControls } from '../components-tla/TlaPageControls'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
 import { useApp } from '../hooks/useAppState'
@@ -12,7 +12,8 @@ export function Component() {
 		() => {
 			const { auth } = app.getSessionState()
 			if (!auth) return
-			return app.getUserSharedFiles(auth.userId, auth.workspaceId)
+			const files = app.getUserSharedFiles(auth.userId, auth.workspaceId)
+			return app.getSortedFilteredFiles('shared', files)
 		},
 		[app]
 	)
@@ -23,13 +24,9 @@ export function Component() {
 			<div className="tla_page__header">
 				<h2 className="tla_text_ui__title">Starred</h2>
 			</div>
-			<TlaPageControls />
+			<TlaPageControls viewName="shared" />
 			<TlaSpacer height="20" />
-			<div className="tla_page__grid">
-				{files.map((file) => (
-					<TlaFileGridItem key={'grid_' + file.id} {...file} />
-				))}
-			</div>
+			<TlaFileList files={files} viewName="shared" />
 		</div>
 	)
 }
