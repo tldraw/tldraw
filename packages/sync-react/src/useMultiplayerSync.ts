@@ -34,14 +34,14 @@ export type RemoteTLStoreWithStatus = Exclude<
 >
 
 /** @public */
-export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWithStatus {
+export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLStoreWithStatus {
 	const [state, setState] = useState<{
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
 	} | null>(null)
-	const { uri, roomId = 'default', userPreferences: prefs, assets, onConnectEditor } = opts
+	const { uri, roomId = 'default', userPreferences: prefs, assets, onMountEditor } = opts
 
-	const store = useTLStore({ schema, assets, onConnectEditor })
+	const store = useTLStore({ schema, assets, onMountEditor })
 
 	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
 	const track = opts.trackAnalyticsEvent
@@ -135,12 +135,12 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 }
 
 /** @public */
-export interface UseSyncClientConfig {
+export interface UseMultiplayerSyncOptions {
 	uri: string
 	roomId?: string
 	userPreferences?: Signal<TLUserPreferences>
 	/* @internal */
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
 	assets?: Partial<TLAssetStore>
-	onConnectEditor?: (editor: Editor) => void
+	onMountEditor?: (editor: Editor) => void
 }

@@ -10,10 +10,10 @@ import {
 	getHashForString,
 	uniqueId,
 } from 'tldraw'
-import { RemoteTLStoreWithStatus, useRemoteSyncClient } from './useRemoteSyncClient'
+import { RemoteTLStoreWithStatus, useMultiplayerSync } from './useMultiplayerSync'
 
 /** @public */
-export interface UseDemoSyncClientConfig {
+export interface UseMultiplayerDemoOptions {
 	roomId: string
 	userPreferences?: Signal<TLUserPreferences>
 	/** @internal */
@@ -39,26 +39,22 @@ function getEnv(cb: () => string | undefined): string | undefined {
 const DEMO_WORKER = getEnv(() => process.env.DEMO_WORKER) ?? 'https://demo.tldraw.xyz'
 const IMAGE_WORKER = getEnv(() => process.env.IMAGE_WORKER) ?? 'https://images.tldraw.xyz'
 
-export function useDemoRemoteSyncClient({
+export function useMultiplayerDemo({
 	roomId,
 	userPreferences,
 	host = DEMO_WORKER,
-}: UseDemoSyncClientConfig): RemoteTLStoreWithStatus {
+}: UseMultiplayerDemoOptions): RemoteTLStoreWithStatus {
 	const assets = useMemo(() => createDemoAssetStore(host), [host])
 
-	return useRemoteSyncClient({
+	return useMultiplayerSync({
 		uri: `${host}/connect/${roomId}`,
 		roomId,
 		userPreferences,
 		assets,
-		onConnectEditor: useCallback(
+		onMountEditor: useCallback(
 			(editor: Editor) => {
-				console.log('onConnectEditor')
 				editor.registerExternalAssetHandler('url', async ({ url }) => {
-					console.log('url handler', url, host)
-					const r = await createAssetFromUrlUsingDemoServer(host, url)
-					console.log(r)
-					return r
+					return await createAssetFromUrlUsingDemoServer(host, url)
 				})
 			},
 			[host]

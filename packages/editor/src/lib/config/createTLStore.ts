@@ -24,7 +24,7 @@ export interface TLStoreBaseOptions {
 	assets?: Partial<TLAssetStore>
 
 	/** Called when the store is connected to an {@link Editor}. */
-	onConnectEditor?: (editor: Editor) => void
+	onMountEditor?: (editor: Editor) => void | (() => void)
 }
 
 /** @public */
@@ -62,7 +62,7 @@ export function createTLStore({
 	defaultName = '',
 	id,
 	assets,
-	onConnectEditor,
+	onMountEditor,
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	const schema =
@@ -92,9 +92,9 @@ export function createTLStore({
 				...defaultAssetStore,
 				...assets,
 			},
-			onConnectEditor: (editor) => {
+			onMountEditor: (editor) => {
 				assert(editor instanceof Editor)
-				onConnectEditor?.(editor)
+				onMountEditor?.(editor)
 			},
 		},
 	})

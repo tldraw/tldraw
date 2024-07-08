@@ -1,5 +1,5 @@
 import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
-import { useRemoteSyncClient } from '@tldraw/sync-react'
+import { useMultiplayerSync } from '@tldraw/sync-react'
 import { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
@@ -112,7 +112,7 @@ export function MultiplayerEditor({
 }) {
 	const handleUiEvent = useHandleUiEvents()
 
-	const storeWithStatus = useRemoteSyncClient({
+	const storeWithStatus = useMultiplayerSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
 		assets: multiplayerAssetStore,

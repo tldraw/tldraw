@@ -213,13 +213,6 @@ export interface TLEditorOptions {
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
 	options?: Partial<TldrawOptions>
-
-	/**
-	 * Called within the constructor to setup the default asset handlers. These handlers are
-	 * expected to be overridden by the store or user.
-	 * @internal
-	 */
-	setupDefaultHandlers?: (editor: Editor) => void
 }
 
 /** @public */
@@ -236,7 +229,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
-		setupDefaultHandlers,
 	}: TLEditorOptions) {
 		super()
 
@@ -707,9 +699,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.performanceTracker = new PerformanceTracker()
-
-		setupDefaultHandlers?.(this)
-		this.store.props.onConnectEditor(this)
 	}
 
 	readonly options: TldrawOptions
