@@ -13,7 +13,8 @@
 	.prose details.article__table-of-contents {
 		display: none !important;
 	}
-	.prose .hljs {
+	.prose .hljs,
+	.not-prose .hljs {
 		background: transparent !important;
 	}
 }
