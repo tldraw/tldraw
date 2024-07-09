@@ -71,7 +71,20 @@ export function registerDefaultExternalContentHandlers(
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 
+		if (!isImageType && !isVideoType) {
+			toasts.addToast({
+				title: msg('assets.files.type-not-allowed'),
+				severity: 'error',
+			})
+		}
 		assert(isImageType || isVideoType, `File type not allowed: ${file.type}`)
+
+		if (file.size > maxAssetSize) {
+			toasts.addToast({
+				title: msg('assets.files.size-too-big'),
+				severity: 'error',
+			})
+		}
 		assert(
 			file.size <= maxAssetSize,
 			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
@@ -256,6 +269,11 @@ export function registerDefaultExternalContentHandlers(
 		await Promise.all(
 			files.map(async (file, i) => {
 				if (file.size > maxAssetSize) {
+					toasts.addToast({
+						title: msg('assets.files.size-too-big'),
+						severity: 'error',
+					})
+
 					console.warn(
 						`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
 							maxAssetSize / 1024
@@ -273,6 +291,10 @@ export function registerDefaultExternalContentHandlers(
 
 				// We can only accept certain extensions (either images or a videos)
 				if (!acceptedImageMimeTypes.concat(acceptedVideoMimeTypes).includes(file.type)) {
+					toasts.addToast({
+						title: msg('assets.files.type-not-allowed'),
+						severity: 'error',
+					})
 					console.warn(`${file.name} not loaded - Extension not allowed.`)
 					return null
 				}
