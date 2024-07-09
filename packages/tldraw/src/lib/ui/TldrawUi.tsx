@@ -109,6 +109,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		NavigationPanel,
 		HelperButtons,
 		DebugPanel,
+		CursorChatBubble,
 	} = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
@@ -164,6 +165,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			<Dialogs />
 			<ToastViewport />
 			<FollowingIndicator />
+			{CursorChatBubble && <CursorChatBubble />}
 		</div>
 	)
 })

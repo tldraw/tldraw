@@ -94,7 +94,10 @@ export interface TLUiEventMap {
 	'toggle-edge-scrolling': null
 	'color-scheme': { value: string }
 	'exit-pen-mode': null
+	'start-following': null
 	'stop-following': null
+	'set-color': null
+	'change-user-name': null
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null

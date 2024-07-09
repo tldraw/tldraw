@@ -1,14 +1,10 @@
+import { useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useRef, useState } from 'react'
-import {
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiInput,
-	useEditor,
-	useTranslation,
-	useUiEvents,
-	useValue,
-} from 'tldraw'
-import { UI_OVERRIDE_TODO_EVENT } from '../../utils/useHandleUiEvent'
+import { useUiEvents } from '../../context/events'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiInput } from '../primitives/TldrawUiInput'
 import { UserPresenceColorPicker } from './UserPresenceColorPicker'
 
 export function UserPresenceEditor() {
@@ -36,7 +32,7 @@ export function UserPresenceEditor() {
 
 	const handleBlur = useCallback(() => {
 		if (rOriginalName.current === rCurrentName.current) return
-		trackEvent('change-user-name' as UI_OVERRIDE_TODO_EVENT, { source: 'people-menu' })
+		trackEvent('change-user-name', { source: 'people-menu' })
 		rOriginalName.current = rCurrentName.current
 	}, [trackEvent])
 

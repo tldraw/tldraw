@@ -487,7 +487,7 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, onEditorMount, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, onEditorMount, multiplayerStatus, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -3246,6 +3246,7 @@ export interface TLStoreBaseOptions {
     assets?: Partial<TLAssetStore>;
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
+    multiplayerStatus?: null | Signal<'offline' | 'online'>;
     onEditorMount?: (editor: Editor) => (() => void) | void;
 }
 

@@ -1,15 +1,10 @@
+import { track, useEditor, usePresence } from '@tldraw/editor'
 import { useCallback } from 'react'
-import {
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiIcon,
-	track,
-	useEditor,
-	usePresence,
-	useTranslation,
-	useUiEvents,
-} from 'tldraw'
-import { UI_OVERRIDE_TODO_EVENT } from '../../utils/useHandleUiEvent'
+import { useUiEvents } from '../../context/events'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
 export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId: string }) {
 	const editor = useEditor()
@@ -24,7 +19,7 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 			trackEvent('stop-following', { source: 'people-menu' })
 		} else {
 			editor.startFollowingUser(userId)
-			trackEvent('start-following' as UI_OVERRIDE_TODO_EVENT, { source: 'people-menu' })
+			trackEvent('start-following', { source: 'people-menu' })
 		}
 	}, [editor, userId, trackEvent])
 

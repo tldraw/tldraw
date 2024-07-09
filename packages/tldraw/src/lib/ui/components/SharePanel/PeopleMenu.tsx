@@ -1,22 +1,16 @@
 import * as Popover from '@radix-ui/react-popover'
-import {
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiButtonLabel,
-	track,
-	useContainer,
-	useEditor,
-	useMenuIsOpen,
-	usePeerIds,
-	useTranslation,
-	useValue,
-} from 'tldraw'
+import { track, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import { PeopleMenuAvatar } from './PeopleMenuAvatar'
 import { PeopleMenuItem } from './PeopleMenuItem'
 import { PeopleMenuMore } from './PeopleMenuMore'
 import { UserPresenceEditor } from './UserPresenceEditor'
 
-/** @public */
+/** @public @react */
 export const PeopleMenu = track(function PeopleMenu({
 	hideShareMenu,
 }: {

@@ -334,6 +334,25 @@ export interface BreakPointProviderProps {
 export function buildFromV1Document(editor: Editor, _document: unknown): void;
 
 // @public (undocumented)
+export function CenteredTopPanelContainer({ maxWidth, ignoreRightWidth, stylePanelWidth, marginBetweenZones, squeezeAmount, children, }: CenteredTopPanelContainerProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface CenteredTopPanelContainerProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    ignoreRightWidth?: number;
+    // (undocumented)
+    marginBetweenZones?: number;
+    // (undocumented)
+    maxWidth?: number;
+    // (undocumented)
+    squeezeAmount?: number;
+    // (undocumented)
+    stylePanelWidth?: number;
+}
+
+// @public (undocumented)
 export function CheckBoxToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -444,6 +463,9 @@ export const defaultShapeTools: (typeof ArrowShapeTool)[];
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
 
 // @public (undocumented)
+export function DefaultSharePanel(): JSX_2.Element;
+
+// @public (undocumented)
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
 
 // @public (undocumented)
@@ -463,6 +485,9 @@ export interface DefaultToolbarProps {
 
 // @public (undocumented)
 export const defaultTools: (typeof EraserTool | typeof HandTool | typeof ZoomTool)[];
+
+// @public (undocumented)
+export function DefaultTopPanel(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
@@ -1294,6 +1319,11 @@ export function parseTldrawJsonFile({ json, schema, }: {
 export function PasteMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
+export const PeopleMenu: MemoExoticComponent<({ hideShareMenu, }: {
+hideShareMenu?: boolean | undefined;
+}) => JSX_2.Element>;
+
+// @public (undocumented)
 export enum PORTRAIT_BREAKPOINT {
     // (undocumented)
     DESKTOP = 7,
@@ -1949,6 +1979,8 @@ export interface TLUiComponents {
     // (undocumented)
     ContextMenu?: ComponentType<TLUiContextMenuProps> | null;
     // (undocumented)
+    CursorChatBubble?: ComponentType | null;
+    // (undocumented)
     DebugMenu?: ComponentType | null;
     // (undocumented)
     DebugPanel?: ComponentType | null;
@@ -2174,6 +2206,8 @@ export interface TLUiEventMap {
         locale: string;
     };
     // (undocumented)
+    'change-user-name': null;
+    // (undocumented)
     'close-menu': {
         id: string;
     };
@@ -2264,6 +2298,8 @@ export interface TLUiEventMap {
         id: string;
     };
     // (undocumented)
+    'set-color': null;
+    // (undocumented)
     'set-style': {
         id: string;
         value: number | string;
@@ -2272,6 +2308,8 @@ export interface TLUiEventMap {
     'stack-shapes': {
         operation: 'horizontal' | 'vertical';
     };
+    // (undocumented)
+    'start-following': null;
     // (undocumented)
     'stop-following': null;
     // (undocumented)
@@ -3324,7 +3362,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventContextType;
+export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
