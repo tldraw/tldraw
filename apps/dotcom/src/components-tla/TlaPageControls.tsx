@@ -6,6 +6,8 @@ const LABELS: Record<string, string> = {
 	recent: 'Recent',
 	newest: 'Newest',
 	oldest: 'Oldest',
+	atoz: 'A-z',
+	ztoa: 'Z-a',
 	grid: 'Grid',
 	list: 'List',
 }
@@ -96,6 +98,8 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 						<option value="recent">{LABELS['recent']}</option>
 						<option value="newest">{LABELS['newest']}</option>
 						<option value="oldest">{LABELS['oldest']}</option>
+						<option value="atoz">{LABELS['atoz']}</option>
+						<option value="ztoa">{LABELS['ztoa']}</option>
 					</select>
 				</div>
 				<div className="tla_page_controls__control">

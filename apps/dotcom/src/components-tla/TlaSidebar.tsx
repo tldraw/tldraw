@@ -196,7 +196,7 @@ function SidebarRecentSection({ title, files }: { title: string; files: TldrawAp
 	return (
 		<div className="tla_sidebar__section">
 			<TlaSpacer height="20" />
-			<div className="tla_sidebar__section_title tla_text_ui__section_title">{title}</div>
+			<div className="tla_sidebar__section_title tla_text_ui__section">{title}</div>
 			{files.map((file) => (
 				<SidebarFileLink key={'recent_' + file.id} file={file} />
 			))}
@@ -313,7 +313,7 @@ function SidebarGroup({ id, name }: TldrawAppGroup) {
 	return (
 		<div className="tla_sidebar__section">
 			<TlaSpacer height="20" />
-			<div className="tla_sidebar__section_title">{name}</div>
+			<div className="tla_sidebar__section_title tla_text_ui__section">{name}</div>
 			{files.map((file) => (
 				<SidebarFileLink key={'group_' + file.id} file={file} />
 			))}
@@ -335,7 +335,7 @@ function SidebarUserLink() {
 	if (!user) throw Error('Could not get user')
 
 	return (
-		<div className="tla_sidebar__user tla_hoverable">
+		<div className="tla_sidebar__user tla_hoverable tla_text_ui__regular">
 			<div className="tla_icon_wrapper">
 				<TlaAvatar data-size="m" />
 			</div>

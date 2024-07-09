@@ -20,7 +20,7 @@ export interface TldrawAppSessionState
 	sidebarActiveTab: 'recent' | 'groups'
 	views: {
 		[key: string]: {
-			sort: 'recent' | 'newest' | 'oldest'
+			sort: 'recent' | 'newest' | 'oldest' | 'atoz' | 'ztoa'
 			view: 'grid' | 'list'
 			search: string
 		}
@@ -40,7 +40,7 @@ export const tldrawAppSessionStateValidator: T.Validator<TldrawAppSessionState> 
 		views: T.dict(
 			T.string,
 			T.object({
-				sort: T.literalEnum('recent', 'newest', 'oldest'),
+				sort: T.literalEnum('recent', 'newest', 'oldest', 'atoz', 'ztoa'),
 				view: T.literalEnum('grid', 'list'),
 				search: T.string,
 			})

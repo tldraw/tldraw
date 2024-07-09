@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 /* Auth */
 
 :root {
@@ -5,17 +6,18 @@
 	--color-background: hsla(0, 0%, 100%, 1);
 	--color-canvas: hsl(210, 20%, 98%);
 	--color-panel: hsla(0, 0%, 100%, 1);
-	--color-text-1: hsla(0, 0%, 0%, 1);
-	--color-text-2: hsla(212, 9%, 43%, 1);
-	--color-hover: hsl(0, 0%, 0%, 4.3%);
+	--color-text-1: hsla(204, 8%, 5%, 1);
+	--color-text-2: hsl(204, 4%, 50%);
+	--color-low: hsl(204, 16%, 94%);
+	--color-hover: hsl(204, 16%, 5%, 4.5%);
 	--color-primary: hsla(214, 84%, 56%, 1);
-	--color-secondary: hsla(0, 0%, 95%, 1);
+	--color-secondary: rgb(255, 255, 255);
 	--color-accent-1: hsl(50, 91%, 70%);
 	--color-accent-2: hsl(28, 88%, 57%);
 	--color-accent-3: hsl(135, 59%, 49%);
 	--color-warn: hsl(0, 88%, 57%);
-	--color-border: hsl(0, 0%, 80%);
-	--color-overlay: hsla(0, 0%, 0%, 0.1);
+	--color-border: hsl(204, 16%, 85%);
+	--color-overlay: hsla(204, 16%, 5%, 1%);
 	/* Spacing */
 	/* Border radii */
 	--radius-1: 2px;
@@ -137,15 +139,17 @@ body * {
 	font-family: var(--font-ui);
 	color: var(--color-text-1);
 	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
 }
 
-.tla_text_ui__section_title {
+.tla_text_ui__section {
 	font-size: 12px;
 	line-height: 1.3;
-	font-weight: 600;
+	font-weight: 500;
 	font-family: var(--font-ui);
 	color: var(--color-text-2);
 	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
 }
 
 .tla_text_ui__regular {
@@ -155,15 +159,17 @@ body * {
 	font-family: var(--font-ui);
 	color: var(--color-text-1);
 	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
 }
 
 .tla_text_ui__small {
-	font-size: 12px;
+	font-size: 11px;
 	line-height: 1.3;
 	font-weight: 500;
 	font-family: var(--font-ui);
 	color: var(--color-text-2);
 	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
 }
 
 .tla_text_ui__big {
@@ -177,10 +183,12 @@ body * {
 /* ---------------------- Icons --------------------- */
 
 .tla_icon {
+	position: relative;
 	flex-shrink: 0;
 	background-color: currentColor;
 	height: 15px;
 	width: 15px;
+	z-index: 1;
 }
 
 .tla_icon_wrapper {
@@ -423,7 +431,7 @@ body * {
 		bottom: 4px;
 		border-radius: 4px;
 		background-color: var(--color-hover);
-		z-index: -1;
+		z-index: 0;
 		pointer-events: none;
 	}
 }
@@ -531,7 +539,7 @@ want centered content that docks to the top when the window is short
 	bottom: 4px;
 	border-radius: 4px;
 	background-color: var(--color-hover);
-	z-index: -1;
+	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;
 }
@@ -578,7 +586,8 @@ want centered content that docks to the top when the window is short
 	display: none;
 	flex: 0 0 auto;
 	padding: 0px 12px;
-	border-right: 1px solid var(--color-border);
+	background: var(--color-panel);
+	border-right: 1px solid var(--color-low);
 }
 
 .tla_sidebar__top,
@@ -586,7 +595,6 @@ want centered content that docks to the top when the window is short
 	display: flex;
 	flex-direction: column;
 	flex: 0 0 auto;
-	overflow: hidden;
 }
 
 .tla_sidebar__content {
@@ -613,7 +621,7 @@ want centered content that docks to the top when the window is short
 	bottom: 2px;
 	border-radius: 4px;
 	background-color: var(--color-hover);
-	z-index: -1;
+	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;
 }
@@ -631,19 +639,28 @@ want centered content that docks to the top when the window is short
 	right: 0px;
 }
 
+.tla_sidebar__create::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	border-radius: 4px;
+	pointer-events: none;
+	z-index: 0;
+	visibility: hidden;
+}
+
 @media (hover: hover) {
-	.tla_sidebar__create:hover::after {
-		display: block;
-		content: '';
-		position: absolute;
-		top: 4px;
-		left: 4px;
-		right: 4px;
-		bottom: 4px;
-		border-radius: 4px;
-		background-color: var(--color-hover);
-		pointer-events: none;
-		z-index: -1;
+	.tla_sidebar:hover .tla_sidebar__create:hover {
+		color: var(--color-panel);
+	}
+
+	.tla_sidebar:hover .tla_sidebar__create:hover::after {
+		visibility: visible;
+		background-color: var(--color-primary);
 	}
 }
 
@@ -655,9 +672,11 @@ want centered content that docks to the top when the window is short
 	padding-right: 4px;
 }
 
+.tla_sidebar__user,
 .tla_sidebar__workspace {
 	position: relative;
-	width: 100%;
+	margin: 0px -8px;
+	padding: 0px 8px;
 	height: 40px;
 	display: flex;
 	flex-direction: row;
@@ -665,20 +684,6 @@ want centered content that docks to the top when the window is short
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-}
-
-.tla_sidebar__user {
-	position: relative;
-	width: 100%;
-	height: 40px;
-	padding-right: 4px;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	flex: 0 0 auto;
 }
 
 .tla_sidebar__main-link {
@@ -780,10 +785,7 @@ want centered content that docks to the top when the window is short
 	color: var(--color-text-2);
 }
 
-.tla_sidebar__tabs_tab[data-active='true'] {
-	color: var(--color-text-1);
-}
-.tla_sidebar__tabs_tab[data-active='true']::after {
+.tla_sidebar__tabs_tab::after {
 	content: '';
 	display: block;
 	position: absolute;
@@ -791,8 +793,16 @@ want centered content that docks to the top when the window is short
 	left: 8px;
 	right: 8px;
 	height: 2px;
-	z-index: 2;
+	z-index: 3;
 	background-color: var(--color-text-1);
+	visibility: hidden;
+}
+
+.tla_sidebar__tabs_tab[data-active='true'] {
+	color: var(--color-text-1);
+}
+.tla_sidebar__tabs_tab[data-active='true']::after {
+	visibility: visible;
 }
 
 .tla_sidebar__line {
@@ -891,37 +901,49 @@ want centered content that docks to the top when the window is short
 	display: flex;
 	flex-direction: column;
 	width: 100%;
+	gap: 20px;
 }
 
 .tla_page__list_item {
 	position: relative;
-	width: 100%;
+	margin: 0px -12px;
+	z-index: 1;
+}
+
+.tla_page__list_item_content {
+	position: relative;
 	display: flex;
-	padding: 12px 0px 12px 12px;
 	flex-direction: row;
 	align-items: center;
-	justify-content: space-between;
-	padding-left: 0;
+	width: 100%;
+	height: 100%;
+	border-radius: 2px;
+	background-color: var(--color-panel);
+	border: 1px solid var(--color-border);
+	z-index: 1;
 }
 
 .tla_page__list_item::after {
 	content: '';
 	display: 'block';
 	position: absolute;
-	top: 2px;
-	left: -8px;
-	right: -8px;
-	bottom: 2px;
+	top: -6px;
+	left: -6px;
+	right: -6px;
+	bottom: -6px;
 	background-color: var(--color-hover);
-	border-radius: 8px;
+	border-radius: 6px;
 	visibility: hidden;
-	z-index: 1;
+	pointer-events: none;
+	z-index: 0;
 }
 
 .tla_page__list_item_left {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	flex: 1 0 auto;
+	gap: 8px;
+	padding: 12px;
 }
 
 .tla_page__list_item_right {
@@ -929,6 +951,16 @@ want centered content that docks to the top when the window is short
 	flex-direction: row;
 	align-items: center;
 	justify-content: flex-end;
+	padding: 12px 4px 12px 0px;
+}
+
+.tla_page__list_item_thumbnail {
+	width: 112px;
+	height: 64px;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	border-right: 1px solid var(--color-low);
 }
 
 /* -------------------- Grid item ------------------- */
@@ -961,6 +993,7 @@ want centered content that docks to the top when the window is short
 	left: -6px;
 	background-color: var(--color-hover);
 	border-radius: 6px;
+	pointer-events: none;
 	visibility: hidden;
 	z-index: 1;
 }
@@ -1011,8 +1044,8 @@ want centered content that docks to the top when the window is short
 }
 .tla_page__grid_item > .tla_page__item_menu {
 	position: absolute;
-	top: 36px;
-	right: 0px;
+	top: 0px;
+	right: 32px;
 }
 
 @media (hover: hover) {
@@ -1110,7 +1143,8 @@ want centered content that docks to the top when the window is short
 	bottom: 2px;
 	background-color: var(--color-hover);
 	border-radius: 4px;
-	z-index: -1;
+	z-index: 0;
+	pointer-events: none;
 	visibility: hidden;
 }
 
@@ -1149,6 +1183,7 @@ want centered content that docks to the top when the window is short
 	justify-content: center;
 	gap: 4px;
 	color: var(--color-text-2);
+	pointer-events: none;
 }
 
 @media (hover: hover) {

@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
+import { useLocalThumbnail } from '../hooks/useLocalThumbnail'
 import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
 import { TldrawAppStarRecordType } from '../utils/tla/schema/TldrawAppStar'
-import { getCleanId } from '../utils/tla/tldrawApp'
+import { getFileUrl } from '../utils/tla/urls'
 import { TlaIcon } from './TlaIcon'
 
 export function TlaFileListItem({ id, name, createdAt, workspaceId }: TldrawAppFile) {
@@ -18,46 +19,51 @@ export function TlaFileListItem({ id, name, createdAt, workspaceId }: TldrawAppF
 		[id, app]
 	)
 
+	const imageUrl = useLocalThumbnail(id)
+
 	return (
 		<div className="tla_page__list_item">
-			<div className="tla_page__list_item_left">
-				<div className="tla_page__item_title tla_text_ui__regular">
-					{name || new Date(createdAt).toLocaleString('en-gb')}
+			<div className="tla_page__list_item_content">
+				<div
+					className="tla_page__list_item_thumbnail"
+					style={{ backgroundImage: `url(${imageUrl})` }}
+				/>
+				<Link to={getFileUrl(workspaceId, id)} className="tla_page__item_link" />
+				<div className="tla_page__list_item_left">
+					<div className="tla_page__item_title tla_text_ui__regular">
+						{name || new Date(createdAt).toLocaleString('en-gb')}
+					</div>
+					<div className="tla_page__item_details tla_text_ui__small">
+						<div>Last edited 2 hours ago</div>
+						<div className="tla_page__item_collaborators" />
+					</div>
 				</div>
-				<div className="tla_page__item_details tla_text_ui__small">
-					<div>Last edited 2 hours ago</div>
-					<div className="tla_page__item_collaborators" />
+				<div className="tla_page__list_item_right">
+					<button className="tla_page__item_menu">
+						<TlaIcon icon="more" />
+					</button>
+					<button
+						className="tla_page__item_star"
+						data-starred={!!star}
+						onClick={() => {
+							if (star) {
+								app.store.remove([star.id])
+							} else {
+								const { auth } = app.getSessionState()
+								if (!auth) return false
+								app.store.put([
+									TldrawAppStarRecordType.create({
+										fileId: id,
+										userId: auth.userId,
+										workspaceId: workspaceId,
+									}),
+								])
+							}
+						}}
+					>
+						<TlaIcon icon={star ? 'star-fill' : 'star'} />
+					</button>
 				</div>
-			</div>
-			<Link
-				to={`/${getCleanId(workspaceId)}/f/${getCleanId(id)}`}
-				className="tla_page__item_link"
-			/>
-			<div className="tla_page__list_item_right">
-				<button className="tla_page__item_menu">
-					<TlaIcon icon="more" />
-				</button>
-				<button
-					className="tla_page__item_star"
-					data-starred={!!star}
-					onClick={() => {
-						if (star) {
-							app.store.remove([star.id])
-						} else {
-							const { auth } = app.getSessionState()
-							if (!auth) return false
-							app.store.put([
-								TldrawAppStarRecordType.create({
-									fileId: id,
-									userId: auth.userId,
-									workspaceId: workspaceId,
-								}),
-							])
-						}
-					}}
-				>
-					<TlaIcon icon={star ? 'star-fill' : 'star'} />
-				</button>
 			</div>
 		</div>
 	)

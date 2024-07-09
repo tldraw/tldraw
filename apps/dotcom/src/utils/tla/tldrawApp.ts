@@ -54,14 +54,30 @@ export class TldrawApp {
 		if (currentView.search.length) {
 			const query = currentView.search.toLowerCase()
 			filteredFiles = files.filter((file) =>
-				(file.name || new Date(file.createdAt).toLocaleString('en-gb'))
-					.toLowerCase()
-					.includes(query)
+				TldrawApp.getFileName(file).toLowerCase().includes(query)
 			)
 		}
 
 		// Sort the filtered files
 		switch (currentView.sort) {
+			case 'atoz': {
+				// a to z
+				filteredFiles.sort((a, b) => {
+					const nameA = TldrawApp.getFileName(a)
+					const nameB = TldrawApp.getFileName(b)
+					return nameA.localeCompare(nameB)
+				})
+				break
+			}
+			case 'ztoa': {
+				// z to a
+				filteredFiles.sort((a, b) => {
+					const nameA = TldrawApp.getFileName(a)
+					const nameB = TldrawApp.getFileName(b)
+					return nameB.localeCompare(nameA)
+				})
+				break
+			}
 			case 'newest': {
 				// newest created files first
 				filteredFiles.sort((a, b) => b.createdAt - a.createdAt)
@@ -446,6 +462,10 @@ export class TldrawApp {
 	}
 
 	static SessionStateId = TldrawAppSessionStateRecordType.createId('0')
+
+	static getFileName = (file: TldrawAppFile) => {
+		return file.name || new Date(file.createdAt).toLocaleString('en-gb')
+	}
 }
 
 export function getCleanId(id: string) {
