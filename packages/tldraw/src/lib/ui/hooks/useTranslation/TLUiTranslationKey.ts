@@ -87,6 +87,8 @@ export type TLUiTranslationKey =
 	| 'action.toggle-auto-size'
 	| 'action.toggle-dark-mode.menu'
 	| 'action.toggle-dark-mode'
+	| 'action.toggle-paste-at-cursor.menu'
+	| 'action.toggle-paste-at-cursor'
 	| 'action.toggle-wrap-mode.menu'
 	| 'action.toggle-wrap-mode'
 	| 'action.toggle-reduce-motion.menu'

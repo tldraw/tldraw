@@ -724,6 +724,7 @@ export const defaultUserPreferences: Readonly<{
     isWrapMode: false;
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
+    pasteAtCursor: false;
 }>;
 
 // @public
@@ -3371,6 +3372,8 @@ export interface TLUserPreferences {
     locale?: null | string;
     // (undocumented)
     name?: null | string;
+    // (undocumented)
+    pasteAtCursor?: boolean | null;
 }
 
 // @public (undocumented)
@@ -3479,6 +3482,8 @@ export class UserPreferencesManager {
     getLocale(): string;
     // (undocumented)
     getName(): string;
+    // (undocumented)
+    getPasteAtCursor(): boolean;
     // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;

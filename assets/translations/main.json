@@ -83,6 +83,8 @@
 	"action.toggle-auto-size": "Toggle auto size",
 	"action.toggle-dark-mode.menu": "Dark mode",
 	"action.toggle-dark-mode": "Toggle dark mode",
+	"action.toggle-paste-at-cursor.menu": "Paste at cursor",
+	"action.toggle-paste-at-cursor": "Toggle paste at cursor",
 	"action.toggle-wrap-mode.menu": "Select on wrap",
 	"action.toggle-wrap-mode": "Toggle Select on wrap",
 	"action.toggle-reduce-motion.menu": "Reduce motion",

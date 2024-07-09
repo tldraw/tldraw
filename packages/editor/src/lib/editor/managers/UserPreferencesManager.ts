@@ -97,4 +97,8 @@ export class UserPreferencesManager {
 			this.user.userPreferences.get().isDynamicSizeMode ?? defaultUserPreferences.isDynamicSizeMode
 		)
 	}
+
+	@computed getPasteAtCursor() {
+		return this.user.userPreferences.get().pasteAtCursor ?? defaultUserPreferences.pasteAtCursor
+	}
 }

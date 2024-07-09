@@ -626,6 +626,14 @@ export function ToggleDynamicSizeModeItem() {
 	)
 }
 
+/** @public @react */
+export function TogglePasteAtCursorItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const pasteAtCursor = useValue('paste at cursor', () => editor.user.getPasteAtCursor(), [editor])
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-paste-at-cursor']} checked={pasteAtCursor} />
+}
+
 /* ---------------------- Print --------------------- */
 /** @public @react */
 export function PrintItem() {

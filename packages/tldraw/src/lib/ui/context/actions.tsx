@@ -1150,6 +1150,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-paste-at-cursor',
+				label: {
+					default: 'action.toggle-paste-at-cursor',
+					menu: 'action.toggle-paste-at-cursor.menu',
+				},
+				readonlyOk: false,
+				onSelect(source) {
+					trackEvent('toggle-paste-at-cursor', { source })
+					editor.user.updateUserPreferences({
+						pasteAtCursor: !editor.user.getPasteAtCursor(),
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-reduce-motion',
 				label: {
 					default: 'action.toggle-reduce-motion',
