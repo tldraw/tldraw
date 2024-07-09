@@ -1,4 +1,4 @@
-import { useMultiplayerDemo } from '@tldraw/sync-react'
+import { useMultiplayerDemo } from '@tldraw/sync'
 import { Tldraw } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 

@@ -1,5 +1,5 @@
 import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
-import { useMultiplayerSync } from '@tldraw/sync-react'
+import { useMultiplayerSync } from '@tldraw/sync'
 import { useCallback } from 'react'
 import {
 	DefaultHelpMenu,
