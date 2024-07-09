@@ -98,7 +98,10 @@ export class UserPreferencesManager {
 		)
 	}
 
-	@computed getPasteAtCursor() {
-		return this.user.userPreferences.get().pasteAtCursor ?? defaultUserPreferences.pasteAtCursor
+	@computed getIsPasteAtCursorMode() {
+		return (
+			this.user.userPreferences.get().isPasteAtCursorMode ??
+			defaultUserPreferences.isPasteAtCursorMode
+		)
 	}
 }

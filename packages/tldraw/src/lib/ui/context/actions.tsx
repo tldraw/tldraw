@@ -1159,7 +1159,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-paste-at-cursor', { source })
 					editor.user.updateUserPreferences({
-						pasteAtCursor: !editor.user.getPasteAtCursor(),
+						isPasteAtCursorMode: !editor.user.getIsPasteAtCursorMode(),
 					})
 				},
 				checkbox: true,
