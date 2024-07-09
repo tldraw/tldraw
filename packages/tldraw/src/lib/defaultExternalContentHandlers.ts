@@ -269,12 +269,10 @@ export function registerDefaultExternalContentHandlers(
 		await Promise.all(
 			files.map(async (file, i) => {
 				if (file.size > maxAssetSize) {
-					if (file.size > maxAssetSize) {
-						toasts.addToast({
-							title: msg('assets.files.size-too-big'),
-							severity: 'error',
-						})
-					}
+					toasts.addToast({
+						title: msg('assets.files.size-too-big'),
+						severity: 'error',
+					})
 
 					console.warn(
 						`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
