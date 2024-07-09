@@ -17,6 +17,8 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	ViewSubmenu,
+	getFromLocalStorage,
+	setInLocalStorage,
 	useActions,
 } from 'tldraw'
 import { LocalFileMenu } from '../components/FileMenu'
@@ -94,11 +96,40 @@ export function TlaEditor({ file }: { file: TldrawAppFile }) {
 	const sharingUiOverrides = useSharing(persistenceKey)
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
-	const handleMount = useCallback((editor: Editor) => {
-		;(window as any).app = editor
-		;(window as any).editor = editor
-		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	}, [])
+	const handleMount = useCallback(
+		(editor: Editor) => {
+			;(window as any).app = editor
+			;(window as any).editor = editor
+			editor.registerExternalAssetHandler('url', createAssetFromUrl)
+
+			// If there's no thumbnail in local storage, save one immediately
+			const prev = getFromLocalStorage(`thumbnail_${file.id}`)
+			if (!prev) {
+				editor.getSvgString(editor.getCurrentPageShapes()).then((svg) => {
+					setInLocalStorage(`thumbnail_${file.id}`, JSON.stringify(svg))
+				})
+			}
+
+			// Then save thumbnails when the editor changes (minimum ten seconds since last save)
+			let lastThumbnailTime = -1
+			let state = 'idle'
+			const SNAPSHOT_INTERVAL = 10000
+			editor.on('change', () => {
+				if (state === 'idle') {
+					const now = Date.now()
+					if (now - lastThumbnailTime > SNAPSHOT_INTERVAL) {
+						lastThumbnailTime = now
+						state = 'saving'
+						editor.getSvgString(editor.getCurrentPageShapes()).then((svg) => {
+							setInLocalStorage(`thumbnail_${file.id}`, JSON.stringify(svg))
+							state = 'idle'
+						})
+					}
+				}
+			})
+		},
+		[file.id]
+	)
 
 	return (
 		<div className="tldraw__editor">

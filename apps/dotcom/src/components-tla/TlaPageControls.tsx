@@ -19,18 +19,6 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 			const currentView = sessionState.views[viewName]
 			if (currentView) return currentView
 
-			app.setSessionState({
-				...sessionState,
-				views: {
-					...sessionState.views,
-					[viewName]: {
-						sort: 'recent',
-						view: 'grid',
-						search: '',
-					},
-				},
-			})
-
 			return {
 				sort: 'recent',
 				view: 'grid',

@@ -215,6 +215,16 @@ export class TldrawApp {
 		return this.getAll('file').filter((f) => f.workspaceId === workspaceId && f.owner === groupId)
 	}
 
+	createFile(owner: TldrawAppUserId | TldrawAppGroupId, workspaceId: TldrawAppWorkspaceId) {
+		const file = TldrawAppFileRecordType.create({
+			workspaceId,
+			owner,
+		})
+
+		this.store.put([file])
+		return file
+	}
+
 	logVisit(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId, fileId: TldrawAppFileId) {
 		this.store.put([
 			TldrawAppVisitRecordType.create({

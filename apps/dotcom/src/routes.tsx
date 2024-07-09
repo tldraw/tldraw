@@ -121,7 +121,20 @@ function RedirectToMostRecentFile() {
 		() => {
 			const session = app.getSessionState()
 			if (!session.auth) return
-			return app.getUserFiles(session.auth.userId, session.auth.workspaceId)[0]
+
+			// First, try to bring back the most recently visited file
+			const recentFiles = app.getUserRecentFiles(session.auth.userId, session.auth.workspaceId)
+			if (recentFiles.length) return recentFiles[0].file
+
+			// If there's no visit, get the most recently created file for the user
+			const files = app
+				.getUserFiles(session.auth.userId, session.auth.workspaceId)
+				.sort((a, b) => b.createdAt - a.createdAt)
+			if (files.length) return files[0]
+
+			// If for some reason there's no file at all for this user, create one
+			const file = app.createFile(session.auth.userId, session.auth.workspaceId)
+			return file
 		},
 		[app]
 	)

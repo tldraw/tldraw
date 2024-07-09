@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useValue } from 'tldraw'
+import { TldrawImage, useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
+import { loadDataFromStore } from '../utils/tla/local-sync'
 import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
 import { TldrawAppStarRecordType } from '../utils/tla/schema/TldrawAppStar'
 import { getCleanId } from '../utils/tla/tldrawApp'
@@ -18,9 +20,23 @@ export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppF
 		[id, app]
 	)
 
+	const [snapshot, setSnapshot] = useState(null)
+
+	useEffect(() => {
+		let didDispose = false
+		loadDataFromStore({
+			persistenceKey: `tla_1_${id}`,
+			didCancel: () => didDispose,
+		})
+		return () => {
+			didDispose = true
+		}
+	})
+
 	return (
 		<div className="tla_page__grid_item">
 			<div className="tla_page__grid_item_top">
+				{snapshot && <TldrawImage snapshot={snapshot} />}
 				<div className="tla_page__grid_item_thumbnail" />
 			</div>
 			<div className="tla_page__grid_item_bottom">

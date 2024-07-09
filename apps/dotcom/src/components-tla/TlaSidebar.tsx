@@ -226,9 +226,9 @@ function SidebarRecentFiles() {
 		() => {
 			const { auth } = app.getSessionState()
 			if (!auth) return false
-			return app.getUserFiles(auth.userId, auth.workspaceId).sort((a, b) => {
-				return b.createdAt - a.createdAt
-			})
+			return app
+				.getUserFiles(auth.userId, auth.workspaceId)
+				.sort((a, b) => b.createdAt - a.createdAt)
 		},
 		[app]
 	)
