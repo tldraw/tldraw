@@ -89,7 +89,7 @@ const components: TLComponents = {
 export function TlaEditor({ file }: { file: TldrawAppFile }) {
 	const handleUiEvent = useHandleUiEvents()
 
-	const persistenceKey = `tla_1_${file.id}`
+	const persistenceKey = `tla_2_${file.id}`
 
 	const sharingUiOverrides = useSharing(persistenceKey)
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })

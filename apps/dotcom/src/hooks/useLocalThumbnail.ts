@@ -21,12 +21,10 @@ export function useLocalThumbnail(id: string) {
 		loadDataFromStore({
 			storePrefix: 'TLDRAW_DOCUMENT_v2',
 			indexKey: 'TLDRAW_DB_NAME_INDEX_v2',
-			persistenceKey: `tla_1_${id}`,
+			persistenceKey: `tla_2_${id}`,
 			didCancel: () => didDispose,
 		}).then(async (data) => {
 			if (!data) return
-
-			console.log(data)
 
 			const snapshot = {
 				store: Object.fromEntries((data.records as TLRecord[]).map((r) => [r.id, r])),

@@ -5,7 +5,7 @@ import { useWorkspace } from '../tla-hooks/useWorkspace'
 import { TldrawAppFile, TldrawAppFileRecordType } from '../utils/tla/schema/TldrawAppFile'
 import { TldrawAppGroup } from '../utils/tla/schema/TldrawAppGroup'
 import { TldrawAppUser } from '../utils/tla/schema/TldrawAppUser'
-import { getCleanId } from '../utils/tla/tldrawApp'
+import { TldrawApp, getCleanId } from '../utils/tla/tldrawApp'
 import { getFileUrl, getPageUrl } from '../utils/tla/urls'
 import { TlaAvatar } from './TlaAvatar'
 import { TlaIcon } from './TlaIcon'
@@ -118,7 +118,7 @@ function SidebarTabs() {
 
 	return (
 		<div className="tla_sidebar__tabs">
-			<SidebarCreateButton />
+			{sidebarActiveTab === 'recent' && <SidebarCreateButton />}
 			<div className="tla_sidebar__line" />
 			<button
 				className="tla_sidebar__tabs_tab tla_text_ui__regular"
@@ -210,9 +210,7 @@ function SidebarFileLink({ file }: { file: TldrawAppFile }) {
 	const isActive = fileId === getCleanId(id)
 	return (
 		<div className="tla_sidebar__section_link tla_hoverable" data-active={isActive}>
-			<div className="tla_sidebar__label tla_text_ui__regular">
-				{file.name || new Date(file.createdAt).toLocaleString('en-gb')}
-			</div>
+			<div className="tla_sidebar__label tla_text_ui__regular">{TldrawApp.getFileName(file)}</div>
 			<Link to={getFileUrl(workspaceId, id)} className="tla_sidebar__link-button" />
 			<button className="tla_sidebar__link-menu">
 				<TlaIcon icon="more" />
@@ -288,6 +286,8 @@ function SidebarGroups() {
 	)
 	if (!groups) throw Error('Could not get groups')
 
+	console.log(groups)
+
 	return (
 		<>
 			{groups.map((group) => (
@@ -313,7 +313,10 @@ function SidebarGroup({ id, name }: TldrawAppGroup) {
 	return (
 		<div className="tla_sidebar__section">
 			<TlaSpacer height="20" />
-			<div className="tla_sidebar__section_title tla_text_ui__section">{name}</div>
+			<div className="tla_sidebar__section_title tla_text_ui__section">
+				{name}
+				<SidebarCreateButton />
+			</div>
 			{files.map((file) => (
 				<SidebarFileLink key={'group_' + file.id} file={file} />
 			))}

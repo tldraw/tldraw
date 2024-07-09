@@ -7,6 +7,8 @@ import { TlaSpacer } from '../components-tla/TlaSpacer'
 import { TlaWrapperWithSidebar } from '../components-tla/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
 
+const VIEW_NAME = 'drafts'
+
 export function Component() {
 	const app = useApp()
 
@@ -16,7 +18,7 @@ export function Component() {
 			const { auth } = app.getSessionState()
 			if (!auth) return false
 			const files = app.getUserFiles(auth.userId, auth.workspaceId)
-			return app.getSortedFilteredFiles('drafts', files)
+			return app.getSortedFilteredFiles(VIEW_NAME, files)
 		},
 		[app]
 	)
@@ -33,9 +35,9 @@ export function Component() {
 					</TlaButton>
 				</div>
 				<TlaSpacer height={40} />
-				<TlaPageControls viewName="drafts" />
+				<TlaPageControls viewName={VIEW_NAME} />
 				<TlaSpacer height="20" />
-				<TlaFileList files={files} viewName="drafts" />
+				<TlaFileList files={files} viewName={VIEW_NAME} />
 			</div>
 		</TlaWrapperWithSidebar>
 	)

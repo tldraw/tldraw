@@ -12,8 +12,9 @@ export function Component() {
 		() => {
 			const { auth } = app.getSessionState()
 			if (!auth) return
-			const files = app.getUserSharedFiles(auth.userId, auth.workspaceId)
-			return app.getSortedFilteredFiles('shared', files)
+			const groups = app.getUserGroups(auth.userId, auth.workspaceId)
+			// todo: sort, filter
+			return groups
 		},
 		[app]
 	)

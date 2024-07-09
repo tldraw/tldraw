@@ -10,6 +10,12 @@ import {
 import { TldrawAppUserId } from './TldrawAppUser'
 import { TldrawAppWorkspaceId } from './TldrawAppWorkspace'
 
+export interface TldrawAppViewState {
+	sort: 'recent' | 'newest' | 'oldest' | 'atoz' | 'ztoa'
+	view: 'grid' | 'list'
+	search: string
+}
+
 export interface TldrawAppSessionState
 	extends BaseRecord<'session', RecordId<TldrawAppSessionState>> {
 	isSidebarOpen: boolean
@@ -19,11 +25,7 @@ export interface TldrawAppSessionState
 	}
 	sidebarActiveTab: 'recent' | 'groups'
 	views: {
-		[key: string]: {
-			sort: 'recent' | 'newest' | 'oldest' | 'atoz' | 'ztoa'
-			view: 'grid' | 'list'
-			search: string
-		}
+		[key: string]: TldrawAppViewState
 	}
 }
 

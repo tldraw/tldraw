@@ -7,7 +7,7 @@
 	--color-canvas: hsl(210, 20%, 98%);
 	--color-panel: hsla(0, 0%, 100%, 1);
 	--color-text-1: hsla(204, 8%, 5%, 1);
-	--color-text-2: hsl(204, 4%, 50%);
+	--color-text-2: hsl(204, 4%, 45%);
 	--color-low: hsl(204, 16%, 94%);
 	--color-hover: hsl(204, 16%, 5%, 4.5%);
 	--color-primary: hsla(214, 84%, 56%, 1);
@@ -651,9 +651,14 @@ want centered content that docks to the top when the window is short
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
+	background-color: var(--color-hover);
 }
 
 @media (hover: hover) {
+	.tla_sidebar:hover .tla_sidebar__create:hover::after {
+		visibility: visible;
+	}
+	/* 	
 	.tla_sidebar:hover .tla_sidebar__create:hover {
 		color: var(--color-panel);
 	}
@@ -661,7 +666,7 @@ want centered content that docks to the top when the window is short
 	.tla_sidebar:hover .tla_sidebar__create:hover::after {
 		visibility: visible;
 		background-color: var(--color-primary);
-	}
+	} */
 }
 
 .tla_sidebar__label {
@@ -828,7 +833,7 @@ want centered content that docks to the top when the window is short
 	height: 24px;
 	border-radius: 50%;
 	overflow: hidden;
-	background-color: var(--color-secondary);
+	background-color: var(--color-accent-2);
 }
 
 .tla-avatar[data-size='s'] {

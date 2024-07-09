@@ -322,19 +322,27 @@ export class TldrawApp {
 			name: 'Group 2',
 		})
 
+		const groupMembership1 = TldrawAppGroupMembershipRecordType.create({
+			id: TldrawAppGroupMembershipRecordType.createId('0'),
+			workspaceId: workspace.id,
+			userId: user.id,
+			groupId: group1.id,
+			createdAt: Date.now(),
+		})
+
+		const groupMembership2 = TldrawAppGroupMembershipRecordType.create({
+			id: TldrawAppGroupMembershipRecordType.createId('1'),
+			workspaceId: workspace.id,
+			userId: user.id,
+			groupId: group2.id,
+			createdAt: Date.now(),
+		})
+
 		const star = TldrawAppStarRecordType.create({
 			id: TldrawAppStarRecordType.createId('0'),
 			workspaceId: workspace.id,
 			userId: user.id,
 			fileId: TldrawAppFileRecordType.createId('0'),
-			createdAt: Date.now(),
-		})
-
-		const groupMembership = TldrawAppGroupMembershipRecordType.create({
-			id: TldrawAppGroupMembershipRecordType.createId('0'),
-			workspaceId: workspace.id,
-			userId: user.id,
-			groupId: group1.id,
 			createdAt: Date.now(),
 		})
 
@@ -418,6 +426,12 @@ export class TldrawApp {
 				owner: group2.id,
 				createdAt: Date.now() - day * 3,
 			}),
+			TldrawAppFileRecordType.create({
+				id: TldrawAppFileRecordType.createId('11'),
+				workspaceId: workspace.id,
+				owner: group2.id,
+				createdAt: Date.now() - day * 3,
+			}),
 		]
 
 		const session = TldrawAppSessionStateRecordType.create({
@@ -432,10 +446,17 @@ export class TldrawApp {
 			id: 'tla',
 			schema: tldrawAppSchema,
 			initialData: Object.fromEntries(
-				[user, workspace, group1, group2, star, groupMembership, ...files, session].map((r) => [
-					r.id,
-					r,
-				])
+				[
+					user,
+					workspace,
+					group1,
+					group2,
+					star,
+					groupMembership1,
+					groupMembership2,
+					...files,
+					session,
+				].map((r) => [r.id, r])
 			),
 			props: {},
 		})

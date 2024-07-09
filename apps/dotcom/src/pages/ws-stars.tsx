@@ -6,6 +6,8 @@ import { TlaSpacer } from '../components-tla/TlaSpacer'
 import { TlaWrapperWithSidebar } from '../components-tla/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
 
+const VIEW_NAME = 'star'
+
 export function Component() {
 	const app = useApp()
 	const files = useValue(
@@ -14,7 +16,7 @@ export function Component() {
 			const { auth } = app.getSessionState()
 			if (!auth) return false
 			const files = app.getUserStarredFiles(auth.userId, auth.workspaceId)
-			return app.getSortedFilteredFiles('star', files)
+			return app.getSortedFilteredFiles(VIEW_NAME, files)
 		},
 		[app]
 	)
@@ -27,9 +29,9 @@ export function Component() {
 					<h2 className="tla_text_ui__big">Starred</h2>
 				</div>
 				<TlaSpacer height={40} />
-				<TlaPageControls viewName="stars" />
+				<TlaPageControls viewName={VIEW_NAME} />
 				<TlaSpacer height="20" />
-				<TlaFileList files={files} viewName="star" />
+				<TlaFileList files={files} viewName={VIEW_NAME} />
 			</div>
 		</TlaWrapperWithSidebar>
 	)
