@@ -2071,7 +2071,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed
-	private getCameraId() {
+	private _unsafe_getCameraId() {
 		return CameraRecordType.createId(this.getCurrentPageId())
 	}
 
@@ -2081,7 +2081,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCamera(): TLCamera {
-		const baseCamera = this.store.get(this.getCameraId())!
+		const baseCamera = this.store.get(this._unsafe_getCameraId())!
 		if (this._isLockedOnFollowingUser.get()) {
 			const followingCamera = this.getCameraForFollowing()
 			if (followingCamera) {
@@ -8333,7 +8333,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		} = this.inputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz } = this.store.unsafeGetWithoutCapture(this.getCameraId())!
+		const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
 		const sx = info.point.x - screenBounds.x
 		const sy = info.point.y - screenBounds.y
