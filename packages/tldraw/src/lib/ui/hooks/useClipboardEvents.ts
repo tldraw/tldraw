@@ -672,19 +672,16 @@ export function useNativeClipboardEvents() {
 
 			// Where should the shapes go?
 			let point: Vec | undefined = undefined
-			if (editor.user.getIsPasteAtCursorMode()) {
-				// when IN paste at cursor mode, the shapes will paste at the user's cursor
-				// UNLESS the user is pressing the shift key
-				if (!editor.inputs.shiftKey) {
-					point = editor.inputs.currentPagePoint
-				}
-			} else {
-				// when NOT in paste at cursor mode, the shapes will paste at the user's cursor
-				// ONLY IF the user is pressing the shift key
-				if (editor.inputs.shiftKey) {
-					point = editor.inputs.currentPagePoint
-				}
-			}
+			let pasteAtCursor = false
+
+			// | Shiftkey | Paste at cursor mode | Paste at point? |
+			// |    N 		|         N            |       N 				 |
+			// |    Y 		|         N            |       Y 				 |
+			// |    N 		|         Y            |       Y 				 |
+			// |    Y 		|         Y            |       N 				 |
+			if (editor.inputs.shiftKey) pasteAtCursor = true
+			if (editor.user.getIsPasteAtCursorMode()) pasteAtCursor = !pasteAtCursor
+			if (pasteAtCursor) point = editor.inputs.currentPagePoint
 
 			// First try to use the clipboard data on the event
 			if (e.clipboardData && !editor.inputs.shiftKey) {
