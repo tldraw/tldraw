@@ -164,55 +164,93 @@ export class TldrawApp {
 	// Complex
 
 	getWorkspaceUsers(workspaceId: TldrawAppWorkspaceId) {
-		return this.getAll('workspace-membership')
-			.filter((r) => r.workspaceId === workspaceId)
-			.map((r) => this.get(r.userId))
-			.filter(Boolean) as TldrawAppUser[]
+		return Array.from(
+			new Set(
+				this.getAll('workspace-membership')
+					.filter((r) => r.workspaceId === workspaceId)
+					.map((r) => this.get(r.userId))
+					.filter(Boolean) as TldrawAppUser[]
+			)
+		)
 	}
 
 	getWorkspaceGroups(workspaceId: TldrawAppWorkspaceId) {
-		return this.getAll('group')
-			.filter((r) => r.workspaceId === workspaceId)
-			.filter(Boolean) as TldrawAppGroup[]
+		return Array.from(
+			new Set(
+				this.getAll('group')
+					.filter((r) => r.workspaceId === workspaceId)
+					.filter(Boolean) as TldrawAppGroup[]
+			)
+		)
 	}
 
 	getUserFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
-		return this.getAll('file').filter((f) => f.workspaceId === workspaceId && f.owner === userId)
+		return Array.from(
+			new Set(
+				this.getAll('file').filter((f) => f.workspaceId === workspaceId && f.owner === userId)
+			)
+		)
 	}
 
 	getUserRecentFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
-		return this.getAll('visit')
-			.filter((r) => r.userId === userId && r.workspaceId === workspaceId)
-			.map((s) => {
-				const file = this.get<TldrawAppFile>(s.fileId)
-				if (!file) return
-				return { visit: s, file: file }
-			})
-			.filter(Boolean) as { visit: TldrawAppRecord; file: TldrawAppFile }[]
+		return Array.from(
+			new Set(
+				this.getAll('visit')
+					.filter((r) => r.userId === userId && r.workspaceId === workspaceId)
+					.map((s) => {
+						const file = this.get<TldrawAppFile>(s.fileId)
+						if (!file) return
+						return { visit: s, file: file }
+					})
+					.filter(Boolean) as { visit: TldrawAppRecord; file: TldrawAppFile }[]
+			)
+		)
 	}
 
 	getUserStarredFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
-		return this.getAll('star')
-			.filter((f) => f.workspaceId === workspaceId && f.userId === userId)
-			.map((s) => this.get(s.fileId))
-			.filter(Boolean) as TldrawAppFile[]
+		return Array.from(
+			new Set(
+				this.getAll('star')
+					.filter((f) => f.workspaceId === workspaceId && f.userId === userId)
+					.map((s) => this.get(s.fileId))
+					.filter(Boolean) as TldrawAppFile[]
+			)
+		)
 	}
 
 	getUserSharedFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
-		return this.getAll('visit')
-			.filter((f) => f.workspaceId === workspaceId && f.userId === userId)
-			.map((s) => this.get(s.fileId) as TldrawAppFile)
-			.filter((f) => f && f.owner !== userId)
+		return Array.from(
+			new Set(
+				this.getAll('visit')
+					.filter((r) => r.userId === userId && r.workspaceId === workspaceId)
+					.map((s) => {
+						const file = this.get<TldrawAppFile>(s.fileId)
+						if (!file) return
+						// skip files where the owner is the current user
+						if (file.owner === userId) return
+						return file
+					})
+					.filter(Boolean) as TldrawAppFile[]
+			)
+		)
 	}
 
 	getUserGroups(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
-		return this.getAll('group-membership')
-			.filter((f) => f.workspaceId === workspaceId && f.userId === userId)
-			.map((s) => this.get(s.groupId) as TldrawAppGroup)
+		return Array.from(
+			new Set(
+				this.getAll('group-membership')
+					.filter((f) => f.workspaceId === workspaceId && f.userId === userId)
+					.map((s) => this.get(s.groupId) as TldrawAppGroup)
+			)
+		)
 	}
 
 	getGroupFiles(groupId: TldrawAppGroupId, workspaceId: TldrawAppWorkspaceId) {
-		return this.getAll('file').filter((f) => f.workspaceId === workspaceId && f.owner === groupId)
+		return Array.from(
+			new Set(
+				this.getAll('file').filter((f) => f.workspaceId === workspaceId && f.owner === groupId)
+			)
+		)
 	}
 
 	createFile(owner: TldrawAppUserId | TldrawAppGroupId, workspaceId: TldrawAppWorkspaceId) {

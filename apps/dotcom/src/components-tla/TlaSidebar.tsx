@@ -6,6 +6,7 @@ import { TldrawAppFile, TldrawAppFileRecordType } from '../utils/tla/schema/Tldr
 import { TldrawAppGroup } from '../utils/tla/schema/TldrawAppGroup'
 import { TldrawAppUser } from '../utils/tla/schema/TldrawAppUser'
 import { getCleanId } from '../utils/tla/tldrawApp'
+import { getFileUrl, getPageUrl } from '../utils/tla/urls'
 import { TlaAvatar } from './TlaAvatar'
 import { TlaIcon } from './TlaIcon'
 import { TlaSpacer } from './TlaSpacer'
@@ -42,7 +43,7 @@ type SideBarMainLink = (typeof SIDEBAR_MAIN_LINKS)[number]
 export function TlaSidebar() {
 	return (
 		<div className="tla_sidebar">
-			<SidebarCreateButton />
+			{/* <SidebarCreateButton /> */}
 			<div className="tla_sidebar__top">
 				<SidebarWorkspaceLink />
 			</div>
@@ -79,7 +80,7 @@ function SidebarCreateButton() {
 						owner: auth.userId,
 					}),
 				])
-				navigate(`/${getCleanId(auth.workspaceId)}/f/${getCleanId(id)}`)
+				navigate(getFileUrl(auth.workspaceId, id))
 			}}
 		>
 			<TlaIcon icon="edit-strong" />
@@ -117,6 +118,7 @@ function SidebarTabs() {
 
 	return (
 		<div className="tla_sidebar__tabs">
+			<SidebarCreateButton />
 			<div className="tla_sidebar__line" />
 			<button
 				className="tla_sidebar__tabs_tab"
@@ -174,14 +176,14 @@ function SidebarMainLink({ icon, label, href }: SideBarMainLink) {
 	)
 	if (!workspaceId) throw Error('Workspace not found')
 
-	const match = useMatch(`/:workspaceId/${href}`)
+	const match = useMatch(`/w/:workspaceId/${href}`)
 
 	return (
 		<div className="tla_sidebar__main-link tla_hoverable" data-active={!!match}>
 			<div className="tla_icon_wrapper">
 				<TlaIcon icon={icon} />
 			</div>
-			<Link className="tla_sidebar__link-button" to={`/${workspaceId.split(':')[1]}/${href}`} />
+			<Link className="tla_sidebar__link-button" to={getPageUrl(workspaceId, href)} />
 			<div className="tla_sidebar__label">{label}</div>
 		</div>
 	)
@@ -208,10 +210,7 @@ function SidebarFileLink({ file }: { file: TldrawAppFile }) {
 			<div className="tla_sidebar__label">
 				{file.name || new Date(file.createdAt).toLocaleString('en-gb')}
 			</div>
-			<Link
-				to={`/${getCleanId(workspaceId)}/f/${getCleanId(id)}`}
-				className="tla_sidebar__link-button"
-			/>
+			<Link to={getFileUrl(workspaceId, id)} className="tla_sidebar__link-button" />
 			<button className="tla_sidebar__link-menu">
 				<TlaIcon icon="more" />
 			</button>

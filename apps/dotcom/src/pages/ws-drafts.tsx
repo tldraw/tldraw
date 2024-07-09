@@ -16,7 +16,7 @@ export function Component() {
 			const { auth } = app.getSessionState()
 			if (!auth) return false
 			const files = app.getUserFiles(auth.userId, auth.workspaceId)
-			return app.getSortedFilteredFiles('star', files)
+			return app.getSortedFilteredFiles('drafts', files)
 		},
 		[app]
 	)
@@ -28,7 +28,7 @@ export function Component() {
 			<div className="tla_content tla_page">
 				<div className="tla_page__header">
 					<h2 className="tla_text_ui__big">Drafts</h2>
-					<TlaButton className="tla_page__create-button" iconRight="edit">
+					<TlaButton className="tla_page__create-button" iconRight="edit-strong">
 						New
 					</TlaButton>
 				</div>

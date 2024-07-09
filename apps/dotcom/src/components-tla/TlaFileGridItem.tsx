@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { TldrawImage, useValue } from 'tldraw'
+import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
-import { loadDataFromStore } from '../utils/tla/local-sync'
+import { useLocalThumbnail } from '../hooks/useLocalThumbnail'
 import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
 import { TldrawAppStarRecordType } from '../utils/tla/schema/TldrawAppStar'
-import { getCleanId } from '../utils/tla/tldrawApp'
+import { getFileUrl } from '../utils/tla/urls'
 import { TlaIcon } from './TlaIcon'
+import { TlaSpinner } from './TlaSpinner'
 
 export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppFile) {
 	const app = useApp()
@@ -20,24 +20,19 @@ export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppF
 		[id, app]
 	)
 
-	const [snapshot, setSnapshot] = useState(null)
-
-	useEffect(() => {
-		let didDispose = false
-		loadDataFromStore({
-			persistenceKey: `tla_1_${id}`,
-			didCancel: () => didDispose,
-		})
-		return () => {
-			didDispose = true
-		}
-	})
+	const imageUrl = useLocalThumbnail(id)
 
 	return (
 		<div className="tla_page__grid_item">
 			<div className="tla_page__grid_item_top">
-				{snapshot && <TldrawImage snapshot={snapshot} />}
-				<div className="tla_page__grid_item_thumbnail" />
+				{imageUrl ? (
+					<div
+						className="tla_page__grid_item_thumbnail"
+						style={{ backgroundImage: `url(${imageUrl})` }}
+					/>
+				) : (
+					<TlaSpinner />
+				)}
 			</div>
 			<div className="tla_page__grid_item_bottom">
 				<div className="tla_page__item_title">
@@ -48,10 +43,7 @@ export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppF
 					<div className="tla_page__grid_item_collaborators" />
 				</div>
 			</div>
-			<Link
-				to={`/${getCleanId(workspaceId)}/f/${getCleanId(id)}`}
-				className="tla_page__item_link"
-			/>
+			<Link to={getFileUrl(workspaceId, id)} className="tla_page__item_link" />
 			<button
 				className="tla_page__item_star"
 				data-starred={!!star}

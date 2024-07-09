@@ -417,7 +417,7 @@ Keep seeing this message?
 }
 
 const STORE_PREFIX = 'TLDRAW_APP_ASSET_STORE_v1'
-const dbNameIndexKey = 'TLDRAW_APP_DB_NAME_INDEX_v2'
+const DB_NAME_INDEX_KEY = 'TLDRAW_APP_DB_NAME_INDEX_v2'
 
 const Table = {
 	Records: 'records',
@@ -433,14 +433,18 @@ interface LoadResult<T extends UnknownRecord = UnknownRecord> {
 	sessionStateSnapshot?: TLSessionStateSnapshot | null
 }
 
-function addDbName(name: string) {
-	const all = new Set(getAllIndexDbNames())
+function addDbName(name: string, indexKey = DB_NAME_INDEX_KEY) {
+	const all = new Set(getAllIndexDbNames(indexKey))
 	all.add(name)
-	setInLocalStorage(dbNameIndexKey, JSON.stringify([...all]))
+	setInLocalStorage(indexKey, JSON.stringify([...all]))
 }
 
-async function withDb<T>(storeId: string, cb: (db: IDBPDatabase<StoreName>) => Promise<T>) {
-	addDbName(storeId)
+async function withDb<T>(
+	storeId: string,
+	cb: (db: IDBPDatabase<StoreName>) => Promise<T>,
+	indexKey: string
+) {
+	addDbName(storeId, indexKey)
 	const db = await openDB<StoreName>(storeId, 3, {
 		upgrade(database) {
 			if (!database.objectStoreNames.contains(Table.Records)) {
@@ -462,131 +466,164 @@ async function withDb<T>(storeId: string, cb: (db: IDBPDatabase<StoreName>) => P
 }
 
 async function pruneSessionState({
+	storePrefix = STORE_PREFIX,
+	indexKey = DB_NAME_INDEX_KEY,
 	persistenceKey,
 	didCancel,
 }: {
+	indexKey?: string
+	storePrefix?: string
 	persistenceKey: string
 	didCancel?: () => boolean
 }) {
-	await withDb(STORE_PREFIX + persistenceKey, async (db) => {
-		const tx = db.transaction([Table.SessionState], 'readwrite')
-		const sessionStateStore = tx.objectStore(Table.SessionState)
-		const all = (await sessionStateStore.getAll()).sort((a, b) => a.updatedAt - b.updatedAt)
-		if (all.length < 10) {
+	await withDb(
+		storePrefix + persistenceKey,
+		async (db) => {
+			const tx = db.transaction([Table.SessionState], 'readwrite')
+			const sessionStateStore = tx.objectStore(Table.SessionState)
+			const all = (await sessionStateStore.getAll()).sort((a, b) => a.updatedAt - b.updatedAt)
+			if (all.length < 10) {
+				await tx.done
+				return
+			}
+			const toDelete = all.slice(0, all.length - 10)
+			for (const { id } of toDelete) {
+				await sessionStateStore.delete(id)
+			}
+			if (didCancel?.()) return tx.abort()
 			await tx.done
-			return
-		}
-		const toDelete = all.slice(0, all.length - 10)
-		for (const { id } of toDelete) {
-			await sessionStateStore.delete(id)
-		}
-		if (didCancel?.()) return tx.abort()
-		await tx.done
-	})
+		},
+		indexKey
+	)
 }
 
 /** @internal */
 export async function loadDataFromStore({
+	storePrefix = STORE_PREFIX,
+	indexKey = DB_NAME_INDEX_KEY,
 	persistenceKey,
 	didCancel,
 }: {
+	storePrefix?: string
+	indexKey?: string
 	persistenceKey: string
 	didCancel?: () => boolean
 }): Promise<undefined | LoadResult> {
-	const storeId = STORE_PREFIX + persistenceKey
-	if (!getAllIndexDbNames().includes(storeId)) return undefined
+	const storeId = storePrefix + persistenceKey
+	if (!getAllIndexDbNames(indexKey).includes(storeId)) return undefined
 	await pruneSessionState({ persistenceKey, didCancel })
-	return await withDb(storeId, async (db) => {
-		if (didCancel?.()) return undefined
-		const tx = db.transaction([Table.Records, Table.Schema, Table.SessionState], 'readonly')
-		const recordsStore = tx.objectStore(Table.Records)
-		const schemaStore = tx.objectStore(Table.Schema)
-		const result = {
-			records: await recordsStore.getAll(),
-			schema: await schemaStore.get(Table.Schema),
-		} satisfies LoadResult
-		if (didCancel?.()) {
-			tx.abort()
-			return undefined
-		}
-		await tx.done
-		return result
-	})
+	return await withDb(
+		storeId,
+		async (db) => {
+			if (didCancel?.()) return undefined
+			const tx = db.transaction([Table.Records, Table.Schema, Table.SessionState], 'readonly')
+			const recordsStore = tx.objectStore(Table.Records)
+			const schemaStore = tx.objectStore(Table.Schema)
+			const result = {
+				records: await recordsStore.getAll(),
+				schema: await schemaStore.get(Table.Schema),
+			} satisfies LoadResult
+			if (didCancel?.()) {
+				tx.abort()
+				return undefined
+			}
+			await tx.done
+			return result
+		},
+		indexKey
+	)
 }
 
 /** @internal */
 export async function storeChangesInIndexedDb<T extends UnknownRecord>({
+	storePrefix = STORE_PREFIX,
+	indexKey = DB_NAME_INDEX_KEY,
 	persistenceKey,
 	schema,
 	changes,
 	didCancel,
 }: {
+	storePrefix?: string
+	indexKey?: string
 	persistenceKey: string
 	schema: StoreSchema<T>
 	changes: RecordsDiff<UnknownRecord>
 	didCancel?: () => boolean
 }) {
-	const storeId = STORE_PREFIX + persistenceKey
-	await withDb(storeId, async (db) => {
-		const tx = db.transaction([Table.Records, Table.Schema, Table.SessionState], 'readwrite')
-		const recordsStore = tx.objectStore(Table.Records)
-		const schemaStore = tx.objectStore(Table.Schema)
+	const storeId = storePrefix + persistenceKey
+	await withDb(
+		storeId,
+		async (db) => {
+			const tx = db.transaction([Table.Records, Table.Schema, Table.SessionState], 'readwrite')
+			const recordsStore = tx.objectStore(Table.Records)
+			const schemaStore = tx.objectStore(Table.Schema)
 
-		for (const [id, record] of Object.entries(changes.added)) {
-			await recordsStore.put(record, id)
-		}
+			for (const [id, record] of Object.entries(changes.added)) {
+				await recordsStore.put(record, id)
+			}
 
-		for (const [_prev, updated] of Object.values(changes.updated)) {
-			await recordsStore.put(updated, updated.id)
-		}
+			for (const [_prev, updated] of Object.values(changes.updated)) {
+				await recordsStore.put(updated, updated.id)
+			}
 
-		for (const id of Object.keys(changes.removed)) {
-			await recordsStore.delete(id)
-		}
+			for (const id of Object.keys(changes.removed)) {
+				await recordsStore.delete(id)
+			}
 
-		schemaStore.put(schema.serialize(), Table.Schema)
+			schemaStore.put(schema.serialize(), Table.Schema)
 
-		if (didCancel?.()) return tx.abort()
+			if (didCancel?.()) return tx.abort()
 
-		await tx.done
-	})
+			await tx.done
+		},
+		indexKey
+	)
 }
 
 /** @internal */
 export async function storeSnapshotInIndexedDb<T extends UnknownRecord>({
+	storePrefix = STORE_PREFIX,
+	indexKey = DB_NAME_INDEX_KEY,
 	persistenceKey,
 	schema,
 	snapshot,
 	didCancel,
 }: {
+	storePrefix?: string
+	indexKey?: string
 	persistenceKey: string
 	schema: StoreSchema<T>
 	snapshot: SerializedStore<T>
 	didCancel?: () => boolean
 }) {
-	const storeId = STORE_PREFIX + persistenceKey
-	await withDb(storeId, async (db) => {
-		const tx = db.transaction([Table.Records, Table.Schema, Table.SessionState], 'readwrite')
-		const recordsStore = tx.objectStore(Table.Records)
-		const schemaStore = tx.objectStore(Table.Schema)
+	const storeId = storePrefix + persistenceKey
 
-		await recordsStore.clear()
+	await withDb(
+		storeId,
+		async (db) => {
+			const tx = db.transaction([Table.Records, Table.Schema, Table.SessionState], 'readwrite')
+			const recordsStore = tx.objectStore(Table.Records)
+			const schemaStore = tx.objectStore(Table.Schema)
 
-		for (const [id, record] of Object.entries(snapshot)) {
-			await recordsStore.put(record, id)
-		}
+			await recordsStore.clear()
 
-		schemaStore.put(schema.serialize(), Table.Schema)
+			for (const [id, record] of Object.entries(snapshot)) {
+				await recordsStore.put(record, id)
+			}
 
-		if (didCancel?.()) return tx.abort()
+			schemaStore.put(schema.serialize(), Table.Schema)
 
-		await tx.done
-	})
+			if (didCancel?.()) return tx.abort()
+
+			await tx.done
+		},
+		indexKey
+	)
 }
 
 /** @internal */
-export function getAllIndexDbNames(): string[] {
-	const result = JSON.parse(getFromLocalStorage(dbNameIndexKey) || '[]') ?? []
+export function getAllIndexDbNames(indexKey = DB_NAME_INDEX_KEY): string[] {
+	const result = JSON.parse(getFromLocalStorage(indexKey) || '[]') ?? []
 	if (!Array.isArray(result)) {
 		return []
 	}

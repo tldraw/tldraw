@@ -216,6 +216,10 @@ body * {
 	animation: tla_spin 1.5s linear infinite;
 }
 
+.tla_spinner {
+	animation: tla_spin 1.5s linear infinite;
+}
+
 @keyframes tla_spin {
 	0% {
 		transform: rotate(0deg);
@@ -475,7 +479,7 @@ want centered content that docks to the top when the window is short
 /* ----------------- Sidebar button ----------------- */
 
 .tla .tlui-menu-zone {
-	padding-left: 40px;
+	padding-left: 36px;
 }
 
 .tla_sidebar_toggle {
@@ -489,6 +493,27 @@ want centered content that docks to the top when the window is short
 	justify-content: center;
 	z-index: 999;
 	cursor: pointer;
+}
+
+.tla_sidebar_toggle::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	border-radius: 4px;
+	background-color: var(--color-hover);
+	z-index: -1;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+@media (hover: hover) {
+	.tla_sidebar_toggle:hover::after {
+		visibility: visible;
+	}
 }
 
 .tla_layout[data-sidebar='true'] .tla_sidebar_toggle {
@@ -950,13 +975,15 @@ want centered content that docks to the top when the window is short
 	border-top-right-radius: 2px;
 	overflow: hidden;
 	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .tla_page__grid_item_thumbnail {
 	position: relative;
 	width: 100%;
 	height: 100%;
-	background: url('/thumbnail.png');
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center center;

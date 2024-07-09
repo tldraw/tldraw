@@ -1,5 +1,5 @@
 import { TlaIcon } from './TlaIcon'
 
 export function TlaSpinner() {
-	return <TlaIcon icon="spinner" />
+	return <TlaIcon className="tla_spinner" icon="spinner" />
 }

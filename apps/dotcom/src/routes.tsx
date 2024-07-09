@@ -74,7 +74,7 @@ export const router = createRoutesFromElements(
 			)}
 
 			<Route
-				path="/:workspaceId"
+				path="/w/:workspaceId"
 				element={
 					<RequireAuth>
 						<Outlet />
@@ -82,12 +82,12 @@ export const router = createRoutesFromElements(
 				}
 			>
 				<Route index element={<RedirectToMostRecentFile />} />
-				<Route path="/:workspaceId/drafts" lazy={() => import('./pages/ws-drafts')} />
-				<Route path="/:workspaceId/stars" lazy={() => import('./pages/ws-stars')} />
-				<Route path="/:workspaceId/shared" lazy={() => import('./pages/ws-shared')} />
-				<Route path="/:workspaceId/groups" lazy={() => import('./pages/ws-groups')} />
-				<Route path="/:workspaceId/settings" lazy={() => import('./pages/ws-profile')} />
-				<Route path="/:workspaceId/f/:fileId" lazy={() => import('./pages/ws-file')} />
+				<Route path="/w/:workspaceId/drafts" lazy={() => import('./pages/ws-drafts')} />
+				<Route path="/w/:workspaceId/stars" lazy={() => import('./pages/ws-stars')} />
+				<Route path="/w/:workspaceId/shared" lazy={() => import('./pages/ws-shared')} />
+				<Route path="/w/:workspaceId/groups" lazy={() => import('./pages/ws-groups')} />
+				<Route path="/w/:workspaceId/settings" lazy={() => import('./pages/ws-profile')} />
+				<Route path="/w/:workspaceId/f/:fileId" lazy={() => import('./pages/ws-file')} />
 			</Route>
 		</Route>
 		<Route path="*" lazy={() => import('./pages/not-found')} />

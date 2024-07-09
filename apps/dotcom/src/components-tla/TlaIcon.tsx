@@ -1,6 +1,14 @@
 import { useLayoutEffect, useRef } from 'react'
 
-export function TlaIcon({ icon, invertIcon }: { icon: string; invertIcon?: boolean }) {
+export function TlaIcon({
+	icon,
+	className = '',
+	invertIcon,
+}: {
+	icon: string
+	className?: string
+	invertIcon?: boolean
+}) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	useLayoutEffect(() => {
@@ -20,7 +28,7 @@ export function TlaIcon({ icon, invertIcon }: { icon: string; invertIcon?: boole
 	return (
 		<div
 			ref={ref}
-			className="tla_icon"
+			className={`tla_icon ${className}`}
 			style={{
 				mask: `url(/icon=${icon}.svg) center 100% / 100% no-repeat`,
 				transform: invertIcon ? 'scale(-1, 1)' : undefined,
