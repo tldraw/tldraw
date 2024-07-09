@@ -120,8 +120,6 @@ export const DEFAULT_TRANSLATION = {
 	'action.zoom-to-fit': 'Zoom to fit',
 	'action.zoom-to-selection': 'Zoom to selection',
 	'assets.files.upload-failed': 'Upload failed',
-	'assets.files.size-exceeded-title': 'File size exceeded',
-	'assets.files.size-exceeded-desc': 'The file size exceeds the maximum allowed size of 10MB.',
 	'assets.url.failed': "Couldn't load URL preview",
 	'theme.dark': 'Dark',
 	'theme.light': 'Light',
