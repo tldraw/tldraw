@@ -105,7 +105,11 @@ async function blockUnknownOrigins(request: Request, env: Environment) {
 	}
 
 	const origin = request.headers.get('origin')
-	if (env.IS_LOCAL !== 'true' && (!origin || !isAllowedOrigin(origin))) {
+
+	// if there's no origin, this cannot be a cross-origin request, so we allow it.
+	if (!origin) return undefined
+
+	if (env.IS_LOCAL !== 'true' && !isAllowedOrigin(origin)) {
 		console.error('Attempting to connect from an invalid origin:', origin, env, request)
 		return new Response('Not allowed', { status: 403 })
 	}
