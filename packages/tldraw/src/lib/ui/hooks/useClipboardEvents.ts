@@ -669,22 +669,22 @@ export function useNativeClipboardEvents() {
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
 
+			const point = editor.user.getIsPasteAtCursorMode()
+				? editor.inputs.shiftKey
+					? undefined
+					: editor.inputs.currentPagePoint
+				: editor.inputs.shiftKey
+					? editor.inputs.currentPagePoint
+					: undefined
+
 			// First try to use the clipboard data on the event
 			if (e.clipboardData && !editor.inputs.shiftKey) {
-				if (editor.user.getIsPasteAtCursorMode()) {
-					handlePasteFromEventClipboardData(editor, e.clipboardData, editor.inputs.currentPagePoint)
-				} else {
-					handlePasteFromEventClipboardData(editor, e.clipboardData)
-				}
+				handlePasteFromEventClipboardData(editor, e.clipboardData, point)
 			} else {
 				// Or else use the clipboard API
 				navigator.clipboard.read().then((clipboardItems) => {
 					if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
-						if (e.clipboardData && editor.user.getIsPasteAtCursorMode()) {
-							handlePasteFromClipboardApi(editor, clipboardItems)
-						} else {
-							handlePasteFromClipboardApi(editor, clipboardItems, editor.inputs.currentPagePoint)
-						}
+						handlePasteFromClipboardApi(editor, clipboardItems, point)
 					}
 				})
 			}
