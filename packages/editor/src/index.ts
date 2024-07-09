@@ -96,6 +96,7 @@ export {
 	type TLShapeIndicatorProps,
 } from './lib/components/default-components/DefaultShapeIndicator'
 export { type TLShapeIndicatorErrorFallbackComponent } from './lib/components/default-components/DefaultShapeIndicatorErrorFallback'
+export { DefaultShapeIndicators } from './lib/components/default-components/DefaultShapeIndicators'
 export {
 	DefaultSnapIndicator,
 	type TLSnapIndicatorProps,
@@ -257,7 +258,7 @@ export {
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { EditorContext, useEditor } from './lib/hooks/useEditor'
+export { useEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useEvent } from './lib/hooks/useEvent'

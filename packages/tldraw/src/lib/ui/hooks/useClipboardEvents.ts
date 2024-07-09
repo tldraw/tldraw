@@ -7,6 +7,7 @@ import {
 	TLExternalContentSource,
 	TLGeoShape,
 	TLTextShape,
+	Vec,
 	VecLike,
 	isNonNull,
 	preventDefault,
@@ -669,14 +670,27 @@ export function useNativeClipboardEvents() {
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
 
+			// Where should the shapes go?
+			let point: Vec | undefined = undefined
+			let pasteAtCursor = false
+
+			// | Shiftkey | Paste at cursor mode | Paste at point? |
+			// |    N 		|         N            |       N 				 |
+			// |    Y 		|         N            |       Y 				 |
+			// |    N 		|         Y            |       Y 				 |
+			// |    Y 		|         Y            |       N 				 |
+			if (editor.inputs.shiftKey) pasteAtCursor = true
+			if (editor.user.getIsPasteAtCursorMode()) pasteAtCursor = !pasteAtCursor
+			if (pasteAtCursor) point = editor.inputs.currentPagePoint
+
 			// First try to use the clipboard data on the event
 			if (e.clipboardData && !editor.inputs.shiftKey) {
-				handlePasteFromEventClipboardData(editor, e.clipboardData)
+				handlePasteFromEventClipboardData(editor, e.clipboardData, point)
 			} else {
 				// Or else use the clipboard API
 				navigator.clipboard.read().then((clipboardItems) => {
 					if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
-						handlePasteFromClipboardApi(editor, clipboardItems, editor.inputs.currentPagePoint)
+						handlePasteFromClipboardApi(editor, clipboardItems, point)
 					}
 				})
 			}

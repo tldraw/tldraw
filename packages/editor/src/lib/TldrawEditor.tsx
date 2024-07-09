@@ -162,6 +162,7 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Asset options for the editor.
+	 * @internal
 	 */
 	assetOptions?: Partial<TLAssetOptions>
 
@@ -360,44 +361,60 @@ function TldrawEditorWithReadyStore({
 		setRenderEditor(editor)
 	}
 
-	const [initialAutoFocus] = useState(autoFocus)
-
-	useLayoutEffect(() => {
-		const editor = new Editor({
-			store,
-			shapeUtils,
-			bindingUtils,
-			tools,
-			getContainer: () => container,
-			user,
-			initialState,
-			autoFocus: initialAutoFocus,
-			inferDarkMode,
-			cameraOptions,
-			assetOptions,
-			options,
-		})
-
-		editorRef.current = editor
-		setRenderEditor(editor)
-
-		return () => {
-			editor.dispose()
-		}
-	}, [
-		container,
-		shapeUtils,
-		bindingUtils,
-		tools,
-		store,
-		user,
-		initialState,
-		initialAutoFocus,
+	// props in this ref can be changed without causing the editor to be recreated.
+	const editorOptionsRef = useRef({
+		// for these, it's because they're only used when the editor first mounts:
+		autoFocus,
 		inferDarkMode,
+		initialState,
+
+		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
-		assetOptions,
-		options,
-	])
+	})
+	useLayoutEffect(() => {
+		editorOptionsRef.current = {
+			autoFocus,
+			inferDarkMode,
+			initialState,
+			cameraOptions,
+		}
+	}, [autoFocus, inferDarkMode, initialState, cameraOptions])
+
+	useLayoutEffect(
+		() => {
+			const { autoFocus, inferDarkMode, initialState, cameraOptions } = editorOptionsRef.current
+			const editor = new Editor({
+				store,
+				shapeUtils,
+				bindingUtils,
+				tools,
+				getContainer: () => container,
+				user,
+				initialState,
+				autoFocus,
+				inferDarkMode,
+				cameraOptions,
+				assetOptions,
+				options,
+			})
+
+			editorRef.current = editor
+			setRenderEditor(editor)
+
+			return () => {
+				editor.dispose()
+			}
+		},
+		// if any of these change, we need to recreate the editor.
+		[assetOptions, bindingUtils, container, options, shapeUtils, store, tools, user]
+	)
+
+	// keep the editor up to date with the latest camera options
+	useLayoutEffect(() => {
+		if (editor && cameraOptions) {
+			editor.setCameraOptions(cameraOptions)
+		}
+	}, [editor, cameraOptions])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
@@ -452,7 +469,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useForceUpdate()
 	useOnMount(onMount)
 
-	return <>{children}</>
+	return children
 }
 
 function Crash({ crashingError }: { crashingError: unknown }): null {

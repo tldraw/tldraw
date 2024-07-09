@@ -1,5 +1,5 @@
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
-import { RoomSnapshot } from '@tldraw/tlsync'
+import { RoomSnapshot } from '@tldraw/sync'
 import { useCallback, useState } from 'react'
 import { Tldraw, fetch } from 'tldraw'
 import '../../../styles/core.css'

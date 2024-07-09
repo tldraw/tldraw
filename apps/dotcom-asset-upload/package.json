@@ -9,21 +9,22 @@
 	},
 	"main": "src/index.ts",
 	"scripts": {
-		"dev": "cross-env NODE_ENV=development wrangler dev --log-level info --persist-to tmp-assets",
+		"dev": "yarn run -T tsx ../../scripts/workers/dev.ts --persist-to tmp-assets",
 		"test-ci": "lazy inherit --passWithNoTests",
 		"test": "yarn run -T jest --passWithNoTests",
 		"test-coverage": "lazy inherit --passWithNoTests",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"dependencies": {
+		"@tldraw/worker-shared": "workspace:*",
 		"itty-cors": "^0.3.4",
 		"itty-router": "^4.0.13"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20230821.0",
+		"@cloudflare/workers-types": "^4.20240620.0",
 		"@types/ws": "^8.5.9",
 		"lazyrepo": "0.0.0-alpha.27",
-		"wrangler": "3.19.0"
+		"wrangler": "3.62.0"
 	},
 	"jest": {
 		"preset": "config/jest/node",

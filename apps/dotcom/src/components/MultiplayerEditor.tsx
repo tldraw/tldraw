@@ -1,4 +1,5 @@
 import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
+import { useRemoteSyncClient } from '@tldraw/sync-react'
 import { useCallback, useEffect } from 'react'
 import {
 	DefaultContextMenu,
@@ -22,7 +23,6 @@ import {
 	useActions,
 	useValue,
 } from 'tldraw'
-import { useRemoteSyncClient } from '../hooks/useRemoteSyncClient'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
 import { resolveAsset } from '../utils/assetHandler'
 import { assetUrls } from '../utils/assetUrls'

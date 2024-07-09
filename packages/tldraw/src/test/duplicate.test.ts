@@ -20,9 +20,27 @@ const ids = {
 
 beforeEach(() => {
 	editor = new TestEditor()
-
 	editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 })
+
+it('duplicates a shape in the same place', () => {
+	editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+	editor.select(ids.box1)
+	editor.duplicateShapes([ids.box1])
+	expect(editor.getCurrentPageShapes().length).toBe(2)
+	expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 0 })
+	expect(editor.getLastCreatedShape()).toMatchObject({ x: 0, y: 0 })
+})
+
+it('duplicates a shape with an offset', () => {
+	editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+	editor.select(ids.box1)
+	editor.duplicateShapes([ids.box1], { x: 10, y: 10 })
+	expect(editor.getCurrentPageShapes().length).toBe(2)
+	expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 0 })
+	expect(editor.getLastCreatedShape()).toMatchObject({ x: 10, y: 10 })
+})
+
 it('creates new bindings for arrows when pasting', async () => {
 	editor
 		.selectAll()

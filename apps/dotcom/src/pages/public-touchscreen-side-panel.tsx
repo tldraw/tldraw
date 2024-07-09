@@ -1,5 +1,5 @@
 import { CreateRoomRequestBody, ROOM_PREFIX, Snapshot } from '@tldraw/dotcom-shared'
-import { schema } from '@tldraw/tlsync'
+import { schema } from '@tldraw/sync'
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { TldrawUiButton, fetch } from 'tldraw'

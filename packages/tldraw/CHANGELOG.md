@@ -1,3 +1,138 @@
+# v2.3.0 (Tue Jun 25 2024)
+
+### Release Notes
+
+#### editing: don't allow editing locked shapes when edit→edit mode. ([#4007](https://github.com/tldraw/tldraw/pull/4007))
+
+- Editing: don't allow editing locked shapes when edit→edit mode.
+
+#### clipboard: fix copy/paste bad typo, ugh ([#4008](https://github.com/tldraw/tldraw/pull/4008))
+
+- Clipboard: fix copy/paste for older versions of Firefox
+
+#### clipboard: fix copy/paste on Firefox ([#4003](https://github.com/tldraw/tldraw/pull/4003))
+
+- Clipboard: fix copy/paste in Firefox 127+
+
+#### Add fill fill style. ([#3966](https://github.com/tldraw/tldraw/pull/3966))
+
+- Secretly adds a fill-fill style (Alt-F)
+
+#### Fix solid style draw shape. ([#3963](https://github.com/tldraw/tldraw/pull/3963))
+
+- Fixes the appearance of solid-style heart shapes.
+
+#### Fix asset positions ([#3965](https://github.com/tldraw/tldraw/pull/3965))
+
+- Fixes the position of multiple assets when pasted / dropped onto the canvas.
+
+#### Fix draw shape indicators for pen-drawn solid shapes ([#3962](https://github.com/tldraw/tldraw/pull/3962))
+
+- Fixes a bug with the indicator for stylus-drawn draw shapes.
+
+#### assets: fix copy/paste with missing src ([#3959](https://github.com/tldraw/tldraw/pull/3959))
+
+- Assets: fix copy/paste for new asset resolver mechanic.
+
+#### [Experiment] Allow users to use system's appearance (dark / light) mode ([#3703](https://github.com/tldraw/tldraw/pull/3703))
+
+- Add a brief release note for your PR here.
+
+#### Improve edge scrolling ([#3950](https://github.com/tldraw/tldraw/pull/3950))
+
+- Add a delay and easing to edge scrolling.
+
+#### Move from unpkg to our own cdn. ([#3923](https://github.com/tldraw/tldraw/pull/3923))
+
+- Start using our own cdn instead of unpkg.
+
+#### bookmark: css tweaks ([#3955](https://github.com/tldraw/tldraw/pull/3955))
+
+- Bookmarks: padding tweaks
+
+#### Dynamic size mode + fill fill ([#3835](https://github.com/tldraw/tldraw/pull/3835))
+
+- Adds a dynamic size user preferences.
+- Removes double click to reset scale on text shapes.
+- Removes double click to reset autosize on text shapes.
+
+#### assets: preload fonts ([#3927](https://github.com/tldraw/tldraw/pull/3927))
+
+- Perf: improve font loading timing on dotcom.
+
+#### Make ArrowBindingUtil public ([#3913](https://github.com/tldraw/tldraw/pull/3913))
+
+- Add a brief release note for your PR here.
+
+#### Flatten shapes to image(s) ([#3933](https://github.com/tldraw/tldraw/pull/3933))
+
+- Add Flatten, a new menu item to flatten shapes into images
+
+#### assets: store in indexedDB, not as base64 ([#3836](https://github.com/tldraw/tldraw/pull/3836))
+
+- Assets: store as reference to blob in indexedDB instead of storing directly as base64 in the snapshot.
+
+#### images: avoid double request for animated images ([#3924](https://github.com/tldraw/tldraw/pull/3924))
+
+- Images: avoid double request for animated images.
+
+#### assets: make option to transform urls dynamically / LOD ([#3827](https://github.com/tldraw/tldraw/pull/3827))
+
+- Assets: make option to transform urls dynamically to provide different sized images on demand.
+
+---
+
+#### 📚 SDK Changes
+
+- editing: don't allow editing locked shapes when edit→edit mode. [#4007](https://github.com/tldraw/tldraw/pull/4007) ([@mimecuvalo](https://github.com/mimecuvalo))
+- better auto-generated docs for Tldraw and TldrawEditor [#4012](https://github.com/tldraw/tldraw/pull/4012) ([@SomeHats](https://github.com/SomeHats))
+- clipboard: fix copy/paste bad typo, ugh [#4008](https://github.com/tldraw/tldraw/pull/4008) ([@mimecuvalo](https://github.com/mimecuvalo))
+- clipboard: fix copy/paste on Firefox [#4003](https://github.com/tldraw/tldraw/pull/4003) ([@mimecuvalo](https://github.com/mimecuvalo))
+- theme: rename color scheme to theme [#3991](https://github.com/tldraw/tldraw/pull/3991) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix scale issue with new draw lines [#3971](https://github.com/tldraw/tldraw/pull/3971) ([@steveruizok](https://github.com/steveruizok))
+- lod: dont resize images that are culled [#3970](https://github.com/tldraw/tldraw/pull/3970) ([@mimecuvalo](https://github.com/mimecuvalo))
+- flattening: use correct id for asset [#3968](https://github.com/tldraw/tldraw/pull/3968) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Add fill fill style. [#3966](https://github.com/tldraw/tldraw/pull/3966) ([@steveruizok](https://github.com/steveruizok))
+- Fix solid style draw shape. [#3963](https://github.com/tldraw/tldraw/pull/3963) ([@steveruizok](https://github.com/steveruizok))
+- Fix asset positions [#3965](https://github.com/tldraw/tldraw/pull/3965) ([@steveruizok](https://github.com/steveruizok))
+- lod: fix up missing timeout from bad merge [#3964](https://github.com/tldraw/tldraw/pull/3964) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix draw shape indicators for pen-drawn solid shapes [#3962](https://github.com/tldraw/tldraw/pull/3962) ([@steveruizok](https://github.com/steveruizok))
+- assets: fix copy/paste with missing src [#3959](https://github.com/tldraw/tldraw/pull/3959) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [Experiment] Allow users to use system's appearance (dark / light) mode [#3703](https://github.com/tldraw/tldraw/pull/3703) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Improve edge scrolling [#3950](https://github.com/tldraw/tldraw/pull/3950) ([@steveruizok](https://github.com/steveruizok))
+- Move from unpkg to our own cdn. [#3923](https://github.com/tldraw/tldraw/pull/3923) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- bookmark: css tweaks [#3955](https://github.com/tldraw/tldraw/pull/3955) ([@mimecuvalo](https://github.com/mimecuvalo))
+- assets: fix up videos with indexedDB [#3954](https://github.com/tldraw/tldraw/pull/3954) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Dynamic size mode + fill fill [#3835](https://github.com/tldraw/tldraw/pull/3835) ([@steveruizok](https://github.com/steveruizok) [@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Make ArrowBindingUtil public [#3913](https://github.com/tldraw/tldraw/pull/3913) ([@ds300](https://github.com/ds300))
+- Flatten shapes to image(s) [#3933](https://github.com/tldraw/tldraw/pull/3933) ([@steveruizok](https://github.com/steveruizok))
+- assets: store in indexedDB, not as base64 [#3836](https://github.com/tldraw/tldraw/pull/3836) ([@mimecuvalo](https://github.com/mimecuvalo))
+- image: follow-up fixes for LOD [#3934](https://github.com/tldraw/tldraw/pull/3934) ([@mimecuvalo](https://github.com/mimecuvalo))
+- images: avoid double request for animated images [#3924](https://github.com/tldraw/tldraw/pull/3924) ([@mimecuvalo](https://github.com/mimecuvalo))
+- assets: make option to transform urls dynamically / LOD [#3827](https://github.com/tldraw/tldraw/pull/3827) ([@mimecuvalo](https://github.com/mimecuvalo))
+- security: enforce use of our fetch function and its default referrerpolicy [#3884](https://github.com/tldraw/tldraw/pull/3884) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🖥️ tldraw.com Changes
+
+- assets: preload fonts [#3927](https://github.com/tldraw/tldraw/pull/3927) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+
+#### 📖 Documentation changes
+
+- Document inherited members in reference [#3956](https://github.com/tldraw/tldraw/pull/3956) ([@SomeHats](https://github.com/SomeHats))
+- Better generated docs for react components [#3930](https://github.com/tldraw/tldraw/pull/3930) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 7
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.2.0 (Tue Jun 11 2024)
 
 ### Release Notes
