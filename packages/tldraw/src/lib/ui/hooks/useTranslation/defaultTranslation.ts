@@ -63,6 +63,9 @@ export const DEFAULT_TRANSLATION = {
 	'action.open-file': 'Open file',
 	'action.pack': 'Pack',
 	'action.paste': 'Paste',
+	'action.paste-error-title': 'Pasting failed',
+	'action.paste-error-description':
+		'Could not paste due to missing clipboard permissions. Please enable the permissions and try again.',
 	'action.print': 'Print',
 	'action.redo': 'Redo',
 	'action.remove-frame': 'Remove frame',

@@ -86,7 +86,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
 
 	const { addDialog, clearDialogs } = useDialogs()
-	const { clearToasts } = useToasts()
+	const { clearToasts, addToast } = useToasts()
 	const msg = useTranslation()
 
 	const insertMedia = useInsertMedia()
@@ -944,13 +944,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.paste',
 				kbd: '$v',
 				onSelect(source) {
-					navigator.clipboard?.read().then((clipboardItems) => {
-						paste(
-							clipboardItems,
-							source,
-							source === 'context-menu' ? editor.inputs.currentPagePoint : undefined
-						)
-					})
+					navigator.clipboard
+						?.read()
+						.then((clipboardItems) => {
+							paste(
+								clipboardItems,
+								source,
+								source === 'context-menu' ? editor.inputs.currentPagePoint : undefined
+							)
+						})
+						.catch(() => {
+							addToast({
+								title: msg('action.paste-error-title'),
+								description: msg('action.paste-error-description'),
+								severity: 'error',
+							})
+						})
 				},
 			},
 			{
@@ -1427,6 +1436,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		trackEvent,
 		overrides,
 		addDialog,
+		addToast,
 		insertMedia,
 		exportAs,
 		copyAs,

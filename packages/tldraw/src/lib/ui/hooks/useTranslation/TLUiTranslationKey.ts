@@ -63,6 +63,8 @@ export type TLUiTranslationKey =
 	| 'action.open-file'
 	| 'action.pack'
 	| 'action.paste'
+	| 'action.paste-error-title'
+	| 'action.paste-error-description'
 	| 'action.print'
 	| 'action.redo'
 	| 'action.remove-frame'
