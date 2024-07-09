@@ -69,6 +69,7 @@ export default defineConfig(({ mode }) => ({
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),
 		'process.env.TLDRAW_BEMO_URL': urlOrLocalFallback(mode, TLDRAW_BEMO_URL_STRING, 8989),
+		'process.env.TLDRAW_IMAGE_URL': urlOrLocalFallback(mode, '"https://images.tldraw.xyz"', 8989),
 	},
 }))
 
