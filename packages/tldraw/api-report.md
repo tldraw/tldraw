@@ -30,7 +30,6 @@ import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
-import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
@@ -1289,7 +1288,7 @@ export interface PageItemInputProps {
 }
 
 // @public (undocumented)
-export const PageItemSubmenu: MemoExoticComponent<({ index, listSize, item, onRename, }: PageItemSubmenuProps) => JSX_2.Element>;
+export const PageItemSubmenu: NamedExoticComponent<PageItemSubmenuProps>;
 
 // @public (undocumented)
 export interface PageItemSubmenuProps {
@@ -1319,7 +1318,7 @@ export function parseTldrawJsonFile({ json, schema, }: {
 export function PasteMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
-export const PeopleMenu: MemoExoticComponent<({ children }: PeopleMenuProps) => JSX_2.Element>;
+export const PeopleMenu: NamedExoticComponent<PeopleMenuProps>;
 
 // @public (undocumented)
 export interface PeopleMenuProps {
@@ -1709,7 +1708,7 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgroundProps) => JSX_2.Element | null;
 
 // @public (undocumented)
-export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
+export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegroundProps>;
 
 // @public (undocumented)
 export function TldrawShapeIndicators(): JSX_2.Element | null;
