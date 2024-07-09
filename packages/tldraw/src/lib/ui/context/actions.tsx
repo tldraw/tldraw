@@ -1436,6 +1436,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		trackEvent,
 		overrides,
 		addDialog,
+		addToast,
 		insertMedia,
 		exportAs,
 		copyAs,
