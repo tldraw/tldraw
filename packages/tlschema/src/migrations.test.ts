@@ -1978,11 +1978,11 @@ describe('Add flipX, flipY to image shape', () => {
 	const { up, down } = getTestMigration(imageShapeVersions.AddFlipProps)
 
 	test('up works as expected', () => {
-		expect(up({ props: {} })).toEqual({ props: { flipX: 1, flipY: 1 } })
+		expect(up({ props: {} })).toEqual({ props: { flipX: false, flipY: false } })
 	})
 
 	test('down works as expected', () => {
-		expect(down({ props: { flipX: 1, flipY: 1 } })).toEqual({ props: {} })
+		expect(down({ props: { flipX: false, flipY: false } })).toEqual({ props: {} })
 	})
 })
 
