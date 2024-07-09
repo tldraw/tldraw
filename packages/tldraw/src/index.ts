@@ -142,7 +142,7 @@ export {
 } from './lib/ui/components/QuickActions/DefaultQuickActions'
 export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
 export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
-export { PeopleMenu } from './lib/ui/components/SharePanel/PeopleMenu'
+export { PeopleMenu, type PeopleMenuProps } from './lib/ui/components/SharePanel/PeopleMenu'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
 	DefaultStylePanel,

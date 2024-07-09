@@ -15,12 +15,16 @@ import {
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	ViewSubmenu,
 	assertExists,
 	useActions,
 	useEditor,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
@@ -90,9 +94,22 @@ const components: TLComponents = {
 		return <DocumentTopZone isOffline={isOffline} />
 	},
 	SharePanel: () => {
+		const editor = useEditor()
+		const msg = useTranslation()
 		return (
 			<div className="tlui-share-zone" draggable={false}>
-				<PeopleMenu />
+				<PeopleMenu>
+					<div className="tlui-people-menu__section">
+						<TldrawUiButton
+							type="menu"
+							data-testid="people-menu.invite"
+							onClick={() => editor.addOpenMenu('share menu')}
+						>
+							<TldrawUiButtonLabel>{msg('people-menu.invite')}</TldrawUiButtonLabel>
+							<TldrawUiButtonIcon icon="plus" />
+						</TldrawUiButton>
+					</div>
+				</PeopleMenu>
 				<ShareMenu />
 			</div>
 		)

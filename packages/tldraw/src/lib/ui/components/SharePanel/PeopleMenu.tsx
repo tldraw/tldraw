@@ -1,21 +1,20 @@
 import * as Popover from '@radix-ui/react-popover'
 import { track, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import { PeopleMenuAvatar } from './PeopleMenuAvatar'
 import { PeopleMenuItem } from './PeopleMenuItem'
 import { PeopleMenuMore } from './PeopleMenuMore'
 import { UserPresenceEditor } from './UserPresenceEditor'
 
+/** @public */
+export interface PeopleMenuProps {
+	children?: ReactNode
+}
+
 /** @public @react */
-export const PeopleMenu = track(function PeopleMenu({
-	hideShareMenu,
-}: {
-	hideShareMenu?: boolean
-}) {
+export const PeopleMenu = track(function PeopleMenu({ children }: PeopleMenuProps) {
 	const msg = useTranslation()
 
 	const container = useContainer()
@@ -67,18 +66,7 @@ export const PeopleMenu = track(function PeopleMenu({
 								})}
 							</div>
 						)}
-						{!hideShareMenu && (
-							<div className="tlui-people-menu__section">
-								<TldrawUiButton
-									type="menu"
-									data-testid="people-menu.invite"
-									onClick={() => editor.addOpenMenu('share menu')}
-								>
-									<TldrawUiButtonLabel>{msg('people-menu.invite')}</TldrawUiButtonLabel>
-									<TldrawUiButtonIcon icon="plus" />
-								</TldrawUiButton>
-							</div>
-						)}
+						{children}
 					</div>
 				</Popover.Content>
 			</Popover.Portal>

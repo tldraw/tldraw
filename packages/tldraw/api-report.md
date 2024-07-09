@@ -1319,9 +1319,13 @@ export function parseTldrawJsonFile({ json, schema, }: {
 export function PasteMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
-export const PeopleMenu: MemoExoticComponent<({ hideShareMenu, }: {
-hideShareMenu?: boolean | undefined;
-}) => JSX_2.Element>;
+export const PeopleMenu: MemoExoticComponent<({ children }: PeopleMenuProps) => JSX_2.Element>;
+
+// @public (undocumented)
+export interface PeopleMenuProps {
+    // (undocumented)
+    children?: ReactNode;
+}
 
 // @public (undocumented)
 export enum PORTRAIT_BREAKPOINT {
