@@ -1926,10 +1926,10 @@ export function releasePointerCapture(element: Element, event: PointerEvent | Re
 export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>;
 
 // @public (undocumented)
-export function resizeBox(shape: TLBaseBoxShape, info: {
+export function resizeBox<T extends TLBaseBoxShape>(shape: T, info: {
     handle: TLResizeHandle;
     initialBounds: Box;
-    initialShape: TLBaseBoxShape;
+    initialShape: T;
     mode: TLResizeMode;
     newPoint: VecModel;
     scaleX: number;
@@ -1939,14 +1939,7 @@ export function resizeBox(shape: TLBaseBoxShape, info: {
     maxWidth: number;
     minHeight: number;
     minWidth: number;
-}>): {
-    props: {
-        h: number;
-        w: number;
-    };
-    x: number;
-    y: number;
-};
+}>): T;
 
 // @public (undocumented)
 export type ResizeBoxOptions = Partial<{

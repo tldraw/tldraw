@@ -608,6 +608,16 @@ input,
 	border-radius: var(--radius-1);
 }
 
+.tl-flip-x {
+	transform: scale(-1, 1);
+}
+.tl-flip-y {
+	transform: scale(1, -1);
+}
+.tl-flip-xy {
+	transform: scale(-1, -1);
+}
+
 /* --------------------- Nametag -------------------- */
 
 .tl-collaborator-cursor {
