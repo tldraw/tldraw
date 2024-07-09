@@ -32,7 +32,7 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 		<div className="tla_page_controls">
 			<div className="tla_page_controls__search">
 				<input
-					className="tla_page_controls__search_input"
+					className="tla_page_controls__search_input tla_text_ui__regular"
 					placeholder="Search..."
 					value={search}
 					onChange={(e) => {
@@ -74,7 +74,7 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 			<div className="tla_page_controls__right">
 				<div className="tla_page_controls__control">
 					<div className="tla_page_controls__control_label">
-						{LABELS[sort]}
+						<span className="tla_text_ui__regular">{LABELS[sort]}</span>
 						<TlaIcon icon="chevron-down" />
 					</div>
 					<select
@@ -100,8 +100,8 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 				</div>
 				<div className="tla_page_controls__control">
 					<div className="tla_page_controls__control_label">
-						{LABELS[view]}
-						{/* <TlaIcon icon="chevron-down" /> */}
+						<span className="tla_text_ui__regular">{LABELS[view]}</span>
+						<TlaIcon icon="chevron-down" />
 					</div>
 					<select
 						className="tla_page_controls__control_select"

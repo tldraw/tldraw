@@ -97,7 +97,7 @@ function SidebarWorkspaceLink() {
 			<div className="tla_icon_wrapper" data-size="m">
 				<TlaIcon icon={workspace.avatar} />
 			</div>
-			<div className="tla_sidebar__label">{workspace.name}</div>
+			<div className="tla_sidebar__label tla_text_ui__title">{workspace.name}</div>
 			<button className="tla_sidebar__link-button" />
 			<button className="tla_sidebar__link-menu">
 				<TlaIcon icon="more" />
@@ -121,7 +121,7 @@ function SidebarTabs() {
 			<SidebarCreateButton />
 			<div className="tla_sidebar__line" />
 			<button
-				className="tla_sidebar__tabs_tab"
+				className="tla_sidebar__tabs_tab tla_text_ui__regular"
 				data-active={sidebarActiveTab === 'recent'}
 				onClick={() => {
 					app.setSidebarActiveTab('recent')
@@ -130,7 +130,7 @@ function SidebarTabs() {
 				Recent
 			</button>
 			<button
-				className="tla_sidebar__tabs_tab"
+				className="tla_sidebar__tabs_tab tla_text_ui__regular"
 				data-active={sidebarActiveTab === 'groups'}
 				onClick={() => {
 					app.setSidebarActiveTab('groups')
@@ -179,7 +179,10 @@ function SidebarMainLink({ icon, label, href }: SideBarMainLink) {
 	const match = useMatch(`/w/:workspaceId/${href}`)
 
 	return (
-		<div className="tla_sidebar__main-link tla_hoverable" data-active={!!match}>
+		<div
+			className="tla_sidebar__main-link tla_text_ui__regular tla_hoverable"
+			data-active={!!match}
+		>
 			<div className="tla_icon_wrapper">
 				<TlaIcon icon={icon} />
 			</div>
@@ -193,7 +196,7 @@ function SidebarRecentSection({ title, files }: { title: string; files: TldrawAp
 	return (
 		<div className="tla_sidebar__section">
 			<TlaSpacer height="20" />
-			<div className="tla_sidebar__section_title">{title}</div>
+			<div className="tla_sidebar__section_title tla_text_ui__section_title">{title}</div>
 			{files.map((file) => (
 				<SidebarFileLink key={'recent_' + file.id} file={file} />
 			))}
@@ -207,7 +210,7 @@ function SidebarFileLink({ file }: { file: TldrawAppFile }) {
 	const isActive = fileId === getCleanId(id)
 	return (
 		<div className="tla_sidebar__section_link tla_hoverable" data-active={isActive}>
-			<div className="tla_sidebar__label">
+			<div className="tla_sidebar__label tla_text_ui__regular">
 				{file.name || new Date(file.createdAt).toLocaleString('en-gb')}
 			</div>
 			<Link to={getFileUrl(workspaceId, id)} className="tla_sidebar__link-button" />

@@ -21,10 +21,10 @@ export function TlaFileListItem({ id, name, createdAt, workspaceId }: TldrawAppF
 	return (
 		<div className="tla_page__list_item">
 			<div className="tla_page__list_item_left">
-				<div className="tla_page__item_title">
+				<div className="tla_page__item_title tla_text_ui__regular">
 					{name || new Date(createdAt).toLocaleString('en-gb')}
 				</div>
-				<div className="tla_page__item_details">
+				<div className="tla_page__item_details tla_text_ui__small">
 					<div>Last edited 2 hours ago</div>
 					<div className="tla_page__item_collaborators" />
 				</div>

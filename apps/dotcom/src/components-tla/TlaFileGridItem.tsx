@@ -35,10 +35,10 @@ export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppF
 				)}
 			</div>
 			<div className="tla_page__grid_item_bottom">
-				<div className="tla_page__item_title">
+				<div className="tla_page__item_title tla_text_ui__regular">
 					{name || new Date(createdAt).toLocaleString('en-gb')}
 				</div>
-				<div className="tla_page__item_details">
+				<div className="tla_page__item_details tla_text_ui__small">
 					<div>Last edited 2 hours ago</div>
 					<div className="tla_page__grid_item_collaborators" />
 				</div>
