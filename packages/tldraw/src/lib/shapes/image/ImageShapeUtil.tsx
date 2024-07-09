@@ -56,10 +56,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		let resized: TLImageShape = resizeBox(shape, info)
 		const { flipX, flipY } = info.initialShape.props
 
-		console.log({
-			flipX: info.scaleX < 0 !== flipX,
-			flipY: info.scaleY < 0 !== flipY,
-		})
 		resized = {
 			...resized,
 			props: {
