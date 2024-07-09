@@ -36,3 +36,12 @@ export default function ExportCanvasImageExample() {
 		</div>
 	)
 }
+
+/* 
+This example shows how you can use the `exportToBlob()` function to create an image with all the shapes 
+on the canvas in it and then download it. The easiest way to download an image is to use the download 
+attribute of a link element.
+
+To learn more about overriding UI you can check out our various custom menu examples. For more on handling
+assets, check out our Local/Hosted images examples.
+*/
