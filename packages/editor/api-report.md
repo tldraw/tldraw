@@ -720,6 +720,7 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     edgeScrollSpeed: 1;
     isDynamicSizeMode: false;
+    isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
@@ -1925,10 +1926,10 @@ export function releasePointerCapture(element: Element, event: PointerEvent | Re
 export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>;
 
 // @public (undocumented)
-export function resizeBox(shape: TLBaseBoxShape, info: {
+export function resizeBox<T extends TLBaseBoxShape>(shape: T, info: {
     handle: TLResizeHandle;
     initialBounds: Box;
-    initialShape: TLBaseBoxShape;
+    initialShape: T;
     mode: TLResizeMode;
     newPoint: VecModel;
     scaleX: number;
@@ -1938,14 +1939,7 @@ export function resizeBox(shape: TLBaseBoxShape, info: {
     maxWidth: number;
     minHeight: number;
     minWidth: number;
-}>): {
-    props: {
-        h: number;
-        w: number;
-    };
-    x: number;
-    y: number;
-};
+}>): T;
 
 // @public (undocumented)
 export type ResizeBoxOptions = Partial<{
@@ -3364,6 +3358,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isDynamicSizeMode?: boolean | null;
     // (undocumented)
+    isPasteAtCursorMode?: boolean | null;
+    // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
@@ -3471,6 +3467,8 @@ export class UserPreferencesManager {
     getIsDarkMode(): boolean;
     // (undocumented)
     getIsDynamicResizeMode(): boolean;
+    // (undocumented)
+    getIsPasteAtCursorMode(): boolean;
     // (undocumented)
     getIsSnapMode(): boolean;
     // (undocumented)

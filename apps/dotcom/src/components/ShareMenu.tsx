@@ -134,7 +134,12 @@ export const ShareMenu = React.memo(function ShareMenu() {
 		let cancelled = false
 
 		const shareUrl = window.location.href
-		if (!shareState.qrCodeDataUrl && shareState.state === SHARE_CURRENT_STATE.SHARED_READ_WRITE) {
+		const url = new URL(shareUrl)
+		if (
+			!shareState.qrCodeDataUrl &&
+			shareState.state === SHARE_CURRENT_STATE.SHARED_READ_WRITE &&
+			(url.searchParams.has('v') || url.searchParams.has('p'))
+		) {
 			// Fetch the QR code data URL
 			createQRCodeImageDataString(shareUrl).then((dataUrl) => {
 				if (!cancelled) {

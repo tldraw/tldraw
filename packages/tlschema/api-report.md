@@ -600,6 +600,8 @@ export const imageShapeProps: {
         bottomRight: VecModel;
         topLeft: VecModel;
     } | null>;
+    flipX: T.Validator<boolean>;
+    flipY: T.Validator<boolean>;
     h: T.Validator<number>;
     playing: T.Validator<boolean>;
     url: T.Validator<string>;
