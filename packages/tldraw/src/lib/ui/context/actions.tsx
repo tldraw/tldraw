@@ -86,7 +86,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
 
 	const { addDialog, clearDialogs } = useDialogs()
-	const { clearToasts } = useToasts()
+	const { clearToasts, addToast } = useToasts()
 	const msg = useTranslation()
 
 	const insertMedia = useInsertMedia()
@@ -944,13 +944,23 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.paste',
 				kbd: '$v',
 				onSelect(source) {
-					navigator.clipboard?.read().then((clipboardItems) => {
-						paste(
-							clipboardItems,
-							source,
-							source === 'context-menu' ? editor.inputs.currentPagePoint : undefined
-						)
-					})
+					navigator.clipboard
+						?.read()
+						.then((clipboardItems) => {
+							paste(
+								clipboardItems,
+								source,
+								source === 'context-menu' ? editor.inputs.currentPagePoint : undefined
+							)
+						})
+						.catch((error) => {
+							addToast({
+								title: msg('toast.error.paste-fail.title'),
+								// Could have failed because of blocked permissions, so we show the error message
+								description: error.message,
+								severity: 'error',
+							})
+						})
 				},
 			},
 			{

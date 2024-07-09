@@ -120,6 +120,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.zoom-to-fit': 'Zoom to fit',
 	'action.zoom-to-selection': 'Zoom to selection',
 	'assets.files.upload-failed': 'Upload failed',
+	'assets.files.size-exceeded-title': 'File size exceeded',
+	'assets.files.size-exceeded-desc': 'The file size exceeds the maximum allowed size of 10MB.',
 	'assets.url.failed': "Couldn't load URL preview",
 	'theme.dark': 'Dark',
 	'theme.light': 'Light',
@@ -387,6 +389,7 @@ export const DEFAULT_TRANSLATION = {
 	'toast.error.export-fail.desc': 'Failed to export image',
 	'toast.error.copy-fail.title': 'Failed copy',
 	'toast.error.copy-fail.desc': 'Failed to copy image',
+	'toast.error.paste-fail.title': 'Failed paste',
 	'context.pages.new-page': 'New page',
 	'vscode.file-open.desc':
 		"We've updated this document to work with the current version of tldraw. If you'd like to keep the original version (which will work on old.tldraw.com), click below to create a backup.",
