@@ -4,6 +4,7 @@ import {
 	TLArrowShape,
 	TLArrowShapeProps,
 	TLBindingCreate,
+	TLImageShape,
 	TLShapeId,
 	TLShapePartial,
 	createBindingId,
@@ -623,4 +624,15 @@ describe('When flipping shapes that include arrows', () => {
 		editor.flipShapes(editor.getSelectedShapeIds(), 'vertical')
 		expect(editor.getSelectionRotatedPageBounds()).toCloselyMatchObject(boundsBefore)
 	})
+})
+
+it('Updates the image shape flip properties when flipped', () => {
+	editor.createShape({
+		type: 'image',
+	})
+	editor.select(editor.getLastCreatedShape())
+	editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+	expect(editor.getLastCreatedShape<TLImageShape>().props.flipX).toBe(true)
+	editor.flipShapes(editor.getSelectedShapeIds(), 'vertical')
+	expect(editor.getLastCreatedShape<TLImageShape>().props.flipY).toBe(true)
 })
