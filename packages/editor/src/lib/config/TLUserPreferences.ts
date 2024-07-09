@@ -22,7 +22,7 @@ export interface TLUserPreferences {
 	isSnapMode?: boolean | null
 	isWrapMode?: boolean | null
 	isDynamicSizeMode?: boolean | null
-	pasteAtCursor?: boolean | null
+	isPasteAtCursorMode?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -47,7 +47,7 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPrefere
 	isSnapMode: T.boolean.nullable().optional(),
 	isWrapMode: T.boolean.nullable().optional(),
 	isDynamicSizeMode: T.boolean.nullable().optional(),
-	pasteAtCursor: T.boolean.nullable().optional(),
+	isPasteAtCursorMode: T.boolean.nullable().optional(),
 })
 
 const Versions = {
@@ -92,7 +92,7 @@ function migrateSnapshot(data: { version: number; user: any }) {
 		data.user.isDynamicSizeMode = false
 	}
 	if (data.version < Versions.AddPasteAtCursor) {
-		data.user.pasteAtCursor = false
+		data.user.isPasteAtCursorMode = false
 	}
 
 	// finally
@@ -137,7 +137,7 @@ export const defaultUserPreferences = Object.freeze({
 	isSnapMode: false,
 	isWrapMode: false,
 	isDynamicSizeMode: false,
-	pasteAtCursor: false,
+	isPasteAtCursorMode: false,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */

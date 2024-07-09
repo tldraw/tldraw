@@ -671,7 +671,7 @@ export function useNativeClipboardEvents() {
 
 			// First try to use the clipboard data on the event
 			if (e.clipboardData && !editor.inputs.shiftKey) {
-				if (editor.user.getPasteAtCursor()) {
+				if (editor.user.getIsPasteAtCursorMode()) {
 					handlePasteFromEventClipboardData(editor, e.clipboardData, editor.inputs.currentPagePoint)
 				} else {
 					handlePasteFromEventClipboardData(editor, e.clipboardData)
@@ -680,7 +680,7 @@ export function useNativeClipboardEvents() {
 				// Or else use the clipboard API
 				navigator.clipboard.read().then((clipboardItems) => {
 					if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
-						if (e.clipboardData && editor.user.getPasteAtCursor()) {
+						if (e.clipboardData && editor.user.getIsPasteAtCursorMode()) {
 							handlePasteFromClipboardApi(editor, clipboardItems)
 						} else {
 							handlePasteFromClipboardApi(editor, clipboardItems, editor.inputs.currentPagePoint)

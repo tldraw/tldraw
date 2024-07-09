@@ -720,11 +720,11 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     edgeScrollSpeed: 1;
     isDynamicSizeMode: false;
+    isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
-    pasteAtCursor: false;
 }>;
 
 // @public
@@ -3365,6 +3365,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isDynamicSizeMode?: boolean | null;
     // (undocumented)
+    isPasteAtCursorMode?: boolean | null;
+    // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
@@ -3372,8 +3374,6 @@ export interface TLUserPreferences {
     locale?: null | string;
     // (undocumented)
     name?: null | string;
-    // (undocumented)
-    pasteAtCursor?: boolean | null;
 }
 
 // @public (undocumented)
@@ -3475,6 +3475,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsDynamicResizeMode(): boolean;
     // (undocumented)
+    getIsPasteAtCursorMode(): boolean;
+    // (undocumented)
     getIsSnapMode(): boolean;
     // (undocumented)
     getIsWrapMode(): boolean;
@@ -3482,8 +3484,6 @@ export class UserPreferencesManager {
     getLocale(): string;
     // (undocumented)
     getName(): string;
-    // (undocumented)
-    getPasteAtCursor(): boolean;
     // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;
