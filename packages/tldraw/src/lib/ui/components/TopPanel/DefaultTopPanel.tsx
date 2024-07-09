@@ -6,5 +6,5 @@ import { CenteredTopPanelContainer } from './CenteredTopPanelContainer'
 export function DefaultTopPanel() {
 	const isOffline = useMultiplayerStatus() === 'offline'
 
-	return <CenteredTopPanelContainer>{!isOffline && <OfflineIndicator />}</CenteredTopPanelContainer>
+	return <CenteredTopPanelContainer>{isOffline && <OfflineIndicator />}</CenteredTopPanelContainer>
 }
