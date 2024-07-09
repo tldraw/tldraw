@@ -14,8 +14,8 @@ export type ResizeBoxOptions = Partial<{
 }>
 
 /** @public */
-export function resizeBox(
-	shape: TLBaseBoxShape,
+export function resizeBox<T extends TLBaseBoxShape>(
+	shape: T,
 	info: {
 		newPoint: VecModel
 		handle: TLResizeHandle
@@ -23,10 +23,10 @@ export function resizeBox(
 		scaleX: number
 		scaleY: number
 		initialBounds: Box
-		initialShape: TLBaseBoxShape
+		initialShape: T
 	},
 	opts = {} as ResizeBoxOptions
-) {
+): T {
 	const { newPoint, handle, scaleX, scaleY } = info
 	const { minWidth = 1, maxWidth = Infinity, minHeight = 1, maxHeight = Infinity } = opts
 
@@ -118,6 +118,7 @@ export function resizeBox(
 	const { x, y } = offset.rot(shape.rotation).add(newPoint)
 
 	return {
+		...shape,
 		x,
 		y,
 		props: {

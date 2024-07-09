@@ -1022,12 +1022,16 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape>;
     // (undocumented)
+    onResize: TLOnResizeHandler<any>;
+    // (undocumented)
     static props: {
         assetId: Validator<TLAssetId | null>;
         crop: Validator<    {
         bottomRight: VecModel;
         topLeft: VecModel;
         } | null>;
+        flipX: Validator<boolean>;
+        flipY: Validator<boolean>;
         h: Validator<number>;
         playing: Validator<boolean>;
         url: Validator<string>;

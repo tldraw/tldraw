@@ -7,14 +7,17 @@ import {
 	MediaHelpers,
 	TLImageShape,
 	TLOnDoubleClickHandler,
+	TLOnResizeHandler,
 	TLShapePartial,
 	Vec,
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
+	resizeBox,
 	structuredClone,
 	toDomPrecision,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import { useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -44,7 +47,24 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			playing: true,
 			url: '',
 			crop: null,
+			flipX: false,
+			flipY: false,
 		}
+	}
+
+	override onResize: TLOnResizeHandler<any> = (shape: TLImageShape, info) => {
+		let resized: TLImageShape = resizeBox(shape, info)
+		const { flipX, flipY } = info.initialShape.props
+
+		resized = {
+			...resized,
+			props: {
+				...resized.props,
+				flipX: info.scaleX < 0 !== flipX,
+				flipY: info.scaleY < 0 !== flipY,
+			},
+		}
+		return resized
 	}
 
 	isAnimated(shape: TLImageShape) {
@@ -177,7 +197,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				>
 					<div className="tl-image-container" style={containerStyle}>
 						<img
-							className="tl-image"
+							className={classNames('tl-image', {
+								'tl-flip-x': shape.props.flipX && !shape.props.flipY,
+								'tl-flip-y': shape.props.flipY && !shape.props.flipX,
+								'tl-flip-xy': shape.props.flipY && shape.props.flipX,
+							})}
 							// We don't set crossOrigin for non-animated images because
 							// for Cloudflare we don't currenly have that set up.
 							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
