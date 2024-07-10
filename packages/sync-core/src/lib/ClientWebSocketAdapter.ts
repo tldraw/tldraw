@@ -458,5 +458,5 @@ class ReconnectManager {
 }
 
 function httpToWs(url: string) {
-	return url.replace(/^(http|ws)(s)?:/, 'ws$2:')
+	return url.replace(/^http(s)?:/, 'ws$1:')
 }
