@@ -94,6 +94,10 @@ export interface TLAssetStore {
 export interface TLStoreProps {
 	defaultName: string
 	assets: TLAssetStore
+	/**
+	 * Called an {@link @tldraw/editor#Editor} connected to this store is mounted.
+	 */
+	onEditorMount: (editor: unknown) => void | (() => void)
 }
 
 /** @public */

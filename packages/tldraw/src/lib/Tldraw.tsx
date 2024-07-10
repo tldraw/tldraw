@@ -2,7 +2,6 @@ import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultSpinner,
-	Editor,
 	ErrorScreen,
 	LoadingScreen,
 	TLEditorComponents,
@@ -12,11 +11,11 @@ import {
 	TldrawEditorStoreProps,
 	useEditor,
 	useEditorComponents,
-	useEvent,
+	useOnMount,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
-import { useLayoutEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
@@ -148,7 +147,7 @@ function InsideOfEditorAndUiContext({
 	const toasts = useToasts()
 	const msg = useTranslation()
 
-	const onMountEvent = useEvent((editor: Editor) => {
+	useOnMount(() => {
 		const unsubs: (void | (() => void) | undefined)[] = []
 
 		unsubs.push(...registerDefaultSideEffects(editor))
@@ -168,17 +167,16 @@ function InsideOfEditorAndUiContext({
 			}
 		)
 
-		// ...then we run the onMount prop, which may override the above
+		// ...then we call the store's on mount which may override them...
+		unsubs.push(editor.store.props.onEditorMount(editor))
+
+		// ...then we run the user's onMount prop, which may override things again.
 		unsubs.push(onMount?.(editor))
 
 		return () => {
 			unsubs.forEach((fn) => fn?.())
 		}
 	})
-
-	useLayoutEffect(() => {
-		if (editor) return onMountEvent?.(editor)
-	}, [editor, onMountEvent])
 
 	const { Canvas } = useEditorComponents()
 	const { ContextMenu } = useTldrawUiComponents()

@@ -1,4 +1,4 @@
-import { useDemoRemoteSyncClient } from '@tldraw/sync-react'
+import { useMultiplayerDemo } from '@tldraw/sync-react'
 import { useCallback, useEffect } from 'react'
 import { DefaultContextMenu, DefaultContextMenuContent, TLComponents, Tldraw, atom } from 'tldraw'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
@@ -37,7 +37,7 @@ const components: TLComponents = {
 export function TemporaryBemoDevEditor({ slug }: { slug: string }) {
 	const handleUiEvent = useHandleUiEvents()
 
-	const storeWithStatus = useDemoRemoteSyncClient({ host: 'http://127.0.0.1:8989', roomId: slug })
+	const storeWithStatus = useMultiplayerDemo({ host: 'http://127.0.0.1:8989', roomId: slug })
 
 	const isOffline =
 		storeWithStatus.status === 'synced-remote' && storeWithStatus.connectionStatus === 'offline'
@@ -47,14 +47,6 @@ export function TemporaryBemoDevEditor({ slug }: { slug: string }) {
 
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 	const cursorChatOverrides = useCursorChat()
-
-	// TODO: handle bookmarks
-	// const handleMount = useCallback(
-	// 	(editor: Editor) => {
-	// 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	// 	},
-	// 	[]
-	// )
 
 	if (storeWithStatus.error) {
 		return <StoreErrorScreen error={storeWithStatus.error} />

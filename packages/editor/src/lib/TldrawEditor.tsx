@@ -450,7 +450,15 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useCursor()
 	useDarkMode()
 	useForceUpdate()
-	useOnMount(onMount)
+	useOnMount((editor) => {
+		const teardownStore = editor.store.props.onEditorMount(editor)
+		const teardownCallback = onMount?.(editor)
+
+		return () => {
+			teardownStore?.()
+			teardownCallback?.()
+		}
+	})
 
 	return children
 }
@@ -474,7 +482,8 @@ export function ErrorScreen({ children }: LoadingScreenProps) {
 	return <div className="tl-loading">{children}</div>
 }
 
-function useOnMount(onMount?: TLOnMountHandler) {
+/** @internal */
+export function useOnMount(onMount?: TLOnMountHandler) {
 	const editor = useEditor()
 
 	const onMountEvent = useEvent((editor: Editor) => {

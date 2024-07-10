@@ -1,2 +1,6 @@
-export { useDemoRemoteSyncClient, type UseDemoSyncClientConfig } from './useDemoSyncClient'
-export { useRemoteSyncClient, type RemoteTLStoreWithStatus } from './useRemoteSyncClient'
+export {
+	useMultiplayerSync,
+	type RemoteTLStoreWithStatus,
+	type UseMultiplayerSyncOptions,
+} from './useMultiplayerSync'
+export { useMultiplayerDemo, type UseMultiplayerDemoOptions } from './useMutliplayerDemo'

@@ -36,6 +36,7 @@ export {
 	ErrorScreen,
 	LoadingScreen,
 	TldrawEditor,
+	useOnMount,
 	type LoadingScreenProps,
 	type TLOnMountHandler,
 	type TldrawEditorBaseProps,
