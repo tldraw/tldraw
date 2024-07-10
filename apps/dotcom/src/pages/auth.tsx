@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { TlaButton } from '../components-tla/TlaButton'
 import { TlaDivider } from '../components-tla/TlaDivider'
-import { TlaFullWrapper } from '../components-tla/TlaFullWrapper'
 import { TlaInput } from '../components-tla/TlaInput'
 import { TlaLabel } from '../components-tla/TlaLabel'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
+import { TlaWrapperNoSidebar } from '../components-tla/TlaWrapperNoSidebar'
 import { useApp } from '../hooks/useAppState'
 import { TldrawAppUserRecordType } from '../utils/tla/schema/TldrawAppUser'
 
@@ -17,11 +17,7 @@ export function Component() {
 
 	if (state === 'sign-in') {
 		return (
-			<TlaFullWrapper
-				onClose={() => {
-					window.location.href = '/'
-				}}
-			>
+			<TlaWrapperNoSidebar>
 				<div className="tla_auth_container">
 					<div className="tla_auth_container_title">
 						<h2 className="tla_text_ui__big">Sign in</h2>
@@ -52,22 +48,18 @@ export function Component() {
 							Continue
 						</TlaButton>
 						<TlaSpacer height="40" />
-						<div className="tla_auth_detail">
+						<div className="tla_auth_detail tla_text_ui__small">
 							Need an account? <button onClick={() => setState('sign-up')}>Sign up</button>
 						</div>
 					</form>
 				</div>
-			</TlaFullWrapper>
+			</TlaWrapperNoSidebar>
 		)
 	}
 
 	if (state === 'sign-up') {
 		return (
-			<TlaFullWrapper
-				onClose={() => {
-					window.location.href = '/'
-				}}
-			>
+			<TlaWrapperNoSidebar>
 				<div className="tla_auth_container">
 					<div className="tla_auth_container_title">
 						<h2 className="tla_text_ui__big">Create your account</h2>
@@ -114,12 +106,12 @@ export function Component() {
 							Continue
 						</TlaButton>
 						<TlaSpacer height="40" />
-						<div className="tla_auth_detail">
+						<div className="tla_auth_detail tla_text_ui__small">
 							Have an account? <button onClick={() => setState('sign-in')}>Sign in</button>
 						</div>
 					</form>
 				</div>
-			</TlaFullWrapper>
+			</TlaWrapperNoSidebar>
 		)
 	}
 

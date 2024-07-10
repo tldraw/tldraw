@@ -33,7 +33,7 @@
 	--color-hover: hsl(204, 16%, 5%, 4.5%);
 	--color-overlay: hsla(204, 16%, 5%, 1%);
 	--color-primary: hsla(214, 84%, 56%, 1);
-	--color-secondary: rgb(255, 255, 255);
+	--color-secondary: rgb(234, 234, 234);
 	--color-accent-1: hsl(50, 91%, 70%);
 	--color-accent-2: hsl(28, 88%, 57%);
 	--color-accent-3: hsl(135, 59%, 49%);
@@ -405,6 +405,8 @@
 /* ------------------ Close button ------------------ */
 
 .tla_close_button {
+	background: none;
+	border: none;
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -502,6 +504,8 @@ want centered content that docks to the top when the window is short
 }
 
 .tla_auth_detail button {
+	background: none;
+	border: none;
 	display: inline;
 	cursor: pointer;
 	color: var(--color-primary);

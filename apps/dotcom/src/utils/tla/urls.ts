@@ -9,5 +9,5 @@ export function getPageUrl(workspaceId: string, pageId: string): string {
 }
 
 export function getUserUrl(userId: string): string {
-	return `/p/${getCleanId(userId)}`
+	return `/u/${getCleanId(userId)}`
 }
