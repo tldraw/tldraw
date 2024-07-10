@@ -17,7 +17,6 @@ function getDefaultLicenseResult(overides: Partial<ValidLicenseKeyResult>): Vali
 			id: 'id',
 			hosts: ['localhost'],
 			flags: FLAGS.PERPETUAL_LICENSE,
-			version: '1.0.0',
 			expiryDate: new Date().toISOString(),
 		},
 		expiryDate: new Date(),

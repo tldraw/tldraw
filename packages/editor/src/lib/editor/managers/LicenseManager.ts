@@ -14,8 +14,7 @@ export const PROPERTIES = {
 	ID: 0,
 	HOSTS: 1,
 	FLAGS: 2,
-	VERSION: 3,
-	EXPIRY_DATE: 4,
+	EXPIRY_DATE: 3,
 }
 const NUMBER_OF_KNOWN_PROPERTIES = Object.keys(PROPERTIES).length
 
@@ -25,7 +24,6 @@ interface LicenseInfo {
 	id: string
 	hosts: string[]
 	flags: number
-	version: string
 	expiryDate: string
 }
 type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided' | 'has-key-development-mode'
@@ -118,7 +116,6 @@ export class LicenseManager {
 			id: decodedData[PROPERTIES.ID],
 			hosts: decodedData[PROPERTIES.HOSTS],
 			flags: decodedData[PROPERTIES.FLAGS],
-			version: decodedData[PROPERTIES.VERSION],
 			expiryDate: decodedData[PROPERTIES.EXPIRY_DATE],
 		}
 	}
@@ -173,7 +170,13 @@ export class LicenseManager {
 
 		return licenseInfo.hosts.some((host) => {
 			const normalizedHost = host.toLowerCase().trim()
-			if (normalizedHost === currentHostname) {
+
+			// Allow the domain if listed and www variations, 'example.com' allows 'example.com' and 'www.example.com'
+			if (
+				normalizedHost === currentHostname ||
+				`www.${normalizedHost}` === currentHostname ||
+				normalizedHost === `www.${currentHostname}`
+			) {
 				return true
 			}
 

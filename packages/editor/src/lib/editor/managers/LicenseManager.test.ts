@@ -20,7 +20,6 @@ const STANDARD_LICENSE_INFO = JSON.stringify([
 	'id',
 	['www.example.com'],
 	FLAGS.ANNUAL_LICENSE,
-	'1.0',
 	expiryDate,
 ])
 
@@ -86,7 +85,6 @@ describe('LicenseManager', () => {
 				id: 'id',
 				hosts: ['www.example.com'],
 				flags: FLAGS.ANNUAL_LICENSE,
-				version: '1.0',
 				expiryDate,
 			},
 			isDomainValid: true,
@@ -131,13 +129,7 @@ describe('LicenseManager', () => {
 			majorDate.getMonth(),
 			majorDate.getDate() + 100
 		)
-		const perpetualLicenseInfo = [
-			'id',
-			['www.example.com'],
-			FLAGS.PERPETUAL_LICENSE,
-			'1.0',
-			expiryDate,
-		]
+		const perpetualLicenseInfo = ['id', ['www.example.com'], FLAGS.PERPETUAL_LICENSE, expiryDate]
 		const almostExpiredLicenseKey = await generateLicenseKey(
 			JSON.stringify(perpetualLicenseInfo),
 			keyPair
@@ -156,13 +148,7 @@ describe('LicenseManager', () => {
 			majorDate.getMonth(),
 			majorDate.getDate() - 100
 		)
-		const perpetualLicenseInfo = [
-			'id',
-			['www.example.com'],
-			FLAGS.PERPETUAL_LICENSE,
-			'1.0',
-			expiryDate,
-		]
+		const perpetualLicenseInfo = ['id', ['www.example.com'], FLAGS.PERPETUAL_LICENSE, expiryDate]
 		const almostExpiredLicenseKey = await generateLicenseKey(
 			JSON.stringify(perpetualLicenseInfo),
 			keyPair
