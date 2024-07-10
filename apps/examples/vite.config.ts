@@ -31,7 +31,7 @@ const TLDRAW_BEMO_URL_STRING =
 				? `"https://pr-${PR_NUMBER}-demo.tldraw.xyz"`
 				: '`http://${location.hostname}:8989`'
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
 	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),

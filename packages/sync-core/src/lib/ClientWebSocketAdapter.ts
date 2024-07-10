@@ -311,7 +311,7 @@ class ReconnectManager {
 			)
 
 			this.lastAttemptStart = Date.now()
-			this.socketAdapter._setNewSocket(new WebSocket(uri))
+			this.socketAdapter._setNewSocket(new WebSocket(httpToWs(uri)))
 			this.state = 'pendingAttemptResult'
 		})
 	}
@@ -455,4 +455,8 @@ class ReconnectManager {
 		this.disposables.forEach((d) => d())
 		this.isDisposed = true
 	}
+}
+
+function httpToWs(url: string) {
+	return url.replace(/^(http|ws)(s)?:/, 'ws$2:')
 }
