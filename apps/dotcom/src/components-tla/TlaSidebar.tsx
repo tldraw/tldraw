@@ -6,7 +6,7 @@ import { TldrawAppFile, TldrawAppFileRecordType } from '../utils/tla/schema/Tldr
 import { TldrawAppGroup } from '../utils/tla/schema/TldrawAppGroup'
 import { TldrawAppUser } from '../utils/tla/schema/TldrawAppUser'
 import { TldrawApp, getCleanId } from '../utils/tla/tldrawApp'
-import { getFileUrl, getPageUrl } from '../utils/tla/urls'
+import { getFileUrl, getPageUrl, getUserUrl } from '../utils/tla/urls'
 import { TlaAvatar } from './TlaAvatar'
 import { TlaIcon } from './TlaIcon'
 import { TlaSpacer } from './TlaSpacer'
@@ -354,24 +354,28 @@ function TlaSidebarGroup({ id, name }: TldrawAppGroup) {
 
 function TlaSidebarUserLink() {
 	const app = useApp()
-	const user = useValue(
-		'recent user files',
+	const result = useValue(
+		'auth',
 		() => {
 			const { auth } = app.getSessionState()
 			if (!auth) return false
-			return app.get<TldrawAppUser>(auth.userId)
+			const user = app.get<TldrawAppUser>(auth.userId)!
+			return {
+				auth,
+				user,
+			}
 		},
 		[app]
 	)
-	if (!user) throw Error('Could not get user')
+	if (!result) throw Error('Could not get user')
 
 	return (
 		<div className="tla_sidebar__user tla_hoverable tla_text_ui__regular">
 			<div className="tla_icon_wrapper">
 				<TlaAvatar data-size="m" />
 			</div>
-			<div className="tla_sidebar__label">{user.name}</div>
-			<Link className="tla_sidebar__link-button" to={`/`} />
+			<div className="tla_sidebar__label">{result.user.name}</div>
+			<Link className="tla_sidebar__link-button" to={getUserUrl(result.auth.userId)} />
 			<button
 				className="tla_sidebar__link-menu"
 				onClick={() => {

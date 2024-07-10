@@ -73,13 +73,25 @@ export const router = createRoutesFromElements(
 			{enableTemporaryLocalBemo && (
 				<Route path={`/bemo/:roomId`} lazy={() => import('./pages/temporary-bemo')} />
 			)}
-
+			{/* todo: /u/ route redirects to auth or authenticated user's profile */}
+			<Route
+				path="/u/:userId"
+				element={
+					<RequireAuthUser>
+						<Outlet />
+					</RequireAuthUser>
+				}
+			>
+				<Route index element={<RedirectToUserIndex />} />
+				<Route path="/u/:userId/profile" lazy={() => import('./pages/ws-profile')} />
+			</Route>
+			{/* todo: /w/ route redirects to auth or authenticated user's most recent workspace */}
 			<Route
 				path="/w/:workspaceId"
 				element={
-					<RequireAuth>
+					<RequireAuthWorkspace>
 						<Outlet />
-					</RequireAuth>
+					</RequireAuthWorkspace>
 				}
 			>
 				<Route index element={<RedirectToMostRecentFile />} />
@@ -95,7 +107,34 @@ export const router = createRoutesFromElements(
 	</Route>
 )
 
-function RequireAuth({ children }: { children: ReactNode }) {
+function RedirectToUserIndex() {
+	const location = useLocation()
+	const { userId } = useParams()
+
+	return <Navigate to={`/u/${userId}/profile`} state={{ from: location }} replace />
+}
+
+function RequireAuthUser({ children }: { children: ReactNode }) {
+	const location = useLocation()
+	const { userId } = useParams()
+	const auth = useAuth()
+
+	if (!auth) {
+		// Redirect them to the /login page, but save the current location they were
+		// trying to go to when they were redirected. This allows us to send them
+		// along to that page after they login, which is a nicer user experience
+		// than dropping them off on the home page.
+		return <Navigate to="/auth" state={{ from: location }} replace />
+	}
+
+	if (getCleanId(auth.userId) !== userId) {
+		return <div>you cant see that</div>
+	}
+
+	return children
+}
+
+function RequireAuthWorkspace({ children }: { children: ReactNode }) {
 	const location = useLocation()
 	const { workspaceId } = useParams()
 	const auth = useAuth()

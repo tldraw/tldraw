@@ -7,3 +7,7 @@ export function getFileUrl(workspaceId: string, fileId: string): string {
 export function getPageUrl(workspaceId: string, pageId: string): string {
 	return `/w/${getCleanId(workspaceId)}/${pageId}`
 }
+
+export function getUserUrl(userId: string): string {
+	return `/p/${getCleanId(userId)}`
+}
