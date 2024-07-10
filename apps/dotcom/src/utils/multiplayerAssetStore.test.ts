@@ -1,33 +1,10 @@
 import { TLAsset } from 'tldraw'
-import { resolveAsset } from './assetHandler'
+import { multiplayerAssetStore } from './multiplayerAssetStore'
 
-const PERSISTENCE_KEY = 'tldraw'
-const resolver = resolveAsset(PERSISTENCE_KEY)
+const resolver = multiplayerAssetStore.resolve
 const FILE_SIZE = 1024 * 1024 * 2
 
-describe('resolveAsset', () => {
-	it('should return null if the asset is null', async () => {
-		expect(
-			await resolver(null, {
-				screenScale: -1,
-				steppedScreenScale: 1,
-				dpr: 1,
-				networkEffectiveType: '4g',
-			})
-		).toBe(null)
-	})
-
-	it('should return null if the asset is undefined', async () => {
-		expect(
-			await resolver(undefined, {
-				screenScale: -1,
-				steppedScreenScale: 1,
-				dpr: 1,
-				networkEffectiveType: '4g',
-			})
-		).toBe(null)
-	})
-
+describe('multiplayerAssetStore.resolve', () => {
 	it('should return null if the asset has no src', async () => {
 		const asset = { type: 'image', props: { w: 100, fileSize: FILE_SIZE } }
 		expect(
@@ -36,6 +13,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
 			})
 		).toBe(null)
 	})
@@ -51,6 +29,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
 			})
 		).toBe('http://assets.tldraw.dev/video.mp4')
 	})
@@ -66,6 +45,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
 			})
 		).toBe('http://assets.not-tldraw.dev/video.mp4')
 	})
@@ -81,6 +61,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
 			})
 		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg')
 	})
@@ -93,7 +74,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
-				shouldResolveToOriginalImage: true,
+				shouldResolveToOriginal: true,
 			})
 		).toBe('http://assets.tldraw.dev/image.jpg')
 	})
@@ -106,6 +87,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
 			})
 		).toBe('data:somedata')
 	})
@@ -126,6 +108,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
 			})
 		).toBe('http://assets.tldraw.dev/animated.gif')
 	})
@@ -146,6 +129,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
 			})
 		).toBe('http://assets.tldraw.dev/vector.svg')
 	})
@@ -161,6 +145,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 1,
 				dpr: 1,
 				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
 			})
 		).toBe(null)
 	})
@@ -176,6 +161,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 0.5,
 				dpr: 2,
 				networkEffectiveType: null,
+				shouldResolveToOriginal: false,
 			})
 		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg?w=100')
 	})
@@ -191,6 +177,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 0.5,
 				dpr: 2,
 				networkEffectiveType: '3g',
+				shouldResolveToOriginal: false,
 			})
 		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg?w=50')
 	})
@@ -206,6 +193,7 @@ describe('resolveAsset', () => {
 				steppedScreenScale: 5,
 				dpr: 1,
 				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
 			})
 		).toBe('https://images.tldraw.xyz/assets.tldraw.dev/image.jpg?w=100')
 	})

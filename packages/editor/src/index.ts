@@ -246,10 +246,8 @@ export {
 	type TLHistoryMark,
 } from './lib/editor/types/history-types'
 export {
-	type AssetContextProps,
 	type OptionalKeys,
 	type RequiredKeys,
-	type TLAssetOptions,
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
@@ -269,6 +267,7 @@ export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
+export { useRefState } from './lib/hooks/useRefState'
 export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'

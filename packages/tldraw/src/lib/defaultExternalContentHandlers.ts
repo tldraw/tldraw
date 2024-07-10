@@ -1,7 +1,6 @@
 import {
 	AssetRecordType,
 	Editor,
-	FileHelpers,
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
@@ -13,7 +12,6 @@ import {
 	TLTextShapeProps,
 	Vec,
 	VecLike,
-	WeakCache,
 	assert,
 	compact,
 	createShapeId,
@@ -21,7 +19,6 @@ import {
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
-import { getAssetFromIndexedDb, storeAssetInIndexedDb } from './AssetBlobStore'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
@@ -61,13 +58,12 @@ export function registerDefaultExternalContentHandlers(
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
 	}: Required<TLExternalContentProps>,
-	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> },
-	persistenceKey?: string
+	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
 		const name = _file.name
-		let file: Blob = _file
+		let file: File = _file
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 
@@ -92,7 +88,7 @@ export function registerDefaultExternalContentHandlers(
 
 		if (file.type === 'video/quicktime') {
 			// hack to make .mov videos work
-			file = new Blob([file], { type: 'video/mp4' })
+			file = new File([file], file.name, { type: 'video/mp4' })
 		}
 
 		let size = isImageType
@@ -101,7 +97,7 @@ export function registerDefaultExternalContentHandlers(
 
 		const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
 
-		const hash = await getHashForBuffer(await file.arrayBuffer())
+		const hash = getHashForBuffer(await file.arrayBuffer())
 
 		if (isFinite(maxImageDimension)) {
 			const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
@@ -126,16 +122,7 @@ export function registerDefaultExternalContentHandlers(
 			},
 		} as TLAsset
 
-		if (persistenceKey) {
-			assetInfo.props.src = assetId
-			await storeAssetInIndexedDb({
-				persistenceKey,
-				assetId,
-				blob: file,
-			})
-		} else {
-			assetInfo.props.src = await FileHelpers.blobToDataUrl(file)
-		}
+		assetInfo.props.src = await editor.uploadAsset(assetInfo, file)
 
 		return AssetRecordType.create(assetInfo)
 	})
@@ -608,37 +595,4 @@ export function createEmptyBookmarkShape(
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
-}
-
-const objectURLCache = new WeakCache<TLAsset, ReturnType<typeof getLocalAssetObjectURL>>()
-export const defaultResolveAsset =
-	(persistenceKey?: string) => async (asset: TLAsset | null | undefined) => {
-		if (!asset || !asset.props.src) return null
-
-		// Retrieve a local image from the DB.
-		if (persistenceKey && asset.props.src.startsWith('asset:')) {
-			return await objectURLCache.get(
-				asset,
-				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
-			)
-		}
-
-		// We don't deal with videos at the moment.
-		if (asset.type === 'video') return asset.props.src
-
-		// Assert it's an image to make TS happy.
-		if (asset.type !== 'image') return null
-
-		return asset.props.src
-	}
-
-async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId) {
-	const blob = await getAssetFromIndexedDb({
-		assetId: assetId,
-		persistenceKey,
-	})
-	if (blob) {
-		return URL.createObjectURL(blob)
-	}
-	return null
 }

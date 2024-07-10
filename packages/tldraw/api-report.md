@@ -881,12 +881,6 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 };
 
 // @public (undocumented)
-export function getAssetFromIndexedDb({ persistenceKey, assetId, }: {
-    assetId: string;
-    persistenceKey: string;
-}): Promise<Blob | undefined>;
-
-// @public (undocumented)
 export function getDefaultCdnBaseUrl(): string;
 
 // @public
@@ -1394,13 +1388,6 @@ export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
-
-// @public (undocumented)
-export function storeAssetInIndexedDb({ persistenceKey, assetId, blob, }: {
-    assetId: string;
-    blob: Blob;
-    persistenceKey: string;
-}): Promise<void>;
 
 // @public (undocumented)
 export interface StylePickerSetProps {

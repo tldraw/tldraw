@@ -12,6 +12,7 @@ import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
+import { Dispatch } from 'react';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
@@ -33,6 +34,7 @@ import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
+import { SetStateAction } from 'react';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
@@ -43,6 +45,7 @@ import { Timers } from '@tldraw/utils';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
+import { TLAssetStore } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBinding } from '@tldraw/tlschema';
 import { TLBindingCreate } from '@tldraw/tlschema';
@@ -141,20 +144,6 @@ export class Arc2d extends Geometry2d {
 
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
-
-// @public (undocumented)
-export interface AssetContextProps {
-    // (undocumented)
-    dpr: number;
-    // (undocumented)
-    networkEffectiveType: null | string;
-    // (undocumented)
-    screenScale: number;
-    // (undocumented)
-    shouldResolveToOriginalImage?: boolean;
-    // (undocumented)
-    steppedScreenScale: number;
-}
 
 export { Atom }
 
@@ -498,7 +487,7 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -793,7 +782,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, assetOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
@@ -1153,7 +1142,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     resolveAssetUrl(assetId: null | TLAssetId, context: {
         screenScale?: number;
-        shouldResolveToOriginalImage?: boolean;
+        shouldResolveToOriginal?: boolean;
     }): Promise<null | string>;
     readonly root: StateNode;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
@@ -1224,6 +1213,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
+    uploadAsset(asset: TLAsset, file: File): Promise<string>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
@@ -2337,12 +2327,6 @@ export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
 // @public (undocumented)
-export interface TLAssetOptions {
-    // (undocumented)
-    onResolveAsset: (asset: null | TLAsset | undefined, ctx: AssetContextProps) => Promise<null | string>;
-}
-
-// @public (undocumented)
 export type TLBaseBoxShape = TLBaseShape<string, {
     h: number;
     w: number;
@@ -2514,8 +2498,6 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
-    // @internal
-    assetOptions?: Partial<TLAssetOptions>;
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     cameraOptions?: Partial<TLCameraOptions>;
@@ -2679,7 +2661,6 @@ export interface TLEditorComponents {
 
 // @public (undocumented)
 export interface TLEditorOptions {
-    assetOptions?: Partial<TLAssetOptions>;
     autoFocus?: boolean;
     bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[];
     cameraOptions?: Partial<TLCameraOptions>;
@@ -3262,6 +3243,7 @@ export interface TLStateNodeConstructor {
 
 // @public (undocumented)
 export interface TLStoreBaseOptions {
+    assets?: Partial<TLAssetStore>;
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
 }
@@ -3434,7 +3416,7 @@ export function useIsDarkMode(): boolean;
 export function useIsEditing(shapeId: TLShapeId): boolean;
 
 // @internal (undocumented)
-export function useLocalStore({ persistenceKey, sessionId, ...rest }: {
+export function useLocalStore(options: {
     persistenceKey?: string;
     sessionId?: string;
     snapshot?: TLEditorSnapshot | TLStoreSnapshot;
@@ -3452,6 +3434,9 @@ export { useQuickReactor }
 export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
 
 export { useReactor }
+
+// @internal
+export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>];
 
 // @public (undocumented)
 export class UserPreferencesManager {
