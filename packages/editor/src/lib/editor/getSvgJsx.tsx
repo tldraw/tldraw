@@ -124,6 +124,7 @@ export async function getSvgJsx(
 			.toCssString()
 
 		if (!watermarkBase64) {
+			// XXX(mime): this is so weird. Why is fetch needed here?!?
 			const watermarkResponse = await fetch(WatermarkDesktop)
 			const watermarkBlob = await watermarkResponse.blob()
 			watermarkBase64 = await FileHelpers.blobToDataUrl(watermarkBlob)
