@@ -1239,10 +1239,6 @@ want centered content that docks to the top when the window is short
 }
 
 @media (hover: hover) {
-	.tla_page_controls__search:hover > .tla_page_controls__search_input::placeholder {
-		color: var(--color-text-1);
-	}
-
 	.tla_page_controls__control:hover > .tla_page_controls__control_label {
 		color: var(--color-text-1);
 	}
