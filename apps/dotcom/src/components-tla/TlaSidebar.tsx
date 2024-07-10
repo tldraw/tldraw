@@ -45,24 +45,24 @@ export function TlaSidebar() {
 		<div className="tla_sidebar">
 			{/* <SidebarCreateButton /> */}
 			<div className="tla_sidebar__top">
-				<SidebarWorkspaceLink />
+				<TlaSidebarWorkspaceLink />
 			</div>
 			<div className="tla_sidebar__content">
 				{SIDEBAR_MAIN_LINKS.map((link) => (
-					<SidebarMainLink key={link.id} {...link} />
+					<TlaSidebarMainLink key={link.id} {...link} />
 				))}
 				<TlaSpacer height="20" />
-				<SidebarTabs />
-				<SidebarActiveTabContent />
+				<TlaSidebarTabs />
+				<TlaSidebarActiveTabContent />
 			</div>
 			<div className="tla_sidebar__bottom">
-				<SidebarUserLink />
+				<TlaSidebarUserLink />
 			</div>
 		</div>
 	)
 }
 
-function SidebarCreateFileButton() {
+function TlaSidebarCreateFileButton() {
 	const app = useApp()
 	const navigate = useNavigate()
 
@@ -88,7 +88,7 @@ function SidebarCreateFileButton() {
 	)
 }
 
-function SidebarCreateGroupButton() {
+function TlaSidebarCreateGroupButton() {
 	const app = useApp()
 	const navigate = useNavigate()
 
@@ -114,7 +114,7 @@ function SidebarCreateGroupButton() {
 	)
 }
 
-function SidebarWorkspaceLink() {
+function TlaSidebarWorkspaceLink() {
 	const workspace = useWorkspace()
 	if (!workspace) throw Error('Workspace not found')
 
@@ -132,7 +132,7 @@ function SidebarWorkspaceLink() {
 	)
 }
 
-function SidebarTabs() {
+function TlaSidebarTabs() {
 	const app = useApp()
 	const sidebarActiveTab = useValue(
 		'sidebar active tab',
@@ -144,7 +144,11 @@ function SidebarTabs() {
 
 	return (
 		<div className="tla_sidebar__tabs">
-			{sidebarActiveTab === 'recent' ? <SidebarCreateFileButton /> : <SidebarCreateGroupButton />}
+			{sidebarActiveTab === 'recent' ? (
+				<TlaSidebarCreateFileButton />
+			) : (
+				<TlaSidebarCreateGroupButton />
+			)}
 			<div className="tla_sidebar__line" />
 			<button
 				className="tla_sidebar__tabs_tab tla_text_ui__regular"
@@ -168,7 +172,7 @@ function SidebarTabs() {
 	)
 }
 
-function SidebarActiveTabContent() {
+function TlaSidebarActiveTabContent() {
 	const app = useApp()
 	const sidebarActiveTab = useValue(
 		'sidebar active tab',
@@ -179,17 +183,17 @@ function SidebarActiveTabContent() {
 	)
 
 	if (sidebarActiveTab === 'recent') {
-		return <SidebarRecentFiles />
+		return <TlaSidebarRecentFiles />
 	}
 
 	if (sidebarActiveTab === 'groups') {
-		return <SidebarGroups />
+		return <TlaSidebarGroups />
 	}
 
 	throw Error('unknown tab')
 }
 
-function SidebarMainLink({ icon, label, href }: SideBarMainLink) {
+function TlaSidebarMainLink({ icon, label, href }: SideBarMainLink) {
 	const app = useApp()
 	const workspaceId = useValue(
 		'workspaceId',
@@ -218,19 +222,19 @@ function SidebarMainLink({ icon, label, href }: SideBarMainLink) {
 	)
 }
 
-function SidebarRecentSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
+function TlaSidebarRecentSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
 	return (
 		<div className="tla_sidebar__section">
 			<TlaSpacer height="20" />
 			<div className="tla_sidebar__section_title tla_text_ui__section">{title}</div>
 			{files.map((file) => (
-				<SidebarFileLink key={'recent_' + file.id} file={file} />
+				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
 			))}
 		</div>
 	)
 }
 
-function SidebarFileLink({ file }: { file: TldrawAppFile }) {
+function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 	const { workspaceId, id } = file
 	const { fileId } = useParams()
 	const isActive = fileId === getCleanId(id)
@@ -245,7 +249,7 @@ function SidebarFileLink({ file }: { file: TldrawAppFile }) {
 	)
 }
 
-function SidebarRecentFiles() {
+function TlaSidebarRecentFiles() {
 	const app = useApp()
 	const results = useValue(
 		'recent user files',
@@ -285,21 +289,21 @@ function SidebarRecentFiles() {
 
 	return (
 		<>
-			{todayFiles.length ? <SidebarRecentSection title={'Today'} files={todayFiles} /> : null}
+			{todayFiles.length ? <TlaSidebarRecentSection title={'Today'} files={todayFiles} /> : null}
 			{yesterdayFiles.length ? (
-				<SidebarRecentSection title={'Yesterday'} files={yesterdayFiles} />
+				<TlaSidebarRecentSection title={'Yesterday'} files={yesterdayFiles} />
 			) : null}
 			{thisWeekFiles.length ? (
-				<SidebarRecentSection title={'This week'} files={thisWeekFiles} />
+				<TlaSidebarRecentSection title={'This week'} files={thisWeekFiles} />
 			) : null}
 			{thisMonthFiles.length ? (
-				<SidebarRecentSection title={'This month'} files={thisMonthFiles} />
+				<TlaSidebarRecentSection title={'This month'} files={thisMonthFiles} />
 			) : null}
 		</>
 	)
 }
 
-function SidebarGroups() {
+function TlaSidebarGroups() {
 	const app = useApp()
 	const groups = useValue(
 		'user groups',
@@ -315,13 +319,13 @@ function SidebarGroups() {
 	return (
 		<>
 			{groups.map((group) => (
-				<SidebarGroup key={group.id} {...group} />
+				<TlaSidebarGroup key={group.id} {...group} />
 			))}
 		</>
 	)
 }
 
-function SidebarGroup({ id, name }: TldrawAppGroup) {
+function TlaSidebarGroup({ id, name }: TldrawAppGroup) {
 	const app = useApp()
 	const files = useValue(
 		'recent user files',
@@ -339,16 +343,16 @@ function SidebarGroup({ id, name }: TldrawAppGroup) {
 			<TlaSpacer height="20" />
 			<div className="tla_sidebar__section_title tla_text_ui__section">
 				{name}
-				<SidebarCreateFileButton />
+				<TlaSidebarCreateFileButton />
 			</div>
 			{files.map((file) => (
-				<SidebarFileLink key={'group_' + file.id} file={file} />
+				<TlaSidebarFileLink key={'group_' + file.id} file={file} />
 			))}
 		</div>
 	)
 }
 
-function SidebarUserLink() {
+function TlaSidebarUserLink() {
 	const app = useApp()
 	const user = useValue(
 		'recent user files',
