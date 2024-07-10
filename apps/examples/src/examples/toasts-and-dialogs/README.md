@@ -3,7 +3,7 @@ title: Toasts and dialogs
 component: ./ToastsDialogsExample.tsx
 category: ui
 priority: 3
-keywords: [ui, components, dialogs, toasts, ]
+keywords: [ui, components, dialogs, toasts]
 ---
 
 To control toasts and dialogs your app, you can use the `useToasts` and `useDialogs` hooks.
