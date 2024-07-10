@@ -10,10 +10,14 @@ export const multiplayerAssetStore: TLAssetStore = {
 		const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
 		const url = `${UPLOAD_URL}/${objectName}`
 
-		await fetch(url, {
+		const response = await fetch(url, {
 			method: 'POST',
 			body: file,
 		})
+
+		if (!response.ok) {
+			throw new Error(`Failed to upload asset: ${response.statusText}`)
+		}
 
 		return url
 	},
