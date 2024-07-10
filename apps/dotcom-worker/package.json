@@ -23,7 +23,7 @@
 		"@supabase/supabase-js": "^2.33.2",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/store": "workspace:*",
-		"@tldraw/sync": "workspace:*",
+		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",

@@ -1,16 +1,10 @@
 import * as Popover from '@radix-ui/react-popover'
+import { USER_COLORS, track, useContainer, useEditor } from '@tldraw/editor'
 import React, { useCallback, useRef, useState } from 'react'
-import {
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	USER_COLORS,
-	track,
-	useContainer,
-	useEditor,
-	useTranslation,
-	useUiEvents,
-} from 'tldraw'
-import { UI_OVERRIDE_TODO_EVENT } from '../../utils/useHandleUiEvent'
+import { useUiEvents } from '../../context/events'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 
 export const UserPresenceColorPicker = track(function UserPresenceColorPicker() {
 	const editor = useEditor()
@@ -30,7 +24,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 	const onValueChange = useCallback(
 		(item: string) => {
 			editor.user.updateUserPreferences({ color: item })
-			trackEvent('set-color' as UI_OVERRIDE_TODO_EVENT, { source: 'people-menu' })
+			trackEvent('set-color', { source: 'people-menu' })
 		},
 		[editor, trackEvent]
 	)

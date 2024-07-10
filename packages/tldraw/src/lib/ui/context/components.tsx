@@ -8,6 +8,7 @@ import {
 	DefaultContextMenu,
 	TLUiContextMenuProps,
 } from '../components/ContextMenu/DefaultContextMenu'
+import { CursorChatBubble } from '../components/CursorChatBubble'
 import { DefaultDebugMenu } from '../components/DebugMenu/DefaultDebugMenu'
 import { DefaultDebugPanel } from '../components/DefaultDebugPanel'
 import { TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
@@ -28,9 +29,12 @@ import {
 	DefaultQuickActions,
 	TLUiQuickActionsProps,
 } from '../components/QuickActions/DefaultQuickActions'
+import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
+import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
+import { useIsMultiplayer } from '../hooks/useIsMultiplayer'
 
 /** @public */
 export interface TLUiComponents {
@@ -52,6 +56,7 @@ export interface TLUiComponents {
 	MenuPanel?: ComponentType | null
 	TopPanel?: ComponentType | null
 	SharePanel?: ComponentType | null
+	CursorChatBubble?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -68,6 +73,7 @@ export function TldrawUiComponentsProvider({
 	children,
 }: TLUiComponentsProviderProps) {
 	const _overrides = useShallowObjectIdentity(overrides)
+	const isMultiplayer = useIsMultiplayer()
 
 	return (
 		<TldrawUiComponentsContext.Provider
@@ -89,9 +95,12 @@ export function TldrawUiComponentsProvider({
 					DebugPanel: DefaultDebugPanel,
 					DebugMenu: DefaultDebugMenu,
 					MenuPanel: DefaultMenuPanel,
+					SharePanel: isMultiplayer ? DefaultSharePanel : null,
+					CursorChatBubble: isMultiplayer ? CursorChatBubble : null,
+					TopPanel: isMultiplayer ? DefaultTopPanel : null,
 					..._overrides,
 				}),
-				[_overrides]
+				[_overrides, isMultiplayer]
 			)}
 		>
 			{children}

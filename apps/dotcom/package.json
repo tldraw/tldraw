@@ -25,7 +25,7 @@
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/sync": "workspace:*",
-		"@tldraw/sync-react": "workspace:*",
+		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"browser-fs-access": "^0.35.0",

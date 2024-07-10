@@ -6,8 +6,8 @@ import {
 	TLRemoteSyncError,
 	TLSyncClient,
 	schema,
-} from '@tldraw/sync'
-import { useEffect, useState } from 'react'
+} from '@tldraw/sync-core'
+import { useEffect } from 'react'
 import {
 	Editor,
 	Signal,
@@ -19,9 +19,11 @@ import {
 	TLUserPreferences,
 	computed,
 	createPresenceStateDerivation,
+	createTLStore,
 	defaultUserPreferences,
 	getUserPreferences,
-	useTLStore,
+	uniqueId,
+	useRefState,
 	useValue,
 } from 'tldraw'
 
@@ -35,19 +37,25 @@ export type RemoteTLStoreWithStatus = Exclude<
 
 /** @public */
 export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLStoreWithStatus {
-	const [state, setState] = useState<{
+	const [state, setState] = useRefState<{
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
 	} | null>(null)
-	const { uri, roomId = 'default', userPreferences: prefs, assets, onEditorMount } = opts
-
-	const store = useTLStore({ schema, assets, onEditorMount })
+	const {
+		uri,
+		roomId = 'default',
+		userPreferences: prefs,
+		assets,
+		onEditorMount,
+		trackAnalyticsEvent: track,
+	} = opts
 
 	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
-	const track = opts.trackAnalyticsEvent
 
 	useEffect(() => {
 		if (error) return
+
+		const storeId = uniqueId()
 
 		const userPreferences = computed<{ id: string; color: string; name: string }>(
 			'userPreferences',
@@ -65,7 +73,7 @@ export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLSto
 			// set sessionKey as a query param on the uri
 			const withParams = new URL(uri)
 			withParams.searchParams.set('sessionKey', TAB_ID)
-			withParams.searchParams.set('storeId', store.id)
+			withParams.searchParams.set('storeId', storeId)
 			return withParams.toString()
 		})
 
@@ -80,6 +88,16 @@ export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLSto
 		})
 
 		let didCancel = false
+
+		const store = createTLStore({
+			id: storeId,
+			schema,
+			assets,
+			onEditorMount,
+			multiplayerStatus: computed('multiplayer status', () =>
+				socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
+			),
+		})
 
 		const client = new TLSyncClient({
 			store,
@@ -115,7 +133,7 @@ export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLSto
 			client.close()
 			socket.close()
 		}
-	}, [prefs, roomId, store, uri, error, track])
+	}, [assets, error, onEditorMount, prefs, roomId, setState, track, uri])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',

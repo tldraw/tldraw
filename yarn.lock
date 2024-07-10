@@ -5997,7 +5997,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
-    "@tldraw/sync": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -6086,7 +6086,7 @@ __metadata:
     "@supabase/supabase-js": "npm:^2.33.2"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
-    "@tldraw/sync": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -6255,11 +6255,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/sync-react@workspace:*, @tldraw/sync-react@workspace:packages/sync-react":
+"@tldraw/sync-core@workspace:*, @tldraw/sync-core@workspace:packages/sync-core":
   version: 0.0.0-use.local
-  resolution: "@tldraw/sync-react@workspace:packages/sync-react"
+  resolution: "@tldraw/sync-core@workspace:packages/sync-core"
   dependencies:
-    "@tldraw/sync": "workspace:*"
+    "@tldraw/state": "workspace:*"
+    "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
@@ -6279,9 +6281,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/sync@workspace:packages/sync"
   dependencies:
-    "@tldraw/state": "workspace:*"
-    "@tldraw/store": "workspace:*"
-    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
@@ -10356,7 +10356,7 @@ __metadata:
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/sync": "workspace:*"
-    "@tldraw/sync-react": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/qrcode": "npm:^1.5.0"
