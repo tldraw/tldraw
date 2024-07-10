@@ -63,6 +63,7 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 		shape: ICustomShape,
 		ctx: SvgExportContext
 	): ReactElement | null | Promise<ReactElement | null> {
+		// ctx.addExportDef(getFontDef(shape))
 		const isDarkmode = ctx.isDarkMode
 		const fill = isDarkmode ? '#333' : '#efefef'
 		return <rect width={shape.props.w} height={shape.props.h} fill={fill} />
@@ -79,6 +80,21 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	// 	return <rect width={shape.props.w} height={shape.props.h} fill={fill} />
 	// }
 }
+
+// [3]
+
+// function getFontDef(shape: ICustomShape): SvgExportDef {
+// 	//
+// 	return {
+// 		some unique key,
+// 		key: 'my-custom-shape-font',
+// 		getElement: async () => {
+// 			return <style></style> element
+// 			check out the defaultStyleDefs.tsx file for an example of how
+// 			we do this for tldraw fonts
+// 		},
+// 	}
+// }
 
 const customShape = [MyShapeUtil]
 export default function CustomShapeToSvgExample() {
@@ -103,10 +119,19 @@ export default function CustomShapeToSvgExample() {
  [1]
     This method should return a React element that represents the shape as an SVG element. 
     If your shape is HTML, then you will need to convert it to an SVG representation. In this
-    example we've used a `rect` element to represent the shape.
+    example we've used a `rect` element to represent the shape. Other shapes may require more
+    complex work to render them as SVGs, especially if they contain text. Check out [3] for more
+	info.
 
 [2]
     The `toBackgroundSvg` method is used to render a layer behind the shape when exporting as SVG.
-    We use this in the tldraw codebase to make the highlighter shape. 
+    We use this in the tldraw codebase to make the highlighter shape. It's commented out here as
+    we don't need it for this example.
+
+[3]
+	If your shape contains text, you may need to add a font definition to the SVG. This is done
+	using the `addExportDef` method of the `SvgExportContext`. Your font def must contain a unique
+	key and a function that returns a React element. Check out the `getFontDefForExport` function 
+	in the `defaultStyleDefs.tsx` file for an example of how this is done for tldraw fonts.
 
  */
