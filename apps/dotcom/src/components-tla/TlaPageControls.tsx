@@ -1,5 +1,6 @@
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
+import { TldrawAppViewState } from '../utils/tla/schema/TldrawAppSessionState'
 import { TlaIcon } from './TlaIcon'
 
 const LABELS: Record<string, string> = {
@@ -14,18 +15,18 @@ const LABELS: Record<string, string> = {
 
 export function TlaPageControls({ viewName }: { viewName: string }) {
 	const app = useApp()
-	const { sort, view, search } = useValue(
+	const { sort, view, search } = useValue<TldrawAppViewState>(
 		'controls view',
 		() => {
 			const sessionState = app.getSessionState()
 			const currentView = sessionState.views[viewName]
-			if (currentView) return currentView
-
-			return {
-				sort: 'recent',
-				view: 'grid',
-				search: '',
-			}
+			return (
+				currentView ?? {
+					sort: 'recent',
+					view: 'grid',
+					search: '',
+				}
+			)
 		},
 		[app, viewName]
 	)
@@ -45,7 +46,8 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 							views: {
 								...sessionState.views,
 								[viewName]: {
-									...sessionState.views[viewName],
+									sort,
+									view,
 									search: value,
 								},
 							},
@@ -62,7 +64,8 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 								views: {
 									...sessionState.views,
 									[viewName]: {
-										...sessionState.views[viewName],
+										sort,
+										view,
 										search: '',
 									},
 								},

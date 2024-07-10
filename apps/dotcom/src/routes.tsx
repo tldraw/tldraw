@@ -21,6 +21,7 @@ import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { AppStateProvider, useApp } from './hooks/useAppState'
 import { useAuth } from './tla-hooks/useAuth'
 import { getCleanId } from './utils/tla/tldrawApp'
+import { getFileUrl } from './utils/tla/urls'
 
 const enableTemporaryLocalBemo =
 	window.location.hostname === 'localhost' &&
@@ -140,5 +141,5 @@ function RedirectToMostRecentFile() {
 	)
 	if (!file) throw Error('File not found')
 
-	return <Navigate to={`/${getCleanId(file.workspaceId)}/f/${getCleanId(file.id)}`} />
+	return <Navigate to={getFileUrl(file.workspaceId, file.id)} />
 }

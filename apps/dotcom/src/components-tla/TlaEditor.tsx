@@ -110,7 +110,6 @@ export function TlaEditor({ file }: { file: TldrawAppFile }) {
 				onUiEvent={handleUiEvent}
 				components={components}
 				assetOptions={{ onResolveAsset: resolveAsset(persistenceKey) }}
-				inferDarkMode
 			>
 				<LocalMigration />
 				<SneakyOnDropOverride isMultiplayer={false} />
@@ -119,3 +118,20 @@ export function TlaEditor({ file }: { file: TldrawAppFile }) {
 		</div>
 	)
 }
+
+// function SneakyDarkModeSync() {
+// 	const app = useApp()
+// 	const editor = useEditor()
+
+// 	useQuickReactor('dark mode sync', () => {
+// 		const appIsDark = app.getTheme() === 'dark'
+// 		const editorIsDark = editor.user.getIsDarkMode()
+
+// 		if (appIsDark !== editorIsDark) {
+// 			if (appIs)
+// 			editor.user.systemColorScheme.set('dark')
+// 		}
+// 	}, [app, editor])
+
+// 	return null
+// }

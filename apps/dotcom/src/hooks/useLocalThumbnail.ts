@@ -10,10 +10,21 @@ import {
 	defaultShapeUtils,
 	getSvgAsImage,
 	loadSnapshot,
+	useValue,
 } from 'tldraw'
 import { loadDataFromStore } from '../utils/tla/local-sync'
+import { useApp } from './useAppState'
 
 export function useLocalThumbnail(id: string) {
+	const app = useApp()
+	const theme = useValue(
+		'theme',
+		() => {
+			return app.getSessionState().theme
+		},
+		[app]
+	)
+
 	const [imageUrl, setImageUrl] = useState<string | null>(null)
 
 	useEffect(() => {
@@ -31,7 +42,10 @@ export function useLocalThumbnail(id: string) {
 				schema: data.schema as SerializedSchemaV2,
 			} satisfies TLStoreSnapshot
 
-			const image = await snapshotToImage(snapshot)
+			const image = await snapshotToImage(snapshot, {
+				darkMode: theme === 'dark',
+			})
+
 			if (image) {
 				setImageUrl(image)
 			}
@@ -39,17 +53,17 @@ export function useLocalThumbnail(id: string) {
 		return () => {
 			didDispose = true
 		}
-	}, [id])
+	}, [id, app, theme])
 
 	return imageUrl
 }
 
-async function snapshotToImage(snapshot: TLStoreSnapshot) {
+async function snapshotToImage(snapshot: TLStoreSnapshot, opts: { darkMode: boolean }) {
 	const store = createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils })
 	loadSnapshot(store, snapshot)
 
 	const container = document.createElement('div')
-	container.classList.add('tl-container', 'tl-theme__light')
+	container.classList.add('tl-container', opts.darkMode ? 'tl-theme__dark' : 'tl-theme__light')
 
 	const tempElm = document.createElement('div')
 	container.appendChild(tempElm)
@@ -66,7 +80,9 @@ async function snapshotToImage(snapshot: TLStoreSnapshot) {
 
 	let imageDataUrl = ''
 
-	const svgResult = await editor.getSvgString([...shapeIds])
+	const svgResult = await editor.getSvgString([...shapeIds], {
+		darkMode: opts.darkMode,
+	})
 
 	if (svgResult) {
 		const blob = await getSvgAsImage(editor, svgResult.svg, {

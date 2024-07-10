@@ -20,6 +20,10 @@ export function TlaFileList({ viewName, files }: { viewName: string; files: Tldr
 		[app, viewName]
 	)
 
+	if (files.length === 0) {
+		return <div className="tla_page__empty tla_text_ui__regular">Nothing to see here.</div>
+	}
+
 	if (view === 'grid') {
 		return (
 			<div className="tla_page__grid">

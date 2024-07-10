@@ -62,7 +62,7 @@ export function TlaSidebar() {
 	)
 }
 
-function SidebarCreateButton() {
+function SidebarCreateFileButton() {
 	const app = useApp()
 	const navigate = useNavigate()
 
@@ -84,6 +84,32 @@ function SidebarCreateButton() {
 			}}
 		>
 			<TlaIcon icon="edit-strong" />
+		</button>
+	)
+}
+
+function SidebarCreateGroupButton() {
+	const app = useApp()
+	const navigate = useNavigate()
+
+	return (
+		<button
+			className="tla_sidebar__create tla_icon_wrapper"
+			onClick={() => {
+				const { auth } = app.getSessionState()
+				if (!auth) return false
+				const id = TldrawAppFileRecordType.createId()
+				app.store.put([
+					TldrawAppFileRecordType.create({
+						id,
+						workspaceId: auth.workspaceId,
+						owner: auth.userId,
+					}),
+				])
+				navigate(getFileUrl(auth.workspaceId, id))
+			}}
+		>
+			<TlaIcon icon="plus" />
 		</button>
 	)
 }
@@ -118,7 +144,7 @@ function SidebarTabs() {
 
 	return (
 		<div className="tla_sidebar__tabs">
-			{sidebarActiveTab === 'recent' && <SidebarCreateButton />}
+			{sidebarActiveTab === 'recent' ? <SidebarCreateFileButton /> : <SidebarCreateGroupButton />}
 			<div className="tla_sidebar__line" />
 			<button
 				className="tla_sidebar__tabs_tab tla_text_ui__regular"
@@ -286,8 +312,6 @@ function SidebarGroups() {
 	)
 	if (!groups) throw Error('Could not get groups')
 
-	console.log(groups)
-
 	return (
 		<>
 			{groups.map((group) => (
@@ -315,7 +339,7 @@ function SidebarGroup({ id, name }: TldrawAppGroup) {
 			<TlaSpacer height="20" />
 			<div className="tla_sidebar__section_title tla_text_ui__section">
 				{name}
-				<SidebarCreateButton />
+				<SidebarCreateFileButton />
 			</div>
 			{files.map((file) => (
 				<SidebarFileLink key={'group_' + file.id} file={file} />
@@ -344,7 +368,16 @@ function SidebarUserLink() {
 			</div>
 			<div className="tla_sidebar__label">{user.name}</div>
 			<Link className="tla_sidebar__link-button" to={`/`} />
-			<button className="tla_sidebar__link-menu">
+			<button
+				className="tla_sidebar__link-menu"
+				onClick={() => {
+					const currentState = app.getSessionState()
+					app.setSessionState({
+						...currentState,
+						theme: currentState.theme === 'light' ? 'dark' : 'light',
+					})
+				}}
+			>
 				<TlaIcon icon="more" />
 			</button>
 		</div>

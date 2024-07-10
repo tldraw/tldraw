@@ -498,7 +498,7 @@ async function pruneSessionState({
 }
 
 /** @internal */
-export async function loadDataFromStore({
+export async function loadDataFromStore<T extends UnknownRecord>({
 	storePrefix = STORE_PREFIX,
 	indexKey = DB_NAME_INDEX_KEY,
 	persistenceKey,
@@ -522,7 +522,7 @@ export async function loadDataFromStore({
 			const result = {
 				records: await recordsStore.getAll(),
 				schema: await schemaStore.get(Table.Schema),
-			} satisfies LoadResult
+			} satisfies LoadResult<T>
 			if (didCancel?.()) {
 				tx.abort()
 				return undefined

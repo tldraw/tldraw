@@ -1,5 +1,5 @@
 import { deleteDB } from 'idb'
-import { Store } from 'tldraw'
+import { computed, Store } from 'tldraw'
 import { getAllIndexDbNames, LocalSyncClient } from './local-sync'
 import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
 import { TldrawAppGroup, TldrawAppGroupId, TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
@@ -33,6 +33,10 @@ export class TldrawApp {
 
 	setSessionState(sessionState: TldrawAppSessionState) {
 		return this.store.put([sessionState])
+	}
+
+	@computed getTheme() {
+		return this.getSessionState().theme
 	}
 
 	getSortedFilteredFiles(viewName: string, files: TldrawAppFile[]) {
