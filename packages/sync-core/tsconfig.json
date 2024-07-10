@@ -8,10 +8,16 @@
 	},
 	"references": [
 		{
-			"path": "../sync"
+			"path": "../state"
+		},
+		{
+			"path": "../store"
 		},
 		{
 			"path": "../tldraw"
+		},
+		{
+			"path": "../tlschema"
 		},
 		{
 			"path": "../utils"

@@ -1,4 +1,4 @@
-import { TLIncompatibilityReason, TLRemoteSyncError } from '@tldraw/sync'
+import { TLIncompatibilityReason, TLRemoteSyncError } from '@tldraw/sync-core'
 import { exhaustiveSwitchError } from 'tldraw'
 import { ErrorPage } from './ErrorPage/ErrorPage'
 

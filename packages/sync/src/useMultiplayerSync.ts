@@ -6,7 +6,7 @@ import {
 	TLRemoteSyncError,
 	TLSyncClient,
 	schema,
-} from '@tldraw/sync'
+} from '@tldraw/sync-core'
 import { useEffect } from 'react'
 import {
 	Editor,

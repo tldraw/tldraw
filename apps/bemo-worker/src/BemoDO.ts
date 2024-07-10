@@ -1,4 +1,4 @@
-import { RoomSnapshot, TLCloseEventCode, TLSocketRoom } from '@tldraw/sync'
+import { RoomSnapshot, TLCloseEventCode, TLSocketRoom } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import { throttle } from '@tldraw/utils'
 import { T } from '@tldraw/validate'

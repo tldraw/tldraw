@@ -14,7 +14,7 @@
 			"path": "../../packages/store"
 		},
 		{
-			"path": "../../packages/sync"
+			"path": "../../packages/sync-core"
 		},
 		{
 			"path": "../../packages/tlschema"

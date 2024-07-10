@@ -1,5 +1,5 @@
 import { ROOM_PREFIX, Snapshot } from '@tldraw/dotcom-shared'
-import { schema } from '@tldraw/sync'
+import { schema } from '@tldraw/sync-core'
 import { Navigate } from 'react-router-dom'
 import '../../styles/globals.css'
 import { ErrorPage } from '../components/ErrorPage/ErrorPage'

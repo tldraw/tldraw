@@ -1,5 +1,5 @@
 import { SerializedSchema, SerializedStore } from '@tldraw/store'
-import { schema } from '@tldraw/sync'
+import { schema } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import { Result, objectMapEntries } from '@tldraw/utils'
 
