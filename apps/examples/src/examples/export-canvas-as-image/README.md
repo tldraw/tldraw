@@ -1,8 +1,8 @@
 ---
 title: Export canvas as image
 component: ./ExportCanvasImageExample.tsx
-category: basic
-priority: 1
+category: data/assets
+priority: 2
 keywords: [basic, assets, svg, png, blob]
 ---
 
