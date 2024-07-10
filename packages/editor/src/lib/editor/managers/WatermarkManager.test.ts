@@ -8,6 +8,7 @@ function getDefaultLicenseResult(overides: Partial<ValidLicenseKeyResult>): Vali
 		isAnnualLicense: true,
 		isAnnualLicenseExpired: false,
 		isInternalLicense: false,
+		isDevelopment: false,
 		isDomainValid: true,
 		isPerpetualLicense: false,
 		isPerpetualLicenseExpired: false,

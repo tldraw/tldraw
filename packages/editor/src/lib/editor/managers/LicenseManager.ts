@@ -38,6 +38,7 @@ interface InvalidLicenseKeyResult {
 export interface ValidLicenseKeyResult {
 	isLicenseParseable: true
 	license: LicenseInfo
+	isDevelopment: boolean
 	isDomainValid: boolean
 	expiryDate: Date
 	isAnnualLicense: boolean
@@ -53,17 +54,19 @@ export class LicenseManager {
 	private publicKey =
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
 	public isDevelopment: boolean
+	public isCryptoAvailable: boolean
 
 	constructor(testPublicKey?: string, testEnvironment?: TestEnvironment) {
 		this.isDevelopment = this.getIsDevelopment(testEnvironment)
 		this.publicKey = testPublicKey || this.publicKey
+		this.isCryptoAvailable = !!crypto.subtle
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {
 		if (testEnvironment === 'development') return true
 		if (testEnvironment === 'production') return false
 
-		// If we are using https we asume it's a production env and a development one otherwise
+		// If we are using https we assume it's a production env and a development one otherwise
 		return window.location.protocol !== 'https:'
 	}
 
@@ -129,7 +132,13 @@ export class LicenseManager {
 			return { isLicenseParseable: false, reason: 'no-key-provided' }
 		}
 
-		if (this.isDevelopment) {
+		if (this.isDevelopment && !this.isCryptoAvailable) {
+			// eslint-disable-next-line no-console
+			console.log(
+				'tldraw: you seem to be in a development environment that does not support crypto. License not verified.'
+			)
+			// eslint-disable-next-line no-console
+			console.log('You should check that this works in production separately.')
 			// We can't parse the license if we are in development mode since crypto
 			// is not available on http
 			return { isLicenseParseable: false, reason: 'has-key-development-mode' }
@@ -150,6 +159,7 @@ export class LicenseManager {
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
 				isLicenseParseable: true,
+				isDevelopment: this.isDevelopment,
 				isDomainValid: this.isDomainValid(licenseInfo),
 				expiryDate,
 				isAnnualLicense,
@@ -257,7 +267,7 @@ export class LicenseManager {
 			])
 		}
 
-		if (!result.isDomainValid) {
+		if (!result.isDomainValid && !result.isDevelopment) {
 			this.outputMessages([
 				'This tldraw license key is not valid for this domain!',
 				`Please reach out to ${LICENSE_EMAIL} if you would like to use tldraw on other domains.`,

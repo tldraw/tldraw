@@ -99,7 +99,10 @@ export class WatermarkManager {
 
 			this.applyStyles(watermark)
 
-			if (!license.isLicenseParseable && license.reason === 'has-key-development-mode') {
+			if (
+				(!license.isLicenseParseable && license.reason === 'has-key-development-mode') ||
+				(license.isLicenseParseable && license.isDevelopment)
+			) {
 				// After 5 seconds, in development mode (dev, staging, CI), remove.
 				watermark.parentNode?.removeChild(watermark)
 				window.removeEventListener('resize', resizeListener)
