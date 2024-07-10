@@ -1660,6 +1660,7 @@ export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 export interface TldrawImageProps extends TLSvgOptions {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     format?: 'png' | 'svg';
+    licenseKey?: string;
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     snapshot: TLEditorSnapshot | TLStoreSnapshot;
