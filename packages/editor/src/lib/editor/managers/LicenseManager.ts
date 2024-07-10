@@ -122,7 +122,10 @@ export class LicenseManager {
 
 	async getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult> {
 		if (!licenseKey) {
-			this.outputNoLicenseKeyProvided()
+			if (!this.isDevelopment) {
+				this.outputNoLicenseKeyProvided()
+			}
+
 			return { isLicenseParseable: false, reason: 'no-key-provided' }
 		}
 
