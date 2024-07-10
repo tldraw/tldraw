@@ -646,3 +646,19 @@ export function PrintItem() {
 	])
 	return <TldrawUiMenuItem {...actions['print']} disabled={emptyPage} />
 }
+
+/* ---------------------- Multiplayer --------------------- */
+/** @public @react */
+export function CursorChatItem() {
+	const editor = useEditor()
+	const actions = useActions()
+	const shouldShow = useValue(
+		'show cursor chat',
+		() => editor.getCurrentToolId() === 'select' && !editor.getInstanceState().isCoarsePointer,
+		[editor]
+	)
+
+	if (!shouldShow) return null
+
+	return <TldrawUiMenuItem {...actions['open-cursor-chat']} />
+}

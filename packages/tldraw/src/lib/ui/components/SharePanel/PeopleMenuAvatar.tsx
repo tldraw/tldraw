@@ -1,4 +1,4 @@
-import { usePresence } from 'tldraw'
+import { usePresence } from '@tldraw/editor'
 
 export function PeopleMenuAvatar({ userId }: { userId: string }) {
 	const presence = usePresence(userId)

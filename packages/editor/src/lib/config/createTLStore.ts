@@ -1,3 +1,4 @@
+import { Signal } from '@tldraw/state'
 import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import {
 	SchemaPropsInfo,
@@ -25,6 +26,9 @@ export interface TLStoreBaseOptions {
 
 	/** Called when the store is connected to an {@link Editor}. */
 	onEditorMount?: (editor: Editor) => void | (() => void)
+
+	/** Is this store connected to a multiplayer sync server? */
+	multiplayerStatus?: Signal<'online' | 'offline'> | null
 }
 
 /** @public */
@@ -63,6 +67,7 @@ export function createTLStore({
 	id,
 	assets,
 	onEditorMount,
+	multiplayerStatus,
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	const schema =
@@ -96,6 +101,7 @@ export function createTLStore({
 				assert(editor instanceof Editor)
 				onEditorMount?.(editor)
 			},
+			multiplayerStatus: multiplayerStatus ?? null,
 		},
 	})
 }

@@ -1499,6 +1499,8 @@ export interface TLStoreProps {
     assets: TLAssetStore;
     // (undocumented)
     defaultName: string;
+    // (undocumented)
+    multiplayerStatus: null | Signal<'offline' | 'online'>;
     onEditorMount: (editor: unknown) => (() => void) | void;
 }
 

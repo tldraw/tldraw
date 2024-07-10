@@ -1,3 +1,4 @@
+import { preventDefault, track, useEditor } from '@tldraw/editor'
 import {
 	ChangeEvent,
 	ClipboardEvent,
@@ -9,7 +10,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { preventDefault, track, useEditor, useTranslation } from 'tldraw'
+import { useTranslation } from '../hooks/useTranslation/useTranslation'
 
 // todo:
 // - not cleaning up
@@ -27,7 +28,7 @@ export const CursorChatBubble = track(function CursorChatBubble() {
 		const closingUp = !isChatting && chatMessage
 		if (closingUp || isChatting) {
 			const duration = isChatting ? CHAT_MESSAGE_TIMEOUT_CHATTING : CHAT_MESSAGE_TIMEOUT_CLOSING
-			rTimeout.current = setTimeout(() => {
+			rTimeout.current = editor.timers.setTimeout(() => {
 				editor.updateInstanceState({ chatMessage: '', isChatting: false })
 				setValue('')
 				editor.focus()
@@ -125,7 +126,7 @@ const CursorChatInput = track(function CursorChatInput({
 
 	useLayoutEffect(() => {
 		// Focus the input
-		const raf = requestAnimationFrame(() => {
+		const raf = editor.timers.requestAnimationFrame(() => {
 			ref.current?.focus()
 		})
 
