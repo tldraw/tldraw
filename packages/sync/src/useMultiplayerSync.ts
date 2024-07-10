@@ -134,6 +134,7 @@ export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLSto
 			didCancel = true
 			client.close()
 			socket.close()
+			setState(null)
 		}
 	}, [assets, error, onEditorMount, prefs, roomId, setState, track, uri, schema])
 
