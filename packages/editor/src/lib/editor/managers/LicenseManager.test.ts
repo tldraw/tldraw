@@ -49,11 +49,20 @@ describe('LicenseManager', () => {
 		expect(result).toMatchObject({ isLicenseParseable: false, reason: 'no-key-provided' })
 	})
 
-	it('Does not parse key in development mode', async () => {
+	it('Signals that it is development mode when appropriate', async () => {
+		// @ts-ignore
+		delete window.location
+		// @ts-ignore
+		window.location = new URL('http://localhost:3000')
+
 		const testEnvLicenseManager = new LicenseManager(keyPair.publicKey, 'development')
-		const invalidLicenseKey = await generateLicenseKey('asdfsad', keyPair)
-		const result = await testEnvLicenseManager.getLicenseFromKey(invalidLicenseKey)
-		expect(result).toMatchObject({ isLicenseParseable: false, reason: 'has-key-development-mode' })
+		const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+		const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+		expect(result).toMatchObject({
+			isLicenseParseable: true,
+			isDomainValid: false,
+			isDevelopment: true,
+		})
 	})
 
 	it('Cleanses out valid keys that accidentally have zero-width characters or newlines', async () => {
@@ -181,6 +190,42 @@ describe('LicenseManager', () => {
 
 		const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
 		permissiveHostsInfo[PROPERTIES.HOSTS] = ['*']
+		const permissiveLicenseKey = await generateLicenseKey(
+			JSON.stringify(permissiveHostsInfo),
+			keyPair
+		)
+		const result = (await licenseManager.getLicenseFromKey(
+			permissiveLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.isDomainValid).toBe(true)
+	})
+
+	it('Succeeds if has an apex domain specified', async () => {
+		// @ts-ignore
+		delete window.location
+		// @ts-ignore
+		window.location = new URL('https://www.example.com')
+
+		const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		permissiveHostsInfo[PROPERTIES.HOSTS] = ['example.com']
+		const permissiveLicenseKey = await generateLicenseKey(
+			JSON.stringify(permissiveHostsInfo),
+			keyPair
+		)
+		const result = (await licenseManager.getLicenseFromKey(
+			permissiveLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.isDomainValid).toBe(true)
+	})
+
+	it('Succeeds if has an www domain specified, but at the apex domain', async () => {
+		// @ts-ignore
+		delete window.location
+		// @ts-ignore
+		window.location = new URL('https://example.com')
+
+		const permissiveHostsInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		permissiveHostsInfo[PROPERTIES.HOSTS] = ['www.example.com']
 		const permissiveLicenseKey = await generateLicenseKey(
 			JSON.stringify(permissiveHostsInfo),
 			keyPair
