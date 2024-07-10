@@ -6,6 +6,7 @@ import {
 	StoreSnapshot,
 } from '@tldraw/store'
 import { IndexKey, annotateError, structuredClone } from '@tldraw/utils'
+import { TLAsset } from './records/TLAsset'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
 import { TLINSTANCE_ID } from './records/TLInstance'
@@ -45,8 +46,58 @@ export type TLSerializedStore = SerializedStore<TLRecord>
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>
 
 /** @public */
+export interface TLAssetContext {
+	screenScale: number
+	steppedScreenScale: number
+	dpr: number
+	networkEffectiveType: string | null
+	shouldResolveToOriginal: boolean
+}
+
+/**
+ * A `TLAssetStore` sits alongside the main {@link TLStore} and is responsible for storing and
+ * retrieving large assets such as images. Generally, this should be part of a wider sync system:
+ *
+ * - By default, the store is in-memory only, so `TLAssetStore` converts images to data URLs
+ * - When using
+ *   {@link @tldraw/editor#TldrawEditorWithoutStoreProps.persistenceKey | `persistenceKey`}, the
+ *   store is synced to the browser's local IndexedDB, so `TLAssetStore` stores images there too
+ * - When using a multiplayer sync server, you would implement `TLAssetStore` to upload images to
+ *   e.g. an S3 bucket.
+ *
+ * @public
+ */
+export interface TLAssetStore {
+	/**
+	 * Upload an asset to your storage, returning a URL that can be used to refer to the asset
+	 * long-term.
+	 *
+	 * @param asset - Information & metadata about the asset being uploaded
+	 * @param file - The `File` to be uploaded
+	 * @returns A promise that resolves to the URL of the uploaded asset
+	 */
+	upload(asset: TLAsset, file: File): Promise<string>
+	/**
+	 * Resolve an asset to a URL. This is used when rendering the asset in the editor. By default,
+	 * this will just use `asset.props.src`, the URL returned by `upload()`. This can be used to
+	 * rewrite that URL to add access credentials, or optimized the asset for how it's currently
+	 * being displayed using the {@link TLAssetContext | information provided}.
+	 *
+	 * @param asset - the asset being resolved
+	 * @param ctx - information about the current environment and where the asset is being used
+	 * @returns The URL of the resolved asset, or `null` if the asset is not available
+	 */
+	resolve(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
+}
+
+/** @public */
 export interface TLStoreProps {
 	defaultName: string
+	assets: TLAssetStore
+	/**
+	 * Called an {@link @tldraw/editor#Editor} connected to this store is mounted.
+	 */
+	onEditorMount: (editor: unknown) => void | (() => void)
 }
 
 /** @public */
@@ -91,7 +142,7 @@ function getDefaultPages() {
 }
 
 /** @internal */
-export function createIntegrityChecker(store: TLStore): () => void {
+export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): () => void {
 	const $pageIds = store.query.ids('page')
 
 	const ensureStoreIsUsable = (): void => {

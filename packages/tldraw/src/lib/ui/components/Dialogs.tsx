@@ -47,13 +47,7 @@ const Dialog = ({ id, component: ModalContent, onClose }: TLUiDialog) => {
 function _Dialogs() {
 	const { dialogs } = useDialogs()
 
-	return (
-		<>
-			{dialogs.map((dialog: TLUiDialog) => (
-				<Dialog key={dialog.id} {...dialog} />
-			))}
-		</>
-	)
+	return dialogs.map((dialog: TLUiDialog) => <Dialog key={dialog.id} {...dialog} />)
 }
 
 export const Dialogs = React.memo(_Dialogs)

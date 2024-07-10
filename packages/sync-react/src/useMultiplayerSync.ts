@@ -9,11 +9,12 @@ import {
 } from '@tldraw/sync'
 import { useEffect, useState } from 'react'
 import {
+	Editor,
 	Signal,
 	TAB_ID,
+	TLAssetStore,
 	TLRecord,
 	TLStore,
-	TLStoreSnapshot,
 	TLStoreWithStatus,
 	TLUserPreferences,
 	computed,
@@ -33,14 +34,14 @@ export type RemoteTLStoreWithStatus = Exclude<
 >
 
 /** @public */
-export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWithStatus {
+export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLStoreWithStatus {
 	const [state, setState] = useState<{
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
 	} | null>(null)
-	const { uri, roomId = 'default', userPreferences: prefs } = opts
+	const { uri, roomId = 'default', userPreferences: prefs, assets, onEditorMount } = opts
 
-	const store = useTLStore({ schema })
+	const store = useTLStore({ schema, assets, onEditorMount })
 
 	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
 	const track = opts.trackAnalyticsEvent
@@ -134,11 +135,12 @@ export function useRemoteSyncClient(opts: UseSyncClientConfig): RemoteTLStoreWit
 }
 
 /** @public */
-export interface UseSyncClientConfig {
+export interface UseMultiplayerSyncOptions {
 	uri: string
 	roomId?: string
 	userPreferences?: Signal<TLUserPreferences>
-	snapshotForNewRoomRef?: { current: null | TLStoreSnapshot }
 	/* @internal */
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
+	assets?: Partial<TLAssetStore>
+	onEditorMount?: (editor: Editor) => void
 }

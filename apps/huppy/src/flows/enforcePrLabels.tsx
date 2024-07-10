@@ -56,7 +56,7 @@ export const enforcePrLabels: Flow = {
 			return fail('Please add a label to the PR.')
 		}
 
-		if (pull.body?.includes('Add a brief release note for your PR here.')) {
+		if (pull.body?.includes('Fixed a bug with…')) {
 			return fail('Add a release note to the PR body.')
 		}
 

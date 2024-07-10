@@ -600,6 +600,8 @@ export const imageShapeProps: {
         bottomRight: VecModel;
         topLeft: VecModel;
     } | null>;
+    flipX: T.Validator<boolean>;
+    flipY: T.Validator<boolean>;
     h: T.Validator<number>;
     playing: T.Validator<boolean>;
     url: T.Validator<string>;
@@ -916,6 +918,20 @@ export type TLArrowShapeProps = RecordPropsType<typeof arrowShapeProps>;
 export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
 
 // @public (undocumented)
+export interface TLAssetContext {
+    // (undocumented)
+    dpr: number;
+    // (undocumented)
+    networkEffectiveType: null | string;
+    // (undocumented)
+    screenScale: number;
+    // (undocumented)
+    shouldResolveToOriginal: boolean;
+    // (undocumented)
+    steppedScreenScale: number;
+}
+
+// @public (undocumented)
 export type TLAssetId = RecordId<TLBaseAsset<any, any>>;
 
 // @public (undocumented)
@@ -932,6 +948,12 @@ export type TLAssetShape = Extract<TLShape, {
         assetId: TLAssetId;
     };
 }>;
+
+// @public
+export interface TLAssetStore {
+    resolve(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
+    upload(asset: TLAsset, file: File): Promise<string>;
+}
 
 // @public (undocumented)
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
@@ -1474,7 +1496,10 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 // @public (undocumented)
 export interface TLStoreProps {
     // (undocumented)
+    assets: TLAssetStore;
+    // (undocumented)
     defaultName: string;
+    onEditorMount: (editor: unknown) => (() => void) | void;
 }
 
 // @public (undocumented)

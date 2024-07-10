@@ -13648,6 +13648,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"images.tldraw.com@workspace:apps/images.tldraw.xyz":
+  version: 0.0.0-use.local
+  resolution: "images.tldraw.com@workspace:apps/images.tldraw.xyz"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20240620.0"
+    "@tldraw/validate": "workspace:*"
+    "@tldraw/worker-shared": "workspace:*"
+    itty-router: "npm:^4.0.13"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    wrangler: "npm:3.62.0"
+  languageName: unknown
+  linkType: soft
+
 "immediate@npm:~3.0.5":
   version: 3.0.6
   resolution: "immediate@npm:3.0.6"

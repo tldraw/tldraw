@@ -1,6 +1,6 @@
 import { clearLocalStorage, clearSessionStorage } from '@tldraw/utils'
 import { deleteDB } from 'idb'
-import { getAllIndexDbNames } from './indexedDb'
+import { LocalIndexedDb, getAllIndexDbNames } from './LocalIndexedDb'
 
 /**
  * Clear the database of all data associated with tldraw.
@@ -9,6 +9,9 @@ import { getAllIndexDbNames } from './indexedDb'
 export async function hardReset({ shouldReload = true } = {}) {
 	clearSessionStorage()
 
+	for (const instance of LocalIndexedDb.connectedInstances) {
+		await instance.close()
+	}
 	await Promise.all(getAllIndexDbNames().map((db) => deleteDB(db)))
 
 	clearLocalStorage()

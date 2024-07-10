@@ -46,7 +46,7 @@ export function OptionalErrorBoundary({
 	fallback: TLErrorFallbackComponent
 }) {
 	if (fallback === null) {
-		return <>{children}</>
+		return children
 	}
 
 	return (

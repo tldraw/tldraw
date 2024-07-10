@@ -8,10 +8,10 @@ interface Context {
 }
 
 export interface SentryEnvironment {
-	readonly SENTRY_DSN: string | undefined
+	readonly SENTRY_DSN?: string | undefined
 	readonly TLDRAW_ENV?: string | undefined
-	readonly WORKER_NAME: string | undefined
-	readonly CF_VERSION_METADATA: WorkerVersionMetadata
+	readonly WORKER_NAME?: string | undefined
+	readonly CF_VERSION_METADATA?: WorkerVersionMetadata
 }
 
 export function createSentry(ctx: Context, env: SentryEnvironment, request?: Request) {

@@ -391,6 +391,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/stack-vertical.svg', import.meta.url).href,
 				opts
 			),
+			'status-offline': formatAssetUrl(
+				new URL('./icons/icon/status-offline.svg', import.meta.url).href,
+				opts
+			),
 			'stretch-horizontal': formatAssetUrl(
 				new URL('./icons/icon/stretch-horizontal.svg', import.meta.url).href,
 				opts

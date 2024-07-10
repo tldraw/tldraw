@@ -2,7 +2,6 @@
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
-export { getAssetFromIndexedDb, storeAssetInIndexedDb } from './lib/AssetBlobStore'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
@@ -10,6 +9,7 @@ export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackground'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
+export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export { type TLExternalContentProps } from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'
