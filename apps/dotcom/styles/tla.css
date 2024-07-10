@@ -28,6 +28,7 @@
 	--color-panel: hsla(0, 0%, 100%, 1);
 	--color-text-1: hsla(204, 8%, 5%, 1);
 	--color-text-2: hsl(204, 4%, 45%);
+	--color-text-primary: hsla(0, 0%, 100%, 1);
 	--color-low: hsl(204, 16%, 94%);
 	--color-border: hsl(204, 16%, 85%);
 	--color-hover: hsl(204, 16%, 5%, 4.5%);
@@ -46,16 +47,17 @@
 	--color-panel: hsl(240, 6%, 13%);
 	--color-text-1: hsla(204, 8%, 95%, 1);
 	--color-text-2: hsl(204, 4%, 75%);
+	--color-text-primary: hsla(0, 0%, 100%, 1);
 	--color-low: hsl(240, 4%, 11%);
 	--color-border: hsl(240, 12%, 20%);
-	--color-hover: hsl(240, 16%, 95%, 8%);
+	--color-hover: hsl(240, 8%, 10%, 100%);
 	--color-overlay: hsla(204, 16%, 5%, 1%);
-	--color-primary: hsla(214, 84%, 56%, 1);
-	--color-secondary: hsl(0, 0%, 100%);
-	--color-accent-1: hsl(50, 91%, 70%);
+	--color-primary: hsla(214, 84%, 44%, 1);
+	--color-secondary: hsl(0, 0%, 90%);
+	--color-accent-1: hsl(50, 91%, 60%);
 	--color-accent-2: hsl(28, 88%, 47%);
-	--color-accent-3: hsl(135, 59%, 49%);
-	--color-warn: hsl(0, 88%, 57%);
+	--color-accent-3: hsl(135, 59%, 39%);
+	--color-warn: hsl(0, 88%, 47%);
 }
 
 /* --------------------- Spacers -------------------- */
@@ -225,6 +227,7 @@
 	height: 40px;
 	border: 1px solid transparent;
 	padding: 0px 12px;
+	color: var(--color-text-1);
 	border-radius: var(--radius-2);
 	cursor: pointer;
 	display: flex;
@@ -268,13 +271,13 @@
 
 .tla_button__primary {
 	background-color: var(--color-primary);
-	color: var(--color-panel);
+	color: var(--color-text-primary);
 }
 .tla_button__primary[data-state='loading'] {
 	color: var(--color-primary);
 }
 .tla_button__primary[data-state='loading'] > .tla_button_spinner {
-	color: var(--color-panel);
+	color: var(--color-text-primary);
 }
 
 .tla_button__secondary {
@@ -634,6 +637,10 @@ want centered content that docks to the top when the window is short
 	visibility: hidden;
 }
 
+.tla_hoverable[data-active='true']::after {
+	visibility: visible;
+}
+
 @media (hover: hover) {
 	.tla_hoverable:hover::after {
 		visibility: visible;
@@ -685,6 +692,8 @@ want centered content that docks to the top when the window is short
 	overflow: hidden;
 	text-overflow: ellipsis;
 	padding-right: 4px;
+	position: relative;
+	z-index: 1;
 }
 
 .tla_sidebar__user,
@@ -736,10 +745,6 @@ want centered content that docks to the top when the window is short
 	overflow: hidden;
 	height: 36px;
 	padding: 0px 0px 0px 8px;
-}
-
-.tla_hoverable[data-active='true']::after {
-	visibility: visible;
 }
 
 .tla_sidebar__link-button {
@@ -954,6 +959,7 @@ want centered content that docks to the top when the window is short
 	background-color: var(--color-panel);
 	border: 1px solid var(--color-border);
 	z-index: 1;
+	/* box-shadow: inset 0px 0px 12px -8px var(--color-canvas); */
 }
 
 .tla_page__list_item::after {
@@ -1008,11 +1014,7 @@ want centered content that docks to the top when the window is short
 
 .tla_page__grid_item {
 	position: relative;
-	border-radius: 2px;
-	border: 1px solid var(--color-border);
 	flex: 0 0 auto;
-	display: flex;
-	flex-direction: column;
 }
 
 .tla_page__grid_item::after {
@@ -1028,6 +1030,15 @@ want centered content that docks to the top when the window is short
 	pointer-events: none;
 	visibility: hidden;
 	z-index: 1;
+}
+
+.tla_page__grid_item__content {
+	display: flex;
+	border-radius: 2px;
+	border: 1px solid var(--color-border);
+	flex-direction: column;
+	position: relative;
+	z-index: 2;
 }
 
 .tla_page__grid_item_top {
@@ -1130,7 +1141,6 @@ want centered content that docks to the top when the window is short
 	align-items: center;
 	display: flex;
 	position: relative;
-	cursor: pointer;
 	padding: 0px 12px;
 	height: 100%;
 	z-index: 1;
@@ -1158,6 +1168,7 @@ want centered content that docks to the top when the window is short
 }
 
 .tla_page_controls__control_select {
+	cursor: pointer;
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -1208,6 +1219,8 @@ want centered content that docks to the top when the window is short
 	width: 100%;
 	height: 32px;
 	border-radius: 4px;
+	position: relative;
+	z-index: 1;
 }
 
 .tla_page_controls__search_input::placeholder {
@@ -1221,6 +1234,8 @@ want centered content that docks to the top when the window is short
 	gap: 4px;
 	color: var(--color-text-2);
 	pointer-events: none;
+	position: relative;
+	z-index: 1;
 }
 
 @media (hover: hover) {

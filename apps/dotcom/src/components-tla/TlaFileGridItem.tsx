@@ -24,23 +24,25 @@ export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppF
 
 	return (
 		<div className="tla_page__grid_item">
-			<div className="tla_page__grid_item_top">
-				{imageUrl ? (
-					<div
-						className="tla_page__grid_item_thumbnail"
-						style={{ backgroundImage: `url(${imageUrl})` }}
-					/>
-				) : (
-					<TlaSpinner />
-				)}
-			</div>
-			<div className="tla_page__grid_item_bottom">
-				<div className="tla_page__item_title tla_text_ui__regular">
-					{name || new Date(createdAt).toLocaleString('en-gb')}
+			<div className="tla_page__grid_item__content">
+				<div className="tla_page__grid_item_top">
+					{imageUrl ? (
+						<div
+							className="tla_page__grid_item_thumbnail"
+							style={{ backgroundImage: `url(${imageUrl})` }}
+						/>
+					) : (
+						<TlaSpinner />
+					)}
 				</div>
-				<div className="tla_page__item_details tla_text_ui__small">
-					<div>Last edited 2 hours ago</div>
-					<div className="tla_page__grid_item_collaborators" />
+				<div className="tla_page__grid_item_bottom">
+					<div className="tla_page__item_title tla_text_ui__regular">
+						{name || new Date(createdAt).toLocaleString('en-gb')}
+					</div>
+					<div className="tla_page__item_details tla_text_ui__small">
+						<div>Last edited 2 hours ago</div>
+						<div className="tla_page__grid_item_collaborators" />
+					</div>
 				</div>
 			</div>
 			<Link to={getFileUrl(workspaceId, id)} className="tla_page__item_link" />

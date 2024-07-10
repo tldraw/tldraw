@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import '../../styles/globals.css'
 import { TlaButton } from '../components-tla/TlaButton'
@@ -6,12 +7,13 @@ import { TlaPageControls } from '../components-tla/TlaPageControls'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
 import { TlaWrapperWithSidebar } from '../components-tla/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
+import { getFileUrl } from '../utils/tla/urls'
 
 const VIEW_NAME = 'drafts'
 
 export function Component() {
 	const app = useApp()
-
+	const navigate = useNavigate()
 	const files = useValue(
 		'starred files',
 		() => {
@@ -30,7 +32,16 @@ export function Component() {
 			<div className="tla_content tla_page">
 				<div className="tla_page__header">
 					<h2 className="tla_text_ui__big">Drafts</h2>
-					<TlaButton className="tla_page__create-button" iconRight="edit-strong">
+					<TlaButton
+						className="tla_page__create-button"
+						iconRight="edit-strong"
+						onClick={() => {
+							const session = app.getSessionState()
+							if (!session.auth) return
+							const file = app.createFile(session.auth.userId, session.auth.workspaceId)
+							navigate(getFileUrl(session.auth.workspaceId, file.id))
+						}}
+					>
 						New
 					</TlaButton>
 				</div>
