@@ -55,6 +55,9 @@ export default defineConfig(({ mode }) => ({
 	},
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),
+		'process.env.TLDRAW_DEPLOY_ID': JSON.stringify(
+			process.env.VERCEL_GIT_COMMIT_SHA ?? `local-${Date.now()}`
+		),
 		'process.env.TLDRAW_BEMO_URL': TLDRAW_BEMO_URL_STRING,
 		'process.env.TLDRAW_IMAGE_URL':
 			env === 'development' ? '`http://${location.hostname}:8786`' : '"https://images.tldraw.xyz"',
@@ -93,6 +96,7 @@ function exampleReadmePlugin(): PluginOption {
 				`export const priority = ${JSON.stringify(frontmatter.priority ?? '100000')};`,
 				`export const category = ${JSON.stringify(frontmatter.category)};`,
 				`export const hide = ${JSON.stringify(frontmatter.hide)};`,
+				`export const multiplayer = ${JSON.stringify(frontmatter.multiplayer)};`,
 				`export const description = ${JSON.stringify(description)};`,
 				`export const details = ${JSON.stringify(details)};`,
 				`export const codeUrl = ${JSON.stringify(codeUrl)};`,
@@ -143,6 +147,11 @@ function parseFrontMatter(data: unknown, fileName: string) {
 		throw new Error(`Frontmatter key 'keywords' must be array in ${fileName}`)
 	}
 
+	const multiplayer = 'multiplayer' in data ? data.multiplayer : false
+	if (typeof multiplayer !== 'boolean') {
+		throw new Error(`Frontmatter key 'multiplayer' must be boolean in ${fileName}`)
+	}
+
 	return {
 		title: data.title,
 		component: data.component,
@@ -150,5 +159,6 @@ function parseFrontMatter(data: unknown, fileName: string) {
 		category,
 		hide,
 		keywords,
+		multiplayer,
 	}
 }
