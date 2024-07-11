@@ -547,6 +547,24 @@ export class TldrawApp {
 			}),
 		]
 
+		// steve's visit to his own file
+		const visit1 = TldrawAppFileVisitRecordType.create({
+			id: TldrawAppFileVisitRecordType.createId('0'),
+			workspaceId: workspace1.id,
+			userId: user1.id,
+			fileId: TldrawAppFileRecordType.createId('0'),
+			createdAt: Date.now() - day * 1,
+		})
+
+		// steve's visit to david's file
+		const visit2 = TldrawAppFileVisitRecordType.create({
+			id: TldrawAppFileVisitRecordType.createId('1'),
+			workspaceId: workspace1.id,
+			userId: user1.id,
+			fileId: TldrawAppFileRecordType.createId('david0'),
+			createdAt: Date.now() - day * 1.2,
+		})
+
 		const session1 = TldrawAppSessionStateRecordType.create({
 			id: TldrawApp.SessionStateId,
 			auth: {
@@ -574,6 +592,8 @@ export class TldrawApp {
 					groupMembership2,
 					groupMembership3,
 					...files,
+					visit1,
+					visit2,
 					session1,
 				].map((r) => [r.id, r])
 			),

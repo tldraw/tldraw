@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import '../../styles/globals.css'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
 import { useApp } from '../hooks/useAppState'
+import { useFlags } from '../tla-hooks/useFlags'
 import { TldrawAppUserId, TldrawAppUserRecordType } from '../utils/tla/schema/TldrawAppUser'
 
 export function Component() {
@@ -61,8 +62,51 @@ export function Component() {
 				>
 					Reset database
 				</button>
+				<TlaSpacer height={40} />
+				<button
+					className="tla_button"
+					onClick={async () => {
+						await app.resetDatabase()
+						window.location.reload()
+					}}
+				>
+					Reset database
+				</button>
 			</div>
 			<TlaSpacer height="20" />
+			<Flags />
 		</div>
 	)
+}
+
+function Flags() {
+	const app = useApp()
+	const flags = useFlags()
+
+	return Object.entries(flags).map(([key, value]) => (
+		<div key={key}>
+			<label htmlFor={key}>{key}</label>
+			<input
+				name={key}
+				type="checkbox"
+				checked={value}
+				onChange={() => {
+					const current = app.getSessionState()
+					if (!current.auth) throw Error('No auth')
+					const user = app.store.get(current.auth.userId)
+					if (!user) throw Error('No user')
+
+					app.store.put([
+						{
+							...user,
+							flags: {
+								...user.flags,
+								[key]: !value,
+							},
+						},
+					])
+				}}
+			/>
+		</div>
+	))
 }

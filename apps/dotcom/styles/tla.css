@@ -732,8 +732,6 @@ want centered content that docks to the top when the window is short
 	background: none;
 	border: none;
 	position: relative;
-	margin: 0px -8px;
-	padding: 0px 8px;
 	height: 40px;
 	display: flex;
 	flex-direction: row;
@@ -789,18 +787,18 @@ want centered content that docks to the top when the window is short
 	z-index: 2;
 }
 
-.tla_sidebar__collaborators {
+.tla_collaborators {
 	display: flex;
 	flex-direction: row;
 	padding-left: 6px;
 	flex: 0 0 auto;
 }
 
-.tla_sidebar__collaborators > .tla_sidebar__collaborator:nth-of-type(n + 1) {
+.tla_collaborators > .tla_collaborator:nth-of-type(n + 1) {
 	margin-left: -6px;
 }
 
-.tla_sidebar__collaborator {
+.tla_collaborator {
 	width: 15px;
 	height: 15px;
 	background-color: var(--color-accent-2);
@@ -991,10 +989,19 @@ want centered content that docks to the top when the window is short
 /* -------------------- Shared ------------------- */
 
 .tla_page__item_title {
-	flex: 0 0 auto;
+	flex: 0 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-/* .tla_page__item_details {} */
+.tla_page__item_details {
+	flex: 0 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
+}
 
 .tla_page__item_link {
 	position: absolute;
@@ -1129,6 +1136,7 @@ want centered content that docks to the top when the window is short
 	flex-direction: column;
 	position: relative;
 	z-index: 2;
+	overflow: hidden;
 }
 
 .tla_page__grid_item_top {
@@ -1171,17 +1179,28 @@ want centered content that docks to the top when the window is short
 	padding: 12px;
 	gap: 8px;
 	z-index: 2;
+	overflow: hidden;
+}
+
+.tla_page__grid_item-title-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	overflow: hidden;
+	max-width: 100%;
+	gap: 4px;
 }
 
 .tla_page__grid_item > .tla_page__item_star {
 	position: absolute;
 	top: 0px;
-	right: 0px;
+	left: 0px;
 }
 .tla_page__grid_item > .tla_page__item_menu {
 	position: absolute;
 	top: 0px;
-	right: 32px;
+	right: 0px;
 }
 
 @media (hover: hover) {

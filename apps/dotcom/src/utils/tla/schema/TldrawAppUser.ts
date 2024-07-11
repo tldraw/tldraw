@@ -22,6 +22,14 @@ export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser
 		workspaceId: TldrawAppWorkspaceId
 		fileIds: TldrawAppFileId[]
 	}
+	flags: {
+		drafts: boolean
+		starred: boolean
+		shared: boolean
+		listView: boolean
+		groups: boolean
+		thumbnails: boolean
+	}
 }
 
 export type TldrawAppUserId = RecordId<TldrawAppUser>
@@ -41,6 +49,14 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 		presence: T.object({
 			workspaceId: idValidator<TldrawAppWorkspaceId>('workspace'),
 			fileIds: T.arrayOf(idValidator<TldrawAppFileId>('file')),
+		}),
+		flags: T.object({
+			drafts: T.boolean,
+			groups: T.boolean,
+			shared: T.boolean,
+			starred: T.boolean,
+			thumbnails: T.boolean,
+			listView: T.boolean,
 		}),
 	})
 )
@@ -67,5 +83,13 @@ export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
 		avatar: '',
 		createdAt: Date.now(),
 		updatedAt: Date.now(),
+		flags: {
+			drafts: true,
+			starred: true,
+			shared: true,
+			listView: true,
+			groups: false,
+			thumbnails: true,
+		},
 	})
 )
