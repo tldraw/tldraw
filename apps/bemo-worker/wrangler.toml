@@ -106,4 +106,4 @@ dataset = "BEMO_ANALYTICS_STAGING"
 
 [[env.production.analytics_engine_datasets]]
 binding = "BEMO_ANALYTICS"
-dataset = "BEMO_ANALYTICS_PRODUCTION"
+dataset = "BEMO_ANALYTICS"
