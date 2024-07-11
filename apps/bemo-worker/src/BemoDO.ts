@@ -18,6 +18,7 @@ interface AnalyticsEvent {
 	type: 'connect' | 'send_message' | 'receive_message'
 	origin: string
 	sessionKey: string
+	slug: string
 }
 
 export class BemoDO extends DurableObject<Environment> {
@@ -26,9 +27,9 @@ export class BemoDO extends DurableObject<Environment> {
 
 	analytics: AnalyticsEngineDataset
 
-	writeEvent({ type, origin, sessionKey }: AnalyticsEvent) {
+	writeEvent({ type, origin, sessionKey, slug }: AnalyticsEvent) {
 		this.analytics.writeDataPoint({
-			blobs: [type, origin, sessionKey],
+			blobs: [type, origin, slug, sessionKey],
 		})
 	}
 
@@ -100,6 +101,12 @@ export class BemoDO extends DurableObject<Environment> {
 
 			// all good
 			room.handleSocketConnect(sessionKey, serverWebSocket, { origin })
+			this.writeEvent({
+				type: 'connect',
+				origin,
+				sessionKey,
+				slug: this.getSlug(),
+			})
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
@@ -132,6 +139,7 @@ export class BemoDO extends DurableObject<Environment> {
 							type: 'receive_message',
 							origin: meta.origin,
 							sessionKey: sessionId,
+							slug,
 						})
 					},
 					onBeforeSendMessage: ({ sessionId, meta }) => {
@@ -139,6 +147,7 @@ export class BemoDO extends DurableObject<Environment> {
 							type: 'send_message',
 							origin: meta.origin,
 							sessionKey: sessionId,
+							slug,
 						})
 					},
 					onSessionRemoved: async (room, args) => {
