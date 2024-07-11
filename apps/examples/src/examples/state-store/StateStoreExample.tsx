@@ -1,4 +1,4 @@
-import { TLComponents, Tldraw, TLShape, track, useEditor, useQuickReactor } from 'tldraw'
+import { TLComponents, Tldraw, TLShape, track, useEditor, useQuickReactor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // [1]
@@ -33,32 +33,32 @@ const InfoPanel = track(() => {
 })
 
 // [2]
-// function AlternativeInfoPanel() {
-// 	const editor = useEditor()
-// 	const tool = useValue(
-// 		'current tool',
-// 		() => {
-// 			if (!editor) throw new Error('No editor')
-// 			return `Current Tool: ${editor.getCurrentToolId()}`
-// 		},
-// 		[editor]
-// 	)
-// 	const zoom = useValue(
-// 		'zoom',
-// 		() => {
-// 			if (!editor) throw new Error('No editor')
-// 			return `Zoom Level: ${editor.getZoomLevel().toFixed(2)}`
-// 		},
-// 		[editor]
-// 	)
+function AlternativeInfoPanel() {
+	const editor = useEditor()
+	const tool = useValue(
+		'current tool',
+		() => {
+			if (!editor) throw new Error('No editor')
+			return `Current Tool: ${editor.getCurrentToolId()}`
+		},
+		[editor]
+	)
+	const zoom = useValue(
+		'zoom',
+		() => {
+			if (!editor) throw new Error('No editor')
+			return `Zoom Level: ${editor.getZoomLevel().toFixed(2)}`
+		},
+		[editor]
+	)
 
-// 	return (
-// 		<div style={{ pointerEvents: 'all', backgroundColor: 'thistle', fontSize: 14, padding: 8 }}>
-// 			<div>{tool}</div>
-// 			<div>{zoom}</div>
-// 		</div>
-// 	)
-// }
+	return (
+		<div style={{ pointerEvents: 'all', backgroundColor: 'thistle', fontSize: 14, padding: 8 }}>
+			<div>{tool}</div>
+			<div>{zoom}</div>
+		</div>
+	)
+}
 
 const components: TLComponents = {
 	SharePanel: InfoPanel,
