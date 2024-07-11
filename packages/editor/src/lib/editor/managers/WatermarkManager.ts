@@ -18,7 +18,12 @@ export class WatermarkManager {
 		const isMobile = window.innerWidth < 840 /* PORTRAIT_BREAKPOINTS[TABLET] */
 
 		const width = isMobile ? '32px' : '120px'
-		const src = getWatermarkSrc({ forceLocal: this.forceLocal, isMobile })
+		let src = ''
+		if (navigator.onLine && !this.forceLocal) {
+			src = `${getDefaultCdnBaseUrl()}/${WATERMARKS_FOLDER}/${isMobile ? WATERMARK_MOBILE_FILENAME : WATERMARK_DESKTOP_FILENAME}`
+		} else {
+			src = isMobile ? watermarkMobile : watermarkDesktop
+		}
 
 		if (src !== watermark.src) {
 			watermark.style.width = width
@@ -49,7 +54,7 @@ export class WatermarkManager {
 
 	private shouldShowWatermark(license: LicenseFromKeyResult) {
 		if (!license.isLicenseParseable) return true
-		if (!license.isDomainValid) return true
+		if (!license.isDomainValid && !license.isDevelopment) return true
 
 		if (license.isPerpetualLicenseExpired || license.isAnnualLicenseExpired) {
 			if (license.isInternalLicense) {
@@ -93,15 +98,6 @@ export class WatermarkManager {
 			const watermark = this.createWatermark()
 
 			this.applyStyles(watermark)
-
-			if (
-				(!license.isLicenseParseable && license.reason === 'has-key-development-mode') ||
-				(license.isLicenseParseable && license.isDevelopment)
-			) {
-				// After 5 seconds, in development mode (dev, staging, CI), remove.
-				watermark.parentNode?.removeChild(watermark)
-				window.removeEventListener('resize', resizeListener)
-			}
 		}, 5000)
 
 		return true
@@ -126,19 +122,5 @@ export class WatermarkManager {
 			window.open('https://tldraw.dev', '_blank', 'noopener noreferrer')
 		}
 		this.setWatermarkSrc(watermark)
-	}
-}
-
-export function getWatermarkSrc({
-	forceLocal,
-	isMobile,
-}: {
-	forceLocal: boolean
-	isMobile: boolean
-}) {
-	if (navigator.onLine && !forceLocal) {
-		return `${getDefaultCdnBaseUrl()}/${WATERMARKS_FOLDER}/${isMobile ? WATERMARK_MOBILE_FILENAME : WATERMARK_DESKTOP_FILENAME}`
-	} else {
-		return isMobile ? watermarkMobile : watermarkDesktop
 	}
 }

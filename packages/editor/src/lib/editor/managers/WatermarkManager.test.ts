@@ -62,6 +62,15 @@ describe('WatermarkManager', () => {
 		expect(watermarkManager.checkWatermark(licenseResult)).toBe(true)
 	})
 
+	it('shows watermark when annual license has expired, even if dev mode', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isAnnualLicense: true,
+			isAnnualLicenseExpired: true,
+			isDevelopment: true,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(true)
+	})
+
 	it('shows watermark when perpetual license has expired', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isPerpetualLicense: true,
@@ -99,6 +108,15 @@ describe('WatermarkManager', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isLicenseParseable: true,
 			isDomainValid: true,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(false)
+	})
+
+	it('does not show watermark when license is parseable and domain is not valid and dev mode', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isLicenseParseable: true,
+			isDomainValid: false,
+			isDevelopment: true,
 		})
 		expect(watermarkManager.checkWatermark(licenseResult)).toBe(false)
 	})
