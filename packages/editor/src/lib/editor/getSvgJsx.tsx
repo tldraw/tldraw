@@ -3,18 +3,12 @@ import {
 	TLGroupShape,
 	TLShape,
 	TLShapeId,
-	createShapeId,
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
-import { FileHelpers, fetch } from '@tldraw/utils'
 import { Fragment, ReactElement } from 'react'
-import WatermarkDesktop from '../../../assets/watermarks/watermark-desktop.svg'
-import { Mat } from '../primitives/Mat'
 import { Editor } from './Editor'
 import { SvgExportContext, SvgExportContextProvider, SvgExportDef } from './types/SvgExportContext'
 import { TLSvgOptions } from './types/misc-types'
-
-let watermarkBase64 = ''
 
 export async function getSvgJsx(
 	editor: Editor,
@@ -66,11 +60,9 @@ export async function getSvgJsx(
 		ids.length === 1 && editor.isShapeOfType<TLFrameShape>(editor.getShape(ids[0])!, 'frame')
 			? ids[0]
 			: null
-	let didExpandPadding = false
 	if (!singleFrameShapeId) {
 		// Expand by an extra 32 pixels
 		bbox.expandBy(padding)
-		didExpandPadding = true
 	}
 
 	// We want the svg image to be BIGGER THAN USUAL to account for image quality
@@ -98,48 +90,6 @@ export async function getSvgJsx(
 			})()
 			exportDefPromisesById.set(def.key, promise)
 		},
-	}
-
-	const createWatermarkShape = async () => {
-		const watermarkWidth = 141
-		const watermarkHeight = 32
-		const watermarkPadding = 8
-		const desiredHeight = bbox.height * 0.05
-		const scaleFactor = desiredHeight / watermarkHeight
-
-		const isWatermarkBiggerThanTheBoundingBox = bbox.height < watermarkHeight + watermarkPadding
-		if (isWatermarkBiggerThanTheBoundingBox) {
-			// Meh, not worth it. Don't worry about it, you get a freebie ;)
-			return []
-		}
-
-		const id = createShapeId()
-		const offsetX =
-			(watermarkWidth + watermarkPadding) * scaleFactor + (didExpandPadding ? padding : 0)
-		const offsetY =
-			(watermarkHeight + watermarkPadding) * scaleFactor + (didExpandPadding ? padding : 0)
-		const pageTransform = Mat.Identity()
-			.translate(bbox.maxX - offsetX, bbox.maxY - offsetY)
-			.scale(scaleFactor, scaleFactor)
-			.toCssString()
-
-		if (!watermarkBase64) {
-			// XXX(mime): this is so weird. Why is fetch needed here?!?
-			const watermarkResponse = await fetch(WatermarkDesktop)
-			const watermarkBlob = await watermarkResponse.blob()
-			watermarkBase64 = await FileHelpers.blobToDataUrl(watermarkBlob)
-		}
-
-		return [
-			{
-				zIndex: 2147483647,
-				element: (
-					<g key={id} transform={pageTransform} opacity={0.5}>
-						<image href={watermarkBase64} width={watermarkWidth} height={watermarkHeight} />
-					</g>
-				),
-			},
-		]
 	}
 
 	const unorderedShapeElements = (
@@ -258,6 +208,6 @@ export async function getSvgJsx(
 			</svg>
 		</SvgExportContextProvider>
 	)
-	console.log(svg)
+
 	return { jsx: svg, width: w, height: h }
 }

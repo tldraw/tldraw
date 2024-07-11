@@ -708,8 +708,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const licenseManager = new LicenseManager()
 			const watermarkManager = new WatermarkManager(this)
 			const license = await licenseManager.getLicenseFromKey(licenseKey)
-			const isTestEnv = typeof process !== 'undefined'
-			this.isWatermarkShown = watermarkManager.checkWatermark(license) && !isTestEnv
+			watermarkManager.checkWatermark(license)
 		}
 		checkLicenseKey(licenseKey)
 
@@ -812,14 +811,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private focusManager: FocusManager
-
-	/**
-	 * Whether the watermark is shown.
-	 * This only affects watermarks on image exports, before you get any ideas.
-	 *
-	 * @internal
-	 */
-	isWatermarkShown = false
 
 	/**
 	 * The current HTML element containing the editor.
