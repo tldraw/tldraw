@@ -333,6 +333,7 @@ export class TLLocalSyncClient {
 	 */
 	private async doPersist() {
 		assert(!this.isPersisting, 'persist already in progress')
+		if (this.didDispose) return
 		this.isPersisting = true
 
 		this.debug('doPersist start')
